@@ -5309,26 +5309,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
     }
 
     private Columns checkUpsertRow(hash<auto> row, reference<int> upsert_strategy) {
-        # unique column source
-        string csrc;
-
-        # get unique columns
-        Columns cols = getUpsertColumns(\csrc);
-
-        # column list: make sure all columns in the key are used and have a value
-        list cl = ();
-        foreach string k in (keys row) {
-            if (!columns.hasKey(k))
-                throw "COLUMN-ERROR", sprintf("%s column %y is not a valid column (valid columns: %y)", getDesc(), k, columns.keys());
-            if (cols.hasKey(k))
-                cl += k;
-        }
-
-        # if not all columns of the unique constraint are used, then throw an exception
-        if (cl.size() != cols.size())
-            throw "UPSERT-ERROR", sprintf("%s: not all columns from %s are used in the upsert statement; required: %y; used: %y", getDesc(), csrc, cols.keys(), cl);
-
-        return cols;
+        return getAllUpsertColumns(row).firstValue();
     }
 
     private code getUpsertInsertFirst(Columns cols, hash example_row, *hash<auto> opt) {
@@ -5402,52 +5383,81 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
     }
 
     private Columns getUpsertColumns(reference<string> csrc) {
+        hash<string, Columns> rv = getAllUpsertColumns();
+        csrc = rv.firstKey();
+        return rv.firstValue();
+    }
+
+    #! returns a hash with a single value\
+    /** @param row if given, a row to match a unique constraint or unique index
+
+        @return a hash where the key is a description of the column set returned in the value;
+        - if \a row is given, then this method returns a column set matching \a row
+        - if \a row is not given, then this method return the first unique constraint or unique index
+
+        @throw UPSERT-ERROR either no unique constraint or index exists or none matching \a row exist
+    */
+    private hash<string, Columns> getAllUpsertColumns(*hash<auto> row) {
         l.lock();
         on_exit l.unlock();
 
         getColumnsUnlocked();
         getPrimaryKeyUnlocked();
 
-        Columns cols;
-
         if (!primaryKey.empty()) {
-            cols = primaryKey;
-            csrc = sprintf("primary key %s", primaryKey.getName());
-        } else {
-            getConstraintsUnlocked();
-            # find first unique constraint
-            foreach AbstractConstraint c in (constraints.iterator()) {
-                if (c instanceof AbstractUniqueConstraint) {
-                    cols = cast<AbstractUniqueConstraint>(c);
-                    csrc = sprintf("unique constraint %s", c.getName());
-                    break;
-                }
-            }
-            if (!cols) {
-                getIndexesUnlocked();
-                foreach AbstractIndex ix in (indexes.iterator()) {
-                    if (ix.unique) {
-                        cols = ix.columns;
-                        csrc = sprintf("unique index %s", ix.name);
-                        break;
-                    }
-                }
-
-                if (!cols)
-                    throw "UPSERT-ERROR", sprintf("%s: cannot perform upsert because there is no primary key, unique constraint, or unique index", getDesc());
+            if ((row && matchUniqueColumns(primaryKey, row)) || !row) {
+                return {sprintf("primary key %s", primaryKey.getName()): primaryKey};
             }
         }
 
-        return cols;
+        # find unique constraints
+        getConstraintsUnlocked();
+        foreach AbstractConstraint c in (constraints.iterator()) {
+            if (c instanceof AbstractUniqueConstraint) {
+                AbstractUniqueConstraint uc = cast<AbstractUniqueConstraint>(c);
+                if ((row && matchUniqueColumns(uc, row)) || !row) {
+                    return {sprintf("unique constraint %s", uc.getName()): uc};
+                }
+            }
+        }
+
+        # find unique indices
+        getIndexesUnlocked();
+        foreach AbstractIndex ix in (indexes.iterator()) {
+            if (ix.unique && ((row && matchUniqueColumns(ix.columns, row)) || !row)) {
+                return {sprintf("unique index %s", ix.name): ix.columns};
+            }
+        }
+
+        throw "UPSERT-ERROR", sprintf("%s: cannot perform upsert because there is no primary key, unique "
+            "constraint, or unique index", getDesc());
+    }
+
+    private bool matchUniqueColumns(Columns cols, hash<auto> row) {
+        if (row.size() < cols.size()) {
+            return False;
+        }
+        # check if all keys described in the unique column set are used in the template row
+        if (row{cols.keys()}.size() == cols.size()) {
+            # now check the rest of the keys in the row to ensure that they are valid column names
+            if (*hash<auto> invalid_columns = row - columns.keys()) {
+                throw "COLUMN-ERROR", sprintf("%s upsert row references invalid columns: %y (valid columns: %y)", getDesc(),
+                    invalid_columns, columns.keys());
+            }
+
+            return True;
+        }
+
+        return False;
     }
 
     private string getUpsertSelectSql(hash<auto> row, Columns cols, reference<list<string>> updc) {
         if (cols.size() != row.size()) {
             # make list of columns not in unique key
             map updc += $1, keys row, !cols.hasKey($1);
-        }
-        else
+        } else {
             updc = cols.keys();
+        }
 
         return sprintf("select %s from %s where %s",
                         (foldl $1 + ", " + $2, getColumnSqlNames(updc)),

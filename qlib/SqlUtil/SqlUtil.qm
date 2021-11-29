@@ -104,6 +104,8 @@ module SqlUtil {
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
     @subsection sqlutilv1_7_4 SqlUtil v1.7.4
+    - fixed upsert usage with unique constraints and indices when there is a non-matching PK
+      (<a href="https://github.com/qorelanguage/qore/issues/4347">issue 4347</a>)
     - added support for starting a transaction with @ref SqlUtil::Table "Table" and
       @ref SqlUtil::AbstractTable "AbstractTable" objects
       (<a href="https://github.com/qorelanguage/qore/issues/4346">issue 4346</a>)
