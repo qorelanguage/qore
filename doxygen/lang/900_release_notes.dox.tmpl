@@ -8,6 +8,18 @@
     Bugfix release; see below for more information
 
     @subsection qore_1_0_12_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - implemented \c AbstractDataProvider::beginTransaction() to support starting a transaction in data providers
+        that support transaction management
+        (<a href="https://github.com/qorelanguage/qore/issues/4346">issue 4346</a>)
+    - <a href="../../modules/DbDataProvider/html/index.html">DbDataProvider</a> module
+      - implemented \c DbDataProvider::beginTransaction() and \c DbTableDataProvider::beginTransaction() to support
+        starting a transaction when using the \c AbstractDataProvider API with databases and tables
+        (<a href="https://github.com/qorelanguage/qore/issues/4346">issue 4346</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
+      - implemented \c AbstracTable::beginTransaction() to support starting a transaction when using the \c SqlUtil
+        API with databases and tables
+        (<a href="https://github.com/qorelanguage/qore/issues/4346">issue 4346</a>)
     - fixed a bug that caused a core dump with implicit object method calls in arguments in the
       @ref background "background operator" expression
       (<a href="https://github.com/qorelanguage/qore/issues/4344">issue 4344</a>)

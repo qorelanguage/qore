@@ -454,6 +454,11 @@ table.create();
             native_case = True;
     }
 
+    #! begins a transaction on the underlying @ref Qore::SQL::AbstractDatasource
+    beginTransaction() {
+        ds.beginTransaction();
+    }
+
     #! commits the current transaction on the underlying @ref Qore::SQL::AbstractDatasource
     commit() {
         ds.commit();

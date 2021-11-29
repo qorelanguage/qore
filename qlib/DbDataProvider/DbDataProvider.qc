@@ -131,8 +131,23 @@ public class DbDataProvider inherits AbstractDataProvider {
         return db.getDatasourceDesc();
     }
 
+    #! Begins a transaction in the datasource
+    /**
+        @see:
+        - commit()
+        - rollback()
+
+        @since DbDataProvider 1.0.1
+    */
+    beginTransaction() {
+        db.beginTransaction();
+    }
+
     #! Commits any transaction in progress in the datasource
     /**
+        @see:
+        - beginTransaction()
+        - rollback()
     */
     commit() {
         db.commit();
@@ -140,6 +155,9 @@ public class DbDataProvider inherits AbstractDataProvider {
 
     #! Rolls back any transaction in progress in the datasource
     /**
+        @see:
+        - beginTransaction()
+        - commit()
     */
     rollback() {
         db.rollback();

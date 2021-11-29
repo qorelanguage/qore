@@ -529,7 +529,7 @@ public namespace RestSchemaValidator {
                         case NT_BINARY:
                             return s;
                         default:
-                            # issue #3547: send as a YAML-serialized string if possible to catch unserialiable data
+                            # issue #3547: send as a YAML-serialized string if possible to catch unserializable data
 %ifndef NoYaml
                             return make_yaml(s);
 %else
@@ -544,7 +544,7 @@ public namespace RestSchemaValidator {
                         case NT_BINARY:
                             return s;
                         default:
-                            # issue #3547: send as a YAML-serialized string if possible to catch unserialiable data
+                            # issue #3547: send as a YAML-serialized string if possible to catch unserializable data
 %ifndef NoYaml
                             return binary(make_yaml(s));
 %else

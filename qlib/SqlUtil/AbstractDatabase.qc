@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore AbstractDatabase class definition
 
-/** AbstractDatabase.qc Copyright 2019 Qore Technologies, s.r.o.
+/** AbstractDatabase.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the SqlUtil module
 public namespace SqlUtil {
 #! the base abstract class for the database implementation
@@ -44,7 +33,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
         */
         const DatabaseOptions = (
             "native_case": Type::Boolean,
-            );
+        );
 
         #! generic cache options
         /** The following keys can be set for this option:
@@ -52,7 +41,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
         */
         const CacheOptions = (
             "table_cache": "Tables",
-            );
+        );
 
         #! generic callback options
         /** The following keys can be set for this option:
@@ -64,7 +53,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
             "info_callback": "code",
             "sql_callback": "code",
             "sql_callback_executed": Type::Boolean,
-            );
+        );
 
         /** @defgroup info_actions Info Callback Action Codes
             These are the action codes used with the @ref info_callback in schema and table alignment
@@ -171,7 +160,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
             "table_cache": "Tables",
             "data_tablespace": Type::String,
             "index_tablespace": Type::String,
-            );
+        );
 
         #! default generic schema description / alignment options
         /** Currently this option is identical to @ref AbstractDatabase::CreationOptions plus the following keys:
@@ -179,7 +168,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
         */
         const AlignSchemaOptions = CreationOptions + (
             "force": Type::Boolean,
-            );
+        );
 
         #! default generic drop schema options
         /** Currently this option is identical to @ref AbstractDatabase::CallbackOptions plus the following keys:
@@ -187,7 +176,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
         */
         const DropSchemaOptions = CallbackOptions + (
             "force": Type::Boolean,
-            );
+        );
 
         #! default generic schema description keys
         /** The following keys can be set in @ref schema_desc_hash "schema description hashes":
@@ -217,7 +206,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
 
             #"views": Type::Hash,
             #"view_map": Type::Hash,
-            );
+        );
 
         #! default generic sequence description keys
         /** The following keys can be set in sequence description hashes:
@@ -229,17 +218,17 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
             "start": Type::Int,
             "increment": Type::Int,
             "end": Type::Int,
-            );
+        );
 
         #! Options for computeStatistics()
         const ComputeStatisticsOptions = (
             "tables"            : "softstringlist",
-            );
+        );
 
         #! Options for reclaimSpace()
         const ReclaimSpaceOptions = (
             "tables"            : "softstringlist",
-            );
+        );
     }
 
     private {
@@ -289,7 +278,8 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
         }
     }
 
-    static private runInfoCallback(code info_callback, int ac, string type, string name, *string table, *string new_name, *string info) {
+    static private runInfoCallback(code info_callback, int ac, string type, string name, *string table,
+            *string new_name, *string info) {
         bool c = (type == "column");
         if (c)
             name = sprintf("%s.%s", table, name);
@@ -303,7 +293,8 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
         info_callback(str, ac, type, name, table, new_name, info);
     }
 
-    static *string doCallback(*hash<auto> opt, *string sql, int ac, string type, string name, *string table, *string new_name, *string info) {
+    static *string doCallback(*hash<auto> opt, *string sql, int ac, string type, string name, *string table,
+            *string new_name, *string info) {
         if (!sql)
             return;
         if (opt.info_callback) {
@@ -322,7 +313,8 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
         return sql;
     }
 
-    static list doCallback(*hash<auto> opt, list sql, int ac, string type, string name, *string table, *string new_name, *string info) {
+    static list doCallback(*hash<auto> opt, list sql, int ac, string type, string name, *string table,
+            *string new_name, *string info) {
         if (!sql)
             return sql;
         if (opt.info_callback) {

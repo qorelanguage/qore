@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.7.3";
+    version = "1.7.4";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -102,6 +102,11 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_7_4 SqlUtil v1.7.4
+    - added support for starting a transaction with @ref SqlUtil::Table "Table" and
+      @ref SqlUtil::AbstractTable "AbstractTable" objects
+      (<a href="https://github.com/qorelanguage/qore/issues/4346">issue 4346</a>)
 
     @subsection sqlutilv1_7_3 SqlUtil v1.7.3
     - added APIs to enable duplicate record creation errors to be detected

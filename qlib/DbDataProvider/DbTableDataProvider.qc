@@ -252,15 +252,33 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return True;
     }
 
+    #! Begins a transaction in the datasource underlying the table
+    /**
+        @see:
+        - commit()
+        - rollback()
+
+        @since DbDataProvider 1.0.1
+    */
+    beginTransaction() {
+        table.beginTransaction();
+    }
+
     #! Commits data written to the data provider
-    /** Has no effect if the data provider does not support transaction management
+    /**
+        @see:
+        - beginTransaction()
+        - rollback()
     */
     commit() {
         table.commit();
     }
 
     #! Rolls back data written to the data provider
-    /** Has no effect if the data provider does not support transaction management
+    /**
+        @see:
+        - beginTransaction()
+        - commit()
     */
     rollback() {
         table.rollback();

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore AbstractDataProvider class definition
 
-/** AbstractDataProvider.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** AbstractDataProvider.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,15 +21,6 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
-
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
@@ -523,14 +514,34 @@ public class AbstractDataProvider {
         return False;
     }
 
+    #! Begins a transaction with a data provider
+    /** Has no effect if the data provider does not support transaction management
+
+        @see:
+        - commit()
+        - rollback()
+
+        @since DataProvider 1.2.2
+    */
+    beginTransaction() {
+    }
+
     #! Commits data written to the data provider
     /** Has no effect if the data provider does not support transaction management
+
+        @see:
+        - beginTransaction()
+        - rollback()
     */
     commit() {
     }
 
     #! Rolls back data written to the data provider
     /** Has no effect if the data provider does not support transaction management
+
+        @see:
+        - beginTransaction()
+        - commit()
     */
     rollback() {
     }
