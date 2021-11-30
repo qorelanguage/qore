@@ -28,7 +28,7 @@
 %strict-args
 
 # make sure we have the required qore version
-%requires qore >= 0.9.13
+%requires qore >= 1.0
 
 # try importing JSON and YAML modules
 %try-module json
@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.0.5";
+    version = "2.0.6";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_0_6 Swagger v2.0.6
+    - fixed a bug where schemas with recursive references could not be loaded
+      (<a href="https://github.com/qorelanguage/qore/issues/4350">issue 4350</a>)
 
     @subsection swagger_2_0_5 Swagger v2.0.5
     - fixed a bug where unknown string format types were not ignored but instead caused an exception to be thrown
@@ -1055,6 +1059,9 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         #! the hash for the schema
         string hash_str;
+
+        #! maps name -> SHA1 hash of the config -> schema objects for recursive references
+        hash<string, hash<string, SchemaObject>> so_map;
     }
 
     private:internal {
@@ -1187,6 +1194,15 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             if (optional_field(objType, oh, "externalDocs", NT_HASH, \extDocsObj))
                 externalDocs = new ExternalDocumentationObject(extDocsObj);
         }
+    }
+
+    *SchemaObject tryGetSchemaObject(string name, hash<auto> oh, reference<string> hash_str) {
+        hash_str = sprintf("%y", oh).toSHA1();
+        return so_map{name}{hash_str};
+    }
+
+    cacheSchemaObject(string name, string hash_str, SchemaObject so) {
+        so_map{name}{hash_str} = so;
     }
 
     #! resolves a reference to a schema object
@@ -3617,8 +3633,10 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    private constructor(string name, hash<auto> oh, SwaggerSchema swagger) : ObjectBase(oh), SchemaBase("Schema", oh) {
+    private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string hash_str) : ObjectBase(oh), SchemaBase("Schema", oh) {
         self.name = name;
+        # add static map reference
+        swagger.cacheSchemaObject(name, hash_str ?? sprintf("%y", oh).toSHA1(), self);
         string objType = "Schema";
 
         if (optional_field(objType, oh, "type", NT_STRING, \type)) {
@@ -3886,7 +3904,13 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         string refstr;
         if (optional_field("Schema", oh, "$ref", NT_STRING, \refstr))
             return swagger.resolveSchemaObject(name, refstr, oh);
-        return new SchemaObject(name, oh, swagger);
+
+        string hash_str;
+        *SchemaObject rv = swagger.tryGetSchemaObject(name, oh, \hash_str);
+        if (rv) {
+            return rv;
+        }
+        return new SchemaObject(name, oh, swagger, hash_str);
     }
 
     #! throws an \c "INVALID-FIELD-TYPE" exception
