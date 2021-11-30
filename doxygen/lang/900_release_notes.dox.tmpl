@@ -16,6 +16,9 @@
       - implemented \c DbDataProvider::beginTransaction() and \c DbTableDataProvider::beginTransaction() to support
         starting a transaction when using the \c AbstractDataProvider API with databases and tables
         (<a href="https://github.com/qorelanguage/qore/issues/4346">issue 4346</a>)
+    - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module
+      - fixed handling column names that use reserved words
+        (<a href="https://github.com/qorelanguage/qore/issues/4348">issue 4348</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
       - fixed upsert usage with unique constraints and indices when there is a non-matching PK
         (<a href="https://github.com/qorelanguage/qore/issues/4347">issue 4347</a>)

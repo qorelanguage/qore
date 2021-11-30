@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.5.2";
+    version = "1.5.3";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -151,6 +151,10 @@ $function$
     to use functionality like @ref SqlUtil::AbstractDatabase::getAlignFunctionSql() "AbstractDatabase::getAlignFunctionSql()" for example.
 
     @section pgsql_relnotes Release Notes
+
+    @subsection pgsqlsqlutilv151 PgsqlSqlUtil v1.5.3
+    - fixed handling column names that use reserved words
+      (<a href="https://github.com/qorelanguage/qore/issues/4348">issue 4348</a>)
 
     @subsection pgsqlsqlutilv151 PgsqlSqlUtil v1.5.2
     - added APIs to enable duplicate record creation errors to be detected
@@ -1946,20 +1950,28 @@ auto v = c.name;
 
         private Columns describeImpl() {
             # get column descriptions
-            *hash qh = ds.select("select column_name, data_type, character_maximum_length, character_octet_length, numeric_precision, numeric_scale, datetime_precision, is_nullable, column_default, description from information_schema.columns c join pg_catalog.pg_statio_all_tables st on (c.table_schema = st.schemaname and c.table_name = st.relname) left join pg_catalog.pg_description pgd on (st.relid = pgd.objoid and pgd.objsubid = c.ordinal_position) where table_schema = %v and table_name = %v order by ordinal_position", schema, name);
+            *hash<auto> qh = ds.select("select column_name, data_type, character_maximum_length, "
+                "character_octet_length, numeric_precision, numeric_scale, datetime_precision, is_nullable, "
+                "column_default, description from information_schema.columns c "
+                "join pg_catalog.pg_statio_all_tables st on (c.table_schema = st.schemaname and c.table_name = "
+                "st.relname) left join pg_catalog.pg_description pgd on (st.relid = pgd.objoid and pgd.objsubid = "
+                "c.ordinal_position) where table_schema = %v and table_name = %v order by ordinal_position", schema,
+                name);
             if (!qh.column_name)
                 throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
 
-            hash rv;
+            hash<auto> rv;
             foreach hash<auto> row in (qh.contextIterator()) {
-                *hash th = PgsqlTypeMap.(row.data_type);
+                *hash<auto> th = PgsqlTypeMap.(row.data_type);
                 softint size = row.character_maximum_length ? row.character_maximum_length : row.numeric_precision;
-                if (!size)
+                if (!size) {
                     size = row.datetime_precision;
+                }
                 # use short names in descriptions
                 *string an = PgsqlNameMap{row.data_type};
-                if (an)
+                if (an) {
                     row.data_type = an;
+                }
                 switch (th.qore) {
                     case Type::Int:
                     case Type::Float: {
@@ -1972,39 +1984,60 @@ auto v = c.name;
                 PgsqlColumn c;
                 *string defval = row.column_default;
                 # normalize default value expressions
-                if (defval =~ /::bpchar$/)
+                if (defval =~ /::bpchar$/) {
                     defval =~ s/::bpchar$//;
-                if (row.numeric_precision)
-                    c = new PgsqlNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, 0, row.numeric_scale);
-                else
-                    c = new PgsqlColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, row.character_octet_length);
+                }
+                # issue #4348: strip quotes from columns using reserved words
+                row.column_name =~ s/^"(.*)"$/$1/g;
+                if (row.numeric_precision) {
+                    c = new PgsqlNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision,
+                        row.is_nullable == "YES", defval, row.description ? row.description : NOTHING, 0,
+                        row.numeric_scale);
+                } else {
+                    c = new PgsqlColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0,
+                        row.is_nullable == "YES", defval, row.description ? row.description : NOTHING,
+                        row.character_octet_length);
+                }
 
-                rv.(row.column_name) = c;
+                rv{row.column_name} = c;
             }
 
             return new Columns(rv);
         }
 
         private PgsqlPrimaryKey getPrimaryKeyImpl() {
-            hash rv;
-
             # get primary key description
-            *hash qh = ds.select("select c1.relname index_name, a.attname, pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, TRUE) AS column_name, pg_catalog.format_type(a.atttypid, a.atttypmod), tablespace from pg_class c, pg_index i, pg_attribute a, pg_class c1, pg_indexes ix where c.oid = %v::regclass and c.oid = i.indrelid and i.indisprimary and i.indexrelid = a.attrelid and c1.oid = i.indexrelid and c1.relname = ix.indexname and i.indisvalid and not a.attisdropped order by a.attnum", schema + "." + name);
-            if (!qh.index_name)
+            *hash<auto> qh = ds.select("select c1.relname index_name, a.attname, "
+                "pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, TRUE) AS column_name, "
+                "pg_catalog.format_type(a.atttypid, a.atttypmod), tablespace from pg_class c, pg_index i, "
+                "pg_attribute a, pg_class c1, pg_indexes ix where c.oid = %v::regclass and c.oid = i.indrelid and "
+                "i.indisprimary and i.indexrelid = a.attrelid and c1.oid = i.indexrelid and c1.relname = "
+                "ix.indexname and i.indisvalid and not a.attisdropped order by a.attnum", schema + "." + name);
+            if (!qh.index_name) {
                 return new PgsqlPrimaryKey();
+            }
 
             #printf("PgsqlTable::getPrimaryKeyImpl(): %s: %N\n", getName(), qh);
-            foreach string col in (qh.column_name)
+            hash<auto> rv;
+            foreach string col in (qh.column_name) {
+                # issue #4348: strip quotes from columns using reserved words
+                col =~ s/^"(.*)"$/$1/g;
                 rv{col} = columns{col};
+            }
 
             return new PgsqlPrimaryKey(qh.index_name[0], rv, qh.tablespace[0] ? qh.tablespace[0] : NOTHING);
         }
 
         private Indexes getIndexesImpl() {
-            hash rv;
+            hash<auto> rv;
 
             # get index descriptions
-            *hash qh = ds.select("SELECT i.relname index_name, d.indisunique, d.indisprimary, pg_get_indexdef(i.oid, a.attnum, false) column_name, tablespace FROM pg_class t, pg_class i, pg_index d, pg_attribute a, pg_indexes xs WHERE i.relkind = 'i' and i.relname = xs.indexname AND d.indexrelid = i.oid and t.oid = d.indrelid AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (%v)) AND a.attrelid = i.oid AND t.relname = %v ORDER BY i.relname, attnum", schema, name);
+            *hash<auto> qh = ds.select("SELECT i.relname index_name, d.indisunique, d.indisprimary, "
+                "pg_get_indexdef(i.oid, a.attnum, false) column_name, tablespace FROM pg_class t, pg_class i, "
+                "pg_index d, pg_attribute a, pg_indexes xs WHERE i.relkind = 'i' and i.relname = xs.indexname AND "
+                "d.indexrelid = i.oid and t.oid = d.indrelid AND i.relnamespace IN (SELECT oid FROM pg_namespace "
+                "WHERE nspname IN (%v)) AND a.attrelid = i.oid AND t.relname = %v ORDER BY i.relname, attnum", schema,
+                name);
 
             if (qh.index_name) {
                 hash<auto> ih;
@@ -2016,11 +2049,14 @@ auto v = c.name;
                             "primary": row.indisprimary,
                         );
                     }
+                    # issue #4348: strip quotes from columns using reserved words
+                    row.column_name =~ s/^"(.*)"$/$1/g;
                     # send "blank" column for function index
-                    if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
+                    if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name)) {
                         ih.(row.index_name).columns{row.column_name} = {};
-                    else
+                    } else {
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
+                    }
                 }
 
                 foreach hash<auto> i in (ih.pairIterator()) {
@@ -2041,7 +2077,7 @@ auto v = c.name;
                             continue;
                         }
                     }
-                    rv.(i.key) = new PgsqlIndex(i.key, i.value.unique, i.value.columns, i.value.tablespace ? i.value.tablespace : NOTHING);
+                    rv{i.key} = new PgsqlIndex(i.key, i.value.unique, i.value.columns, i.value.tablespace ? i.value.tablespace : NOTHING);
                 }
             }
 
@@ -2115,12 +2151,19 @@ auto v = c.name;
             Constraints c = new Constraints(rv);
 
             # get unique constraints
-            qh = ds.select("select tc.constraint_name, kcu.column_name from information_schema.table_constraints tc join information_schema.key_column_usage kcu on (tc.table_schema = kcu.table_schema and tc.table_name = kcu.table_name and tc.constraint_name = kcu.constraint_name) where constraint_type = 'UNIQUE' and tc.table_schema = %v and tc.table_name = %v order by ordinal_position", schema, name);
+            qh = ds.select("select tc.constraint_name, kcu.column_name from information_schema.table_constraints tc "
+                "join information_schema.key_column_usage kcu on (tc.table_schema = kcu.table_schema and "
+                "tc.table_name = kcu.table_name and tc.constraint_name = kcu.constraint_name) where "
+                "constraint_type = 'UNIQUE' and tc.table_schema = %v and tc.table_name = %v order by "
+                "ordinal_position", schema, name);
             delete rv;
             foreach hash<auto> row in (qh.contextIterator()) {
                 reference<PgsqlUniqueConstraint> ch = \rv.(row.constraint_name);
-                if (!ch)
+                if (!ch) {
                     ch = new PgsqlUniqueConstraint(row.constraint_name, {}, row.status == "ENABLED");
+                }
+                # issue #4348: strip quotes from columns using reserved words
+                row.column_name =~ s/^"(.*)"$/$1/g;
                 ch.add(row.column_name, columns{row.column_name});
             }
 
