@@ -28,6 +28,9 @@
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
       - fixed a bug where schemas with recursive references could not be loaded
         (<a href="https://github.com/qorelanguage/qore/issues/4350">issue 4350</a>)
+    - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
+      - fixed a bug where recursive definitions in a Swagger schema resulted in runtime errors using the schema
+        (<a href="https://github.com/qorelanguage/qore/issues/4351">issue 4351</a>)
     - <a href="../../modules/Util/html/index.html">Util</a> module
       - fixed a bug in \c parse_to_qore_value() with floats and numbers with trailing zeros
         (<a href="https://github.com/qorelanguage/qore/issues/4349">issue 4349</a>)

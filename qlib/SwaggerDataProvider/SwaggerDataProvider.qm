@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SwaggerDataProvider module definition
 
-/*  SwaggerDataProvider.qm Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/*  SwaggerDataProvider.qm Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.6
+%requires qore >= 1.0
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -38,7 +38,7 @@
 %requires(reexport) RestClient
 
 module SwaggerDataProvider {
-    version = "1.0.3";
+    version = "1.0.4";
     desc = "user module providing a data provider API for Swagger schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,10 @@ module SwaggerDataProvider {
     - @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider"
 
     @section swaggerdataprovider_relnotes Release Notes
+
+    @subsection swaggerdataprovider_v1_0_4 SwaggerDataProvider v1.0.4
+    - fixed a bug where recursive definitions in a Swagger schema resulted in runtime errors using the schema
+      (<a href="https://github.com/qorelanguage/qore/issues/4351">issue 4351</a>)
 
     @subsection swaggerdataprovider_v1_0_3 SwaggerDataProvider v1.0.3
     - fixed a bug where the base path in the Swagger schema was ignored

@@ -102,6 +102,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     private *hash<string, AbstractDataField> getRecordTypeIntern() {
         *ResponseObject response = getSuccessResponse();
         if (response.schema) {
+            RecursiveSearchHelper rsh();
             AbstractDataField response_field = getFieldFromSchema("body", "REST response body argument",
                 response.schema);
             AbstractDataProviderType type = response_field.getType();
@@ -123,6 +124,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         }
         *AbstractParameterObject body = op.body ?? pio.body;
         if (body) {
+            RecursiveSearchHelper rsh();
             rv.addField(getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(body).schema, body.required ?? False));
             if (!required && body.required) {
                 required = True;
@@ -185,9 +187,11 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         label += " response";
         HashDataType rv();
         if (response.schema) {
+            RecursiveSearchHelper rsh();
             rv.addField(getFieldFromSchema("body", "REST " + label + " body argument", response.schema));
         }
         if (response.headers) {
+            RecursiveSearchHelper rsh();
             rv.addField(getFieldForHeaders("headers", response.headers));
         }
         return rv;

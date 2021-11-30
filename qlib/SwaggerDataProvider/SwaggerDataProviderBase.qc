@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SwaggerDataProvider module definition
 
-/** SwaggerDataProviderBase.qc Copyright 2019 - 2020 Qore Technologies, s.r.o.
+/** SwaggerDataProviderBase.qc Copyright 2019 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -84,14 +84,23 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
             }
         }
         if (schema.type == "object") {
-            return new QoreDataField(name, desc, getSchemaDataType(schema, required));
+            # check for recursive field definitions
+            RecursiveFieldHelper rfh(self, "schema", name);
+            return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getSchemaDataType(schema, required)));
         }
         return getFieldFromParameter(name, schema.type, schema.items, desc, required);
     }
 
     #! Returns the data type for the given schema
     private AbstractDataProviderType getSchemaDataType(SchemaObject schema, bool required = True) {
+        # check for recursive type definitions
+        RecursiveTypeHelper rth(self, schema.uniqueHash());
+        if (*AbstractDataProviderType t = rth.get()) {
+            return t;
+        }
+
         HashDataType type(required ? AutoHashType : AutoHashOrNothingType);
+        rth.set(type);
         map type.addField(getFieldFromSchema($1.key, NOTHING, $1.value, exists schema.required{$1.key})),
             schema.properties.pairIterator();
         if (schema.additionalProperties) {
@@ -104,8 +113,11 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
     }
 
     #! Returns a field from a Swagger parameter
-    private AbstractDataField getFieldFromParameter(string name, string type, *SchemaObject arrayItems, *string desc, bool required) {
-        return new QoreDataField(name, desc, getType(type, arrayItems, required));
+    private AbstractDataField getFieldFromParameter(string name, string type, *SchemaObject arrayItems, *string desc,
+            bool required) {
+        # check for recursive field definitions
+        RecursiveFieldHelper rfh(self, "field", name);
+        return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getType(type, arrayItems, required)));
     }
 
     #! Returns the data type corresponding to the values
@@ -136,9 +148,78 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
 
     #! Returns a field of header fields
     private AbstractDataField getFieldForHeaders(string name, hash<auto> headers) {
+        RecursiveFieldHelper rfh(self, "headers", name);
+        if (*QoreDataField f = rfh.get()) {
+            return f;
+        }
+
         HashDataType recordType();
         map recordType.addField(getFieldFromParameter($1.key, $1.value.type, $1.value.items, $1.value.desc, False)), headers.pairIterator();
-        return new QoreDataField(name, "HTTP headers", recordType);
+        return rfh.set(new QoreDataField(name, "HTTP headers", recordType));
+    }
+}
+}
+
+namespace Priv {
+const RecursiveKey = "__swagger_dp_rec_key$$";
+
+class RecursiveFieldHelper {
+    private {
+        *hash<auto> tld = get_thread_data(RecursiveKey);
+        string hash_str;
+        string ptype;
+        string name;
+        *QoreDataField f;
+    }
+
+    constructor(object obj, string ptype, string name) {
+        # check for recursive field definitions
+        hash_str = obj.uniqueHash();
+        self.ptype = ptype;
+        self.name = name;
+
+        f = tld.field{hash_str}{ptype}{name};
+    }
+
+    *QoreDataField get() {
+        return f;
+    }
+
+    QoreDataField set(QoreDataField new_field) {
+        tld.field{hash_str}{ptype}{name} = new_field;
+        save_thread_data(RecursiveKey, tld);
+        return new_field;
+    }
+}
+
+class RecursiveTypeHelper {
+    private {
+        *hash<auto> tld = get_thread_data(RecursiveKey);
+        string hash_str;
+        *AbstractDataProviderType t;
+    }
+
+    constructor(object obj, string hash_str) {
+        # check for recursive field definitions
+        self.hash_str = hash_str;
+
+        t = tld.type{hash_str};
+    }
+
+    *AbstractDataProviderType get() {
+        return t;
+    }
+
+    AbstractDataProviderType set(AbstractDataProviderType new_type) {
+        tld.type{hash_str} = new_type;
+        save_thread_data(RecursiveKey, tld);
+        return new_type;
+    }
+}
+
+class RecursiveSearchHelper {
+    destructor() {
+        delete_thread_data(RecursiveKey);
     }
 }
 }
