@@ -519,7 +519,7 @@ binary <binary>::substr(softint start, softint len) [flags=CONSTANT] {
 
     @par Example:
     @code{.py}
-string str = b.toString(b, "iso-8859-1");
+string str = b.toString("iso-8859-1");
     @endcode
 
     @since %Qore 0.8.8

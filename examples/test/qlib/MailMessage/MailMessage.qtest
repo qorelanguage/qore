@@ -63,17 +63,17 @@ public class Main inherits QUnit::Test {
 To: target@bar.cz\r
 Subject: foo bar\r
 MIME-Version: 1.0\r
-Content-Type: multipart/mixed;boundary=MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: multipart/mixed; boundary=MjAxNjAxMjIxMTQ4MDg\r
 \r
 This is a MIME multipart message\r
 --MjAxNjAxMjIxMTQ4MDg\r
-Content-Type: text/plain;charset=UTF-8\r
+Content-Type: text/plain; charset=UTF-8\r
 Content-Disposition: inline\r
 Content-Transfer-Encoding: quoted-printable\r
 \r
 some body\r
 --MjAxNjAxMjIxMTQ4MDg\r
-Content-Type: text/plain;charset=UTF-8\r
+Content-Type: text/plain; name=\"foo.txt\"; charset=UTF-8\r
 Content-Disposition: attachment; filename=\"foo.txt\"\r
 Content-Transfer-Encoding: base64\r
 \r
@@ -97,17 +97,17 @@ bG9yZW0gaXBzdW0=\r
 To: target@bar.cz\r
 Subject: foo bar\r
 MIME-Version: 1.0\r
-Content-Type: multipart/mixed;boundary=MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: multipart/mixed; boundary=MjAxNjAxMjIxMTQ4MDg\r
 \r
 This is a MIME multipart message\r
 --MjAxNjAxMjIxMTQ4MDg\r
-Content-Type: text/plain;charset=UTF-8\r
+Content-Type: text/plain; charset=UTF-8\r
 Content-Disposition: inline\r
 Content-Transfer-Encoding: quoted-printable\r
 \r
 body\r
 --MjAxNjAxMjIxMTQ4MDg\r
-Content-Type: text/plain;charset=UTF-8\r
+Content-Type: text/plain; name=\"foo.txt\"; charset=UTF-8\r
 Content-Disposition: attachment; filename=\"foo.txt\"\r
 Content-Transfer-Encoding: base64\r
 \r
@@ -133,17 +133,17 @@ bG9yZW0gaXBzdW0=\r
 To: target@bar.cz\r
 Subject: foo bar\r
 MIME-Version: 1.0\r
-Content-Type: multipart/mixed;boundary=MjAxNjAxMjIxMTQ4MDg\r
+Content-Type: multipart/mixed; boundary=MjAxNjAxMjIxMTQ4MDg\r
 \r
 This is a MIME multipart message\r
 --MjAxNjAxMjIxMTQ4MDg\r
-Content-Type: text/plain;charset=UTF-8\r
+Content-Type: text/plain; charset=UTF-8\r
 Content-Disposition: inline\r
 Content-Transfer-Encoding: quoted-printable\r
 \r
 body\r
 --MjAxNjAxMjIxMTQ4MDg\r
-Content-Type: text/plain;charset=UTF-8\r
+Content-Type: text/plain; name=\"foo.txt\"; charset=UTF-8\r
 Content-Disposition: attachment; filename=\"foo.txt\"\r
 Content-Transfer-Encoding: quoted-printable\r
 \r

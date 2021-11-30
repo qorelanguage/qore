@@ -31,7 +31,7 @@
 %new-style
 
 module Mime {
-    version = "1.4.3";
+    version = "1.4.4";
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
@@ -44,9 +44,11 @@ module Mime {
 
     @section mimeintro Introduction to the Mime Module
 
-    The %Mime module provides definitions and functions related to MIME processing.  MIME concepts are used in HTTP and SMTP communications, among others.
+    The %Mime module provides definitions and functions related to MIME processing.  MIME concepts are used in HTTP
+    and SMTP communications, among others.
 
-    To use this module, use \c "%requires Mime" in your code.  See the SmtpClient and the HttpServer modules for examples of %Qore code using this module.
+    To use this module, use \c "%requires Mime" in your code.  See the SmtpClient and the HttpServer modules for
+    examples of %Qore code using this module.
 
     All the public symbols in the module are defined in the Mime namespace
 
@@ -56,9 +58,15 @@ module Mime {
     - @ref MimeEncodingFunctions "MimeEncodingFunctions": functions for encoding MIME data
     - @ref MimeDecodingFunctions "MimeDecodingFunctions": functions for decoding MIME data
     - @ref MultiPartConstants "MultiPartConstants": constants for the MultiPartMessage classes
-    - @ref Mime::MultiPartFormDataMessage "MultiPartFormDataMessage": a class for handling multipart/form-data messages
+    - @ref Mime::MultiPartAlternativeMessage "MultiPartAlternativeMessage": a class for handling multipart/alternative
+      messages
+    - @ref Mime::MultiPartFormDataMessage "MultiPartFormDataMessage": a class for handling multipart/form-data
+      messages
     - @ref Mime::MultiPartMessage "MultiPartMessage": the base class for MultiPartMessage classes
-      - @ref Mime::MultiPartMessage::parseBody() "MultiPartMessage::parseBody()": this static function can be used to parse a multipart message body (including parts with subparts if the \a decode argument is @ref True "True"); this static method can be used for both HTTP multipart messages or text multipart messages (for example as sent in an email/SMTP message)
+      - @ref Mime::MultiPartMessage::parseBody() "MultiPartMessage::parseBody()": this static function can be used to
+        parse a multipart message body (including parts with subparts if the \a decode argument is @ref True "True");
+        this static method can be used for both HTTP multipart messages or text multipart messages (for example as
+        sent in an email/SMTP message)
     - @ref Mime::MultiPartMixedMessage "MultiPartMixedMessage": a class for handling multipart/mixed messages
     - @ref Mime::MultiPartRelatedMessage "MultiPartRelatedMessage": a class for handling multipart/related messages
 
@@ -74,7 +82,8 @@ module Mime {
 %requires Mime
 
 string str = "This is a test: æéìœü";
-printf("%y: quoted printable: %y\n", mime_decode_quoted_printable(mime_encode_quoted_printable(str)), mime_encode_quoted_printable(str));
+printf("%y: quoted printable: %y\n", mime_decode_quoted_printable(mime_encode_quoted_printable(str)),
+    mime_encode_quoted_printable(str));
 printf("%y: base64: %y\n", mime_decode_base64_to_string(mime_encode_base64(str)), mime_encode_base64(str));
 printf("%y: header word q: %y\n", mime_decode_header(mime_encode_header_word_q(str)), mime_encode_header_word_q(str));
 printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(str)), mime_encode_header_word_b(str));
@@ -88,6 +97,10 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
     @endverbatim
 
     @section mimereleasenotes Release Notes
+
+    @subsection mime_1_4_4 v1.4.4
+    - various fixes from downstream to Mime data handling
+      (<a href="https://github.com/qorelanguage/qore/issues/4352">issue 4352</a>)
 
     @subsection mime_1_4_3 v1.4.3
     - fixed bugs parsing binary data in multipart messages
@@ -115,7 +128,8 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
       - @ref Mime::MultiPartMessage::getBoundary() "MultiPartMessage::getBoundary()"
       - @ref Mime::MultiPartMessage::serializeBody() "MultiPartMessage::serializeBody()"
       - @ref Mime::MultiPartMessage::size() "MultiPartMessage::size()"
-    - fixed a bug parsing multipart messages where unnecessary characters were searched (<a href="https://github.com/qorelanguage/qore/issues/2099">issue 2099</a>)
+    - fixed a bug parsing multipart messages where unnecessary characters were searched
+      (<a href="https://github.com/qorelanguage/qore/issues/2099">issue 2099</a>)
 
     @subsection mime_1_3_4_1 v1.3.4.1
     - added support for generating and parsing MIME multipart form encoded data
@@ -546,11 +560,13 @@ public namespace Mime {
         return make_base64_string(str, len);
     }
 
-    #! returns a string in "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
-    /** @param str the string to encode
+    #! returns a string in "quoted-printable" (or "QP") encoding
+    /** According to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
+
+        @param str the string to encode
         @param hdr use rules for a MIME header (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
-     */
-    public string sub mime_encode_quoted_printable(string str, bool hdr = False) {
+    */
+    public string sub mime_encode_quoted_printable(string str, bool hdr = False, *string encoding) {
         string rv;
         int lp = 0;
 
@@ -576,18 +592,32 @@ public namespace Mime {
             # new string to append
             string nc;
             # if we are encoding a header and we have a space, transform to "_"
-            if (hdr && c == 32)
+            if (hdr && c == 32) {
                 nc = "_";
-            # check if the high bit is set or if it's an ASCII control character or '=', or we are encoding a header and the char is not '?' and '_', encode
-            else if ((c & 0x80) || c < 32 || c == 61 || (hdr && (c == 63 || c == 95 || c == 137)))
+                # check if the high bit is set or if it's an ASCII control character or '=', or we are encoding a
+                # header and the char is not '?' and '_', encode
+            } else if ((c & 0x80) || c < 32 || c == 61 || (!hdr && c == 46) || (hdr && (c == 63 || c == 95
+                || c == 137))) {
                 nc = sprintf("=%02x", c).upr();
-            else
+            } else {
                 nc = chr(c);
+            }
 
-            # we MUST break up lines longer than 76 characters (the line length includes the '=' but not the CRLF
-            if ((nc.size() + lp) >= (MimeQuotedPrintableLineLen - 1)) {
+            # used for body and parts
+            if (!hdr && (nc.size() + lp) >= (MimeQuotedPrintableLineLen - 1)) {
                 # insert soft line break
                 rv += "=\r\n";
+                lp = 0;
+            } else if (hdr && (nc.size() + lp) >= (MimeQuotedPrintableLineLen - 2)) {
+                # we MUST break up lines longer than 76 characters (the line length includes the '?=' but not the CRLF
+                # for every line break we put separate encoding blocks
+                # used for headers
+                # example (notice space after first line, it will break the headers without it)
+                # =?UTF-8?Q?F=C3=BCJon_Doe_Austria_<jondoe.verylongemailblablbalbablbalblbabla@gmail.?=
+                #  =?UTF-8?Q?com><jondoe.verylongemailblablbalbablbalblbabla@gmail.com>
+
+                # insert soft line break
+                rv += sprintf("?=\r\n =?%s?Q?", encoding);
                 lp = 0;
             }
 
@@ -621,12 +651,16 @@ public namespace Mime {
         throw "MIME-TRANSFER-ENCODING-ERROR", sprintf("Content-Transfer-Encoding: %y is unknown", enc);
     }
 
-    #! returns a string in "B" ("BASE64") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
+    #! returns a string in "B" ("BASE64") encoding for MIME header string words
+    /** According to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
+    */
     public string sub mime_encode_header_word_b(string str) {
         return sprintf("=?%s?B?%s?=", get_encoding(str), make_base64_string(str, MimeBase64LineLen));
     }
 
-    #! returns a string in "Q" ("quoted-printable") encoding for MIME header string words according to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
+    #! returns a string in "Q" ("quoted-printable") encoding for MIME header string words
+    /** According to <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>
+    */
     public string sub mime_encode_header_word_q(string str) {
         return sprintf("=?%s?Q?%s?=", get_encoding(str), mime_encode_quoted_printable(str, True));
     }
@@ -635,8 +669,10 @@ public namespace Mime {
     /** @defgroup MimeDecodingFunctions MIME Decoding Functions
      */
     #@{
-    #! returns a binary value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
-    /** @param str the string to decode
+    #! returns a binary value from a string in "BASE64" encoding
+    /** According to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
+
+        @param str the string to decode
 
         @note this function is basically just a wrapper for the standard %Qore function parse_base64_string()
      */
@@ -644,8 +680,10 @@ public namespace Mime {
         return parse_base64_string(str.typeCode() == NT_STRING ? str : str.toString());
     }
 
-    #! returns a string value from a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
-    /** @param str the string to decode
+    #! returns a string value from a string in "BASE64" encoding
+    /** According to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
+
+        @param str the string to decode
         @param encoding the character encoding to use for the string returned (if not present the default encoding is used)
 
         @note this function is basically just a wrapper for the standard %Qore function parse_base64_string_to_string()
@@ -654,13 +692,15 @@ public namespace Mime {
         return parse_base64_string_to_string(str, encoding);
     }
 
-    #! returns a string parsed from "quoted-printable" (or "QP") encoding according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
-    /** @param str the string to decode
+    #! returns a string parsed from "quoted-printable" (or "QP") encoding
+    /** According to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
+
+        @param str the string to decode
         @param encoding the character encoding to use for the string returned (if not present the default encoding is used)
 
         @throw QUOTED-PRINTABLE-DECODE-ERROR an error occurred decoding the quoted-printable string
      */
-    public string sub mime_decode_quoted_printable(string str, *string encoding) {
+    public string sub mime_decode_quoted_printable(string str, *string encoding, *bool is_body) {
         str = force_encoding(str, "us-ascii");
 
         if (encoding.empty())
@@ -678,7 +718,9 @@ public namespace Mime {
 %endif
 
         # substitute all "_" occurrences with " "
-        str = replace(str, "_", " ");
+        if (!is_body) {
+            str = replace(str, "_", " ");
+        }
 
         int i = 0;
         while (True) {
@@ -686,7 +728,7 @@ public namespace Mime {
             if (i == -1)
                 break;
 
-            string hex = extract str, i + 1, 2;
+            string hex = toupper(extract str, i + 1, 2);
             # according to RFC 2045 sec 6.7 rule (1): we have to use upper-case characters
             if (hex !~ /[0-9A-Z][0-9A-Z]/)
                 throw "QUOTED-PRINTABLE-DECODE-ERROR", sprintf("invalid hex byte code found: %y", hex);
@@ -700,12 +742,14 @@ public namespace Mime {
 
     #! decodes data according to the given encoding
     /** @param mime_data the data to decode
-        @param enc the decoding to use; see @ref MimeContentTransferEncodingConstants for possible values (case is ignored)
-        @param ct the content-type of the data; if there is a \c "charset=xxx" component and the data is decoded to a string, then it will be returned in the given character encoding
+        @param enc the decoding to use; see @ref MimeContentTransferEncodingConstants for possible values (case is
+        ignored)
+        @param ct the content-type of the data; if there is a \c "charset=xxx" component and the data is decoded to a
+        string, then it will be returned in the given character encoding
 
         @throw MIME-TRANSFER-ENCODING-ERROR unknown transfer encoding
      */
-    public data sub mime_decode_transfer_data(data mime_data, string enc, *string ct) {
+    public data sub mime_decode_transfer_data(data mime_data, string enc, *string ct, *bool is_body) {
         enc = enc.lwr();
         switch (enc) {
             case ContentTransEnc7Bit:
@@ -714,13 +758,15 @@ public namespace Mime {
                 break;
 
             case ContentTransEncBase64: {
-                mime_data = mime_decode_base64(mime_data);
+                mime_data = (mime_data.typeCode() == NT_STRING)
+                    ? mime_decode_base64(mime_data)
+                    : mime_decode_base64(binary_to_string(mime_data, enc));
                 break;
             }
 
             case ContentTransEncQuotedPrintable: {
                 mime_data = mime_decode_quoted_printable(
-                    mime_data.typeCode() == NT_STRING ? mime_data : mime_data.toString()
+                    mime_data.typeCode() == NT_STRING ? mime_data : mime_data.toString(enc), enc, is_body
                 );
                 break;
             }
@@ -739,18 +785,28 @@ public namespace Mime {
         return mime_data;
     }
 
-    #! decodes a header string; if any part of the string is encoded with "B" ("BASE64") or "Q" ("quoted-printable") encodings according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>, then those parts are decoded and the decoded string is returned
-    /** @param hdr the header value string to decode
+    #! decodes a header string
+    /** If any part of the string is encoded with "B" ("BASE64") or "Q" ("quoted-printable") encodings
+        according to <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>, then those
+        parts are decoded and the decoded string is returned
+
+        @param hdr the header value string to decode
         @return the decoded value of the header
      */
     public string sub mime_decode_header(string hdr) {
+        int count = 0;
         while (True) {
-            (*string enc, *string he, *string hw) = (hdr =~ x/=\?([^?]+)\?(Q|B)\?(.+)\?=/i);
-            if (!enc.val() || !he.val() || !hw.val())
+            (*string enc, *string he, *string hw) = (hdr =~ x/=\?([^?]+)\?(Q|B)\?([^?]+)\?=/i);
+            if (!enc.val() || !he.val() || !hw.val()) {
                 break;
+            }
             string dv = he.upr() == "Q" ? mime_decode_quoted_printable(hw, enc) : mime_decode_base64_to_string(hw, enc);
-            string os = sprintf("=?%s?%s?%s?=", enc, he, hw);
+            # remove space in front of multiline headers
+            string os = (!count)
+                ? sprintf("=?%s?%s?%s?=", enc, he, hw)
+                : sprintf(" =?%s?%s?%s?=", enc, he, hw);
             hdr = replace(hdr, os, dv);
+            ++count;
         }
         return hdr;
     }
@@ -965,7 +1021,7 @@ public namespace Mime {
         constructor(string mptype, string boundary = MultiPartMessage::getBoundary()) {
             self.mptype = mptype;
             self.boundary = boundary;
-            ct = sprintf("multipart/%s;boundary=%s", mptype, boundary);
+            ct = sprintf("multipart/%s; boundary=%s", mptype, boundary);
         }
 
         #! serializes the message with the Content-Type header first and returns a binary object ready to send over a socket
@@ -1140,8 +1196,9 @@ hash: (2 members)
                 for (int k = 0; k < pl.size(); ++k) {
                     string phl = pl[k];
                     (*string hdr, *string val) = (phl =~ x/([^:]+):\s*(.*)$/);
-                    if (!hdr || !val.val())
+                    if (!hdr) {
                         throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse MIME part %d/%d header line: %y", $# + 1, l.size(), phl);
+                    }
 
                     # see if the following line is a long header field as defined in RFC 2822 section 2.2.3: http://tools.ietf.org/html/rfc2822#section-2.2.3
                     while (pl[k + 1] =~ /^[ \t]/)
@@ -1173,13 +1230,13 @@ hash: (2 members)
                     }
 
                     # decode the part's body
-                    pstr = mime_decode_transfer_data(pstr, pcte, pct);
+                    pstr = mime_decode_transfer_data(pstr, pcte, pct, True);
                     if (pstr.typeCode() == NT_BINARY && pct =~ /text/)
                         pstr = binary_to_string(pstr);
 
                     # see if the part has parts itself
                     if (pct =~ /multipart\//i) {
-                        *string part_boundary = (pct =~ x/boundary="?([^"]+)"?/)[0];
+                        *string part_boundary = (pct =~ x/[Bb]oundary="?([^"]+)"?/)[0];
                         if (!exists part_boundary)
                             throw "MULTIPART-PARSEBODY-ERROR", sprintf("cannot parse part %d Content-Type: %y; could not find message boundary", $#, pct);
 
@@ -1238,16 +1295,16 @@ hash: (2 members)
         }
 
         # don't reimplement this method; fix/enhance it in the module
-        private splicePartIntern(data mime_data, hash hdr) {
+        private splicePartIntern(data mime_data, hash<auto> hdr) {
             splice l, 0, 0, MultiPartMessage::getPart(mime_data, hdr);
         }
 
         # don't reimplement this method; fix/enhance it in the module
-        private addPartIntern(data mime_data, hash hdr) {
+        private addPartIntern(data mime_data, hash<auto> hdr) {
             l += MultiPartMessage::getPart(mime_data, hdr);
         }
 
-        private static hash<MessagePartInfo> getPart(data mime_data, hash hdr) {
+        private static hash<MessagePartInfo> getPart(data mime_data, hash<auto> hdr) {
             if (exists hdr."Content-Length")
                 throw "HTTP-MULTIPART-ERROR", "illegal part header 'Content-Length': the Content-Length header will be generated automatically according to the size of each part";
 
@@ -1263,7 +1320,7 @@ hash: (2 members)
                     # we just add the charset= text if it's not already present
                     if (ct !~ /charset=/) {
                         if (!ct.empty())
-                            ct += ";";
+                            ct += "; ";
                         ct += sprintf("charset=%s", get_encoding(mime_data));
                         hdr."Content-Type" = ct;
                     }
@@ -1307,12 +1364,18 @@ hash: (2 members)
 
             @throw MULTIPART-RELATED-ERROR if the id parameter is empty, this exception is thrown
          */
-        splicePart(data mime_data, string id, string content_type, *hash hdr) {
-            if (id.empty())
-                throw "MULTIPART-RELATED-ERROR", "missing second argument giving the Content-ID identifying the part; this header is required for each part as this is how the parts are related to the main message";
+        splicePart(data mime_data, string id, string content_type, *hash<auto> hdr) {
+            if (id.empty()) {
+                throw "MULTIPART-RELATED-ERROR", "missing second argument giving the Content-ID identifying the "
+                    "part; this header is required for each part as this is how the parts are related to the main "
+                    "message";
+            }
 
             startid = id;
-            splicePartIntern(mime_data, hdr + ("Content-ID": id, "Content-Type": content_type));
+            splicePartIntern(mime_data, hdr + {
+                "Content-ID": id,
+                "Content-Type": content_type,
+            });
         }
 
         #! adds a message part to the end of the list
@@ -1324,13 +1387,20 @@ hash: (2 members)
             @throw MULTIPART-RELATED-ERROR if the id parameter is empty, this exception is thrown
          */
         addPart(data mime_data, string id, string content_type, *hash hdr) {
-            if (id.empty())
-                throw "MULTIPART-RELATED-ERROR", "missing second argument giving the Content-ID identifying the part; this header is required for each part as this is how the parts are related to the main message";
+            if (id.empty()) {
+                throw "MULTIPART-RELATED-ERROR", "missing second argument giving the Content-ID identifying the "
+                    "part; this header is required for each part as this is how the parts are related to the main "
+                    "message";
+            }
 
-            if (!exists startid)
+            if (!exists startid) {
                 startid = id;
+            }
 
-            addPartIntern(mime_data, hdr + ("Content-ID": id, "Content-Type": content_type));
+            addPartIntern(mime_data, hdr + {
+                "Content-ID": id,
+                "Content-Type": content_type,
+            });
         }
 
         #! returns a hash of the message
@@ -1339,7 +1409,7 @@ hash: (2 members)
             - \c body: a binary object of serialized message parts
          */
         hash<MessageInfo> getMsgAndHeaders() {
-            return getMsgAndHeadersIntern(ct + ";start=" + startid);
+            return getMsgAndHeadersIntern(ct + "; start=" + startid);
         }
     }
 
@@ -1349,9 +1419,10 @@ hash: (2 members)
         /** @param boundary the boundary to use between parts
          */
         constructor(string boundary = MultiPartMessage::getBoundary()) : MultiPartMessage(MPT_MIXED, boundary) {
-            hdr = (
+            #hdr = {};
+            hdr = {
                 "MIME-Version": "1.0",
-                );
+            };
         }
 
         #! adds a message part to the start of the list; the data muyst already be encoded and any Content-Transfer-Encoding header must already be present in hdr
@@ -1371,7 +1442,10 @@ hash: (2 members)
             if (content_type.empty())
                 throw "PART-ERROR", "empty content type argument passed";
 
-            splicePartIntern(mime_data, hdr + {"Content-Type": content_type, "Content-Disposition": disp});
+            splicePartIntern(mime_data, hdr + {
+                "Content-Type": content_type,
+                "Content-Disposition": disp,
+            });
         }
 
         #! adds a message part to the end of the list; the data muyst already be encoded and any Content-Transfer-Encoding header must already be present in hdr
@@ -1414,7 +1488,7 @@ hash: (2 members)
                 throw "PART-ERROR", "empty content type argument passed";
 
             if (mime_data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline")
-                content_type += sprintf(";charset=%s", get_encoding(mime_data));
+                content_type += sprintf("; charset=%s", get_encoding(mime_data));
             splicePartIntern(mime_encode_transfer_data(mime_data, enc), hdr
                 + {"Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc});
         }
@@ -1434,14 +1508,155 @@ hash: (2 members)
             - MultiPartMixedMessage::splicePart()
             - MultiPartMixedMessage::spliceEncodePart()
          */
-        addEncodePart(data mime_data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash<auto> hdr) {
-            if (content_type.empty())
+         addEncodePart(data mime_data, string enc, string content_type = MimeTypeText, string disp = "inline", *hash<auto> hdr) {
+            if (content_type.empty()) {
                 throw "PART-ERROR", "empty content type argument passed";
+            }
 
-            if (mime_data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline")
-                content_type += sprintf(";charset=%s", get_encoding(mime_data));
-            addPartIntern(mime_encode_transfer_data(mime_data, enc), hdr
-                + {"Content-Type": content_type, "Content-Disposition": disp, "Content-Transfer-Encoding": enc});
+            if (mime_data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline") {
+                content_type += sprintf("; charset=%s", get_encoding(mime_data));
+            } else if (content_type !~ /charset=/ && disp == "attachment"
+                && exists hdr."Content-Disposition") {
+                content_type += sprintf('; name=%y', hdr."Content-Disposition");
+                disp = sprintf('%s; filename=%y', disp, hdr."Content-Disposition");
+            }
+
+            addPartIntern(mime_encode_transfer_data(mime_data, enc), hdr + {
+                 "Content-Type": content_type,
+                 "Content-Disposition": disp,
+                 "Content-Transfer-Encoding": enc,
+            });
+        }
+
+        #! returns a hash of the message
+        /** @return a hash of the message with the following keys:
+            - \c hdr: a hash of header information
+            - \c body: a binary object of serialized message parts
+         */
+        hash<MessageInfo> getMsgAndHeaders() {
+            return getMsgAndHeadersIntern(NOTHING, False);
+        }
+    }
+
+    #! implements the MultiPartAlternativeMessage class, a specialization of MultiPartMessage
+    public class MultiPartAlternativeMessage inherits MultiPartMessage {
+        #! creates the object
+        /** @param boundary the boundary to use between parts
+         */
+        constructor(string boundary = MultiPartMessage::getBoundary()) : MultiPartMessage(MPT_ALTERNATIVE, boundary) {
+            hdr = hash();
+        }
+
+        #! adds a message part to the start of the list
+        /** The data must already be encoded and any Content-Transfer-Encoding header must already be present in hdr
+
+            @param mime_data the data for the part
+            @param content_type the content_type for the part
+            @param disp the Content-Disposition header (ex: \c 'inline', \c 'attachment; filename="file.txt"')
+            @param hdr an optional hash of headers for the part
+
+            @throw PART-ERROR empty content type argument passed
+
+            @see
+            - MultiPartAlternativeMessage::addPart()
+            - MultiPartAlternativeMessage::spliceEncodePart()
+            - MultiPartAlternativeMessage::addEncodePart()
+         */
+        splicePart(data mime_data, string content_type = MimeTypeText, string disp = "inline", *hash<auto> hdr) {
+            if (content_type.empty()) {
+                throw "PART-ERROR", "empty content type argument passed";
+            }
+
+            splicePartIntern(mime_data, hdr + {
+                "Content-Type": content_type,
+                "Content-Disposition": disp,
+            });
+        }
+
+        #! adds a message part to the end of the list; the data muyst already be encoded and any Content-Transfer-Encoding header must already be present in hdr
+        /** @param mime_data the data for the part
+            @param content_type the content_type for the part
+            @param disp the Content-Disposition header (ex: \c 'inline', \c 'attachment; filename="file.txt"')
+            @param hdr an optional hash of headers for the part
+
+            @throw PART-ERROR empty content type argument passed
+
+            @see
+            - MultiPartAlternativeMessage::splicePart()
+            - MultiPartAlternativeMessage::spliceEncodePart()
+            - MultiPartAlternativeMessage::addEncodePart()
+         */
+        addPart(data mime_data, string content_type = MimeTypeText, string disp = "inline", *hash<auto> hdr) {
+            if (content_type.empty()) {
+                throw "PART-ERROR", "empty content type argument passed";
+            }
+
+            addPartIntern(mime_data, hdr + {
+                "Content-Type": content_type,
+                "Content-Disposition": disp,
+            });
+        }
+
+        #! adds a message part to the start of the list; encodes the data according to the transfer encoding argument passed
+        /** @param mime_data the unencoded data for the part
+            @param enc the transfer encoding to use for the part; see @ref MimeContentTransferEncodingConstants for possible values
+            @param content_type the content_type for the part
+            @param disp the Content-Disposition header (ex: \c 'inline', \c 'attachment; filename="file.txt"')
+            @param hdr an optional hash of headers for the part
+
+            @throw MIME-TRANSFER-ENCODING-ERROR unknown transfer encoding
+            @throw PART-ERROR empty content type argument passed
+
+            @see
+            - MultiPartAlternativeMessage::splicePart()
+            - MultiPartAlternativeMessage::addPart()
+            - MultiPartAlternativeMessage::addEncodePart()
+         */
+        spliceEncodePart(data mime_data, string enc, string content_type = MimeTypeText, string disp = "inline",
+                *hash<auto> hdr) {
+            if (content_type.empty()) {
+                throw "PART-ERROR", "empty content type argument passed";
+            }
+
+            if (mime_data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline") {
+                content_type += sprintf("; charset=%s", get_encoding(mime_data));
+            }
+            splicePartIntern(mime_encode_transfer_data(mime_data, enc), hdr + {
+                "Content-Type": content_type,
+                "Content-Disposition": disp,
+                "Content-Transfer-Encoding": enc,
+            });
+        }
+
+        #! adds a message part to the end of the list; encodes the data according to the transfer encoding argument passed
+        /** @param mime_data the unencoded data for the part
+            @param enc the transfer encoding to use for the part; see @ref MimeContentTransferEncodingConstants for possible values
+            @param content_type the content_type for the part
+            @param disp the Content-Disposition header (ex: \c 'inline', \c 'attachment; filename="file.txt"')
+            @param hdr an optional hash of headers for the part
+
+            @throw MIME-TRANSFER-ENCODING-ERROR unknown transfer encoding
+            @throw PART-ERROR empty content type argument passed
+
+            @see
+            - MultiPartAlternativeMessage::addPart()
+            - MultiPartAlternativeMessage::splicePart()
+            - MultiPartAlternativeMessage::spliceEncodePart()
+         */
+        addEncodePart(data mime_data, string enc, string content_type = MimeTypeText, string disp = "inline",
+                *hash<auto> hdr) {
+            if (content_type.empty()) {
+                throw "PART-ERROR", "empty content type argument passed";
+            }
+
+            if (mime_data.typeCode() == NT_STRING && content_type !~ /charset=/ && disp == "inline") {
+                content_type += sprintf("; charset=%s", get_encoding(mime_data));
+            }
+
+            addPartIntern(mime_encode_transfer_data(mime_data, enc), hdr + {
+                "Content-Type": content_type,
+                "Content-Transfer-Encoding": enc,
+            });
         }
 
         #! returns a hash of the message
@@ -1561,7 +1776,7 @@ hash: (2 members)
             @since %Mime 1.4
         */
         static hash<string, hash<FormDataMessageInfo>> parseMessage(string content, string body) {
-            *string boundary = (content =~ x/boundary="?([^"]+)"?/)[0];
+            *string boundary = (content =~ x/[Bb]oundary="?([^"]+)"?/)[0];
             if (!exists boundary)
                 throw "MULTIPART-FORMDATA-MESSAGE-ERROR", sprintf("cannot parse form-data Content-Type: %y; could not find message boundary", content);
 
