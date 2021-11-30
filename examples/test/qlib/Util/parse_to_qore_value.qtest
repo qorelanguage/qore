@@ -36,6 +36,10 @@ public class ParseToQoreValueTest inherits QUnit::Test {
     }
 
     parseToQoreValueTest() {
+        assertEq(-3.409, parse_to_qore_value("-3.4090"));
+        assertEq(-3.0, parse_to_qore_value("-3.00000"));
+        assertEq(3.0, parse_to_qore_value("3.0"));
+
         assertEq(0, parse_to_qore_value("%EVAL=int i = 0"));
         assertEq(3.3, parse_to_qore_value("%EVAL=auto f = 3.3"));
         assertEq(1, parse_to_qore_value("1"));

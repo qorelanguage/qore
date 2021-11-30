@@ -23,7 +23,7 @@
 */
 
 # minimum Qore version
-%requires qore >= 0.9.13
+%requires qore >= 1.0
 
 # do not use $ for vars, assume local var scope
 %new-style
@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.6.1";
+    version = "1.6.2";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -87,6 +87,10 @@ module Util {
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
+
+    @subsection util_1_6_2 Util 1.6.2
+    - fixed a bug in \c parse_to_qore_value() with floats and numbers with trailing zeros
+      (<a href="https://github.com/qorelanguage/qore/issues/4349">issue 4349</a>)
 
     @subsection util_1_6_1 Util 1.6.1
     - fixed a bug in \c parse_memory_size() with numbers larger than \c 9
@@ -613,7 +617,7 @@ bool abs = absolute_path_windows(path);
             return;
 
         # see if there is aprocessing cmd
-        if (*list pc = (arg =~ x/^\%(STR|EVAL)=(.*)$/s)) {
+        if (*list<*string> pc = (arg =~ x/^\%(STR|EVAL)=(.*)$/s)) {
             if (pc[0] == "STR")
                 return pc[1];
             else # must be EVAL
@@ -629,14 +633,34 @@ bool abs = absolute_path_windows(path);
 
         {
             float f = float(arg);
-            if (f == arg)
+            if (f == arg) {
                 return f;
+            } else if (arg =~ /\.[0-9]*0+$/) {
+                string arg0 = arg;
+                arg0 =~ s/0+$//;
+                if (arg0 =~ /\.$/) {
+                    arg0 += "0";
+                }
+                if (f == arg0) {
+                    return f;
+                }
+            }
         }
 
         {
             number n = number(arg);
-            if (n == arg)
+            if (n == arg) {
                 return n;
+            } else if (arg =~ /\.[0-9]*0+$/) {
+                string arg0 = arg;
+                arg0 =~ s/0+$//;
+                if (arg0 =~ /\.$/) {
+                    arg0 += "0";
+                }
+                if (n == arg0) {
+                    return n;
+                }
+            }
         }
 
         if (arg == "True" || arg == "true")

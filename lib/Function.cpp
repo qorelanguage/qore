@@ -630,7 +630,7 @@ void UserSignature::parseInitPushLocalVars(const QoreTypeInfo* classTypeInfo) {
     }
 
     // push argv var on stack and save id
-    argvid = push_local_var("argv", loc, listOrNothingTypeInfo, err, true, 1);
+    argvid = push_local_var("argv", loc, autoListOrNothingTypeInfo, err, true, 1);
     printd(5, "UserSignature::parseInitPushLocalVars() this: %p (%s) argvid: %p selfid: %p\n", this,
         getSignatureText(), argvid, selfid);
 
