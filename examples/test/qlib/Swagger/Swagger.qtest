@@ -2160,7 +2160,7 @@ public class SwaggerTest inherits QUnit::Test {
 
             h = so.processRequest("post", "/api/smtg", ("a": "a"), NOTHING, MimeTypeMultipartFormData);
             assertEq("/api/smtg", h.uri_path);
-            assertEq(True, h.content =~ /^multipart\/form-data;boundary=/);
+            assertEq(True, h.content =~ /^multipart\/form-data; boundary=/);
             assertEq(Type::Binary, h.body.type());
             #printf("h: %y\n", h + ("body": h.body.toString()));
 
