@@ -48,6 +48,10 @@
 #define LIST_BLOCK 20
 #define LIST_PAD   15
 
+#ifndef QORE_QUICKSORT_LIMIT
+#define QORE_QUICKSORT_LIMIT 1000
+#endif
+
 static QoreListNode* do_args(const QoreValue& e1, const QoreValue& e2) {
     QoreListNode* l = new QoreListNode(autoTypeInfo);
     qore_list_private* ll = qore_list_private::get(*l);
@@ -533,8 +537,16 @@ QoreListNode* QoreListNode::extract(ptrdiff_t offset, ptrdiff_t len, const QoreV
 QoreListNode* QoreListNode::sort(ExceptionSink* xsink) const {
     ReferenceHolder<QoreListNode> rv(copy(), xsink);
     if (priv->length) {
-        if (rv->priv->qsort(0, 0, priv->length - 1, true, xsink)) {
-            return nullptr;
+        // issue #4355: our quicksort algorithm can exhaust the stack with larger lists
+        // use mergesort for lists > 1000 elements
+        if (priv->length > QORE_QUICKSORT_LIMIT) {
+            if (rv->priv->mergesort(nullptr, true, xsink)) {
+                return nullptr;
+            }
+        } else {
+            if (rv->priv->qsort(nullptr, 0, priv->length - 1, true, xsink)) {
+                return nullptr;
+            }
         }
     }
 
@@ -544,8 +556,16 @@ QoreListNode* QoreListNode::sort(ExceptionSink* xsink) const {
 QoreListNode* QoreListNode::sortDescending(ExceptionSink* xsink) const {
     ReferenceHolder<QoreListNode> rv(copy(), xsink);
     if (priv->length) {
-        if (rv->priv->qsort(0, 0, priv->length - 1, false, xsink)) {
-            return nullptr;
+        // issue #4355: our quicksort algorithm can exhaust the stack with larger lists
+        // use mergesort for lists > 1000 elements
+        if (priv->length > QORE_QUICKSORT_LIMIT) {
+            if (rv->priv->mergesort(nullptr, false, xsink)) {
+                return nullptr;
+            }
+        } else {
+            if (rv->priv->qsort(nullptr, 0, priv->length - 1, false, xsink)) {
+                return nullptr;
+            }
         }
     }
 
@@ -555,8 +575,16 @@ QoreListNode* QoreListNode::sortDescending(ExceptionSink* xsink) const {
 QoreListNode* QoreListNode::sortDescending(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const {
     ReferenceHolder<QoreListNode> rv(copy(), xsink);
     if (priv->length) {
-        if (rv->priv->qsort(fr, 0, priv->length - 1, false, xsink)) {
-            return nullptr;
+        // issue #4355: our quicksort algorithm can exhaust the stack with larger lists
+        // use mergesort for lists > 1000 elements
+        if (priv->length > QORE_QUICKSORT_LIMIT) {
+            if (rv->priv->mergesort(fr, false, xsink)) {
+                return nullptr;
+            }
+        } else {
+            if (rv->priv->qsort(fr, 0, priv->length - 1, false, xsink)) {
+                return nullptr;
+            }
         }
     }
 
@@ -624,8 +652,7 @@ int qore_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool ascen
                 return -1;
             }
             rc = (int)result->getAsBigInt();
-        }
-        else {
+        } else {
             rc = QoreLogicalComparisonOperatorNode::doComparison(lv, rv, xsink);
             if (*xsink) {
                 return -1;
@@ -634,8 +661,7 @@ int qore_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool ascen
         if ((ascending && rc <= 0)
             || (!ascending && rc >= 0)) {
             pushIntern(l->getAndClear(li++));
-        }
-        else {
+        } else {
             pushIntern(r->getAndClear(ri++));
         }
     }
@@ -654,9 +680,17 @@ int qore_list_private::mergesort(const ResolvedCallReferenceNode* fr, bool ascen
 }
 
 // quicksort for controlled and interruptible sorts (unstable)
-// I am so smart that I did not comment this code
-// and now I don't know how it works anymore
-int qore_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t left, size_t right, bool ascending, ExceptionSink* xsink) {
+/** FIXME: uses excessive stack
+*/
+int qore_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t left, size_t right, bool ascending,
+        ExceptionSink* xsink) {
+#ifdef QORE_MANAGE_STACK
+    // issue #4355 this quicksort algorithm can result in stack exhaustion
+    if (check_stack(xsink)) {
+        return -1;
+    }
+#endif
+
     size_t l_hold = left;
     size_t r_hold = right;
     QoreValue pivot = entry[left];
@@ -671,8 +705,7 @@ int qore_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t left, s
                     return -1;
                 }
                 rc = (int)rv->getAsBigInt();
-            }
-            else {
+            } else {
                 rc = QoreLogicalComparisonOperatorNode::doComparison(entry[right], pivot, xsink);
                 if (*xsink) {
                     return -1;
@@ -682,8 +715,7 @@ int qore_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t left, s
                 && ((rc >= 0 && ascending)
                     || (rc < 0 && !ascending))) {
                 --right;
-            }
-            else {
+            } else {
                 break;
             }
         }
@@ -702,8 +734,7 @@ int qore_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t left, s
                     return -1;
                 }
                 rc = (int)rv->getAsBigInt();
-            }
-            else {
+            } else {
                 rc = QoreLogicalComparisonOperatorNode::doComparison(entry[left], pivot, xsink);
                 if (*xsink) {
                     return -1;
@@ -713,8 +744,7 @@ int qore_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t left, s
                 && ((rc <= 0 && ascending)
                     || (rc > 0 && !ascending))) {
                 ++left;
-            }
-            else {
+            } else {
                 break;
             }
         }
@@ -741,8 +771,16 @@ int qore_list_private::qsort(const ResolvedCallReferenceNode* fr, size_t left, s
 QoreListNode* QoreListNode::sort(const ResolvedCallReferenceNode* fr, ExceptionSink* xsink) const {
     ReferenceHolder<QoreListNode> rv(copy(), xsink);
     if (priv->length) {
-        if (rv->priv->qsort(fr, 0, priv->length - 1, true, xsink)) {
-            return nullptr;
+        // issue #4355: our quicksort algorithm can exhaust the stack with larger lists
+        // use mergesort for lists > 1000 elements
+        if (priv->length > QORE_QUICKSORT_LIMIT) {
+            if (rv->priv->mergesort(fr, true, xsink)) {
+                return nullptr;
+            }
+        } else {
+            if (rv->priv->qsort(fr, 0, priv->length - 1, true, xsink)) {
+                return nullptr;
+            }
         }
     }
 

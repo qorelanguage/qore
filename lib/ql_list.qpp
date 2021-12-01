@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2020 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -88,8 +88,9 @@ QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* x
     List functions
  */
 //@{
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 auto sort(auto arg) [flags=NOOP] {
    return arg.refSelf();
@@ -107,6 +108,10 @@ list<auto> nl = sort(l);
 
     @return the sorted list
 
+    @note This function uses an internal recursive quicksort algorithm that uses excessive stack space with large
+    lists, therefore when the list size is > 1000 element, mergesort is used instead, which is equivalent to
+    @ref sort_stable()
+
     @see
     - sortStable(list)
     - sortDescendingStable(list)
@@ -116,17 +121,24 @@ list<auto> sort(list<auto> l) [flags=CONSTANT] {
    return l->sort(xsink);
 }
 
-//! Performs an unstable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/**
+//! Performs an unstable sort in ascending order and returns the new list
+/** Accepts the name of a function to use to sort complex data types or to give a special sort order
+
     @par Example:
     @code{.py}
 list<auto> nl = sort(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in
+    the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are
+    equal, or if the first is greater than the second, respectively
 
     @return the sorted list
+
+    @note This function uses an internal recursive quicksort algorithm that uses excessive stack space with large
+    lists, therefore when the list size is > 1000 element, mergesort is used instead, which is equivalent to
+    @ref sort_stable()
 
     @see
     - sortStable(list, string)
@@ -138,8 +150,10 @@ list<auto> sort(list<auto> l, string func) [flags=RET_VALUE_ONLY] {
    return !fr ? QoreValue() : l->sort(*fr, xsink);
 }
 
-//! Performs an unstable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/**
+//! Performs an unstable sort in ascending order and returns the new list
+/** Accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to
+    give a special sort order
+
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
@@ -147,9 +161,15 @@ list<auto> nl = sort(l, sort_func);
     @endcode
 
     @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data
+    type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second
+    are equal, or if the first is greater than the second, respectively
 
     @return the sorted list
+
+    @note This function uses an internal recursive quicksort algorithm that uses excessive stack space with large
+    lists, therefore when the list size is > 1000 element, mergesort is used instead, which is equivalent to
+    @ref sort_stable()
 
     @see
     - sortStable(list, code)
@@ -160,8 +180,9 @@ list<auto> sort(list<auto> l, code f) [flags=RET_VALUE_ONLY] {
    return l->sort(f, xsink);
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 auto sortDescending(auto arg) [flags=NOOP,DEPRECATED] {
    return arg.refSelf();
@@ -174,6 +195,10 @@ auto sortDescending(auto arg) [flags=NOOP,DEPRECATED] {
 
     @return the sorted list
 
+    @note This function uses an internal recursive quicksort algorithm that uses excessive stack space with large
+    lists, therefore when the list size is > 1000 element, mergesort is used instead, which is equivalent to
+    @ref sort_stable()
+
     @see
     - sort(list)
     - sortDescendingStable(list)
@@ -185,12 +210,19 @@ list<auto> sortDescending(list<auto> l) [flags=CONSTANT,DEPRECATED] {
    return l->sortDescending(xsink);
 }
 
-//! Performs an unstable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/**
+//! Performs an unstable sort in descending order and returns the new list
+/** Accepts the name of a function to use to sort complex data types or to give a special sort order
+
     @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in
+    the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are
+    equal, or if the first is greater than the second, respectively
 
     @return the sorted list
+
+    @note This function uses an internal recursive quicksort algorithm that uses excessive stack space with large
+    lists, therefore when the list size is > 1000 element, mergesort is used instead, which is equivalent to
+    @ref sort_stable()
 
     @see
     - sortStable(list, string)
@@ -204,12 +236,20 @@ list<auto> sortDescending(list<auto> l, string func) [flags=CONSTANT,DEPRECATED]
    return !fr ? QoreValue() : l->sortDescending(*fr, xsink);
 }
 
-//! Performs an unstable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/**
+//! Performs an unstable sort in descending order and returns the new list
+/** Accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to
+    give a special sort order
+
     @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data
+    type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second
+    are equal, or if the first is greater than the second, respectively
 
     @return the sorted list
+
+    @note This function uses an internal recursive quicksort algorithm that uses excessive stack space with large
+    lists, therefore when the list size is > 1000 element, mergesort is used instead, which is equivalent to
+    @ref sort_stable()
 
     @see
     - sortStable(list, code)
@@ -222,8 +262,9 @@ list<auto> sortDescending(list<auto> l, code f) [flags=RET_VALUE_ONLY,DEPRECATED
    return l->sortDescending(f, xsink);
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 auto sort_descending(auto arg) [flags=NOOP] {
    return arg.refSelf();
@@ -241,6 +282,10 @@ list<auto> nl = sort_descending(l);
 
     @return the sorted list
 
+    @note This function uses an internal recursive quicksort algorithm that uses excessive stack space with large
+    lists, therefore when the list size is > 1000 element, mergesort is used instead, which is equivalent to
+    @ref sort_stable()
+
     @see
     - sort(list)
     - sortDescendingStable(list)
@@ -252,17 +297,24 @@ list<auto> sort_descending(list<auto> l) [flags=CONSTANT] {
    return l->sortDescending(xsink);
 }
 
-//! Performs an unstable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/**
+//! Performs an unstable sort in descending order and returns the new list
+/** Accepts the name of a function to use to sort complex data types or to give a special sort order
+
     @par Example:
     @code{.py}
 list<auto> nl = sort_descending(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in
+    the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are
+    equal, or if the first is greater than the second, respectively
 
     @return the sorted list
+
+    @note This function uses an internal recursive quicksort algorithm that uses excessive stack space with large
+    lists, therefore when the list size is > 1000 element, mergesort is used instead, which is equivalent to
+    @ref sort_stable()
 
     @see
     - sort_stable(list, string)
@@ -276,8 +328,10 @@ list<auto> sort_descending(list<auto> l, string func) [flags=CONSTANT] {
    return !fr ? QoreValue() : l->sortDescending(*fr, xsink);
 }
 
-//! Performs an unstable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/**
+//! Performs an unstable sort in descending order and returns the new list
+/** Accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to
+    give a special sort order
+
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
@@ -285,9 +339,15 @@ list<auto> nl = sort_descending(l, sort_func);
     @endcode
 
     @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data
+    type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second
+    are equal, or if the first is greater than the second, respectively
 
     @return the sorted list
+
+    @note This function uses an internal recursive quicksort algorithm that uses excessive stack space with large
+    lists, therefore when the list size is > 1000 element, mergesort is used instead, which is equivalent to
+    @ref sort_stable()
 
     @see
     - sort_stable(list, code)
@@ -300,8 +360,9 @@ list<auto> sort_descending(list<auto> l, code f) [flags=RET_VALUE_ONLY] {
    return l->sortDescending(f, xsink);
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 auto sortStable(auto arg) [flags=NOOP,DEPRECATED] {
    return arg.refSelf();
@@ -325,10 +386,13 @@ list<auto> sortStable(list<auto> l) [flags=CONSTANT,DEPRECATED] {
    return l->sortStable(xsink);
 }
 
-//! Performs a stable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/**
+//! Performs a stable sort in ascending order and returns the new list
+/** Accepts the name of a function to use to sort complex data types or to give a special sort order
+
     @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in
+    the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are
+    equal, or if the first is greater than the second, respectively
 
     @return the sorted list
 
@@ -344,8 +408,10 @@ list<auto> sortStable(list<auto> l, string func) [flags=RET_VALUE_ONLY,DEPRECATE
    return !fr ? QoreValue() : l->sortStable(*fr, xsink);
 }
 
-//! Performs a stable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/**
+//! Performs a stable sort in ascending order and returns the new list
+/** Accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to
+    give a special sort order
+
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
@@ -353,7 +419,9 @@ list<auto> nl = sortStable(l, sort_func);
     @endcode
 
     @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data
+    type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second
+    are equal, or if the first is greater than the second, respectively
 
     @return the sorted list
 
@@ -368,8 +436,9 @@ list<auto> sortStable(list<auto> l, code f) [flags=RET_VALUE_ONLY,DEPRECATED] {
    return l->sortStable(f, xsink);
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 auto sort_stable(auto arg) [flags=NOOP] {
    return arg.refSelf();
@@ -398,15 +467,18 @@ list<auto> sort_stable(list<auto> l) [flags=CONSTANT] {
    return l->sortStable(xsink);
 }
 
-//! Performs a stable sort in ascending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/**
+//! Performs a stable sort in ascending order and returns the new list
+/** Accepts the name of a function to use to sort complex data types or to give a special sort order
+
     @par Example:
     @code{.py}
 list<auto> nl = sort_stable(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in
+    the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are
+    equal, or if the first is greater than the second, respectively
 
     @return the sorted list
 
@@ -422,8 +494,10 @@ list<auto> sort_stable(list<auto> l, string func) [flags=RET_VALUE_ONLY] {
    return !fr ? QoreValue() : l->sortStable(*fr, xsink);
 }
 
-//! Performs a stable sort in ascending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/**
+//! Performs a stable sort in ascending order and returns the new list
+/** Accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to
+    give a special sort order
+
     @par Example:
     @code{.py}
 code sort_func = int sub (hash<auto> l, hash<auto> r) { return l.id <=> r.id; };
@@ -431,7 +505,9 @@ list<auto> nl = sort_stable(l, sort_func);
     @endcode
 
     @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data
+    type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second
+    are equal, or if the first is greater than the second, respectively
 
     @return the sorted list
 
@@ -446,8 +522,9 @@ list<auto> sort_stable(list<auto> l, code f) [flags=RET_VALUE_ONLY] {
    return l->sortStable(f, xsink);
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 auto sortDescendingStable(auto arg) [flags=NOOP,DEPRECATED] {
    return arg.refSelf();
@@ -476,15 +553,18 @@ list<auto> sortDescendingStable(list<auto> l) [flags=CONSTANT,DEPRECATED] {
    return l->sortDescendingStable(xsink);
 }
 
-//! Performs a stable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/**
+//! Performs a stable sort in descending order and returns the new list
+/** Accepts the name of a function to use to sort complex data types or to give a special sort order
+
     @par Example:
     @code{.py}
 list<auto> nl = sortDescending(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in
+    the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are
+    equal, or if the first is greater than the second, respectively
 
     @return the sorted list
 
@@ -500,8 +580,10 @@ list<auto> sortDescendingStable(list<auto> l, string func) [flags=RET_VALUE_ONLY
    return !fr ? QoreValue() : l->sortDescendingStable(*fr, xsink);
 }
 
-//! Performs a stable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/**
+//! Performs a stable sort in descending order and returns the new list
+/** Accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to
+    give a special sort order
+
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
@@ -509,7 +591,9 @@ list<auto> nl = sortDescending(l, sort_func);
     @endcode
 
     @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data
+    type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second
+    are equal, or if the first is greater than the second, respectively
 
     @return the sorted list
 
@@ -524,8 +608,9 @@ list<auto> sortDescendingStable(list<auto> l, code f) [flags=RET_VALUE_ONLY,DEPR
    return l->sortDescendingStable(f, xsink);
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 auto sort_descending_stable(auto arg) [flags=NOOP] {
    return arg.refSelf();
@@ -554,15 +639,18 @@ list<auto> sort_descending_stable(list<auto> l) [flags=CONSTANT] {
    return l->sortDescendingStable(xsink);
 }
 
-//! Performs a stable sort in descending order and returns the new list; accepts the name of a function to use to sort complex data types or to give a special sort order
-/**
+//! Performs a stable sort in descending order and returns the new list
+/** Accepts the name of a function to use to sort complex data types or to give a special sort order
+
     @par Example:
     @code{.py}
 list<auto> nl = sort_descending_stable(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in
+    the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are
+    equal, or if the first is greater than the second, respectively
 
     @return the sorted list
 
@@ -578,8 +666,10 @@ list<auto> sort_descending_stable(list<auto> l, string func) [flags=RET_VALUE_ON
    return !fr ? QoreValue() : l->sortDescendingStable(*fr, xsink);
 }
 
-//! Performs a stable sort in descending order and returns the new list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to give a special sort order
-/**
+//! Performs a stable sort in descending order and returns the new list
+/** Accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to sort complex data types or to
+    give a special sort order
+
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
@@ -587,7 +677,9 @@ list<auto> nl = sort_descending_stable(l, sort_func);
     @endcode
 
     @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data
+    type in the list; the code must return -1, 0, or 1 if the first is less than the second, if the first and second
+    are equal, or if the first is greater than the second, respectively
 
     @return the sorted list
 
@@ -620,15 +712,18 @@ auto min(list<auto> l) [flags=CONSTANT] {
    return l->min(xsink);
 }
 
-//! Returns the minumum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
-/**
+//! Returns the minumum value in a list
+/** Accepts the name of a function to use to compare complex data types or to give a special sort order
+
     @par Example:
     @code{.py}
 auto v = min(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in
+    the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are
+    equal, or if the first is greater than the second, respectively
 
     @return the minumum value in a list
 
@@ -639,8 +734,10 @@ auto min(list<auto> l, string func) [flags=RET_VALUE_ONLY] {
    return !fr ? QoreValue() : l->min(*fr, xsink);
 }
 
-//! Returns the minumum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
-/**
+//! Returns the minumum value in a list
+/** Accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or
+    to give a special sort order
+
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
@@ -648,7 +745,10 @@ auto v = min(l, sort_func);
     @endcode
 
     @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the @ref call_reference "call reference" or a @ref closure "closure" must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data
+    type in the list; the @ref call_reference "call reference" or a @ref closure "closure" must return -1, 0, or 1 if
+    the first is less than the second, if the first and second are equal, or if the first is greater than the second,
+    respectively
 
     @return the minumum value in a list
 
@@ -694,15 +794,18 @@ auto max(list<auto> l) [flags=CONSTANT] {
    return l->max(xsink);
 }
 
-//! Returns the maximum value in a list; accepts the name of a function to use to compare complex data types or to give a special sort order
-/**
+//! Returns the maximum value in a list
+/** Accepts the name of a function to use to compare complex data types or to give a special sort order
+
     @par Example:
     @code{.py}
 auto v = max(l, "my_sort_function");
     @endcode
 
     @param l the list to sort
-    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param func the name of a function accessible in the current scope that accepts 2 arguments of the data type in
+    the list; the function must return -1, 0, or 1 if the first is less than the second, if the first and second are
+    equal, or if the first is greater than the second, respectively
 
     @return the maximum value in a list
 
@@ -713,8 +816,10 @@ auto max(list<auto> l, string func) [flags=RET_VALUE_ONLY] {
    return !fr ? QoreValue() : l->max(*fr, xsink);
 }
 
-//! Returns the maximum value in a list; accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or to give a special sort order
-/**
+//! Returns the maximum value in a list
+/** Accepts a @ref call_reference "call reference" or a @ref closure "closure" to use to compare complex data types or
+    to give a special sort order
+
     @par Example:
     @code{.py}
 code sort_func = int sub (hash l, hash r) { return l.id <=> r.id; };
@@ -722,7 +827,10 @@ auto v = max(l, sort_func);
     @endcode
 
     @param l the list to sort
-    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data type in the list; the @ref call_reference "call reference" or a @ref closure "closure" must return -1, 0, or 1 if the first is less than the second, if the first and second are equal, or if the first is greater than the second, respectively
+    @param f a @ref call_reference "call reference" or a @ref closure "closure" that accepts 2 arguments of the data
+    type in the list; the @ref call_reference "call reference" or a @ref closure "closure" must return -1, 0, or 1 if
+    the first is less than the second, if the first and second are equal, or if the first is greater than the second,
+    respectively
 
     @return the maximum value in a list
 
@@ -750,8 +858,9 @@ auto max(...) [flags=CONSTANT] {
    return args ? args->max(xsink) : QoreValue();
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 nothing reverse() [flags=NOOP] {
 }
@@ -773,15 +882,17 @@ list<auto> reverse(list<auto> l) [flags=CONSTANT] {
    return l->reverse();
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 bool inlist() [flags=NOOP] {
    return false;
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 bool inlist(any[doc] arg, nothing[doc] x) [flags=NOOP] {
    return false;
@@ -798,7 +909,8 @@ if (inlist(str, strlist))
     @param arg the argument to look for in the list
     @param l the list to search for the first argument \a arg
 
-    @return @ref True if the first argument is a member of the second argument list using soft comparisons (with implicit type conversions), @ref False if not
+    @return @ref True if the first argument is a member of the second argument list using soft comparisons (with
+    implicit type conversions), @ref False if not
 
     @see inlist_hard(auto, softlist<auto>)
 */
@@ -806,15 +918,17 @@ bool inlist(auto arg, softlist<auto> l) [flags=RET_VALUE_ONLY] {
    return inlist_intern(arg, l, xsink);
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 bool inlist_hard() [flags=NOOP] {
    return false;
 }
 
-//! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
-/**
+//! This function variant does nothing at all
+/** It is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
+    type errors in arguments
 */
 bool inlist_hard(any[doc] arg, nothing[doc] x) [flags=NOOP] {
    return false;
@@ -831,7 +945,8 @@ if (inlist_hard(str, strlist))
     @param arg the argument to look for in the list
     @param l the list to search for the first argument \a arg
 
-    @return @ref True if the first argument is a member of the second argument list using hard comparisons (without any implicit type conversions), @ref False if not
+    @return @ref True if the first argument is a member of the second argument list using hard comparisons (without
+    any implicit type conversions), @ref False if not
 
     @see inlist(auto, softlist<auto>)
 */
@@ -847,11 +962,9 @@ bool inlist_hard(auto arg, softlist<auto> l) [flags=RET_VALUE_ONLY] {
         // do hard comparison inline
         if (lp.isNothing()) {
             b = arg_is_nothing;
-        }
-        else if (arg_is_nothing) {
+        } else if (arg_is_nothing) {
             b = false;
-        }
-        else {
+        } else {
             b = arg.isEqualHard(lp);
             if (*xsink) {
                 return QoreValue();
@@ -879,7 +992,8 @@ range(10, -10, 5); # (10, 5, 0, -5, -10)
 
     @param start the initial value
     @param stop the upper limit
-    @param step the step; the default is 1; must be greater than 0; the function throws a \c RANGE-ERROR exception when this argument is < 1
+    @param step the step; the default is 1; must be greater than 0; the function throws a \c RANGE-ERROR exception
+    when this argument is < 1
 
     @return Returns a list containing an arithmetic progression of integers.
 
@@ -887,7 +1001,8 @@ range(10, -10, 5); # (10, 5, 0, -5, -10)
 
     @see xrange
 
-    @note the main difference between range() and xrange() is that range returns real list and xrange returns a RangeIterator
+    @note the main difference between range() and xrange() is that range returns real list and xrange returns a
+    RangeIterator
 
     @since
     - %Qore 0.8.6
@@ -913,7 +1028,8 @@ range(-3); # (0, -1, -2, -3)
 
     @see xrange
 
-    @note the main difference between range() and xrange() is that range returns real list and xrange returns a RangeIterator
+    @note the main difference between range() and xrange() is that range returns real list and xrange returns a
+    RangeIterator
 
     @since
     - %Qore 0.8.6
