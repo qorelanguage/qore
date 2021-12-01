@@ -17,6 +17,18 @@ hashdecl T {
     int i = 0;
 }
 
+auto sub test_4355(Counter c) {
+    on_exit c.dec();
+    list<auto> l = map "string-" + sprintf("%05d", $#), xrange(0, 3000);
+    return sort(l);
+}
+
+auto sub test_4355_stable(Counter c) {
+    on_exit c.dec();
+    list<auto> l = map "string-" + sprintf("%05d", $#), xrange(0, 10000);
+    return sort_stable(l);
+}
+
 public class ListTest inherits QUnit::Test {
     constructor() : Test("ListTest", "1.0") {
         addTestCase("list test", \listTest());
@@ -26,6 +38,21 @@ public class ListTest inherits QUnit::Test {
     }
 
     listTest() {
+        # issue #4355
+        {
+            Counter c(1);
+            background test_4355(c);
+            c.waitForZero();
+            assertTrue(True);
+        }
+
+        {
+            Counter c(1);
+            background test_4355_stable(c);
+            c.waitForZero();
+            assertTrue(True);
+        }
+
         hash<string, list<hash<T>>> h();
         {
             list<string> l0 = h.keys();
