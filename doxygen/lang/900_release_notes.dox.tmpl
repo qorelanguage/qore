@@ -34,12 +34,14 @@
     - <a href="../../modules/Util/html/index.html">Util</a> module
       - fixed a bug in \c parse_to_qore_value() with floats and numbers with trailing zeros
         (<a href="https://github.com/qorelanguage/qore/issues/4349">issue 4349</a>)
-    - fixed a bug that caused a core dump with implicit object method calls in arguments in the
-      @ref background "background operator" expression
-      (<a href="https://github.com/qorelanguage/qore/issues/4344">issue 4344</a>)
+    - fixed a bug parsing URLs with a query after the port (ex: \c "http://host:1234?query=true")
+      (<a href="https://github.com/qorelanguage/qore/issues/4358">issue 4358</a>)
     - fixed a crashing bug when sorting large lists in background threads caused by excessive recursion and stack
       exhaustion
       (<a href="https://github.com/qorelanguage/qore/issues/4355">issue 4355</a>)
+    - fixed a bug that caused a core dump with implicit object method calls in arguments in the
+      @ref background "background operator" expression
+      (<a href="https://github.com/qorelanguage/qore/issues/4344">issue 4344</a>)
 
     @section qore_1_0_11 Qore 1.0.11
 

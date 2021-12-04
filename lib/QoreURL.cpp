@@ -160,23 +160,29 @@ private:
         }
 
         // find end of hostname
-        size_t first_slash = sbuf.find('/');
-        if (first_slash != std::string::npos) {
+        size_t path_start = sbuf.find('/');
+        if (path_start == std::string::npos) {
+            path_start = sbuf.find('?');
+        }
+        if (path_start != std::string::npos) {
             // issue #3457: make sure there are no ':' and '@' signs after this mark
-            size_t char_pos = sbuf.find(':', first_slash + 1);
+            size_t char_pos = sbuf.find(':', path_start + 1);
             if (char_pos != std::string::npos) {
                 char_pos = sbuf.find('@', char_pos + 1);
                 if (char_pos != std::string::npos) {
-                    first_slash = sbuf.find('/', char_pos + 1);
+                    path_start = sbuf.find('/', char_pos + 1);
+                    if (path_start == std::string::npos) {
+                        path_start = sbuf.find('?', char_pos + 1);
+                    }
                 }
             }
 
-            if (first_slash != std::string::npos) {
+            if (path_start != std::string::npos) {
                 // get pathname if not at EOS
-                path = new QoreStringNode(sbuf.c_str() + first_slash);
+                path = new QoreStringNode(sbuf.c_str() + path_start);
                 //printd(5, "QoreURL::parse_intern path: '%s'\n", path->c_str());
                 // get copy of hostname string for localized searching and invasive parsing
-                sbuf = sbuf.substr(0, first_slash);
+                sbuf = sbuf.substr(0, path_start);
                 //printd(5, "QoreURL::sbuf: '%s' size: %d\n", sbuf.c_str(), sbuf.size());
             }
         }
