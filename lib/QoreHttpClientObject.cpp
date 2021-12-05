@@ -221,9 +221,9 @@ struct qore_httpclient_priv {
 
         const QoreString* tmp = url.getProtocol();
         if (tmp) {
-            prot_map_t::const_iterator i = prot_map.find(tmp->getBuffer());
+            prot_map_t::const_iterator i = prot_map.find(tmp->c_str());
             if (i == prot_map.end()) {
-                xsink->raiseException("HTTP-CLIENT-UNKNOWN-PROTOCOL", "protocol '%s' is not supported.", tmp->getBuffer());
+                xsink->raiseException("HTTP-CLIENT-UNKNOWN-PROTOCOL", "protocol '%s' is not supported.", tmp->c_str());
                 return -1;
             }
 
@@ -260,9 +260,9 @@ struct qore_httpclient_priv {
 
         const QoreString *tmp = url.getProtocol();
         if (tmp) {
-            prot_map_t::const_iterator i = prot_map.find(tmp->getBuffer());
+            prot_map_t::const_iterator i = prot_map.find(tmp->c_str());
             if (i == prot_map.end()) {
-                xsink->raiseException("HTTP-CLIENT-UNKNOWN-PROTOCOL", "protocol '%s' is not supported.", tmp->getBuffer());
+                xsink->raiseException("HTTP-CLIENT-UNKNOWN-PROTOCOL", "protocol '%s' is not supported.", tmp->c_str());
                 return -1;
             }
 
@@ -299,12 +299,12 @@ struct qore_httpclient_priv {
 
         const QoreString *tmp = url.getProtocol();
         if (tmp) {
-            if (strcasecmp(tmp->getBuffer(), "http") && strcasecmp(tmp->getBuffer(), "https")) {
-                xsink->raiseException("HTTP-CLIENT-PROXY-PROTOCOL-ERROR", "protocol '%s' is not supported for proxies, only 'http' and 'https'", tmp->getBuffer());
+            if (strcasecmp(tmp->c_str(), "http") && strcasecmp(tmp->c_str(), "https")) {
+                xsink->raiseException("HTTP-CLIENT-PROXY-PROTOCOL-ERROR", "protocol '%s' is not supported for proxies, only 'http' and 'https'", tmp->c_str());
                 return -1;
             }
 
-            prot_map_t::const_iterator i = prot_map.find(tmp->getBuffer());
+            prot_map_t::const_iterator i = prot_map.find(tmp->c_str());
             assert(i != prot_map.end());
 
             // set port only if it wasn't overridden in the URL
@@ -492,10 +492,11 @@ struct qore_httpclient_priv {
         pstr.clear();
 
         // use default path if no path is set
-        if (!mpath || !mpath[0])
+        if (!mpath || !mpath[0]) {
             mpath = connection.path.empty()
                 ? (default_path.empty() ? "/" : (const char*)default_path.c_str())
                 : (const char*)connection.path.c_str();
+        }
 
         if (proxy_connection.has_url()) {
             // create URL string for path for proxy
@@ -510,18 +511,52 @@ struct qore_httpclient_priv {
                 pstr.concat('/');
         }
 
-        // concat mpath to pstr, performing URL encoding
+        // concat mpath to pstr, performing minimal URL encoding
         const char* p = mpath;
         while (*p) {
-            // encode spaces only
-            if (*p == ' ')
+            // RFC-1738: encode space, <, >, ", #, %, {, }, |, \, ^, ~, [, ], `
+            if (*p == ' ') {
                 pstr.concat("%20");
-            // according to RFC 3986 it's not necessary to encode non-ascii characters
-            else
+            } else if (*p == '<') {
+                pstr.concat("%3C");
+            } else if (*p == '>') {
+                pstr.concat("%3E");
+            } else if (*p == '"') {
+                pstr.concat("%22");
+            } else if (*p == '#') {
+                pstr.concat("%23");
+            } else if (*p == '%') {
+                pstr.concat("%25");
+            } else if (*p == '{') {
+                pstr.concat("%7B");
+            } else if (*p == '}') {
+                pstr.concat("%7D");
+            } else if (*p == '|') {
+                pstr.concat("%7C");
+            } else if (*p == '\\') {
+                pstr.concat("%5C");
+            } else if (*p == '^') {
+                pstr.concat("%5E");
+            } else if (*p == '~') {
+                pstr.concat("%7E");
+            } else if (*p == '[') {
+                pstr.concat("%5B");
+            } else if (*p == ']') {
+                pstr.concat("%5D");
+            } else if (*p == '`') {
+                pstr.concat("%60");
+            } else {
+                // according to RFC 3986 it's not necessary to encode non-ascii characters
                 pstr.concat(*p);
+            }
             ++p;
         }
-        return (const char*)pstr.getBuffer();
+
+        //printd(5, "getMsgPath() cpath: '%s' dp: '%s' mpath: '%s' pstr: '%s'\n",
+        //    !connection.path.empty() ? connection.path.c_str() : "",
+        //    !default_path.empty() ? default_path.c_str() : "",
+        //    mpath, pstr.c_str());
+        return (const char*)pstr.c_str();
     }
 
     DLLLOCAL QoreHashNode* send_internal(ExceptionSink* xsink, const char* mname, const char* meth, const char* mpath,
@@ -1024,7 +1059,8 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     // HTTP response for error reporting
     if (aborted && (timeout < 0 || timeout > ABORTED_TIMEOUT_MS)) {
         timeout = ABORTED_TIMEOUT_MS;
-        printd(0, "qore_httpclient_priv::sendMessageAndGetResponse() aborted: %d timeout: %d open: %d\n", aborted, timeout, msock->socket->isOpen());
+        printd(0, "qore_httpclient_priv::sendMessageAndGetResponse() aborted: %d timeout: %d open: %d\n", aborted,
+            timeout, msock->socket->isOpen());
     }
 
     // if the transfer was aborted with a streaming send, but the socket is still open, then try to read a response
@@ -1313,7 +1349,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             // with the CONNECT method
             if (connection.port)
                 hostport.sprintf(":%d", connection.port);
-            proxy_path = hostport.getBuffer();
+            proxy_path = hostport.c_str();
             proxy_headers = new QoreHashNode(autoTypeInfo);
             proxy_headers->setKeyValue("Host", new QoreStringNode(hostport), xsink);
 
@@ -1382,10 +1418,10 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             const QoreStringNode* loc = get_string_header_node(xsink, **ans, "location");
             if (*xsink)
                 return nullptr;
-            const char* location = loc && !loc->empty() ? loc->getBuffer() : 0;
+            const char* location = loc && !loc->empty() ? loc->c_str() : 0;
             if (!location) {
                 sl.unlock();
-                const char* msg = mess ? mess->getBuffer() : "<no message>";
+                const char* msg = mess ? mess->c_str() : "<no message>";
                 xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "no redirect location given for status code %d: message: '%s'", code, msg);
                 return nullptr;
             }
@@ -1398,7 +1434,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 
             if (redirectUrlUnlocked(location, xsink)) {
                 sl.unlock();
-                const char* msg = mess ? mess->getBuffer() : "<no message>";
+                const char* msg = mess ? mess->c_str() : "<no message>";
                 xsink->raiseException("HTTP-CLIENT-REDIRECT-ERROR", "exception occurred while setting URL for new location '%s' (code %d: message: '%s')", location, code, msg);
                 return nullptr;
             }
@@ -1407,13 +1443,13 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             if (info) {
                 QoreString tmp;
                 tmp.sprintf("redirect-%d", redirect_count);
-                info->setKeyValue(tmp.getBuffer(), loc->refSelf(), xsink);
+                info->setKeyValue(tmp.c_str(), loc->refSelf(), xsink);
                 if (*xsink)
                     return nullptr;
 
                 tmp.clear();
                 tmp.sprintf("redirect-message-%d", redirect_count);
-                info->setKeyValue(tmp.getBuffer(), mess ? mess->refSelf() : 0, xsink);
+                info->setKeyValue(tmp.c_str(), mess ? mess->refSelf() : 0, xsink);
             }
 
             // FIXME: reset send callback and send_aborted here
@@ -1467,7 +1503,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         // save original content-type header before processing
         ans->setKeyValue("_qore_orig_content_type", v->refSelf(), xsink);
 
-        const char* str = v->getBuffer();
+        const char* str = v->c_str();
         const char* p = strstr(str, "charset=");
         if (p && (p == str || *(p - 1) == ';' || *(p - 1) == ' ')) {
             // move p to start of encoding
@@ -1484,7 +1520,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             if (quote && *c == quote)
                 ++c;
 
-            printd(5, "QoreHttpClientObject::send_intern() setting encoding to '%s' from content-type header: '%s' (cs=%p c=%p %d)\n", enc.getBuffer(), str, p + 8, c);
+            printd(5, "QoreHttpClientObject::send_intern() setting encoding to '%s' from content-type header: '%s' (cs=%p c=%p %d)\n", enc.c_str(), str, p + 8, c);
 
             // set new encoding
             msock->socket->setEncoding(QEM.findCreate(&enc));
@@ -1498,7 +1534,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             if (*c)
                 nc->concat(c);
             ans->setKeyValue("content-type", nc, xsink);
-            str = nc->getBuffer();
+            str = nc->c_str();
         }
         // split into a list if ";" characters are present
         p = strchr(str, ';');

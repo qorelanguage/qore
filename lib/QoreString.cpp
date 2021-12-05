@@ -396,7 +396,13 @@ static intmap_t non_spacing_map = {
 };
 
 void qore_string_init() {
-    static int url_reserved_list[] = { '!', '*', '\'', '(', ')', ';', ':', '@', '&', '=', '+', '$', ',', '/', '?', '#', '[', ']' };
+    static int url_reserved_list[] = {
+        '!', '*', '\'', '(',
+        ')', ';', ':', '@',
+        '&', '=', '+', '$',
+        ',', '/', '?', '#',
+        '[', ']', '%', '\'',
+    };
 #define URLIST_SIZE (sizeof(url_reserved_list) / sizeof(int))
 
     for (unsigned i = 0; i < URLIST_SIZE; ++i)
@@ -597,62 +603,61 @@ int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_
 
 // FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 int qore_string_private::concatEncodeUriRequest(ExceptionSink* xsink, const qore_string_private& str) {
-   assert(str.len);
+    assert(str.len);
 
-   if (!getEncoding()->isAsciiCompat()) {
-      xsink->raiseException("UNSUPPORTED-ENCODING", "cannot encode a URI to non-ASCII-compatible encoding \"%s\"", getEncoding()->getCode());
-      return -1;
-   }
+    if (!getEncoding()->isAsciiCompat()) {
+        xsink->raiseException("UNSUPPORTED-ENCODING", "cannot encode a URI to non-ASCII-compatible encoding \"%s\"",
+            getEncoding()->getCode());
+        return -1;
+    }
 
-   int state = QUS_PATH;
+    int state = QUS_PATH;
 
-   const unsigned char* p = (const unsigned char*)str.buf;
-   while (*p) {
-      if ((*p) == '%')
-         concat("%25");
-      else if (*p > 127) {
-         size_t len = q_UTF8_get_char_len((const char*)p, str.len - ((const char*)p - str.buf));
-         if (len <= 0) {
-            xsink->raiseException("INVALID-ENCODING", "invalid UTF-8 getEncoding() found in string");
-            return -1;
-         }
-         // add UTF-8 percent-encoded characters
-         for (size_t i = 0; i < len; ++i)
-            sprintf("%%%X", (unsigned)p[i]);
-         p += len;
-         continue;
-      } else if (state == QUS_PATH) {
-         if ((*p) == '?') {
-            state = QUS_QUERY;
-            concat(*p);
-         }
-         else if ((*p) == '#') {
-            state = QUS_FRAGMENT;
-            concat(*p);
-         }
-         else if ((*p) == ' ')
-            concat("%20");
-         else
-            concat(*p);
-      } else if (state == QUS_QUERY) {
-         if ((*p) == ' ')
-            concat('+');
-         else if ((*p) == '+')
-            concat("%2b");
-         else
-            concat(*p);
-      } else {
-         assert(state == QUS_PATH);
-         if ((*p) == ' ')
-            concat("%20");
-         else
-            concat(*p);
-      }
+    const unsigned char* p = (const unsigned char*)str.buf;
+    while (*p) {
+        if ((*p) == '%')
+            concat("%25");
+        else if (*p > 127) {
+            size_t len = q_UTF8_get_char_len((const char*)p, str.len - ((const char*)p - str.buf));
+            if (len <= 0) {
+                xsink->raiseException("INVALID-ENCODING", "invalid UTF-8 getEncoding() found in string");
+                return -1;
+            }
+            // add UTF-8 percent-encoded characters
+            for (size_t i = 0; i < len; ++i)
+                sprintf("%%%X", (unsigned)p[i]);
+            p += len;
+            continue;
+        } else if (state == QUS_PATH) {
+            if ((*p) == '?') {
+                state = QUS_QUERY;
+                concat(*p);
+            } else if ((*p) == '#') {
+                state = QUS_FRAGMENT;
+                concat(*p);
+            } else if ((*p) == ' ')
+                concat("%20");
+            else
+                concat(*p);
+        } else if (state == QUS_QUERY) {
+            if ((*p) == ' ')
+                concat('+');
+            else if ((*p) == '+')
+                concat("%2b");
+            else
+                concat(*p);
+        } else {
+            assert(state == QUS_PATH);
+            if ((*p) == ' ')
+                concat("%20");
+            else
+                concat(*p);
+        }
 
-      ++p;
-   }
+        ++p;
+    }
 
-   return 0;
+    return 0;
 }
 
 // static function
@@ -2346,59 +2351,59 @@ int QoreString::concatDecodeUrl(const QoreString& url_str, ExceptionSink* xsink)
 
 // assume encoding according to http://tools.ietf.org/html/rfc3986#section-2.1
 int QoreString::concatEncodeUrl(ExceptionSink* xsink, const QoreString& url, bool encode_all) {
-   assert(xsink);
-   if (!url.size())
-      return 0;
+    assert(xsink);
+    if (!url.size())
+        return 0;
 
-   if (!priv->getEncoding()->isAsciiCompat()) {
-      xsink->raiseException("UNSUPPORTED-ENCODING", "cannot encode a URI to non-ASCII-compatible encoding \"%s\"", priv->getEncoding()->getCode());
-      return -1;
-   }
+    if (!priv->getEncoding()->isAsciiCompat()) {
+        xsink->raiseException("UNSUPPORTED-ENCODING", "cannot encode a URI to non-ASCII-compatible encoding \"%s\"", priv->getEncoding()->getCode());
+        return -1;
+    }
 
-   TempEncodingHelper str(url, QCS_UTF8, xsink);
-   if (*xsink)
-      return -1;
+    TempEncodingHelper str(url, QCS_UTF8, xsink);
+    if (*xsink)
+        return -1;
 
-   const unsigned char* p = (const unsigned char*)str->c_str();
-   while (*p) {
-      if ((*p) == '%')
-         concat("%25");
-      else if ((*p) == ' ')
-         concat("%20");
-      else if (*p > 127) {
-         size_t len = q_UTF8_get_char_len((const char*)p, str->size() - ((const char*)p - str->c_str()));
-         if (len <= 0) {
-            xsink->raiseException("INVALID-ENCODING", "invalid UTF-8 encoding found in string");
-            return -1;
-         }
-         // add UTF-8 percent-encoded characters
-         for (size_t i = 0; i < len; ++i)
-            sprintf("%%%X", (unsigned)p[i]);
-         p += len;
-         continue;
-      }
-      else if (encode_all && url_reserved.find(*p) != url_reserved.end()) {
-         sprintf("%%%X", (unsigned)*p);
-      }
-      else
-         concat(*p);
+    const unsigned char* p = (const unsigned char*)str->c_str();
+    while (*p) {
+        if ((*p) == '%') {
+            concat("%25");
+        } else if ((*p) == ' ') {
+            concat("%20");
+        } else if (*p > 127) {
+            size_t len = q_UTF8_get_char_len((const char*)p, str->size() - ((const char*)p - str->c_str()));
+            if (len <= 0) {
+                xsink->raiseException("INVALID-ENCODING", "invalid UTF-8 encoding found in string");
+                return -1;
+            }
+            // add UTF-8 percent-encoded characters
+            for (size_t i = 0; i < len; ++i) {
+                sprintf("%%%X", (unsigned)p[i]);
+            }
+            p += len;
+            continue;
+        } else if (encode_all && url_reserved.find(*p) != url_reserved.end()) {
+            sprintf("%%%X", (unsigned)*p);
+        } else {
+            concat(*p);
+        }
 
-      ++p;
-   }
+        ++p;
+    }
 
-   return 0;
+    return 0;
 }
 
 int QoreString::concatEncodeUriRequest(ExceptionSink* xsink, const QoreString& url) {
-   assert(xsink);
-   if (!url.size())
-      return 0;
+    assert(xsink);
+    if (!url.size())
+        return 0;
 
-   TempEncodingHelper str(url, QCS_UTF8, xsink);
-   if (*xsink)
-      return -1;
+    TempEncodingHelper str(url, QCS_UTF8, xsink);
+    if (*xsink)
+        return -1;
 
-   return priv->concatEncodeUriRequest(xsink, *url.priv);
+    return priv->concatEncodeUriRequest(xsink, *url.priv);
 }
 
 int QoreString::concatDecodeUriRequest(const QoreString& url_str, ExceptionSink* xsink) {
@@ -2416,26 +2421,26 @@ int QoreString::vsprintf(const char* fmt, va_list args) {
 }
 
 void QoreString::concat(const char* str) {
-   priv->concat(str);
+    priv->concat(str);
 }
 
 void QoreString::concat(const std::string& str) {
-   priv->check_char(priv->len + str.size());
-   memcpy(priv->buf + priv->len, str.c_str(), str.size());
-   priv->len += str.size();
-   priv->buf[priv->len] = '\0';
+    priv->check_char(priv->len + str.size());
+    memcpy(priv->buf + priv->len, str.c_str(), str.size());
+    priv->len += str.size();
+    priv->buf[priv->len] = '\0';
 }
 
 void QoreString::concat(const char* str, size_t size) {
-   priv->check_char(priv->len + size);
-   memcpy(priv->buf + priv->len, str, size);
-   priv->len += size;
-   priv->buf[priv->len] = '\0';
+    priv->check_char(priv->len + size);
+    memcpy(priv->buf + priv->len, str, size);
+    priv->len += size;
+    priv->buf[priv->len] = '\0';
 }
 
 void QoreString::concat(const QoreString* str) {
-   if (str)
-      priv->concat(str->priv);
+    if (str)
+        priv->concat(str->priv);
 }
 
 /*
