@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2006 - 2019 Qore Technologies, s.r.o.
+  Copyright (C) 2006 - 2021 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -63,7 +63,8 @@ public:
     DLLEXPORT const QoreEncoding* getEncoding() const;
 
     DLLEXPORT int connect(ExceptionSink* xsink);
-    DLLEXPORT QoreHashNode* send(const char* meth, const char* path, const QoreHashNode* headers, const void* data, unsigned size, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
+    DLLEXPORT QoreHashNode* send(const char* meth, const char* path, const QoreHashNode* headers, const void* data,
+            unsigned size, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
 
     DLLEXPORT void setEventQueue(Queue* cbq, ExceptionSink* xsink);
 

@@ -25,6 +25,9 @@
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module
       - fixed handling column names that use reserved words
         (<a href="https://github.com/qorelanguage/qore/issues/4348">issue 4348</a>)
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
+      - removed erroneous / extraneous URI encoding on REST paths before sending
+        (<a href="https://github.com/qorelanguage/qore/issues/4360">issue 4360</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
       - fixed upsert usage with unique constraints and indices when there is a non-matching PK
         (<a href="https://github.com/qorelanguage/qore/issues/4347">issue 4347</a>)
@@ -40,12 +43,17 @@
     - <a href="../../modules/Util/html/index.html">Util</a> module
       - fixed a bug in \c parse_to_qore_value() with floats and numbers with trailing zeros
         (<a href="https://github.com/qorelanguage/qore/issues/4349">issue 4349</a>)
-    - fixed a bug that caused a core dump with implicit object method calls in arguments in the
-      @ref background "background operator" expression
-      (<a href="https://github.com/qorelanguage/qore/issues/4344">issue 4344</a>)
+    - fixed issues encoding URLs in the @ref Qore::HTTPClient "HTTPClient" class according to
+      <a href="https://datatracker.ietf.org/doc/html/rfc1738#section-2.2">RFC 1738 section 2.2</a>
+      (<a href="https://github.com/qorelanguage/qore/issues/4361">issue 4361</a>)
+    - fixed a bug parsing URLs with a query after the port (ex: \c "http://host:1234?query=true")
+      (<a href="https://github.com/qorelanguage/qore/issues/4358">issue 4358</a>)
     - fixed a crashing bug when sorting large lists in background threads caused by excessive recursion and stack
       exhaustion
       (<a href="https://github.com/qorelanguage/qore/issues/4355">issue 4355</a>)
+    - fixed a bug that caused a core dump with implicit object method calls in arguments in the
+      @ref background "background operator" expression
+      (<a href="https://github.com/qorelanguage/qore/issues/4344">issue 4344</a>)
 
     @section qore_1_0_11 Qore 1.0.11
 

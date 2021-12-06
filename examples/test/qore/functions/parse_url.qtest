@@ -55,6 +55,11 @@ public class parseUrlTest inherits QUnit::Test {
         assertEq("token", h.password);
         assertEq("qoretechnologies.zendesk.com", h.host);
         assertNothing(h.path);
+
+        h = parse_url("https://host:1234?arg=true");
+        assertEq("host", h.host);
+        assertEq(1234, h.port);
+        assertEq("?arg=true", h.path);
     }
 
     test() {
