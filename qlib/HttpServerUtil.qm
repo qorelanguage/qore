@@ -33,7 +33,7 @@
 %enable-all-warnings
 
 module HttpServerUtil {
-    version = "1.0";
+    version = "1.0.12";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -92,6 +92,9 @@ module HttpServerUtil {
       infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
+
+    @subsection httputil1_0_12 HttpServerUtil 1.0.12
+    - updated version to match %Qore and server version
 
     @subsection httputil1_0 HttpServerUtil 1.0
     - fixed a bug handling wildcard address binds in
@@ -155,7 +158,7 @@ module HttpServerUtil {
  */
 public namespace HttpServer {
 #! version of the HttpServer's implementation
-public const HttpServerVersion = "1.0.2";
+public const HttpServerVersion = "1.0.12";
 
 #! default HTTP server string
 public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);

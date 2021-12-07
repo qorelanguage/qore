@@ -16,6 +16,9 @@
       - implemented \c DbDataProvider::beginTransaction() and \c DbTableDataProvider::beginTransaction() to support
         starting a transaction when using the \c AbstractDataProvider API with databases and tables
         (<a href="https://github.com/qorelanguage/qore/issues/4346">issue 4346</a>)
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+      - fixed a bug where incorrect URI decoding was applied to URLs in received HTTP messages instead of URL decoding
+        (<a href="https://github.com/qorelanguage/qore/issues/4363">issue 4363</a>)
     - <a href="../../modules/MailMessage/html/index.html">MailMessage</a> module
       - various fixes from downstream to mail message data handling
         (<a href="https://github.com/qorelanguage/qore/issues/4352">issue 4352</a>)
