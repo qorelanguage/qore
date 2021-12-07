@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file MailMessage.qm MailMessage module definition
 
-/*  MailMessage.qm Copyright 2012 - 2017 Qore Technologies, s.r.o.
+/*  MailMessage.qm Copyright 2012 - 2021 Qore Technologies, s.r.o.
 
     Original Authors: Wolfgang Ritzinger, Marian Bonda, Pavol Potoncok
 
@@ -25,7 +25,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.8.13
+%requires qore >= 0.9
 
 # need mime definitions
 %requires Mime >= 1.3
@@ -40,7 +40,7 @@
 %enable-all-warnings
 
 module MailMessage {
-    version = "1.3.1";
+    version = "1.3.3";
     desc = "defines the MailMessage class and supporting definitions";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,38 +74,52 @@ msg.addTO("My Best Friend <you@friend.com>");
 
     @section mailmessage_relnotes MailMessage Release Notes
 
-    @subsection mailmessage_v1_3_1
-    - fixed @ref MailMessage::Message::addBody() "Message::addBody()" with no body present (issue <a href="https://github.com/qorelanguage/qore/issues/2360">issue 2360</a>)
+    @subsection mailmessage_v1_3_3 MailMessage 1.3.3
+    - various fixes from downstream to MailMessage data handling
+      (<a href="https://github.com/qorelanguage/qore/issues/4352">issue 4352</a>)
 
-    @subsection mailmessage_v1_3
+    @subsection mailmessage_v1_3_2 MailMessage 1.3.2
+    - fixed message serialization for SMTP handling; default to base64 encoding for attachments and if the message
+      body has a single \c "." character on a line; convert any single \c "." characters on a line to two \c ".."
+      characters if using inly quoted printable encoding
+      (issue <a href="https://github.com/qorelanguage/qore/issues/3275">issue 3275</a>)
+
+    @subsection mailmessage_v1_3_1 MailMessage 1.3.1
+    - fixed @ref MailMessage::Message::addBody() "Message::addBody()" with no body present
+      (issue <a href="https://github.com/qorelanguage/qore/issues/2360">issue 2360</a>)
+
+    @subsection mailmessage_v1_3 MailMessage 1.3
     - added support for complex types
 
-    @subsection mailmessage_v1_2_1
-    - fixed a bug using the default encoding in @ref MailMessage::Message::attach() "Message::attach()" (issue <a href="https://github.com/qorelanguage/qore/issues/1352">issue 1352</a>)
+    @subsection mailmessage_v1_2_1 MailMessage 1.2.1
+    - fixed a bug using the default encoding in @ref MailMessage::Message::attach() "Message::attach()"
+      (issue <a href="https://github.com/qorelanguage/qore/issues/1352">issue 1352</a>)
 
-    @subsection mailmessage_v1_2
+    @subsection mailmessage_v1_2 MailMessage 1.2
     - converted to @ref new-style "%new-style"
 
-    @subsection mailmessage_v1_1
+    @subsection mailmessage_v1_1 MailMessage 1.1
     - added the @ref MailMessage::Message::serialize() "Message::serialize()" method
 
-    @subsection mailmessage_v1_0_4
+    @subsection mailmessage_v1_0_4 MailMessage 1.0.4
     - minor doc corrections and non-functional code changes
 
-    @subsection mailmessage_v1_0_3
+    @subsection mailmessage_v1_0_3 MailMessage 1.0.3
     - requires Mime module 1.3 for the MultiPartMessage::parseBody() method
     - fixed a bug where the part/attachment content-type was set to the content-type of the message
     - try to get the filename of attachments from the content-type header if not set in the content-disposition header
     - message parts that themselves have parts are now supported
-    - fixed recognizing mime messages with additional text after the version number (ex: "Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))")
+    - fixed recognizing mime messages with additional text after the version number
+      (ex: "Mime-Version: 1.0 (Mac OS X Mail 6.2 \(1499\))")
 
-    @subsection mailmessage_v1_0_2
+    @subsection mailmessage_v1_0_2 MailMessage 1.0.2
     - use \c "<string>::isDataPrintableAscii()" to determine which mail headers need encoding
 
-    @subsection mailmessage_v1_0_1
-    - fixed a bug encoding mail headers where mail headers requiring encoding were not encoded and those not requiring encoding were encoded with Q encoding
+    @subsection mailmessage_v1_0_1 MailMessage 1.0.1
+    - fixed a bug encoding mail headers where mail headers requiring encoding were not encoded and those not requiring
+      encoding were encoded with Q encoding
 
-    @subsection mailmessage_v1_0
+    @subsection mailmessage_v1_0 MailMessage 1.0
     - moved from the SmtpClient module to an independent module to also support the Pop3Client class
 */
 
@@ -141,7 +155,7 @@ public namespace MailMessage {
         EncNone,
         EncBase64,
         EncQuotedPrintable,
-        );
+    );
     #@}
 
     #! The %Message class holds the information for a single email %Message
@@ -218,6 +232,9 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             list<Part> parts();
 
             string sender;
+
+            # SMTP mode: do not serialize a single "." alone on a line
+            bool smtp_mode = True;
         }
         #! @endcond
 
@@ -226,26 +243,32 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             string mpboundary = replace(make_base64_string(string(now_us())), "=", "");
         }
 
-        #! creates a Message object from the arguments given; this variant of the constructor is designed to be used to create a Message object for sending with the SmtpClient class
-        /** Use the Message::addTo() method to add message recipients
+        #! creates a Message object from the arguments given
+        /** This variant of the constructor is designed to be used to create a Message object for sending with the
+            \c SmtpClient class
 
-            @param n_sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
-            @param n_subject the subject line for the email; the subject will be encoded with <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
+            Use the Message::addTo() method to add message recipients
+
+            @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
+            @param subject the subject line for the email; the subject will be encoded with
+            <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
+            @param smtp_mode if True then a single "." will not be serialized alone on a line
 
             @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
          */
-        constructor(string n_sender, string n_subject) {
-            *string se = Message::getEmailAddress(n_sender);
+        constructor(string sender, string subject, bool smtp_mode = True) {
+            *string se = Message::getEmailAddress(sender);
             if (!exists se)
-                throw "MESSAGE-CONSTRUCTOR-ERROR", sprintf("cannot get email address out of: %y", n_sender);
+                throw "MESSAGE-CONSTRUCTOR-ERROR", sprintf("cannot get email address out of: %y", sender);
 
             # subject
-            if (n_subject.empty())
+            if (subject.empty())
                 throw "MESSAGE-CONSTRUCTOR-ERROR", "subject must be not empty string";
 
             sender = se;   # used for sending
-            from = n_sender; # used for displaying
-            subject = n_subject;
+            from = sender; # used for displaying
+            self.subject = subject;
+            self.smtp_mode = smtp_mode;
         }
 
         #! creates a Message object from raw message text from a received email message
@@ -285,34 +308,27 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
                     from = Message::getEmailAddress(h.firstValue());
                     sender = h.firstValue();
                     continue;
-                }
-                else if (lk == "to") {
+                } else if (lk == "to") {
                     to += h.firstValue();
                     continue;
-                }
-                else if (lk == "cc") {
+                } else if (lk == "cc") {
                     cc += h.firstValue();
                     continue;
-                }
-                else if (lk == "bcc") {
+                } else if (lk == "bcc") {
                     bcc += h.firstValue();
                     continue;
-                }
-                else if (lk == "subject") {
+                } else if (lk == "subject") {
                     subject = h.firstValue();
                     continue;
-                }
-                else if ((lk == "importance" && h.firstValue() =~ /^high$/i)
+                } else if ((lk == "importance" && h.firstValue() =~ /^high$/i)
                          || (lk =~ /^(x-)?priority$/ && h.firstValue() =~ /^urgent$/i)) {
                     importance = True;
                     continue;
-                }
-                else if (lk == "return-receipt-to") {
+                } else if (lk == "return-receipt-to") {
                     # FIXME: we do not check if the return receipt is the same as the sender
                     deliveryReceipt = True;
                     continue;
-                }
-                else if (lk == "Disposition-Notification-To") {
+                } else if (lk == "Disposition-Notification-To") {
                     # FIXME: we do not check if the read receipt is the same as the sender
                     readReceipt = True;
                     continue;
@@ -331,15 +347,14 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
                 if (!boundary)
                     throw "MESSAGE-PARSE-ERROR", sprintf("cannot parse MIME Content-Type: %y; could not find message boundary", ct);
 
-                hash mpb = MultiPartMessage::parseBody(boundary, msg, True);
+                hash<MessageInfo> mpb = MultiPartMessage::parseBody(boundary, msg, True);
 
                 # reassign message body to
                 msg = mpb.body;
 
                 # process/decode parts
                 map processPart($1), mpb.part;
-            }
-            else if (ct)
+            } else if (ct)
                 bodyContentType = ct;
 
             # assign the message body to what's left of the message, if anything
@@ -366,30 +381,35 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             if (attachments) {
                 MultiPartMixedMessage mpm(mpboundary);
 
-                if (bodyEncoding == EncNone)
+                if (bodyEncoding == EncNone) {
                     bodyEncoding = ContentTransEnc7Bit;
+                }
 
                 # add the message body with content-disposition: "inline"
                 mpm.addEncodePart(body, bodyEncoding, bodyContentType ? bodyContentType : MimeTypeText, "inline");
 
                 # add attachments
-                foreach my MailMessage::Attachment att in (attachments)
-                    att.add(mpm);
+                map $1.add(mpm), attachments;
 
                 str += mpm.serialize().toString();
                 str += "\r\n";
-            }
-            else {
-                if (bodyEncoding == EncNone)
+            } else {
+                if (bodyEncoding == EncNone) {
                     str += "\r\n" + body + "\r\n";
-                else
+                } else {
                     str += "\r\n" + mime_encode_transfer_data(body, bodyEncoding) + "\r\n";
+                }
+            }
+
+            # issue #3275: fix encoding of a naked "." on a line which will break the SMTP protocol
+            if (smtp_mode) {
+                str = replace(str, "\r\n.\r\n", "\r\n..\r\n");
             }
 
             return str;
         }
 
-        private processPart(hash p) {
+        private processPart(hash<auto> p) {
             # part content type (default = no encoding)
             string pct = Mime::ContentTransEnc7Bit;
             # part content transfer encoding (default: no encoding)
@@ -398,7 +418,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             string pcd;
 
             # process part headers
-            foreach hash h in (p.hdr.pairIterator()) {
+            foreach hash<auto> h in (p.hdr.pairIterator()) {
                 if (h.key == "content-transfer-encoding")
                     pcte = h.value.lwr();
                 else if (h.key == "content-type")
@@ -431,8 +451,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
                     body = p.body;
                 else
                     parts += new Part(pn.val() ? pn : "", pct, p.body, pcte, p.hdr);
-            }
-            else {
+            } else {
                 # generate a name for the part if no filename is available
                 if (!pn)
                     pn = "unnamed-attachment-" + $#;
@@ -559,17 +578,17 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         }
 
         #! sets or replaces the Message body
-        /** @param n_body the Message body to set
-            @param n_enc the encoding type for the message (see @ref MessageEncodings for possible values)
-            @param n_content_type the Content-Type for the message body, if any
+        /** @param body the Message body to set
+            @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
+            @param content_type the Content-Type for the message body, if any
 
             @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
          */
-        setBody(data n_body, string n_enc = EncDefault, *string n_content_type) {
-            bodyEncoding = Message::checkEncoding(n_body, n_enc, True);
-            if (n_content_type)
-                bodyContentType = n_content_type;
-            body = n_body;
+        setBody(data body, string enc = EncDefault, *string content_type) {
+            bodyEncoding = Message::checkEncoding(body, enc, True);
+            if (content_type)
+                bodyContentType = content_type;
+            self.body = body;
         }
 
         #! concatenates a string to the message body
@@ -682,7 +701,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
             @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
          */
-        addHeader(list hdrs) {
+        addHeader(list<auto> hdrs) {
             headers += map parseHeader($1, False), hdrs;
         }
 
@@ -691,7 +710,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
             @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
          */
-        addHeader(hash hdrs) {
+        addHeader(hash<auto> hdrs) {
             headers += hdrs;
         }
 
@@ -701,7 +720,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         }
 
         #! returns the current Message headers as a hash
-        *hash getHeaders() {
+        *hash<auto> getHeaders() {
             return headers;
         }
 
@@ -767,7 +786,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
             @throw INVALID-ENCODING the encoding given cannot be used with data given
          */
-        attach(string name, string mime, data att, string enc = EncDefault, *hash hdr) {
+        attach(string name, string mime, data att, string enc = EncBase64, *hash<auto> hdr) {
             attachments += new MailMessage::Attachment(name, mime, att, enc, hdr);
         }
 
@@ -847,7 +866,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             }
 
             # additional headers
-            foreach string k in (headers.keyIterator())
+            foreach string k in (keys headers)
                 hdr += Message::doHeaderValue(k, headers{k}, eol, encode);
 
             # include MIME headers for msg body if necessary
@@ -952,8 +971,18 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
             @throw INVALID-ENCODING the encoding given cannot be used with data given
          */
         static string checkEncoding(data data, string enc, bool noneok = False) {
-            if (enc == EncDefault)
-                enc = data.typeCode() == NT_STRING ? EncQuotedPrintable : EncBase64;
+            if (enc == EncDefault) {
+                # issue #3275: if the data has a line with a single dot, then encode it with base64 encoding
+                if (data.typeCode() == NT_STRING) {
+                    if (data =~ /^.\r?$/m) {
+                        enc = EncBase64;
+                    } else {
+                        enc = EncQuotedPrintable;
+                    }
+                } else {
+                    enc = EncBase64;
+                }
+            }
             else if (!noneok && enc == EncNone)
                 throw "INVALID-ENCODING", "\"none\" may not be used; a valid encoding is required in this context";
             else if (!inlist(enc, Encodings))
@@ -1067,20 +1096,21 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         private {
             string name;
             string mime;
-            data data;
+            data part_data;
             #! content-transfer encoding
             string enc;
             # any extra headers for the message
-            *hash headers;
+            *hash<auto> headers;
         }
 
         # will only be called internally when parsing a Message
-        constructor(string filename, string mimetype, data filedata, string encoding = EncDefault, *hash hdr) {
+        constructor(string filename, string mimetype, data filedata, string encoding = EncDefault, *hash<auto> hdr) {
             name = filename;
             mime = mimetype;
-            data = filedata;
+            part_data = filedata;
             enc = encoding;
-            headers = hdr;
+            # += to keep "hash<auto>"
+            headers += hdr;
         }
         #! @endcond
 
@@ -1096,7 +1126,7 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
         #! returns the data of the Part
         data getData() {
-            return data;
+            return part_data;
         }
 
         #! returns the transfer encoding of the Part
@@ -1105,13 +1135,13 @@ m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
         }
 
         #! returns any headers for the Part
-        *hash getHeaders() {
+        *hash<auto> getHeaders() {
             return headers;
         }
 
-        #! adds itself to a multipart/mixed message
-        add(MultiPartMixedMessage mpm) {
-            mpm.addEncodePart(data, enc, mime, sprintf("attachment; filename=%y", name));
+        #! adds itself to a multipart/alternative message
+        add(MultiPartAlternativeMessage mpa) {
+             mpa.addEncodePart(part_data, enc, mime);
         }
     }
 
@@ -1136,17 +1166,27 @@ msg.attach(att);
         public {}
 
         #! creates an Attachment object for a Message object
-        /** @param name the name of the attachment to be displayed in the message, normally a file name without any path
+        /** @param name the name of the attachment to be displayed in the message, normally a file name without any
+            path
             @param mime the mime type for the message
-            @param data the attachment data itself
+            @param part_data the attachment data itself
             @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
             @param hdr optional headers for the MIME part for the attachment
 
             @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
             @throw INVALID-ENCODING the encoding given cannot be used with data given
          */
-        constructor(string name, string mime, data data, string enc = EncDefault, *hash hdr) : Part(name, mime, data, enc, hdr) {
-            self.enc = Message::checkEncoding(data, enc);
+        constructor(string name, string mime, data part_data, string enc = EncBase64, *hash<auto> hdr)
+                : Part(name, mime, part_data, enc, hdr) {
+            self.enc = Message::checkEncoding(part_data, enc);
+        }
+
+        #! adds itself to a multipart/mixed message
+        add(MultiPartMixedMessage mpm) {
+            mpm.addEncodePart(part_data, enc, mime, "attachment", {
+                "Content-Type": "",
+                "Content-Disposition": name,
+            });
         }
     }
 }
