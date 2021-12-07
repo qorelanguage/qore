@@ -32,7 +32,7 @@
 %new-style
 
 module HttpServer {
-    version = "1.0.2";
+    version = "1.0.12";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -115,6 +115,10 @@ log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http1_0_12 HttpServer 1.0.12
+    - fixed a bug where incorrect URI decoding was applied to URLs in received HTTP messages instead of URL decoding
+      (<a href="https://github.com/qorelanguage/qore/issues/4363">issue 4363</a>)
 
     @subsection http1_0_2 HttpServer 1.0.2
     - @ref HttpServer::HttpServer::addListeners() "HttpServer::addListeners()" has no mechanism for returning errors
@@ -2478,7 +2482,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
 
                 # process ascii encodings in url if present
                 cx.raw_path = hdr.path;
-                hdr.path = decode_uri_request(hdr.path);
+                hdr.path = decode_url(hdr.path);
                 cx += {
                     "orig_path": hdr.path,
                     "masked_path": serv.maskData(hdr.path),
