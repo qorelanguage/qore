@@ -333,7 +333,8 @@ static int read_line(unsigned &lineNumber, std::string& str, FILE* fp) {
     return 0;
 }
 
-static int get_dox_comment(const char* fileName, unsigned &lineNumber, std::string& str, FILE* fp, bool already_started = false) {
+static int get_dox_comment(const char* fileName, unsigned &lineNumber, std::string& str, FILE* fp,
+        bool already_started = false) {
     if (!already_started) {
         std::string buf;
         if (read_line(lineNumber, buf, fp)) {
@@ -804,8 +805,7 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
                     log(LL_CRITICAL, "unsupported complex hash type found: '%s'\n", qt.c_str());
                     assert(false);
                 }
-            }
-            else {
+            } else {
                 if (subtype == "auto")
                     qc = on ? "autoHashOrNothingTypeInfo" : "autoHashTypeInfo";
                 else {
@@ -817,8 +817,7 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
                     log(LL_DEBUG, "registering hashdecl return type '%s': '%s'\n", qt.c_str(), qc.c_str());
                 }
             }
-        }
-        else if (!qt.compare(on ? 1 : 0, 5, "list<")) {
+        } else if (!qt.compare(on ? 1 : 0, 5, "list<")) {
             // extract subtype name
             std::string subtype = qt.substr((on ? 6 : 5), qt.size() - (on ? 7 : 6));
 
@@ -840,8 +839,7 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
                     qc = "qore_get_complex_list_type(" + subtype_qt + ")";
             }
             log(LL_DEBUG, "registering complex list return type '%s': '%s'\n", qt.c_str(), qc.c_str());
-        }
-        else if (!qt.compare(on ? 1 : 0, 9, "softlist<")) {
+        } else if (!qt.compare(on ? 1 : 0, 9, "softlist<")) {
             // extract subtype name
             std::string subtype = qt.substr((on ? 10 : 9), qt.size() - (on ? 11 : 10));
 
@@ -864,8 +862,7 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
                     qc = "qore_get_complex_softlist_type(" + subtype_qt + ")";
             }
             log(LL_DEBUG, "registering complex softlist return type '%s': '%s'\n", qt.c_str(), qc.c_str());
-        }
-        else if (!qt.compare(on ? 1 : 0, 10, "reference<")) {
+        } else if (!qt.compare(on ? 1 : 0, 10, "reference<")) {
             // extract subtype name
             std::string subtype = qt.substr((on ? 11 : 10), qt.size() - (on ? 12 : 11));
 
@@ -883,8 +880,7 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
             else
                 qc = "qore_get_complex_reference_type(" + subtype_qt + ")";
             log(LL_DEBUG, "registering complex reference return type '%s': '%s'\n", qt.c_str(), qc.c_str());
-        }
-        else {
+        } else {
             // assume a Qore object of the given class
             get_type_name(qc, qt);
             toupper(qc);
@@ -895,8 +891,7 @@ static int get_qore_type(const std::string& qt, std::string& cppt) {
         oset.insert(qt);
         tmap[qt] = qc;
         cppt = tmap[qt];
-    }
-    else
+    } else
         cppt = i->second;
     return 0;
 }
@@ -1203,8 +1198,7 @@ static int get_qore_value(const std::string& qv, std::string& v, const char* cna
                 char buf[20];
                 sprintf(buf, "%d", val * 1000);
                 v += buf;
-            }
-            else {
+            } else {
                 char buf[20];
                 sprintf(buf, "%d", val);
                 if (lc == 's') {
@@ -1630,8 +1624,7 @@ static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& do
         start = find_start(buf);
         if (start == std::string::npos) {
             error("cannot insert code flags: missing long comment\n");
-        }
-        else {
+        } else {
             std::string fbuf = "@par Code Flags:\n    ";
             for (strlist_t::const_iterator i = flags.begin(), e = flags.end(); i != e; ++i) {
                 if (i != flags.begin())
@@ -1642,8 +1635,7 @@ static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& do
             fbuf += "\n\n";
             buf.insert(start, fbuf);
         }
-    }
-    else if (dom.empty())
+    } else if (dom.empty())
         justify_start(buf);
 
     if (!dom.empty()) {
@@ -1651,8 +1643,7 @@ static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& do
             start = find_start(buf);
         if (start == std::string::npos) {
             error("cannot insert domain flags: missing long comment\n");
-        }
-        else {
+        } else {
             std::string fbuf = "@par Restrictions:\n    ";
             for (strlist_t::const_iterator i = dom.begin(), e = dom.end(); i != e; ++i) {
                 if (i != dom.begin())
@@ -3184,8 +3175,8 @@ protected:
             // re-add newline
             line += '\n';
             if (read_until_close(fileName, lineNumber, line, fp, ';')) {
-                error("%s:%d: expecting hashdecl key definition; got: %s (%c)\n", fileName, lineNumber, line.c_str(), line
-[line.size() - 1]);
+                error("%s:%d: expecting hashdecl key definition; got: %s (%c)\n", fileName, lineNumber, line.c_str(),
+                    line[line.size() - 1]);
                 valid = false;
                 return -1;
             }
@@ -3860,12 +3851,10 @@ public:
             if (i->first == "dom") {
                 if (dom_get(dom, i->second))
                     return -1;
-            }
-            else if (i->first == "flags") {
+            } else if (i->first == "flags") {
                 if (flags_get(cf, i->second))
                     return -1;
-            }
-            else if (i->first == "doconly")
+            } else if (i->first == "doconly")
                 doconly = true;
             else {
                 error("unknown flag '%s' = '%s' defining method %s::%s()\n", i->first.c_str(), i->second.c_str(), name.c_str(), mname.c_str());
@@ -4269,7 +4258,7 @@ protected:
                     rc = -1;
                     break;
                 }
-                //log(LL_DEBUG, "SC=%s", sc.c_str());
+                //log(LL_DEBUG, "SC: %s", sc.c_str());
 
                 if (!sc.compare(0, 9, "hashdecl ")) {
                     sc.erase(0, 9);
@@ -4322,7 +4311,8 @@ protected:
                     continue;
                 }
 
-                if (strstr(sc.c_str(), "::")) {
+                const char* p0;
+                if ((p0 = strstr(sc.c_str(), "::"))) {
                     trim_end(sc);
                     if (sc[sc.size() - 1] == ';') {
                         if (parseMethod(sc, fp, str, true)) {
@@ -4330,6 +4320,27 @@ protected:
                             break;
                         }
                         continue;
+                    }
+                    // issue #4366: read in multi-line signature
+                    const char* p1;
+                    while (true) {
+                        // if we have no args or we have a block start, then stop reading
+                        if (!(p1 = strchr(p0 + 1, '(')) || strchr(p1 + 1, '{')) {
+                            break;
+                        }
+
+                        // read in a new line and add it to the signature
+                        std::string sc1;
+                        if (read_line(lineNumber, sc1, fp)) {
+                            error("%s:%d: premature EOF reading code signature lines\n", fileName, lineNumber);
+                            rc = -1;
+                            break;
+                        }
+                        sc += sc1;
+                        p0 = sc.c_str(), "::";
+                    }
+                    if (rc == -1) {
+                        break;
                     }
                     if (strchr(sc.c_str(), '{')) {
                         if (parseMethod(sc, fp, str)) {
