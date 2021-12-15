@@ -2,6 +2,16 @@
 
     @tableofcontents
 
+    @section qore_1_0_13 Qore 1.0.13
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_0_13_bug_fixes Bug Fixes in Qore
+    - fixed a bug in \c qpp (the %Qore C++-pre-processor used for building %Qore from sources) that failed to
+      recognize methods with multi-line signatures
+      (<a href="https://github.com/qorelanguage/qore/issues/4366">issue 4366</a>)
+
     @section qore_1_0_12 Qore 1.0.12
 
     @par Release Summary
@@ -75,7 +85,7 @@
     @subsection qore_1_0_10_bug_fixes Bug Fixes in Qore
     - fixed a bug in calculating abstract overrides in child classes that could cause spurious errors
       (<a href="https://github.com/qorelanguage/qore/issues/4338">issue 4338</a>)
-    - implemented the @ref Qore::parse_url(string, int) variant to allow for percent decoding in URL strings
+    - implemented the @ref Qore::parse_url(string, __7_ int) variant to allow for percent decoding in URL strings
       (<a href="https://github.com/qorelanguage/qore/issues/4332">issue 4332</a>)
     - fixed C++ foreign thread registration APIs to support TID reuse to provide thread affinity for language
       modules such as Python and Java with successive rapid transitions into %Qore in callbacks
@@ -137,7 +147,7 @@
     @subsection qore_1_0_6_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
       - return the \c base_type key in input type info in
-        @ref DataProvider::AbstractDataProviderType::getInputInfo() "getInputInfo"
+        \ AbstractDataProviderType::getInputInfo()
         (<a href="https://github.com/qorelanguage/qore/issues/4311">issue 4311</a>)
 
     @section qore_1_0_5 Qore 1.0.5
@@ -278,8 +288,8 @@
           (<a href="https://github.com/qorelanguage/qore/issues/4179">issue 4179</a>)
         - allow file appenders to be reopened
           (<a href="https://github.com/qorelanguage/qore/issues/4171">issue 4171</a>)
-        - enable serialization for @ref Logger::LoggerEvent "LoggerEvent" objects as well as for them to be submitted
-          directly to @ref Logger::Logger "Logger" objects
+        - enable serialization for \c LoggerEvent objects as well as for them to be submitted
+          directly to \c Logger objects
           (<a href="https://github.com/qorelanguage/qore/issues/4164">issue 4164</a>)
 
     @subsection qore_1_0_bug_fixes Bug Fixes in Qore
@@ -801,8 +811,7 @@
         .
         (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module updates:
-      - added the @ref Mapper::Mapper::mapAuto() "Mapper::mapAuto()" method and the
-        \c disable_bulk option
+      - added the \c Mapper::mapAuto() method and the \c disable_bulk option
         (<a href="https://github.com/qorelanguage/qore/issues/3872">issue 3872</a>)
       - \c Mapper now inherits \c DataProvider::AbstractDataProviderRecordProcessor
         (<a href="https://github.com/qorelanguage/qore/issues/3876">issue 3876</a>)
@@ -881,7 +890,7 @@
       - fixed support for query parameters of type object
         (<a href="https://github.com/qorelanguage/qore/issues/3799">issue 3799</a>)
     - <a href="../../modules/Util/html/index.html">Util</a> module:
-      - fixed bugs in \c %EVAL= expressions in @ref Util::parse_to_qore_value() "parse_to_qore_value()" where
+      - fixed bugs in \c %EVAL= expressions in \c parse_to_qore_value() where
         expressions that evaluated to integer 0 or floating-point values were returned as @ref NOTHING
         (<a href="https://github.com/qorelanguage/qore/issues/3851">issue 3851</a>)
     - fixed a bug where spurious \c DUPLICATE-SIGNATURE parse errors were raised with signatures that referred to
@@ -918,8 +927,7 @@
       - allow type paths to resolved to internal fields in \c DataProvider::getType() and \c DataProvider::getTypeEx()
         (<a href="https://github.com/qorelanguage/qore/issues/3791">issue 3791</a>)
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module:
-      - added the @ref Mapper::Mapper::setNullableOutput() "Mapper::setNullableOutput()" method and the
-        \c output_nullable option
+      - added the \c Mapper::setNullableOutput() method and the \c output_nullable option
         (<a href="https://github.com/qorelanguage/qore/issues/3788">issue 3788</a>)
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module:
       - added support for the <tt>x-nullable</tt> attribute to allow for nullable values
@@ -981,7 +989,7 @@
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a>:
       - adds infrastructure support for the <a href="../../modules/DataProvider/html/index.html">data provider</a>
         module
-      - implemented the \c op_in_select() function for @ref where_clauses
+      - implemented the \c op_in_select() function for where clause hashes
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module:
       - adds a data provider API for Swagger / OpenAPI schemas
     - support for Unicode character matching in regular expressions:
@@ -3328,7 +3336,7 @@
       - replaced Mime::MultiPartMessage::getRandomString() with Util::get_random_string() to make it work on Windows
     - fixed a bug in the DBI layer where calling @ref Qore::SQL::SQLStatement::describe() "SQLStatement::describe()" would crash when called with an older module that did not implement this method
     - other fixes in the <a href="../../modules/Util/html/index.html">Util</a> module (in addition to the Windows-specific fixes above):
-      - fixed parse_to_qore_value() with hashes with a comma in the first key name
+      - fixed \c parse_to_qore_value() with hashes with a comma in the first key name
       - read from /dev/urandom instead of /dev/random since reads from the latter can block for long periods to fill the entropy pool
     - do not start signal thread after a fork() if signal handling is enabled, pthread_create() is not async-signal safe (on FreeBSD at least this reliably causes segfaults)
 

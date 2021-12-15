@@ -274,7 +274,7 @@ httpclient.setHTTPVersion("1.1");
     @throw HTTP-VERSION-ERROR invalid HTTP version passed (allowed values: \c "1.0" and \"1.1\")
  */
 nothing HTTPClient::setHTTPVersion(string ver) {
-    client->setHTTPVersion(ver->getBuffer(), xsink);
+    client->setHTTPVersion(ver->c_str(), xsink);
 }
 
 //! Returns the HTTP protocol version string used in outgoing messages
@@ -527,7 +527,7 @@ hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Co
  */
 hash<auto> HTTPClient::sendWithSendCallback(code scb, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash> info) {
     OptHashRefHelper ohrh(info, xsink);
-    ReferenceHolder<QoreHashNode> rv(client->sendWithSendCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, xsink), xsink);
+    ReferenceHolder<QoreHashNode> rv(client->sendWithSendCallback(method->c_str(), path && !path->empty() ? path->c_str() : 0, headers, scb, getbody, *ohrh, timeout_ms, xsink), xsink);
     return *xsink ? QoreValue() : rv.release();
 }
 
@@ -600,7 +600,7 @@ nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *
     TempEncodingHelper btmp(body, client->getEncoding(), xsink);
     if (*xsink)
         return QoreValue();
-    client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, btmp->c_str(), btmp->size(), getbody, *ohrh, timeout_ms, rcb, self, xsink);
+    client->sendWithRecvCallback(method->c_str(), path && !path->empty() ? path->c_str() : 0, headers, btmp->c_str(), btmp->size(), getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
 //! Sends an HTTP request with the specified method and optional message body; headers and any body received are returned through a receive callback
@@ -666,7 +666,7 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
  */
 nothing HTTPClient::sendWithRecvCallback(code rcb, *binary body, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash<auto>> info) {
     OptHashRefHelper ohrh(info, xsink);
-    client->sendWithRecvCallback(method->getBuffer(), path && !path->empty() ? path->getBuffer() : nullptr, headers, body ? body->getPtr() : nullptr, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, xsink);
+    client->sendWithRecvCallback(method->c_str(), path && !path->empty() ? path->c_str() : nullptr, headers, body ? body->getPtr() : nullptr, body ? body->size() : 0, getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
 //! Sends an HTTP request with the specified method and optional message body; headers are returned through an optional receive callback and any body received is written to the @ref OutputStream
@@ -769,6 +769,7 @@ httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-T
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request.
+    @param tcb An optional trailer callback for message trailers to write in the outgoing chunked message; the callback takes no arguments and must return either @ref nothing or @ref hash_type "hash" giving a hash of trailers for the final chunk
     @param rcb An optional receive callback for message headers received only; header or trailer data is placed in a hash with the following keys:
     - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
     - \c "info": this hash is passed when headers are received; in this case, the hash has at least the the following keys:
@@ -803,15 +804,18 @@ httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-T
 
     @since %Qore 0.8.13
  */
-nothing HTTPClient::sendChunked(Qore::OutputStream[OutputStream] os, Qore::InputStream[InputStream] is, string method, int max_chunk_size = 4096, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash<auto>> info, *code rcb, *code tcb) {
-   SimpleRefHolder<OutputStream> osHolder(os);
-   SimpleRefHolder<InputStream> isHolder(is);
-   if (max_chunk_size < 1) {
-      xsink->raiseException("HTTP-CHUNK-ERROR", "the max chunk size must be greater than 0; value given is: " QLLD, max_chunk_size);
-      return QoreValue();
-   }
-   OptHashRefHelper ohrh(info, xsink);
-   client->sendChunked(method->getBuffer(), path && !path->empty() ? path->getBuffer() : nullptr, headers, getbody, *ohrh, timeout_ms, rcb, self, os, is, (size_t)max_chunk_size, tcb, xsink);
+nothing HTTPClient::sendChunked(Qore::OutputStream[OutputStream] os, Qore::InputStream[InputStream] is, string method,
+        int max_chunk_size = 4096, *string path, *hash<auto> headers, timeout timeout_ms = 0,
+        softbool getbody = False, *reference<hash<auto>> info, *code rcb, *code tcb) {
+    SimpleRefHolder<OutputStream> osHolder(os);
+    SimpleRefHolder<InputStream> isHolder(is);
+    if (max_chunk_size < 1) {
+        xsink->raiseException("HTTP-CHUNK-ERROR", "the max chunk size must be greater than 0; value given is: " QLLD,
+            max_chunk_size);
+        return QoreValue();
+    }
+    OptHashRefHelper ohrh(info, xsink);
+    client->sendChunked(method->c_str(), path && !path->empty() ? path->c_str() : nullptr, headers, getbody, *ohrh, timeout_ms, rcb, self, os, is, (size_t)max_chunk_size, tcb, xsink);
 }
 
 //! Sends an HTTP request with the specified method and chunked message body as given by a send callback; headers and any body received are returned through a receive callback
@@ -881,9 +885,11 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
     - %Qore 0.8.10
     - %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
-nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string path, *hash<auto> headers, timeout timeout_ms = 0, softbool getbody = False, *reference<hash<auto>> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   client->sendWithCallbacks(method->getBuffer(), path && !path->empty() ? path->getBuffer() : 0, headers, scb, getbody, *ohrh, timeout_ms, rcb, self, xsink);
+nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string path, *hash<auto> headers,
+        timeout timeout_ms = 0, softbool getbody = False, *reference<hash<auto>> info) {
+    OptHashRefHelper ohrh(info, xsink);
+    client->sendWithCallbacks(method->c_str(), path && !path->empty() ? path->c_str() : nullptr, headers, scb,
+        getbody, *ohrh, timeout_ms, rcb, self, xsink);
 }
 
 //! Sends an HTTP \c GET request and returns the message body received as a string or @ref nothing if no message body is received
@@ -942,9 +948,9 @@ nothing HTTPClient::sendWithCallbacks(code scb, code rcb, string method, *string
     @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 *string HTTPClient::get(string path, *hash<auto> headers, *reference<hash<auto>> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   ReferenceHolder<AbstractQoreNode> rv(client->get(path->getBuffer(), headers, *ohrh, xsink), xsink);
-   return *xsink ? 0 : rv.release();
+    OptHashRefHelper ohrh(info, xsink);
+    ReferenceHolder<AbstractQoreNode> rv(client->get(path->c_str(), headers, *ohrh, xsink), xsink);
+    return *xsink ? nullptr : rv.release();
 }
 
 //! Sends an HTTP \c HEAD request and returns as hash of the headers received
@@ -997,9 +1003,9 @@ hash<auto> msg = httpclient.head("/path");
     @since %Qore 0.9.3 added support for the \c response-headers-raw info key
  */
 hash<auto> HTTPClient::head(string path, *hash<auto> headers, *reference<hash<auto>> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   ReferenceHolder<QoreHashNode> rv(client->head(path->getBuffer(), headers, *ohrh, xsink), xsink);
-   return *xsink ? 0 : rv.release();
+    OptHashRefHelper ohrh(info, xsink);
+    ReferenceHolder<QoreHashNode> rv(client->head(path->c_str(), headers, *ohrh, xsink), xsink);
+    return *xsink ? nullptr : rv.release();
 }
 
 //! Sends an HTTP \c POST request with a message body and returns the message body received as a string or @ref nothing if no message body is received
@@ -1118,11 +1124,11 @@ httpclient.post("/path", body);
  */
 *string HTTPClient::post(string path, *binary body, *hash<auto> headers, *reference<hash<auto>> info) {
     OptHashRefHelper ohrh(info, xsink);
-    ReferenceHolder<AbstractQoreNode> rv(client->post(path->getBuffer(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, *ohrh, xsink), xsink);
+    ReferenceHolder<AbstractQoreNode> rv(client->post(path->c_str(), headers, body ? body->getPtr() : 0, body ? body->size() : 0, *ohrh, xsink), xsink);
 #ifdef DEBUG
     assert(!rv || rv->getType() == NT_STRING);
 #endif
-    return *xsink ? 0 : rv.release();
+    return *xsink ? nullptr : rv.release();
 }
 
 //! Sets the default I/O timeout value in milliseconds

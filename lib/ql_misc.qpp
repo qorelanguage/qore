@@ -1054,7 +1054,7 @@ hash<UrlInfo> h = parse_url(url_string, True);
       \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the
       host portion of the URL and for the URL to include a URL path as well.
     - none of the string fields returned here are subjected to percent decoding; to decode percent encoding, call
-      @ref Qore::decode_url() "decode_url()" on the strings manually or use the @ref parse_url_ex(string, int) variant
+      @ref Qore::decode_url() "decode_url()" on the strings manually or use the @ref parse_url(string, __7_ int) variant
       with the @ref QURL_DECODE or @ref QURL_DECODE_PATH option
 
     @see parseURL() for a version of this function that does not throw exceptions if the URL cannot be parsed
@@ -1145,7 +1145,7 @@ hash<UrlInfo> parse_url(string url, *int options) {
       \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the
       host portion of the URL and for the URL to include a URL path as well.
     - none of the string fields returned here are subjected to percent decoding; to decode percent encoding, call
-      @ref Qore::decode_url() "decode_url()" on the strings manually or use the @ref parse_url_ex(string, int) variant
+      @ref Qore::decode_url() "decode_url()" on the strings manually or use the @ref parse_url(string, __7_ int) variant
       with the @ref QURL_DECODE or @ref QURL_DECODE_PATH options
 
     @see parse_url() for a version of this function that throws exceptions if the URL cannot be parsed
