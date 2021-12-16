@@ -4337,7 +4337,7 @@ protected:
                             break;
                         }
                         sc += sc1;
-                        p0 = sc.c_str(), "::";
+                        p0 = strstr(sc.c_str(), "::");
                     }
                     if (rc == -1) {
                         break;
