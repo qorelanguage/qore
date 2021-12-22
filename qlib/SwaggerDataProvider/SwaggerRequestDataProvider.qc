@@ -125,7 +125,8 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         *AbstractParameterObject body = op.body ?? pio.body;
         if (body) {
             RecursiveSearchHelper rsh();
-            rv.addField(getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(body).schema, body.required ?? False));
+            rv.addField(getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(body).schema,
+                body.required ?? False));
             if (!required && body.required) {
                 required = True;
             }
@@ -134,7 +135,8 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             HashDataType formData(getName() + ": request formData");
             foreach hash<auto> i in (op.formData.pairIterator()) {
                 OtherParameter formData = cast<OtherParameter>(i.value);
-                rv.addField(new QoreDataField(i.key, "formData." + i.key, getType(i.value.type, i.value.items, i.value.required)));
+                rv.addField(new QoreDataField(i.key, "formData." + i.key, getType("/request/" + i.key,
+                    i.value.type, i.value.items, i.value.required)));
                 if (!required && i.value.required) {
                     required = True;
                 }
@@ -269,7 +271,6 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             hash<auto> resp = rest.doValidatedRequest(op.method, uri_path, body, \info, NOTHING, hdr);
             return resp + {"info": info};
         } catch (hash<ExceptionInfo> ex) {
-            #printf("XXX %s\n", get_exception_string(ex));
             throw ex.err, ex.desc, info;
         }
     }

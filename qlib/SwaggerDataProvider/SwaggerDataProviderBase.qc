@@ -41,8 +41,8 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
             switch (i.value.inLoc) {
                 # body and formData parameters are handled directly under the operation
                 case "query": {
-                    params{i.value.inLoc}{i.value.name} = getFieldFromParameter(i.value.name, i.value.type,
-                        i.value.items, i.value.desc, i.value.required);
+                    params{i.value.inLoc}{i.value.name} = getFieldFromParameter("!query/" + i.value.name,
+                        i.value.name, i.value.type, i.value.items, i.value.desc, i.value.required);
                     # if at least one query argument is required, then we set "required" to True for the hash
                     if (i.value.required && !req_map{i.value.inLoc}) {
                         req_map{i.value.inLoc} = True;
@@ -51,8 +51,8 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
                 }
 
                 case "header": {
-                    params{i.value.inLoc}{i.value.name} = getFieldFromParameter(i.value.name, "string", NOTHING,
-                        i.value.desc, i.value.required);
+                    params{i.value.inLoc}{i.value.name} = getFieldFromParameter("!headers/" + i.value.name,
+                        i.value.name, "string", NOTHING, i.value.desc, i.value.required);
                     # if at least one query argument is required, then we set "required" to True for the hash
                     if (i.value.required) {
                         if (!req_map{i.value.inLoc}) {
@@ -76,6 +76,12 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
 
     #! Returns a field definition from the Swagger parameter
     private AbstractDataField getFieldFromSchema(string name, *string desc, SchemaObject schema, bool required = True) {
+        return getFieldFromSchemaIntern(name, name, desc, schema, required);
+    }
+
+    #! Returns a field definition from the Swagger parameter
+    private AbstractDataField getFieldFromSchemaIntern(string path, string name, *string desc, SchemaObject schema,
+            bool required = True) {
         if (schema.desc) {
             if (desc) {
                 desc += ": " + schema.desc;
@@ -85,14 +91,14 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
         }
         if (schema.type == "object") {
             # check for recursive field definitions
-            RecursiveFieldHelper rfh(self, "schema", name);
-            return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getSchemaDataType(schema, required)));
+            RecursiveFieldHelper rfh(self, "schema", path);
+            return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getSchemaDataType(path, schema, required)));
         }
-        return getFieldFromParameter(name, schema.type, schema.items, desc, required);
+        return getFieldFromParameter(path, name, schema.type, schema.items, desc, required);
     }
 
     #! Returns the data type for the given schema
-    private AbstractDataProviderType getSchemaDataType(SchemaObject schema, bool required = True) {
+    private AbstractDataProviderType getSchemaDataType(string path, SchemaObject schema, bool required = True) {
         # check for recursive type definitions
         RecursiveTypeHelper rth(self, schema.uniqueHash());
         if (*AbstractDataProviderType t = rth.get()) {
@@ -101,10 +107,11 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
 
         HashDataType type(required ? AutoHashType : AutoHashOrNothingType);
         rth.set(type);
-        map type.addField(getFieldFromSchema($1.key, NOTHING, $1.value, exists schema.required{$1.key})),
-            schema.properties.pairIterator();
+        map type.addField(getFieldFromSchemaIntern(path + "/" + $1.key, $1.key, NOTHING, $1.value,
+            exists schema.required{$1.key})), schema.properties.pairIterator();
         if (schema.additionalProperties) {
-            type.setDefaultOtherFieldType(getType(schema.additionalProperties.type));
+            type.setDefaultOtherFieldType(getType(path + "/" + schema.additionalProperties.type,
+                schema.additionalProperties.type));
         } else {
             # make sure that extra fields are not supported
             type.setDefaultOtherFieldType();
@@ -113,15 +120,15 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
     }
 
     #! Returns a field from a Swagger parameter
-    private AbstractDataField getFieldFromParameter(string name, string type, *SchemaObject arrayItems, *string desc,
-            bool required) {
+    private AbstractDataField getFieldFromParameter(string path, string name, string type, *SchemaObject arrayItems,
+            *string desc, bool required) {
         # check for recursive field definitions
-        RecursiveFieldHelper rfh(self, "field", name);
-        return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getType(type, arrayItems, required)));
+        RecursiveFieldHelper rfh(self, "field", path);
+        return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getType(path, type, arrayItems, required)));
     }
 
     #! Returns the data type corresponding to the values
-    private AbstractDataProviderType getType(string typestr, *SchemaObject arrayItems, bool required = True) {
+    private AbstractDataProviderType getType(string path, string typestr, *SchemaObject arrayItems, bool required = True) {
         hash<auto> type_options;
         if (required) {
             type_options += {"qore.no_null": True};
@@ -134,7 +141,7 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
                 return required ? new QoreSoftStringDataType(type_options) : new QoreSoftStringOrNothingDataType(type_options);
 
             case "array":
-                return new ListDataType(getSchemaDataType(arrayItems), !required);
+                return new ListDataType(getSchemaDataType(path, arrayItems), !required);
         }
 
         if (*string newname = OptimalQoreSoftDataTypeMap{typestr}) {
@@ -154,7 +161,8 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
         }
 
         HashDataType recordType();
-        map recordType.addField(getFieldFromParameter($1.key, $1.value.type, $1.value.items, $1.value.desc, False)), headers.pairIterator();
+        map recordType.addField(getFieldFromParameter("!headers/" + $1.key, $1.key, $1.value.type, $1.value.items,
+            $1.value.desc, False)), headers.pairIterator();
         return rfh.set(new QoreDataField(name, "HTTP headers", recordType));
     }
 }

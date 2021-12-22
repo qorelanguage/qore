@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5.6";
+    version = "1.5.7";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -215,7 +215,7 @@ list: (2 elements)
     - \c "output_provider": gives the output provider with an
       @ref DataProvider::AbstractDataProvider "AbstractDataProvider" object which defines the type of output data and
       also location where the output data will be written.  If this option is set, then every mapped record will be
-      written to the output data provider automatically.
+      written to the output data provider automatically (unless \a output_provider_passive is set).
       - record-based output providers: The mapped output is written to the output provider as records.  If the output
         provider supports transaction management. @ref Mapper::Mapper::commit() "Mapper::commit()" and
         @ref Mapper::Mapper::rollback() "Mapper::rollback()" can be used.
@@ -231,6 +231,9 @@ list: (2 elements)
       @ref Mapper::Mapper::discardOutput() "Mapper::discardOutput()" must be called to discard any data left in the
       bulk output buffer if the results should be discarded (ex: the output provide requires transaction management
       and an error occurs causing the transaction to be rolled back)
+    - \c "output_provider_passive": if this option is set and a record-based or request-reply output provider is set,
+      then nothing will be written to the output provider when mapping; the output provider will only be used to
+      provide type information for the output record
     - \c "output_provider_upsert": set to @ref True if upsert operations instead of creation APIs should be used with
       the output provider.  If \a output_provider_bulk is also set, this indicates if the
       @ref DataProvider::AbstractDataProviderBulkOperation "AbstractDataProviderBulkOperation" object will use upsert
@@ -301,6 +304,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_5_7 Mapper v1.5.7
+    - fixed a bug where it was not possible to use a Mapper with an output provider only for the output data type
+      (<a href="https://github.com/qorelanguage/qore/issues/4369">issue 4369</a>)
 
     @subsection mapperv1_5_6 Mapper v1.5.6
     - respect escaped dots in field names (\.) when separating field names
@@ -510,6 +517,13 @@ public class Mapper inherits AbstractDataProcessor {
                     "effect when used with an output provider that supports bulk operations on output",
             },
 
+            "output_provider_passive": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "a flag to disable writing to the output provider while mapping; if this flag is set, the "
+                    "output provider will only be used to set the output record type; this option only has an effect "
+                    "when used with an output provider",
+            },
+
             "output_provider_upsert": <MapperOptionInfo>{
                 "type": "bool",
                 "desc": "a flag to enable upserting instead of creating records with an output "
@@ -657,6 +671,9 @@ public class Mapper inherits AbstractDataProcessor {
 
         #! bulk output object for an output data provider
         *AbstractDataProviderBulkOperation output_provider_bulk_operation;
+
+        #! if the output provide should only be used to set the output type
+        bool output_provider_passive;
 
         #! if the upsert operations should be used on the output provider
         bool output_provider_upsert;
@@ -1075,10 +1092,8 @@ Mapper mapv(DataMap);
                     output_provider_bulk_operation = output_provider.getBulkUpserter();
                 }
                 output_provider_upsert = True;
-            } else {
-                if (opts.output_provider_bulk) {
-                    output_provider_bulk_operation = output_provider.getBulkInserter();
-                }
+            } else if (opts.output_provider_bulk) {
+                output_provider_bulk_operation = output_provider.getBulkInserter();
             }
         } else if (opts.output_provider.supportsRequest()) {
             output_provider = opts.output_provider;
@@ -1093,6 +1108,9 @@ Mapper mapv(DataMap);
         } else {
             error("\"output_provider\" %y passed to %s::constructor() does not support writing or the "
                 "request/response API", opts.output_provider.getName(), self.className());
+        }
+        if (opts.output_provider_passive) {
+            output_provider_passive = True;
         }
     }
 
@@ -2263,7 +2281,7 @@ Mapper mapv(DataMap);
             # write to output provider, if any
             if (output_provider_bulk_operation) {
                 output_provider_bulk_operation.queueData(dh);
-            } else if (output_provider) {
+            } else if (output_provider && !output_provider_passive) {
                 if (output_provider_upsert) {
                     map output_provider.upsertRecord($1), dh.contextIterator();
                 } else {
@@ -2329,7 +2347,7 @@ Mapper mapv(DataMap);
         # write to putput provider, if any
         if (output_provider_bulk_operation) {
             output_provider_bulk_operation.queueData(h);
-        } else if (output_provider) {
+        } else if (output_provider && !output_provider_passive) {
             if (output_provider_upsert) {
                 output_provider.upsertRecord(h);
             } else {
@@ -2434,6 +2452,8 @@ Mapper mapv(DataMap);
                                     $1.value[offset] :
                                     $1.value}, rc.pairIterator();
         };
+
+        #f.printf("mapFieldIntern() key: %y type: %y rec: %y m: %y\n", key, m.field.getTypeName(), rec, m);
 
         # get source field name
         string name = m.name ?? key;
@@ -2558,7 +2578,7 @@ Mapper mapv(DataMap);
             } else {
                 foreach hash<auto> i in (current_runtime_keys.pairIterator()) {
                     try {
-                        if (do_list && (exists v || i.value.requires_roles.value)) {
+                        if (exists v || i.value.requires_roles.value) {
                             v = map i.value.requires_roles.value
                                 ? i.value.handler(m{i.key}, $1, ctx)
                                 : i.value.handler(m{i.key}, ctx), v;
@@ -2575,7 +2595,7 @@ Mapper mapv(DataMap);
         }
 
         # execute any field filter if necessary
-        if (m.code) {
+        if (m."code") {
             try {
                 if (do_list) {
                     v = map m.code(v_is_list ? v[$#] : v, getrec(rec, $#)),
