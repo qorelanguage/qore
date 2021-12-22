@@ -110,7 +110,8 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
         map type.addField(getFieldFromSchemaIntern(path + "/" + $1.key, $1.key, NOTHING, $1.value,
             exists schema.required{$1.key})), schema.properties.pairIterator();
         if (schema.additionalProperties) {
-            type.setDefaultOtherFieldType(getType(schema.additionalProperties.type));
+            type.setDefaultOtherFieldType(getType(path + "/" + schema.additionalProperties.type,
+                schema.additionalProperties.type));
         } else {
             # make sure that extra fields are not supported
             type.setDefaultOtherFieldType();
