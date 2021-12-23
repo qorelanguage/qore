@@ -1649,7 +1649,8 @@ struct qore_socket_private {
     }
 
     //! read until \\r\\n\\r\\n and return the string
-    DLLLOCAL QoreStringNode* readHTTPData(ExceptionSink* xsink, const char* meth, int timeout, qore_offset_t& rc, bool exit_early = false) {
+    DLLLOCAL QoreStringNode* readHTTPData(ExceptionSink* xsink, const char* meth, int timeout, qore_offset_t& rc,
+            bool exit_early = false) {
         assert(xsink);
         assert(meth);
         if (sock == QORE_INVALID_SOCKET) {
@@ -2063,9 +2064,13 @@ struct qore_socket_private {
             assert(*xsink);
             return nullptr;
         }
+        if (hdr->empty()) {
+            xsink->raiseException("SOCKET-HTTP-ERROR", "remote closed the connection while reading the HTTP header");
+            return nullptr;
+        }
         assert(rc > 0);
 
-        const char* buf = hdr->getBuffer();
+        const char* buf = hdr->c_str();
 
         char* p;
         if ((p = (char*)strstr(buf, "\r\n"))) {
@@ -2080,13 +2085,15 @@ struct qore_socket_private {
         } else {
             // readHTTPData will only return a string that satisifies one of the above conditions,
             // however an embedded 0 could have been sent which would make the above searches invalid
-            xsink->raiseException("SOCKET-HTTP-ERROR", "invalid header received with embedded nulls in Socket::readHTTPHeader()");
+            xsink->raiseException("SOCKET-HTTP-ERROR", "invalid header received with embedded nulls in " \
+                "Socket::readHTTPHeader()");
             return nullptr;
         }
 
         char* t1;
         if (!(t1 = (char*)strstr(buf, "HTTP/"))) {
-            xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "missing HTTP version string in first header line in Socket::readHTTPHeader()");
+            xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "missing HTTP version string in first " \
+                "header line in Socket::readHTTPHeader()");
             return nullptr;
         }
 
