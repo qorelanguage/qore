@@ -338,7 +338,7 @@ QoreURL::QoreURL(const QoreString* url, bool keep_brackets) : priv(new qore_url_
 }
 
 QoreURL::QoreURL(const QoreString* url, bool keep_brackets, ExceptionSink* xsink) : priv(new qore_url_private) {
-    parse(url, keep_brackets ? QURL_KEEP_BRACKETS : 0, xsink);
+    parse(xsink, url, keep_brackets ? QURL_KEEP_BRACKETS : 0);
 }
 
 QoreURL::QoreURL(const char* url, int options) : priv(new qore_url_private) {
