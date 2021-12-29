@@ -1359,8 +1359,7 @@ public:
         while (tclear) {
             if (tclear == q_gettid()) {
                 // can be called recursively when destructors are run in local variable finalization
-                assert(pgm_data_map.find(td) != pgm_data_map.end());
-                assert(pgm_data_map[td]->inst);
+                // issue #4299: can be called while tclear is set
                 break;
             }
             ++twaiting;
@@ -1370,7 +1369,8 @@ public:
 
         pgm_data_map_t::iterator i = pgm_data_map.find(td);
         if (i == pgm_data_map.end()) {
-            assert(!tclear);
+            // issue #4299: can be called while tclear is set; in which case the Program data will be removed safely
+            // in normal Program cleanup
             ThreadLocalProgramData* tlpd = new ThreadLocalProgramData;
 
             printd(5, "qore_program_private::setThreadVarData() (first) this: %p pgm: %p td: %p run: %s inst: %s\n", this, pgm, td, run ? "true" : "false", tlpd->inst ? "true" : "false");
@@ -2028,11 +2028,13 @@ public:
         pgm.priv->qore_program_private_base::startThread(xsink);
     }
 
-    DLLLOCAL static bool setThreadInit(QoreProgram& pgm, const ResolvedCallReferenceNode* n_thr_init, ExceptionSink* xsink) {
+    DLLLOCAL static bool setThreadInit(QoreProgram& pgm, const ResolvedCallReferenceNode* n_thr_init,
+            ExceptionSink* xsink) {
         return pgm.priv->setThreadInit(n_thr_init, xsink);
     }
 
-    DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(QoreProgram* pgm, const char* name, ExceptionSink* xsink) {
+    DLLLOCAL static ResolvedCallReferenceNode* runtimeGetCallReference(QoreProgram* pgm, const char* name,
+            ExceptionSink* xsink) {
         return pgm->priv->runtimeGetCallReference(name, xsink);
     }
 
@@ -2040,7 +2042,8 @@ public:
         return pgm->priv->pwo;
     }
 
-    DLLLOCAL static bool setSaveParseWarnOptions(const QoreProgram* pgm, const ParseWarnOptions &new_opts, ParseWarnOptions &old_opts) {
+    DLLLOCAL static bool setSaveParseWarnOptions(const QoreProgram* pgm, const ParseWarnOptions &new_opts,
+            ParseWarnOptions &old_opts) {
         if (new_opts == pgm->priv->pwo)
             return false;
         old_opts = pgm->priv->pwo;
@@ -2052,7 +2055,8 @@ public:
         pgm->priv->pwo = new_opts;
     }
 
-    DLLLOCAL static bool setThreadVarData(QoreProgram* pgm, ThreadProgramData* td, ThreadLocalProgramData* &tlpd, bool run) {
+    DLLLOCAL static bool setThreadVarData(QoreProgram* pgm, ThreadProgramData* td, ThreadLocalProgramData* &tlpd,
+            bool run) {
         return pgm->priv->setThreadVarData(td, tlpd, run);
     }
 
@@ -2060,7 +2064,8 @@ public:
         pgm->priv->makeParseException(loc, "PARSE-EXCEPTION", desc);
     }
 
-    DLLLOCAL static void makeParseException(QoreProgram* pgm, const QoreProgramLocation &loc, const char* err, QoreStringNode* desc) {
+    DLLLOCAL static void makeParseException(QoreProgram* pgm, const QoreProgramLocation &loc, const char* err,
+            QoreStringNode* desc) {
         pgm->priv->makeParseException(loc, err, desc);
     }
 

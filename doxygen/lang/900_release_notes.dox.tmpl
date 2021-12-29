@@ -17,6 +17,9 @@
     - fixed a bug in \c qpp (the %Qore C++-pre-processor used for building %Qore from sources) that failed to
       recognize methods with multi-line signatures
       (<a href="https://github.com/qorelanguage/qore/issues/4366">issue 4366</a>)
+    - removed invalid <tt>assert()</tt>s that caused an unnecessary crash with debug builds when destructors caused
+      program local data to be created in destructors while destroying a @ref Qore::Program "Program" object
+      (<a href="https://github.com/qorelanguage/qore/issues/4299">issue 4299</a>)
 
     @section qore_1_0_12 Qore 1.0.12
 
