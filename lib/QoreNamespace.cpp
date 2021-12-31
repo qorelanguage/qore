@@ -1005,6 +1005,26 @@ bool QoreNamespace::isRoot() const {
     return priv->root;
 }
 
+QoreValue QoreNamespace::setKeyValue(const std::string& key, QoreValue val) {
+    return priv->setKeyValue(key, val);
+}
+
+QoreValue QoreNamespace::setKeyValueIfNotSet(const std::string& key, QoreValue val) {
+    return priv->setKeyValueIfNotSet(key, val);
+}
+
+bool QoreNamespace::setKeyValueIfNotSet(const std::string& key, const char* val) {
+    return priv->setKeyValueIfNotSet(key, val);
+}
+
+QoreValue QoreNamespace::getReferencedKeyValue(const std::string& key) const {
+    return priv->getReferencedKeyValue(key);
+}
+
+QoreValue QoreNamespace::getReferencedKeyValue(const char* key) const {
+    return priv->getReferencedKeyValue(key);
+}
+
 RootQoreNamespace::RootQoreNamespace(qore_root_ns_private* p) : QoreNamespace(p), rpriv(p) {
     if (p) {
         p->rns = this;
@@ -2158,6 +2178,15 @@ void qore_ns_private::clearConstants(QoreListNode& l) {
     classList.clearConstants(l);
 
     nsl.clearConstants(l);
+
+    // clear properties
+    AutoLocker al(kvlck);
+    for (auto& i : kvmap) {
+        if (i.second.hasNode()) {
+            l.push(i.second, nullptr);
+        }
+    }
+    kvmap.clear();
 }
 
 void qore_ns_private::clearData(ExceptionSink* xsink) {
@@ -3303,6 +3332,74 @@ QoreValue qore_ns_private::parseFindLocalConstantValue(const char* cname, const 
 
 QoreNamespace* qore_ns_private::parseFindLocalNamespace(const char* nname) {
     return nsl.find(nname);
+}
+
+QoreValue qore_ns_private::setKeyValue(const std::string& key, QoreValue val) {
+    // ensure atomicity when reading from or writing to kvmap
+    AutoLocker al(kvlck);
+
+    kvmap_t::iterator i = kvmap.lower_bound(key);
+    if (i != kvmap.end() && i->first == key) {
+        QoreValue rv = i->second;
+        i->second = val;
+        return rv;
+    }
+    kvmap.insert(i, kvmap_t::value_type(key, val));
+    return QoreValue();
+}
+
+QoreValue qore_ns_private::setKeyValueIfNotSet(const std::string& key, QoreValue val) {
+    // ensure atomicity when reading from or writing to kvmap
+    AutoLocker al(kvlck);
+
+    kvmap_t::iterator i = kvmap.lower_bound(key);
+    if (i != kvmap.end() && i->first == key) {
+        if (i->second) {
+            return val;
+        }
+        i->second = val;
+        return QoreValue();
+    }
+    kvmap.insert(i, kvmap_t::value_type(key, val));
+    return QoreValue();
+}
+
+bool qore_ns_private::setKeyValueIfNotSet(const std::string& key, const char* val) {
+    // ensure atomicity when reading from or writing to kvmap
+    AutoLocker al(kvlck);
+
+    kvmap_t::iterator i = kvmap.lower_bound(key);
+    if (i != kvmap.end() && i->first == key) {
+        if (!i->second) {
+            i->second = new QoreStringNode(val);
+            return true;
+        }
+        return false;
+    }
+    kvmap.insert(i, kvmap_t::value_type(key, new QoreStringNode(val)));
+    return true;
+}
+
+QoreValue qore_ns_private::getReferencedKeyValue(const std::string& key) const {
+    // ensure atomicity when reading from or writing to kvmap
+    AutoLocker al(kvlck);
+
+    kvmap_t::const_iterator i = kvmap.find(key);
+    if (i == kvmap.end()) {
+        return QoreValue();
+    }
+    return i->second.refSelf();
+}
+
+QoreValue qore_ns_private::getReferencedKeyValue(const char* key) const {
+    // ensure atomicity when reading from or writing to kvmap
+    AutoLocker al(kvlck);
+
+    kvmap_t::const_iterator i = kvmap.find(key);
+    if (i == kvmap.end()) {
+        return QoreValue();
+    }
+    return i->second.refSelf();
 }
 
 QoreNamespaceIterator::QoreNamespaceIterator(QoreNamespace& ns) : priv(new QorePrivateNamespaceIterator(qore_ns_private::get(ns))) {

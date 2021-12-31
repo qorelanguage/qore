@@ -583,8 +583,6 @@ public:
         @param val the value of the variable; may be 0; if non-0, then the QoreProgram object assumes ownership of the reference
 
         @note if this function is called at runtime it could cause a crash
-
-        @see runtimeDefine()
     */
     DLLEXPORT void parseDefine(const char* str, QoreValue val);
 
@@ -593,8 +591,6 @@ public:
         @param val a string value that will be parsed and converted to a qore value
 
         @note if this function is called at runtime it could cause a crash
-
-        @see runtimeDefine()
     */
     DLLEXPORT void parseDefine(const char* str, const char* val);
 

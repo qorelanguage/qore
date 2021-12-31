@@ -1894,7 +1894,7 @@ public:
 
         @return any value previously stored in that key; must be dereferenced by the caller
 
-        @since %Qore 0.10
+        @since %Qore 1.0
     */
     DLLLOCAL QoreValue setKeyValue(const std::string& key, QoreValue val);
 
@@ -1906,7 +1906,7 @@ public:
 
         @note if \a value is returned, the caller must dereference it
 
-        @since %Qore 0.10
+        @since %Qore 1.0
     */
     DLLLOCAL QoreValue setKeyValueIfNotSet(const std::string& key, QoreValue val);
 
@@ -1914,20 +1914,31 @@ public:
     /** @param key the key to store
         @param value the string to store; will be converted to a QoreStringNode if stored
 
+        @param returns true if the value was set, false if not (a value is already in place)
+
         @note All class key-value operations are atomic
 
-        @since %Qore 0.10
+        @since %Qore 1.0
     */
-    DLLLOCAL void setKeyValueIfNotSet(const std::string& key, const char* str);
+    DLLLOCAL bool setKeyValueIfNotSet(const std::string& key, const char* str);
 
     //! Returns a referenced key value from the class's key-value store
     /** @param key the key to check
 
         @return the value corersponding to the key; the caller is responsible for dereferencing the value returned
 
-        @since %Qore 0.10
+        @since %Qore 1.0
     */
     DLLLOCAL QoreValue getReferencedKeyValue(const std::string& key) const;
+
+    //! Returns a referenced key value from the class's key-value store
+    /** @param key the key to check
+
+        @return the value corersponding to the key; the caller is responsible for dereferencing the value returned
+
+        @since %Qore 1.0.13
+    */
+    DLLLOCAL QoreValue getReferencedKeyValue(const char* key) const;
 
     // add a base class to this class
     DLLLOCAL void addBaseClass(QoreClass* qc, bool virt);

@@ -14,6 +14,9 @@
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
       - fixed a regression caused by the bug fix for recursive data structions in the previous version of %Qore
         (<a href="https://github.com/qorelanguage/qore/issues/4351">issue 4351</a>)
+    - added internal C++ APIs to allow namespaces to store language-specific information to facilitate bridging %Python
+      and Java through the \c python and \c jni modules
+      (<a href="https://github.com/qorelanguage/qore/issues/4373">issue 4373</a>)
     - fixed a bug in \c qpp (the %Qore C++-pre-processor used for building %Qore from sources) that failed to
       recognize methods with multi-line signatures
       (<a href="https://github.com/qorelanguage/qore/issues/4366">issue 4366</a>)

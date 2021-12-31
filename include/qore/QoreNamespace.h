@@ -310,10 +310,70 @@ public:
     */
     DLLEXPORT QoreProgram* getProgram() const;
 
-    //! Returns the module name the class was loaded from or nullptr if it is a builtin namespace
+    //! Returns the module name the namespace was loaded from or nullptr if it is a builtin namespace
     /** @since %Qore 0.9.5
     */
     DLLEXPORT const char* getModuleName() const;
+
+    //! Sets a key value in the namespace's key-value store unconditionally
+    /** @param key the key to store
+        @param value the value to store; must be already referenced for storage
+
+        @return any value previously stored in that key; must be dereferenced by the caller
+
+        @note All namespace key-value operations are atomic
+
+        @since %Qore 1.0.13
+    */
+    DLLEXPORT QoreValue setKeyValue(const std::string& key, QoreValue val);
+
+    //! Sets a key value in the namespace's key-value store only if no value exists for the given key
+    /** @param key the key to store
+        @param value the value to store; must be already referenced for storage
+
+        @return returns \a value if another value already exists for that key, otherwise returns no value
+
+        @note
+        - All namespace key-value operations are atomic
+        - if \a value is returned, the caller should dereference it if necessary
+
+        @since %Qore 1.0.13
+    */
+    DLLEXPORT QoreValue setKeyValueIfNotSet(const std::string& key, QoreValue val);
+
+    //! Sets a key value in the namespace's key-value store only if no value exists for the given key
+    /** @param key the key to store
+        @param value the string to store; will be converted to a QoreStringNode if stored
+
+        @param returns true if the value was set, false if not (a value is already in place)
+
+        @note All namespace key-value operations are atomic
+
+        @since %Qore 1.0.13
+    */
+    DLLEXPORT bool setKeyValueIfNotSet(const std::string& key, const char* str);
+
+    //! Returns a referenced key value from the namespace's key-value store
+    /** @param key the key to check
+
+        @return the value corersponding to the key; the caller is responsible for dereferencing the value returned
+
+        @note All namespace key-value operations are atomic
+
+        @since %Qore 1.0.13
+    */
+    DLLEXPORT QoreValue getReferencedKeyValue(const std::string& key) const;
+
+    //! Returns a referenced key value from the namespace's key-value store
+    /** @param key the key to check
+
+        @return the value corersponding to the key; the caller is responsible for dereferencing the value returned
+
+        @note All namespace key-value operations are atomic
+
+        @since %Qore 1.0.13
+    */
+    DLLEXPORT QoreValue getReferencedKeyValue(const char* key) const;
 
 private:
     //! this function is not implemented

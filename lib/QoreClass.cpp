@@ -4582,7 +4582,7 @@ QoreValue qore_class_private::setKeyValueIfNotSet(const std::string& key, QoreVa
     return QoreValue();
 }
 
-void qore_class_private::setKeyValueIfNotSet(const std::string& key, const char* val) {
+bool qore_class_private::setKeyValueIfNotSet(const std::string& key, const char* val) {
     // ensure atomicity when reading from or writing to kvmap
     AutoLocker al(gate.asl_lock);
 
@@ -4590,13 +4590,26 @@ void qore_class_private::setKeyValueIfNotSet(const std::string& key, const char*
     if (i != kvmap.end() && i->first == key) {
         if (!i->second) {
             i->second = new QoreStringNode(val);
+            return true;
         }
-        return;
+        return false;
     }
     kvmap.insert(i, kvmap_t::value_type(key, new QoreStringNode(val)));
+    return true;
 }
 
 QoreValue qore_class_private::getReferencedKeyValue(const std::string& key) const {
+    // ensure atomicity when reading from or writing to kvmap
+    AutoLocker al(gate.asl_lock);
+
+    kvmap_t::const_iterator i = kvmap.find(key);
+    if (i == kvmap.end()) {
+        return QoreValue();
+    }
+    return i->second.refSelf();
+}
+
+QoreValue qore_class_private::getReferencedKeyValue(const char* key) const {
     // ensure atomicity when reading from or writing to kvmap
     AutoLocker al(gate.asl_lock);
 
@@ -4787,8 +4800,8 @@ QoreValue QoreClass::setKeyValueIfNotSet(const std::string& key, QoreValue val) 
     return priv->setKeyValueIfNotSet(key, val);
 }
 
-void QoreClass::setKeyValueIfNotSet(const std::string& key, const char* val) {
-    priv->setKeyValueIfNotSet(key, val);
+bool QoreClass::setKeyValueIfNotSet(const std::string& key, const char* val) {
+    return priv->setKeyValueIfNotSet(key, val);
 }
 
 QoreValue QoreClass::getReferencedKeyValue(const std::string& key) const {

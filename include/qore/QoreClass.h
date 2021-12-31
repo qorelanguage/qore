@@ -1045,16 +1045,18 @@ public:
     /** @param key the key to store
         @param value the string to store; will be converted to a QoreStringNode if stored
 
+        @param returns true if the value was set, false if not (a value is already in place)
+
         @note All class key-value operations are atomic
 
         @since %Qore 1.0
     */
-    DLLEXPORT void setKeyValueIfNotSet(const std::string& key, const char* str);
+    DLLEXPORT bool setKeyValueIfNotSet(const std::string& key, const char* str);
 
     //! Returns a referenced key value from the class's key-value store
     /** @param key the key to check
 
-        @return the value corersponding to the key; the caller is responsible for dereferencing the value returned
+        @return the value corresponding to the key; the caller is responsible for dereferencing the value returned
 
         @note All class key-value operations are atomic
 
@@ -1062,7 +1064,20 @@ public:
     */
     DLLEXPORT QoreValue getReferencedKeyValue(const std::string& key) const;
 
-    // used when parsing, finds committed non-static methods within the entire class hierarchy (local class plus base classes)
+    //! Returns a referenced key value from the class's key-value store
+    /** @param key the key to check
+
+        @return the value corresponding to the key; the caller is responsible for dereferencing the value returned
+
+        @note All class key-value operations are atomic
+
+        @since %Qore 1.0.13
+    */
+    DLLEXPORT QoreValue getReferencedKeyValue(const char* key) const;
+
+    // used when parsing, finds committed non-static methods within the entire class hierarchy
+    /** (local class plus base classes)
+    */
     DLLLOCAL const QoreMethod* parseFindCommittedMethod(const char* nme);
 
     // returns 0 for success, -1 for error

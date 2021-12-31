@@ -75,9 +75,14 @@ public:
         builtin,  // is this namespace builtin?
         imported = false; // was this namespace imported?
 
-    // pointer to parent namespace (0 if this is the root namespace or an unattached namespace)
+    // pointer to parent namespace (nullptr if this is the root namespace or an unattached namespace)
     const qore_ns_private* parent = nullptr;
     q_ns_class_handler_t class_handler = nullptr;
+
+    // namespace key-value store
+    mutable QoreThreadLock kvlck;
+    typedef std::map<std::string, QoreValue> kvmap_t;
+    kvmap_t kvmap;
 
     // used with builtin namespaces
     DLLLOCAL qore_ns_private(QoreNamespace* n_ns, const char* n) : name(n), ns(n_ns), constant(this), pub(true), builtin(true) {
@@ -154,6 +159,56 @@ public:
     DLLLOCAL const char* getModuleName() const {
         return from_module.empty() ? nullptr : from_module.c_str();
     }
+
+   //! Sets a key value in the namespace's key-value store
+    /** @param key the key to store
+        @param value the value to store
+
+        @return any value previously stored in that key; must be dereferenced by the caller
+
+        @since %Qore 1.0.13
+    */
+    DLLLOCAL QoreValue setKeyValue(const std::string& key, QoreValue val);
+
+    //! Sets a key value in the namespace's key-value store only if no value exists for the given key
+    /** @param key the key to store
+        @param value the value to store; must be already referenced for storage
+
+        @return returns \a value if another value already exists for that key, otherwise returns no value
+
+        @note if \a value is returned, the caller must dereference it
+
+        @since %Qore 1.0.13
+    */
+    DLLLOCAL QoreValue setKeyValueIfNotSet(const std::string& key, QoreValue val);
+
+    //! Sets a key value in the namespace's key-value store only if no value exists for the given key
+    /** @param key the key to store
+        @param value the string to store; will be converted to a QoreStringNode if stored
+
+        @note All namespace key-value operations are atomic
+
+        @since %Qore 1.0.13
+    */
+    DLLLOCAL bool setKeyValueIfNotSet(const std::string& key, const char* str);
+
+    //! Returns a referenced key value from the namespace's key-value store
+    /** @param key the key to check
+
+        @return the value corersponding to the key; the caller is responsible for dereferencing the value returned
+
+        @since %Qore 1.0.13
+    */
+    DLLLOCAL QoreValue getReferencedKeyValue(const std::string& key) const;
+
+    //! Returns a referenced key value from the namespace's key-value store
+    /** @param key the key to check
+
+        @return the value corersponding to the key; the caller is responsible for dereferencing the value returned
+
+        @since %Qore 1.0.13
+    */
+    DLLLOCAL QoreValue getReferencedKeyValue(const char* key) const;
 
     DLLLOCAL void getNsList(nslist_t& nsl) const {
         //printd(5, "qore_ns_private::getNsList() this: %p '%s::' root: %d\n", this, name.c_str(), root);
