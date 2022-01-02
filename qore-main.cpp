@@ -3,7 +3,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2003 - 2015 David Nichols
+  Copyright (C) 2003 - 2022 David Nichols
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -33,5 +33,5 @@
 #include "command-line.h"
 
 int main(int argc, char* argv[]) {
-   return qore_main_intern(argc, argv);
+    return qore_main_intern(argc, argv);
 }

@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -930,21 +930,43 @@ public:
  */
 class CurrentProgramRuntimeExternalParseContextHelper {
 public:
-   //! acquires the parse lock; if already acquired by another thread, then this call blocks until the lock can be acquired
-   DLLEXPORT CurrentProgramRuntimeExternalParseContextHelper();
+    //! acquires the parse lock; if already acquired by another thread, then this call blocks until the lock can be acquired
+    DLLEXPORT CurrentProgramRuntimeExternalParseContextHelper();
 
-   //! releases the parse lock for the current program
-   DLLEXPORT ~CurrentProgramRuntimeExternalParseContextHelper();
+    //! releases the parse lock for the current program
+    DLLEXPORT ~CurrentProgramRuntimeExternalParseContextHelper();
 
-   //! returns true if the object is valid (lock acquired), false if not (program already deleted)
-   DLLEXPORT operator bool() const;
+    //! returns true if the object is valid (lock acquired), false if not (program already deleted)
+    DLLEXPORT operator bool() const;
 
 private:
-   bool valid = true;
+    bool valid = true;
 
-   // not implemented
-   CurrentProgramRuntimeExternalParseContextHelper(const CurrentProgramRuntimeExternalParseContextHelper&) = delete;
-   void* operator new(size_t) = delete;
+    // not implemented
+    CurrentProgramRuntimeExternalParseContextHelper(const CurrentProgramRuntimeExternalParseContextHelper&) = delete;
+    void* operator new(size_t) = delete;
+};
+
+//! allows for the parse lock for the current program to be acquired by binary modules
+/** @since %Qore 1.0.13
+ */
+class ProgramRuntimeExternalParseContextHelper {
+public:
+    //! acquires the parse lock; if already acquired by another thread, then this call blocks until the lock can be acquired
+    DLLEXPORT ProgramRuntimeExternalParseContextHelper(QoreProgram* pgm);
+
+    //! releases the parse lock for the current program
+    DLLEXPORT ~ProgramRuntimeExternalParseContextHelper();
+
+    //! returns true if the object is valid (lock acquired), false if not (program already deleted)
+    DLLEXPORT operator bool() const;
+
+private:
+    QoreProgram* pgm;
+
+    // not implemented
+    ProgramRuntimeExternalParseContextHelper(const ProgramRuntimeExternalParseContextHelper&) = delete;
+    void* operator new(size_t) = delete;
 };
 
 //! allows for external modules to set the current Program context explicitly
@@ -952,17 +974,17 @@ private:
  */
 class QoreProgramContextHelper {
 public:
-   //! sets the current Program context
-   DLLEXPORT QoreProgramContextHelper(QoreProgram* pgm);
-   //! restores the previous Program context
-   DLLEXPORT ~QoreProgramContextHelper();
+    //! sets the current Program context
+    DLLEXPORT QoreProgramContextHelper(QoreProgram* pgm);
+    //! restores the previous Program context
+    DLLEXPORT ~QoreProgramContextHelper();
 
 private:
-   QoreProgram* old_pgm;
+    QoreProgram* old_pgm;
 
-   // not implemented
-   QoreProgramContextHelper(const QoreProgramContextHelper&) = delete;
-   void* operator new(size_t) = delete;
+    // not implemented
+    QoreProgramContextHelper(const QoreProgramContextHelper&) = delete;
+    void* operator new(size_t) = delete;
 };
 
 //! an abstract class for program-specific external data
@@ -1015,110 +1037,99 @@ typedef std::list<int> TidList_t;
  */
 class QoreBreakpoint : public AbstractPrivateData {
 private:
-   qore_program_private* pgm;
-   AbstractStatementList_t statementList;
-   typedef std::map<int/*tid*/, int/*count*/> TidMap_t;
-   TidMap_t tidMap;
-   QoreObject* qo; // reference to Qore script object, it's private object but we cannot
-   static QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
-   static QoreBreakpointList_t breakpointList;
-   static volatile unsigned breakpointIdCounter;   // to generate breakpointId
-   unsigned breakpointId;
+    qore_program_private* pgm;
+    AbstractStatementList_t statementList;
+    typedef std::map<int/*tid*/, int/*count*/> TidMap_t;
+    TidMap_t tidMap;
+    QoreObject* qo; // reference to Qore script object, it's private object but we cannot
+    static QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
+    static QoreBreakpointList_t breakpointList;
+    static volatile unsigned breakpointIdCounter;   // to generate breakpointId
+    unsigned breakpointId;
 
-   DLLLOCAL void unassignAllStatements();
-   DLLLOCAL bool isStatementAssigned(const AbstractStatement *statement) const;
-   DLLLOCAL bool checkPgm(ExceptionSink* xsink) const;
+    DLLLOCAL void unassignAllStatements();
+    DLLLOCAL bool isStatementAssigned(const AbstractStatement *statement) const;
+    DLLLOCAL bool checkPgm(ExceptionSink* xsink) const;
 
-   friend class qore_program_private;
-   friend class AbstractStatement;
+    friend class qore_program_private;
+    friend class AbstractStatement;
+
 protected:
-   DLLLOCAL virtual ~QoreBreakpoint();
-   //! check if program flow should be interrupted
-   DLLLOCAL virtual bool checkBreak() const;
+    DLLLOCAL virtual ~QoreBreakpoint();
+    //! check if program flow should be interrupted
+    DLLLOCAL virtual bool checkBreak() const;
+
 public:
-   bool enabled;
-   /** Defines policy how thread list is evaluated. In the case of ACCEPT policy are considered all TIDs in list.
-    *  In case of REJECT policy are considered all TIDs not in the list.
+    bool enabled;
+    /** Defines policy how thread list is evaluated. In the case of ACCEPT policy are considered all TIDs in list.
+        In case of REJECT policy are considered all TIDs not in the list.
     */
-   BreakpointPolicy policy;
+    BreakpointPolicy policy;
 
-   DLLEXPORT QoreBreakpoint();
-   /** Copy all props but object reference
-    *
+    DLLEXPORT QoreBreakpoint();
+    /** Copy all props but object reference
     */
-   DLLEXPORT QoreBreakpoint& operator=(const QoreBreakpoint& other);
-   /** Assign @ref QoreProgram to breakpoint.
-    *
-    *  @param new_pgm QoreProgram to be assigned, when NULL then unassigns Program and deletes all statement references
-    *  @param xsink if an error occurs, the Qore-language exception information will be added here
-    */
-   DLLEXPORT void assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink);
-   /* Get assigned program to breakpoint
-    *
-    */
-   DLLEXPORT QoreProgram* getProgram() const;
-   /** Assign breakpoint to a statement.
-    *
-    */
-   DLLEXPORT void assignStatement(AbstractStatement* statement, ExceptionSink* xsink);
-   /** Unassign breakpoint from statement
-    *
-    */
-   DLLEXPORT void unassignStatement(AbstractStatement* statement, ExceptionSink* xsink);
-   /** Get list of statements
-    *
-    */
-   DLLEXPORT void getStatements(AbstractStatementList_t &statList, ExceptionSink* xsink);
-   /** Get list of statement ids
-    *
-    */
-   DLLEXPORT QoreListNode* getStatementIds(ExceptionSink* xsink);
-   /** Resolve statement from statement id
-    *
-    */
-   DLLEXPORT AbstractStatement* resolveStatementId(unsigned long statementId, ExceptionSink* xsink) const;
-   /** Get list of the thread IDs
-    *
-    */
-   DLLEXPORT void getThreadIds(TidList_t &tidList, ExceptionSink* xsink);
-   /** Set list of the thread IDs
-    *
-    */
-   DLLEXPORT void setThreadIds(TidList_t tidList, ExceptionSink* xsink);
-   /** Add thread ID to the list
-    *
-    */
-   DLLEXPORT void addThreadId(int tid, ExceptionSink* xsink);
-   /** Remove thread ID from the list
-    *
-    */
-   DLLEXPORT void removeThreadId(int tid, ExceptionSink* xsink);
-   /** Check if thread is ID in list
-    *
-    */
-   DLLEXPORT bool isThreadId(int tid, ExceptionSink* xsink);
-   /** Clear list of the thread IDs
-    *
-    */
-   DLLEXPORT void clearThreadIds(ExceptionSink* xsink);
+    DLLEXPORT QoreBreakpoint& operator=(const QoreBreakpoint& other);
+    /** Assign @ref QoreProgram to breakpoint.
 
-   //! get the breakpoint id
-   /**
-      @return the breakpoint id which is unique number
+        @param new_pgm QoreProgram to be assigned, when NULL then unassigns Program and deletes all statement references
+        @param xsink if an error occurs, the Qore-language exception information will be added here
     */
-   DLLEXPORT unsigned getBreakpointId() const;
-
-   //! get the breakpoint from breakpoint id
-   /**
-      @param breakpointId provided by @ref getBreakpointId
-
-      @return the original breakpoint or null if object cannot be resolved
+    DLLEXPORT void assignProgram(QoreProgram *new_pgm, ExceptionSink* xsink);
+    /* Get assigned program to breakpoint
     */
-   DLLEXPORT static QoreBreakpoint* resolveBreakpointId(unsigned breakpointId);
+    DLLEXPORT QoreProgram* getProgram() const;
+    /** Assign breakpoint to a statement.
+    */
+    DLLEXPORT void assignStatement(AbstractStatement* statement, ExceptionSink* xsink);
+    /** Unassign breakpoint from statement
+    */
+    DLLEXPORT void unassignStatement(AbstractStatement* statement, ExceptionSink* xsink);
+    /** Get list of statements
+    */
+    DLLEXPORT void getStatements(AbstractStatementList_t &statList, ExceptionSink* xsink);
+    /** Get list of statement ids
+    */
+    DLLEXPORT QoreListNode* getStatementIds(ExceptionSink* xsink);
+    /** Resolve statement from statement id
+    */
+    DLLEXPORT AbstractStatement* resolveStatementId(unsigned long statementId, ExceptionSink* xsink) const;
+    /** Get list of the thread IDs
+    */
+    DLLEXPORT void getThreadIds(TidList_t &tidList, ExceptionSink* xsink);
+    /** Set list of the thread IDs
+    */
+    DLLEXPORT void setThreadIds(TidList_t tidList, ExceptionSink* xsink);
+    /** Add thread ID to the list
+    */
+    DLLEXPORT void addThreadId(int tid, ExceptionSink* xsink);
+    /** Remove thread ID from the list
+    */
+    DLLEXPORT void removeThreadId(int tid, ExceptionSink* xsink);
+    /** Check if thread is ID in list
+    */
+    DLLEXPORT bool isThreadId(int tid, ExceptionSink* xsink);
+    /** Clear list of the thread IDs
+    */
+    DLLEXPORT void clearThreadIds(ExceptionSink* xsink);
 
-   DLLEXPORT void setQoreObject(QoreObject* n_qo);
+    //! get the breakpoint id
+    /**
+        @return the breakpoint id which is unique number
+    */
+    DLLEXPORT unsigned getBreakpointId() const;
 
-   DLLEXPORT QoreObject* getQoreObject();
+    //! get the breakpoint from breakpoint id
+    /**
+        @param breakpointId provided by @ref getBreakpointId
+
+        @return the original breakpoint or null if object cannot be resolved
+    */
+    DLLEXPORT static QoreBreakpoint* resolveBreakpointId(unsigned breakpointId);
+
+    DLLEXPORT void setQoreObject(QoreObject* n_qo);
+
+    DLLEXPORT QoreObject* getQoreObject();
 };
 
 //! allows a program to be used and guarantees that it will stay valid until the destructor is run if successfully acquired in the constructor

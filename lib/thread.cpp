@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2021 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -2118,6 +2118,22 @@ CurrentProgramRuntimeExternalParseContextHelper::~CurrentProgramRuntimeExternalP
 
 CurrentProgramRuntimeExternalParseContextHelper::operator bool() const {
     return valid;
+}
+
+ProgramRuntimeExternalParseContextHelper::ProgramRuntimeExternalParseContextHelper(QoreProgram* pgm) : pgm(pgm) {
+    if (qore_program_private::lockParsing(*pgm, 0)) {
+        pgm = nullptr;
+    }
+}
+
+ProgramRuntimeExternalParseContextHelper::~ProgramRuntimeExternalParseContextHelper() {
+    if (pgm) {
+        qore_program_private::unlockParsing(*pgm);
+    }
+}
+
+ProgramRuntimeExternalParseContextHelper::operator bool() const {
+    return static_cast<bool>(pgm);
 }
 
 ProgramRuntimeParseAccessHelper::ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm) : restore(false) {
