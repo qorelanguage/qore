@@ -1697,8 +1697,7 @@ void qore_root_ns_private::parseAddHashDeclIntern(const QoreProgramLocation* loc
         if (!sns->parseAddPendingHashDecl(loc, hd)) {
             thdmap.update(hd->getName(), sns, hd);
         }
-    }
-    else {
+    } else {
         //printd(5, "qore_root_ns_private::parseAddHashDeclIntern() hashdecl '%s' not added: '%s' namespace not found\n", hd->getName(), nscope.ostr);
         typed_hash_decl_private::get(*hd)->deref();
     }
@@ -2049,8 +2048,7 @@ const AbstractQoreFunctionVariant* qore_root_ns_private::runtimeFindCall(const c
             xsink->raiseException("FIND-CALL-ERROR", desc);
             return nullptr;
         }
-    }
-    else {
+    } else {
         const QoreMethod* method = nullptr;
 
         NamedScope scope(name);
@@ -2134,8 +2132,7 @@ QoreListNode* qore_root_ns_private::runtimeFindCallVariants(const char* name, Ex
         if (!fe)
             return nullptr;
         qf = fe->getFunction();
-    }
-    else {
+    } else {
         const QoreMethod* method = nullptr;
 
         NamedScope scope(name);
@@ -3184,30 +3181,32 @@ QoreClass* qore_ns_private::parseMatchScopedClass(const NamedScope& nscope, unsi
 }
 
 QoreClass* qore_ns_private::parseMatchScopedClassWithMethod(const NamedScope& nscope, unsigned& matched) {
-   assert(nscope.size() > 2);
-   assert(name == nscope.get(0));
+    assert(nscope.size() > 2);
+    assert(name == nscope.get(0));
 
-   printd(5, "qore_ns_private::parseMatchScopedClassWithMethod() this: %p ns: %p '%s' class: %s (%s)\n", this, ns, name.c_str(), nscope[nscope.size() - 2], nscope.ostr);
+    printd(5, "qore_ns_private::parseMatchScopedClassWithMethod() this: %p ns: %p '%s' class: %s (%s)\n", this, ns, name.c_str(), nscope[nscope.size() - 2], nscope.ostr);
 
-   QoreNamespace* fns = ns;
+    QoreNamespace* fns = ns;
 
-   // mark first namespace as matched
-   if (!matched)
-      matched = 1;
+    // mark first namespace as matched
+    if (!matched) {
+        matched = 1;
+    }
 
-   // search the rest of the namespaces
-   for (unsigned i = 1; i < (nscope.size() - 2); i++) {
-      fns = fns->priv->parseFindLocalNamespace(nscope[i]);
-      if (!fns)
-         return 0;
-      if (i >= matched)
-         matched = i + 1;
-   }
+    // search the rest of the namespaces
+    for (unsigned i = 1; i < (nscope.size() - 2); i++) {
+        fns = fns->priv->parseFindLocalNamespace(nscope[i]);
+        if (!fns) {
+            return 0;
+        }
+        if (i >= matched) {
+            matched = i + 1;
+        }
+    }
 
-   // now get class from final namespace
-   return fns->priv->findLoadClass(nscope[nscope.size() - 2]);
+    // now get class from final namespace
+    return fns->priv->findLoadClass(nscope[nscope.size() - 2]);
 }
-
 
 const QoreClass* qore_ns_private::runtimeMatchScopedClassWithMethod(const NamedScope& nscope) const {
     assert(nscope.size() > 2);
@@ -3469,8 +3468,7 @@ public:
     DLLLOCAL bool next() {
         if (i == ns->nsl.nsmap.end()) {
             i = ns->nsl.nsmap.begin();
-        }
-        else {
+        } else {
             ++i;
         }
         return (i != ns->nsl.nsmap.end());
@@ -3552,8 +3550,7 @@ public:
     DLLLOCAL bool next() {
         if (i == ns->constant.cnemap.end()) {
             i = ns->constant.cnemap.begin();
-        }
-        else {
+        } else {
             ++i;
         }
         return (i != ns->constant.cnemap.end());
@@ -3570,7 +3567,8 @@ private:
     cnemap_t::const_iterator i;
 };
 
-QoreNamespaceConstantIterator::QoreNamespaceConstantIterator(const QoreNamespace& ns) : priv(new qore_namespace_constant_iterator(qore_ns_private::get(ns))) {
+QoreNamespaceConstantIterator::QoreNamespaceConstantIterator(const QoreNamespace& ns)
+        : priv(new qore_namespace_constant_iterator(qore_ns_private::get(ns))) {
 }
 
 QoreNamespaceConstantIterator::~QoreNamespaceConstantIterator() {
@@ -3585,7 +3583,8 @@ const QoreExternalConstant& QoreNamespaceConstantIterator::get() const {
     return priv->get();
 }
 
-QoreNamespaceClassIterator::QoreNamespaceClassIterator(const QoreNamespace& ns) : priv(new ConstClassListIterator(qore_ns_private::get(ns)->classList)) {
+QoreNamespaceClassIterator::QoreNamespaceClassIterator(const QoreNamespace& ns)
+        : priv(new ConstClassListIterator(qore_ns_private::get(ns)->classList)) {
 }
 
 QoreNamespaceClassIterator::~QoreNamespaceClassIterator() {
@@ -3609,8 +3608,7 @@ public:
     DLLLOCAL bool next() {
         if (i == ns->var_list.vmap.end()) {
             i = ns->var_list.vmap.begin();
-        }
-        else {
+        } else {
             ++i;
         }
         return (i != ns->var_list.vmap.end());
