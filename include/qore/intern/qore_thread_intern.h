@@ -299,8 +299,7 @@ DLLLOCAL QoreModuleContext* get_module_context();
 DLLLOCAL QoreModuleDefContext* set_module_def_context(QoreModuleDefContext* qmd);
 DLLLOCAL QoreModuleDefContext* get_module_def_context();
 DLLLOCAL void parse_set_module_def_context_name(const char* name);
-DLLLOCAL const char* set_user_module_context_name(const char* n);
-DLLLOCAL const char* get_user_module_context_name();
+DLLLOCAL const char* set_module_context_name(const char* n);
 DLLLOCAL const char* get_module_context_name();
 
 DLLLOCAL void parse_set_try_reexport(bool tr);

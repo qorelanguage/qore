@@ -470,7 +470,7 @@ public:
         if (!mi->isUser())
             return;
 
-        const char* old_name = get_user_module_context_name();
+        const char* old_name = get_module_context_name();
         if (old_name)
             setUserModuleDependency(mi->getName(), old_name);
         trySetUserModule(mi->getName());
@@ -730,12 +730,25 @@ public:
     }
 };
 
+class QoreModuleNameContextHelper {
+public:
+    DLLLOCAL QoreModuleNameContextHelper(const char* name) : old_name(set_module_context_name(name)) {
+    }
+
+    DLLLOCAL ~QoreModuleNameContextHelper() {
+        set_module_context_name(old_name);
+    }
+
+protected:
+    const char* old_name;
+};
+
 class QoreUserModuleDefContextHelper : public QoreModuleDefContextHelper {
 public:
     DLLLOCAL QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs);
 
     DLLLOCAL ~QoreUserModuleDefContextHelper() {
-        const char* name = set_user_module_context_name(old_name);
+        const char* name = set_module_context_name(old_name);
 
         if (xsink && !dup)
             QMM.removeUserModuleDependency(name);

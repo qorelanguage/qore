@@ -286,7 +286,8 @@ QoreModuleContextHelper::~QoreModuleContextHelper() {
     set_module_context(parent);
 }
 
-QoreUserModuleDefContextHelper::QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs) : old_name(set_user_module_context_name(name)), pgm(qore_program_private::get(*p)), po(0), xsink(xs), dup(false) {
+QoreUserModuleDefContextHelper::QoreUserModuleDefContextHelper(const char* name, QoreProgram* p, ExceptionSink& xs)
+        : old_name(set_module_context_name(name)), pgm(qore_program_private::get(*p)), po(0), xsink(xs), dup(false) {
 }
 
 void QoreUserModuleDefContextHelper::setNameInit(const char* name) {
@@ -660,7 +661,7 @@ int check_component(mod_op_e op, int mod_ver, int req_ver, bool last) {
 
 // issue #2834: add context to exception description if possible
 static void try_add_module_context(QoreStringNode* desc) {
-    const char* mod = get_user_module_context_name();
+    const char* mod = get_module_context_name();
     if (mod) {
         QoreStringMaker str("while loading module '%s': ", mod);
         desc->prepend(str.c_str(), str.size());
@@ -1481,6 +1482,15 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
         const char* feature, QoreProgram* pgm, bool reexport, qore_binary_module_desc_t mod_desc) {
     QoreModuleInfo mod_info;
 
+    // set the module's name in thread-local data so that any namespaces created when the module is loaded can be
+    // appropriately tagged
+    QoreString feature_str;
+    if (!feature) {
+        feature_str = feature;
+        feature = get_feature_from_path(feature_str);
+    }
+    QoreModuleNameContextHelper mnch(feature);
+
     void* ptr = dlopen(path, QORE_DLOPEN_FLAGS);
     if (!ptr) {
         xsink.raiseExceptionArg("LOAD-MODULE-ERROR", new QoreStringNode(path), "error loading qore module '%s': %s",
@@ -1490,17 +1500,12 @@ QoreAbstractModule* QoreModuleManager::loadBinaryModuleFromPath(ExceptionSink& x
 
     DLHelper dlh(ptr);
 
-    QoreString feature_str;
-
     if (!mod_desc) {
-        if (!feature) {
-            feature_str = feature;
-            feature = get_feature_from_path(feature_str);
-        }
         // check for new-style module declaration
         QoreStringMaker sym("%s_qore_module_desc", feature);
         mod_desc = (qore_binary_module_desc_t)dlsym(ptr, sym.c_str());
     }
+
     if (mod_desc) {
         mod_desc(mod_info);
         return loadBinaryModuleFromDesc(xsink, &dlh, mod_info, path, feature, pgm, reexport);

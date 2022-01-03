@@ -384,8 +384,8 @@ public:
     // used to capture the module definition in user modules
     QoreModuleDefContext* qmd = nullptr;
 
-    // user to track the current user module context
-    const char* user_module_context_name = nullptr;
+    // user to track the current module context
+    const char* module_context_name = nullptr;
 
     // AbstractQoreModule* with boolean ptr in bit 0
     uintptr_t qmi = 0;
@@ -1605,27 +1605,15 @@ void parse_set_module_def_context_name(const char* name) {
     }
 }
 
-const char* set_user_module_context_name(const char* n) {
+const char* set_module_context_name(const char* n) {
     ThreadData* td = thread_data.get();
-    const char* rv = td->user_module_context_name;
-    td->user_module_context_name = n;
+    const char* rv = td->module_context_name;
+    td->module_context_name = n;
     return rv;
-}
-
-const char* get_user_module_context_name() {
-    return thread_data.get()->user_module_context_name;
 }
 
 const char* get_module_context_name() {
-    ThreadData* td = thread_data.get();
-    const char* rv = nullptr;
-    if (td->qmc) {
-        rv = td->qmc->getName();
-    }
-    if (!rv) {
-        rv = td->user_module_context_name;
-    }
-    return rv;
+    return thread_data.get()->module_context_name;
 }
 
 void ModuleContextNamespaceList::clear() {

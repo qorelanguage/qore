@@ -85,7 +85,8 @@ public:
     kvmap_t kvmap;
 
     // used with builtin namespaces
-    DLLLOCAL qore_ns_private(QoreNamespace* n_ns, const char* n) : name(n), ns(n_ns), constant(this), pub(true), builtin(true) {
+    DLLLOCAL qore_ns_private(QoreNamespace* n_ns, const char* n) : name(n), ns(n_ns), constant(this), pub(true),
+            builtin(true) {
         size_t i = name.rfind("::");
         path = name;
         if (i == std::string::npos) {
@@ -99,6 +100,10 @@ public:
                 // add the root '::' prefix to the path
                 path.insert(0, "::");
             }
+        }
+        const char* mod_name = get_module_context_name();
+        if (mod_name) {
+            from_module = mod_name;
         }
     }
 
@@ -132,8 +137,6 @@ public:
             class_handler(old.class_handler) {
         if (!old.from_module.empty()) {
             from_module = old.from_module;
-        } else {
-            setModuleName();
         }
     }
 
