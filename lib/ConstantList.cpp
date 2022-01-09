@@ -52,6 +52,11 @@ ConstantEntry::ConstantEntry(const QoreProgramLocation* loc, const char* n, Qore
     if (pgm)
         pwo = qore_program_private::getParseWarnOptions(pgm);
 
+    const char* mod_name = get_module_context_name();
+    if (mod_name) {
+        from_module = mod_name;
+    }
+
     //printd(5, "ConstantEntry::ConstantEntry() this: %p '%s' ti: '%s' nti: '%s'\n", this, n,
     //  QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(val.getTypeInfo()));
 }
@@ -61,16 +66,9 @@ ConstantEntry::ConstantEntry(const ConstantEntry& old)
         typeInfo(old.typeInfo), val(old.val.refSelf()),
         in_init(false), pub(old.builtin), init(true), builtin(old.builtin),
         saved_node(old.saved_node ? old.saved_node->refSelf() : nullptr),
-        access(old.access) {
+        access(old.access), from_module(old.from_module) {
     assert(!old.in_init);
     assert(old.init);
-
-    if (!old.from_module.empty()) {
-        from_module = old.from_module;
-    } else {
-        setModuleName();
-    }
-
     //printd(5, "ConstantEntry::ConstantEntry() this: %p copy '%s' ti: '%s' nti: '%s'\n", this, name.c_str(),
     //  QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(val.getTypeInfo()));
 }

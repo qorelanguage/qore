@@ -2669,13 +2669,12 @@ int qore_ns_private::parseAddPendingClass(const QoreProgramLocation* loc, QoreCl
         parse_error(*loc, "class '%s' is already defined in namespace '%s::'", oc->getName(), name.c_str());
         return -1;
     }
+    och.release();
 
     qore_class_private::get(*oc)->setNamespace(this);
-    och.release();
-    if (!strcmp(oc->getName(), "AbstractSqlUtilBase")) {
-        //printd(5, "qore_ns_private::parseAddPendingClass() added class %p '%s' ns: %p '%s' parent: %p\n", oc,
-        //  oc->getName(), this, name.c_str(), parent);
-    }
+
+    //printd(5, "qore_ns_private::parseAddPendingClass() added class %p '%s' ns: %p '%s' parent: %p\n", oc,
+    //    oc->getName(), this, name.c_str(), parent);
 
     return 0;
 }

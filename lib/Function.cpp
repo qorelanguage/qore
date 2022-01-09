@@ -1889,6 +1889,7 @@ QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode>& argv, QoreO
             signature.selfid->instantiateSelf(self);
 
         // instantiate argv and push id on stack
+        assert(signature.argvid);
         signature.argvid->instantiate(argv ? argv->refSelf() : nullptr);
 
         {

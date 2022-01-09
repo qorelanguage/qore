@@ -80,7 +80,7 @@ TypedHashDecl* HashDeclList::find(const char* name) {
     return i != hm.end() ? i->second : nullptr;
 }
 
-const TypedHashDecl* HashDeclList::find(const char *name) const {
+const TypedHashDecl* HashDeclList::find(const char* name) const {
     hm_qth_t::const_iterator i = hm.find(name);
     return i != hm.end() ? i->second : nullptr;
 }

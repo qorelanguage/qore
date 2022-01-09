@@ -150,16 +150,26 @@ and therefore get some new hashes, by calling again XXHnn_digest().
 When you are done, don't forget to free XXH state space, using typically XXHnn_freeState().
 */
 
-   struct qore_hash_str {
-      DLLLOCAL size_t operator()(const char* s1) const {
+struct qore_hash_str {
+    DLLLOCAL size_t operator()(const char* s1) const {
 #if TARGET_BITS == 64
-	return XXH64(s1, strlen(s1), 0);
+return XXH64(s1, strlen(s1), 0);
 #else
-	return XXH32(s1, strlen(s1), 0);
+return XXH32(s1, strlen(s1), 0);
 #endif
-      }
-   };
-  
+    }
+};
+
+struct qore_hash_stdstr {
+    DLLLOCAL size_t operator()(const std::string& s1) const {
+#if TARGET_BITS == 64
+return XXH64(s1.c_str(), s1.size(), 0);
+#else
+return XXH32(s1.c_str(), s1.size(), 0);
+#endif
+    }
+};
+
 #if defined (__cplusplus)
 }
 #endif

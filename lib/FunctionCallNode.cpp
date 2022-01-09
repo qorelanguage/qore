@@ -171,7 +171,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, QoreParse
         // expressions for immediate evaluation)
         const QoreClass* qc = func->getClass();
         if (qc) {
-            if (qore_class_private::parseInitPartial(*const_cast<QoreClass*>(qc)) && !err) {
+            if (qore_class_private::get(*const_cast<QoreClass*>(qc))->parseInit() && !err) {
                 err = -1;
             }
         } else {

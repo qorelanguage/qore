@@ -147,7 +147,7 @@ public:
 
 typedef HASH_MAP<const char*, FunctionEntry*, qore_hash_str, eqstr> fl_map_t;
 #else
-typedef std::map<const char*, FunctionEntry*, ltstr> fl_map_t;
+typedef std::map<const char*, FunctionEntry*> fl_map_t;
 #endif
 
 class FunctionList : public fl_map_t {

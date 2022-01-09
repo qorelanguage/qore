@@ -1142,7 +1142,8 @@ public:
 protected:
     DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
         if (finalized) {
-            xsink->raiseException("DESTRUCTOR-ERROR", "illegal class static variable assignment after second phase of variable destruction");
+            xsink->raiseException("DESTRUCTOR-ERROR", "illegal class static variable assignment after second phase "
+                "of variable destruction");
             return -1;
         }
         return 0;
@@ -3289,10 +3290,6 @@ public:
 
     DLLLOCAL static int runtimeCheckInstantiateClass(const QoreClass& qc, ExceptionSink* xsink) {
         return qc.priv->runtimeCheckInstantiateClass(xsink);
-    }
-
-    DLLLOCAL static int parseInit(QoreClass& qc) {
-        return qc.priv->parseInit();
     }
 
     DLLLOCAL static int parseInitPartial(QoreClass& qc) {

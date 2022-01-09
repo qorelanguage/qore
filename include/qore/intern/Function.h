@@ -741,6 +741,10 @@ public:
         all_priv(true) {
         ilist.push_back(INode(this, Public));
         //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
+        const char* mod_name = get_module_context_name();
+        if (mod_name) {
+            from_module = mod_name;
+        }
     }
 
     // copy constructor (used by method functions when copied)
@@ -763,7 +767,8 @@ public:
             check_parse(false),
             has_priv(old.has_priv),
             all_priv(old.all_priv),
-            nn_uniqueReturnType(old.nn_uniqueReturnType) {
+            nn_uniqueReturnType(old.nn_uniqueReturnType),
+            from_module(old.from_module) {
         bool no_user = po & PO_NO_INHERIT_USER_FUNC_VARIANTS;
         bool no_builtin = po & PO_NO_SYSTEM_FUNC_VARIANTS;
 
@@ -799,12 +804,6 @@ public:
         // the rest of ilist is copied in method base class
         // do not copy pending variants
         //printd(5, "QoreFunction::QoreFunction() this: %p %s\n", this, name.c_str());
-
-        if (!old.from_module.empty()) {
-            from_module = old.from_module;
-        } else {
-            setModuleName();
-        }
     }
 
 #if 0
@@ -1079,15 +1078,6 @@ protected:
     const QoreTypeInfo* nn_uniqueReturnType = nullptr;
 
     std::string from_module;
-
-    DLLLOCAL void setModuleName() {
-        assert(from_module.empty());
-        const char* mod_name = get_module_context_name();
-        if (mod_name) {
-            from_module = mod_name;
-        }
-        //printd(5, "qore_ns_private::setModuleName() this: %p mod: %s\n", this, mod_name ? mod_name : "n/a");
-    }
 
     DLLLOCAL int parseCheckReturnType() {
         if (parse_rt_done)
