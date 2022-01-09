@@ -171,7 +171,7 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, QoreParse
         // expressions for immediate evaluation)
         const QoreClass* qc = func->getClass();
         if (qc) {
-            if (qore_class_private::parseInit(*const_cast<QoreClass*>(qc)) && !err) {
+            if (qore_class_private::get(*const_cast<QoreClass*>(qc))->parseInit() && !err) {
                 err = -1;
             }
         } else {
@@ -627,7 +627,7 @@ int ScopedObjectCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
     else assert(oc);
 #endif
 
-    const QoreMethod* constructor = oc ? oc->parseGetConstructor() : nullptr;
+    const QoreMethod* constructor = oc ? qore_class_private::get(*oc)->parseGetConstructor() : nullptr;
     if (parseArgs(parse_context,
         constructor
             ? qore_method_private::get(*constructor)->getFunction()

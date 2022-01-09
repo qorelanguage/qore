@@ -160,8 +160,10 @@ void QoreClassList::resolveCopy() {
 int QoreClassList::parseInit() {
     int err = 0;
     for (auto& i : hm) {
-        //printd(5, "QoreClassList::parseInit() this: %p initializing %p '%s'\n", this, i.second, i.first);
-        if (qore_class_private::parseInit(*(i.second.cls)) && !err) {
+        printd(5, "QoreClassList::parseInit() this: %p initializing %p '%s' (%s)\n", this, i.second.cls, i.first,
+            i.second.cls->getName());
+
+        if (qore_class_private::get(*(i.second.cls))->parseInit() && !err) {
             err = -1;
         }
     }

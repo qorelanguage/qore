@@ -197,15 +197,6 @@ protected:
 
     DLLLOCAL void del(ExceptionSink* xsink);
     DLLLOCAL void del(QoreListNode& l);
-
-    DLLLOCAL void setModuleName() {
-        assert(from_module.empty());
-        const char* mod_name = get_module_context_name();
-        if (mod_name) {
-            from_module = mod_name;
-        }
-        //printd(5, "qore_ns_private::setModuleName() this: %p mod: %s\n", this, mod_name ? mod_name : "n/a");
-    }
 };
 
 class ConstantEntryInitHelper {

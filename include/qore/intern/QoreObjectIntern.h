@@ -344,19 +344,11 @@ public:
 
     DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, QoreValue val, ExceptionSink* xsink);
 
-    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, const qore_class_private*& member_class_ctx) const {
-        assert(!member_class_ctx);
+    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx,
+            const qore_class_private*& member_class_ctx) const;
 
-        const qore_class_private* theclass_priv = qore_class_private::get(*theclass);
-        const QoreMemberInfo* info = theclass_priv->runtimeGetMemberInfo(mem, class_ctx);
-        if (!info) {
-            return theclass->runtimeHasPublicMembersInHierarchy() ? QOA_PUB_ERROR : QOA_OK;
-        }
-        member_class_ctx = info->getClassContext(class_ctx);
-        return ((info->access > Public) && !class_ctx) ? QOA_PRIV_ERROR : QOA_OK;
-    }
-
-    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx, const qore_class_private*& member_class_ctx, ExceptionSink* xsink) const {
+    DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx,
+            const qore_class_private*& member_class_ctx, ExceptionSink* xsink) const {
         int rc = checkMemberAccess(mem, class_ctx, member_class_ctx);
         if (!rc) {
             return 0;
@@ -386,7 +378,7 @@ public:
         }
 
         // member is not declared
-        if (theclass->runtimeHasPublicMembersInHierarchy()) {
+        if (theclass->hasPublicMembersInHierarchy()) {
             doPublicException(mem, xsink);
             return -1;
         }
@@ -402,38 +394,7 @@ public:
     DLLLOCAL QoreValue getReferencedMemberNoMethod(const char* mem, ExceptionSink* xsink) const;
 
     // lock not held on entry
-    DLLLOCAL void doDeleteIntern(ExceptionSink* xsink) {
-        printd(5, "qore_object_private::doDeleteIntern() execing destructor() obj: %p\n", obj);
-
-        // increment reference count temporarily for destructor
-        {
-            AutoLocker slr(rlck);
-            ++obj->references;
-        }
-
-        theclass->execDestructor(obj, xsink);
-
-        cdmap_t* cdm;
-        QoreHashNode* td;
-        {
-            QoreAutoVarRWWriteLocker al(rml);
-            assert(status != OS_DELETED);
-            assert(data);
-            status = OS_DELETED;
-
-            cdm = cdmap;
-            cdmap = nullptr;
-
-            td = data;
-            data = nullptr;
-
-            removeInvalidateRSetIntern();
-        }
-
-        cleanup(xsink, td, cdm);
-
-        obj->deref(xsink);
-    }
+    DLLLOCAL void doDeleteIntern(ExceptionSink* xsink);
 
     DLLLOCAL void cleanup(ExceptionSink* xsink, QoreHashNode* td, cdmap_t* cdm) {
         if (privateData) {
@@ -586,23 +547,7 @@ public:
     }
 
     // add virtual IDs for private data to class list
-    DLLLOCAL void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData* apd) {
-        // first get parent class corresponding to "key"
-        const QoreClass* qc = theclass->getClass(key);
-
-        //printd(5, "qore_object_private::addVirtualPrivateData() this: %p privateData: %p key: %d apd: %p qc: %p '%s'\n", this, privateData, key, apd, qc, qc->getName());
-        assert(qc);
-        BCSMList* sml = qc->getBCSMList();
-        //printd(5, "qore_object_private::addVirtualPrivateData() this: %p qc: %p '%s' sml: %p\n", this, qc, qc->getName(), sml);
-        if (!sml)
-            return;
-
-        for (class_list_t::const_iterator i = sml->begin(), e = sml->end(); i != e; ++i) {
-            //printd(5, "qore_object_private::addVirtualPrivateData() this: %p i: %p '%s' key: %d virt: %s\n", this, i->first, i->first->getName(), i->first->getID(), i->second ? "true" : "false");
-            if (i->second)
-                privateData->insertVirtual(i->first->getID(), apd);
-        }
-    }
+    DLLLOCAL void addVirtualPrivateData(qore_classid_t key, AbstractPrivateData* apd);
 
     DLLLOCAL AbstractPrivateData* getAndRemovePrivateData(qore_classid_t key, ExceptionSink* xsink) {
         QoreSafeVarRWWriteLocker sl(rml);

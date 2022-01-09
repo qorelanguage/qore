@@ -3983,6 +3983,10 @@ public:
             lname.insert(0, "Pseudo");
         }
 
+        if (upm) {
+            fprintf(fp, "#include \"qore/intern/QoreClassIntern.h\"\n");
+        }
+
         fprintf(fp, "qore_classid_t CID_%s;\nQoreClass* QC_%s;\n\n", UC.c_str(), UC.c_str());
 
         for (mmap_t::const_iterator i = normal_mmap.begin(), e = normal_mmap.end(); i != e; ++i) {
@@ -4064,7 +4068,7 @@ public:
         }
 
         if (upm)
-            fprintf(fp, "\n    QC_%s->unsetPublicMemberFlag();\n", UC.c_str());
+            fprintf(fp, "\n    qore_class_private::get(*QC_%s)->unsetPublicMemberFlag();\n", UC.c_str());
 
         if (is_final)
             fprintf(fp, "\n    QC_%s->setFinal();\n", UC.c_str());

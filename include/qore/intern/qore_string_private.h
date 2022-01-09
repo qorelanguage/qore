@@ -433,16 +433,14 @@ public:
             pos = str.len + pos;
             if (pos < 0)
                 pos = 0;
-        }
-        else if (pos >= (qore_offset_t)str.len)
+        } else if (pos >= (qore_offset_t)str.len)
             return;
 
         if (plen < 0) {
             plen = str.len + plen;
             if (plen <= 0)
                 return;
-        }
-        else if (plen > (qore_offset_t)str.len)
+        } else if (plen > (qore_offset_t)str.len)
             plen = str.len;
 
         concat_intern(str.buf + pos, plen);
@@ -614,6 +612,10 @@ public:
         concat(ns->priv);
         return 0;
     }
+
+    DLLLOCAL void setRegexBaseOpts(QoreRegexBase& re, int opts);
+
+    DLLLOCAL void setRegexOpts(QoreRegexSubst& re, int opts);
 
     DLLLOCAL void splice_simple(size_t offset, size_t length, QoreString* extract = nullptr);
     DLLLOCAL void splice_simple(size_t offset, size_t length, const char* str, size_t str_len,

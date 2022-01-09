@@ -73,6 +73,18 @@ class BinaryNode;
 #define CD_ALL (CD_XHTML | CD_NUM_REF)
 //@}
 
+//! @defgroup StringRegexOpts String Regular Expression Options
+/**
+*/
+//@{
+//! global substitutions
+#define QS_RE_GLOBAL    (1 << 0)
+#define QS_RE_CASELESS  (1 << 1)
+#define QS_RE_DOTALL    (1 << 2)
+#define QS_RE_EXTENDED  (1 << 3)
+#define QS_RE_MULTILINE (1 << 4)
+//@}
+
 //! Qore's string type supported by the QoreEncoding class
 /** A QoreString is implemented by a char pointer, a byte length, and a QoreEncoding pointer.
     For the equivalent Qore parse tree/value type, see QoreStringNode
@@ -605,12 +617,53 @@ public:
 
     //! returns a new string consisting of "length" characters from the current string starting with character position "offset"
     /** offset and length spoecify characters, not bytes
-         @param offset the offset in characters from the beginning of the string (starting with 0)
+        @param offset the offset in characters from the beginning of the string (starting with 0)
         @param length the number of characters for the substring
         @param xsink invalid multi-byte encodings can cause an exception to be thrown
-        @return the new string; an empty string is returned if the arguments cannot be satisfied; 0 is returned only if a Qore-language exception is thrown due to character encoding conversion errors
+
+        @return the new string; an empty string is returned if the arguments cannot be satisfied; nullptr is returned
+        only if a Qore-language exception is thrown due to character encoding conversion errors
     */
     DLLEXPORT QoreString* substr(qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink) const;
+
+    //! performs perl5-compatible regular expression substitution
+    /** @param match the pattern to match
+        @param subst the substitution string
+        @param opts regex options combined with binary or; see @ref StringRegexOpts for options
+        @param xsink invalid multi-byte encodings can cause an exception to be thrown
+
+        @return the new string if the operation was successful
+
+        @since %Qore 1.1.0
+    */
+    DLLEXPORT QoreString* regexSubst(QoreString& match, QoreString& subst, int opts, ExceptionSink* xsink) const;
+
+    //! performs perl5-compatible regular expression substitution
+    /** @param output the string where the output will be written
+        @param match the pattern to match
+        @param subst the substitution string
+        @param opts regex options combined with binary or; see @ref StringRegexOpts for options
+        @param xsink invalid multi-byte encodings can cause an exception to be thrown
+
+        @return 0 = OK, -1 = error raised
+
+        @since %Qore 1.1.0
+    */
+    DLLEXPORT int regexSubst(QoreString& output, QoreString& match, QoreString& subst, int opts,
+            ExceptionSink* xsink) const;
+
+    //! performs perl5-compatible regular expression substitution to the current string
+    /**
+        @param match the pattern to match
+        @param subst the substitution string
+        @param opts regex options combined with binary or; see @ref StringRegexOpts for options
+        @param xsink invalid multi-byte encodings can cause an exception to be thrown
+
+        @return 0 = OK, -1 = error raised
+
+        @since %Qore 1.1.0
+    */
+    DLLEXPORT int regexSubstInPlace(QoreString& match, QoreString& subst, int opts, ExceptionSink* xsink) const;
 
     //! removes a single \\n\\r or \\n from the end of the string and returns the number of characters removed
     DLLEXPORT size_t chomp();

@@ -221,6 +221,13 @@ QoreStringNode *QoreStringNode::reverse() const {
     return str;
 }
 
+QoreStringNode* QoreStringNode::regexSubst(QoreString& match, QoreString& subst, int opts,
+        ExceptionSink* xsink) const {
+    QoreRegexSubst regex(&match, 0, xsink);
+    priv->setRegexOpts(regex, opts);
+    return *xsink ? nullptr : regex.exec(this, &subst, xsink);
+}
+
 QoreStringNode *QoreStringNode::parseBase64ToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
     SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
     if (!b)

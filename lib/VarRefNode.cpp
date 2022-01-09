@@ -364,7 +364,7 @@ int VarRefNewObjectNode::parseInitConstructorCall(const QoreProgramLocation* loc
     }
 
     // FIXME: make common code with ScopedObjectCallNode
-    const QoreMethod* constructor = qc ? qc->parseGetConstructor() : nullptr;
+    const QoreMethod* constructor = qc ? qore_class_private::get(*qc)->parseGetConstructor() : nullptr;
     int e = parseArgsVariant(loc, parse_context, constructor
         ? qore_method_private::get(*constructor)->getFunction()
         : nullptr, nullptr);

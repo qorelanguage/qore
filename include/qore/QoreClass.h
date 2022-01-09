@@ -1075,35 +1075,11 @@ public:
     */
     DLLEXPORT QoreValue getReferencedKeyValue(const char* key) const;
 
-    // used when parsing, finds committed non-static methods within the entire class hierarchy
-    /** (local class plus base classes)
-    */
-    DLLLOCAL const QoreMethod* parseFindCommittedMethod(const char* nme);
+    //! returns true if the class has one or more parent classes
+    DLLEXPORT bool hasParentClass() const;
 
-    // returns 0 for success, -1 for error
-    DLLLOCAL int parseAddBaseClassArgumentList(BCAList* bcal);
-    // only called when parsing, sets the name of the class
-    DLLLOCAL void setName(const char* n);
-
-    DLLLOCAL qore_classid_t getIDForMethod() const;
-    // get base class list to add virtual class indexes for private data
-    DLLLOCAL BCSMList* getBCSMList() const;
-
-    DLLLOCAL bool parseHasPublicMembersInHierarchy() const;
-    DLLLOCAL bool runtimeHasPublicMembersInHierarchy() const;
-
-    // returns true if the class has one or more parent classes
-    DLLLOCAL bool hasParentClass() const;
-    DLLLOCAL bool hasPrivateCopyMethod() const;
-    // returns the status including the pending variant (if any)
-    DLLLOCAL bool parseHasPrivateCopyMethod() const;
-    DLLLOCAL const QoreMethod* parseGetConstructor() const;
-    // returns true if the class implements a "methodGate" method, also in pending uncommitted methods
-    DLLLOCAL bool parseHasMethodGate() const;
-    // called when there is an empty public member declaration or a "no_public" declaration
-    DLLLOCAL void parseSetEmptyPublicMemberDeclaration();
-    // unsets the public member flag for builtin classes
-    DLLLOCAL void unsetPublicMemberFlag();
+    //! returns true if the class has any publicly-declared members
+    DLLEXPORT bool hasPublicMembersInHierarchy() const;
 
 protected:
     //! Deletes the object and frees all memory
@@ -1113,35 +1089,10 @@ protected:
     DLLEXPORT QoreClass();
 
 private:
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
     QoreClass& operator=(const QoreClass&) = delete;
 
     //! private implementation of the class
     class qore_class_private* priv;
-
-    DLLLOCAL void insertMethod(QoreMethod* o);
-    DLLLOCAL void insertStaticMethod(QoreMethod* o);
-    DLLLOCAL QoreValue evalMethodGate(QoreObject* self, const char* nme, const QoreListNode* args, ExceptionSink* xsink) const;
-    DLLLOCAL const QoreMethod* parseResolveSelfMethodIntern(const char* nme);
-
-    //! evaluates a method on an object and returns the result
-    /** if the method name is not valid or is private (and the call is made outside the object)
-        then an exception will be raised and no value (NOTHING) will be returned.
-        This function must only be called from QoreObject!
-
-        @param self the object to execute the method on
-        @param method_name the name of the method to execute
-        @param args the arguments for the method
-        @param xsink Qore-language exception information is added here
-
-        @return the value returned by the method, can be 0
-    */
-    DLLLOCAL QoreValue evalMethod(QoreObject* self, const char* method_name, const QoreListNode* args, ExceptionSink* xsink) const;
-
-    // This function must only be called from QoreObject
-    DLLLOCAL void execMemberNotification(QoreObject* self, const char* mem, ExceptionSink* xsink) const;
-    // This function must only be called from QoreObject
-    DLLLOCAL void execDestructor(QoreObject* self, ExceptionSink* xsink) const;
 };
 
 //! To be used to iterate through a class's normal (non-static) methods

@@ -180,7 +180,7 @@ int QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
 
     if (!meth) {
         // if there is no method, then check for a methodGate() method or a pseudo-method
-        if (!is_abstract && !qc->parseHasMethodGate()) {
+        if (!is_abstract && !qore_class_private::get(*qc)->parseHasMethodGate()) {
             // check if it could be a pseudo-method call
             meth = pseudo_classes_find_method(NT_OBJECT, mname, qc);
             if (meth) {
