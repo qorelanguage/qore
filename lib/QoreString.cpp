@@ -34,6 +34,7 @@
 #include "qore/intern/qore_string_private.h"
 #include "qore/intern/IconvHelper.h"
 #include "qore/intern/StringReaderHelper.h"
+#include "qore/intern/QoreRegexSubst.h"
 #include "qore/minitest.hpp"
 
 #include <cctype>
@@ -1366,6 +1367,28 @@ void qore_string_private::splice_complex(qore_offset_t offset, qore_offset_t num
     buf[len] = '\0';
 }
 
+void qore_string_private::setRegexBaseOpts(QoreRegexBase& re, int opts) {
+    if (opts & QS_RE_CASELESS) {
+        re.setCaseInsensitive();
+    }
+    if (opts & QS_RE_DOTALL) {
+        re.setDotAll();
+    }
+    if (opts & QS_RE_EXTENDED) {
+        re.setExtended();
+    }
+    if (opts & QS_RE_MULTILINE) {
+        re.setMultiline();
+    }
+}
+
+void qore_string_private::setRegexOpts(QoreRegexSubst& re, int opts) {
+    if (opts & QS_RE_GLOBAL) {
+        re.setGlobal();
+    }
+    setRegexBaseOpts(re, opts);
+}
+
 QoreStringMaker::QoreStringMaker(const char* fmt, ...) {
     va_list args;
 
@@ -2068,6 +2091,62 @@ QoreString* QoreString::extract(qore_offset_t offset, qore_offset_t num, QoreVal
     } else
         priv->splice_complex(offset, num, *tmp, xsink, rv);
     return rv;
+}
+
+QoreString* QoreString::regexSubst(QoreString& match, QoreString& subst, int opts, ExceptionSink* xsink) const {
+    QoreRegexSubst regex(&match, 0, xsink);
+    if (*xsink) {
+        return nullptr;
+    }
+    priv->setRegexOpts(regex, opts);
+    QoreStringNodeHolder rv(regex.exec(this, &subst, xsink));
+    if (*xsink) {
+        return nullptr;
+    }
+    size_t len = rv->priv->len;
+    size_t allocated = rv->priv->allocated;
+    const QoreEncoding* enc = rv->priv->encoding;
+    return new QoreString(rv->giveBuffer(), len, allocated, enc);
+}
+
+int QoreString::regexSubst(QoreString& output, QoreString& match, QoreString& subst, int opts,
+        ExceptionSink* xsink) const {
+    QoreRegexSubst regex(&match, 0, xsink);
+    if (*xsink) {
+        return -1;
+    }
+    priv->setRegexOpts(regex, opts);
+    QoreStringNodeHolder rv(regex.exec(this, &subst, xsink));
+    if (*xsink) {
+        return -1;
+    }
+    output.concat(*rv, xsink);
+    if (*xsink) {
+        return -1;
+    }
+    return 0;
+}
+
+int QoreString::regexSubstInPlace(QoreString& match, QoreString& subst, int opts, ExceptionSink* xsink) const {
+    QoreRegexSubst regex(&match, 0, xsink);
+    if (*xsink) {
+        return -1;
+    }
+    priv->setRegexOpts(regex, opts);
+    QoreStringNodeHolder rv(regex.exec(this, &subst, xsink));
+    if (*xsink) {
+        return -1;
+    }
+
+    size_t len = rv->priv->len;
+    size_t allocated = rv->priv->allocated;
+    const QoreEncoding* enc = rv->priv->encoding;
+
+    priv->buf = rv->giveBuffer();
+    priv->len = len;
+    priv->allocated = allocated;
+    priv->encoding = enc;
+    return 0;
 }
 
 // removes a single trailing newline

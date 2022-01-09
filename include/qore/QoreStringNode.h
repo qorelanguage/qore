@@ -207,6 +207,18 @@ public:
     //! return a QoreStringNode with the characters reversed
     DLLEXPORT QoreStringNode* reverse() const;
 
+    //! performs perl5-compatible regular expression substitution
+    /** @param match the pattern to match
+        @param subst the substitution string
+        @param opts regex options
+        @param xsink invalid multi-byte encodings can cause an exception to be thrown
+
+        @return the new string if the operation was successful
+
+        @since %Qore 1.1.0
+    */
+    DLLEXPORT QoreStringNode* regexSubst(QoreString& match, QoreString& subst, int opts, ExceptionSink* xsink) const;
+
     // copy function
     DLLEXPORT QoreStringNode* copy() const;
 

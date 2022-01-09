@@ -61,6 +61,7 @@
 #include <vector>
 
 static const qore_mod_api_compat_s qore_mod_api_list_l[] = {
+    {1, 2},
     {1, 1},
     {1, 0},
 };
