@@ -27,10 +27,9 @@ class ExceptionLocationTest inherits QUnit::Test {
     testExceptionLocation() {
         *int line;
         try {
-            hash h = do_loc1();
+            hash<auto> h = do_loc1();
             delete h;
-        }
-        catch (hash<auto> ex) {
+        } catch (hash<auto> ex) {
             line = ex.line;
         }
 
@@ -85,7 +84,7 @@ class ExceptionLocationTest inherits QUnit::Test {
 
             ex = getEx(\p.parse(), Code1 + "class B1 inherits B {} class B inherits\nB1 {}\n", "K");
             assertEq(4, ex.line);
-            assertEq(4, ex.endline);
+            assertEq(5, ex.endline);
             assertEq("K", ex.file);
 
             ex = getEx(\p.parse(), Code1 + "class B1 {\n} class B inherits\nB1, private B1 {}\n", "L");
