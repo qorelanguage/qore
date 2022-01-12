@@ -32,15 +32,11 @@
 
 #include <memory>
 
-QoreRegex::QoreRegex() {
-    init();
-    str = new QoreString();
+QoreRegex::QoreRegex() : QoreRegexBase(new QoreString) {
 }
 
-QoreRegex::QoreRegex(const QoreString& s, int64 opts, ExceptionSink* xsink) {
-    init(opts);
-    str = nullptr;
-
+QoreRegex::QoreRegex(const QoreString& s, int64 opts, ExceptionSink* xsink) : QoreRegexBase(PCRE_UTF8 | (int)opts),
+        global(opts & QRE_GLOBAL ? true : false) {
     if (check_re_options(options)) {
         xsink->raiseException("REGEX-OPTION-ERROR", QLLD " contains invalid option bits", opts);
         options = 0;
@@ -50,10 +46,6 @@ QoreRegex::QoreRegex(const QoreString& s, int64 opts, ExceptionSink* xsink) {
 }
 
 QoreRegex::~QoreRegex() {
-    if (p) {
-        pcre_free(p);
-    }
-    delete str;
 }
 
 void QoreRegex::concat(char c) {
@@ -66,8 +58,9 @@ void QoreRegex::parseRT(const QoreString* pattern, ExceptionSink* xsink) {
 
     // convert to UTF-8 if necessary
     TempEncodingHelper t(pattern, QCS_UTF8, xsink);
-    if (*xsink)
+    if (*xsink) {
         return;
+    }
 
     //printd(5, "QoreRegex::parseRT(%s) this=%p\n", t->c_str(), this);
 
@@ -270,12 +263,6 @@ QoreListNode* QoreRegex::extractWithPattern(const QoreString& target, bool inclu
     }
 
     return l.release();
-}
-
-void QoreRegex::init(int64 opt) {
-    p = nullptr;
-    options = (int)opt | PCRE_UTF8;
-    global = opt & QRE_GLOBAL ? true : false;
 }
 
 QoreString* QoreRegex::getString() {

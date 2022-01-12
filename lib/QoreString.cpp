@@ -2094,11 +2094,12 @@ QoreString* QoreString::extract(qore_offset_t offset, qore_offset_t num, QoreVal
 }
 
 QoreString* QoreString::regexSubst(QoreString& match, QoreString& subst, int opts, ExceptionSink* xsink) const {
-    QoreRegexSubst regex(&match, 0, xsink);
-    if (*xsink) {
+    QoreRegexSubst regex;
+    priv->setRegexOpts(regex, opts);
+    if (regex.parseRT(&match, xsink)) {
+        assert(*xsink);
         return nullptr;
     }
-    priv->setRegexOpts(regex, opts);
     QoreStringNodeHolder rv(regex.exec(this, &subst, xsink));
     if (*xsink) {
         return nullptr;
@@ -2111,11 +2112,12 @@ QoreString* QoreString::regexSubst(QoreString& match, QoreString& subst, int opt
 
 int QoreString::regexSubst(QoreString& output, QoreString& match, QoreString& subst, int opts,
         ExceptionSink* xsink) const {
-    QoreRegexSubst regex(&match, 0, xsink);
-    if (*xsink) {
+    QoreRegexSubst regex;
+    priv->setRegexOpts(regex, opts);
+    if (regex.parseRT(&match, xsink)) {
+        assert(*xsink);
         return -1;
     }
-    priv->setRegexOpts(regex, opts);
     QoreStringNodeHolder rv(regex.exec(this, &subst, xsink));
     if (*xsink) {
         return -1;
@@ -2128,11 +2130,12 @@ int QoreString::regexSubst(QoreString& output, QoreString& match, QoreString& su
 }
 
 int QoreString::regexSubstInPlace(QoreString& match, QoreString& subst, int opts, ExceptionSink* xsink) const {
-    QoreRegexSubst regex(&match, 0, xsink);
-    if (*xsink) {
+    QoreRegexSubst regex;
+    priv->setRegexOpts(regex, opts);
+    if (regex.parseRT(&match, xsink)) {
+        assert(*xsink);
         return -1;
     }
-    priv->setRegexOpts(regex, opts);
     QoreStringNodeHolder rv(regex.exec(this, &subst, xsink));
     if (*xsink) {
         return -1;

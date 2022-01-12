@@ -39,44 +39,44 @@
 #include <sys/types.h>
 
 class QoreRegexSubst : public QoreRegexBase, public QoreReferenceCounter {
+public:
+    DLLLOCAL QoreRegexSubst();
+
+    // used at run-time
+    DLLLOCAL QoreRegexSubst(const QoreString* pstr, int opts, ExceptionSink* xsink);
+
+    DLLLOCAL ~QoreRegexSubst();
+
+    DLLLOCAL int parseRT(const QoreString* pstr, ExceptionSink* xsink);
+    DLLLOCAL int parse();
+    DLLLOCAL QoreStringNode* exec(const QoreString* target, ExceptionSink* xsink) const;
+    DLLLOCAL QoreStringNode* exec(const QoreString* target, const QoreString* newstr, ExceptionSink* xsink) const;
+    DLLLOCAL void concatSource(char c);
+    DLLLOCAL void concatTarget(char c);
+    DLLLOCAL void setGlobal();
+    DLLLOCAL QoreString* getPattern() const;
+
+    DLLLOCAL void ref() const {
+        ROreference();
+    }
+
+    DLLLOCAL void deref() {
+        if (ROdereference()) {
+            delete this;
+        }
+    }
+
+    DLLLOCAL QoreRegexSubst* refSelf() const {
+        ref();
+        return const_cast<QoreRegexSubst*>(this);
+    }
+
 protected:
 private:
-   bool global;
-   class QoreString *newstr;
+    bool global = false;
+    QoreString* newstr = nullptr;
 
-   DLLLOCAL void init();
-   DLLLOCAL static void concat(QoreString *str, int *ovector, int olen, const char *ptr, const char *target, int rc);
-
-public:
-   DLLLOCAL QoreRegexSubst();
-
-   // used at run-time
-   DLLLOCAL QoreRegexSubst(const QoreString *pstr, int opts, ExceptionSink *xsink);
-
-   DLLLOCAL ~QoreRegexSubst();
-
-   DLLLOCAL void parseRT(const QoreString *pstr, ExceptionSink *xsink);
-   DLLLOCAL void parse();
-   DLLLOCAL QoreStringNode *exec(const QoreString *target, ExceptionSink *xsink) const;
-   DLLLOCAL QoreStringNode *exec(const QoreString *target, const QoreString *newstr, ExceptionSink *xsink) const;
-   DLLLOCAL void concatSource(char c);
-   DLLLOCAL void concatTarget(char c);
-   DLLLOCAL void setGlobal();
-   DLLLOCAL QoreString *getPattern() const;
-
-   DLLLOCAL void ref() const {
-      ROreference();
-   }
-
-   DLLLOCAL void deref() {
-      if (ROdereference())
-         delete this;
-   }
-
-   DLLLOCAL QoreRegexSubst* refSelf() const {
-      ref();
-      return const_cast<QoreRegexSubst*>(this);
-   }
+    DLLLOCAL static void concat(QoreString* str, int* ovector, int olen, const char* ptr, const char* target, int rc);
 };
 
 #endif // _QORE_QOREREGEXSUBST_H

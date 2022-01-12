@@ -45,6 +45,22 @@
 
 class QoreRegexBase {
 public:
+    DLLLOCAL QoreRegexBase() {
+    }
+
+    DLLLOCAL QoreRegexBase(int options) : options(options) {
+    }
+
+    DLLLOCAL QoreRegexBase(QoreString* str, int options = PCRE_UTF8) : str(str), options(options) {
+    }
+
+    DLLLOCAL ~QoreRegexBase() {
+        if (p) {
+            pcre_free(p);
+        }
+        delete str;
+    }
+
     DLLLOCAL void setCaseInsensitive();
     DLLLOCAL void setDotAll();
     DLLLOCAL void setExtended();
@@ -53,7 +69,7 @@ public:
 
 protected:
     pcre* p = nullptr;
-    int options = 0;
+    int options = PCRE_UTF8;
     QoreString* str = nullptr;
 };
 

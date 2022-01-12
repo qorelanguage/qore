@@ -88,9 +88,7 @@ public:
     }
 
 private:
-    bool global;
-
-    DLLLOCAL void init(int64 opt = PCRE_UTF8);
+    bool global = false;
 };
 
 #endif // _QORE_QOREREGEX_H
