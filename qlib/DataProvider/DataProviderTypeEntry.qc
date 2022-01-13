@@ -80,6 +80,9 @@ public class DataProviderTypeEntry inherits Serializable {
         /** @note only type entries can be locked
         */
         bool locked = False;
+
+        #! @ref True if this entry is a "parent" type; if the children were added atomically with this entry
+        bool parent = False;
     }
 
     #! Creates the entry as a root node
@@ -115,6 +118,11 @@ public class DataProviderTypeEntry inherits Serializable {
     #! Returns True if the entry has a type
     bool hasType() {
         return exists type;
+    }
+
+    #! Returns True if the entry is a "parent" entry, meaning that all children were added with this entry
+    bool isParent() {
+        return parent;
     }
 
     #! Locks the entry, so it can't be removed or changed
@@ -165,6 +173,7 @@ public class DataProviderTypeEntry inherits Serializable {
 
         self.type = type;
         self.locked = locked;
+        parent = True;
         setTypeChildren();
         return True;
     }
@@ -182,6 +191,7 @@ public class DataProviderTypeEntry inherits Serializable {
         }
         *AbstractDataProviderType rv = self.type;
         self.type = type;
+        parent = True;
         setTypeChildren();
         return rv;
     }
@@ -215,6 +225,27 @@ public class DataProviderTypeEntry inherits Serializable {
         }
         foreach DataProviderTypeEntry entry in ((type_children + children).iterator()) {
             *list<string> child_list = entry.listTypes();
+            if (child_list) {
+                l += child_list;
+            }
+        }
+
+        return l;
+    }
+
+    #! Returns a list of registered data provider type paths where each type listed is a "parent" type
+    /** "Parent" types are types where children are added with the parent
+
+        @note types are stored based on the path provided which may differ from their type names (which may be generic
+        and therefore not suitable for indexing)
+    */
+    *list<string> listParentTypes() {
+        *list<string> l;
+        if (type && parent) {
+            l += path;
+        }
+        foreach DataProviderTypeEntry entry in ((type_children + children).iterator()) {
+            *list<string> child_list = entry.listParentTypes();
             if (child_list) {
                 l += child_list;
             }

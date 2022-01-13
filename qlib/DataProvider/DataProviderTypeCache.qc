@@ -182,6 +182,16 @@ public class DataProviderTypeCache inherits Serializable {
         return root.listTypes();
     }
 
+    #! Returns a list of registered data provider type paths where the types are "parent" types
+    /** "Parent" types are types where children were added with the parent
+
+        @note types are stored based on the path provided which may differ from their type names (which may be generic
+        and therefore not suitable for indexing)
+    */
+    *list<string> listParentTypes() {
+        return root.listParentTypes();
+    }
+
     #! Locks all types
     lockAll() {
         root.lockAll();

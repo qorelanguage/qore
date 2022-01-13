@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "1.2.2";
+    version = "1.3";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -201,6 +201,11 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v1_2_3 DataProvider v1.3
+    - added @ref DataProvider::DataProviderTypeCache::listParentTypes() "DataProviderTypeCache::listParentTypes()" to
+      allow a list of parent types to be returned
+      (<a href="https://github.com/qorelanguage/qore/issues/4385">issue 4385</a>)
 
     @subsection dataprovider_v1_2_2 DataProvider v1.2.2
     - added support for starting a transaction with DataProviders that support transaction management
