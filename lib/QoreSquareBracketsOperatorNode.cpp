@@ -126,13 +126,24 @@ int QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, QoreParseConte
 
     // if the rhs cannot be a list, see if the rhs is a type that can be converted to an integer, if not raise an
     // invalid operation warning
-    if (!rti_can_be_list && !QoreTypeInfo::canConvertToScalar(rti)) {
-        // FIXME: raise exceptions with %strict-types
-        QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
-        QoreTypeInfo::getThisType(rti, *edesc);
-        edesc->concat(" and so will always evaluate to zero");
-        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
-            edesc);
+    if (!rti_can_be_list) {
+        if (!QoreTypeInfo::canConvertToScalar(rti)) {
+            // FIXME: raise exceptions with %strict-types
+            QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is ");
+            QoreTypeInfo::getThisType(rti, *edesc);
+            edesc->concat(" and so will always evaluate to zero");
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+                edesc);
+        } else if (parse_context.isConstant() && parse_context.value_type != NT_INT) {
+            // FIXME: raise exceptions with %strict-types
+            QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is a "
+                "constant of ");
+            QoreTypeInfo::getThisType(rti, *edesc);
+            edesc->sprintf(" and will be automatically converted to an integer when evaluated; use a constant "
+                "integer operand instead");
+            qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+                edesc);
+        }
     }
 
     if (rti_is_list) {
@@ -206,8 +217,20 @@ int QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreListNode* ln)
     ConstListIterator i(ln);
     int err = 0;
     while (i.next()) {
-        const QoreTypeInfo* vti = i.getValue().getTypeInfo();
+        QoreValue v = i.getValue();
+        const QoreTypeInfo* vti = v.getTypeInfo();
         if (QoreTypeInfo::canConvertToScalar(vti)) {
+            // check if we have a cosntant value that's not an int
+            if (v.isConstant() && v.getType() != NT_INT) {
+                // FIXME: raise exceptions with %strict-types
+                QoreStringNode* edesc = new QoreStringNodeMaker("the offset operand expression with the '[]' "
+                    "operator in list element %d (starting with 1) is a constant of ", i.index() + 1);
+                QoreTypeInfo::getThisType(vti, *edesc);
+                edesc->sprintf(" and will be automatically converted to an integer when evaluated; use a constant "
+                    "integer operand instead");
+                qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+                    edesc);
+            }
             continue;
         }
         parseException(*loc, "PARSE-TYPE-ERROR", "cannot make a slice with offset %lu/%lu of type '%s'; need a " \

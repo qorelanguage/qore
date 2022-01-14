@@ -68,8 +68,11 @@ static const QoreProgramLocation* get_loc(YYLTYPE* yylloc) {
 }
 
 static void check_broken_op(YYLTYPE* yylloc, const char* got, const char* expected) {
-   if (!parse_check_parse_option(PO_BROKEN_OPERATORS))
-      parse_error(*get_loc(yylloc), "broken operator expression found; got \"%s\"; expected: \"%s\"; multi-character operators separated by whitespace are only allowed if %broken-operators (PO_BROKEN_OPERATORS) is set", got, expected);
+    if (!parse_check_parse_option(PO_BROKEN_OPERATORS)) {
+        parse_error(*get_loc(yylloc), "broken operator expression found; got \"%s\"; expected: \"%s\"; "
+            "multi-character operators separated by whitespace are only allowed if %broken-operators "
+            "(PO_BROKEN_OPERATORS) is set", got, expected);
+    }
 }
 
 static int ascii_to_octal(char c) {
@@ -110,7 +113,8 @@ static char* trim(const char* str) {
    return n;
 }
 
-// edits the string (even though it's a 'const char*') and returns a pointer to a string with leading and trailing whitespace removed
+// edits the string (even though it's a 'const char*') and returns a pointer to a string with leading and trailing
+// whitespace removed
 static char* trim_inplace(const char* str) {
    while ((*str) == ' ' || (*str) == '\t')
       str++;
@@ -161,11 +165,10 @@ static void scanner_process_path(QoreString& npath, char* ip) {
     while (true) {
 #ifdef _Q_WINDOWS
        // do not assume ':' separates paths on windows if it's the second character in a path
-       if ((*p == ':' && p != lp + 1) || !*p)
+       if ((*p == ':' && p != lp + 1) || !*p) {
 #else
-       if (*p == ':' || !*p)
+       if (*p == ':' || !*p) {
 #endif
-       {
           // skip if at beginning of new path
           if (p != lp) {
              QoreString tpath;
@@ -268,9 +271,9 @@ static QoreString* get_include_file_name(char* file) {
         }
 
         QoreString val;
-        if (SystemEnvironment::get(var.c_str(), val))
+        if (SystemEnvironment::get(var.c_str(), val)) {
             rv->concat(file);
-        else {
+        } else {
             rv->concat(&val);
             rv->concat(file + var.size() + 1);
         }
@@ -280,8 +283,9 @@ static QoreString* get_include_file_name(char* file) {
 
     //printd(5, "get_include_file_name(%s)\n", file);
     // FIXME: UNIX-specific - need to check for drive name on windows
-    if (file[0] == QORE_DIR_SEP)
+    if (file[0] == QORE_DIR_SEP) {
         return new QoreString(file);
+    }
 
     QoreString *rv;
 
@@ -289,17 +293,20 @@ static QoreString* get_include_file_name(char* file) {
     const char* sp = getProgram()->parseGetScriptDir();
     if (sp) {
         rv = findFileInPath(file, sp);
-        if (rv)
+        if (rv) {
             return rv;
+        }
     }
 
     rv = findFileInEnvPath(file, "QORE_INCLUDE_DIR");
     if (!rv) {
         const char* pp = getProgram()->parseGetIncludePath();
-        if (pp)
+        if (pp) {
             rv = findFileInPath(file, pp);
-        if (!rv)
+        }
+        if (!rv) {
             rv = new QoreString(file);
+        }
     }
 
     return rv;
@@ -307,8 +314,9 @@ static QoreString* get_include_file_name(char* file) {
 
 static void append_module_path(const char* path) {
     char* ip = trim(path);
-    if (!ip)
+    if (!ip) {
         return;
+    }
     ON_BLOCK_EXIT(free, ip);
 
     QoreString npath; // for new path
@@ -322,8 +330,9 @@ static void append_module_path(const char* path) {
 
 static void set_include_path(const char* path) {
     char* ip = trim(path);
-    if (!ip)
+    if (!ip) {
         return;
+    }
     ON_BLOCK_EXIT(free, ip);
 
     QoreString npath; // for new path
@@ -340,8 +349,9 @@ static char* remove_quotes(char* str) {
 }
 
 static int check_reexport(YYLTYPE* yylloc, const char* directive, char*& cn, bool& reexport) {
-    if (*cn != '(')
+    if (*cn != '(') {
         return 0;
+    }
     char* p = strchr(cn, ')');
     if (!p) {
         parse_error(*get_loc(yylloc), "missing end parenthesis in %%%s directive", directive);
@@ -367,23 +377,23 @@ static int check_reexport(YYLTYPE* yylloc, const char* directive, char*& cn, boo
 }
 
 static DateTimeNode *makeYears(int years) {
-   return new DateTimeNode(years, 0, 0, 0, 0, 0, 0, true);
+    return new DateTimeNode(years, 0, 0, 0, 0, 0, 0, true);
 }
 
 static DateTimeNode *makeMonths(int months) {
-   return new DateTimeNode(0, months, 0, 0, 0, 0, 0, true);
+    return new DateTimeNode(0, months, 0, 0, 0, 0, 0, true);
 }
 
 static DateTimeNode *makeDays(int days) {
-   return new DateTimeNode(0, 0, days, 0, 0, 0, 0, true);
+    return new DateTimeNode(0, 0, days, 0, 0, 0, 0, true);
 }
 
 static DateTimeNode *makeHours(int hours) {
-   return new DateTimeNode(0, 0, 0, hours, 0, 0, 0, true);
+    return new DateTimeNode(0, 0, 0, hours, 0, 0, 0, true);
 }
 
 static DateTimeNode *makeMinutes(int minutes) {
-   return new DateTimeNode(0, 0, 0, 0, minutes, 0, 0, true);
+    return new DateTimeNode(0, 0, 0, 0, minutes, 0, 0, true);
 }
 
 static DateTimeNode* makeSeconds(const char* txt) {
@@ -397,164 +407,167 @@ static DateTimeNode* makeSeconds(const char* txt) {
 }
 
 static DateTimeNode *makeMilliseconds(int ms) {
-   return new DateTimeNode(0, 0, 0, 0, 0, 0, ms, true);
+    return new DateTimeNode(0, 0, 0, 0, 0, 0, ms, true);
 }
 
 static DateTimeNode *makeMicroseconds(int us) {
-   return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, us);
+    return DateTimeNode::makeRelative(0, 0, 0, 0, 0, 0, us);
 }
 
 static int64 parse_get_integer(YYLTYPE* yylloc, const char* str) {
-   errno = 0;
-   int64 rv = strtoll(str, 0, 10);
-   if (errno == ERANGE)
-      parse_error(*get_loc(yylloc), "numeric overflow in integer '%s': cannot represent in a 64-bit signed number; please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the range " QLLD " (MININT) to " QLLD " (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
-   return rv;
+    errno = 0;
+    int64 rv = strtoll(str, 0, 10);
+    if (errno == ERANGE) {
+        parse_error(*get_loc(yylloc), "numeric overflow in integer '%s': cannot represent in a 64-bit signed number; "
+            "please use a floating-point or arbitrary-precision number instead (ex: '%sn'); integers must be in the "
+            "range " QLLD " (MININT) to " QLLD " (MAXINT)", str, str, -LLONG_MAX, LLONG_MAX);
+    }
+    return rv;
 }
 
-static inline int get_int_2(const char* &p) {
-   int rv = (*p - '0') * 10;
-   ++p;
-   rv += (*p - '0');
-   ++p;
-   return rv;
+static inline int get_int_2(const char*& p) {
+    int rv = (*p - '0') * 10;
+    ++p;
+    rv += (*p - '0');
+    ++p;
+    return rv;
 }
 
-static inline int get_int_4(const char* &p) {
-   int rv = (*p - '0') * 1000;
-   ++p;
-   rv += (*p - '0') * 100;
-   ++p;
-   rv += (*p - '0') * 10;
-   ++p;
-   rv += (*p - '0');
-   ++p;
-   return rv;
+static inline int get_int_4(const char*& p) {
+    int rv = (*p - '0') * 1000;
+    ++p;
+    rv += (*p - '0') * 100;
+    ++p;
+    rv += (*p - '0') * 10;
+    ++p;
+    rv += (*p - '0');
+    ++p;
+    return rv;
 }
 
-static void parse_time(const char* &p, int &hour, int &minute, int &second, int &us) {
-   assert(!hour && !minute && !second && !us);
+static void parse_time(const char*& p, int &hour, int &minute, int &second, int &us) {
+    assert(!hour && !minute && !second && !us);
 
-   // get hour
-   hour = get_int_2(p);
-   ++p;
+    // get hour
+    hour = get_int_2(p);
+    ++p;
 
-   // get minute
-   minute = get_int_2(p);
+    // get minute
+    minute = get_int_2(p);
 
-   if ((*p) == ':') {
-      ++p;
-      // get second
-      second = get_int_2(p);
+    if ((*p) == ':') {
+        ++p;
+        // get second
+        second = get_int_2(p);
 
-      // get milliseconds or microseconds if present
-      if ((*p) == '.') {
-         ++p;
-
-         // read all digits
-         int len = 0;
-         while (isdigit(*p)) {
-            us *= 10;
-            us += *p - '0';
-            ++len;
+        // get milliseconds or microseconds if present
+        if ((*p) == '.') {
             ++p;
-         }
 
-         // adjust to microseconds
-         while (len < 6) {
-            us *= 10;
-            ++len;
-         }
-         while (len > 6) {
-            us /= 10;
-            --len;
-         }
-      }
-   }
+            // read all digits
+            int len = 0;
+            while (isdigit(*p)) {
+                us *= 10;
+                us += *p - '0';
+                ++len;
+                ++p;
+            }
+
+            // adjust to microseconds
+            while (len < 6) {
+                us *= 10;
+                ++len;
+            }
+            while (len > 6) {
+                us /= 10;
+                --len;
+            }
+        }
+    }
 }
 
 static DateTimeNode *makeDateTime(char* str, bool has_time) {
-   const char* p = str;
+    const char* p = str;
 
-   // get year
-   int year = get_int_4(p);
-   ++p;
+    // get year
+    int year = get_int_4(p);
+    ++p;
 
-   // get month
-   int month = get_int_2(p);
-   ++p;
+    // get month
+    int month = get_int_2(p);
+    ++p;
 
-   // get day
-   int day = get_int_2(p);
+    // get day
+    int day = get_int_2(p);
 
-   int hour = 0, minute = 0, second = 0, us = 0;
+    int hour = 0, minute = 0, second = 0, us = 0;
 
-   // parse time, if any
-   if (*p == 'T' || (*p == '-' && has_time)) {
-      ++p;
-      parse_time(p, hour, minute, second, us);
-   }
+    // parse time, if any
+    if (*p == 'T' || (*p == '-' && has_time)) {
+        ++p;
+        parse_time(p, hour, minute, second, us);
+    }
 
-   // get zone if present, otherwise assume local zone
-   const AbstractQoreZoneInfo *zone;
-   if ((*p) == '+' || (*p) == '-')
-      zone = QTZM.findCreateOffsetZone(p);
-   else if ((*p) == 'Z')
-      zone = 0;
-   else
-      zone = currentTZ();
+    // get zone if present, otherwise assume local zone
+    const AbstractQoreZoneInfo *zone;
+    if ((*p) == '+' || (*p) == '-')
+        zone = QTZM.findCreateOffsetZone(p);
+    else if ((*p) == 'Z')
+        zone = 0;
+    else
+        zone = currentTZ();
 
-   return DateTimeNode::makeAbsolute(zone, year, month, day, hour, minute, second, us);
+    return DateTimeNode::makeAbsolute(zone, year, month, day, hour, minute, second, us);
 }
 
 static inline DateTimeNode *makeTime(char* str) {
-   const char* p = str;
+    const char* p = str;
 
-   int hour = 0, minute = 0, second = 0, us = 0;
-   parse_time(p, hour, minute, second, us);
+    int hour = 0, minute = 0, second = 0, us = 0;
+    parse_time(p, hour, minute, second, us);
 
-   // get zone if present, otherwise assume local zone
-   const AbstractQoreZoneInfo *zone;
-   if ((*p) == '+' || (*p) == '-')
-      zone = QTZM.findCreateOffsetZone(p);
-   else if ((*p) == 'Z')
-      zone = 0;
-   else
-      zone = currentTZ();
+    // get zone if present, otherwise assume local zone
+    const AbstractQoreZoneInfo *zone;
+    if ((*p) == '+' || (*p) == '-')
+        zone = QTZM.findCreateOffsetZone(p);
+    else if ((*p) == 'Z')
+        zone = 0;
+    else
+        zone = currentTZ();
 
-   return DateTimeNode::makeAbsolute(zone, 1970, 01, 01, hour, minute, second, us);
+    return DateTimeNode::makeAbsolute(zone, 1970, 01, 01, hour, minute, second, us);
 }
 
 static inline DateTimeNode *makeRelativeDateTime(char* str) {
-   const char* p = str;
+    const char* p = str;
 
-   // get year
-   int year = get_int_4(p);
-   ++p;
+    // get year
+    int year = get_int_4(p);
+    ++p;
 
-   // get month
-   int month = get_int_2(p);
-   ++p;
+    // get month
+    int month = get_int_2(p);
+    ++p;
 
-   // get day
-   int day = get_int_2(p);
+    // get day
+    int day = get_int_2(p);
 
-   int hour = 0, minute = 0, second = 0, us = 0;
-   if (*p) {
-      ++p;
-      parse_time(p, hour, minute, second, us);
-   }
+    int hour = 0, minute = 0, second = 0, us = 0;
+    if (*p) {
+        ++p;
+        parse_time(p, hour, minute, second, us);
+    }
 
-   return DateTimeNode::makeRelative(year, month, day, hour, minute, second, us);
+    return DateTimeNode::makeRelative(year, month, day, hour, minute, second, us);
 }
 
 static DateTimeNode* makeRelativeTime(char* str) {
-   const char* p = str;
+    const char* p = str;
 
-   int hour = 0, minute = 0, second = 0, us = 0;
-   parse_time(p, hour, minute, second, us);
+    int hour = 0, minute = 0, second = 0, us = 0;
+    parse_time(p, hour, minute, second, us);
 
-   return DateTimeNode::makeRelative(0, 0, 0, hour, minute, second, us);
+    return DateTimeNode::makeRelative(0, 0, 0, hour, minute, second, us);
 }
 
 static bool isRegexModifier(QoreRegex *qr, int c) {
@@ -604,11 +617,11 @@ static bool isRegexSubstModifier(QoreRegexSubst *qr, int c) {
 }
 
 static char* make_cast(const char* s) {
-   QoreString str(s + 5);
-   str.terminate(str.size() - 1);
-   str.trim();
-   //printd(5, "make_cast() '%s'\n", str.c_str());
-   return str.giveBuffer();
+    QoreString str(s + 5);
+    str.terminate(str.size() - 1);
+    str.trim();
+    //printd(5, "make_cast() '%s'\n", str.c_str());
+    return str.giveBuffer();
 }
 
 static void qore_parse_define(YYLTYPE* yylloc, const char* pstr) {
@@ -643,13 +656,13 @@ static void qore_parse_define(YYLTYPE* yylloc, const char* pstr) {
 }
 
 static bool parse_is_defined(YYLTYPE* yylloc, const char* pstr, bool def = true) {
-   QoreString str(pstr);
-   str.trim();
-   if (str.empty()) {
-      parse_error(*get_loc(yylloc), "missing argument to %%if%sdef", def ? "" : "n");
-      return false;
-   }
-   return qore_program_private::parseIsDefined(getProgram(), str.c_str());
+    QoreString str(pstr);
+    str.trim();
+    if (str.empty()) {
+        parse_error(*get_loc(yylloc), "missing argument to %%if%sdef", def ? "" : "n");
+        return false;
+    }
+    return qore_program_private::parseIsDefined(getProgram(), str.c_str());
 }
 
 static bool is_identifier(const char *str) {
@@ -670,37 +683,37 @@ static bool is_identifier(const char *str) {
 }
 
 static void parse_set_parse_options(YYLTYPE* yylloc, int64 po) {
-   qore_program_private::get(*getProgram())->parseSetParseOptions(get_loc(yylloc), po);
+    qore_program_private::get(*getProgram())->parseSetParseOptions(get_loc(yylloc), po);
 }
 
 static void parse_disable_parse_options(YYLTYPE* yylloc, int64 po) {
-   qore_program_private::get(*getProgram())->parseDisableParseOptions(get_loc(yylloc), po);
+    qore_program_private::get(*getProgram())->parseDisableParseOptions(get_loc(yylloc), po);
 }
 
 static bool angle_balanced(const char* p) {
-   //printd(5, "angle_balanced() '%s'\n", p);
-   int ob = 0;
-   int cb = 0;
-   while (*p) {
-      switch (*p) {
-         case '<': ++ob; break;
-         case '>': ++cb; break;
-      }
-      ++p;
-   }
-   //printd(5, "angle_balanced() %d == %d\n", ob, cb);
+    //printd(5, "angle_balanced() '%s'\n", p);
+    int ob = 0;
+    int cb = 0;
+    while (*p) {
+        switch (*p) {
+            case '<': ++ob; break;
+            case '>': ++cb; break;
+        }
+        ++p;
+    }
+    //printd(5, "angle_balanced() %d == %d\n", ob, cb);
 
-   return ob == cb;
+    return ob == cb;
 }
 
 #define DO_DOT_KW_IDENTIFIER(kw) { yylval->String = new QoreStringNode(kw); size_t pos = yylval->String->size() + 1; if (yytext[pos]) unput(yytext[pos]); return DOT_KW_IDENTIFIER; }
 
 #define QORE_FLEX_DO_EOF { /* delete current buffer */ yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner); \
-      /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
-      if (yybs) { /* need to close file and switch to previous buffer */ \
-         fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner); \
-      } else yyterminate();  \
-   }
+    /* get last parse state */ YY_BUFFER_STATE yybs = (YY_BUFFER_STATE)endParsing(); \
+    if (yybs) { /* need to close file and switch to previous buffer */ \
+        fclose(yyin); if (yybs) yy_switch_to_buffer(yybs, yyscanner); \
+    } else yyterminate();  \
+}
 %}
 
 %option noyywrap nomain noyy_top_state warn
