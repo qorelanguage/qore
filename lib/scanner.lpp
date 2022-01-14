@@ -570,16 +570,16 @@ static DateTimeNode* makeRelativeTime(char* str) {
     return DateTimeNode::makeRelative(0, 0, 0, hour, minute, second, us);
 }
 
-static bool isRegexModifier(QoreRegex *qr, int c) {
-    if (c == 'i')
+static bool isRegexModifier(QoreRegex* qr, int c) {
+    if (c == 'i') {
         qr->setCaseInsensitive();
-    else if (c == 's')
+    } else if (c == 's') {
         qr->setDotAll();
-    else if (c == 'x')
+    } else if (c == 'x') {
         qr->setExtended();
-    else if (c == 'm')
+    } else if (c == 'm') {
         qr->setMultiline();
-    else if (c == 'u') {
+    } else if (c == 'u') {
         qr->setUnicode();
     } else {
         return false;
@@ -587,28 +587,30 @@ static bool isRegexModifier(QoreRegex *qr, int c) {
     return true;
 }
 
-static bool isRegexExtractModifier(QoreRegex *qr, int c) {
-    if (isRegexModifier(qr, c))
+static bool isRegexExtractModifier(QoreRegex* qr, int c) {
+    if (isRegexModifier(qr, c)) {
         return true;
-    if (c == 'g')
+    }
+    if (c == 'g') {
         qr->setGlobal();
-    else
+    } else {
         return false;
+    }
     return true;
 }
 
-static bool isRegexSubstModifier(QoreRegexSubst *qr, int c) {
-    if (c == 'g')
+static bool isRegexSubstModifier(QoreRegexSubst* qr, int c) {
+    if (c == 'g') {
         qr->setGlobal();
-    else if (c == 'i')
+    } else if (c == 'i') {
         qr->setCaseInsensitive();
-    else if (c == 's')
+    } else if (c == 's') {
         qr->setDotAll();
-    else if (c == 'x')
+    } else if (c == 'x') {
         qr->setExtended();
-    else if (c == 'm')
+    } else if (c == 'm') {
         qr->setMultiline();
-    else if (c == 'u') {
+    } else if (c == 'u') {
         qr->setUnicode();
     } else {
         return false;
@@ -1303,16 +1305,22 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 }
 <regex_subst2>{
       \/                                {
-                                           // get regex modifiers
-                                           int c;
-                                           do {
-                                              c = yyinput(yyscanner);
-                                           } while (isRegexSubstModifier(yylval->RegexSubst, c));
-                                           unput(c);
-                                           yylloc->restoreFirst();
-                                           BEGIN(INITIAL);
-                                           yylval->RegexSubst->parse();
-                                           return REGEX_SUBST;
+                                            // get regex modifiers
+                                            int c;
+                                            do {
+                                                c = yyinput(yyscanner);
+                                            } while (isRegexSubstModifier(yylval->RegexSubst, c));
+                                            // issue #2096: handle EOF while scanning chars manually
+                                            if (!c) {
+                                                yylval->RegexSubst->deref();
+                                                QORE_FLEX_DO_EOF
+                                            } else {
+                                                unput(c);
+                                                yylloc->restoreFirst();
+                                                BEGIN(INITIAL);
+                                                yylval->RegexSubst->parse();
+                                                return REGEX_SUBST;
+                                            }
                                         }
       \n                                {
                                            yylval->RegexSubst->concatTarget('\n');
@@ -1396,16 +1404,22 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 }
 <regex_state>{
       \/                                {
-                                           // get regex modifiers
-                                           int c;
-                                           do {
-                                              c = yyinput(yyscanner);
-                                           } while (isRegexModifier(yylval->Regex, c));
-                                           unput(c);
-                                           yylloc->restoreFirst();
-                                           BEGIN(INITIAL);
-                                           yylval->Regex->parse([&] () { return get_loc(yylloc); });
-                                           return REGEX;
+                                            // get regex modifiers
+                                            int c;
+                                            do {
+                                                c = yyinput(yyscanner);
+                                            } while (isRegexModifier(yylval->Regex, c));
+                                            // issue #2096: handle EOF while scanning chars manually
+                                            if (!c) {
+                                                yylval->Regex->deref();
+                                                QORE_FLEX_DO_EOF
+                                            } else {
+                                                unput(c);
+                                                yylloc->restoreFirst();
+                                                BEGIN(INITIAL);
+                                                yylval->Regex->parse([&] () { return get_loc(yylloc); });
+                                                return REGEX;
+                                            }
                                         }
       \n                                yylval->Regex->concat('\n');
       \\\/                              yylval->Regex->concat('/');
@@ -1422,20 +1436,29 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 }
 <regex_extract_state>{
       \/                                {
-                                           // get regex modifiers
-                                           int c;
-                                           do {
-                                              c = yyinput(yyscanner);
-                                           } while (isRegexExtractModifier(yylval->Regex, c));
-                                           unput(c);
-                                           yylloc->restoreFirst();
-                                           BEGIN(INITIAL);
-                                           yylval->Regex->parse([&] () { return get_loc(yylloc); });
-                                           return REGEX_EXTRACT;
+                                            // get regex modifiers
+                                            int c;
+                                            do {
+                                                c = yyinput(yyscanner);
+                                            } while (isRegexExtractModifier(yylval->Regex, c));
+                                            // issue #2096: handle EOF while scanning chars manually
+                                            if (!c) {
+                                                yylval->Regex->deref();
+                                                QORE_FLEX_DO_EOF
+                                            } else {
+                                                unput(c);
+                                                yylloc->restoreFirst();
+                                                BEGIN(INITIAL);
+                                                yylval->Regex->parse([&] () { return get_loc(yylloc); });
+                                                return REGEX_EXTRACT;
+                                            }
                                         }
       \n                                yylval->Regex->concat('\n');
       \\\/                              yylval->Regex->concat('/');
-      \\.                               { yylval->Regex->concat('\\'); yylval->Regex->concat(yytext[1]); }
+      \\.                               {
+                                            yylval->Regex->concat('\\');
+                                            yylval->Regex->concat(yytext[1]);
+                                        }
       [^\n\\/]+                         {
                                            char* yptr = yytext;
                                            while (*yptr)

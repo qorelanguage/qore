@@ -518,7 +518,6 @@ bool qore_has_debug() {
 }
 
 int parse_init_value(QoreValue& val, QoreParseContext& parse_context) {
-    parse_context.value_type = val.getType();
     if (val.hasNode()) {
         AbstractQoreNode* n = val.getInternalNode();
         //printd(5, "parse_init_value() n: %p '%s'\n", n, get_type_name(n));

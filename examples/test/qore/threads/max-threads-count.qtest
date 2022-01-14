@@ -25,7 +25,7 @@ public class MaxThreadCountTest inherits QUnit::Test {
     }
 
     t(Counter c) {
-        on_exit c.dec();
+        c.inc();
         q.get();
         q.push(1);
     }
@@ -40,8 +40,6 @@ public class MaxThreadCountTest inherits QUnit::Test {
         Counter c();
         try {
             while (True) {
-                c.inc();
-                on_error c.dec();
                 background t(c);
             }
         } catch (hash<ExceptionInfo> ex) {
@@ -55,7 +53,6 @@ public class MaxThreadCountTest inherits QUnit::Test {
         }
 
         assertGt(1, limit);
-        c.waitForZero();
-        assertEq(1, num_threads());
+        assertEq(c.getCount() + 1, limit);
     }
 }

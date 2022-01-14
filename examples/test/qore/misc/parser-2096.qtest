@@ -1,0 +1,33 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Issue2096Test
+
+class Issue2096Test inherits QUnit::Test {
+    constructor() : QUnit::Test("issue 2096", "1.0") {
+        addTestCase("Test", \mainTest());
+        set_return_value(main());
+    }
+
+    mainTest() {
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ('"name=\"hi\"" =~ x/name="([^"]+)"/', "test"));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ('"name=\"hi\"" =~ /name="([^"]+)"/', "test"));
+        }
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-EXCEPTION", \p.parse(), ('str = "name=\"hi\""; str =~ s/name="([^"]+)"//', "test"));
+        }
+    }
+}
