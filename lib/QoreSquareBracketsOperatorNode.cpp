@@ -134,7 +134,7 @@ int QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, QoreParseConte
             edesc->concat(" and so will always evaluate to zero");
             qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
                 edesc);
-        } else if (parse_context.isConstant() && parse_context.value_type != NT_INT) {
+        } else if (right.isConstant() && right.getType() != NT_INT) {
             // FIXME: raise exceptions with %strict-types
             QoreStringNode* edesc = new QoreStringNode("the offset operand expression with the '[]' operator is a "
                 "constant of ");
