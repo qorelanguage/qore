@@ -152,6 +152,7 @@ struct QoreParseContext {
     int pflag = 0;
     int lvids = 0;
     const QoreTypeInfo* typeInfo = nullptr;
+    qore_type_t value_type = -1;
 
     DLLLOCAL QoreParseContext(QoreProgram* pgm = getProgram()) : pgm(pgm) {
     }
@@ -169,6 +170,10 @@ struct QoreParseContext {
         int rv = pflag;
         pflag |= flags;
         return rv;
+    }
+
+    DLLLOCAL bool isConstant() const {
+        return value_type >= NT_NOTHING && value_type <= NT_NUMBER;
     }
 };
 

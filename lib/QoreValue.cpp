@@ -174,6 +174,11 @@ bool QoreSimpleValue::isValue() const {
     return type != QV_Node || (v.n && v.n->is_value());
 }
 
+bool QoreSimpleValue::isConstant() const {
+    qore_type_t t = getType();
+    return t >= NT_NOTHING && t <= NT_NUMBER;
+}
+
 bool QoreSimpleValue::needsEval() const {
     return type == QV_Node && v.n && v.n->needs_eval();
 }

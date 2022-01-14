@@ -319,20 +319,23 @@ if (n.intp())
     @endcode
 */
 bool <string>::intp() [flags=CONSTANT] {
-   if (str->empty())
-      return false;
-   char c = (*str)[0];
-   if (c == '-')
-      c = (*str)[1];
-   return (isdigit(c)) ? true : false;
+    if (str->empty()) {
+        return false;
+    }
+    char c = (*str)[0];
+    if (c == '-') {
+        c = (*str)[1];
+    }
+    return (isdigit(c)) ? true : false;
 }
 
-//! Converts the string to an integer value with respect to the <b>base</b>.
-/** If a character is out of range of the corresponding <b>base</b> only the substring preceeding the character is taken into account.\n
-    Base 0 means to interpret as a code literal, so that the actual base is 8, 10, or 16.\n
-    (Does the same as Qore::int(string str, int base)).
+//! Converts the string to an integer value with respect to the <b>base</b>
+/** If a character is out of range of the corresponding <b>base</b> only the substring preceeding the character is
+    taken into account.\n
+    Base 0 means to interpret as a code literal, so that the actual base is 8, 10, or 16.
 
-    @param base the base of the integer in the string; this value must be 0 or 2 - 36 inclusive or an \c INVALID-BASE exception will be thrown
+    @param base the base of the integer in the string; this value must be 0 or 2 - 36 inclusive or an \c INVALID-BASE
+    exception will be thrown
 
     @return the integer value corresponding to the arguments
 
@@ -355,13 +358,18 @@ bool <string>::intp() [flags=CONSTANT] {
     @see <value>::toInt()
     @see Qore::int(string str, int base = 10)
 
-    @since %Qore 0.8.13; in previous versions the \link <value>::toInt() \endlink function (without the <b>base</b> argument) applied also to strings
+    @since %Qore 0.8.13; in previous versions the \link <value>::toInt() \endlink function (without the <b>base</b>
+    argument) applied also to strings
   */
-int <string>::toInt(int base=10) [flags=RET_VALUE_ONLY] {
-    if (base < 0 || base == 1 || base > 36)
-        return xsink -> raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 0 or 2 - 36 inclusive", base);
-    if (!str->getEncoding()->isAsciiCompat())
-        return xsink -> raiseException("UNSUPPORTED-ENCODING", "cannot convert string in non-ASCII-compatible encoding \"%s\" to an integer", str->getEncoding()->getCode());
+int <string>::toInt(int base = 10) [flags=RET_VALUE_ONLY] {
+    if (base < 0 || base == 1 || base > 36) {
+        return xsink -> raiseException("INVALID-BASE", "base " QLLD " is invalid; base must be 0 or 2 - 36 inclusive",
+            base);
+    }
+    if (!str->getEncoding()->isAsciiCompat()) {
+        return xsink -> raiseException("UNSUPPORTED-ENCODING", "cannot convert string in non-ASCII-compatible "
+            "encoding \"%s\" to an integer", str->getEncoding()->getCode());
+    }
     return strtoll(str -> c_str(), 0, (int)base);
 }
 
@@ -376,7 +384,7 @@ if (n.strp())
     @endcode
 */
 bool <string>::strp() [flags=CONSTANT] {
-   return true;
+    return true;
 }
 
 //! Returns a portion of a string starting from an integer offset
@@ -397,10 +405,10 @@ string substr = str.substr(-10);
     @note equivalent to @ref Qore::substr(softstring, softint)
  */
 string <string>::substr(softint start) [flags=RET_VALUE_ONLY] {
-   QoreStringNode* rv = str->substr(start, xsink);
-   if (!rv)
-      rv = new QoreStringNode(str->getEncoding());
-   return rv;
+    QoreStringNode* rv = str->substr(start, xsink);
+    if (!rv)
+        rv = new QoreStringNode(str->getEncoding());
+    return rv;
 }
 
 //! Returns a portion of a string starting from an integer offset, with a length parameter
@@ -424,10 +432,10 @@ string substr = str.substr(10, -2);
     @since %Qore 0.8.5
  */
 string <string>::substr(softint start, softint len) [flags=RET_VALUE_ONLY] {
-   QoreStringNode* rv = str->substr(start, len, xsink);
-   if (!rv)
-      rv = new QoreStringNode(str->getEncoding());
-   return rv;
+    QoreStringNode* rv = str->substr(start, len, xsink);
+    if (!rv)
+        rv = new QoreStringNode(str->getEncoding());
+    return rv;
 }
 
 //! Splits a string into a list of components based on a separator string
@@ -455,26 +463,35 @@ list<string> <string>::split(string sep, bool with_separator = False) [flags=RET
     if (*xsink)
         return QoreValue();
 
-    return split_intern(temp->c_str(), temp->strlen(), str->c_str(), str->strlen(), str->getEncoding(), with_separator);
+    return split_intern(temp->c_str(), temp->strlen(), str->c_str(), str->strlen(), str->getEncoding(),
+        with_separator);
 }
 
 //! Splits a string into a list of components based on a separator string and a quote character
-/** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire field. If instances of the quote character are found in the field preceded by a backquote character (\c "\"), then these quote characters are included as part of the field's text and not treated as quote characters.
+/** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire
+    field. If instances of the quote character are found in the field preceded by a backquote character (\c "\"), then
+    these quote characters are included as part of the field's text and not treated as quote characters.
     Also the separator character can appear as a part of a field with this variant.
     This variant is useful for parsing CSV files, for example.
 
-    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
+    @param sep the separator string; if the separator string is not found in the string to split, then a list with
+    only one element containing the entire string argument is returned'; if this string has a different
+    @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s
+    @ref character_encoding "character encoding"
     @param quote the quote character
     @param trim_unquoted remove leading and trailing whitespace from unquoted fields
 
-    @return a list of each component of a string separated by a separator string, with the separator and any enclosing quote characters removed
+    @return a list of each component of a string separated by a separator string, with the separator and any enclosing
+    quote characters removed
 
     @par Example:
     @code{.py}
-list<string> list = "some,'text with spaces, and commas, here is another one! ,',here".split(",", "'"); # returns ("some", ", and commas, here is another one! ,", "here")
+# returns ("some", ", and commas, here is another one! ,", "here")
+list<string> list = "some,'text with spaces, and commas, here is another one! ,',here".split(",", "'");
     @endcode
 
-    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion   return split_with_quote(xsink, sep, str, quote, trim_unquoted);
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different
+    @ref character_encoding "character encodings" and an error occurs during encoding conversion
 
     @throw SPLIT-ERROR field missing closing quote character; extra text following quoted field
 
@@ -639,7 +656,8 @@ string str = "hello".toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
 
     @note
     - equivalent to @ref Qore::MD5()
-    - the MD5 algorithm is not collision-resistant; it's recommended to use another hash algorithm (like SHA-256) if cryptographic security is important
+    - the MD5 algorithm is not collision-resistant; it's recommended to use another hash algorithm (like SHA-256) if
+      cryptographic security is important
 
     @see
     - MD5_bin()
@@ -648,11 +666,11 @@ string str = "hello".toMD5(); # returns "5d41402abc4b2a76b9719d911017c592"
     @since %Qore 0.8.5
  */
 string <string>::toMD5() [flags=RET_VALUE_ONLY] {
-   DigestHelper dh(*str);
-   if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
-      return QoreValue();
+    DigestHelper dh(*str);
+    if (dh.doDigest(MD5_ERR, EVP_md5(), xsink))
+        return QoreValue();
 
-   return dh.getString();
+    return dh.getString();
 }
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/SHA-1">SHA1</a> message digest of the string as a hex string
@@ -676,11 +694,11 @@ string str = "hello".toSHA1(); # returns "aaf4c61ddcc5e8a2dabede0f3b482cd9aea943
     @since %Qore 0.8.5
  */
 string <string>::toSHA1() [flags=RET_VALUE_ONLY] {
-   DigestHelper dh(*str);
-   if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
-      return QoreValue();
+    DigestHelper dh(*str);
+    if (dh.doDigest(SHA1_ERR, EVP_sha1(), xsink))
+        return QoreValue();
 
-   return dh.getString();
+    return dh.getString();
 }
 
 //! Returns the SHA-224 message digest (a variant of <a href="http://en.wikipedia.org/wiki/SHA-2">SHA-2</a>) of the string as a hex string
@@ -708,14 +726,14 @@ string str = "hello".toSHA224("hello"); # returns "ea09ae9cc6768c50fcee903ed0545
  */
 string <string>::toSHA224() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
-   DigestHelper dh(*str);
-   if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
-      return QoreValue();
+    DigestHelper dh(*str);
+    if (dh.doDigest(SHA224_ERR, EVP_sha224(), xsink))
+        return QoreValue();
 
-   return dh.getString();
+    return dh.getString();
 #else
-   missing_openssl_feature("SHA224", xsink);
-   return QoreValue();
+    missing_openssl_feature("SHA224", xsink);
+    return QoreValue();
 #endif
 }
 
@@ -744,14 +762,14 @@ string str = "hello".toSHA256(); # returns "2cf24dba5fb0a30e26e83b2ac5b9e29e1b16
  */
 string <string>::toSHA256() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA256) && defined(HAVE_OPENSSL_SHA512)
-   DigestHelper dh(*str);
-   if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
-      return QoreValue();
+    DigestHelper dh(*str);
+    if (dh.doDigest(SHA256_ERR, EVP_sha256(), xsink))
+        return QoreValue();
 
-   return dh.getString();
+    return dh.getString();
 #else
-   missing_openssl_feature("SHA256", xsink);
-   return QoreValue();
+    missing_openssl_feature("SHA256", xsink);
+    return QoreValue();
 #endif
 }
 
@@ -761,11 +779,13 @@ string <string>::toSHA256() [flags=RET_VALUE_ONLY] {
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA384
 
-    @return a hex string of the digest (ex: \c "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f")
+    @return a hex string of the digest (ex:
+    \c "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f")
 
     @par Example:
     @code{.py}
-string str = "hello".toSHA384(); # returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
+# returns "59e1748777448c69de6b800d7a33bbfb9ff1b463e44354c3553bcdb9c666fa90125a3c79f90397bdf5f6a13de828684f"
+string str = "hello".toSHA384();
     @endcode
 
     @throw SHA384-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -780,14 +800,14 @@ string str = "hello".toSHA384(); # returns "59e1748777448c69de6b800d7a33bbfb9ff1
  */
 string <string>::toSHA384() [flags=RET_VALUE_ONLY] {
 #if !defined(OPENSSL_NO_SHA512) && defined(HAVE_OPENSSL_SHA512)
-   DigestHelper dh(*str);
-   if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
-      return QoreValue();
+    DigestHelper dh(*str);
+    if (dh.doDigest(SHA384_ERR, EVP_sha384(), xsink))
+        return QoreValue();
 
-   return dh.getString();
+    return dh.getString();
 #else
-   missing_openssl_feature("SHA384", xsink);
-   return QoreValue();
+    missing_openssl_feature("SHA384", xsink);
+    return QoreValue();
 #endif
 }
 
@@ -797,11 +817,13 @@ string <string>::toSHA384() [flags=RET_VALUE_ONLY] {
     @par Platform Availability:
     @ref Qore::Option::HAVE_SHA512
 
-    @return a hex string of the digest (ex: \c "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043")
+    @return a hex string of the digest (ex:
+    \c "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043")
 
     @par Example:
     @code{.py}
-string str = "hello".toSHA512(); # returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
+# returns "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca72323c3d99ba5c11d7c7acc6e14b8c5da0c4663475c2e5c3adef46f73bcdec043"
+string str = "hello".toSHA512();
     @endcode
 
     @throw SHA512-DIGEST-ERROR error calculating digest (should not normally happen)
@@ -856,11 +878,12 @@ bool b = str.isDataAscii();
     @since %Qore 0.8.6
  */
 bool <string>::isDataAscii() [flags=CONSTANT] {
-   return str->isDataAscii();
+    return str->isDataAscii();
 }
 
 //! returns @ref True if the string is empty or only contains printable non-control ASCII characters (ie all characters > 31 && < 127)
-/** @return @ref True if the string is empty or only contains printable non-control ASCII characters (ie all characters > 31 && < 127)
+/** @return @ref True if the string is empty or only contains printable non-control ASCII characters (ie all
+    characters > 31 && < 127)
 
     @par Example:
     @code{.py}
@@ -870,7 +893,7 @@ bool b = str.isDataPrintableAscii();
     @since %Qore 0.8.6
  */
 bool <string>::isDataPrintableAscii() [flags=CONSTANT] {
-   return str->isDataPrintableAscii();
+    return str->isDataPrintableAscii();
 }
 
 //! returns a string of hexadecimal digits corresponding to the contents of the string
@@ -888,9 +911,9 @@ string str = str.toHex();
     - make_hex_string(string)
  */
 string <string>::toHex() [flags=CONSTANT] {
-   QoreStringNode *rv = new QoreStringNode;
-   rv->concatHex(str);
-   return rv;
+    QoreStringNode *rv = new QoreStringNode;
+    rv->concatHex(str);
+    return rv;
 }
 
 //! Returns the base64-encoded representation of the string
@@ -901,7 +924,8 @@ string base64 = str.toBase64(64);
 
     Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
 
-    @param maxlinelen the maximum length of a line in the resulting output string in bytes; if this value is > 0 then output lines will be separated by CRLF characters
+    @param maxlinelen the maximum length of a line in the resulting output string in bytes; if this value is > 0 then
+    output lines will be separated by CRLF characters
 
     @return the base64-encoded string of the data passed
 
@@ -912,9 +936,9 @@ string base64 = str.toBase64(64);
     - make_base64_string(string, softint)
 */
 string <string>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
-   QoreStringNode *rv = new QoreStringNode;
-   rv->concatBase64(str, maxlinelen);
-   return rv;
+    QoreStringNode *rv = new QoreStringNode;
+    rv->concatBase64(str, maxlinelen);
+    return rv;
 }
 
 //! Compares the beginning of the current string with a shorter string passed as an argument, returns -1, 0, or 1 if the argument string is less than, equal, or greater than the beginning of the current string; returns also -1 if the argument string is equal to the beginning of the current string but the argument string is longer than the current string
@@ -925,18 +949,20 @@ int i = str.comparePartial(ostr);
 
     @param ostr the partial string to compare the current string to
 
-    @return -1, 0, or 1 if the argument string is less than, equal, or greater than the beginning of the current string; returns also -1 if the argument string is equal to the beginning of the current string but the argument string is longer than the current string
+    @return -1, 0, or 1 if the argument string is less than, equal, or greater than the beginning of the current
+    string; returns also -1 if the argument string is equal to the beginning of the current string but the argument
+    string is longer than the current string
 
     @since %Qore 0.8.8
 */
 int <string>::comparePartial(string ostr) [flags=RET_VALUE_ONLY] {
-   // convert pattern encoding to string if necessary
-   TempEncodingHelper temp(ostr, str->getEncoding(), xsink);
-   if (*xsink)
-      return QoreValue();
+    // convert pattern encoding to string if necessary
+    TempEncodingHelper temp(ostr, str->getEncoding(), xsink);
+    if (*xsink)
+        return QoreValue();
 
-   int rc = strncmp(str->c_str(), temp->c_str(), temp->size());
-   return !rc ? 0 : (rc < 0 ? -1 : 1);
+    int rc = strncmp(str->c_str(), temp->c_str(), temp->size());
+    return !rc ? 0 : (rc < 0 ? -1 : 1);
 }
 
 //! Compares the beginning of the current string with a shorter string passed as an argument for equality only, returns @ref True "True" if the string argument matches the beginning of the string, @ref False "False" if not
@@ -945,7 +971,8 @@ int <string>::comparePartial(string ostr) [flags=RET_VALUE_ONLY] {
 bool b = str.equalPartial(ostr);
     @endcode
 
-    This pseudo-method is slightly faster than comparePartial() since the length of the substring can be used to determine if the strings can match or not.
+    This pseudo-method is slightly faster than comparePartial() since the length of the substring can be used to
+    determine if the strings can match or not.
 
     @param ostr the partial string to compare the current string to
 
@@ -954,7 +981,7 @@ bool b = str.equalPartial(ostr);
     @since %Qore 0.8.8
 */
 bool <string>::equalPartial(string ostr) [flags=RET_VALUE_ONLY] {
-   return str->equalPartialSoft(ostr, xsink);
+    return str->equalPartialSoft(ostr, xsink);
 }
 
 //! Compares the beginning of the current string assumed to be a path with a shorter string passed as an argument for equality only, returns @ref True "True" if the string argument matches the beginning of the string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, @ref False "False" if not
@@ -965,12 +992,14 @@ bool b = str.equalPartialPath(ostr);
 
     @param ostr the partial string to compare the current string to
 
-    @return @ref True "True" if the string argument matches the beginning of the string where either both strings are the same size or the current string has a '/' or '?' character after the point where the argument string stops, @ref False "False" if not
+    @return @ref True "True" if the string argument matches the beginning of the string where either both strings are
+    the same size or the current string has a '/' or '?' character after the point where the argument string stops,
+    @ref False "False" if not
 
     @since %Qore 0.8.8
 */
 bool <string>::equalPartialPath(string ostr) [flags=RET_VALUE_ONLY] {
-   return str->equalPartialPath(ostr, xsink);
+    return str->equalPartialPath(ostr, xsink);
 }
 
 //! Returns a string with all accented characters removed
@@ -987,11 +1016,11 @@ printf("%y\n", s.unaccent()); # result: "prilis zlutoucky kun upel dabelske ody"
     @since %Qore 0.8.8
 */
 string <string>::unaccent() [flags=RET_VALUE_ONLY] {
-   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
-   if (do_unaccent(*(*rv), *str, xsink))
-      return QoreValue();
+    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
+    if (do_unaccent(*(*rv), *str, xsink))
+        return QoreValue();
 
-   return rv.release();
+    return rv.release();
 }
 
 //! returns the Unicode code for the given character offset in the string
@@ -1007,7 +1036,7 @@ int uc = str.getUnicode(0);
     @since %Qore 0.8.8
 */
 int <string>::getUnicode(int offset = 0) [flags=RET_VALUE_ONLY] {
-   return str->getUnicodePoint(offset, xsink);
+    return str->getUnicodePoint(offset, xsink);
 }
 
 //! Returns @ref True since strings can return a non-zero size
@@ -1018,7 +1047,7 @@ int <string>::getUnicode(int offset = 0) [flags=RET_VALUE_ONLY] {
     @since %Qore 0.8.9
 */
 bool <string>::sizep() [flags=CONSTANT] {
-   return true;
+    return true;
 }
 
 //! returns a string for the next line in the string buffer starting at the given offset (or at the beginning if no offset is given)
@@ -1027,93 +1056,96 @@ bool <string>::sizep() [flags=CONSTANT] {
 *string line = string.getLine(pos);
     @endcode
 
-    @param offset the offset in bytes from the beginning of the string; negative numbers give an offset from the end of the string
-    @param eol the optional end of line character(s) to use to detect lines in the buffer; if this string is not passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or \c "\r\n"; if this string is passed and has a different @ref character_encoding "character encoding" from this object's (as determined by the \c encoding parameter), then it will be converted to the string's @ref character_encoding "character encoding"
+    @param offset the offset in bytes from the beginning of the string; negative numbers give an offset from the end
+    of the string
+    @param eol the optional end of line character(s) to use to detect lines in the buffer; if this string is not
+    passed, then the end of line character(s) are detected automatically, and can be either \c "\n", \c "\r", or
+    \c "\r\n"; if this string is passed and has a different @ref character_encoding "character encoding" from this
+    object's (as determined by the \c encoding parameter), then it will be converted to the string's
+    @ref character_encoding "character encoding"
     @param trim if @ref True the string return values for the lines iterated will be trimmed of the eol bytes
-    @param size an optional reference to an integer that returns the number of bytes in the line including the end of line characters
+    @param size an optional reference to an integer that returns the number of bytes in the line including the end of
+    line characters
 
-    @return the line found or @ref nothing if no end of line character(s) were found or no data was found after the offset
+    @return the line found or @ref nothing if no end of line character(s) were found or no data was found after the
+    offset
 
     @since %Qore 0.8.9
  */
 *string <string>::getLine(int offset = 0, *string eol, bool trim = True, *reference<int> size) [flags=CONSTANT] {
-   if (str->empty())
-      return QoreValue();
+    if (str->empty())
+        return QoreValue();
 
-   if (offset < 0) {
-      offset = str->size() + offset;
-      if (offset < 0)
-         offset = 0;
-   }
-   else if (offset >= (int64)str->size())
-      return QoreValue();
+    if (offset < 0) {
+        offset = str->size() + offset;
+        if (offset < 0)
+            offset = 0;
+    } else if (offset >= (int64)str->size())
+        return QoreValue();
 
-   TempEncodingHelper eolstr;
-   if (eol) {
-      eolstr.set(eol, str->getEncoding(), xsink);
-      if (*xsink)
-         return QoreValue();
+    TempEncodingHelper eolstr;
+    if (eol) {
+        eolstr.set(eol, str->getEncoding(), xsink);
+        if (*xsink)
+            return QoreValue();
 
-      if (eolstr->size() > str->size())
-         return QoreValue();
-   }
+        if (eolstr->size() > str->size())
+            return QoreValue();
+    }
 
-   int64 strsize = 0;
+    int64 strsize = 0;
 
-   const char* start = str->c_str() + offset;
-   SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
-   if (eolstr) {
-      const char* p = strstr(start, eolstr->c_str());
-      if (p) {
-         strsize = p - start + eolstr->size();
-         if (trim) {
-            if (p != start)
-               rv->concat(start, p - start);
-         }
-         else
-            rv->concat(start, strsize);
-      }
-      else {
-         strsize = rv->size();
-         rv->concat(start);
-         strsize = rv->size() - strsize;
-      }
-   }
-   else {
-      while (*start) {
-         if (*start == '\r') {
-            ++strsize;
-            if (!trim)
-               rv->concat(*start);
-            if (*(start + 1) == '\n') {
-               ++strsize;
-               if (!trim)
-                  rv->concat(*start);
+    const char* start = str->c_str() + offset;
+    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(str->getEncoding()));
+    if (eolstr) {
+        const char* p = strstr(start, eolstr->c_str());
+        if (p) {
+            strsize = p - start + eolstr->size();
+            if (trim) {
+                if (p != start)
+                rv->concat(start, p - start);
+            } else
+                rv->concat(start, strsize);
+        } else {
+            strsize = rv->size();
+            rv->concat(start);
+            strsize = rv->size() - strsize;
+        }
+    } else {
+        while (*start) {
+            if (*start == '\r') {
+                ++strsize;
+                if (!trim)
+                rv->concat(*start);
+                if (*(start + 1) == '\n') {
+                ++strsize;
+                if (!trim)
+                    rv->concat(*start);
+                }
+                break;
             }
-            break;
-         }
-         if (*start == '\n') {
+            if (*start == '\n') {
+                ++strsize;
+                if (!trim)
+                rv->concat(*start);
+                break;
+            }
+            rv->concat(*start);
             ++strsize;
-            if (!trim)
-               rv->concat(*start);
-            break;
-         }
-         rv->concat(*start);
-         ++strsize;
-         ++start;
-      }
-   }
+            ++start;
+        }
+    }
 
-   if (size) {
-      QoreTypeSafeReferenceHelper r(size, xsink);
-      if (!r)
-         return QoreValue();
+    if (size) {
+        QoreTypeSafeReferenceHelper r(size, xsink);
+        if (!r)
+            return QoreValue();
 
-      if (r.assign(strsize))
-         return QoreValue();
-   }
+        if (r.assign(strsize))
+            return QoreValue();
+    }
 
-   return rv.release();
+    return rv.release();
 }
 
 //! returns a string based on the string value with encodings as per the \a code argument
@@ -1129,8 +1161,8 @@ string ns = string.getEncoded(CE_XML);
     @since %Qore 0.8.12
  */
 string <string>::getEncoded(int code = CE_XHTML) {
-   QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
-   return rv->concatEncode(xsink, *str, code) ? 0 : rv.release();
+    QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
+    return rv->concatEncode(xsink, *str, code) ? nullptr : rv.release();
 }
 
 //! returns a string based on the string value, decoded as per the \a code argument
@@ -1146,6 +1178,6 @@ string ns = string.getDecoded(CE_XML);
     @since %Qore 0.8.12
  */
 string <string>::getDecoded(int code = CD_ALL) {
-   QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
-   return rv->concatDecode(xsink, *str, code) ? 0 : rv.release();
+    QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
+    return rv->concatDecode(xsink, *str, code) ? nullptr : rv.release();
 }

@@ -251,9 +251,17 @@ public:
     DLLEXPORT bool needsEval() const;
 
     //! returns true if the value is a scalar (int, bool, float, number, string)
-    /** @%Qore 1.0
+    /** @since %Qore 1.0
     */
     DLLEXPORT bool isScalar() const;
+
+    //! returns true if the value is a constant value (does not require evaluation)
+    /** returns true if the type is a constant int, bool, float, number, string, list, hash, date, binary, object,
+        nothing, or null value
+
+        @since %Qore 1.1
+    */
+    DLLEXPORT bool isConstant() const;
 
     //! returns true if the value is not NOTHING
     DLLEXPORT operator bool() const;
