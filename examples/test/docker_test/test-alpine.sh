@@ -23,6 +23,7 @@ echo "export QORE_GID=1000" >> ${ENV_FILE}
 . ${ENV_FILE}
 
 if [ -z "${QORE_DB_CONNSTR_PGSQL}" ]; then
+    apk add --no-cache postgresql-client
     . examples/test/docker_test/postgres_lib.sh
     setup_postgres_on_rippy
     drop_pgsql_schema=1
