@@ -273,14 +273,23 @@ Skips the rest of a loop and jumps right to the evaluation of the iteration expr
     @section rethrow rethrow Statements
 
     @par Synopsis
-    A <tt><b>rethrow</b></tt> statement can be used to rethrow an exception in a <tt><b>catch</b></tt> block. In this case a entry tagged as a rethrow entry will be placed on the exception call stack.
+    A <tt><b>rethrow</b></tt> statement can be used to rethrow an exception in <tt><b>catch</b></tt> and
+    @ref on_error "on_error" blocks. In this case a entry tagged as a rethrow entry will be placed on the exception
+    call stack.
 
     @par Syntax
     \b \c rethrow;
+    \b \c rethrow expression;
 
     @par Description
-    The rethrown exception will be either passed to the next higher-level <tt><b>catch</b></tt> block, or to the system default exception handler, as with a @ref throw "throw statement".\n\n
-    This statement can be used to maintain coherent call stacks even when exceptions are handled by more than one <tt><b>catch</b></tt> block (for detailed information about the exception hash and the format of call stacks, see @ref exception_handling).\n\n
+    The rethrown exception will be either passed to the next higher-level <tt><b>catch</b></tt> block, or to the
+    system default exception handler, as with a @ref throw "throw statement".\n\n
+    This statement can be used to maintain coherent call stacks even when exceptions are handled by more than one
+    <tt><b>catch</b></tt> block (for detailed information about the exception hash and the format of call stacks, see
+    @ref exception_handling).\n\n
+    The second variant taking an expression can be used to enrich or override the original exception; the
+    \a expression is processed as with @ref throw "throw", except in this case the call stack of the original
+    exception is maintained.  Also any exception values not overridden by the \c rethrow statement remain unchanged.
     Note that it is an error to use the <tt><b>rethrow</b></tt> statement outside of a <tt><b>catch</b></tt> block.
 
     <hr>
@@ -452,17 +461,30 @@ string name = getName();@endcode
     @section on_exit on_exit Statements
 
     @par Synopsis
-    Queues a statement or statement block for unconditional execution when the block is exited, even in the case of exceptions or @ref return "return statements". For similar statement that queue code for execution depending on the exception status when the block exits, see @ref on_success "on_success statements" and @ref on_error "on_error statements".
+    Queues a statement or statement block for unconditional execution when the block is exited, even in the case of
+    exceptions or @ref return "return statements". For similar statement that queue code for execution depending on
+    the exception status when the block exits, see @ref on_success "on_success statements" and
+    @ref on_error "on_error statements".
 
     @par Syntax
     <tt><b>on_exit</b></tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The <tt><b>on_exit</b></tt> statement provides a clean way to do exception-safe cleanup within %Qore code. Any single statment (or statement block) after the <tt><b>on_exit</b></tt> keyword will be executed when the current block exits (as long as the statement itself is reached when executing - <tt><b>on_exit</b></tt> statements that are never reached when executing will have no effect).\n\n
-    The position of the <tt><b>on_exit</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_exit</b></tt> statements (along with <tt><b>on_success</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse order respective their declaration when the local scope is exited for any reason, even due to an exception or a @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup.\n\n
-    Note that if this statement is reached when executing in a loop, the <tt><b>on_exit</b></tt> code will be executed for each iteration of the loop.\n\n
-    By using this statement, programmers ensure that necessary cleanup will be performed regardless of the exit status of the block (exception, @ref return "return", etc).
+    The <tt><b>on_exit</b></tt> statement provides a clean way to do exception-safe cleanup within %Qore code. Any
+    single statment (or statement block) after the <tt><b>on_exit</b></tt> keyword will be executed when the current
+    block exits (as long as the statement itself is reached when executing - <tt><b>on_exit</b></tt> statements that
+    are never reached when executing will have no effect).\n\n
+    The position of the <tt><b>on_exit</b></tt> statement in the block is important, as the immediate effect of this
+    statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_exit</b></tt>
+    statements (along with <tt><b>on_success</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse
+    order respective their declaration when the local scope is exited for any reason, even due to an exception or a
+    @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that
+    requires the cleanup.\n\n
+    Note that if this statement is reached when executing in a loop, the <tt><b>on_exit</b></tt> code will be executed
+    for each iteration of the loop.\n\n
+    By using this statement, programmers ensure that necessary cleanup will be performed regardless of the exit status
+    of the block (exception, @ref return "return", etc).
 
     @par Example
 @code{.py}
@@ -481,16 +503,30 @@ string name = getName();@endcode
     @section on_success on_success Statements
 
     @par Synopsis
-    Queues a statement or statement block for execution when the block is exited in the case that no exception is active. Used often in conjunction with the @ref on_error "on_error statement" and related to the @ref on_exit "on_exit statement".
+    Queues a statement or statement block for execution when the block is exited in the case that no exception is
+    active. Used often in conjunction with the @ref on_error "on_error statement" and related to the
+    @ref on_exit "on_exit statement".
 
     @par Syntax
     <tt><b>on_success</b></tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The <tt><b>on_success</b></tt> statement provides a clean way to do block-level cleanup within %Qore code in the case that no exception is thrown in the block. Any single statment (or statement block) after the <tt><b>on_success</b></tt> keyword will be executed when the current block exits as long as no unhandled exception has been thrown (and as long as the statement itself is reached when executing - <tt><b>on_success</b></tt> statements that are never reached when executing will have no effect).\n\n
-    The position of the <tt><b>on_success</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_success</b></tt> statements (along with <tt><b>on_exit</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse order respective their declaration when the local scope is exited for any reason, even due to an exception or a @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner similar to <tt><b>on_success</b></tt> statements, except <tt><b>on_error</b></tt> statements are only executed when there is an active exception when the block is exited.\n\n
-    Note that if this statement is reached when executing in a loop, the <tt><b>on_success</b></tt> code will be executed for each iteration of the loop (as long as there is no active exception).
+    The <tt><b>on_success</b></tt> statement provides a clean way to do block-level cleanup within %Qore code in the
+    case that no exception is thrown in the block. Any single statment (or statement block) after the
+    <tt><b>on_success</b></tt> keyword will be executed when the current block exits as long as no unhandled exception
+    has been thrown (and as long as the statement itself is reached when executing - <tt><b>on_success</b></tt>
+    statements that are never reached when executing will have no effect).\n\n
+    The position of the <tt><b>on_success</b></tt> statement in the block is important, as the immediate effect of
+    this statement is to queue its code for execution when the block is exited, meaning that
+    <tt><b>on_success</b></tt> statements (along with <tt><b>on_exit</b></tt> and <tt><b>on_error</b></tt> statements)
+    are executed in reverse order respective their declaration when the local scope is exited for any reason, even due
+    to an exception or a @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to
+    the code that requires the cleanup, along with @ref on_error "on_error statements", which are executed in a manner
+    similar to <tt><b>on_success</b></tt> statements, except <tt><b>on_error</b></tt> statements are only executed
+    when there is an active exception when the block is exited.\n\n
+    Note that if this statement is reached when executing in a loop, the <tt><b>on_success</b></tt> code will be
+    executed for each iteration of the loop (as long as there is no active exception).
 
     @par Example
 @code{.py}
@@ -512,16 +548,33 @@ string name = getName();@endcode
     @section on_error on_error Statements
 
     @par Synopsis
-    Queues a statement or statement block for execution when the block is exited in the case that an exception is active. Used often in conjunction with the @ref on_success "on_success statement" and related to the @ref on_exit "on_exit statement".
+    Queues a statement or statement block for execution when the block is exited in the case that an exception is
+    active. Used often in conjunction with the @ref on_success "on_success statement" and related to the
+    @ref on_exit "on_exit statement".
 
     @par Syntax
     <tt><b>on_error</b></tt>\n
     &nbsp;&nbsp;&nbsp;&nbsp;<em>@ref statements "statement"</em>
 
     @par Description
-    The <tt><b>on_error</b></tt> statement provides a clean way to do block-level cleanup within %Qore code in the case that an exception is thrown in the block. Any single statment (or statement block) after the <tt><b>on_error</b></tt> keyword will be executed when the current block exits as long as an unhandled exception has been thrown (and as long as the statement itself is reached when executing - <tt><b>on_error</b></tt> statements that are never reached when executing will have no effect).\n\n
-    The position of the <tt><b>on_error</b></tt> statement in the block is important, as the immediate effect of this statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_error</b></tt> statements (along with <tt><b>on_exit</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse order respective their declaration when the local scope is exited for any reason, even due to an exception or a @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar to <tt><b>on_error</b></tt> statements, except @ref on_success "on_success statements" are only executed when there is no active exception when the block is exited.\n\n
-    Note that the code in this statement can only be executed once in any block, as a block (even a block within a loop) can only exit the loop once with an active exception (in contrast to @ref on_success "on_success" and @ref on_exit "on_exit statements", which are executed for every iteration of a loop).
+    The <tt><b>on_error</b></tt> statement provides a clean way to do block-level cleanup within %Qore code in the
+    case that an exception is thrown in the block. Any single statment (or statement block) after the
+    <tt><b>on_error</b></tt> keyword will be executed when the current block exits as long as an unhandled exception
+    has been thrown (and as long as the statement itself is reached when executing - <tt><b>on_error</b></tt>
+    statements that are never reached when executing will have no effect).\n\n
+    The position of the <tt><b>on_error</b></tt> statement in the block is important, as the immediate effect of this
+    statement is to queue its code for execution when the block is exited, meaning that <tt><b>on_error</b></tt>
+    statements (along with <tt><b>on_exit</b></tt> and <tt><b>on_error</b></tt> statements) are executed in reverse
+    order respective their declaration when the local scope is exited for any reason, even due to an exception or a
+    @ref return "return statement".  Therefore it's ideal for putting cleanup code right next to the code that
+    requires the cleanup, along with @ref on_success "on_success statements", which are executed in a manner similar
+    to <tt><b>on_error</b></tt> statements, except @ref on_success "on_success statements" are only executed when
+    there is no active exception when the block is exited.\n\n
+    The implicit argument <tt>$1</tt> is set to the current active exception, and also
+    @ref rethrow "rethrow statements" are allowed in \c on_error statements, allowing for exception enrichment.
+    Note that the code in this statement can only be executed once in any block, as a block (even a block within a
+    loop) can only exit the loop once with an active exception (in contrast to @ref on_success "on_success" and
+    @ref on_exit "on_exit statements", which are executed for every iteration of a loop).
 
     @par Example
 @code{.py}{
@@ -529,12 +582,18 @@ string name = getName();@endcode
     # here we queue the commit in the case there are no errors
     on_success db.commit();
     # here we queue a rollback in the case of an exception
-    on_error db.rollback();
+    on_error {
+        db.rollback();
+        # this replaces the exception error code, updated the exception description, and leaves any exception
+        # argument unchanged
+        rethrow "TRANSACTION-ERROR", sprintf("%s: $s", $1.err, $1.desc);
+    }
     db.select("select * from table where id = %v for update", id);
     # .. more code
 
     return "OK";
 }
 # when the block exits. the transaction will be either committed or rolled back,
-# depending on if an exception was raised or not@endcode
+# depending on if an exception was raised or not
+@endcode
 */

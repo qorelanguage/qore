@@ -12,6 +12,12 @@
       - added @ref DataProvider::DataProviderTypeCache::listParentTypes() "DataProviderTypeCache::listParentTypes()" to
         allow a list of parent types to be returned
         (<a href="https://github.com/qorelanguage/qore/issues/4385">issue 4385</a>)
+    - @ref rethrow "rethrow" now accepts optional exception arguments to allow exceptions to be enriched in a \c catch
+      block while maintaining the original call stack, and the @ref on_error "on_error statement" now includes an
+      implicit argument <tt>$1</tt> giving the currently-active exception, additionally,
+      @ref rethrow "rethrow statements" are now allowed in @ref on_error "on_error statement" blocks to allow for easy
+      exception enrichment.
+      (<a href="https://github.com/qorelanguage/qore/issues/2104">issue 2104</a>)
 
     @subsection qore_1_1_0_bug_fixes Bug Fixes in Qore
     - fixed bugs tagging functions and constants provided by builtin modules with their module name; required to

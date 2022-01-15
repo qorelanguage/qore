@@ -49,16 +49,6 @@ class ExceptionSink {
     friend struct qore_es_private;
     friend QoreXSinkException;
 
-private:
-    //! private implementation of the class
-    struct qore_es_private* priv;
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL ExceptionSink(const ExceptionSink&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL ExceptionSink& operator=(const ExceptionSink&);
-
 public:
     //! creates an empty ExceptionSink object
     DLLEXPORT ExceptionSink();
@@ -270,6 +260,13 @@ public:
 
     DLLLOCAL static void outputExceptionLocation(const char* fns, int start_line, int end_line, const char* srcs,
         int offset, const char* langs, const char* types);
+
+private:
+    //! private implementation of the class
+    struct qore_es_private* priv;
+
+    ExceptionSink(const ExceptionSink&) = delete;
+    ExceptionSink& operator=(const ExceptionSink&) = delete;
 };
 
 //! call stack element type

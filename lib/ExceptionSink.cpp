@@ -313,10 +313,6 @@ void ExceptionSink::raiseException(const QoreProgramLocation &loc, const char *e
     raiseException(loc, err, arg, desc.release());
 }
 
-void ExceptionSink::rethrow(QoreException *old) {
-    priv->insert(old->rethrow());
-}
-
 void ExceptionSink::assimilate(ExceptionSink* xs) {
     assimilate(*xs);
     delete xs;

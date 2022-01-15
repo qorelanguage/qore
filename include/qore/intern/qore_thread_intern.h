@@ -271,8 +271,10 @@ DLLLOCAL qore_ns_private* parse_get_ns();
 
 DLLLOCAL void substituteObjectIfEqual(QoreObject* o);
 DLLLOCAL QoreObject* substituteObject(QoreObject* o);
-DLLLOCAL QoreException* catchSwapException(QoreException* e);
-DLLLOCAL QoreException* catchGetException();
+
+DLLLOCAL QoreException* catch_swap_exception(QoreException* e);
+DLLLOCAL QoreException* catch_get_exception();
+
 DLLLOCAL VLock* getVLock();
 DLLLOCAL void end_signal_thread(ExceptionSink* xsink);
 DLLLOCAL void delete_thread_local_data();
@@ -536,7 +538,7 @@ DLLLOCAL void pushBlock(block_list_t::iterator i);
 // called when a StatementBlock has "on block exit" blocks
 DLLLOCAL block_list_t::iterator popBlock();
 // called by each "on_block_exit" statement to activate it's code for the block exit
-DLLLOCAL void advanceOnBlockExit();
+DLLLOCAL void advance_on_block_exit();
 
 DLLLOCAL LocalVarValue* thread_instantiate_lvar();
 DLLLOCAL void thread_uninstantiate_lvar(ExceptionSink* xsink);
@@ -758,92 +760,95 @@ public:
 };
 
 class ProgramRuntimeParseAccessHelper {
-protected:
-   QoreProgram* old_pgm;
-   bool restore;
-
 public:
-   DLLLOCAL ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm);
-   DLLLOCAL ~ProgramRuntimeParseAccessHelper();
+    DLLLOCAL ProgramRuntimeParseAccessHelper(ExceptionSink* xsink, QoreProgram* pgm);
+    DLLLOCAL ~ProgramRuntimeParseAccessHelper();
+
+protected:
+    QoreProgram* old_pgm;
+    bool restore;
 };
 
 class RuntimeReferenceHelperBase {
-protected:
-   const lvalue_ref* ref;
-   ProgramThreadCountContextHelper pch;
-   ObjectSubstitutionHelper osh;
-   bool valid = true;
-
 public:
-   DLLLOCAL RuntimeReferenceHelperBase(const lvalue_ref& r, ExceptionSink* n_xsink)
-      : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls) {
-      //printd(5, "RuntimeReferenceHelperBase::RuntimeReferenceHelperBase() this: %p vexp: %p %s %d\n", this, r.vexp, get_type_name(r.vexp), get_node_type(r.vexp));
-      if (thread_ref_set(&r)) {
-         ref = nullptr;
-         n_xsink->raiseException("CIRCULAR-REFERENCE-ERROR", "a circular lvalue reference was detected");
-         valid = false;
-      }
-   }
+    DLLLOCAL RuntimeReferenceHelperBase(const lvalue_ref& r, ExceptionSink* n_xsink)
+        : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls) {
+        //printd(5, "RuntimeReferenceHelperBase::RuntimeReferenceHelperBase() this: %p vexp: %p %s %d\n", this,
+        //  r.vexp, get_type_name(r.vexp), get_node_type(r.vexp));
+        if (thread_ref_set(&r)) {
+            ref = nullptr;
+            n_xsink->raiseException("CIRCULAR-REFERENCE-ERROR", "a circular lvalue reference was detected");
+            valid = false;
+        }
+    }
 
-   DLLLOCAL ~RuntimeReferenceHelperBase() {
-      if (ref)
-         thread_ref_remove(ref);
-   }
+    DLLLOCAL ~RuntimeReferenceHelperBase() {
+        if (ref)
+            thread_ref_remove(ref);
+    }
 
-   DLLLOCAL operator bool() const {
-      return valid;
-   }
+    DLLLOCAL operator bool() const {
+        return valid;
+    }
+
+protected:
+    const lvalue_ref* ref;
+    ProgramThreadCountContextHelper pch;
+    ObjectSubstitutionHelper osh;
+    bool valid = true;
 };
 
 class RuntimeReferenceHelper : public RuntimeReferenceHelperBase {
 public:
-   DLLLOCAL RuntimeReferenceHelper(const ReferenceNode& r, ExceptionSink* n_xsink) : RuntimeReferenceHelperBase(*lvalue_ref::get(&r), n_xsink) {
-   }
+    DLLLOCAL RuntimeReferenceHelper(const ReferenceNode& r, ExceptionSink* n_xsink)
+        : RuntimeReferenceHelperBase(*lvalue_ref::get(&r), n_xsink) {
+    }
 
-   DLLLOCAL RuntimeReferenceHelper(const lvalue_ref& r, ExceptionSink* n_xsink) : RuntimeReferenceHelperBase(r, n_xsink) {
-   }
+    DLLLOCAL RuntimeReferenceHelper(const lvalue_ref& r, ExceptionSink* n_xsink) : RuntimeReferenceHelperBase(r, n_xsink) {
+    }
 };
 
 class ArgvContextHelper {
-private:
-   QoreListNode* old_argv;
-   ExceptionSink* xsink;
-
 public:
-   DLLLOCAL ArgvContextHelper(QoreListNode* argv, ExceptionSink* n_xsink);
-   // calls deref(xsink) on list in destructor
-   DLLLOCAL ~ArgvContextHelper();
+    DLLLOCAL ArgvContextHelper(QoreListNode* argv, ExceptionSink* n_xsink);
+    // calls deref(xsink) on list in destructor
+    DLLLOCAL ~ArgvContextHelper();
+
+private:
+    QoreListNode* old_argv;
+    ExceptionSink* xsink;
 };
 
 class SingleArgvContextHelper {
-private:
-   QoreListNode* old_argv;
-   ExceptionSink* xsink;
-
 public:
-   // any reference in val will be overtaken by the SingleArgvContextHelper object
-   DLLLOCAL SingleArgvContextHelper(QoreValue val, ExceptionSink* n_xsink);
-   // calls deref(xsink) on list in destructor
-   DLLLOCAL ~SingleArgvContextHelper();
+    // any reference in val will be overtaken by the SingleArgvContextHelper object
+    DLLLOCAL SingleArgvContextHelper(QoreValue val, ExceptionSink* n_xsink);
+    // calls deref(xsink) on list in destructor
+    DLLLOCAL ~SingleArgvContextHelper();
+
+private:
+    QoreListNode* old_argv;
+    ExceptionSink* xsink;
 };
 
 class ImplicitElementHelper {
-private:
-   int element;
-
 public:
-   DLLLOCAL ImplicitElementHelper(int n_element) : element(save_implicit_element(n_element)) {
-   }
-   DLLLOCAL ~ImplicitElementHelper() {
-      save_implicit_element(element);
-   }
+    DLLLOCAL ImplicitElementHelper(int n_element) : element(save_implicit_element(n_element)) {
+    }
+    DLLLOCAL ~ImplicitElementHelper() {
+        save_implicit_element(element);
+    }
+
+private:
+    int element;
 };
 
 class CodeContextHelper : public CodeContextHelperBase {
 public:
-   DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = nullptr, const qore_class_private* cls = nullptr, bool ref_obj = true) :
-      CodeContextHelperBase(c, obj, cls, xs, ref_obj) {
-   }
+    DLLLOCAL CodeContextHelper(ExceptionSink* xs, int t, const char* c, QoreObject* obj = nullptr,
+            const qore_class_private* cls = nullptr, bool ref_obj = true) :
+        CodeContextHelperBase(c, obj, cls, xs, ref_obj) {
+    }
 };
 
 DLLLOCAL void init_qore_threads();

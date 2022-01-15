@@ -2254,6 +2254,9 @@ statement:
         | TOK_RETHROW ';' {
            $$ = new RethrowStatement(@1.first_line, @1.last_line);
         }
+        | TOK_RETHROW exp ';' {
+           $$ = new RethrowStatement(@1.first_line, @1.last_line, $2);
+        }
         | TOK_THROW exp ';' {
            $$ = new ThrowStatement(@1.first_line, @2.last_line, $2);
         }

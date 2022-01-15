@@ -18,11 +18,123 @@ class ExceptionTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("Exception test", "1.0") {
+        addTestCase("rethrow test", \rethrowTest());
         addTestCase("return test", \returnTest());
         addTestCase("Test simple try/catch block", \testSimpleTryCatch());
         addTestCase("Test rethrow", \testRethrow());
         addTestCase("misc tests", \miscTests());
         set_return_value(main());
+    }
+
+    rethrowTest() {
+        hash<ExceptionInfo> ex0;
+        # test catch block enrichment
+        try {
+            try {
+                throw "TEST", "test1", "test2";
+            } catch (hash<ExceptionInfo> ex1) {
+                rethrow ex1.err + "-NEW", ex1.desc + "-new", ex1.arg + "-new";
+            }
+        } catch (hash<ExceptionInfo> ex2) {
+            ex0 = ex2;
+        }
+        assertEq("TEST-NEW", ex0.err);
+        assertEq("test1-new", ex0.desc);
+        assertEq("test2-new", ex0.arg);
+        remove ex0;
+        try {
+            try {
+                throw "TEST", "test1", "test2";
+            } catch (hash<ExceptionInfo> ex1) {
+                rethrow ex1.err + "-NEW", ex1.desc + "-new";
+            }
+        } catch (hash<ExceptionInfo> ex2) {
+            ex0 = ex2;
+        }
+        assertEq("TEST-NEW", ex0.err);
+        assertEq("test1-new", ex0.desc);
+        assertEq("test2", ex0.arg);
+        remove ex0;
+        try {
+            try {
+                throw "TEST", "test1", "test2";
+            } catch (hash<ExceptionInfo> ex1) {
+                rethrow ex1.err + "-NEW";
+            }
+        } catch (hash<ExceptionInfo> ex2) {
+            ex0 = ex2;
+        }
+        assertEq("TEST-NEW", ex0.err);
+        assertEq("test1", ex0.desc);
+        assertEq("test2", ex0.arg);
+        # test on_error enrichment with a block stmt
+        remove ex0;
+        try {
+            on_error {
+                rethrow $1.err + "-NEW", $1.desc + "-new", $1.arg + "-new";
+            }
+            throw "TEST", "test1", "test2";
+        } catch (hash<ExceptionInfo> ex1) {
+            ex0 = ex1;
+        }
+        assertEq("TEST-NEW", ex0.err);
+        assertEq("test1-new", ex0.desc);
+        assertEq("test2-new", ex0.arg);
+        remove ex0;
+        try {
+            on_error {
+                rethrow $1.err + "-NEW", $1.desc + "-new";
+            }
+            throw "TEST", "test1", "test2";
+        } catch (hash<ExceptionInfo> ex1) {
+            ex0 = ex1;
+        }
+        assertEq("TEST-NEW", ex0.err);
+        assertEq("test1-new", ex0.desc);
+        assertEq("test2", ex0.arg);
+        remove ex0;
+        try {
+            on_error {
+                rethrow $1.err + "-NEW";
+            }
+            throw "TEST", "test1", "test2";
+        } catch (hash<ExceptionInfo> ex1) {
+            ex0 = ex1;
+        }
+        assertEq("TEST-NEW", ex0.err);
+        assertEq("test1", ex0.desc);
+        assertEq("test2", ex0.arg);
+        # test on_error enrichment with a single stmt
+        remove ex0;
+        try {
+            on_error rethrow $1.err + "-NEW", $1.desc + "-new", $1.arg + "-new";
+            throw "TEST", "test1", "test2";
+        } catch (hash<ExceptionInfo> ex1) {
+            ex0 = ex1;
+        }
+        assertEq("TEST-NEW", ex0.err);
+        assertEq("test1-new", ex0.desc);
+        assertEq("test2-new", ex0.arg);
+        remove ex0;
+        try {
+            on_error rethrow $1.err + "-NEW", $1.desc + "-new";
+            throw "TEST", "test1", "test2";
+        } catch (hash<ExceptionInfo> ex1) {
+            ex0 = ex1;
+        }
+        assertEq("TEST-NEW", ex0.err);
+        assertEq("test1-new", ex0.desc);
+        assertEq("test2", ex0.arg);
+        remove ex0;
+        try {
+            on_error rethrow $1.err + "-NEW";
+            throw "TEST", "test1", "test2";
+        } catch (hash<ExceptionInfo> ex1) {
+            ex0 = ex1;
+        }
+        assertEq("TEST-NEW", ex0.err);
+        assertEq("test1", ex0.desc);
+        assertEq("test2", ex0.arg);
     }
 
     returnTest() {

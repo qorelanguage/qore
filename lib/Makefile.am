@@ -156,6 +156,7 @@ libqore_la_SOURCES = \
 	ForStatement.cpp \
 	ForEachStatement.cpp \
 	TryStatement.cpp \
+	RethrowStatement.cpp \
 	ThrowStatement.cpp \
 	SwitchStatement.cpp \
 	Variable.cpp \

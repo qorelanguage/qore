@@ -40,7 +40,12 @@ public:
     DLLLOCAL RethrowStatement(int start_line, int end_line) : AbstractStatement(start_line, end_line) {
     }
 
+    DLLLOCAL RethrowStatement(int start_line, int end_line, QoreValue args) : AbstractStatement(start_line, end_line),
+            args(args) {
+    }
+
     DLLLOCAL virtual ~RethrowStatement() {
+        args.discard(nullptr);
     }
 
     DLLLOCAL virtual bool endsBlock() const {
@@ -53,18 +58,11 @@ public:
     }
 
 private:
-    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink *xsink) {
-        xsink->rethrow(catchGetException());
-        return 0;
-    }
+    QoreValue args;
 
-    DLLLOCAL virtual int parseInitImpl(QoreParseContext& parse_context) {
-        if (!(parse_context.pflag & PF_RETHROW_OK)) {
-            parseException(*loc, "RETHROW-NOT-IN-CATCH-BLOCK", "rethrow statements are only allowed in catch blocks");
-            return -1;
-        }
-        return 0;
-    }
+    DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);
+
+    DLLLOCAL virtual int parseInitImpl(QoreParseContext& parse_context);
 };
 
 #endif

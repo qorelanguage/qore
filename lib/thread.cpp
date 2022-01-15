@@ -1259,7 +1259,7 @@ block_list_t::iterator popBlock() {
 }
 
 // called by each "on_exit" statement to activate its code for the block exit
-void advanceOnBlockExit() {
+void advance_on_block_exit() {
     ThreadData* td = thread_data.get();
     --td->on_block_exit_list.back();
 }
@@ -2244,23 +2244,23 @@ void thread_set_ns(qore_ns_private* new_ns) {
 }
 
 qore_ns_private* parse_get_ns() {
-   return thread_data.get()->current_ns;
+    return thread_data.get()->current_ns;
 }
 
 // to save the exception for "rethrow"
-QoreException* catchSwapException(QoreException* e) {
-   ThreadData* td = thread_data.get();
-   QoreException* old = td->catchException;
-   td->catchException = e;
-   return old;
+QoreException* catch_swap_exception(QoreException* e) {
+    ThreadData* td = thread_data.get();
+    QoreException* old = td->catchException;
+    td->catchException = e;
+    return old;
 }
 
 // for "rethrow"
-QoreException* catchGetException() {
-   ThreadData* td = thread_data.get();
-   //printd(5, "cGE() td: %p e: %p\n", td, td->catchException);
-   assert(td->catchException);
-   return td->catchException;
+QoreException* catch_get_exception() {
+    ThreadData* td = thread_data.get();
+    //printd(5, "cGE() td: %p e: %p\n", td, td->catchException);
+    assert(td->catchException);
+    return td->catchException;
 }
 
 void qore_exit_process(int rc) {
@@ -2819,42 +2819,42 @@ QoreRecursiveThreadLock::QoreRecursiveThreadLock() : QoreThreadLock(&ma_recursiv
 }
 
 QoreNamespace* get_thread_ns(QoreNamespace &qorens) {
-   // create Qore::Thread namespace
-   QoreNamespace* Thread = new QoreNamespace("Qore::Thread");
+    // create Qore::Thread namespace
+    QoreNamespace* Thread = new QoreNamespace("Qore::Thread");
 
-   Thread->addSystemClass(initQueueClass(*Thread));
-   Thread->addSystemClass(initAbstractSmartLockClass(*Thread));
-   Thread->addSystemClass(initMutexClass(*Thread));
-   Thread->addSystemClass(initConditionClass(*Thread));
-   Thread->addSystemClass(initRWLockClass(*Thread));
-   Thread->addSystemClass(initGateClass(*Thread));
-   Thread->addSystemClass(initSequenceClass(*Thread));
-   Thread->addSystemClass(initCounterClass(*Thread));
+    Thread->addSystemClass(initQueueClass(*Thread));
+    Thread->addSystemClass(initAbstractSmartLockClass(*Thread));
+    Thread->addSystemClass(initMutexClass(*Thread));
+    Thread->addSystemClass(initConditionClass(*Thread));
+    Thread->addSystemClass(initRWLockClass(*Thread));
+    Thread->addSystemClass(initGateClass(*Thread));
+    Thread->addSystemClass(initSequenceClass(*Thread));
+    Thread->addSystemClass(initCounterClass(*Thread));
 
-   Thread->addSystemClass(initAutoLockClass(*Thread));
-   Thread->addSystemClass(initAutoGateClass(*Thread));
-   Thread->addSystemClass(initAutoReadLockClass(*Thread));
-   Thread->addSystemClass(initAutoWriteLockClass(*Thread));
+    Thread->addSystemClass(initAutoLockClass(*Thread));
+    Thread->addSystemClass(initAutoGateClass(*Thread));
+    Thread->addSystemClass(initAutoReadLockClass(*Thread));
+    Thread->addSystemClass(initAutoWriteLockClass(*Thread));
 
-   Thread->addSystemClass(initThreadPoolClass(*Thread));
+    Thread->addSystemClass(initThreadPoolClass(*Thread));
 
-   Thread->addSystemClass(initAbstractThreadResourceClass(*Thread));
+    Thread->addSystemClass(initAbstractThreadResourceClass(*Thread));
 
-   return Thread;
+    return Thread;
 }
 
 void delete_thread_local_data() {
-   ThreadData* td = thread_data.get();
+    ThreadData* td = thread_data.get();
 
-   // clear runtime location
-   td->runtime_loc = nullptr;
+    // clear runtime location
+    td->runtime_loc = nullptr;
 
-   ExceptionSink xsink;
-   // delete any thread data
-   thread_data.get()->del(&xsink);
+    ExceptionSink xsink;
+    // delete any thread data
+    thread_data.get()->del(&xsink);
 
-   purge_thread_resources(&xsink);
-   xsink.handleExceptions();
+    purge_thread_resources(&xsink);
+    xsink.handleExceptions();
 }
 
 void delete_qore_threads() {

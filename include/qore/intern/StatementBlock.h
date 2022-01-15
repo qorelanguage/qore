@@ -294,4 +294,17 @@ protected:
     bool top_level;
 };
 
+class CatchExceptionHelper {
+private:
+    QoreException* e;
+
+public:
+    DLLLOCAL CatchExceptionHelper(QoreException* n_e) : e(catch_swap_exception(n_e)) {
+    }
+
+    DLLLOCAL ~CatchExceptionHelper() {
+        catch_swap_exception(e);
+    }
+};
+
 #endif // _QORE_STATEMENT_BLOCK_H

@@ -860,6 +860,10 @@ statement:
             $$ = new ASTRethrowStatement;
             $$->loc.set(@1, @2);
         }
+        | TOK_RETHROW exp ';' {
+            $$ = new ASTRethrowStatement($2);
+            $$->loc.set(@1, @3);
+        }
         | TOK_THROW exp ';' {
             $$ = new ASTThrowStatement($2);
             $$->loc.set(@1, @3);
