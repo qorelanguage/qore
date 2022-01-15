@@ -27,6 +27,10 @@ if [ -z "${QORE_DB_CONNSTR_PGSQL}" ]; then
     setup_postgres_on_rippy
     drop_pgsql_schema=1
 fi
+if [ -z "${QORE_DB_CONNSTR_ORACLE}" ]; then
+    . examples/test/docker_test/init_oracle.sh
+    . ${ENV_FILE}
+fi
 
 export MAKE_JOBS=6
 
