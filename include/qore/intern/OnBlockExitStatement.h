@@ -58,7 +58,7 @@ public:
     DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
 private:
-    class StatementBlock *code;
+    class StatementBlock* code;
     enum obe_type_e type;
 
     DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);

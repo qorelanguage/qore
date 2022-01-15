@@ -228,7 +228,18 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
             enum obe_type_e type = (*i).first;
             if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error)) {
                 if ((*i).second) {
-                    nrc = (*i).second->execImpl(return_value, &obe_xsink);
+                    {
+                        // instantiate exception for on_error blocks as an implicit arg
+                        unique_ptr<SingleArgvContextHelper> argv_helper;
+                        unique_ptr<CatchExceptionHelper> ex_helper;
+                        if (type == OBE_Error) {
+                            QoreException* except = xsink->getException();
+                            assert(except);
+                            ex_helper.reset(new CatchExceptionHelper(except));
+                            argv_helper.reset(new SingleArgvContextHelper(except->makeExceptionObject(), xsink));
+                        }
+                        nrc = (*i).second->execImpl(return_value, &obe_xsink);
+                    }
                     // bug 380: make sure and merge every exception after every conditional execution to ensure
                     // that all on_(exit|error) statements are executed even if exceptions are thrown
                     if (obe_xsink) {

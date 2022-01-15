@@ -32,19 +32,6 @@
 #include "qore/intern/TryStatement.h"
 #include "qore/intern/StatementBlock.h"
 
-class CatchExceptionHelper {
-private:
-    QoreException* e;
-
-public:
-    DLLLOCAL CatchExceptionHelper(QoreException* n_e) : e(catchSwapException(n_e)) {
-    }
-
-    DLLLOCAL ~CatchExceptionHelper() {
-        catchSwapException(e);
-    }
-};
-
 TryStatement::TryStatement(const QoreProgramLocation* loc, StatementBlock* t, StatementBlock* c, char* p,
         const QoreTypeInfo* typeInfo, QoreParseTypeInfo* parseTypeInfo, const QoreProgramLocation* vloc)
         : AbstractStatement(loc), try_block(t), catch_block(c), param(p), typeInfo(typeInfo),

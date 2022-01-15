@@ -139,6 +139,14 @@ public:
         QoreExceptionBase(new QoreStringNode(n_err), n_desc, n_arg, n_type), QoreExceptionLocation(n_loc) {
     }
 
+    // replaces the top exception
+    /** @param new_ex must be of type "hash<ExceptionInfo>"
+        @param xsink qore exceptions dereferencing current exception args are put here
+
+        @since %Qore 1.1
+    */
+    DLLLOCAL QoreException* replaceTop(const QoreListNode& new_ex, ExceptionSink& xsink);
+
     DLLLOCAL void getLocation(QoreExceptionLocation& loc) const {
         if (isBuiltin() && callStack) {
             ConstListIterator i(callStack);
@@ -276,6 +284,18 @@ struct qore_es_private {
     }
 
     DLLLOCAL void assimilate(qore_es_private& es);
+
+    DLLLOCAL void rethrow(QoreException* old) {
+        insert(old->rethrow());
+    }
+
+    DLLLOCAL static qore_es_private* get(ExceptionSink& xsink) {
+        return xsink.priv;
+    }
+
+    DLLLOCAL static const qore_es_private* get(const ExceptionSink& xsink) {
+        return xsink.priv;
+    }
 
     DLLLOCAL static void addStackInfo(ExceptionSink& xsink, qore_call_t type, const char* class_name,
         const char* code, const QoreProgramLocation& loc) {

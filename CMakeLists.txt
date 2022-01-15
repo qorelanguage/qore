@@ -462,6 +462,7 @@ set(LIBQORE_CPP_SRC
     lib/ForStatement.cpp
     lib/ForEachStatement.cpp
     lib/TryStatement.cpp
+    lib/RethrowStatement.cpp
     lib/ThrowStatement.cpp
     lib/SwitchStatement.cpp
     lib/Variable.cpp

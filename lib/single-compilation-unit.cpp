@@ -75,6 +75,7 @@
 #include "ForEachStatement.cpp"
 #include "TryStatement.cpp"
 #include "ThrowStatement.cpp"
+#include "RethrowStatement.cpp"
 #include "SwitchStatement.cpp"
 #include "Variable.cpp"
 #include "WeakReferenceNode.cpp"

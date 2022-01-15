@@ -41,7 +41,16 @@ public:
     //! Pointer type.
     using Ptr = std::unique_ptr<ASTRethrowStatement>;
 
-public:
+    //! Thrown expression.
+    ASTExpression::Ptr expression;
+
+    ASTRethrowStatement() :
+        ASTStatement() {}
+
+    ASTRethrowStatement(ASTExpression* expr) :
+        ASTStatement(),
+        expression(expr) {}
+
     virtual ASTStatementKind getKind() const override {
         return ASTStatementKind::ASK_Rethrow;
     }

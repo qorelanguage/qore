@@ -42,7 +42,7 @@ OnBlockExitStatement::~OnBlockExitStatement() {
 
 int OnBlockExitStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
     // "activate" this block when the block exits in the thread "on block exit" stack
-    advanceOnBlockExit();
+    advance_on_block_exit();
     return 0;
 }
 
@@ -54,6 +54,9 @@ int OnBlockExitStatement::parseInitImpl(QoreParseContext& parse_context) {
     // turn off top-level flag for statement vars
     QoreParseContextFlagHelper fh(parse_context);
     fh.unsetFlags(PF_TOP_LEVEL | PF_BREAK_OK | PF_CONTINUE_OK);
+    if (type == OBE_Error) {
+        fh.setFlags(PF_RETHROW_OK);
+    }
 
     return code->parseInitImpl(parse_context);
 }

@@ -103,6 +103,22 @@ private:
     QoreException * e;
 };
 
+QoreException* QoreException::replaceTop(const QoreListNode& new_ex, ExceptionSink& xsink) {
+    if (new_ex.size() > 0) {
+        err.discard(&xsink);
+        err = new_ex.getReferencedEntry(0);
+        if (new_ex.size() > 1) {
+            desc.discard(&xsink);
+            desc = new_ex.getReferencedEntry(1);
+            if (new_ex.size() > 2) {
+                arg.discard(&xsink);
+                arg = new_ex.getReferencedEntry(2);
+            }
+        }
+    }
+    return this;
+}
+
 QoreException* QoreException::rethrow() {
     QoreExceptionHolder e(new QoreException(*this));
 
