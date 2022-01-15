@@ -48,7 +48,7 @@ test-ubuntu-arm64:
   stage: test
   image: $CI_REGISTRY/infrastructure/qore-test-base/qore-test-base:develop-arm64
   tags:
-    - arm64
+    - arm64infrastructure/qore-test-base/qore-test-base:develop-arm64
   services:
     - name: postgres:13
   variables:
