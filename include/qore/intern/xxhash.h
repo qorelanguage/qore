@@ -160,16 +160,6 @@ return XXH32(s1, strlen(s1), 0);
     }
 };
 
-struct qore_hash_stdstr {
-    DLLLOCAL size_t operator()(const std::string& s1) const {
-#if TARGET_BITS == 64
-return XXH64(s1.c_str(), s1.size(), 0);
-#else
-return XXH32(s1.c_str(), s1.size(), 0);
-#endif
-    }
-};
-
 #if defined (__cplusplus)
 }
 #endif
