@@ -411,18 +411,21 @@ public:
             finalizing(false) {
 #ifdef QORE_MANAGE_STACK
         // save this thread's stack size as the default stack size can change
-#ifdef __linux__
+        size_t stack_guard = QORE_STACK_GUARD;
+#if defined(QORE_HAVE_GET_STACK_SIZE) || !defined(__linux__)
+        stack_size = get_stack_size();
+#else
         // on Linux the initial thread's stack is extended automatically, so we put a large number here
         if (ptid == initial_thread) {
             stack_size = 8 * 1024 * 1024;
+            // issue #4392: add 64K of additional stack in the primary thread
+            stack_guard += 64 * 1024;
         } else {
             stack_size = get_stack_size();
         }
-#else
-        stack_size = get_stack_size();
 #endif
         stack_start = get_stack_pos();
-        size_t stack_adjusted_size = stack_size - QORE_STACK_GUARD;
+        size_t stack_adjusted_size = stack_size - stack_guard;
         printd(5, "ThreadData::ThreadData() stack_adjusted_size: %lld qore_thread_stack_limit: %lld\n",
             stack_adjusted_size, qore_thread_stack_limit);
 #ifdef STACK_DIRECTION_DOWN

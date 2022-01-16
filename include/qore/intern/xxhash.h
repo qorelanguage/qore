@@ -150,6 +150,10 @@ and therefore get some new hashes, by calling again XXHnn_digest().
 When you are done, don't forget to free XXH state space, using typically XXHnn_freeState().
 */
 
+#if defined (__cplusplus)
+}
+#endif
+
 struct qore_hash_str {
     DLLLOCAL size_t operator()(const char* s1) const {
 #if TARGET_BITS == 64
@@ -159,7 +163,3 @@ return XXH32(s1, strlen(s1), 0);
 #endif
     }
 };
-
-#if defined (__cplusplus)
-}
-#endif

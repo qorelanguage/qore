@@ -20,6 +20,9 @@
       (<a href="https://github.com/qorelanguage/qore/issues/2104">issue 2104</a>)
 
     @subsection qore_1_1_0_bug_fixes Bug Fixes in Qore
+    - fixed a bug in the stack guard implementation where nore guard area was needed in the primary thread on some
+      platforms
+      (<a href="https://github.com/qorelanguage/qore/issues/4392">issue 4392</a>)
     - fixed bugs tagging functions and constants provided by builtin modules with their module name; required to
       consistently provide unique binary names when imported into Java, for example
       (<a href="https://github.com/qorelanguage/qore/issues/4383">issue 4383</a>)
