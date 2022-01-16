@@ -480,12 +480,12 @@ class Test inherits QUnit::Test {
     }
 
     startPostThread(LoggerAppender la) {
+        on_exit m_counter.dec();
         try {
             assertTrue(la.post(new LoggerEvent('Logger', 'e', LoggerLevel::getLevelError(), 'ABCDEF')));
         } catch (hash ex) {
             printf("Ex: %y\n", ex);
         }
-        m_counter.dec();
     }
 
     startProcessThread(LoggerAppenderStream la) {
@@ -526,17 +526,23 @@ class Test inherits QUnit::Test {
             push tids, background startPostThread(la);
             n--;
         }
-        while (m_counter.getCount() > 0) {
-            la.getQueue().process();
+        while (m_counter.getCount() > 0 || !sos.hasData()) {
+            la.getQueue().process(100ms);
         }
         m_counter.waitForZero();
         list l2 = ();
         string ls = sos.getData();
 
-        map (push l2, int($1)), (select ls.split(","), $1 != "");
-        tids = sort(tids, int sub(int l, int h) {return l<=>h;});
-        l2 = sort(l2, int sub(int l, int h) {return l<=>h;});
-        assertEq(tids, l2);
+        {
+            on_error {
+                printf("sos: %s\n", sos);
+                printf("l2: %y\n", l2);
+            }
+            map (push l2, int($1)), (select ls.split(","), $1 != "");
+            tids = sort(tids, int sub(int l, int h) {return l<=>h;});
+            l2 = sort(l2, int sub(int l, int h) {return l<=>h;});
+            assertEq(tids, l2);
+        }
 
         llp.setPattern("%m,");
         n = 200;

@@ -9,17 +9,21 @@
 
     @subsection qore_1_1_0_new_features New Features in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
-      - added @ref DataProvider::DataProviderTypeCache::listParentTypes() "DataProviderTypeCache::listParentTypes()" to
-        allow a list of parent types to be returned
+      - added <tt>DataProviderTypeCache::listParentTypes()</tt> to allow a list of parent types to be returned
         (<a href="https://github.com/qorelanguage/qore/issues/4385">issue 4385</a>)
+    - added a the following new method:
+      - @ref Qore::StringOutputStream::hasData() "StringOutputStream::hasData()"
     - @ref rethrow "rethrow" now accepts optional exception arguments to allow exceptions to be enriched in a \c catch
       block while maintaining the original call stack, and the @ref on_error "on_error statement" now includes an
       implicit argument <tt>$1</tt> giving the currently-active exception, additionally,
-      @ref rethrow "rethrow statements" are now allowed in @ref on_error "on_error statement" blocks to allow for easy
-      exception enrichment.
+      @ref rethrow "rethrow statements" are now allowed in @ref on_error "on_error statement" blocks to allow for
+      exception enrichment without requiring a @ref try "try/catch block".
       (<a href="https://github.com/qorelanguage/qore/issues/2104">issue 2104</a>)
 
     @subsection qore_1_1_0_bug_fixes Bug Fixes in Qore
+    - fixed a bug in the stack guard implementation where nore guard area was needed in the primary thread on some
+      platforms
+      (<a href="https://github.com/qorelanguage/qore/issues/4392">issue 4392</a>)
     - fixed bugs tagging functions and constants provided by builtin modules with their module name; required to
       consistently provide unique binary names when imported into Java, for example
       (<a href="https://github.com/qorelanguage/qore/issues/4383">issue 4383</a>)

@@ -239,6 +239,11 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
                             argv_helper.reset(new SingleArgvContextHelper(except->makeExceptionObject(), xsink));
                         }
                         nrc = (*i).second->execImpl(return_value, &obe_xsink);
+                        if (type == OBE_Error) {
+                            if (qore_es_private::get(obe_xsink)->rethrown) {
+                                xsink->clear();
+                            }
+                        }
                     }
                     // bug 380: make sure and merge every exception after every conditional execution to ensure
                     // that all on_(exit|error) statements are executed even if exceptions are thrown

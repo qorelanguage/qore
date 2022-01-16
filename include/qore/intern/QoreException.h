@@ -210,8 +210,9 @@ public:
 };
 
 struct qore_es_private {
-    bool thread_exit = false;
     QoreException* head = nullptr, * tail = nullptr;
+    bool thread_exit = false;
+    bool rethrown = false;
 
     DLLLOCAL qore_es_private() {
     }
@@ -287,6 +288,7 @@ struct qore_es_private {
 
     DLLLOCAL void rethrow(QoreException* old) {
         insert(old->rethrow());
+        rethrown = true;
     }
 
     DLLLOCAL static qore_es_private* get(ExceptionSink& xsink) {

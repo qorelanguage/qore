@@ -22,6 +22,17 @@ echo "export QORE_GID=1000" >> ${ENV_FILE}
 
 . ${ENV_FILE}
 
+if [ -z "${QORE_DB_CONNSTR_PGSQL}" ]; then
+    apk add --no-cache postgresql-client
+    . examples/test/docker_test/postgres_lib.sh
+    setup_postgres_on_rippy
+    drop_pgsql_schema=1
+fi
+if [ -z "${QORE_DB_CONNSTR_ORACLE}" ]; then
+    . examples/test/docker_test/init_oracle.sh
+    . ${ENV_FILE}
+fi
+
 find / -name "libqore.so*" -exec rm -f {} \;
 
 # build Qore and install
@@ -48,3 +59,7 @@ chown -R qore:qore ${QORE_SRC_DIR}
 export QORE_MODULE_DIR=${QORE_SRC_DIR}/qlib:${QORE_MODULE_DIR}
 cd ${QORE_SRC_DIR}
 gosu qore:qore ./run_tests.sh
+
+if [ "${drop_pgsql_schema}" = "1" ]; then
+    cleanup_postgres_on_rippy
+fi

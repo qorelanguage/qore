@@ -40,9 +40,8 @@ public class DefaultBulkRecordIterface inherits AbstractDataProviderBulkRecordIn
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    /** @param i the iterator; must return a record hash in the getValue() method
-        @param where_cond the search criteria
-        @param search_options the search options after processing by validateSearchOptions()
+    /** @param block_size the record block size to use
+        @param i the iterator to use
     */
     constructor(int block_size, AbstractDataProviderRecordIterator i)
         : AbstractDataProviderBulkRecordInterface(block_size) {
