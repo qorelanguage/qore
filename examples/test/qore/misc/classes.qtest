@@ -751,6 +751,7 @@ class Issue4051_B inherits Issue4051_A;
 
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
+        sleep(7200);
         v = 1;
         addTestCase("init test", \initTest());
         addTestCase("issue 4175", \issue4175());
