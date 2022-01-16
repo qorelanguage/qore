@@ -456,7 +456,7 @@ public class DataProviderPipeline {
     #! Creates the object with the given options
     /** @param opts any options for the pipeline; see @ref PipelineOptionInfo for more information
 
-        @Note The object is created with an initial queue with ID 0
+        @note The object is created with an initial queue with ID 0
     */
     constructor(*hash<PipelineOptionInfo> opts) {
         info_log = opts.info_log;

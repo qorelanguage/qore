@@ -49,7 +49,8 @@
     method in the thread that currently owns the stream, and the
     @ref Qore::StreamBase::reassignThread() "StreamBase::reassignThread()" method in the new thread.
 
-    @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an @ref Qore::OutputStream "OutputStream"
+    @see @ref Qore::StreamWriter "StreamWriter" for a class that can be used to write various kinds of data to an
+    @ref Qore::OutputStream "OutputStream"
 
     @since %Qore 0.8.13
  */
@@ -58,17 +59,21 @@ qclass StringOutputStream [arg=StringOutputStream* os; ns=Qore; vparent=OutputSt
 //! Creates the StringOutputStream
 /** This variant assumes the @ref default_encoding for the string
 
-    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with invalid character data will be returned by getData()
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid
+    character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with
+    invalid character data will be returned by getData()
  */
 StringOutputStream::constructor() {
-   SimpleRefHolder<StringOutputStream> sos(new StringOutputStream);
-   self->setPrivate(CID_STRINGOUTPUTSTREAM, sos.release());
+    SimpleRefHolder<StringOutputStream> sos(new StringOutputStream);
+    self->setPrivate(CID_STRINGOUTPUTSTREAM, sos.release());
 }
 
 //! Creates the StringOutputStream
 /** @param encoding the encoding to tag the string data with
 
-    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with invalid character data will be returned by getData()
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid
+    character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with
+    invalid character data will be returned by getData()
  */
 StringOutputStream::constructor(string encoding) {
    SimpleRefHolder<StringOutputStream> sos(new StringOutputStream(QEM.findCreate(encoding)));
@@ -79,10 +84,11 @@ StringOutputStream::constructor(string encoding) {
 /** Any methods called on a closed output stream will throw an exception.
 
     @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
-    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread
+    that created the object
  */
 nothing StringOutputStream::close() {
-   os->closeHelper(xsink);
+    os->closeHelper(xsink);
 }
 
 //! Writes bytes to the output stream
@@ -99,10 +105,11 @@ nothing StringOutputStream::close() {
     @endcode
 
     @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
-    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread
+    that created the object
  */
 nothing StringOutputStream::write(binary data) {
-   os->writeHelper(data, xsink);
+    os->writeHelper(data, xsink);
 }
 
 //! Returns the data written to the stream, clearing the internal buffer
@@ -119,10 +126,29 @@ nothing StringOutputStream::write(binary data) {
     @endcode
 
     @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
-    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread
+    that created the object
  */
 string StringOutputStream::getData() {
-   return os->getData(xsink);
+    return os->getData(xsink);
+}
+
+//! Returns @ref True if the stream already has data
+/** @return @ref True if the stream already has data
+
+    @par Example:
+    @code{.py}
+bool has_data = sos.hasData();
+    @endcode
+
+    @throw OUTPUT-STREAM-CLOSED-ERROR the output stream has already been closed
+    @throw STREAM-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread
+    that created the object
+
+    @since %Qore 1.1
+*/
+bool StringOutputStream::hasData() [flags=RET_VALUE_ONLY] {
+    return os->hasData(xsink);
 }
 
 //! Returns the @ref character_encoding "character encoding" for the @ref StringOutputStream
@@ -134,8 +160,10 @@ string encoding = sos.getEncoding();
 
     @return the @ref character_encoding "character encoding" for the @ref StringOutputStream
 
-    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with invalid character data will be returned by getData()
+    @note raw binary data is written to the output stream, so it's up to the caller to ensure that only valid
+    character data for the given encoding is written to the @ref StringOutputStream object, otherwise a string with
+    invalid character data will be returned by getData()
  */
 string StringOutputStream::getEncoding() [flags=CONSTANT] {
-   return new QoreStringNode(os->getEncoding());
+    return new QoreStringNode(os->getEncoding());
 }
