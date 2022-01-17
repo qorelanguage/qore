@@ -147,6 +147,41 @@ public hashdecl DataProviderInfo {
     */
     bool record_requires_search_options = False;
 
+    #! Does the data provider support creating new child providers?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.0
+    */
+    bool supports_child_create = False;
+
+    #! Does the data provider support deleting new child providers?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.0
+    */
+    bool supports_child_delete = False;
+
+    #! Does the data provider support adding new fields?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.0
+    */
+    bool supports_add_field = False;
+
+    #! Does the data provider support updating existing fields?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.0
+    */
+    bool supports_update_field = False;
+
+    #! Does the data provider support deleting fields?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.0
+    */
+    bool supports_delete_field = False;
+
     #! Constructor options supported by the data provider for the constructor variant taking a hash
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
@@ -171,6 +206,41 @@ public hashdecl DataProviderInfo {
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
     *hash<string, hash<DataProviderOptionInfo>> request_options;
+
+    #! Child creation options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> child_create_options;
+
+    #! Child deletion options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> child_delete_options;
+
+    #! Add field options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> add_field_options;
+
+    #! Update field options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> update_field_options;
+
+    #! Delete field options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> delete_field_options;
 
     #! A hash of mapper key information
     /** @note
@@ -294,7 +364,8 @@ public class AbstractDataProvider {
         @throw INVALID-BLOCK-SIZE the block size must be a positive number
         @throw INVALID-OPERATION the data provider does not support reading
     */
-    AbstractDataProviderBulkRecordInterface getBulkRecordInterface(int block_size = 1000, *hash<auto> search_options) {
+    AbstractDataProviderBulkRecordInterface getBulkRecordInterface(int block_size = 1000,
+            *hash<auto> search_options) {
         checkRead();
         return searchRecordsBulk(block_size, NOTHING, validateSearchOptions(search_options));
     }
@@ -309,7 +380,8 @@ public class AbstractDataProvider {
         @throw INVALID-BLOCK-SIZE the block size must be a positive number
         @throw INVALID-OPERATION the data provider does not support reading
     */
-    AbstractDataProviderBulkRecordInterface searchRecordsBulk(int block_size = 1000, *hash<auto> where_cond, *hash<auto> search_options) {
+    AbstractDataProviderBulkRecordInterface searchRecordsBulk(int block_size = 1000, *hash<auto> where_cond,
+            *hash<auto> search_options) {
         checkRead();
         if (block_size <= 0) {
             throw "INVALID-BLOCK-SIZE", sprintf("block_size %d is invalid; the block size mst be a positive number",
@@ -340,7 +412,8 @@ public class AbstractDataProvider {
 
         @throw INVALID-OPERATION the data provider does not support reading records or the request / response API
     */
-    AbstractDataProviderRecordIterator requestSearchRecords(auto req, *hash<auto> where_cond, *hash<auto> search_options) {
+    AbstractDataProviderRecordIterator requestSearchRecords(auto req, *hash<auto> where_cond,
+            *hash<auto> search_options) {
         checkRead();
         checkRequest();
         return requestSearchRecordsImpl(req, where_cond, search_options);
@@ -414,6 +487,74 @@ public class AbstractDataProvider {
             }
         }
         return doRequestImpl(req, validateRequestOptions(request_options));
+    }
+
+    #! Creates a new child data provider and returns it after adding as a child
+    /** @param name the name of the new child data provider
+        @param fields the fields for the new child data provider
+        @param child_create_options the options for creating the new child data provider
+
+        @return the new child data provider
+
+        @since DataProvider 2.0
+    */
+    AbstractDataProvider createChildProvider(string name, *hash<string, AbstractDataField> fields,
+            *hash<auto> child_create_options) {
+        checkCreateChild();
+        child_create_options = validateChildCreateOptions(child_create_options);
+        return createChildProviderImpl(name, fields, child_create_options);
+    }
+
+    #! Deletes a child data provider
+    /** @param name the name of the new child data provider
+        @param child_delete_options the options for deleting a child data provider
+
+        @since DataProvider 2.0
+    */
+    deleteChildProvider(string name, *hash<auto> child_delete_options) {
+        checkDeleteChild();
+        child_delete_options = validateChildDeleteOptions(child_delete_options);
+        return deleteChildProviderImpl(name, child_delete_options);
+    }
+
+    #! Creates a new field and returns it after adding it
+    /**
+        @param field the field to add
+        @param field_add_options the options for adding the new field
+
+        @return the new child data provider
+
+        @since DataProvider 2.0
+    */
+    AbstractDataProvider addField(AbstractDataField field, *hash<auto> field_add_options) {
+        checkAddField();
+        field_add_options = validateFieldAddOptions(field_add_options);
+        return addFieldImpl(field, field_add_options);
+    }
+
+    #! Updates an existing field
+    /** @param name the name of the current field to update
+        @param field the new definition of the field
+        @param field_update_options the options for adding the new field
+
+        @since DataProvider 2.0
+    */
+    updateField(string name, AbstractDataField field, *hash<auto> field_update_options) {
+        checkUpdateField();
+        field_update_options = validateFieldUpdateOptions(field_update_options);
+        return updateFieldImpl(name, field, field_update_options);
+    }
+
+    #! Deletes an existing field
+    /** @param name the name of the field to delete
+        @param field_delete_options the options for deleting the new field
+
+        @since DataProvider 2.0
+    */
+    deleteField(string name, *hash<auto> field_delete_options) {
+        checkDeleteField();
+        field_delete_options = validateFieldDeleteOptions(field_delete_options);
+        return deleteFieldImpl(name, field_delete_options);
     }
 
     #! Returns the description of a successful request message, if any
@@ -493,8 +634,10 @@ public class AbstractDataProvider {
         return provider;
     }
 
-    #! Returns the given child provider from a \c "/" separated path string; throws an exception if any element in the path is unknown
-    /** @param path a string giving a path to the target provider where child elements are separated by \c "/" characters
+    #! Returns the given child provider from a \c "/" separated path string
+    /** throws an exception with unknown path elements
+
+        @param path a string giving a path to the target provider where child elements are separated by \c "/" characters
 
         @return the target child provider; throws an exception if any element in the path is unknown
 
@@ -641,6 +784,71 @@ public class AbstractDataProvider {
         }
     }
 
+    #! Ensures that the data provider supports creating children
+    /**
+        @throw INVALID-OPERATION the data provider does not support the child creation API
+
+        @since DataProvider 2.0
+    */
+    checkCreateChild() {
+        if (!supportsCreateChild()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support creating children",
+                getName(), self.className());
+        }
+    }
+
+    #! Ensures that the data provider supports deleting children
+    /**
+        @throw INVALID-OPERATION the data provider does not support the child deletion API
+
+        @since DataProvider 2.0
+    */
+    checkDeleteChild() {
+        if (!supportsDeleteChild()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support deleting children",
+                getName(), self.className());
+        }
+    }
+
+    #! Ensures that the data provider supports adding fields
+    /**
+        @throw INVALID-OPERATION the data provider does not support the add field API
+
+        @since DataProvider 2.0
+    */
+    checkAddField() {
+        if (!supportsAddField()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support adding fields",
+                getName(), self.className());
+        }
+    }
+
+    #! Ensures that the data provider supports updating fields
+    /**
+        @throw INVALID-OPERATION the data provider does not support the update field API
+
+        @since DataProvider 2.0
+    */
+    checkUpdateField() {
+        if (!supportsUpdateField()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support updating fields",
+                getName(), self.className());
+        }
+    }
+
+    #! Ensures that the data provider supports deleting fields
+    /**
+        @throw INVALID-OPERATION the data provider does not support the delete field API
+
+        @since DataProvider 2.0
+    */
+    checkDeleteField() {
+        if (!supportsDeleteField()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support deleting fields",
+                getName(), self.className());
+        }
+    }
+
     #! Ensures that no callbacks can be set for dynamic URI resolution
     /** @return False if this call was ignored because callbacks are locked, True if the call was successful
 
@@ -707,6 +915,51 @@ public class AbstractDataProvider {
     */
     private *hash<auto> validateRequestOptions(*hash<auto> request_options) {
         return checkOptions("REQUEST-OPTION-ERROR", getRequestOptions(), request_options);
+    }
+
+    #! validates child create options
+    /** @throw CHILD-CREATE-OPTION-ERROR invalid or unsupported child create option
+
+        @since DataProvider 2.0
+    */
+    private *hash<auto> validateChildCreateOptions(*hash<auto> child_create_options) {
+        return checkOptions("CHILD-CREATE-OPTION-ERROR", getChildCreateOptions(), child_create_options);
+    }
+
+    #! validates child delete options
+    /** @throw CHILD-DELETE-OPTION-ERROR invalid or unsupported child delete option
+
+        @since DataProvider 2.0
+    */
+    private *hash<auto> validateChildDeleteOptions(*hash<auto> child_delete_options) {
+        return checkOptions("CHILD-DELETE-OPTION-ERROR", getChildDeleteOptions(), child_delete_options);
+    }
+
+    #! validates field add options
+    /** @throw FIELD-ADD-OPTION-ERROR invalid or unsupported field add option
+
+        @since DataProvider 2.0
+    */
+    private *hash<auto> validateFieldAddOptions(*hash<auto> field_add_options) {
+        return checkOptions("FIELD-ADD-OPTION-ERROR", getFieldAddOptions(), field_add_options);
+    }
+
+    #! validates field update options
+    /** @throw FIELD-UPDATE-OPTION-ERROR invalid or unsupported field update option
+
+        @since DataProvider 2.0
+    */
+    private *hash<auto> validateFieldUpdateOptions(*hash<auto> field_update_options) {
+        return checkOptions("FIELD-UPDATE-OPTION-ERROR", getFieldUpdateOptions(), field_update_options);
+    }
+
+    #! validates field delete options
+    /** @throw FIELD-DELETE-OPTION-ERROR invalid or unsupported field delete option
+
+        @since DataProvider 2.0
+    */
+    private *hash<auto> validateFieldDeleteOptions(*hash<auto> field_delete_options) {
+        return checkOptions("FIELD-DELETE-OPTION-ERROR", getFieldDeleteOptions(), field_delete_options);
     }
 
     #! processes options passed to the constructor
@@ -911,6 +1164,61 @@ public class AbstractDataProvider {
         return getStaticInfoImpl().request_options;
     }
 
+    #! Returns options that can be used for creating child data providers
+    /** @return a hash of options that can be used for creating child data providers; keys are option names, values
+        describe the option; if @ref nothing is returned, then the provider does not support any child creation
+        options
+
+        @since DataProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getChildCreateOptions() {
+        return getStaticInfoImpl().child_create_options;
+    }
+
+    #! Returns options that can be used for deleting child data providers
+    /** @return a hash of options that can be used for delete child data providers; keys are option names, values
+        describe the option; if @ref nothing is returned, then the provider does not support any child deletion
+        options
+
+        @since DataProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getChildDeleteOptions() {
+        return getStaticInfoImpl().child_delete_options;
+    }
+
+    #! Returns options that can be used for adding new fields to the data provider
+    /** @return a hash of options that can be used for adding new fields; keys are option names, values
+        describe the option; if @ref nothing is returned, then the provider does not support any add field
+        options
+
+        @since DataProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getFieldAddOptions() {
+        return getStaticInfoImpl().add_field_options;
+    }
+
+    #! Returns options that can be used for updating fields of the data provider
+    /** @return a hash of options that can be used for updating fields; keys are option names, values
+        describe the option; if @ref nothing is returned, then the provider does not support any update field
+        options
+
+        @since DataProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getFieldUpdateOptions() {
+        return getStaticInfoImpl().update_field_options;
+    }
+
+    #! Returns options that can be used for deleting fields from the data provider
+    /** @return a hash of options that can be used for deleting fields; keys are option names, values
+        describe the option; if @ref nothing is returned, then the provider does not support any delete field
+        options
+
+        @since DataProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getFieldDeleteOptions() {
+        return getStaticInfoImpl().delete_field_options;
+    }
+
     #! Returns @ref True if the data provider supports reading
     /**
     */
@@ -995,6 +1303,41 @@ public class AbstractDataProvider {
         return getStaticInfoImpl().has_record;
     }
 
+    #! Returns True if the data provider supports creating new child data providers
+    /** @since DataProvider 2.0
+    */
+    bool supportsCreateChild() {
+        return getStaticInfoImpl().supports_child_create;
+    }
+
+    #! Returns True if the data provider supports creating deleting child data providers
+    /** @since DataProvider 2.0
+    */
+    bool supportsDeleteChild() {
+        return getStaticInfoImpl().supports_child_delete;
+    }
+
+    #! Returns True if the data provider supports creating adding new fields
+    /** @since DataProvider 2.0
+    */
+    bool supportsAddField() {
+        return getStaticInfoImpl().supports_add_field;
+    }
+
+    #! Returns True if the data provider supports updating existing fields
+    /** @since DataProvider 2.0
+    */
+    bool supportsUpdateField() {
+        return getStaticInfoImpl().supports_update_field;
+    }
+
+    #! Returns True if the data provider supports deleting existing fields
+    /** @since DataProvider 2.0
+    */
+    bool supportsDeleteField() {
+        return getStaticInfoImpl().supports_delete_field;
+    }
+
     #! Returns the description of the record type, if any
     /** @param search_options to be included and processed by validateSearchOptions() if
         \a recordRequiresSearchOptions() is @ref True for this provider, otherwise any value provided in this argument
@@ -1012,7 +1355,8 @@ public class AbstractDataProvider {
         @throw INVALID-BLOCK-SIZE the block size must be a positive number
         @throw INVALID-OPERATION the data provider does not support reading
     */
-    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000, *hash<auto> where_cond, *hash<auto> search_options) {
+    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000,
+            *hash<auto> where_cond, *hash<auto> search_options) {
         return new DefaultBulkRecordIterface(block_size, searchRecordsImpl(where_cond, search_options));
     }
 
@@ -1035,7 +1379,8 @@ public class AbstractDataProvider {
 
         @see searchRecordsImpl()
     */
-    private AbstractDataProviderRecordIterator requestSearchRecordsImpl(auto req, *hash<auto> where_cond, *hash<auto> search_options) {
+    private AbstractDataProviderRecordIterator requestSearchRecordsImpl(auto req, *hash<auto> where_cond,
+            *hash<auto> search_options) {
         throwUnimplementedException();
     }
 
@@ -1103,6 +1448,64 @@ public class AbstractDataProvider {
         throwUnimplementedException();
     }
 
+    #! Creates a new child data provider and returns it after adding as a child
+    /** @param name the name of the new child data provider
+        @param fields the fields for the new child data provider
+        @param child_create_options the options for creating the new child data provider
+
+        @return the new child data provider
+
+        @since DataProvider 2.0
+    */
+    private AbstractDataProvider createChildProviderImpl(string name, *hash<string, AbstractDataField> fields,
+            *hash<auto> child_create_options) {
+        throwUnimplementedException();
+    }
+
+    #! Deletes a child data provider
+    /** @param name the name of the new child data provider
+        @param child_delete_options the options for deleting a child data provider
+
+        @since DataProvider 2.0
+    */
+    private deleteChildProviderImpl(string name, *hash<auto> child_delete_options) {
+        throwUnimplementedException();
+    }
+
+    #! Creates a new field and returns it after adding it
+    /**
+        @param field the field to add
+        @param field_add_options the options for adding the new field
+
+        @return the new child data provider
+
+        @since DataProvider 2.0
+    */
+    private AbstractDataProvider addFieldImpl(AbstractDataField field, *hash<auto> field_add_options) {
+        throwUnimplementedException();
+    }
+
+    #! Updates an existing field
+    /** @param name the name of the current field to update
+        @param field the new definition of the field
+        @param field_update_options the options for adding the new field
+
+        @since DataProvider 2.0
+    */
+    private updateFieldImpl(string name, AbstractDataField field, *hash<auto> field_update_options) {
+        throwUnimplementedException();
+    }
+
+    #! Deletes an existing field
+    /** @param name the name of the field to delete
+        @param field_delete_options the options for deleting the new field
+
+        @since DataProvider 2.0
+    */
+    private deleteFieldImpl(string name, *hash<auto> field_delete_options) {
+        throwUnimplementedException();
+    }
+
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
 
@@ -1143,7 +1546,8 @@ public class AbstractDataProvider {
         *hash<string, AbstractDataProviderType> err_map = getErrorResponseTypesImpl();
         *AbstractDataProviderType type = err_map{error_code};
         if (!type) {
-            throw "UNKNOWN-ERROR-RESPONSE", sprintf("error code %y is unknown; known error codes: %y", error_code, keys err_map);
+            throw "UNKNOWN-ERROR-RESPONSE", sprintf("error code %y is unknown; known error codes: %y", error_code,
+                keys err_map);
         }
         return type;
     }
