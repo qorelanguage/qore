@@ -2,6 +2,30 @@
 
     @tableofcontents
 
+    @section qore_1_2_0 Qore 1.2.0
+
+    @par Release Summary
+    Minor new features added to %Qore
+
+    @subsection qore_1_2_0_new_features New Features in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - added support for create, updating, and deleting data providers
+        (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)
+    - <a href="../../modules/DbDataProvider/html/index.html">DbDataProvider</a> module
+      - added support for create, updating, and deleting data providers
+        (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)
+
+    @subsection qore_1_2_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module
+      - allow a \c VARCHAR column to be created without a size, assume a default size
+        (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
+    - <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> module
+      - allow a \c VARCHAR column to be created without a size, assume a default size
+        (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
+    - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module
+      - fixed a bug where objects created did not always contain the actual name used to create it
+        (<a href="https://github.com/qorelanguage/qore/issues/4396">issue 4396</a>)
+
     @section qore_1_1_0 Qore 1.1.0
 
     @par Release Summary

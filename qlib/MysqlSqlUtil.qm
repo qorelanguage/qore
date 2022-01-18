@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.4.2";
+    version = "1.4.3";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -91,7 +91,11 @@ module MysqlSqlUtil {
 
     @section mysql_relnotes Release Notes
 
-    @subsection mysqlsqlutilv141 MysqlSqlUtil v1.4.2
+    @subsection mysqlsqlutilv143 MysqlSqlUtil v1.4.3
+    - allow a \c VARCHAR column to be created without a size, assume a default size
+      (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
+
+    @subsection mysqlsqlutilv142 MysqlSqlUtil v1.4.2
     - added APIs to enable duplicate record creation errors to be detected
       (<a href="https://github.com/qorelanguage/qore/issues/4308">issue 4308</a>)
 
@@ -267,7 +271,11 @@ public namespace MysqlSqlUtil {
         private constructor() {
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, *softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, *softint bs)
+                : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+            if (nt =~ /^varchar$/i && !sz) {
+                size = DefaultVarcharSize;
+            }
             byte_size = bs ?? 0;
         }
 
@@ -379,7 +387,9 @@ string str = col.getRenameSql(t, "new_name");
             };
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned = False, bool n_auto_increment = False, bool n_pk = False) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs,
+                softint n_scale, bool n_unsigned = False, bool n_auto_increment = False, bool n_pk = False)
+                : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
             unsigned = n_unsigned;
             auto_increment = n_auto_increment;
             pk = n_pk;
@@ -1261,7 +1271,7 @@ end";
     public class MysqlTable inherits SqlUtil::AbstractTable {
         public {
             #! maps mysql type names to type configurations
-            const MysqlTypeMap = (
+            const MysqlTypeMap = {
                 "decimal": ("qore": Type::Number, "size": SZ_NUM,),
                 "tinyint": ("qore": Type::Int, "ai": True,),
                 "smallint": ("qore": Type::Int, "ai": True,),
@@ -1273,12 +1283,21 @@ end";
 
                 "date": ("qore": Type::Date,),
                 "datetime": ("qore": Type::Date,),
-                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "year": ("qore": Type::Int,),
 
-                "char": ("qore": Type::String, "size": SZ_OPT, "size_range": (0, 255)),
-                "varchar": ("qore": Type::String, "size": SZ_MAND, "size_range": (0, 65535)),
+                "char": {
+                    "qore": Type::String,
+                    "size": SZ_OPT,
+                    "size_range": (0, 255),
+                },
+                "varchar": {
+                    "qore": Type::String,
+                    "size": SZ_MAND,
+                    "size_range": (0, 65535),
+                    "default_size": AbstractColumn::DefaultVarcharSize,
+                },
 
                 "binary": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (0, 255)),
                 "varbinary": ("qore": Type::Binary, "size": SZ_MAND, "size_range": (0, 65535)),
@@ -1294,15 +1313,15 @@ end";
                 "longblob": ("qore": Type::Binary,),
 
                 "bit": ("qore": Type::Int,),
-            );
+            };
 
-            #! maps qore type names to postgresql type names
+            #! maps qore type names to MySQL type names
             const QoreTypeMap = (
                 "integer": "bigint",
                 "float": "double",
                 "number": "decimal",
                 "string": "varchar",
-                "date": "datetime",
+                "date": "timestamp",
                 "binary": "varbinary",
                 "bool": "tinyint",
                 SqlUtil::CHAR: "char",

@@ -491,17 +491,22 @@ public class AbstractDataProvider {
 
     #! Creates a new child data provider and returns it after adding as a child
     /** @param name the name of the new child data provider
-        @param fields the fields for the new child data provider
+        @param fields the fields for the new child data provider; must have at least one field
         @param child_create_options the options for creating the new child data provider
 
         @return the new child data provider
 
+        @throw CREATE-CHILD-PROVIDER-ERROR error creating the child provider
+
         @since DataProvider 2.0
     */
-    AbstractDataProvider createChildProvider(string name, *hash<string, AbstractDataField> fields,
+    AbstractDataProvider createChildProvider(string name, hash<string, AbstractDataField> fields,
             *hash<auto> child_create_options) {
         checkCreateChild();
         child_create_options = validateChildCreateOptions(child_create_options);
+        if (!fields) {
+            throw "CREATE-CHILD-PROVIDER-ERROR", "at least one field must be present in the field hash";
+        }
         return createChildProviderImpl(name, fields, child_create_options);
     }
 
@@ -1457,7 +1462,7 @@ public class AbstractDataProvider {
 
         @since DataProvider 2.0
     */
-    private AbstractDataProvider createChildProviderImpl(string name, *hash<string, AbstractDataField> fields,
+    private AbstractDataProvider createChildProviderImpl(string name, hash<string, AbstractDataField> fields,
             *hash<auto> child_create_options) {
         throwUnimplementedException();
     }

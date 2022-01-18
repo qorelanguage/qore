@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.0
+%requires qore >= 1.1
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -204,6 +204,7 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @subsection dataprovider_v2.0 DataProvider v2.0
     - added support for creating, reading, updating, and modifying data providers
+      (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)
 
     @subsection dataprovider_v1_2_3 DataProvider v1.3
     - added @ref DataProvider::DataProviderTypeCache::listParentTypes() "DataProviderTypeCache::listParentTypes()" to

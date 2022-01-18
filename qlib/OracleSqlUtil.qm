@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.4.3";
+    version = "1.4.4";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -255,6 +255,10 @@ hash schema = (
 
     @section ora_relnotes Release Notes
 
+    @subsection oracle144 OracleSqlUtil v1.4.4
+    - allow a \c VARCHAR column to be created without a size, assume a default size
+      (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
+
     @subsection oraclev143 OracleSqlUtil v1.4.3
     - added APIs to enable duplicate record creation errors to be detected
       (<a href="https://github.com/qorelanguage/qore/issues/4308">issue 4308</a>)
@@ -381,7 +385,11 @@ public namespace OracleSqlUtil {
         private constructor() {
         }
 
-        constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm, bool is_char = False, bool cu = False, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+        constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm,
+                bool is_char = False, bool cu = False, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+            if (nt =~ /^varchar$/i && !sz) {
+                size = DefaultVarcharSize;
+            }
             # only set "char_used" if we are dealing with a char column
             char_used = is_char && cu;
             byte_size = bs;
@@ -1778,8 +1786,20 @@ auto v = c.name;
             #! maps oracle type names to type descriptions
             const OraTypeMap = {
                 "number": ("qore": Type::Number, "size": SZ_NUM, "size_range": (1, 38), "scale_range": (-84, 127)),
-                "varchar2": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000), "is_char": True),
-                "char": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000), "is_char": True),
+                "varchar2": {
+                    "qore": Type::String,
+                    "size": SZ_MAND,
+                    "size_range": (1, 4000),
+                    "is_char": True,
+                    "default_size": AbstractColumn::DefaultVarcharSize,
+                },
+                "char": {
+                    "qore": Type::String,
+                    "size": SZ_MAND,
+                    "size_range": (1, 4000),
+                    "is_char": True,
+                    "default_size": AbstractColumn::DefaultVarcharSize,
+                },
                 "date": ("qore": Type::Date,),
                 "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
                 "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),

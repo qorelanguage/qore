@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the DbDataProvider module
 public namespace DbDataProvider {
 #! The database data provider class, provides tables as children
@@ -51,6 +40,8 @@ public class DbDataProvider inherits AbstractDataProvider {
             "transaction_management": True,
             "has_record": True,
             "record_requires_search_options": True,
+            "supports_child_create": True,
+            "supports_child_delete": True,
         };
 
         #! Constructor options
@@ -267,7 +258,8 @@ public class DbDataProvider inherits AbstractDataProvider {
                 return;
             }
         } catch (hash<ExceptionInfo> ex) {
-            throw "CHILD-PROVIDER-ERROR", sprintf("table %y cannot be acquired from %y: %s: %s", name, getName(), ex.err, ex.desc), ex.arg;
+            throw "CHILD-PROVIDER-ERROR", sprintf("table %y cannot be acquired from %y: %s: %s", name, getName(),
+                ex.err, ex.desc), ex.arg;
         }
         return new DbTableDataProvider(table);
     }
@@ -275,6 +267,44 @@ public class DbDataProvider inherits AbstractDataProvider {
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
+    }
+
+    #! Creates a new child data provider and returns it after adding as a child
+    /** @param name the name of the new child data provider
+        @param fields the fields for the new child data provider
+        @param child_create_options the options for creating the new child data provider
+
+        @return the new child data provider
+
+        @since DataProvider 2.0
+    */
+    private AbstractDataProvider createChildProviderImpl(string name, hash<string, AbstractDataField> fields,
+            *hash<auto> child_create_options) {
+        hash<auto> table_desc = makeTableDesc(fields, child_create_options);
+        AbstractTable table = db.makeTable(name, table_desc);
+        table.create();
+        return new DbTableDataProvider({
+            "table": table,
+        });
+    }
+
+    #! Deletes a child data provider
+    /** @param name the name of the new child data provider
+        @param child_delete_options the options for deleting a child data provider
+
+        @throw DELETE-CHILD-PROVIDER-ERROR error dropping the child data provider
+
+        @since DataProvider 2.0
+    */
+    private deleteChildProviderImpl(string name, *hash<auto> child_delete_options) {
+        bool dropped;
+        {
+            on_error rethrow "DELETE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+            dropped = db.dropTableIfExists(name);
+        }
+        if (!dropped) {
+            throw "DELETE-CHILD-PROVIDER-ERROR", sprintf("%s has no child %y", getName(), name);
+        }
     }
 
     #! Sets the datasource lookup
@@ -314,6 +344,33 @@ public class DbDataProvider inherits AbstractDataProvider {
             return DbDataProvider::table_lookup(ds, table_string);
         }
         return AbstractTable::getTable(ds, table_string);
+    }
+
+    #! Returns a column description hash for a field
+    static hash<GenericColumnInfo> getColumnDesc(AbstractDataField field, *hash<auto> opts) {
+        string type_name = field.getTypeName();
+        if (type_name == "int") {
+            type_name = "integer";
+        }
+        hash<GenericColumnInfo> col({
+            "qore_type": type_name,
+            "default_value": field.getDefaultValue(),
+            "notnull": !field.isAssignableFrom(Reflection::NothingType),
+        });
+        if (*string desc = field.getDescription()) {
+            col.comment = desc;
+        }
+        return col;
+    }
+
+    #! Returns a table description hash from a field description
+    static hash<auto> makeTableDesc(hash<string, AbstractDataField> fields, *hash<auto> opts) {
+        hash<string, hash<GenericColumnInfo>> cols = map {$1.key: DbDataProvider::getColumnDesc($1.value, opts)},
+            fields.pairIterator();
+
+        return {
+            "columns": cols,
+        };
     }
 }
 }

@@ -574,7 +574,8 @@ list l = db.getDropSchemaSql(schema_hash);
         return l;
     }
 
-    private list dropSqlUnlocked(string type, hash schema_hash, code get, code make, *hash<auto> opt, string make_arg_type) {
+    private list dropSqlUnlocked(string type, hash schema_hash, code get, code make, *hash<auto> opt,
+            string make_arg_type) {
         list l = ();
         hash copt = getCreationOptions();
         string drv = getDriverName();
@@ -583,7 +584,8 @@ list l = db.getDropSchemaSql(schema_hash);
         reference<hash> fmap = \schema_hash{type + "s"};
         AbstractDatabase::checkDriverOptions(\fmap, drv);
         foreach string name in (fmap.keyIterator()) {
-            AbstractSqlUtilBase::validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fmap{name}, name, type + "s");
+            AbstractSqlUtilBase::validateOptionIntern("SCHEMA-DESCRIPTION-ERROR", make_arg_type, \fmap{name}, name,
+                type + "s");
 
             # make template object
             object tmpl = make(name, fmap{name}, opt.(copt.keys()));
@@ -599,7 +601,8 @@ list l = db.getDropSchemaSql(schema_hash);
         return l;
     }
 
-    private list alignCodeUnlocked(string type, hash schema_hash, code get, code make, *hash<auto> opt, string make_arg_type) {
+    private list alignCodeUnlocked(string type, hash schema_hash, code get, code make, *hash<auto> opt,
+            string make_arg_type) {
         list l = ();
         hash copt = getCreationOptions();
         string drv = getDriverName();
@@ -614,11 +617,13 @@ list l = db.getDropSchemaSql(schema_hash);
             string key = i.getKey();
             auto value = i.getValue();
             if (value.typeCode() != NT_STRING)
-                throw "SCHEMA-DESCRIPTION-ERROR", sprintf("%s %y value is not a string in the schema description hash; got type %y instead (%y)", type + "_map", key, value.type(), value);
+                throw "SCHEMA-DESCRIPTION-ERROR", sprintf("%s %y value is not a string in the schema description "
+                    "hash; got type %y instead (%y)", type + "_map", key, value.type(), value);
 
             *AbstractFunction f = get(key);
             if (f) {
-                list tl = AbstractDatabase::doCallback(opt, f.getRenameSql(value), AC_Rename, type, key, NOTHING, value);
+                list tl = AbstractDatabase::doCallback(opt, f.getRenameSql(value), AC_Rename, type, key, NOTHING,
+                    value);
                 if (tl)
                     l += tl;
 
@@ -669,14 +674,21 @@ AbstractSequence seq = db.makeSequence("seq_queues");
         @param start the starting value of the sequence
         @param increment the increment value of the sequence
         @param end the endinf value of the sequence, omit for no ending value
-        @param opts an optional hash of options for the creation of the sequence; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+        @param opts an optional hash of options for the creation of the sequence; see
+        @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific
+        options
 
         @throw OPTION-ERROR invalid or unsupported option passed
         @throw SEQUENCE-ERROR end not compatible with start and increment, increment is zero
     */
-    AbstractSequence makeSequence(string name, number start = 1, number increment = 1, *softnumber end, *hash<auto> opts) {
+    AbstractSequence makeSequence(string name, number start = 1, number increment = 1, *softnumber end,
+            *hash<auto> opts) {
         validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opts);
 
+        # issue #4396: convert letters to lower case if necessary
+        if (!opts.native_case) {
+            name = name.lwr();
+        }
         return makeSequenceImpl(name, start, increment, end, opts);
     }
 
@@ -694,13 +706,19 @@ AbstractTable table = db.makeTable("table", th);
 
         @param name the name of the table
         @param desc a @ref table_desc_hash "table description hash" describing the table
-        @param opts an optional hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+        @param opts an optional hash of options for the table creation string; see
+        @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional
+        driver-specific options
 
         @throw OPTION-ERROR invalid or unsupported option passed
 
         @see SqlUtil::AbstractTable::constructor()
     */
     AbstractTable makeTable(string name, hash<auto> desc, *hash<auto> opts) {
+        # issue #4396: convert letters to lower case if necessary
+        if (!opts.native_case) {
+            name = name.lwr();
+        }
         AbstractTable t = AbstractTable::getTable(ds, name, opts);
         t.setupTable(desc, opts);
         return t;
@@ -713,14 +731,22 @@ AbstractFunction f = db.makeFunction("update_queue", src);
         @endcode
 
         @param name the name of the function
-        @param src the database-specific source code of the function (see the database-specific documentation for information about the format of this parameter; generally it's simply the normal source code for the function required by the database)
-        @param opts an optional hash of options for the creation of the function; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+        @param src the database-specific source code of the function (see the database-specific documentation for
+        information about the format of this parameter; generally it's simply the normal source code for the function
+        required by the database)
+        @param opts an optional hash of options for the creation of the function; see
+        @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific
+        options
 
         @throw OPTION-ERROR invalid or unsupported option passed
     */
     AbstractFunction makeFunction(string name, string src, *hash<auto> opts) {
         validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opts);
 
+        # issue #4396: convert letters to lower case if necessary
+        if (!opts.native_case) {
+            name = name.lwr();
+        }
         return makeFunctionImpl(name, src, opts);
     }
 
@@ -731,14 +757,22 @@ AbstractFunction f = db.makeProcedure("get_queue_info", src);
         @endcode
 
         @param name the name of the stored procedure
-        @param src the database-specific source code of the stored procedure (see the database-specific documentation for information about the format of this parameter; generally it's simply the normal source code for the stored procedure required by the database)
-        @param opt an optional hash of options for the creation of the stored procedure; see @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific options
+        @param src the database-specific source code of the stored procedure (see the database-specific documentation
+        for information about the format of this parameter; generally it's simply the normal source code for the
+        stored procedure required by the database)
+        @param opt an optional hash of options for the creation of the stored procedure; see
+        @ref AbstractDatabase::CreationOptions for common options; each driver can support additional driver-specific
+        options
 
         @throw OPTION-ERROR invalid or unsupported option passed
     */
     AbstractFunction makeProcedure(string name, string src, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getCreationOptions(), \opt);
 
+        # issue #4396: convert letters to lower case if necessary
+        if (!opts.native_case) {
+            name = name.lwr();
+        }
         return makeProcedureImpl(name, src, opt);
     }
 
@@ -1383,7 +1417,8 @@ string sql = t.getSqlFromList(list);
     private abstract *AbstractFunction getProcedureImpl(string name);
     private abstract *AbstractView getViewImpl(string name);
 
-    private abstract AbstractSequence makeSequenceImpl(string name, number start = 1, number increment = 1, *softnumber end, *hash<auto> opts);
+    private abstract AbstractSequence makeSequenceImpl(string name, number start = 1, number increment = 1,
+            *softnumber end, *hash<auto> opts);
     private abstract AbstractFunction makeFunctionImpl(string name, string src, *hash<auto> opts);
     private abstract AbstractFunction makeProcedureImpl(string name, string src, *hash<auto> opts);
 

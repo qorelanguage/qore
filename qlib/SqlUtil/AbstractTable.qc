@@ -31,8 +31,11 @@ public class AbstractTable inherits AbstractSqlUtilBase {
     public {
         #! table options
         /** The following keys can be set for this option:
-            - \c native_case: (@ref bool_type) if @ref True "True" then objects will be returned in the case the database server returns them in even if the database server uses case-insensitive names; normally in this case %SqlUtil will convert the names to lower-case
-            - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
+            - \c native_case: (@ref bool_type) if @ref True "True" then objects will be returned in the case the
+              database server returns them in even if the database server uses case-insensitive names; normally in
+              this case %SqlUtil will convert the names to lower-case
+            - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables
+              and foreign key relationships between tables
         */
         const TableOptions = {
             "native_case": Type::Boolean,
@@ -42,7 +45,8 @@ public class AbstractTable inherits AbstractSqlUtilBase {
         #! default index options
         /**
             - \c index_tablespace: (@ref string_type) a string giving the index tablespace to use for indexes
-            - \c replace: (@ref bool_type) if @ref True "True" and supported by the underlying db driver "create or replace" text is used when creating objects
+            - \c replace: (@ref bool_type) if @ref True "True" and supported by the underlying db driver
+              "create or replace" text is used when creating objects
         */
         const IndexOptions = {
             "index_tablespace": Type::String,
@@ -61,7 +65,8 @@ public class AbstractTable inherits AbstractSqlUtilBase {
 
         #! default foreign constraint options
         /** The following keys can be set for this option:
-            - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables and foreign key relationships between tables
+            - \c table_cache: (@ref SqlUtil::Tables "Tables") an optional table cache for maintaining cached tables
+              and foreign key relationships between tables
         */
         const ForeignConstraintOptions = ConstraintOptions + {
             "table_cache": "Tables",
@@ -73,8 +78,9 @@ public class AbstractTable inherits AbstractSqlUtilBase {
         const TriggerOptions = AbstractDatabase::CreationOptions;
 
         #! default possible select options; can be extended by driver-specific modules
-        /** @see @ref select_option_hash for more information on the default possible select options; see driver-specific information for any additional select options supported by the driver-specific module
-            */
+        /** @see @ref select_option_hash for more information on the default possible select options; see
+            driver-specific information for any additional select options supported by the driver-specific module
+        */
         const SelectOptions = {
             "alias": Type::String,
             "comment": Type::String,
@@ -245,14 +251,14 @@ public class AbstractTable inherits AbstractSqlUtilBase {
             - @ref SqlUtil::AbstractTable::upsertFromSelectCommit()
 
             to specify the upsert strategy when synchronizing table data
-            */
+        */
         #@{
         #! Upsert option: insert first, if the insert fails, then update
         /** with this option an insert is attempted, and if it fails due to a duplicate row, then an update is made unconditionally; with
             this upsert strategy, the following row result codes are possible:
             - @ref UR_Inserted
             - @ref UR_Verified (the only value returned by certain drivers with optimized upsert implementations)
-            */
+        */
         const UpsertInsertFirst = 1;
 
         #! Upsert option: update first, if the update fails, then insert
@@ -260,7 +266,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
             this upsert strategy, the following row result codes are possible:
             - @ref UR_Inserted
             - @ref UR_Verified (the only value returned by certain drivers with optimized upsert implementations)
-            */
+        */
         const UpsertUpdateFirst = 2;
 
         #! Upsert option: select first, if the row is unchanged, do nothing, if it doesn't exist, insert, otherwise update
@@ -269,28 +275,28 @@ public class AbstractTable inherits AbstractSqlUtilBase {
             - @ref UR_Inserted
             - @ref UR_Updated
             - @ref UR_Unchanged
-            */
+        */
         const UpsertSelectFirst = 3;
 
         #! Upsert option: if the target table is empty, use @ref UpsertInsertFirst, otherwise use @ref UpsertUpdateFirst
         /** With this upsert strategy, the following row result codes are possible:
             - @ref UR_Inserted
             - @ref UR_Verified (the only value returned by certain drivers with optimized upsert implementations)
-            */
+        */
         const UpsertAuto = 4;
 
         #! Upsert option: insert if the row does not exist, otherwise ignore
         /** With this upsert strategy, the following row result codes are possible:
             - @ref UR_Inserted
             - @ref UR_Unchanged
-            */
+        */
         const UpsertInsertOnly = 5;
 
         #! Upsert option: update if the row exists, otherwise ignore
         /** With this upsert strategy, the following row result codes are possible:
             - @ref UR_Verified
             - @ref UR_Unchanged
-            */
+        */
         const UpsertUpdateOnly = 6;
 
         #! hash mapping upsert strategy codes to a text description
@@ -526,7 +532,7 @@ table.dropCommit();
         @throw OPTION-ERROR invalid or unknown callback option
 
         @note The transaction is committed if successful or rolled back if an exception occurs; use @ref drop() to execute without any transaction management
-        */
+    */
     dropCommit(*hash<auto> opt) {
         on_exit ds.commit();
         on_error ds.rollback();
@@ -544,7 +550,7 @@ table.drop();
         @throw OPTION-ERROR invalid or unknown callback option
 
         @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
-        */
+    */
     drop(*hash<auto> opt) {
         map ds.execRaw($1), getDropSql(opt);
         inDb = False;
@@ -566,7 +572,7 @@ t.tryExec("drop table tmp_table");
         @param sql the SQL to execute
 
         @return any return value from the SQL command executed
-        */
+    */
     auto tryExec(string sql) {
         return tryExecArgsImpl(sql, argv);
     }
@@ -581,7 +587,7 @@ t.tryExec("delete from tmp_table where id = %v and name = %v", arglist);
         @param args the bind / placeholder or other arguments corresponding to the SQL string
 
         @return any return value from the SQL command executed
-        */
+    */
     auto tryExecArgs(string sql, *softlist<auto> args) {
         return tryExecArgsImpl(sql, args);
     }
@@ -597,7 +603,7 @@ t.tryExecRaw("drop table tmp_table");
         @param sql the SQL to execute
 
         @return any return value from the SQL command executed
-        */
+    */
     auto tryExecRaw(string sql) {
         return tryExecRawImpl(sql);
     }
@@ -640,7 +646,7 @@ table.truncate();
         @endcode
 
         @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
-        */
+    */
     truncate() {
         ds.exec(getTruncateSqlImpl());
         inDb = False;
@@ -666,7 +672,7 @@ string sql = table.getTruncateSql();
         @see inDb() for a method that tells if the table is already in the database or not
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
-        */
+    */
     string getTruncateSql(*hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
         return AbstractDatabase::doCallback(opt, getTruncateSqlImpl(), AbstractDatabase::AC_Truncate, "table", name);
@@ -681,7 +687,7 @@ table.createCommit();
         @param opt a hash of options for the SQL creation strings
 
         @note The transaction is committed if successful or rolled back if an exception occurs; use @ref create() to execute without any transaction management
-        */
+    */
     createCommit(*hash<auto> opt) {
         on_exit ds.commit();
         on_error ds.rollback();
@@ -699,7 +705,7 @@ table.create();
         @note Transaction management is normally not performed when creating tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
 
         @throw CREATE-TABLE-ERROR table has already been read from or created in the database
-        */
+    */
     create(*hash<auto> opt) {
         if (inDb)
             throw "CREATE-TABLE-ERROR", sprintf("%s has already been read from or created in the database", getDesc());
@@ -792,7 +798,9 @@ bool b = table.empty();
 
     #! creates the object from a table description hash
     /** @param desc a @ref table_desc_hash "table description hash" describing the table
-        @param opt an optional hash of options for the table creation string; see @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional driver-specific options
+        @param opt an optional hash of options for the table creation string; see
+        @ref SqlUtil::AbstractTable::TableOptions for common options; each driver can support additional
+        driver-specific options
 
         @throw OPTION-ERROR invalid or unsupported option passed
         @throw DESCRIPTION-ERROR invalid or unsupported description hash value passed
@@ -814,8 +822,10 @@ bool b = table.empty();
         l.lock();
         on_exit l.unlock();
 
-        if (!emptyUnlocked())
-            throw "DESCRIPTION-ERROR", sprintf("%s: cannot set up a non-empty table from a hash<auto> description", getDesc());
+        if (!emptyUnlocked()) {
+            throw "DESCRIPTION-ERROR", sprintf("%s: cannot set up a non-empty table from a hash description",
+                getDesc());
+        }
 
         # add current table to cache
         opt.table_cache.add(name, self);
@@ -852,7 +862,8 @@ bool b = table.empty();
         # process column definitions
         foreach string cn in (desc.columns.keyIterator()) {
             if (desc.columns{cn}.typeCode() != NT_HASH)
-                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y instead (%y)", getDesc(), cn, desc.columns{cn}.type(), desc.columns{cn});
+                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to column key %y is not a hash, got type %y "
+                    "instead (%y)", getDesc(), cn, desc.columns{cn}.type(), desc.columns{cn});
             AbstractDatabase::checkDriverOptions(\desc.columns{cn}, drv);
         }
 
@@ -871,12 +882,14 @@ bool b = table.empty();
         # add indexes to table
         foreach string ixn in (desc.indexes.keyIterator()) {
             if (desc.indexes{ixn}.typeCode() != NT_HASH)
-                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", getDesc(), ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
+                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y "
+                    "instead (%y)", getDesc(), ixn, desc.indexes{ixn}.type(), desc.indexes{ixn});
 
             hash<auto> ih = desc.indexes{ixn};
 
             if (!ih.columns || !inlist(ih.columns.typeCode(), (NT_LIST, NT_STRING)))
-                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for index %y is not a list or a string, got type %y instead (%y)", getDesc(), ixn, ih.columns.type(), ih.columns);
+                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for index %y is not a list "
+                    "or a string, got type %y instead (%y)", getDesc(), ixn, ih.columns.type(), ih.columns);
 
             addIndexUnlocked(ixn, ih.unique ? True : False, ih.columns, opt.(getIndexOptions().keys()));
         }
@@ -884,22 +897,28 @@ bool b = table.empty();
         # add primary key to table
         if (desc.primary_key) {
             if (desc.primary_key.typeCode() != NT_HASH)
-                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to primary_key is not a hash, got type %y instead (%y)", getDesc(), desc.primary_key.type(), desc.primary_key);
+                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to primary_key is not a hash, got type %y "
+                    "instead (%y)", getDesc(), desc.primary_key.type(), desc.primary_key);
             if (!desc.primary_key.name || desc.primary_key.name.typeCode() != NT_STRING)
-                throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for 'name' key in primary_key hash: %y", getDesc(), desc.primary_key);
+                throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for 'name' key in primary_key hash: %y",
+                    getDesc(), desc.primary_key);
 
-            addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns, opt.(getConstraintOptions().keys()));
+            addPrimaryKeyUnlocked(desc.primary_key.name, desc.primary_key.columns,
+                opt.(getConstraintOptions().keys()));
         }
 
         # add unique constraints to table
         foreach string un in (desc.unique_constraints.keyIterator()) {
             if (desc.unique_constraints{un}.typeCode() != NT_HASH)
-                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y instead (%y)", getDesc(), un, desc.unique_constraints{un}.type(), desc.unique_constraints{un});
+                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to index key %y is not a hash, got type %y "
+                    "instead (%y)", getDesc(), un, desc.unique_constraints{un}.type(), desc.unique_constraints{un});
 
             hash<auto> ch = desc.unique_constraints{un};
 
             if (!ch.columns || !inlist(ch.columns.typeCode(), (NT_LIST, NT_STRING)))
-                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for unique constraint %y is not a list or a string, got type %y instead (%y)", getDesc(), un, ch.columns.type(), ch.columns);
+                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for unique constraint %y "
+                    "is not a list or a string, got type %y instead (%y)", getDesc(), un, ch.columns.type(),
+                    ch.columns);
 
             if (constraints.hasKey(un))
                 continue;
@@ -909,26 +928,33 @@ bool b = table.empty();
         # add foreign constraints to table
         foreach string cn in (desc.foreign_constraints.keyIterator()) {
             if (desc.foreign_constraints{cn}.typeCode() != NT_HASH)
-                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to foreign constraint key %y is not a hash, got type %y instead (%y)", getDesc(), cn, desc.foreign_constraints{cn}.type(), desc.foreign_constraints{cn});
+                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to foreign constraint key %y is not a hash, "
+                    "got type %y instead (%y)", getDesc(), cn, desc.foreign_constraints{cn}.type(),
+                    desc.foreign_constraints{cn});
 
             hash<auto> ch = desc.foreign_constraints{cn};
 
             if (!ch.columns || !inlist(ch.columns.typeCode(), (NT_LIST, NT_STRING)))
-                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for foreign constraint %y is not a list or a string, got type %y instead (%y)", getDesc(), cn, ch.columns.type(), ch.columns);
+                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"columns\" key for foreign constraint %y "
+                    "is not a list or a string, got type %y instead (%y)", getDesc(), cn, ch.columns.type(),
+                    ch.columns);
 
             if (!ch.table || ch.table.typeCode() != NT_STRING)
-                throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for \"table\" key in foreign constraint %y description: %y", getDesc(), cn, ch);
+                throw "DESCRIPTION-ERROR", sprintf("%s: missing string value for \"table\" key in foreign constraint "
+                    "%y description: %y", getDesc(), cn, ch);
 
             if (exists ch.target_columns && !inlist(ch.target_columns.typeCode(), (NT_LIST, NT_STRING)))
-                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"target_columns\" key for foreign constraint %y is not a list or a string, got type %y instead (%y)", getDesc(), cn, ch.target_columns.type(), ch.target_columns);
+                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to \"target_columns\" key for foreign "
+                    "constraint %y is not a list or a string, got type %y instead (%y)", getDesc(), cn,
+                    ch.target_columns.type(), ch.target_columns);
 
             if (!ch.target_columns)
                 ch.target_columns = ch.columns;
 
             try {
-                addForeignConstraintUnlocked(cn, ch.columns, ch.table, ch.target_columns, opt.(getForeignConstraintOptions().keys()));
-            }
-            catch (hash<ExceptionInfo> ex) {
+                addForeignConstraintUnlocked(cn, ch.columns, ch.table, ch.target_columns,
+                    opt.(getForeignConstraintOptions().keys()));
+            } catch (hash<ExceptionInfo> ex) {
                 throw ex.err, sprintf("error setting up %s: %s", getDesc(), ex.desc), ex.arg;
             }
         }
@@ -936,7 +962,9 @@ bool b = table.empty();
         # add triggers to table
         foreach string tn in (desc.triggers.keyIterator()) {
             if (desc.triggers{tn}.typeCode() != NT_STRING)
-                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to trigger key %y is not a string giving the trigger source code, got type %y instead (%y)", getDesc(), tn, desc.triggers{tn}.type(), desc.triggers{tn});
+                throw "DESCRIPTION-ERROR", sprintf("%s: value assigned to trigger key %y is not a string giving the "
+                    "trigger source code, got type %y instead (%y)", getDesc(), tn, desc.triggers{tn}.type(),
+                    desc.triggers{tn});
             string src = desc.triggers{tn};
 
             addTriggerUnlocked(tn, src, opt.(getTriggerOptions().keys()));
@@ -969,7 +997,7 @@ table.addColumn("name", ("qore_type": Type::String, "size": 50), False);
         @note make sure and add a \c default_value value when adding a column with a \c "not null" constraint with existing data
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractColumn addColumn(string cname, hash<auto> opt, bool nullable = True, *reference lsql) {
         l.lock();
         on_exit l.unlock();
@@ -1006,7 +1034,7 @@ list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), 
         - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     list<auto> getAddColumnSql(string cname, hash copt, bool nullable = True, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -1021,14 +1049,16 @@ list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), 
         return AbstractDatabase::doCallback(opt, lsql, AbstractDatabase::AC_Add, "column", name, cname);
     }
 
-    private AbstractColumn addColumnUnlocked(string cname, hash<auto> opt, bool nullable = True, *reference lsql, bool do_exec = True, bool modify_table = True) {
+    private AbstractColumn addColumnUnlocked(string cname, hash<auto> opt, bool nullable = True, *reference lsql,
+            bool do_exec = True, bool modify_table = True) {
         if (!columns)
             columns = new Columns();
         else if (columns.hasKey(cname))
             throw "COLUMN-ERROR", sprintf("%s column %y: this column already exists", getDesc(), cname);
 
         if (!opt.native_type && !opt.qore_type)
-            throw "COLUMN-ERROR", sprintf("%s column %y: no native_type or qore_type keys in column option hash: %y", getDesc(), cname, opt);
+            throw "COLUMN-ERROR", sprintf("%s column %y: no native_type or qore_type keys in column option hash: %y",
+                getDesc(), cname, opt);
 
         validateColumnOptions(cname, \opt, nullable);
 
@@ -1076,7 +1106,7 @@ table.modifyColumn("name", ("qore_type": Type::String, "size": 240), False);
         @note make sure and add a \c default_value value when modifying a column to have a \c "not null" constraint with existing data
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractColumn modifyColumn(string cname, hash<auto> opt, bool nullable = True, *reference lsql) {
         l.lock();
         on_exit l.unlock();
@@ -1127,7 +1157,7 @@ list l = table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 24
         - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     list<auto> getModifyColumnSql(string cname, hash copt, bool nullable = True, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -1297,7 +1327,7 @@ printf("%s;\n", sql);
         @throw PRIMARY-KEY-ERROR the table already has a primary key or invalid columns or options passed
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractPrimaryKey addPrimaryKey(string pkname, softlist cols, *hash<auto> opt, *reference<string> sql) {
         l.lock();
         on_exit l.unlock();
@@ -1327,7 +1357,7 @@ printf("%s;\n", sql);
         @see inDb() for a method that tells if the table is already in the database or not
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
-        */
+    */
     string getAddPrimaryKeySql(string pkname, softlist cols, *hash pkopt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
         l.lock();
@@ -1481,7 +1511,7 @@ list l = table.getDropPrimaryKeySql();
         - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     list<auto> getDropPrimaryKeySql(*hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -1520,7 +1550,7 @@ table.dropPrimaryKey();
         - if there are known foreign contraints on the primary key, SQL for dropping those constraints is also included
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractPrimaryKey dropPrimaryKey(*reference lsql) {
         l.lock();
         on_exit l.unlock();
@@ -1558,7 +1588,7 @@ printf("%s;\n", sql);
         @throw OPTION-ERROR invalid or unsupported option passed
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractUniqueConstraint addUniqueConstraint(string cname, softlist cols, *hash<auto> opt, *reference<string> sql) {
         l.lock();
         on_exit l.unlock();
@@ -1585,7 +1615,7 @@ printf("%s;\n", sql);
         @see inDb() for a method that tells if the table is already in the database or not
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
-        */
+    */
     string getAddUniqueConstraintSql(string cname, softlist cols, *hash ukopt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -1670,7 +1700,7 @@ printf("%s;\n", sql);
         @throw INDEX-ERROR the table already has an index with the given name or invalid columns or options were passed
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractIndex addIndex(string iname, bool unique, softlist cols, *hash<auto> opt, *reference<string> sql) {
         l.lock();
         on_exit l.unlock();
@@ -1699,7 +1729,7 @@ printf("%s;\n", sql);
         @see inDb() for a method that tells if the table is already in the database or not
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
-        */
+    */
     string getAddIndexSql(string iname, bool unique, softlist cols, *hash<auto> ixopt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -1838,7 +1868,7 @@ table.dropIndex("uk_mytable_name");
         @note this method retrieves all current index definitions from the database if none have already been defined
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractIndex dropIndex(string iname, *reference<string> sql) {
         l.lock();
         on_exit l.unlock();
@@ -1872,7 +1902,7 @@ string sql = table.getDropIndexSql("uk_mytable_name");
         - if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     string getDropIndexSql(string iname, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -1911,7 +1941,7 @@ printf("%s;\n", sql);
         @throw FOREIGN-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractForeignConstraint addForeignConstraint(string cname, softlist cols, string table, *softlist tcols, *hash<auto> opt, *reference<string> sql) {
         l.lock();
         on_exit l.unlock();
@@ -1941,7 +1971,7 @@ printf("%s;\n", sql);
         @see inDb() for a method that tells if the table is already in the database or not
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
-        */
+    */
     string getAddForeignConstraintSql(string cname, softlist cols, string table, *softlist tcols, *hash fkopt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -2054,7 +2084,7 @@ table.dropForeignConstraint("uk_mytable_name");
         @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractForeignConstraint dropForeignConstraint(string cname, *reference<string> sql) {
         l.lock();
         on_exit l.unlock();
@@ -2084,7 +2114,7 @@ table.removeForeignConstraint("uk_mytable_name");
         @note this method retrieves all current foreign constraint definitions from the database if none have already been defined
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractForeignConstraint removeForeignConstraint(string cname) {
         l.lock();
         on_exit l.unlock();
@@ -2116,7 +2146,7 @@ printf("%s;\n", sql);
         @throw CHECK-CONSTRAINT-ERROR the table already has a constraint with the given name or invalid columns or options were passed
 
         @see inDb() for a method that tells if the table is already in the database or not
-        */
+    */
     AbstractCheckConstraint addCheckConstraint(string cname, string src, *hash<auto> opt, *reference<string> sql) {
         l.lock();
         on_exit l.unlock();
@@ -2145,7 +2175,7 @@ printf("%s;\n", sql);
         @see inDb() for a method that tells if the table is already in the database or not
 
         @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
-        */
+    */
     string getAddCheckConstraintSql(string cname, string src, *hash copt, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
@@ -2627,14 +2657,14 @@ string sql = table.getDropTriggerSql("trig_mytable");
         # first try to handle non-registered type (like eg. Oracle's objects)
         if (opt.native_type && !otm.hasKey(opt.native_type) && !opt.qore_type) {
             opt.qore_type = "any";
-        }
-        else {
+        } else {
             # get native_type from registered maps
             if (!opt.native_type) {
                 hash qtm = getQoreTypeMapImpl();
                 opt.native_type = qtm{opt.qore_type};
                 if (!opt.native_type)
-                    throw "COLUMN-ERROR", sprintf("%s column %y: qore type %y cannot be mapped to a column type (valid values: %y)", getDesc(), cname, opt.qore_type, qtm.keys());
+                    throw "COLUMN-ERROR", sprintf("%s column %y: qore type %y cannot be mapped to a column type "
+                        "(valid values: %y)", getDesc(), cname, opt.qore_type, qtm.keys());
             }
 
             # get native type description
@@ -2647,14 +2677,22 @@ string sql = table.getDropTriggerSql("trig_mytable");
 
         if (exists opt.size) {
             if (!th.size)
-                throw "COLUMN-ERROR", sprintf("%s column %y: size %y given but type %y does not take a size attribute", getDesc(), cname, opt.size, opt.native_type);
+                throw "COLUMN-ERROR", sprintf("%s column %y: size %y given but type %y does not take a size "
+                    "attribute", getDesc(), cname, opt.size, opt.native_type);
             if (th.size_range && (opt.size < th.size_range[0] || opt.size > th.size_range[1]))
-                throw "COLUMN-ERROR", sprintf("%s column %y: size %y is not valid for type %y; must be between %d and %d inclusive", getDesc(), cname, opt.size, opt.native_type, th.size_range[0], th.size_range[1]);
-        }
-        else {
-            if (th.size == SZ_MAND)
-                throw "COLUMN-ERROR", sprintf("%s column %y: type %y requires a size argument but none was supplied (options: %y)", getDesc(), cname, opt.native_type, opt);
-            opt.size = 0;
+                throw "COLUMN-ERROR", sprintf("%s column %y: size %y is not valid for type %y; must be between %d "
+                    "and %d inclusive", getDesc(), cname, opt.size, opt.native_type, th.size_range[0],
+                    th.size_range[1]);
+        } else {
+            if (th.default_size) {
+                opt.size = th.default_size;
+            } else {
+                if (th.size == SZ_MAND) {
+                    throw "COLUMN-ERROR", sprintf("%s column %y: type %y requires a size argument but none was supplied "
+                        "(options: %y)", getDesc(), cname, opt.native_type, opt);
+                }
+                opt.size = 0;
+            }
         }
 
         if (th.size == SZ_NUM) {
@@ -2662,18 +2700,18 @@ string sql = table.getDropTriggerSql("trig_mytable");
             opt.size = 0;
             if (opt.scale) {
                 if (th.scale_range && (opt.scale < th.scale_range[0] || opt.scale > th.scale_range[1]))
-                    throw "COLUMN-ERROR", sprintf("%s column %y: scale %y is not valid for type %y; must be between %d and %d inclusive", getDesc(), cname, opt.scale, opt.native_type, th.scale_range[0], th.scale_range[1]);
-            }
-            else
+                    throw "COLUMN-ERROR", sprintf("%s column %y: scale %y is not valid for type %y; must be between "
+                        "%d and %d inclusive", getDesc(), cname, opt.scale, opt.native_type, th.scale_range[0],
+                        th.scale_range[1]);
+            } else {
                 opt.scale = 0;
-        }
-        else if (opt.scale)
-            throw "COLUMN-ERROR", sprintf("%s column %y: scale %y is not valid for type %y; it is not a numeric type", getDesc(), cname, opt.scale, opt.native_type);
-        else
+            }
+        } else if (opt.scale) {
+            throw "COLUMN-ERROR", sprintf("%s column %y: scale %y is not valid for type %y; it is not a numeric type",
+                getDesc(), cname, opt.scale, opt.native_type);
+        } else {
             opt.precision = opt.scale = 0;
-
-        if (!opt.size && th.default_size)
-            opt.size = th.default_size;
+        }
 
         # check type of default value (must match column type)
         if (exists opt.default_value && !opt.default_value_native) {
@@ -4445,13 +4483,18 @@ string sql = table.getSelectSql(sh, \args);
 
                     case NT_HASH: {
                         if (!cv.cop)
-                            throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element %d/%d; the \"columns\" select option must be assigned to a list of strings giving the column names or a list of column operator hashes as returned from column operator functions; this element is missing hash key \"cop\" giving the column operator; keys provided: %y", getDesc(), $# + 1, qh.columns.lsize(), cv.keys());
+                            throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element "
+                                "%d/%d; the \"columns\" select option must be assigned to a list of strings giving "
+                                "the column names or a list of column operator hashes as returned from column "
+                                "operator functions; this element is missing hash key \"cop\" giving the column "
+                                "operator; keys provided: %y", getDesc(), $# + 1, qh.columns.lsize(), cv.keys());
                         try {
                             string val = doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch, \psch);
                             ce += val;
                         } catch (hash<ExceptionInfo> ex) {
                             # rethrow exception with additional contextual information
-                            throw ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex), getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
+                            throw ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex),
+                                getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
                         }
                         if (qh.superquery && cv.cop == COP_AS && cv.arg)
                             mch{cv.arg} = True;
@@ -4459,7 +4502,8 @@ string sql = table.getSelectSql(sh, \args);
                     }
 
                     default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in column list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in "
+                            "column list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
                 }
             }
             cstr = foldl $1 + ", " + $2, ce.iterator();
@@ -4481,7 +4525,8 @@ string sql = table.getSelectSql(sh, \args);
             else if (js instanceof Table)
                 jh.table = js.getTable();
             else
-                throw "SELECT-ERROR", sprintf("%s: don't know how to process join element of type %y; expecting a join hash, an AbstractTable object, or a Table object", getDesc(), js.type());
+                throw "SELECT-ERROR", sprintf("%s: don't know how to process join element of type %y; expecting a "
+                    "join hash, an AbstractTable object, or a Table object", getDesc(), js.type());
 
             AbstractTable t = jh.table;
             t.describe();
@@ -4491,7 +4536,8 @@ string sql = table.getSelectSql(sh, \args);
             AbstractTable jt;
             if (jh.ta) {
                 if (!jch{jh.ta})
-                    throw "SELECT-ERROR", sprintf("%s: can't join with unknown table/alias %y; known tables/aliases: %y", getDesc(), jh.ta, list(getName()) + jch.keys());
+                    throw "SELECT-ERROR", sprintf("%s: can't join with unknown table/alias %y; known tables/aliases: "
+                        "%y", getDesc(), jh.ta, list(getName()) + jch.keys());
                 jt = jch{jh.ta};
             } else
                 jt = self;
@@ -4514,15 +4560,18 @@ string sql = table.getSelectSql(sh, \args);
             list<string> jel = ();
             if (jh.jcols) {
                 if (jh.jcols.typeCode() != NT_HASH)
-                    throw "SELECT-ERROR", sprintf("%s: join clause error; expecting a hash assigned to the \"jcols\" key; got %y instead", getDesc(), jh.jcols.type());
+                    throw "SELECT-ERROR", sprintf("%s: join clause error; expecting a hash assigned to the \"jcols\" "
+                        "key; got %y instead", getDesc(), jh.jcols.type());
                 HashIterator i(jh.jcols);
                 while (i.next()) {
                     string key = i.getKey();
                     string value = i.getValue();
                     if (!jt.columns.hasKey(key))
-                        throw "SELECT-ERROR", sprintf("%s: cannot join on unknown column %y.%y; known columns: %y", getDesc(), jt.getSqlName(), key, jt.columns.keys());
+                        throw "SELECT-ERROR", sprintf("%s: cannot join on unknown column %y.%y; known columns: %y",
+                            getDesc(), jt.getSqlName(), key, jt.columns.keys());
                     if (!t.describe().hasKey(value))
-                        throw "SELECT-ERROR", sprintf("%s: cannot join on unknown column %y.%y; known columns: %y", getDesc(), t.getSqlName(), value, t.columns.keys());
+                        throw "SELECT-ERROR", sprintf("%s: cannot join on unknown column %y.%y; known columns: %y",
+                            getDesc(), t.getSqlName(), value, t.columns.keys());
                     jel += sprintf("%s.%s = %s.%s", jtn, key, an, value);
                 }
             } else {
@@ -4553,7 +4602,9 @@ string sql = table.getSelectSql(sh, \args);
                     }
 
                     if (!fkh)
-                        throw "SELECT-ERROR", sprintf("%s: cannot perform a %s join from %s on %s without a column specification since neither table has a foreign constraint on the primary key of the other table", getDesc(), jh.jop, jt.getSqlName(), t.getSqlName());
+                        throw "SELECT-ERROR", sprintf("%s: cannot perform a %s join from %s on %s without a column "
+                            "specification since neither table has a foreign constraint on the primary key of the "
+                            "other table", getDesc(), jh.jop, jt.getSqlName(), t.getSqlName());
                 }
             }
 
@@ -4561,7 +4612,8 @@ string sql = table.getSelectSql(sh, \args);
             if (jh.cond)
                 jel += jt.getWhereClauseIntern(jh.cond, \args, an, NOTHING, NOTHING, NOTHING, psch);
 
-            sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.opt), jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
+            sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.opt),
+                jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
         }
 
         getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch, psch);
@@ -4582,14 +4634,19 @@ string sql = table.getSelectSql(sh, \args);
                 string key = i.getKey();
                 auto value = i.getValue();
                 if (value.typeCode() != NT_LIST)
-                    throw "SELECT-ERROR", sprintf("%s: expecting a list<auto> argument to the \"having\" condition for column %y; got type %y instead (value: %y)", getDesc(), key, value.type(), value);
+                    throw "SELECT-ERROR", sprintf("%s: expecting a list<auto> argument to the \"having\" condition "
+                        "for column %y; got type %y instead (value: %y)", getDesc(), key, value.type(), value);
                 if (value[0].typeCode() != NT_STRING)
-                    throw "SELECT-ERROR", sprintf("%s: expecting a string argument to the \"having\" condition in the first position giving the column operator code for column %y; got type %y instead (value: %y)", getDesc(), key, value[0].type(), value[0]);
+                    throw "SELECT-ERROR", sprintf("%s: expecting a string argument to the \"having\" condition in "
+                        "the first position giving the column operator code for column %y; got type %y instead "
+                        "(value: %y)", getDesc(), key, value[0].type(), value[0]);
 
                 *hash<auto> psch_copy = psch;
-                string hstr = doColumnOperatorIntern(value[0], NOTHING, getColumnExpressionIntern(key, jch, boolean(qh.join), ch, psch), cm, jch, boolean(qh.join), ch, psch);
+                string hstr = doColumnOperatorIntern(value[0], NOTHING, getColumnExpressionIntern(key, jch,
+                    boolean(qh.join), ch, psch), cm, jch, boolean(qh.join), ch, psch);
                 if (psch_copy != psch)
-                    throw "HAVING-ERROR", sprintf("%s: cannot use column operator functions in the having clause with column alias specifications", getDesc());
+                    throw "HAVING-ERROR", sprintf("%s: cannot use column operator functions in the having clause "
+                        "with column alias specifications", getDesc());
                 hl += doWhereExpressionIntern(hstr, value[1], \args, jch, boolean(qh.join), ch, NOTHING, opt);
             }
             if (hl)
@@ -4606,7 +4663,8 @@ string sql = table.getSelectSql(sh, \args);
             }
             if (qh.offset || qh.limit) {
                 if (!matchAnyUnique(qh.orderby))
-                    throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
+                    throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match "
+                        "any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
 
                 doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch, psch, coll);
             } else {
@@ -4653,26 +4711,33 @@ string sql = table.getSelectSql(sh, \args);
         return from;
     }
 
-    private list<auto> getGroupByListUnlocked(hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list coll) {
+    private list<auto> getGroupByListUnlocked(hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch,
+            list coll) {
         return getGroupOrderByListUnlocked("groupby", qh, jch, ch, psch, coll);
     }
 
-    private list<auto> getOrderByListUnlocked(hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list coll) {
+    private list<auto> getOrderByListUnlocked(hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch,
+            list coll) {
         return getGroupOrderByListUnlocked("orderby", qh, jch, ch, psch, coll);
     }
 
-    private list<auto> getGroupOrderByListUnlocked(string key, hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list coll) {
+    private list<auto> getGroupOrderByListUnlocked(string key, hash<auto> qh, *hash<auto> jch, *hash<auto> ch,
+            *hash<auto> psch, list coll) {
         list ce = ();
 
         code do_int = sub (int cv) {
             if (!coll) {
                 if (cv > columns.size())
-                    throw "SELECT-ERROR", sprintf("%s %d: %s does not support numeric column offsets for the %s expression, and the table has %d column%s", key, cv, ds.getDriverName(), key, columns.size(), columns.size() == 1 ? "" : "s");
+                    throw "SELECT-ERROR", sprintf("%s %d: %s does not support numeric column offsets for the %s "
+                        "expression, and the table has %d column%s", key, cv, ds.getDriverName(), key, columns.size(),
+                        columns.size() == 1 ? "" : "s");
                 ce += columns.keys()[cv - 1];
             }
             else {
                 if (cv > coll.size())
-                    throw "SELECT-ERROR", sprintf("%s %d: %s does not support numeric column offsets for the %s expression, and %d column%s %s given in the select argument", key, cv, ds.getDriverName(), key, coll.size(), coll.size() == 1 ? "" : "s", coll.size() == 1 ? "was" : "were");
+                    throw "SELECT-ERROR", sprintf("%s %d: %s does not support numeric column offsets for the %s "
+                        "expression, and %d column%s %s given in the select argument", key, cv, ds.getDriverName(),
+                        key, coll.size(), coll.size() == 1 ? "" : "s", coll.size() == 1 ? "was" : "were");
                 string val = coll[cv - 1];
                 val =~ s/ as .*$//;
                 ce += val;
@@ -4700,7 +4765,8 @@ string sql = table.getSelectSql(sh, \args);
                 }
 
                 default:
-                    throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in %s list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
+                    throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in %s "
+                        "list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
             }
         }
         return ce;
@@ -4721,27 +4787,34 @@ string sql = table.getSelectSql(sh, \args);
             case NT_STRING:
                 return getColumnNameIntern(cvc, jch, join, ch, psch);
         }
-        throw "SELECT-ERROR", sprintf("%s: column operator hash %y has an invalid \"column\" key; expecting a string column specification or a column operator description hash", getDesc(), cvc);
+        throw "SELECT-ERROR", sprintf("%s: column operator hash %y has an invalid \"column\" key; expecting a string "
+            "column specification or a column operator description hash", getDesc(), cvc);
     }
 
-    private string doColumnOperatorIntern(hash cvc, *hash<auto> jch, bool join, *hash<auto> ch, *hash<auto> psch, *reference psch_ref) {
-        return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch, join, ch, psch) : NOTHING), getColumnOperatorMap(), jch, join, ch, psch, \psch_ref);
+    private string doColumnOperatorIntern(hash cvc, *hash<auto> jch, bool join, *hash<auto> ch, *hash<auto> psch,
+            *reference psch_ref) {
+        return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch,
+            join, ch, psch) : NOTHING), getColumnOperatorMap(), jch, join, ch, psch, \psch_ref);
     }
 
-    private string doColumnOperatorIntern(auto cop, auto arg, *string cve, hash cm, *hash<auto> jch, bool join, *hash<auto> ch, *hash<auto> psch, *reference psch_ref) {
+    private string doColumnOperatorIntern(auto cop, auto arg, *string cve, hash cm, *hash<auto> jch, bool join,
+            *hash<auto> ch, *hash<auto> psch, *reference psch_ref) {
         if (cop.typeCode() != NT_STRING)
-            throw "SELECT-ERROR", sprintf("%s: invalid column operator code %y; use column operator functions to create valid column specifications with supported column operators", getDesc(), cop);
+            throw "SELECT-ERROR", sprintf("%s: invalid column operator code %y; use column operator functions to "
+                "create valid column specifications with supported column operators", getDesc(), cop);
 
         *hash cmd = cm{cop};
         if (!cmd)
-            throw "SELECT-ERROR", sprintf("%s: unknown column operator %y: expecting one of: %y", getDesc(), cop, cm.keys());
+            throw "SELECT-ERROR", sprintf("%s: unknown column operator %y: expecting one of: %y", getDesc(), cop,
+                cm.keys());
 
         if (cmd.arg) {
             string at = arg.type();
             switch (cmd.arg) {
                 default: {
                     if (at != cmd.arg)
-                        throw "SELECT-ERROR", sprintf("%s: invalid argument to column operator %y; got type %y, expecting %y", getDesc(), cop, at, cmd.arg);
+                        throw "SELECT-ERROR", sprintf("%s: invalid argument to column operator %y; got type %y, "
+                            "expecting %y", getDesc(), cop, at, cmd.arg);
                 }
             }
         }
@@ -4755,13 +4828,15 @@ string sql = table.getSelectSql(sh, \args);
                     arg = arg.arg.toString();
                 } else {
                     if (arg.typeCode() != NT_STRING)
-                        throw "SELECT-ERROR", sprintf("%s: expecting a string column designation for column operator %y; got type %y instead (value: %y)", getDesc(), cop, arg.type(), arg);
+                        throw "SELECT-ERROR", sprintf("%s: expecting a string column designation for column "
+                            "operator %y; got type %y instead (value: %y)", getDesc(), cop, arg.type(), arg);
                     arg = getColumnNameIntern(arg, jch, join, ch, psch);
                 }
             }
         } else if (cmd.columnargs) {
             if (arg.args.typeCode() != NT_LIST)
-                throw "SELECT-ERROR", sprintf("%s: expecting a list of column designators for column operator %y; got type %y instead", getDesc(), cop, arg.args.type());
+                throw "SELECT-ERROR", sprintf("%s: expecting a list of column designators for column operator %y; got "
+                    "type %y instead", getDesc(), cop, arg.args.type());
             foreach auto narg in (\arg.args) {
                 switch (narg.typeCode()) {
                     case NT_STRING: narg = getColumnNameIntern(narg, jch, join, ch, psch); break;
@@ -4769,13 +4844,15 @@ string sql = table.getSelectSql(sh, \args);
                     # HACK: for COP_OVER. We need to handle situation when arg can be NOTHING
                     #       but also we have to validate non-NOTHING args to real columns.
                     case NT_NOTHING: if (cmd.columnargs_ignore_nothings) continue;
-                    default: throw "COLUMN-ERROR", sprintf("%s: expecting a string column designator or a column operator hash; got %y in position %d/%d instead", getDesc(), narg, $#, arg.args.lsize());
+                    default: throw "COLUMN-ERROR", sprintf("%s: expecting a string column designator or a column "
+                        "operator hash; got %y in position %d/%d instead", getDesc(), narg, $#, arg.args.lsize());
                 }
             }
         }
 
         if (!exists cve && !cmd.nocolumn && !cmd.columnargs)
-            throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was provided", getDesc(), cop);
+            throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was "
+                "provided", getDesc(), cop);
 
         if (cmd.withalias) {
             # get escaped AS alias only when required (a reserved word)
@@ -4802,7 +4879,8 @@ string sql = table.getSelectSql(sh, \args);
         *string tp = (cv =~ x/(\w+)\..+/)[0];
         if (tp) {
             if (!jch{tp})
-                throw "COLUMN-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this query: %y", getDesc(), tp, cv, jch.keys());
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this "
+                    "query: %y", getDesc(), tp, cv, jch.keys());
             # remove table alias from column name
             splice cv, 0, tp.size() + 1;
 
@@ -4819,14 +4897,16 @@ string sql = table.getSelectSql(sh, \args);
             return use_prefix ? sprintf("%s.%s", getSqlName(), cv) : cv;
         } else if (ch) {
             if (!ch{cv} && !psch{cv})
-                throw "COLUMN-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: %y", getDesc(), cv, ch.keys());
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: "
+                    "%y", getDesc(), cv, ch.keys());
             return cv;
         } else {
             tp = getSqlName();
             if (cv == "*")
                 use_prefix = asteriskRequiresPrefix();
             else if (!columns.hasKey(cv) && !psch{cv})
-                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y; known column aliases: %y", getDesc(), tp, cv, keys columns, keys psch);
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y; "
+                    "known column aliases: %y", getDesc(), tp, cv, keys columns, keys psch);
         }
 
         # ensure that reserved words are properly quoted

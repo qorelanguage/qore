@@ -7,7 +7,7 @@
 %strict-args
 
 module SqlUtilTestBase {
-    version = "0.1";
+    version = "1.0";
     desc = "SqlUtil test base module";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -85,6 +85,7 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
+        addTestCase("db provider", \dbProviderTest());
         addTestCase("db table provider", \dbTableProviderTest());
         addTestCase("Insert", \insertTest());
         addTestCase("Select", \selectTest());
@@ -110,8 +111,9 @@ public class SqlTestBase inherits QUnit::Test {
 
     globalTearDown() {
         # drop the test schema
-        if (schema)
+        if (schema) {
             schema.drop(True, m_options.verbose);
+        }
     }
 
     serializationTest() {
@@ -123,6 +125,33 @@ public class SqlTestBase inherits QUnit::Test {
         # test that the table object works
         string sql = t.getSelectSql(("columns": "id", "limit": 1));
         assertEq(Type::String, sql.type());
+    }
+
+    dbProviderTest() {
+        if (!table) testSkip("no DB connection");
+
+        DbDataProvider db(table.getDatasource());
+        assertTrue(db.supportsCreateChild());
+        assertTrue(db.supportsDeleteChild());
+
+        string name = "test_table_" + get_random_string();
+        hash<string, QoreDataField> fields = {
+            "id": new QoreDataField("id", "id field", IntType),
+            "name": new QoreDataField("name", "name field", StringType),
+            "date": new QoreDataField("date", "date field", DateType),
+        };
+        AbstractDataProvider dp = db.createChildProvider(name, fields);
+        on_exit {
+            db.deleteChildProvider(dp.getName());
+        }
+        assertTrue(dp.requiresTransactionManagement());
+        hash<auto> record = {
+            "id": rand(),
+            "name": get_random_string(),
+            "date": now_us(),
+        };
+        dp.createRecord(record);
+        assertEq(record, dp.searchSingleRecord({"id": record.id}));
     }
 
     dbTableProviderTest() {
