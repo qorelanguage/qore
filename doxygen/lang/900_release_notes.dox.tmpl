@@ -16,6 +16,11 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)
 
     @subsection qore_1_2_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> module
+      - fixed a bug where date/time values in other time zones were not bound correctly
+        (<a href="https://github.com/qorelanguage/qore/issues/4403">issue 4403</a>)
+      - fixed a bug handling transaction savepoints
+        (<a href="https://github.com/qorelanguage/qore/issues/4402">issue 4402</a>)
     - <a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a> module
       - allow a \c VARCHAR column to be created without a size, assume a default size
         (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
@@ -25,6 +30,9 @@
     - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module
       - fixed a bug where objects created did not always contain the actual name used to create it
         (<a href="https://github.com/qorelanguage/qore/issues/4396">issue 4396</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
+      - respect "or nothing" %Qore types when mapping to column types
+        (<a href="https://github.com/qorelanguage/qore/issues/4400">issue 4400</a>)
 
     @section qore_1_1_0 Qore 1.1.0
 

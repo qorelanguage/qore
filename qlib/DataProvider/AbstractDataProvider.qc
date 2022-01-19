@@ -496,6 +496,7 @@ public class AbstractDataProvider {
 
         @return the new child data provider
 
+        @throw INVALID-OPERATION thrown if the data provider does not support this API
         @throw CREATE-CHILD-PROVIDER-ERROR error creating the child provider
 
         @since DataProvider 2.0
@@ -503,9 +504,10 @@ public class AbstractDataProvider {
     AbstractDataProvider createChildProvider(string name, hash<string, AbstractDataField> fields,
             *hash<auto> child_create_options) {
         checkCreateChild();
+        on_error rethrow "CREATE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         child_create_options = validateChildCreateOptions(child_create_options);
         if (!fields) {
-            throw "CREATE-CHILD-PROVIDER-ERROR", "at least one field must be present in the field hash";
+            throw "FIELD-ERROR", "at least one field must be present in the field hash";
         }
         return createChildProviderImpl(name, fields, child_create_options);
     }
@@ -514,10 +516,14 @@ public class AbstractDataProvider {
     /** @param name the name of the new child data provider
         @param child_delete_options the options for deleting a child data provider
 
+        @throw INVALID-OPERATION thrown if the data provider does not support this API
+        @throw DELETE-CHILD-PROVIDER-ERROR error creating the child provider
+
         @since DataProvider 2.0
     */
     deleteChildProvider(string name, *hash<auto> child_delete_options) {
         checkDeleteChild();
+        on_error rethrow "DELETE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         child_delete_options = validateChildDeleteOptions(child_delete_options);
         return deleteChildProviderImpl(name, child_delete_options);
     }
@@ -529,10 +535,14 @@ public class AbstractDataProvider {
 
         @return the new child data provider
 
+        @throw INVALID-OPERATION thrown if the data provider does not support this API
+        @throw ADD-FIELD-ERROR error adding the field
+
         @since DataProvider 2.0
     */
     AbstractDataProvider addField(AbstractDataField field, *hash<auto> field_add_options) {
         checkAddField();
+        on_error rethrow "ADD-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         field_add_options = validateFieldAddOptions(field_add_options);
         return addFieldImpl(field, field_add_options);
     }
@@ -542,10 +552,14 @@ public class AbstractDataProvider {
         @param field the new definition of the field
         @param field_update_options the options for adding the new field
 
+        @throw INVALID-OPERATION thrown if the data provider does not support this API
+        @throw UPDATE-FIELD-ERROR error adding the field
+
         @since DataProvider 2.0
     */
     updateField(string name, AbstractDataField field, *hash<auto> field_update_options) {
         checkUpdateField();
+        on_error rethrow "UPDATE-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         field_update_options = validateFieldUpdateOptions(field_update_options);
         return updateFieldImpl(name, field, field_update_options);
     }
@@ -554,10 +568,14 @@ public class AbstractDataProvider {
     /** @param name the name of the field to delete
         @param field_delete_options the options for deleting the new field
 
+        @throw INVALID-OPERATION thrown if the data provider does not support this API
+        @throw DELETE-FIELD-ERROR error adding the field
+
         @since DataProvider 2.0
     */
     deleteField(string name, *hash<auto> field_delete_options) {
         checkDeleteField();
+        on_error rethrow "DELETE-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         field_delete_options = validateFieldDeleteOptions(field_delete_options);
         return deleteFieldImpl(name, field_delete_options);
     }

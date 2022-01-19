@@ -73,10 +73,13 @@ module DbDataProvider {
     - @ref DbDataProvider::DbTableBulkUpserter "DbTableBulkUpserter"
     - @ref DbDataProvider::DbTableDataProvider "DbTableDataProvider"
     - @ref DbDataProvider::DbTableRecordIterator "DbTableRecordIterator"
+    - @ref DbDataProvider::DbTableTransactionHelper "DbTableTransactionHelper"
+    - @ref DbDataProvider::DbTransactionHelper "DbTransactionHelper"
 
     @section dbdataprovider_relnotes Release Notes
 
     @subsection dbdataprovider_v2.0 DbDataProvider v2.0
+    - added the @ref DbDataProvider::DbTransactionHelper "DbTransactionHelper" class
     - added support for creating, reading, updating, and modifying data providers
       (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)
 

@@ -37,6 +37,7 @@ public class DbDataProvider inherits AbstractDataProvider {
             "search_options": SearchOptions,
             "create_options": NOTHING,
             "upsert_options": NOTHING,
+            "child_create_options": ChildCreateOptions,
             "transaction_management": True,
             "has_record": True,
             "record_requires_search_options": True,
@@ -71,6 +72,20 @@ public class DbDataProvider inherits AbstractDataProvider {
                 "desc": "any bind arguments for the select statement",
             },
         };
+
+        #! Child provider creation options
+        const ChildCreateOptions = {
+            "primary_key": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(SoftListType),
+                "desc": "a list of column names for the primary key for the table; use `primary_key_name` to set the "
+                    "name of the primary key constraint manually, otherwise a suitable name will be automatically "
+                    "generated",
+            },
+            "primary_key_name": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the name of the primary key constraint; only used if `primary_key` is set",
+            },
+        };
     }
 
     private {
@@ -98,7 +113,8 @@ public class DbDataProvider inherits AbstractDataProvider {
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         if (copts.database instanceof AbstractDatabase) {
-            if (copts.datasource instanceof AbstractDatasource && copts.datasource != copts.database.getDatasource()) {
+            if (copts.datasource instanceof AbstractDatasource
+                && copts.datasource != copts.database.getDatasource()) {
                 error("CONSTRUCTOR-ERROR", "option \"database\" is based on a different datasource than the one "
                     "supplied in the \"datasource\" option");
             }
@@ -222,7 +238,8 @@ public class DbDataProvider inherits AbstractDataProvider {
         @throw INVALID-BLOCK-SIZE the block size must be a positive number
         @throw INVALID-OPERATION the data provider does not support reading
     */
-    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000, *hash<auto> where_cond, *hash<auto> search_options) {
+    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000,
+            *hash<auto> where_cond, *hash<auto> search_options) {
         return new DbSelectBulkRecordInterface(block_size, db.getDatasource(), where_cond, search_options);
     }
 
@@ -280,9 +297,10 @@ public class DbDataProvider inherits AbstractDataProvider {
     */
     private AbstractDataProvider createChildProviderImpl(string name, hash<string, AbstractDataField> fields,
             *hash<auto> child_create_options) {
-        hash<auto> table_desc = makeTableDesc(fields, child_create_options);
+        hash<auto> table_desc = makeTableDesc(name, fields, child_create_options);
         AbstractTable table = db.makeTable(name, table_desc);
-        table.create();
+        DbTableTransactionHelper th(table);
+        th.create();
         return new DbTableDataProvider({
             "table": table,
         });
@@ -297,13 +315,9 @@ public class DbDataProvider inherits AbstractDataProvider {
         @since DataProvider 2.0
     */
     private deleteChildProviderImpl(string name, *hash<auto> child_delete_options) {
-        bool dropped;
-        {
-            on_error rethrow "DELETE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
-            dropped = db.dropTableIfExists(name);
-        }
-        if (!dropped) {
-            throw "DELETE-CHILD-PROVIDER-ERROR", sprintf("%s has no child %y", getName(), name);
+        DbTransactionHelper th(db);
+        if (!th.dropTableIfExists(name)) {
+            throw "NO-CHILD", sprintf("%s has no child %y", getName(), name);
         }
     }
 
@@ -347,7 +361,7 @@ public class DbDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns a column description hash for a field
-    static hash<GenericColumnInfo> getColumnDesc(AbstractDataField field, *hash<auto> opts) {
+    hash<GenericColumnInfo> getColumnDesc(AbstractDataField field, *hash<auto> opts) {
         string type_name = field.getTypeName();
         if (type_name == "int") {
             type_name = "integer";
@@ -357,6 +371,10 @@ public class DbDataProvider inherits AbstractDataProvider {
             "default_value": field.getDefaultValue(),
             "notnull": !field.isAssignableFrom(Reflection::NothingType),
         });
+        if (type_name =~ /\*?number$/ && db.requiresScale()) {
+            col.size = db.getMaximumPrecision();
+            col.scale = col.size / 3;
+        }
         if (*string desc = field.getDescription()) {
             col.comment = desc;
         }
@@ -364,13 +382,34 @@ public class DbDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns a table description hash from a field description
-    static hash<auto> makeTableDesc(hash<string, AbstractDataField> fields, *hash<auto> opts) {
-        hash<string, hash<GenericColumnInfo>> cols = map {$1.key: DbDataProvider::getColumnDesc($1.value, opts)},
+    /** @throw TABLE-DESC-ERROR error in table description
+    */
+    hash<auto> makeTableDesc(string name, hash<string, AbstractDataField> fields, *hash<auto> opts) {
+        hash<string, hash<GenericColumnInfo>> cols = map {$1.key: getColumnDesc($1.value, opts)},
             fields.pairIterator();
 
-        return {
+        hash<auto> tdesc += {
             "columns": cols,
         };
+        if (opts.primary_key) {
+            foreach auto cname in (opts.primary_key) {
+                if (cname.typeCode() != NT_STRING) {
+                    throw "TABLE-DESC-ERROR", sprintf("table %y primary key column value %d/%d (starting from 1) is "
+                        "type %y; expecting \"string\"", name, $# + 1, opts.primary_key.size(), name.type());
+                }
+                if (!fields{cname}) {
+                    throw "TABLE-DESC-ERROR", sprintf("table %y primary key column %y is not present in the input "
+                        "field description; known fields: %y", name, cname, keys fields);
+                }
+            }
+            string pk_name = opts.primary_key_name ?? sprintf("pk_%s", name);
+            tdesc.primary_key = {
+                "name": pk_name,
+                "columns": opts.primary_key,
+            };
+        }
+
+        return tdesc;
     }
 }
 }

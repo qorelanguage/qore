@@ -1288,9 +1288,27 @@ string sql = t.getSqlFromList(list);
                 size, extents usage etc. Please refer your DBMS documentation.
 
         @since %SqlUtil 1.5.2
-        */
+    */
     int getPhysicalSize() {
         return getPhysicalSizeImpl();
+    }
+
+    #! Returns @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
+    /** @return @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
+
+        @since %SqlUtil 1.7.5
+    */
+    bool requiresScale() {
+        return False;
+    }
+
+    #! Returns the maximum precision for numeric or decimal columns
+    /** @return -1 means, no maximum
+
+        @since %SqlUtil 1.7.5
+    */
+    int getMaximumPrecision() {
+        return -1;
     }
 
     private validateOptionsIntern(string err, hash<auto> ropt, reference<hash> opt) {

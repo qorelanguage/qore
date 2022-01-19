@@ -104,6 +104,8 @@ module SqlUtil {
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
 
     @subsection sqlutilv1_7_5 SqlUtil v1.7.5
+    - respect "or nothing" %Qore types when mapping to column types
+      (<a href="https://github.com/qorelanguage/qore/issues/4400">issue 4400</a>)
     - allow a \c VARCHAR column to be created without a size, assume a default size
       (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
     - fixed a bug where objects created did not always contain the actual name used to create it

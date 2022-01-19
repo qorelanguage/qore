@@ -2638,7 +2638,7 @@ string sql = table.getDropTriggerSql("trig_mytable");
             throw err, printf("%y: already has a primary key constraint named %y with columns: %y", name, cname, primaryKey.keys());
     }
 
-    private checkUniqueConstraintNameValidateOptions(string err, string cname, hash ropt, reference<hash> opt) {
+    private checkUniqueConstraintNameValidateOptions(string err, string cname, hash<auto> ropt, reference<hash> opt) {
         checkUniqueConstraintName(err, cname);
         # validate options
         validateOptionsIntern(err, ropt, \opt);
@@ -2658,9 +2658,16 @@ string sql = table.getDropTriggerSql("trig_mytable");
         if (opt.native_type && !otm.hasKey(opt.native_type) && !opt.qore_type) {
             opt.qore_type = "any";
         } else {
+            # issue #4400: handle "or nothing" types
+            if (opt.qore_type && opt.qore_type[0] == "*") {
+                if (!exists opt.notnull) {
+                    opt.notnull = False;
+                }
+                splice opt.qore_type, 0, 1;
+            }
             # get native_type from registered maps
             if (!opt.native_type) {
-                hash qtm = getQoreTypeMapImpl();
+                hash<auto> qtm = getQoreTypeMapImpl();
                 opt.native_type = qtm{opt.qore_type};
                 if (!opt.native_type)
                     throw "COLUMN-ERROR", sprintf("%s column %y: qore type %y cannot be mapped to a column type "
@@ -2698,13 +2705,13 @@ string sql = table.getDropTriggerSql("trig_mytable");
         if (th.size == SZ_NUM) {
             opt.precision = opt.size;
             opt.size = 0;
-            if (opt.scale) {
+            if (exists opt.scale) {
                 if (th.scale_range && (opt.scale < th.scale_range[0] || opt.scale > th.scale_range[1]))
                     throw "COLUMN-ERROR", sprintf("%s column %y: scale %y is not valid for type %y; must be between "
                         "%d and %d inclusive", getDesc(), cname, opt.scale, opt.native_type, th.scale_range[0],
                         th.scale_range[1]);
             } else {
-                opt.scale = 0;
+                opt.scale = th.default_scale ?? 0;
             }
         } else if (opt.scale) {
             throw "COLUMN-ERROR", sprintf("%s column %y: scale %y is not valid for type %y; it is not a numeric type",
@@ -2926,7 +2933,8 @@ table.insert(row);
         return insertIntern(row, NOTHING, opt);
     }
 
-    private *hash<auto> insertIntern(hash<auto> row, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
+    private *hash<auto> insertIntern(hash<auto> row, *reference<string> sql, *hash<auto> opt,
+            *reference<softlist<auto>> args) {
         # check data callback options if any
         validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
@@ -2940,7 +2948,8 @@ table.insert(row);
         sql = sprintf("insert into %s (", getSqlName());
         foreach string k in (keys row) {
             if (!columns.hasKey(k))
-                throw "COLUMN-ERROR", sprintf("%s column %y is not a valid column (valid columns: %y)", getDesc(), k, columns.keys());
+                throw "COLUMN-ERROR", sprintf("%s column %y is not a valid column (valid columns: %y)", getDesc(), k,
+                    columns.keys());
         }
         hash vh = getPlaceholdersAndValues(row);
 

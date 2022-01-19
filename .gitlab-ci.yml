@@ -29,7 +29,7 @@ test-ubuntu-amd64:
   tags:
     - amd64
   variables:
-    QORE_DB_CONNSTR_FREETDS: 'freetds:test/test@mssql%rippy:1433'
+    QORE_DB_CONNSTR_FREETDS: 'freetds:test/test@rippy'
   script:
     - |
         if test/docker_test/test-ubuntu.sh; then
@@ -75,7 +75,7 @@ test-alpine-amd64:
   tags:
     - amd64
   variables:
-    QORE_DB_CONNSTR_FREETDS: 'freetds:test/test@mssql%rippy:1433'
+    QORE_DB_CONNSTR_FREETDS: 'freetds:test/test@rippy'
   script:
     - |
         if test/docker_test/test-alpine.sh; then

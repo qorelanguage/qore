@@ -251,7 +251,8 @@ public namespace MysqlSqlUtil {
         }
 
         string getAddSql(string name, string table_name, *hash opt) {
-            return sprintf("add constraint %s foreign key (%s) references %s (%s)", name, (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+            return sprintf("add constraint %s foreign key (%s) references %s (%s)", name,
+                (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
 
         #! returns a string that can be used to drop the foreign constraint from the database
@@ -273,9 +274,6 @@ public namespace MysqlSqlUtil {
 
         constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, *softint bs)
                 : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
-            if (nt =~ /^varchar$/i && !sz) {
-                size = DefaultVarcharSize;
-            }
             byte_size = bs ?? 0;
         }
 
@@ -984,6 +982,9 @@ end";
                 "year_month" : True,
                 "zerofill" : True,
             );
+
+            #! Maximum precision
+            const MysqlMaxPrecision = 65;
         }
 
         private {
@@ -1006,6 +1007,24 @@ end";
                 sequence_function = opts.sequence_function;
 
             seqds = new Datasource(ds.getConfigString());
+        }
+
+        #! Returns @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
+        /** @return @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
+
+            @since %MysqlSqlUtil 1.4.3
+        */
+        bool requiresScale() {
+            return True;
+        }
+
+        #! Returns the maximum precision for numeric or decimal columns
+        /** @return -1 means, no maximum
+
+            @since %MysqlSqlUtil 1.4.3
+        */
+        int getMaximumPrecision() {
+            return MysqlMaxPrecision;
         }
 
         private list<string> featuresImpl() {
@@ -1272,7 +1291,10 @@ end";
         public {
             #! maps mysql type names to type configurations
             const MysqlTypeMap = {
-                "decimal": ("qore": Type::Number, "size": SZ_NUM,),
+                "decimal": {
+                    "qore": Type::Number,
+                    "size": SZ_NUM,
+                },
                 "tinyint": ("qore": Type::Int, "ai": True,),
                 "smallint": ("qore": Type::Int, "ai": True,),
                 "mediumint": ("qore": Type::Int, "ai": True,),
@@ -1300,7 +1322,12 @@ end";
                 },
 
                 "binary": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (0, 255)),
-                "varbinary": ("qore": Type::Binary, "size": SZ_MAND, "size_range": (0, 65535)),
+                "varbinary": {
+                    "qore": Type::Binary,
+                    "size": SZ_MAND,
+                    "size_range": (0, 65535),
+                    "default_size": 80,
+                },
 
                 "tinytext": ("qore": Type::String,),
                 "text": ("qore": Type::String,),
