@@ -47,7 +47,7 @@ const char* ClassNs::getName() const {
 ConstantEntry::ConstantEntry(const QoreProgramLocation* loc, const char* n, QoreValue val, const QoreTypeInfo* ti,
         bool n_pub, bool n_init, bool n_builtin, ClassAccess n_access)
         : loc(loc), name(n), typeInfo(ti), val(val), in_init(false), pub(n_pub),
-        init(n_init), builtin(n_builtin), access(n_access) {
+        init(n_init), builtin(n_builtin), delayed_eval(false), access(n_access) {
     QoreProgram* pgm = getProgram();
     if (pgm)
         pwo = qore_program_private::getParseWarnOptions(pgm);
@@ -64,8 +64,8 @@ ConstantEntry::ConstantEntry(const QoreProgramLocation* loc, const char* n, Qore
 ConstantEntry::ConstantEntry(const ConstantEntry& old)
         : loc(old.loc), pwo(old.pwo), name(old.name),
         typeInfo(old.typeInfo), val(old.val.refSelf()),
-        in_init(false), pub(old.builtin), init(true), builtin(old.builtin),
-        saved_node(old.saved_node ? old.saved_node->refSelf() : nullptr),
+        in_init(false), pub(old.builtin), init(true), builtin(old.builtin), delayed_eval(old.delayed_eval),
+        saved_val(old.saved_val.refSelf()),
         access(old.access), from_module(old.from_module) {
     assert(!old.in_init);
     assert(old.init);
@@ -73,49 +73,17 @@ ConstantEntry::ConstantEntry(const ConstantEntry& old)
     //  QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(val.getTypeInfo()));
 }
 
-int ConstantEntry::scanValue(const QoreValue& n) const {
-    switch (n.getType()) {
-        case NT_LIST: {
-            ConstListIterator i(n.get<const QoreListNode>());
-            while (i.next())
-                if (scanValue(i.getValue()))
-                    return -1;
-            return 0;
-        }
-
-        case NT_HASH: {
-            ConstHashIterator i(n.get<const QoreHashNode>());
-            while (i.next())
-                if (scanValue(i.get()))
-                    return -1;
-            return 0;
-        }
-
-        // do not allow any closure or structure containing a closure to be copied directly into the parse tree
-        // since a recursive loop can be created: https://github.com/qorelanguage/qore/issues/44
-        case NT_RUNTIME_CLOSURE:
-        // could have any value and could change at runtime
-        case NT_OBJECT:
-        case NT_FUNCREF:
-            //printd(5, "ConstantEntry::scanValue() this: %p n: %p nt: %d\n", this, n, get_node_type(n));
-            return -1;
-    }
-
-    return 0;
-}
-
 void ConstantEntry::del(QoreListNode& l) {
-    //printd(5, "ConstantEntry::del(l) this: %p '%s' node: %p (%d) %s %d (saved_node: %p)\n", this, name.c_str(),
-    //  node, get_node_type(node), get_type_name(node), node->reference_count(), saved_node);
-    if (saved_node) {
+    //printd(5, "ConstantEntry::del(l) this: %p '%s' node: %p (%d) %s %d (saved_val: %s)\n", this, name.c_str(),
+    //  node, get_node_type(node), get_type_name(node), node->reference_count(), saved_val.getTypeName());
+    if (saved_val) {
         val.discard(nullptr);
-        l.push(saved_node, nullptr);
+        l.push(saved_val, nullptr);
 #ifdef DEBUG
         val.clear();
-        saved_node = nullptr;
+        saved_val.clear();
 #endif
-    }
-    else {
+    } else {
         if (val.hasNode()) {
             l.push(val.takeNode(), nullptr);
         }
@@ -126,12 +94,12 @@ void ConstantEntry::del(QoreListNode& l) {
 }
 
 void ConstantEntry::del(ExceptionSink* xsink) {
-    if (saved_node) {
+    if (saved_val) {
         val.discard(xsink);
-        saved_node->deref(xsink);
+        saved_val.discard(xsink);
 #ifdef DEBUG
         val.clear();
-        saved_node = nullptr;
+        saved_val.clear();
 #endif
     } else {
         // note that objects may be present here when discarding with xsink == nullptr if there is a builtin object in
@@ -186,6 +154,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
         typeInfo = parse_context.typeInfo;
         assert(!parse_context.lvids);
         pgm = parse_context.pgm;
+        assert(pgm == getProgram());
     } else {
         pgm = getProgram();
     }
@@ -201,36 +170,46 @@ int ConstantEntry::parseInit(ClassNs ptr) {
         return err;
     }
 
+    delayed_eval = true;
+    saved_val = val.takeIfNode();
+    val = new RuntimeConstantRefNode(loc, this);
+    return err;
+}
+
+int ConstantEntry::parseCommitRuntimeInit() {
+    if (!delayed_eval) {
+        return 0;
+    }
+    delayed_eval = false;
+    assert(saved_val);
+    assert(saved_val.needsEval());
+
+    int err = 0;
+
     // evaluate expression
     ExceptionSink xsink;
     {
-        ValueEvalRefHolder v(val, &xsink);
+        ValueEvalRefHolder v(saved_val, &xsink);
 
         //printd(5, "ConstantEntry::parseInit() this: %p %s evaluated to node: %p (%s)\n", this, name.c_str(), *v,
         //  get_type_name(*v));
 
         if (!xsink) {
             QoreValue nv = v.takeReferencedValue();
-            val.discard(&xsink);
-            val = nv;
-            typeInfo = val.getTypeInfo();
-            assert(!val.getInternalNode() || !val.getInternalNode()->needs_eval());
+            saved_val.discard(&xsink);
+            saved_val = nv;
+            typeInfo = saved_val.getTypeInfo();
+            assert(!saved_val.getInternalNode() || !saved_val.needsEval());
         } else {
             typeInfo = nothingTypeInfo;
         }
     }
 
     if (xsink.isEvent()) {
-        qore_program_private::addParseException(pgm, xsink, loc);
+        qore_program_private::addParseException(getProgram(), xsink, loc);
         if (!err) {
             err = -1;
         }
-    }
-
-    // scan for call references
-    if (scanValue(val)) {
-        saved_node = val.takeIfNode();
-        val = new RuntimeConstantRefNode(loc, this);
     }
 
     return err;
@@ -238,7 +217,7 @@ int ConstantEntry::parseInit(ClassNs ptr) {
 
 QoreValue ConstantEntry::getReferencedValue() const {
     if (val.getType() == NT_RTCONSTREF) {
-        return val.get<const RuntimeConstantRefNode>()->getConstantEntry()->saved_node->refSelf();
+        return val.get<const RuntimeConstantRefNode>()->getConstantEntry()->saved_val.refSelf();
     } else {
         return val.refSelf();
     }
@@ -247,9 +226,6 @@ QoreValue ConstantEntry::getReferencedValue() const {
 ConstantList::ConstantList(const ConstantList& old, int64 po, ClassNs p) : ptr(p) {
     //printd(5, "ConstantList::ConstantList(old: %p, p: %s %s) this: %p cls: %p ns: %p\n", &old, p.getType(),
     //  p.getName(), this, ptr.getClass(), ptr.getNs());
-
-    // DEBUG
-    //fprintf(stderr, "XXX ConstantList::ConstantList() this=%p copy constructor from %p called\n", this, &old);
     cnemap_t::iterator last = cnemap.begin();
     for (cnemap_t::const_iterator i = old.cnemap.begin(), e = old.cnemap.end(); i != e; ++i) {
         assert(i->second->init);
@@ -354,12 +330,12 @@ cnemap_t::iterator ConstantList::add(const char* name, QoreValue value, const Qo
     return cnemap.insert(cnemap_t::value_type(ce->getName(), ce)).first;
 }
 
-ConstantEntry *ConstantList::findEntry(const char* name) {
+ConstantEntry* ConstantList::findEntry(const char* name) {
     cnemap_t::iterator i = cnemap.find(name);
     return i == cnemap.end() ? 0 : i->second;
 }
 
-const ConstantEntry *ConstantList::findEntry(const char* name) const {
+const ConstantEntry* ConstantList::findEntry(const char* name) const {
     cnemap_t::const_iterator i = cnemap.find(name);
     return i == cnemap.end() ? 0 : i->second;
 }
@@ -471,6 +447,19 @@ int ConstantList::parseInit() {
         //  i->second->node, ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "n/a", ptr.getNs(),
         //  ptr.getNs() ? ptr.getNs()->name.c_str() : "n/a");
         if (i->second->parseInit(ptr) && !err) {
+            err = -1;
+        }
+    }
+    return err;
+}
+
+int ConstantList::parseCommitRuntimeInit() {
+    int err = 0;
+    for (auto& i : cnemap) {
+        //printd(5, "ConstantList::parseInit() this: %p '%s' %p (class: %p '%s' ns: %p '%s')\n", this, i->first,
+        //  i->second->node, ptr.getClass(), ptr.getClass() ? ptr.getClass()->name.c_str() : "n/a", ptr.getNs(),
+        //  ptr.getNs() ? ptr.getNs()->name.c_str() : "n/a");
+        if (i.second->parseCommitRuntimeInit() && !err) {
             err = -1;
         }
     }

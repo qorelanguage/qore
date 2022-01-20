@@ -2486,6 +2486,7 @@ void qore_ns_private::parseCommit() {
 
 void qore_ns_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
     classList.parseCommitRuntimeInit(xsink);
+    constant.parseCommitRuntimeInit();
     nsl.parseCommitRuntimeInit(xsink);
 }
 

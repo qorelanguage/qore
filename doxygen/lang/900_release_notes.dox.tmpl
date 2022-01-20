@@ -9,10 +9,10 @@
 
     @subsection qore_1_2_0_new_features New Features in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
-      - added support for create, updating, and deleting data providers
+      - added support for creating, updating, and deleting data providers
         (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)
     - <a href="../../modules/DbDataProvider/html/index.html">DbDataProvider</a> module
-      - added support for create, updating, and deleting data providers
+      - added support for creating, updating, and deleting data providers
         (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)
 
     @subsection qore_1_2_0_bug_fixes Bug Fixes in Qore
@@ -33,6 +33,9 @@
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
       - respect "or nothing" %Qore types when mapping to column types
         (<a href="https://github.com/qorelanguage/qore/issues/4400">issue 4400</a>)
+    - fixed a bug initializing constant values at parse time; now all constant expressions requiring evaluation are
+      evaluated after all other parsing is done
+      (<a href="https://github.com/qorelanguage/qore/issues/4404">issue 4404</a>)
 
     @section qore_1_1_0 Qore 1.1.0
 

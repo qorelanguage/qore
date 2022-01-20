@@ -76,7 +76,7 @@ public class DbDataProvider inherits AbstractDataProvider {
         #! Child provider creation options
         const ChildCreateOptions = {
             "primary_key": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(SoftListType),
+                "type": AbstractDataProviderType::get("softlist<string>"),
                 "desc": "a list of column names for the primary key for the table; use `primary_key_name` to set the "
                     "name of the primary key constraint manually, otherwise a suitable name will be automatically "
                     "generated",
@@ -84,6 +84,10 @@ public class DbDataProvider inherits AbstractDataProvider {
             "primary_key_name": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "the name of the primary key constraint; only used if `primary_key` is set",
+            },
+            "indexes": <DataProviderOptionInfo>{
+                "type": new DbIndexesDataType(),
+                "desc": "a hash of indexes keyed by index name",
             },
         };
     }

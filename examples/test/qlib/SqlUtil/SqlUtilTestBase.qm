@@ -676,7 +676,7 @@ public class SqlTestBase inherits QUnit::Test {
         try {
             cop_trunc_date("dt", "foobar");
             assertEq(False, True, "The call above must throw and exception");
-        } catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("COP-TRUNC-DATE-ERROR", ex.err, "Excaption COP-TRUNC-DATE-ERROR is expected here");
             assertEq(True, ex.desc =~ /Not allowed format argument: "foobar"/, "Expected ex description must be received");
         }
@@ -1364,17 +1364,14 @@ public class SqlTestBase inherits QUnit::Test {
 
         try {
             s.align();
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (ex.err == "ALIGN-TABLE-ERROR") {
                 assertEq("ALIGN-TABLE-ERROR", ex.err, "exception must be ALIGN-TABLE-ERROR");
                 assertEq(True, ex.desc.regex("table '.*' schema definition has to be hash, but it's string"));
-            }
-            else if (ex.err == "SEQUENCE-DESCRIPTION-ERROR") {
+            } else if (ex.err == "SEQUENCE-DESCRIPTION-ERROR") {
                 assertEq("SEQUENCE-DESCRIPTION-ERROR", ex.err, "exception must be SEQUENCE-DESCRIPTION-ERROR");
                 assertEq(True, ex.desc.regex("sequence '.*' schema definition has to be hash, but it's string"));
-            }
-            else {
+            } else {
                 rethrow;
             }
         }
@@ -1387,7 +1384,7 @@ public class SqlTestBase inherits QUnit::Test {
 
         Database db(table.getDatasource());
         auto ret = db.getPhysicalSize();
-        if (m_options.verbose) {
+        if (m_options.verbose > 2) {
             printf("    DB size: %n\n", ret);
         }
         assertEq(NT_INT, ret.typeCode(), "result must be int");

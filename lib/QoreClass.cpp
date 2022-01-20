@@ -1301,6 +1301,14 @@ QoreObject* qore_class_private::execConstructor(ExceptionSink* xsink, const Abst
     }
 #endif
 
+    // check if the class has pending changes and is used in a constant initialization expression
+    if (parseHasPendingChanges()) {
+        xsink->raiseException("ILLEGAL-CLASS-INSTANTIATION", new QoreStringNodeMaker("cannot instantiate '%s' class "
+            "for assignment in a constant expression in the parse initialization phase when the class has "
+            "uncommitted changes", name.c_str()));
+        return nullptr;
+    }
+
     // create new object
     QoreObject* self = new QoreObject(obj_cls ? obj_cls : cls, getProgram());
 
@@ -1360,11 +1368,13 @@ void qore_class_private::parseCommit() {
     if (!sys) {
         committed = true;
 
-        if (parse_init_called)
+        if (parse_init_called) {
             parse_init_called = false;
+        }
 
-        if (parse_init_partial_called)
+        if (parse_init_partial_called) {
             parse_init_partial_called = false;
+        }
 
         if (has_new_user_changes) {
             // signature string: note the signature is updated in two places, here and in initializeIntern()
@@ -1493,6 +1503,9 @@ void qore_class_private::addLocalMembersForInit() {
 }
 
 void qore_class_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
+    // finalize constant initialization
+    constlist.parseCommitRuntimeInit();
+
     // issue #2885: ensure that static class initialization is only performed once
     if (!static_init) {
         static_init = true;

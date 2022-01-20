@@ -2518,16 +2518,19 @@ public:
             }
         }
 
-        //printd(5, "qore_class_private::parseFindLocalConstantValue(%s) this: %p (cls: %p %s) rv: %p\n", cname, this, cls, name.c_str(), rv);
+        //printd(5, "qore_class_private::parseFindLocalConstantValue(%s) this: %p (cls: %p %s) rv: %p\n", cname, this,
+        //  cls, name.c_str(), rv);
         return rv;
     }
 
-    DLLLOCAL QoreValue parseFindConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found, const qore_class_private* class_ctx) {
+    DLLLOCAL QoreValue parseFindConstantValue(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found,
+            const qore_class_private* class_ctx) {
         found = false;
         return parseFindConstantValueIntern(cname, cTypeInfo, found, class_ctx);
     }
 
-    DLLLOCAL QoreValue parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found, const qore_class_private* class_ctx) {
+    DLLLOCAL QoreValue parseFindConstantValueIntern(const char* cname, const QoreTypeInfo*& cTypeInfo, bool& found,
+            const qore_class_private* class_ctx) {
         parseInitPartial();
 
         // check constant list
@@ -3333,7 +3336,8 @@ public:
     }
 
     // searches only the current class, returns 0 if private found and not accessible in the current parse context
-    DLLLOCAL static QoreValue parseFindLocalConstantValue(QoreClass* qc, const char* cname, const QoreTypeInfo*& typeInfo, bool& found) {
+    DLLLOCAL static QoreValue parseFindLocalConstantValue(QoreClass* qc, const char* cname,
+            const QoreTypeInfo*& typeInfo, bool& found) {
         return qc->priv->parseFindLocalConstantValue(cname, typeInfo, found);
     }
 
@@ -3343,20 +3347,25 @@ public:
     }
 
     // searches this class and all superclasses
-    DLLLOCAL static QoreValue parseFindConstantValue(QoreClass* qc, const char* cname, const QoreTypeInfo*& typeInfo, bool& found, const qore_class_private* class_ctx) {
+    DLLLOCAL static QoreValue parseFindConstantValue(QoreClass* qc, const char* cname, const QoreTypeInfo*& typeInfo,
+            bool& found, const qore_class_private* class_ctx) {
         return qc->priv->parseFindConstantValue(cname, typeInfo, found, class_ctx);
     }
 
-    // searches this class and all superclasses, if check = false, then assumes parsing from within the class (parse_get_class() == this class)
-    DLLLOCAL static QoreVarInfo* parseFindStaticVar(const QoreClass* qc, const char* vname, const QoreClass*& nqc, ClassAccess& access, bool check = false) {
+    // searches this class and all superclasses, if check = false, then assumes parsing from within the class
+    // (parse_get_class() == this class)
+    DLLLOCAL static QoreVarInfo* parseFindStaticVar(const QoreClass* qc, const char* vname, const QoreClass*& nqc,
+            ClassAccess& access, bool check = false) {
         return qc->priv->parseFindStaticVar(vname, nqc, access, check);
     }
 
-    DLLLOCAL static int parseCheckInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo, const QoreProgramLocation* loc) {
+    DLLLOCAL static int parseCheckInternalMemberAccess(const QoreClass* qc, const char* mem,
+            const QoreTypeInfo*& memberTypeInfo, const QoreProgramLocation* loc) {
         return qc->priv->parseCheckInternalMemberAccess(mem, memberTypeInfo, loc);
     }
 
-    DLLLOCAL static int parseResolveInternalMemberAccess(const QoreClass* qc, const char* mem, const QoreTypeInfo*& memberTypeInfo) {
+    DLLLOCAL static int parseResolveInternalMemberAccess(const QoreClass* qc, const char* mem,
+            const QoreTypeInfo*& memberTypeInfo) {
         return qc->priv->parseResolveInternalMemberAccess(mem, memberTypeInfo);
     }
 

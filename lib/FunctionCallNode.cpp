@@ -610,15 +610,6 @@ int ScopedObjectCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
                     "class", oc->getName());
                 err = -1;
             }
-            // check if the class has pending changes and is used in a constant initialization expression
-            if (parse_context.pflag & PF_CONST_EXPRESSION && qore_class_private::parseHasPendingChanges(*oc)) {
-                parseException(*loc, "ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment " \
-                    "in a constant expression in the parse initialization phase when the class has uncommitted " \
-                    "changes", oc->getName());
-                if (!err) {
-                    err = -1;
-                }
-            }
         }
         delete name;
         name = nullptr;
