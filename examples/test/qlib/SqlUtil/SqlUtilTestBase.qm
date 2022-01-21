@@ -84,13 +84,22 @@ public class SqlTestBase inherits QUnit::Test {
         list insert_data;
         list upsert_data;
 
-        Logger logger("test", LoggerLevel::getLevelDebug());
+        Logger logger;
     }
 
     constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
-        if (m_options.verbose > 2) {
-            logger.addAppender(new TestAppender());
+        {
+            LoggerLevel level;
+            if (m_options.verbose > 3) {
+                level = LoggerLevel::getLevelDebug();
+            } else if (m_options.verbose > 2) {
+                level = LoggerLevel::getLevelInfo();
+            } else {
+                level = LoggerLevel::getLevelError();
+            }
+            logger = new Logger("test", level);
         }
+        logger.addAppender(new TestAppender());
 
         addTestCase("db provider", \dbProviderTest());
         addTestCase("db table provider", \dbTableProviderTest());
@@ -228,6 +237,32 @@ public class SqlTestBase inherits QUnit::Test {
             child_record.id = rand();
             assertThrows("CREATE-RECORD-ERROR", \dp2.createRecord(), child_record);
         }
+
+        dp2.addField(new QoreDataField("comment", "comment field",
+            new QoreStringOrNothingDataType({"string.max_size_chars": 30})));
+        child_record = {
+            "id": record.id,
+            "name2": get_random_string(),
+            "comment": get_random_string(),
+        };
+        dp2.createRecord(child_record);
+        assertEq(child_record, dp2.searchSingleRecord({"id": record.id, "name2": child_record.name2}));
+
+        child_record.comment = get_random_string(50);
+        assertThrows("UPDATE-RECORDS-ERROR", \dp2.updateRecords(), ({"comment": child_record.comment},
+            child_record{"id", "name2"}));
+
+        # update field
+        dp2.updateField("comment", new QoreDataField("comment2", "comment2 field",
+            new QoreStringOrNothingDataType({"string.max_size_chars": 60})));
+        child_record.comment2 = remove child_record.comment;
+        dp2.updateRecords({"comment2": child_record.comment2}, child_record{"id", "name2"});
+        assertEq(child_record, dp2.searchSingleRecord({"id": record.id, "name2": child_record.name2}));
+
+        # delete field
+        dp2.deleteField("comment2");
+        remove child_record.comment2;
+        assertEq(child_record, dp2.searchSingleRecord({"id": record.id, "name2": child_record.name2}));
     }
 
     dbTableProviderTest() {
@@ -326,8 +361,8 @@ public class SqlTestBase inherits QUnit::Test {
                         sph.rollback();
                         assertTrue(ds.currentThreadInTransaction());
                     }
-                    assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": <00>}, {"id": 1}));
-                    assertThrows("RUNTIME-TYPE-ERROR", \dp.updateSingleRecord(), ({"id": NULL}, {"id": 1}));
+                    assertThrows("UPDATE-RECORDS-ERROR", \dp.updateSingleRecord(), ({"id": <00>}, {"id": 1}));
+                    assertThrows("UPDATE-RECORDS-ERROR", \dp.updateSingleRecord(), ({"id": NULL}, {"id": 1}));
                 }
 
                 # get not null columns for upsert output

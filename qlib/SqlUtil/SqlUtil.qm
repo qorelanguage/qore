@@ -1546,13 +1546,23 @@ db_table.getAlignSql(template_table, callback_opts);
     @subsection table_desc_hash Table Description Hash
 
     Table description hashes have the following structure:
-    - \c columns: (required) a hash of column information keyed by column name; the values are @ref column_desc_hash "column description hashes"
-    - \c primary_key: (optional) a @ref pk_desc_hash "primary key description hash" describing the primary key for the table
-    - \c indexes: (optional) a hash of index information keyed by index name; the values are @ref index_desc_hash "index description hashes"
-    - \c triggers: (optional) a hash of trigger information keyed by trigger name; the values are the trigger source code; since triggers are driver-dependent, a driver-independent table description would include trigger hashes under the \c drivers key and the driver key name under that; see below for an example
-    - \c foreign_constraints: (optional) a hash of foreign constraint information keyed by constraint name; the values are @ref fk_desc_hash "foreign constraint hashes"
-    - \c unique_constraints: (optional) a hash of unique constraint information keyed by constraint name; the values are @ref uk_desc_hash "unique constraint hashes"
-    - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the table description hash before processing; this way a table description hash can contain all the information required for the table including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
+    - \c columns: (required) a hash of column information keyed by column name; the values are
+      @ref column_desc_hash "column description hashes"
+    - \c primary_key: (optional) a @ref pk_desc_hash "primary key description hash" describing the primary key for the
+      table
+    - \c indexes: (optional) a hash of index information keyed by index name; the values are
+      @ref index_desc_hash "index description hashes"
+    - \c triggers: (optional) a hash of trigger information keyed by trigger name; the values are the trigger source
+      code; since triggers are driver-dependent, a driver-independent table description would include trigger hashes
+      under the \c drivers key and the driver key name under that; see below for an example
+    - \c foreign_constraints: (optional) a hash of foreign constraint information keyed by constraint name; the values
+      are @ref fk_desc_hash "foreign constraint hashes"
+    - \c unique_constraints: (optional) a hash of unique constraint information keyed by constraint name; the values
+      are @ref uk_desc_hash "unique constraint hashes"
+    - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will
+      be added to the table description hash before processing; this way a table description hash can contain all the
+      information required for the table including driver-specific options; any driver-specific options will overwrite
+      values in the top level of the hash if there are duplicate hash keys, see below for an example
 
     Here is an example of a table description hash:
     @code{.py}
@@ -1622,23 +1632,36 @@ hash table_desc = (
     @endcode
 
     @note
-    - some databases will automatically create indexes for you when you create primary keys and unique constraints; some do not (ex: oracle).  In the above example, an index is created explicitly for the primary key constraint for oracle only.
-    - the above example includes an additional driver-specific key for the \c "pgsql" driver: \c "functions" which is used by the PgsqlSqlUtil module to create trigger functions used by the table's trigger.
+    - some databases will automatically create indexes for you when you create primary keys and unique constraints;
+      some do not (ex: oracle).  In the above example, an index is created explicitly for the primary key constraint
+      for oracle only.
+    - the above example includes an additional driver-specific key for the \c "pgsql" driver: \c "functions" which is
+      used by the PgsqlSqlUtil module to create trigger functions used by the table's trigger.
 
     @subsection column_desc_hash Column Description Hash
 
     Column description hashes have the following structure:
     - \c qore_type: a qore type string that will be converted to a native DB type with some default conversion
-    - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then \c native_type is used
-    - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision for example
+    - \c native_type: the native database column type; if both \c native_type and \c qore_type are given then
+      \c native_type is used
+    - \c size: for data types requiring a size component, the size; for numeric columns this represents the precision
+      for example
     - \c scale: for numeric data types, this value gives the scale
     - \c default_value: the default value for the column
-    - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid non-portable schema hashes
+    - \c default_value_native: a boolean flag to say if a \c default_value should be validated against table column
+      type (False) or used as it is (True) to allow to use DBMS native functions or features. Defaults to False. It is
+      strongly recommended to use \c default_value_native for \c default_value in \c driver specific sub-hash to avoid
+      non-portable schema hashes
     - \c comment: an optional comment for the column
-    - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is @ref False "False"
-    - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will be added to the column description hash before processing; this way a column description hash can contain all the information required for the column including driver-specific options; any driver-specific options will overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
+    - \c notnull: if the column should have a "not null" constraint on it; if missing the default value is
+      @ref False "False"
+    - \c driver: this key can optionally contain a hash keyed by driver name which contains a hash of values that will
+      be added to the column description hash before processing; this way a column description hash can contain all
+      the information required for the column including driver-specific options; any driver-specific options will
+      overwrite values in the top level of the hash if there are duplicate hash keys, see below for an example
 
-    Note that the above structure is an extension of the fields in @ref SqlUtil::AbstractTable::ColumnDescOptions, adding \c notnull and \c driver keys for additional information to create the column in the table.
+    Note that the above structure is an extension of the fields in @ref SqlUtil::AbstractTable::ColumnDescOptions,
+    adding \c notnull and \c driver keys for additional information to create the column in the table.
 
     Here is an example of a column description hash:
     @code{.py}
@@ -1672,9 +1695,12 @@ hash pk_desc = (
     @subsection fk_desc_hash Foreign Constraint Description Hash
 
     The foreign constraint description hash has the following keys:
-    - \c columns: (required) a single column name or a list of column names in the current table making up the foreign constraint
+    - \c columns: (required) a single column name or a list of column names in the current table making up the foreign
+      constraint
     - \c table: (required) a string giving the name of the table the foreign constraint is on
-    - \c target_columns: (optional) this key is only necessary if the columns in the foreign table have different names than in the current table; if so, it must be assigned to a single column name or a list of column names in the foreign table; if this key is present then the same number of columns must appear in each key
+    - \c target_columns: (optional) this key is only necessary if the columns in the foreign table have different
+      names than in the current table; if so, it must be assigned to a single column name or a list of column names in
+      the foreign table; if this key is present then the same number of columns must appear in each key
 
     The following is an example of a foreign key description hash:
     @code{.py}
@@ -1687,7 +1713,8 @@ hash fk_desc = (
     @subsection uk_desc_hash Unique Constraint Description Hash
 
     The unique constraint description hash has the following key:
-    - \c columns: (required) a single column name or a list of column names in the current table making up the unique constraint
+    - \c columns: (required) a single column name or a list of column names in the current table making up the unique
+      constraint
 
     The following is an example of a unique constraint description hash:
     @code{.py}
@@ -1700,7 +1727,8 @@ hash uk_desc = (
 
     Index description hashes have the following structure:
     - \c columns: (required) a single column or a list of column names making up the index
-    - \c unique: a boolean value indicating if the index is unique or not, if missing, then the index is assumed to e not unique
+    - \c unique: a boolean value indicating if the index is unique or not, if missing, then the index is assumed to e
+      not unique
 
     The following is an example of an index description hash:
     @code{.py}
@@ -1712,30 +1740,37 @@ hash<auto> ix_desc = (
 
     @section callbacks Callbacks
 
-    Most of the SqlUtil methods that return SQL strings also accept an option hash where callbacks an be set.  Callbacks can be used
-    to display detailed information about long-running operations, such as schema or data alignment for complex schemas or large
-    data sets, or as a generic framework for executing and logging SQL operations.
+    Most of the SqlUtil methods that return SQL strings also accept an option hash where callbacks an be set.
+    Callbacks can be used to display detailed information about long-running operations, such as schema or data
+    alignment for complex schemas or large data sets, or as a generic framework for executing and logging SQL
+    operations.
 
     @subsection error_callback SQL Error Callback
 
-    the \c "error_callback" @ref closure "closure" or @ref call_reference "call reference" is called with information about the current SQL
-    operation if an error occurs in the @ref sql_callback "sql callback" and can be specified as in the following example:
+    the \c "error_callback" @ref closure "closure" or @ref call_reference "call reference" is called with information
+    about the current SQL operation if an error occurs in the @ref sql_callback "sql callback" and can be specified as
+    in the following example:
     @code{.py}
-code error_callback = sub (int ac, string type, string name, *string table, *string new_name, *string info, string sql, hash<ExceptionInfo> ex) {
+code error_callback = sub (int ac, string type, string name, *string table, *string new_name, *string info,
+        string sql, hash<ExceptionInfo> ex) {
     if (ac == AC_Create && type == "materialized_view" && ex.alterr == "ORA-01031") {
-        # try to drop any table create to back the materialized view; ignoring ORA-00942 table or view does not exist errors
-        ds.exec("begin execute immediate 'drop table %s'; exception when others then if sqlcode != 942 then raise; end if; end;", name);
+        # try to drop any table create to back the materialized view; ignoring ORA-00942 table or view does not exist
+        # errors
+        ds.exec("begin execute immediate 'drop table %s'; exception when others then if sqlcode != 942 then raise; "
+            "end if; end;", name);
     }
 };
     @endcode
 
     @subsection info_callback SQL Info CallBack Closure or Call Ceference
 
-    The \c "info_callback" @ref closure "closure" or @ref call_reference "call reference" is called with information about the current SQL
+    The \c "info_callback" @ref closure "closure" or @ref call_reference "call reference" is called with information
+    about the current SQL
     operation and can be specified as in the following example:
     @code{.py}
 int change_count;
-code info_callback = sub (string str, int ac, string type, string name, *string table, *string new_name, *string info) {
+code info_callback = sub (string str, int ac, string type, string name, *string table, *string new_name,
+        *string info) {
     if (ac != AbstractDatabase::AC_NotFound && ac != AbstractDatabase::AC_Unchanged)
         ++change_count;
     if (verbose)
@@ -1752,7 +1787,8 @@ db.getAlignSql(schema, callback_opts);
 
     @subsection sql_callback SQL Raw/DDL CallBack Closure or Call Ceference
 
-    The \c "sql_callback" @ref closure "closure" or @ref call_reference "call reference" is called with an SQL string suitable for raw execution for each SQL command that is returned
+    The \c "sql_callback" @ref closure "closure" or @ref call_reference "call reference" is called with an SQL string
+    suitable for raw execution for each SQL command that is returned
     or generated for a particular operation and can be specified as in the following example:
     @code{.py}
 code sql_callback = sub (string str) {
@@ -1765,11 +1801,14 @@ hash callback_opts = ("sql_callback": sql_callback, "sql_callback_executed": Tru
 db.getAlignSql(schema, callback_opts);
     @endcode
 
-    @note this callback is used for DDL execution and does not use bound arguments; for SQL data operations, the @ref sqlarg_callback is used instead
+    @note this callback is used for DDL execution and does not use bound arguments; for SQL data operations, the
+    @ref sqlarg_callback is used instead
 
     @subsection sql_callback_executed SQL CallBack Executed Flag
 
-    If the \c "sql_callback_executed" flag is set to @ref True "True" then the called method knows that the changes are made in the database and the internal representation of the affected object(s) is also updated accordingly.  Here is an example:
+    If the \c "sql_callback_executed" flag is set to @ref True "True" then the called method knows that the changes
+    are made in the database and the internal representation of the affected object(s) is also updated accordingly.
+    Here is an example:
     @code{.py}
 code sql_callback = sub (string str) {
     if (verbose > 1)
@@ -1783,7 +1822,8 @@ db.getAlignSql(schema, callback_opts);
 
     @subsection sqlarg_callback SQL Operation Callback Closure or Call Reference
 
-    The \c "sqlarg_callback" @ref closure "closure" or @ref call_reference "call reference" is called with an SQL string and arguments for each SQL command that is executed
+    The \c "sqlarg_callback" @ref closure "closure" or @ref call_reference "call reference" is called with an SQL
+    string and arguments for each SQL command that is executed
     during SQL data operations and can be specified as in the following example:
     @code{.py}
 code sqlarg_callback = sub (string str, *list<auto> args) {
@@ -1794,11 +1834,13 @@ code sqlarg_callback = sub (string str, *list<auto> args) {
 table.insertFromIterator(i, sqlarg_callback);
     @endcode
 
-    @note this callback is used for data operations and is called with bound arguments; for DLL operations, see @ref sql_callback
+    @note this callback is used for data operations and is called with bound arguments; for DLL operations, see
+    @ref sql_callback
 
     @subsection upsert_info_callback Upsert Info Callback
 
-    The \c "info_callback" upsert option key can be assigned to a @ref closure "closure" or @ref call_reference "call reference" that
+    The \c "info_callback" upsert option key can be assigned to a @ref closure "closure" or
+    @ref call_reference "call reference" that
     is called whenever an row result is available; this callback takes the following arguments:
     - @ref string_type "string" table_name: the name of the table
     - @ref hash_type "hash" row: the row affected
@@ -1809,19 +1851,20 @@ table.insertFromIterator(i, sqlarg_callback);
 code upsert_callback = sub (string table_name, hash<auto> row, int result) {
     # verbosity threshold
     int t = 0;
-    if (result != AbstractTable::UR_Unchanged)
+    if (result != AbstractTable::UR_Unchanged) {
         ++change_count;
-    else
+    } else {
         t = 1;
+    }
 
     if (opt.verbose > t) {
         if (dot_count) {
             print("\n");
             dot_count = 0;
         }
-        printf("%s reference data %s: %y: %s\n", t ? "+++" : "***", table_name, row, AbstractTable::UpsertResultMap{result});
-    }
-    else {
+        printf("%s reference data %s: %y: %s\n", t ? "+++" : "***", table_name, row,
+            AbstractTable::UpsertResultMap{result});
+    } else {
         ++dot_count;
         print(AbstractTable::UpsertResultLetterMap{result});
         flush();
@@ -1833,7 +1876,8 @@ hash<auto> sh = table.upsertFromIterator(i, upsert_strategy, False, ("info_callb
 
     @subsection insert_info_callback Insert Info Callback
 
-    This option is identical to @ref upsert_info_callback, except the \a result argument is always @ref SqlUtil::AbstractTable::UR_Inserted.
+    This option is identical to @ref upsert_info_callback, except the \a result argument is always
+    @ref SqlUtil::AbstractTable::UR_Inserted.
 */
 /** @page dba_management DBA Management
 
@@ -2040,12 +2084,12 @@ public namespace SqlUtil {
     #! join operator info hash as returned by all @ref sql_jop_funcs "join operator functions"
     public hashdecl JoinOperatorInfo {
         string jop;           #!< the join operator string code
-        auto table;            #!< the table to join with (either an @ref SqlUtil::AbstractTable "AbstractTable" object or a string table name)
+        auto table;           #!< the table to join with (either an @ref SqlUtil::AbstractTable "AbstractTable" object or a string table name)
         *string alias;        #!< optional alias for \a table in the query
         *hash jcols;          #!< the columns to use for the join, the keys will be columns in the source table and the values are columns in the \a table argument
         *hash cond;           #!< additional conditions for the join clause for the \a table argument; see @ref where_clauses for more information
         *string ta;           #!< optional table name or alias of the other table to join with when not joining with the primary table
-        *hash<auto> opt;            #!< optional join options (for example, to specify a partition for the join if supported)
+        *hash<auto> opt;      #!< optional join options (for example, to specify a partition for the join if supported)
     }
 
     #! column data type options
@@ -5910,6 +5954,9 @@ AbstractColumn c = cols.id;
             #! comment on the column
             *string comment;
 
+            #! the scale for numeric columns
+            *int scale;
+
             #! Default VARCHAR column size
             const DefaultVarcharSize = 80;
         }
@@ -5918,21 +5965,53 @@ AbstractColumn c = cols.id;
         private constructor() {
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string c)
-            : AbstractDdlObject(n) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string c, *int scale)
+                : AbstractDdlObject(n) {
             native_type = nt;
             qore_type = qt;
             size = sz;
             nullable = nul;
             def_val = dv;
             comment = c;
+            self.scale = scale;
         }
 
-        #! returns the string describing the native type that can be used in SQL (for example to add the colunn to a table or when creating the table)
+        #! Returns a description hash of the column
+        /** @return a description hash of the column
+
+            @since %SqlUtil 1.7.5
+        */
+        hash<GenericColumnInfo> getDescriptionHash() {
+            hash<GenericColumnInfo> rv = <GenericColumnInfo>{
+                "native_type": native_type,
+                "default_value": def_val,
+                "notnull": !nullable,
+            };
+            if (size) {
+                rv.size = size;
+            };
+            if (qore_type) {
+                rv.qore_type = qore_type;
+            }
+            if (comment) {
+                rv.comment = comment;
+            }
+
+            return rv;
+        }
+
+        #! returns the string describing the native type that can be used in SQL
+        /** for example to add the colunn to a table or when creating the table
+        */
         string getNativeTypeString() {
             string sql = native_type;
-            if (size)
-                sql += sprintf("(%d)", size);
+            if (size) {
+                if (scale) {
+                    sql += sprintf("(%d,%d)", size, scale);
+                } else {
+                    sql += sprintf("(%d)", size);
+                }
+            }
             return sql;
         }
 
@@ -5989,7 +6068,8 @@ list l = col.getModifySql(t, newcol);
                 && (exists c.def_val && c.def_val != NULL)
                 && (!exists def_val || def_val == NULL)
                 && !c.nullable && nullable && !t.emptyData()) {
-                string sql = sprintf("update %s set %s = %s where %s is null", t.getSqlName(), ddl_name, c.def_val, ddl_name);
+                string sql = sprintf("update %s set %s = %s where %s is null", t.getSqlName(), ddl_name, c.def_val,
+                    ddl_name);
                 # insert in the front of the list
                 unshift l, sql;
             }
@@ -6012,7 +6092,8 @@ string str = col.getRenameSql(t, "new_name");
 
         #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         bool equal(AbstractColumn c) {
-            if (self.className() != c.className() || name != c.name || native_type != c.native_type || size != c.size || nullable != c.nullable || def_val != c.def_val || comment != c.comment) {
+            if (self.className() != c.className() || name != c.name || native_type != c.native_type || size != c.size
+                || nullable != c.nullable || def_val != c.def_val || comment != c.comment) {
                 #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
                 return False;
             }
@@ -6023,8 +6104,10 @@ string str = col.getRenameSql(t, "new_name");
         #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private abstract bool equalImpl(AbstractColumn c);
 
-        #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
-        /** @par Example:
+        #! returns a list of sql strings that can be used to modify the column to the new definition
+        /** If the column definitions are identical then an empty list is returned
+
+            @par Example:
             @code{.py}
 list l = col.getModifySql(t, newcol);
             @endcode
@@ -6035,34 +6118,11 @@ list l = col.getModifySql(t, newcol);
             @param c the new column definition
             @param opt column modification options (if supported by the underlying driver)
 
-            @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
-         */
+            @return a list of sql strings that can be used to modify the column to the new definition; if the column
+            definitions are identical then an empty list is returned
+        */
         private abstract list<auto> getModifySqlImpl(AbstractTable t, AbstractColumn c, *hash<auto> opt);
     }
-
-    #! the base class to use to extend AbstractColumn to implement numeric columns
-    public class NumericColumnInfo inherits Serializable {
-        public {
-            #! the scale for numeric columns
-            int scale;
-        }
-
-        constructor(softint n_scale = 0) {
-            scale = n_scale;
-        }
-
-        #! returns the string describing the native type that can be used in SQL (for example to add the column to a table or when creating the table)
-        string getNativeTypeString(string native_type, int precision) {
-            string sql = native_type;
-            if (precision) {
-                sql += sprintf("(%d", precision);
-                if (scale)
-                    sql += sprintf(",%d", scale);
-                sql += ")";
-            }
-            return sql;
-        }
-   }
 
     #! index container class that throws an exception if an unknown index is accessed
     public class Indexes inherits AbstractHashContainer {

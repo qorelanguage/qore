@@ -319,17 +319,9 @@ public namespace FreetdsSqlUtil {
         }
 
         #! creates the column from the supplied arguments
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs)
-                : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, *int scale)
+                : AbstractColumn(n, nt, qt, sz, nul, dv, cm, scale) {
             byte_size = bs;
-        }
-
-        #! returns a string giving the native type of the column
-        string getNativeTypeString() {
-            string sql = native_type;
-            if (size)
-                sql += sprintf("(%d)", size);
-            return sql;
         }
 
         #! returns a list of sql strings that can be used to add the column to an existing table
@@ -419,14 +411,10 @@ string str = col.getRenameSql(t, "new_name");
     }
 
     #! represents a FreeTDS-specific numeric column
-    public class FreetdsNumericColumn inherits FreetdsColumn, SqlUtil::NumericColumnInfo {
+    public class FreetdsNumericColumn inherits FreetdsColumn {
         #! creates the column from the supplied arguments
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : FreetdsColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
-        }
-
-        #! returns a string giving the native type of the column
-        string getNativeTypeString() {
-            return NumericColumnInfo::getNativeTypeString(native_type, size);
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs,
+                softint scale) : FreetdsColumn(n, nt, qt, sz, nul, dv, cm, bs, scale) {
         }
     }
 

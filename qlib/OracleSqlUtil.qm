@@ -424,7 +424,8 @@ public namespace OracleSqlUtil {
         }
 
         constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm,
-                bool is_char = False, bool cu = False, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+                bool is_char = False, bool cu = False, softint bs, *int scale)
+                : AbstractColumn(n, nt, qt, sz, nul, dv, cm, scale) {
             # only set "char_used" if we are dealing with a char column
             char_used = is_char && cu;
             byte_size = bs;
@@ -434,8 +435,9 @@ public namespace OracleSqlUtil {
         /** This method can be used, for example, to add the colunn to a table or when creating the table
         */
         string getNativeTypeString() {
-            if (char_used)
+            if (char_used) {
                 return sprintf("%s(%d char)", native_type, size);
+            }
             return AbstractColumn::getNativeTypeString();
         }
 
@@ -534,14 +536,9 @@ string str = col.getRenameSql(t, "new_name");
     }
 
     #! represents an Oracle number column
-    public class OracleNumberColumn inherits OracleColumn, SqlUtil::NumericColumnInfo {
+    public class OracleNumberColumn inherits OracleColumn {
         constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm, softint bs,
-                softint n_scale = 0) : OracleColumn(n, nt, qt, sz, nul, dv, cm, False, False, bs),
-                NumericColumnInfo(n_scale) {
-        }
-
-        string getNativeTypeString() {
-            return NumericColumnInfo::getNativeTypeString(native_type, size);
+                softint scale = 0) : OracleColumn(n, nt, qt, sz, nul, dv, cm, False, False, bs, scale) {
         }
     }
 
