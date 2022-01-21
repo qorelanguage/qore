@@ -272,10 +272,12 @@ public class AbstractDataProvider {
     }
 
     #! Returns static provider information as data; no objects are returned
-    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    /** @param with_type_info if @ref True then more type information will be returned in the response
+
+        @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
-    hash<auto> getInfoAsData() {
-        return DataProvider::getInfoAsData(getInfo());
+    hash<auto> getInfoAsData(*bool with_type_info) {
+        return DataProvider::getInfoAsData(getInfo(), with_type_info);
     }
 
     #! Returns data provider info

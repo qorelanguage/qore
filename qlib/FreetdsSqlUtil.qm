@@ -118,6 +118,8 @@ module FreetdsSqlUtil {
     instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
 
     @subsection freetdssqlutilv141 FreetdsSqlUtil v1.4.2
+    - fixed a bug where \c offset and \c limit were not properly supported with MS SQL Server DBs
+      (<a href="https://github.com/qorelanguage/qore/issues/4408">issue 4408</a>)
     - fixed a bug where date/time values in other time zones were not bound correctly
       (<a href="https://github.com/qorelanguage/qore/issues/4403">issue 4403</a>)
     - fixed a bug handling transaction savepoints
@@ -2117,7 +2119,7 @@ order by
             return True;
         }
 
-        #! returns @ref True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+        #! returns @ref True "True" if the database automatically creates a unique constraint with a unique index
         private bool uniqueIndexCreatesConstraintImpl() {
             return True;
         }
@@ -2127,10 +2129,11 @@ order by
             return False;
         }
 
-        #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
-            if (!qh.limit)
+        #! processes a string for use in SQL select statements with "limit" but no "orderby" or "offset"
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list<auto>> args, *hash<auto> qh) {
+            if (!qh.limit) {
                 return;
+            }
 
             # this rule is broken here with reason:
             # In a SELECT statement, always use an ORDER BY clause with the TOP clause.
@@ -2140,9 +2143,22 @@ order by
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh,
-                *hash jch, *hash ch, *hash psch, list coll) {
-            throw "UNIMPLEMENTED", "offset not yet implemented";
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list<auto>> args,
+                *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {
+            if (is_sybase) {
+                # NOTE Sybase ASE does not support this, but Sybase SQL Anywhere does
+                throw "UNIMPLEMENTED", "offset not yet implemented";
+            }
+
+            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
+
+            sql += " offset %v rows";
+            args += qh.offset ?? 0;
+
+            if (qh.limit) {
+                sql += " fetch next %v rows only";
+                args += qh.limit;
+            }
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost

@@ -1057,9 +1057,9 @@ public class SqlTestBase inherits QUnit::Test {
     offsetLimitTest() {
         if (!table) testSkip("no DB connection");
 
-        # TODO: remove once support for limit & offset is implemented in FreetdsSqlUtil.qm
-        if (self.className() == "FreetdsTest")
-            testSkip("FreetdsSqlUtil does not support offset (yet)");
+        if (table.getDriverName() == "sybase") {
+            testSkip("FreetdsSqlUtil does not support offset with sybase");
+        }
 
         on_success table.commit();
         on_error table.rollback();
