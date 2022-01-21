@@ -63,20 +63,30 @@ class FtpTest inherits QUnit::Test {
     }
 
     FtpClient getClient() {
-        hash<UrlInfo> h = parse_url(url);
-        if (!exists h.path)
-            throw "FTP-ERROR", sprintf("url %y is missing a path to retrieve", url);
-        if (!exists h.host)
-            throw "FTP-ERROR", sprintf("url %y is missing the hostname", url);
+        int tries = 0;
+        while (True) {
+            hash<UrlInfo> h = parse_url(url);
+            if (!exists h.path)
+                throw "FTP-ERROR", sprintf("url %y is missing a path to retrieve", url);
+            if (!exists h.host)
+                throw "FTP-ERROR", sprintf("url %y is missing the hostname", url);
 
-        path = dirname(h.path);
-        file = basename(h.path);
+            path = dirname(h.path);
+            file = basename(h.path);
 
-        FtpClient fc();
-        fc.setURL(url);
-        fc.connect();
-        fc.disconnect();
-        return fc;
+            FtpClient fc();
+            fc.setURL(url);
+            try {
+                fc.connect();
+                fc.disconnect();
+            } catch (hash<ExceptionInfo> ex) {
+                printf("%s: %s\n", ex.err, ex.desc);
+                if (tries++ < 2) {
+                    printf("retrying...");
+                }
+            }
+            return fc;
+        }
     }
 
     string createLocalFile() {

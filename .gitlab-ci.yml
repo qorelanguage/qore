@@ -11,7 +11,6 @@ default:
         -X POST -u omusil24:${GITHUB_ACCESS_TOKEN} -H "Content-Type: application/json" \
         -d "{\"state\": \"pending\", \"context\": \"${REPO_NAME}\", \"description\": \"Gitlab CI\", \"target_url\": \"${CI_JOB_URL}\"}"
     - set +e
-    - unset QORE_DB_CONNSTR_FREETDS # temp disable freetds testing
 
 variables:
   REPO_NAME: qore

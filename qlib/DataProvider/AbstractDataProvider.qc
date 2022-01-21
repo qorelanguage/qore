@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%requires Logger
+%requires(reexport) Logger
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
@@ -326,13 +326,11 @@ public class AbstractDataProvider {
     */
     *hash<auto> createRecord(hash<auto> rec, *hash<auto> create_options) {
         checkCreate();
-
         on_error {
-            if ($1.err != "DUPLICATE-RECORD") {
+            if ($1.err != "DUPLICATE-RECORD" && $1.err != "CREATE-RECORD-ERROR") {
                 rethrow "CREATE-RECORD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
             }
         }
-
         return createRecordImpl(rec, validateCreateOptions(create_options));
     }
 
@@ -456,10 +454,16 @@ public class AbstractDataProvider {
         @returns @ref True if the record was updated, @ref False if not (no record found)
 
         @throw INVALID-OPERATION the data provider does not support record updating
+        @throw UPDATE-RECORDS-ERROR error updating records
     */
     bool updateSingleRecord(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
         checkUpdate();
         search_options = validateSearchOptions(search_options);
+        on_error {
+            if ($1.err != "DUPLICATE-RECORD" && $1.err != "UPDATE-RECORDS-ERROR") {
+                rethrow "UPDATE-RECORDS-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+            }
+        }
         return updateSingleRecordImpl(processFieldValues(set, search_options),
             processFieldValues(where_cond, search_options), search_options);
     }
@@ -472,10 +476,16 @@ public class AbstractDataProvider {
         @return the number of records updated
 
         @throw INVALID-OPERATION the data provider does not support record updating
+        @throw UPDATE-RECORDS-ERROR error updating records
     */
     int updateRecords(hash<auto> set, *hash<auto> where_cond, *hash<auto> search_options) {
         checkUpdate();
         search_options = validateSearchOptions(search_options);
+        on_error {
+            if ($1.err != "DUPLICATE-RECORD" && $1.err != "UPDATE-RECORDS-ERROR") {
+                rethrow "UPDATE-RECORDS-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+            }
+        }
         return updateRecordsImpl(processFieldValues(set, search_options),
             processFieldValues(where_cond, search_options), search_options);
     }
@@ -488,10 +498,16 @@ public class AbstractDataProvider {
         @return the number of records deleted
 
         @throw INVALID-OPERATION the data provider does not support record deletion
+        @throw DELETE-RECORDS-ERROR error deleting records
     */
     int deleteRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         checkDelete();
         search_options = validateSearchOptions(search_options);
+        on_error {
+            if ($1.err != "DELETE-RECORDS-ERROR") {
+                rethrow "DELETE-RECORDS-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+            }
+        }
         return deleteRecordsImpl(processFieldValues(where_cond, search_options), search_options);
     }
 
@@ -511,8 +527,8 @@ public class AbstractDataProvider {
             try {
                 req = request_type.acceptsValue(req);
             } catch (hash<ExceptionInfo> ex) {
-                throw "INVALID-REQUEST", sprintf("invalid request argument for request %y: %s: %s: %s", getName(),
-                    get_ex_pos(ex), ex.err, ex.desc);
+                rethrow "INVALID-REQUEST", sprintf("invalid request argument for request %y: %s: %s", getName(),
+                    ex.err, ex.desc);
             }
         }
         return doRequestImpl(req, validateRequestOptions(request_options));
@@ -533,10 +549,12 @@ public class AbstractDataProvider {
     AbstractDataProvider createChildProvider(string name, hash<string, AbstractDataField> fields,
             *hash<auto> child_create_options) {
         checkCreateChild();
-        on_error rethrow "CREATE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         child_create_options = validateChildCreateOptions(child_create_options);
         if (!fields) {
-            throw "FIELD-ERROR", "at least one field must be present in the field hash";
+            throw "CREATE-CHILD-PROVIDER-ERROR", "at least one field must be present in the field hash";
+        }
+        on_error if ($1.err != "CREATE-CHILD-PROVIDER-ERROR") {
+            rethrow "CREATE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         }
         return createChildProviderImpl(name, fields, child_create_options);
     }
@@ -552,28 +570,30 @@ public class AbstractDataProvider {
     */
     deleteChildProvider(string name, *hash<auto> child_delete_options) {
         checkDeleteChild();
-        on_error rethrow "DELETE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         child_delete_options = validateChildDeleteOptions(child_delete_options);
+        on_error if ($1.err != "DELETE-CHILD-PROVIDER-ERROR") {
+            rethrow "DELETE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+        }
         return deleteChildProviderImpl(name, child_delete_options);
     }
 
-    #! Creates a new field and returns it after adding it
+    #! Creates a new field
     /**
         @param field the field to add
         @param field_add_options the options for adding the new field
-
-        @return the new child data provider
 
         @throw INVALID-OPERATION thrown if the data provider does not support this API
         @throw ADD-FIELD-ERROR error adding the field
 
         @since DataProvider 2.0
     */
-    AbstractDataProvider addField(AbstractDataField field, *hash<auto> field_add_options) {
+    addField(AbstractDataField field, *hash<auto> field_add_options) {
         checkAddField();
-        on_error rethrow "ADD-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         field_add_options = validateFieldAddOptions(field_add_options);
-        return addFieldImpl(field, field_add_options);
+        on_error if ($1.err != "ADD-FIELD-ERROR") {
+            rethrow "ADD-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+        }
+        addFieldImpl(field, field_add_options);
     }
 
     #! Updates an existing field
@@ -588,8 +608,10 @@ public class AbstractDataProvider {
     */
     updateField(string name, AbstractDataField field, *hash<auto> field_update_options) {
         checkUpdateField();
-        on_error rethrow "UPDATE-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         field_update_options = validateFieldUpdateOptions(field_update_options);
+        on_error if ($1.err != "UPDATE-FIELD-ERROR") {
+            rethrow "UPDATE-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+        }
         return updateFieldImpl(name, field, field_update_options);
     }
 
@@ -604,8 +626,10 @@ public class AbstractDataProvider {
     */
     deleteField(string name, *hash<auto> field_delete_options) {
         checkDeleteField();
-        on_error rethrow "DELETE-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         field_delete_options = validateFieldDeleteOptions(field_delete_options);
+        on_error if ($1.err != "DELETE-FIELD-ERROR") {
+            rethrow "DELETE-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+        }
         return deleteFieldImpl(name, field_delete_options);
     }
 
@@ -1101,7 +1125,7 @@ public class AbstractDataProvider {
         try {
             desc_name = sprintf("%y (%y)", getName(), self.className());
         } catch (hash<ExceptionInfo> ex) {
-            # this block interntioanlly left blank
+            # this block intentionally left blank
         }
         if (!desc_name) {
             desc_name = sprintf("class %y", self.className());
@@ -1524,16 +1548,14 @@ public class AbstractDataProvider {
         throwUnimplementedException();
     }
 
-    #! Creates a new field and returns it after adding it
+    #! Creates a new field
     /**
         @param field the field to add
         @param field_add_options the options for adding the new field
 
-        @return the new child data provider
-
         @since DataProvider 2.0
     */
-    private AbstractDataProvider addFieldImpl(AbstractDataField field, *hash<auto> field_add_options) {
+    private addFieldImpl(AbstractDataField field, *hash<auto> field_add_options) {
         throwUnimplementedException();
     }
 

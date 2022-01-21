@@ -283,10 +283,10 @@ public class DbDataProvider inherits AbstractDataProvider {
                 return;
             }
         } catch (hash<ExceptionInfo> ex) {
-            throw "CHILD-PROVIDER-ERROR", sprintf("table %y cannot be acquired from %y: %s: %s", name, getName(),
+            rethrow "CHILD-PROVIDER-ERROR", sprintf("table %y cannot be acquired from %y: %s: %s", name, getName(),
                 ex.err, ex.desc), ex.arg;
         }
-        return new DbTableDataProvider(table);
+        return new DbTableDataProvider(table, logger);
     }
 
     #! Returns data provider static info
@@ -312,9 +312,7 @@ public class DbDataProvider inherits AbstractDataProvider {
         if (logger) {
             logger.info("DbDataProvider %y DDL: %s", name, table.getCreateSqlString());
         }
-        return new DbTableDataProvider({
-            "table": table,
-        });
+        return new DbTableDataProvider(table, logger);
     }
 
     #! Deletes a child data provider
@@ -377,7 +375,7 @@ public class DbDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns a column description hash for a field
-    hash<GenericColumnInfo> getColumnDesc(AbstractDataField field, *hash<auto> opts) {
+    static hash<GenericColumnInfo> getColumnDesc(AbstractDatabase db, AbstractDataField field, *hash<auto> opts) {
         AbstractDataProviderType type = field.getType();
         hash<GenericColumnInfo> col({
             "default_value": field.getDefaultValue(),
@@ -416,7 +414,7 @@ public class DbDataProvider inherits AbstractDataProvider {
     /** @throw TABLE-DESC-ERROR error in table description
     */
     hash<auto> makeTableDesc(string name, hash<string, AbstractDataField> fields, *hash<auto> opts) {
-        hash<string, hash<GenericColumnInfo>> cols = map {$1.key: getColumnDesc($1.value, opts)},
+        hash<string, hash<GenericColumnInfo>> cols = map {$1.key: getColumnDesc(db, $1.value, opts)},
             fields.pairIterator();
 
         hash<auto> tdesc += {

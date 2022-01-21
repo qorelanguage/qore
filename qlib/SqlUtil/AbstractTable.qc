@@ -2772,7 +2772,8 @@ table.dropColumn("notes_2");
         on_exit l.unlock();
         getColumnsUnlocked();
         if (!columns.hasKey(cname))
-            throw "COLUMN-ERROR", sprintf("%s column %y: no such column (valid columns: %y)", getDesc(), cname, columns.keys());
+            throw "COLUMN-ERROR", sprintf("%s column %y: no such column (valid columns: %y)", getDesc(), cname,
+                columns.keys());
 
         code sc;
         if (inDb) {
@@ -5730,6 +5731,65 @@ table.clear();
         clearImpl();
     }
 
+    #! Returns a description hash of the table
+    /** @return a description hash of the table
+
+        @return currently this method does not return information for all supported elements; it returns only:
+        - \c columns
+        - \c primary_key
+        - \c indexes
+        - \c foreign_constraints
+
+        @since %SqlUtil 1.7.5
+    */
+    hash<auto> getDescriptionHash() {
+        hash<auto> rv = {};
+
+        l.lock();
+        on_exit l.unlock();
+
+        # cache the table if necessary
+        if (!manual) {
+            cacheUnlocked();
+        }
+
+        # get column descriptions
+        rv.columns = map {$1.key: $1.value.getDescriptionHash()}, columns.pairIterator();
+
+        # add pk desc if available
+        if (!primaryKey.empty()) {
+            rv.primary_key = {
+                "name": primaryKey.getName(),
+                "columns": primaryKey.keys(),
+            };
+        }
+
+        # add indexes
+        if (indexes) {
+            foreach hash<auto> i in (indexes.pairIterator()) {
+                hash<auto> ix = {
+                    "columns": i.value.columns.keys(),
+                    "unique": i.value.unique ?? False,
+                };
+                rv.indexes{i.key} = ix;
+            }
+        }
+
+        # add foreign constraints
+        if (foreignConstraints) {
+            foreach hash<auto> i in (foreignConstraints.pairIterator()) {
+                hash<auto> fc = {
+                    "table": i.value.target.table,
+                    "columns": i.value.keys(),
+                    "target_columns": i.value.target.columns.keys(),
+                };
+                rv.foreign_constraints{i.key} = fc;
+            }
+        }
+
+        return rv;
+    }
+
     #! returns an object of class Columns describing the table
     /** @par Example:
         @code{.py}
@@ -5965,25 +6025,33 @@ string sql = table.getCreateTableSql();
         return oh;
     }
 
-    #! accepts an AbstractTable argument and returns a list of SQL strings required to align the structure and configuration of the current table with that of the argument; if the tables are identical then an empty list is returned
-    /** @par Example:
+    #! returns a list of SQL strings required to align the table to the table given as an argument
+    /** if the tables are identical then an empty list is returned
+
+        @par Example:
         @code{.py}
-list l = table.getAlignSql(table2);
+list<auto> l = table.getAlignSql(table2);
         @endcode
 
         @param t the template table that the current table will be compared to
-        @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+        @param opt a hash of options for the SQL creation string; see @ref SqlUtil::AbstractTable::AlignTableOptions
+        for common options; each driver can support additional driver-specific options
 
-        @return a list of SQL strings required to align the structure and configuration of the current table with that of the AbstractTable argument; if the tables are identical then an empty list is returned
+        @return a list of SQL strings required to align the structure and configuration of the current table with that
+        of the AbstractTable argument; if the tables are identical then an empty list is returned
 
-        @throw ALIGN-TABLE-ERROR the argument must be of the same class as the current object; template table has no columns
+        @throw ALIGN-TABLE-ERROR the argument must be of the same class as the current object; template table has no
+        columns
         @throw OPTION-ERROR invalid or unsupported option passed
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the
+        changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for
+        more information)
     */
     list<auto> getAlignSql(AbstractTable t, *hash<auto> opt) {
         if (self.className() != t.className())
-            throw "ALIGN-TABLE-ERROR", sprintf("cannot align %s of class %y with %s of class %y", getDesc(), self.className(), t.getDesc(), t.className());
+            throw "ALIGN-TABLE-ERROR", sprintf("cannot align %s of class %y with %s of class %y", getDesc(),
+                self.className(), t.getDesc(), t.className());
 
         hash<auto> ato = getAlignTableOptions();
 
@@ -5999,8 +6067,9 @@ list l = table.getAlignSql(table2);
         on_exit t.l.unlock();
 
         # cache tables if not already cached
-        if (!t.manual)
+        if (!t.manual) {
             t.cacheUnlocked(opt);
+        }
 
         if (!manual) {
             # if the table does not exist, then just return the create table strings for the template table
@@ -6013,11 +6082,14 @@ list l = table.getAlignSql(table2);
             cacheUnlocked(db_opt);
         }
 
-        if (!t.columns || t.columns.empty())
-            throw "ALIGN-TABLE-ERROR", sprintf("cannot align %s with %s: %y has no columns", getDesc(), t.getDesc(), t.name);
+        if (!t.columns || t.columns.empty()) {
+            throw "ALIGN-TABLE-ERROR", sprintf("cannot align %s with %s: %y has no columns", getDesc(), t.getDesc(),
+                t.name);
+        }
 
-        if (!columns)
+        if (!columns) {
             columns = new Columns();
+        }
 
         AbstractTable this = opt.sql_callback_executed ? self : self.copy();
 
@@ -6108,7 +6180,8 @@ list l = table.getAlignSql(table2);
                     && (*AbstractIndex other = t.indexes.findEqual(ix))
                     && !indexes.hasKey(other.name)) {
                     # rename index
-                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), other.name), AbstractDatabase::AC_Rename, "index", ix.name, name, other.name);
+                    l += AbstractDatabase::doCallback(opt, ix.getRenameSql(getSqlName(), other.name),
+                        AbstractDatabase::AC_Rename, "index", ix.name, name, other.name);
                     renameIndexUnlocked(ix, other.name);
                 }
             }
@@ -6116,8 +6189,9 @@ list l = table.getAlignSql(table2);
             # check for indexes not in the template and drop them
             foreach AbstractIndex ix in (indexes.iterator()) {
                 if (!t.indexes.hasKey(ix.name)) {
-                    # make sure there is no unique constraint or primary key for the unique index if the "index" option is supported
-                    # in which case update the constraint to be based on the index and do not drop the index
+                    # make sure there is no unique constraint or primary key for the unique index if the "index"
+                    # option is supported in which case update the constraint to be based on the index and do not drop
+                    # the index
                     if (ix.unique && !t.primaryKey.empty() && t.primaryKey.matchKeys(ix.columns)) {
                         if (t.primaryKey.setIndexBase(ix.name)) {
                             ix.setSupportingConstraint(primaryKey);
@@ -6159,10 +6233,12 @@ list l = table.getAlignSql(table2);
                         code rmv;
                         AbstractConstraint c = findDropConstraintUnlocked(csc.getName(), \rmv);
 
-                        l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
+                        l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop,
+                            "constraint", c.getName(), name);
                         rmv();
                     } else
-                        l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "index", ix.name, name);
+                        l += AbstractDatabase::doCallback(opt, ix.getDropSql(getSqlName()), AbstractDatabase::AC_Drop,
+                            "index", ix.name, name);
                     */
                     if (uixc) {
                         *AbstractUniqueConstraint c = ix.getSupportingConstraint();
@@ -6192,7 +6268,8 @@ list l = table.getAlignSql(table2);
                 c = primaryKey;
 
             if (c) {
-                l += AbstractDatabase::doCallback(opt, c.getRenameSql(getSqlName(), value), AbstractDatabase::AC_Rename, "constraint", c.getName(), name, value);
+                l += AbstractDatabase::doCallback(opt, c.getRenameSql(getSqlName(), value),
+                    AbstractDatabase::AC_Rename, "constraint", c.getName(), name, value);
                 c.rename(value);
             }
         }
@@ -6207,7 +6284,8 @@ list l = table.getAlignSql(table2);
                 && (*AbstractUniqueConstraint other = t.constraints.findEqualUniqueConstraint(uk))
                 && !constraints.hasKey(other.getName())) {
                 # rename constraint
-                l += AbstractDatabase::doCallback(opt, uk.getRenameSql(getSqlName(), other.getName()), AbstractDatabase::AC_Rename, "constraint", uk.getName(), name, other.getName());
+                l += AbstractDatabase::doCallback(opt, uk.getRenameSql(getSqlName(), other.getName()),
+                    AbstractDatabase::AC_Rename, "constraint", uk.getName(), name, other.getName());
                 constraints.renameKey(uk.getName(), other.getName());
                 uk.rename(other.getName());
             }
@@ -6221,7 +6299,8 @@ list l = table.getAlignSql(table2);
                     && (*AbstractForeignConstraint other = t.foreignConstraints.findEqual(fk))
                     && !foreignConstraints.hasKey(other.getName())) {
                     # rename constraint
-                    l += AbstractDatabase::doCallback(opt, fk.getRenameSql(getSqlName(), other.getName()), AbstractDatabase::AC_Rename, "constraint", fk.getName(), name, other.getName());
+                    l += AbstractDatabase::doCallback(opt, fk.getRenameSql(getSqlName(), other.getName()),
+                        AbstractDatabase::AC_Rename, "constraint", fk.getName(), name, other.getName());
                     foreignConstraints.renameKey(fk.getName(), other.getName());
                     fk.rename(other.getName());
                 }
@@ -6230,7 +6309,12 @@ list l = table.getAlignSql(table2);
             # check for foreign constraints not in the template and drop them
             foreach AbstractForeignConstraint c in (foreignConstraints.iterator()) {
                 if (!t.foreignConstraints.hasKey(c.getName())) {
-                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
+
+                    # XXX DEBUG DELETEME
+                    printf("dropping foreign constraint %y\n", c.getName());
+
+                    l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop,
+                        "foreign constraint", c.getName(), name);
                     foreignConstraints.take(c.getName());
                 }
             }
@@ -6239,7 +6323,8 @@ list l = table.getAlignSql(table2);
         # check for other constraints not in the template and drop them
         foreach AbstractConstraint c in (constraints.iterator()) {
             if (!t.constraints.hasKey(c.getName())) {
-                l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
+                l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop,
+                    "constraint", c.getName(), name);
                 constraints.take(c.getName());
             }
         }
@@ -6251,7 +6336,8 @@ list l = table.getAlignSql(table2);
                     # see if pk has the same definition but a different name; if so, it will be renamed later
                     if (primaryKey.getName() == t.primaryKey.getName() || primaryKey.matchKeys(t.primaryKey)) {
                         #printf("pk1: %N\nXXXXXXX\npk2: %N\n", primaryKey, t.primaryKey);
-                        l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", t.primaryKey.getName(), name);
+                        l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()),
+                            AbstractDatabase::AC_Drop, "primary key", t.primaryKey.getName(), name);
                         # clear supporting constraint from index in the template since we've dropped the PK constraint
                         *string pk_index = t.primaryKey.getIndex();
                         if (pk_index && t.indexes.hasKey(pk_index))
@@ -6271,7 +6357,8 @@ list l = table.getAlignSql(table2);
                     t.primaryKey.clearIndex();
             }
         } else if (!primaryKey.empty()) {
-            l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "primary key", primaryKey.getName(), name);
+            l += AbstractDatabase::doCallback(opt, primaryKey.getDropSql(getSqlName()), AbstractDatabase::AC_Drop,
+                "primary key", primaryKey.getName(), name);
             delete primaryKey;
         }
 
@@ -6279,13 +6366,15 @@ list l = table.getAlignSql(table2);
         foreach AbstractColumn c in (t.columns.iterator()) {
             if (!columns.hasKey(c.name)) {
                 # add column to table
-                l += AbstractDatabase::doCallback(opt, c.getAddColumnSql(self), AbstractDatabase::AC_Add, "column", c.name, name);
+                l += AbstractDatabase::doCallback(opt, c.getAddColumnSql(self), AbstractDatabase::AC_Add, "column",
+                    c.name, name);
             } else {
                 # get any delta SQL
                 list cl = columns{c.name}.getModifySql(self, c);
                 # add delta SQL to list if there is any to add
                 if (cl) {
-                    l += AbstractDatabase::doCallback(opt, cl, AbstractDatabase::AC_Modify, "column", c.name, name, NOTHING, c.getNativeTypeString());
+                    l += AbstractDatabase::doCallback(opt, cl, AbstractDatabase::AC_Modify, "column", c.name, name,
+                        NOTHING, c.getNativeTypeString());
                 } else
                     AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "column", c.name, name);
             }
@@ -6295,7 +6384,8 @@ list l = table.getAlignSql(table2);
         foreach AbstractColumn c in (columns.iterator()) {
             if (!t.columns.hasKey(c.name)) {
                 l += getDropAllConstraintsAndIndexesOnColumnSqlUnlocked(c.name, opt);
-                l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "column", c.name, name);
+                l += AbstractDatabase::doCallback(opt, c.getDropSql(getSqlName()), AbstractDatabase::AC_Drop,
+                    "column", c.name, name);
             }
         }
 
@@ -6304,9 +6394,11 @@ list l = table.getAlignSql(table2);
             foreach AbstractIndex ix in (t.indexes.iterator()) {
                 if (!indexes.hasKey(ix.name)) {
                     # add index to table
-                    l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "index", ix.name, name);
+                    l += AbstractDatabase::doCallback(opt, ix.getCreateSql(getSqlName(), opt),
+                        AbstractDatabase::AC_Add, "index", ix.name, name);
                 } else if (!ix.equal(indexes{ix.name})) {
-                    l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt), AbstractDatabase::AC_Recreate, "index", ix.name, name);
+                    l += AbstractDatabase::doCallback(opt, ix.getRecreateSql(ds, getSqlName(), opt),
+                        AbstractDatabase::AC_Recreate, "index", ix.name, name);
                 } else
                     AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "index", ix.name, name);
             }
@@ -6318,11 +6410,14 @@ list l = table.getAlignSql(table2);
                 # we know the 2 primary key definitions have equal column definitions as it's checked above
                 # see if pk has a different name
                 if (primaryKey.getName() != t.primaryKey.getName()) {
-                    l += AbstractDatabase::doCallback(opt, primaryKey.getRenameSql(getSqlName(), t.primaryKey.getName()), AbstractDatabase::AC_Rename, "constraint", primaryKey.getName(), name, t.primaryKey.getName());
+                    l += AbstractDatabase::doCallback(opt, primaryKey.getRenameSql(getSqlName(),
+                        t.primaryKey.getName()), AbstractDatabase::AC_Rename, "constraint", primaryKey.getName(),
+                        name, t.primaryKey.getName());
                     primaryKey.rename(t.primaryKey.getName());
                 }
             } else {
-                l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "primary key", t.primaryKey.getName(), name);
+                l += AbstractDatabase::doCallback(opt, t.primaryKey.getCreateSql(getSqlName(), opt),
+                    AbstractDatabase::AC_Add, "primary key", t.primaryKey.getName(), name);
             }
         }
 
@@ -6331,14 +6426,19 @@ list l = table.getAlignSql(table2);
             foreach AbstractForeignConstraint c in (t.foreignConstraints.iterator()) {
                 if (!foreignConstraints.hasKey(c.getName())) {
                     # add constraint to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt),
+                        AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
                 } else if (!c.equal(foreignConstraints{c.getName()})) {
                     # drop current constraint
-                    l += AbstractDatabase::doCallback(opt, foreignConstraints{c.getName()}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, foreignConstraints{c.getName()}.getDropSql(getSqlName()),
+                        AbstractDatabase::AC_Drop, "foreign constraint", c.getName(), name);
                     # add new constraint to table
-                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
-                } else
-                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "foreign constraint", c.getName(), name);
+                    l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt),
+                        AbstractDatabase::AC_Add, "foreign constraint", c.getName(), name);
+                } else {
+                    AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "foreign constraint",
+                        c.getName(), name);
+                }
             }
         }
 
@@ -6352,15 +6452,19 @@ list l = table.getAlignSql(table2);
                         continue;
                 }
                 # add constraint to table
-                l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "constraint", c.getName(), name);
+                l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add,
+                    "constraint", c.getName(), name);
             } else if (!c.equal(constraints{c.getName()})) {
                     # drop current constraint
-                l += AbstractDatabase::doCallback(opt, constraints{c.getName()}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
-                if (constraints{c.getName()} instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl() && indexes.hasKey(c.getName()))
+                l += AbstractDatabase::doCallback(opt, constraints{c.getName()}.getDropSql(getSqlName()),
+                    AbstractDatabase::AC_Drop, "constraint", c.getName(), name);
+                if (constraints{c.getName()} instanceof AbstractUniqueConstraint && constraintsLinkedToIndexesImpl()
+                    && indexes.hasKey(c.getName()))
                     cast<AbstractUniqueConstraint>(c).clearIndex();
 
                 # add new constraint to table
-                l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "constraint", c.getName(), name);
+                l += AbstractDatabase::doCallback(opt, c.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add,
+                    "constraint", c.getName(), name);
             } else
                 AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "constraint", c.getName(), name);
         }
@@ -6377,7 +6481,8 @@ list l = table.getAlignSql(table2);
             # do this before adding for dbs like mysql that cannot support multiple triggers with the same action on the same table
             foreach AbstractTrigger trig in (triggers.iterator()) {
                 if (!t.triggers.hasKey(trig.name)) {
-                    l += AbstractDatabase::doCallback(opt, trig.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "trigger", trig.name, name);
+                    l += AbstractDatabase::doCallback(opt, trig.getDropSql(getSqlName()), AbstractDatabase::AC_Drop,
+                        "trigger", trig.name, name);
                 }
             }
 
@@ -6385,12 +6490,15 @@ list l = table.getAlignSql(table2);
             foreach AbstractTrigger trig in (t.triggers.iterator()) {
                 if (!triggers.hasKey(trig.name)) {
                     # add trigger to table
-                    l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "trigger", trig.name, name);
+                    l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add,
+                        "trigger", trig.name, name);
                 } else if (!trig.equal(triggers{trig.name})) {
                     # drop current trigger
-                    l += AbstractDatabase::doCallback(opt, triggers{trig.name}.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "trigger", trig.name, name);
+                    l += AbstractDatabase::doCallback(opt, triggers{trig.name}.getDropSql(getSqlName()),
+                        AbstractDatabase::AC_Drop, "trigger", trig.name, name);
                     # add new trigger to table
-                    l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt), AbstractDatabase::AC_Add, "trigger", trig.name, name);
+                    l += AbstractDatabase::doCallback(opt, trig.getCreateSql(getSqlName(), opt),
+                        AbstractDatabase::AC_Add, "trigger", trig.name, name);
                 } else
                     AbstractDatabase::doOkCallback(opt, AbstractDatabase::AC_Unchanged, "trigger", trig.name, name);
             }
