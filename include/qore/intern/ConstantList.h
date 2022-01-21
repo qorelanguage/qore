@@ -412,11 +412,12 @@ protected:
     ConstantEntry* ce;
 
     DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        parse_context.typeInfo = ce->typeInfo;
         return 0;
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-        return ce->saved_val.getFullTypeInfo();
+        return ce->typeInfo;
     }
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {

@@ -79,6 +79,18 @@ class HTTest {
     }
 }
 
+hashdecl MyHash0 {
+    list<hash<MyHash>> l;
+}
+
+const H0 = <MyHash0>{
+    "l": (<MyHash>{},),
+};
+
+const H1 = H0 + <MyHash0>{
+    "l": H0.l + (<MyHash>{},),
+};
+
 class HashTest inherits QUnit::Test {
     constructor () : Test("Hash test", "1.0") {
         addTestCase("Hash test", \testHash());

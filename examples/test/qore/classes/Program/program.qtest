@@ -272,7 +272,8 @@ class ProgramTest inherits QUnit::Test {
 
     issue2993() {
         Program p(PO_NEW_STYLE);
-        *hash<ExceptionInfo> h = p.parse("background printf('%y\n', gettid());", "issue 2993", WARN_RETURN_VALUE_IGNORED);
+        *hash<ExceptionInfo> h = p.parse("background printf('%y\n', gettid());", "issue 2993",
+            WARN_RETURN_VALUE_IGNORED);
         assertNothing(h);
     }
 
@@ -286,8 +287,12 @@ class ProgramTest inherits QUnit::Test {
     }
 
     issue3027Test() {
+        if (!Option::HAVE_STACK_GUARD) {
+            testSkip("Qore library was not built with stack protection support");
+        }
         Program p(PO_NEW_STYLE);
-        assertThrows("PARSE-EXCEPTION", \p.parse(), ('sub foo() { hash h = T{"foo"}; return h.a; } const T = { "foo": { "a": 1, "b": foo()},}; foo();', ""));
+        assertThrows("STACK-LIMIT-EXCEEDED", \p.parse(), ('sub foo() { hash h = T{"foo"}; return h.a; } '
+            'const T = {"foo": { "a": 1, "b": foo()},}; foo();', ""));
     }
 
     issueModuleCmdTest() {
