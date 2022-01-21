@@ -5,6 +5,7 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/MapperUtil.qm
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestClient.qm

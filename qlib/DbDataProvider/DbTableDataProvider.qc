@@ -333,15 +333,13 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
         DbTableTransactionHelper db(table);
-        try {
-            *hash<auto> returning = db.insert(rec, create_options);
-            return rec + returning;
-        } catch (hash<ExceptionInfo> ex) {
-            if (db.isDuplicateRowError(ex)) {
-                throw "DUPLICATE-RECORD", sprintf("%s: %s", ex.err, ex.desc), ex.arg;
+        on_error {
+            if (db.isDuplicateRowError($1)) {
+                rethrow "DUPLICATE-RECORD", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
             }
-            rethrow;
         }
+        *hash<auto> returning = db.insert(rec, create_options);
+        return rec + returning;
     }
 
     #! Upserts the given record to the data provider

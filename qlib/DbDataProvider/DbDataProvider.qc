@@ -89,6 +89,10 @@ public class DbDataProvider inherits AbstractDataProvider {
                 "type": new DbIndexesDataType(),
                 "desc": "a hash of indexes keyed by index name",
             },
+            "foreign_constraints": <DataProviderOptionInfo>{
+                "type": new DbForeignConstraintsDataType(),
+                "desc": "a hash of foreign constraints keyed by foreign constraint name",
+            },
         };
     }
 
@@ -305,6 +309,9 @@ public class DbDataProvider inherits AbstractDataProvider {
         AbstractTable table = db.makeTable(name, table_desc);
         DbTableTransactionHelper th(table);
         th.create();
+        if (logger) {
+            logger.info("DbDataProvider %y DDL: %s", name, table.getCreateSqlString());
+        }
         return new DbTableDataProvider({
             "table": table,
         });
@@ -319,10 +326,15 @@ public class DbDataProvider inherits AbstractDataProvider {
         @since DataProvider 2.0
     */
     private deleteChildProviderImpl(string name, *hash<auto> child_delete_options) {
-        DbTransactionHelper th(db);
-        if (!th.dropTableIfExists(name)) {
+        *AbstractTable t = db.getTable(name);
+        if (!t) {
             throw "NO-CHILD", sprintf("%s has no child %y", getName(), name);
         }
+        DbTableTransactionHelper th(t);
+        if (logger) {
+            logger.info("DbDataProvider %y DDL: %s", name, (foldl $1 + "\n" + $2, t.getDropSql()));
+        }
+        th.drop();
     }
 
     #! Sets the datasource lookup
@@ -366,19 +378,34 @@ public class DbDataProvider inherits AbstractDataProvider {
 
     #! Returns a column description hash for a field
     hash<GenericColumnInfo> getColumnDesc(AbstractDataField field, *hash<auto> opts) {
-        string type_name = field.getTypeName();
-        if (type_name == "int") {
-            type_name = "integer";
-        }
+        AbstractDataProviderType type = field.getType();
         hash<GenericColumnInfo> col({
-            "qore_type": type_name,
             "default_value": field.getDefaultValue(),
             "notnull": !field.isAssignableFrom(Reflection::NothingType),
         });
-        if (type_name =~ /\*?number$/ && db.requiresScale()) {
-            col.size = db.getMaximumPrecision();
-            col.scale = col.size / 3;
+
+        string type_name = type.getName();
+        switch (type.getBaseTypeCode()) {
+            case NT_INT:
+                type_name = "integer";
+                break;
+
+            case NT_STRING:
+                if (*int size = field.getType().getOptionValue("string.max_size_chars")) {
+                    col.size = size;
+                }
+                break;
+
+            case NT_NUMBER:
+                if (db.requiresScale()) {
+                    col.size = db.getMaximumPrecision();
+                    col.scale = col.size / 3;
+                }
+                break;
         }
+        col.qore_type = type_name;
+
+        # add field description as a comment if possible
         if (*string desc = field.getDescription()) {
             col.comment = desc;
         }
@@ -395,6 +422,7 @@ public class DbDataProvider inherits AbstractDataProvider {
         hash<auto> tdesc += {
             "columns": cols,
         };
+        # process PK
         if (opts.primary_key) {
             foreach auto cname in (opts.primary_key) {
                 if (cname.typeCode() != NT_STRING) {
@@ -411,6 +439,14 @@ public class DbDataProvider inherits AbstractDataProvider {
                 "name": pk_name,
                 "columns": opts.primary_key,
             };
+        }
+        # process indexes
+        if (opts.indexes) {
+            tdesc.indexes = opts.indexes;
+        }
+        # process foreign_constraints
+        if (opts.foreign_constraints) {
+            tdesc.foreign_constraints = opts.foreign_constraints;
         }
 
         return tdesc;

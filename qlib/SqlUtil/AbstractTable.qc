@@ -531,7 +531,8 @@ table.dropCommit();
 
         @throw OPTION-ERROR invalid or unknown callback option
 
-        @note The transaction is committed if successful or rolled back if an exception occurs; use @ref drop() to execute without any transaction management
+        @note The transaction is committed if successful or rolled back if an exception occurs; use @ref drop() to
+        execute without any transaction management
     */
     dropCommit(*hash<auto> opt) {
         on_exit ds.commit();
@@ -549,7 +550,10 @@ table.drop();
 
         @throw OPTION-ERROR invalid or unknown callback option
 
-        @note Transaction management is normally not performed when dropping tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+        @note Transaction management is normally not performed when dropping tables, however this method uses the
+        Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for
+        the underlying datasource object; therefore after this method executes normally the transaction lock will be
+        dedicated to the calling thread.
     */
     drop(*hash<auto> opt) {
         map ds.execRaw($1), getDropSql(opt);
@@ -616,7 +620,8 @@ list l = table.getDropSql();
 
         @param opt optional callback options; see @ref AbstractDatabase::CallbackOptions for more info
 
-        @return a list of strings that can be used to drop the table and any other objects assocatied with the table (for example: PostgreSQL table trigger function(s))
+        @return a list of strings that can be used to drop the table and any other objects assocatied with the table
+        (for example: PostgreSQL table trigger function(s))
 
         @throw OPTION-ERROR invalid or unknown callback option
     */
@@ -631,8 +636,9 @@ list l = table.getDropSql();
 table.truncateCommit();
         @endcode
 
-        @note The transaction is committed if successful or rolled back if an exception occurs; use @ref truncate() to execute without any transaction management
-        */
+        @note The transaction is committed if successful or rolled back if an exception occurs; use @ref truncate() to
+        execute without any transaction management
+    */
     truncateCommit() {
         on_exit ds.commit();
         on_error ds.rollback();
@@ -645,7 +651,11 @@ table.truncateCommit();
 table.truncate();
         @endcode
 
-        @note Transaction management may not be applied when truncating tables depending on the database driver (for example truncating tables in Oracle does not participate in transaction management), however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+        @note Transaction management may not be applied when truncating tables depending on the database driver (for
+        example truncating tables in Oracle does not participate in transaction management), however this method uses
+        the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock
+        for the underlying datasource object; therefore after this method executes normally the transaction lock will
+        be dedicated to the calling thread.
     */
     truncate() {
         ds.exec(getTruncateSqlImpl());
@@ -663,7 +673,8 @@ table.truncate();
 string sql = table.getTruncateSql();
         @endcode
 
-        @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common options; each driver can support additional driver-specific options
+        @param opt a hash of options for the SQL string; see @ref SqlUtil::AbstractTable::AlignTableOptions for common
+        options; each driver can support additional driver-specific options
 
         @return the SQL that can be used to truncate the table
 
@@ -671,7 +682,9 @@ string sql = table.getTruncateSql();
 
         @see inDb() for a method that tells if the table is already in the database or not
 
-        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for more information)
+        @note if the @ref sql_callback_executed "sql_callback_executed option" is @ref True "True" in \a opt, then the
+        changes are also effected in the current object, if not, then they are not (see @ref sql_callback_executed for
+        more information)
     */
     string getTruncateSql(*hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
@@ -702,7 +715,10 @@ table.create();
 
         @param opt a hash of options for the SQL creation strings
 
-        @note Transaction management is normally not performed when creating tables, however this method uses the Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for the underlying datasource object; therefore after this method executes normally the transaction lock will be dedicated to the calling thread.
+        @note Transaction management is normally not performed when creating tables, however this method uses the
+        Qore::SQL::AbstractDatasource::exec() method, which normally participates in acquiring a transaction lock for
+        the underlying datasource object; therefore after this method executes normally the transaction lock will be
+        dedicated to the calling thread.
 
         @throw CREATE-TABLE-ERROR table has already been read from or created in the database
     */
@@ -721,15 +737,20 @@ table.create();
         create(opt);
     }
 
-    #! renames the table; if the table is already known to be in the database in the database, then the changes are effected in the database also immediately; otherwise it is only updated internally
-    /** @par Example:
+    #! renames the table
+    /** if the table is already known to be in the database in the database, then the changes are effected in the
+        database also immediately; otherwise it is only updated internally
+
+        @par Example:
         @code{.py}
 table.rename("new_name");
         @endcode
 
         @param new_name the new name for the table
-        @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if the table is already in the database)
-        @param table_cache an optional @ref SqlUtil::Tables "Tables" argument to update the table name in any table cache
+        @param sql an optional reference to a string to retrieve the SQL used to modify the table (only executed if
+        the table is already in the database)
+        @param table_cache an optional @ref SqlUtil::Tables "Tables" argument to update the table name in any table
+        cache
 
         @see getRenameSql()
     */
@@ -955,7 +976,7 @@ bool b = table.empty();
                 addForeignConstraintUnlocked(cn, ch.columns, ch.table, ch.target_columns,
                     opt.(getForeignConstraintOptions().keys()));
             } catch (hash<ExceptionInfo> ex) {
-                throw ex.err, sprintf("error setting up %s: %s", getDesc(), ex.desc), ex.arg;
+                rethrow ex.err, sprintf("error setting up %s: %s", getDesc(), ex.desc), ex.arg;
             }
         }
 
@@ -4502,7 +4523,7 @@ string sql = table.getSelectSql(sh, \args);
                             ce += val;
                         } catch (hash<ExceptionInfo> ex) {
                             # rethrow exception with additional contextual information
-                            throw ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex),
+                            rethrow ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex),
                                 getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
                         }
                         if (qh.superquery && cv.cop == COP_AS && cv.arg)
@@ -7202,14 +7223,14 @@ any res = t.selectRows(sh, \sql);
         try {
             load_module(mn);
         } catch (hash<ExceptionInfo> ex) {
-            throw "TABLE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
+            rethrow "TABLE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
         }
 
         # try to get AbstractTable object
         try {
             return call_function(mn + "::" + "get_table", nds, nname, opts);
         } catch (hash<ExceptionInfo> ex) {
-            throw "TABLE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractTable object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
+            rethrow "TABLE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractTable object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
         }
     }
 
