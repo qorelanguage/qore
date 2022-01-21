@@ -464,7 +464,8 @@ public namespace PgsqlSqlUtil {
         }
 
         #! creates the column from the supplied arguments
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs)
+                : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
             byte_size = bs;
         }
 
@@ -2353,11 +2354,11 @@ auto v = c.name;
             return (ex.desc =~ /duplicate key value/);
         }
 
-        private hash getQoreTypeMapImpl() {
+        private hash<auto> getQoreTypeMapImpl() {
             return QoreTypeMap;
         }
 
-        private hash getTypeMapImpl() {
+        private hash<auto> getTypeMapImpl() {
             return PgsqlTypeMap;
         }
 

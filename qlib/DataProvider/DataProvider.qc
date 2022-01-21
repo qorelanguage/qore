@@ -365,7 +365,10 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{oracle:us
     }
 
     #! Converts an info hash with objects to a hash with string descriptions instead of the objects
-    static hash<auto> getInfoAsData(hash<auto> info0) {
+    /** @param info0 the raw info with objects describing the types
+        @param with_type_info if @ref True then more type information will be returned in the response
+    */
+    static hash<auto> getInfoAsData(hash<auto> info0, *bool with_type_info) {
         # strip types
         hash info = info0;
         foreach hash<auto> i0 in (info.pairIterator()) {
@@ -374,6 +377,11 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{oracle:us
                 map info{i0.key}{$1.key}.type = (map $1.getName(), $1.value.type),
                     i0.value.pairIterator(),
                     $1.value.type;
+                if (with_type_info) {
+                    map info{i0.key}{$1.key}.type_info = (map $1.getInfo(), $1.value.type),
+                        i0.value.pairIterator(),
+                        $1.value.type;
+                }
             }
         }
         return info;

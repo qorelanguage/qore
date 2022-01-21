@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.4.3";
+    version = "1.4.4";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -69,41 +69,46 @@ module OracleSqlUtil {
 
     All the public symbols in the module are defined in the OracleSqlUtil namespace
 
-    @note This module requires the <a href="https://github.com/qorelanguage/module-oracle">oracle</a> binary module for communication with Oracle databases
+    @note This module requires the <a href="https://github.com/qorelanguage/module-oracle">oracle</a> binary module
+    for communication with Oracle databases
 
     @section ora_sql_operations SQL Operations on Oracle
 
     @subsection ora_paging Select With Paging on Oracle
 
-    Select with paging on Oracle is more complicated than on some databases due to the lack of direct \c limit and \c offset
-    support (applies to Oracle pre 12c).
+    Select with paging on Oracle is more complicated than on some databases due to the lack of direct \c limit and
+    \c offset support (applies to Oracle pre 12c).
 
     For example, for the following select:
     @code{.py}
-my *list $rows = $table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+*list<auto> rows = $table.selectRows({"where": {"type": "user"}, "limit": 100, "offset": 200});
     @endcode
     the following SQL is generated for Oracle with a pre 12c server:
     @code{.py}
-$ds.vselectRows("select * from (select /*+ first_rows(100) *<!--%%-->/ a.*, rownum rnum from (select * from schema.table where type = %v order by type) a where rownum <= %v) where rnum > %v", ("user", 300, 200));
+ds.vselectRows("select * from (select /*+ first_rows(100) *<!--%%-->/ a.*, rownum rnum from
+    (select * from schema.table where type = %v order by type) a
+        where rownum <= %v) where rnum > %v", ("user", 300, 200));
     @endcode
     note that the following simpler SQL is generated for Oracle 12c+ servers:
     @code{.py}
-$ds.vselectRows("select * from schema.table where type = %v order by type offset %v rows fetch next %v rows only", ("user", 200, 100));
+ds.vselectRows("select * from schema.table where type = %v order by type offset %v rows
+    fetch next %v rows only", ("user", 200, 100));
     @endcode
 
     @subsection ora_in_operator IN Operator on Oracle
 
-    In order to avoid dynamic SQL and better manage the server's shared pool (in particular, the number of parsed statements), the %OracleSqlUtil
-    module uses bind by value with the SQL \c IN operator.
+    In order to avoid dynamic SQL and better manage the server's shared pool (in particular, the number of parsed
+    statements), the %OracleSqlUtil module uses bind by value with the SQL \c IN operator.
 
     For example, the following query:
     @code{.py}
-my *hash $q = $table.select(("where": ("col1": op_in(1, 2, 3, 4))));
+*hash<auto> q = table.select({"where": {"col1": op_in(1, 2, 3, 4)}});
     @endcode
 
     Results in the equivalent of the following SQL:
     @code{.py}
-my *hash $q = $ds.select("select * from schema.table where col1 in (select column_value from table(%v))", bindOracleCollection("SYS.ODCIVARCHAR2LIST", (1,2,3,4)));
+*hash<auto> q = ds.select("select * from schema.table where col1 in (select column_value from table(%v))",
+    bindOracleCollection("SYS.ODCIVARCHAR2LIST", (1,2,3,4)));
     @endcode
 
     |!Qore Type|!Oracle Collection
@@ -113,38 +118,42 @@ my *hash $q = $ds.select("select * from schema.table where col1 in (select colum
     |Number|\c SYS.ODCINUMBERLIST
     |String|\c SYS.ODCIVARCHAR2LIST
 
-    There universal collections are limited to 32767 elements. And \c SYS.ODCIVARCHAR2LIST element size is \c VARCHAR2(4000).
+    There universal collections are limited to 32767 elements. And \c SYS.ODCIVARCHAR2LIST element size is
+    \c VARCHAR2(4000).
 
     @subsection ora_partitioning_select Partition Support in Selects
 
     It's possible to select from a particular partition of a table with %OracleSqlUtil;
-    @ref OracleSqlUtil::OracleTable::OracleSelectOptions "OracleSelectOptions" defines the \c "partition" key which can be added to a
-    @ref select_option_hash "select option hash" to specify the partition to select from as in the following example:
+    @ref OracleSqlUtil::OracleTable::OracleSelectOptions "OracleSelectOptions" defines the \c "partition" key which
+    can be added to a @ref select_option_hash "select option hash" to specify the partition to select from as in the
+    following example:
     @code{.py}
-my *list $rows = $table.selectRows(("created": op_gt(2012-05-01), "partition": "p1"));
+*list<auto> rows = $table.selectRows(("created": op_gt(2012-05-01), "partition": "p1"));
     @endcode
     Which generates an SQL command like the following:
     @code{.py}
-my *list $rows = $ds.vselectRows("select * from schema.table partition(p1) where created > %v", (2012-05-01));
+*list<auto> rows = ds.vselectRows("select * from schema.table partition(p1) where created > %v", (2012-05-01));
     @endcode
 
     @subsection ora_partitioning_join Partition Support in Joins
 
-    It's possible to perform a join on a particular partition of a table with %OracleSqlUtil; the join option \c "partition" is
-    supported to specify the partition to join on as in the following example:
+    It's possible to perform a join on a particular partition of a table with %OracleSqlUtil; the join option
+    \c "partition" is supported to specify the partition to join on as in the following example:
     @code{.py}
-my *list $rows = $table.selectRows(("join": join_inner($table2, "t2", ("id": "altid"), NOTHING, ("partition": "p2"))));
+*list<auto> $rows = table.selectRows({"join": join_inner($table2, "t2", ("id": "altid"), NOTHING,
+    {"partition": "p2"})});
     @endcode
     Which generates an SQL command like the following:
     @code{.py}
-my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.table2 partition(p2) t2 on (schema.table.id = t2.altid)");
+*list<auto> $rows = ds.vselectRows("select * from schema.table inner join schema.table2 partition(p2) t2 on
+    (schema.table.id = t2.altid)");
     @endcode
 
     @section ora_schema_management Schema Management on Oracle
 
-    Note that when getting an object description from an Oracle database, if the object cannot be found in the connection schema, then
-    if a synonym of the same type exists and the target object is accessible, then the target object is read automatically and the owning
-    schema name is also set to the actual owner of the object.
+    Note that when getting an object description from an Oracle database, if the object cannot be found in the
+    connection schema, then if a synonym of the same type exists and the target object is accessible, then the target
+    object is read  automatically and the owning schema name is also set to the actual owner of the object.
 
     @subsection ora_type_mapping Type Mapping
 
@@ -164,8 +173,9 @@ my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.t
     |@ref SqlUtil::NUMERIC|\c number
     |@ref SqlUtil::VARCHAR|\c varchar2
 
-    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
-    native Oracle type name instead (under the \c "driver" and \c "oracle" keys for schemas supporting multiple databases).
+    To use other types, use the \c "native_type"
+    @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the native Oracle type name
+    instead (under the \c "driver" and \c "oracle" keys for schemas supporting multiple databases).
 
     @subsection ora_other_objects Additional Object Types Supported
 
@@ -176,15 +186,19 @@ my *list $rows = $ds.vselectRows("select * from schema.table inner join schema.t
 
     @subsection ora_materialized_views Materialized Views
 
-    The @ref schema_desc_hash takes an optional key, \c "materialized_views" that allows materialized views in Oracle schemas to be managed along with other objects.
+    The @ref schema_desc_hash takes an optional key, \c "materialized_views" that allows materialized views in Oracle
+    schemas to be managed along with other objects.
 
-    The \c "materialized_views" should be assigned to a hash, each key name is the name of the materialized view, and the values are hashes with the
+    The \c "materialized_views" should be assigned to a hash, each key name is the name of the materialized view, and
+    the values are hashes with the
     following keys:
     - \c "logging": (@ref bool_type "bool") if the materialized view should be logged
     - \c "use_index": (@ref bool_type "bool") if the materialized view should be indexed
     - \c "src": (@ref bool_type "bool") the source of the materialized view
 
-    The \c "materialized_views" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
+    The \c "materialized_views" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or,
+    for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following
+    example:
 
     @code{.py}
 hash schema = (
@@ -204,13 +218,15 @@ hash schema = (
 
     @subsection ora_packages Packages
 
-    The @ref schema_desc_hash takes an optional key, \c "packages" that allows packages in Oracle schemas to be managed along with other objects.
+    The @ref schema_desc_hash takes an optional key, \c "packages" that allows packages in Oracle schemas to be
+    managed along with other objects.
 
-    The \c "packages" should be assigned to a hash, each key name is the name of the package, and the values are hashes with the
-    following key:
+    The \c "packages" should be assigned to a hash, each key name is the name of the package, and the values are
+    hashes with the following key:
     - \c "src": (@ref bool_type "bool") the source of the package
 
-    The \c "packages" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
+    The \c "packages" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for
+    schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
     @code{.py}
 hash schema = (
@@ -232,11 +248,14 @@ MYSTATERROR constant order_status.orderstatus%type := 'E';
 
     @subsection ora_types Types
 
-    The @ref schema_desc_hash takes an optional key, \c "types" that allows types in Oracle schemas to be managed along with other objects.
+    The @ref schema_desc_hash takes an optional key, \c "types" that allows types in Oracle schemas to be managed
+    along with other objects.
 
-    The \c "types" should be assigned to a hash, each key name is the name of the type, and the values are strings giving the type definition.
+    The \c "types" should be assigned to a hash, each key name is the name of the type, and the values are strings
+    giving the type definition.
 
-    The \c "types" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
+    The \c "types" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas
+    targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
 
     @code{.py}
 hash schema = (
@@ -251,9 +270,14 @@ hash schema = (
 );
     @endcode
 
-    @see OracleSqlUtil::OracleDatabase::OracleSchemaDescriptionOptions for a list of Oracle-specific schema description hash keys.
+    @see OracleSqlUtil::OracleDatabase::OracleSchemaDescriptionOptions for a list of Oracle-specific schema
+    description hash keys.
 
     @section ora_relnotes Release Notes
+
+    @subsection oracle144 OracleSqlUtil v1.4.4
+    - allow a \c VARCHAR column to be created without a size, assume a default size
+      (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
 
     @subsection oraclev143 OracleSqlUtil v1.4.3
     - added APIs to enable duplicate record creation errors to be detected
@@ -280,26 +304,38 @@ hash schema = (
       (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
 
     @subsection v13 OracleSqlUtil v1.3
-    - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+    - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects
+      (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
 
     @subsection v125 OracleSqlUtil v1.2.5
-    - worked around an Oracle bug in materialized view creation where when the schema user is missing the <tt>CREATE MATERIALIZED VIEW</tt> grant the table backing the view is created but the materialized view itself is not created causing future creation actions to fail (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
+    - worked around an Oracle bug in materialized view creation where when the schema user is missing the
+      <tt>CREATE MATERIALIZED VIEW</tt> grant the table backing the view is created but the materialized view itself
+      is not created causing future creation actions to fail
+      (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
 
     @subsection v124 OracleSqlUtil v1.2.4
-    - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
-    - implemented support for chained synonyms (<a href="https://github.com/qorelanguage/qore/issues/2408">issue 2408</a>)
-    - allow to use DBA_* views instead of ALL_* if possible (<a href="https://github.com/qorelanguage/qore/issues/2418">issue 2418</a>)
+    - implemented support for custom column operators
+      (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
+    - implemented support for chained synonyms
+      (<a href="https://github.com/qorelanguage/qore/issues/2408">issue 2408</a>)
+    - allow to use DBA_* views instead of ALL_* if possible
+      (<a href="https://github.com/qorelanguage/qore/issues/2418">issue 2418</a>)
 
     @subsection v123 OracleSqlUtil v1.2.3
-    - fixed a bug in \c character_semantics for standalone column (<a href="https://github.com/qorelanguage/qore/issues/1688">issue 1688</a>)
-    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
+    - fixed a bug in \c character_semantics for standalone column
+      (<a href="https://github.com/qorelanguage/qore/issues/1688">issue 1688</a>)
+    - implemented @ref cop_trunc_date() operator
+      (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
 
     @subsection v122 OracleSqlUtil v1.2.2
-    - fixed a bug in the \a force option (i.e. cascade) for dropping types (<a href="https://github.com/qorelanguage/qore/issues/1683">issue 1683</a>)
+    - fixed a bug in the \a force option (i.e. cascade) for dropping types
+      (<a href="https://github.com/qorelanguage/qore/issues/1683">issue 1683</a>)
 
     @subsection v121 OracleSqlUtil v1.2.1
-    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
-    - worked around ORA-22165 from op_in() caused by Oracle's limit on number of collection elements (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
+    - implemented the \a force option (i.e. cascade) for dropping code objects
+      (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+    - worked around ORA-22165 from op_in() caused by Oracle's limit on number of collection elements
+      (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
 
     @subsection v12 OracleSqlUtil v1.2
     - implemented support for the \c "returning" clause as an insert option
@@ -307,16 +343,20 @@ hash schema = (
     - implemented @ref OracleSqlUtil::OracleTable::getBaseType()
     - implemented support for Oracle pseudocolumns in queries
     - implemented support for @ref SqlUtil::cop_cast() operator
-    - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval() (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
+    - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval()
+      (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
     - return lists from Oracle's data dictionary ordered
     - implemented @ref OracleSqlUtil::OracleTable::bindEmptyStringsAsNull()
     - implemented high-performance "upsert" (merge) support also supporting bulk DML
-    - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
-    - implemented @ref SqlUtil::op_substr() where operator (<a href="https://github.com/qorelanguage/qore/issues/883">issue 883</a>)
+    - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators
+      (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
+    - implemented @ref SqlUtil::op_substr() where operator
+      (<a href="https://github.com/qorelanguage/qore/issues/883">issue 883</a>)
 
     @subsection v11 OracleSqlUtil v1.1
     - fixed selects with "limit" but no "offset"
-    - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when dynamically inserting values as strings in SQL (binding by value not affected)
+    - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when
+      dynamically inserting values as strings in SQL (binding by value not affected)
     - fixed schema information classes when the "string-numbers" driver option is enabled
 
     @subsection v10 OracleSqlUtil v1.0
@@ -342,7 +382,8 @@ public namespace OracleSqlUtil {
             the unique hash for the object, which is 40 characters long, so we have to use another algorithm to create
             the savepoint string on Oracle
         */
-        constructor(AbstractDatasource ds, *string savepoint = "x" + get_random_string(29)) : AbstractSavepointHelper(ds, savepoint) {
+        constructor(AbstractDatasource ds, *string savepoint = "x" + get_random_string(29))
+                : AbstractSavepointHelper(ds, savepoint) {
         }
 
         #! Creates the savepoint
@@ -364,7 +405,8 @@ public namespace OracleSqlUtil {
     #! the data type for Oracle NUMBER columns
     public class OracleNumberDataType inherits SqlUtil::AbstractNumericDataType {
         #! creates the object
-        constructor(string native_type, bool nullable, *hash<auto> options) : AbstractNumericDataType(native_type, nullable, options) {
+        constructor(string native_type, bool nullable, *hash<auto> options)
+                : AbstractNumericDataType(native_type, nullable, options) {
         }
     }
 
@@ -381,13 +423,16 @@ public namespace OracleSqlUtil {
         private constructor() {
         }
 
-        constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm, bool is_char = False, bool cu = False, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+        constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm,
+                bool is_char = False, bool cu = False, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
             # only set "char_used" if we are dealing with a char column
             char_used = is_char && cu;
             byte_size = bs;
         }
 
-        #! returns the string describing the native type that can be used in SQL (for example to add the colunn to a table or when creating the table)
+        #! returns the string describing the native type that can be used in SQL
+        /** This method can be used, for example, to add the colunn to a table or when creating the table
+        */
         string getNativeTypeString() {
             if (char_used)
                 return sprintf("%s(%d char)", native_type, size);
@@ -401,7 +446,7 @@ list<string> l = col.getAddColumnSql(t);
             @endcode
 
             @param t the AbstractTable object to modify
-         */
+        */
         list<string> getAddColumnSql(AbstractTable t) {
             list<string> l += sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
             if (comment)
@@ -409,8 +454,9 @@ list<string> l = col.getAddColumnSql(t);
             return l;
         }
 
-        #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
-        /** @par Example:
+        #! returns a list of sql strings that can be used to modify the column to the new definition
+        /**
+            @par Example:
             @code{.py}
 list<string> l = col.getModifySql(t, newcol);
             @endcode
@@ -420,7 +466,10 @@ list<string> l = col.getModifySql(t, newcol);
             @param t the AbstractTable object to modify
             @param col the new column definition
             @param opt ignored
-         */
+
+            @return a list of sql strings that can be used to modify the column to the new definition; if the column
+            definitions are identical then an empty list is returned
+        */
         list<string> getModifySqlImpl(AbstractTable t, AbstractColumn col, *hash opt) {
             list<string> l = ();
             OracleColumn c = col;
@@ -449,8 +498,10 @@ list<string> l = col.getModifySql(t, newcol);
 
             # to remove a comment we set it to the empty string ('')
             # http://docs.oracle.com/cd/B28359_01/server.111/b28286/statements_4009.htm
-            if (c.comment != comment)
-                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), ddl_name, c.comment ? t.getSqlValue(c.comment) : "''");
+            if (c.comment != comment) {
+                l += sprintf("comment on column %s.%s is %s", t.getSqlName(), ddl_name,
+                    c.comment ? t.getSqlValue(c.comment) : "''");
+            }
             return l;
         }
 
@@ -484,7 +535,9 @@ string str = col.getRenameSql(t, "new_name");
 
     #! represents an Oracle number column
     public class OracleNumberColumn inherits OracleColumn, SqlUtil::NumericColumnInfo {
-        constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm, softint bs, softint n_scale = 0) : OracleColumn(n, nt, qt, sz, nul, dv, cm, False, False, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, softint sz, bool nul, *string dv, *string cm, softint bs,
+                softint n_scale = 0) : OracleColumn(n, nt, qt, sz, nul, dv, cm, False, False, bs),
+                NumericColumnInfo(n_scale) {
         }
 
         string getNativeTypeString() {
@@ -510,7 +563,8 @@ string str = col.getRenameSql(t, "new_name");
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
-            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name,
+                (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
 
             *string ts = opt.index_tablespace ? opt.index_tablespace : tablespace;
             if (ts)
@@ -545,7 +599,8 @@ string str = col.getRenameSql(t, "new_name");
         }
 
         string getCreateSql(string table_name, *hash opt) {
-            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name,
+                (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
 
         softlist getRenameSql(string table_name, string new_name) {
@@ -620,13 +675,15 @@ auto v = c.name;
 
             @throw KEY-ERROR the given key does not exist in the contained hash
 
-            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from
+            outside the class
 
             @see @ref memberGate_methods
         */
         OracleColumn memberGate(string k) {
             if (!h.hasKey(k))
-                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k,
+                    h.keys());
             return h{k};
         }
 
@@ -644,7 +701,8 @@ auto v = c.name;
         }
 
         string getCreateSql(string table_name, *hash opts) {
-            string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name, (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
+            string sql = sprintf("alter table %s add constraint %s unique (%s)", table_name, name,
+                (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
             *string ix = opts.index ? opts.index : index;
             if (ix)
                 sql += sprintf(" using index %s", ix);
@@ -711,13 +769,15 @@ auto v = c.name;
 
             @throw KEY-ERROR the given key does not exist in the contained hash
 
-            @note this method is called automatically when an unknown or inaccessible member name is accessed from outside the class
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from
+            outside the class
 
             @see @ref memberGate_methods
         */
         OracleColumn memberGate(string k) {
             if (!h.hasKey(k))
-                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k,
+                    h.keys());
             return h{k};
         }
 
@@ -735,11 +795,12 @@ auto v = c.name;
         }
 
         string getCreateSql(string table_name, *hash opts) {
-            string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name, (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
+            string sql = sprintf("alter table %s add constraint %s primary key (%s)", table_name, name,
+                (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
             *string ix = opts.index ? opts.index : index;
-            if (ix)
+            if (ix) {
                 sql += sprintf(" using index %s", ix);
-            else {
+            } else {
                 *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
                 if (ts) {
                     sql += sprintf(" using index tablespace %s", ts);
@@ -776,7 +837,8 @@ auto v = c.name;
     #! represents an Oracle sequence
     public class OracleSequence inherits SqlUtil::AbstractSequence {
         #! creates the object from the arguments
-        constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end) : AbstractSequence(n_name, n_start, n_increment, n_end) {
+        constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end)
+                : AbstractSequence(n_name, n_start, n_increment, n_end) {
         }
 
         #! returns a string that can be used to create the sequence in the database
@@ -1239,10 +1301,22 @@ auto v = c.name;
                 "options"           : Type::String,
                 "statown"           : Type::String,
             );
+
+            #! MAximum precision for Oracle NUMBER columns
+            const OracleMaxPrecision = 38;
         }
 
         #! creates the object from the arguments given
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
+        }
+
+        #! Returns the maximum precision for numeric or decimal columns
+        /** @return -1 means, no maximum
+
+            @since %OracleSqlUtil 1.4.3
+        */
+        int getMaximumPrecision() {
+            return OracleMaxPrecision;
         }
 
         private list<string> featuresImpl() {
@@ -1778,8 +1852,20 @@ auto v = c.name;
             #! maps oracle type names to type descriptions
             const OraTypeMap = {
                 "number": ("qore": Type::Number, "size": SZ_NUM, "size_range": (1, 38), "scale_range": (-84, 127)),
-                "varchar2": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000), "is_char": True),
-                "char": ("qore": Type::String, "size": SZ_MAND, "size_range": (1, 4000), "is_char": True),
+                "varchar2": {
+                    "qore": Type::String,
+                    "size": SZ_MAND,
+                    "size_range": (1, 4000),
+                    "is_char": True,
+                    "default_size": AbstractColumn::DefaultVarcharSize,
+                },
+                "char": {
+                    "qore": Type::String,
+                    "size": SZ_MAND,
+                    "size_range": (1, 4000),
+                    "is_char": True,
+                    "default_size": AbstractColumn::DefaultVarcharSize,
+                },
                 "date": ("qore": Type::Date,),
                 "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),
                 "timestamp with time zone": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 9)),

@@ -151,8 +151,11 @@ public hashdecl DataTypeInfo {
     #! any fields supported by the type
     hash<string, hash<DataFieldInfo>> fields;
 
-    #! if fields can be added dynamically to the type
+    #! if fields can be added dynamically to the type and if the type will accept any field at runtime
     bool can_manage_fields = False;
+
+    #! default type for fields not listed in \a fields
+    *hash<DataTypeInfo> default_field_type_info;
 }
 
 #! describes a data type

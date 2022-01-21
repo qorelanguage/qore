@@ -50,7 +50,8 @@ public class HashDataType inherits QoreDataType {
         hash<string, AbstractDataField> fields;
 
         #! allow other fields
-        *AbstractDataProviderType default_other_field_type = AbstractDataProviderType::get(AbstractDataProviderType::anyType);
+        *AbstractDataProviderType default_other_field_type =
+            AbstractDataProviderType::get(AbstractDataProviderType::anyType);
 
         #! if the type requires validation
         bool has_default_other_field_type = False;
@@ -198,6 +199,15 @@ public class HashDataType inherits QoreDataType {
         HashDataType rv(type, name, options);
         map rv.addField($1.getSoftType()), getFields().iterator();
         rv.soft_type = True;
+        return rv;
+    }
+
+    #! returns a description of the type as a hash
+    hash<DataTypeInfo> getInfo() {
+        hash<DataTypeInfo> rv = QoreDataType::getInfo();
+        if (!fields && default_other_field_type) {
+            rv.default_field_type_info = default_other_field_type.getInfo();
+        }
         return rv;
     }
 

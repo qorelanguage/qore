@@ -36,7 +36,7 @@ class D {
 }
 ";
 
-        assertThrows("ILLEGAL-CLASS-INSTANTIATION", sub () { p.parse(c, "test"); });
+        assertNothing(p.parse(c, "test"));
     }
 
     testConstInitLocalVar() {
@@ -51,6 +51,5 @@ class D {
 ";
 
         assertThrows("ILLEGAL-VARIABLE-REFERENCE", sub () { p.parse(c, "test"); });
-
     }
 }

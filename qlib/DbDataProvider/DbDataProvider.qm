@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.0
+%requires qore >= 1.1
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -43,7 +43,7 @@
 %requires(reexport) BulkSqlUtil
 
 module DbDataProvider {
-    version = "1.0.1";
+    version = "2.0";
     desc = "user module providing a data provider API for databases";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -68,13 +68,22 @@ module DbDataProvider {
     - @ref DbDataProvider::AbstractDbTableBulkOperation "AbstractDbTableBulkOperation"
     - @ref DbDataProvider::DbDataProvider "DbDataProvider"
     - @ref DbDataProvider::DbDataProviderFactory "DbDataProviderFactory"
+    - @ref DbDataProvider::DbIndexDataType "DbIndexDataType"
+    - @ref DbDataProvider::DbIndexesDataType "DbIndexesDataType"
     - @ref DbDataProvider::DbTableBulkInserter "DbTableBulkInserter"
     - @ref DbDataProvider::DbTableBulkRecordInterface "DbTableBulkRecordInterface"
     - @ref DbDataProvider::DbTableBulkUpserter "DbTableBulkUpserter"
     - @ref DbDataProvider::DbTableDataProvider "DbTableDataProvider"
     - @ref DbDataProvider::DbTableRecordIterator "DbTableRecordIterator"
+    - @ref DbDataProvider::DbTableTransactionHelper "DbTableTransactionHelper"
+    - @ref DbDataProvider::DbTransactionHelper "DbTransactionHelper"
 
     @section dbdataprovider_relnotes Release Notes
+
+    @subsection dbdataprovider_v2.0 DbDataProvider v2.0
+    - added the @ref DbDataProvider::DbTransactionHelper "DbTransactionHelper" class
+    - added support for creating, reading, updating, and modifying data providers
+      (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)
 
     @subsection dbdataprovider_v1_0_1 DbDataProvider v1.0.1
     - added support for starting a transaction in @ref DbDataProvider::DbDataProvider "DbDataProvider" and

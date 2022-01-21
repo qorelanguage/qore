@@ -40,10 +40,12 @@ public class AbstractDataProviderFactory {
     }
 
     #! Returns static provider information as data; no objects are returned
-    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    /** @param info0 the raw info with objects describing the types
+
+        @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
-    hash<auto> getInfoAsData() {
-        return DataProvider::getInfoAsData(getInfo());
+    hash<auto> getInfoAsData(*bool with_type_info) {
+        return DataProvider::getInfoAsData(getInfo(), with_type_info);
     }
 
     #! thrown an exception

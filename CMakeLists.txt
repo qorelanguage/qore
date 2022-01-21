@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.12)
 
 # NOTE: Qore should always use semantic versioning: https://semver.org/
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 1)
+set(VERSION_MINOR 2)
 set(VERSION_SUB 0)
 #set(VERSION_PATCH 0)
 
@@ -691,7 +691,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 7)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 7.4.0)
+    set_target_properties(libqore PROPERTIES VERSION 7.4.1)
     set_target_properties(libqore PROPERTIES SOVERSION 7)
 endif (APPLE)
 

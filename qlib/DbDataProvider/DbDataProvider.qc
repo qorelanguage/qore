@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the DbDataProvider module
 public namespace DbDataProvider {
 #! The database data provider class, provides tables as children
@@ -48,9 +37,12 @@ public class DbDataProvider inherits AbstractDataProvider {
             "search_options": SearchOptions,
             "create_options": NOTHING,
             "upsert_options": NOTHING,
+            "child_create_options": ChildCreateOptions,
             "transaction_management": True,
             "has_record": True,
             "record_requires_search_options": True,
+            "supports_child_create": True,
+            "supports_child_delete": True,
         };
 
         #! Constructor options
@@ -80,6 +72,24 @@ public class DbDataProvider inherits AbstractDataProvider {
                 "desc": "any bind arguments for the select statement",
             },
         };
+
+        #! Child provider creation options
+        const ChildCreateOptions = {
+            "primary_key": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get("softlist<string>"),
+                "desc": "a list of column names for the primary key for the table; use `primary_key_name` to set the "
+                    "name of the primary key constraint manually, otherwise a suitable name will be automatically "
+                    "generated",
+            },
+            "primary_key_name": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the name of the primary key constraint; only used if `primary_key` is set",
+            },
+            "indexes": <DataProviderOptionInfo>{
+                "type": new DbIndexesDataType(),
+                "desc": "a hash of indexes keyed by index name",
+            },
+        };
     }
 
     private {
@@ -107,7 +117,8 @@ public class DbDataProvider inherits AbstractDataProvider {
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         if (copts.database instanceof AbstractDatabase) {
-            if (copts.datasource instanceof AbstractDatasource && copts.datasource != copts.database.getDatasource()) {
+            if (copts.datasource instanceof AbstractDatasource
+                && copts.datasource != copts.database.getDatasource()) {
                 error("CONSTRUCTOR-ERROR", "option \"database\" is based on a different datasource than the one "
                     "supplied in the \"datasource\" option");
             }
@@ -231,7 +242,8 @@ public class DbDataProvider inherits AbstractDataProvider {
         @throw INVALID-BLOCK-SIZE the block size must be a positive number
         @throw INVALID-OPERATION the data provider does not support reading
     */
-    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000, *hash<auto> where_cond, *hash<auto> search_options) {
+    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000,
+            *hash<auto> where_cond, *hash<auto> search_options) {
         return new DbSelectBulkRecordInterface(block_size, db.getDatasource(), where_cond, search_options);
     }
 
@@ -267,7 +279,8 @@ public class DbDataProvider inherits AbstractDataProvider {
                 return;
             }
         } catch (hash<ExceptionInfo> ex) {
-            throw "CHILD-PROVIDER-ERROR", sprintf("table %y cannot be acquired from %y: %s: %s", name, getName(), ex.err, ex.desc), ex.arg;
+            throw "CHILD-PROVIDER-ERROR", sprintf("table %y cannot be acquired from %y: %s: %s", name, getName(),
+                ex.err, ex.desc), ex.arg;
         }
         return new DbTableDataProvider(table);
     }
@@ -275,6 +288,41 @@ public class DbDataProvider inherits AbstractDataProvider {
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
+    }
+
+    #! Creates a new child data provider and returns it after adding as a child
+    /** @param name the name of the new child data provider
+        @param fields the fields for the new child data provider
+        @param child_create_options the options for creating the new child data provider
+
+        @return the new child data provider
+
+        @since DataProvider 2.0
+    */
+    private AbstractDataProvider createChildProviderImpl(string name, hash<string, AbstractDataField> fields,
+            *hash<auto> child_create_options) {
+        hash<auto> table_desc = makeTableDesc(name, fields, child_create_options);
+        AbstractTable table = db.makeTable(name, table_desc);
+        DbTableTransactionHelper th(table);
+        th.create();
+        return new DbTableDataProvider({
+            "table": table,
+        });
+    }
+
+    #! Deletes a child data provider
+    /** @param name the name of the new child data provider
+        @param child_delete_options the options for deleting a child data provider
+
+        @throw DELETE-CHILD-PROVIDER-ERROR error dropping the child data provider
+
+        @since DataProvider 2.0
+    */
+    private deleteChildProviderImpl(string name, *hash<auto> child_delete_options) {
+        DbTransactionHelper th(db);
+        if (!th.dropTableIfExists(name)) {
+            throw "NO-CHILD", sprintf("%s has no child %y", getName(), name);
+        }
     }
 
     #! Sets the datasource lookup
@@ -314,6 +362,58 @@ public class DbDataProvider inherits AbstractDataProvider {
             return DbDataProvider::table_lookup(ds, table_string);
         }
         return AbstractTable::getTable(ds, table_string);
+    }
+
+    #! Returns a column description hash for a field
+    hash<GenericColumnInfo> getColumnDesc(AbstractDataField field, *hash<auto> opts) {
+        string type_name = field.getTypeName();
+        if (type_name == "int") {
+            type_name = "integer";
+        }
+        hash<GenericColumnInfo> col({
+            "qore_type": type_name,
+            "default_value": field.getDefaultValue(),
+            "notnull": !field.isAssignableFrom(Reflection::NothingType),
+        });
+        if (type_name =~ /\*?number$/ && db.requiresScale()) {
+            col.size = db.getMaximumPrecision();
+            col.scale = col.size / 3;
+        }
+        if (*string desc = field.getDescription()) {
+            col.comment = desc;
+        }
+        return col;
+    }
+
+    #! Returns a table description hash from a field description
+    /** @throw TABLE-DESC-ERROR error in table description
+    */
+    hash<auto> makeTableDesc(string name, hash<string, AbstractDataField> fields, *hash<auto> opts) {
+        hash<string, hash<GenericColumnInfo>> cols = map {$1.key: getColumnDesc($1.value, opts)},
+            fields.pairIterator();
+
+        hash<auto> tdesc += {
+            "columns": cols,
+        };
+        if (opts.primary_key) {
+            foreach auto cname in (opts.primary_key) {
+                if (cname.typeCode() != NT_STRING) {
+                    throw "TABLE-DESC-ERROR", sprintf("table %y primary key column value %d/%d (starting from 1) is "
+                        "type %y; expecting \"string\"", name, $# + 1, opts.primary_key.size(), name.type());
+                }
+                if (!fields{cname}) {
+                    throw "TABLE-DESC-ERROR", sprintf("table %y primary key column %y is not present in the input "
+                        "field description; known fields: %y", name, cname, keys fields);
+                }
+            }
+            string pk_name = opts.primary_key_name ?? sprintf("pk_%s", name);
+            tdesc.primary_key = {
+                "name": pk_name,
+                "columns": opts.primary_key,
+            };
+        }
+
+        return tdesc;
     }
 }
 }

@@ -7,7 +7,7 @@
 %strict-args
 
 module SqlUtilTestBase {
-    version = "0.1";
+    version = "1.0";
     desc = "SqlUtil test base module";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -85,6 +85,7 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
+        addTestCase("db provider", \dbProviderTest());
         addTestCase("db table provider", \dbTableProviderTest());
         addTestCase("Insert", \insertTest());
         addTestCase("Select", \selectTest());
@@ -110,8 +111,9 @@ public class SqlTestBase inherits QUnit::Test {
 
     globalTearDown() {
         # drop the test schema
-        if (schema)
+        if (schema) {
             schema.drop(True, m_options.verbose);
+        }
     }
 
     serializationTest() {
@@ -123,6 +125,45 @@ public class SqlTestBase inherits QUnit::Test {
         # test that the table object works
         string sql = t.getSelectSql(("columns": "id", "limit": 1));
         assertEq(Type::String, sql.type());
+    }
+
+    dbProviderTest() {
+        if (!table) testSkip("no DB connection");
+
+        DbDataProvider db(table.getDatasource());
+        assertTrue(db.supportsCreateChild());
+        assertTrue(db.supportsDeleteChild());
+
+        string name = "test_table_" + get_random_string();
+        hash<string, QoreDataField> fields = {
+            "id": new QoreDataField("id", "id field", IntType),
+            "name": new QoreDataField("name", "name field", StringType),
+            "desc": new QoreDataField("desc", "desc field", StringOrNothingType),
+            "date": new QoreDataField("date", "date field", DateType),
+            "data": new QoreDataField("data", "data field", BinaryOrNothingType),
+            "float": new QoreDataField("float", "float field", FloatType),
+            "number": new QoreDataField("number", "number field", NumberType),
+        };
+        hash<auto> table_opts = {
+            "primary_key": "id",
+        };
+        AbstractDataProvider dp = db.createChildProvider(name, fields, table_opts);
+        on_exit {
+            db.deleteChildProvider(dp.getName());
+        }
+        assertTrue(dp.requiresTransactionManagement());
+        hash<auto> record = {
+            "id": rand(),
+            "name": get_random_string(),
+            "desc": NULL,
+            "date": now(),
+            "data": <abcd>,
+            "float": 1.1,
+            "number": 1.1n,
+        };
+        dp.createRecord(record);
+        assertEq(record - "float", dp.searchSingleRecord({"id": record.id}) - "float");
+        assertThrows("DUPLICATE-RECORD", \dp.createRecord(), record);
     }
 
     dbTableProviderTest() {
@@ -332,7 +373,7 @@ public class SqlTestBase inherits QUnit::Test {
         on_error table.rollback();
 
         string sql;
-        on_error printf ("SQL: %s\n", sql);
+        on_error printf("SQL: %s\n", sql);
 
         *list<auto> rows = table.selectRows({}, \sql);
         assertEq(2, rows.size());
@@ -348,14 +389,15 @@ public class SqlTestBase inherits QUnit::Test {
             assertEq(now, dbnow);
         }
 
-        foreach hash e in (expect_data.pairIterator()) {
+        foreach hash<auto> e in (expect_data.pairIterator()) {
             # printf("* %s\n", e.key);
             # printf("  I: %s: %N\n", insert_data[0]{e.key}.type(), insert_data[0]{e.key});
             # printf("  R: %s: %N\n", rows[0]{e.key}.type(), rows[0]{e.key});
-            if (e.value === NOTHING)
+            if (e.value === NOTHING) {
                 assertSkip("checking data in column " + e.key);
-            else
+            } else {
                 assertEq(e.value, rows[0]{e.key}, "checking data in column " + e.key);
+            }
         }
 
         # select a single column and then asterisk
@@ -550,18 +592,18 @@ public class SqlTestBase inherits QUnit::Test {
 
         hash soh = (
             "columns": (
-                cop_as(cop_cast ("id", "string"), "cop_cast"),
-                cop_as(cop_value (0), "cop_value"), # triggers bug #511 (GitHub)
-                cop_as(cop_lower (cop_value ("Ahoj")), "cop_lower"),
-                cop_as(cop_upper (cop_value ("Ahoj")), "cop_upper"),
-                cop_as(cop_prepend (cop_value ("abc"), "def"), "cop_prepend"),
-                cop_as(cop_append (cop_value ("abc"), "def"), "cop_append"),
-                cop_as(cop_substr (cop_value ("honeymoon"), 6), "cop_substr_1"),
-                cop_as(cop_substr (cop_value ("hematology"), 3, 4), "cop_substr_2"),
-                cop_as(cop_minus ("id", "id"), "cop_minus"),
-                cop_as(cop_plus ("id", "id"), "cop_plus"),
-                cop_as(cop_divide ("id", "id"), "cop_divide"),
-                cop_as(cop_multiply ("id", "id"), "cop_multiply"),
+                cop_as(cop_cast("id", "string"), "cop_cast"),
+                cop_as(cop_value(0), "cop_value"), # triggers bug #511 (GitHub)
+                cop_as(cop_lower(cop_value ("Ahoj")), "cop_lower"),
+                cop_as(cop_upper(cop_value ("Ahoj")), "cop_upper"),
+                cop_as(cop_prepend(cop_value ("abc"), "def"), "cop_prepend"),
+                cop_as(cop_append(cop_value ("abc"), "def"), "cop_append"),
+                cop_as(cop_substr(cop_value ("honeymoon"), 6), "cop_substr_1"),
+                cop_as(cop_substr(cop_value ("hematology"), 3, 4), "cop_substr_2"),
+                cop_as(cop_minus("id", "id"), "cop_minus"),
+                cop_as(cop_plus("id", "id"), "cop_plus"),
+                cop_as(cop_divide("id", "id"), "cop_divide"),
+                cop_as(cop_multiply("id", "id"), "cop_multiply"),
                 cop_as(cop_coalesce("null_f", vc, "char_f"), "cop_coalesce"),
                 cop_as(cop_coalesce("null_f", cop_value("test")), "cop_coalesce2"),
                 cop_as(cop_length(cop_value("hi")), "cop_length"),
@@ -600,8 +642,7 @@ public class SqlTestBase inherits QUnit::Test {
             "from": 1,
         );
 
-        foreach hash e in (expect.pairIterator())
-            assertEq (e.value, row{e.key}, "checking column operator " + e.key);
+        map assertEq($1.value, row{$1.key}, "checking column operator " + $1.key), expect.pairIterator();
 
         soh = (
             "columns": (
@@ -635,7 +676,7 @@ public class SqlTestBase inherits QUnit::Test {
         try {
             cop_trunc_date("dt", "foobar");
             assertEq(False, True, "The call above must throw and exception");
-        } catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("COP-TRUNC-DATE-ERROR", ex.err, "Excaption COP-TRUNC-DATE-ERROR is expected here");
             assertEq(True, ex.desc =~ /Not allowed format argument: "foobar"/, "Expected ex description must be received");
         }
@@ -1016,9 +1057,9 @@ public class SqlTestBase inherits QUnit::Test {
     offsetLimitTest() {
         if (!table) testSkip("no DB connection");
 
-        # TODO: remove once support for limit & offset is implemented in FreetdsSqlUtil.qm
-        if (self.className() == "FreetdsTest")
-            testSkip("FreetdsSqlUtil does not support offset (yet)");
+        if (table.getDriverName() == "sybase") {
+            testSkip("FreetdsSqlUtil does not support offset with sybase");
+        }
 
         on_success table.commit();
         on_error table.rollback();
@@ -1323,17 +1364,14 @@ public class SqlTestBase inherits QUnit::Test {
 
         try {
             s.align();
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             if (ex.err == "ALIGN-TABLE-ERROR") {
                 assertEq("ALIGN-TABLE-ERROR", ex.err, "exception must be ALIGN-TABLE-ERROR");
                 assertEq(True, ex.desc.regex("table '.*' schema definition has to be hash, but it's string"));
-            }
-            else if (ex.err == "SEQUENCE-DESCRIPTION-ERROR") {
+            } else if (ex.err == "SEQUENCE-DESCRIPTION-ERROR") {
                 assertEq("SEQUENCE-DESCRIPTION-ERROR", ex.err, "exception must be SEQUENCE-DESCRIPTION-ERROR");
                 assertEq(True, ex.desc.regex("sequence '.*' schema definition has to be hash, but it's string"));
-            }
-            else {
+            } else {
                 rethrow;
             }
         }
@@ -1346,7 +1384,7 @@ public class SqlTestBase inherits QUnit::Test {
 
         Database db(table.getDatasource());
         auto ret = db.getPhysicalSize();
-        if (m_options.verbose) {
+        if (m_options.verbose > 2) {
             printf("    DB size: %n\n", ret);
         }
         assertEq(NT_INT, ret.typeCode(), "result must be int");

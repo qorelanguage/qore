@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.7.4";
+    version = "1.7.5";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -102,6 +102,14 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_7_5 SqlUtil v1.7.5
+    - respect "or nothing" %Qore types when mapping to column types
+      (<a href="https://github.com/qorelanguage/qore/issues/4400">issue 4400</a>)
+    - allow a \c VARCHAR column to be created without a size, assume a default size
+      (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
+    - fixed a bug where objects created did not always contain the actual name used to create it
+      (<a href="https://github.com/qorelanguage/qore/issues/4396">issue 4396</a>)
 
     @subsection sqlutilv1_7_4 SqlUtil v1.7.4
     - fixed upsert usage with unique constraints and indices when there is a non-matching PK
@@ -5901,6 +5909,9 @@ AbstractColumn c = cols.id;
 
             #! comment on the column
             *string comment;
+
+            #! Default VARCHAR column size
+            const DefaultVarcharSize = 80;
         }
 
         #! empty constructor for subclasses
