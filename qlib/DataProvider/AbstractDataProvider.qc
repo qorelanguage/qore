@@ -22,6 +22,8 @@
     DEALINGS IN THE SOFTWARE.
 */
 
+%requires Logger
+
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 /** @defgroup db_provider_upsert_results DB Provider Upsert Result Codes
@@ -261,6 +263,9 @@ public class AbstractDataProvider {
     }
 
     private {
+        #! Logger for logging
+        Logger logger;
+
         #! flag if callbacks are locked
         static bool callbacks_locked = False;
 
@@ -269,6 +274,20 @@ public class AbstractDataProvider {
 
         #! static callback for dynamic value resolution
         static code cb_resolve_value;
+    }
+
+    #! Creates the data provider
+    constructor() {
+    }
+
+    #! Creates the data provider with the given Logger
+    constructor(Logger logger) {
+        self.logger = logger;
+    }
+
+    #! Sets or replaces the logger
+    setLogger(Logger logger) {
+        self.logger = logger;
     }
 
     #! Returns static provider information as data; no objects are returned
@@ -301,11 +320,19 @@ public class AbstractDataProvider {
         @return the data written to the data provider
 
         @throw INVALID-OPERATION the data provider does not support record creation
+        @throw CREATE-RECORD-ERROR the data provider raised an exception in the record creation operation
         @throw DUPLICATE-RECORD this exception should be thrown if the provider fails due to an attempt to create a
         duplicate record
     */
     *hash<auto> createRecord(hash<auto> rec, *hash<auto> create_options) {
         checkCreate();
+
+        on_error {
+            if ($1.err != "DUPLICATE-RECORD") {
+                rethrow "CREATE-RECORD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+            }
+        }
+
         return createRecordImpl(rec, validateCreateOptions(create_options));
     }
 

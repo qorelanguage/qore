@@ -16,6 +16,7 @@ module SqlUtilTestBase {
 
 %requires(reexport) ../../../../qlib/Util.qm
 %requires(reexport) ../../../../qlib/QUnit.qm
+%requires(reexport) ../../../../qlib/Logger.qm
 %requires(reexport) ../../../../qlib/DataProvider
 %requires(reexport) ../../../../qlib/SqlUtil
 %requires(reexport) ../../../../qlib/BulkSqlUtil
@@ -82,9 +83,15 @@ public class SqlTestBase inherits QUnit::Test {
 
         list insert_data;
         list upsert_data;
+
+        Logger logger("test", LoggerLevel::getLevelDebug());
     }
 
     constructor(string testName, string testVer, any args, *hash mopts) : Test(testName, testVer, \args, mopts) {
+        if (m_options.verbose > 2) {
+            logger.addAppender(new TestAppender());
+        }
+
         addTestCase("db provider", \dbProviderTest());
         addTestCase("db table provider", \dbTableProviderTest());
         addTestCase("Insert", \insertTest());
@@ -131,13 +138,15 @@ public class SqlTestBase inherits QUnit::Test {
         if (!table) testSkip("no DB connection");
 
         DbDataProvider db(table.getDatasource());
+        db.setLogger(logger);
         assertTrue(db.supportsCreateChild());
         assertTrue(db.supportsDeleteChild());
 
         string name = "test_table_" + get_random_string();
         hash<string, QoreDataField> fields = {
             "id": new QoreDataField("id", "id field", IntType),
-            "name": new QoreDataField("name", "name field", StringType),
+            "name": new QoreDataField("name", "name field",
+                new QoreStringDataType({"string.max_size_chars": 30})),
             "desc": new QoreDataField("desc", "desc field", StringOrNothingType),
             "date": new QoreDataField("date", "date field", DateType),
             "data": new QoreDataField("data", "data field", BinaryOrNothingType),
@@ -146,6 +155,12 @@ public class SqlTestBase inherits QUnit::Test {
         };
         hash<auto> table_opts = {
             "primary_key": "id",
+            "indexes": {
+                "sk1_" + name: {
+                    "columns": "name",
+                    "unique": True,
+                },
+            },
         };
         AbstractDataProvider dp = db.createChildProvider(name, fields, table_opts);
         on_exit {
@@ -164,6 +179,55 @@ public class SqlTestBase inherits QUnit::Test {
         dp.createRecord(record);
         assertEq(record - "float", dp.searchSingleRecord({"id": record.id}) - "float");
         assertThrows("DUPLICATE-RECORD", \dp.createRecord(), record);
+        {
+            hash<auto> record2 = record;
+            record2.id = rand();
+            assertThrows("DUPLICATE-RECORD", \dp.createRecord(), record2);
+        }
+
+        # create a dependent table
+        string name2 = "test_table_" + get_random_string();
+        fields = {
+            "id": new QoreDataField("id", "id field", IntType),
+            "name2": new QoreDataField("name2", "name2 field",
+                new QoreStringDataType({"string.max_size_chars": 20})),
+        };
+        table_opts = {
+            "indexes": {
+                "sk1_" + name2: {
+                    "columns": "name2",
+                },
+                "sk2_" + name2: {
+                    "columns": ("id", "name2"),
+                    "unique": True,
+                },
+            },
+            "foreign_constraints": {
+                "fk1_" + name2: {
+                    "columns": "id",
+                    "table": dp.getName(),
+                },
+            },
+        };
+        AbstractDataProvider dp2 = db.createChildProvider(name2, fields, table_opts);
+        on_exit {
+            db.deleteChildProvider(dp2.getName());
+        }
+        assertTrue(dp2.requiresTransactionManagement());
+        hash<auto> child_record = {
+            "id": record.id,
+            "name2": get_random_string(),
+        };
+        dp2.createRecord(child_record);
+        assertEq(child_record, dp2.searchSingleRecord({"id": record.id}));
+        child_record.name2 = get_random_string();
+        dp2.createRecord(child_record);
+        assertEq(child_record, dp2.searchSingleRecord({"id": record.id, "name2": child_record.name2}));
+        assertThrows("DUPLICATE-RECORD", \dp2.createRecord(), child_record);
+        {
+            child_record.id = rand();
+            assertThrows("CREATE-RECORD-ERROR", \dp2.createRecord(), child_record);
+        }
     }
 
     dbTableProviderTest() {
@@ -1406,5 +1470,19 @@ class Bug2358Schema inherits AbstractSchema {
     }
     private *hash getSequencesImpl() {
         return { "s_foo" : "" };
+    }
+}
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
     }
 }

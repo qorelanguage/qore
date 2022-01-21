@@ -1842,16 +1842,17 @@ where
                     row.index_name = row.index_name.lwr();
 
                     if (!ih.(row.index_name)) {
-                        ih.(row.index_name) = (
+                        ih{row.index_name} = <auto>{
                             "unique": row.is_unique,
                             "primary": row.is_primary_key,
-                        );
+                        };
                     }
                     # send "blank" column for function index
-                    if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
+                    if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name)) {
                         ih.(row.index_name).columns{row.column_name} = {};
-                    else
+                    } else {
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
+                    }
                 }
 
                 foreach hash<auto> i in (ih.pairIterator()) {

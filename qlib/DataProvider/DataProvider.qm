@@ -203,6 +203,8 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v2.0 DataProvider v2.0
+    - added a logger to the @ref DataProvider::AbstractDataProvider "AbstractDataProvider" class to enable logging
+      (<a href="https://github.com/qorelanguage/qore/issues/4409">issue 4409</a>)
     - added support for creating, reading, updating, and modifying data providers
       (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)
 

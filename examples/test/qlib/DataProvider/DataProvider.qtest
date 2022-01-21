@@ -8,6 +8,7 @@
 %allow-injection
 
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/DataProvider
 
 %requires reflection
