@@ -648,7 +648,8 @@ public:
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static void acceptInputParam(const QoreTypeInfo* ti, int param_num, const char* param_name, QoreValue& n, ExceptionSink* xsink) {
+    DLLLOCAL static void acceptInputParam(const QoreTypeInfo* ti, int param_num, const char* param_name, QoreValue& n,
+            ExceptionSink* xsink) {
         if (hasType(ti)) {
             ti->acceptInputIntern(xsink, "parameter", false, param_num, param_name, n);
         } else if (ti != autoTypeInfo) {
@@ -657,7 +658,8 @@ public:
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static void acceptInputMember(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
+    DLLLOCAL static void acceptInputMember(const QoreTypeInfo* ti, const char* member_name, QoreValue& n,
+            ExceptionSink* xsink) {
         if (hasType(ti)) {
             ti->acceptInputIntern(xsink, "member", true, -1, member_name, n);
         } else if (ti != autoTypeInfo) {
@@ -666,7 +668,8 @@ public:
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static void acceptInputKey(const QoreTypeInfo* ti, const char* member_name, QoreValue& n, ExceptionSink* xsink) {
+    DLLLOCAL static void acceptInputKey(const QoreTypeInfo* ti, const char* member_name, QoreValue& n,
+            ExceptionSink* xsink) {
         if (hasType(ti)) {
             ti->acceptInputIntern(xsink, "key", false, -1, member_name, n);
         } else if (ti != autoTypeInfo) {
@@ -675,7 +678,8 @@ public:
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static void acceptAssignment(const QoreTypeInfo* ti, const char* text, QoreValue& n, ExceptionSink* xsink, LValueHelper* lvhelper = nullptr) {
+    DLLLOCAL static void acceptAssignment(const QoreTypeInfo* ti, const char* text, QoreValue& n,
+            ExceptionSink* xsink, LValueHelper* lvhelper = nullptr) {
         assert(text && text[0] == '<');
         if (hasType(ti)) {
             ti->acceptInputIntern(xsink, "lvalue", false, -1, text, n);
@@ -973,7 +977,8 @@ public:
         }
     }
 
-    DLLLOCAL int doAcceptError(bool priv_error, const char* arg_type, bool obj, int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
+    DLLLOCAL int doAcceptError(bool priv_error, const char* arg_type, bool obj, int param_num, const char* param_name,
+            const QoreValue& n, ExceptionSink* xsink) const {
         if (priv_error) {
             if (obj) {
                 doObjectPrivateClassException(param_name, xsink);
@@ -990,7 +995,8 @@ public:
         return -1;
     }
 
-    DLLLOCAL int doTypeException(const char* arg_type, int param_num, const char* param_name, const QoreValue& n, ExceptionSink* xsink) const {
+    DLLLOCAL int doTypeException(const char* arg_type, int param_num, const char* param_name, const QoreValue& n,
+            ExceptionSink* xsink) const {
         // xsink may be null in case parse exceptions have been disabled in the QoreProgram object
         // for example if there was a "requires" error
         if (!xsink)
@@ -1005,7 +1011,8 @@ public:
         return -1;
     }
 
-    DLLLOCAL void acceptInputIntern(ExceptionSink* xsink, const char* arg_type, bool obj, int param_num, const char* param_name, QoreValue& n, LValueHelper* lvhelper = nullptr) const {
+    DLLLOCAL void acceptInputIntern(ExceptionSink* xsink, const char* arg_type, bool obj, int param_num,
+            const char* param_name, QoreValue& n, LValueHelper* lvhelper = nullptr) const {
         for (auto& t : accept_vec) {
             if (t.spec.acceptInput(xsink, *this, t.map, arg_type, obj, param_num, param_name, n, lvhelper)) {
                 return;
@@ -1292,7 +1299,7 @@ protected:
             return;
         }
         if (nt != NT_OBJECT) {
-            str.sprintf("type '%s'", n.getTypeName());
+            str.sprintf("type '%s'", n.getFullTypeName());
             return;
         }
         str.sprintf("an object of class '%s'", n.get<const QoreObject>()->getClassName());
