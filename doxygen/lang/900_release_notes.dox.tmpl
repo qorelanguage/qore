@@ -37,6 +37,9 @@
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
       - respect "or nothing" %Qore types when mapping to column types
         (<a href="https://github.com/qorelanguage/qore/issues/4400">issue 4400</a>)
+    - fixed a bug in certain type errors involving complex types where the specific complex type was omitted from the
+      error message
+      (<a href="https://github.com/qorelanguage/qore/issues/4412">issue 4412</a>)
     - fixed a bug initializing constant values at parse time; now all constant expressions requiring evaluation are
       evaluated after all other parsing is done
       (<a href="https://github.com/qorelanguage/qore/issues/4404">issue 4404</a>)
