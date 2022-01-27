@@ -128,7 +128,7 @@ ldconfig %{_libdir}
 Summary: Standard library modules
 Group: System Environment/Libraries
 Requires: %{libname} = %{version}-%{release}
-Requires: qore-module(abi)%{?_isa} = 0.24
+Recommends: %{name} = %{version}
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
