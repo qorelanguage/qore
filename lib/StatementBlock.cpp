@@ -230,8 +230,8 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
                 if ((*i).second) {
                     {
                         // instantiate exception for on_error blocks as an implicit arg
-                        unique_ptr<SingleArgvContextHelper> argv_helper;
-                        unique_ptr<CatchExceptionHelper> ex_helper;
+                        std::unique_ptr<SingleArgvContextHelper> argv_helper;
+                        std::unique_ptr<CatchExceptionHelper> ex_helper;
                         if (type == OBE_Error) {
                             QoreException* except = xsink->getException();
                             assert(except);
