@@ -201,25 +201,26 @@ void AbstractMethod::parseMergeBase(AbstractMethod& m, bool committed) {
 
 // merge changes from parent class method of the same name during parse initialization
 void AbstractMethod::parseMergeBase(AbstractMethod& m, MethodFunctionBase* f, bool committed) {
-    //printd(5, "AbstractMethod::parseMergeBase(m: %p, f: %p %s::%s) this: %p m.pending_save: %d m.vlist: %d\n", &m, f, f ? f->getClassName() : "n/a", f ? f->getName() : "n/a", this, !m.pending_save.empty(), !m.vlist.empty());
+    //printd(5, "AbstractMethod::parseMergeBase(m: %p, f: %p %s::%s) this: %p m.pending_save: %d m.vlist: %d\n", &m,
+    //    f, f ? f->getClassName() : "n/a", f ? f->getName() : "n/a", this, !m.pending_save.empty(),
+    //    !m.vlist.empty());
     // move pending committed variants from our vlist that are in parent's pending_save list to our pending_save
     for (auto& i : m.pending_save) {
         const char* sig = i.second->getAbstractSignature();
         vmap_t::iterator vi = vlist.find(sig);
         if (vi != vlist.end()) {
-            /*
-            pending_save.insert(vmap_t::value_type(sig, i.second));
-            */
-
             pending_save.insert(vmap_t::value_type(sig, vi->second));
             vlist.erase(vi);
         }
     }
 
-    // add new abstract methods from parent to our list - if they are not already in our vlist or in our pending_save list
+    // add new abstract methods from parent to our list - if they are not already in our vlist or in our pending_save
+    // list
     for (auto& i : m.vlist) {
         const char* sig = i.second->getAbstractSignature();
-        //printd(5, "AbstractMethod::parseMergeBase(m: %p, f: %p %s::%s) this: %p checking parent: '%s' (f: %p: %d) '%s'\n", &m, f, f ? f->getClassName() : "n/a", f ? f->getName() : "n/a", this, sig, f, f && f->parseHasVariantWithSignature(i.second), sig);
+        //printd(5, "AbstractMethod::parseMergeBase(m: %p, f: %p %s::%s) this: %p checking parent: '%s' (f: %p: %d "
+        //    "rm: %d) '%s'\n", &m, f, f ? f->getClassName() : "n/a", f ? f->getName() : "n/a", this, sig, f,
+        //    f && f->parseHasVariantWithSignature(i.second, relaxed_match), relaxed_match, sig);
 
         if (f && f->parseHasVariantWithSignature(i.second, relaxed_match)) {
             // add to our pending_save
@@ -234,7 +235,8 @@ void AbstractMethod::parseMergeBase(AbstractMethod& m, MethodFunctionBase* f, bo
         if (vlist.find(sig) != vlist.end()) {
             continue;
         }
-        //printd(5, "AbstractMethod::parseMergeBase(m: %p, f: %p %s::%s) this: %p adding to vlist from parent: '%s'\n", &m, f, f ? f->getClassName() : "n/a", f ? f->getName() : "n/a", this, sig);
+        //printd(5, "AbstractMethod::parseMergeBase(m: %p, f: %p %s::%s) this: %p adding to vlist from parent: "
+        //    '%s'\n", &m, f, f ? f->getClassName() : "n/a", f ? f->getName() : "n/a", this, sig);
         i.second->ref();
         vlist.insert(vmap_t::value_type(sig, i.second));
     }
@@ -319,13 +321,15 @@ void AbstractMethod::checkAbstract(const char* cname, const char* mname, vmap_t&
     }
 }
 
-// try to find match non-abstract variants in base classes (allows concrete variants to be inherited from another parent class)
+// try to find match non-abstract variants in base classes (allows concrete variants to be inherited from another
+// parent class)
 void AbstractMethodMap::parseInit(qore_class_private& qc, BCList* scl) {
     //printd(5, "AbstractMethodMap::parseInit() this: %p cname: %s scl: %p ae: %d\n", this, qc.name.c_str(), scl,
     //    empty());
     for (amap_t::iterator i = begin(), e = end(); i != e;) {
         for (vmap_t::iterator vi = i->second->vlist.begin(), ve = i->second->vlist.end(); vi != ve;) {
-            // if there is a matching non-abstract variant in any parent class, then move the variant from vlist to pending_save
+            // if there is a matching non-abstract variant in any parent class, then move the variant from vlist to
+            // pending_save
             MethodVariantBase* v = scl->matchNonAbstractVariant(i->first, vi->second);
             if (v) {
                 const char* sig = vi->second->getAbstractSignature();
@@ -362,11 +366,12 @@ void AbstractMethodMap::parseAddAbstractVariant(const char* name, MethodVariantB
         f->ref();
         const char* sig = f->getAbstractSignature();
         m->vlist.insert(vmap_t::value_type(sig, f));
-        //printd(5, "AbstractMethodMap::parseAddAbstractVariant(name: '%s', v: %p) this: %p first (%s)\n", name, f, this, sig);
+        printd(5, "AbstractMethodMap::parseAddAbstractVariant(name: '%s', v: %p) this: %p first (%s)\n", name, f,
+            this, sig);
         insert(amap_t::value_type(name, m));
         return;
     }
-    //printd(5, "AbstractMethodMap::parseAddAbstractVariant(name: '%s', v: %p) this: %p additional\n", name, f, this);
+    printd(5, "AbstractMethodMap::parseAddAbstractVariant(name: '%s', v: %p) this: %p additional\n", name, f, this);
     i->second->parseAdd(f);
 }
 
@@ -384,18 +389,21 @@ void AbstractMethodMap::addAbstractVariant(const char* name, MethodVariantBase* 
         // already referenced for "normal" insertion, ref again for abstract method insertion
         f->ref();
         m->vlist.insert(vmap_t::value_type(f->getAbstractSignature(), f));
-        //printd(5, "AbstractMethodMap::addAbstractVariant(name: xxx::%s asig: %s, v: %p) this: %p (new)\n", name, f->getAbstractSignature(), f, this);
+        //printd(5, "AbstractMethodMap::addAbstractVariant(name: xxx::%s asig: %s, v: %p) this: %p (new)\n", name,
+        //    f->getAbstractSignature(), f, this);
         insert(amap_t::value_type(name, m));
         return;
     }
-    //printd(5, "AbstractMethodMap::addAbstractVariant(name: xxx::%s asig: %s, v: %p) this: %p\n", name, f->getAbstractSignature(), f, this);
+    //printd(5, "AbstractMethodMap::addAbstractVariant(name: xxx::%s asig: %s, v: %p) this: %p\n", name,
+    //    f->getAbstractSignature(), f, this);
     i->second->add(f);
 }
 
 void AbstractMethodMap::overrideAbstractVariant(const char* name, MethodVariantBase* f) {
     amap_t::iterator i = amap_t::find(name);
-    if (i == end())
+    if (i == end()) {
         return;
+    }
     i->second->override(f);
     if (i->second->empty()) {
         delete i->second;
@@ -843,7 +851,7 @@ const QoreMethod* qore_class_private::doParseMethodAccess(const QoreMethod* m, c
 
 int qore_class_private::initialize() {
     //printd(5, "qore_class_private::initialize() this: %p '%s' initialized: %d scl: %p\n", this, name.c_str(), initialized, scl);
-    if (initialized) {
+    if (initialized || sys) {
         return 0;
     }
 
@@ -1106,10 +1114,13 @@ void qore_class_private::mergeAbstract() {
                 hm_method_t::iterator mi = hm.find(j.first);
 
                 // merge committed parent abstract variants with any pending local variants
-                m->parseMergeBase((*j.second), mi == hm.end() ? 0 : qore_method_private::get(*mi->second)->getFunction(), true);
+                m->parseMergeBase((*j.second), mi == hm.end()
+                    ? nullptr
+                    : qore_method_private::get(*mi->second)->getFunction(), true);
                 if (!m->empty()) {
                     ahm.insert(amap_t::value_type(j.first, m.release()));
-                    //printd(5, "qore_class_private::initializeIntern() this: %p '%s' insert abstract method variant %s::%s()\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str());
+                    //printd(5, "qore_class_private::initializeIntern() this: %p '%s' insert abstract method variant "
+                    //    "%s::%s()\n", this, name.c_str(), (*i).sclass->getName(), j.first.c_str());
                 }
             }
         }
@@ -1538,10 +1549,11 @@ void qore_class_private::addBuiltinMethod(const char* mname, MethodVariantBase* 
 
     nm->priv->addBuiltinVariant(variant);
 
-    if (variant->isAbstract())
+    if (variant->isAbstract()) {
         ahm.addAbstractVariant(mname, variant);
-    else
+    } else {
         ahm.overrideAbstractVariant(mname, variant);
+    }
 }
 
 void qore_class_private::addBuiltinStaticMethod(const char* mname, MethodVariantBase* variant) {
@@ -2132,8 +2144,9 @@ void BCList::parseResolveAbstract() {
 }
 
 void BCList::rescanParents(QoreClass* cls) {
-    if (rescanned)
+    if (rescanned) {
         return;
+    }
     rescanned = true;
     // iterate sml for all virtual parent classes; must iterate with offsets;
     // the vector can be reallocated during this operation
@@ -3229,7 +3242,8 @@ static const QoreClass* getStackClass() {
     return qc ? qc->cls : nullptr;
 }
 
-void QoreClass::addMember(const char* mname, ClassAccess access, const QoreTypeInfo* n_typeInfo, QoreValue initial_value) {
+void QoreClass::addMember(const char* mname, ClassAccess access, const QoreTypeInfo* n_typeInfo,
+        QoreValue initial_value) {
     priv->addMember(mname, access, n_typeInfo, initial_value);
 }
 
@@ -3251,36 +3265,44 @@ void BCSMList::processMemberInitializationList(const QoreMemberMap& members, mem
     for (auto& i : *this) {
         assert(i.first);
 
-        //printd(5, "BCSMList::processMemberInitializationList() processing %p '%s'\n", i.first->priv, i.first->getName());
+        //printd(5, "BCSMList::processMemberInitializationList() processing %p '%s'\n", i.first->priv,
+        //    i.first->getName());
         for (auto& mi : i.first->priv->members.member_list) {
             // skip imported members
             if (!mi.second->local()) {
-                //printd(5, "BCSMList::processMemberInitializationList() %p '%s::%s' NOT LOCAL\n", i.first->priv, i.first->getName(), mi.first);
+                //printd(5, "BCSMList::processMemberInitializationList() %p '%s::%s' NOT LOCAL\n", i.first->priv,
+                //    i.first->getName(), mi.first);
                 continue;
             }
             // find corresponding member in derived class
             const QoreMemberInfo* info = members.find(mi.first);
             if (!info) {
-                //printd(5, "BCSMList::processMemberInitializationList() %p '%s::%s' NOT FOUND\n", i.first->priv, i.first->getName(), mi.first);
+                //printd(5, "BCSMList::processMemberInitializationList() %p '%s::%s' NOT FOUND\n", i.first->priv,
+                //    i.first->getName(), mi.first);
                 // in case of dependency injections, the member may not be found in the class
                 continue;
             }
 
             const qore_class_private* member_class_ctx = info->getClassContext(i.first->priv);
-            //printd(5, "BCSMList::processMemberInitializationList() adding '%s::%s' ctx: %p '%s'\n", i.first->getName(), mi.first, member_class_ctx, member_class_ctx ? member_class_ctx->name.c_str() : "n/a");
+            //printd(5, "BCSMList::processMemberInitializationList() adding '%s::%s' ctx: %p '%s'\n",
+            //    i.first->getName(), mi.first, member_class_ctx,
+            //    member_class_ctx ? member_class_ctx->name.c_str() : "n/a");
             // insert this entry with the class context for saving against the object
             member_init_list.push_back(member_init_entry_t(mi.first, mi.second.get(), member_class_ctx));
         }
-        //printd(5, "BCSMList::processMemberInitializationList() done processing %p '%s'\n", i.first->priv, i.first->getName());
+        //printd(5, "BCSMList::processMemberInitializationList() done processing %p '%s'\n", i.first->priv,
+        //    i.first->getName());
     }
 }
 
 void BCSMList::alignBaseClassesInSubclass(QoreClass* thisclass, QoreClass* child, bool is_virtual) {
-    //printd(5, "BCSMList::alignBaseClassesInSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(), sc->getName());
+    //printd(5, "BCSMList::alignBaseClassesInSubclass(this: %s, sc: %s) size: %d\n", thisclass->getName(),
+    //    sc->getName());
     // we must iterate with offsets, because the vector can be reallocated during this iteration
     for (unsigned i = 0; i < (*this).size(); ++i) {
         bool virt = is_virtual || (*this)[i].second;
-        //printd(5, "BCSMList::alignBaseClassesInSubclass() %s child: %s virt: %d\n", thisclass->getName(), sc->getName(), virt);
+        //printd(5, "BCSMList::alignBaseClassesInSubclass() %s child: %s virt: %d\n", thisclass->getName(),
+        //    sc->getName(), virt);
         child->priv->scl->sml.align(child, (*this)[i].first, virt);
     }
 }
@@ -3290,14 +3312,16 @@ void BCSMList::align(QoreClass* thisclass, QoreClass* qc, bool is_virtual) {
 
     // see if class already exists in vector
     for (auto& i : *this) {
-        if (i.first->getID() == qc->getID())
+        if (i.first->getID() == qc->getID()) {
             return;
+        }
         assert(i.first->getID() != thisclass->getID());
     }
     qc->priv->ref();
 
     // append to the end of the vector
-    //printd(5, "BCSMList::align() adding %p '%s' (virt: %d) as a base class of %p '%s'\n", qc, qc->getName(), is_virtual, thisclass, thisclass->getName());
+    //printd(5, "BCSMList::align() adding %p '%s' (virt: %d) as a base class of %p '%s'\n", qc, qc->getName(),
+    //    is_virtual, thisclass, thisclass->getName());
     push_back(std::make_pair(qc, is_virtual));
 }
 
@@ -4192,7 +4216,7 @@ QoreListNode* QoreClass::getStaticMethodList() const {
 }
 
 int qore_class_private::parseInitPartial() {
-    if (parse_init_partial_called) {
+    if (parse_init_partial_called || sys) {
         return 0;
     }
 
@@ -4281,7 +4305,7 @@ int qore_class_private::parseInit() {
 
     //printd(5, "qore_class_private::parseInit() this: %p '%s' parse_init_called: %d parse_init_partial_called: %d\n",
     //  this, name.c_str(), parse_init_called, parse_init_partial_called);
-    if (parse_init_called) {
+    if (parse_init_called || sys) {
         return err;
     }
 
@@ -4689,8 +4713,9 @@ void QoreClass::addBuiltinStaticVar(const char* name, QoreValue value, ClassAcce
 
 void QoreClass::rescanParents() {
     // rebuild parent class data
-    if (priv->scl)
+    if (priv->scl) {
         priv->scl->rescanParents(this);
+    }
 }
 
 void QoreClass::setPublicMemberFlag() {
@@ -4931,7 +4956,8 @@ void MethodFunctionBase::replaceAbstractVariantIntern(MethodVariantBase* variant
             return;
         }
     }
-    //printd(5, "MethodFunctionBase::replaceAbstractVariantIntern() this: %p adding %p ::%s%s to vlist\n", this, variant, getName(), variant->getAbstractSignature());
+    //printd(5, "MethodFunctionBase::replaceAbstractVariantIntern() this: %p adding %p ::%s%s to vlist\n", this,
+    //    variant, getName(), variant->getAbstractSignature());
     vlist.push_back(variant);
     if (is_abstract) {
         is_abstract = false;
@@ -4960,8 +4986,9 @@ MethodVariantBase* MethodFunctionBase::parseHasVariantWithSignature(MethodVarian
     AbstractFunctionSignature& sig = *(v->getSignature());
     for (vlist_t::const_iterator i = vlist.begin(), e = vlist.end(); i != e; ++i) {
         (*i)->parseResolveUserSignature();
-        if ((*i)->isSignatureIdentical(sig, relaxed_match))
+        if ((*i)->isSignatureIdentical(sig, relaxed_match)) {
             return reinterpret_cast<MethodVariantBase*>(*i);
+        }
     }
     return nullptr;
 }

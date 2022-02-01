@@ -51,13 +51,14 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, const q
         //    method->getClassName(), method->getName(), qc->getName(), o->getClass()->getName(), variant);
         assert(method);
         if (!o->isValid()) {
-            if (variant)
+            if (variant) {
                 xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s(%s) on an object that has " \
                     "already been deleted", qc->getName(), method->getName(),
                     variant->getSignature()->getSignatureText());
-            else
+            } else {
                 xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has " \
                     "already been deleted", qc->getName(), method->getName());
+            }
             return QoreValue();
         }
 
