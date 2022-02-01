@@ -93,7 +93,8 @@ public:
         u.hd = hd;
     }
 
-    DLLLOCAL qore_type_result_e checkMatchType(const QoreTypeSpec& t, bool& may_not_match) const;
+    DLLLOCAL qore_type_result_e checkMatchType(const QoreTypeSpec& t, bool& may_not_match,
+            qore_type_result_e& max_result) const;
 
     DLLLOCAL qore_type_result_e tryMatchReferenceType(const QoreTypeSpec& t, bool& may_not_match) const;
 
@@ -245,7 +246,8 @@ public:
     DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t) const {
         bool may_not_match = false;
         bool may_need_filter = false;
-        return match(t, may_not_match, may_need_filter);
+        qore_type_result_e max_result = QTI_NOT_EQUAL;
+        return match(t, may_not_match, may_need_filter, max_result);
     }
 
     // this is the "expecting" type, t is the type to match
@@ -253,13 +255,23 @@ public:
     // ex: this = NT_OBJECT, t = class, result = IDENT
     DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match) const {
         bool may_need_filter = false;
-        return match(t, may_not_match, may_need_filter);
+        qore_type_result_e max_result = QTI_NOT_EQUAL;
+        return match(t, may_not_match, may_need_filter, max_result);
     }
 
     // this is the "expecting" type, t is the type to match
     // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
     // ex: this = NT_OBJECT, t = class, result = IDENT
-    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const;
+    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter) const {
+        qore_type_result_e max_result = QTI_NOT_EQUAL;
+        return match(t, may_not_match, may_need_filter, max_result);
+    }
+
+    // this is the "expecting" type, t is the type to match
+    // ex: this = class, t = NT_OBJECT, result = AMBIGU`OUS
+    // ex: this = NT_OBJECT, t = class, result = IDENT
+    DLLLOCAL qore_type_result_e match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter,
+            qore_type_result_e& max_result) const;
 
     DLLLOCAL qore_type_result_e runtimeAcceptsValue(const QoreValue& n, bool exact) const;
 
@@ -456,26 +468,42 @@ public:
     DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second) {
         bool may_not_match = false;
         bool may_need_filter = false;
-        return parseAccepts(first, second, may_not_match, may_need_filter);
+        qore_type_result_e max_result = QTI_NOT_EQUAL;
+        return parseAccepts(first, second, may_not_match, may_need_filter, max_result);
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match) {
+    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second,
+            bool& may_not_match) {
         bool may_need_filter = false;
-        return parseAccepts(first, second, may_not_match, may_need_filter);
+        qore_type_result_e max_result = QTI_NOT_EQUAL;
+        return parseAccepts(first, second, may_not_match, may_need_filter, max_result);
+    }
+
+    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second,
+            bool& may_not_match, bool& may_need_filter) {
+        qore_type_result_e max_result = QTI_NOT_EQUAL;
+        return parseAccepts(first, second, may_not_match, may_need_filter, max_result);
     }
 
     // static version of method, checking for null pointer
-    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second, bool& may_not_match, bool& may_need_filter) {
+    DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second,
+            bool& may_not_match, bool& may_need_filter, qore_type_result_e& max_result) {
+        /*
         if (first == second) {
+            // issue
+            max_result = QTI_IDENT;
             return QTI_IDENT;
         }
+        */
         if (first == autoTypeInfo) {
+            max_result = QTI_WILDCARD;
             return QTI_WILDCARD;
         }
         if (!hasType(first)) {
             if (!may_need_filter && isComplex(second))
                 may_need_filter = true;
+            max_result = QTI_WILDCARD;
             return QTI_WILDCARD;
         }
         if (!hasType(second)) {
@@ -490,12 +518,14 @@ public:
             }
             // if the type may not match at runtime, then return no match with %strict-types
             if (parse_get_parse_options() & PO_STRICT_TYPES) {
+                max_result = QTI_NOT_EQUAL;
                 return QTI_NOT_EQUAL;
             }
+            max_result = QTI_IDENT;
             may_not_match = true;
             return QTI_AMBIGUOUS;
         }
-        return first->parseAccepts(second, may_not_match, may_need_filter);
+        return first->parseAccepts(second, may_not_match, may_need_filter, max_result);
     }
 
     // static version of method, checking for null pointer
@@ -1151,11 +1181,13 @@ protected:
         return false;
     }
 
-    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match, bool& may_need_filter) const {
+    DLLLOCAL qore_type_result_e parseAccepts(const QoreTypeInfo* typeInfo, bool& may_not_match,
+            bool& may_need_filter, qore_type_result_e& max_result) const {
         //printd(5, "QoreTypeInfo::parseAccepts() '%s' <- '%s'\n", tname.c_str(), typeInfo->tname.c_str());
         if (typeInfo->return_vec.size() > accept_vec.size()) {
             // if the type may not match at runtime, then return no match with %strict-types
             if (parse_get_parse_options() & PO_STRICT_TYPES) {
+                max_result = QTI_NOT_EQUAL;
                 return QTI_NOT_EQUAL;
             }
             may_not_match = true;
@@ -1165,13 +1197,18 @@ protected:
         for (auto& rt : typeInfo->return_vec) {
             bool t_no_match = true;
             for (auto& at : accept_vec) {
-                qore_type_result_e res = parseAcceptsIntern(at, rt, may_not_match, may_need_filter, t_no_match, ok);
-                if (res == QTI_IDENT)
+                qore_type_result_e t_max_result = QTI_NOT_EQUAL;
+                qore_type_result_e res = parseAcceptsIntern(at, rt, may_not_match, may_need_filter, t_no_match, ok,
+                    t_max_result);
+                if (res == QTI_IDENT) {
+                    max_result = t_max_result;
                     return res;
-                else if (res == QTI_AMBIGUOUS || res == QTI_NEAR || res == QTI_WILDCARD) {
+                } else if (res == QTI_AMBIGUOUS || res == QTI_NEAR || res == QTI_WILDCARD) {
+                    max_result = t_max_result;
                     assert(ok);
-                    if (may_not_match)
+                    if (may_not_match) {
                         return res;
+                    }
                     break;
                 }
             }
@@ -1179,16 +1216,19 @@ protected:
                 if (!may_not_match) {
                     // if the type may not match at runtime, then return no match with %strict-types
                     if (parse_get_parse_options() & PO_STRICT_TYPES) {
+                        max_result = QTI_NOT_EQUAL;
                         return QTI_NOT_EQUAL;
                     }
                     may_not_match = true;
-                    if (ok)
+                    if (ok) {
                         return QTI_AMBIGUOUS;
+                    }
                 }
             }
         }
-        if (ok)
+        if (ok) {
             return QTI_AMBIGUOUS;
+        }
         may_not_match = false;
         return QTI_NOT_EQUAL;
     }
@@ -1260,28 +1300,33 @@ protected:
     // returns true if there is no type or if the type can be converted to a scalar (numeric, bool, int, string, etc) value, false true if otherwise
     DLLLOCAL virtual bool canConvertToScalarImpl() const = 0;
 
-    DLLLOCAL static qore_type_result_e parseAcceptsIntern(const QoreAcceptSpec& at, const QoreReturnSpec& rt, bool& may_not_match, bool& may_need_filter, bool& t_no_match, bool& ok) {
-        //printd(5, "QoreTypeInfo::parseAcceptsIntern() at: %d rt: %d rc: %d\n", (int)at.spec.getTypeSpec(), (int)rt.spec.getTypeSpec(), at.spec.match(rt.spec, may_not_match, may_need_filter));
-        qore_type_result_e res = at.spec.match(rt.spec, may_not_match, may_need_filter);
+    DLLLOCAL static qore_type_result_e parseAcceptsIntern(const QoreAcceptSpec& at, const QoreReturnSpec& rt,
+            bool& may_not_match, bool& may_need_filter, bool& t_no_match, bool& ok, qore_type_result_e& max_result) {
+        //printd(5, "QoreTypeInfo::parseAcceptsIntern() at: %d rt: %d rc: %d\n", (int)at.spec.getTypeSpec(),
+        //    (int)rt.spec.getTypeSpec(), at.spec.match(rt.spec, may_not_match, may_need_filter));
+        qore_type_result_e res = at.spec.match(rt.spec, may_not_match, may_need_filter, max_result);
         switch (res) {
             case QTI_IDENT:
                 if (at.exact && rt.exact) {
-                    if (at.map && !may_need_filter)
+                    if (at.map && !may_need_filter) {
                         may_need_filter = true;
+                    }
                     return QTI_IDENT;
                 }
             // fall down to next case
             case QTI_NEAR:
             case QTI_AMBIGUOUS:
             case QTI_WILDCARD:
-                if (at.map && !may_need_filter)
+                if (at.map && !may_need_filter) {
                     may_need_filter = true;
+                }
                 if (t_no_match) {
                     t_no_match = false;
                     if (!ok) {
                         ok = true;
-                        if (may_not_match)
+                        if (may_not_match) {
                             return res;
+                        }
                     }
                 }
 
