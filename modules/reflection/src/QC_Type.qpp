@@ -515,7 +515,7 @@ bool b = t1.isAssignableFrom(t2);
 
     @since %Qore 0.9.4
 */
-int Type::isAssignableFrom(Type[QoreType] type) [flags=CONSTANT] {
+bool Type::isAssignableFrom(Type[QoreType] type) [flags=CONSTANT] {
     ReferenceHolder<QoreType> holder(type, xsink);
     return qore_type_is_assignable_from(t->typeInfo, type->typeInfo);
 }
@@ -523,7 +523,7 @@ int Type::isAssignableFrom(Type[QoreType] type) [flags=CONSTANT] {
 //! Returns @ref True if the Type object can be assigned from the value given as an argument
 /** @par Example:
     @code{.py}
-bool b = t.isAssignableFrom(val);
+int b = t.isAssignableFrom(val);
     @endcode
 
     @param value the value to check

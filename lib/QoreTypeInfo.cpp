@@ -1386,7 +1386,7 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
                     return QTI_NEAR;
                 }
                 const QoreTypeInfo* ti = n.get<const QoreHashNode>()->getValueTypeInfo();
-                if (ti) {
+                if (QoreTypeInfo::hasType(ti)) {
                     if (QoreTypeInfo::parseAccepts(u.ti, ti)) {
                         return exact ? QTI_IDENT : QTI_AMBIGUOUS;
                     }
@@ -1401,7 +1401,7 @@ qore_type_result_e QoreTypeSpec::runtimeAcceptsValue(const QoreValue& n, bool ex
                     return QTI_NEAR;
                 }
                 const QoreTypeInfo* ti = n.get<const QoreListNode>()->getValueTypeInfo();
-                if (ti) {
+                if (QoreTypeInfo::hasType(ti)) {
                     if (QoreTypeInfo::parseAccepts(u.ti, ti)) {
                         return exact ? QTI_IDENT : QTI_AMBIGUOUS;
                     }

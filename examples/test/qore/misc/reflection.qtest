@@ -142,6 +142,12 @@ class ReflectionTest inherits QUnit::Test {
 
     typeTests() {
         {
+            Type recordType("hash<string, Mutex>");
+            hash<auto> h;
+            h += {"a": {"b": "c"}};
+            assertEq(QTI_NOT_EQUAL, recordType.isAssignableFrom(h));
+        }
+        {
             Type type("hash<auto>");
             assertEq("hash<auto>", type.getName());
             type = new Type("*hash<auto>");

@@ -305,12 +305,12 @@ public class OverloadTest inherits QUnit::Test {
         assertEq(4, f6(1, NOTHING, NOTHING, NOTHING));
         assertEq(4, f6(1, a, a, a));
         # check overload resolution with complex types
-        assertEq(2, f7({}));
+        assertEq(1, f7({}));
         assertEq(2, f7(("a": 1)));
         assertEq(2, f7(cast<hash<string, int>>(("a": 1))));
         assertEq(3, f7(new hash<MyHash>()));
         assertEq(0, f8());
-        assertEq(2, f8({}));
+        assertEq(1, f8({}));
         assertEq(2, f8(("a": 1)));
         assertEq(1, f8(("a": "1")));
         # check overload resolution against "any" and "auto"
@@ -337,12 +337,12 @@ public class OverloadTest inherits QUnit::Test {
         assertEq(4, call_function(\f6(), 1, a, a, {}));
         assertEq(4, call_function(\f6(), 1, NOTHING, NOTHING, NOTHING));
         assertEq(4, call_function(\f6(), 1, a, a, a));
-        assertEq(2, call_function(\f7(), {}));
+        assertEq(1, call_function(\f7(), {}));
         assertEq(2, call_function(\f7(), ("a": 1)));
         assertEq(2, call_function(\f7(), cast<hash<string, int>>(("a": 1))));
         assertEq(3, call_function(\f7(), new hash<MyHash>()));
         assertEq(0, call_function(\f8()));
-        assertEq(2, call_function(\f8(), {}));
+        assertEq(1, call_function(\f8(), {}));
         assertEq(2, call_function(\f8(), ("a": 1)));
         assertEq(1, call_function(\f8(), ("a": "1")));
         assertEq(0, call_function(\f9()));
