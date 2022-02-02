@@ -749,9 +749,36 @@ class Issue4051_A {
 
 class Issue4051_B inherits Issue4051_A;
 
+class Issue_4419_B0;
+class Issue_4419_C0 inherits Issue_4419_B0;
+
+class Issue_4419_T {
+    t0(auto x) {
+        throw "X";
+    }
+
+    t0(Issue_4419_B0 x) {
+    }
+
+    t1(hash<auto> x) {
+        throw "X";
+    }
+
+    t1(hash<string, Issue_4419_B0> x) {
+    }
+
+    t2(list<auto> x) {
+        throw "X";
+    }
+
+    t2(list<Issue_4419_B0> x) {
+    }
+}
+
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 4419", \issue4419());
         addTestCase("init test", \initTest());
         addTestCase("issue 4175", \issue4175());
         addTestCase("issue 4051", \issue4051());
@@ -780,6 +807,25 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue4419() {
+        Issue_4419_T t();
+        Issue_4419_C0 v();
+        {
+            auto x = v;
+            assertNothing(t.t0(x));
+        }
+        {
+            hash<auto> x = {
+                "a": v,
+            };
+            assertNothing(t.t1(x));
+        }
+        {
+            list<auto> x = (v,);
+            assertNothing(t.t2(x));
+        }
     }
 
     initTest() {

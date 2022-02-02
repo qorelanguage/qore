@@ -798,6 +798,10 @@ Mapper mapv(DataMap);
 
     static hash<string, AbstractDataField> getInputFromHash(hash<auto> input) {
         if (recordType.isAssignableFrom(input)) {
+            # XXX DEBUG DELETEME
+            on_error
+                rethrow $1.err, sprintf("input: %s %y can be assigned from %s: %d: %s", input.fullType(), input,
+                    recordType.getName(), recordType.isAssignableFrom(input), $1.desc);
             return cast<hash<string, AbstractDataField>>(input);
         }
         return Mapper::getInputFromHashIntern(input);

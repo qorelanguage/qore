@@ -65,7 +65,25 @@ class QdpCmd {
             "reply": \QdpCmd::response(),
             "dorequest": \QdpCmd::doRequest(),
             "rsearch": \QdpCmd::doRequestSearch(),
+            "provider-create": \QdpCmd::providerCreate(),
+            "pcreate": \QdpCmd::providerCreate(),
+            "provider-delete": \QdpCmd::providerDelete(),
+            "pdelete": \QdpCmd::providerDelete(),
+            "field-add": \QdpCmd::fieldAdd(),
+            "fadd": \QdpCmd::fieldAdd(),
+            "field-update": \QdpCmd::fieldUpdate(),
+            "fupdate": \QdpCmd::fieldUpdate(),
+            "field-del": \QdpCmd::fieldDelete(),
+            "fdelete": \QdpCmd::fieldDelete(),
         };
+
+        #! valid field keys
+        const FieldKeys = (
+            "type",
+            "desc",
+            "default_value",
+            "opts",
+        );
     }
 
     constructor() {
@@ -144,6 +162,71 @@ class QdpCmd {
         } else {
             map (printf("%s:\n", $1.key), QdpCmd::showType($1.value, "  ")), errs.pairIterator();
         }
+    }
+
+    static AbstractDataField getField(string name, auto f) {
+        if (f.typeCode() != NT_HASH) {
+            QdpCmd::error("field %y value must be type \"hash\"; got type %y instead", name, f.type());
+        }
+        if (*hash<auto> err = (f - FieldKeys)) {
+            QdpCmd::error("field %y has unknown keys: %y; known keys: %y", name, keys err, FieldKeys);
+        }
+        return new QoreDataField(name, f.desc, AbstractDataProviderType::get(f.type ?? "string", f.opts),
+            f.default_value);
+    }
+
+    static providerCreate(AbstractDataProvider provider) {
+        string name = QdpCmd::getString("provider-create 'name'", True);
+        hash<auto> desc = QdpCmd::getHash("provider-create description", True);
+        *hash<auto> opts = QdpCmd::getHash("provider-create options");
+
+        hash<string, AbstractDataField> fields = map {$1.key: QdpCmd::getField($1.key, $1.value)}, desc.pairIterator();
+        provider.createChildProvider(name, fields, opts);
+        printf("created provider %s/%s\n", provider.getName(), name);
+    }
+
+    static providerDelete(AbstractDataProvider provider) {
+        string name = QdpCmd::getString("provider-delete 'name'", True);
+        provider.deleteChildProvider(name);
+        printf("deleted provider %s/%s\n", provider.getName(), name);
+    }
+
+    static fieldAdd(AbstractDataProvider provider) {
+        string name = QdpCmd::getString("field-add 'name'", True);
+        hash<auto> desc = QdpCmd::getHash("field-add description", True);
+        *hash<auto> opts = QdpCmd::getHash("field-add options");
+        AbstractDataField field = QdpCmd::getField(name, desc);
+        provider.addField(field, opts);
+        printf("added field %y to provider %y\n", name, provider.getName());
+    }
+
+    static fieldUpdate(AbstractDataProvider provider) {
+        string old_name = QdpCmd::getString("field-update 'old name'", True);
+        string new_name = QdpCmd::getString("field-update 'new name'", True);
+        *hash<auto> desc = QdpCmd::getHash("field-update description", True);
+        *hash<auto> opts = QdpCmd::getHash("field-update options");
+        AbstractDataField field;
+        if (desc) {
+            field = QdpCmd::getField(new_name, desc);
+        } else {
+            *hash<string, AbstractDataField> fields = provider.getRecordType();
+            if (!fields{old_name}) {
+                QdpCmd::error("provider %y has no field %y to update", provider.getName(), old_name);
+            }
+            field = fields{old_name};
+        }
+        provider.updateField(old_name, field, opts);
+        if (old_name == new_name) {
+            printf("updated field %y in provider %y\n", old_name, provider.getName());
+        } else {
+            printf("renamed field %y -> %y in provider %y\n", old_name, new_name, provider.getName());
+        }
+    }
+
+    static fieldDelete(AbstractDataProvider provider) {
+        string name = QdpCmd::getString("field-delete 'name'", True);
+        provider.deleteField(name);
+        printf("deleted field %y from provider %s/%s\n", name, provider.getName());
     }
 
     static getInfo(AbstractDataProvider provider) {
@@ -406,6 +489,12 @@ class QdpCmd {
   <cmd> = create|delete|dorequest|errors|info|list|record|request|response|reply|rsearch|search|update|upsert (default=list)
     create <new record> (ex create id=123,name=\"my name\")
         create a new record
+    field-add|fadd <name> <field desc hash>
+        adds a field to a data provider
+    field-delete|fdelete <name>
+        deletes a field from a data provider
+    field-update|fupdate <old-name> <new-name> [<field desc hash>]
+        deletes a field from a data provider
     delete <match criteria>
         deletes record matching the given criteria
     dorequest <request info>
@@ -416,6 +505,10 @@ class QdpCmd {
        show information about the data provider
     list
        list child data providers
+    provider-create|pcreate <name> <desc hash> [<option hash>]
+       create a new data provider
+    provider-delete|pdelete <name>
+       delete a child data provider
     record
         show the record format (more -v's = more info)
     request

@@ -47,17 +47,18 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, const q
         implemented below on average
     */
     if (qc && method && (o->getClass() == qc || o->getClass() == method->getClass())) {
-        //printd(5, "AbstractMethodCallNode::exec() using parse info for %s::%s() qc: %s (o: %s)\n",
-        //  method->getClassName(), method->getName(), qc->getName(), o->getClass()->getName());
+        //printd(5, "AbstractMethodCallNode::exec() using parse info for %s::%s() qc: %s (o: %s) v: %p\n",
+        //    method->getClassName(), method->getName(), qc->getName(), o->getClass()->getName(), variant);
         assert(method);
         if (!o->isValid()) {
-            if (variant)
+            if (variant) {
                 xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s(%s) on an object that has " \
                     "already been deleted", qc->getName(), method->getName(),
                     variant->getSignature()->getSignatureText());
-            else
+            } else {
                 xsink->raiseException("OBJECT-ALREADY-DELETED", "cannot call %s::%s() on an object that has " \
                     "already been deleted", qc->getName(), method->getName());
+            }
             return QoreValue();
         }
 
@@ -67,7 +68,7 @@ QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, const q
             : qore_method_private::eval(*method, xsink, o, args, ctx);
     }
     //printd(5, "AbstractMethodCallNode::exec() calling QoreObject::evalMethod() for %s::%s()\n", o->getClassName(),
-    //  c_str);
+    //    c_str);
     return qore_class_private::get(*o->getClass())->evalMethod(o, c_str, args, ctx, xsink);
 }
 
@@ -439,8 +440,8 @@ QoreString* FunctionCallNode::getAsString(bool& del, int foff, ExceptionSink* xs
 // eval(): return value requires a deref(xsink)
 QoreValue FunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     QoreFunction* func = fe->getFunction();
-    //printd(5, "FunctionCallNode::evalImpl() this: %p '%s' tmp_args: %d args: %p '%s' (%zd)\n", this,
-    //  func->getName(), tmp_args, args, args ? get_full_type_name(args) : "n/a", args ? args->size() : 0);
+    printd(5, "FunctionCallNode::evalImpl() this: %p '%s' tmp_args: %d args: %p '%s' (%zd)\n", this,
+        func->getName(), tmp_args, args, args ? get_full_type_name(args) : "n/a", args ? args->size() : 0);
     return tmp_args
         ? func->evalFunctionTmpArgs(variant, args, pgm, xsink)
         : func->evalFunction(variant, args, pgm, xsink);
@@ -609,15 +610,6 @@ int ScopedObjectCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
                 parseException(*loc, "ILLEGAL-CLASS-INSTANTIATION", "parse options do not allow access to the '%s' " \
                     "class", oc->getName());
                 err = -1;
-            }
-            // check if the class has pending changes and is used in a constant initialization expression
-            if (parse_context.pflag & PF_CONST_EXPRESSION && qore_class_private::parseHasPendingChanges(*oc)) {
-                parseException(*loc, "ILLEGAL-CLASS-INSTANTIATION", "cannot instantiate '%s' class for assignment " \
-                    "in a constant expression in the parse initialization phase when the class has uncommitted " \
-                    "changes", oc->getName());
-                if (!err) {
-                    err = -1;
-                }
             }
         }
         delete name;

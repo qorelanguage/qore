@@ -40,6 +40,9 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "supports_bulk_create": True,
             "supports_bulk_upsert": True,
             "supports_children": False,
+            "supports_add_field": True,
+            "supports_update_field": True,
+            "supports_delete_field": True,
             "constructor_options": ConstructorOptions,
             "search_options": SearchOptions,
             "create_options": CreateOptions,
@@ -213,8 +216,11 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object
-    constructor(AbstractTable table) {
+    constructor(AbstractTable table, *Logger logger) {
         self.table = table;
+        if (logger) {
+            self.logger = logger;
+        }
     }
 
     #! Creates the object from constructor options
@@ -317,6 +323,26 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return rv;
     }
 
+    #! Processes the \c sequence runtime key in mappers
+    int doSequenceKey(string sequence_name) {
+        try {
+            return db.getNextSequenceValue(sequence_name);
+        } catch (hash<ExceptionInfo> ex) {
+            # rethrow exception adding the sequence name to the description
+            rethrow ex.err, sprintf("%s (sequence: %y)", ex.desc, sequence_name), ex.arg;
+        }
+    }
+
+    #! Processes the \c sequence_currval runtime key in mappers
+    int doSequenceCurrvalKey(string sequence_name) {
+        try {
+            return db.getCurrentSequenceValue(sequence_name);
+        } catch (hash<ExceptionInfo> ex) {
+            # rethrow exception adding the sequence name to the description
+            rethrow ex.err, sprintf("%s (sequence: %y)", ex.desc, sequence_name), ex.arg;
+        }
+    }
+
     #! Returns the description of the record type, if any
     private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
         return table.getRecordType();
@@ -333,15 +359,13 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     */
     private *hash<auto> createRecordImpl(hash<auto> rec, *hash<auto> create_options) {
         DbTableTransactionHelper db(table);
-        try {
-            *hash<auto> returning = db.insert(rec, create_options);
-            return rec + returning;
-        } catch (hash<ExceptionInfo> ex) {
-            if (db.isDuplicateRowError(ex)) {
-                throw "DUPLICATE-RECORD", sprintf("%s: %s", ex.err, ex.desc), ex.arg;
+        on_error {
+            if (db.isDuplicateRowError($1)) {
+                rethrow "DUPLICATE-RECORD", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
             }
-            rethrow;
         }
+        *hash<auto> returning = db.insert(rec, create_options);
+        return rec + returning;
     }
 
     #! Upserts the given record to the data provider
@@ -370,7 +394,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             return table.selectRow(search_options + {"where": where_cond});
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err == "DBI-SELECT-ROW-ERROR") {
-                throw "MULTIPLE-RECORDS-ERROR", ex.desc, ex.arg;
+                rethrow "MULTIPLE-RECORDS-ERROR", ex.desc, ex.arg;
             }
             rethrow;
         }
@@ -457,23 +481,122 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return ProviderInfo;
     }
 
-    #! Processes the \c sequence runtime key in mappers
-    int doSequenceKey(string sequence_name) {
-        try {
-            return db.getNextSequenceValue(sequence_name);
-        } catch (hash<ExceptionInfo> ex) {
-            # rethrow exception adding the sequence name to the description
-            throw ex.err, sprintf("%s (sequence: %y)", ex.desc, sequence_name), ex.arg;
+    #! Creates a new field
+    /**
+        @param field the field to add
+        @param field_add_options the options for adding the new field
+
+        @return the new child data provider
+
+        @since DataProvider 2.0
+    */
+    private addFieldImpl(AbstractDataField field, *hash<auto> field_add_options) {
+        hash<auto> table_desc = table.getDescriptionHash();
+        if (table_desc.columns{field.getName()}) {
+            throw "ADD-FIELD-ERROR", sprintf("field %y already exists in %y", field.getName(), table.getName());
+        }
+
+        if (!db) {
+            db = AbstractDatabase::getDatabase(table.getDatasource());
+        }
+        hash<GenericColumnInfo> col = DbDataProvider::getColumnDesc(db, field, field_add_options);
+        table_desc.columns{field.getName()} = col;
+
+        alignTable(table_desc);
+    }
+
+    #! Updates an existing field
+    /** @param name the name of the current field to update
+        @param field the new definition of the field
+        @param field_update_options the options for adding the new field
+
+        @since DataProvider 2.0
+    */
+    private updateFieldImpl(string name, AbstractDataField field, *hash<auto> field_update_options) {
+        hash<auto> table_desc = table.getDescriptionHash();
+        if (!table_desc.columns{name}) {
+            throw "UPDATE-FIELD-ERROR", sprintf("old field %y does not exist in %y; known fields: %y", name,
+                table.getName(), keys table_desc.columns);
+        }
+
+        if (!db) {
+            db = AbstractDatabase::getDatabase(table.getDatasource());
+        }
+        hash<GenericColumnInfo> col = DbDataProvider::getColumnDesc(db, field, field_update_options);
+        hash<auto> align_opts;
+        if (name != field.getName()) {
+            if (table_desc.columns{field.getName()}) {
+                throw "UPDATE-FIELD-ERROR", sprintf("new field %y alread exists in %y", field.getName(),
+                    table.getName());
+            }
+            remove table_desc.columns{name};
+            align_opts.column_map{name} = field.getName();
+        }
+        table_desc.columns{field.getName()} = col;
+
+        alignTable(table_desc);
+    }
+
+    #! Deletes an existing field
+    /** @param name the name of the field to delete
+        @param field_delete_options the options for deleting the new field
+
+        @since DataProvider 2.0
+    */
+    private deleteFieldImpl(string name, *hash<auto> field_delete_options) {
+        hash<auto> table_desc = table.getDescriptionHash();
+        if (!table_desc.columns{name}) {
+            throw "DELETE-FIELD-ERROR", sprintf("field %y does not exist in %y; known fields: %y", name,
+                table.getName(), keys table_desc.columns);
+        }
+
+        if (!db) {
+            db = AbstractDatabase::getDatabase(table.getDatasource());
+        }
+
+        if (*list<auto> sqll = table.getDropColumnSql(name)) {
+            execDdlSql(sqll);
         }
     }
 
-    #! Processes the \c sequence_currval runtime key in mappers
-    int doSequenceCurrvalKey(string sequence_name) {
-        try {
-            return db.getCurrentSequenceValue(sequence_name);
-        } catch (hash<ExceptionInfo> ex) {
-            # rethrow exception adding the sequence name to the description
-            throw ex.err, sprintf("%s (sequence: %y)", ex.desc, sequence_name), ex.arg;
+    #! Align table with the given description
+    private alignTable(hash<auto> table_desc) {
+        AbstractTable new_table = AbstractTable::getTable(table.getDatasource(), table.getName());
+        new_table.setupTable(table_desc);
+
+        if (*list<auto> sqll = table.getAlignSql(new_table)) {
+            execDdlSql(sqll);
+        }
+    }
+
+    #! Executes the given DDL SQL string list
+    private execDdlSql(list<auto> sqll) {
+        AbstractDatasource ds = table.getDatasource();
+        {
+            bool in_trans = ds.currentThreadInTransaction();
+            on_error {
+                if (!in_trans) {
+                    ds.rollback();
+                }
+            }
+            on_success {
+                if (!in_trans) {
+                    ds.commit();
+                }
+            }
+            # execute alignment
+            string sql;
+            on_error {
+                if (logger) {
+                    logger.error("DbTableDataProvider %y DDL: %s: %s: SQL: %s", table.getName(), $1.err, $1.desc,
+                        sql);
+                }
+            }
+            map ds.execRaw(sql = $1), sqll;
+            table.clear();
+        }
+        if (logger) {
+            logger.info("DbTableDataProvider %y DDL: %s", table.getName(), (foldl $1 + "\n" + $2, sqll));
         }
     }
 }

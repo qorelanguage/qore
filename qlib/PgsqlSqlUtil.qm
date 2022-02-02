@@ -464,22 +464,32 @@ public namespace PgsqlSqlUtil {
         }
 
         #! creates the column from the supplied arguments
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, *int scale)
+                : AbstractColumn(n, nt, qt, sz, nul, dv, cm, scale) {
             byte_size = bs;
         }
 
         #! returns a string giving the native type of the column
         string getNativeTypeString() {
-            string sql = native_type;
             switch (native_type) {
-                case =~ /^timestamptz/: return splice sql, 11, 0, "(" + string(size) + ")";
-                case =~ /^timestamp/: return splice sql, 9, 0, "(" + string(size) + ")";
-                case =~ /^timetz/: return splice sql, 6, 0, "(" + string(size) + ")";
-                case =~ /^time/: return splice sql, 4, 0, "(" + string(size) + ")";
+                case =~ /^timestamptz/: {
+                    string sql = native_type;
+                    return splice sql, 11, 0, "(" + string(size) + ")";
+                }
+                case =~ /^timestamp/: {
+                    string sql = native_type;
+                    return splice sql, 9, 0, "(" + string(size) + ")";
+                }
+                case =~ /^timetz/: {
+                    string sql = native_type;
+                    return splice sql, 6, 0, "(" + string(size) + ")";
+                }
+                case =~ /^time/: {
+                    string sql = native_type;
+                    return splice sql, 4, 0, "(" + string(size) + ")";
+                }
             }
-            if (size)
-                sql += sprintf("(%d)", size);
-            return sql;
+            return AbstractColumn::getNativeTypeString();
         }
 
         #! returns a list of sql strings that can be used to add the column to an existing table
@@ -497,8 +507,10 @@ list l = col.getAddColumnSql(t);
             return l;
         }
 
-        #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
-        /** @par Example:
+        #! returns a list of sql strings that can be used to modify the column to the new definition
+        /** if the column definitions are identical then an empty list is returned
+
+            @par Example:
             @code{.py}
 list l = col.getModifySql(t, newcol);
             @endcode
@@ -509,7 +521,8 @@ list l = col.getModifySql(t, newcol);
             @param col the new column definition
             @param opt column modification options (none are supported by this class)
 
-            @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
+            @return a list of sql strings that can be used to modify the column to the new definition; if the column
+            definitions are identical then an empty list is returned
          */
         list getModifySqlImpl(AbstractTable t, AbstractColumn col, *hash opt) {
             list l = ();
@@ -546,7 +559,8 @@ list l = col.getModifySql(t, newcol);
                 }
             }
             if (nullable != c.nullable) {
-                l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), ddl_name, c.nullable ? "drop" : "set");
+                l += sprintf("alter table %s alter %s %s not null", t.getSqlName(), ddl_name,
+                    c.nullable ? "drop" : "set");
             }
 
             if (c.comment != comment)
@@ -583,9 +597,10 @@ string str = col.getRenameSql(t, "new_name");
     }
 
     #! represents a PostgreSQL-specific numeric column
-    public class PgsqlNumericColumn inherits PgsqlColumn, SqlUtil::NumericColumnInfo {
+    public class PgsqlNumericColumn inherits PgsqlColumn {
         #! creates the column from the supplied arguments
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : PgsqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs,
+                softint scale) : PgsqlColumn(n, nt, qt, sz, nul, dv, cm, bs, scale) {
         }
 
         #! returns a string giving the native type of the column
@@ -596,7 +611,7 @@ string str = col.getRenameSql(t, "new_name");
                 case "double precision":
                     return native_type;
             }
-            return NumericColumnInfo::getNativeTypeString(native_type, size);
+            return PgsqlColumn::getNativeTypeString();
         }
     }
 
@@ -2353,11 +2368,11 @@ auto v = c.name;
             return (ex.desc =~ /duplicate key value/);
         }
 
-        private hash getQoreTypeMapImpl() {
+        private hash<auto> getQoreTypeMapImpl() {
             return QoreTypeMap;
         }
 
-        private hash getTypeMapImpl() {
+        private hash<auto> getTypeMapImpl() {
             return PgsqlTypeMap;
         }
 

@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.4.2";
+    version = "1.4.3";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -91,7 +91,11 @@ module MysqlSqlUtil {
 
     @section mysql_relnotes Release Notes
 
-    @subsection mysqlsqlutilv141 MysqlSqlUtil v1.4.2
+    @subsection mysqlsqlutilv143 MysqlSqlUtil v1.4.3
+    - allow a \c VARCHAR column to be created without a size, assume a default size
+      (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
+
+    @subsection mysqlsqlutilv142 MysqlSqlUtil v1.4.2
     - added APIs to enable duplicate record creation errors to be detected
       (<a href="https://github.com/qorelanguage/qore/issues/4308">issue 4308</a>)
 
@@ -247,7 +251,8 @@ public namespace MysqlSqlUtil {
         }
 
         string getAddSql(string name, string table_name, *hash opt) {
-            return sprintf("add constraint %s foreign key (%s) references %s (%s)", name, (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+            return sprintf("add constraint %s foreign key (%s) references %s (%s)", name,
+                (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
 
         #! returns a string that can be used to drop the foreign constraint from the database
@@ -267,7 +272,8 @@ public namespace MysqlSqlUtil {
         private constructor() {
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, *softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, *softint bs,
+                *int scale) : AbstractColumn(n, nt, qt, sz, nul, dv, cm, scale) {
             byte_size = bs ?? 0;
         }
 
@@ -294,8 +300,10 @@ list l = col.getAddColumnSql(t);
             return sql;
         }
 
-        #! returns a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
-        /** @par Example:
+        #! returns a list of sql strings that can be used to modify the column to the new definition
+        /** if the column definitions are identical then an empty list is returned
+
+            @par Example:
             @code{.py}
 list l = col.getModifySql(t, newcol);
             @endcode
@@ -306,7 +314,8 @@ list l = col.getModifySql(t, newcol);
             @param col the new column definition
             @param opt column modification options (none are supported in this class)
 
-            @return a list of sql strings that can be used to modify the column to the new definition; if the column definitions are identical then an empty list is returned
+            @return a list of sql strings that can be used to modify the column to the new definition; if the column
+            definitions are identical then an empty list is returned
          */
         softlist getModifySqlImpl(AbstractTable t, AbstractColumn col, *hash opt) {
             MysqlColumn c = col;
@@ -315,7 +324,8 @@ list l = col.getModifySql(t, newcol);
             if (ntd == getCreateSql(t))
                 return;
 
-            #printf("%y (%d) <=> %y (%d): L: %s\nL: comment: %y\nXXXXXXXXXX\nR: %s\nR: comment: %y\n", self.className(), size, c.className(), c.size, getCreateSql(t), comment, ntd, c.comment);
+            #printf("%y (%d) <=> %y (%d): L: %s\nL: comment: %y\nXXXXXXXXXX\nR: %s\nR: comment: %y\n",
+            # self.className(), size, c.className(), c.size, getCreateSql(t), comment, ntd, c.comment);
 
             string sql = sprintf("alter table %s modify %s", t.getSqlName(), ntd);
             if (c.comment)
@@ -355,7 +365,7 @@ string str = col.getRenameSql(t, "new_name");
     }
 
     #! represents a MySQL-specific numeric column
-    public class MysqlNumericColumn inherits MysqlColumn, SqlUtil::NumericColumnInfo {
+    public class MysqlNumericColumn inherits MysqlColumn {
         public {
             bool unsigned;
             bool auto_increment;
@@ -379,7 +389,9 @@ string str = col.getRenameSql(t, "new_name");
             };
         }
 
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale, bool n_unsigned = False, bool n_auto_increment = False, bool n_pk = False) : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs,
+                softint scale, bool n_unsigned = False, bool n_auto_increment = False, bool n_pk = False)
+                : MysqlColumn(n, nt, qt, sz, nul, dv, cm, bs, scale) {
             unsigned = n_unsigned;
             auto_increment = n_auto_increment;
             pk = n_pk;
@@ -406,11 +418,13 @@ string str = col.getRenameSql(t, "new_name");
         }
 
         string getNativeTypeString() {
-            string str = NumericColumnInfo::getNativeTypeString(native_type, size);
-            if (unsigned)
+            string str = MysqlColumn::getNativeTypeString();
+            if (unsigned) {
                 str += " unsigned";
-            if (auto_increment)
+            }
+            if (auto_increment) {
                 str += " auto_increment " + (pk ? "primary key" : "unique");
+            }
             return str;
         }
 
@@ -974,6 +988,9 @@ end";
                 "year_month" : True,
                 "zerofill" : True,
             );
+
+            #! Maximum precision
+            const MysqlMaxPrecision = 65;
         }
 
         private {
@@ -996,6 +1013,24 @@ end";
                 sequence_function = opts.sequence_function;
 
             seqds = new Datasource(ds.getConfigString());
+        }
+
+        #! Returns @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
+        /** @return @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
+
+            @since %MysqlSqlUtil 1.4.3
+        */
+        bool requiresScale() {
+            return True;
+        }
+
+        #! Returns the maximum precision for numeric or decimal columns
+        /** @return -1 means, no maximum
+
+            @since %MysqlSqlUtil 1.4.3
+        */
+        int getMaximumPrecision() {
+            return MysqlMaxPrecision;
         }
 
         private list<string> featuresImpl() {
@@ -1261,8 +1296,11 @@ end";
     public class MysqlTable inherits SqlUtil::AbstractTable {
         public {
             #! maps mysql type names to type configurations
-            const MysqlTypeMap = (
-                "decimal": ("qore": Type::Number, "size": SZ_NUM,),
+            const MysqlTypeMap = {
+                "decimal": {
+                    "qore": Type::Number,
+                    "size": SZ_NUM,
+                },
                 "tinyint": ("qore": Type::Int, "ai": True,),
                 "smallint": ("qore": Type::Int, "ai": True,),
                 "mediumint": ("qore": Type::Int, "ai": True,),
@@ -1273,15 +1311,29 @@ end";
 
                 "date": ("qore": Type::Date,),
                 "datetime": ("qore": Type::Date,),
-                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
-                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6),"default_size": 6,),
+                "timestamp": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "time": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "year": ("qore": Type::Int,),
 
-                "char": ("qore": Type::String, "size": SZ_OPT, "size_range": (0, 255)),
-                "varchar": ("qore": Type::String, "size": SZ_MAND, "size_range": (0, 65535)),
+                "char": {
+                    "qore": Type::String,
+                    "size": SZ_OPT,
+                    "size_range": (0, 255),
+                },
+                "varchar": {
+                    "qore": Type::String,
+                    "size": SZ_MAND,
+                    "size_range": (0, 65535),
+                    "default_size": AbstractColumn::DefaultVarcharSize,
+                },
 
                 "binary": ("qore": Type::Binary, "size": SZ_OPT, "size_range": (0, 255)),
-                "varbinary": ("qore": Type::Binary, "size": SZ_MAND, "size_range": (0, 65535)),
+                "varbinary": {
+                    "qore": Type::Binary,
+                    "size": SZ_MAND,
+                    "size_range": (0, 65535),
+                    "default_size": 80,
+                },
 
                 "tinytext": ("qore": Type::String,),
                 "text": ("qore": Type::String,),
@@ -1294,15 +1346,15 @@ end";
                 "longblob": ("qore": Type::Binary,),
 
                 "bit": ("qore": Type::Int,),
-            );
+            };
 
-            #! maps qore type names to postgresql type names
+            #! maps qore type names to MySQL type names
             const QoreTypeMap = (
                 "integer": "bigint",
                 "float": "double",
                 "number": "decimal",
                 "string": "varchar",
-                "date": "datetime",
+                "date": "timestamp",
                 "binary": "varbinary",
                 "bool": "tinyint",
                 SqlUtil::CHAR: "char",

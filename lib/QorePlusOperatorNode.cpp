@@ -209,6 +209,9 @@ int QorePlusOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
         return **xsink ? -1 : 0;
     }
 
+    printd(5, "QorePlusOperatorNode::parseInitImpl() this: %p l: '%s' r: '%s'\n", this,
+        QoreTypeInfo::getName(leftTypeInfo), QoreTypeInfo::getName(rightTypeInfo));
+
     // if either side is a list, then the return type is list (highest priority)
     bool is_list_left = QoreTypeInfo::isType(leftTypeInfo, NT_LIST);
     bool is_list_right = QoreTypeInfo::isType(rightTypeInfo, NT_LIST);

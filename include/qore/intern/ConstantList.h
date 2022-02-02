@@ -96,10 +96,11 @@ public:
     std::string name;
     const QoreTypeInfo* typeInfo;
     QoreValue val;
-    bool in_init : 1,  // being initialized
-        pub : 1,        // public constant (modules only)
-        init : 1,       // already initialized
-        builtin : 1     // builtin vs user
+    bool in_init : 1,     // being initialized
+        pub : 1,          // public constant (modules only)
+        init : 1,         // already initialized
+        builtin : 1,      // builtin vs user
+        delayed_eval : 1  // delayed evaluation
         ;
 
     DLLLOCAL ConstantEntry(const QoreProgramLocation* loc, const char* n, QoreValue v,
@@ -134,6 +135,8 @@ public:
     DLLLOCAL QoreValue getReferencedValue() const;
 
     DLLLOCAL int parseInit(ClassNs ptr);
+
+    DLLLOCAL int parseCommitRuntimeInit();
 
     DLLLOCAL QoreValue get(const QoreProgramLocation* loc, const QoreTypeInfo*& constantTypeInfo, ClassNs ptr) {
         if (in_init) {
@@ -184,16 +187,14 @@ public:
     }
 
 protected:
-    AbstractQoreNode* saved_node = nullptr;
+    QoreValue saved_val;
     ClassAccess access;
     std::string from_module;
 
     DLLLOCAL ~ConstantEntry() {
-        assert(!saved_node);
+        assert(saved_val.isNothing());
         assert(val.isNothing());
     }
-
-    DLLLOCAL int scanValue(const QoreValue& n) const;
 
     DLLLOCAL void del(ExceptionSink* xsink);
     DLLLOCAL void del(QoreListNode& l);
@@ -300,6 +301,8 @@ public:
             const char* cname);
 
     DLLLOCAL int parseInit();
+    DLLLOCAL int parseCommitRuntimeInit();
+
     DLLLOCAL QoreHashNode* getInfo();
     DLLLOCAL void parseDeleteAll();
     DLLLOCAL void clear(QoreListNode& l);
@@ -409,17 +412,16 @@ protected:
     ConstantEntry* ce;
 
     DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        parse_context.typeInfo = ce->typeInfo;
         return 0;
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-        assert(ce->saved_node);
-        return getTypeInfoForValue(ce->saved_node);
+        return ce->typeInfo;
     }
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-        assert(ce->saved_node);
-        return ce->saved_node->eval(needs_deref, xsink);
+        return ce->saved_val.eval(needs_deref, xsink);
     }
 
     DLLLOCAL ~RuntimeConstantRefNode() {
@@ -428,7 +430,7 @@ protected:
 public:
     DLLLOCAL RuntimeConstantRefNode(const QoreProgramLocation* loc, ConstantEntry* n_ce) : ParseNode(loc,
             NT_RTCONSTREF, true, false), ce(n_ce) {
-        assert(ce->saved_node);
+        assert(ce->saved_val);
     }
 
     DLLLOCAL ConstantEntry* getConstantEntry() const {
@@ -436,17 +438,17 @@ public:
     }
 
     DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-        assert(ce->saved_node);
-        return ce->saved_node->getAsString(str, foff, xsink);
+        assert(ce->saved_val);
+        return ce->saved_val.getAsString(str, foff, xsink);
     }
 
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-        assert(ce->saved_node);
-        return ce->saved_node->getAsString(del, foff, xsink);
+        assert(ce->saved_val);
+        return ce->saved_val.getAsString(del, foff, xsink);
     }
 
     DLLLOCAL virtual const char* getTypeName() const {
-        return ce->saved_node ? ce->saved_node->getTypeName() : "nothing";
+        return ce->saved_val.getTypeName();
     }
 };
 

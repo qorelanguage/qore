@@ -69,8 +69,8 @@ public:
 
 protected:
     pcre* p = nullptr;
-    int options = PCRE_UTF8;
     QoreString* str = nullptr;
+    int options = PCRE_UTF8;
 };
 
 #endif

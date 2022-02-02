@@ -616,6 +616,8 @@ public class DataProviderPipeline {
 
     #! Submits data for processing
     submit(auto _data) {
+        logInfo("submit data called (%s)", _data.fullType());
+
         lck.lock();
         on_exit lck.unlock();
 
@@ -636,6 +638,8 @@ public class DataProviderPipeline {
 
     #! Submits data for processing
     submit(AbstractDataProviderRecordIterator i) {
+        logInfo("submit AbstractDataProviderRecordIterator called");
+
         lck.lock();
         on_exit lck.unlock();
 
@@ -650,6 +654,8 @@ public class DataProviderPipeline {
 
     #! Submits data for processing
     submit(AbstractDataProviderBulkRecordInterface i) {
+        logInfo("submit AbstractDataProviderBulkRecordInterface called");
+
         lck.lock();
         on_exit lck.unlock();
 

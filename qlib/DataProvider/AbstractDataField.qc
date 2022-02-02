@@ -135,7 +135,7 @@ public class AbstractDataField inherits Serializable {
         try {
             return getType().acceptsValue(value);
         } catch (hash<ExceptionInfo> ex) {
-            throw ex.err, sprintf("%s (while setting field %y)", ex.desc, getName()), ex.arg;
+            rethrow ex.err, sprintf("%s (while setting field %y)", ex.desc, getName()), ex.arg;
         }
     }
 
@@ -171,7 +171,7 @@ public class AbstractDataField inherits Serializable {
     }
 
     #! returns a field with an "or nothing" type equivalent to the current type
-    /** The base class method returns the same fielf; this method must be overridden in child classes to return a
+    /** The base class method returns the same field; this method must be overridden in child classes to return a
         field with a usable "or nothing" type
 
         @return a field with an "or nothing" type equivalent to the current type

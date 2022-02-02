@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 1.1.0
+Version: 1.2.1
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -114,7 +114,7 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.7.4.0
+%{_libdir}/libqore.so.7.4.2
 %{_libdir}/libqore.so.7
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -128,7 +128,7 @@ ldconfig %{_libdir}
 Summary: Standard library modules
 Group: System Environment/Libraries
 Requires: %{libname} = %{version}-%{release}
-Requires: qore-module(abi)%{?_isa} = 0.24
+Recommends: %{name} = %{version}
 
 %description stdlib
 Qore is a scripting language supporting threading and embedded logic, designed
@@ -278,6 +278,14 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Jan 28 2022 David Nichols <david@qore.org> 1.2.1
+- updated version to 1.2.1
+- updated libqore version to 7.4.2
+
+* Fri Jan 21 2022 David Nichols <david@qore.org> 1.2.0
+- updated version to 1.2.0
+- updated libqore version to 7.4.1
+
 * Sun Jan 9 2022 David Nichols <david@qore.org> 1.1.0
 - updated version to 1.1.0
 - updated libqore version to 7.4.0

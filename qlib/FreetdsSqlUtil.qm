@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module FreetdsSqlUtil {
-    version = "1.4.1";
+    version = "1.4.2";
     desc = "user module for working with FreeTDS SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -113,8 +113,19 @@ module FreetdsSqlUtil {
     |@ref SqlUtil::NUMERIC|\c numeric
     |@ref SqlUtil::VARCHAR|\c varchar
 
-    To use other types, use the \c "native_type" @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the
-    native FreeTDS type name instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
+    To use other types, use the \c "native_type"
+    @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the native FreeTDS type name
+    instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
+
+    @subsection freetdssqlutilv141 FreetdsSqlUtil v1.4.2
+    - fixed a bug where \c offset and \c limit were not properly supported with MS SQL Server DBs
+      (<a href="https://github.com/qorelanguage/qore/issues/4408">issue 4408</a>)
+    - fixed a bug where date/time values in other time zones were not bound correctly
+      (<a href="https://github.com/qorelanguage/qore/issues/4403">issue 4403</a>)
+    - fixed a bug handling transaction savepoints
+      (<a href="https://github.com/qorelanguage/qore/issues/4402">issue 4402</a>)
+    - allow a \c VARCHAR column to be created without a size, assume a default size
+      (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
 
     @subsection freetdssqlutilv141 FreetdsSqlUtil v1.4.1
     - added APIs to enable duplicate record creation errors to be detected
@@ -129,17 +140,22 @@ module FreetdsSqlUtil {
       (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
 
     @subsection freetdssqlutilv13 FreetdsSqlUtil v1.3
-    - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
+    - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects
+      (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
 
     @subsection freetdssqlutilv121 FreetdsSqlUtil v1.2.1
-    - implemented support for custom column operators (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
+    - implemented support for custom column operators
+      (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
 
     @subsection freetdssqlutilv12 FreetdsSqlUtil v1.2
-    - fixed a bug where @ref SqlUtil::BLOB columns were created as \c VARBINARY columns instead of \c VARBINARY(MAX) (<a href="https://github.com/qorelanguage/qore/issues/1852">issue 1852</a>)
-    - implemented @ref cop_trunc_date() operator (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
+    - fixed a bug where @ref SqlUtil::BLOB columns were created as \c VARBINARY columns instead of \c VARBINARY(MAX)
+      (<a href="https://github.com/qorelanguage/qore/issues/1852">issue 1852</a>)
+    - implemented @ref cop_trunc_date() operator
+      (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
 
     @subsection freetdssqlutilv11 FreetdsSqlUtil v1.1
-    - implemented the \a force option (i.e. cascade) for dropping code objects (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
+    - implemented the \a force option (i.e. cascade) for dropping code objects
+      (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
 
     @subsection freetdssqlutilv10 FreetdsSqlUtil v1.0
     - initial release
@@ -182,6 +198,7 @@ public namespace FreetdsSqlUtil {
 
         #! Creates the savepoint
         private createSavepointImpl() {
+            ds.exec("begin transaction");
             ds.exec("save tran " + savepoint);
         }
 
@@ -199,7 +216,8 @@ public namespace FreetdsSqlUtil {
     #! the data type for FreeTDS DECIMAL columns
     public class FreetdsNumberDataType inherits SqlUtil::AbstractNumericDataType {
         #! creates the object
-        constructor(string native_type, bool nullable, *hash<auto> options) : AbstractNumericDataType(native_type, nullable, options) {
+        constructor(string native_type, bool nullable, *hash<auto> options)
+                : AbstractNumericDataType(native_type, nullable, options) {
         }
     }
 
@@ -211,13 +229,15 @@ public namespace FreetdsSqlUtil {
         }
 
         #! creates the object from the arguments
-        constructor(string n_name, bool n_unique, hash n_cols, *string n_filegroup) : AbstractIndex(n_name, n_unique, n_cols) {
+        constructor(string n_name, bool n_unique, hash n_cols, *string n_filegroup)
+                : AbstractIndex(n_name, n_unique, n_cols) {
             filegroup = n_filegroup;
         }
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash opt) {
-            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
+            string sql = sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name,
+                (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
 
             *string ts = opt.index_filegroup ? opt.index_filegroup : filegroup;
             if (ts)
@@ -257,7 +277,8 @@ public namespace FreetdsSqlUtil {
 
         #! returns a string that can be used to create the constraint in the database
         string getCreateSql(string name, string table_name, *hash opt) {
-            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name,
+                (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
     }
 
@@ -298,16 +319,9 @@ public namespace FreetdsSqlUtil {
         }
 
         #! creates the column from the supplied arguments
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs) : AbstractColumn(n, nt, qt, sz, nul, dv, cm) {
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, *int scale)
+                : AbstractColumn(n, nt, qt, sz, nul, dv, cm, scale) {
             byte_size = bs;
-        }
-
-        #! returns a string giving the native type of the column
-        string getNativeTypeString() {
-            string sql = native_type;
-            if (size)
-                sql += sprintf("(%d)", size);
-            return sql;
         }
 
         #! returns a list of sql strings that can be used to add the column to an existing table
@@ -352,8 +366,7 @@ list l = col.getModifySql(t, newcol);
 
                 if (def_val !== c.def_val && exists c.def_val && c.def_val !== NULL)
                     l += sprintf("alter table %s add constraint %s default %s for %s", t.getSqlName(), dv_name, c.def_val, ddl_name);
-            }
-            else {
+            } else {
                 if (def_val !== c.def_val) {
                     #printf("L: %N\nXXXXXXXXXXXXXXX\nR: %N\n\n", self, c);
                     if (exists c.def_val && c.def_val !== NULL)
@@ -398,14 +411,10 @@ string str = col.getRenameSql(t, "new_name");
     }
 
     #! represents a FreeTDS-specific numeric column
-    public class FreetdsNumericColumn inherits FreetdsColumn, SqlUtil::NumericColumnInfo {
+    public class FreetdsNumericColumn inherits FreetdsColumn {
         #! creates the column from the supplied arguments
-        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs, softint n_scale) : FreetdsColumn(n, nt, qt, sz, nul, dv, cm, bs), NumericColumnInfo(n_scale) {
-        }
-
-        #! returns a string giving the native type of the column
-        string getNativeTypeString() {
-            return NumericColumnInfo::getNativeTypeString(native_type, size);
+        constructor(string n, string nt, *string qt, int sz, bool nul, *string dv, *string cm, softint bs,
+                softint scale) : FreetdsColumn(n, nt, qt, sz, nul, dv, cm, bs, scale) {
         }
     }
 
@@ -897,6 +906,9 @@ any v = c.name;
                 "within group": True,
                 "writetext": True,
             );
+
+            #! Maximum precision
+            const MaxPrecision = 38;
         }
 
         constructor(AbstractDatasource nds, *hash opts) : AbstractDatabase(nds, opts) {
@@ -904,6 +916,24 @@ any v = c.name;
             if (!is_sybase) {
                 default_schema = nds.selectRow("select schema_name() as \"schema\"").schema;
             }
+        }
+
+        #! Returns @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
+        /** @return @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
+
+            @since %FreeSqlUtil 1.4.2
+        */
+        bool requiresScale() {
+            return True;
+        }
+
+        #! Returns the maximum precision for numeric or decimal columns
+        /** @return -1 means, no maximum
+
+            @since %FreeSqlUtil 1.4.2
+        */
+        int getMaximumPrecision() {
+            return MaxPrecision;
         }
 
         private list<string> featuresImpl() {
@@ -1146,6 +1176,7 @@ any v = c.name;
                 "money": ("qore": Type::Number,),
                 "smallmoney": ("qore": Type::Number,),
 
+                "datetime2": ("qore": Type::Date,),
                 "datetime": ("qore": Type::Date,),
                 "smalldatetime": ("qore": Type::Date,),
                 "date": ("qore": Type::Date,),
@@ -1157,7 +1188,7 @@ any v = c.name;
                 "char": ("qore": Type::String, "size": SZ_OPT),
                 "char varying": ("qore": Type::String, "size": SZ_OPT),
                 "character varying": ("qore": Type::String, "size": SZ_OPT),
-                "varchar": ("qore": Type::String, "size": SZ_OPT),
+                "varchar": ("qore": Type::String, "size": SZ_OPT, "default_size": 80),
 
                 # The following uni* types are used in Sybase Adaptive Server
                 "unichar": ("qore": Type::String, "size": SZ_MAND,),
@@ -1167,9 +1198,16 @@ any v = c.name;
                 # NOTE: "size_range" is different between MS SQL Server and Sybase SQL Anywhere Server
                 # MS SQL: range is (1, 8000) or special keyword "max" for varbinary types
                 # Sybase: range is (1, 32767)
-                "binary": ("qore": Type::Binary, "size": SZ_OPT),
+                "binary": {
+                    "qore": Type::Binary,
+                    "size": SZ_OPT,
+                },
                 "binary varying": ("qore": Type::Binary, "size": SZ_OPT),
-                "varbinary": ("qore": Type::Binary, "size": SZ_OPT),
+                "varbinary": {
+                    "qore": Type::Binary,
+                    "size": SZ_OPT,
+                    "default_size": 80,
+                },
                 "varbinary(max)": ("qore": Type::Binary,),
 
                 # The following are used in Sybase, supported & deprecated in MS SQL
@@ -1186,7 +1224,6 @@ any v = c.name;
                 "float": "float",
                 "number": "numeric",
                 "string": "varchar",
-                "date": "datetime",
                 "binary": "varbinary",
                 "bool": "tinyint",
                 SqlUtil::CHAR: "char",
@@ -1194,12 +1231,15 @@ any v = c.name;
             );
 
             #! maps qore type names to MS SQL Server type names
-            const MsQoreTypeMap = QoreTypeMap + (
+            const MsQoreTypeMap = QoreTypeMap + {
                 SqlUtil::BLOB: "varbinary(max)",
-            );
+                "date": "datetime2",
+            };
 
             #! maps qore type names to Sybase/SAP type names
-            const SybaseQoreTypeMap = QoreTypeMap;
+            const SybaseQoreTypeMap = QoreTypeMap + {
+                "date": "datetime",
+            };
 
             #! equal to @ref SqlUtil::AbstractTable::TableDescriptionHashOptions
             const FreetdsTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions;
@@ -1450,13 +1490,13 @@ any v = c.name;
             list updc = ();
             # hash of columns to skip on update if applicable
             *hash suh = map {$1: True}, opt.omit_update;
-            map updc += $1, row.keyIterator(), !cols.hasKey($1) && !suh.$1;
+            map updc += $1, keys row, !cols.hasKey($1) && !suh.$1;
             # cannot use merge where only the join columns are present
             if (!updc)
                 return getUpsertInsertOnly(cols, row, opt);
 
             string sql = sprintf("merge %s t using (select ", getSqlName());
-            sql += foldl $1 + "," + $2, (map "%v", row.keyIterator());
+            sql += foldl $1 + "," + $2, (map "%v", keys row);
             sql += ") as source (";
             sql += foldl $1 + "," + $2, row.keyIterator();
             sql += ") on (";
@@ -1471,7 +1511,7 @@ any v = c.name;
                 sql += sprintf(" when not matched then insert (");
                 sql += (foldl $1 + "," + $2, getColumnSqlNames(row.keys()));
                 sql += ") values (";
-                sql += (foldl $1 + "," + $2, (map "source." + $1, row.keyIterator()));
+                sql += (foldl $1 + "," + $2, (map "source." + $1, keys row));
                 sql += ")";
             }
             sql += ";";
@@ -1525,7 +1565,8 @@ any v = c.name;
                     # get index list
                     *string ilstr = (istr =~ x/^index\((.*)\)$/)[0];
                     if (!ilstr.val())
-                        throw "TABLEHINT-ERROR", sprintf("\"index\" table hint is missing the index arguments in parentheses: %y", hint);
+                        throw "TABLEHINT-ERROR", sprintf("\"index\" table hint is missing the index arguments in "
+                            "parentheses: %y", hint);
                     # manually process hints as integers to ensure there are no SQL injections
                     l += ("index(" + (foldl $1 + "," + $2, (map $1.toInt(), ilstr.split(","))) + ")");
                     continue;
@@ -1592,7 +1633,8 @@ any v = c.name;
 
         private bool checkExistenceImpl() {
             *hash qh = ds.selectRow("select name from sysobjects where type = %v and name = %v", "U", name);
-            #*hash qh = ds.selectRow("select * from information_schema.tables where table_schema = %v and table_name = %v", schema, name);
+            #*hash qh = ds.selectRow("select * from information_schema.tables where table_schema = %v and
+            #   table_name = %v", schema, name);
             if (qh)
                 return inDb = True;
             return False;
@@ -1605,8 +1647,9 @@ any v = c.name;
         private Columns describeSybaseImpl() {
             # get column descriptions
             *hash qh = ds.select("select
-	sc.name column_name, t.name data_type, sc.prec numeric_precision, sc.scale numeric_scale, sc.length, substring(cm.text, 10, 500) column_default,
-        case sc.status & 0x8 when 0x8 then 'YES' else 'NO' end is_nullable
+	sc.name column_name, t.name data_type, sc.prec numeric_precision, sc.scale numeric_scale, sc.length,
+    substring(cm.text, 10, 500) column_default,
+    case sc.status & 0x8 when 0x8 then 'YES' else 'NO' end is_nullable
 from
 	syscolumns sc
 	join sysobjects so on (sc.id = so.id)
@@ -1615,7 +1658,8 @@ from
 where
 	so.name = %v", name);
             if (!qh.column_name)
-                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", getSqlName(), dsdesc);
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", getSqlName(),
+                    dsdesc);
 
             hash rv;
             foreach hash<auto> row in (qh.contextIterator()) {
@@ -1635,9 +1679,11 @@ where
                 *string defval = row.column_default;
 
                 if (row.numeric_precision)
-                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, NOTHING, 0, row.numeric_scale);
+                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision,
+                        row.is_nullable == "YES", defval, NOTHING, 0, row.numeric_scale);
                 else
-                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, NOTHING, row.length);
+                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0,
+                        row.is_nullable == "YES", defval, NOTHING, row.length);
 
                 rv.(row.column_name) = c;
             }
@@ -1647,10 +1693,11 @@ where
 
         private Columns describeMssqlImpl() {
             # get column descriptions
-            *hash qh = ds.select("select * from information_schema.columns where table_schema = %v and table_name = %v order by ordinal_position",
-                                 schema, name);
+            *hash qh = ds.select("select * from information_schema.columns where table_schema = %v and "
+                "table_name = %v order by ordinal_position", schema, name);
             if (!qh.column_name)
-                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", getSqlName(), dsdesc);
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", getSqlName(),
+                    dsdesc);
 
             hash rv;
             foreach hash<auto> row in (qh.contextIterator()) {
@@ -1673,9 +1720,11 @@ where
                     defval =~ s/^\(\((.*)\)\)$/$1/;
 
                 if (row.numeric_precision)
-                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, NOTHING, 0, row.numeric_scale);
+                    c = new FreetdsNumericColumn(row.column_name, row.data_type, th.qore, row.numeric_precision,
+                        row.is_nullable == "YES", defval, NOTHING, 0, row.numeric_scale);
                 else
-                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, NOTHING, row.character_octet_length);
+                    c = new FreetdsColumn(row.column_name, row.data_type, th.qore, exists size ? size : 0,
+                        row.is_nullable == "YES", defval, NOTHING, row.character_octet_length);
 
                 rv.(row.column_name) = c;
             }
@@ -1692,7 +1741,8 @@ where
 	object_name(i.id) table_name, i.indid, i.keycnt,
 	-- i.status & 2048,
 	i.name constraint_name, i.id,
-	case (i.status2 & 512) when 512 then 'YES' else 'NO' END is_clustered, --this identifies pkey constrained clustered indexes
+    -- identifies pkey constrained clustered indexes
+	case (i.status2 & 512) when 512 then 'YES' else 'NO' END is_clustered,
 	index_col(object_name(i.id),i.indid,1) col1,
 	index_col(object_name(i.id),i.indid,2) col2,
 	index_col(object_name(i.id),i.indid,3) col3,
@@ -1732,12 +1782,15 @@ where
         }
 
         private FreetdsPrimaryKey getPrimaryKeyMssqlImpl() {
-            *hash pkh = ds.selectRow("select * from information_schema.table_constraints where table_schema = %v and table_name = %v and constraint_type = 'PRIMARY KEY'", schema, name);
+            *hash pkh = ds.selectRow("select * from information_schema.table_constraints where table_schema = %v and "
+                "table_name = %v and constraint_type = 'PRIMARY KEY'", schema, name);
             if (!pkh.constraint_name)
                 return new FreetdsPrimaryKey();
 
             # get primary key description
-            *hash qh = ds.select("select * from information_schema.key_column_usage where table_schema = %v and table_name = %v and constraint_name = %v order by ordinal_position", schema, name, pkh.constraint_name);
+            *hash qh = ds.select("select * from information_schema.key_column_usage where table_schema = %v and "
+                "table_name = %v and constraint_name = %v order by ordinal_position", schema, name,
+                pkh.constraint_name);
             if (!qh.constraint_name)
                 return new FreetdsPrimaryKey();
 
@@ -1777,16 +1830,17 @@ where
                     row.index_name = row.index_name.lwr();
 
                     if (!ih.(row.index_name)) {
-                        ih.(row.index_name) = (
+                        ih{row.index_name} = <auto>{
                             "unique": row.is_unique,
                             "primary": row.is_primary_key,
-                        );
+                        };
                     }
                     # send "blank" column for function index
-                    if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
+                    if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name)) {
                         ih.(row.index_name).columns{row.column_name} = {};
-                    else
+                    } else {
                         ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
+                    }
                 }
 
                 foreach hash<auto> i in (ih.pairIterator()) {
@@ -1798,7 +1852,8 @@ where
                         continue;
                     }
                     # check unique indexes to make sure they are not matched with a unique constraint
-                    if (i.value.unique && constraints.hasKey(i.key) && (constraints{i.key} instanceof AbstractUniqueConstraint)) {
+                    if (i.value.unique && constraints.hasKey(i.key)
+                        && (constraints{i.key} instanceof AbstractUniqueConstraint)) {
                         FreetdsUniqueConstraint uk = cast<FreetdsUniqueConstraint>(constraints{i.key});
                         if (uk.matchKeys(i.value.columns)) {
                             # set filegroup in constraint
@@ -1807,7 +1862,8 @@ where
                             continue;
                         }
                     }
-                    rv.(i.key) = new FreetdsIndex(i.key, i.value.unique, i.value.columns, i.value.filegroup ? i.value.filegroup : NOTHING);
+                    rv.(i.key) = new FreetdsIndex(i.key, i.value.unique, i.value.columns,
+                        i.value.filegroup ? i.value.filegroup : NOTHING);
                 }
             }
 
@@ -1825,7 +1881,8 @@ where
         private ForeignConstraints getForeignConstraintsMssqlImpl() {
             hash rv;
             # get foreign referential constraints
-            *hash qh = ds.select("select tc.constraint_name, c1.column_name source_column, c2.column_name target_column
+            *hash qh = ds.select("select tc.constraint_name, c1.column_name source_column,
+                c2.column_name target_column
 from
     information_schema.table_constraints tc,
     information_schema.referential_constraints rc,
@@ -1834,8 +1891,10 @@ from
 where
 	tc.table_schema = %v and tc.table_name = %v and tc.constraint_type = 'FOREIGN KEY'
 	and tc.constraint_catalog = rc.constraint_catalog and tc.constraint_name = rc.constraint_name
-	and rc.constraint_catalog = c1.constraint_catalog and rc.constraint_schema = c1.constraint_schema and rc.constraint_name = c1.constraint_name
-	and rc.unique_constraint_catalog = c2.constraint_catalog and rc.unique_constraint_schema = c2.constraint_schema and rc.unique_constraint_name = c2.constraint_name
+	and rc.constraint_catalog = c1.constraint_catalog and rc.constraint_schema = c1.constraint_schema
+        and rc.constraint_name = c1.constraint_name
+	and rc.unique_constraint_catalog = c2.constraint_catalog and rc.unique_constraint_schema = c2.constraint_schema
+        and rc.unique_constraint_name = c2.constraint_name
 	and c2.ordinal_position = c1.ordinal_position
 order by
 	rc.constraint_name, c1.ordinal_position",
@@ -1853,7 +1912,8 @@ order by
                 foreach hash c in (ch.pairIterator()) {
                     # get a description of the target table's columns
                     Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, opts.table_cache);
-                    ForeignConstraintTarget fct(c.value.target.table, targ_columns.subset(c.value.target.columns.keys()));
+                    ForeignConstraintTarget fct(c.value.target.table,
+                        targ_columns.subset(c.value.target.columns.keys()));
                     rv.(c.key) = new FreetdsForeignConstraint(c.key, new Columns(c.value.columns), fct);
                 }
             }
@@ -1886,7 +1946,8 @@ from
 	information_schema.key_column_usage c1
 where
 	tc.table_schema = %v and tc.table_name = %v and tc.constraint_type = 'UNIQUE'
-	and tc.constraint_catalog = c1.constraint_catalog and tc.constraint_schema = c1.constraint_schema and tc.constraint_name = c1.constraint_name
+	and tc.constraint_catalog = c1.constraint_catalog and tc.constraint_schema = c1.constraint_schema and
+        tc.constraint_name = c1.constraint_name
 order by
 	tc.constraint_name, c1.ordinal_position", schema, name);
             delete rv;
@@ -1939,8 +2000,10 @@ order by
 
         private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
             if (opt.precision)
-                return new FreetdsNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale);
-            return new FreetdsColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
+                return new FreetdsNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable,
+                    opt.default_value, opt.comment, 0, opt.scale);
+            return new FreetdsColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value,
+                opt.comment, 0);
         }
 
         private AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash ch, *hash opt) {
@@ -1951,7 +2014,8 @@ order by
             return new FreetdsIndex(iname, enabled, ch, opt.index_filegroup);
         }
 
-        private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash opt) {
+        private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch,
+                *hash opt) {
             ForeignConstraintTarget fct(table, new Columns(tch));
             return new FreetdsForeignConstraint(cname, new Columns(ch), fct);
         }
@@ -1995,7 +2059,9 @@ order by
             return FreetdsTypeMap;
         }
 
-        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument
+        /** returns NOTHING if the type cannot be converted to an SQL string
+        */
         private *string getSqlValueImpl(auto v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
@@ -2012,7 +2078,7 @@ order by
                 case NT_BOOLEAN: return v ? "true" : "false";
 
                 case NT_DATE: return sprintf("cast('%s' as datetimeoffset(6))",
-                    v.format("YYYY-MM-DD HH:mm:SS.us Z"));
+                    TimeZone::get().date(v).format("YYYY-MM-DD HH:mm:SS.us"));
             }
         }
 
@@ -2042,7 +2108,7 @@ order by
             return True;
         }
 
-        #! returns @ref True "True" if the database automatically creates a unique constraint when a unique index is created (ex: mysql)
+        #! returns @ref True "True" if the database automatically creates a unique constraint with a unique index
         private bool uniqueIndexCreatesConstraintImpl() {
             return True;
         }
@@ -2052,10 +2118,11 @@ order by
             return False;
         }
 
-        #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
-            if (!qh.limit)
+        #! processes a string for use in SQL select statements with "limit" but no "orderby" or "offset"
+        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list<auto>> args, *hash<auto> qh) {
+            if (!qh.limit) {
                 return;
+            }
 
             # this rule is broken here with reason:
             # In a SELECT statement, always use an ORDER BY clause with the TOP clause.
@@ -2065,8 +2132,22 @@ order by
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
-            throw "UNIMPLEMENTED", "offset not yet implemented";
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list<auto>> args,
+                *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {
+            if (is_sybase) {
+                # NOTE Sybase ASE does not support this, but Sybase SQL Anywhere does
+                throw "UNIMPLEMENTED", "offset not yet implemented";
+            }
+
+            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
+
+            sql += " offset %v rows";
+            args += qh.offset ?? 0;
+
+            if (qh.limit) {
+                sql += " fetch next %v rows only";
+                args += qh.limit;
+            }
         }
 
         #! tries to execute a command so that if an error occurs the current transaction status is not lost
@@ -2090,14 +2171,17 @@ order by
                 switch (v.typeCode()) {
                     case NT_STRING: rh.key = v; break;
                     case NT_HASH: rh = v; break;
-                    default: throw "RETURNING-ERROR", sprintf("got type %y in \"returning\" option; expected \"string\" or \"hash\"", v.type());
+                    default: throw "RETURNING-ERROR", sprintf("got type %y in \"returning\" option; "
+                        "expected \"string\" or \"hash\"", v.type());
                 }
                 if (!rh.key.val() || rh.key.typeCode() != NT_STRING)
-                    throw "RETURNING-ERROR", sprintf("got %y for \"returning\" option key value instead of name of output column", rh.key.type());
+                    throw "RETURNING-ERROR", sprintf("got %y for \"returning\" option key value instead of name of "
+                        "output column", rh.key.type());
 
                 *FreetdsColumn c = columns{rh.key};
                 if (!c)
-                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" option (valid columns: %y)", name, rh.key, columns.keys());
+                    throw "COLUMN-ERROR", sprintf("%s.%s is not a valid column for the \"returning\" option (valid "
+                        "columns: %y)", name, rh.key, columns.keys());
                 l += rh.key;
                 args += rh.type ?* c.qore_type ?* Type::String;
             }

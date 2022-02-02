@@ -130,12 +130,34 @@ int sub f10(softint i) {
     return 1;
 }
 
+sub issue_4419_t0(auto x) {
+    throw "X";
+}
+
+sub issue_4419_t0(Mutex x) {
+}
+
+sub issue_4419_t1(hash<auto> x) {
+    throw "X";
+}
+
+sub issue_4419_t1(hash<string, Mutex> x) {
+}
+
+sub issue_4419_t2(list<auto> x) {
+    throw "X";
+}
+
+sub issue_4419_t2(list<Mutex> x) {
+}
+
 public class OverloadTest inherits QUnit::Test {
     public {
         const Api = "hash sub p() { return {}; }*hash sub p(string a) {return {};}any sub p(string a, string b) { return 1; }";
     }
 
     constructor() : Test("Overload test", "1.0") {
+        addTestCase("issue 4419", \issue4419());
         addTestCase("softlist overload test", \softlistOverloadTest());
         addTestCase("issue 3861", \issue3861());
         addTestCase("issue 3441", \issue3441());
@@ -146,6 +168,24 @@ public class OverloadTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue4419() {
+        Mutex m();
+        {
+            auto x = m;
+            assertNothing(issue_4419_t0(x));
+        }
+        {
+            hash<auto> x = {
+                "a": m,
+            };
+            assertNothing(issue_4419_t1(x));
+        }
+        {
+            list<auto> x = (m,);
+            assertNothing(issue_4419_t2(x));
+        }
     }
 
     softlistOverloadTest() {

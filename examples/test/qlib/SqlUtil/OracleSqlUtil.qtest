@@ -494,13 +494,11 @@ class OracleTest inherits SqlTestBase {
         );
 
         string sql;
-        on_exit {
-            if (m_options.verbose) {
-                printf("custom op sql: %s\n", sql);
-            }
+        on_error {
+            printf("custom op sql: %s\n", sql);
         }
-        hash res = table.selectRow(sh, \sql);
 
+        hash<auto> res = table.selectRow(sh, \sql);
         assertEq("20160111", res.date_to_char, "Date format test from to_char");
     }
 
