@@ -77,6 +77,8 @@ crypto_map_t crypto_map = {
     {"aes256", {32, EVP_aes_256_gcm(), 0, true}},
 };
 
+// no need for the digest map with openssl 3+
+#ifndef HAVE_EVP_MAC_CTX_NEW
 digest_map_t digest_map = {
 #if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
     {"md2", EVP_md2()},
@@ -102,6 +104,7 @@ digest_map_t digest_map = {
 #endif
     {"ripemd160", EVP_ripemd160()}
 };
+#endif
 
 QoreHashNode* CryptoEntry::getInfo() const {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), nullptr);
@@ -298,13 +301,101 @@ Transform* EncryptionTransforms::getCryptoTransform(const char* cipher, bool do_
     return *xsink ? nullptr : rv.release();
 }
 
+#ifdef HAVE_EVP_MAC_CTX_NEW
+#include <openssl/provider.h>
+#include <openssl/kdf.h>
+#include <openssl/encoder.h>
+#include <openssl/decoder.h>
+#include <openssl/safestack.h>
+
+/* Checks to see if algorithms are fetchable */
+#define IS_FETCHABLE(type, TYPE)                                \
+    static int is_ ## type ## _fetchable(const TYPE *alg)       \
+    {                                                           \
+        TYPE *impl;                                             \
+        const char *name = TYPE ## _get0_name(alg);             \
+                                                                \
+        ERR_set_mark();                                         \
+        impl = TYPE ## _fetch(nullptr, name, nullptr);           \
+        ERR_pop_to_mark();                                      \
+        if (impl == NULL)                                       \
+            return 0;                                           \
+        TYPE ## _free(impl);                                    \
+        return 1;                                               \
+    }
+IS_FETCHABLE(cipher, EVP_CIPHER)
+IS_FETCHABLE(digest, EVP_MD)
+IS_FETCHABLE(mac, EVP_MAC)
+IS_FETCHABLE(kdf, EVP_KDF)
+IS_FETCHABLE(rand, EVP_RAND)
+IS_FETCHABLE(keymgmt, EVP_KEYMGMT)
+IS_FETCHABLE(signature, EVP_SIGNATURE)
+IS_FETCHABLE(kem, EVP_KEM)
+IS_FETCHABLE(asym_cipher, EVP_ASYM_CIPHER)
+IS_FETCHABLE(keyexch, EVP_KEYEXCH)
+IS_FETCHABLE(decoder, OSSL_DECODER)
+IS_FETCHABLE(encoder, OSSL_ENCODER)
+
+DEFINE_STACK_OF(EVP_MD)
+
+static int md_cmp(const EVP_MD* const* a, const EVP_MD* const* b) {
+    return strcmp(OSSL_PROVIDER_get0_name(EVP_MD_get0_provider(*a)),
+                  OSSL_PROVIDER_get0_name(EVP_MD_get0_provider(*b)));
+}
+
+static void collect_digests(EVP_MD* digest, void* stack) {
+    STACK_OF(EVP_MD)* digest_stack = (STACK_OF(EVP_MD)*)stack;
+    if (is_digest_fetchable(digest)
+            && sk_EVP_MD_push(digest_stack, digest) > 0) {
+        EVP_MD_up_ref(digest);
+    }
+}
+
+static int name_cmp(const char* const* a, const char* const* b) {
+    return strcasecmp(*a, *b);
+}
+
+static void collect_names(const char* name, void* stack) {
+    STACK_OF(OPENSSL_CSTRING)* names = (STACK_OF(OPENSSL_CSTRING)*)stack;
+    sk_OPENSSL_CSTRING_push(names, name);
+}
+#endif
+
 QoreHashNode* init_digest_map_hash() {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), nullptr);
     qore_hash_private* priv = qore_hash_private::get(**rv);
 
+#ifdef HAVE_EVP_MAC_CTX_NEW
+    // get all digests
+    STACK_OF(EVP_MD)* digests = sk_EVP_MD_new(md_cmp);
+    if (digests) {
+        EVP_MD_do_all_provided(nullptr, collect_digests, digests);
+        sk_EVP_MD_sort(digests);
+
+        for (int i = 0; i < sk_EVP_MD_num(digests); ++i) {
+            const EVP_MD* m = sk_EVP_MD_value(digests, i);
+            STACK_OF(OPENSSL_CSTRING)* names = sk_OPENSSL_CSTRING_new(name_cmp);
+            if (names && EVP_MD_names_do_all(m, collect_names, names)) {
+                sk_OPENSSL_CSTRING_sort(names);
+                // add only the last name in the list
+                int len = sk_OPENSSL_CSTRING_num(names);
+                if (len) {
+                    const char* name = sk_OPENSSL_CSTRING_value(names, len - 1);
+                    assert(name);
+                    assert(!priv->existsKey(name));
+                    QoreString str(name);
+                    str.tolwr();
+                    priv->setKeyValueIntern(str.c_str(), true);
+                }
+            }
+        }
+        sk_EVP_MD_pop_free(digests, EVP_MD_free);
+    }
+#else
     for (auto& i : digest_map) {
         priv->setKeyValueIntern(i.first.c_str(), true);
     }
+#endif
 
     return rv.release();
 }

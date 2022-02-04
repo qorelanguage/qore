@@ -38,7 +38,9 @@
 
 class EncryptionTransforms {
 public:
-    DLLLOCAL static Transform* getCryptoTransform(const char* cipher, bool do_crypt, const char* key, unsigned key_len, const char* iv, unsigned iv_len, const char* mac, unsigned mac_len, unsigned tag_length, const ReferenceNode* mac_ref, const char* aad, unsigned aad_len, ExceptionSink* xsink);
+    DLLLOCAL static Transform* getCryptoTransform(const char* cipher, bool do_crypt, const char* key, unsigned key_len,
+            const char* iv, unsigned iv_len, const char* mac, unsigned mac_len, unsigned tag_length,
+            const ReferenceNode* mac_ref, const char* aad, unsigned aad_len, ExceptionSink* xsink);
 };
 
 struct CryptoEntry {
@@ -58,9 +60,12 @@ struct CryptoEntry {
 typedef std::map<std::string, CryptoEntry, ltstrcase> crypto_map_t;
 DLLLOCAL extern crypto_map_t crypto_map;
 
+// no need for the digest map with openssl 3+
+#ifndef HAVE_EVP_MAC_CTX_NEW
 // maps from digest strings to algorithms
 typedef std::map<std::string, const EVP_MD*, ltstrcase> digest_map_t;
 DLLLOCAL extern digest_map_t digest_map;
+#endif
 
 // init hash for encryption transformation constant
 DLLLOCAL QoreHashNode* init_digest_map_hash();

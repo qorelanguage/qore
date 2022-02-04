@@ -75,9 +75,9 @@ protected:
     }
 
     DLLLOCAL void setInput(const QoreValue pt) {
-        if (pt.getType() == NT_STRING)
+        if (pt.getType() == NT_STRING) {
             setInput(*pt.get<const QoreStringNode>());
-        else {
+        } else {
             assert(pt.getType() == NT_BINARY);
             setInput(*pt.get<const BinaryNode>());
         }
@@ -207,7 +207,7 @@ public:
 class QoreHmacHelper {
 public:
     DLLLOCAL QoreHmacHelper() {
-#ifdef HAVE_OPENSSL_INIT_CRYPTO
+#if defined(HAVE_OPENSSL_INIT_CRYPTO)
         ctx = HMAC_CTX_new();
 #else
         HMAC_CTX_init(&ctx);
@@ -240,10 +240,12 @@ public:
 
 private:
 #ifdef HAVE_OPENSSL_INIT_CRYPTO
-    HMAC_CTX* ctx;
+    typedef HMAC_CTX* q_hmac_t;
 #else
-    HMAC_CTX ctx;
+    typedef HMAC_CTX q_hmac_t;
 #endif
+
+    q_hmac_t ctx;
 };
 
 class HMACHelper : public BaseHelper {
