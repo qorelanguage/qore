@@ -2,12 +2,19 @@
 
     @tableofcontents
 
-    @section qore_1_2_1 Qore 1.2.1
+    @section qore_1_3 Qore 1.3
 
     @par Release Summary
     Bugfix release; see below for more information
 
-    @subsection qore_1_2_1_bug_fixes Bug Fixes in Qore
+    @subsection qore_1_3_0_new_features New Features in Qore
+    - <a href="../../modules/FileLocationHandler/html/index.html">FileLocationHandler</a> module
+      - updated for read/write operations and added streaming APIs
+        (<a href="https://github.com/qorelanguage/qore/issues/4424">issue 4424</a>)
+    - added an optional \a encoding parameter to the @ref Qore::FtpClient::getAsString() "FtpClient::getAsString()"
+      API
+
+    @subsection qore_1_3_bug_fixes Bug Fixes in Qore
     - fixed return type for <tt>Type::isAssignableFrom(Type)</tt> in the
       <a href="../../modules/reflection/html/index.html">reflection</a> module
       (<a href="https://github.com/qorelanguage/qore/issues/4423">issue 4423</a>)

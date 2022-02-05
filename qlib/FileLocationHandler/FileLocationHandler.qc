@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FileLocationHandler.qc module for returning file data from a URL-like location string
 
-/*  FileLocationHandler Copyright 2022 Qore Technologies, s.r.o.
+/*  FileLocationHandler Copyright 2021 - 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,26 +22,189 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-# strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
+#! File handler option info
+public hashdecl FileHandlerOptionInfo {
+    #! The option value type: \c "string", \c "bool", or \c "int"
+    string type;
+
+    #! Required flag
+    bool required = False;
+
+    #! The option description
+    string desc;
+
+    #! Default value, if any
+    auto default_value;
+}
+
+#! The abstract file location handler class
+public class AbstractFileLocationHandler {
+    #! Retrieves a text file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme or options
+        @param opts read options
+
+        @return the string of the file's contents, if it can be retrieved
+    */
+    string getTextFile(string scheme, string location, *hash<auto> opts) {
+        return getTextFileImpl(scheme, location, opts);
+    }
+
+    #! Retrieves a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return the binary data of the file's contents, if it can be retrieved
+    */
+    binary getBinaryFile(string scheme, string location, *hash<auto> opts) {
+        return getBinaryFileImpl(scheme, location, opts);
+    }
+
+    #! Returns a string stream for the file's data at the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return a stream reader for the file's contents, if it can be retrieved
+    */
+    StreamReader getStreamReader(string scheme, string location, *hash<auto> opts) {
+        return getStreamReaderImpl(scheme, location, opts);
+    }
+
+    #! Retrieves a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an input stream of the file's contents, if it can be retrieved
+    */
+    InputStream getBinaryStream(string scheme, string location, *hash<auto> opts) {
+        return getBinaryStreamImpl(scheme, location, opts);
+    }
+
+    #! Writes data to a file at the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param contents the file's contents
+        @param opts write options
+    */
+    writeFile(string scheme, string location, data contents, *hash<auto> opts) {
+        return writeFileImpl(scheme, location, contents, opts);
+    }
+
+    #! Returns an output stream for writing data to the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts write options
+
+        @return an output stream for writing to the file
+
+        @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
+        deadlock
+    */
+    OutputStream getOutputStream(string scheme, string location, *hash<auto> opts) {
+        return getOutputStreamImpl(scheme, location, opts);
+    }
+
+    #! Gets supported read options
+    /** @return supported read options
+    */
+    hash<string, hash<FileHandlerOptionInfo>> getReadOptions() {
+        return getReadOptionsImpl();
+    }
+
+    #! Gets supported write options
+    /** @return supported write options
+    */
+    hash<string, hash<FileHandlerOptionInfo>> getWriteOptions() {
+        return getWriteOptionsImpl();
+    }
+
+    #! Returns a string tagged with the given encoding, if any
+    private static string forceEncoding(string str, *string encoding) {
+        if (encoding && encoding.lwr() != str.encoding().lwr()) {
+            return force_encoding(str, encoding);
+        }
+        return str;
+    }
+
+    #! Retrieves a text file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return the string of the file's contents, if it can be retrieved
+    */
+    private abstract string getTextFileImpl(string scheme, string location, *hash<auto> opts);
+
+    #! Retrieves a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return the binary data of the file's contents, if it can be retrieved
+    */
+    private abstract binary getBinaryFileImpl(string scheme, string location, *hash<auto> opts);
+
+    #! Returns a string stream for the file's data at the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return a stream reader for the file's contents, if it can be retrieved
+    */
+    private abstract StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts);
+
+    #! Retrieves a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an input stream of the file's contents, if it can be retrieved
+    */
+    private abstract InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts);
+
+    #! Writes data to a file at the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param contents the file's contents
+        @param opts write options
+    */
+    private abstract writeFileImpl(string scheme, string location, data contents, *hash<auto> opts);
+
+    #! Returns an output stream for writing data to the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts write options
+
+        @return an output stream for writing to the file
+
+        @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
+        deadlock
+    */
+    private abstract OutputStream getOutputStreamImpl(string scheme, string location, *hash<auto> opts);
+
+    #! Gets supported read options
+    /** @return supported read options
+    */
+    private abstract hash<string, hash<FileHandlerOptionInfo>> getReadOptionsImpl();
+
+    #! Gets supported write options
+    /** @return supported write options
+    */
+    private abstract hash<string, hash<FileHandlerOptionInfo>> getWriteOptionsImpl();
+}
+
 #! The main class
 public class FileLocationHandler {
     private {
         #! The location handler cache; scheme -> handler;
-        /** Handlers have the signature: @code{.py} data sub (string scheme, bool text, string location) {} @endcode
+        /**
         */
-        static hash<string, code> cache;
+        static hash<string, AbstractFileLocationHandler> cache;
 
         #! The location handler lock to ensure atomic operations
         static Mutex handler_lock();
@@ -54,7 +217,7 @@ public class FileLocationHandler {
 
         @throw LOCATION-HANDLER-ERROR the given location handler scheme has already been registered
     */
-    static registerHandler(string scheme, code handler) {
+    static registerHandler(string scheme, AbstractFileLocationHandler handler) {
         handler_lock.lock();
         on_exit handler_lock.unlock();
 
@@ -90,7 +253,8 @@ public class FileLocationHandler {
         @throw LOCATION-ERROR the location string cannotbe parsed; unknown location scheme; invalid location option
     */
     static string getTextFileFromLocation(string location) {
-        return FileLocationHandler::getFileFromLocation(True, location);
+        hash<LocationInfo> info = FileLocationHandler::getInfo(location, True);
+        return info.handler.getTextFile(info.scheme, info.location, info.opts);
     }
 
     #! Returns binary data for the given file location
@@ -101,7 +265,8 @@ public class FileLocationHandler {
         @throw LOCATION-ERROR the location string cannotbe parsed; unknown location scheme; invalid location option
     */
     static binary getBinaryFileFromLocation(string location) {
-        return FileLocationHandler::getFileFromLocation(False, location);
+        hash<LocationInfo> info = FileLocationHandler::getInfo(location, True);
+        return info.handler.getBinaryFile(info.scheme, info.location, info.opts);
     }
 
     #! Returns the file data from the given location
@@ -111,50 +276,118 @@ public class FileLocationHandler {
         @throw LOCATION-ERROR invalid location or empty location string
     */
     static data getFileFromLocation(bool text, string location) {
+        return text
+            ? FileLocationHandler::getTextFileFromLocation(location)
+            : FileLocationHandler::getBinaryFileFromLocation(location);
+    }
+
+    #! Returns a string stream for the file's data at the given location
+    /** @param location the location of the file data
+
+        @return a stream reader for the file's data
+    */
+    static StreamReader getStreamReaderFromLocation(string location) {
+        hash<LocationInfo> info = FileLocationHandler::getInfo(location, True);
+        return info.handler.getStreamReader(info.scheme, info.location, info.opts);
+    }
+
+    #! Returns an input stream for file data at the given location
+    /** @param location the location of the file data
+
+        @return an input stream for the file's data
+    */
+    static InputStream getBinaryStreamFromLocation(string location) {
+        hash<LocationInfo> info = FileLocationHandler::getInfo(location, True);
+        return info.handler.getBinaryStream(info.scheme, info.location, info.opts);
+    }
+
+    #! Writes data to a file at the given location
+    /** @param location the location of the file data
+        @param contents the file contents to write to the location
+    */
+    static writeFileToLocation(string location, data contents) {
+        hash<LocationInfo> info = FileLocationHandler::getInfo(location, False);
+        info.handler.writeFile(info.scheme, info.location, contents, info.opts);
+    }
+
+    #! Returns an output stream for writing data to the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts write options
+
+        @return an output stream for writing to the file
+
+        @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
+        deadlock
+    */
+    static OutputStream getOutputStreamForLocation(string location) {
+        hash<LocationInfo> info = FileLocationHandler::getInfo(location, False);
+        return info.handler.getOutputStream(info.scheme, info.location, info.opts);
+    }
+
+    #! Returns info about the requested location
+    /** @param location the location string
+        @param read if the location is meant for reading
+
+        @throw LOCATION-ERROR unsupported or invalid location
+    */
+    static hash<LocationInfo> getInfo(string location, bool read) {
         if (!location.val()) {
             throw "LOCATION-ERROR", "invalid empty location string";
         }
 
         *string scheme = (location =~ x/^(\w+):\/\//)[0];
-        if (!scheme) {
-            return cache.file("file", text, location);
-        }
-        *code handler = cache{scheme};
+        hash<LocationInfo> info = <LocationInfo>{
+            "scheme": scheme ?? "file",
+        };
+        *AbstractFileLocationHandler handler = cache{info.scheme};
         if (!handler) {
-            throw "LOCATION-ERROR", sprintf("unknown location scheme %y in location %y; known location schemes: %y", scheme,
-                location, keys cache);
+            throw "LOCATION-ERROR", sprintf("unknown location scheme %y in location %y; known location schemes: %y",
+                info.scheme, location, keys cache);
+        }
+        info.handler = handler;
+
+        *hash<string, hash<FileHandlerOptionInfo>> handler_opts = read
+            ? handler.getReadOptions()
+            : handler.getWriteOptions();
+        info.opts = FileLocationHandler::getOptions(\location);
+        # check for unknown options
+        if (info.opts && (*hash<auto> erropts = info.opts - (keys handler_opts))) {
+            throw "LOCATION-ERROR", sprintf("file location %y has unsupported %s option(s): %y; supported "
+                "options: %y", location, read ? "read" : "write", keys erropts, keys handler_opts);
+        }
+
+        # check for required and default option values; fix types
+        foreach hash<auto> i in (handler_opts.pairIterator()) {
+            if (exists info.opts{i.key}) {
+                switch (i.value.type) {
+                    case "int":
+                        info.opts{i.key} = info.opts{i.key}.toInt();
+                        break;
+                    case "bool":
+                        info.opts{i.key} = parse_boolean(info.opts{i.key});
+                        break;
+                }
+            } else {
+                if (exists i.value.default_value) {
+                    info.opts{i.key} = i.value.default_value;
+                } else if (i.value.required) {
+                    throw "LOCATION-ERROR", sprintf("file location %y is missing required option %y", location,
+                        i.key);
+                }
+            }
         }
 
         # remove the scheme from the location
-        splice location, 0, scheme.length() + 3;
-
-        # run the location handler
-        return handler(scheme, text, location);
-    }
-
-    #! Helper method to eturn data in the expected format
-    /** @param d the file data
-        @param text a flag if the data should be returned as a string or not
-        @param encoding any encoding for string data
-
-        @return the data in the required format with the expected encoding (if applicable)
-    */
-    private static data getTextOrBin(data d, bool text, *string encoding) {
-        if (text) {
-            if (d.typeCode() == NT_BINARY) {
-                return d.toString(encoding);
-            }
-            if (encoding && d.encoding() != encoding) {
-                d = convert_encoding(d, encoding);
-            }
-            return d;
+        if (exists scheme) {
+            splice location, 0, info.scheme.length() + 3;
         }
-        return d.typeCode() == NT_BINARY
-            ? d
-            : d.toBinary();
+        info.location = location;
+
+        return info;
     }
 
-    #! Returns a hash option options from the location string
+    #! Returns a hash of options from the location string
     private static *hash<auto> getOptions(reference<string> location) {
         *string opt_str = (location =~ x/((?:{).*(?:}))$/)[0];
         if (!opt_str) {
@@ -173,13 +406,14 @@ public class FileLocationHandler {
         }
         return v;
     }
+}
+}
 
-    #! Returns a string tagged with the given encoding, if any
-    private static string forceEncoding(string str, *string encoding) {
-        if (encoding && encoding.lwr() != str.encoding().lwr()) {
-            return force_encoding(str, encoding);
-        }
-        return str;
-    }
+namespace Priv {
+hashdecl LocationInfo {
+    string scheme;
+    string location;
+    *hash<auto> opts;
+    AbstractFileLocationHandler handler;
 }
 }

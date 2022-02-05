@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FileLocationHandlerSftp.qc module for returning file data from a URL-like location string
 
-/*  FileLocationHandlerSftp Copyright 2022 Qore Technologies, s.r.o.
+/*  FileLocationHandlerSftp Copyright 2021 - 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,23 +22,10 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-# strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires Util
-
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
 #! The class for handling file locations
-class FileLocationHandlerSftp inherits FileLocationHandler {
+class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
     public {
         #! Valid SFTP location options
         /** supported options:
@@ -46,31 +33,171 @@ class FileLocationHandlerSftp inherits FileLocationHandler {
             - \c ssh2_private_key: the path to the private key file
             - \c ssh2_public_key: the path to the public key file
         */
-        const SftpClientLocationOpts = (
-            "encoding",
-            "ssh2_private_key",
-            "ssh2_public_key",
-        );
+        const SftpClientLocationOpts = {
+            "encoding": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "file encoding (read / write)",
+            },
+            "ssh2_private_key": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "the private key file",
+            },
+            "ssh2_public_key": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "the public key file",
+            },
+        };
     }
 
-    #! Returns the file data from the given file location
-    /** @param scheme the original scheme string in the location
-        @param text a flag if the data should be returned as text or not
-        @param location the location string
+    #! Retrieves a text file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
 
-        @throw LOCATION-ERROR invalid file location options
+        @return the string of the file's contents, if it can be retrieved
+
+        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
     */
-    static data handler(string scheme, bool text, string location) {
-        *hash<auto> opts = FileLocationHandler::getOptions(\location);
-        # process file options
-        if (opts && (*hash<auto> erropts = opts - SftpClientLocationOpts)) {
-            throw "LOCATION-ERROR", sprintf("file location %y has unsupported option(s): %y; supported "
-                "options: %y", location, keys erropts, SftpClientLocationOpts);
+    private string getTextFileImpl(string scheme, string location, *hash<auto> opts) {
+        string file;
+        object sftp = getSftpClient(scheme, location, opts, \file);
+        string rv = sftp.getTextFile(file);
+        if (opts.encoding && opts.encoding.lwr() != rv.encoding().lwr()) {
+            return force_encoding(rv, opts.encoding);
         }
+        return rv;
+    }
 
+    #! Retrieves a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return the binary data of the file's contents, if it can be retrieved
+
+        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+    */
+    private binary getBinaryFileImpl(string scheme, string location, *hash<auto> opts) {
+        string file;
+        object sftp = getSftpClient(scheme, location, opts, \file);
+        return sftp.getFile(file);
+    }
+
+    #! Returns a stream reader for the file's data at the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return a stream reader for the file's contents, if it can be retrieved
+    */
+    private StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
+        string file;
+        object sftp = getSftpClient(scheme, location, opts, \file);
+
+        StreamPipe pipe(False);
+
+        # run the I/O operation in the background
+        background sub () {
+            try {
+                OutputStream os = pipe.getOutputStream();
+                sftp.get(file, os);
+                os.close();
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }();
+
+        return new StreamReader(pipe.getInputStream(), opts.encoding);
+    }
+
+    #! Retrieves a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an input stream of the file's contents, if it can be retrieved
+    */
+    private InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
+        string file;
+        object sftp = getSftpClient(scheme, location, opts, \file);
+
+        StreamPipe pipe(False);
+
+        # run the I/O operation in the background
+        background sub () {
+            try {
+                OutputStream os = pipe.getOutputStream();
+                sftp.get(file, os);
+                os.close();
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }();
+
+        return pipe.getInputStream();
+    }
+
+    #! Writes data to a file at the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param contents the file's contents
+        @param opts write options
+    */
+    private writeFileImpl(string scheme, string location, data contents, *hash<auto> opts) {
+        # convert encoding if necessary
+        if (opts.encoding && contents.typeCode() == NT_STRING && opts.encoding != contents.encoding()) {
+            contents = convert_encoding(contents, opts.encoding);
+        }
+        string file;
+        object sftp = getSftpClient(scheme, location, opts, \file);
+        sftp.putFile(contents, file);
+    }
+
+    #! Returns an output stream for writing data to the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts write options
+
+        @return an output stream for writing to the file
+
+        @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
+        deadlock
+    */
+    private OutputStream getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
+        string file;
+        object sftp = getSftpClient(scheme, location, opts, \file);
+
+        StreamPipe pipe(False);
+
+        # run the I/O operation in the background
+        background sub () {
+            try {
+                InputStream is = pipe.getInputStream();
+                sftp.put(is, file);
+                is.close();
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }();
+
+        return pipe.getOutputStream();
+    }
+
+    #! Gets supported read options
+    /** @return supported read options
+    */
+    private hash<string, hash<FileHandlerOptionInfo>> getReadOptionsImpl() {
+        return SftpClientLocationOpts;
+    }
+
+    #! Gets supported write options
+    /** @return supported write options
+    */
+    private hash<string, hash<FileHandlerOptionInfo>> getWriteOptionsImpl() {
+        return SftpClientLocationOpts;
+    }
+
+    #! Returns an SFTP client for the given location
+    private object getSftpClient(string scheme, string location, *hash<auto> opts, reference<string> file) {
         location = scheme + "://" + location;
 
-        string file;
         hash<UrlInfo> url_info = parse_url(location);
         if (url_info.path) {
             file = basename(url_info.path);
@@ -83,7 +210,7 @@ class FileLocationHandlerSftp inherits FileLocationHandler {
             load_module("ssh2");
         } catch (hash<ExceptionInfo> ex) {
             throw ex.err, sprintf("cannot retrieve %y with SFTP; the ssh2 module cannot be "
-                "loaded: %s", ex.desc), ex.arg;
+                "loaded: %s", location, ex.desc), ex.arg;
         }
         object sftp = create_object("SFTPClient", location);
         if (opts.ssh2_private_key) {
@@ -93,14 +220,7 @@ class FileLocationHandlerSftp inherits FileLocationHandler {
         if (dir) {
             sftp.chdir(dir);
         }
-        if (text) {
-            string rv = sftp.getTextFile(file);
-            if (opts.encoding && opts.encoding.lwr() != rv.encoding().lwr()) {
-                return force_encoding(rv, opts.encoding);
-            }
-            return rv;
-        }
-        return sftp.getFile(file);
+        return sftp;
     }
 }
 }

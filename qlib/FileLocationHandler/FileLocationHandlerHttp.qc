@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FileLocationHandlerHttp.qc module for returning file data from a URL-like location string
 
-/*  FileLocationHandlerHttp Copyright 2022 Qore Technologies, s.r.o.
+/*  FileLocationHandlerHttp Copyright 2021 - 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,63 +22,231 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-# strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires Util
-
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
 #! The class for handling file locations
-class FileLocationHandlerHttp inherits FileLocationHandler {
+class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
     public {
         #! Valid HTTP location options
         /** @see @ref Qore::HTTPClient::constructor() "HTTPClient::constructor()" for supported options
         */
-        const HttpClientLocationOpts = (
-            "connect_timeout",
-            "default_path",
-            "default_port",
-            "encoding",
-            "encoding_passthru",
-            "error_passthru",
-            "http_version",
-            "protocols",
-            "proxy",
-            "redirect_passthru",
-            "ssl_cert_path",
-            "ssl_key_path",
-            "ssl_key_password",
-            "ssl_verify_cert",
-            "timeout",
-        );
+        const HttpClientLocationOpts = {
+            "connect_timeout": <FileHandlerOptionInfo>{
+                "type": "int",
+                "desc": "connstion timeout in milliseconds",
+            },
+            "encoding": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "the string encoding for any strings returned or sent",
+            },
+            "encoding_passthru": <FileHandlerOptionInfo>{
+                "type": "bool",
+                "desc": "do not decode known content-encodings but rather pass the body through as-is",
+            },
+            "error_passthru": <FileHandlerOptionInfo>{
+                "type": "bool",
+                "desc": "HTTP status codes indicating errors will not cause an `HTTP-CLIENT-RECEIVE-ERROR` exception "
+                    "to be raised",
+            },
+            "http_version": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "Either `1.0` or `1.1` for the claimed HTTP protocol version compliancy in outgoing message "
+                    "headers",
+            },
+            "method": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "the HTTP method to use; if not given then `GET` is used for reads, and `POST` is used for "
+                    "writes",
+            },
+            "proxy": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "The proxy URL for connecting through a proxy",
+            },
+            "redirect_passthru": <FileHandlerOptionInfo>{
+                "type": "bool",
+                "desc": "redirect responses will be passed to the caller instead of folllowed",
+            },
+            "ssl_cert_path": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "a path to an X.509 client certificate file in PEM format; if this option is used, then the "
+                    "calling context must not be restricted with sandbox restriction `PO_NO_FILESYSTEM` which is "
+                    "checked at runtime",
+            },
+            "ssl_key_path": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "a path to a private key file in PEM format; if this option is used, then the "
+                    "calling context must not be restricted with sandbox restriction `PO_NO_FILESYSTEM` which is "
+                    "checked at runtime",
+            },
+            "ssl_key_password": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "the password to the private key given with `ssl_key_path`",
+            },
+            "ssl_verify_cert": <FileHandlerOptionInfo>{
+                "type": "bool",
+                "desc": "the server's certificate will only be accepted if it's verified",
+            },
+            "timeout": <FileHandlerOptionInfo>{
+                "type": "int",
+                "desc": "I/O timeout in milliseconds",
+            },
+        };
     }
 
-    #! Returns the file data from the given file location
-    /** @param scheme the original scheme string in the location
-        @param text a flag if the data should be returned as text or not
-        @param location the location string
+    #! Retrieves a text file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
 
-        @throw LOCATION-ERROR invalid file location options
+        @return the string of the file's contents, if it can be retrieved
+
+        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
     */
-    static data handler(string scheme, bool text, string location) {
-        *hash<auto> opts = FileLocationHandler::getOptions(\location);
-        # process file options
-        if (opts && (*hash<auto> erropts = opts - HttpClientLocationOpts)) {
-            throw "LOCATION-ERROR", sprintf("file location %y has unsupported option(s): %y; supported "
-                "options: %y", location, keys erropts, HttpClientLocationOpts);
-        }
+    private string getTextFileImpl(string scheme, string location, *hash<auto> opts) {
+        string path;
+        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
+        return hc.send(NOTHING, opts.method ? opts.method.upr() : "GET", path).body ?? "";
+    }
 
-        HTTPClient client({"url": scheme + "://" + location} + opts - "encoding");
-        return FileLocationHandler::getTextOrBin(client.get(""), text, opts.encoding);
+    #! Retrieves a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return the binary data of the file's contents, if it can be retrieved
+
+        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+    */
+    private binary getBinaryFileImpl(string scheme, string location, *hash<auto> opts) {
+        string path;
+        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
+        *string body = hc.send(NOTHING, opts.method ? opts.method.upr() : "GET", path).body;
+        return exists body ? body.toBinary() : binary();
+    }
+
+    #! Returns a stream reader for the file's data at the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return a stream reader for the file's contents, if it can be retrieved
+    */
+    private StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
+        string path;
+        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
+
+        StreamPipe pipe(False);
+
+        # run the I/O operation in the background
+        background sub () {
+            try {
+                OutputStream os = pipe.getOutputStream();
+                hc.send(os, NOTHING, opts.method ? opts.method.upr() : "GET", path);
+                os.close();
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }();
+
+        return new StreamReader(pipe.getInputStream(), opts.encoding);
+    }
+
+    #! Retrieves a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an input stream of the file's contents, if it can be retrieved
+    */
+    private InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
+        string path;
+        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
+
+        StreamPipe pipe(False);
+
+        # run the I/O operation in the background
+        background sub () {
+            try {
+                OutputStream os = pipe.getOutputStream();
+                hc.send(os, NOTHING, opts.method ? opts.method.upr() : "GET", path);
+                os.close();
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }();
+
+        return pipe.getInputStream();
+    }
+
+    #! Writes data to a file at the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param contents the file's contents
+        @param opts write options
+    */
+    private writeFileImpl(string scheme, string location, data contents, *hash<auto> opts) {
+        string path;
+        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
+        hc.send(contents, opts.method ? opts.method.upr() : "POST", path);
+    }
+
+    #! Returns an output stream for writing data to the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts write options
+
+        @return an output stream for writing to the file
+
+        @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
+        deadlock
+    */
+    private OutputStream getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
+        string path;
+        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
+
+        StreamPipe pipe(False);
+
+        # run the I/O operation in the background
+        background sub () {
+            try {
+                InputStream is = pipe.getInputStream();
+                hc.sendChunked(new BinaryOutputStream(), is, opts.method ? opts.method.upr() : "POST", NOTHING, path);
+                is.close();
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }();
+
+        return pipe.getOutputStream();
+    }
+
+    #! Gets supported read options
+    /** @return supported read options
+    */
+    private hash<string, hash<FileHandlerOptionInfo>> getReadOptionsImpl() {
+        return HttpClientLocationOpts;
+    }
+
+    #! Gets supported write options
+    /** @return supported write options
+    */
+    private hash<string, hash<FileHandlerOptionInfo>> getWriteOptionsImpl() {
+        return HttpClientLocationOpts;
+    }
+
+    #! Returns an HTTP client for the given location
+    private HTTPClient getHttpClient(string scheme, string location, *hash<auto> opts, reference<string> path) {
+        location = scheme + "://" + location;
+
+        hash<UrlInfo> url_info = parse_url(location);
+        if (url_info.path) {
+            path = url_info.path;
+        }
+        if (!exists path) {
+            throw "LOCATION-ERROR", sprintf("HTTP location %y missing URI path", location);
+        }
+        HTTPClient h({
+            "url": location,
+        } + opts);
+        h.connect();
+        return h;
     }
 }
 }

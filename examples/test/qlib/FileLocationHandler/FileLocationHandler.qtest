@@ -7,33 +7,213 @@
 %enable-all-warnings
 
 %requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/FileLocationHandler
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/WebUtil.qm
+
+%include  ../../qore/classes/FtpServer.qc
 
 %exec-class FileLocationHandlerTest
 
+class RealTestHttpServer inherits HttpServer {
+    private:internal {
+        int port;
+    }
+
+    constructor(*string cert_path, *string key_path, *hash<HttpListenerOptionInfo> listener_opts)
+            : HttpServer(RealTestHttpServer::getOptions()) {
+        if (!listener_opts) {
+            listener_opts = <HttpListenerOptionInfo>{};
+        }
+        if (cert_path) {
+            listener_opts += http_get_ssl_objects(cert_path, key_path);
+        }
+        # bind on a random port
+        listener_opts.service = 0;
+        port = addListener(listener_opts).port;
+    }
+
+    int getPort() {
+        return port;
+    }
+
+    hash<HttpServerOptionInfo> getOptions() {
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (FileLocationHandlerTest::verbose > 2) {
+            logger.addAppender(new TestAppender());
+        }
+        return <HttpServerOptionInfo>{
+            "logger": logger,
+            "debug": True,
+        };
+    }
+}
+
+class MyFileHandler inherits FileHandler {
+    constructor(string file_root, *string url_root, *hash<auto> opt) : FileHandler(file_root, url_root, opt) {
+    }
+
+    private *hash<HttpResponseInfo> tryServeRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s,
+            hash<auto> cx, hash<auto> hdr, *data body) {
+        if (hdr.method == "POST") {
+            string path = file_root + DirSep + cx.resource_path;
+            if (!body && hdr."transfer-encoding" == "chunked") {
+                FileOutputStream os(path);
+                s.readHTTPChunkedBodyToOutputStream(os);
+            } else {
+                File f();
+                f.open2(path, O_CREAT | O_TRUNC | O_WRONLY);
+                f.write(body);
+            }
+            return <HttpResponseInfo>{
+                "code": 200,
+                "body": "OK",
+            };
+        }
+        return FileHandler::tryServeRequest(listener, s, cx, hdr, body);
+    }
+}
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
+    }
+}
+
 public class FileLocationHandlerTest inherits QUnit::Test {
     public {
+        static int verbose = 0;
     }
 
     constructor() : Test("FileLocationHandlerTest", "1.0") {
-        addTestCase("FileLocationHandlerTest", \fileLocationHandlerTest());
+        if (m_options.verbose) {
+            verbose = m_options.verbose;
+        }
+        addTestCase("file tests", \fileTests());
+        addTestCase("ftp tests", \ftpTests());
+        addTestCase("http tests", \httpTests());
+        addTestCase("sftp tests", \sftpTests());
 
         # Return for compatibility with test harness that checks return value
         set_return_value(main());
     }
 
-    private fileLocationHandlerTest() {
+    private fileTests() {
+        hash<StatInfo> info = hstat(get_script_path());
+
         data d = FileLocationHandler::getTextFileFromLocation(get_script_path());
         assertEq(Type::String, d.type());
+        assertEq(info.size, d.size());
         d = FileLocationHandler::getTextFileFromLocation("file://" + get_script_path());
         assertEq(Type::String, d.type());
+        assertEq(info.size, d.size());
         d = FileLocationHandler::getBinaryFileFromLocation(get_script_path());
         assertEq(Type::Binary, d.type());
+        assertEq(info.size, d.size());
         d = FileLocationHandler::getBinaryFileFromLocation("file://" + get_script_path());
         assertEq(Type::Binary, d.type());
+        assertEq(info.size, d.size());
+
+        StreamReader sr = FileLocationHandler::getStreamReaderFromLocation(get_script_path());
+        d = sr.readString();
+        assertEq(info.size, d.size());
+        sr = FileLocationHandler::getStreamReaderFromLocation("file://" + get_script_path());
+        d = sr.readString();
+        assertEq(info.size, d.size());
+        InputStream stream = FileLocationHandler::getBinaryStreamFromLocation(get_script_path());
+        d = stream.read(info.size * 2);
+        assertEq(info.size, d.size());
+        stream = FileLocationHandler::getBinaryStreamFromLocation("file://" + get_script_path());
+        d = stream.read(info.size * 2);
+        assertEq(info.size, d.size());
+
+        TmpFile tmp("qore-test-");
+        FileLocationHandler::writeFileToLocation(tmp.path, d);
+        data d0 = FileLocationHandler::getBinaryFileFromLocation(tmp.path);
+        assertEq(d, d0);
+        unlink(tmp.path);
+        OutputStream os = FileLocationHandler::getOutputStreamForLocation(tmp.path);
+        os.write(d);
+        os.close();
+        d0 = FileLocationHandler::getBinaryFileFromLocation(tmp.path);
+        assertEq(d, d0);
 
         assertThrows("LOCATION-ERROR", \FileLocationHandler::getTextFileFromLocation(), "xxx://sdfdf");
         assertThrows("LOCATION-ERROR", \FileLocationHandler::getBinaryFileFromLocation(), "xxx://sdfdf");
+    }
+
+    private ftpTests() {
+        FtpServer serv(0, m_options.verbose, "127.0.0.1");
+        on_exit serv.shutdown();
+        serv.setFs();
+
+        int port = serv.getPort();
+        string file_name = get_random_string() + ".txt";
+        string url = "ftp://user:pass@127.0.0.1:" + port + "/" + file_name;
+
+        doTests(url);
+    }
+
+    private httpTests() {
+        TmpDir t();
+        RealTestHttpServer serv();
+        on_exit delete serv;
+
+        MyFileHandler fh(t.path);
+        serv.setDefaultHandler("file-handler", fh);
+
+        int port = serv.getPort();
+        string file_name = get_random_string() + ".txt";
+        string url = "http://127.0.0.1:" + port + "/" + file_name;
+
+        doTests(url);
+    }
+
+    private sftpTests() {
+        *string sftp_loc;
+        if (!(sftp_loc = ENV.QORE_SFTP_LOCATION)) {
+            testSkip("no QORE_SFTP_LOCATION");
+        }
+
+        doTests(sftp_loc);
+    }
+
+    private doTests(string url) {
+        on_error printf("ERROR URL: %y\n", url);
+
+        string random_content = get_random_string(512);
+
+        FileLocationHandler::writeFileToLocation(url, random_content);
+        data d0 = FileLocationHandler::getTextFileFromLocation(url);
+        assertEq(random_content, d0);
+        d0 = FileLocationHandler::getBinaryFileFromLocation(url);
+        assertEq(random_content.toBinary(), d0);
+
+        StreamReader sr = FileLocationHandler::getStreamReaderFromLocation(url);
+        d0 = sr.readString();
+        assertEq(random_content, d0);
+        InputStream stream = FileLocationHandler::getBinaryStreamFromLocation(url);
+        d0 = stream.read(d0.size() * 2);
+        assertEq(random_content.toBinary(), d0);
+
+        # write new file data
+        random_content = get_random_string(512);
+        OutputStream os = FileLocationHandler::getOutputStreamForLocation(url);
+        os.write(random_content.toBinary());
+        os.close();
+        d0 = FileLocationHandler::getTextFileFromLocation(url);
+        assertEq(random_content, d0);
     }
 }
