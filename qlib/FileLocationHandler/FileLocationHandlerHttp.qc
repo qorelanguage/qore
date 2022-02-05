@@ -195,18 +195,26 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
 
         @return an output stream for writing to the file
 
-        @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
-        deadlock
+        @note
+        - OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
+          deadlock
+        - The data written to the OutputStreamWrapper object is written in the background; to ensure that the data has
+          been written to the target, call OutputStreamWrapper::waitForIo()
     */
-    private OutputStream getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
+    private OutputStreamWrapper getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
         string path;
         HTTPClient hc = getHttpClient(scheme, location, opts, \path);
 
         StreamPipe pipe(False);
 
+        Counter io_counter(1);
+        OutputStreamWrapper rv(pipe.getOutputStream(), io_counter);
+
         # run the I/O operation in the background
         background sub () {
             try {
+                on_exit io_counter.dec();
+
                 InputStream is = pipe.getInputStream();
                 hc.sendChunked(new BinaryOutputStream(), is, opts.method ? opts.method.upr() : "POST", NOTHING, path);
                 is.close();
@@ -214,7 +222,7 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
             }
         }();
 
-        return pipe.getOutputStream();
+        return rv;
     }
 
     #! Gets supported read options

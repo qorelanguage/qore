@@ -210,9 +210,11 @@ public class FileLocationHandlerTest inherits QUnit::Test {
 
         # write new file data
         random_content = get_random_string(512);
-        OutputStream os = FileLocationHandler::getOutputStreamForLocation(url);
+        OutputStreamWrapper os = FileLocationHandler::getOutputStreamForLocation(url);
         os.write(random_content.toBinary());
         os.close();
+        # wait for file to be written in the background
+        os.waitForIo();
         d0 = FileLocationHandler::getTextFileFromLocation(url);
         assertEq(random_content, d0);
     }

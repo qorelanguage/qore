@@ -151,8 +151,9 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
         @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
         deadlock
     */
-    private OutputStream getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
-        return new FileOutputStream(location, opts.append, opts.file_permissions, opts.encoding);
+    private OutputStreamWrapper getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
+        return new OutputStreamWrapper(new FileOutputStream(location, opts.append, opts.file_permissions,
+            opts.encoding), new Counter());
     }
 
     #! Gets supported read options

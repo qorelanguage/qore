@@ -73,6 +73,7 @@ module FileLocationHandler {
     - @ref FileLocationHandler::FileLocationHandler::registerHandler() "FileLocationHandler::registerHandler()"
 
     This module provides the following classes:
+    - @ref FileLocationHandler::AbstractFileLocationHandler "AbstractFileLocationHandler": the abstract API class
     - @ref FileLocationHandler::FileLocationHandler "FileLocationHandler": the main API class
     - @ref FileLocationHandler::FileLocationHandlerFile "FileLocationHandlerFile": class handling \c "file://"
       locations (the default if no scheme is present in the location string)
@@ -82,6 +83,8 @@ module FileLocationHandler {
       \c "https://" locations
     - @ref FileLocationHandler::FileLocationHandlerFtp "FileLocationHandlerSftp": class handling \c "sftp://"
       locations
+    - @ref FileLocationHandler::OutputStreamWrapper "OutputStreamWrapper": output stream wrapper class for handling
+      background I/O operations
 
     @section filelocationhandler_relnotes Release Notes
 

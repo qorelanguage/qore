@@ -69,6 +69,8 @@ public class AbstractFileLocationHandler {
         @param opts read options
 
         @return a stream reader for the file's contents, if it can be retrieved
+
+        @note The data is read in the background and added to the input stream backing the stream reader
     */
     StreamReader getStreamReader(string scheme, string location, *hash<auto> opts) {
         return getStreamReaderImpl(scheme, location, opts);
@@ -80,6 +82,8 @@ public class AbstractFileLocationHandler {
         @param opts read options
 
         @return an input stream of the file's contents, if it can be retrieved
+
+        @note The data is read in the background and added to the input stream
     */
     InputStream getBinaryStream(string scheme, string location, *hash<auto> opts) {
         return getBinaryStreamImpl(scheme, location, opts);
@@ -102,10 +106,13 @@ public class AbstractFileLocationHandler {
 
         @return an output stream for writing to the file
 
-        @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
-        deadlock
+        @note
+        - OutputStreamWrapper::close() must be called to close the stream after writing terminates in order to avoid a
+          deadlock
+        - The data written to the OutputStreamWrapper object may be written in the background; to ensure that the data has
+          been written to the target, call OutputStreamWrapper::waitForIo()
     */
-    OutputStream getOutputStream(string scheme, string location, *hash<auto> opts) {
+    OutputStreamWrapper getOutputStream(string scheme, string location, *hash<auto> opts) {
         return getOutputStreamImpl(scheme, location, opts);
     }
 
@@ -182,10 +189,13 @@ public class AbstractFileLocationHandler {
 
         @return an output stream for writing to the file
 
-        @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
-        deadlock
+        @note
+        - OutputStreamWrapper::close() must be called to close the stream after writing terminates in order to avoid a
+          deadlock
+        - The data written to the OutputStreamWrapper object may be written in the background; to ensure that the data has
+          been written to the target, call OutputStreamWrapper::waitForIo()
     */
-    private abstract OutputStream getOutputStreamImpl(string scheme, string location, *hash<auto> opts);
+    private abstract OutputStreamWrapper getOutputStreamImpl(string scheme, string location, *hash<auto> opts);
 
     #! Gets supported read options
     /** @return supported read options
@@ -317,10 +327,13 @@ public class FileLocationHandler {
 
         @return an output stream for writing to the file
 
-        @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
-        deadlock
+        @note
+        - OutputStreamWrapper::close() must be called to close the stream after writing terminates in order to avoid a
+          deadlock
+        - The data written to the OutputStreamWrapper object may be written in the background; to ensure that the data has
+          been written to the target, call OutputStreamWrapper::waitForIo()
     */
-    static OutputStream getOutputStreamForLocation(string location) {
+    static OutputStreamWrapper getOutputStreamForLocation(string location) {
         hash<LocationInfo> info = FileLocationHandler::getInfo(location, False);
         return info.handler.getOutputStream(info.scheme, info.location, info.opts);
     }
