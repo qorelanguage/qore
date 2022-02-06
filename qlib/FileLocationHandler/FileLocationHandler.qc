@@ -321,9 +321,7 @@ public class FileLocationHandler {
     }
 
     #! Returns an output stream for writing data to the given location
-    /** @param scheme the scheme being used
-        @param location the location string without the scheme
-        @param opts write options
+    /** @param location the location of the file data
 
         @return an output stream for writing to the file
 
