@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FileLocationHandlerFtp.qc module for returning file data from a URL-like location string
 
-/*  FileLocationHandlerFtp Copyright 2022 Qore Technologies, s.r.o.
+/*  FileLocationHandlerFtp Copyright 2021 - 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,51 +22,177 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-# strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires Util
-
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
 #! The class for handling file locations
-class FileLocationHandlerFtp inherits FileLocationHandler {
+class FileLocationHandlerFtp inherits AbstractFileLocationHandler {
     public {
-        #! Valid FTP location options
-        /** supported options:
-            - \c encoding: the output string encoding for text files
+        #! Valid common file location options
+        /**
         */
-        const FtpClientLocationOpts = (
-            "encoding",
-        );
+        const FtpClientLocationOpts = {
+            "encoding": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "the encoding of the file's data (read / write)",
+            },
+        };
     }
 
-    #! Returns the file data from the given file location
-    /** @param scheme the original scheme string in the location
-        @param text a flag if the data should be returned as text or not
-        @param location the location string
+    #! Retrieves a text file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
 
-        @throw LOCATION-ERROR invalid file location options
+        @return the string of the file's contents, if it can be retrieved
+
+        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
     */
-    static data handler(string scheme, bool text, string location) {
-        *hash<auto> opts = FileLocationHandler::getOptions(\location);
-        # process file options
-        if (opts && (*hash<auto> erropts = opts - FtpClientLocationOpts)) {
-            throw "LOCATION-ERROR", sprintf("file location %y has unsupported option(s): %y; supported "
-                "options: %y", location, keys erropts, FtpClientLocationOpts);
-        }
+    private string getTextFileImpl(string scheme, string location, *hash<auto> opts) {
+        string file;
+        FtpClient f = getFtpClient(scheme, location, opts, \file);
+        return f.getAsString(file, opts.encoding);
+    }
 
+    #! Retrieves a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return the binary data of the file's contents, if it can be retrieved
+
+        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+    */
+    private binary getBinaryFileImpl(string scheme, string location, *hash<auto> opts) {
+        string file;
+        FtpClient f = getFtpClient(scheme, location, opts, \file);
+        return f.getAsBinary(file);
+    }
+
+    #! Returns a stream reader for the file's data at the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return a stream reader for the file's contents, if it can be retrieved
+    */
+    private StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
+        string file;
+        FtpClient f = getFtpClient(scheme, location, opts, \file);
+
+        StreamPipe pipe(False);
+
+        # run the I/O operation in the background
+        background sub () {
+            try {
+                OutputStream os = pipe.getOutputStream();
+                f.get(file, os);
+                os.close();
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }();
+
+        return new StreamReader(pipe.getInputStream(), opts.encoding);
+    }
+
+    #! Retrieves a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an input stream of the file's contents, if it can be retrieved
+    */
+    private InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
+        string file;
+        FtpClient f = getFtpClient(scheme, location, opts, \file);
+
+        StreamPipe pipe(False);
+
+        # run the I/O operation in the background
+        background sub () {
+            try {
+                OutputStream os = pipe.getOutputStream();
+                f.get(file, os);
+                os.close();
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }();
+
+        return pipe.getInputStream();
+    }
+
+    #! Writes data to a file at the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param contents the file's contents
+        @param opts write options
+    */
+    private writeFileImpl(string scheme, string location, data contents, *hash<auto> opts) {
+        # convert encoding if necessary
+        if (opts.encoding && contents.typeCode() == NT_STRING && opts.encoding != contents.encoding()) {
+            contents = convert_encoding(contents, opts.encoding);
+        }
+        string file;
+        FtpClient f = getFtpClient(scheme, location, opts, \file);
+        return f.put(contents.typeCode() == NT_STRING
+            ? new StringInputStream(contents)
+            : new BinaryInputStream(contents), file);
+    }
+
+    #! Returns an output stream for writing data to the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts write options
+
+        @return an output stream for writing to the file
+
+        @note
+        - OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
+          deadlock
+        - The data written to the OutputStreamWrapper object is written in the background; to ensure that the data has
+          been written to the target, call OutputStreamWrapper::waitForIo()
+    */
+    private OutputStreamWrapper getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
+        string file;
+        FtpClient f = getFtpClient(scheme, location, opts, \file);
+
+        StreamPipe pipe(False);
+
+        Counter io_counter(1);
+        OutputStreamWrapper rv(pipe.getOutputStream(), io_counter);
+
+        # run the I/O operation in the background
+        background sub () {
+            try {
+                on_exit io_counter.dec();
+
+                InputStream is = pipe.getInputStream();
+                f.put(is, file);
+                is.close();
+            } catch (hash<ExceptionInfo> ex) {
+            }
+        }();
+
+        return rv;
+    }
+
+    #! Gets supported read options
+    /** @return supported read options
+    */
+    private hash<string, hash<FileHandlerOptionInfo>> getReadOptionsImpl() {
+        return FtpClientLocationOpts;
+    }
+
+    #! Gets supported write options
+    /** @return supported write options
+    */
+    private hash<string, hash<FileHandlerOptionInfo>> getWriteOptionsImpl() {
+        return FtpClientLocationOpts;
+    }
+
+    #! Returns an FTP client for the given location
+    private FtpClient getFtpClient(string scheme, string location, *hash<auto> opts, reference<string> file) {
         location = scheme + "://" + location;
 
-        string file;
         hash<UrlInfo> url_info = parse_url(location);
         if (url_info.path) {
             file = basename(url_info.path);
@@ -80,10 +206,7 @@ class FileLocationHandlerFtp inherits FileLocationHandler {
         if (dir) {
             f.cwd(dir);
         }
-        if (text) {
-            return FileLocationHandler::forceEncoding(f.getAsString(file), opts.encoding);
-        }
-        return f.getAsBinary(file);
+        return f;
     }
 }
 }
