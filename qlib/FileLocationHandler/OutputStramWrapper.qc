@@ -25,7 +25,7 @@
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
 #! The abstract file location handler class
-public class OutputStreamWrapper inherits OutputStream {
+public class OutputStreamWrapper inherits Qore::OutputStream {
     public {
     }
 
