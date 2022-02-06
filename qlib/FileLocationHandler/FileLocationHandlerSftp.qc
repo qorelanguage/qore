@@ -90,7 +90,7 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
 
         @return a stream reader for the file's contents, if it can be retrieved
     */
-    private StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
+    private Qore::StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
         string file;
         object sftp = getSftpClient(scheme, location, opts, \file);
 
@@ -116,7 +116,7 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
 
         @return an input stream of the file's contents, if it can be retrieved
     */
-    private InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
+    private Qore::InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
         string file;
         object sftp = getSftpClient(scheme, location, opts, \file);
 
@@ -178,7 +178,7 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
             try {
                 on_exit io_counter.dec();
 
-                InputStream is = pipe.getInputStream();
+                Qore::InputStream is = pipe.getInputStream();
                 sftp.put(is, file);
                 is.close();
             } catch (hash<ExceptionInfo> ex) {

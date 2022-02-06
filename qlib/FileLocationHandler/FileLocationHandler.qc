@@ -72,7 +72,7 @@ public class AbstractFileLocationHandler {
 
         @note The data is read in the background and added to the input stream backing the stream reader
     */
-    StreamReader getStreamReader(string scheme, string location, *hash<auto> opts) {
+    Qore::StreamReader getStreamReader(string scheme, string location, *hash<auto> opts) {
         return getStreamReaderImpl(scheme, location, opts);
     }
 
@@ -85,7 +85,7 @@ public class AbstractFileLocationHandler {
 
         @note The data is read in the background and added to the input stream
     */
-    InputStream getBinaryStream(string scheme, string location, *hash<auto> opts) {
+    Qore::InputStream getBinaryStream(string scheme, string location, *hash<auto> opts) {
         return getBinaryStreamImpl(scheme, location, opts);
     }
 
@@ -163,7 +163,7 @@ public class AbstractFileLocationHandler {
 
         @return a stream reader for the file's contents, if it can be retrieved
     */
-    private abstract StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts);
+    private abstract Qore::StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts);
 
     #! Retrieves a binary file from the given location
     /** @param scheme the scheme being used
@@ -172,7 +172,7 @@ public class AbstractFileLocationHandler {
 
         @return an input stream of the file's contents, if it can be retrieved
     */
-    private abstract InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts);
+    private abstract Qore::InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts);
 
     #! Writes data to a file at the given location
     /** @param scheme the scheme being used
@@ -296,7 +296,7 @@ public class FileLocationHandler {
 
         @return a stream reader for the file's data
     */
-    static StreamReader getStreamReaderFromLocation(string location) {
+    static Qore::StreamReader getStreamReaderFromLocation(string location) {
         hash<LocationInfo> info = FileLocationHandler::getInfo(location, True);
         return info.handler.getStreamReader(info.scheme, info.location, info.opts);
     }
@@ -306,7 +306,7 @@ public class FileLocationHandler {
 
         @return an input stream for the file's data
     */
-    static InputStream getBinaryStreamFromLocation(string location) {
+    static Qore::InputStream getBinaryStreamFromLocation(string location) {
         hash<LocationInfo> info = FileLocationHandler::getInfo(location, True);
         return info.handler.getBinaryStream(info.scheme, info.location, info.opts);
     }

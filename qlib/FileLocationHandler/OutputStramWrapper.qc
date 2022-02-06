@@ -31,24 +31,24 @@ public class OutputStreamWrapper inherits OutputStream {
 
     private:internal {
         #! The output stream object
-        OutputStream stream;
+        Qore::OutputStream stream;
 
         #! The synchronization Counter
-        Counter cnt;
+        Qore::Thread::Counter cnt;
     }
 
     #! Creates the output stream wrapper object
-    constructor(OutputStream stream, Counter cnt) {
+    constructor(Qore::OutputStream stream, Qore::Thread::Counter cnt) {
         self.stream = stream;
         self.cnt = cnt;
     }
 
     #! Returns the output stream
-    OutputStream getStream() {
+    Qore::OutputStream getStream() {
         return stream;
     }
 
-    #! Wait for the I/O to be complete
+    #! Wait for any background I/O to complete
     waitForIo() {
         cnt.waitForZero();
     }

@@ -114,7 +114,7 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
 
         @note Supports environment variable substitution in \a location
     */
-    private StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
+    private Qore::StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
         return new StreamReader(getBinaryStreamImpl(scheme, location, opts), opts.encoding);
     }
 
@@ -127,7 +127,7 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
 
         @note Supports environment variable substitution in \a location
     */
-    private InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
+    private Qore::InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
         return new FileInputStream(substitute_env_vars(location), opts.stream_read_io_timeout,
             opts.stream_nonblock_open);
     }

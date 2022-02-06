@@ -131,7 +131,7 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
 
         @return a stream reader for the file's contents, if it can be retrieved
     */
-    private StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
+    private Qore::StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
         string path;
         HTTPClient hc = getHttpClient(scheme, location, opts, \path);
 
@@ -157,7 +157,7 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
 
         @return an input stream of the file's contents, if it can be retrieved
     */
-    private InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
+    private Qore::InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
         string path;
         HTTPClient hc = getHttpClient(scheme, location, opts, \path);
 
@@ -215,7 +215,7 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
             try {
                 on_exit io_counter.dec();
 
-                InputStream is = pipe.getInputStream();
+                Qore::InputStream is = pipe.getInputStream();
                 hc.sendChunked(new BinaryOutputStream(), is, opts.method ? opts.method.upr() : "POST", NOTHING, path);
                 is.close();
             } catch (hash<ExceptionInfo> ex) {
