@@ -151,7 +151,7 @@ class FileLocationHandlerFtp inherits AbstractFileLocationHandler {
         - The data written to the OutputStreamWrapper object is written in the background; to ensure that the data has
           been written to the target, call OutputStreamWrapper::waitForIo()
     */
-    private OutputStream getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
+    private OutputStreamWrapper getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
         string file;
         FtpClient f = getFtpClient(scheme, location, opts, \file);
 

@@ -712,6 +712,9 @@ int qore_program_private::internParseCommit(bool standard_parse) {
             // also initializes namespaces, constants, etc
             sb.parseInit();
 
+            // do the initial parse phase
+            qore_root_ns_private::get(*RootNS)->parseInit();
+
             printd(5, "QoreProgram::internParseCommit() this: %p RootNS: %p\n", pgm, RootNS);
         }
 

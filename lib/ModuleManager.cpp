@@ -1235,8 +1235,9 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
         QoreUserModuleDefContextHelper& qmd, unsigned load_opt, int warning_mask) {
     // see if a module with this name is already registered
     QoreAbstractModule* omi = findModuleUnlocked(mi->getName());
-    if (omi)
+    if (omi) {
         qmd.setDuplicate();
+    }
 
     printd(5, "QoreModuleManager::setupUserModule() '%s' omi: %p\n", mi->getName(), omi);
 

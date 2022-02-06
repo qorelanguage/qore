@@ -2833,6 +2833,11 @@ void qore_class_private::parseCheckAbstractNew(const QoreProgramLocation* loc) c
     qore_root_ns_private::get(*getRootNS())->deferParseCheckAbstractNew(this, loc);
 }
 
+void qore_class_private::parseDoCheckAbstractNew(const QoreProgramLocation* loc) const {
+    assert(initialized);
+    ahm.parseCheckAbstractNew(loc, name.c_str());
+}
+
 const QoreMethod* qore_class_private::parseFindNormalMethod(const char* nme, const qore_class_private* class_ctx) {
     // if we have a class context, first we have to check here for an internal method
     if (class_ctx) {
