@@ -83,6 +83,8 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
         @return the string of the file's contents, if it can be retrieved
 
         @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+
+        @note Supports environment variable substitution in \a location
     */
     private string getTextFileImpl(string scheme, string location, *hash<auto> opts) {
         return ReadOnlyFile::readTextFile(substitute_env_vars(location), opts.encoding, opts.max_file_len);
@@ -96,6 +98,8 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
         @return the binary data of the file's contents, if it can be retrieved
 
         @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+
+        @note Supports environment variable substitution in \a location
     */
     private binary getBinaryFileImpl(string scheme, string location, *hash<auto> opts) {
         return ReadOnlyFile::readBinaryFile(substitute_env_vars(location), opts.max_file_len);
@@ -107,6 +111,8 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
         @param opts read options
 
         @return a stream reader for the file's contents, if it can be retrieved
+
+        @note Supports environment variable substitution in \a location
     */
     private StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
         return new StreamReader(getBinaryStreamImpl(scheme, location, opts), opts.encoding);
@@ -118,9 +124,12 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
         @param opts read options
 
         @return an input stream of the file's contents, if it can be retrieved
+
+        @note Supports environment variable substitution in \a location
     */
     private InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
-        return new FileInputStream(location, opts.stream_read_io_timeout, opts.stream_nonblock_open);
+        return new FileInputStream(substitute_env_vars(location), opts.stream_read_io_timeout,
+            opts.stream_nonblock_open);
     }
 
     #! Writes data to a file at the given location
@@ -128,6 +137,8 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
         @param location the location string without the scheme
         @param contents the file's contents
         @param opts write options
+
+        @note Supports environment variable substitution in \a location
     */
     private writeFileImpl(string scheme, string location, data contents, *hash<auto> opts) {
         if (opts.max_file_len > 0 && contents.size() > opts.max_file_len) {
@@ -137,7 +148,7 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
         File f();
         int open_flags = O_CREAT | O_WRONLY | (opts.append ? O_APPEND : O_TRUNC);
         int file_permissions = opts.file_permissions;
-        f.open2(location, open_flags, file_permissions, opts.encoding);
+        f.open2(substitute_env_vars(location), open_flags, file_permissions, opts.encoding);
         f.write(contents);
     }
 
@@ -148,12 +159,14 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
 
         @return an output stream for writing to the file
 
-        @note OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
-        deadlock
+        @note
+        - OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
+          deadlock
+        - Supports environment variable substitution in \a location
     */
     private OutputStreamWrapper getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
-        return new OutputStreamWrapper(new FileOutputStream(location, opts.append, opts.file_permissions,
-            opts.encoding), new Counter());
+        return new OutputStreamWrapper(new FileOutputStream(substitute_env_vars(location), opts.append,
+            opts.file_permissions, opts.encoding), new Counter());
     }
 
     #! Gets supported read options
