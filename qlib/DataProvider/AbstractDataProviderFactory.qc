@@ -40,7 +40,7 @@ public class AbstractDataProviderFactory {
     }
 
     #! Returns static provider information as data; no objects are returned
-    /** @param info0 the raw info with objects describing the types
+    /** @param with_type_info the raw info with objects describing the types
 
         @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */

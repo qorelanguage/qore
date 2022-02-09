@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.6.2";
+    version = "1.7";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -87,6 +87,10 @@ module Util {
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
+
+    @subsection util_1_7 Util 1.7
+    - implemented the @ref Util::serialize_to_string() "serialize_to_string()" API
+      (<a href="https://github.com/qorelanguage/qore/issues/4428">issue 4428</a>)
 
     @subsection util_1_6_2 Util 1.6.2
     - fixed a bug in \c parse_to_qore_value() with floats and numbers with trailing zeros
@@ -711,6 +715,8 @@ hash: (1 member)
         @return the Qore value corresponding to the input string
 
         @throw PARSE-ERROR cannot parse the string given
+
+        @see serialize_to_string() as a related serialization function
     */
     public auto sub parse_to_qore_value(string arg) {
         # see if there is aprocessing cmd
@@ -872,6 +878,48 @@ hash: (1 member)
 
         # try to fold all types to the most specific type when returning
         return auto_cast(v);
+    }
+
+    #! Serializes the given value to a string that can be deserialized with parse_to_qore_value()
+    /** @param val the value to serialize to a string
+
+        @retun the string value reprepsenting the argument; note that this value can be passed to
+        @ref parse_to_qore_value() as an argument to be deserialized
+
+        @note
+        - This API is meant for serialization of simple types to readable strings only; for proper serialization, see
+          @ref Qore::Serializable
+        - Only \c string, \c int, \c float, \c bool, \c date (absolute), \c list, and \c hash values are supported
+
+        @throw SERIALIZATION-ERROR cannot serialize data type
+
+        @see
+        - parse_to_qore_value()
+        - @ref Qore::Serializable
+
+        @since Util 1.7
+    */
+    public string sub serialize_to_string(auto val) {
+        switch (val.typeCode()) {
+            case NT_STRING:
+                return val;
+            case NT_INT:
+                return sprintf("%d", val);
+            case NT_FLOAT:
+                return sprintf("%.25g", val);
+            case NT_BOOLEAN:
+                return val ? "true" : "false";
+            case NT_DATE:
+                return val.format("IF");
+            case NT_LIST:
+                return "(" + (foldl $1 + "," + $2, (map serialize_to_string($1), val)) + ")";
+            case NT_HASH:
+                return "{" + (
+                    foldl $1 + "," + $2,
+                        (map sprintf("%s=%s", $1.key, serialize_to_string($1.value)), val.pairIterator())
+                ) + "}";
+        }
+        throw "SERIALIZATION-ERROR", sprintf("cannot serialize values of type %y", val.type());
     }
 
     #! parses a URI path for a arguments and a method; where the method is the part of the path before the first \c "?" character, and arguments are after
