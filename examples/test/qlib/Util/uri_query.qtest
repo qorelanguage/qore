@@ -27,5 +27,7 @@ public class UriQueryTest inherits QUnit::Test {
         assertEq("path?k=1&k=2", make_uri_query(parse_uri_query("path?k=1&k=2"), "&"));
         assertEq("path?k=1", make_uri_query(parse_uri_query("path?k;k")));
         assertEq("path?k=1", make_uri_query(parse_uri_query("path?k&k")));
+
+        assertEq("path?k=1;k=a\nb\nc", make_uri_query(parse_uri_query("path?k=1;k=a\nb\nc")));
     }
 }

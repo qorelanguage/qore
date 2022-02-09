@@ -89,6 +89,8 @@ module Util {
     @section utilrelnotes Release Notes
 
     @subsection util_1_7 Util 1.7
+    - @ref Util::parse_uri_query() "parse_uri_query()" fails if the string has newlines in it
+      (<a href="https://github.com/qorelanguage/qore/issues/4429">issue 4429</a>)
     - implemented the @ref Util::serialize_to_string() "serialize_to_string()" API
       (<a href="https://github.com/qorelanguage/qore/issues/4428">issue 4428</a>)
 
@@ -883,7 +885,7 @@ hash: (1 member)
     #! Serializes the given value to a string that can be deserialized with parse_to_qore_value()
     /** @param val the value to serialize to a string
 
-        @retun the string value reprepsenting the argument; note that this value can be passed to
+        @return the string value reprepsenting the argument; note that this value can be passed to
         @ref parse_to_qore_value() as an argument to be deserialized
 
         @note
@@ -950,9 +952,9 @@ hash: (1 member)
         # http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2
         # however we support both
         string sep = path.find(";") == -1 ? "&" : ";";
-        foreach any arg in (split(sep, path)) {
+        foreach string arg in (split(sep, path)) {
             if (arg.val()) {
-                (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/);
+                (*string key, *string value) = (arg =~ x/([^=]+)=(.*)$/ms);
                 if (exists key) {
                     reference kv = \h.params{key};
                     if (exists kv) {
@@ -960,11 +962,9 @@ hash: (1 member)
                             kv = (kv, value);
                         else
                             kv += value;
-                    }
-                    else
+                    } else
                         kv = value;
-                }
-                else
+                } else
                     h.params{arg} = True;
             }
         }
