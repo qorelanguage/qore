@@ -44,7 +44,7 @@ public class DefaultBulkRecordIterface inherits AbstractDataProviderBulkRecordIn
         @param i the iterator to use
     */
     constructor(int block_size, AbstractDataProviderRecordIterator i)
-        : AbstractDataProviderBulkRecordInterface(block_size) {
+            : AbstractDataProviderBulkRecordInterface(block_size) {
         self.i = i;
     }
 

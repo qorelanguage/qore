@@ -25,6 +25,8 @@
 #! The FixedLengthUtil namespace contains all the definitions in the FixedLengthUtil module
 public namespace FixedLengthUtil {
 #! Provides a data provider for reading fixed-length files
+/** Supports generic record search operators and options
+*/
 public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! Provider info
@@ -33,12 +35,7 @@ public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProv
             "supports_read": True,
             "has_record": True,
             "constructor_options": ConstructorOptions,
-            "search_options": {
-                "limit": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(IntType),
-                    "desc": "the maximum number of records to return",
-                },
-            },
+            "search_options": GenericRecordSearchOptions,
         };
 
         #! Constructor options
@@ -155,7 +152,7 @@ public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProv
         @param search_options the search options after processing by validateSearchOptions()
     */
     private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
-        return new DefaultRecordIterator(i, where_cond, search_options, i.getRecordType());
+        return new DefaultRecordIterator(i, where_cond, search_options, i.getRecordType(), "record");
     }
 
     #! Returns the description of the record type, if any

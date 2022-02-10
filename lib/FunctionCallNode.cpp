@@ -245,28 +245,6 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, QoreParse
 
         //printd(5, "FunctionCallBase::parseArgsVariant() this: %p func: %s variant: %p pflag: %d pe: %d\n", this,
         //    func ? func->getName() : "n/a", variant, pflag, func ? func->empty() : -1);
-
-        // if the function call is being made as a part of a constant expression and
-        // there are uncommitted user variants in the function, then raise an error
-        if ((parse_context.pflag & PF_CONST_EXPRESSION) && !variant && !func->pendingEmpty()) {
-            const char* name = func->getName();
-            const char* cname = func->className();
-            QoreStringNode* desc = new QoreStringNode("cannot ");
-            if (cname && !strcmp(name, "constructor")) {
-                desc->sprintf("instantiate class %s", cname);
-            } else {
-                desc->sprintf("cannot call %s%s%s()", cname ? cname : "", cname ? "::" : "", name);
-            }
-
-            desc->concat(" in an expression initializing a constant value at parse time when the function has " \
-                "uncommitted variants and the variant cannot be matched at parse time; to fix this error, add " \
-                "enough type information to the call to allow the variant to be resolved");
-
-            parseException(*loc, "ILLEGAL-CALL", desc);
-            if (!err) {
-                err = -1;
-            }
-        }
     } else {
         parse_context.typeInfo = nullptr;
     }
