@@ -25,7 +25,7 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! Default record iterator class for data providers that do not support custom read / search APIs
-/** @note This class supports the \c limit search option
+/** @note This class supports the \c columns, \c limit, and \c offset search options
 */
 public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
     private {
@@ -34,6 +34,7 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
         *hash<auto> search_options;
         *hash<string, AbstractDataField> record_type;
         int count = 0;
+        *string subrecord;
     }
 
     #! Returns an iterator for zero or more records matching the search options
@@ -43,11 +44,15 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
         @param record_type the record type
     */
     constructor(AbstractIterator i, *hash<auto> where_cond, *hash<auto> search_options,
-            *hash<string, AbstractDataField> record_type) {
+            *hash<string, AbstractDataField> record_type, *string subrecord) {
         self.i = i;
         self.where_cond = where_cond;
+        if (exists search_options.columns && search_options.columns.typeCode() != NT_LIST) {
+            search_options.columns = list(search_options.columns);
+        }
         self.search_options = search_options;
         self.record_type = record_type;
+        self.subrecord = subrecord;
     }
 
     #! Moves the current position to the next element; returns @ref False if there are no more elements
@@ -61,7 +66,16 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
     bool next() {
         while (i.next()) {
             if (!where_cond || (where_cond && matchGeneric(i.getValue(), where_cond))) {
-                if (exists search_options.limit && search_options.limit >= 0 && count == search_options.limit) {
+                if (search_options.offset > 0) {
+                    if (exists search_options.limit && search_options.limit >= 0
+                        && (count - search_options.offset) == search_options.limit) {
+                        return False;
+                    }
+                    if (count < search_options.offset) {
+                        ++count;
+                        continue;
+                    }
+                } else if (exists search_options.limit && search_options.limit >= 0 && count == search_options.limit) {
                     return False;
                 }
                 ++count;
@@ -82,7 +96,12 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
     /** @throw INVALID-ITERATOR the iterator is not pointing at a valid element
     */
     hash<auto> getValue() {
-        return i.getValue();
+        if (exists subrecord && search_options.columns) {
+            hash<auto> rv = i.getValue();
+            rv{subrecord} = rv{subrecord}{search_options.columns};
+            return rv;
+        }
+        return search_options.columns ? i.getValue(){search_options.columns} : i.getValue();
     }
 
     #! Returns the value of the given field in the current record, if the iterator is valid

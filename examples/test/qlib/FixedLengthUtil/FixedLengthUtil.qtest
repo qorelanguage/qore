@@ -7,6 +7,7 @@
 %strict-args
 
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/FixedLengthUtil
 
 %exec-class Test
@@ -212,6 +213,8 @@ class Test inherits QUnit::Test {
             {
                 reset();
                 rows = map $1, dp.searchRecords();
+                assertEq(2, rows[0].size());
+                assertEq(2, rows[0].record.size());
                 assertEq(3, rows.size());
 
                 reset();
@@ -219,6 +222,39 @@ class Test inherits QUnit::Test {
                 assertEq(Type::Hash, row.type());
                 assertEq("bb", row.record.col2);
                 assertEq(Type::String, row.record.col2.type());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({}, {"columns": "col1"});
+                assertEq(2, rows[0].size());
+                assertEq(1, rows[0].record.size());
+                assertEq(3, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({}, {"limit": 1, "offset": 1});
+                assertEq(2, rows[0].size());
+                assertEq(3, rows[0].record.size());
+                assertEq(1, rows.size());
+                hash<auto> row1 = rows[0];
+
+                reset();
+                rows = map $1, dp.searchRecords({}, {"limit": 1, "offset": 2});
+                assertEq(2, rows[0].size());
+                assertEq(2, rows[0].record.size());
+                assertEq(1, rows.size());
+                hash<auto> row2 = rows[0];
+
+                reset();
+                rows = map $1, dp.searchRecords();
+                assertEq(2, rows[0].size());
+                assertEq(2, rows[0].record.size());
+                assertEq(3, rows.size());
+
+                assertEq(rows[1], row1);
+                assertEq(rows[2], row2);
             }
 
             {
