@@ -53,7 +53,7 @@
 %endtry
 
 module RestHandler {
-    version = "1.3.2";
+    version = "1.4";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -384,6 +384,9 @@ Content-Length: 16
     @ref Qore::ExceptionInfo "ExceptionInfo" hash.
 
     @section resthandler_relnotes RestHandler Release Notes
+
+    @subsection rh_1_4 RestHandler v1.4
+    - added missing make*() methods with REST responses to the @ref RestHandler::RestHandler "RestHandler" class
 
     @subsection rh_1_3_2 RestHandler v1.3.2
     - fixed a bug handling errors registering stream errors with a stream handler
@@ -1196,14 +1199,18 @@ public namespace RestHandler {
             @param listener a listener API object
             @param s the @ref Qore::Socket "Socket" object serving the request
             @param cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed
+              information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by
+              Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by
+              Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from parse_url())
             - \c id: the unique HTTP connection ID
             - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
-            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following
+            keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
             - \c path: the HTTP path given in the request, after processing by decode_url() (Qore function)
             - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
@@ -1212,10 +1219,12 @@ public namespace RestHandler {
             @return a hash with the following keys:
             - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
             - \c "body": the message body to return in the response
-            - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
+            - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed
+              when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
          */
-        hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash<auto> cx, hash<auto> hdr, *data b) {
+        hash<HttpResponseInfo> handleRequest(HttpListenerInterface listener, Socket s, hash<auto> cx, hash<auto> hdr,
+                *data b) {
             #logDebug("REST DBG: cx: %N", cx);
             #logDebug("REST DBG: hdr: %N", hdr);
 
@@ -1244,7 +1253,8 @@ public namespace RestHandler {
                     return AbstractHttpRequestHandler::make400("%s: %s", ex.err, ex.desc);
                 if (ex.err == "INVALID-METHOD") {
                     string ml = (foldl $1 + "," + $2, ex.arg) ?? "";
-                    return AbstractHttpRequestHandler::makeResponse(405, sprintf("HTTP method %y is not supported with URI path %y; supported methods: %s", hdr.method, path, ml ?* "<none>"), ("Allow": ml));
+                    return AbstractHttpRequestHandler::makeResponse(405, sprintf("HTTP method %y is not supported "
+                        "with URI path %y; supported methods: %s", hdr.method, path, ml ?* "<none>"), ("Allow": ml));
                 }
                 rethrow;
             }
@@ -1259,7 +1269,9 @@ public namespace RestHandler {
             *hash<auto> args;
             if (ah.params) {
                 if (ah.params.typeCode() != NT_HASH)
-                    return RestHandler::make400("cannot parse arguments in REST call %y, URI arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)", path, ah.params.type(), ah.params);
+                    return AbstractHttpRequestHandler::make400("cannot parse arguments in REST call %y, URI "
+                        "arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)",
+                        path, ah.params.type(), ah.params);
                 args = {} + ah.params;
             }
 
@@ -1273,13 +1285,15 @@ public namespace RestHandler {
                 map args.$1 = body.$1, keys body, !exists args.$1;
 
             if (!Methods.(hdr.method))
-                return RestHandler::make400("unsupported HTTP method %y given in REST call %y", hdr.method, path);
+                return AbstractHttpRequestHandler::make400("unsupported HTTP method %y given in REST call %y",
+                    hdr.method, path);
 
             # make method name
             string mn;
             if (args.action) {
                 if (args.action.typeCode() != NT_STRING)
-                    return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", path, args.action.type());
+                    return AbstractHttpRequestHandler::make400("cannot parse arguments in REST call %y, the 'action' "
+                        "key is not assigned to a string; got %y instead", path, args.action.type());
                 mn = args.action;
                 args -= "action";
                 # ensure first letter of the action is in upper case
@@ -1289,7 +1303,8 @@ public namespace RestHandler {
                 mn = Methods.(hdr.method) + mn;
             } else if (body.action) {
                 if (body.action.typeCode() != NT_STRING)
-                    return RestHandler::make400("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", path, args.action.type());
+                    return AbstractHttpRequestHandler::make400("cannot parse arguments in REST call %y, the 'action' "
+                        "key is not assigned to a string; got %y instead", path, args.action.type());
                 mn = body.action;
                 cx.orig_method = mn;
                 # ensure first letter of the action is in upper case
@@ -1327,7 +1342,8 @@ public namespace RestHandler {
                 astr =~ s/ +//g;
                 map aih.$1 = True, astr.split(",");
             } else {
-                # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If no Accept header field is present, then it is assumed that the client accepts all media types
+                # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If no Accept header field is present, then
+                # it is assumed that the client accepts all media types
                 aih."*/*" = True;
             }
 
@@ -1347,7 +1363,8 @@ public namespace RestHandler {
                 } else {
                     *AbstractRestClass c = subClass(cls, cx, args);
                     if (!c) {
-                        # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
+                        # issue #2994: if we are on the last class and there is no "action" argument; see if we can f
+                        # ind an action method instead
                         if (!cl && !args.action) {
                             string mname = sprintf("%s%s%s", mn, cls[0].upr(), cls[1..]);
                             if (self.hasCallableMethod(mname)) {
@@ -1381,18 +1398,23 @@ public namespace RestHandler {
                 hash<HttpResponseInfo> res;
 
                 try {
-                    res = validator.processResponse(hdr.method, req.path, rv.code, rv.body, rv.hdr, aih."*/*" ? NOTHING : keys aih);
+                    res = validator.processResponse(hdr.method, req.path, rv.code, rv.body, rv.hdr,
+                        aih."*/*" ? NOTHING : keys aih);
                 } catch (hash<ExceptionInfo> ex) {
                     logDebug("REST DBG: %s", get_exception_string(ex));
                     if (ex.err == "ACCEPT-ERROR") {
                         responseSerializationError(cx, aih, rv);
-                        # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
+                        # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html: If an Accept header field is
+                        # present, and if the server cannot send a response which is acceptable according to the
+                        # combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.
                         return AbstractHttpRequestHandler::makeResponse(406, ex.desc);
                     }
 
                     # add original resp to the exception (only if it was an error)
-                    if (rv.code >= 400 && rv.code < 600)
-                        ex.desc += sprintf(" ... Original response: code: %d, body: %y, hdr: %y", rv.code, rv.body, rv.hdr);
+                    if (rv."code" >= 400 && rv."code" < 600) {
+                        ex.desc += sprintf(" ... Original response: code: %d, body: %y, hdr: %y", rv."code", rv.body,
+                            rv.hdr);
+                    }
 
                     throw ex.err, ex.desc, ex.arg;
                 }
@@ -1402,7 +1424,8 @@ public namespace RestHandler {
                     "hdr": res.hdr,
                 };
 
-                logDebug("REST DBG: response serialization: %d %s (%d bytes)", rv.code, rv.hdr."Content-Type" ?? "n/a", rv.body.size());
+                logDebug("REST DBG: response serialization: %d %s (%d bytes)", rv."code",
+                    rv.hdr."Content-Type" ?? "n/a", rv.body.size());
             }
 
             #logDebug("REST DBG: rv: %N", rv);
@@ -1477,11 +1500,78 @@ public namespace RestHandler {
             delete argv;
         }
 
+        #! creates a hash for an HTTP 200 OK error response with the response message body as a string
+        static hash<HttpHandlerResponseInfo> make200(string fmt) {
+            return <HttpHandlerResponseInfo>{
+                "code": 200,
+                "body": vsprintf(fmt, argv),
+            };
+        }
+
+        #! creates a hash for an HTTP 200 OK error response with the response message body as a string
+        static hash<HttpHandlerResponseInfo> make200(hash<auto> hdr, string fmt) {
+            return <HttpHandlerResponseInfo>{
+                "code": 200,
+                "body": vsprintf(fmt, argv),
+                "hdr": hdr,
+            };
+        }
+
+        #! creates a hash for an HTTP 400 error response with the response message body as a string
+        static hash<HttpHandlerResponseInfo> make400(string fmt) {
+            return <HttpHandlerResponseInfo>{
+                "code": 400,
+                "body": vsprintf(fmt, argv),
+            };
+        }
+
+        #! creates a hash for an HTTP 400 error response with the response message body as a string
+        static hash<HttpHandlerResponseInfo> make400(hash<auto> hdr, string fmt) {
+            return <HttpHandlerResponseInfo>{
+                "code": 400,
+                "body": vsprintf(fmt, argv),
+                "hdr": hdr,
+            };
+        }
+
         #! creates a hash for an HTTP response with the response code and a literal response message body
         static hash<HttpHandlerResponseInfo> makeResponse(int code, auto body, *hash<auto> hdr) {
             return <HttpHandlerResponseInfo>{
                 "code": code,
                 "body": body,
+                "hdr": hdr,
+            };
+        }
+
+        #! creates a hash for an HTTP 500 error response with the response message body as a string
+        static hash<HttpHandlerResponseInfo> make500(string fmt) {
+            return <HttpHandlerResponseInfo>{
+                "code": 500,
+                "body": vsprintf(fmt, argv),
+            };
+        }
+
+        #! creates a hash for an HTTP 500 error response with the response message body as a string
+        static hash<HttpHandlerResponseInfo> make500(hash<auto> hdr, string fmt) {
+            return <HttpHandlerResponseInfo>{
+                "code": 500,
+                "body": vsprintf(fmt, argv),
+            };
+        }
+
+        #! creates a hash for an HTTP 501 error response with the response message body as a string
+        static hash<HttpHandlerResponseInfo> make501(string fmt) {
+            return <HttpHandlerResponseInfo>{
+                "code": 501,
+                "body": vsprintf(fmt, argv),
+            };
+        }
+
+        #! creates a hash for an HTTP 501 error response with the response message body as a string
+        static hash<HttpHandlerResponseInfo> make501(hash<auto> hdr, string fmt) {
+            return <HttpHandlerResponseInfo>{
+                "code": 501,
+                "body": vsprintf(fmt, argv),
                 "hdr": hdr,
             };
         }

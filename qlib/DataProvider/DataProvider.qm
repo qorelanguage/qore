@@ -202,11 +202,15 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section dataprovider_relnotes Release Notes
 
-    @subsection dataprovider_v2.1 DataProvider v2.1
+    @subsection dataprovider_v2_1 DataProvider v2.1
+    - added "from example" APIs to data provider factories:
+      - @ref DataProvider::AbstractDataProviderFactory::getProviderFromExample() "AbstractDataProviderFactory::getProviderFromExample()"
+      - @ref DataProvider::AbstractDataProviderFactory::getExampleProviderRecordOutput() "AbstractDataProviderFactory::getExampleProviderRecordOutput()"
+      (<a href="https://github.com/qorelanguage/qore/issues/4430">issue 4430</a>)
     - added generic search capabilities to data providers with no native search capabilities
       (<a href="https://github.com/qorelanguage/qore/issues/4430">issue 4430</a>)
 
-    @subsection dataprovider_v2.0 DataProvider v2.0
+    @subsection dataprovider_v2_0 DataProvider v2.0
     - added a logger to the @ref DataProvider::AbstractDataProvider "AbstractDataProvider" class to enable logging
       (<a href="https://github.com/qorelanguage/qore/issues/4409">issue 4409</a>)
     - added support for creating, reading, updating, and modifying data providers

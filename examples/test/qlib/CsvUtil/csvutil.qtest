@@ -128,20 +128,36 @@ f2:3,00:5:25,34";
         {
             CsvReadDataProvider dp;
 
-            # the CSV data can only be iterated once and then the provide needs to be recreated
-            code reset = sub () {
-                dp = new CsvReadDataProvider(new StringInputStream(CsvInputWithHeader), {
-                    "header_lines": 1,
-                    "header_names": True,
-                    "date_format": "DDMMYYYY",
-                    "fields": {
-                        "received": {
-                            "type": "date",
-                        },
-                        "activated": "bool",
+            hash<auto> constructor_options = {
+                "header_lines": 1,
+                "header_names": True,
+                "date_format": "DDMMYYYY",
+                "fields": {
+                    "received": {
+                        "type": "date",
                     },
-                });
+                    "activated": "bool",
+                },
             };
+
+            # the CSV data can only be iterated once and then the provider needs to be recreated
+            code reset = sub () {
+                dp = new CsvReadDataProvider(new StringInputStream(CsvInputWithHeader), constructor_options);
+            };
+
+            {
+                AbstractDataProviderFactory factory = DataProvider::getFactoryEx("csvread");
+                rows = factory.getExampleProviderRecordOutput(new StringInputStream(CsvInputWithHeader), constructor_options);
+                assertEq(5, rows[0].size());
+                assertEq(4, rows.size());
+
+                AbstractDataProvider dp0 = factory.getProviderFromExample(
+                    new StringInputStream(CsvInputWithHeader), constructor_options
+                );
+                rows = map $1, dp0.searchRecords();
+                assertEq(5, rows[0].size());
+                assertEq(4, rows.size());
+            }
 
             {
                 reset();

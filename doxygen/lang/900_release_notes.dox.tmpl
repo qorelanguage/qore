@@ -9,11 +9,17 @@
 
     @subsection qore_1_4_0_new_features New Features in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - added "from example" APIs to data provider factories:
+        - \c AbstractDataProviderFactory::getExampleProviderRecordOutput()
+        - \c AbstractDataProviderFactory::getProviderFromExample()
+        (<a href="https://github.com/qorelanguage/qore/issues/4433">issue 4433</a>)
       - added generic search capabilities to data providers with no native search functionality
         (<a href="https://github.com/qorelanguage/qore/issues/4430">issue 4430</a>)
     - <a href="../../modules/Util/html/index.html">Util</a> module
       - implemented the @ref Util::serialize_to_string() "serialize_to_string()" API
         (<a href="https://github.com/qorelanguage/qore/issues/4428">issue 4428</a>)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
+      - added missing make*() methods with REST responses to the @ref RestHandler::RestHandler "RestHandler" class
 
     @subsection qore_1_4_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/Util/html/index.html">Util</a> module

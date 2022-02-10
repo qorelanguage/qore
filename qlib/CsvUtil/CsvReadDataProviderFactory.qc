@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.10
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! Contains all public definitions in the CsvUtil module
 public namespace CsvUtil {
 #! The read-only CSV data provider factory
@@ -56,6 +45,42 @@ public class CsvReadDataProviderFactory inherits AbstractDataProviderFactory {
     #! Returns the class for the data provider object
     Class getClass() {
         return cls;
+    }
+
+    #! Returns a data provider given the example data and constructor options as arguments
+    /**
+        @param example example data to process
+        @param constructor_options constructor options for the data provider
+
+        @return a data provider created from the given options
+
+        @throw DATA-PROVIDER-ERROR invalid construtor options, API not supported
+
+        @note
+        - If constructor options provide actual input data, then this overrides the example data, in this way this
+          API can be used for the example and also with real data
+        - This base class method throws a \c DATA-PROVIDER-ERROR exception by default; override in subclasses to
+          implement this method properly
+
+        @since DataProvider 2.1
+    */
+    private AbstractDataProvider getProviderFromExampleImpl(InputStream example, *hash<auto> constructor_options) {
+        return new CsvReadDataProvider(constructor_options.stream ?? constructor_options.path ?? example,
+            constructor_options - ("stream", "path"));
+    }
+
+    #! Returns information about a data provider constructor given the example data as an argument
+    /**
+        @param example example data to process
+        @param constructor_options constructor options for the data provider
+
+        @return example record data parsed from the given options
+
+        @throw DATA-PROVIDER-ERROR invalid construtor options, API not supported
+    */
+    private list<hash<auto>> getExampleProviderRecordOutputImpl(InputStream example, *hash<auto> constructor_options) {
+        CsvReadDataProvider prov(example, constructor_options);
+        return map $1, prov.searchRecords();
     }
 }
 }

@@ -42,6 +42,7 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
         @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
         @param record_type the record type
+        @param subrecord the optional name of a key of the record hash storing record data
     */
     constructor(AbstractIterator i, *hash<auto> where_cond, *hash<auto> search_options,
             *hash<string, AbstractDataField> record_type, *string subrecord) {
