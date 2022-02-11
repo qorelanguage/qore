@@ -335,7 +335,6 @@ public class DataProviderTest inherits QUnit::Test {
         h2 += {"a": 2};
         assertEq(h1, t1.acceptsValue(h1));
         assertEq(h2, t2.acceptsValue(h2));
-
     }
 
     pipelineTest() {

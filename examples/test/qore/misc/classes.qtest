@@ -778,6 +778,7 @@ class Issue_4419_T {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("another abstract test", \anotherAbstractTest());
         addTestCase("issue 4419", \issue4419());
         addTestCase("init test", \initTest());
         addTestCase("issue 4175", \issue4175());
@@ -807,6 +808,24 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    anotherAbstractTest() {
+        Program p(PO_NEW_STYLE);
+        assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), ("
+class AB;
+class AC inherits AB;
+class A {
+    abstract AC test();
+}
+class C inherits A {
+    AB test() {}
+}
+
+sub test() {
+    C c();
+}
+", "test"));
     }
 
     issue4419() {

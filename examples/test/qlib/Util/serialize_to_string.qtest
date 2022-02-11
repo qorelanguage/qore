@@ -1,0 +1,39 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class SerializeToStringTest
+
+public class SerializeToStringTest inherits QUnit::Test {
+    public {
+        const Values = (
+            True,
+            False,
+            1,
+            1543,
+            1.0,
+            now_us(),
+            (1, "two", 3.0),
+            {"a": 1, "b": "two"},
+            #M_PIn,
+            #P1DT5H20M415u,
+        );
+    }
+
+    constructor() : Test("SerializeToStringTest", "1.0") {
+        addTestCase("main", \mainTest());
+
+        set_return_value(main());
+    }
+
+    mainTest() {
+        map assertEq($1, parse_to_qore_value(serialize_to_string($1))), Values;
+    }
+}

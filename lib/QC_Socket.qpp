@@ -43,30 +43,30 @@
 #include <cstring>
 
 static void hash_set_int_key(QoreHashNode& h, int k, const char* str) {
-   char buf[15];
-   sprintf(buf, "%d", k);
-   h.setKeyValue(buf, new QoreStringNode(str), 0);
+    char buf[15];
+    sprintf(buf, "%d", k);
+    h.setKeyValue(buf, new QoreStringNode(str), nullptr);
 }
 
 static QoreHashNode* get_network_address_family_map() {
-   QoreHashNode* rv = new QoreHashNode(autoTypeInfo);
+    QoreHashNode* rv = new QoreHashNode(autoTypeInfo);
 
-   hash_set_int_key(*rv, AF_INET, "AF_INET");
-   hash_set_int_key(*rv, AF_INET6, "AF_INET6");
-   hash_set_int_key(*rv, AF_UNIX, "AF_UNIX");
-   hash_set_int_key(*rv, AF_UNSPEC, "AF_UNSPEC");
+    hash_set_int_key(*rv, AF_INET, "AF_INET");
+    hash_set_int_key(*rv, AF_INET6, "AF_INET6");
+    hash_set_int_key(*rv, AF_UNIX, "AF_UNIX");
+    hash_set_int_key(*rv, AF_UNSPEC, "AF_UNSPEC");
 
-   return rv;
+    return rv;
 }
 
 static int64 checkOpenResult(int rc, const char *method_name, ExceptionSink *xsink) {
-   if (*xsink)
-      return 0;
-   if (rc == -2) {
-      xsink->raiseException("SOCKET-NOT-OPEN", "socket must be open before Socket::%s() call", method_name);
-      return 0;
-   }
-   return rc;
+    if (*xsink)
+        return 0;
+    if (rc == -2) {
+        xsink->raiseException("SOCKET-NOT-OPEN", "socket must be open before Socket::%s() call", method_name);
+        return 0;
+    }
+    return rc;
 }
 
 static int check_response_code(int status_code, ExceptionSink* xsink) {
@@ -270,40 +270,40 @@ const X509_V_ERR_APPLICATION_VERIFICATION = "X509_V_ERR_APPLICATION_VERIFICATION
 
 //! maps from varification strings to verification code descriptions
 const X509_VerificationReasons = (
-   "X509_V_OK": "OK",
-   "X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT": "Unable to get issuer certificate",
-   "X509_V_ERR_UNABLE_TO_GET_CRL": "Unable to get certificate CRL",
-   "X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE": "Unable to decrypt certificate's signature. This means that the actual signature value could not be determined rather than it not matching the expected value; this is only meaningful for RSA",
-   "X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE": "Unable to decrypt CRL's signature",
-   "X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY": "Unable to decode issuer public key (SubjectPublicKeyInfo)",
-   "X509_V_ERR_CERT_SIGNATURE_FAILURE": "Certificate signature failure; the signature of the certificate is invalid",
-   "X509_V_ERR_CRL_SIGNATURE_FAILURE": "CRL signature failure; the signature of the certificate is invalid",
-   "X509_V_ERR_CERT_NOT_YET_VALID": "Certificate is not yet valid",
-   "X509_V_ERR_CERT_HAS_EXPIRED": "Certificate has expired",
-   "X509_V_ERR_CRL_NOT_YET_VALID": "CRL is not yet valid",
-   "X509_V_ERR_CRL_HAS_EXPIRED": "CRL has expired",
-   "X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD": "Format error in certificate's notBefore field (invalid time)",
-   "X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD": "Format error in certificate's notAfter field (invalid time)",
-   "X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD": "Format error in CRL's lastUpdate field (invalid time)",
-   "X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD": "Format error in CRL's nextUpdate field (invalid time)",
-   "X509_V_ERR_OUT_OF_MEM": "Out of memory error",
-   "X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT": "Certificate is self-signed and cannot be found in the trusted list",
-   "X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN": "Self signed certificate in certificate chain",
-   "X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY": "Unable to get local issuer certificate. This normally means the list of trusted certificates is not complete",
-   "X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE": "Unable to verify the first certificate",
-   "X509_V_ERR_CERT_CHAIN_TOO_LONG": "Certificate chain too long",
-   "X509_V_ERR_CERT_REVOKED": "Certificate has been revoked",
-   "X509_V_ERR_INVALID_CA": "Invalid CA certificate",
-   "X509_V_ERR_PATH_LENGTH_EXCEEDED": "The basicConstraints pathlength parameter has been exceeded",
-   "X509_V_ERR_INVALID_PURPOSE": "The certificate cannot be used for the specified purpose",
-   "X509_V_ERR_CERT_UNTRUSTED": "Root CA is not marked as trusted for the specified purpose",
-   "X509_V_ERR_CERT_REJECTED": "Root CA is marked to reject the specified purpose",
-   "X509_V_ERR_SUBJECT_ISSUER_MISMATCH": "The current candidate issuer certificate was rejected because its subject name did not match the issuer name of the current certificate",
-   "X509_V_ERR_AKID_SKID_MISMATCH": "The current candidate issuer certificate was rejected because its subject key identifier was present and did not match the authority key identifier of the current certificate",
-   "X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH": "Issuer name and serial number of candidate certificate do not match the authority key identifier of the current certificate",
-   "X509_V_ERR_KEYUSAGE_NO_CERTSIGN": "The keyUsage extension does not permit certificate signing",
-   "X509_V_ERR_APPLICATION_VERIFICATION": "Verification failure",
-   );
+    "X509_V_OK": "OK",
+    "X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT": "Unable to get issuer certificate",
+    "X509_V_ERR_UNABLE_TO_GET_CRL": "Unable to get certificate CRL",
+    "X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE": "Unable to decrypt certificate's signature. This means that the actual signature value could not be determined rather than it not matching the expected value; this is only meaningful for RSA",
+    "X509_V_ERR_UNABLE_TO_DECRYPT_CRL_SIGNATURE": "Unable to decrypt CRL's signature",
+    "X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY": "Unable to decode issuer public key (SubjectPublicKeyInfo)",
+    "X509_V_ERR_CERT_SIGNATURE_FAILURE": "Certificate signature failure; the signature of the certificate is invalid",
+    "X509_V_ERR_CRL_SIGNATURE_FAILURE": "CRL signature failure; the signature of the certificate is invalid",
+    "X509_V_ERR_CERT_NOT_YET_VALID": "Certificate is not yet valid",
+    "X509_V_ERR_CERT_HAS_EXPIRED": "Certificate has expired",
+    "X509_V_ERR_CRL_NOT_YET_VALID": "CRL is not yet valid",
+    "X509_V_ERR_CRL_HAS_EXPIRED": "CRL has expired",
+    "X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD": "Format error in certificate's notBefore field (invalid time)",
+    "X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD": "Format error in certificate's notAfter field (invalid time)",
+    "X509_V_ERR_ERROR_IN_CRL_LAST_UPDATE_FIELD": "Format error in CRL's lastUpdate field (invalid time)",
+    "X509_V_ERR_ERROR_IN_CRL_NEXT_UPDATE_FIELD": "Format error in CRL's nextUpdate field (invalid time)",
+    "X509_V_ERR_OUT_OF_MEM": "Out of memory error",
+    "X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT": "Certificate is self-signed and cannot be found in the trusted list",
+    "X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN": "Self signed certificate in certificate chain",
+    "X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY": "Unable to get local issuer certificate. This normally means the list of trusted certificates is not complete",
+    "X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE": "Unable to verify the first certificate",
+    "X509_V_ERR_CERT_CHAIN_TOO_LONG": "Certificate chain too long",
+    "X509_V_ERR_CERT_REVOKED": "Certificate has been revoked",
+    "X509_V_ERR_INVALID_CA": "Invalid CA certificate",
+    "X509_V_ERR_PATH_LENGTH_EXCEEDED": "The basicConstraints pathlength parameter has been exceeded",
+    "X509_V_ERR_INVALID_PURPOSE": "The certificate cannot be used for the specified purpose",
+    "X509_V_ERR_CERT_UNTRUSTED": "Root CA is not marked as trusted for the specified purpose",
+    "X509_V_ERR_CERT_REJECTED": "Root CA is marked to reject the specified purpose",
+    "X509_V_ERR_SUBJECT_ISSUER_MISMATCH": "The current candidate issuer certificate was rejected because its subject name did not match the issuer name of the current certificate",
+    "X509_V_ERR_AKID_SKID_MISMATCH": "The current candidate issuer certificate was rejected because its subject key identifier was present and did not match the authority key identifier of the current certificate",
+    "X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH": "Issuer name and serial number of candidate certificate do not match the authority key identifier of the current certificate",
+    "X509_V_ERR_KEYUSAGE_NO_CERTSIGN": "The keyUsage extension does not permit certificate signing",
+    "X509_V_ERR_APPLICATION_VERIFICATION": "Verification failure",
+);
 //@}
 
 /** @defgroup network_address_family_constants Network Address Family Constants
@@ -334,12 +334,12 @@ const AFMap = qore(get_network_address_family_map());
 
 //! mapping from network address family string codes to @ref network_address_family_constants
 const AFStrMap = (
-   "AF_INET": AF_INET,
-   "AF_INET6": AF_INET6,
-   "AF_UNIX": AF_UNIX,
-   "AF_LOCAL": AF_UNIX,
-   "AF_UNSPEC": AF_UNSPEC,
-   );
+    "AF_INET": AF_INET,
+    "AF_INET6": AF_INET6,
+    "AF_UNIX": AF_UNIX,
+    "AF_LOCAL": AF_UNIX,
+    "AF_UNSPEC": AF_UNSPEC,
+);
 
 //@}
 
@@ -483,7 +483,7 @@ qclass Socket [public_members=*string source,*string source_host; flags=unsetPub
     @code{.py} Socket sock(); @endcode
  */
 Socket::constructor() {
-   self->setPrivate(CID_SOCKET, new QoreSocketObject);
+    self->setPrivate(CID_SOCKET, new QoreSocketObject);
 }
 
 //! Creates a new Socket object, not based on the source being copied
@@ -491,7 +491,7 @@ Socket::constructor() {
     @code{.py} Socket newsock = sock.copy(); @endcode
  */
 Socket::copy() {
-   self->setPrivate(CID_SOCKET, new QoreSocketObject);
+    self->setPrivate(CID_SOCKET, new QoreSocketObject);
 }
 
 //! Connects to a remote port (if the string has a format "host:port") or UNIX domain socket file with an optional timeout value with a millisecond resolution
@@ -521,7 +521,7 @@ sock.connect("/tmp/socket");@endcode
     @see Socket::connectUNIX(), Socket::connectUNIX(), Socket::connectSSL(), Socket::connectINETSSL(), and Socket::connectUNIXSSL()
  */
 nothing Socket::connect(string target, timeout timeout_ms = -1) {
-   s->connect(target->getBuffer(), timeout_ms, xsink);
+    s->connect(target->getBuffer(), timeout_ms, xsink);
 }
 
 //! Connects to the given host and port with an optional timeout value with a millisecond resolution
@@ -550,7 +550,7 @@ sock.connectINET("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);@endcode
     @see Socket::connect(), Socket::connectUNIX(), Socket::connectSSL(), Socket::connectINETSSL(), and Socket::connectUNIXSSL()
  */
 nothing Socket::connectINET(string host, softstring service, timeout timeout_ms = -1, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
-   s->connectINET2(host->getBuffer(), service->getBuffer(), family, socktype, protocol, timeout_ms, xsink);
+    s->connectINET2(host->getBuffer(), service->getBuffer(), family, socktype, protocol, timeout_ms, xsink);
 }
 
 //! Connects to a UNIX domain socket file
@@ -574,7 +574,7 @@ sock.connectUNIX("/tmp/socket"); @endcode
     @note UNIX domain sockets are not available on native Windows ports
  */
 nothing Socket::connectUNIX(string path, softint socktype = SOCK_STREAM, softint protocol = 0) {
-   s->connectUNIX(path->getBuffer(), socktype, protocol, xsink);
+    s->connectUNIX(path->getBuffer(), socktype, protocol, xsink);
 }
 
 //! Connects to a remote socket and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution
@@ -607,7 +607,7 @@ sock.connectSSL("/tmp/socket"); @endcode
     @see Socket::connect(), Socket::connectUNIX(), Socket::connectUNIXSSL(), Socket::connectINETSSL(), and Socket::connectINET()
  */
 nothing Socket::connectSSL(string target, timeout timeout_ms = -1) {
-   s->connectSSL(target->getBuffer(), timeout_ms, xsink);
+    s->connectSSL(target->getBuffer(), timeout_ms, xsink);
 }
 
 //! Connects to the given host and port and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution
@@ -637,7 +637,7 @@ sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s); @endcod
     @see Socket::connect(), Socket::connectUNIX(), Socket::connectSSL(), Socket::connectINET(), and Socket::connectUNIXSSL()
  */
 nothing Socket::connectINETSSL(string host, softstring service, timeout timeout_ms = -1, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
-   s->connectINET2SSL(host->getBuffer(), service->getBuffer(), family, socktype, protocol, timeout_ms, xsink);
+    s->connectINET2SSL(host->getBuffer(), service->getBuffer(), family, socktype, protocol, timeout_ms, xsink);
 }
 
 //! Connects to the given UNIX domain socket file and attempts to establish a TLS/SSL connection
@@ -662,7 +662,7 @@ sock.connectUNIXSSL("/tmp/socket"); @endcode
     @note UNIX domain sockets are not available on native Windows ports
  */
 nothing Socket::connectUNIXSSL(string path, softint socktype = SOCK_STREAM, softint protocol = 0) {
-   s->connectUNIXSSL(path->getBuffer(), socktype, protocol, xsink);
+    s->connectUNIXSSL(path->getBuffer(), socktype, protocol, xsink);
 }
 
 //! Opens and binds the socket to a port, interface and port (if the bind_to string has a format "host:port"), or UNIX domain socket file.
@@ -687,7 +687,7 @@ if (sock.bind("/tmp/my-socket", True))
     @note UNIX domain sockets are not available on native Windows ports
 */
 int Socket::bind(string str, softbool reuseaddr = False) {
-   return s->bind(str->getBuffer(), reuseaddr);
+    return s->bind(str->getBuffer(), reuseaddr);
 }
 
 //! Opens and binds the socket to an INET port on all interfaces
@@ -706,7 +706,7 @@ if (sock.bind(80, True))
     @see Socket::bindINET() and Socket::bindUNIX()
 */
 int Socket::bind(int port, softbool reuseaddr = False) {
-   return s->bind(port, reuseaddr);
+    return s->bind(port, reuseaddr);
 }
 
 //! Opens and binds the socket to the given UNIX domain socket file as given by the filename argument. If any errors occur, an exception is thrown
@@ -727,7 +727,7 @@ sock.bindUNIX("/tmp/socket"); @endcode
     @note UNIX domain sockets are not available on native Windows ports
  */
 nothing Socket::bindUNIX(string path, softint socktype = SOCK_STREAM, softint protocol = 0) {
-   s->bindUNIX(path->getBuffer(), socktype, protocol, xsink);
+    s->bindUNIX(path->getBuffer(), socktype, protocol, xsink);
 }
 
 //! Opens and binds the socket to the given IPv4 or IPv6 interface (or if no interface is given, then to all interfaces on the local system) and port (the port number will be derived from the service name if a numeric port number is not given)
@@ -759,18 +759,23 @@ sock.bindINET("fe80::21c:42ff:fe00:8", 1001, True); @endcode
 
     @see Socket::bind() and Socket::bindUNIX()
  */
-nothing Socket::bindINET(*string iface, *softstring service, softbool reuseaddr = False, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
-   if ((!iface || iface->empty())
-       && (!service || service->empty()))
-      return xsink->raiseException("SOCKET-BIND-ERROR", "both interace (first parameter) and service (second parameter) were either not present or empty strings; at least one of the first 2 parameters must be present for a successful call to Socket::bindINET()");
+nothing Socket::bindINET(*string iface, *softstring service, softbool reuseaddr = False, softint family = AF_UNSPEC,
+        softint socktype = SOCK_STREAM, softint protocol = 0) {
+    if ((!iface || iface->empty())
+        && (!service || service->empty()))
+        return xsink->raiseException("SOCKET-BIND-ERROR", "both interace (first parameter) and service (second "
+            "parameter) were either not present or empty strings; at least one of the first 2 parameters must be "
+            "present for a successful call to Socket::bindINET()");
 
-   s->bindINET(iface ? iface->getBuffer() : 0, service ? service->getBuffer() : 0, reuseaddr, family, socktype, protocol, xsink);
+    s->bindINET(iface ? iface->getBuffer() : nullptr, service ? service->getBuffer() : nullptr, reuseaddr, family,
+        socktype, protocol, xsink);
 }
 
 //! Accepts connections on a listening socket
 /** Accepts connections on a listening socket; if any errors occur, an exception is thrown.
 
-    The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
+    The new Socket object returned will have the same character encoding as the current object. Once a new connection
+    has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
 
     @par Example:
     @code{.py} Socket new_socket = sock.accept(); @endcode
@@ -783,21 +788,22 @@ nothing Socket::bindINET(*string iface, *softstring service, softbool reuseaddr 
     @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
  */
 Socket Socket::accept() {
-   QoreSocketObject *n = s->accept(-1, xsink);
-   if (!n) {
-      assert(*xsink);
-      return QoreValue();
-   }
+    QoreSocketObject *n = s->accept(-1, xsink);
+    if (!n) {
+        assert(*xsink);
+        return QoreValue();
+    }
 
-   assert(n);
+    assert(n);
 
-   // ensure that a socket object is returned (and not a subclass)
-   QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
+    // ensure that a socket object is returned (and not a subclass)
+    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
-   // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   my_socket_priv::setAccept(*n, ns);
+    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should
+    // be used in the future)
+    my_socket_priv::setAccept(*n, ns);
 
-   return ns;
+    return ns;
 }
 
 //! Accepts connections on a listening socket (see Socket::listen()) accepting a timeout value with a millisecond resolution
@@ -818,28 +824,31 @@ Socket Socket::accept() {
     @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
  */
 *Socket Socket::accept(timeout timeout_ms) {
-   QoreSocketObject *n = s->accept(timeout_ms, xsink);
-   if (!n)
-      return QoreValue();
+    QoreSocketObject *n = s->accept(timeout_ms, xsink);
+    if (!n)
+        return QoreValue();
 
-   // ensure that a socket object is returned (and not a subclass)
-   QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
+    // ensure that a socket object is returned (and not a subclass)
+    QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
-   // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   my_socket_priv::setAccept(*n, ns);
+    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
+    my_socket_priv::setAccept(*n, ns);
 
-   return ns;
+    return ns;
 }
 
 //! Accepts connections on a listening socket and attempts to negotiate a TLS/SSL connection
-/** Accepts connections on a listening socket and attempts to negotiate a TLS/SSL connection; if any errors occur, an exception is thrown.
+/** Accepts connections on a listening socket and attempts to negotiate a TLS/SSL connection; if any errors occur, an
+    exception is thrown.
 
-    The new Socket object returned will have the same character encoding as the current object. Once a new connection has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
+    The new Socket object returned will have the same character encoding as the current object. Once a new connection
+    has been accepted, call Socket::getPeerInfo() to get information about the remote socket.
 
     @par Example:
     @code{.py} Socket new_socket = sock.acceptSSL(); @endcode
 
-    @return When a new connection is accepted and a TLS/SSL session has been successfully negotiated, a new Socket object is returned for the new connectio
+    @return When a new connection is accepted and a TLS/SSL session has been successfully negotiated, a new Socket
+    object is returned for the new connectio
 
     @throw SOCKET-NOT-OPEN The socket is not bound
     @throw SOCKET-ACCEPT-ERROR Error in accepting connection
@@ -856,7 +865,8 @@ Socket Socket::acceptSSL() {
     // ensure that a socket object is returned (and not a subclass)
     QoreObject *ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
-    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
+    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be
+    // used in the future)
     my_socket_priv::setAccept(*n, ns);
 
     return ns;
@@ -880,17 +890,17 @@ Socket Socket::acceptSSL() {
     @see Socket::acceptSSL(), Socket::listen(), Socket::getPeerInfo()
  */
 *Socket Socket::acceptSSL(timeout timeout_ms) {
-   QoreSocketObject* n = s->acceptSSL(timeout_ms, xsink);
-   if (!n)
-      return QoreValue();
+    QoreSocketObject* n = s->acceptSSL(timeout_ms, xsink);
+    if (!n)
+        return QoreValue();
 
-   // ensure that a socket object is returned (and not a subclass)
-   QoreObject* ns = new QoreObject(QC_SOCKET, getProgram(), n);
+    // ensure that a socket object is returned (and not a subclass)
+    QoreObject* ns = new QoreObject(QC_SOCKET, getProgram(), n);
 
-   // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
-   my_socket_priv::setAccept(*n, ns);
+    // save backwards-compatible peer parameters as members in new object (deprecated: Socket::getPeerInfo() should be used in the future)
+    my_socket_priv::setAccept(*n, ns);
 
-   return ns;
+    return ns;
 }
 
 //! Listens for connections on a bound socket; sets the socket in a listening state
@@ -908,7 +918,7 @@ Socket Socket::acceptSSL() {
     @since %Qore 0.8.8 the \a backlog parameter was added
  */
 int Socket::listen(int backlog = 20) {
-   return checkOpenResult(s->listen((int)backlog), "listen", xsink);
+    return checkOpenResult(s->listen((int)backlog), "listen", xsink);
 }
 
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
@@ -940,7 +950,7 @@ sock.send(data, 20s);
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
 int Socket::send(binary bin, timeout timeout_ms = -1) {
-   return s->send(bin, timeout_ms, xsink);
+    return s->send(bin, timeout_ms, xsink);
 }
 
 //! Sends string data over the socket; string data is converted to the socket's encoding if necessary; if any errors occur, an exception is thrown
@@ -1004,7 +1014,7 @@ sock.sendBinary(str);
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
 int Socket::sendBinary(string str, timeout timeout_ms = -1) {
-   return s->send(str->c_str(), str->strlen(), timeout_ms, xsink);
+    return s->send(str->c_str(), str->strlen(), timeout_ms, xsink);
 }
 
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
@@ -1035,7 +1045,7 @@ sock.sendBinary2(data);
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
 int Socket::sendBinary(binary bin, timeout timeout_ms = -1) {
-   return s->send(bin, timeout_ms, xsink);
+    return s->send(bin, timeout_ms, xsink);
 }
 
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
@@ -1064,7 +1074,7 @@ sock.send2(data);
     @since %Qore 0.8.4
  */
 nothing Socket::send2(binary bin, timeout timeout_ms = -1) {
-   s->send(bin, timeout_ms, xsink);
+    s->send(bin, timeout_ms, xsink);
 }
 
 //! Sends string data over the socket; string data is converted to the socket's encoding if necessary; if any errors occur, an exception is thrown
@@ -1122,7 +1132,7 @@ sock.sendBinary2(str);
     @since %Qore 0.8.4
  */
 nothing Socket::sendBinary2(string str, timeout timeout_ms = -1) {
-   s->send(str->getBuffer(), str->strlen(), timeout_ms, xsink);
+    s->send(str->getBuffer(), str->strlen(), timeout_ms, xsink);
 }
 
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
@@ -1150,7 +1160,7 @@ sock.sendBinary2(data);
     @since %Qore 0.8.4
  */
 nothing Socket::sendBinary2(binary bin, timeout timeout_ms = -1) {
-   s->send(bin, timeout_ms, xsink);
+    s->send(bin, timeout_ms, xsink);
 }
 
 //! Reads data from an @ref InputStream and sends the bytes over the socket
@@ -1175,9 +1185,10 @@ sock.sendFromInputStream(input_stream, -1); # write all data available
 
     @since %Qore 0.8.13
  */
-nothing Socket::sendFromInputStream(Qore::InputStream[InputStream] input_stream, softint size = -1, timeout timeout_ms = -1) {
-   SimpleRefHolder<InputStream> isHolder(input_stream);
-   s->sendFromInputStream(input_stream, size, timeout_ms, xsink);
+nothing Socket::sendFromInputStream(Qore::InputStream[InputStream] input_stream, softint size = -1,
+        timeout timeout_ms = -1) {
+    SimpleRefHolder<InputStream> isHolder(input_stream);
+    s->sendFromInputStream(input_stream, size, timeout_ms, xsink);
 }
 
 //! Sends a 1-byte integer over the socket
@@ -1205,7 +1216,7 @@ sock.sendi1(val, 20s);
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
 int Socket::sendi1(softint i = 0, timeout timeout_ms = -1) {
-   return s->sendi1((char)i, timeout_ms, xsink);
+    return s->sendi1((char)i, timeout_ms, xsink);
 }
 
 //! Sends a 2-byte (16-bit) integer in big-endian format (network byte order) over the socket
@@ -1233,7 +1244,7 @@ sock.sendi2(val, 20s);
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
 int Socket::sendi2(softint i = 0, timeout timeout_ms = -1) {
-   return s->sendi2((short)i, timeout_ms, xsink);
+    return s->sendi2((short)i, timeout_ms, xsink);
 }
 
 //! Sends a 4-byte (32-bit) integer in big-endian format (network byte order) over the socket
@@ -1261,7 +1272,7 @@ sock.sendi4(val, 20s);
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
 int Socket::sendi4(softint i = 0, timeout timeout_ms = -1) {
-   return s->sendi4((int)i, timeout_ms, xsink);
+    return s->sendi4((int)i, timeout_ms, xsink);
 }
 
 //! Sends an 8-byte (64-bit) integer in big-endian format (network byte order) over the socket
@@ -1289,7 +1300,7 @@ sock.sendi8(val, 20s);
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
 int Socket::sendi8(softint i = 0, timeout timeout_ms = -1) {
-   return s->sendi8(i, timeout_ms, xsink);
+    return s->sendi8(i, timeout_ms, xsink);
 }
 
 //! Sends a 2-byte (16-bit) integer in little-endian format over the socket
@@ -1317,7 +1328,7 @@ sock.sendi2LSB(val, 20s);
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
 int Socket::sendi2LSB(softint i = 0, timeout timeout_ms = -1) {
-   return s->sendi2LSB((short)i, timeout_ms, xsink);
+    return s->sendi2LSB((short)i, timeout_ms, xsink);
 }
 
 //! Sends a 4-byte (32-bit) integer in little-endian format over the socket
@@ -1345,7 +1356,7 @@ sock.sendi4LSB(val, 20s);
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
 int Socket::sendi4LSB(softint i = 0, timeout timeout_ms = -1) {
-   return s->sendi4LSB((int)i, timeout_ms, xsink);
+    return s->sendi4LSB((int)i, timeout_ms, xsink);
 }
 
 //! Sends an 8-byte (64-bit) integer in little-endian format over the socket
@@ -1373,7 +1384,7 @@ sock.sendi8LSB(val, 20s);
     made because it was not possible to catch SSL errors with this method with the previous implementation
  */
 int Socket::sendi8LSB(softint i = 0, timeout timeout_ms = -1) {
-   return s->sendi8LSB(i, timeout_ms, xsink);
+    return s->sendi8LSB(i, timeout_ms, xsink);
 }
 
 //! Receives data from the socket and returns a string tagged with the Socket's character encoding
@@ -1403,11 +1414,11 @@ string data = sock.recv(-1); # read all data available
     - Socket::recvBinary()
  */
 string Socket::recv(softint size = 0, timeout timeout_ms = -1) {
-   if (size > 0)
-      return s->recv(size, timeout_ms, xsink);
+    if (size > 0)
+        return s->recv(size, timeout_ms, xsink);
 
-   QoreStringNode* str = s->recv(timeout_ms, xsink);
-   return !*xsink && !str ? new QoreStringNode : str;
+    QoreStringNode* str = s->recv(timeout_ms, xsink);
+    return !*xsink && !str ? new QoreStringNode : str;
 }
 
 //! Receives data from the socket and returns a binary object
@@ -1435,11 +1446,11 @@ binary data = sock.recvBinary(-1); # read all data available
     @see Socket::recv()
  */
 binary Socket::recvBinary(softint size = 0, timeout timeout_ms = -1) {
-   if (size > 0)
-      return s->recvBinary(size, timeout_ms, xsink);
+    if (size > 0)
+        return s->recvBinary(size, timeout_ms, xsink);
 
-   BinaryNode* str = s->recvBinary(timeout_ms, xsink);
-   return !*xsink && !str ? new BinaryNode : str;
+    BinaryNode* str = s->recvBinary(timeout_ms, xsink);
+    return !*xsink && !str ? new BinaryNode : str;
 }
 
 //! Receives data from the socket and writes the bytes to an @ref OutputStream
@@ -1467,8 +1478,8 @@ sock.recvToOutputStream(os, -1); # read all data available
     @since %Qore 0.8.13
  */
 nothing Socket::recvToOutputStream(Qore::OutputStream[OutputStream] os, softint size = -1, timeout timeout_ms = -1) {
-   SimpleRefHolder<OutputStream> osHolder(os);
-   s->recvToOutputStream(os, size, timeout_ms, xsink);
+    SimpleRefHolder<OutputStream> osHolder(os);
+    s->recvToOutputStream(os, size, timeout_ms, xsink);
 }
 
 //! Receives a 1-byte signed integer from the socket
@@ -1495,9 +1506,9 @@ int val = sock.recvi1();
     @see Socket::recvu1()
  */
 int Socket::recvi1(timeout timeout_ms = -1) {
-   char b;
-   s->recvi1(timeout_ms, &b, xsink);
-   return b;
+    char b;
+    s->recvi1(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives a 2-byte (16-bit) signed integer in big-endian format (network byte order) from the socket
@@ -1524,9 +1535,9 @@ int val = sock.recvi2();
     @see Socket::recvu2(), Socket::recvi2LSB(), Socket::recvu2LSB()
  */
 int Socket::recvi2(timeout timeout_ms = -1) {
-   short b;
-   s->recvi2(timeout_ms, &b, xsink);
-   return b;
+    short b;
+    s->recvi2(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives a 4-byte (32-bit) signed integer in big-endian format (network byte order) from the socket
@@ -1553,9 +1564,9 @@ int val = sock.recvi4();
     @see Socket::recvu4(), Socket::recvi4LSB(), Socket::recvu4LSB()
  */
 int Socket::recvi4(timeout timeout_ms = -1) {
-   int b;
-   s->recvi4(timeout_ms, &b, xsink);
-   return b;
+    int b;
+    s->recvi4(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives an 8-byte (64-bit) signed integer in big-endian format (network byte order) from the socket
@@ -1582,9 +1593,9 @@ int val = sock.recvi8();
     @see Socket::recvi8LSB()
  */
 int Socket::recvi8(timeout timeout_ms = -1) {
-   int64 b;
-   s->recvi8(timeout_ms, &b, xsink);
-   return b;
+    int64 b;
+    s->recvi8(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives a 2-byte (16-bit) signed integer in little-endian format from the socket
@@ -1611,9 +1622,9 @@ int val = sock.recvi2LSB();
     @see Socket::recvi2(), Socket::recvu2(), Socket::recvu2LSB()
  */
 int Socket::recvi2LSB(timeout timeout_ms = -1) {
-   short b;
-   s->recvi2LSB(timeout_ms, &b, xsink);
-   return b;
+    short b;
+    s->recvi2LSB(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives a 4-byte (32-bit) signed integer in little-endian format from the socket
@@ -1640,9 +1651,9 @@ int val = sock.recvi4LSB();
     @see Socket::recvi4(), Socket::recvu4(), Socket::recvu4LSB()
  */
 int Socket::recvi4LSB(timeout timeout_ms = -1) {
-   int b;
-   s->recvi4LSB(timeout_ms, &b, xsink);
-   return b;
+    int b;
+    s->recvi4LSB(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives an 8-byte (64-bit) signed integer in little-endian format from the socket
@@ -1669,9 +1680,9 @@ int val = sock.recvi8LSB();
     @see Socket::recvi8()
  */
 int Socket::recvi8LSB(timeout timeout_ms = -1) {
-   int64 b;
-   s->recvi8LSB(timeout_ms, &b, xsink);
-   return b;
+    int64 b;
+    s->recvi8LSB(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives a 1-byte unsigned integer from the socket
@@ -1698,9 +1709,9 @@ int val = sock.recvu1();
     @see Socket::recvi1()
  */
 int Socket::recvu1(timeout timeout_ms = -1) {
-   unsigned char b;
-   s->recvu1(timeout_ms, &b, xsink);
-   return b;
+    unsigned char b;
+    s->recvu1(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives a 2-byte (16-bit) unsigned integer in big-endian format (network byte order) from the socket
@@ -1727,9 +1738,9 @@ int val = sock.recvu2();
     @see Socket::recvi2(), Socket::recvi2LSB(), Socket::recvu2LSB()
  */
 int Socket::recvu2(timeout timeout_ms = -1) {
-   unsigned short b;
-   s->recvu2(timeout_ms, &b, xsink);
-   return b;
+    unsigned short b;
+    s->recvu2(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives a 4-byte (32-bit) unsigned integer in big-endian format (network byte order) from the socket
@@ -1756,9 +1767,9 @@ int val = sock.recvu4();
     @see Socket::recvi4(), Socket::recvi4LSB(), Socket::recvu4LSB()
  */
 int Socket::recvu4(timeout timeout_ms = -1) {
-   unsigned int b;
-   s->recvu4(timeout_ms, &b, xsink);
-   return b;
+    unsigned int b;
+    s->recvu4(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives a 2-byte (16-bit) unsigned integer in little-endian format from the socket
@@ -1785,9 +1796,9 @@ int val = sock.recvi2LSB();
     @see Socket::recvi2(), Socket::recvu2(), Socket::recvi2LSB()
  */
 int Socket::recvu2LSB(timeout timeout_ms = -1) {
-   unsigned short b;
-   s->recvu2LSB(timeout_ms, &b, xsink);
-   return b;
+    unsigned short b;
+    s->recvu2LSB(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Receives a 4-byte (32-bit) unsigned integer in little-endian format from the socket
@@ -1814,9 +1825,9 @@ int val = sock.recvu4LSB();
     @see Socket::recvi4(), Socket::recvu4(), Socket::recvi4LSB()
  */
 int Socket::recvu4LSB(timeout timeout_ms = -1) {
-   unsigned b;
-   s->recvu4LSB(timeout_ms, &b, xsink);
-   return b;
+    unsigned b;
+    s->recvu4LSB(timeout_ms, &b, xsink);
+    return b;
 }
 
 //! Sends an HTTP message with a method and user-defined headers given as a hash and an optional message body
@@ -1855,7 +1866,8 @@ sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), xml)
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
-nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash<auto> headers, string body, *reference<hash> info, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash<auto> headers, string body,
+        *reference<hash> info, timeout timeout_ms = -1) {
     OptHashRefHelper ohrh(info, xsink);
     s->sendHTTPMessage(xsink, *ohrh, method->c_str(), path->c_str(), http_version->c_str(), headers, *body,
         QORE_SOURCE_SOCKET, timeout_ms);
@@ -1894,7 +1906,8 @@ sock.sendHTTPMessage("POST", "/RPC2", "1.1", ("Content-Type" : "text/xml"), xml)
 
     @see Socket::sendHTTPResponse(), Socket::readHTTPHeader()
  */
-nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash<auto> headers, *binary body, *reference<hash<auto>> info, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPMessage(string method, string path, string http_version, hash<auto> headers, *binary body,
+        *reference<hash<auto>> info, timeout timeout_ms = -1) {
     OptHashRefHelper ohrh(info, xsink);
     s->sendHTTPMessage(xsink, *ohrh, method->c_str(), path->c_str(), http_version->c_str(), headers,
         body ? body->getPtr() : nullptr, body ? body->size() : 0, QORE_SOURCE_SOCKET, timeout_ms);
@@ -1929,7 +1942,8 @@ sock.sendHTTPMessageWithCallback(send_callback, "POST", "/RPC2", "1.1", ("Conten
 
     @since %Qore 0.8.10
  */
-nothing Socket::sendHTTPMessageWithCallback(code scb, string method, string path, string http_version, hash<auto> headers, *reference<hash<auto>> info, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPMessageWithCallback(code scb, string method, string path, string http_version,
+        hash<auto> headers, *reference<hash<auto>> info, timeout timeout_ms = -1) {
     OptHashRefHelper ohrh(info, xsink);
     s->sendHTTPMessageWithCallback(xsink, *ohrh, method->c_str(), path->c_str(), http_version->c_str(), headers, *scb,
         QORE_SOURCE_SOCKET, timeout_ms);
@@ -1960,7 +1974,8 @@ sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"));
     @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
     @throw SOCKET-SEND-ERROR send failed
  */
-nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash<auto> headers, string body, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash<auto> headers,
+        string body, timeout timeout_ms = -1) {
     if (check_response_code(status_code, xsink)) {
         return QoreValue();
     }
@@ -2008,7 +2023,8 @@ sock.sendHTTPResponse(200, "OK", "1.1", ("Connection":"Keep-Alive"));
 
     @since %Qore 0.9.4
  */
-nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash<auto> headers, string body, *reference<hash<auto>> info, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash<auto> headers,
+        string body, *reference<hash<auto>> info, timeout timeout_ms = -1) {
     if (check_response_code(status_code, xsink)) {
         return QoreValue();
     }
@@ -2048,7 +2064,8 @@ sock.sendHTTPResponse(200, "OK", "1.1", {"Connection":"Keep-Alive"}, bin);
     @throw SOCKET-TIMEOUT the data requested was not received in the timeout period
     @throw SOCKET-SEND-ERROR send failed
 */
-nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash<auto> headers, *binary body, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash<auto> headers,
+        *binary body, timeout timeout_ms = -1) {
     if (check_response_code(status_code, xsink)) {
         return QoreValue();
     }
@@ -2092,7 +2109,8 @@ sock.sendHTTPResponse(200, "OK", "1.1", {"Connection":"Keep-Alive"}, bin);
 
     @since %Qore 0.9.4
 */
-nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash<auto> headers, *binary body, *reference<hash<auto>> info, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash<auto> headers,
+        *binary body, *reference<hash<auto>> info, timeout timeout_ms = -1) {
     if (check_response_code(status_code, xsink)) {
         return QoreValue();
     }
@@ -2145,7 +2163,8 @@ sock.sendHTTPResponse(200, "OK", "1.1", {"Connection": "Keep-Alive", "Transfer-E
 
     @since %Qore 0.9.4
 */
-nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash<auto> headers, Qore::InputStream[InputStream] input_stream, int max_chunk_size = 4096, *reference<hash<auto>> info, timeout timeout_ms = -1, *code tcb) {
+nothing Socket::sendHTTPResponse(softint status_code, string status_desc, string http_version, hash<auto> headers,
+        Qore::InputStream[InputStream] input_stream, int max_chunk_size = 4096, *reference<hash<auto>> info, timeout timeout_ms = -1, *code tcb) {
     SimpleRefHolder<InputStream> isHolder(input_stream);
     if (check_response_code(status_code, xsink)) {
         return QoreValue();
@@ -2197,7 +2216,8 @@ sock.sendHTTPResponseWithCallback(send_callback, 200, "OK", "1.1", {"Connection"
 
     @since %Qore 0.8.10
  */
-nothing Socket::sendHTTPResponseWithCallback(code scb, softint status_code, string status_desc, string http_version, hash<auto> headers, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPResponseWithCallback(code scb, softint status_code, string status_desc, string http_version,
+        hash<auto> headers, timeout timeout_ms = -1) {
     if (check_response_code(status_code, xsink)) {
         return QoreValue();
     }
@@ -2245,7 +2265,8 @@ sock.sendHTTPResponseWithCallback(send_callback, 200, "OK", "1.1", {"Connection"
 
     @since %Qore 0.9.4
 */
-nothing Socket::sendHTTPResponseWithCallback(code scb, softint status_code, string status_desc, string http_version, hash<auto> headers, *reference<hash<auto>> info, timeout timeout_ms = -1) {
+nothing Socket::sendHTTPResponseWithCallback(code scb, softint status_code, string status_desc, string http_version,
+        hash<auto> headers, *reference<hash<auto>> info, timeout timeout_ms = -1) {
     if (check_response_code(status_code, xsink)) {
         return QoreValue();
     }
@@ -2287,10 +2308,12 @@ sock.sendHTTPChunkedBodyFromInputStream(inputStream);
 
     @since %Qore 0.8.13
  */
-nothing Socket::sendHTTPChunkedBodyFromInputStream(Qore::InputStream[InputStream] input_stream, int max_chunk_size = 4096, timeout timeout_ms = -1, *code tcb) {
+nothing Socket::sendHTTPChunkedBodyFromInputStream(Qore::InputStream[InputStream] input_stream, int max_chunk_size = 4096,
+        timeout timeout_ms = -1, *code tcb) {
     SimpleRefHolder<InputStream> isHolder(input_stream);
     if (max_chunk_size < 1) {
-        xsink->raiseException("HTTP-CHUNK-ERROR", "the max chunk size must be greater than 0; value given is: " QLLD, max_chunk_size);
+        xsink->raiseException("HTTP-CHUNK-ERROR", "the max chunk size must be greater than 0; value given is: " QLLD,
+            max_chunk_size);
         return QoreValue();
     }
     s->sendHTTPChunkedBodyFromInputStream(input_stream, max_chunk_size, timeout_ms, tcb, xsink);
@@ -2373,8 +2396,8 @@ hash<auto> ans = sock.readHTTPHeader(10s);
     - %Qore 0.9.3 added the \c "headers-raw" key in the output \c info hash
  */
 hash<auto> Socket::readHTTPHeader(timeout timeout_ms = -1, *reference<hash<auto>> info) {
-   OptHashRefHelper ohrh(info, xsink);
-   return s->readHTTPHeader(xsink, *ohrh, timeout_ms);
+    OptHashRefHelper ohrh(info, xsink);
+    return s->readHTTPHeader(xsink, *ohrh, timeout_ms);
 }
 
 //! Retuns a string representing the data in the HTTP header read (reads until \c "\r\n\r\n")
@@ -2402,7 +2425,7 @@ string str = sock.readHTTPHeaderString(10s);
     @since %Qore 0.8.8
  */
 string Socket::readHTTPHeaderString(timeout timeout_ms = -1) {
-   return s->readHTTPHeaderString(xsink, timeout_ms);
+    return s->readHTTPHeaderString(xsink, timeout_ms);
 }
 
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
@@ -2428,8 +2451,8 @@ hash<auto> ans = sock.readHTTPChunkedBody(20s);
     @throw READ-HTTP-CHUNK-ERROR negative value given for chunk size by server
  */
 hash<auto> Socket::readHTTPChunkedBody(timeout timeout_ms = -1) {
-   // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
-   return s->readHTTPChunkedBody(timeout_ms, xsink);
+    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
+    return s->readHTTPChunkedBody(timeout_ms, xsink);
 }
 
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a binary object in the \c "body" key of a hash (including footers received)
@@ -2455,8 +2478,8 @@ hash<auto> ans = sock.readHTTPChunkedBodyBinary(20s);
     @throw READ-HTTP-CHUNK-ERROR negative value given for chunk size by server
  */
 hash<auto> Socket::readHTTPChunkedBodyBinary(timeout timeout_ms = -1) {
-   // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
-   return s->readHTTPChunkedBodyBinary(timeout_ms, xsink);
+    // when rc = -3 it's a timeout, but rv will be NULL anyway, so we do nothing
+    return s->readHTTPChunkedBodyBinary(timeout_ms, xsink);
 }
 
 //! Reads in an HTTP message body sent in chunked transfer encoding, writes it in an @ref OutputStream and returns any footers received
@@ -2483,8 +2506,8 @@ hash<auto> ans = sock.readHTTPChunkedBodyToOutputStream(outputStream, 20s);
     @throw READ-HTTP-CHUNK-ERROR negative value given for chunk size by server
  */
 hash<auto> Socket::readHTTPChunkedBodyToOutputStream(Qore::OutputStream[OutputStream] os, timeout timeout_ms = -1) {
-   SimpleRefHolder<OutputStream> osHolder(os);
-   return s->readHTTPChunkedBodyToOutputStream(os, timeout_ms, xsink);
+    SimpleRefHolder<OutputStream> osHolder(os);
+    return s->readHTTPChunkedBodyToOutputStream(os, timeout_ms, xsink);
 }
 
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
@@ -2517,7 +2540,7 @@ sock.readHTTPChunkedBodyWithCallback(recv_callback, 20s);
     @since %Qore 0.8.10
  */
 Socket::readHTTPChunkedBodyWithCallback(code rcb, timeout timeout_ms = -1) {
-   s->readHTTPChunkedBodyWithCallback(*rcb, self, timeout_ms, xsink);
+    s->readHTTPChunkedBodyWithCallback(*rcb, self, timeout_ms, xsink);
 }
 
 //! Reads in an HTTP message body sent in chunked transfer encoding and returns it with any footers received as a string in the \c "body" key of a hash (including footers received)
@@ -2550,7 +2573,7 @@ sock.readHTTPChunkedBodyBinaryWithCallback(recv_callback, 20s);
     @since %Qore 0.8.10
  */
 Socket::readHTTPChunkedBodyBinaryWithCallback(code rcb, timeout timeout_ms = -1) {
-   s->readHTTPChunkedBodyBinaryWithCallback(*rcb, self, timeout_ms, xsink);
+    s->readHTTPChunkedBodyBinaryWithCallback(*rcb, self, timeout_ms, xsink);
 }
 
 //! Closes an open socket
@@ -2568,7 +2591,7 @@ if (sock.close())
     @return 0 for success, -1 for error; in this case check errno() for the error number
  */
 int Socket::close() {
-   return s->close();
+    return s->close();
 }
 
 //! Ensures that a socket will be closed even if the file descriptor is shared with other processes (for example, after a call to fork())
@@ -2583,7 +2606,7 @@ if (sock.shutdown())
     @return 0 for success, -1 for error; in this case check errno() for the error number
  */
 int Socket::shutdown() {
-   return s->shutdown();
+    return s->shutdown();
 }
 
 //! Shuts down the SSL connection on a secure connection
@@ -2597,7 +2620,7 @@ sock.shutdownSSL();
     @throw SOCKET-SSL-ERROR an error occurred shutting down the TLS/SSL connection
  */
 nothing Socket::shutdownSSL() {
-   s->shutdownSSL(xsink);
+    s->shutdownSSL(xsink);
 }
 
 //! Returns the port number of the socket for INET sockets
@@ -2609,7 +2632,7 @@ int port = sock.getPort();
     @return the port number for an INET connection, -1 if no INET connection has been established
  */
 int Socket::getPort() [flags=CONSTANT] {
-   return s->getPort();
+    return s->getPort();
 }
 
 //! Returns the socket file descriptor number
@@ -2621,7 +2644,7 @@ int sock = sock.getSocket();
     @return the socket file descriptor number or -1 if the socket is not open
  */
 int Socket::getSocket() [flags=CONSTANT] {
-   return s->getSocket();
+    return s->getSocket();
 }
 
 //! sets the send timeout as a socket option
@@ -2638,7 +2661,7 @@ if (sock.setSendTimeout(20s))
     @return 0 for success, -1 for error (check errno() for the actual error in this case)
  */
 int Socket::setSendTimeout(timeout timeout_ms) {
-   return s->setSendTimeout(timeout_ms);
+    return s->setSendTimeout(timeout_ms);
 }
 
 //! sets the receive timeout as a socket option
@@ -2655,7 +2678,7 @@ if (sock.setRecvTimeout(20s))
     @return 0 for success, -1 for error (check errno() for the actual error in this case)
  */
 int Socket::setRecvTimeout(timeout timeout_ms) {
-   return s->setRecvTimeout(timeout_ms);
+    return s->setRecvTimeout(timeout_ms);
 }
 
 //! Returns the send timeout socket option value as an integer in milliseconds
@@ -2667,7 +2690,7 @@ int to = sock.getSendTimeout();
     @return the send timeout socket option value as an integer in milliseconds
  */
 int Socket::getSendTimeout() [flags=CONSTANT] {
-   return s->getSendTimeout();
+    return s->getSendTimeout();
 }
 
 //! Returns the receive timeout socket option value as an integer in milliseconds
@@ -2679,21 +2702,21 @@ int to = sock.getRecvTimeout();
     @return the receive timeout socket option value as an integer in milliseconds
  */
 int Socket::getRecvTimeout() [flags=CONSTANT] {
-   return s->getRecvTimeout();
+    return s->getRecvTimeout();
 }
 
 //! Returns the @ref character_encoding "character encoding" for the socket
 /** @return the @ref character_encoding "character encoding" for the socket
  */
 string Socket::getEncoding() [flags=CONSTANT] {
-   return new QoreStringNode(s->getEncoding()->getCode());
+    return new QoreStringNode(s->getEncoding()->getCode());
 }
 
 //! Sets the @ref character_encoding "character encoding" for the socket
 /** @param encoding the @ref character_encoding "character encoding" for the socket
  */
 nothing Socket::setEncoding(string encoding) {
-   s->setEncoding(QEM.findCreate(encoding));
+    s->setEncoding(QEM.findCreate(encoding));
 }
 
 //! Returns the @ref character_encoding "character encoding" for the socket
@@ -2701,14 +2724,15 @@ nothing Socket::setEncoding(string encoding) {
     @return the @ref character_encoding "character encoding" for the socket
  */
 string Socket::getCharset() [flags=CONSTANT] {
-   return new QoreStringNode(s->getEncoding()->getCode());
+    return new QoreStringNode(s->getEncoding()->getCode());
 }
+
 //! Sets the @ref character_encoding "character encoding" for the socket
 /** A method synonym for Socket::setEncoding(), kept for backwards-compatibility
     @param encoding The @ref character_encoding "character encoding" for the socket
  */
 nothing Socket::setCharset(string encoding) {
-   s->setEncoding(QEM.findCreate(encoding));
+    s->setEncoding(QEM.findCreate(encoding));
 }
 
 //! Returns @ref True or @ref False depending on whether there is data to be read on the socket
@@ -2727,7 +2751,7 @@ bool b = sock.isDataAvailable();
     @throw SOCKET-CLOSED The remote end closed the connection without sending any data
  */
 bool Socket::isDataAvailable(timeout timeout_ms = 0) {
-   return s->isDataAvailable(xsink, (int)timeout_ms);
+    return s->isDataAvailable(xsink, (int)timeout_ms);
 }
 
 //! Returns @ref True or @ref False depending on whether all the data has been written to the socket
@@ -2746,7 +2770,7 @@ bool b = sock.isWriteFinished();
     @throw SOCKET-CLOSED The remote end closed the connection without sending any data
  */
 bool Socket::isWriteFinished(timeout timeout_ms = 0) {
-   return s->isWriteFinished(xsink, (int)timeout_ms);
+    return s->isWriteFinished(xsink, (int)timeout_ms);
 }
 
 //! Returns @ref True if the socket is open
@@ -2756,9 +2780,9 @@ bool b = sock.isOpen();
     @endcode
 
     @return @ref True if the socket is open, @ref False if not
- */
+*/
 bool Socket::isOpen() [flags=CONSTANT] {
-   return s->isOpen();
+    return s->isOpen();
 }
 
 //! Returns the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
@@ -2770,8 +2794,8 @@ bool Socket::isOpen() [flags=CONSTANT] {
     @return the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
  */
 *string Socket::getSSLCipherName() [flags=CONSTANT] {
-   const char *str = s->getSSLCipherName();
-   return str ? new QoreStringNode(str) : 0;
+    const char *str = s->getSSLCipherName();
+    return str ? new QoreStringNode(str) : 0;
 }
 
 //! Returns the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
@@ -2783,8 +2807,8 @@ bool Socket::isOpen() [flags=CONSTANT] {
     @return the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
  */
 *string Socket::getSSLCipherVersion() [flags=CONSTANT] {
-   const char *str = s->getSSLCipherVersion();
-   return str ? new QoreStringNode(str) : 0;
+    const char *str = s->getSSLCipherVersion();
+    return str ? new QoreStringNode(str) : 0;
 }
 
 //! Returns @ref True if the connection is a secure TLS/SSL connection
@@ -2796,7 +2820,7 @@ bool b = sock.isSecure();
     @return @ref True if the connection is encrypted, @ref False if not
  */
 bool Socket::isSecure() [flags=CONSTANT] {
-   return s->isSecure();
+    return s->isSecure();
 }
 
 //! Returns a string code giving the result of verifying the remote certificate or @ref nothing if an encrypted connection is not currently established
@@ -2808,8 +2832,8 @@ bool Socket::isSecure() [flags=CONSTANT] {
     @return A string code giving the result of verifying the peer's certificate. No value is returned if a secure connection has not been established.  The set of possible return values is made up of the keys of the @ref X509_VerificationReasons hash. This hash can also be used to generate a textual description of the verification result.
  */
 *string Socket::verifyPeerCertificate() [flags=CONSTANT] {
-   const char *c = getSSLCVCode(s->verifyPeerCertificate());
-   return c ? new QoreStringNode(c) : 0;
+    const char *c = getSSLCVCode(s->verifyPeerCertificate());
+    return c ? new QoreStringNode(c) : 0;
 }
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections
@@ -2821,8 +2845,8 @@ sock.setCertificate(cert);
     @param cert This must be an SSLCertificate object
  */
 nothing Socket::setCertificate(SSLCertificate[QoreSSLCertificate] cert) {
-   // pass reference from QoreObject::getReferencedPrivateData() to QoreSocketObject::setCertificate()
-   s->setCertificate(cert);
+    // pass reference from QoreObject::getReferencedPrivateData() to QoreSocketObject::setCertificate()
+    s->setCertificate(cert);
 }
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections from the PEM-encoded string representing the X.509 certificate
@@ -2834,12 +2858,12 @@ sock.setCertificate(cert_string);
     @param cert_pem the PEM-encoded string representing the X.509 certificate
  */
 nothing Socket::setCertificate(string cert_pem) {
-   SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(cert_pem, xsink));
-   if (*xsink)
-      return QoreValue();
+    SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(cert_pem, xsink));
+    if (*xsink)
+        return QoreValue();
 
-   // QoreSocketObject::setCertificate() takes over ownership of certificate reference
-   s->setCertificate(cert.release());
+    // QoreSocketObject::setCertificate() takes over ownership of certificate reference
+    s->setCertificate(cert.release());
 }
 
 //! Sets the X.509 certificate to use for negotiating encrypted connections from the DER-encoded binary object representing the X.509 certificate
@@ -2851,12 +2875,12 @@ sock.setCertificate(cert_der);
     @param cert_der the DER-encoded binary object representing the X.509 certificate
  */
 nothing Socket::setCertificate(binary cert_der) {
-   SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(cert_der, xsink));
-   if (*xsink)
-      return QoreValue();
+    SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(cert_der, xsink));
+    if (*xsink)
+        return QoreValue();
 
-   // QoreSocketObject::setCertificate() takes over ownership of certificate reference
-   s->setCertificate(cert.release());
+    // QoreSocketObject::setCertificate() takes over ownership of certificate reference
+    s->setCertificate(cert.release());
 }
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate
@@ -2868,8 +2892,8 @@ sock.setPrivateKey(key);
     @param key the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
  */
 nothing Socket::setPrivateKey(SSLPrivateKey[QoreSSLPrivateKey] key) {
-   // pass reference from QoreObject::getReferencedPrivateData() to QoreSocketObject::setPrivateKey()
-   s->setPrivateKey(key);
+    // pass reference from QoreObject::getReferencedPrivateData() to QoreSocketObject::setPrivateKey()
+    s->setPrivateKey(key);
 }
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate from a PEM-encoded string representing the private key and an optional password
@@ -2882,11 +2906,11 @@ sock.setPrivateKey(key_pem, password);
     @param pass the password for the private key, if needed
  */
 nothing Socket::setPrivateKey(string key_pem, *string pass) {
-   SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(key_pem, pass ? pass->getBuffer() : 0, xsink));
-   if (*xsink)
-      return QoreValue();
+    SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(key_pem, pass ? pass->getBuffer() : 0, xsink));
+    if (*xsink)
+        return QoreValue();
 
-   s->setPrivateKey(key.release());
+    s->setPrivateKey(key.release());
 }
 
 //! Sets the private key to use for negotiating encrypted connections along with the X.509 certificate from a DER-encoded binary object representing the private key
@@ -2898,11 +2922,11 @@ sock.setPrivateKey(key_der);
     @param key_der the DER-encoded binary object representing the private key for the X.509 certificate to use when establishing TLS/SSL encrypted connections
  */
 nothing Socket::setPrivateKey(binary key_der) {
-   SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(key_der, xsink));
-   if (*xsink)
-      return QoreValue();
+    SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(key_der, xsink));
+    if (*xsink)
+        return QoreValue();
 
-   s->setPrivateKey(key.release());
+    s->setPrivateKey(key.release());
 }
 
 //! Removes any @ref Qore::Thread::Queue "Queue" object from the Socket object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
@@ -2965,7 +2989,7 @@ if (sock.setNoDelay(True))
     @see Socket::getNoDelay()
  */
 int Socket::setNoDelay(bool nd = True) {
-   return s->setNoDelay(nd);
+    return s->setNoDelay(nd);
 }
 
 //! Returns the \c TCP_NODELAY setting for the socket
@@ -2979,7 +3003,7 @@ bool b = sock.getNoDelay();
     @see Socket::setNoDelay() for a description of the \c TCP_NODELAY setting
  */
 bool Socket::getNoDelay() [flags=CONSTANT] {
-   return s->getNoDelay();
+    return s->getNoDelay();
 }
 
 //! Returns a @ref socket_info_hash "hash of information" about the remote end for connected sockets
@@ -3000,7 +3024,7 @@ hash<auto> h = sock.getPeerInfo();
     @since %Qore 0.8.8 added the \a host_lookup parameter
  */
 hash<auto> Socket::getPeerInfo(bool host_lookup = True) {
-   return s->getPeerInfo(xsink, host_lookup);
+    return s->getPeerInfo(xsink, host_lookup);
 }
 
 //! Returns information about the local socket as a hash
@@ -3021,7 +3045,7 @@ hash<auto> h = sock.getSocketInfo();
     @since %Qore 0.8.8 added the \a host_lookup parameter
  */
 hash<auto> Socket::getSocketInfo(bool host_lookup = True) {
-   return s->getSocketInfo(xsink, host_lookup);
+    return s->getSocketInfo(xsink, host_lookup);
 }
 
 //! Upgrades a client socket connection to a TLS/SSL connection
@@ -3040,7 +3064,7 @@ sock.upgradeClientToSSL();
     @since %Qore 0.8.12 the timeout_ms parameter was added
  */
 nothing Socket::upgradeClientToSSL(timeout timeout_ms = -1) {
-   s->upgradeClientToSSL(timeout_ms, xsink);
+    s->upgradeClientToSSL(timeout_ms, xsink);
 }
 
 //! Upgrades a server socket connection to a TLS/SSL connection
@@ -3059,7 +3083,7 @@ sock.upgradeServerToSSL();
     @since %Qore 0.8.12 the timeout_ms parameter was added
  */
 nothing Socket::upgradeServerToSSL(timeout timeout_ms = -1) {
-   s->upgradeServerToSSL(timeout_ms, xsink);
+    s->upgradeServerToSSL(timeout_ms, xsink);
 }
 
 //! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
@@ -3073,7 +3097,7 @@ sock.clearWarningQueue();
     @since %Qore 0.8.9
  */
 nothing Socket::clearWarningQueue() {
-   s->clearWarningQueue(xsink);
+    s->clearWarningQueue(xsink);
 }
 
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
@@ -3110,12 +3134,14 @@ sock.setWarningQueue(5000, 5000, queue, "socket-1");
     - %Qore 0.8.12 the minimum threshold for a warning is a transfer of at least 1024 bytes, smaller transfers will not result in a warning
  */
 nothing Socket::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] queue, auto arg, timeout min_ms = 1s) {
-   ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1)
-      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+    ReferenceHolder<Queue> q(queue, xsink);
+    if (queue->getMax() != -1)
+        return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which "
+            "could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum "
+            "size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
-   // pass reference from QoreObject::getReferencedPrivateData() to function
-   s->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.refSelf(), min_ms);
+    // pass reference from QoreObject::getReferencedPrivateData() to function
+    s->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.refSelf(), min_ms);
 }
 
 //! Returns performance statistics for the socket
@@ -3138,7 +3164,7 @@ hash<auto> h = sock.getUsageInfo();
     @see Socket::clearStats()
  */
 hash<auto> Socket::getUsageInfo() [flags=CONSTANT] {
-   return s->getUsageInfo();
+    return s->getUsageInfo();
 }
 
 //! Clears performance statistics
@@ -3152,7 +3178,7 @@ sock.clearStats();
     @see Socket::getUsageInfo()
 */
 Socket::clearStats() {
-   s->clearStats();
+    s->clearStats();
 }
 
 //! returns True if the socket is still connected, and a HTTP header was read indicating chunked transfer encoding, but no chunked body has been read yet
@@ -3164,7 +3190,7 @@ bool b = sock.pendingHttpChunkedBody();
     @since %Qore 0.8.10
 */
 bool Socket::pendingHttpChunkedBody() {
-   return s->pendingHttpChunkedBody();
+    return s->pendingHttpChunkedBody();
 }
 
 //! sets the SSL verification mode

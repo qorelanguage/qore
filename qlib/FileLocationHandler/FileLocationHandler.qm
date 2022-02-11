@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FileLocationHandler.qm module for returning file data from a URL-like location string
-/*  FileLocationHandler.qm Copyright 2022 Qore Technologies, s.r.o.
+/*  FileLocationHandler.qm Copyright 2021 - 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,7 +22,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.4
+%requires qore >= 1.0
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -32,20 +32,22 @@
 # enable all warnings
 %enable-all-warnings
 
+%requires Util
+
 module FileLocationHandler {
-    version = "1.0";
-    desc = "user module for returning file data based on URL-like location strings";
+    version = "2.0";
+    desc = "user module for reading and writing file data based on URL-like location strings";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
         # register default handlers
-        FileLocationHandler::registerHandler("file", \FileLocationHandlerFile::handler());
-        FileLocationHandler::registerHandler("http", \FileLocationHandlerHttp::handler());
-        FileLocationHandler::registerHandler("https", \FileLocationHandlerHttp::handler());
-        FileLocationHandler::registerHandler("ftp", \FileLocationHandlerFtp::handler());
-        FileLocationHandler::registerHandler("ftps", \FileLocationHandlerFtp::handler());
-        FileLocationHandler::registerHandler("sftp", \FileLocationHandlerSftp::handler());
+        FileLocationHandler::registerHandler("file", new FileLocationHandlerFile());
+        FileLocationHandler::registerHandler("ftp", new FileLocationHandlerFtp());
+        FileLocationHandler::registerHandler("ftps", new FileLocationHandlerFtp());
+        FileLocationHandler::registerHandler("http", new FileLocationHandlerHttp());
+        FileLocationHandler::registerHandler("https", new FileLocationHandlerHttp());
+        FileLocationHandler::registerHandler("sftp", new FileLocationHandlerSftp());
     };
 }
 
@@ -60,11 +62,18 @@ module FileLocationHandler {
     To retrieve file data, call one of:
     - @ref FileLocationHandler::FileLocationHandler::getTextFileFromLocation() "FileLocationHandler::getTextFileFromLocation()"
     - @ref FileLocationHandler::FileLocationHandler::getBinaryFileFromLocation() "FileLocationHandler::getBinaryFileFromLocation()"
+    - @ref FileLocationHandler::FileLocationHandler::getStreamReaderFromLocation() "FileLocationHandler::getStreamReaderFromLocation()"
+    - @ref FileLocationHandler::FileLocationHandler::getBinaryStreamFromLocation() "FileLocationHandler::getBinaryStreamFromLocation()"
+
+    To write file data, call one of:
+    - @ref FileLocationHandler::FileLocationHandler::writeFileToLocation() "FileLocationHandler::writeFileToLocation()"
+    - @ref FileLocationHandler::FileLocationHandler::getOutputStreamForLocation() "FileLocationHandler::getOutputStreamForLocation()"
 
     To register a location handler based on a scheme, call:
     - @ref FileLocationHandler::FileLocationHandler::registerHandler() "FileLocationHandler::registerHandler()"
 
     This module provides the following classes:
+    - @ref FileLocationHandler::AbstractFileLocationHandler "AbstractFileLocationHandler": the abstract API class
     - @ref FileLocationHandler::FileLocationHandler "FileLocationHandler": the main API class
     - @ref FileLocationHandler::FileLocationHandlerFile "FileLocationHandlerFile": class handling \c "file://"
       locations (the default if no scheme is present in the location string)
@@ -74,8 +83,14 @@ module FileLocationHandler {
       \c "https://" locations
     - @ref FileLocationHandler::FileLocationHandlerFtp "FileLocationHandlerSftp": class handling \c "sftp://"
       locations
+    - @ref FileLocationHandler::OutputStreamWrapper "OutputStreamWrapper": output stream wrapper class for handling
+      background I/O operations
 
     @section filelocationhandler_relnotes Release Notes
+
+    @subsection filelocationhandler_v2_0 FileLocationHandler v2.0
+    - updated for read/write operations and added streaming APIs
+      (<a href="https://github.com/qorelanguage/qore/issues/4424">issue 4424</a>)
 
     @subsection filelocationhandler_v1_0 FileLocationHandler v1.0
     - initial release of the module

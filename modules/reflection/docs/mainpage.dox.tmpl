@@ -75,14 +75,14 @@
 
     @par Example:
     @code{.py}
- #!/usr/bin/env qore
+#!/usr/bin/env qore
 
- %new-style
- %require-types
- %strict-args
- %enable-all-warnings
+%new-style
+%require-types
+%strict-args
+%enable-all-warnings
 
- %requires reflection
+%requires reflection
 
 Class c = Class::forName("Condition");
 AbstractMethodVariant v = c.getVariant("wait", Class::forName("AbstractSmartLock").getType(), TimeoutType);
@@ -93,6 +93,5 @@ printf("%s\n", v.toString());
 
     @section reflectionreleasenotes reflection Module Release Notes
 
-    @subsection reflection_0_9 reflection Module Version 0.9
-    - initial public release
+    This module is always delivered with %Qore and therefore mirrors the %Qore version.
 */

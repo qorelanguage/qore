@@ -2,12 +2,47 @@
 
     @tableofcontents
 
-    @section qore_1_2_1 Qore 1.2.1
+    @section qore_1_4_0 Qore 1.4.0
+
+    @par Release Summary
+    Release with minor new features; see below for more information
+
+    @subsection qore_1_4_0_new_features New Features in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - added "from example" APIs to data provider factories:
+        - \c AbstractDataProviderFactory::getExampleProviderRecordOutput()
+        - \c AbstractDataProviderFactory::getProviderFromExample()
+        (<a href="https://github.com/qorelanguage/qore/issues/4433">issue 4433</a>)
+      - added generic search capabilities to data providers with no native search functionality
+        (<a href="https://github.com/qorelanguage/qore/issues/4430">issue 4430</a>)
+    - <a href="../../modules/Util/html/index.html">Util</a> module
+      - implemented the @ref Util::serialize_to_string() "serialize_to_string()" API
+        (<a href="https://github.com/qorelanguage/qore/issues/4428">issue 4428</a>)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
+      - added missing make*() methods with REST responses to the @ref RestHandler::RestHandler "RestHandler" class
+
+    @subsection qore_1_4_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/Util/html/index.html">Util</a> module
+      - \c parse_uri_query() fails if the string has newlines in it
+        (<a href="https://github.com/qorelanguage/qore/issues/4429">issue 4429</a>)
+    - removed code that generated unnecessary \c ILLEGAL-CALL exceptions at parse time
+      (<a href="https://github.com/qorelanguage/qore/issues/4404">issue 4404</a>)
+
+    @section qore_1_3_0 Qore 1.3.0
 
     @par Release Summary
     Bugfix release; see below for more information
 
-    @subsection qore_1_2_1_bug_fixes Bug Fixes in Qore
+    @subsection qore_1_3_0_new_features New Features in Qore
+    - <a href="../../modules/FileLocationHandler/html/index.html">FileLocationHandler</a> module
+      - updated for read/write operations and added streaming APIs
+        (<a href="https://github.com/qorelanguage/qore/issues/4424">issue 4424</a>)
+    - added an optional \a encoding parameter to the @ref Qore::FtpClient::getAsString() "FtpClient::getAsString()"
+      API
+
+    @subsection qore_1_3_0_bug_fixes Bug Fixes in Qore
+    - fixed a bug handling committing parse operations where final checks were not always made before committing
+      (<a href="https://github.com/qorelanguage/qore/issues/4426">issue 4426</a>)
     - fixed return type for <tt>Type::isAssignableFrom(Type)</tt> in the
       <a href="../../modules/reflection/html/index.html">reflection</a> module
       (<a href="https://github.com/qorelanguage/qore/issues/4423">issue 4423</a>)

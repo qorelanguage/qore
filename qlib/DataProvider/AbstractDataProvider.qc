@@ -274,6 +274,27 @@ public class AbstractDataProvider {
 
         #! static callback for dynamic value resolution
         static code cb_resolve_value;
+
+        #! Generic record search options; see details below
+        /** Each record-based data provider should support the following search options:
+            - \c columns: a list of one or more field names; allows a subset of fields to be output in searches
+            - \c limit: the maximum number of records to return
+            - \c offset: the offset number in records to return
+        */
+        const GenericRecordSearchOptions = {
+            "columns": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                "desc": "allows a subset of fields to be output in searches",
+            },
+            "limit": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(IntType),
+                "desc": "the maximum number of records to return",
+            },
+            "offset": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(IntType),
+                "desc": "the offset number in records to return",
+            },
+        };
     }
 
     #! Creates the data provider

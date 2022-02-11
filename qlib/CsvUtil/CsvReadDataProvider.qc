@@ -25,6 +25,8 @@
 #! the CsvUtil namespace. All classes used in the CsvUtil module should be inside this namespace
 public namespace CsvUtil {
 #! Provides a data provider for reading CSV files
+/** Supports generic record search operators and options
+*/
 public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! Provider info
@@ -33,12 +35,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "supports_read": True,
             "has_record": True,
             "constructor_options": ConstructorOptions,
-            "search_options": {
-                "limit": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(IntType),
-                    "desc": "the maximum number of records to return",
-                },
-            },
+            "search_options": GenericRecordSearchOptions,
         };
 
         #! Constructor options
@@ -172,7 +169,8 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         if (copts.path) {
             if (copts.stream) {
-                error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
+                error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or "
+                    "the other");
             }
             i = new CsvFileIterator(copts.path, copts{CsvIterationOptionList});
             return;

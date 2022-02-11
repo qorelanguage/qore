@@ -33,7 +33,320 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
+/** @defgroup dataprovider_generic_search_ops DataProvider Generic Search Operators
+    These are the generic operators that can be used for searching using the generic data provider search APIs
+*/
+#@{
+#! Identifies the regex operator for use in generic search criteria
+/** @see dp_op_like()
+*/
+public const DP_SEARCH_OP_REGEX = "regex";
+
+#! Identifies the generic data provider less than (<) operator for use in generic search criteria
+/** @see dp_op_lt()
+*/
+public const DP_SEARCH_OP_LT = "<";
+
+#! Identifies the generic data provider less than or equals (<=) operator for use in generic search criteria
+/** @see dp_op_le()
+*/
+public const DP_SEARCH_OP_LE = "<=";
+
+#! Identifies the generic data provider greater than operator (>) for use in generic search criteria
+/** @see dp_op_gt()
+*/
+public const DP_SEARCH_OP_GT = ">";
+
+#! Identifies the generic data provider greater than or equals operator (>=) for use in generic search criteria
+/** @see dp_op_ge()
+*/
+public const DP_SEARCH_OP_GE = ">=";
+
+#! Identifies the generic data provider not equals operator (!= or <>) for use in generic search criteria
+/** @see dp_op_ne()
+*/
+public const DP_SEARCH_OP_NE = "!=";
+
+#! Identifies the generic data provider equals operator (=) for use in generic search criteria
+/** @see dp_op_eq()
+*/
+public const DP_SEARCH_OP_EQ = "=";
+
+#! Identifies the generic data provider \c "between" operator for use in generic search criteria
+/** @see dp_op_between()
+*/
+public const DP_SEARCH_OP_BETWEEN = "between";
+
+#! Identifies the generic data provider \c "in" operator for use in generic search criteria
+/** @see dp_op_in()
+*/
+public const DP_SEARCH_OP_IN = "in";
+
+#! Identifies the generic data provider \c "not" operator for use in generic search criteria
+/** @see dp_op_not()
+*/
+public const DP_SEARCH_OP_NOT = "not";
+#@}
+
+#! Generic operator info hash as returned by all @ref dataprovider_generic_search_op_funcs "generic search operator functions"
+public hashdecl SearchOperatorInfo {
+    string op;   #!< the operator string code
+    auto arg;    #!< optional argument
+}
+
+#! a hash of valid operators for use in generic search criteria
+public const DefaultGenericSearchOpMap = {
+    DP_SEARCH_OP_REGEX: (
+        "code": bool sub (hash<auto> cmd, auto field_value, string field_name, hash<auto> rec) {
+            return regex(field_value.toString(), cmd.arg.pattern, cmd.arg.options);
+        },
+    ),
+    DP_SEARCH_OP_LT: (
+        "code": bool sub (hash<auto> cmd, auto field_value, string field_name, hash<auto> rec) {
+            return field_value < cmd.arg;
+        },
+    ),
+    DP_SEARCH_OP_LE: (
+        "code": bool sub (hash<auto> cmd, auto field_value, string field_name, hash<auto> rec) {
+            return field_value <= cmd.arg;
+        },
+    ),
+    DP_SEARCH_OP_GT: (
+        "code": bool sub (hash<auto> cmd, auto field_value, string field_name, hash<auto> rec) {
+            return field_value > cmd.arg;
+        },
+    ),
+    DP_SEARCH_OP_GE: (
+        "code": bool sub (hash<auto> cmd, auto field_value, string field_name, hash<auto> rec) {
+            return field_value >= cmd.arg;
+        },
+    ),
+    DP_SEARCH_OP_NE: (
+        "code": bool sub (hash<auto> cmd, auto field_value, string field_name, hash<auto> rec) {
+            return field_value != cmd.arg;
+        },
+    ),
+    DP_SEARCH_OP_EQ: (
+        "code": bool sub (hash<auto> cmd, auto field_value, string field_name, hash<auto> rec) {
+            return field_value == cmd.arg;
+        },
+    ),
+    DP_SEARCH_OP_BETWEEN: (
+        "code": bool sub (hash<auto> cmd, auto field_value, string field_name, hash<auto> rec) {
+            return field_value >= cmd.arg[0] && field_value <= cmd.arg[1];
+        },
+    ),
+    DP_SEARCH_OP_IN: (
+        "code": bool sub (hash<auto> cmd, auto field_value, string field_name, hash<auto> rec) {
+            return cmd.arg ? (cmd.arg{field_value} ?? False) : !field_value.val();
+        },
+    ),
+    DP_SEARCH_OP_NOT: (
+        "recursive": True,
+        "code": bool sub (hash<auto> cmd, auto field_value, string field_name, hash<auto> rec) {
+            return !field_value;
+        },
+    ),
+};
+
+/** @defgroup dataprovider_generic_search_op_funcs DataProvider Generic Search Operator Functions
+    These are the generic operators that can be used for searching using the generic data provider search APIs:
+    - dp_op_between(): for the \c "between" operator
+    - dp_op_in(): for the \c "in" operator
+    - dp_op_like(): for the \c "like" operator
+    - dp_op_ge(): for the \c ">=" operator when comparing field values to immediate values
+    - dp_op_gt(): for the \c ">" operator when comparing field values to immediate values
+    - dp_op_le(): for the \c "<=" operator when comparing field values to immediate values
+    - dp_op_lt(): for the \c "<" operator when comparing field values to immediate values
+    - dp_op_ne(): for the \c "!=" or \c "<>" operator when comparing field values to immediate values
+    - dp_op_eq(): for the \c "=" operator when comparing field values to immediate values
+    - dp_op_not(): for negating other operators
+    - dp_op_regex(): for the regular expression matches
+*/
+#@{
+#! returns an @ref SearchOperatorInfo hash
+public hash<SearchOperatorInfo> sub dp_make_op(string op, auto arg) {
+    return new hash<SearchOperatorInfo>({"op": op, "arg": arg});
+}
+
+#! returns an @ref SearchOperatorInfo hash for regular expression matches
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_regex("%Smith%")});
+    @endcode
+
+    @param str the argument for the operator
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_regex(string str) {
+    return dp_make_op(DP_SEARCH_OP_REGEX, {
+        "pattern": str,
+    });
+}
+
+#! returns an @ref SearchOperatorInfo hash for the SQL-like \c "like" operator with the given argument
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_like("%Smith%")});
+    @endcode
+
+    @param str the argument for the operator
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_like(string str) {
+    # translate str to a regex: replace % -> .*
+    str =~ s/%/.*/g;
+    return dp_make_op(DP_SEARCH_OP_REGEX, {
+        "pattern": "^" + str + "$",
+    });
+}
+
+#! returns an @ref SearchOperatorInfo hash for the \c "<" operator with the given argument
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_lt("Zebra")});
+    @endcode
+
+    @param arg the argument for the operator
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_lt(auto arg) {
+    return dp_make_op(DP_SEARCH_OP_LT, arg);
+}
+
+#! returns an @ref SearchOperatorInfo hash for the \c "<=" operator with the given argument
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_le("Zebra")});
+    @endcode
+
+    @param arg the argument for the operator
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_le(auto arg) {
+    return dp_make_op(DP_SEARCH_OP_LE, arg);
+}
+
+#! returns an @ref SearchOperatorInfo hash for the \c ">" operator with the given argument
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_gt("Apple")});
+    @endcode
+
+    @param arg the argument for the operator
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_gt(auto arg) {
+    return dp_make_op(DP_SEARCH_OP_GT, arg);
+}
+
+#! returns an @ref SearchOperatorInfo hash for the \c ">=" operator with the given argument
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_ge("Apple")});
+    @endcode
+
+    @param arg the argument for the operator
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_ge(auto arg) {
+    return dp_make_op(DP_SEARCH_OP_GE, arg);
+}
+
+#! returns an @ref SearchOperatorInfo hash for the \c "!=" or \c "<>" operator with the given argument
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_ne("Smith")});
+    @endcode
+
+    @param arg the argument for the operator
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_ne(auto arg) {
+    return dp_make_op(DP_SEARCH_OP_NE, arg);
+}
+
+#! returns an @ref SearchOperatorInfo hash for the \c "=" operator with the given argument
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_eq("Smith")});
+    @endcode
+
+    @param arg the argument for the operator
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_eq(auto arg) {
+    return dp_make_op(DP_SEARCH_OP_EQ, arg);
+}
+
+#! returns an @ref SearchOperatorInfo hash for the \c "between" operator with the given arguments
+/** Neither of which can be @ref null or @ref nothing
+
+    @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_between("US", "UX")});
+    @endcode
+
+    @param l the lower bound for the \c "between" operator
+    @param r the upper bound for the \c "between" operator
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_between(auto l, auto r) {
+    return dp_make_op(DP_SEARCH_OP_BETWEEN, (l, r));
+}
+
+#! returns an @ref SearchOperatorInfo hash for the \c "in" operator with all arguments passed to the function
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_in(200, 300, 500, 9)});
+    @endcode
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_in() {
+    return dp_make_op(DP_SEARCH_OP_IN, (map {$1: True}, argv));
+}
+
+#! returns an @ref SearchOperatorInfo hash for the \c "in" operator with the given argument list as the first argument
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_in(name_list)});
+    @endcode
+
+    @param args a list of values for the \c "in" operator
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_in(list<auto> args) {
+    return dp_make_op(DP_SEARCH_OP_IN, (map {$1: True}, args));
+}
+
+#! returns an @ref SearchOperatorInfo hash for the \c "not" operator
+/** @par Example:
+    @code{.py}
+AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_not(dp_op_in(200, 300, 500, 9))});
+    @endcode
+
+    @return an @ref SearchOperatorInfo hash for use in generic search criteria
+*/
+public hash<SearchOperatorInfo> sub dp_op_not(hash<auto> arg) {
+    return dp_make_op(DP_SEARCH_OP_NOT, arg);
+}
+#@}
+
 #! Defines the abstract class for data provider iterators; the destructor releases the iterator
+/** this class also implements generic search APIs that can be used to filter record sets for data providers that do
+    not support native search / filtering APIs
+*/
 public class AbstractDataProviderRecordIterator inherits AbstractIterator {
     #! Returns @ref True if the iterator supports bulk operation
     /** @return @ref True if the iterator supports bulk operation
@@ -81,16 +394,32 @@ public class AbstractDataProviderRecordIterator inherits AbstractIterator {
     }
 
     #! Checks if the current record matches the search criteria
-    /** in case of a hash value, a recursive partial match with only the keys given in the value to be checked is
+    /** in case of a hash value, if the hash was created by a
+        @ref dataprovider_generic_search_op_funcs "search operator function", then that search operation is applied to
+        the input, otherwise a recursive partial match with only the keys given in the value to be checked is
         performed
     */
     private static bool matchGeneric(hash<auto> record, *hash<auto> where_cond) {
         foreach hash<auto> elem in (where_cond.pairIterator()) {
-            if (!AbstractDataProviderRecordIterator::matchGenericValue(record{elem.key}, elem.value)) {
+            if (elem.value.op && (*hash<auto> op = DefaultGenericSearchOpMap{elem.value.op})) {
+                if (!AbstractDataProviderRecordIterator::evalOperator(elem.key, elem.value, op, record)) {
+                    return False;
+                }
+            } else if (!AbstractDataProviderRecordIterator::matchGenericValue(record{elem.key}, elem.value)) {
                 return False;
             }
         }
         return True;
+    }
+
+    #! Evaluates a generic search operator on the field value and record and returns the result
+    private static bool evalOperator(string field, hash<auto> cmd, hash<auto> op, hash<auto> record) {
+        auto field_value = record{field};
+        if (op.recursive && cmd.arg.op
+            && (*hash<auto> op0 = DefaultGenericSearchOpMap{cmd.arg.op})) {
+            field_value = AbstractDataProviderRecordIterator::evalOperator(field, cmd.arg, op0, record);
+        }
+        return op.code(cmd, field_value, field, record);
     }
 
     #! Match a single value

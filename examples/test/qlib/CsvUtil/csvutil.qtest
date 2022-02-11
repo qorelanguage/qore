@@ -8,6 +8,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/CsvUtil
 
 %exec-class CsvUtilTest
@@ -127,20 +128,36 @@ f2:3,00:5:25,34";
         {
             CsvReadDataProvider dp;
 
-            # the CSV data can only be iterated once and then the provide needs to be recreated
-            code reset = sub () {
-                dp = new CsvReadDataProvider(new StringInputStream(CsvInputWithHeader), {
-                    "header_lines": 1,
-                    "header_names": True,
-                    "date_format": "DDMMYYYY",
-                    "fields": {
-                        "received": {
-                            "type": "date",
-                        },
-                        "activated": "bool",
+            hash<auto> constructor_options = {
+                "header_lines": 1,
+                "header_names": True,
+                "date_format": "DDMMYYYY",
+                "fields": {
+                    "received": {
+                        "type": "date",
                     },
-                });
+                    "activated": "bool",
+                },
             };
+
+            # the CSV data can only be iterated once and then the provider needs to be recreated
+            code reset = sub () {
+                dp = new CsvReadDataProvider(new StringInputStream(CsvInputWithHeader), constructor_options);
+            };
+
+            {
+                AbstractDataProviderFactory factory = DataProvider::getFactoryEx("csvread");
+                rows = factory.getExampleProviderRecordOutput(new StringInputStream(CsvInputWithHeader), constructor_options);
+                assertEq(5, rows[0].size());
+                assertEq(4, rows.size());
+
+                AbstractDataProvider dp0 = factory.getProviderFromExample(
+                    new StringInputStream(CsvInputWithHeader), constructor_options
+                );
+                rows = map $1, dp0.searchRecords();
+                assertEq(5, rows[0].size());
+                assertEq(4, rows.size());
+            }
 
             {
                 reset();
@@ -152,6 +169,7 @@ f2:3,00:5:25,34";
             {
                 reset();
                 rows = map $1, dp.searchRecords();
+                assertEq(5, rows[0].size());
                 assertEq(4, rows.size());
 
                 reset();
@@ -163,12 +181,128 @@ f2:3,00:5:25,34";
 
             {
                 reset();
+                rows = map $1, dp.searchRecords({}, {"columns": ("CC", "serno")});
+                assertEq(2, rows[0].size());
+                assertEq(4, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({}, {"limit": 1});
+                assertEq(5, rows[0].size());
+                assertEq(1, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({}, {"limit": 1, "offset": 1});
+                assertEq(5, rows[0].size());
+                assertEq(1, rows.size());
+                hash<auto> row1 = shift rows;
+
+                reset();
+                rows = map $1, dp.searchRecords({}, {"limit": 1, "offset": 2});
+                assertEq(5, rows[0].size());
+                assertEq(1, rows.size());
+                hash<auto> row2 = shift rows;
+
+                reset();
+                rows = map $1, dp.searchRecords();
+                assertEq(rows[1], row1);
+                assertEq(rows[2], row2);
+            }
+
+            {
+                reset();
                 AbstractDataProviderBulkRecordInterface i = dp.getBulkRecordInterface();
                 hash<auto> q = i.getValue();
                 assertEq(Type::List, q.firstValue().type());
                 assertEq(4, q.firstValue().lsize());
             }
 
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"serno": dp_op_eq("1234567892")});
+                assertEq(1, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"serno": dp_op_ne("1234567892")});
+                assertEq(3, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"serno": dp_op_ne()});
+                assertEq(4, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"serno": dp_op_like("%93")});
+                assertEq(1, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"serno": dp_op_regex("93$")});
+                assertEq(1, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"received": dp_op_ge(2012-05-31)});
+                assertEq(4, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"received": dp_op_gt(2012-05-31)});
+                assertEq(0, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"received": dp_op_le(2012-05-31)});
+                assertEq(4, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"received": dp_op_lt(2012-05-31)});
+                assertEq(0, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"CC": dp_op_in("US", "IE")});
+                assertEq(0, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"CC": dp_op_in("UK", "UA")});
+                assertEq(4, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"CC": dp_op_between("UJ", "UL")});
+                assertEq(4, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"CC": dp_op_between("AA", "AX")});
+                assertEq(0, rows.size());
+            }
+
+            {
+                reset();
+                rows = map $1, dp.searchRecords({"serno": dp_op_not(dp_op_like("%93"))});
+                assertEq(3, rows.size());
+            }
         }
 
         {

@@ -10,13 +10,14 @@
 
 %requires ../../../../../qlib/Util.qm
 %requires ../../../../../qlib/QUnit.qm
+%requires ../../../../../qlib/FsUtil.qm
 
 %exec-class FtpTest
 
 class FtpTest inherits QUnit::Test {
     private {
         # file on some public ftp
-        const Url = "ftp://ftp.ed.ac.uk/.message";
+        const Url = "ftp://demo:password@test.rebex.net/readme.txt";
 
         # FtpClient url
         string url;
@@ -35,7 +36,7 @@ class FtpTest inherits QUnit::Test {
 
         const MyOpts = Opts + (
             "port": "p,port=i",
-            );
+        );
 
         const OptionColumn = 22;
     }
@@ -83,7 +84,9 @@ class FtpTest inherits QUnit::Test {
                 printf("%s: %s\n", ex.err, ex.desc);
                 if (tries++ < 2) {
                     printf("retrying...");
+                    continue;
                 }
+                rethrow;
             }
             return fc;
         }

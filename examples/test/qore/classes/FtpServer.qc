@@ -15,6 +15,8 @@ class FtpServer {
         hash broken;
         bool get_empty;
 
+        TmpDir t;
+
         *string pwd;
 
         const PollInterval = 250ms;
@@ -31,6 +33,10 @@ class FtpServer {
         }
         cnt.inc();
         background listener();
+    }
+
+    setFs() {
+        t = new TmpDir();
     }
 
     shutdown() {
@@ -67,8 +73,7 @@ class FtpServer {
                 str += c;
                 if (c == "\n")
                     break;
-            }
-            catch (hash ex) {
+            } catch (hash ex) {
                 if (ex.err == "SOCKET-NOT-OPEN" || ex.err == "SOCKET-CLOSED")
                     return "";
                 if (ex.err != "SOCKET-TIMEOUT")
@@ -181,10 +186,14 @@ class FtpServer {
                 if (doBroken("stor", data))
                     break;
 
-                # read all data from data connection until closed
-                while (data.isOpen()) {
-                    data.recv(0, 20s);
+                OutputStream f;
+                if (t) {
+                    f = new FileOutputStream(t.path + DirSep + file);
+                } else {
+                    f = new BinaryOutputStream();
                 }
+                # read all data from data connection until closed
+                data.recvToOutputStream(f, -1);
                 data.close();
                 ftpSend(ns, 226, "Transfer completed.");
                 continue;
@@ -201,6 +210,16 @@ class FtpServer {
 
                 if (doBroken("retr", data))
                     break;
+
+                if (t) {
+                    string path = t.path + DirSep + file;
+                    if (hstat(path)) {
+                        data.sendFromInputStream(new FileInputStream(path), -1);
+                        data.close();
+                        ftpSend(ns, 226, "Transfer completed.");
+                        continue;
+                    }
+                }
 
                 #printf("get: empty %y\n", get_empty);
                 if (!get_empty) {
@@ -313,8 +332,7 @@ class FtpServer {
             try {
                 data.bindINET("localhost", dport, True, AF_INET);
                 break;
-            }
-            catch (hash ex) {
+            } catch (hash ex) {
                 continue;
             }
         }

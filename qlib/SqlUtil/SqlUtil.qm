@@ -4730,7 +4730,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     #! returns an @ref OperatorInfo hash for the \c "not" operator; for use in @ref where_clauses "where clauses"
     /** @par Example:
         @code{.py}
-*list<auto> rows = table.selectRows(("where": ("name": opt_not(op_in(200, 300, 500, 9))))_;
+*list<auto> rows = table.selectRows(("where": ("name": op_not(op_in(200, 300, 500, 9))))_;
         @endcode
 
         @return an @ref OperatorInfo hash for use in @ref where_clauses "where clauses"

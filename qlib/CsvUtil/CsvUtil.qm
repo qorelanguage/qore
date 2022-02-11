@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.11
+%requires qore >= 1.0
 
 %requires Util
 
@@ -36,7 +36,7 @@
 %enable-all-warnings
 
 module CsvUtil {
-    version = "1.7.2";
+    version = "1.8";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -251,6 +251,10 @@ while (i.next()) {
     Also the \c "example-multi-file-copy.csv" will contain data from the original file formatted as CSV.
 
     @section csvutil_relnotes Release Notes
+
+    @subsection csvutil_v1_8 Version 1.8
+    - added support for generic record search operators and options
+      (<a href="https://github.com/qorelanguage/qore/issues/4430">issue 4430</a>)
 
     @subsection csvutil_v1_7_2 Version 1.7.2
     - updated read and write data providers to provide verbose option support
