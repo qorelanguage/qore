@@ -222,7 +222,7 @@ static const EVP_MD* q_lookup_digest(const char* cipher) {
 
 int HMACHelper::doHMAC(const char* err, const char* digest, const char* ptr, size_t len, ExceptionSink* xsink) {
 #ifdef OPENSSL_3_PLUS
-    EVP_MAC* mac = EVP_MAC_fetch(nullptr, digest, nullptr);
+    EVP_MAC* mac = EVP_MAC_fetch(nullptr, "hmac", nullptr);
     if (!mac) {
         xsink->raiseException(err, "error looking up MAC '%s'", digest);
         return -1;
@@ -232,8 +232,12 @@ int HMACHelper::doHMAC(const char* err, const char* digest, const char* ptr, siz
         xsink->raiseException(err, "error creating MAC context for MAC '%s'", digest);
         return -1;
     }
-    if (!EVP_MAC_init(ctx, (const unsigned char*)ptr, len, nullptr)) {
-        xsink->raiseException(err, "error initialing MAC context for MAC '%s'", digest);
+    OSSL_PARAM params[2];
+    params[0] = OSSL_PARAM_construct_utf8_string("digest", (char*)digest, 0);
+    params[1] = OSSL_PARAM_construct_end();
+
+    if (!EVP_MAC_init(ctx, (const unsigned char*)ptr, len, params)) {
+        xsink->raiseException("DIGEST-ERROR", "error initialing MAC context for MAC '%s'", digest);
         return -1;
     }
     size_t lsn;
@@ -3548,9 +3552,12 @@ hash<auto> get_crypto_info() [flags=CONSTANT] {
     library, otherwise it tried to match the cipher with known ciphers at compile time; use @ref CipherMap
     for a list of known ciphers
 
+    @throw ENCODING-CONVERSION-ERROR this error is thrown if the string cannot be converted to the
+    @ref default_encoding "default character encoding"
+
     @since %Qore 1.4.0
- */
-*hash<auto> get_cipher_info(string cipher) [flags=CONSTANT] {
+*/
+*hash<auto> get_cipher_info(string cipher) [flags=RET_VALUE_ONLY] {
     TempEncodingHelper temp(cipher, QCS_DEFAULT, xsink);
     if (*xsink) {
         return QoreValue();
@@ -3569,6 +3576,29 @@ hash<auto> get_crypto_info() [flags=CONSTANT] {
     }
     return i->second.getInfo();
 #endif
+}
+
+//! Returns @ref True if the given digest is supported, @ref False if not
+/** @param digest the digest to check
+
+    @return @ref True if the given digest is supported, @ref False if not
+
+    @note If %Qore is compiled with OpenSSL 3+, it will use dynamic lookups of all digests known to the OpenSSL
+    library, otherwise it tried to match the digest with known digests at compile time; use @ref DiesgMap
+    for a list of known digests
+
+    @throw ENCODING-CONVERSION-ERROR this error is thrown if the string cannot be converted to the
+    @ref default_encoding "default character encoding"
+
+    @since %Qore 1.4.0
+*/
+bool has_digest(string digest) [flags=RET_VALUE_ONLY] {
+    TempEncodingHelper temp(digest, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    return q_lookup_digest(temp->c_str()) ? true : false;
 }
 
 //! returns a binary value of random bytes using openssl
