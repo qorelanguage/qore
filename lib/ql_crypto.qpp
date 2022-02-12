@@ -2244,7 +2244,7 @@ binary bin = MD2_bin("hello");
     - digest()
 */
 binary MD2_bin(data[doc] data) [flags=RET_VALUE_ONLY] {
-#if !defined(OPENSSL_NO_MD2) && !defined(NO_MD2)
+#ifdef OPENSSL_HAVE_MDC2
     DigestHelper dh(args);
     if (dh.doDigest(MD2_ERR, EVP_mdc2(), xsink)) {
         return QoreValue();
