@@ -217,7 +217,7 @@ ModuleName/
             <a href="http://docs.qore.org/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a> modules\n\
         - <a href="http://docs.qore.org/modules/xml/current/WebDavHandler/html/index.html">WebDavHandler</a>: \
             provides an API for serving WebDAV content using the \
-            <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+            <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module\n\
         - <a href="http://docs.qore.org/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: \
             provides infrastructure for implementing XML-RPC server-side services using the \
             <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
@@ -368,11 +368,12 @@ public namespace Bar {
     # Bar::PrivateClass is not exported
     class PrivateClass {
     }
-}@endcode
+}
+    @endcode
 
     @since %Qore 0.8.4 user modules are supported
 
-    @since %Qore 0.9.0 user modules implementation could be separated to multiple files
+    @since %Qore 0.9.0 user modules can be separated in multiple files
 
     @subsection user_module_program_scope Program Scope in Object-Oriented Programs Using User Modules Providing Their Own Threads
 
