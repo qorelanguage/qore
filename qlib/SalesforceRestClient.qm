@@ -1022,7 +1022,6 @@ sfrest.logout();
         hash<auto> lh = self.("client_id", "client_secret", "username", "password") + (
             "grant_type": "password",
         );
-        printf("lh: %y\n", lh);
 
         # use the Salesforce.com OAuth2 authorization URL to get the token
         setURL(oauth_url_token);

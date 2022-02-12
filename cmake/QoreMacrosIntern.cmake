@@ -15,7 +15,6 @@ include(CheckIncludeFileCXX)
 include(CMakeParseArguments)
 include(CMakePushCheckState)
 
-
 macro(qore_check_headers_cxx)
     set(options)
     set(oneValueArgs)
@@ -194,6 +193,15 @@ SSL_set1_host(nullptr, nullptr);
 return 0;
 }"
 HAVE_SSL_SET1_HOST)
+
+# check for SSL_set1_host()
+check_cxx_source_compiles("
+#include <openssl/evp.h>
+int main(void) {
+EVP_MAC_CTX_new(nullptr);
+return 0;
+}"
+HAVE_EVP_MAC_CTX_NEW)
 
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)

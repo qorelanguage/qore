@@ -36,6 +36,9 @@ public class DigestTest inherits QUnit::Test {
             assertEq(<01536d257030365cb3cb740ec8d755549b76eb5ba0b4249fba39e0a0c38ed804cdad70322ece22b49b8fa48236ec1572>, digest("sha384", str));
             assertEq(<326ba1173c6b6aa9e99aaf31e73c659b405aceb75f2d3f9befa4f88e82d4d5edeeeaad1f209ebcf18cee67902f750ee35707818d5c7344a83f5ba17802471b95>, digest("sha512", str));
         }
+
+        list<string> l = get_digests();
+        assertGt(0, l.size());
     }
 
     md2Test() {

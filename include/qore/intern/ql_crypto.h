@@ -75,9 +75,9 @@ protected:
     }
 
     DLLLOCAL void setInput(const QoreValue pt) {
-        if (pt.getType() == NT_STRING)
+        if (pt.getType() == NT_STRING) {
             setInput(*pt.get<const QoreStringNode>());
-        else {
+        } else {
             assert(pt.getType() == NT_BINARY);
             setInput(*pt.get<const BinaryNode>());
         }
@@ -141,13 +141,16 @@ private:
 
 class QoreEvpCipherCtxHelper {
 public:
-    DLLLOCAL QoreEvpCipherCtxHelper() {
-        ctx = EVP_CIPHER_CTX_new();
+    DLLLOCAL QoreEvpCipherCtxHelper() : ctx(EVP_CIPHER_CTX_new()) {
+        if (ctx) {
+            EVP_CIPHER_CTX_init(ctx);
+        }
     }
 
     DLLLOCAL ~QoreEvpCipherCtxHelper() {
-        if (ctx)
-           EVP_CIPHER_CTX_free(ctx);
+        if (ctx) {
+            EVP_CIPHER_CTX_free(ctx);
+        }
     }
 
     DLLLOCAL EVP_CIPHER_CTX* operator*() {
@@ -156,6 +159,10 @@ public:
 
     DLLLOCAL const EVP_CIPHER_CTX* operator*() const {
         return ctx;
+    }
+
+    DLLLOCAL operator bool() const {
+        return ctx ? true : false;
     }
 
 private:
@@ -195,8 +202,9 @@ public:
 
         EVP_DigestInit_ex(*mdctx, md, 0);
         if (!EVP_DigestUpdate(*mdctx, input, input_len) || !EVP_DigestFinal_ex(*mdctx, md_value, &md_len)) {
-            if (xsink)
+            if (xsink) {
                 xsink->raiseException(err, "error calculating digest");
+            }
             return -1;
         }
 
@@ -204,10 +212,11 @@ public:
     }
 };
 
+#ifndef OPENSSL_3_PLUS
 class QoreHmacHelper {
 public:
     DLLLOCAL QoreHmacHelper() {
-#ifdef HAVE_OPENSSL_INIT_CRYPTO
+#if defined(HAVE_OPENSSL_INIT_CRYPTO)
         ctx = HMAC_CTX_new();
 #else
         HMAC_CTX_init(&ctx);
@@ -240,11 +249,14 @@ public:
 
 private:
 #ifdef HAVE_OPENSSL_INIT_CRYPTO
-    HMAC_CTX* ctx;
+    typedef HMAC_CTX* q_hmac_t;
 #else
-    HMAC_CTX ctx;
+    typedef HMAC_CTX q_hmac_t;
 #endif
+
+    q_hmac_t ctx;
 };
+#endif
 
 class HMACHelper : public BaseHelper {
 public:
@@ -269,36 +281,7 @@ public:
         input_len = len;
     }
 
-    DLLLOCAL int doHMAC(const char* err, const EVP_MD* md, const char* ptr, size_t len, ExceptionSink* xsink) {
-        QoreHmacHelper ctx;
-        if (!*ctx) {
-            xsink->raiseException(err, "error allocating HMAC object");
-            return -1;
-        }
-
-#ifdef HAVE_OPENSSL_HMAC_RV
-        int rc = HMAC_Init_ex(*ctx, ptr, len, md, 0);
-        if (!rc) {
-            xsink->raiseException(err, "error initalizing HMAC");
-            return -1;
-        }
-#else
-        HMAC_Init_ex(*ctx, ptr, len, md, 0);
-#endif
-
-#ifdef HAVE_OPENSSL_HMAC_RV
-        if (!HMAC_Update(*ctx, input, input_len)
-            || !HMAC_Final(*ctx, md_value, &md_len)) {
-            xsink->raiseException(err, "error calculating HMAC");
-            return -1;
-        }
-#else
-        HMAC_Update(*ctx, input, input_len);
-        HMAC_Final(*ctx, md_value, &md_len);
-#endif
-
-        return 0;
-    }
+    DLLLOCAL int doHMAC(const char* err, const char* digest, const char* ptr, size_t len, ExceptionSink* xsink);
 };
 
 #endif // _QORE_QL_CRYPTO_H

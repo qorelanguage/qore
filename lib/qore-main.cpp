@@ -50,6 +50,10 @@
 #include <openssl/conf.h>
 #include <openssl/engine.h>
 
+#ifdef OPENSSL_3_PLUS
+#include <openssl/provider.h>
+#endif
+
 // initialized flag
 std::atomic<bool> qore_initialized = {false};
 
@@ -126,6 +130,11 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
         CRYPTO_set_locking_callback(q_openssl_locking_function);
 #endif
     }
+
+#ifdef OPENSSL_3_PLUS
+    // load legacy provider
+    OSSL_PROVIDER_load(nullptr, "legacy");
+#endif
 
     qore_ssl_data_index = SSL_get_ex_new_index(0, (void*)"qore data index", NULL, NULL, NULL);
 

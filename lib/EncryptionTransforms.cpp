@@ -44,6 +44,27 @@
 #include <openssl/des.h>
 #include <openssl/hmac.h>
 
+// no need for the crypto or digest maps with openssl 3+
+#ifdef OPENSSL_3_PLUS
+#include <string>
+
+typedef std::map<std::string, std::string> strmap_t;
+// map old cipher names -> new cipher names for backwards compatibility
+static strmap_t cipher_compat_aliases = {
+    {"blowfish-cfb", "bf-cfb"},
+    {"blowfish-ofb", "bf-ofb"},
+    {"desede", "des-ede-cbc"},
+    {"desede-cfb", "des-ede-cfb"},
+    {"desede-ofb", "des-ede-ofb"},
+    {"desede3", "des3"},
+    {"desede3-cfb", "des-ede3-cfb"},
+    {"desede3-ofb", "des-ede3-ofb"},
+    {"cast5", "cast5-cbc"},
+    {"aes128", "id-aes128-gcm"},
+    {"aes192", "id-aes192-gcm"},
+    {"aes256", "id-aes256-gcm"},
+};
+#else
 crypto_map_t crypto_map = {
     {"blowfish", {0, EVP_bf_cbc(), 8, false}},
     {"blowfish-cfb", {0, EVP_bf_cfb(), 8, false}},
@@ -112,37 +133,38 @@ QoreHashNode* CryptoEntry::getInfo() const {
 
     return rv.release();
 }
+#endif
 
 class CryptoTransform : public Transform {
 public:
-    DLLLOCAL CryptoTransform(const char* cipher, bool do_crypt, const char* key, unsigned key_len, const char* iv, unsigned iv_len, const char* mac, unsigned mac_len, unsigned tag_length, const ReferenceNode* mac_ref, const char* aad, unsigned aad_len, ExceptionSink* xsink) : cipher(cipher), err(do_crypt ? "ENCRYPT-ERROR" : "DECRYPT-ERROR"), tag_length(tag_length), mac_ref(mac_ref ? mac_ref->refRefSelf() : nullptr), do_crypt(do_crypt) {
+    DLLLOCAL CryptoTransform(const char* cipher, bool do_crypt, const char* key, unsigned key_len, const char* iv,
+            unsigned iv_len, const char* mac, unsigned mac_len, unsigned tag_length, const ReferenceNode* mac_ref,
+            const char* aad, unsigned aad_len, ExceptionSink* xsink) : cipher(cipher),
+            err(do_crypt ? "ENCRYPT-ERROR" : "DECRYPT-ERROR"), tag_length(tag_length),
+            mac_ref(mac_ref ? mac_ref->refRefSelf() : nullptr), do_crypt(do_crypt) {
         // if encrypting, we can't send a mac
         assert(!(do_crypt && (mac || mac_len)));
         // if decrypting, then we can't send tag or AAD
         assert(!(!do_crypt && (tag_length || mac_ref)));
 
-        crypto_map_t::iterator i = crypto_map.find(cipher);
-        if (i == crypto_map.end()) {
-            xsink->raiseException(err, "unknown %scryption algorithm '%s'", do_crypt ? "en" : "de", cipher);
+        if (findCipher(cipher, do_crypt, xsink)) {
+            assert(*xsink);
             return;
         }
 
-        ce = i->second;
-
         if (iv && ce.iv_len > 0 && (int)iv_len < ce.iv_len) {
-            xsink->raiseException(err, "cannot create a %scryption transformation object for algorithm '%s' with an initialization vector of size %d; %d bytes are required", do_crypt ? "en" : "de", cipher, iv_len, ce.iv_len);
+            xsink->raiseException(err, "cannot create a %scryption transformation object for algorithm '%s' with an "
+                "initialization vector of size %d; %d bytes are required", do_crypt ? "en" : "de", cipher, iv_len,
+                ce.iv_len);
             return;
         }
 
         if (key_len < ce.key_len) {
-            xsink->raiseException(err, "%scryption algorithm '%s' requires a key length of %d bytes; got %d byte%s", do_crypt ? "en" : "de", cipher, ce.key_len, key_len, key_len == 1 ? "" : "s");
+            xsink->raiseException(err, "%scryption algorithm '%s' requires a key length of %d bytes; got %d byte%s",
+                do_crypt ? "en" : "de", cipher, ce.key_len, key_len, key_len == 1 ? "" : "s");
             return;
         }
 
-        if (ce.key_len && ce.key_len != key_len)
-            key_len = ce.key_len;
-
-        EVP_CIPHER_CTX_init(*ctx);
         state = STATE_OK;
 
         EVP_CipherInit_ex(*ctx, ce.cipher_type, nullptr, nullptr, nullptr, do_crypt);
@@ -160,12 +182,24 @@ public:
                 key_len = EVP_MAX_KEY_LENGTH;
             }
 
-            //printd(5, "CryptoTransform::CryptoTransform() %scrypt %s: ce.key_len: %d key_len: %d\n", do_crypt ? "en" : "de", cipher, ce.key_len, key_len);
-            if (!EVP_CIPHER_CTX_set_key_length(*ctx, key_len) || !EVP_CipherInit_ex(*ctx, nullptr, nullptr, (const unsigned char*)key, (const unsigned char*)iv, -1)) {
-                // should not happen
-                xsink->raiseException(err, "error setting %s key length: %d", cipher, key_len);
-                state = STATE_ERROR;
-                return;
+            //printd(5, "CryptoTransform::CryptoTransform() %scrypt %s: ce.key_len: %d key_len: %d\n",
+            //    do_crypt ? "en" : "de", cipher, ce.key_len, key_len);
+            if (!EVP_CIPHER_CTX_set_key_length(*ctx, key_len) || !EVP_CipherInit_ex(*ctx, nullptr, nullptr,
+                (const unsigned char*)key, (const unsigned char*)iv, -1)) {
+                bool ok = false;
+                if (ce.key_len && ce.key_len != key_len) {
+                    key_len = ce.key_len;
+                    if (EVP_CIPHER_CTX_set_key_length(*ctx, key_len) && EVP_CipherInit_ex(*ctx, nullptr, nullptr,
+                        (const unsigned char*)key, (const unsigned char*)iv, -1)) {
+                        ok = true;
+                    }
+                }
+                if (!ok) {
+                    // should not happen
+                    xsink->raiseException(err, "error setting %s key length: %d", cipher, key_len);
+                    state = STATE_ERROR;
+                    return;
+                }
             }
         }
 
@@ -199,7 +233,8 @@ public:
         }
     }
 
-    DLLLOCAL std::pair<int64, int64> apply(const void* src, int64 srcLen, void* dst, int64 dstLen, ExceptionSink* xsink) {
+    DLLLOCAL std::pair<int64, int64> apply(const void* src, int64 srcLen, void* dst, int64 dstLen,
+            ExceptionSink* xsink) {
         if (state == STATE_DONE)
             return std::make_pair(0, 0);
 
@@ -257,7 +292,8 @@ public:
         // issue #3111: make sure we did not overwrite our meemory buffer
         assert(outlen <= dstLen);
 
-        //printd(5, "CryptoTransform::apply() %scrypt %s: src: %p srcLen: %lld dst: %p dstLen: %lld outlen: %d *xsink: %d\n", do_crypt ? "en" : "de", cipher, src, srcLen, dst, dstLen, outlen, (bool)*xsink);
+        //printd(5, "CryptoTransform::apply() %scrypt %s: src: %p srcLen: %lld dst: %p dstLen: %lld outlen: %d "
+        //    "*xsink: %d\n", do_crypt ? "en" : "de", cipher, src, srcLen, dst, dstLen, outlen, (bool)*xsink);
         return std::make_pair(srcLen, outlen);
     }
 
@@ -288,6 +324,35 @@ private:
     ReferenceNode* mac_ref;
 
     bool do_crypt;
+
+    DLLLOCAL int findCipher(const char* cipher, bool do_crypt, ExceptionSink* xsink) {
+#ifdef OPENSSL_3_PLUS
+        ce.cipher_type = q_lookup_cipher(cipher);
+        if (!ce.cipher_type) {
+            xsink->raiseException(err, "unknown %scryption algorithm '%s'", do_crypt ? "en" : "de", cipher);
+            return -1;
+        }
+
+        ce.gcm = EVP_CIPHER_get_mode(ce.cipher_type) == EVP_CIPH_GCM_MODE;
+        unsigned long flags = EVP_CIPHER_get_flags(ce.cipher_type);
+        if (flags & EVP_CIPH_CUSTOM_IV) {
+            ce.iv_len = -1;
+        } else {
+            int len = EVP_CIPHER_get_iv_length(ce.cipher_type);
+            ce.iv_len = len ? len : -1;
+        }
+        ce.key_len = EVP_CIPHER_get_key_length(ce.cipher_type);
+        return 0;
+#else
+        crypto_map_t::iterator i = crypto_map.find(cipher);
+        if (i == crypto_map.end()) {
+            xsink->raiseException(err, "unknown %scryption algorithm '%s'", do_crypt ? "en" : "de", cipher);
+            return -1;
+        }
+        ce = i->second;
+        return 0;
+#endif
+    }
 };
 
 Transform* EncryptionTransforms::getCryptoTransform(const char* cipher, bool do_crypt, const char* key,
@@ -298,13 +363,211 @@ Transform* EncryptionTransforms::getCryptoTransform(const char* cipher, bool do_
     return *xsink ? nullptr : rv.release();
 }
 
-QoreHashNode* init_digest_map_hash() {
+#ifdef OPENSSL_3_PLUS
+#include <openssl/provider.h>
+#include <openssl/kdf.h>
+#include <openssl/encoder.h>
+#include <openssl/decoder.h>
+#include <openssl/safestack.h>
+
+/* Checks to see if algorithms are fetchable */
+#define IS_FETCHABLE(type, TYPE)                                \
+    static int is_ ## type ## _fetchable(const TYPE *alg)       \
+    {                                                           \
+        TYPE *impl;                                             \
+        const char *name = TYPE ## _get0_name(alg);             \
+                                                                \
+        ERR_set_mark();                                         \
+        impl = TYPE ## _fetch(nullptr, name, nullptr);          \
+        ERR_pop_to_mark();                                      \
+        if (impl == NULL)                                       \
+            return 0;                                           \
+        TYPE ## _free(impl);                                    \
+        return 1;                                               \
+    }
+IS_FETCHABLE(cipher, EVP_CIPHER)
+IS_FETCHABLE(digest, EVP_MD)
+IS_FETCHABLE(mac, EVP_MAC)
+IS_FETCHABLE(kdf, EVP_KDF)
+IS_FETCHABLE(rand, EVP_RAND)
+IS_FETCHABLE(keymgmt, EVP_KEYMGMT)
+IS_FETCHABLE(signature, EVP_SIGNATURE)
+IS_FETCHABLE(kem, EVP_KEM)
+IS_FETCHABLE(asym_cipher, EVP_ASYM_CIPHER)
+IS_FETCHABLE(keyexch, EVP_KEYEXCH)
+IS_FETCHABLE(decoder, OSSL_DECODER)
+IS_FETCHABLE(encoder, OSSL_ENCODER)
+
+DEFINE_STACK_OF(EVP_CIPHER)
+DEFINE_STACK_OF(EVP_MD)
+
+static int cipher_cmp(const EVP_CIPHER* const* a, const EVP_CIPHER* const* b) {
+    return strcmp(OSSL_PROVIDER_get0_name(EVP_CIPHER_get0_provider(*a)),
+        OSSL_PROVIDER_get0_name(EVP_CIPHER_get0_provider(*b)));
+}
+
+static void collect_ciphers(EVP_CIPHER* cipher, void* stack) {
+    STACK_OF(EVP_CIPHER)* cipher_stack = (STACK_OF(EVP_CIPHER)*)stack;
+
+    if (is_cipher_fetchable(cipher) && sk_EVP_CIPHER_push(cipher_stack, cipher) > 0) {
+        EVP_CIPHER_up_ref(cipher);
+    }
+}
+
+static int md_cmp(const EVP_MD* const* a, const EVP_MD* const* b) {
+    return strcmp(OSSL_PROVIDER_get0_name(EVP_MD_get0_provider(*a)),
+                  OSSL_PROVIDER_get0_name(EVP_MD_get0_provider(*b)));
+}
+
+static void collect_digests(EVP_MD* digest, void* stack) {
+    STACK_OF(EVP_MD)* digest_stack = (STACK_OF(EVP_MD)*)stack;
+    if (is_digest_fetchable(digest) && sk_EVP_MD_push(digest_stack, digest) > 0) {
+        EVP_MD_up_ref(digest);
+    }
+}
+
+static int name_cmp(const char* const* a, const char* const* b) {
+    return strcasecmp(*a, *b);
+}
+
+static void collect_names(const char* name, void* stack) {
+    STACK_OF(OPENSSL_CSTRING)* names = (STACK_OF(OPENSSL_CSTRING)*)stack;
+    sk_OPENSSL_CSTRING_push(names, name);
+}
+
+const EVP_CIPHER* q_lookup_cipher(const char* cipher) {
+    // first lookup aliases for backwards compatibility
+    strmap_t::const_iterator i = cipher_compat_aliases.find(cipher);
+    if (i != cipher_compat_aliases.end()) {
+        cipher = i->second.c_str();
+    }
+    return EVP_CIPHER_fetch(nullptr, cipher, nullptr);
+}
+
+QoreHashNode* q_get_cipher_hash(const EVP_CIPHER* c) {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), nullptr);
     qore_hash_private* priv = qore_hash_private::get(**rv);
 
-    for (auto& i : digest_map) {
-        priv->setKeyValueIntern(i.first.c_str(), true);
+    const char* str = EVP_CIPHER_get0_name(c);
+    if (str) {
+        priv->setKeyValueIntern("name", new QoreStringNode(str));
+    }
+    str = EVP_CIPHER_get0_description(c);
+    if (str) {
+        priv->setKeyValueIntern("desc", new QoreStringNode(str));
+    }
+    {
+        const char* type;
+        switch (EVP_CIPHER_get_mode(c)) {
+            case EVP_CIPH_ECB_MODE: type = "ECB"; break;
+            case EVP_CIPH_CBC_MODE: type = "CBC"; break;
+            case EVP_CIPH_CFB_MODE: type = "CFB"; break;
+            case EVP_CIPH_OFB_MODE: type = "OFB"; break;
+            case EVP_CIPH_CTR_MODE: type = "CTR"; break;
+            case EVP_CIPH_GCM_MODE: type = "GCM"; break;
+            case EVP_CIPH_CCM_MODE: type = "CCM"; break;
+            case EVP_CIPH_XTS_MODE: type = "XTS"; break;
+            case EVP_CIPH_WRAP_MODE: type = "WRAP"; break;
+            case EVP_CIPH_OCB_MODE: type = "OCB"; break;
+            case EVP_CIPH_SIV_MODE: type = "SIV"; break;
+            case EVP_CIPH_STREAM_CIPHER: type = "STREAM"; break;
+            default: type = "unknown"; break;
+        }
+        priv->setKeyValueIntern("type", new QoreStringNode(type));
+    }
+
+    priv->setKeyValueIntern("key_len", EVP_CIPHER_get_key_length(c));
+
+    //const OSSL_PROVIDER* provider = EVP_CIPHER_get0_provider(c);
+    unsigned long flags = EVP_CIPHER_get_flags(c);
+    if (flags & EVP_CIPH_CUSTOM_IV) {
+        priv->setKeyValueIntern("iv_len", -1);
+    } else {
+        int len = EVP_CIPHER_get_iv_length(c);
+        priv->setKeyValueIntern("iv_len", len ? len : -1);
     }
 
     return rv.release();
 }
+#endif
+
+QoreHashNode* init_digest_map_hash() {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), nullptr);
+    qore_hash_private* priv = qore_hash_private::get(**rv);
+
+#ifdef OPENSSL_3_PLUS
+    // get all digests
+    STACK_OF(EVP_MD)* digests = sk_EVP_MD_new(md_cmp);
+    if (digests) {
+        EVP_MD_do_all_provided(nullptr, collect_digests, digests);
+        sk_EVP_MD_sort(digests);
+
+        for (int i = 0; i < sk_EVP_MD_num(digests); ++i) {
+            const EVP_MD* m = sk_EVP_MD_value(digests, i);
+            STACK_OF(OPENSSL_CSTRING)* names = sk_OPENSSL_CSTRING_new(name_cmp);
+            if (names && EVP_MD_names_do_all(m, collect_names, names)) {
+                sk_OPENSSL_CSTRING_sort(names);
+                // add only the last name in the list
+                int len = sk_OPENSSL_CSTRING_num(names);
+                if (len) {
+                    const char* name = sk_OPENSSL_CSTRING_value(names, len - 1);
+                    assert(name);
+                    assert(!priv->existsKey(name));
+                    QoreString str(name);
+                    str.tolwr();
+                    priv->setKeyValueIntern(str.c_str(), true);
+                }
+            }
+            sk_OPENSSL_CSTRING_free(names);
+        }
+        sk_EVP_MD_pop_free(digests, EVP_MD_free);
+    }
+#else
+    for (auto& i : digest_map) {
+        priv->setKeyValueIntern(i.first.c_str(), true);
+    }
+#endif
+
+    return rv.release();
+}
+
+// returns hash<string, hash<auto>>
+QoreHashNode* init_cipher_map_hash() {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(qore_get_complex_hash_type(autoHashTypeInfo)), nullptr);
+    qore_hash_private* priv = qore_hash_private::get(**rv);
+
+#ifdef OPENSSL_3_PLUS
+    STACK_OF(EVP_CIPHER)* ciphers = sk_EVP_CIPHER_new(cipher_cmp);
+    if (ciphers) {
+        EVP_CIPHER_do_all_provided(nullptr, collect_ciphers, ciphers);
+        sk_EVP_CIPHER_sort(ciphers);
+
+        for (int i = 0; i < sk_EVP_CIPHER_num(ciphers); ++i) {
+            const EVP_CIPHER* c = sk_EVP_CIPHER_value(ciphers, i);
+            STACK_OF(OPENSSL_CSTRING)* names = sk_OPENSSL_CSTRING_new(name_cmp);
+            if (names && EVP_CIPHER_names_do_all(c, collect_names, names)) {
+                sk_OPENSSL_CSTRING_sort(names);
+                // add only the last name in the list
+                int len = sk_OPENSSL_CSTRING_num(names);
+                if (len) {
+                    const char* name = sk_OPENSSL_CSTRING_value(names, len - 1);
+                    //printd(5, "init_cipher_map_hash() adding cipher %d (%d): '%s'\n", i, j, name);
+                    QoreString str(name);
+                    str.tolwr();
+                    priv->setKeyValueIntern(str.c_str(), q_get_cipher_hash(c));
+                }
+            }
+            sk_OPENSSL_CSTRING_free(names);
+        }
+        sk_EVP_CIPHER_pop_free(ciphers, EVP_CIPHER_free);
+    }
+
+#else
+    for (auto& i : crypto_map) {
+        priv->setKeyValueIntern(i.first.c_str(), i.second.getInfo());
+    }
+#endif
+
+    return rv.release();
+}
+

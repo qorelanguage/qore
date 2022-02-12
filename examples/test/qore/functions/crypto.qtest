@@ -67,8 +67,9 @@ public class CryptoTest inherits QUnit::Test {
     testEncryption(string alg, string str = Str, *code enc_func, *code dec_func) {
         binary x1 = encrypt(alg, str, Key);
 
-        hash h = get_crypto_info(){alg};
-        assertEq("CBC", h.type);
+        on_error printf("alg: %y\n", alg);
+        hash<auto> h = get_cipher_info(alg);
+        assertEq(Type::Int, h.key_len.type());
 
         if (enc_func) {
             binary x = enc_func(str, Key);
@@ -84,8 +85,7 @@ public class CryptoTest inherits QUnit::Test {
         try {
             binary x = decrypt_to_binary(alg, x1, "x" + Key);
             assertEq(False, x == x1, alg + " decrypt");
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("DECRYPT-ERROR", ex.err, alg + " decrypt");
         }
 
@@ -100,8 +100,7 @@ public class CryptoTest inherits QUnit::Test {
         try {
             binary x = decrypt_to_binary(alg, x1, Key);
             assertEq(False, x == x1, alg + " decrypt+iv");
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("DECRYPT-ERROR", ex.err, alg + " decrypt+iv");
         }
     }
@@ -109,7 +108,8 @@ public class CryptoTest inherits QUnit::Test {
     testGcmEncryption(string alg, string str = Str) {
         binary mac;
 
-        hash h = get_crypto_info(){alg};
+        on_error printf("alg: %y\n", alg);
+        hash<auto> h = get_cipher_info(alg);
         assertEq("GCM", h.type);
 
         binary x1 = encrypt(alg, str, Key, NOTHING, \mac, 16);

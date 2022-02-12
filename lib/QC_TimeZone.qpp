@@ -216,9 +216,11 @@ date TimeZone::date(string dtstr) [flags=CONSTANT] {
 //! Returns a @ref date "date/time" value in the current TimeZone corresponding to parsing a string argument according to a @ref date_mask "format mask"
 /**
     @param dtstr a string giving a date
-    @param mask the mask for the date value; see @ref date_mask for information on the format of the @ref date_mask "format mask"
+    @param mask the mask for the date value; see @ref date_mask for information on the format of the
+    @ref date_mask "format mask"
 
-    @return the @ref date "date/time" value in the current TimeZone corresponding to parsing the \a dtstr string argument according to \a mask serving as a @ref date_mask "format mask"
+    @return the @ref date "date/time" value in the current TimeZone corresponding to parsing the \a dtstr string
+    argument according to \a mask serving as a @ref date_mask "format mask"
 
     @par Example:
     @code{.py}
@@ -294,7 +296,8 @@ static nothing TimeZone::set(TimeZone[TimeZoneData] zone) [dom=LOCALE_CONTROL] {
 
 //! Sets the time zone for the current Program object from an integer offset in seconds east of UTC
 /**
-    @param seconds_east the number of seconds east of UTC for the new time zone (negative numbers give seconds west of UTC)
+    @param seconds_east the number of seconds east of UTC for the new time zone (negative numbers give seconds west
+    of UTC)
 
     @par Example:
     @code{.py}
@@ -310,7 +313,11 @@ static nothing TimeZone::setUTCOffset(softint seconds_east) [dom=LOCALE_CONTROL]
 /**
     @param region the region name to set
 
-    @note On Windows you can use both zoneinfo region names (ex: \c "Europe/Prague") as well as the Windows registry keys under <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt> (ex: \c "Central Europe Standard Time); note that in this case the Windows-style names will only be used to load the timezone info from registry and the name will then be converted to the first corresponding zoneinfo region according to alphabet (ex: \c "Central Europe Standard Time" -> \c "Europe/Belgrade").
+    @note On Windows you can use both zoneinfo region names (ex: \c "Europe/Prague") as well as the Windows registry
+    keys under <tt>HKEY_LOCAL_MACHINE SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones</tt> (ex:
+    \c "Central Europe Standard Time"); note that in this case the Windows-style names will only be used to load the
+    timezone info from registry and the name will then be converted to the first corresponding zoneinfo region
+    according to alphabet (ex: \c "Central Europe Standard Time" -> \c "Europe/Belgrade").
 
     @par Example:
     @code{.py}

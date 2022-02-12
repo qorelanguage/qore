@@ -38,7 +38,10 @@
 
 class EncryptionTransforms {
 public:
-    DLLLOCAL static Transform* getCryptoTransform(const char* cipher, bool do_crypt, const char* key, unsigned key_len, const char* iv, unsigned iv_len, const char* mac, unsigned mac_len, unsigned tag_length, const ReferenceNode* mac_ref, const char* aad, unsigned aad_len, ExceptionSink* xsink);
+    DLLLOCAL static Transform* getCryptoTransform(const char* cipher, bool do_crypt, const char* key,
+            unsigned key_len, const char* iv, unsigned iv_len, const char* mac, unsigned mac_len,
+            unsigned tag_length, const ReferenceNode* mac_ref, const char* aad, unsigned aad_len,
+            ExceptionSink* xsink);
 };
 
 struct CryptoEntry {
@@ -51,9 +54,13 @@ struct CryptoEntry {
     // does the algorithm use Galois Counter Mode (GCM)?
     bool gcm;
 
+#ifndef OPENSSL_3_PLUS
     DLLLOCAL QoreHashNode* getInfo() const;
+#endif
 };
 
+// no need for the crypto or digest maps with openssl 3+
+#ifndef OPENSSL_3_PLUS
 // maps from encryption strings to configurations
 typedef std::map<std::string, CryptoEntry, ltstrcase> crypto_map_t;
 DLLLOCAL extern crypto_map_t crypto_map;
@@ -61,8 +68,14 @@ DLLLOCAL extern crypto_map_t crypto_map;
 // maps from digest strings to algorithms
 typedef std::map<std::string, const EVP_MD*, ltstrcase> digest_map_t;
 DLLLOCAL extern digest_map_t digest_map;
+#else
+const EVP_CIPHER* q_lookup_cipher(const char* cipher);
+DLLLOCAL QoreHashNode* q_get_cipher_hash(const EVP_CIPHER* c);
+#endif
 
-// init hash for encryption transformation constant
+// init hash for giest encryption transformation constant
 DLLLOCAL QoreHashNode* init_digest_map_hash();
+// init hash for cipher encryption transformation constant
+DLLLOCAL QoreHashNode* init_cipher_map_hash();
 
 #endif // _QORE_ENCRYPTIONTRANSFORMS_H

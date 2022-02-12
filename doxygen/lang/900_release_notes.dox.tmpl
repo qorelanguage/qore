@@ -9,23 +9,30 @@
 
     @subsection qore_1_4_0_new_features New Features in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
-      - added "from example" APIs to data provider factories:
+      - Added "from example" APIs to data provider factories:
         - \c AbstractDataProviderFactory::getExampleProviderRecordOutput()
         - \c AbstractDataProviderFactory::getProviderFromExample()
         (<a href="https://github.com/qorelanguage/qore/issues/4433">issue 4433</a>)
-      - added generic search capabilities to data providers with no native search functionality
+      - Added generic search capabilities to data providers with no native search functionality
         (<a href="https://github.com/qorelanguage/qore/issues/4430">issue 4430</a>)
     - <a href="../../modules/Util/html/index.html">Util</a> module
-      - implemented the @ref Util::serialize_to_string() "serialize_to_string()" API
+      - Implemented the \c serialize_to_string() API
         (<a href="https://github.com/qorelanguage/qore/issues/4428">issue 4428</a>)
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
-      - added missing make*() methods with REST responses to the @ref RestHandler::RestHandler "RestHandler" class
+      - Added missing \c make*() methods with REST responses to the \c RestHandler class
+    - added the @ref Qore::CipherMap "CipherMap" constant providing a hash of known ciphers
+    - new functions:
+      - @ref Qore::get_cipher_info() "get_cipher_info()"
+      - @ref Qore::has_digest() "has_digest()"
 
     @subsection qore_1_4_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/Util/html/index.html">Util</a> module
       - \c parse_uri_query() fails if the string has newlines in it
         (<a href="https://github.com/qorelanguage/qore/issues/4429">issue 4429</a>)
-    - removed code that generated unnecessary \c ILLEGAL-CALL exceptions at parse time
+    - Support for OpenSSL 3+ added; when %Qore is compiled with OpenSS 3 or greater, all cipher and digest algorithms
+      known to the encryption library are supported with dynamic APIs
+      (<a href="https://github.com/qorelanguage/qore/issues/4494">issue 4494</a>)
+    - Removed code that generated unnecessary \c ILLEGAL-CALL exceptions at parse time
       (<a href="https://github.com/qorelanguage/qore/issues/4404">issue 4404</a>)
 
     @section qore_1_3_0 Qore 1.3.0
@@ -59,7 +66,7 @@
 
     @subsection qore_1_2_0_new_features New Features in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
-      - added a logger to the @ref DataProvider::AbstractDataProvider "AbstractDataProvider" class to enable logging
+      - added a logger to the \c AbstractDataProvider class to enable logging
         (<a href="https://github.com/qorelanguage/qore/issues/4409">issue 4409</a>)
       - added support for creating, updating, and deleting data providers
         (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)
@@ -455,7 +462,7 @@
       - fixed bugs dropping foreign constraints and indices when aligning tables
         (<a href="https://github.com/qorelanguage/qore/issues/4246">issue 4246</a>)
     - <a href="../../modules/Qdx/html/index.html">Qdx</a> module
-      - fixed stripping the final \c "\" character in multi-line entries in tables
+      - fixed stripping the final <tt>\\</tt> character in multi-line entries in tables
         (<a href="https://github.com/qorelanguage/qore/issues/4195">issue 4195</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
       - fixed a bug handling foreign constraints backed by indices on DBs that link indices and constraints
@@ -2179,7 +2186,8 @@
       - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module fixes:
         - fixed a bug where default column values were compared incorrectly leading to false positives when comparing and aligning DB schemas (<a href="https://github.com/qorelanguage/qore/issues/2527">issue 2527</a>)
       - <a href="../../modules/Qdx/html/index.html">Qdx</a> module fixes:
-        - fixed a bug in documentation post-processing for @ref hashdecl "hashdecl" declarations (<a href="https://github.com/qorelanguage/qore/issues/2298">issue 2298</a>)
+        - fixed a bug in documentation post-processing for @ref hashdecl "hashdecl" declarations
+        (<a href="https://github.com/qorelanguage/qore/issues/2298">issue 2298</a>)
       - <a href="../../modules/QUnit/html/index.html">QUnit</a> fixes:
         - added missing comparison methods (<a href="https://github.com/qorelanguage/qore/issues/1588">issue 1588</a>):
           - \c Test::assertRegex()

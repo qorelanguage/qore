@@ -39,6 +39,10 @@
 #include <cstdarg>
 #include <sys/types.h>
 
+#ifdef HAVE_EVP_MAC_CTX_NEW
+#define OPENSSL_3_PLUS
+#endif
+
 #ifdef HAVE_SYS_STATVFS_H
 #define Q_HAVE_STATVFS
 #include <sys/statvfs.h>
