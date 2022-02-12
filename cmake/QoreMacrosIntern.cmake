@@ -194,7 +194,7 @@ return 0;
 }"
 HAVE_SSL_SET1_HOST)
 
-# check for SSL_set1_host()
+# check for EVP_MAC_CTX_new)
 check_cxx_source_compiles("
 #include <openssl/evp.h>
 int main(void) {

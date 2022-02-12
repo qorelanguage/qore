@@ -1177,6 +1177,15 @@ else
         AC_DEFINE([HAVE_SSL_SET1_HOST], 1, [Define if SSL_set1_host() is present])],
        [AC_MSG_RESULT([no SSL_set1_host() present])])
 
+    # check for EVP_MAC_CTX_new()
+    AC_MSG_CHECKING([EVP_MAC_CTX_new() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/evp.h>]],
+    [[EVP_MAC_CTX_new(nullptr);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_EVP_MAC_CTX_NEW], 1, [Define if EVP_MAC_CTX_new() is present])],
+       [AC_MSG_RESULT([no EVP_MAC_CTX_new() present])])
+
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"
 fi
