@@ -1017,7 +1017,7 @@ int ord(softstring str, softint offset = 0) [flags=CONSTANT] {
    if (offset < 0 || (size_t)offset >= str->strlen())
       return -1;
 
-   return (unsigned char)str->getBuffer()[offset];
+   return (unsigned char)str->c_str()[offset];
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1062,34 +1062,42 @@ nothing chr() [flags=RUNTIME_NOOP] {
 
 //! Splits a string into a list of components based on a separator string
 /**
-    @param sep the separator string; if the separator string is not found in the string to split, then a list with only one element containing the entire string argument is returned'; if this string has a different @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s @ref character_encoding "character encoding"
+    @param sep the separator string; if the separator string is not found in the string to split, then a list with
+    only one element containing the entire string argument is returned'; if this string has a different
+    @ref character_encoding "character encoding" than \a str, then it will be converted to <em>str</em>'s
+    @ref character_encoding "character encoding"
     @param str the string to split
     @param with_separator include the separator string in every element
 
-    @return a list of each component of a string separated by a separator string, with the separator removed; the separator pattern will not be included in the elements of the list returned unless the \a with_separator argument is @ref True
+    @return a list of each component of a string separated by a separator string, with the separator removed; the
+    separator pattern will not be included in the elements of the list returned unless the \a with_separator argument
+    is @ref True
 
     @par Example:
     @code{.py}
 list<string> l = split(":", "some:text:here"); # returns ("some", "text", "here")
     @endcode
 
-    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different @ref character_encoding "character encodings" and an error occurs during encoding conversion
+    @throw ENCODING-CONVERSION-ERROR this exception could be thrown if the string arguments have different
+    @ref character_encoding "character encodings" and an error occurs during encoding conversion
 
     @note equivalent to <string>::split(string, bool)
  */
 list<string> split(string sep, string str, bool with_separator = False) [flags=RET_VALUE_ONLY] {
-   // convert pattern encoding to string if necessary
-   TempEncodingHelper temp(sep, str->getEncoding(), xsink);
-   if (*xsink)
-      return QoreValue();
+    // convert pattern encoding to string if necessary
+    TempEncodingHelper temp(sep, str->getEncoding(), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
 
-   return split_intern(temp->getBuffer(), temp->strlen(), str->getBuffer(), str->strlen(), str->getEncoding(), with_separator);
+    return split_intern(temp->c_str(), temp->strlen(), str->c_str(), str->strlen(), str->getEncoding(),
+        with_separator);
 }
 
 //! Splits a string into a list of components based on a separator string and a quote character
 /** The quote character can appear as the first part of a field, in which case it is assumed to designate the entire
     field. If instances of the quote character are found in the field doubled or preceded by a backquote character
-    (\c "\"), then these quote characters are included as part of the field's text and not treated as quote
+    (<tt>\\</tt>), then these quote characters are included as part of the field's text and not treated as quote
     characters (in quoted fields only).
 
     @param sep the separator string; if the separator string is not found in the string to split, then a list with
@@ -1098,7 +1106,7 @@ list<string> split(string sep, string str, bool with_separator = False) [flags=R
     @ref character_encoding "character encoding"
     @param str the string to split
     @param quote the quote character; quotes may be escaped (in quoted fields only) by doubling the quote character or
-    by preceding it with a backslash (\c "\")
+    by preceding it with a backslash (<tt>\\</tt>)
     @param trim_unquoted remove leading and trailing whitespace from unquoted fields
 
     @return a list of each component of a string separated by a separator string, with the separator and any enclosing
@@ -1120,7 +1128,7 @@ list<string> l = split(",", "some,'text with spaces',here", "'"); # returns ("so
     - %Qore 0.9.4 processes doubled quote characters as an escaped quote within a quoted field
  */
 list<string> split(string sep, string str, string quote, bool trim_unquoted = False) [flags=RET_VALUE_ONLY] {
-   return split_with_quote(xsink, sep, str, quote, trim_unquoted);
+    return split_with_quote(xsink, sep, str, quote, trim_unquoted);
 }
 
 //! Returns a list of binary objects representing each component of the binary object separated by the bytes identified by the separator argument, with the separator removed
@@ -1212,7 +1220,7 @@ string nstr = force_encoding(str, "iso-8859-1");
     @endcode
  */
 string force_encoding(string str, string encoding) [flags=CONSTANT] {
-   return new QoreStringNode(str->getBuffer(), str->strlen(), QEM.findCreate(encoding));
+   return new QoreStringNode(str->c_str(), str->strlen(), QEM.findCreate(encoding));
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1753,10 +1761,10 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
    }
 
    if (!enc->isMultiByte())
-      return new QoreStringNode(tmp->getBuffer(), len, enc);
+      return new QoreStringNode(tmp->c_str(), len, enc);
 
    // find position of last character fitting in len bytes
-   const char* p = tmp->getBuffer();
+   const char* p = tmp->c_str();
    int64 sl = 0;
    while (true) {
       qore_offset_t size = enc->getCharLen(p, len - sl);
@@ -1766,7 +1774,7 @@ string trunc_str(softstring str, softint len, *string encoding) [flags=RET_VALUE
       p += size;
    }
 
-   return new QoreStringNode(tmp->getBuffer(), sl, enc);
+   return new QoreStringNode(tmp->c_str(), sl, enc);
 }
 
 //! Returns a new string with a repeated string element and optionally removing trailing characters
@@ -2124,7 +2132,7 @@ bool b = parse_boolean(str);
     @since Qore 0.8.12 \c "y" is also parsed as @ref True "True"
  */
 bool parse_boolean(string str) [flags=CONSTANT] {
-   return q_parse_bool(str->getBuffer());
+   return q_parse_bool(str->c_str());
 }
 
 //! returns the first value passed as a boolean

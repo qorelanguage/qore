@@ -63,7 +63,7 @@ private:
 protected:
     //! this structure holds the private implementation for the type
     /** therefore changes to the implementation will not affect the C++ ABI
-        */
+    */
     struct qore_list_private *priv;
 
     //! the destructor is protected so it cannot be called directly
@@ -97,7 +97,7 @@ public:
 
     //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
     /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
-        */
+    */
     DLLEXPORT virtual bool getAsBoolImpl() const;
 
     //! concatenate the verbose string representation of the list (including all contained values) to an existing QoreString
@@ -201,7 +201,7 @@ public:
     /** if the list is empty the 0 is returned (NOTE: the last entry could also be 0 as well)
 
         @since %Qore 0.9
-        */
+    */
     DLLEXPORT QoreValue pop();
 
     //! returns the first element of the list, all other entries are moved down to fill up the first position, caller owns the reference
@@ -346,8 +346,7 @@ public:
 
     //! adds a single value or a list of values ("l") to list possition "offset", while removing "length" elements and returns any elements removed from the list as a new list
     /** the "l" AbstractQoreNode (or each element if it is a QoreListNode) will be referenced for the assignment in the QoreListNode
-        */
-    /**
+
         @param offset the index of the element (first element is offset 0, negative offsets are offsets from the end of the list)
         @param length the number of elements to remove (negative numbers mean all except that many elements from the end)
         @param l the value or list of values to insert
@@ -389,12 +388,12 @@ public:
 
     //! returns the number of elements in the list
     /** return the number of elements in the list
-        */
+    */
     DLLEXPORT size_t size() const;
 
     //! returns true if the list is empty
     /** return true if the list is empty
-        */
+    */
     DLLEXPORT bool empty() const;
 
     //! returns a list with the order of the elements reversed
