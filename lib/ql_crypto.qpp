@@ -254,14 +254,14 @@ int HMACHelper::doHMAC(const char* err, const char* digest, const char* ptr, siz
         return -1;
     }
     const EVP_MD* md = q_lookup_digest(digest);
-    if (!digest) {
-        xsink->raiseException(err, "error looking up digest '%s' for HMAC", digest);
+    if (!md) {
+        xsink->raiseException("DIGEST-ERROR", "error looking up digest '%s' for HMAC", digest);
         return -1;
     }
 #ifdef HAVE_OPENSSL_HMAC_RV
     int rc = HMAC_Init_ex(*ctx, ptr, len, md, 0);
     if (!rc) {
-        xsink->raiseException(err, "error initalizing HMAC");
+        xsink->raiseException(err, "error initializing HMAC");
         return -1;
     }
     if (!HMAC_Update(*ctx, input, input_len)
