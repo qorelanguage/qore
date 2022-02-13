@@ -31,19 +31,29 @@ public class SwaggerDataProviderFactory inherits AbstractDataProviderFactory {
     }
 
     #! Returns the name of the data provider factory
-    string getName() {
+    private string getNameImpl() {
         return "swagger";
+    }
+
+    #! Returns static factory information without \a provider_info
+    /** @return static factory information without \a provider_info which is provided by @ref getProviedrInfo()
+    */
+    private hash<DataProviderFactoryInfo> getInfoImpl() {
+        return <DataProviderFactoryInfo>{
+            "name": "swagger",
+            "api_management": True,
+        };
     }
 
     #! Returns static provider information
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
-    hash<DataProviderInfo> getInfo() {
+    private hash<DataProviderInfo> getProviderInfoImpl() {
         return SwaggerDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object
-    Class getClass() {
+    private Class getClassImpl() {
         return cls;
     }
 }

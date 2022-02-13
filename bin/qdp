@@ -461,6 +461,8 @@ class QdpCmd {
     static listFactories() {
         # load known data provider factories
         DataProvider::registerKnownFactories();
+        # load providers from environment
+        DataProvider::loadProvidersFromEnvironment();
         *list<string> flist = DataProvider::listFactories();
         if (opts.verbose) {
             map printf("%s: %N\n", $1, DataProvider::getFactory($1).getInfoAsData()), flist;

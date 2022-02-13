@@ -31,17 +31,17 @@ public class NullDataProviderFactory inherits AbstractDataProviderFactory {
     }
 
     #! Returns the name of the data provider factory
-    string getName() {
+    private string getNameImpl() {
         return "null";
     }
 
     #! Returns static provider information
-    hash<DataProviderInfo> getInfo() {
+    private hash<DataProviderInfo> getProviderInfoImpl() {
         return NullDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object
-    Class getClass() {
+    private Class getClassImpl() {
         return cls;
     }
 }

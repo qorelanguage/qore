@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-# strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! Contains all public definitions in the SalesforceRestDataProvider module
 public namespace SalesforceRestDataProvider {
 #! The SalesforceRest data provider factory
@@ -42,19 +31,19 @@ public class SalesforceRestDataProviderFactory inherits AbstractDataProviderFact
     }
 
     #! Returns the name of the data provider factory
-    string getName() {
+    private string getNameImpl() {
         return "salesforcerest";
     }
 
     #! Returns static provider information
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
-    hash<DataProviderInfo> getInfo() {
+    private hash<DataProviderInfo> getProviderInfoImpl() {
         return SalesforceRestDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object
-    Class getClass() {
+    private Class getClassImpl() {
         return cls;
     }
 }

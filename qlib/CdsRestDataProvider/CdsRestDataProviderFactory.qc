@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.5
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-# strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! Contains all public definitions in the CdsRestDataProvider module
 public namespace CdsRestDataProvider {
 #! The CdsRest data provider factory
@@ -42,19 +31,19 @@ public class CdsRestDataProviderFactory inherits DataProvider::AbstractDataProvi
     }
 
     #! Returns the name of the data provider factory
-    string getName() {
+    private string getNameImpl() {
         return "cdsrest";
     }
 
     #! Returns static provider information
-    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    /** @note The \c name and \c children attributes are not returned as they are dynamic attributes
     */
-    hash<DataProvider::DataProviderInfo> getInfo() {
+    private hash<DataProvider::DataProviderInfo> getProviderInfoImpl() {
         return CdsRestDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object
-    Class getClass() {
+    private Class getClassImpl() {
         return cls;
     }
 }

@@ -31,19 +31,19 @@ public class ServiceNowRestDataProviderFactory inherits DataProvider::AbstractDa
     }
 
     #! Returns the name of the data provider factory
-    string getName() {
+    private string getNameImpl() {
         return "servicenowrest";
     }
 
     #! Returns static provider information
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
-    hash<DataProvider::DataProviderInfo> getInfo() {
+    private hash<DataProvider::DataProviderInfo> getProviderInfoImpl() {
         return ServiceNowRestDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object
-    Class getClass() {
+    private Class getClassImpl() {
         return cls;
     }
 }
