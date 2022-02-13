@@ -202,7 +202,7 @@ public class AbstractDataProviderFactory {
     }
 
     #! Returns static factory information without \a provider_info
-    /** @return static factory information without \a provider_info which is provided by @ref getProviedrInfo()
+    /** @return static factory information without \a provider_info which is provided by @ref getProviderInfo()
     */
     private hash<DataProviderFactoryInfo> getInfoImpl() {
         return <DataProviderFactoryInfo>{
