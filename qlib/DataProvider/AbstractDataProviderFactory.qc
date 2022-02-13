@@ -24,6 +24,15 @@
 
 #! Contains all public definitions in the DataProvider module
 public namespace DataProvider {
+#! Data provider factory info
+public hashdecl DataProviderFactoryInfo {
+    #! The factory name
+    string name;
+    #! Does this factory create a data provider suitable for server-side API management
+    bool api_management = False;
+    #! Info about providers created from this factory (without the \a name and \a children attributes)
+    hash<DataProviderInfo> provider_info;
+}
 #! Data provider factory class
 public class AbstractDataProviderFactory {
     public {}
@@ -39,13 +48,43 @@ public class AbstractDataProviderFactory {
         return con.call(options);
     }
 
+    #! Returns the name of the data provider factory
+    string getName() {
+        return getNameImpl();
+    }
+
+    #! Returns the class for the data provider object
+    Class getClass() {
+        return getClassImpl();
+    }
+
+    #! Returns static factory information
+    /** @note The \a name and \a children attributes in \a provider_info are not returned as they are dynamic
+        attributes
+    */
+    hash<DataProviderFactoryInfo> getInfo() {
+        return getInfoImpl() + <DataProviderFactoryInfo>{
+            "provider_info": getProviderInfo(),
+        };
+    }
+
     #! Returns static provider information as data; no objects are returned
     /** @param with_type_info the raw info with objects describing the types
 
-        @note the \c name and \c children attributes are not returned as they are dynamic attributes
+        @note The \a name and \a children attributes in \a provider_info are not returned as they are dynamic
+        attributes
     */
     hash<auto> getInfoAsData(*bool with_type_info) {
-        return DataProvider::getInfoAsData(getInfo(), with_type_info);
+        return getInfoImpl() + {
+            "provider_info": DataProvider::getInfoAsData(getProviderInfo(), with_type_info),
+        };
+    }
+
+    #! Returns static provider information
+    /** @note The \a name and \a children attributes are not returned as they are dynamic attributes
+    */
+    hash<DataProviderInfo> getProviderInfo() {
+        return getProviderInfoImpl();
     }
 
     #! Returns a data provider given the example data and constructor options as arguments
@@ -162,15 +201,24 @@ public class AbstractDataProviderFactory {
         throw "DATA-PROVIDER-ERROR", sprintf("ths %s data provider does not support this API", self.className());
     }
 
-    #! Returns the name of the data provider factory
-    abstract string getName();
-
-    #! Returns static provider information
-    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    #! Returns static factory information without \a provider_info
+    /** @return static factory information without \a provider_info which is provided by @ref getProviedrInfo()
     */
-    abstract hash<DataProviderInfo> getInfo();
+    private hash<DataProviderFactoryInfo> getInfoImpl() {
+        return <DataProviderFactoryInfo>{
+            "name": getName(),
+        };
+    }
+
+    #! Returns the name of the data provider factory
+    private abstract string getNameImpl();
 
     #! Returns the class for the data provider object
-    abstract Class getClass();
+    private abstract Class getClassImpl();
+
+    #! Returns static provider information
+    /** @note The \a name and \a children attributes are not returned as they are dynamic attributes
+    */
+    private abstract hash<DataProviderInfo> getProviderInfoImpl();
 }
 }

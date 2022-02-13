@@ -203,6 +203,9 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v2_1 DataProvider v2.1
+    - fixed data provider factory info to provide info about the actual data provider factory instead of only provider
+      info
+      (<a href="https://github.com/qorelanguage/qore/issues/4438">issue 4438</a>)
     - added "from example" APIs to data provider factories:
       - @ref DataProvider::AbstractDataProviderFactory::getProviderFromExample() "AbstractDataProviderFactory::getProviderFromExample()"
       - @ref DataProvider::AbstractDataProviderFactory::getExampleProviderRecordOutput() "AbstractDataProviderFactory::getExampleProviderRecordOutput()"
