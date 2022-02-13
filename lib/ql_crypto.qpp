@@ -3584,7 +3584,7 @@ hash<auto> get_crypto_info() [flags=CONSTANT] {
     @return @ref True if the given digest is supported, @ref False if not
 
     @note If %Qore is compiled with OpenSSL 3+, it will use dynamic lookups of all digests known to the OpenSSL
-    library, otherwise it tried to match the digest with known digests at compile time; use @ref DiesgMap
+    library, otherwise it tried to match the digest with known digests at compile time; use @ref DigestMap
     for a list of known digests
 
     @throw ENCODING-CONVERSION-ERROR this error is thrown if the string cannot be converted to the
