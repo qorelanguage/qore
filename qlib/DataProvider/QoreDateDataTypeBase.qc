@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a date type with validation for string parsing and time zone support
@@ -65,7 +54,7 @@ public class QoreDateDataTypeBase inherits QoreDataType {
     #! creates the object
     /** @throw TYPE-ERROR invalid type; must be a date type
     */
-    private constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
+    private constructor(Type type, *hash<auto> options, *hash<auto> tags) : QoreDataType(type, options, tags) {
         if (type.getBaseTypeCode() != NT_DATE) {
             throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(),
                 type.getName());

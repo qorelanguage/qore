@@ -27,22 +27,22 @@ public namespace SwaggerDataProvider {
 #! The Swagger data provider factory
 public class SwaggerDataProviderFactory inherits AbstractDataProviderFactory {
     private {
+        #! Data provider type info
         static Class cls = new Class("SwaggerDataProvider");
-    }
 
-    #! Returns the name of the data provider factory
-    private string getNameImpl() {
-        return "swagger";
+        #! Factory info
+        const FactoryInfo = <DataProviderFactoryInfo>{
+            "name": "swagger",
+            "desc": "Swagger API data provider factory",
+            "api_management": True,
+        };
     }
 
     #! Returns static factory information without \a provider_info
     /** @return static factory information without \a provider_info which is provided by @ref getProviderInfo()
     */
     private hash<DataProviderFactoryInfo> getInfoImpl() {
-        return <DataProviderFactoryInfo>{
-            "name": "swagger",
-            "api_management": True,
-        };
+        return FactoryInfo;
     }
 
     #! Returns static provider information

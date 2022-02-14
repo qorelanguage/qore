@@ -156,7 +156,18 @@ public hashdecl DataTypeInfo {
 
     #! default type for fields not listed in \a fields
     *hash<DataTypeInfo> default_field_type_info;
+
+    #! Any tags set on the type
+    *hash<auto> tags;
 }
+
+/** @defgroup data_type_tags Data Type Tag Constants
+    These constants provide predefined data type tags
+*/
+#@{
+#! Tag indicating that a string value can be taken from a file
+public const DTT_FromFile = "from_file";
+#@}
 
 #! describes a data type
 public class AbstractDataProviderType inherits Serializable {
@@ -170,6 +181,9 @@ public class AbstractDataProviderType inherits Serializable {
     private {
         #! type options
         hash<auto> options;
+
+        #! type tags
+        *hash<auto> tags;
     }
 
     #! creates the type
@@ -181,8 +195,11 @@ public class AbstractDataProviderType inherits Serializable {
 
         @throw TYPE-OPTION-ERROR option value has an invalid type
     */
-    constructor(hash<auto> options) {
+    constructor(hash<auto> options, *hash<auto> tags) {
         setOptions(options);
+        if (tags) {
+            self.tags = tags;
+        }
     }
 
     #! Returns supported options
@@ -221,6 +238,7 @@ public class AbstractDataProviderType inherits Serializable {
             "types_accepted": keys getAcceptTypeHash(),
             "types_returned": keys getReturnTypeHash(),
             "fields": getFieldInfo(),
+            "tags": tags,
         };
     }
 
@@ -369,6 +387,16 @@ public class AbstractDataProviderType inherits Serializable {
         }
     }
 
+    #! Returns the value of the given tag
+    auto getTag(string tag) {
+        return tags{tag};
+    }
+
+    #! Returns tags set on the type
+    *hash<auto> getTags() {
+        return tags;
+    }
+
     #! Returns a "soft" type equivalent to the current type
     /** The base class method returns the same type; this method must be overridden in child classes to return a
         usable "soft" type
@@ -417,15 +445,15 @@ public class AbstractDataProviderType inherits Serializable {
     abstract auto acceptsValue(auto value);
 
     #! Returns an appropriate object for the given type
-    static AbstractDataProviderType get(Type type, *hash<auto> options) {
+    static AbstractDataProviderType get(Type type, *hash<auto> options, *hash<auto> tags) {
         if (type.isTypedHash()) {
-            return new HashDeclDataType(type, options);
+            return new HashDeclDataType(type, options, tags);
         } else if (type.getBaseTypeCode() == NT_HASH) {
-            return new QoreHashDataType(type, options);
+            return new QoreHashDataType(type, options, tags);
         } else if (type.getBaseTypeCode() == NT_STRING && !type.isOutputCompatible(BinaryType)) {
-            return new QoreStringDataTypeBase(type, options);
+            return new QoreStringDataTypeBase(type, options, tags);
         }
-        return new QoreDataType(type, options);
+        return new QoreDataType(type, options, tags);
     }
 
     #! Returns an appropriate object for the given type

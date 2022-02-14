@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hash
@@ -43,12 +32,12 @@ public class QoreListDataType inherits QoreDataType {
     }
 
     #! creates the object
-    constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
+    constructor(Type type, *hash<auto> options, *hash<auto> tags) : QoreDataType(type, options, tags) {
         init(type.getName());
     }
 
     #! creates the object
-    constructor(string name, Type type, *hash<auto> options) : QoreDataType(type, options) {
+    constructor(string name, Type type, *hash<auto> options, *hash<auto> tags) : QoreDataType(type, options, tags) {
         init(name);
     }
 

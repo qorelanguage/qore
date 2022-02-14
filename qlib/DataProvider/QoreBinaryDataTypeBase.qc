@@ -29,7 +29,7 @@ public class QoreBinaryDataTypeBase inherits QoreDataType {
     #! creates the object
     /** @throw TYPE-ERROR invalid type; must be a binary type
     */
-    private constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
+    private constructor(Type type, *hash<auto> options, *hash<auto> tags) : QoreDataType(type, options, tags) {
         if (type.getBaseTypeCode() != NT_BINARY) {
             throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(),
                 type.getName());

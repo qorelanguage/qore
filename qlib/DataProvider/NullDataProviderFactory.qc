@@ -27,12 +27,21 @@ public namespace DataProvider {
 #! The null data provider factory
 public class NullDataProviderFactory inherits AbstractDataProviderFactory {
     private {
+        #! Data provider type info
         static Class cls = new Class("NullDataProvider");
+
+        #! Factory info
+        const FactoryInfo = <DataProviderFactoryInfo>{
+            "name": "null",
+            "desc": "null data provider factory",
+        };
     }
 
-    #! Returns the name of the data provider factory
-    private string getNameImpl() {
-        return "null";
+    #! Returns static factory information without \a provider_info
+    /** @return static factory information without \a provider_info which is provided by @ref getProviderInfo()
+    */
+    private hash<DataProviderFactoryInfo> getInfoImpl() {
+        return FactoryInfo;
     }
 
     #! Returns static provider information

@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on int types with validation for parsing strings when used with soft types
@@ -50,7 +39,7 @@ public class QoreIntDataTypeBase inherits QoreDataType {
     #! creates the object
     /** @throw TYPE-ERROR invalid type; must be an integer type
     */
-    private constructor(Type type, *hash<auto> options) : QoreDataType(type, options) {
+    private constructor(Type type, *hash<auto> options, *hash<auto> tags) : QoreDataType(type, options, tags) {
         if (type.getBaseTypeCode() != NT_INT) {
             throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(),
                 type.getName());

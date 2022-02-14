@@ -28,6 +28,8 @@ public namespace DataProvider {
 public hashdecl DataProviderFactoryInfo {
     #! The factory name
     string name;
+    #! The factory description
+    string desc;
     #! Does this factory create a data provider suitable for server-side API management
     bool api_management = False;
     #! Info about providers created from this factory (without the \a name and \a children attributes)
@@ -201,17 +203,15 @@ public class AbstractDataProviderFactory {
         throw "DATA-PROVIDER-ERROR", sprintf("ths %s data provider does not support this API", self.className());
     }
 
+    #! Returns the name of the data provider factory
+    private string getNameImpl() {
+        return getInfoImpl().name;
+    }
+
     #! Returns static factory information without \a provider_info
     /** @return static factory information without \a provider_info which is provided by @ref getProviderInfo()
     */
-    private hash<DataProviderFactoryInfo> getInfoImpl() {
-        return <DataProviderFactoryInfo>{
-            "name": getName(),
-        };
-    }
-
-    #! Returns the name of the data provider factory
-    private abstract string getNameImpl();
+    private abstract hash<DataProviderFactoryInfo> getInfoImpl();
 
     #! Returns the class for the data provider object
     private abstract Class getClassImpl();
