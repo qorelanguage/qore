@@ -30,7 +30,7 @@ public namespace DataProvider {
 */
 public class QoreSoftBinaryDataType inherits QoreBinaryDataTypeBase {
     #! creates the object
-    constructor(*hash<auto> options) : QoreBinaryDataTypeBase(SoftBinaryType, options) {
+    constructor(*hash<auto> options, *hash<auto> tags) : QoreBinaryDataTypeBase(SoftBinaryType, options, tags) {
     }
 }
 }

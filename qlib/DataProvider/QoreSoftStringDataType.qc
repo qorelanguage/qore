@@ -22,23 +22,12 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on softstring with a target encoding
 public class QoreSoftStringDataType inherits QoreStringDataTypeBase {
     #! creates the object
-    constructor(*hash<auto> options) : QoreStringDataTypeBase(SoftStringType, options) {
+    constructor(*hash<auto> options, *hash<auto> tags) : QoreStringDataTypeBase(SoftStringType, options, tags) {
     }
 }
 }

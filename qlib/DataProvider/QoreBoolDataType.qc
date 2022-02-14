@@ -22,23 +22,12 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on int
 public class QoreBoolDataType inherits QoreBoolDataTypeBase {
     #! creates the object
-    constructor(*hash<auto> options) : QoreBoolDataTypeBase(BoolType, options) {
+    constructor(*hash<auto> options, *hash<auto> tags) : QoreBoolDataTypeBase(BoolType, options, tags) {
     }
 }
 }

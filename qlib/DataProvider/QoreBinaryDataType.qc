@@ -27,7 +27,7 @@ public namespace DataProvider {
 #! describes a data type based on binary
 public class QoreBinaryDataType inherits QoreBinaryDataTypeBase {
     #! creates the object
-    constructor(*hash<auto> options) : QoreBinaryDataTypeBase(BinaryType, options) {
+    constructor(*hash<auto> options, *hash<auto> tags) : QoreBinaryDataTypeBase(BinaryType, options, tags) {
     }
 }
 }

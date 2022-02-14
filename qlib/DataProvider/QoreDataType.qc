@@ -95,7 +95,7 @@ public class QoreDataType inherits AbstractDataProviderType {
     }
 
     #! creates the type
-    constructor(Type type, *hash<auto> options) {
+    constructor(Type type, *hash<auto> options, *hash<auto> tags) {
         self.type = type;
         base_type_hash{type.getBaseTypeCode()} = True;
         if (type.isOrNothingType()) {
@@ -110,6 +110,9 @@ public class QoreDataType inherits AbstractDataProviderType {
         # set options after setting base type info
         if (options) {
             setOptions(options);
+        }
+        if (tags) {
+            self.tags = tags;
         }
 
         if (self.options."qore.no_null") {

@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 /** @note %Qore "soft" types that do not accept @ref nothing also accept @ref null; to ensure that soft types
     inheriting this class do not accept @ref null, use the \c qore.no_null option in the constructor
@@ -41,7 +30,7 @@ public namespace DataProvider {
 #! describes a data type based on softdate with validation for string parsing and time zone support
 public class QoreSoftDateDataType inherits QoreDateDataTypeBase {
     #! creates the object with the given arguments
-    constructor(*hash<auto> options) : QoreDateDataTypeBase(SoftDateType, options) {
+    constructor(*hash<auto> options, *hash<auto> tags) : QoreDateDataTypeBase(SoftDateType, options, tags) {
     }
 }
 }

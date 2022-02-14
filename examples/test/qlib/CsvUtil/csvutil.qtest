@@ -147,6 +147,10 @@ f2:3,00:5:25,34";
 
             {
                 AbstractDataProviderFactory factory = DataProvider::getFactoryEx("csvread");
+                hash<DataProviderFactoryInfo> info = factory.getInfo();
+                assertEq("csvread", info.name);
+                assertFalse(info.api_management);
+                assertEq(Type::String, info.desc.type());
                 rows = factory.getExampleProviderRecordOutput(new StringInputStream(CsvInputWithHeader), constructor_options);
                 assertEq(5, rows[0].size());
                 assertEq(4, rows.size());

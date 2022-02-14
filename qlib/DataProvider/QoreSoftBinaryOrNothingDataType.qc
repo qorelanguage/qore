@@ -27,7 +27,8 @@ public namespace DataProvider {
 #! describes a data type based on *softbinary with validation for parsing strings
 public class QoreSoftBinaryOrNothingDataType inherits QoreBinaryDataTypeBase {
     #! creates the object
-    constructor(*hash<auto> options) : QoreBinaryDataTypeBase(SoftBinaryOrNothingType, options) {
+    constructor(*hash<auto> options, *hash<auto> tags)
+            : QoreBinaryDataTypeBase(SoftBinaryOrNothingType, options, tags) {
     }
 }
 }

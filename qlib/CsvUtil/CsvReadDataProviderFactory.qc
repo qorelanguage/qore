@@ -27,12 +27,21 @@ public namespace CsvUtil {
 #! The read-only CSV data provider factory
 public class CsvReadDataProviderFactory inherits AbstractDataProviderFactory {
     private {
+        #! Data provider type info
         static Class cls = new Class("CsvReadDataProvider");
+
+        #! Factory info
+        const FactoryInfo = <DataProviderFactoryInfo>{
+            "name": "csvread",
+            "desc": "CSV reader data provider factory",
+        };
     }
 
-    #! Returns the name of the data provider factory
-    private string getNameImpl() {
-        return "csvread";
+    #! Returns static factory information without \a provider_info
+    /** @return static factory information without \a provider_info which is provided by @ref getProviderInfo()
+    */
+    private hash<DataProviderFactoryInfo> getInfoImpl() {
+        return FactoryInfo;
     }
 
     #! Returns static provider information

@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hash
@@ -58,18 +47,20 @@ public class HashDataType inherits QoreDataType {
     }
 
     #! creates the object and assigns the name as the type
-    constructor(string name = AutoHashType.getName(), *hash<auto> options) : QoreDataType(AutoHashType, options) {
+    constructor(string name = AutoHashType.getName(), *hash<auto> options, *hash<auto> tags)
+            : QoreDataType(AutoHashType, options, tags) {
         self.name = name;
     }
 
     #! creates the object and assigns the name as the given name or the base type's name
-    constructor(Type base_type, *string name, *hash<auto> options) : QoreDataType(base_type, options) {
+    constructor(Type base_type, *string name, *hash<auto> options, *hash<auto> tags)
+            : QoreDataType(base_type, options, tags) {
         self.name = name ?? base_type.getName();
     }
 
     #! creates the object from the given record description and assigns the name as the type
-    constructor(string name = AutoHashType.getName(), hash<string, AbstractDataField> fields, *hash<auto> options)
-        : QoreDataType(AutoHashType, options) {
+    constructor(string name = AutoHashType.getName(), hash<string, AbstractDataField> fields, *hash<auto> options,
+            *hash<auto> tags) : QoreDataType(AutoHashType, options, tags) {
         self.name = name;
         self.fields = fields;
     }

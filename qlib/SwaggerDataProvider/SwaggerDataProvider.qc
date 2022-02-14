@@ -59,7 +59,7 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         const ConstructorOptions = {
             "schema": <DataProviderOptionInfo>{
                 "type": (
-                    AbstractDataProviderType::get(StringType),
+                    AbstractDataProviderType::get(StringType, NOTHING, {DTT_FromFile: True}),
                     AbstractDataProviderType::get(new Type("SwaggerSchema")),
                 ),
                 "desc": "the Swagger schema object or source URL",
