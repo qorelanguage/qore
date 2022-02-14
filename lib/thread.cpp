@@ -1322,11 +1322,6 @@ bool is_valid_qore_thread() {
    return (bool)thread_data.get();
 }
 
-// deprecated due to potential symbol conflicts; use q_gettid() instead
-int gettid() noexcept {
-    return q_gettid();
-}
-
 int q_gettid() noexcept {
     // when destroying objects in the static namespace, this function is called after thread data is destroyed
     // to grab locks; therefore in such cases we return TID 0

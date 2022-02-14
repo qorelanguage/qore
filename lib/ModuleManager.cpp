@@ -61,9 +61,7 @@
 #include <vector>
 
 static const qore_mod_api_compat_s qore_mod_api_list_l[] = {
-    {1, 2},
-    {1, 1},
-    {1, 0},
+    {1, 3},
 };
 #define QORE_MOD_API_LEN (sizeof(qore_mod_api_list_l)/sizeof(struct qore_mod_api_compat_s))
 
@@ -804,7 +802,7 @@ int QoreModuleManager::loadModuleIntern(ExceptionSink& xsink, ExceptionSink& wsi
         if (i == module_load_map.end()) {
             break;
         }
-        if (i->second == gettid()) {
+        if (i->second == q_gettid()) {
             xsink.raiseException("LOAD-MODULE-ERROR", "module '%s' has a circular dependency back to itself",
                 name);
             return -1;
@@ -2015,7 +2013,7 @@ char version_list_t::set(const char* v) {
 
 ModuleLoadMapHelper::ModuleLoadMapHelper(const char* feature) {
     assert(QMM.module_load_map.find(feature) == QMM.module_load_map.end());
-    i = QMM.module_load_map.insert(QoreModuleManager::module_load_map_t::value_type(feature, gettid())).first;
+    i = QMM.module_load_map.insert(QoreModuleManager::module_load_map_t::value_type(feature, q_gettid())).first;
 
     // run initialization unlocked
     QMM.mutex.unlock();

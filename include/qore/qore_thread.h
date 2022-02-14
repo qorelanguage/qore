@@ -66,9 +66,6 @@ typedef void (*q_thread_t)(ExceptionSink* xsink, void* arg);
  */
 DLLEXPORT bool is_valid_qore_thread();
 
-//! @deprecated due to symbol conflicts; use q_gettid() instead
-DLLEXPORT int gettid() noexcept;
-
 //! returns the current TID number
 /** @since %Qore 0.9.5.1
 */
