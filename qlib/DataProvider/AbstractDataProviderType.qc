@@ -167,6 +167,9 @@ public hashdecl DataTypeInfo {
 #@{
 #! Tag indicating that a string value can be taken from a file
 public const DTT_FromFile = "from_file";
+
+#! Tag indicates that a string value can indicate a location
+public const DTT_FromLocation = "from_location";
 #@}
 
 #! describes a data type
