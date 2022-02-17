@@ -56,13 +56,13 @@ public:
     DLLEXPORT QoreXSinkException(ExceptionSink& xsink);
 
     //! copy constructor
-    DLLEXPORT QoreXSinkException(QoreXSinkException&& xsink) = default;
+    DLLLOCAL QoreXSinkException(QoreXSinkException&& xsink) = default;
 
     //! Destroys the object
     DLLEXPORT virtual ~QoreXSinkException();
 
     //! Default assignment operator
-    DLLEXPORT QoreXSinkException& operator=(QoreXSinkException&&) = default;
+    DLLLOCAL QoreXSinkException& operator=(QoreXSinkException&&) = default;
 
     //! Raises the corresponding Qore exception in the ExceptionSink.
     /** @param xsink the exception sink

@@ -142,13 +142,14 @@ case "${host_os}" in
 		# DEBUG
 		#make_dll=yes
 		# libraries to find
-		need_libs="$need_libs wsock32 ws2_32 gdi32 iconv pthread"
+		need_libs="$need_libs wsock32 ws2_32 gdi32 iconv"
 		# DEBUG: cannot create dll without these libraries for some reason
 		#need_libs="$need_libs user32 gdi32 iberty msvcrt advapi32 mingwex moldname kernel32"
 		# turn off signal handling for windows
 		no_sig_handling=yes
 		# have to set _WIN32_WINNT level so that some networking APIs are available
-		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501"
+		CPPFLAGS="$CPPFLAGS -D_WIN32_WINNT=0x0501 -fstack-protector"
+        LDFLAGS="${LDFLAGS} -fstack-protector -lssp"
 		MODULE_LDFLAGS="-no-undefined"
 		# have to set a flag when building the library so symbols are exported correctly
 		QORE_LIB_CPPFLAGS="-DBUILDING_DLL=1"
@@ -541,9 +542,9 @@ find_zlib() {
             lib=/usr/lib${LIBSUFFIX}
             inc=/usr/include
         else
-	    dir=/
-	    lib=/lib${LIBSUFFIX}
-	    inc=/usr/include
+            dir=/
+            lib=/lib${LIBSUFFIX}
+            inc=/usr/include
         fi
     else
         lib="$dir/lib${LIBSUFFIX}"
@@ -552,28 +553,28 @@ find_zlib() {
     # if we only want the static zlib libraries
     if test -n "$zlib_static"; then
     	if test -f "$lib/libz.a"; then
-	    ZLIB_LDFLAGS="$lib/libz.a"
-	    with_zlib_libs="$lib"
-	    zlib_static=1
+            ZLIB_LDFLAGS="$lib/libz.a"
+            with_zlib_libs="$lib"
+            zlib_static=1
     	fi
     else
         if test -f "$lib/libz.${SHLIB_SUFFIX}"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        ZLIB_LDFLAGS="-L$lib"
-    	    fi
-	    ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
-	    with_zlib_libs="$lib"
-    	elif test -f "$lib/libz.a"; then
-	    if test "$mingw" = yes -a "$make_dll" = yes; then
-	    	ZLIB_LDFLAGS="-Wl,$lib/libz.a"
-	    else
-		if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	            ZLIB_LDFLAGS="-L$lib"
-    	        fi
-	        ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
+            if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+                ZLIB_LDFLAGS="-L$lib"
             fi
-	    with_zlib_libs="$lib"
-	    zlib_static=1
+            ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
+            with_zlib_libs="$lib"
+    	elif test -f "$lib/libz.a"; then
+            if test "$mingw" = yes -a "$make_dll" = yes; then
+                ZLIB_LDFLAGS="-Wl,$lib/libz.a"
+            else
+                if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+                    ZLIB_LDFLAGS="-L$lib"
+                fi
+                ZLIB_LDFLAGS="$ZLIB_LDFLAGS -lz"
+            fi
+            with_zlib_libs="$lib"
+            zlib_static=1
     	fi
     fi
     if test -z "$ZLIB_LDFLAGS"; then
@@ -586,8 +587,8 @@ find_zlib() {
         set_zlib_cppflags $inc/zlib
     else
         unset ZLIB_LDFLAGS
-	unset with_zlib_libs
-	return
+        unset with_zlib_libs
+        return
     fi
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $ZLIB_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $ZLIB_CPPFLAGS"
@@ -608,9 +609,9 @@ find_mpfr() {
             lib=/usr/lib${LIBSUFFIX}
             inc=/usr/include
         else
-	    dir=/
-	    lib=/lib${LIBSUFFIX}
-	    inc=/usr/include
+            dir=/
+            lib=/lib${LIBSUFFIX}
+            inc=/usr/include
         fi
     else
         lib="$dir/lib${LIBSUFFIX}"
@@ -619,28 +620,28 @@ find_mpfr() {
     # if we only want the static mpfr libraries
     if test -n "$mpfr_static"; then
     	if test -f "$lib/libmpfr.a"; then
-	    MPFR_LDFLAGS="$lib/libmpfr.a"
-	    with_mpfr_libs="$lib"
-	    mpfr_static=1
+            MPFR_LDFLAGS="$lib/libmpfr.a"
+            with_mpfr_libs="$lib"
+            mpfr_static=1
     	fi
     else
         if test -f "$lib/libmpfr.${SHLIB_SUFFIX}"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+    	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
        	        MPFR_LDFLAGS="-L$lib"
     	    fi
-	    MPFR_LDFLAGS="$MPFR_LDFLAGS -lmpfr"
-	    with_mpfr_libs="$lib"
+            MPFR_LDFLAGS="$MPFR_LDFLAGS -lmpfr"
+            with_mpfr_libs="$lib"
     	elif test -f "$lib/libmpfr.a"; then
-	    if test "$mingw" = yes -a "$make_dll" = yes; then
-	    	MPFR_LDFLAGS="-Wl,$lib/libmpfr.a"
-	    else
-		if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	            MPFR_LDFLAGS="-L$lib"
-    	        fi
-	        MPFR_LDFLAGS="$MPFR_LDFLAGS -lmpfr"
+            if test "$mingw" = yes -a "$make_dll" = yes; then
+                MPFR_LDFLAGS="-Wl,$lib/libmpfr.a"
+            else
+                if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+                    MPFR_LDFLAGS="-L$lib"
+                fi
+                MPFR_LDFLAGS="$MPFR_LDFLAGS -lmpfr"
             fi
-	    with_mpfr_libs="$lib"
-	    mpfr_static=1
+            with_mpfr_libs="$lib"
+            mpfr_static=1
     	fi
     fi
     if test -z "$MPFR_LDFLAGS"; then
@@ -653,8 +654,8 @@ find_mpfr() {
         set_mpfr_cppflags $inc/mpfr
     else
         unset MPFR_LDFLAGS
-	unset with_mpfr_libs
-	return
+        unset with_mpfr_libs
+        return
     fi
     # see if mpfr_divby0_p is supported
     mpfr_db0=`grep mpfr_divby0_p "$with_mpfr_includes/mpfr.h" 2>/dev/null`
@@ -787,9 +788,9 @@ find_pcre() {
             lib=/usr/lib${LIBSUFFIX}
             inc=/usr/include
         else
-	    dir="/"
-	    lib=/lib${LIBSUFFIX}
-	    inc=/usr/include
+            dir="/"
+            lib=/lib${LIBSUFFIX}
+            inc=/usr/include
         fi
     else
         lib="$dir/lib${LIBSUFFIX}"
@@ -798,32 +799,32 @@ find_pcre() {
     # if we only want the static pcre libraries
     if test -n "$pcre_static"; then
     	if test -f "$lib/libpcre.a"; then
-	    PCRE_LDFLAGS="$lib/libpcre.a"
-	    with_pcre_libs="$lib"
-	    pcre_static=1
+            PCRE_LDFLAGS="$lib/libpcre.a"
+            with_pcre_libs="$lib"
+            pcre_static=1
     	fi
     else
         if test -f "$lib/libpcre.${SHLIB_SUFFIX}"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        PCRE_LDFLAGS="-L$lib"
-    	    fi
-	    PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
-	    with_pcre_libs="$lib"
-    	elif test -f "$lib/libpcre.a"; then
-	    if test "$mingw" = yes -a "$make_dll" = yes; then
-	        PCRE_LDFLAGS="-Wl,$lib/libpcre.a"
-	    else
-	        if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	            PCRE_LDFLAGS="-L$lib"
-    	        fi
-	        PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
+            if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+                PCRE_LDFLAGS="-L$lib"
             fi
-	    with_pcre_libs="$lib"
-	    pcre_static=1
-	elif test "$windows" = yes -a -f "$dir/bin/libpcre.${SHLIB_SUFFIX}"; then
-	    PCRE_LDFLAGS="-L$dir/bin -lpcre"
-	    with_pre_libs="$dir"
-    	fi
+            PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
+            with_pcre_libs="$lib"
+        elif test -f "$lib/libpcre.a"; then
+            if test "$mingw" = yes -a "$make_dll" = yes; then
+                PCRE_LDFLAGS="-Wl,$lib/libpcre.a"
+            else
+                if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+                    PCRE_LDFLAGS="-L$lib"
+                fi
+                PCRE_LDFLAGS="$PCRE_LDFLAGS -lpcre"
+            fi
+            with_pcre_libs="$lib"
+            pcre_static=1
+        elif test "$windows" = yes -a -f "$dir/bin/libpcre.${SHLIB_SUFFIX}"; then
+            PCRE_LDFLAGS="-L$dir/bin -lpcre"
+            with_pre_libs="$dir"
+        fi
     fi
     if test -z "$PCRE_LDFLAGS"; then
         return
@@ -835,8 +836,8 @@ find_pcre() {
         set_pcre_cppflags $inc/pcre
     else
         unset PCRE_LDFLAGS
-	unset with_pcre_libs
-	return
+        unset with_pcre_libs
+        return
     fi
     QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS $PCRE_LDFLAGS"
     QORE_LIB_CPPFLAGS="$QORE_LIB_CPPFLAGS $PCRE_CPPFLAGS"
@@ -971,43 +972,43 @@ find_openssl() {
     # if we only want the static openssl libraries
     if test -n "$openssl_static"; then
     	if test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
-	    OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
-	    openssl_type="forced static"
-	    #AC_MSG_RESULT([$lib (forced static)])
+            OPENSSL_LDFLAGS="$lib/libssl.a $lib/libcrypto.a"
+            openssl_type="forced static"
+            #AC_MSG_RESULT([$lib (forced static)])
     	elif test "$bits" = 64 -a -f "$lib/64/libssl.a" -a -f "$lib/64/libcrypto.a"; then
-	    OPENSSL_LDFLAGS="$lib/64/libssl.a $lib/64/libcrypto.a"
-	    lib=$lib/64
-	    openssl_type="forced static"
-       	    #AC_MSG_RESULT([$lib/64 (forced static)])
+            OPENSSL_LDFLAGS="$lib/64/libssl.a $lib/64/libcrypto.a"
+            lib=$lib/64
+            openssl_type="forced static"
+            #AC_MSG_RESULT([$lib/64 (forced static)])
     	fi
     else
         if test -f "$lib/libssl.${SHLIB_SUFFIX}" -a -f "$lib/libcrypto.${SHLIB_SUFFIX}"; then
-	    if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	        OPENSSL_LDFLAGS="-L$lib"
-    	    fi
-	    OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
-	    openssl_type="shared"
-	    #AC_MSG_RESULT([$lib (shared)])
-    	elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
-	    if test "$mingw" = yes -a "$make_dll" = yes; then
-	    	OPENSSL_LDFLAGS="-Wl,$lib/libssl.a -Wl,$lib/libcrypto.a"
-		#OPENSSL_LDFLAGS="-L$lib -lssl -lcrypto"
-	    else
-	        if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
-       	            OPENSSL_LDFLAGS="-L$lib"
-    	        fi
-	        OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
+            if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+                OPENSSL_LDFLAGS="-L$lib"
             fi
-	    openssl_type="static"
-       	    #AC_MSG_RESULT([$lib (static)])
+            OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
+            openssl_type="shared"
+            #AC_MSG_RESULT([$lib (shared)])
+            elif test -f "$lib/libssl.a" -a -f "$lib/libcrypto.a"; then
+            if test "$mingw" = yes -a "$make_dll" = yes; then
+                OPENSSL_LDFLAGS="-Wl,$lib/libssl.a -Wl,$lib/libcrypto.a"
+                #OPENSSL_LDFLAGS="-L$lib -lssl -lcrypto"
+            else
+                if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
+                    OPENSSL_LDFLAGS="-L$lib"
+                fi
+                OPENSSL_LDFLAGS="$OPENSSL_LDFLAGS -lssl -lcrypto"
+            fi
+            openssl_type="static"
+            #AC_MSG_RESULT([$lib (static)])
         elif test "$bits" = 64 -a -f "$lib/64/libssl.${SHLIB_SUFFIX}" -a -f "$lib/64/libcrypto.${SHLIB_SUFFIX}"; then
-	    OPENSSL_LDFLAGS="-L$lib/64 -lssl -lcrypto"
-	    lib=$lib/64
-	    openssl_type="shared"
-       	    #AC_MSG_RESULT([$lib/64 (shared)])
-    	elif test "$bits" = 64 -a -f "$lib/64/libssl.a" -a -f "$lib/64/libcrypto.a"; then
-	    OPENSSL_LDFLAGS="-L$lib -lssl -lcrypto"
-	    openssl_type="static"
+            OPENSSL_LDFLAGS="-L$lib/64 -lssl -lcrypto"
+            lib=$lib/64
+            openssl_type="shared"
+            #AC_MSG_RESULT([$lib/64 (shared)])
+        elif test "$bits" = 64 -a -f "$lib/64/libssl.a" -a -f "$lib/64/libcrypto.a"; then
+            OPENSSL_LDFLAGS="-L$lib -lssl -lcrypto"
+            openssl_type="static"
        	    #AC_MSG_RESULT([$lib (static)])
     	fi
     fi
@@ -1021,9 +1022,9 @@ find_openssl() {
         set_openssl_cppflags $inc
     else
         unset OPENSSL_LDFLAGS
-	unset openssl_type
-	return;
-	#AC_MSG_ERROR([not found])
+        unset openssl_type
+        return;
+        #AC_MSG_ERROR([not found])
     fi
 
     AC_MSG_RESULT([$lib ($openssl_type) $inc])
@@ -1213,18 +1214,25 @@ find_dl() {
         inc="$dir/include"
     fi
 
-    if test -f "$lib/libdl.${SHLIB_SUFFIX}" -o -f "$lib/libdl.${SHLIB_SUFFIX}.a"; then
+    if test "$mingw" = yes -a -f "$lib/libdl.a"; then
+        if test "$make_dll" = yes; then
+    	    DL_LDFLAGS="-Wl,$lib/libdl.a"
+	    else
+	        DL_LDFLAGS="$DL_LDFLAGS $lib/libdl.a"
+    	fi
+       	AC_MSG_RESULT([$lib (static)])
+    elif test -f "$lib/libdl.${SHLIB_SUFFIX}" -o -f "$lib/libdl.${SHLIB_SUFFIX}.a"; then
         if test "$lib" != "/lib" -a "$lib" != "/usr/lib"; then
      	    DL_LDFLAGS="-L$lib"
         fi
-	DL_LDFLAGS="$DL_LDFLAGS -ldl"
+    	DL_LDFLAGS="$DL_LDFLAGS -ldl"
        	AC_MSG_RESULT([$lib (shared)])
     elif test -f "$lib/libdl.a"; then
         if test "$mingw" = yes -a "$make_dll" = yes; then
-	    DL_LDFLAGS="-Wl,$lib/libdl.a"
-	else
-	    DL_LDFLAGS="$DL_LDFLAGS $lib/libdl.a"
-	fi
+    	    DL_LDFLAGS="-Wl,$lib/libdl.a"
+	    else
+	        DL_LDFLAGS="$DL_LDFLAGS $lib/libdl.a"
+    	fi
        	AC_MSG_RESULT([$lib (static)])
     fi
 
@@ -1315,14 +1323,14 @@ for clib in $need_libs; do
     #QORE_LIB_LDFLAGS="$QORE_LIB_LDFLAGS -l$clib"
 
     for dir in "${with_lib_prefix}" "${find_prefix}" /usr / /usr/local /opt/gnu /opt/mingw /opt/mingw32 /opt/local /sw /usr/sfw /opt/sfw; do
-       LIB_LDFLAGS=
-       find_lib "$clib" "$dir"
-       if test -n "$LIB_LDFLAGS"; then
-          break
-       fi
+        LIB_LDFLAGS=
+        find_lib "$clib" "$dir"
+        if test -n "$LIB_LDFLAGS"; then
+            break
+        fi
     done
     if test -z "$LIB_LDFLAGS"; then
-       AC_MSG_ERROR([cannot find the $clib library which is needed to compile Qore for the target platform ($OS)])
+        AC_MSG_ERROR([cannot find the $clib library which is needed to compile Qore for the target platform ($OS)])
     fi
 done
 

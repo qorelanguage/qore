@@ -71,13 +71,13 @@ public:
     DLLEXPORT QoreStandardException(QoreStringNode* err, QoreStringNode* desc, QoreValue arg);
 
     //! Default move constructor
-    DLLEXPORT QoreStandardException(QoreStandardException&&) = default;
+    DLLLOCAL QoreStandardException(QoreStandardException&&) = default;
 
     //! Destroys the object
     DLLEXPORT virtual ~QoreStandardException();
 
     //! Default assignment operator
-    DLLEXPORT QoreStandardException& operator=(QoreStandardException&&) = default;
+    DLLLOCAL QoreStandardException& operator=(QoreStandardException&&) = default;
 
     //! Raises the corresponding Qore exception in the ExceptionSink.
     /** @param xsink the exception sink
