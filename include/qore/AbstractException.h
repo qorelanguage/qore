@@ -41,19 +41,19 @@
 class AbstractException {
 public:
    //! Default virtual destructor.
-   DLLEXPORT virtual ~AbstractException() = default;
+   DLLLOCAL virtual ~AbstractException() = default;
 
    //! Raises the corresponding Qore exception in the ExceptionSink.
    /** @param xsink the exception sink
     */
    virtual void convert(ExceptionSink* xsink) = 0;
 
-   DLLEXPORT AbstractException(AbstractException&&) = default;
-   DLLEXPORT AbstractException& operator=(AbstractException&&) = default;
+   DLLLOCAL AbstractException(AbstractException&&) = default;
+   DLLLOCAL AbstractException& operator=(AbstractException&&) = default;
 
 protected:
    //! Default constructor.
-   DLLEXPORT AbstractException() = default;
+   DLLLOCAL AbstractException() = default;
 
 private:
    AbstractException(const AbstractException&) = delete;

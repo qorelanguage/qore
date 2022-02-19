@@ -36,42 +36,42 @@
 class AbstractSmartLock;
 
 struct QLckPtr {
-private:
-   QoreVarRWLock* rwl;
+public:
+    DLLLOCAL QLckPtr() : rwl(0) {
+    }
+
+    DLLLOCAL void set(QoreVarRWLock* n_rwl) {
+        rwl = n_rwl;
+    }
+
+    DLLLOCAL QoreVarRWLock* getRWL() const {
+        return rwl;
+    }
+
+    DLLLOCAL bool isSet() const {
+        return rwl;
+    }
+
+    DLLLOCAL void unlockAndClear() {
+        if (rwl) {
+            unlockIntern();
+            rwl = 0;
+        }
+    }
+
+    DLLLOCAL void clear() {
+        assert(rwl);
+        rwl = 0;
+    }
 
 protected:
-   DLLLOCAL void unlockIntern() {
-      assert(rwl);
-      rwl->unlock();
-   }
+    DLLLOCAL void unlockIntern() {
+        assert(rwl);
+        rwl->unlock();
+    }
 
-public:
-   DLLLOCAL QLckPtr() : rwl(0) {
-   }
-
-   DLLLOCAL void set(QoreVarRWLock* n_rwl) {
-      rwl = n_rwl;
-   }
-
-   DLLLOCAL QoreVarRWLock* getRWL() const {
-      return rwl;
-   }
-
-   DLLLOCAL bool isSet() const {
-      return rwl;
-   }
-
-   DLLLOCAL void unlockAndClear() {
-      if (rwl) {
-         unlockIntern();
-         rwl = 0;
-      }
-   }
-
-   DLLLOCAL void clear() {
-      assert(rwl);
-      rwl = 0;
-   }
+private:
+    QoreVarRWLock* rwl;
 };
 
 //! AutoVLock is a container for safely managing global variable and object lock handovers, required for functions accessing global variables and object data where locking is necessary
@@ -79,65 +79,65 @@ public:
  */
 class AutoVLock {
 private:
-   // pointer to lock currently held
-   QLckPtr lock;
+    // pointer to lock currently held
+    QLckPtr lock;
 
-   // pointer to object to dereference
-   QoreObject* o;
+    // pointer to object to dereference
+    QoreObject* o;
 
 public:
-   // pointer to ExceptionSink object for use with object notifications
-   ExceptionSink* xsink;
+    // pointer to ExceptionSink object for use with object notifications
+    ExceptionSink* xsink;
 
 private:
-   //! private implementation of the object notification container
-   struct qore_avl_private* priv;
+    //! private implementation of the object notification container
+    struct qore_avl_private* priv;
 
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL AutoVLock(const AutoVLock&) = delete;
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL AutoVLock& operator=(const AutoVLock&) = delete;
-   //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-   DLLLOCAL void* operator new(size_t) = delete;
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL AutoVLock(const AutoVLock&) = delete;
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL AutoVLock& operator=(const AutoVLock&) = delete;
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL void* operator new(size_t) = delete;
 
 public:
-   //! creates an empty lock container
-   /** @param n_xsink pointer to ExceptionSink object for use with object notifications
+    //! creates an empty lock container
+    /** @param n_xsink pointer to ExceptionSink object for use with object notifications
+        */
+    DLLEXPORT AutoVLock(ExceptionSink* n_xsink);
+
+    //! default move constructor
+    DLLLOCAL AutoVLock(AutoVLock&& o) = default;
+
+    //! releases all locks held and destroys the container
+    DLLEXPORT ~AutoVLock();
+
+    //! returns true if managing a lock, false if not (unlocked)
+    DLLEXPORT operator bool() const;
+
+    //! manually releases the lock currently held
+    DLLEXPORT void del();
+
+    //! sets the current lock
+    DLLLOCAL void set(QoreVarRWLock* n_rwl);
+
+    //! sets the current object (for dereference) and lock
+    DLLLOCAL void set(QoreObject* n_o, QoreVarRWLock* n_rwl);
+
+    //! gets the current read-write lock
+    DLLLOCAL QoreVarRWLock* getRWL() const;
+
+    //! gets the current object
+    DLLLOCAL QoreObject* getObject() const;
+
+    //! leaves the lock locked and the object referenced and clears the object and lock pointers
+    DLLLOCAL void clear();
+
+    //! adds an object member notification entry, internal-only
+    /** @param o the object to add
+         @param member the member that was changed (must be in QCS_DEFAULT encoding)
     */
-   DLLEXPORT AutoVLock(ExceptionSink* n_xsink);
-
-   //! default move constructor
-   DLLEXPORT AutoVLock(AutoVLock&& o) = default;
-
-   //! releases all locks held and destroys the container
-   DLLEXPORT ~AutoVLock();
-
-   //! returns true if managing a lock, false if not (unlocked)
-   DLLEXPORT operator bool() const;
-
-   //! manually releases the lock currently held
-   DLLEXPORT void del();
-
-   //! sets the current lock
-   DLLLOCAL void set(QoreVarRWLock* n_rwl);
-
-   //! sets the current object (for dereference) and lock
-   DLLLOCAL void set(QoreObject* n_o, QoreVarRWLock* n_rwl);
-
-   //! gets the current read-write lock
-   DLLLOCAL QoreVarRWLock* getRWL() const;
-
-   //! gets the current object
-   DLLLOCAL QoreObject* getObject() const;
-
-   //! leaves the lock locked and the object referenced and clears the object and lock pointers
-   DLLLOCAL void clear();
-
-   //! adds an object member notification entry, internal-only
-   /** @param o the object to add
-       @param member the member that was changed (must be in QCS_DEFAULT encoding)
-   */
-   DLLLOCAL void addMemberNotification(QoreObject* o, const char* member);
+    DLLLOCAL void addMemberNotification(QoreObject* o, const char* member);
 };
 
 #endif
