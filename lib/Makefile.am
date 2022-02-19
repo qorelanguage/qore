@@ -21,6 +21,7 @@ lib_LTLIBRARIES = libqore.la
 bin_PROGRAMS = qpp$(EXEEXT)
 
 qpp_SOURCES = qpp.cpp
+qpp_CPPFLAGS = $(EXTRA_INCLUDES) ${QPP_CPPFLAGS}
 
 if COND_NEED_GETOPT_LONG
 qpp_SOURCES += getopt_long.cpp
