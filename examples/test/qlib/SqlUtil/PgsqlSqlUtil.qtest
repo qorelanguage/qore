@@ -112,7 +112,7 @@ class Bug2963Schema inherits SqlUtilTestSchema {
 
 class PgsqlTest inherits SqlTestBase {
     public {
-        const CustomColumns = (
+        const CustomColumns = {
             "varchar": (
                 "value": "hello",
                 "size": "20",
@@ -170,14 +170,18 @@ class PgsqlTest inherits SqlTestBase {
 
             "bytea": <bead>,
 %ifndef NoPgsql
-            "bit": ("bind": pgsql_bind (PG_TYPE_BIT, "10011001"), "size": 8, "expect": <99>),
-            "varbit": ("bind": pgsql_bind (PG_TYPE_VARBIT, "xBEAF"), "expect": <BEAF>),
+            "bit": ("bind": pgsql_bind(PG_TYPE_BIT, "10011001"), "size": 8, "expect": <99>),
+            "varbit": ("bind": pgsql_bind(PG_TYPE_VARBIT, "xBEAF"), "expect": <BEAF>),
 
-            "macaddr": ("bind": pgsql_bind (PG_TYPE_MACADDR, "0a:1e:df:e4:4f:da")),
-            "inet": ("bind": pgsql_bind (PG_TYPE_INET, "192.168.11.1"), "expect": "192.168.11.1/32"),
-            "cidr": ("bind": pgsql_bind (PG_TYPE_CIDR, "192.168"), "expect": "192.168.0.0/24"),
+            "macaddr": ("bind": pgsql_bind(PG_TYPE_MACADDR, "0a:1e:df:e4:4f:da")),
+            "inet": ("bind": pgsql_bind(PG_TYPE_INET, "192.168.11.1"), "expect": "192.168.11.1/32"),
+            "cidr": ("bind": pgsql_bind(PG_TYPE_CIDR, "192.168"), "expect": "192.168.0.0/24"),
+
+            "json": {"bind": pgsql_bind(PG_TYPE_JSON, "{\"a\": 1}")},
+            "jsonb": {"bind": pgsql_bind(PG_TYPE_JSON, "{\"a\": 1}")},
+            "xml": {"bind": pgsql_bind(PG_TYPE_XML, "<a>1</a>")},
 %endif
-            );
+        };
     }
 
     constructor() : SqlTestBase("PgsqlTest", "1.0", \ARGV, MyOpts) {

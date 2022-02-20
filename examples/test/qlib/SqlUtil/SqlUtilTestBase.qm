@@ -48,7 +48,7 @@ public class SqlUtilTestSchema inherits AbstractSchema {
                     "native_type": type,
                 });
                 if (h.value.typeCode() == NT_HASH)
-                    ch += (h.value - ("value", "bind", "expect", "type"));
+                    ch += (h.value - ("value", "bind", "expect", "type", "soft"));
                 tables{table}.columns{SqlTestBase::getColumnName(h.key)} = ch;
             }
         }
@@ -80,6 +80,7 @@ public class SqlTestBase inherits QUnit::Test {
         const OptionColumn = 22;
 
         hash expect_data;
+        hash<string, bool> softmap;
 
         list insert_data;
         list upsert_data;
@@ -495,7 +496,13 @@ public class SqlTestBase inherits QUnit::Test {
             if (e.value === NOTHING) {
                 assertSkip("checking data in column " + e.key);
             } else {
-                assertEq(e.value, rows[0]{e.key}, "checking data in column " + e.key);
+                on_error printf("v: %y (%d %s) r: %y (%d %s)\n", e.value, e.value.size(), e.value.encoding(),
+                    rows[0]{e.key}, rows[0]{e.key}.size(), rows[0]{e.key}.encoding());
+                if (softmap{e.key}) {
+                    assertEqSoft(e.value, rows[0]{e.key}, "checking data in column " + e.key);
+                } else {
+                    assertEq(e.value, rows[0]{e.key}, "checking data in column " + e.key);
+                }
             }
         }
 
@@ -1235,13 +1242,23 @@ public class SqlTestBase inherits QUnit::Test {
             string cn = getColumnName(h.key);
             row{cn} = h.value.bind ?? h.value.value ?? h.value;
 
-            if (h.value.typeCode() == NT_HASH && h.value.hasKey('expect'))
+            if (h.value.typeCode() == NT_HASH && h.value.hasKey('expect')) {
                 expect_data{cn} = h.value.expect;
-            else
+            } else {
                 expect_data{cn} = h.value.bind.'^value^' ?? h.value.value ?? h.value;
+            }
+            if (h.value.soft) {
+                softmap{cn} = True;
+            }
         }
-        insert_data = (("id": 1, "id_": 2, "null_f": "abc", "blob_f": <cafe01>, "clob_f": "test1") + row, ("id": 2, "id_": 2, "null_f": NULL, "blob_f": <cafe02>, "clob_f": "test2") + row,);
-        upsert_data = (("id": 2, "id_": 2, "null_f": "abc", "blob_f": <cafe02>, "clob_f": "test2") + row, ("id": 3, "id_": 2, "null_f": NULL, "blob_f": <cafe03>, "clob_f": "test3") + row,);
+        insert_data = (
+            ("id": 1, "id_": 2, "null_f": "abc", "blob_f": <cafe01>, "clob_f": "test1") + row,
+            ("id": 2, "id_": 2, "null_f": NULL, "blob_f": <cafe02>, "clob_f": "test2") + row,
+        );
+        upsert_data = (
+            ("id": 2, "id_": 2, "null_f": "abc", "blob_f": <cafe02>, "clob_f": "test2") + row,
+            ("id": 3, "id_": 2, "null_f": NULL, "blob_f": <cafe03>, "clob_f": "test3") + row,
+        );
     }
 
     deleteTest() {

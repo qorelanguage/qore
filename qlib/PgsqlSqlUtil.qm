@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.5.3";
+    version = "1.6";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -151,6 +151,10 @@ $function$
     to use functionality like @ref SqlUtil::AbstractDatabase::getAlignFunctionSql() "AbstractDatabase::getAlignFunctionSql()" for example.
 
     @section pgsql_relnotes Release Notes
+
+    @subsection pgsqlsqlutilv16 PgsqlSqlUtil v1.6
+    - added supoport for the \c XML, \c JSON, and \c JSONB types
+      (<a href="https://github.com/qorelanguage/qore/issues/4448">issue 4448</a>)
 
     @subsection pgsqlsqlutilv151 PgsqlSqlUtil v1.5.3
     - fixed handling column names that use reserved words
@@ -540,8 +544,7 @@ list l = col.getModifySql(t, newcol);
 
                 if (def_val !== c.def_val && exists c.def_val && c.def_val !== NULL)
                     l += sprintf("alter table %s alter %s set default %s", t.getSqlName(), ddl_name, c.def_val);
-            }
-            else if (def_val !== c.def_val) {
+            } else if (def_val !== c.def_val) {
                 # issue #2527: ensure that mismatches are not due to server type info
                 bool ok;
                 if (c.def_val.val() && c.def_val !~ /::/ && def_val =~ /::/) {
@@ -946,7 +949,7 @@ auto v = c.name;
             const PgsqlSchemaDescriptionOptions = AbstractDatabase::SchemaDescriptionOptions + (
                 "types": Type::Hash,
                 "type_map": Type::Hash,
-                );
+            );
 
             const PGSQL_TempSavepoint = "qore_pgsql_tmp_savepoint";
 
@@ -954,7 +957,7 @@ auto v = c.name;
             const PgsqlReclaimSpaceOptions = ReclaimSpaceOptions + (
                 "full"              : Type::Boolean,
                 "analyze"           : Type::Boolean,
-                );
+            );
 
             #! hash (set) of reserved words
             const PgsqlReservedWords = {
@@ -1162,8 +1165,7 @@ auto v = c.name;
                     throw "FUNCTION-ERROR", sprintf("found %d matches for function name %y: %y; use the full argument list in the name to match only function (ex: \"%s(%s)\"", qh.proname.size(), name, (foldl $1 + ", " + $2, (map sprintf("%s(%s)", name, $1.args), qh.contextIterator())), name, qh.args[0]);
                 # assign first row to qh
                 context (qh) qh = %%;
-            }
-            else {
+            } else {
                 string nc = name;
                 *string args = PgsqlDatabase::getFunctionArgs("FUNCTION-ERROR", \nc);
                 nc = name.substr(0, name.find('('));
@@ -1528,6 +1530,8 @@ auto v = c.name;
                 "int": ("qore": Type::Int,),
                 "integer": ("qore": Type::Int,),
                 "interval": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
+                "json": {"qore": Type::String},
+                "jsonb": {"qore": Type::String},
                 "macaddr": ("qore": Type::String,),
                 "money": ("qore": Type::Number,),
                 "numeric": ("qore": Type::Number, "size": SZ_NUM,),
@@ -1548,6 +1552,7 @@ auto v = c.name;
                 "timestamptz": ("qore": Type::Date, "size": SZ_OPT, "size_range": (0, 6), "default_size": 6,),
                 "varbit": ("qore": Type::Binary, "size": SZ_OPT,),
                 "varchar": ("qore": Type::String, "size": SZ_OPT,),
+                "xml": {"qore": Type::String},
             );
 
             #! maps from verbose type names to simple type names
@@ -1678,13 +1683,13 @@ auto v = c.name;
 
             #! Map @ref SqlUtil::cop_trunc_date() constants to PostgreSQL internal masks
             const PgsqlTruncDate = (
-                    DT_YEAR     : "'year'",
-                    DT_MONTH    : "'month'",
-                    DT_DAY      : "'day'",
-                    DT_HOUR     : "'hour'",
-                    DT_MINUTE   : "'minute'",
-                    DT_SECOND   : "'second'",
-                );
+                DT_YEAR     : "'year'",
+                DT_MONTH    : "'month'",
+                DT_DAY      : "'day'",
+                DT_HOUR     : "'hour'",
+                DT_MINUTE   : "'minute'",
+                DT_SECOND   : "'second'",
+            );
 
             #! a hash of default value operator descriptions for PostgreSQL
             const PgsqlIopMap = DefaultIopMap + (
@@ -1957,7 +1962,8 @@ auto v = c.name;
         }
 
         private bool checkExistenceImpl() {
-            *hash qh = ds.selectRow("select * from pg_catalog.pg_statio_all_tables where schemaname = %v and relname = %v", schema, name);
+            *hash<auto> qh = ds.selectRow("select * from pg_catalog.pg_statio_all_tables where schemaname = %v and "
+                "relname = %v", schema, name);
             if (qh)
                 return inDb = True;
             return False;
