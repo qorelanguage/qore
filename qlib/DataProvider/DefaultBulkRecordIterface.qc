@@ -60,10 +60,10 @@ public class DefaultBulkRecordIterface inherits AbstractDataProviderBulkRecordIn
         while (i.next()) {
             hash<auto> rec = i.getValue();
             if (!rv) {
-                rv = map {$1.key: ($1.value,)}, rec.pairIterator();
-            } else {
-                map rv{$1.key} += $1.value, rec.pairIterator();
+                # issue #4457: make sure lists are "list<auto>" type
+                rv = map {$1: ()}, keys rec;
             }
+            map rv{$1.key} += $1.value, rec.pairIterator();
             if (++cnt == block_size) {
                 break;
             }

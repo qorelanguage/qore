@@ -45,6 +45,7 @@ class QdpCmd {
             "listconnections": "c,list-connections",
             "listfactories": "f,list-factories",
             "listtypes": "t,list-types",
+            "bulk": "b,bulk",
             "verbose": "v,verbose:i+",
             "help": "h,help",
         };
@@ -291,7 +292,12 @@ class QdpCmd {
     static search(AbstractDataProvider provider) {
         *hash<auto> where_cond = QdpCmd::getHash("search");
         *hash<auto> search_options = QdpCmd::getHash("search options");
-        AbstractDataProviderRecordIterator i = provider.searchRecords(where_cond, search_options);
+        AbstractDataProviderRecordIterator i;
+        if (opts.bulk) {
+            i = provider.searchRecordsBulk(NOTHING, where_cond, search_options).getRecordIterator();
+        } else {
+            i = provider.searchRecords(where_cond, search_options);
+        }
         map printf("%y\n", $1), i;
     }
 
@@ -526,6 +532,7 @@ class QdpCmd {
     upsert <record> (ex update id=123,name=\"my name\")
         upserts the given record
 
+ -b,--bulk                 use the bulk API for searches
  -c,--list-connections     list known connections and exit
  -f,--list-factories       list known data provider factories and exit
  -t,--list-types           list known data provider types and exit
