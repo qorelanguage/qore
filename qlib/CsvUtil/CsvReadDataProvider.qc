@@ -174,15 +174,15 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
                     "the other");
             }
             i = new CsvIterator(FileLocationHandler::getBinaryStreamFromLocation(copts.path),
-                copts{CsvIterationOptionList});
+                copts.encoding, copts{CsvIterationOptionList} - "encoding");
             return;
         }
         if (copts.stream) {
-            i = new CsvIterator(copts.stream, copts.opts.encoding, copts{CsvIterationOptionList});
+            i = new CsvIterator(copts.stream, copts.encoding, copts{CsvIterationOptionList});
             return;
         }
         # create a dummy interator with no input
-        i = new CsvIterator(new StringInputStream(""), copts.opts.encoding, copts{CsvIterationOptionList});
+        i = new CsvIterator(new StringInputStream(""), copts.encoding, copts{CsvIterationOptionList});
     }
 
     #! Returns an iterator for zero or more records matching the search options

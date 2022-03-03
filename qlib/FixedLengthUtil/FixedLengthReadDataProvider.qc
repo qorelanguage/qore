@@ -130,12 +130,13 @@ public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProv
             if (copts.stream) {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
             }
-            i = new FixedLengthIterator(FileLocationHandler::getBinaryStreamFromLocation(copts.path), copts.spec,
-                copts{FixedLengthReadOptionList});
+            i = new FixedLengthIterator(FileLocationHandler::getBinaryStreamFromLocation(copts.path), copts.encoding,
+                copts.spec, copts{FixedLengthReadOptionList} - "encoding");
             return;
         }
         if (copts.stream) {
-            i = new FixedLengthIterator(copts.stream, copts.spec, copts{FixedLengthReadOptionList});
+            i = new FixedLengthIterator(copts.stream, copts.encoding, copts.spec,
+                copts{FixedLengthReadOptionList} - "encoding");
             return;
         }
         # create a dummy interator with no input
