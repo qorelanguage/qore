@@ -45,7 +45,8 @@ public class FixedLengthWriteDataProvider inherits DataProvider::AbstractDataPro
         const ConstructorOptions = {
             "path": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the path to the fixed-length data; mutually exclusive with \"stream\"",
+                "desc": "the path to the fixed-length data; mutually exclusive with \"stream\"; the output location "
+                    "is handled by a call to FileLocationHandler::getOutputStreamForLocation()",
             },
             "stream": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(new Type("OutputStream")),
@@ -143,7 +144,8 @@ public class FixedLengthWriteDataProvider inherits DataProvider::AbstractDataPro
             if (copts.stream) {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
             }
-            writer = new FixedLengthFileWriter(copts.path, copts.spec, copts{FixedLengthWriteOptionList});
+            writer = new FixedLengthWriter(FileLocationHandler::getOutputStreamForLocation(copts.path), copts.spec,
+                copts{FixedLengthWriteOptionList});
             return;
         }
         if (copts.stream) {

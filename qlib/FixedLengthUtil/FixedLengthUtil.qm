@@ -27,6 +27,7 @@
 
 %requires Util
 %requires(reexport) DataProvider
+%requires(reexport) FileLocationHandler
 
 %require-types
 %enable-all-warnings
@@ -34,7 +35,7 @@
 %strict-args
 
 module FixedLengthUtil {
-    version = "1.3";
+    version = "1.4";
     desc    = "user module for working with files with fixed length lines";
     author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -275,6 +276,10 @@ w.write(data);
     @endcode
 
     @section fixedlengthutil_relnotes Release Notes
+
+    @subsection fixedlengthutil_v1_4 Version 1.4
+    - added support for resolving locations with the \c FileLocationHandler module
+      (<a href="https://github.com/qorelanguage/qore/issues/4456">issue 4456</a>)
 
     @subsection fixedlengthutil_v1_3 Version 1.3
     - added support for generic record search operators and options

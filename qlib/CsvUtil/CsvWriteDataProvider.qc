@@ -45,7 +45,8 @@ public class CsvWriteDataProvider inherits DataProvider::AbstractDataProvider {
         const ConstructorOptions = {
             "path": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the path to the CSV data; mutually exclusive with \"stream\"",
+                "desc": "the location for the output CSV data file; mutually exclusive with \"stream\"; the output "
+                    "location is handled by a call to FileLocationHandler::getOutputStreamForLocation()",
             },
             "stream": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(new Type("OutputStream")),
@@ -157,9 +158,11 @@ public class CsvWriteDataProvider inherits DataProvider::AbstractDataProvider {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         if (copts.path) {
             if (copts.stream) {
-                error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
+                error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or "
+                    "the other");
             }
-            writer = new CsvFileWriter(copts.path, copts{CsvGenerationOptionList});
+            writer = new CsvWriter(FileLocationHandler::getOutputStreamForLocation(copts.path),
+                copts{CsvGenerationOptionList});
             return;
         }
         if (copts.stream) {

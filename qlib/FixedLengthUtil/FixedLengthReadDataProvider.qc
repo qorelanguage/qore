@@ -42,7 +42,8 @@ public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProv
         const ConstructorOptions = {
             "path": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the path to the fixed-length data; mutually exclusive with \"stream\"",
+                "desc": "the path to the fixed-length data; mutually exclusive with \"stream\"; resolved with a call "
+                    "to FileLocationHandler::getBinaryStreamFromLocation()",
             },
             "stream": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(new Type("InputStream")),
@@ -129,7 +130,8 @@ public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProv
             if (copts.stream) {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or the other");
             }
-            i = new FixedLengthFileIterator(copts.path, copts.spec, copts{FixedLengthReadOptionList});
+            i = new FixedLengthIterator(FileLocationHandler::getBinaryStreamFromLocation(copts.path), copts.spec,
+                copts{FixedLengthReadOptionList});
             return;
         }
         if (copts.stream) {
