@@ -42,7 +42,8 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
         const ConstructorOptions = {
             "path": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the path to the CSV data; mutually exclusive with \"stream\"",
+                "desc": "the location of the CSV data; mutually exclusive with \"stream\"; resolved with a call to "
+                    "FileLocationHandler::getBinaryStreamFromLocation()",
             },
             "stream": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(new Type("InputStream")),
@@ -172,7 +173,8 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or "
                     "the other");
             }
-            i = new CsvFileIterator(copts.path, copts{CsvIterationOptionList});
+            i = new CsvIterator(FileLocationHandler::getBinaryStreamFromLocation(copts.path),
+                copts{CsvIterationOptionList});
             return;
         }
         if (copts.stream) {
