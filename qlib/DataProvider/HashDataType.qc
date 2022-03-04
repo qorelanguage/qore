@@ -81,15 +81,20 @@ public class HashDataType inherits QoreDataType {
     }
 
     #! Returns the value if the value can be assigned to the type
-    /** @param value the value to assign to the type
+    /** @param input_value the value to assign to the type
 
         @return the value to be assigned; can be converted by the type
 
         @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
     */
-    auto acceptsValue(auto value) {
+    auto acceptsValue(auto input_value) {
+        # specific check to provide a better error message in case of a missing argument
+        on_error if (!exists input_value && fields && $1.err == "RUNTIME-TYPE-ERROR") {
+            rethrow "MISSING-VALUE-ERROR", sprintf("no input value provided for hash with defined fields: %y",
+                keys fields);
+        }
         # {} + ensure that the hash value is "hash<auto>"
-        value = {} + QoreDataType::acceptsValue(value);
+        auto value = {} + QoreDataType::acceptsValue(input_value);
         hash<auto> value_copy = value;
         # check fields if any are defined
         foreach AbstractDataField field in (fields.iterator()) {

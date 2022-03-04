@@ -336,7 +336,7 @@ class QdpCmd {
     static doRequest(AbstractDataProvider provider) {
         *hash<auto> req = QdpCmd::getHash("request");
         *hash<auto> options = QdpCmd::getHash("request-options");
-        hash<auto> resp = provider.doRequest(req, options);
+        auto resp = provider.doRequest(req, options);
         if (!opts.verbose && resp.info."response-uri" && exists resp.body) {
             printf("%s: %N\n", resp.info."response-uri", resp.body);
         } else {

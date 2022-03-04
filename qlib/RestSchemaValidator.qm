@@ -28,7 +28,7 @@
 %strict-args
 
 # make sure we have the required qore version
-%requires qore >= 0.9.7
+%requires qore >= 1.0
 
 # requires the HttpServerUtil module
 %requires(reexport) HttpServerUtil >= 0.3.12
@@ -710,17 +710,23 @@ public namespace RestSchemaValidator {
             @param code the HTTP response code
             @param response_body the response body data (if any)
             @param headers HTTP headers to include in the response
-            @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+            @param content_types the desired MIME types for serialization in order of preference; if none are usable
+            then an exception is thrown; if this argument is not present, then json is preferred over yaml
 
             @return an HttpResponseInfo hash for the response
 
-            @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported type
+            @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a
+            supported type
             @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
 
-            @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
-            an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
+            @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an
+            \c Accept header field is present, and if the server cannot send a response which is acceptable according
+            to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To
+            ensure this happens, if an \c Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must
+            be thrown
         */
-        private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash<auto> headers, *softlist<string> content_types) {
+        private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body,
+                *hash<auto> headers, *softlist<string> content_types) {
             hash<HttpResponseInfo> rv((
                 "code": code,
                 "hdr": headers,
@@ -736,7 +742,9 @@ public namespace RestSchemaValidator {
                     : map $1, content_types, DataSerializationSupport{$1};
 
                 if (!ctl) {
-                    throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; types supported: %y; discarding response: %y", content_types, keys DataSerializationSupport, response_body), ("types": keys DataSerializationSupport);
+                    throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; types "
+                        "supported: %y; discarding response: %y", content_types, keys DataSerializationSupport,
+                        response_body), ("types": keys DataSerializationSupport);
                 }
                 bool ok;
                 hash<ExceptionInfo> ex;

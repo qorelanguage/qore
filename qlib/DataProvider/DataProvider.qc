@@ -152,7 +152,7 @@ public class DataProvider {
         {
             list<string> path_list = path.split("/");
             provider = DataProvider::getFactoryEx(shift path_list).create(options);
-            map provider = provider.getChildProvider($1), path_list;
+            map provider = provider.getChildProviderEx($1), path_list;
         }
         return provider;
     }
@@ -170,7 +170,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
     static AbstractDataProvider getFactoryObjectFromString(string name) {
         hash<FactoryInfo> info = DataProvider::getFactoryInfoFromString(name);
         AbstractDataProvider provider = DataProvider::getFactoryEx(info.name).create(info.options);
-        map provider = provider.getChildProvider($1), info.path_list;
+        map provider = provider.getChildProviderEx($1), info.path_list;
         return provider;
     }
 
