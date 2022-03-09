@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5.7";
+    version = "1.5.8";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -304,6 +304,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_5_8 Mapper v1.5.8
+    - fixed an error mapping bulk data with custom output field handlers
+      (<a href="https://github.com/qorelanguage/qore/issues/4460">issue 4460</a>)
 
     @subsection mapperv1_5_7 Mapper v1.5.7
     - fixed a bug where it was not possible to use a Mapper with an output provider only for the output data type
@@ -2082,7 +2086,7 @@ Mapper mapv(DataMap);
                     input_provider_search, input_search_options);
                 list<hash<auto>> rv;
                 while (*hash<auto> records = i.getValue()) {
-                    map rv += $1, mapBulk(records).contextItertor();
+                    map rv += $1, mapBulk(records).contextIterator();
                 }
                 return rv;
             } else {
@@ -2565,11 +2569,11 @@ Mapper mapv(DataMap);
 
         # process any runtime keys if present in the current field mapping
         if (*hash<string, hash<auto>> current_runtime_keys = runtime_keys_with_handler{keys m}) {
-            hash<auto> ctx = mapper_handler_context + {
-                "output-key": key,
-                "input": rec,
-            };
             if (!do_list) {
+                hash<auto> ctx = mapper_handler_context + {
+                    "output-key": key,
+                    "input": rec,
+                };
                 # optimized version in one expression
                 try {
                     map v = $1.value.requires_roles.value
@@ -2581,15 +2585,18 @@ Mapper mapv(DataMap);
                 }
             } else {
                 foreach hash<auto> i in (current_runtime_keys.pairIterator()) {
+                    hash<auto> ctx = mapper_handler_context + {
+                        "output-key": key,
+                    };
                     try {
                         if (exists v || i.value.requires_roles.value) {
-                            v = map i.value.requires_roles.value
-                                ? i.value.handler(m{i.key}, $1, ctx)
-                                : i.value.handler(m{i.key}, ctx), v;
+                            v = map (i.value.requires_roles.value
+                                ? i.value.handler(m{i.key}, $1, ctx + {"input": getrec(rec, $#)})
+                                : i.value.handler(m{i.key}, ctx + {"input": getrec(rec, $#)})), v;
                         } else {
                             v = i.value.requires_roles.value
-                                ? i.value.handler(m{i.key}, v, ctx)
-                                : i.value.handler(m{i.key}, ctx);
+                                ? i.value.handler(m{i.key}, v, ctx + {"input": getrec(rec, $#)})
+                                : i.value.handler(m{i.key}, ctx + {"input": getrec(rec, $#)});
                         }
                     } catch (hash<ExceptionInfo> ex) {
                         error2(ex.err, "%s (field %y mapping key %y)", ex.desc, key, i.key);
@@ -2641,7 +2648,7 @@ Mapper mapv(DataMap);
                 # note: v_is_list implies do_list
                 if (v_is_list) {
                     map
-                        v[$#] = mapFieldType(key, m, type, v[$#], getrec(rec, $#)),
+                        v[$#] = mapFieldType(key, m, type, $1, getrec(rec, $#), v),
                         v,
                         !direct_types{$1.typeCode()};
                 } else if (!direct_types{v.typeCode()}) {
@@ -2826,12 +2833,13 @@ Mapper mapv(DataMap);
     }
 
     #! performs type handling
-    private auto mapFieldType(string key, hash<auto> mapping, AbstractDataProviderType type, auto value, hash<auto> rec) {
+    private auto mapFieldType(string key, hash<auto> mapping, AbstractDataProviderType type, auto value,
+            hash<auto> rec, auto v) {
         try {
             return type.acceptsValue(value);
         } catch (hash<ExceptionInfo> ex) {
-            throw ex.err, sprintf("%s: error in field %y with value %y; %s; rec: %y; output value derived from %s", get_ex_pos(ex),
-                key, value, ex.desc, rec, getMappingDescription(key, mapping)), ex.arg;
+            rethrow ex.err, sprintf("error in field %y with value %y; %s; rec: %y; output value derived from %s (v: %y)", key,
+                value, ex.desc, rec, getMappingDescription(key, mapping), v), ex.arg;
         }
     }
 
