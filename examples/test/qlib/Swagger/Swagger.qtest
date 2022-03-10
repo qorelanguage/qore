@@ -2452,12 +2452,12 @@ public class SwaggerTest inherits QUnit::Test {
                 hash<RestRequestClientInfo> res = so.processRequest("post", "/api/b2507", {"a":"b"}, NOTHING, (MimeTypeJson,));
                 assertEq("/api/b2507", res.uri_path);
                 assertEq(MimeTypeJson, res.content);
-                assertEq('{"a": "b"}', res.body);
+                assertEq('{"a":"b"}', res.body);
 
                 hash hdr = ("content-type": MimeTypeJson);
                 hash<RestRequestServerInfo> sh = so.parseRequest("post", res.uri_path, res.body, \hdr);
                 assertEq("/api/b2507", sh.path);
-                assertEq(("a": "b"), sh.body);
+                assertEq(("a":"b"), sh.body);
 
                 hdr = ("content-type": MimeTypeYamlRpc);
                 assertThrows("DESERIALIZATION-ERROR", \so.parseRequest(), ("post", res.uri_path, res.body, \hdr));

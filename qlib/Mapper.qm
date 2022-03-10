@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5.8";
+    version = "1.5.9";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -304,6 +304,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_5_9 Mapper v1.5.9
+    - fixed an error mapping bulk data with custom output field handlers
+      (<a href="https://github.com/qorelanguage/qore/issues/4460">issue 4460</a>)
 
     @subsection mapperv1_5_8 Mapper v1.5.8
     - fixed an error mapping bulk data with custom output field handlers
@@ -2263,7 +2267,7 @@ Mapper mapv(DataMap);
                     if (i.value.typeCode() != NT_LIST &&
                         (exists rec{i.key} &&
                             rec{i.key}.typeCode() == NT_LIST)) {
-                        rec{i.key} = map i.value, xrange(0, rec_list_size);
+                        rec{i.key} = map i.value, xrange(rec_list_size);
                     } else {
                         rec{i.key} = i.value;
                     }
@@ -2475,7 +2479,7 @@ Mapper mapv(DataMap);
             v = m.constant;
         else if (exists m.index) {
             if (do_list) {
-                v = map m.index + count + $#, xrange(0, list_size);
+                v = map m.index + count + $#, xrange(list_size);
             } else {
                 v = m.index + count;
             }
@@ -2589,15 +2593,10 @@ Mapper mapv(DataMap);
                         "output-key": key,
                     };
                     try {
-                        if (exists v || i.value.requires_roles.value) {
-                            v = map (i.value.requires_roles.value
-                                ? i.value.handler(m{i.key}, $1, ctx + {"input": getrec(rec, $#)})
-                                : i.value.handler(m{i.key}, ctx + {"input": getrec(rec, $#)})), v;
-                        } else {
-                            v = i.value.requires_roles.value
-                                ? i.value.handler(m{i.key}, v, ctx + {"input": getrec(rec, $#)})
-                                : i.value.handler(m{i.key}, ctx + {"input": getrec(rec, $#)});
-                        }
+                        v = map (i.value.requires_roles.value
+                            ? i.value.handler(m{i.key}, $1, ctx + {"input": getrec(rec, $#)})
+                            : i.value.handler(m{i.key}, ctx + {"input": getrec(rec, $#)})),
+                            (v ?? xrange(rec.firstValue().lsize()));
                     } catch (hash<ExceptionInfo> ex) {
                         error2(ex.err, "%s (field %y mapping key %y)", ex.desc, key, i.key);
                     }
@@ -2610,7 +2609,7 @@ Mapper mapv(DataMap);
             try {
                 if (do_list) {
                     v = map m.code(v_is_list ? v[$#] : v, getrec(rec, $#)),
-                        xrange(0, list_size);
+                        xrange(list_size);
                     # here we make a list from 'v' either way, since we simply
                     # cannot predict what 'code' could do with 'v' and 'rec'
                     v_is_list = True;
@@ -2644,9 +2643,8 @@ Mapper mapv(DataMap);
             }
             if (type) {
                 *hash<string, bool> direct_types = type.getDirectTypeHash();
-
                 # note: v_is_list implies do_list
-                if (v_is_list) {
+                if (v_is_list || (do_list && v.typeCode() == NT_LIST)) {
                     map
                         v[$#] = mapFieldType(key, m, type, $1, getrec(rec, $#), v),
                         v,
@@ -2664,7 +2662,8 @@ Mapper mapv(DataMap);
                 v = default_value;
         }
 
-        #printf("k: %y (okp: %y) type: %y maxlen: %y size: %y\n", key, m.output_key_path, m.field.getTypeName(), m.field.getOptionValue("string.max_size_chars"), v.size());
+        #printf("k: %y (okp: %y) type: %y maxlen: %y size: %y\n", key, m.output_key_path, m.field.getTypeName(),
+        #   m.field.getOptionValue("string.max_size_chars"), v.size());
 
         # check maximum length
         if ((*int maxlen = m.field.getOptionValue("string.max_size_chars")) > 0) {

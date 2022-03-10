@@ -484,6 +484,7 @@ public class MapperTest inherits QUnit::Test {
     }
 
     constructor() : Test("MapperTest", "1.0") {
+        addTestCase("bulk handler test", \bulkHandlerTest());
         addTestCase("struct test", \structTest());
         addTestCase("submapper test", \submapperTest());
         addTestCase("ignore_missing_input test", \ignoreMissingInputTest());
@@ -513,6 +514,31 @@ public class MapperTest inherits QUnit::Test {
     }
 
     setUp() {
+    }
+
+    bulkHandlerTest() {
+        hash<auto> mappings = {
+            "out1": "in1",
+            "out2": {
+                "context": "str",
+            },
+        };
+        Mapper mapper(mappings, {
+            "runtime_keys": {
+                "context": <MapperRuntimeKeyInfo>{
+                    "handler": auto sub (auto arg, hash<auto> ctx, *reference<bool> missing) {
+                        return arg + "-ctx";
+                    },
+                },
+            },
+        });
+
+        hash<auto> input = {
+            "in1": ("a", "b",),
+            "in2": ("x", "y",),
+        };
+        hash<auto> output = mapper.mapAuto(input);
+        assertEq({"out1": ("a", "b"), "out2": ("str-ctx", "str-ctx",)}, output);
     }
 
     structTest() {
@@ -1016,7 +1042,7 @@ public class MapperTest inherits QUnit::Test {
         assertEq({
             "int_field": (11, 10, NOTHING),
             "date_field": (2019-12-10, 2019-12-11, 2019-12-12),
-            "ctx0": "c0-ctx",
+            "ctx0": ("c0-ctx", "c0-ctx", "c0-ctx"),
             "ctx1": ("11-c1-ctx", "10-c1-ctx", "-c1-ctx"),
             "ctx2": "x",
         }, res);
