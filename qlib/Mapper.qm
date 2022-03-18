@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.5.9";
+    version = "1.6";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -305,6 +305,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
 
     @section mapperrelnotes Release Notes
 
+    @subsection mapperv1_6 Mapper v1.6
+    - implemented options supporting suppressing data provider calls on input and output
+      (<a href="https://github.com/qorelanguage/qore/issues/4462">issue 4462</a>)
+
     @subsection mapperv1_5_9 Mapper v1.5.9
     - fixed an error mapping bulk data with custom output field handlers
       (<a href="https://github.com/qorelanguage/qore/issues/4460">issue 4460</a>)
@@ -509,9 +513,20 @@ public class Mapper inherits AbstractDataProcessor {
                 "desc": "the input provider search options",
             },
 
+            "input_suppress_data_provider": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "use any input data provider for type information only",
+            },
+
             "mapper_handler_context": <MapperOptionInfo>{
                 "type": "hash",
                 "desc": "a hash that will be passed to any field handlers as the context argument",
+            },
+
+            "output_create_ignore_duplicates": <MapperOptionInfo>{
+                "type": "bool",
+                "desc": "a flag that indicates that duplicate records should be ignored when creating records with "
+                    "an output data provider",
             },
 
             "output_nullable": <MapperOptionInfo>{
@@ -543,10 +558,9 @@ public class Mapper inherits AbstractDataProcessor {
                 "desc": "any options to output providers using the request/response API",
             },
 
-            "output_create_ignore_duplicates": <MapperOptionInfo>{
+            "output_suppress_data_provider": <MapperOptionInfo>{
                 "type": "bool",
-                "desc": "a flag that indicates that duplicate records should be ignored when creating records with "
-                    "an output data provider",
+                "desc": "use any output data provider for type information only",
             },
 
             "runtime": <MapperOptionInfo>{
@@ -744,6 +758,12 @@ public class Mapper inherits AbstractDataProcessor {
 
         #! global submapper hash
         *hash<auto> global_submappers;
+
+        #! ignore any input data provider; use for type info only
+        bool input_suppress_data_provider;
+
+        #! ignore any output data provider; use for type info only
+        bool output_suppress_data_provider;
 
         #! maps standard types to auto types to avoid type stripping
         const TypeMap = {
@@ -1063,6 +1083,10 @@ Mapper mapv(DataMap);
             input_provider_search = opts.input_provider_search;
             input_search_options = opts.input_search_options;
         }
+
+        if (opts.input_suppress_data_provider) {
+            input_suppress_data_provider = True;
+        }
     }
 
     private:internal *hash<string, AbstractDataField> getFields(string pfx, AbstractDataProviderType type) {
@@ -1123,6 +1147,10 @@ Mapper mapv(DataMap);
         }
         if (opts.output_provider_passive) {
             output_provider_passive = True;
+        }
+
+        if (opts.output_suppress_data_provider) {
+            output_suppress_data_provider = True;
         }
     }
 
@@ -2061,7 +2089,7 @@ Mapper mapv(DataMap);
         if (input_do_request) {
             if (info_log) {
                 info_log("autonomous input mapping %y request -> %y", input_provider.getName(),
-                    output_provider ? output_provider.getName() : "<no output provider>");
+                    (output_provider && !output_suppress_data_provider) ? output_provider.getName() : "<no output provider>");
             }
 
             auto response = input_provider.doRequest(input_request, input_request_options);
@@ -2077,7 +2105,7 @@ Mapper mapv(DataMap);
             }
         }
 
-        if (output_provider_bulk_operation) {
+        if (output_provider_bulk_operation && !output_suppress_data_provider) {
             on_error {
                 output_provider_bulk_operation.discard();
             }
@@ -2291,16 +2319,18 @@ Mapper mapv(DataMap);
             dh += consth;
 
             # write to output provider, if any
-            if (output_provider_bulk_operation) {
-                output_provider_bulk_operation.queueData(dh);
-            } else if (output_provider && !output_provider_passive) {
-                if (output_provider_upsert) {
-                    map output_provider.upsertRecord($1), dh.contextIterator();
-                } else {
-                    if (output_do_request) {
-                        map output_provider.doRequest($1, output_request_options), dh.contextIterator();
+            if (!output_suppress_data_provider) {
+                if (output_provider_bulk_operation) {
+                    output_provider_bulk_operation.queueData(dh);
+                } else if (output_provider && !output_provider_passive) {
+                    if (output_provider_upsert) {
+                        map output_provider.upsertRecord($1), dh.contextIterator();
                     } else {
-                        map doCreateRecordIntern($1), dh.contextIterator();
+                        if (output_do_request) {
+                            map output_provider.doRequest($1, output_request_options), dh.contextIterator();
+                        } else {
+                            map doCreateRecordIntern($1), dh.contextIterator();
+                        }
                     }
                 }
             }
@@ -2356,17 +2386,19 @@ Mapper mapv(DataMap);
             logOutput(h);
         }
 
-        # write to putput provider, if any
-        if (output_provider_bulk_operation) {
-            output_provider_bulk_operation.queueData(h);
-        } else if (output_provider && !output_provider_passive) {
-            if (output_provider_upsert) {
-                output_provider.upsertRecord(h);
-            } else {
-                if (output_do_request) {
-                    output_provider.doRequest(h, output_request_options);
+        # write to output provider, if any
+        if (!output_suppress_data_provider) {
+            if (output_provider_bulk_operation) {
+                output_provider_bulk_operation.queueData(h);
+            } else if (output_provider && !output_provider_passive) {
+                if (output_provider_upsert) {
+                    output_provider.upsertRecord(h);
                 } else {
-                    h = doCreateRecordIntern(h);
+                    if (output_do_request) {
+                        output_provider.doRequest(h, output_request_options);
+                    } else {
+                        h = doCreateRecordIntern(h);
+                    }
                 }
             }
         }
@@ -2867,6 +2899,9 @@ Mapper mapv(DataMap);
         if (!input_provider) {
             error2("MAPPER-INPUT-PROVIDER-ERROR", "no input provider available in this mapper");
         }
+        if (input_suppress_data_provider) {
+            error2("MAPPER-INPUT-PROVIDER-ERROR", "input provider operation has been disabled");
+        }
     }
 
     #! raises an error if no output provider is present
@@ -2876,6 +2911,9 @@ Mapper mapv(DataMap);
         if (!output_provider) {
             error2("MAPPER-OUTPUT-PROVIDER-ERROR", "no output provider available in this mapper");
         }
+        if (output_suppress_data_provider) {
+            error2("MAPPER-OUTPUT-PROVIDER-ERROR", "output provider operation has been disabled");
+        }
     }
 
     #! raises an error if no output provider is present
@@ -2884,6 +2922,9 @@ Mapper mapv(DataMap);
     private checkOutputBulkOperation() {
         if (!output_provider) {
             error2("MAPPER-OUTPUT-BULK-ERROR", "no output bulk operation is in progress");
+        }
+        if (output_suppress_data_provider) {
+            error2("MAPPER-OUTPUT-BULK-ERROR", "output provider operation has been disabled");
         }
     }
 

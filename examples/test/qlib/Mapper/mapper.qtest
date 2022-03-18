@@ -66,6 +66,27 @@ class TestInputProvider inherits AbstractDataProvider {
     }
 }
 
+class TestOutputProvider inherits AbstractDataProvider {
+    string getName() {
+        return "TestOutputProvider";
+    }
+
+    hash<DataProviderInfo> getStaticInfoImpl() {
+        return <DataProviderInfo>{
+            "supports_create": True,
+            "supports_upsert": True,
+            "has_record": True,
+        };
+    }
+
+    private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
+        return {
+            "sub-a": new QoreDataField("sub-a", "a", AbstractDataProviderType::get("string")),
+            "sub-b": new QoreDataField("sub-b", "b", AbstractDataProviderType::get("string")),
+        };
+    }
+}
+
 public class MapperTest inherits QUnit::Test {
     public {
         const DataMap = {
@@ -607,28 +628,64 @@ public class MapperTest inherits QUnit::Test {
                 } + opts);
             };
 
-            Mapper m({
-                "f": {
-                    "submapper": "test",
-                    "submapper_options": {
-                        "input_provider_search": {
-                            "sub-a": "$local:input.a",
+            {
+                Mapper m({
+                    "f": {
+                        "submapper": "test",
+                        "submapper_options": {
+                            "input_provider_search": {
+                                "sub-a": "$local:input.a",
+                            },
                         },
+                        "submapper_auto_input": True,
                     },
-                    "submapper_auto_input": True,
-                },
+                }, {
+                    "submapper_get": submapper_get,
+                    "input_log": log_input,
+                    "output_log": log_output,
+                });
+
+                assertEq({"f": (
+                    {"sub-a": "a-1", "sub-b": "b-1"},
+                )}, m.mapData({"a": "a-1"}));
+
+                assertEq({"sub-a": "a-1"}, input_provider.getLastWhereCond());
+                assertNothing(input_provider.getLastSearchOptions());
+            }
+        }
+        {
+            TestInputProvider input_provider();
+            Mapper m({
+                "sub-a": "a",
+                "sub-b": "b",
             }, {
-                "submapper_get": submapper_get,
-                "input_log": log_input,
-                "output_log": log_output,
+                "input_provider": input_provider,
+                "input_suppress_data_provider": True,
             });
+            assertThrows("MAPPER-INPUT-PROVIDER-ERROR", \m.mapAutoInput());
+            assertThrows("MAPPER-INPUT-PROVIDER-ERROR", \m.runAutonomous());
+            assertThrows("MAPPER-INPUT-PROVIDER-ERROR", \m.getOutputIterator());
 
-            assertEq({"f": (
-                {"sub-a": "a-1", "sub-b": "b-1"},
-            )}, m.mapData({"a": "a-1"}));
+            assertEq({"sub-a": "a-1", "sub-b": "b-1"}, m.mapData({"a": "a-1", "b": "b-1"}));
+        }
+        {
+            TestInputProvider input_provider();
+            TestOutputProvider output_provider();
+            Mapper m({
+                "sub-a": "a",
+                "sub-b": "b",
+            }, {
+                "input_provider": input_provider,
+                "output_provider": output_provider,
+                "output_suppress_data_provider": True,
+            });
+            assertThrows("MAPPER-OUTPUT-PROVIDER-ERROR", \m.runAutonomous());
+            assertThrows("MAPPER-OUTPUT-PROVIDER-ERROR", \m.commit());
+            assertThrows("MAPPER-OUTPUT-PROVIDER-ERROR", \m.rollback());
+            assertThrows("MAPPER-OUTPUT-BULK-ERROR", \m.flushOutput());
+            assertThrows("MAPPER-OUTPUT-BULK-ERROR", \m.discardOutput());
 
-            assertEq({"sub-a": "a-1"}, input_provider.getLastWhereCond());
-            assertNothing(input_provider.getLastSearchOptions());
+            assertEq({"sub-a": "a-1", "sub-b": "b-1"}, m.mapData({"a": "a-1", "b": "b-1"}));
         }
 
         {
