@@ -290,8 +290,8 @@ public class DataProviderTest inherits QUnit::Test {
         assertTrue(t3.isAssignableFrom(t7));
         assertTrue(t6.isAssignableFrom(t3));
         assertTrue(t7.isAssignableFrom(t3));
-        assertTrue(t6.isAssignableFrom(t5));
-        assertTrue(t7.isAssignableFrom(t5));
+        assertFalse(t6.isAssignableFrom(t5));
+        assertFalse(t7.isAssignableFrom(t5));
 
         assertFalse(t6.isAssignableFrom(str));
         assertFalse(t7.isAssignableFrom(str));
@@ -299,7 +299,7 @@ public class DataProviderTest inherits QUnit::Test {
 
         assertFalse(t4.isAssignableFrom(t1));
         assertFalse(t4.isAssignableFrom(t8));
-        assertTrue(t8.isAssignableFrom(t4));
+        assertFalse(t8.isAssignableFrom(t4));
 
         {
             hash<auto> v = {"type": "str"};
