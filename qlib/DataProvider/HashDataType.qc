@@ -28,7 +28,10 @@ public namespace DataProvider {
 /** @note objects of this type are only compatible if their fields are compatible; non-matching fields of other types
     are automatically considered compatible; change the default "other field type" by calling
     setDefaultOtherFieldType() to change this; calling setDefaultOtherFieldType() with no argument removes
-    compatibility with non-matching fields in other types
+    compatibility with non-matching fields in other types.
+
+    Additionally, adding any fields before calling setDefaultOtherFieldType() will also remove compatibility with
+    unknown fields
 */
 public class HashDataType inherits QoreDataType {
     private {
@@ -41,6 +44,9 @@ public class HashDataType inherits QoreDataType {
         #! allow other fields
         *AbstractDataProviderType default_other_field_type =
             AbstractDataProviderType::get(AbstractDataProviderType::anyType);
+
+        #! default other field type set mamnually?
+        bool manual_default_other_field_type = False;
 
         #! if the type requires validation
         bool has_default_other_field_type = False;
@@ -73,6 +79,7 @@ public class HashDataType inherits QoreDataType {
         } else {
             has_default_other_field_type = False;
         }
+        manual_default_other_field_type = True;
     }
 
     #! Returns the type name
@@ -157,10 +164,10 @@ public class HashDataType inherits QoreDataType {
                 if (!default_other_field_type) {
                     return False;
                 }
-                if (!has_default_other_field_type) {
+                if (has_default_other_field_type) {
                     return True;
                 }
-                foreach AbstractDataField other_field in (other_fields) {
+                foreach AbstractDataField other_field in (other_fields.iterator()) {
                     if (!default_other_field_type.isAssignableFrom(other_field.getType())) {
                         return False;
                     }
@@ -173,6 +180,11 @@ public class HashDataType inherits QoreDataType {
     #! adds a field to the type
     addField(AbstractDataField field) {
         fields{field.getName()} = field;
+        # do not allow unnamed fields if any fields are added manually and no default other field type has been set
+        # manually
+        if (default_other_field_type && !manual_default_other_field_type) {
+            remove default_other_field_type;
+        }
     }
 
     #! Returns the given field, if present, or @ref nothing if not
@@ -193,6 +205,9 @@ public class HashDataType inherits QoreDataType {
             return self;
         }
         HashDataType rv(type, name, options);
+        if (manual_default_other_field_type) {
+            rv.setDefaultOtherFieldType(default_other_field_type);
+        }
         map rv.addField($1.getSoftType()), getFields().iterator();
         rv.soft_type = True;
         return rv;
