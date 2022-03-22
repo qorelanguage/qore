@@ -251,6 +251,11 @@ public hashdecl DataProviderInfo {
     */
     hash<string, hash<MapperRuntimeKeyInfo>> mapper_keys = Mapper::MapperKeyInfo;
 
+    #! A markdown description of the data provider
+    /** @note this is a dynamic attribute; it differs for different data providers of the same type
+    */
+    *string desc;
+
     #! A list of child data providers in this data provider
     /** @note this is a dynamic attribute; it differs for different data providers of the same type
     */
@@ -324,6 +329,7 @@ public class AbstractDataProvider {
     hash<DataProviderInfo> getInfo() {
         hash<DataProviderInfo> rv({
             "name": getName(),
+            "desc": getDesc(),
         });
         rv += getStaticInfoImpl() + {
             "children": getChildProviderNames(),
@@ -332,6 +338,11 @@ public class AbstractDataProvider {
             rv.has_record = rv.supports_read;
         }
         return rv;
+    }
+
+    #! Returns the data provider description
+    *string getDesc() {
+        # this method intentionally left blank
     }
 
     #! Creates the given record in the data provider

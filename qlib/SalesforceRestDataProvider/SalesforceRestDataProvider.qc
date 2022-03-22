@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-# strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the SalesforceRestDataProvider module
 public namespace SalesforceRestDataProvider {
 #! The SalesforceRest data provider class
@@ -141,6 +130,12 @@ public class SalesforceRestDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "/";
+    }
+
+    #! Returns the data provider description
+    *string getDesc() {
+        return sprintf("Root Salesforce data provider for URL `%s`; supports child data provider objects with a "
+            "record-based interface", rest.getURL());
     }
 
     #! Returns a list of child data provider names, if any

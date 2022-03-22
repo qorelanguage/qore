@@ -203,6 +203,8 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v2_1_2 DataProvider v2.1.2
+    - added the \c desc key supporting a markdown description to data provider info
+      (<a href="https://github.com/qorelanguage/qore/issues/4465">issue 4465</a>)
     - fixed a bug where hash types incorrectly claimed compatibility with incompatible hashes
       (<a href="https://github.com/qorelanguage/qore/issues/4463">issue 4463</a>)
 

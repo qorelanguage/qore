@@ -76,6 +76,12 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
         return name;
     }
 
+    #! Returns the data provider description
+    *string getDesc() {
+        return sprintf("Salesforce data provider for URL `%s` and sobject `%s`; supports a table-like record-based "
+            "interface", rest.getURL(), name);
+    }
+
     private *hash<string, AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
         return record_info.record_type;
     }

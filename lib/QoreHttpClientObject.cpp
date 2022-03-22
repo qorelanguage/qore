@@ -927,6 +927,15 @@ QoreStringNode* QoreHttpClientObject::getURL() {
     return http_priv->connection.get_url();
 }
 
+QoreStringNode* QoreHttpClientObject::getSafeURL() {
+    SafeLocker sl(priv->m);
+
+    if (!http_priv->connection.has_url())
+        return nullptr;
+
+    return http_priv->connection.get_url(true);
+}
+
 int QoreHttpClientObject::setHTTPVersion(const char* version, ExceptionSink* xsink) {
     int rc = 0;
     SafeLocker sl(priv->m);
@@ -967,9 +976,19 @@ QoreStringNode* QoreHttpClientObject::getProxyURL()  {
     SafeLocker sl(priv->m);
 
     if (!http_priv->proxy_connection.has_url())
-        return 0;
+        return nullptr;
 
     return http_priv->proxy_connection.get_url();
+}
+
+QoreStringNode* QoreHttpClientObject::getSafeProxyURL()  {
+    SafeLocker sl(priv->m);
+
+    if (!http_priv->proxy_connection.has_url()) {
+        return nullptr;
+    }
+
+    return http_priv->proxy_connection.get_url(true);
 }
 
 void QoreHttpClientObject::clearProxyURL() {
