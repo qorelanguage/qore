@@ -48,6 +48,12 @@ class NullDataProvider inherits AbstractDataProvider {
         return "NullDataProvider";
     }
 
+    #! Returns the data provider description
+    *string getDesc() {
+        return "The null data provider is a data provider that provides a noop request-response API with no messages "
+            "or data";
+    }
+
     #! Returns data provider static info
     hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;

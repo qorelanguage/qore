@@ -146,6 +146,12 @@ public class DbDataProvider inherits AbstractDataProvider {
         return db.getDatasourceDesc();
     }
 
+    #! Returns the data provider description
+    *string getDesc() {
+        return sprintf("Data provider for database `%s`; use the search API with the `sql` and `args` arguments to "
+            "execute record-based queries", db.getDatasourceDesc());
+    }
+
     #! Begins a transaction in the datasource
     /**
         @see:

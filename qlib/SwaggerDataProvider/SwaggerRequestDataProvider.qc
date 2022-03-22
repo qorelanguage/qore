@@ -83,6 +83,13 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         return rv + getUriPath() + "/" + op.method.upr();
     }
 
+    #! Returns the data provider description
+    *string getDesc() {
+        return sprintf("Swagger/OpenAPI data provider for URL `%s`, URI path `%s`, and HTTP method `%s`.\n\n"
+            "## Summary\n\n%s\n\n## Description\n\n%s",
+            rest.getURL(), uri_path, op.method.upr(), op.summary, op.desc);
+    }
+
     #! Returns data provider info
     hash<DataProviderInfo> getInfo() {
         hash<DataProviderInfo> rv({

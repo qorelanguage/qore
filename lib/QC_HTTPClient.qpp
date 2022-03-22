@@ -1205,15 +1205,35 @@ HTTPClient::setURL(string url) {
 }
 
 //! Returns the current URL
-/** @return the current URL
+/** @return the current URL with the scheme, address, port (if not the default) and also including any username,
+    password, and path
 
     @par Example:
     @code{.py}
 *string url = httpclient.getURL();
     @endcode
+
+    @see getSafeURL()
  */
 *string HTTPClient::getURL() [flags=CONSTANT] {
-   return client->getURL();
+    return client->getURL();
+}
+
+//! Returns the current URL without the password field
+/** @return the current URL with the scheme, address, port (if not the default) and also including any username and
+    path, but without any password
+
+    @par Example:
+    @code{.py}
+*string url = httpclient.getSafeURL();
+    @endcode
+
+    @see getURL()
+
+    @since %Qore 1.6.0
+ */
+*string HTTPClient::getSafeURL() [flags=CONSTANT] {
+    return client->getSafeURL();
 }
 
 //! Clears the new proxy URL value for the next connection
@@ -1225,7 +1245,7 @@ httpclient.setProxyURL();
     @endcode
  */
 nothing HTTPClient::setProxyURL() {
-   client->clearProxyURL();
+    client->clearProxyURL();
 }
 
 //! Sets a new proxy URL value for the next connection
@@ -1256,10 +1276,30 @@ nothing HTTPClient::setProxyURL(string url) {
     @code{.py}
 *string proxy_url = httpclient.getProxyURL();
     @endcode
- */
+
+    @see getSafeProxyURL()
+*/
 *string HTTPClient::getProxyURL() [flags=CONSTANT] {
    return client->getProxyURL();
 }
+
+//! Returns the current proxy URL without the password field
+/** @return the current proxy URL with the scheme, address, port (if not the default) and also including any username and
+    path, but without any password
+
+    @par Example:
+    @code{.py}
+*string url = httpclient.getSafeProxyURL();
+    @endcode
+
+    @see getProxyURL()
+
+    @since %Qore 1.6.0
+ */
+*string HTTPClient::getSafeProxyURL() [flags=CONSTANT] {
+    return client->getSafeProxyURL();
+}
+
 
 //! Clears the new proxy URL value for the next connection
 /**

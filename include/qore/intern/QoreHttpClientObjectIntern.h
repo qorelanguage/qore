@@ -115,14 +115,20 @@ struct con_info {
         return 0;
     }
 
-    DLLLOCAL QoreStringNode *get_url() const {
+    DLLLOCAL QoreStringNode* get_url(bool suppress_password = false) const {
         QoreStringNode *pstr = new QoreStringNode("http");
-        if (ssl)
+        if (ssl) {
             pstr->concat("s://");
-        else
+        } else {
             pstr->concat("://");
-        if (!username.empty())
-            pstr->sprintf("%s:%s@", username.c_str(), password.c_str());
+        }
+        if (!username.empty()) {
+            if (suppress_password) {
+                pstr->sprintf("%s@", username.c_str());
+            } else {
+                pstr->sprintf("%s:%s@", username.c_str(), password.c_str());
+            }
+        }
 
         if (!port) {
             // concat and encode "host" when using a UNIX domain socket
@@ -130,16 +136,17 @@ struct con_info {
             for (unsigned i = 0; i < host.size(); ++i) {
                 char c = host[i];
                 switch (c) {
-                case ' ': pstr->concat("%20"); break;
-                case '/': pstr->concat("%2f"); break;
-                default: pstr->concat(c); break;
+                    case ' ': pstr->concat("%20"); break;
+                    case '/': pstr->concat("%2f"); break;
+                    default: pstr->concat(c); break;
                 }
             }
-        }
-        else
+        } else {
             pstr->concat(host.c_str());
-        if (port && port != 80)
+        }
+        if (port && port != 80) {
             pstr->sprintf(":%d", port);
+        }
         if (!path.empty()) {
             if (path[0] != '/')
                 pstr->concat('/');
@@ -177,6 +184,7 @@ DLLLOCAL extern strcase_set_t header_ignore;
 DLLLOCAL void do_content_length_event(Queue *event_queue, int64 id, int len);
 DLLLOCAL void do_redirect_event(Queue *event_queue, int64 id, const QoreStringNode *loc, const QoreStringNode *msg);
 DLLLOCAL void do_event(Queue *event_queue, int64 id, int event);
-DLLLOCAL void check_headers(const char *str, int len, bool &multipart, QoreHashNode &ans, const QoreEncoding *enc, ExceptionSink *xsink);
+DLLLOCAL void check_headers(const char *str, int len, bool &multipart, QoreHashNode &ans, const QoreEncoding *enc,
+    ExceptionSink *xsink);
 
 #endif

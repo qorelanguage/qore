@@ -246,6 +246,12 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return table.getName();
     }
 
+    #! Returns the data provider description
+    *string getDesc() {
+        return sprintf("Record-based data provider for db table `%s`; supports create, read/search, update, delete, "
+            "upsert, and bulk operations", table.getSqlName());
+    }
+
     #! Returns child providers; return @ref nothing if there are no child providers
     *AbstractDataProvider getChildProviders() {
     }

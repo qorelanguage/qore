@@ -134,7 +134,7 @@ public:
 
     //! sets the http version from a string
     /**
-         @param version either "1.0" or "1.1"
+        @param version either "1.0" or "1.1"
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @return -1 if an exception was thrown, 0 for OK
     */
@@ -142,13 +142,13 @@ public:
 
     //! returns the http version as a string (either "1.0" or "1.1")
     /**
-         @return the http version as a string (either "1.0" or "1.1")
+        @return the http version as a string (either "1.0" or "1.1")
     */
     DLLEXPORT const char* getHTTPVersion() const;
 
     //! sets or clears HTTP 1.1 protocol compliance
     /**
-         @param h11 if true sets HTTP 1.1 protocol compliance, if false set 1.0
+        @param h11 if true sets HTTP 1.1 protocol compliance, if false set 1.0
     */
     DLLEXPORT void setHTTP11(bool h11);
 
@@ -157,20 +157,28 @@ public:
 
     //! sets the connection URL
     /** @param url the URL to use for connection parameters
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @return -1 if an exception was thrown, 0 for OK
     */
     DLLEXPORT int setURL(const char* url, ExceptionSink* xsink);
 
     //! returns the connection parameters as a URL, caller owns the reference count returned
     /**
-         @return the connection parameters as a URL, caller owns the reference count returned
+        @return the connection parameters as a URL, caller owns the reference count returned
     */
     DLLEXPORT QoreStringNode* getURL();
 
+    //! returns the connection parameters as a URL without any password, caller owns the reference count returned
+    /**
+        @return the connection parameters as a URL without any password, caller owns the reference count returned
+
+        @since %Qore 1.6.0
+    */
+    DLLEXPORT QoreStringNode* getSafeURL();
+
     //! sets the username and password for the connection
     /** @param user the username to set
-         @param pass the password to set
+        @param pass the password to set
         @note setURL() will overwrite any settings set here
     */
     DLLEXPORT void setUserPassword(const char* user, const char* pass);
@@ -180,16 +188,24 @@ public:
 
     //! sets the proxy URL
     /** @param proxy the URL to use for connection to the proxy
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @return -1 if an exception was thrown, 0 for OK
     */
     DLLEXPORT int setProxyURL(const char* proxy, ExceptionSink* xsink);
 
     //! returns the proxy connection parameters as a URL (or 0 if there is none), caller owns the reference count returned
     /**
-         @return the proxy connection parameters as a URL, caller owns the reference count returned
+        @return the proxy connection parameters as a URL, caller owns the reference count returned
     */
     DLLEXPORT QoreStringNode* getProxyURL();
+
+    //! returns the proxy connection parameters as a URL without any password (or 0 if there is none), caller owns the reference count returned
+    /**
+        @return the proxy connection parameters as a URL without any password, caller owns the reference count returned
+
+        @since %!ore 1.6.0
+    */
+    DLLEXPORT QoreStringNode* getSafeProxyURL();
 
     //! clears the proxy URL
     DLLEXPORT void clearProxyURL();

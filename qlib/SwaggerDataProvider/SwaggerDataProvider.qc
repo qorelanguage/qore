@@ -154,6 +154,11 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         return schema.info.title + uri_path;
     }
 
+    #! Returns the data provider description
+    *string getDesc() {
+        return sprintf("Swagger/OpenAPI data provider for URL `%s` and URI path `%s`", rest.getURL(), uri_path);
+    }
+
     #! Checks the REST client
     private checkRestClient(RestClient rest) {
         *AbstractRestSchemaValidator validator = rest.getValidator();
