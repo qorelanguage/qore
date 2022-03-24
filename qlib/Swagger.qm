@@ -477,12 +477,14 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private check(bool serialize, bool request, string type, *string format, *SchemaObject items, string path, string method, string name, reference<auto> value) {
+    private check(bool serialize, bool request, string type, *string format, *SchemaObject items, string path,
+            string method, string name, reference<auto> value) {
         # accept a single value for an array (= one-element list)
-        if (type == "array")
+        if (type == "array") {
             checkArrayParam(serialize, request, items, path, method, name, \value);
-        else
+        } else {
             checkIntern(serialize, request, type, format, path, method, name, value, \value);
+        }
     }
 
     private checkStringIntern(string path, string method, string name, string value) {
@@ -505,17 +507,22 @@ class SchemaBase {
                     name, path, method, keys enum, value);
     }
 
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, list<auto> v, reference<list> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
+            string name, list<auto> v, reference<list> value) {
         if (type != "list" && type != "any")
-            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is an array (%y), but the expected type is %y", name, path, method, v, type);
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is an array (%y), but "
+                "the expected type is %y", name, path, method, v, type);
     }
 
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash<auto> v, reference<hash> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
+            string name, hash<auto> v, reference<hash> value) {
         if (type != "file" && type != "any")
-            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is an object (%y), but the expected type is %y", name, path, method, v, type);
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is an object (%y), but "
+                "the expected type is %y", name, path, method, v, type);
     }
 
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, int v, reference<auto> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
+            string name, int v, reference<auto> value) {
         # NOTE: "number" also accepts "int"
         if (type == "number") {
             checkIntern(serialize, request, type, format, path, method, name, v.toNumber(), \value);
@@ -616,7 +623,8 @@ class SchemaBase {
     }
 
     #! converts binary values to strings for supported formats
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, binary v, reference value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
+            string name, binary v, reference value) {
         if (type != "string" && type != "any")
             throwInvalidType(name, "string", type, v);
 
@@ -629,14 +637,16 @@ class SchemaBase {
                     value = v;
                     return;
                 default:
-                    throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a binary value to a string value with format %y", method.upr(), path, name, format);
+                    throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameters %y: cannot serialize a binary value "
+                        "to a string value with format %y", method.upr(), path, name, format);
             }
             checkStringIntern(path, method, name, value);
         }
     }
 
     #! validates string values
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, string v, reference<auto> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
+            string name, string v, reference<auto> value) {
         if (type != "string" && type != "any") {
             throwInvalidType(name, "string", type, v);
         }
@@ -685,8 +695,9 @@ class SchemaBase {
                     break;
             }
         }
-        if (value.typeCode() == NT_STRING)
+        if (value.typeCode() == NT_STRING) {
             checkStringIntern(path, method, name, value);
+        }
     }
 
     #! converts strings to/from date/time values for supported formats
@@ -725,7 +736,8 @@ class SchemaBase {
     }
 
     #! validates the value against the schema definition
-    private checkArrayParam(bool serialize, bool request, SchemaObject items, string path, string method, string name, reference<softlist> value) {
+    private checkArrayParam(bool serialize, bool request, SchemaObject items, string path, string method, string name,
+            reference<softlist<auto>> value) {
         if (exists maxItems && value.size() > maxItems)
             throw "SCHEMA-VALIDATION-ERROR",
                 sprintf("Parameter %y for path %y and method %y has too many items (maxItems: %d, actual: %d)",
@@ -1054,7 +1066,9 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         #! the default path to use when retrieving external schema references
         *string def_path;
 
-        #! a call reference or closure to be passed a string name for external schema references, must take a string argument (the resource name) and return a string (the resource data)
+        #! a call reference or closure to be passed a string name for external schema references
+        /** must take a string argument (the resource name) and return a string (the resource data)
+        */
         *code try_import;
 
         #! the hash for the schema
@@ -1075,7 +1089,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @param opts options as per @ref SwaggerOptions as follows:
         - \c compact_serialization (default @ref True "True"): optimize the size of serialized data strings
         - \c def_path: the default path to use when retrieving external schema references
-        - \c try_import: a call reference or closure to be passed a string name for external schema references, must take a string argument (the resource name) and return a string (the resource data)
+        - \c try_import: a call reference or closure to be passed a string name for external schema references, must
+          take a string argument (the resource name) and return a string (the resource data)
 
         @throws SWAGGER-OPTION-ERROR unsuported options in constructor
         @throws INVALID-SWAGGER-VERSION invalid or missing Swagger schema version
@@ -1093,7 +1108,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         def_path = remove opts.def_path;
         try_import = remove opts.try_import;
         if (opts)
-            throw "SWAGGER-OPTION-ERROR", sprintf("unknown options in SwaggerSchema constructor: %y; known options: %y", keys opts, keys SwaggerOptions);
+            throw "SWAGGER-OPTION-ERROR", sprintf("unknown options in SwaggerSchema constructor: %y; known "
+                "options: %y", keys opts, keys SwaggerOptions);
 
         string objType = "Swagger";
         if (!oh.hasKey("swagger"))
@@ -1104,7 +1120,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             swaggerSpec = sprintf("%.1f", oh.swagger);
         else
             throw "INVALID-FIELD-TYPE",
-                sprintf("%s Object: 'swagger' field has invalid type %y (should be string or float)", objType, oh.swagger.type());
+                sprintf("%s Object: 'swagger' field has invalid type %y (should be string or float)", objType,
+                    oh.swagger.type());
         if (swaggerSpec != "2.0")
             throw "INVALID-SWAGGER-VERSION", sprintf("invalid schema version %y; expecting \"2.0\"", swaggerSpec);
 
@@ -1315,14 +1332,18 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /** @param method the HTTP method (case-insensitive)
         @param path the URI path with any query arguments
         @param body the unserialized message body data
-        @param headers any headers to include in the request; note that the \c Content-Type header should not be sent here as it will be overridden when the message is serialized
-        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+        @param headers any headers to include in the request; note that the \c Content-Type header should not be sent
+        here as it will be overridden when the message is serialized
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then
+        an exception is thrown; if this argument is not present, then json is preferred over yaml
 
-        @return a @ref RestSchemaValidator::RestRequestClientInfo "RestRequestClientInfo" hash with information about the request
+        @return a @ref RestSchemaValidator::RestRequestClientInfo "RestRequestClientInfo" hash with information about
+        the request
 
         @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
     */
-    private hash<RestSchemaValidator::RestRequestClientInfo> processRequestImpl(string method, string path, auto body, *hash<auto> headers, *softlist<string> content_types) {
+    private hash<RestSchemaValidator::RestRequestClientInfo> processRequestImpl(string method, string path, auto body,
+            *hash<auto> headers, *softlist<string> content_types) {
         return processRequestIntern(method, path, body, headers, content_types, compact_serialization);
     }
 
@@ -1330,20 +1351,24 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /** @param method the HTTP method (case-insensitive)
         @param path the URI path with any query arguments
         @param http_body the serialized message body
-        @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by the server for the request will be added here
+        @param headers a reference to the hash of HTTP headers received; any default header values to be assumed by
+        the server for the request will be added here
 
         @return a @ref RestSchemaValidator::RestRequestServerInfo hash of request information
 
-        @throw DESERIALIZATION-ERROR the path does not match the basePath, the request body could not be deserialized or the \c Content-Type is missing or it is invalid for the operation
+        @throw DESERIALIZATION-ERROR the path does not match the basePath, the request body could not be deserialized
+        or the \c Content-Type is missing or it is invalid for the operation
     */
-    private hash<RestSchemaValidator::RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers) {
+    private hash<RestSchemaValidator::RestRequestServerInfo> parseRequestImpl(string method, string path,
+            *data http_body, reference<hash> headers) {
         auto body;
         # deserialize body according to Content-Type
         if (exists http_body) {
             if (!headers.hasKey("content-type"))
                 throw "DESERIALIZATION-ERROR", "message includes body but is missing Content-Type header";
             if (headers."content-type" =~ /^multipart\/form-data/) {
-                hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
+                hash<string, hash<FormDataMessageInfo>> h =
+                    MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
                 body = map {$1.key: $1.value.body}, h.pairIterator();
             } else {
                 *code ds = MimeDataTypes.(headers."content-type").deserialize;
@@ -1383,18 +1408,24 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @param code the HTTP response code
         @param response_body the response body data (if any)
         @param headers HTTP headers to include in the response
-        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then
+        an exception is thrown; if this argument is not present, then json is preferred over yaml
 
         @return an HttpResponseInfo hash for the response
 
-        @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported type
+        @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported
+        type
         @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
 
-        @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
-        an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
+        @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept
+        header field is present, and if the server cannot send a response which is acceptable according to the
+        combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this
+        happens, if an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
     */
-    private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body, *hash<auto> headers, *softlist<string> content_types) {
-        return processResponseIntern(method, path, code, response_body, headers, content_types, compact_serialization);
+    private hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, auto response_body,
+            *hash<auto> headers, *softlist<string> content_types) {
+        return processResponseIntern(method, path, code, response_body, headers, content_types,
+            compact_serialization);
     }
 
     #! parses and validates the response from the server and returns a hash of the processed info
@@ -1408,7 +1439,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @throw DESERIALIZATION-ERROR the response body could not be deserialized or had an invalid \c Content-Type
     */
-    private hash<RestSchemaValidator::RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash<auto> hdr) {
+    private hash<RestSchemaValidator::RestResponseClientInfo> parseResponseImpl(string method, string path, int code,
+            *data response_body, hash<auto> hdr) {
         # remove basePath if present
         fixPath(\path);
 
@@ -1426,7 +1458,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         # deserialize body according to Content-Type
         if (exists response_body && content) {
             if (content =~ /^multipart\/form-data/) {
-                hash<string, hash<FormDataMessageInfo>> h = MultiPartFormDataMessage::parseMessage(hdr."content-type", response_body.toString());
+                hash<string, hash<FormDataMessageInfo>> h =
+                    MultiPartFormDataMessage::parseMessage(hdr."content-type", response_body.toString());
                 rv.body = map {$1.key: $1.value.body}, h.pairIterator();
                 content = MimeTypeMultipartFormData;
             } else {
@@ -1518,7 +1551,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @return a @ref RestSchemaValidator::RestExampleRequestInfo "RestExampleRequestInfo" hash of example message information for the given request
     */
-    private hash<RestSchemaValidator::RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
+    private hash<RestSchemaValidator::RestExampleRequestInfo> getExampleRequestImpl(string method, string path,
+            *softlist<string> content_types) {
         # remove basePath if present
         fixPath(\path);
 
@@ -1567,7 +1601,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
     */
-    private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types) {
+    private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code,
+            *softlist<string> content_types) {
         # remove basePath if present
         fixPath(\path);
 
@@ -1633,11 +1668,14 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /** @param method the HTTP method (case-insensitive)
         @param path the URI path with any query arguments
         @param body the unserialized message body data
-        @param headers any headers to include in the request; note that the \c Content-Type header should not be sent here as it will be overridden when the message is serialized
-        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+        @param headers any headers to include in the request; note that the \c Content-Type header should not be sent
+        here as it will be overridden when the message is serialized
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then
+        an exception is thrown; if this argument is not present, then json is preferred over yaml
         @param compact_serialization overrides the internal \c compact_serialization flag
 
-        @return a @ref RestSchemaValidator::RestRequestClientInfo "RestRequestClientInfo" hash with information about the request
+        @return a @ref RestSchemaValidator::RestRequestClientInfo "RestRequestClientInfo" hash with information about
+        the request
 
         @throws SERIALIZATION-ERROR unsupported path, message body MIME type requested, or missing serialization module
     */
@@ -1676,14 +1714,16 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             rv.uri_path = make_uri_query(cast<hash<UriQueryInfo>>(h), query_arg_separator);
         }
 
-        if (!body)
+        if (!body) {
             return rv;
+        }
 
         if (!exists content_types) {
             # if the request has already set \c Content-Type header, we assume
             # that the body is in the right format
-            if (checkRequestContentTypeHeader(\rv, body, headers))
+            if (checkRequestContentTypeHeader(\rv, body, headers)) {
                 return rv;
+            }
 
             # otherwise we continue with the default content types
             content_types = MimeContentTypes;
@@ -1693,38 +1733,43 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             if (!mime_types{content})
                 continue;
             if (content == MimeTypeMultipartFormData) {
-                hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
-                    "name": $1.key,
-                    "filename": $1.key,
-                    "hdr": ("Content-Type": MimeTypeText),
-                    "body": $1.value,
-                  ))}, body.pairIterator());
+                hash<string, hash<FormDataMessageInfo>> parts =
+                    cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>({
+                        "name": $1.key,
+                        "filename": $1.key,
+                        "hdr": {"Content-Type": MimeTypeText},
+                        "body": $1.value,
+                    })}, body.pairIterator());
 
                 hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
-                return rv += (
+                return rv += {
                     "body": mh.body,
                     "content": mh.hdr."Content-Type",
-                );
+                };
             }
             if (MimeDataTypes{content}) {
-                return rv += (
-                    "body": compact_serialization ? MimeDataTypes{content}.serialize(body) : MimeDataTypes{content}.serialize_verbose(body),
+                return rv += {
+                    "body": compact_serialization
+                        ? MimeDataTypes{content}.serialize(body)
+                        : MimeDataTypes{content}.serialize_verbose(body),
                     "content": content,
-                );
+                };
             }
         }
 
         # check if the \c Content-Type header is already set
-        if (checkRequestContentTypeHeader(\rv, body, headers))
+        if (checkRequestContentTypeHeader(\rv, body, headers)) {
             return rv;
+        }
 
-        if (content_types == MimeContentTypes)
+        if (content_types == MimeContentTypes) {
             throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; available MIME type(s): "
                 "%y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules);
-        else
+        } else {
             throw "SERIALIZATION-ERROR", sprintf("%s %s: message body cannot be serialized; requested MIME type(s): "
                 "%y; available MIME types: %y; available serialization modules: %y", method.upr(), path,
                 content_types, mime_types, SerializationModules);
+        }
     }
 
     #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
@@ -1741,10 +1786,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported type
         @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
 
-        @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
-        an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
+        @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept
+        header field is present, and if the server cannot send a response which is acceptable according to the
+        combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this
+        happens, if an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
     */
-    private:internal hash<HttpResponseInfo> processResponseIntern(string method, string path, int code, auto response_body, *hash<auto> headers, *softlist<string> content_types, bool compact_serialization) {
+    private:internal hash<HttpResponseInfo> processResponseIntern(string method, string path, int code,
+            auto response_body, *hash<auto> headers, *softlist<string> content_types, bool compact_serialization) {
         # find path item object and operation
         method = method.lwr();
         PathItemObject pio = paths.match(path);
@@ -1858,7 +1906,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @note if there are more \c Content-Type headers, then @ref False is returned and request is not modified
     */
-    private:internal bool checkRequestContentTypeHeader(reference<hash<RestRequestClientInfo>> req, auto body, *hash<auto> headers) {
+    private:internal bool checkRequestContentTypeHeader(reference<hash<RestRequestClientInfo>> req, auto body,
+            *hash<auto> headers) {
         # quickly return if body is not in data format
         if (body.typeCode() != NT_BINARY && body.typeCode() != NT_STRING)
             return False;
@@ -1884,7 +1933,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @note if there are more \c Content-Type headers, then @ref False is returned and response is not modified
     */
-    private:internal bool checkResponseContentTypeHeader(reference<hash<HttpResponseInfo>> resp, auto body, *hash<auto> headers) {
+    private:internal bool checkResponseContentTypeHeader(reference<hash<HttpResponseInfo>> resp, auto body,
+            *hash<auto> headers) {
         # quickly return if body is not in data format
         if (body.typeCode() != NT_BINARY && body.typeCode() != NT_STRING)
             return False;
@@ -1909,7 +1959,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
         @return whether the response body can be sent as text/plain and the \c resp was modified
     */
-    private:internal bool checkResponseTextPlain(reference<hash<HttpResponseInfo>> resp, auto body, hash<string, bool> mime_types, *list<auto> content_types) {
+    private:internal bool checkResponseTextPlain(reference<hash<HttpResponseInfo>> resp, auto body,
+            hash<string, bool> mime_types, *list<auto> content_types) {
         # quickly return if body is not string
         if (body.typeCode() != NT_STRING)
             return False;
@@ -2177,6 +2228,8 @@ public class PathsObject inherits ObjectBase {
         if (!path.equalPartial("/")) {
             path = "/" + path;
         }
+        # strip query from path before matching
+        path =~ s/\?.*//g;
         return paths.match(path.split("/"));
     }
 
@@ -2557,12 +2610,13 @@ public class OperationObject inherits ObjectBase {
         string ct = consumes.firstKey();
 
         if (ct == MimeTypeMultipartFormData) {
-            hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
-                "name": $1.key,
-                "filename": $1.key,
-                "hdr": ("Content-Type": MimeTypeText),
-                "body": $1.value,
-                ))}, body.pairIterator());
+            hash<string, hash<FormDataMessageInfo>> parts =
+                cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>({
+                    "name": $1.key,
+                    "filename": $1.key,
+                    "hdr": {"Content-Type": MimeTypeText},
+                    "body": $1.value,
+                })}, body.pairIterator());
 
             hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
             headers."Content-Type" = mh.hdr."Content-Type";
@@ -2586,9 +2640,11 @@ public class OperationObject inherits ObjectBase {
         @param headers a reference to a hash of HTTP headers
         @param mime_types a reference to a hash of valid mime types for the operation
 
-        @throws SCHEMA-VALIDATION-ERROR invalid parameter name or location, missing parameter and parameter has no default value
+        @throws SCHEMA-VALIDATION-ERROR invalid parameter name or location, missing parameter and parameter has no
+        default value
     */
-    validateRequest(bool serialize, PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<auto> body, reference<hash> headers, *reference<hash<string, bool>> mime_types) {
+    validateRequest(bool serialize, PathItemObject pio, reference<hash<UriQueryInfo>> h, reference<auto> body,
+            reference<hash> headers, *reference<hash<string, bool>> mime_types) {
         # check query parameters
         foreach string key in (keys h.params) {
             # find URI parameter object
@@ -2596,7 +2652,8 @@ public class OperationObject inherits ObjectBase {
             if (!po)
                 error("SCHEMA-VALIDATION-ERROR", "No parameter named %y defined for this path and method", key);
             if (po.inLoc != "query")
-                error("SCHEMA-VALIDATION-ERROR", "invalid parameter %y given in the URI query; expected location %y", key, po.inLoc);
+                error("SCHEMA-VALIDATION-ERROR", "invalid parameter %y given in the URI query; expected location %y",
+                    key, po.inLoc);
 
             po.check(serialize, True, path, method, key, \h.params{key});
         }
@@ -2629,8 +2686,9 @@ public class OperationObject inherits ObjectBase {
         checkMissingParams(h, headers, body, parameters);
         checkMissingParams(h, headers, body, pio.parameters, parameters);
 
-        if (consumes)
+        if (consumes) {
             mime_types = consumes;
+        }
     }
 
     #! parses and processes a REST request on the server side
@@ -2656,7 +2714,8 @@ public class OperationObject inherits ObjectBase {
             if (pos != -1)
                 content = content.substr(0, pos);
             if (!mime_types{content})
-                throw "DESERIALIZATION-ERROR", sprintf("%s: invalid Content-Type: %y; valid MIME types: %y", h.method, content, mime_types);
+                throw "DESERIALIZATION-ERROR", sprintf("%s: invalid Content-Type: %y; valid MIME types: %y", h.method,
+                    content, mime_types);
         }
 
         # set default parameter values
@@ -2733,9 +2792,11 @@ public class OperationObject inherits ObjectBase {
         @param swagger the schema object itself
         @param rbody the output example body value, if any
 
-        @return a @ref RestSchemaValidator::RestExampleRequestInfo "RestExampleRequestInfo" hash of example message information for the given request
+        @return a @ref RestSchemaValidator::RestExampleRequestInfo "RestExampleRequestInfo" hash of example message
+        information for the given request
     */
-    hash<RestSchemaValidator::RestExampleRequestInfo> getExampleRequest(string method, string path, PathItemObject pio, SwaggerSchema swagger, reference rbody) {
+    hash<RestSchemaValidator::RestExampleRequestInfo> getExampleRequest(string method, string path,
+            PathItemObject pio, SwaggerSchema swagger, reference rbody) {
         hash<RestExampleRequestInfo> rv();
 
         #! URI query arguments
@@ -2744,7 +2805,8 @@ public class OperationObject inherits ObjectBase {
         getQoreExampleParams(\query, \rv.hdr, parameters);
         getQoreExampleParams(\query, \rv.hdr, pio.parameters, parameters);
 
-        rv.request_uri = sprintf("%s %s HTTP/1.1", method.upr(), make_uri_query(cast<hash<UriQueryInfo>>(("method": path, "params": query))));
+        rv.request_uri = sprintf("%s %s HTTP/1.1", method.upr(),
+            make_uri_query(cast<hash<UriQueryInfo>>({"method": path, "params": query})));
 
         #! get example message body
         *BodyParameter body_po = body ?? pio.body;
@@ -2759,7 +2821,8 @@ public class OperationObject inherits ObjectBase {
         @param path the URI path of the original request
         @param code the HTTP response code of the response
 
-        @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
+        @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore
+        code to generate the given response message
     */
     hash<RestQoreExampleCodeInfo> getQoreExampleResponse(string method, string path, int code) {
         hash<RestQoreExampleCodeInfo> rv();
@@ -2779,7 +2842,8 @@ public class OperationObject inherits ObjectBase {
         @param code the HTTP response code of the response
         @param body the output example body value, if any
 
-        @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
+        @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example
+        response message info
     */
     hash<RestExampleResponseInfo> getExampleResponse(string method, string path, int code, reference<auto> body) {
         hash<RestExampleResponseInfo> rv();
@@ -2791,8 +2855,9 @@ public class OperationObject inherits ObjectBase {
         return rv;
     }
 
-    private getQoreExampleParams(reference<hash<auto>> query, reference<hash<auto>> headers, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
-        foreach hash ph in (parameters.pairIterator()) {
+    private getQoreExampleParams(reference<hash<auto>> query, reference<hash<auto>> headers,
+            hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
+        foreach hash<auto> ph in (parameters.pairIterator()) {
             # don't check if child params already checked or if it's the single message body param
             if (child_params{ph.key} || ph.value.inLoc == "body" || ph.value.inLoc == "formData")
                 continue;
@@ -2808,8 +2873,9 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! add default parameters
-    private doDefaultParams(reference<hash<UriQueryInfo>> h, reference<hash> headers, reference<auto> body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
-        foreach hash ph in (parameters.pairIterator()) {
+    private doDefaultParams(reference<hash<UriQueryInfo>> h, reference<hash> headers, reference<auto> body,
+            hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
+        foreach hash<auto> ph in (parameters.pairIterator()) {
             # don't check if child params already checked or if it's the single message body param
             if (child_params{ph.key} || ph.value.inLoc == "body")
                 continue;
@@ -2834,8 +2900,9 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! checks for missing params
-    private checkMissingParams(hash<UriQueryInfo> h, *hash<auto> headers, auto body, hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
-        foreach hash ph in (parameters.pairIterator()) {
+    private checkMissingParams(hash<UriQueryInfo> h, *hash<auto> headers, auto body,
+            hash<string, AbstractParameterObject> parameters, *hash<string, AbstractParameterObject> child_params) {
+        foreach hash<auto> ph in (parameters.pairIterator()) {
             # don't check if child params already checked
             if (child_params{ph.key} || ph.value.inLoc == "body")
                 continue;
@@ -2843,15 +2910,18 @@ public class OperationObject inherits ObjectBase {
                 switch (ph.value.inLoc) {
                     case "query":
                         if (!exists h.params{ph.key})
-                            error("SCHEMA-VALIDATION-ERROR", "request is missing required query parameter %y", ph.key);
+                            error("SCHEMA-VALIDATION-ERROR", "request is missing required query parameter %y",
+                                ph.key);
                         break;
                     case "header":
                         if (!exists headers{ph.key})
-                            error("SCHEMA-VALIDATION-ERROR", "request is missing required header parameter %y", ph.key);
+                            error("SCHEMA-VALIDATION-ERROR", "request is missing required header parameter %y",
+                                ph.key);
                         break;
                     case "formData":
                         if (!exists body{ph.key})
-                            error("SCHEMA-VALIDATION-ERROR", "request is missing required formData parameter %y", ph.key);
+                            error("SCHEMA-VALIDATION-ERROR", "request is missing required formData parameter %y",
+                                ph.key);
                         break;
                     # NOTE: missing path parameters are not possible (path would not be matched in the first place)
                     #       "body" is handled specially
@@ -2943,14 +3013,14 @@ public class AbstractParameterObject inherits ObjectBase {
                 \c "path" field in the @ref Swagger::PathsObject.
             - For all other cases, the name corresponds to the parameter name
                 used based on the @ref AbstractParameterObject::inLoc "inLoc" property.
-         */
+        */
         string name;
 
         #! Required. The location of the parameter.
         /**
             Possible values are \c "query", \c "header", \c "path",
             \c "formData" or \c "body".
-         */
+        */
         string inLoc;
 
         #! A brief description of the parameter. This could contain examples of use. GFM syntax can be used for rich text representation.
@@ -2961,7 +3031,7 @@ public class AbstractParameterObject inherits ObjectBase {
             If the parameter is @ref AbstractParameterObject::inLoc "in" "path",
             this property is \b required and its value MUST be \c true.
             Otherwise, the property MAY be included and its default value is \c false.
-         */
+        */
         bool required = False;
     }
 
@@ -2981,7 +3051,7 @@ public class AbstractParameterObject inherits ObjectBase {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
-     */
+    */
     public constructor(hash<auto> oh) : ObjectBase(oh) {
         string objType = "Parameter";
         required_field(objType, oh, "name", NT_STRING, \name);
@@ -3011,7 +3081,8 @@ public class AbstractParameterObject inherits ObjectBase {
             return new BodyParameter(oh, swagger);
         else if (OtherParameterMap{oh."in"})
             return new OtherParameter(name, oh, swagger);
-        throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid location (\"in\") parameter value: %y", name, oh."in");
+        throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid location (\"in\") parameter value: %y",
+            name, oh."in");
     }
 }
 
@@ -3121,44 +3192,52 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
     #! Constructor.
     /**
         @param name the parameter name
-        @param oh deserialized hash from the source schema description describing general parameters (other than \c "body" parameters)
+        @param oh deserialized hash from the source schema description describing general parameters (other than
+        \c "body" parameters)
         @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(string name, hash<auto> oh, SwaggerSchema swagger) : AbstractParameterObject(oh), SchemaBase("Parameter", oh) {
+    public constructor(string name, hash<auto> oh, SwaggerSchema swagger)
+            : AbstractParameterObject(oh), SchemaBase("Parameter", oh) {
         string objType = "Parameter";
         required_field(objType, oh, "type", NT_STRING, \type);
         if (!ParameterTypes{type})
-            throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid parameter type value passed: %y, expecting one of: %y", name, type, keys ParameterTypes);
+            throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid parameter type value passed: %y, "
+                "expecting one of: %y", name, type, keys ParameterTypes);
         if (type == "array") {
             items = ParameterItemsSchemaObject::newSchemaObject("items", oh.items, swagger);
             if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
                 if (!ParameterCollectionFormats{collectionFormat})
                     throw "INVALID-FIELD-VALUE",
-                        sprintf("Parameter Object %y: invalid collectionFormat value %y; expected one of: %y", name, collectionFormat, keys ParameterCollectionFormats);
+                        sprintf("Parameter Object %y: invalid collectionFormat value %y; expected one of: %y", name,
+                            collectionFormat, keys ParameterCollectionFormats);
 
                 if (collectionFormat == "multi" && inLoc != "query" && inLoc != "formData")
                     throw "INVALID-FIELD-VALUE",
-                        sprintf("Parameter Object %y: invalid collectionFormat value 'multi' - is only valid when 'in' (location) is either 'query' or 'formData'", name);
+                        sprintf("Parameter Object %y: invalid collectionFormat value 'multi' - is only valid when "
+                            "'in' (location) is either 'query' or 'formData'", name);
             }
+        } else if (oh.collectionFormat) {
+            throw "INVALID-FIELD-TYPE", sprintf("Parameter Object %y: type %y (non-array) cannot have a "
+                "\"collectionFormat\" property (%y)", name, type, oh.collectionFormat);
         }
-        else if (oh.collectionFormat)
-            throw "INVALID-FIELD-TYPE", sprintf("Parameter Object %y: type %y (non-array) cannot have a \"collectionFormat\" property (%y)", name, type, oh.collectionFormat);
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
             if (type == "integer" && !ValidIntFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid integer type format value passed: %y", name, format);
+                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid integer type format value passed: "
+                    "%y", name, format);
             else if (type == "number" && !ValidNumberFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid number type format value passed: %y", name, format);
+                throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid number type format value passed: "
+                    "%y", name, format);
         }
 
         optional_field(objType, oh, "allowEmptyValue", NT_BOOLEAN, \allowEmptyValue);
 
         if (oh.hasKey("default")) {
-            defaultVal = oh.default;
+            defaultVal = oh."default";
             OtherParameter::checkValueType(\defaultVal, type, items);
         }
     }
@@ -3170,7 +3249,8 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
             switch (type) {
                 case "integer":
                     if (value !~ /^([+-])?[0-9]+$/)
-                        throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"integer\" is invalid; value provided: %y", name, path, method, value);
+                        throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type "
+                            "\"integer\" is invalid; value provided: %y", name, path, method, value);
                     value = value.toInt();
                     break;
                 case "number":
@@ -3183,28 +3263,46 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                             try {
                                 value = date(value);
                             } catch (hash<ExceptionInfo> ex) {
-                                throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"date\" is invalid; value provided: %y (%s)", name, path, method, value, ex.desc);
+                                throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of "
+                                    "type \"date\" is invalid; value provided: %y (%s)", name, path, method, value,
+                                    ex.desc);
                             }
                             break;
                         case "binary":
                             try {
                                 value = binary(value);
                             } catch (hash<ExceptionInfo> ex) {
-                                throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"binary\" is invalid; value provided: %y (%s)", name, path, method, value, ex.desc);
+                                throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of "
+                                    "type \"binary\" is invalid; value provided: %y (%s)", name, path, method, value,
+                                    ex.desc);
                             }
                             break;
                         case "byte":
                             try {
                                 value = parse_base64_string(value);
                             } catch (hash<ExceptionInfo> ex) {
-                                throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of type \"binary\" is invalid; value provided: %y (%s)", name, path, method, value, ex.desc);
+                                throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y of "
+                                    "type \"binary\" is invalid; value provided: %y (%s)", name, path, method, value,
+                                    ex.desc);
                             }
                             break;
                     }
                     break;
                 case "boolean":
-                   value = parse_boolean(value);
-                   break;
+                    value = parse_boolean(value);
+                    break;
+                case "array":
+                    switch (value.typeCode()) {
+                        case NT_STRING:
+                            value = value.split(",");
+                            break;
+                        case NT_LIST:
+                            break;
+                        default:
+                            value = (value,);
+                            break;
+                    }
+                    break;
             }
         }
         SchemaBase::check(serialize, request, type, format, items, path, method, name, \value);
@@ -3234,12 +3332,14 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         int vt = value.typeCode();
         if (type == "array") {
             if (vt != NT_LIST)
-                throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+                throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y "
+                    "(expecting schema type %y)", loc, value.type(), type);
             OtherParameter::checkValueType(\value[0], items.type, items.items, loc + "[0]");
         }
 
         if (!SchemaBase::checkValueType(\value, type)) {
-            throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+            throw "INVALID-FIELD-TYPE", sprintf("Parameter Object: 'default' value%s has invalid type %y (expecting "
+                "schema type %y)", loc, value.type(), type);
         }
     }
 }
@@ -3281,7 +3381,8 @@ public class ResponsesObject inherits ObjectBase {
         *hash r = map {$1.key: $1.value}, oh.pairIterator(), $1.key =~ /^[0-9]+$/;
         foreach hash resp in (r.pairIterator()) {
             if (resp.value.typeCode() != NT_HASH)
-                throw "INVALID-FIELD-TYPE", sprintf("%s %s: Responses Object: response has invalid type %y", method, path, resp.value.type());
+                throw "INVALID-FIELD-TYPE", sprintf("%s %s: Responses Object: response has invalid type %y", method,
+                    path, resp.value.type());
             responses{resp.key} = ResponseObject::newResponse(resp.key, resp.value, swagger);
         }
 
@@ -3350,7 +3451,8 @@ public class ResponseObject inherits ObjectBase {
     #! returns a new ResponseObject corresponding to the schema definition passed
     /**
         @param key the response code for the response
-        @param oh deserialized hash from the source schema description describing a single response for an API operation
+        @param oh deserialized hash from the source schema description describing a single response for an API
+        operation
         @param swagger the REST schema for resolving references
 
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -3424,10 +3526,12 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
             if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
                 if (!CollectionFormats{collectionFormat})
                     throw "INVALID-FIELD-VALUE",
-                        sprintf("Header Object: invalid collectionFormat value %y; expected one of: %y", collectionFormat, keys CollectionFormats);
+                        sprintf("Header Object: invalid collectionFormat value %y; expected one of: %y",
+                            collectionFormat, keys CollectionFormats);
             }
         } else if (oh.collectionFormat)
-            throw "INVALID-FIELD-TYPE", sprintf("Header Object: type %y (non-array) cannot have a \"collectionFormat\" property (%y)", type, oh.collectionFormat);
+            throw "INVALID-FIELD-TYPE", sprintf("Header Object: type %y (non-array) cannot have a "
+                "\"collectionFormat\" property (%y)", type, oh.collectionFormat);
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
             if (type == "integer" && !ValidIntFormatsHash{format})
@@ -3449,11 +3553,13 @@ public class HeaderObject inherits ObjectBase, SchemaBase {
         int vt = value.typeCode();
         if (type == "array") {
             if (vt != NT_LIST)
-                throw "INVALID-FIELD-TYPE", sprintf("Header Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+                throw "INVALID-FIELD-TYPE", sprintf("Header Object: 'default' value%s has invalid type %y (expecting "
+                    "schema type %y)", loc, value.type(), type);
             HeaderObject::checkValueType(value[0], items.type, items.items, loc + "[0]");
         }
         if (!SchemaBase::checkValueType(\value, type)) {
-            throw "INVALID-FIELD-TYPE", sprintf("Header Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+            throw "INVALID-FIELD-TYPE", sprintf("Header Object: 'default' value%s has invalid type %y (expecting "
+                "schema type %y)", loc, value.type(), type);
         }
     }
 }
@@ -3827,9 +3933,10 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
     }
 
     #! validates the value against the schema definition
-    check(bool serialize, bool request, string path, string method, string name, reference value) {
+    check(bool serialize, bool request, string path, string method, string name, reference<auto> value) {
         if (request && readOnly)
-            throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: property %y is read-only and therefore cannot be included in a request", method.upr(), path, name);
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: property %y is read-only and therefore cannot be "
+                "included in a request", method.upr(), path, name);
         if (!exists value && nullable) {
             return;
         }
@@ -3839,11 +3946,13 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
     private checkObjectProperty(string name, string prop) {
         if (type != "object")
-            throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: %y cannot be given on an object of type %y", name, prop, type);
+            throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: %y cannot be given on an object of type %y",
+                name, prop, type);
     }
 
     #! validates a schema object against a value
-    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method, string name, hash<auto> v, reference<hash<auto>> value) {
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
+            string name, hash<auto> v, reference<hash<auto>> value) {
         if (type != "object" && type != "any")
             throwInvalidType(name, "object", type, v);
 
@@ -3851,18 +3960,22 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         map $1.checkIntern(serialize, request, type, NOTHING, path, method, name, v, \value), allOf;
 
         /*
-        If additionalProperties is set to true, any number of additionalProperties may be present of any data type.
-        If additionalProperties is a schema, additional properties (beyond what are defined in ‘properties’) are allowed and must match the schema
+            If additionalProperties is set to true, any number of additionalProperties may be present of any data
+            type.
+            If additionalProperties is a schema, additional properties (beyond what are defined in ‘properties’) are
+            allowed and must match the schema
         */
         # check properties in this schema definition
         if (!additionalProperties && type != "any") {
             foreach string key in (keys value) {
                 *SchemaObject prop = properties{key};
                 if (!prop) {
-                    if (additionalProperties instanceof SchemaObject)
+                    if (additionalProperties instanceof SchemaObject) {
                         prop = additionalProperties;
-                    if (!prop)
+                    }
+                    if (!prop) {
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("property %y is not valid for object %y", key, name);
+                    }
                 }
                 prop.check(serialize, request, path, method, key, \value{key});
             }
@@ -3880,11 +3993,13 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         int vt = value.typeCode();
         if (type == "array") {
             if (vt != NT_LIST)
-                throw "INVALID-FIELD-TYPE", sprintf("Schema Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+                throw "INVALID-FIELD-TYPE", sprintf("Schema Object: 'default' value%s has invalid type %y (expecting "
+                    "schema type %y)", loc, value.type(), type);
             SchemaObject::checkValueType(\value[0], items.type, items.items, loc + "[0]");
         }
         if (!SchemaBase::checkValueType(\value, type)) {
-            throw "INVALID-FIELD-TYPE", sprintf("Schema Object: 'default' value%s has invalid type %y (expecting schema type %y)", loc, value.type(), type);
+            throw "INVALID-FIELD-TYPE", sprintf("Schema Object: 'default' value%s has invalid type %y (expecting "
+                "schema type %y)", loc, value.type(), type);
         }
     }
 

@@ -38,7 +38,7 @@
 %requires(reexport) RestClient
 
 module SwaggerDataProvider {
-    version = "1.0.4";
+    version = "1.1";
     desc = "user module providing a data provider API for Swagger schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,12 @@ module SwaggerDataProvider {
     - @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider"
 
     @section swaggerdataprovider_relnotes Release Notes
+
+    @subsection swaggerdataprovider_v1_1 SwaggerDataProvider v1.1
+    - fixed a bug where requests messages were not validated and processed correctly
+      (<a href="https://github.com/qorelanguage/qore/issues/4369">issue 4369</a>)
+    - implemented support for enum types
+      (<a href="https://github.com/qorelanguage/qore/issues/4368">issue 4368</a>)
 
     @subsection swaggerdataprovider_v1_0_4 SwaggerDataProvider v1.0.4
     - fixed a bug where recursive definitions in a Swagger schema resulted in runtime errors using the schema

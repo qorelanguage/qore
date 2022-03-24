@@ -37,6 +37,9 @@ public hashdecl DataFieldInfo {
     #! the default value for the field
     auto default_value;
 
+    #! for enum fields; allowed values
+    list<auto> allowed_values;
+
     #! type info
     hash<DataTypeInfo> type;
 }
@@ -46,6 +49,14 @@ public class AbstractDataField inherits Serializable {
     private {
         #! the default value for the field, if any
         auto default_value;
+
+        #! for enum fields; raw allowed values
+        list<auto> allowed_values;
+
+        #! for enum fields; allowed values
+        /** only supported for types that convert to a string
+        */
+        hash<string, bool> allowed_values_map;
     }
 
     #! returns True if this field's type can be assigned from values of the argument type
@@ -107,6 +118,13 @@ public class AbstractDataField inherits Serializable {
         return getType().getName();
     }
 
+    #! Sets allowed values for enum types
+    setAllowedValues(list<auto> allowed_values) {
+        AbstractDataProviderType type = getType();
+        # check that the value can be assigned to the type
+        self.allowed_values = map type.acceptsValue($1), allowed_values;
+    }
+
     #! sets the default value for the field
     setDefaultValue(auto default_value) {
         # check that the value can be assigned to the type
@@ -116,6 +134,16 @@ public class AbstractDataField inherits Serializable {
     #! get default value, if any
     auto getDefaultValue() {
         return default_value;
+    }
+
+    #! Get allowed values
+    *list<auto> getAllowedValues() {
+        return allowed_values;
+    }
+
+    #! Get allowed values
+    *hash<string, bool> getAllowedValueMap() {
+        return allowed_values_map;
     }
 
     #! returns True if the field's type is not a wildcard type
@@ -133,6 +161,15 @@ public class AbstractDataField inherits Serializable {
             return default_value;
         }
         try {
+            if (allowed_values) {
+                # first do any value / type filtering / conversions
+                value = getType().acceptsValue(value);
+                if (!allowed_values_map{value}) {
+                    throw "FIELD-VALUE-ERROR", sprintf("field %y does not accept value %y; allowed values: %y", getName(),
+                        value, allowed_values);
+                }
+                return value;
+            }
             return getType().acceptsValue(value);
         } catch (hash<ExceptionInfo> ex) {
             rethrow ex.err, sprintf("%s (while setting field %y)", ex.desc, getName()), ex.arg;

@@ -232,7 +232,8 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
 
         @throw SWAGGER-SEARCH-ERROR the response type is not list or hash and does not support searching
     */
-    private AbstractDataProviderRecordIterator requestSearchRecordsImpl(auto req, *hash<auto> where_cond, *hash<auto> search_options) {
+    private AbstractDataProviderRecordIterator requestSearchRecordsImpl(auto req, *hash<auto> where_cond,
+            *hash<auto> search_options) {
         hash<auto> resp = doRequestIntern(req, search_options);
         # return an iterator for the result
         AbstractIterator i;
@@ -262,11 +263,29 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
                     (map sprintf("%s=%s", $1.key, getUriValue($1.value)), req.query.pairIterator()));
             remove req.query;
         }
+
+        # setup headers
+        *hash<auto> hdr = req.header + options.hdr;
+
+        # set up Accept header
+        *softlist<string> content_types = MimeContentTypes;
+        PathItemObject pio = schema.paths.match(uri_path);
+
+        # perform validation
+        hash<string, bool> mime_types;
+        hash<UriQueryInfo> uri_info = parse_uri_query(uri_path);
+        op.validateRequest(True, pio, \uri_info, \req.body, \hdr, \mime_types);
+
         # make the call
         hash<auto> info;
         try {
-            *hash<auto> hdr = req.header + options.hdr;
             *data body = op.getRequestBody(pio, req.body, \hdr);
+
+            # ensure we specify JSON for the response if possible
+            if (!hdr.Accept && op.produces{MimeTypeJson}) {
+                hdr.Accept = MimeTypeJson;
+            }
+
             # prepend base path to request, if any
             string base_path = schema.getBasePath();
             if (base_path.val() && base_path != "/") {
@@ -278,7 +297,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             hash<auto> resp = rest.doValidatedRequest(op.method, uri_path, body, \info, NOTHING, hdr);
             return resp + {"info": info};
         } catch (hash<ExceptionInfo> ex) {
-            throw ex.err, ex.desc, info;
+            rethrow ex.err, ex.desc, info;
         }
     }
 
@@ -287,6 +306,8 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         switch (v.typeCode()) {
             case NT_BOOLEAN:
                 return v ? "true" : "false";
+            case NT_LIST:
+                return foldl $1 + "," + $2, (map getUriValue($1), v);
             default:
                 return v.toString();
         }

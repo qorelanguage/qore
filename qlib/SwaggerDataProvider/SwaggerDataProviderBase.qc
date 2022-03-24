@@ -32,7 +32,8 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
     }
 
     #! Returns a field definition from Swagger parameters
-    private addFieldsFromParameters(HashDataType rv, hash<string, AbstractParameterObject> parameters, reference<bool> required) {
+    private addFieldsFromParameters(HashDataType rv, hash<string, AbstractParameterObject> parameters,
+            reference<bool> required) {
         # temporary hash for fields: loc -> name -> field
         hash<string, hash<string, AbstractDataField>> params;
         # required flag map for type: loc -> bool
@@ -92,9 +93,10 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
         if (schema.type == "object") {
             # check for recursive field definitions
             RecursiveFieldHelper rfh(self, "schema", path);
-            return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getSchemaDataType(path, schema, required)));
+            return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getSchemaDataType(path, schema, required),
+                NOTHING, keys schema.enum));
         }
-        return getFieldFromParameter(path, name, schema.type, schema.items, desc, required);
+        return getFieldFromParameter(path, name, schema.type, schema.items, desc, required, keys schema.enum);
     }
 
     #! Returns the data type for the given schema
@@ -103,6 +105,10 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
         RecursiveTypeHelper rth(self, schema.uniqueHash());
         if (*AbstractDataProviderType t = rth.get()) {
             return t;
+        }
+
+        if (schema.type == "string") {
+            return AbstractDataProviderType::get((schema.required ? "" : "*") + "string");
         }
 
         HashDataType type(required ? AutoHashType : AutoHashOrNothingType);
@@ -121,27 +127,33 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
 
     #! Returns a field from a Swagger parameter
     private AbstractDataField getFieldFromParameter(string path, string name, string type, *SchemaObject arrayItems,
-            *string desc, bool required) {
+            *string desc, bool required, *list<auto> allowed_values) {
         # check for recursive field definitions
         RecursiveFieldHelper rfh(self, "field", path);
-        return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getType(path, type, arrayItems, required)));
+        return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getType(path, type, arrayItems, required), NOTHING,
+            allowed_values));
     }
 
     #! Returns the data type corresponding to the values
-    private AbstractDataProviderType getType(string path, string typestr, *SchemaObject arrayItems, bool required = True) {
+    private AbstractDataProviderType getType(string path, string typestr, *SchemaObject arrayItems,
+            bool required = True) {
         hash<auto> type_options;
         if (required) {
             type_options += {"qore.no_null": True};
         }
         switch (typestr) {
             case "boolean":
-                return required ? new QoreSoftBoolDataType(type_options) : new QoreBoolOrNothingDataType(type_options);
+                return required
+                    ? new QoreSoftBoolDataType(type_options)
+                    : new QoreBoolOrNothingDataType(type_options);
 
             case "file":
-                return required ? new QoreSoftStringDataType(type_options) : new QoreSoftStringOrNothingDataType(type_options);
+                return required
+                    ? new QoreSoftStringDataType(type_options)
+                    : new QoreSoftStringOrNothingDataType(type_options);
 
             case "array":
-                return new ListDataType(getSchemaDataType(path, arrayItems), !required);
+                return new SoftListDataType(getSchemaDataType(path, arrayItems), !required);
         }
 
         if (*string newname = OptimalQoreSoftDataTypeMap{typestr}) {

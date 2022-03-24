@@ -160,6 +160,7 @@ public class SwaggerTest inherits QUnit::Test {
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 5,
+                    "enum": ("abc", "def", "ghi"),
                 ),
             ),
         };
@@ -2177,8 +2178,12 @@ public class SwaggerTest inherits QUnit::Test {
             assertEq("/api/smtg?string=abc", h.uri_path);
             assertEq(Type::String, h.body.type());
 
-            assertThrows("SCHEMA-VALIDATION-ERROR", "string.*too short", \so.processRequest(), ("put", "/api/smtg?string=a", 1));
-            assertThrows("SCHEMA-VALIDATION-ERROR", "string.*too long", \so.processRequest(), ("put", "/api/smtg?string=abcdefg", 1));
+            assertThrows("SCHEMA-VALIDATION-ERROR", "enumerated values", \so.processRequest(),
+                ("put", "/api/smtg?string=xyz", 1));
+            assertThrows("SCHEMA-VALIDATION-ERROR", "string.*too short", \so.processRequest(),
+                ("put", "/api/smtg?string=a", 1));
+            assertThrows("SCHEMA-VALIDATION-ERROR", "string.*too long", \so.processRequest(),
+                ("put", "/api/smtg?string=abcdefg", 1));
 
             {
                 hash hdr = ("content-type": h.content);
