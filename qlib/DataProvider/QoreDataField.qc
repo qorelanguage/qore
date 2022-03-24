@@ -49,22 +49,29 @@ public class QoreDataField inherits AbstractDataField {
     }
 
     #! creates the field from the arguments
-    constructor(string name, *string desc, Type type, auto default_value) {
+    constructor(string name, *string desc, Type type, auto default_value, *softlist<auto> allowed_values) {
         self.name = name;
         self.desc = desc;
         self.type = AbstractDataProviderType::get(type);
         if (exists default_value) {
             setDefaultValue(default_value);
         }
+        if (exists allowed_values) {
+            setAllowedValues(allowed_values);
+        }
     }
 
     #! creates the field from the arguments
-    constructor(string name, *string desc, AbstractDataProviderType type, auto default_value){
+    constructor(string name, *string desc, AbstractDataProviderType type, auto default_value,
+            *softlist<auto> allowed_values) {
         self.name = name;
         self.desc = desc;
         self.type = type;
         if (exists default_value) {
             setDefaultValue(default_value);
+        }
+        if (exists allowed_values) {
+            setAllowedValues(allowed_values);
         }
     }
 
