@@ -232,8 +232,20 @@ class TestIntProcessor inherits AbstractDataProcessor {
     }
 }
 
+class StringTestType inherits Type {
+    #! Creates the object
+    constructor() : Type("softstring") {
+    }
+
+    #! Returns the type name
+    string getName() {
+        return "teststring";
+    }
+}
+
 public class DataProviderTest inherits QUnit::Test {
     constructor() : Test("DataProvider Test", "1.0") {
+        addTestCase("string test", \stringTest());
         addTestCase("data test", \dataTest());
         addTestCase("compat test", \compatTest());
         addTestCase("pipeline test", \pipelineTest());
@@ -242,6 +254,11 @@ public class DataProviderTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    stringTest() {
+        AbstractDataProviderType t = AbstractDataProviderType::get(new StringTestType());
+        assertEq("1", t.acceptsValue(1));
     }
 
     dataTest() {
