@@ -23,6 +23,9 @@
 
     @subsection qore_1_6_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - fixed a bug where %DataProvider types based on string that accept multiple input types with conversions but
+        are not soft types threw spurious errors at runtime with non-string types
+        (<a href="https://github.com/qorelanguage/qore/issues/4471">issue 4471</a>)
       - fixed a bug where hash types incorrectly claimed compatibility with incompatible hashes
         (<a href="https://github.com/qorelanguage/qore/issues/4463">issue 4463</a>)
     - <a href="../../modules/Mapper/html/index.html">Mapper</a> module
