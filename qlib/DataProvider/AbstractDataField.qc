@@ -123,6 +123,7 @@ public class AbstractDataField inherits Serializable {
         AbstractDataProviderType type = getType();
         # check that the value can be assigned to the type
         self.allowed_values = map type.acceptsValue($1), allowed_values;
+        allowed_values_map = map {$1: True}, self.allowed_values;
     }
 
     #! sets the default value for the field
