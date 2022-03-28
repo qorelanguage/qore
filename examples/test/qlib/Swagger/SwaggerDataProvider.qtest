@@ -80,5 +80,13 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
             AbstractDataProviderType req = p0.getRequestType();
             assertEq(NT_HASH, req.getField("formData").getType().getBaseTypeCode());
         }
+
+        opts.schema = File::readTextFile(opts.schema);
+        provider = new SwaggerDataProvider(opts);
+        {
+            AbstractDataProvider p0 = provider.getChildProviderPath("pet/findByStatus/GET");
+            AbstractDataProviderType req = p0.getRequestType();
+            assertEq(NT_HASH, req.getField("query").getType().getBaseTypeCode());
+        }
     }
 }

@@ -38,7 +38,7 @@
 %requires(reexport) RestClient
 
 module SwaggerDataProvider {
-    version = "1.1";
+    version = "1.1.1";
     desc = "user module providing a data provider API for Swagger schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,10 @@ module SwaggerDataProvider {
     - @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider"
 
     @section swaggerdataprovider_relnotes Release Notes
+
+    @subsection swaggerdataprovider_v1_1_1 SwaggerDataProvider v1.1.1
+    - fixed a bug where the "from file" tag was not respected in constructor options
+      (<a href="https://github.com/qorelanguage/qore/issues/4473">issue 4473</a>)
 
     @subsection swaggerdataprovider_v1_1 SwaggerDataProvider v1.1
     - fixed a bug where requests messages were not validated and processed correctly

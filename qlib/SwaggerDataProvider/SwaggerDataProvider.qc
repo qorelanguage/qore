@@ -59,7 +59,10 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         const ConstructorOptions = {
             "schema": <DataProviderOptionInfo>{
                 "type": (
-                    AbstractDataProviderType::get(StringType, NOTHING, {DTT_FromFile: True, DTT_FromLocation: True}),
+                    AbstractDataProviderType::get(StringType, NOTHING, {
+                        DTT_FromFile: True,
+                        DTT_FromLocation: True,
+                    }),
                     AbstractDataProviderType::get(new Type("SwaggerSchema")),
                 ),
                 "desc": "the Swagger schema object or source URL",
@@ -119,7 +122,13 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         switch (copts.schema.typeCode()) {
             case NT_STRING:
-                schema = SwaggerLoader::fromUrl(copts.schema);
+                # determine if the string is a file or a location
+                if (copts.schema.size() > 1024 || copts.schema =~ /^swagger:/ || copts.schema =~ /^{/
+                    || copts.schema =~ /^swagger":/) {
+                    schema = SwaggerLoader::fromString(copts.schema);
+                } else {
+                    schema = SwaggerLoader::fromUrl(copts.schema);
+                }
                 break;
             case NT_OBJECT:
                 schema = copts.schema;
