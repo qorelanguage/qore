@@ -1120,8 +1120,9 @@ public class SwaggerTest inherits QUnit::Test {
         hash<auto> headers = {"header": "header"};
 
         assertThrows("SCHEMA-VALIDATION-ERROR",
-           'Parameter \"formData.upfile\".*expected type is \"file\"',
-           sub() {op.validateRequest(False, new PathItemObject("/create", {}, swagger), \h, \body, \headers, \mime_types); });
+            'Parameter \"formData.upfile\".*expected type is \"file\"',
+            sub() {op.validateRequest(False, new PathItemObject("/create", {}, swagger), \h, \body, \headers,
+                \mime_types); });
     }
 
     testExternalDocumentationObject() {
