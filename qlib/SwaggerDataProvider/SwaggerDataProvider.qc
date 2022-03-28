@@ -165,7 +165,23 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Swagger/OpenAPI data provider for URL `%s` and URI path `%s`", rest.getURL(), uri_path);
+        string url;
+        if (rest) {
+            url = rest.getURL();
+        } else {
+            string url;
+            if (schema.schemes) {
+                url = schema.schemes.https ? "https" : schema.schemes.firstKey();
+            } else {
+                url = "https";
+            }
+            url += "://";
+            url += schema.host ?? "localhost";
+            if (schema.basePath) {
+                url += "/" + schema.basePath;
+            }
+        }
+        return sprintf("Swagger/OpenAPI data provider for URL `%s` and URI path `%s`", url, uri_path);
     }
 
     #! Checks the REST client
