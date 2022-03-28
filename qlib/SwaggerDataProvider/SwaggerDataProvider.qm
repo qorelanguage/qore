@@ -76,6 +76,9 @@ module SwaggerDataProvider {
     @section swaggerdataprovider_relnotes Release Notes
 
     @subsection swaggerdataprovider_v1_1_1 SwaggerDataProvider v1.1.1
+    - fixed a bug where @ref SwaggerDataProvider::SwaggerDataProvider::getDesc() "SwaggerDataProvider::getDesc()"
+      throws an exception when created without a \c RestClient option
+      (<a href="https://github.com/qorelanguage/qore/issues/4475">issue 4475</a>)
     - fixed a bug where the "from file" tag was not respected in constructor options
       (<a href="https://github.com/qorelanguage/qore/issues/4473">issue 4473</a>)
 
