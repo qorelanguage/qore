@@ -38,7 +38,7 @@
 %requires(reexport) RestClient
 
 module SwaggerDataProvider {
-    version = "1.1.1";
+    version = "1.2";
     desc = "user module providing a data provider API for Swagger schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,11 @@ module SwaggerDataProvider {
     - @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider"
 
     @section swaggerdataprovider_relnotes Release Notes
+
+    @subsection swaggerdataprovider_v1_2 SwaggerDataProvider v1.2
+    - applied the \c DTT_ClientOnly type tag to client-only constructor options in
+      @ref SwaggerDataProvider::SwaggerDataProvider "SwaggerDataProvider"
+      (<a href="https://github.com/qorelanguage/qore/issues/4477">issue 4477</a>)
 
     @subsection swaggerdataprovider_v1_1_1 SwaggerDataProvider v1.1.1
     - fixed a bug where @ref SwaggerDataProvider::SwaggerDataProvider::getDesc() "SwaggerDataProvider::getDesc()"

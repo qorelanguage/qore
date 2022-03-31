@@ -184,6 +184,19 @@ public hashdecl DataProviderInfo {
     */
     bool supports_delete_field = False;
 
+    #! Does the data provider support a schema?
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.2
+    */
+    bool supports_schema = False;
+
+    #! Returns the schema type supported by this data provider
+    /**
+        @since DataProvider 2.2
+    */
+    *string schema_type;
+
     #! Constructor options supported by the data provider for the constructor variant taking a hash
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
@@ -665,6 +678,18 @@ public class AbstractDataProvider {
         return deleteFieldImpl(name, field_delete_options);
     }
 
+    #! Returns the schema supporting this data provider
+    /** @return the schema supporting this data provider
+
+        @throw INVALID-OPERATION thrown if the data provider does not support this API
+
+        @since DataProvider 2.2
+    */
+    object getSchemaObject() {
+        checkSchema();
+        return getSchemaObjectImpl();
+    }
+
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
 
@@ -953,6 +978,19 @@ public class AbstractDataProvider {
     checkDeleteField() {
         if (!supportsDeleteField()) {
             throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support deleting fields",
+                getName(), self.className());
+        }
+    }
+
+    #! Ensures that the data provider supports a schema
+    /**
+        @throw INVALID-OPERATION the data provider does not support a schema
+
+        @since DataProvider 2.2
+    */
+    checkSchema() {
+        if (!supportsSchema()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support schemas",
                 getName(), self.className());
         }
     }
@@ -1446,6 +1484,20 @@ public class AbstractDataProvider {
         return getStaticInfoImpl().supports_delete_field;
     }
 
+    #! Returns True if the data provider supports a schema
+    /** @since DataProvider 2.2
+    */
+    bool supportsSchema() {
+        return getStaticInfoImpl().supports_schema;
+    }
+
+    #! Returns the schema type for this data provider or @ref nothing if no schema type is supported
+    /** @since DataProvider 2.2
+    */
+    *object getSchemaType() {
+        return getStaticInfoImpl().schema_type;
+    }
+
     #! Returns the description of the record type, if any
     /** @param search_options to be included and processed by validateSearchOptions() if
         \a recordRequiresSearchOptions() is @ref True for this provider, otherwise any value provided in this argument
@@ -1609,6 +1661,15 @@ public class AbstractDataProvider {
         @since DataProvider 2.0
     */
     private deleteFieldImpl(string name, *hash<auto> field_delete_options) {
+        throwUnimplementedException();
+    }
+
+    #! Returns the schema object supporting this data provider
+    /** @return the schema object supporting this data provider
+
+        @since DataProvider 2.2
+    */
+    private object getSchemaObjectImpl() {
         throwUnimplementedException();
     }
 
