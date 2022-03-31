@@ -2,12 +2,23 @@
 
     @tableofcontents
 
-    @section qore_1_6_1 Qore 1.6.1
+    @section qore_1_7_0 Qore 1.7.0
 
     @par Release Summary
-    Bugfix release; see below for more information
+    Bugfix release with minor new features; see below for more information
 
-    @subsection qore_1_6_1_bug_fixes Bug Fixes in Qore
+    @subsection qore_1_7_0_new_features New Features in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - added the \c DTT_ClientOnly type tag constant
+        (<a href="https://github.com/qorelanguage/qore/issues/4477">issue 4477</a>)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
+      - implemented support for allowing alternate REST method dispatch approaches to be implemented
+        (<a href="https://github.com/qorelanguage/qore/issues/4478">issue 4478</a>)
+    - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
+      - applied the \c DTT_ClientOnly type tag to client-only constructor options
+        (<a href="https://github.com/qorelanguage/qore/issues/4477">issue 4477</a>)
+
+    @subsection qore_1_7_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
        - fixed a bug where \c SwaggerDataProvider::getDesc() throws an exception when created without a \c RestClient
          option

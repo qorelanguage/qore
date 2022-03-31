@@ -53,6 +53,8 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
             "create_options": NOTHING,
             "upsert_options": NOTHING,
             "transaction_management": False,
+            "supports_schema": True,
+            "schema_type": "swagger",
         };
 
         #! Constructor options
@@ -69,16 +71,22 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
                 "required": True,
             },
             "restclient": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(new Type("RestClient")),
+                "type": AbstractDataProviderType::get(new Type("RestClient"), NOTHING, {
+                    DTT_ClientOnly: True,
+                }),
                 "desc": "the RestClient object",
             },
             "url": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderType::get(StringType, NOTHING, {
+                    DTT_ClientOnly: True,
+                }),
                 "desc": "the URL to the REST server; overrides any URL in the schema or in any RestClient object "
                     "passed as an option",
             },
             "restclient_options": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(AutoHashType),
+                "type": AbstractDataProviderType::get(AutoHashType, NOTHING, {
+                    DTT_ClientOnly: True,
+                }),
                 "desc": "options to the RestClient constructor; only used if a RestClient object is created for a "
                     "call",
             },
@@ -253,7 +261,8 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         *PathItemObject pio = schema.paths.tryMatch(uri_path);
         if (pio) {
             try {
-                return new SwaggerRequestDataProvider(schema, rest, uri_path, pio, pio.getOperation(name.lwr(), uri_path));
+                return new SwaggerRequestDataProvider(schema, rest, uri_path, pio,
+                    pio.getOperation(name.lwr(), uri_path));
             } catch (hash<ExceptionInfo> ex) {
                 if (ex.err != "INVALID-METHOD") {
                     rethrow;
@@ -279,6 +288,11 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
+    }
+
+    #! Returns the schema supporting this data provider
+    private object getSchemaObjectImpl() {
+        return schema;
     }
 }
 } # end public namespace swagger

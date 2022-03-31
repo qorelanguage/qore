@@ -41,7 +41,7 @@
 %requires reflection
 
 module RestHandler {
-    version = "1.4";
+    version = "1.5";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -372,6 +372,10 @@ Content-Length: 16
     @ref Qore::ExceptionInfo "ExceptionInfo" hash.
 
     @section resthandler_relnotes RestHandler Release Notes
+
+    @subsection rh_1_5 RestHandler v1.5
+    - implemented support for allowing alternate REST method dispatch approaches to be implemented
+      (<a href="https://github.com/qorelanguage/qore/issues/4478">issue 4478</a>)
 
     @subsection rh_1_4 RestHandler v1.4
     - added missing make*() methods with REST responses to the @ref RestHandler::RestHandler "RestHandler" class
@@ -919,11 +923,11 @@ public namespace RestHandler {
                 msg = sprintf("; known subclasses: %s", (foldl $1 + ", " + $2, (map sprintf("%y", $1), keys name_set)));
             }
 
-            return new hash<HttpServer::HttpHandlerResponseInfo>({
+            return <HttpHandlerResponseInfo>{
                 "code": 404,
                 "body": sprintf("404 Not Found: class %y has no subclass %y for HTTP method %y%s", name(), cls_name,
                     cx.hdr.method, msg),
-            });
+            };
         }
 
         #! returns a set of possible subclasses for a particular request
@@ -1263,9 +1267,6 @@ public namespace RestHandler {
                 cl = ah.method.split("/");
             }
 
-            # get initial class
-            *string cls = shift cl;
-
             # make a hash of "accept" values
             *string astr = hdr.accept;
             hash<auto> aih;
@@ -1290,34 +1291,7 @@ public namespace RestHandler {
             hash<HttpHandlerResponseInfo> rv;
 
             try {
-                AbstractRestClass rcls;
-
-                if (!cls) {
-                    rcls = self;
-                } else {
-                    *AbstractRestClass c = subClass(cls, cx, args);
-                    if (!c) {
-                        # issue #2994: if we are on the last class and there is no "action" argument; see if we can f
-                        # ind an action method instead
-                        if (!cl && !args.action) {
-                            string mname = sprintf("%s%s%s", mn, cls[0].upr(), cls[1..]);
-                            if (self.hasCallableMethod(mname)) {
-                                rcls = self;
-                                mn = mname;
-                            }
-                        }
-
-                        if (!rcls) {
-                            rv = unknownSubClassError(cls, cx);
-                        }
-                    } else {
-                        rcls = c;
-                    }
-                }
-
-                if (!rv) {
-                    rv = rcls.handleRequest(listener, self, s, cl, mn, cx, args);
-                }
+                rv = dispatchRequest(listener, s, cl, mn, path, cx, args);
             } catch (hash<ExceptionInfo> ex) {
                 string desc = !cx.debug
                     ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
@@ -1353,7 +1327,8 @@ public namespace RestHandler {
                     throw ex.err, ex.desc, ex.arg;
                 }
 
-                logDebug("REST DBG raw body: %y -> serialized body (%s): %y", rv.body, res.hdr."Content-Type", res.body);
+                logDebug("REST DBG raw body: %y -> serialized body (%s): %y", rv.body, res.hdr."Content-Type",
+                    res.body);
 
                 rv += {
                     "body": res.body,
@@ -1367,6 +1342,40 @@ public namespace RestHandler {
             #logDebug("REST DBG: rv: %N", rv);
 
             return cast<hash<HttpResponseInfo>>(rv);
+        }
+
+        #! Dispatches the request and returns the response
+        private hash<HttpHandlerResponseInfo> dispatchRequest(HttpListenerInterface listener, Socket s,
+                *list<string> class_list, string method_name, string path, hash<auto> cx, *hash<auto> args) {
+            AbstractRestClass rcls;
+
+            # get initial class
+            *string cls = shift class_list;
+
+            if (!cls) {
+                rcls = self;
+            } else {
+                *AbstractRestClass c = subClass(cls, cx, args);
+                if (!c) {
+                    # issue #2994: if we are on the last class and there is no "action" argument; see if we can f
+                    # ind an action method instead
+                    if (!class_list && !args.action) {
+                        string mname = sprintf("%s%s%s", method_name, cls[0].upr(), cls[1..]);
+                        if (self.hasCallableMethod(mname)) {
+                            rcls = self;
+                            method_name = mname;
+                        }
+                    }
+
+                    if (!rcls) {
+                        return unknownSubClassError(cls, cx);
+                    }
+                } else {
+                    rcls = c;
+                }
+            }
+
+            return rcls.handleRequest(listener, self, s, class_list, method_name, cx, args);
         }
 
         #! method that determines how exceptions handling REST requests are returned

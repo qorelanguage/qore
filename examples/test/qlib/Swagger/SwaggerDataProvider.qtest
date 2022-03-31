@@ -88,5 +88,12 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
             AbstractDataProviderType req = p0.getRequestType();
             assertEq(NT_HASH, req.getField("query").getType().getBaseTypeCode());
         }
+
+        {
+            SwaggerDataProviderFactory factory();
+            hash<DataProviderFactoryInfo> info = factory.getInfo();
+            assertTrue(info.api_management);
+            assertEq(("rest",), info.api_profiles);
+        }
     }
 }

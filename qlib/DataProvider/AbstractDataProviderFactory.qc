@@ -24,6 +24,20 @@
 
 #! Contains all public definitions in the DataProvider module
 public namespace DataProvider {
+/** @defgroup data_provider_api_profiles DataProvider API Profiles
+    These constants define supported server profiles for data provider factories that provide API management services
+*/
+#@{
+#! Data provider HTTP server profile
+/** This profile indicates that the given data provider factory supports serving APIs with REST and a REST schema
+*/
+public const DPSP_REST = "rest";
+
+/** This profile indicates that the given data provider factory supports serving APIs with SOAP and a WSDL schema
+*/
+public const DPSP_SOAP = "soap";
+#@}
+
 #! Data provider factory info
 public hashdecl DataProviderFactoryInfo {
     #! The factory name
@@ -32,9 +46,12 @@ public hashdecl DataProviderFactoryInfo {
     string desc;
     #! Does this factory create a data provider suitable for server-side API management
     bool api_management = False;
+    #! Which server profiles are supported for API management (if any)?
+    *softlist<string> api_profiles;
     #! Info about providers created from this factory (without the \a name and \a children attributes)
     hash<DataProviderInfo> provider_info;
 }
+
 #! Data provider factory class
 public class AbstractDataProviderFactory {
     public {}
@@ -65,9 +82,9 @@ public class AbstractDataProviderFactory {
         attributes
     */
     hash<DataProviderFactoryInfo> getInfo() {
-        return getInfoImpl() + <DataProviderFactoryInfo>{
+        return <DataProviderFactoryInfo>{
             "provider_info": getProviderInfo(),
-        };
+        } + getInfoImpl();
     }
 
     #! Returns static provider information as data; no objects are returned
@@ -77,9 +94,9 @@ public class AbstractDataProviderFactory {
         attributes
     */
     hash<auto> getInfoAsData(*bool with_type_info) {
-        return getInfoImpl() + {
+        return {
             "provider_info": DataProvider::getInfoAsData(getProviderInfo(), with_type_info),
-        };
+        } + getInfoImpl();
     }
 
     #! Returns static provider information
