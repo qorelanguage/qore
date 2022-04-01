@@ -57,6 +57,11 @@ const QoreBinaryOrNothingTypeInfo staticBinaryOrNothingTypeInfo;
 const QoreSoftBinaryTypeInfo staticSoftBinaryTypeInfo;
 const QoreSoftBinaryOrNothingTypeInfo staticSoftBinaryOrNothingTypeInfo;
 
+const QoreHexBinaryTypeInfo staticHexBinaryTypeInfo;
+const QoreHexBinaryOrNothingTypeInfo staticHexBinaryOrNothingTypeInfo;
+const QoreBase64BinaryTypeInfo staticBase64BinaryTypeInfo;
+const QoreBase64BinaryOrNothingTypeInfo staticBase64BinaryOrNothingTypeInfo;
+
 const QoreObjectTypeInfo staticObjectTypeInfo;
 const QoreObjectOrNothingTypeInfo staticObjectOrNothingTypeInfo;
 
@@ -161,6 +166,8 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *callReferenceTypeInfo = &staticCallReferenceTypeInfo,
    *referenceTypeInfo = &staticReferenceTypeInfo,
    *codeTypeInfo = &staticCodeTypeInfo,
+   *hexBinaryTypeInfo = &staticHexBinaryTypeInfo,
+   *base64BinaryTypeInfo = &staticBase64BinaryTypeInfo,
    *softBinaryTypeInfo = &staticSoftBinaryTypeInfo,
    *softBigIntTypeInfo = &staticSoftBigIntTypeInfo,
    *softFloatTypeInfo = &staticSoftFloatTypeInfo,
@@ -193,6 +200,8 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *dataOrNothingTypeInfo = &staticDataOrNothingTypeInfo,
    *referenceOrNothingTypeInfo = &staticReferenceOrNothingTypeInfo,
 
+   *hexBinaryOrNothingTypeInfo = &staticHexBinaryOrNothingTypeInfo,
+   *base64BinaryOrNothingTypeInfo = &staticBase64BinaryOrNothingTypeInfo,
    *softBinaryOrNothingTypeInfo = &staticSoftBinaryOrNothingTypeInfo,
    *softBigIntOrNothingTypeInfo = &staticSoftBigIntOrNothingTypeInfo,
    *softFloatOrNothingTypeInfo = &staticSoftFloatOrNothingTypeInfo,
@@ -271,34 +280,36 @@ void init_qore_types() {
    emptyList      = new QoreListNode;
    emptyHash      = new QoreHashNode;
 
-   do_maps(NT_INT,         "int", bigIntTypeInfo, bigIntOrNothingTypeInfo);
-   do_maps(NT_STRING,      "string", stringTypeInfo, stringOrNothingTypeInfo);
-   do_maps(NT_BOOLEAN,     "bool", boolTypeInfo, boolOrNothingTypeInfo);
-   do_maps(NT_FLOAT,       "float", floatTypeInfo, floatOrNothingTypeInfo);
-   do_maps(NT_NUMBER,      "number", numberTypeInfo, numberOrNothingTypeInfo);
-   do_maps(NT_BINARY,      "binary", binaryTypeInfo, binaryOrNothingTypeInfo);
-   do_maps(NT_LIST,        "list", listTypeInfo, listOrNothingTypeInfo);
-   do_maps(NT_HASH,        "hash", hashTypeInfo, hashOrNothingTypeInfo);
-   do_maps(NT_OBJECT,      "object", objectTypeInfo, objectOrNothingTypeInfo);
-   do_maps(NT_ALL,         "any", anyTypeInfo, anyTypeInfo);
-   do_maps(NT_ALL,         "auto", autoTypeInfo, autoTypeInfo);
-   do_maps(NT_DATE,        "date", dateTypeInfo, dateOrNothingTypeInfo);
-   do_maps(NT_CODE,        "code", codeTypeInfo, codeOrNothingTypeInfo);
-   do_maps(NT_DATA,        "data", dataTypeInfo, dataOrNothingTypeInfo);
-   do_maps(NT_REFERENCE,   "reference", referenceTypeInfo, referenceOrNothingTypeInfo);
-   do_maps(NT_NULL,        "null", nullTypeInfo, nullOrNothingTypeInfo);
-   do_maps(NT_NOTHING,     "nothing", nothingTypeInfo, nothingTypeInfo);
+   do_maps(NT_INT,          "int", bigIntTypeInfo, bigIntOrNothingTypeInfo);
+   do_maps(NT_STRING,       "string", stringTypeInfo, stringOrNothingTypeInfo);
+   do_maps(NT_BOOLEAN,      "bool", boolTypeInfo, boolOrNothingTypeInfo);
+   do_maps(NT_FLOAT,        "float", floatTypeInfo, floatOrNothingTypeInfo);
+   do_maps(NT_NUMBER,       "number", numberTypeInfo, numberOrNothingTypeInfo);
+   do_maps(NT_BINARY,       "binary", binaryTypeInfo, binaryOrNothingTypeInfo);
+   do_maps(NT_LIST,         "list", listTypeInfo, listOrNothingTypeInfo);
+   do_maps(NT_HASH,         "hash", hashTypeInfo, hashOrNothingTypeInfo);
+   do_maps(NT_OBJECT,       "object", objectTypeInfo, objectOrNothingTypeInfo);
+   do_maps(NT_ALL,          "any", anyTypeInfo, anyTypeInfo);
+   do_maps(NT_ALL,          "auto", autoTypeInfo, autoTypeInfo);
+   do_maps(NT_DATE,         "date", dateTypeInfo, dateOrNothingTypeInfo);
+   do_maps(NT_CODE,         "code", codeTypeInfo, codeOrNothingTypeInfo);
+   do_maps(NT_DATA,         "data", dataTypeInfo, dataOrNothingTypeInfo);
+   do_maps(NT_REFERENCE,    "reference", referenceTypeInfo, referenceOrNothingTypeInfo);
+   do_maps(NT_NULL,         "null", nullTypeInfo, nullOrNothingTypeInfo);
+   do_maps(NT_NOTHING,      "nothing", nothingTypeInfo, nothingTypeInfo);
 
-   do_maps(NT_SOFTINT,     "softint", softBigIntTypeInfo, softBigIntOrNothingTypeInfo);
-   do_maps(NT_SOFTFLOAT,   "softfloat", softFloatTypeInfo, softFloatOrNothingTypeInfo);
-   do_maps(NT_SOFTNUMBER,  "softnumber", softNumberTypeInfo, softNumberOrNothingTypeInfo);
-   do_maps(NT_SOFTBOOLEAN, "softbool", softBoolTypeInfo, softBoolOrNothingTypeInfo);
-   do_maps(NT_SOFTSTRING,  "softstring", softStringTypeInfo, softStringOrNothingTypeInfo);
-   do_maps(NT_SOFTDATE,    "softdate", softDateTypeInfo, softDateOrNothingTypeInfo);
-   do_maps(NT_SOFTLIST,    "softlist", softListTypeInfo, softListOrNothingTypeInfo);
-   do_maps(NT_SOFTBINARY,  "softbinary", softBinaryTypeInfo, softBinaryOrNothingTypeInfo);
+   do_maps(NT_SOFTINT,      "softint", softBigIntTypeInfo, softBigIntOrNothingTypeInfo);
+   do_maps(NT_SOFTFLOAT,    "softfloat", softFloatTypeInfo, softFloatOrNothingTypeInfo);
+   do_maps(NT_SOFTNUMBER,   "softnumber", softNumberTypeInfo, softNumberOrNothingTypeInfo);
+   do_maps(NT_SOFTBOOLEAN,  "softbool", softBoolTypeInfo, softBoolOrNothingTypeInfo);
+   do_maps(NT_SOFTSTRING,   "softstring", softStringTypeInfo, softStringOrNothingTypeInfo);
+   do_maps(NT_SOFTDATE,     "softdate", softDateTypeInfo, softDateOrNothingTypeInfo);
+   do_maps(NT_SOFTLIST,     "softlist", softListTypeInfo, softListOrNothingTypeInfo);
+   do_maps(NT_SOFTBINARY,   "softbinary", softBinaryTypeInfo, softBinaryOrNothingTypeInfo);
+   do_maps(NT_HEXBINARY,    "hexbinary", hexBinaryTypeInfo, hexBinaryOrNothingTypeInfo);
+   do_maps(NT_BASE64BINARY, "base64binary", base64BinaryTypeInfo, base64BinaryOrNothingTypeInfo);
 
-   do_maps(NT_TIMEOUT,     "timeout", timeoutTypeInfo, timeoutOrNothingTypeInfo);
+   do_maps(NT_TIMEOUT,      "timeout", timeoutTypeInfo, timeoutOrNothingTypeInfo);
 
    // map the closure and callref strings to codeTypeInfo to ensure that these
    // types are always interchangeable

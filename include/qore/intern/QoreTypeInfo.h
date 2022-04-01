@@ -2136,11 +2136,13 @@ protected:
 
 class QoreBaseTypeInfo : public QoreTypeInfo {
 public:
-    DLLLOCAL QoreBaseTypeInfo(const char* name, qore_type_t t) : QoreTypeInfo(name, q_accept_vec_t {{t, nullptr, true}}, q_return_vec_t {{t, true}}) {
+    DLLLOCAL QoreBaseTypeInfo(const char* name, qore_type_t t)
+            : QoreTypeInfo(name, q_accept_vec_t {{t, nullptr, true}}, q_return_vec_t {{t, true}}) {
     }
 
 protected:
-    DLLLOCAL QoreBaseTypeInfo(const char* name, q_accept_vec_t&& a_vec, q_return_vec_t&& r_vec) : QoreTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
+    DLLLOCAL QoreBaseTypeInfo(const char* name, q_accept_vec_t&& a_vec, q_return_vec_t&& r_vec)
+            : QoreTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
     }
 };
 
@@ -2152,6 +2154,11 @@ public:
             {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
         },
         q_return_vec_t {{t}, {NT_NOTHING}}) {
+    }
+
+protected:
+    DLLLOCAL QoreBaseOrNothingTypeInfo(const char* name, q_accept_vec_t&& a_vec, q_return_vec_t&& r_vec)
+            : QoreBaseTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
     }
 };
 
@@ -2185,6 +2192,10 @@ public:
     }
 
 protected:
+    DLLLOCAL QoreBaseNoConvertTypeInfo(const char* name, q_accept_vec_t&& a_vec, q_return_vec_t&& r_vec)
+            : QoreBaseTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
+    }
+
     // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
     DLLLOCAL virtual bool canConvertToScalarImpl() const {
         return false;
@@ -2209,6 +2220,10 @@ public:
     }
 
 protected:
+    DLLLOCAL QoreBaseOrNothingNoConvertTypeInfo(const char* name, q_accept_vec_t&& a_vec, q_return_vec_t&& r_vec)
+            : QoreBaseOrNothingTypeInfo(name, std::move(a_vec), std::move(r_vec)) {
+    }
+
     // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
     DLLLOCAL virtual bool canConvertToScalarImpl() const {
         return false;
@@ -2334,6 +2349,98 @@ protected:
 class QoreBinaryOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
 public:
     DLLLOCAL QoreBinaryOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo("*binary", NT_BINARY) {
+    }
+
+protected:
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
+};
+
+class QoreHexBinaryTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+    DLLLOCAL QoreHexBinaryTypeInfo() : QoreBaseNoConvertTypeInfo("hexbinary", q_accept_vec_t {
+            {NT_BINARY, nullptr, true},
+            {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+                    discard(n.assign(n.get<const QoreStringNode>()->parseHex(xsink)), xsink);
+                }
+            },
+            }, q_return_vec_t {{NT_BINARY, true}}) {
+    }
+
+protected:
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return new BinaryNode();
+    }
+};
+
+class QoreHexBinaryOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+    DLLLOCAL QoreHexBinaryOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo("*hexbinary", q_accept_vec_t {
+            {NT_BINARY, nullptr, true},
+            {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+                    discard(n.assign(n.get<const QoreStringNode>()->parseHex(xsink)), xsink);
+                }
+            },
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+            }, q_return_vec_t {{NT_HASH}, {NT_NOTHING}}) {
+    }
+
+protected:
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
+};
+
+class QoreBase64BinaryTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+    DLLLOCAL QoreBase64BinaryTypeInfo() : QoreBaseNoConvertTypeInfo("base64binary", q_accept_vec_t {
+            {NT_BINARY, nullptr, true},
+            {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+                    discard(n.assign(n.get<const QoreStringNode>()->parseBase64(xsink)), xsink);
+                }
+            },
+            }, q_return_vec_t {{NT_BINARY, true}}) {
+    }
+
+protected:
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return new BinaryNode();
+    }
+};
+
+class QoreBase64BinaryOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+    DLLLOCAL QoreBase64BinaryOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo("*base64binary", q_accept_vec_t {
+            {NT_BINARY, nullptr, true},
+            {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+                    discard(n.assign(n.get<const QoreStringNode>()->parseBase64(xsink)), xsink);
+                }
+            },
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+            }, q_return_vec_t {{NT_HASH}, {NT_NOTHING}}) {
     }
 
 protected:
@@ -2604,7 +2711,12 @@ class QoreNumberTypeInfo : public QoreBaseTypeInfo {
 public:
     DLLLOCAL QoreNumberTypeInfo() : QoreBaseTypeInfo("number", q_accept_vec_t {
             {NT_NUMBER, nullptr, true},
-            {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) { discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink); }}, {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) { discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink); }},
+            {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+                discard(n.assign(new QoreNumberNode(n.getAsFloat())), xsink);
+            }},
+            {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+                discard(n.assign(new QoreNumberNode(n.getAsBigInt())), xsink);
+            }},
         },
         q_return_vec_t {{NT_NUMBER, true}}) {
     }
@@ -3105,7 +3217,7 @@ public:
 protected:
     // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
     DLLLOCAL virtual bool canConvertToScalarImpl() const {
-        return true;
+        return false;
     }
 
     // returns true if this type could contain an object or a closure
@@ -3143,7 +3255,7 @@ public:
 protected:
     // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
     DLLLOCAL virtual bool canConvertToScalarImpl() const {
-        return true;
+        return false;
     }
 
     // returns true if this type could contain an object or a closure

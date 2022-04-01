@@ -28,6 +28,10 @@
     |@ref null_type "null"|@ref null|@ref null|Restricts values to %Qore's @ref null type; this type has few (if any) practical applications and has been included for completeness' sake
     |@ref nothing_type "nothing"|@ref nothing|@ref nothing|Restricts values to %Qore's @ref nothing type; this type is mostly useful for declaring that a function or method returns no value
     |@ref timeout_type "timeout"|@ref integer, @ref date|@ref integer|Accepts @ref integer, @ref date and converts dates to an integer value representing milliseconds and returns the integer; incoming integers are assumed to represent milliseconds
+    |@ref base64binary_type "base64binary"|@ref string, @ref null|@ref float|Accepts @ref string, @ref null and \
+        converts a base-64 encoded string to a binary value and returns the new value
+    |@ref hexbinary_type "hexbinary"|@ref string, @ref null|@ref float|Accepts @ref string, @ref null and converts a \
+        string of hex digits to a binary value and returns the new value
     |@ref softbinary_type "softbinary"|@ref string, @ref null|@ref float|Accepts @ref string, @ref null and converts non-binary values to a binary value and returns the new value
     |@ref softint_type "softint"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref integer|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-integer values to an integer and returns the integer
     |@ref softfloat_type "softfloat"|@ref integer, @ref float, @ref number, @ref boolean, @ref string, @ref null|@ref float|Accepts @ref integer, @ref float, @ref boolean, @ref string, @ref null and converts non-float values to a float and returns the new value
@@ -469,12 +473,58 @@ timeout sub foo(timeout to = 1250ms) {
     direct arithmetic with timeout values for this reason.
 
     <hr>
+    @section base64binary_type base64binary
+
+    <b>base64binary Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c base64binary|@ref string, @ref binary|@ref binary|Accepts @ref string values by converting base64-encoded \
+        strings to a binary value and returns the binary
+
+    @par Example
+    @code{.py}
+base64binary sub foo(base64binary n = "qw==") {
+    return n;
+}
+    @endcode
+
+    @note invalid base64-encoded strings cause an exception to be thrown
+
+    @see
+    - @ref softbinary_type
+    - @ref hexbinary_type
+
+    @since %Qore 1.7 introduced the base64binary type
+
+    <hr>
+    @section hexbinary_type hexbinary
+
+    <b>hexbinary Type Restriction</b>
+    |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
+    |\c hexbinary|@ref string, @ref binary|@ref binary|Accepts @ref string values by converting hex strings to a \
+        binary value and returns the binary
+
+    @par Example
+    @code{.py}
+binary sub foo(hexbinary n = "abcd") {
+    return n;
+}
+    @endcode
+
+    @note hex binary strings must have an even number of characters, any invalid characters cause an exception to be thrown
+
+    @see
+    - @ref base64binary_type
+    - @ref softbinary_type
+
+    @since %Qore 1.7 introduced the hexbinary type
+
+    <hr>
     @section softbinary_type softbinary
 
     <b>softbinary Type Restriction</b>
     |!Name|!Accepts %Qore Type(s)|!Returns %Qore Type(s)|!Description
-    |\c softbinary|@ref string, @ref null|@ref binary|Accepts @ref string, and @ref null values and converts \
-        non-binary values to a binary and returns the binary
+    |\c softbinary|@ref string, @ref binary|@ref binary|Accepts @ref string values and converts \
+        non-binary values to a binary directly and returns the binary
 
     @par Example
     @code{.py}
@@ -482,6 +532,10 @@ softbinary sub foo(softbinary n = "1000") {
     return n;
 }
     @endcode
+
+    @see
+    - @ref base64binary_type
+    - @ref hexbinary_type
 
     @since %Qore 0.9.5 introduced the softbinary type
 

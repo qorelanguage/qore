@@ -1647,6 +1647,18 @@ class TypeTest inherits QUnit::Test {
             assertEq(<ab>, i);
 
             {
+                hexbinary b = "ab";
+                assertEq(<ab>, b);
+                assertThrows("PARSE-HEX-ERROR", sub () { hexbinary x = "gi"; remove x; });
+            }
+
+            {
+                base64binary b = "qw==";
+                assertEq(<ab>, b);
+                assertThrows("BASE64-PARSE-ERROR", sub () { base64binary x = "gi"; remove x; });
+            }
+
+            {
                 Program p(PO_NEW_STYLE);
                 assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() { binary i = 1.0; }", ""));
             }
