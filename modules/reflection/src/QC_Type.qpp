@@ -247,6 +247,26 @@ const SoftIntType = qore(get_type_object(softBigIntTypeInfo));
 */
 const SoftIntOrNothingType = qore(get_type_object(softBigIntOrNothingTypeInfo));
 
+//! @ref hexbinary_type "hexbinary type"
+/**
+*/
+const HexBinaryType = qore(get_type_object(hexBinaryTypeInfo));
+
+//! @ref hexbinary_or_nothing_type "*hexbinary type"
+/**
+*/
+const HexBinaryOrNothingType = qore(get_type_object(hexBinaryOrNothingTypeInfo));
+
+//! @ref base64binary_type "base64binary type"
+/**
+*/
+const Base64BinaryType = qore(get_type_object(base64BinaryTypeInfo));
+
+//! @ref base64binary_or_nothing_type "*base64binary type"
+/**
+*/
+const Base64BinaryOrNothingType = qore(get_type_object(base64BinaryOrNothingTypeInfo));
+
 //! @ref softbinary_type "softbinary type"
 /**
 */
