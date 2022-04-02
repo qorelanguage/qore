@@ -76,6 +76,9 @@ module SwaggerDataProvider {
     @section swaggerdataprovider_relnotes Release Notes
 
     @subsection swaggerdataprovider_v1_2 SwaggerDataProvider v1.2
+    - fixed a bug where @ref SwaggerDataProvider::SwaggerDataProvider "SwaggerDataProvider" did not report binary and
+      date types correctly
+      (<a href="https://github.com/qorelanguage/qore/issues/4484">issue 4484</a>)
     - applied the \c DTT_ClientOnly type tag to client-only constructor options in
       @ref SwaggerDataProvider::SwaggerDataProvider "SwaggerDataProvider"
       (<a href="https://github.com/qorelanguage/qore/issues/4477">issue 4477</a>)
