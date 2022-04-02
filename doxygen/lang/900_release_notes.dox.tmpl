@@ -23,10 +23,12 @@
 
     @subsection qore_1_7_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
-       - fixed a bug where \c SwaggerDataProvider::getDesc() throws an exception when created without a \c RestClient
-         option
+      - fixed a bug where \c SwaggerDataProvider did not report binary and date types correctly
+        (<a href="https://github.com/qorelanguage/qore/issues/4484">issue 4484</a>)
+      - fixed a bug where \c SwaggerDataProvider::getDesc() throws an exception when created without a \c RestClient
+        option
         (<a href="https://github.com/qorelanguage/qore/issues/4475">issue 4475</a>)
-     - fixed a bug where the "from file" tag was not respected in constructor options
+      - fixed a bug where the "from file" tag was not respected in constructor options
         (<a href="https://github.com/qorelanguage/qore/issues/4473">issue 4473</a>)
 
     @section qore_1_6_0 Qore 1.6.0
