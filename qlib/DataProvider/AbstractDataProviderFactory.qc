@@ -46,6 +46,8 @@ public hashdecl DataProviderFactoryInfo {
     string desc;
     #! Does this factory create a data provider suitable for server-side API management
     bool api_management = False;
+    #! Can any child data providers offer API services (request - response data providers)?
+    bool children_can_support_apis = False;
     #! Which server profiles are supported for API management (if any)?
     *softlist<string> api_profiles;
     #! Info about providers created from this factory (without the \a name and \a children attributes)

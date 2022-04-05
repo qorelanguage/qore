@@ -35,6 +35,7 @@ public class SwaggerDataProviderFactory inherits AbstractDataProviderFactory {
             "name": "swagger",
             "desc": "Swagger API data provider factory",
             "api_management": True,
+            "children_can_support_apis": True,
             "api_profiles": "rest",
         };
     }
