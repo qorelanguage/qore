@@ -34,6 +34,7 @@ public class NullDataProviderFactory inherits AbstractDataProviderFactory {
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "null",
             "desc": "null data provider factory",
+            "children_can_support_apis": True,
         };
     }
 
