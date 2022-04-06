@@ -1,0 +1,23 @@
+#!/usr/bin/env qore
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+
+%new-style
+%require-types
+%enable-all-warnings
+
+%exec-class GetRealtivePathTest
+
+public class GetRealtivePathTest inherits QUnit::Test {
+    constructor() : Test ("GetRealtivePathTest", "1.0") {
+        addTestCase ("Tests for get_relative_path", \testGetRealtivePath());
+        set_return_value(main());
+    }
+
+    testGetRealtivePath() {
+        assertEq("../../lib/some/path/x.txt", get_relative_path("/var/www/serv", "/var/lib/some/path/x.txt"));
+        assertEq("./some/path/x.txt", get_relative_path("/var/www/serv", "/var/www/serv/some/path/x.txt"));
+        assertEq("../../../opt/app/lib/x.txt", get_relative_path("/var/www/serv", "/opt/app/lib/x.txt"));
+    }
+}
