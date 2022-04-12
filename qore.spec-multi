@@ -86,7 +86,7 @@ development but is also useful as a general purpose language.
 %if 0%{?rhel}
 %global libname libqore
 %else
-%global libname libqore7
+%global libname libqore12
 %endif
 %endif
 
@@ -95,8 +95,8 @@ Summary: The libraries for the qore runtime and qore clients
 Group: System Environment/Libraries
 Provides: qore-module(abi)%{?_isa} = 1.3
 %if "%{libname}" == "libqore"
-Provides: libqore7 = %{version}
-Obsoletes: libqore7 < %{version}
+Provides: libqore12 = %{version}
+Obsoletes: libqore12 < %{version}
 %endif
 %if 0%{?sles_version}
 BuildArch: %{_target_cpu}
