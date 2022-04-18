@@ -3643,20 +3643,19 @@ exp_c:
                 parse_error(*loc, "invalid arguments to splice, expected: lvalue, offset exp[, length exp[, list exp]] (got %s)", $2.getTypeName());
                 $2.discard(nullptr);
                 $$.set(nullptr);
-            }
-            else if (l->size() < 2) {
+            } else if (l->size() < 2) {
                 parse_error(*loc, "too few arguments to splice, expected at least 2 arguments as follows: lvalue, offset exp[, length exp[, list exp]] (got %d arguments)", l->size());
                 $2.discard(nullptr);
                 $$.set(nullptr);
-            }
-            else if (l->size() > 4) {
+            } else if (l->size() > 4) {
                 parse_error(*loc, "too many arguments to splice, expected maximum 4 arguments as follows: lvalue, offset exp[, length exp[, list exp]] (got %d arguments)", l->size());
                 $2.discard(nullptr);
                 $$.set(nullptr);
-            }
-            else {
+            } else {
                 QoreValue lv = l->shift();
-                $$.set(new QoreSpliceOperatorNode(loc, lv, l->shift(), l->shift(), l->shift()));
+                QoreValue offset = l->shift();
+                QoreValue length = l->shift();
+                $$.set(new QoreSpliceOperatorNode(loc, lv, offset, length, l->shift()));
                 discard(l, 0);
             }
         }
@@ -3680,7 +3679,9 @@ exp_c:
             }
             else {
                 QoreValue lv = l->shift();
-                $$.set(new QoreExtractOperatorNode(loc, lv, l->shift(), l->shift(), l->shift()));
+                QoreValue offset = l->shift();
+                QoreValue length = l->shift();
+                $$.set(new QoreExtractOperatorNode(loc, lv, offset, length, l->shift()));
                 discard(l, 0);
             }
         }

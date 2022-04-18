@@ -109,7 +109,11 @@ ClassAccess qore_method_private::getAccess() const {
 
 void SignatureHash::set(const QoreString& str) {
     DigestHelper dh(str.c_str(), str.size());
+#ifdef DEBUG
+    assert(!dh.doDigest(0, EVP_sha1()));
+#else
     dh.doDigest(0, EVP_sha1());
+#endif
     assert(dh.size() == SH_SIZE);
     memcpy(buf, dh.c_str(), dh.size());
 }

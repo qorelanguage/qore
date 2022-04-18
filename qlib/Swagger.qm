@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.0.6";
+    version = "2.0.7";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_0_7 Swagger v2.0.7
+    - fixed a bug where global \c consumes and \c produces declarations were not respected
+      (<a href="https://github.com/qorelanguage/qore/issues/4494">issue 4494</a>)
 
     @subsection swagger_2_0_6 Swagger v2.0.6
     - fixed a bug where schemas with recursive references could not be loaded
@@ -1125,6 +1129,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         if (swaggerSpec != "2.0")
             throw "INVALID-SWAGGER-VERSION", sprintf("invalid schema version %y; expecting \"2.0\"", swaggerSpec);
 
+        optional_field(objType, oh, "consumes", SwaggerListToStringSet, \consumes);
+
+        optional_field(objType, oh, "produces", SwaggerListToStringSet, \produces);
+
         {
             optional_field(objType, oh, "definitions", NT_HASH, \source_definition_hash);
             map processDefinition($1.key, $1.value), source_definition_hash.pairIterator();
@@ -1172,10 +1180,6 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             if ((hash h = (schemes - ValidSchemes)))
                 throw "INVALID-FIELD-VALUE", sprintf("Swagger Object: invalid transfer protocol scheme%s: %y", h.size() == 1 ? "" : "s", keys h);
         }
-
-        optional_field(objType, oh, "consumes", SwaggerListToStringSet, \consumes);
-
-        optional_field(objType, oh, "produces", SwaggerListToStringSet, \produces);
 
         {
             hash<auto> obj;
