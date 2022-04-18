@@ -2,7 +2,7 @@
 %global user_module_dir %{_datadir}/qore-modules/
 
 Name: qore
-Version: 1.7.0
+Version: 1.7.1
 Release: 1%{?dist}
 Summary: Multithreaded Programming Language
 
@@ -173,6 +173,9 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Mon Apr 18 2022 David Nichols <david@qore.org> 1.7.1-1
+- updated version to 1.7.1-1
+
 * Mon Mar 28 2022 David Nichols <david@qore.org> 1.7.0-1
 - updated version to 1.7.0-1
 

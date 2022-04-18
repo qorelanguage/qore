@@ -132,8 +132,14 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
     }
 
 #ifdef OPENSSL_3_PLUS
+    // load default provider
+    if (!OSSL_PROVIDER_load(nullptr, "default")) {
+        assert(false);
+    }
     // load legacy provider
-    OSSL_PROVIDER_load(nullptr, "legacy");
+    if (!OSSL_PROVIDER_load(nullptr, "legacy")) {
+        assert(false);
+    }
 #endif
 
     qore_ssl_data_index = SSL_get_ex_new_index(0, (void*)"qore data index", NULL, NULL, NULL);

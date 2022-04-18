@@ -404,8 +404,10 @@ static TypedHash TypedHash::forName(string path) [flags=RET_VALUE_ONLY] {
     if (*xsink) {
         return QoreValue();
     }
+    assert(*th);
 
-    return new QoreObject(QC_TYPEDHASH, th->pgm, th.release());
+    QoreProgram* hash_pgm = th->pgm;
+    return new QoreObject(QC_TYPEDHASH, hash_pgm, th.release());
 }
 
 //! Returns a @ref hashdecl "typed hash (hashdecl)" object corresponding to the name or namespace-justified path provided as an argument
@@ -434,7 +436,8 @@ static TypedHash TypedHash::forName(Program[QoreProgram] pgm, string path) [flag
         return QoreValue();
     }
 
-    return new QoreObject(QC_TYPEDHASH, th->pgm, th.release());
+    QoreProgram* hash_pgm = th->pgm;
+    return new QoreObject(QC_TYPEDHASH, hash_pgm, th.release());
 }
 
 //! Returns a list of typed hashes (hashdecls) matching the regular expression pattern argument or an empty list if no typed hashes match

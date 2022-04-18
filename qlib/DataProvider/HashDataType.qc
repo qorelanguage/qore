@@ -82,6 +82,16 @@ public class HashDataType inherits QoreDataType {
         manual_default_other_field_type = True;
     }
 
+    #! Returns True if the type has a default field type for undeclared fields
+    bool hasDefaultOtherFieldType() {
+        return has_default_other_field_type;
+    }
+
+    #! Returns the default field type for undeclared fields, if any
+    *AbstractDataProviderType getDefaultOtherFieldType() {
+        return default_other_field_type;
+    }
+
     #! Returns the type name
     string getName() {
         return name;

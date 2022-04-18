@@ -202,6 +202,10 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section dataprovider_relnotes Release Notes
 
+    @subsection dataprovider_v2_2_1 DataProvider v2.2.1
+    - made it possible to determine the default field type in @ref DataProvider::HashDataType "HashDataType"
+      (<a href="https://github.com/qorelanguage/qore/issues/4491">issue 4491</a>)
+
     @subsection dataprovider_v2_2 DataProvider v2.2
     - added an attribute to factories to indicate if any children can support the request-response pattern
       (<a href="https://github.com/qorelanguage/qore/issues/4486">issue 4486</a>)

@@ -35,23 +35,20 @@
 
 #include <qore/Qore.h>
 
-#include <vector>
+#include <deque>
 #include <string>
 
 DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink);
 
 class QoreParseListNode : public ParseNode {
 public:
-    typedef std::vector<QoreValue> nvec_t;
+    typedef std::deque<QoreValue> nvec_t;
 
     DLLLOCAL QoreParseListNode(const QoreProgramLocation* loc) : ParseNode(loc, NT_PARSE_LIST, true) {
     }
 
     DLLLOCAL QoreParseListNode(const QoreParseListNode& old, ExceptionSink* xsink) : ParseNode(old),
             vtype(old.vtype), typeInfo(old.typeInfo), finalized(old.finalized), vlist(old.vlist) {
-        values.reserve(old.values.size());
-        lvec.reserve(old.lvec.size());
-
         for (unsigned i = 0; i < old.values.size(); ++i) {
             add(copy_value_and_resolve_lvar_refs(old.values[i], xsink), old.lvec[i]);
             if (*xsink)
@@ -69,20 +66,22 @@ public:
         lvec.push_back(loc);
 
         if (!size()) {
-            if (v.hasNode() && v.hasEffect())
+            if (v.hasNode() && v.hasEffect()) {
                 set_effect(true);
+            }
         } else if (has_effect() && !v.hasEffect()) {
             set_effect(false);
         }
     }
 
     DLLLOCAL QoreValue shift() {
-        if (!values.size())
+        if (!values.size()) {
             return QoreValue();
+        }
         assert(vtypes.empty());
         QoreValue rv = values[0];
-        values.erase(values.begin());
-        lvec.erase(lvec.begin());
+        values.pop_front();
+        lvec.pop_front();
         return rv;
     }
 
@@ -179,7 +178,7 @@ public:
     DLLLOCAL int parseInitIntern(bool& needs_eval, QoreParseContext& parse_context);
 
 protected:
-    typedef std::vector<const QoreProgramLocation*> lvec_t;
+    typedef std::deque<const QoreProgramLocation*> lvec_t;
     nvec_t values;
     type_vec_t vtypes;
     lvec_t lvec;

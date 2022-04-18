@@ -118,13 +118,13 @@ public:
 
 class QoreEvpHelper {
 public:
-    DLLLOCAL QoreEvpHelper() {
-        mdctx = EVP_MD_CTX_create();
+    DLLLOCAL QoreEvpHelper() : mdctx(EVP_MD_CTX_create()) {
     }
 
     DLLLOCAL ~QoreEvpHelper() {
-        if (mdctx)
+        if (mdctx) {
             EVP_MD_CTX_destroy(mdctx);
+        }
     }
 
     DLLLOCAL EVP_MD_CTX* operator*() {
@@ -192,18 +192,31 @@ public:
         input_len = len;
     }
 
-    DLLLOCAL int doDigest(const char* err, const EVP_MD* md, ExceptionSink* xsink = 0) {
+    DLLLOCAL int doDigest(const char* err, const EVP_MD* md, ExceptionSink* xsink = nullptr) {
+        //printd(5, "DigestHelper::doDigest() err: %p md: %p xs: %p\n", err, md, xsink);
         QoreEvpHelper mdctx;
         if (!*mdctx) {
-            if (xsink)
+            if (xsink) {
                 xsink->raiseException(err, "error creating digest object");
+            } else {
+                printd(0, "DigestHelper::doDigest(): error creating digest object\n");
+            }
             return -1;
         }
 
-        EVP_DigestInit_ex(*mdctx, md, 0);
+        if (!EVP_DigestInit_ex(*mdctx, md, nullptr)) {
+            if (xsink) {
+                xsink->raiseException(err, "error initializing digest");
+            } else {
+                printd(0, "DigestHelper::doDigest(): error initializing digest (%p, %p)\n", *mdctx, md);
+            }
+            return -1;
+        }
         if (!EVP_DigestUpdate(*mdctx, input, input_len) || !EVP_DigestFinal_ex(*mdctx, md_value, &md_len)) {
             if (xsink) {
                 xsink->raiseException(err, "error calculating digest");
+            } else {
+                printd(0, "DigestHelper::doDigest(): error calculating digest\n");
             }
             return -1;
         }
