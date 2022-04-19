@@ -43,7 +43,7 @@ public class MakeTmpDirTest inherits QUnit::Test {
             assertEq(0, rmdir(tmp_dir));
 
             assertTrue(string_starts_with(tmp_dir, tmp_path));
-            assertTrue(string_starts_with(tmp_dir, join_paths(tmp_path, p[0])));
+            assertTrue(string_starts_with(tmp_dir, join_paths(tmp_path, p[0] ?? "")));
             assertTrue(string_ends_with(tmp_dir, p[1] ?? ""));
         }
     }
@@ -69,7 +69,7 @@ public class MakeTmpDirTest inherits QUnit::Test {
             assertEq(0, rmdir(tmp_dir));
 
             assertTrue(string_starts_with(tmp_dir, tmp_path));
-            assertTrue(string_starts_with(tmp_dir, join_paths(tmp_path, p[0])));
+            assertTrue(string_starts_with(tmp_dir, join_paths(tmp_path, p[0] ?? "")));
             assertTrue(string_ends_with(tmp_dir, p[1] ?? ""));
         }
     }

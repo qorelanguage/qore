@@ -46,7 +46,7 @@ public class TmpFileTest inherits QUnit::Test {
                 assertEq(0, tmp_file.file.close());
 
                 assertTrue(string_starts_with(tmp_file.path, tmp_path));
-                assertTrue(string_starts_with(tmp_file.path, join_paths(tmp_path, p[0])));
+                assertTrue(string_starts_with(tmp_file.path, join_paths(tmp_path, p[0] ?? "")));
                 assertTrue(string_ends_with(tmp_file.path, p[1] ?? ""));
             }
 
@@ -72,7 +72,7 @@ public class TmpFileTest inherits QUnit::Test {
                 assertEq(0, tmp_file.file.close());
 
                 assertTrue(string_starts_with(tmp_file.path, tmp_path));
-                assertTrue(string_starts_with(tmp_file.path, join_paths(tmp_path, p[0])));
+                assertTrue(string_starts_with(tmp_file.path, join_paths(tmp_path, p[0] ?? "")));
                 assertTrue(string_ends_with(tmp_file.path, p[1] ?? ""));
             }
 

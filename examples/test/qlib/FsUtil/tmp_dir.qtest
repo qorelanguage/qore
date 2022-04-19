@@ -46,7 +46,7 @@ public class TmpDirTest inherits QUnit::Test {
                 assertTrue(is_writable(tmp_dir.path));
 
                 assertTrue(string_starts_with(tmp_dir.path, tmp_path));
-                assertTrue(string_starts_with(tmp_dir.path, join_paths(tmp_path, p[0])));
+                assertTrue(string_starts_with(tmp_dir.path, join_paths(tmp_path, p[0] ?? "")));
                 assertTrue(string_ends_with(tmp_dir.path, p[1] ?? ""));
             }
 
@@ -79,7 +79,7 @@ public class TmpDirTest inherits QUnit::Test {
                 assertTrue(is_writable(tmp_dir.path));
 
                 assertTrue(string_starts_with(tmp_dir.path, tmp_path));
-                assertTrue(string_starts_with(tmp_dir.path, join_paths(tmp_path, p[0])));
+                assertTrue(string_starts_with(tmp_dir.path, join_paths(tmp_path, p[0] ?? "")));
                 assertTrue(string_ends_with(tmp_dir.path, p[1] ?? ""));
             }
 

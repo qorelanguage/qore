@@ -140,25 +140,40 @@ public class JoinPathsTest inherits QUnit::Test {
             results = results_posix;
         }
 
-        foreach list res in (results) {
+        foreach list<auto> res in (results) {
+            on_error printf("res: %y\n", res);
             assertEq(res[2], join_paths(res[0], res[1]), sprintf("join_paths('%s', '%s')", res[0], res[1]));
+        }
+
+        if (Platform.Windows) {
+            assertEq("a\\b\\c", join_paths("a", "b", "c"));
+        } else {
+            assertEq("a/b/c", join_paths("a", "b", "c"));
         }
     }
 
     #! Tests the string+softlist variant of join_paths with posix path handler
     test_join_paths_posix() {
         PosixPathHandler ph = new PosixPathHandler();
-        foreach list res in (results_posix) {
-            assertEq(res[2], ph.joinPaths(res[0], res[1]), sprintf("POSIX join_paths('%s', '%s')", res[0], res[1]));
+        foreach list<auto> res in (results_posix) {
+            on_error printf("res: %y\n", res);
+            assertEq(res[2], ph.joinPaths(cast<list<string>>(() + res[0] + res[1])),
+                sprintf("POSIX join_paths('%s', '%s')", res[0], res[1]));
         }
+
+        assertEq("a/b/c", ph.joinPaths(("a", "b", "c")));
     }
 
     #! Tests the string+softlist variant of join_paths with windows path handler
     test_join_paths_win() {
         WinPathHandler ph = new WinPathHandler();
-        foreach list res in (results_win) {
-            assertEq(res[2], ph.joinPaths(res[0], res[1]), sprintf("WIN join_paths('%s', '%s')", res[0], res[1]));
+        foreach list<auto> res in (results_win) {
+            on_error printf("res: %y\n", res);
+            assertEq(res[2], ph.joinPaths(cast<list<string>>(() + res[0] + res[1])),
+                sprintf("WIN join_paths('%s', '%s')", res[0], res[1]));
         }
+
+        assertEq("a\\b\\c", ph.joinPaths(("a", "b", "c")));
     }
 
     #! Tests the list variant of join_paths with the local path handler
