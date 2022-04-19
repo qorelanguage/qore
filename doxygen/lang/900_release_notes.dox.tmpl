@@ -20,6 +20,8 @@
     - Fixed a bug with compilers that do not guarantee left to right argument execution order such as g++ 12+; note
       that the C++ standard does not guarantee this in any case
       (<a href="https://github.com/qorelanguage/qore/issues/4493">issue 4493</a>)
+    - Fixed @ref cast "cast<> operator" handling of "or nothing" types at parse and runtime
+      (<a href="https://github.com/qorelanguage/qore/issues/4497">issue 4497</a>)
     - Load the \c default provider with OpenSSL3+ to make it work on platforms where this provider is not
       automatically loaded (ex: Fedora 36)
       (<a href="https://github.com/qorelanguage/qore/issues/4394">issue 4394</a>)
