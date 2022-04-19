@@ -179,7 +179,23 @@ int qore_hash_private::parseCheckComplexHashInitialization(const QoreProgramLoca
 
     const QoreTypeInfo* vti2 = QoreTypeInfo::getUniqueReturnComplexHash(argTypeInfo);
     if (vti2) {
-        if (!QoreTypeInfo::parseAccepts(valueTypeInfo, vti2)) {
+        if (!QoreTypeInfo::hasType(vti2)) {
+            switch (exp.getType()) {
+                case NT_HASH: {
+                    ConstHashIterator i(exp.get<const QoreHashNode>());
+                    while (i.next()) {
+                        const QoreTypeInfo* eti = i.get().getFullTypeInfo();
+                        if (!QoreTypeInfo::parseAccepts(valueTypeInfo, eti)) {
+                            parse_error(*loc, "cannot %s 'hash<string, %s>' from a hash typed with incompatible "
+                                "value type '%s' assigned to key '%s'",
+                                context_action, QoreTypeInfo::getName(valueTypeInfo), QoreTypeInfo::getName(eti),
+                                i.getKey());
+                            return -1;
+                        }
+                    }
+                }
+            }
+        } else if (!QoreTypeInfo::parseAccepts(valueTypeInfo, vti2)) {
             parse_error(*loc, "cannot %s 'hash<string, %s>' from a hash typed with incompatible value type '%s'",
                 context_action, QoreTypeInfo::getName(valueTypeInfo),
             QoreTypeInfo::getName(vti2));
@@ -259,7 +275,8 @@ QoreHashNode* qore_hash_private::newComplexHash(const QoreTypeInfo* typeInfo, co
             return nullptr;
 
         if (a->getType() != NT_HASH) {
-            xsink->raiseException("HASH-INIT-ERROR", "typed hash initializer value must be a hash; got type '%s' instead", a->getTypeName());
+            xsink->raiseException("HASH-INIT-ERROR", "typed hash initializer value must be a hash; got type '%s' "
+                "instead", a->getTypeName());
             return nullptr;
         }
 
@@ -269,7 +286,8 @@ QoreHashNode* qore_hash_private::newComplexHash(const QoreTypeInfo* typeInfo, co
     return newComplexHashFromHash(typeInfo, init, xsink);
 }
 
-QoreHashNode* qore_hash_private::newComplexHashFromHash(const QoreTypeInfo* typeInfo, QoreHashNode* init_hash, ExceptionSink* xsink) {
+QoreHashNode* qore_hash_private::newComplexHashFromHash(const QoreTypeInfo* typeInfo, QoreHashNode* init_hash,
+        ExceptionSink* xsink) {
     ReferenceHolder<QoreHashNode> init(init_hash, xsink);
 
     // check member types
@@ -299,7 +317,8 @@ QoreHashNode* qore_hash_private::newComplexHashFromHash(const QoreTypeInfo* type
 
 int qore_hash_private::checkKey(const char* key, ExceptionSink* xsink) const {
     if (hashdecl && !typed_hash_decl_private::get(*hashdecl)->findMember(key)) {
-        xsink->raiseException("INVALID-MEMBER", "error accessing unknown member '%s' of hashdecl '%s'", key, hashdecl->getName());
+        xsink->raiseException("INVALID-MEMBER", "error accessing unknown member '%s' of hashdecl '%s'", key,
+            hashdecl->getName());
         return -1;
     }
 
@@ -859,7 +878,8 @@ ConstHashIterator::ConstHashIterator(const QoreHashNode* qh) : h(qh), priv(new q
 ConstHashIterator::ConstHashIterator(const QoreHashNode& qh) : h(&qh), priv(new qhi_priv()) {
 }
 
-ConstHashIterator::ConstHashIterator(const ConstHashIterator& old) : h(old.h->hashRefSelf()), priv(new qhi_priv(*old.priv)) {
+ConstHashIterator::ConstHashIterator(const ConstHashIterator& old) : h(old.h->hashRefSelf()),
+        priv(new qhi_priv(*old.priv)) {
 }
 
 ConstHashIterator::~ConstHashIterator() {
@@ -959,16 +979,21 @@ bool ReverseConstHashIterator::prev() {
    return ConstHashIterator::next();
 }
 
-hash_assignment_priv::hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist, qore_object_private* obj) : h(n_h), om(must_already_exist ? h.findMember(key) : h.findCreateMember(key)), o(obj) {
+hash_assignment_priv::hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist,
+        qore_object_private* obj) : h(n_h), om(must_already_exist ? h.findMember(key)
+        : h.findCreateMember(key)), o(obj) {
 }
 
-hash_assignment_priv::hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist) : h(*n_h.priv), om(must_already_exist ? h.findMember(key) : h.findCreateMember(key)) {
+hash_assignment_priv::hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist)
+        : h(*n_h.priv), om(must_already_exist ? h.findMember(key) : h.findCreateMember(key)) {
 }
 
-hash_assignment_priv::hash_assignment_priv(QoreHashNode& n_h, const std::string& key, bool must_already_exist) : h(*n_h.priv), om(must_already_exist ? h.findMember(key.c_str()) : h.findCreateMember(key.c_str())) {
+hash_assignment_priv::hash_assignment_priv(QoreHashNode& n_h, const std::string& key, bool must_already_exist)
+        : h(*n_h.priv), om(must_already_exist ? h.findMember(key.c_str()) : h.findCreateMember(key.c_str())) {
 }
 
-hash_assignment_priv::hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString& key, bool must_already_exist) : h(*n_h.priv), om(0) {
+hash_assignment_priv::hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString& key,
+        bool must_already_exist) : h(*n_h.priv), om(0) {
    TempEncodingHelper k(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return;
@@ -976,7 +1001,8 @@ hash_assignment_priv::hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n
    om = must_already_exist ? h.findMember(k->getBuffer()) : h.findCreateMember(k->getBuffer());
 }
 
-hash_assignment_priv::hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key, bool must_already_exist) : h(*n_h.priv), om(0) {
+hash_assignment_priv::hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key,
+        bool must_already_exist) : h(*n_h.priv), om(0) {
    TempEncodingHelper k(key, QCS_DEFAULT, xsink);
    if (*xsink)
       return;
@@ -1019,7 +1045,8 @@ void hash_assignment_priv::assign(QoreValue v, ExceptionSink* xsink) {
             return;
         }
     } else if (h.complexTypeInfo) {
-        QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(), *val, xsink);
+        QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(),
+            *val, xsink);
         // allow this function to be called with xsink = nullptr, otherwise the *xsink will assert
         // anyway if there is an exception it would dump core when the exception is raised
         if (xsink && *xsink) {
@@ -1041,7 +1068,8 @@ void hash_assignment_priv::assign(QoreValue v, SafeDerefHelper& sdh, ExceptionSi
             return;
         }
     } else if (h.complexTypeInfo) {
-        QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(), *val, xsink);
+        QoreTypeInfo::acceptInputKey(QoreTypeInfo::getUniqueReturnComplexHash(h.complexTypeInfo), om->key.c_str(),
+            *val, xsink);
         // allow this function to be called with xsink = nullptr, otherwise the *xsink will assert
         // anyway if there is an exception it would dump core when the exception is raised
         if (xsink && *xsink) {
@@ -1060,13 +1088,16 @@ QoreValue hash_assignment_priv::getImpl() const {
     return om->val;
 }
 
-HashAssignmentHelper::HashAssignmentHelper(QoreHashNode& h, const char* key, bool must_already_exist) : priv(new hash_assignment_priv(*h.priv, key, must_already_exist)) {
+HashAssignmentHelper::HashAssignmentHelper(QoreHashNode& h, const char* key, bool must_already_exist)
+        : priv(new hash_assignment_priv(*h.priv, key, must_already_exist)) {
 }
 
-HashAssignmentHelper::HashAssignmentHelper(QoreHashNode& h, const std::string& key, bool must_already_exist) : priv(new hash_assignment_priv(*h.priv, key.c_str(), must_already_exist)) {
+HashAssignmentHelper::HashAssignmentHelper(QoreHashNode& h, const std::string& key, bool must_already_exist)
+        : priv(new hash_assignment_priv(*h.priv, key.c_str(), must_already_exist)) {
 }
 
-HashAssignmentHelper::HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& h, const QoreString& key, bool must_already_exist) : priv(0) {
+HashAssignmentHelper::HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& h, const QoreString& key,
+        bool must_already_exist) : priv(0) {
     TempEncodingHelper k(key, QCS_DEFAULT, xsink);
     if (*xsink)
         return;
@@ -1074,7 +1105,8 @@ HashAssignmentHelper::HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& h
     priv = new hash_assignment_priv(*h.priv, k->getBuffer(), must_already_exist);
 }
 
-HashAssignmentHelper::HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& h, const QoreString* key, bool must_already_exist) : priv(0) {
+HashAssignmentHelper::HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& h, const QoreString* key,
+        bool must_already_exist) : priv(0) {
     TempEncodingHelper k(key, QCS_DEFAULT, xsink);
     if (*xsink)
         return;
@@ -1082,7 +1114,8 @@ HashAssignmentHelper::HashAssignmentHelper(ExceptionSink* xsink, QoreHashNode& h
     priv = new hash_assignment_priv(*h.priv, k->getBuffer(), must_already_exist);
 }
 
-HashAssignmentHelper::HashAssignmentHelper(HashIterator &hi) : priv(new hash_assignment_priv(*hi.h->priv, *(hi.priv->i))) {
+HashAssignmentHelper::HashAssignmentHelper(HashIterator &hi)
+        : priv(new hash_assignment_priv(*hi.h->priv, *(hi.priv->i))) {
 }
 
 HashAssignmentHelper::~HashAssignmentHelper() {

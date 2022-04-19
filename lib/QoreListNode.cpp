@@ -140,10 +140,26 @@ int qore_list_private::parseCheckComplexListInitialization(const QoreProgramLoca
         const char* context_action, bool strict_check) {
     const QoreTypeInfo* vti2 = QoreTypeInfo::getUniqueReturnComplexList(expTypeInfo);
     if (vti2) {
-        if (!QoreTypeInfo::parseAccepts(typeInfo, vti2)) {
+        // issue #4497: in case the expression is a list, check each element for compatibility
+        if (!QoreTypeInfo::hasType(vti2)) {
+            switch (exp.getType()) {
+                case NT_LIST: {
+                    ConstListIterator i(exp.get<const QoreListNode>());
+                    while (i.next()) {
+                        const QoreTypeInfo* eti = i.getValue().getFullTypeInfo();
+                        if (!QoreTypeInfo::parseAccepts(typeInfo, eti)) {
+                            parse_error(*loc, "cannot %s 'list<%s>' from a list typed with incompatible value type "
+                                "'%s' in list element %d (starting from 1)",
+                                context_action, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(eti),
+                                i.index() + 1);
+                            return -1;
+                        }
+                    }
+                }
+            }
+        } else if (!QoreTypeInfo::parseAccepts(typeInfo, vti2)) {
             parse_error(*loc, "cannot %s 'list<%s>' from a list typed with incompatible value type '%s'",
-                context_action, QoreTypeInfo::getName(typeInfo),
-            QoreTypeInfo::getName(vti2));
+                context_action, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(vti2));
             return -1;
         }
     } else {
@@ -239,7 +255,7 @@ QoreListNode* qore_list_private::newComplexListFromValue(const QoreTypeInfo* typ
             holder = init = l = l->copy();
         }
 
-        const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
+        const QoreTypeInfo* vti = QoreTypeInfo::getReturnComplexListOrNothing(typeInfo);
         qore_list_private* ll = qore_list_private::get(*l);
         ListIterator i(l);
         while (i.next()) {
@@ -254,7 +270,7 @@ QoreListNode* qore_list_private::newComplexListFromValue(const QoreTypeInfo* typ
         // throw an exception if the type
         holder = init = l = new QoreListNode(autoTypeInfo);
     } else {
-        const QoreTypeInfo* vti = QoreTypeInfo::getUniqueReturnComplexList(typeInfo);
+        const QoreTypeInfo* vti = QoreTypeInfo::getReturnComplexListOrNothing(typeInfo);
         QoreTypeInfo::acceptAssignment(vti, "<list assignment>", init, xsink);
         holder.release();
         holder = init;

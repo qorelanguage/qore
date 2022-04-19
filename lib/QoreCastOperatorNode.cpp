@@ -214,6 +214,8 @@ int QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& p
         const QoreTypeInfo* ti = or_nothing
             ? QoreTypeInfo::getComplexListValueType(parse_context.typeInfo)
             : QoreTypeInfo::getUniqueReturnComplexList(parse_context.typeInfo);
+        //printd(5, "QoreParseCastOperatorNode::parseInitImpl() ti: %p '%s' (exp: '%s')\n", ti,
+        //    QoreTypeInfo::getName(ti), QoreTypeInfo::getName(expTypeInfo));
         if (ti) {
             // check for cast<> compatibility
             qore_list_private::parseCheckComplexListInitialization(loc, ti, expTypeInfo, exp, "cast to", false);
