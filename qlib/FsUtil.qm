@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.5
+%requires qore >= 1.0
 
 %requires Util
 
@@ -34,7 +34,7 @@
 %enable-all-warnings
 
 module FsUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "user module providing file system related functionality";
     author = "Tomas Heger";
     url = "http://qore.org";
@@ -83,6 +83,10 @@ module FsUtil {
 
     @section fsutil_relnotes Release Notes
 
+    @subsection fsutil_v1_2 Version 1.2
+    - fixed join_paths() to handle an arbitrary number of paths as arguments (the most common use case)
+      (<a href="https://github.com/qorelanguage/qore/issues/4495">issue 4495</a>)
+
     @subsection fsutil_v1_1 Version 1.1
     - added @ref Qore::Dir "Dir" as a parent class of @ref FsUtil::TmpDir "TmpDir"
       (<a href="https://github.com/qorelanguage/qore/issues/3945">issue 3945</a>)
@@ -96,13 +100,13 @@ namespace Init {
     sub init() {
         #! handler for the current platform
         our FsUtil::PathHandler local_handler;
-        if (Platform.Windows)
+        if (Platform.Windows) {
             local_handler = new FsUtil::WinPathHandler();
-        else if (Platform.Unix)
+        } else if (Platform.Unix) {
             local_handler = new FsUtil::PosixPathHandler();
-        else
-            throw "UNKNOWN-PLATFORM-ERROR",
-                  sprintf("Unknown platform: %s.\n", PlatformOS);
+        } else {
+            throw "UNKNOWN-PLATFORM-ERROR", sprintf("Unknown platform %y\n", PlatformOS);
+        }
     }
 }
 
@@ -126,11 +130,11 @@ public namespace FsUtil {
                 return paths[0];
             }
 
-            return self.joinPaths(paths[0], paths[1..]);
+            return self.joinPathsIntern(paths);
         }
 
         # to be implemented by platform-specific classes
-        public abstract string joinPaths(string path1, softlist<string> paths);
+        private abstract string joinPathsIntern(list<string> paths);
     }
 
     #! path handler implementing Windows specific functionality
@@ -154,8 +158,7 @@ public namespace FsUtil {
         }
 
         #! Returns path resulting from joining the given paths
-        /** @param path1 the first part of the path
-            @param paths the other parts of the path
+        /** @param paths a list of paths to join
 
             @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except for cases
             when one of the paths (in the list) is an absolute path or if each path is on different drive - in such
@@ -163,8 +166,8 @@ public namespace FsUtil {
             (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
             Since the second parameter is a softlist, this variant also works for joining two string paths.
         */
-        public string joinPaths(string path1, softlist<string> paths) {
-            string result = path1;
+        private string joinPathsIntern(list<string> paths) {
+            string result = shift paths;
 
             foreach string path2 in (paths) {
                 if (path2 == "") {
@@ -199,15 +202,13 @@ public namespace FsUtil {
 
     #! path handler implementing POSIX specific functionality
     public class PosixPathHandler inherits PathHandler {
-
         #! creates the object and sets the delimiter
         constructor() {
             delimiters = ("/",);
         }
 
         #! Returns path resulting from joining the given paths
-        /** @param path1 the first part of the path
-            @param paths the other parts of the path
+        /** @param paths a list of paths to join
 
             @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except
             for cases when one of the paths (in the list) is an absolute path - in such cases that path is considered
@@ -215,8 +216,8 @@ public namespace FsUtil {
             a correct result of join("/path/to", "../../file.txt");).
             Since the second parameter is a softlist, this variant also works for joining two string paths.
         */
-        public string joinPaths(string path1, softlist<string> paths) {
-            string result = path1;
+        private string joinPathsIntern(list<string> paths) {
+            string result = shift paths;
 
             foreach string path2 in (paths) {
                 if (path2 == "") {
@@ -276,8 +277,22 @@ public namespace FsUtil {
         (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
         Since the second parameter is a softlist, this variant also works for joining two string paths.
     */
-    public string sub join_paths(string path1, softlist<string> paths) {
-        return local_handler.joinPaths(path1, paths);
+    public string sub join_paths(string path1, list<auto> paths) {
+        return local_handler.joinPaths(cast<list<string>>((path1,) + paths));
+    }
+
+    #! Returns path resulting from joining the given paths
+    /** @param path1 the first part of the path
+        @param ... the remaining parts of the path
+
+        @return all paths joined into one valid path (i.e. delimiters are added/removed as needed) except for cases when
+        one of the paths (in the list) is an absolute path or if each path is on different drive (Windows only) - in
+        such cases that path is considered a new start of the resulting path. The resulting path is not normalized
+        (i.e. "/path/to/../../file.txt" is a correct result of join("/path/to", "../../file.txt");).
+        Since the second parameter is a softlist, this variant also works for joining two string paths.
+    */
+    public string sub join_paths() {
+        return local_handler.joinPaths(cast<*list<string>>(argv));
     }
 
     #! Returns path resulting from joining the given paths
@@ -301,7 +316,7 @@ public namespace FsUtil {
         @return True if the given path exists, False otherwise. If follow_symlinks is True and path points to a symlink,
         the link's target is checked instead of the link itself
     */
-    public bool sub path_exists(string path, bool follow_symlinks=False) {
+    public bool sub path_exists(string path, bool follow_symlinks = False) {
         *hash<StatInfo> s = follow_symlinks ? hstat(path) : hlstat(path);
         return (exists s || errno() != Err::ENOENT);
     }
