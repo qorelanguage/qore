@@ -41,7 +41,7 @@
 %requires reflection
 
 module RestHandler {
-    version = "1.5";
+    version = "1.5.1";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -372,6 +372,10 @@ Content-Length: 16
     @ref Qore::ExceptionInfo "ExceptionInfo" hash.
 
     @section resthandler_relnotes RestHandler Release Notes
+
+    @subsection rh_1_5_1 RestHandler v1.5.1
+    - improved error handling and sending error messages when exceptions contain non-serializable objects
+      (<a href="https://github.com/qorelanguage/qore/issues/4501">issue 4501</a>)
 
     @subsection rh_1_5 RestHandler v1.5
     - implemented support for allowing alternate REST method dispatch approaches to be implemented
@@ -1324,7 +1328,7 @@ public namespace RestHandler {
                             rv.hdr);
                     }
 
-                    throw ex.err, ex.desc, ex.arg;
+                    rethrow ex.err, ex.desc;
                 }
 
                 logDebug("REST DBG raw body: %y -> serialized body (%s): %y", rv.body, res.hdr."Content-Type",
@@ -1394,22 +1398,26 @@ public namespace RestHandler {
 
         #! Recursively ensure that exception arguments are serializable
         private checkExceptionSerializable(reference<hash<ExceptionInfo>> ex) {
-            if (ex.arg.typeCode() == NT_OBJECT && !(ex.arg instanceof Serializable)) {
-                string new_arg;
-                if (ex.arg.hasCallableMethod("toString")) {
-                    try {
-                        new_arg = sprintf("unserializable arg.toString(): %s", ex.arg.toString());
-                    } catch (hash<ExceptionInfo> ex1) {
+            try {
+                if (ex.arg.typeCode() == NT_OBJECT && !(ex.arg instanceof Serializable)) {
+                    string new_arg;
+                    if (ex.arg.hasCallableMethod("toString")) {
+                        try {
+                            new_arg = sprintf("unserializable arg.toString(): %s", ex.arg.toString());
+                        } catch (hash<ExceptionInfo> ex1) {
+                        }
+                    }
+                    if (!exists new_arg) {
+                        new_arg = sprintf("unserializable arg: %y", ex.arg);
+                    }
+                    ex.arg = new_arg;
+                } else {
+                    if (ex.arg.ex instanceof hash<ExceptionInfo>) {
+                        checkExceptionSerializable(\ex.arg.ex);
                     }
                 }
-                if (!exists new_arg) {
-                    new_arg = sprintf("unserializable arg: %y", ex.arg);
-                }
-                ex.arg = new_arg;
-            } else {
-                if (ex.arg.ex instanceof hash<ExceptionInfo>) {
-                    checkExceptionSerializable(\ex.arg.ex);
-                }
+            } catch (hash<ExceptionInfo> ex) {
+                ex.arg = sprintf("unserializable arg: %y", ex.arg);
             }
         }
 
