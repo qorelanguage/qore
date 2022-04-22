@@ -760,11 +760,15 @@ public:
             return false;
         }
 
-        if (++pos == l->size()) {
+        if (++pos == sizeIntern()) {
             finished = true;
             return false;
         }
         return true;
+    }
+
+    DLLLOCAL size_t size() const {
+        return finished ? 1 : sizeIntern();
     }
 
     DLLLOCAL void parseInit(QoreParseContext& parse_context);
@@ -780,6 +784,10 @@ private:
     size_t pos = -1;
     const QoreTypeInfo* singleTypeInfo = nullptr;
     bool error = false;
+
+    DLLLOCAL size_t sizeIntern() const {
+        return l ? l->size() : pl->size();
+    }
 };
 
 DLLLOCAL void raise_nonexistent_method_call_warning(const QoreProgramLocation* loc, const QoreClass* qc,

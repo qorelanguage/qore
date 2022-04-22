@@ -2820,7 +2820,7 @@ const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces) 
 
 void QorePossibleListNodeParseInitHelper::parseInit(QoreParseContext& parse_context) {
     //printd(5, "QoreListNodeParseInitHelper::parseInit() this: %p %d/%d (l: %p pl: %p)\n", this, l || pl ? pos : 0,
-    //    l ? l->size() : (pl ? pl->size() : 1), l, pl);
+    //    (int)size(), l, pl);
 
     parse_context.typeInfo = nullptr;
     if (!l && !pl) {
