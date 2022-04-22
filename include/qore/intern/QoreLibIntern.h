@@ -684,17 +684,18 @@ DLLLOCAL extern StaticSystemNamespace* staticSystemNamespace;
 
 class QoreParseListNodeParseInitHelper {
 public:
-    DLLLOCAL QoreParseListNodeParseInitHelper(QoreParseListNode* l, QoreParseContext& parse_context) :
-        l(l), parse_context(parse_context) {
+    DLLLOCAL QoreParseListNodeParseInitHelper(QoreParseListNode* l) : l(l) {
     }
 
-    DLLLOCAL QoreValue parseInit() {
+    DLLLOCAL QoreValue parseInit(QoreParseContext& parse_context) {
         //printd(5, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, index(),
         //  getList()->size(), getList());
 
         parse_context.typeInfo = nullptr;
         QoreValue& n = l->getReference(pos);
+        int pflag = parse_context.setFlags(PF_FOR_ASSIGNMENT);
         bool err = (bool)parse_init_value(n, parse_context);
+        parse_context.pflag = pflag;
         if (err && !error) {
             error = true;
         }
@@ -721,24 +722,29 @@ public:
 private:
     QoreParseListNode* l;
     int pos = -1;
-    QoreParseContext& parse_context;
     bool error = false;
 };
 
 class QorePossibleListNodeParseInitHelper {
 public:
-    DLLLOCAL QorePossibleListNodeParseInitHelper(QoreValue& n, QoreParseContext& parse_context) :
-            parse_context(parse_context),
-            l(n.getType() == NT_LIST ? n.get<QoreListNode>() : nullptr),
-            finished(!l) {
+    DLLLOCAL QorePossibleListNodeParseInitHelper(QoreValue& n, QoreParseContext& parse_context) {
         // if the expression is not a list, then initialize it now
         // and save the return type
-        if (!l) {
-            parse_context.typeInfo = nullptr;
-            error = parse_init_value(n, parse_context);
+        parse_context.typeInfo = nullptr;
+        error = parse_init_value(n, parse_context);
+        //printd(5, "QorePossibleListNodeParseInitHelper::QorePossibleListNodeParseInitHelper() n: %s\n",
+        //    n.getFullTypeName());
+        if (n.getType() == NT_LIST) {
+            l = n.get<QoreListNode>();
+            finished = false;
+        } else if (n.getType() == NT_PARSE_LIST) {
+            pl = n.get<QoreParseListNode>();
+            finished = false;
+        } else {
             // set type info to 0 if the expression can return a list
             // FIXME: set list element type here when list elements can have types
-            //printd(0, "singleTypeInfo=%s la=%d\n", QoreTypeInfo::getName(singleTypeInfo), QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo));
+            //printd(5, "singleTypeInfo: %s la: %d\n", n.getFullTypeName(),
+            //    QoreTypeInfo::parseAccepts(listTypeInfo, singleTypeInfo));
             if (!QoreTypeInfo::parseAccepts(listTypeInfo, parse_context.typeInfo)) {
                 singleTypeInfo = parse_context.typeInfo;
             }
@@ -750,28 +756,27 @@ public:
     }
 
     DLLLOCAL bool next() {
-        ++pos;
-
-        if (finished)
+        if (finished) {
             return false;
+        }
 
-        if (pos == l->size()) {
+        if (++pos == l->size()) {
             finished = true;
             return false;
         }
         return true;
     }
 
-    DLLLOCAL void parseInit();
+    DLLLOCAL void parseInit(QoreParseContext& parse_context);
 
     DLLLOCAL bool hasError() const {
         return error;
     }
 
 private:
-    QoreParseContext& parse_context;
-    QoreListNode* l;
-    bool finished;
+    QoreListNode* l = nullptr;
+    QoreParseListNode* pl = nullptr;
+    bool finished = true;
     size_t pos = -1;
     const QoreTypeInfo* singleTypeInfo = nullptr;
     bool error = false;

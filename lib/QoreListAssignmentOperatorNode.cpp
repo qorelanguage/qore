@@ -35,16 +35,14 @@
 QoreString QoreListAssignmentOperatorNode::op_str("list assignment operator expression");
 
 int QoreListAssignmentOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
-    // turn off "reference ok" and "return value ignored" flags
+    // turn off "return value ignored" flag
     QoreParseContextFlagHelper fh(parse_context);
     fh.unsetFlags(PF_RETURN_VALUE_IGNORED);
 
     assert(left.getType() == NT_PARSE_LIST);
     QoreParseListNode* l = left.get<QoreParseListNode>();
 
-    int pflag = parse_context.setFlags(PF_FOR_ASSIGNMENT);
-    QoreParseListNodeParseInitHelper li(l, parse_context);
-    parse_context.pflag = pflag;
+    QoreParseListNodeParseInitHelper li(l);
     QorePossibleListNodeParseInitHelper ri(right, parse_context);
 
     int err = li.hasError() || ri.hasError() ? -1 : 0;
@@ -53,8 +51,10 @@ int QoreListAssignmentOperatorNode::parseInitImpl(QoreValue& val, QoreParseConte
     while (li.next()) {
         ri.next();
 
-        QoreValue v = li.parseInit();
+        QoreValue v = li.parseInit(parse_context);
         const QoreTypeInfo* prototypeInfo = parse_context.typeInfo;
+        //printd(5, "QoreListAssignmentOperatorNode::parseInitImpl() paI: '%s' (%s)\n", QoreTypeInfo::getName(prototypeInfo),
+        //    v.getFullTypeName());
         if (check_lvalue(v)) {
             if (!li.hasError()) {
                 parse_error(*loc, "expecting lvalue in position %d of left-hand-side list in list assignment, got " \
@@ -77,11 +77,20 @@ int QoreListAssignmentOperatorNode::parseInitImpl(QoreValue& val, QoreParseConte
             check_self_assignment(loc, v, parse_context.oflag);
         }
 
-        ri.parseInit();
+        ri.parseInit(parse_context);
         argInfo = parse_context.typeInfo;
 
         if (QoreTypeInfo::hasType(prototypeInfo)) {
-            if (!QoreTypeInfo::parseAccepts(prototypeInfo, argInfo) && !ri.hasError()) {
+            bool may_not_match = false;
+            bool may_need_filter = false;
+            qore_type_result_e max_result = QTI_NOT_EQUAL;
+            // only set the initial assignment flag if the lvalue is a declaration
+            bool initial_assignment = (v.getType() == NT_VARREF && v.get<VarRefNode>()->parseIsDecl());
+            qore_type_result_e res = QoreTypeInfo::parseAccepts(prototypeInfo, argInfo, may_not_match,
+                may_need_filter, max_result, initial_assignment);
+            //printd(5, "QoreListAssignmentOperatorNode::parseInitImpl() proto: %s <- %s: %d\n",
+            //    QoreTypeInfo::getName(prototypeInfo), QoreTypeInfo::getName(argInfo), res);
+            if (!res && !ri.hasError()) {
                 // raise an exception only if parse exceptions are not disabled
                 if (parse_context.pgm->getParseExceptionSink()) {
                     QoreStringNode* edesc = new QoreStringNode("lvalue for ListAssignment operator in position ");
@@ -99,7 +108,7 @@ int QoreListAssignmentOperatorNode::parseInitImpl(QoreValue& val, QoreParseConte
     }
 
     while (ri.next()) {
-        ri.parseInit();
+        ri.parseInit(parse_context);
     }
 
     return li.hasError() || ri.hasError() || err ? -1 : 0;

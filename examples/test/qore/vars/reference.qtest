@@ -258,6 +258,10 @@ class ReferenceTest inherits QUnit::Test {
             assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {*reference r = {};}", ""));
             assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("our reference r = {};", ""));
             assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("our *reference r = {};", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t() {reference<int> r = 1;}", ""));
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), (
+                "sub t () { (reference<int> r0, reference<int> r1) = (1, 2); }", "",
+            ));
             p.parse("sub t1() {int a; reference r = \\a;}", "");
         }
         {

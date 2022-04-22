@@ -724,7 +724,7 @@ const char* QoreTypeSpec::getSimpleName() const {
 }
 
 qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_match, bool& may_need_filter,
-        qore_type_result_e& max_result) const {
+        qore_type_result_e& max_result, bool known_initial_assignment) const {
     //printd(5, "QoreTypeSpec::match() typespec: %d t.typespec: %d\n", (int)typespec, (int)t.typespec);
     switch (typespec) {
         case QTS_CLASS: {
@@ -937,8 +937,9 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
                         max_result = QTI_IDENT;
                         return QTI_AMBIGUOUS;
                     }
+                    return QTI_NOT_EQUAL;
                     // check if types match
-                    return checkMatchType(t, may_not_match, max_result);
+                    //return checkMatchType(t, may_not_match, max_result);
 
                 case QTS_EMPTYLIST:
                 case QTS_EMPTYHASH: {
@@ -976,8 +977,17 @@ qore_type_result_e QoreTypeSpec::match(const QoreTypeSpec& t, bool& may_not_matc
         }
         case QTS_TYPE:
             if (u.t == NT_REFERENCE) {
-                max_result = QTI_IDENT;
-                return QTI_AMBIGUOUS;
+                if (known_initial_assignment) {
+                    if ((t.typespec == QTS_TYPE && t.u.t == NT_REFERENCE)
+                        || t.typespec == QTS_HARDREF || t.typespec == QTS_COMPLEXHARDREF
+                        || t.typespec == QTS_COMPLEXREF) {
+                        max_result = QTI_IDENT;
+                        return QTI_AMBIGUOUS;
+                    }
+                } else {
+                    max_result = QTI_IDENT;
+                    return QTI_AMBIGUOUS;
+                }
             }
             // fall down to next case
         case QTS_EMPTYLIST:

@@ -2818,11 +2818,13 @@ const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces) 
     return get_type_name(n);
 }
 
-void QorePossibleListNodeParseInitHelper::parseInit() {
-    //printd(5, "QoreListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p)\n", this, l ? pos : 0, l ? l->size() : 1, l);
+void QorePossibleListNodeParseInitHelper::parseInit(QoreParseContext& parse_context) {
+    //printd(5, "QoreListNodeParseInitHelper::parseInit() this: %p %d/%d (l: %p pl: %p)\n", this, l || pl ? pos : 0,
+    //    l ? l->size() : (pl ? pl->size() : 1), l, pl);
 
     parse_context.typeInfo = nullptr;
-    if (!l) {
+    if (!l && !pl) {
+        assert(finished);
         // FIXME: return list type info when list elements can be typed
         if (!pos) {
             if (singleTypeInfo) {
@@ -2840,17 +2842,15 @@ void QorePossibleListNodeParseInitHelper::parseInit() {
     if (finished) {
         // no argument available
         parse_context.typeInfo = nothingTypeInfo;
+    } else if (l) {
+        assert(!pl);
+        // return element type
+        parse_context.typeInfo = qore_list_private::get(*l)->getEntryReference(pos).getFullTypeInfo();
     } else {
-        QoreValue& v = qore_list_private::get(*l)->getEntryReference(pos);
-        assert(!error);
-        error = parse_init_value(v, parse_context);
-
-        //printd(5, "QorePossibleListNodeParseInitHelper::parseInit() this=%p %d/%d (l=%p) type: %s (%s) *p=%p (%s)\n",
-        //  this, pos, l ? l->size() : 1, l, typeInfo && typeInfo->qt ? getBuiltinTypeName(typeInfo->qt) : "n/a",
-        //  typeInfo && typeInfo->qc ? typeInfo->qc->getName() : "n/a", p && *p ? *p : 0, p && *p ? (*p)->getTypeName() : "n/a");
-        if (l && !l->needs_eval() && v.hasNode() && v.getInternalNode()->needs_eval()) {
-            qore_list_private::setNeedsEval(*l);
-        }
+        assert(pl);
+        assert(!l);
+        // return element type
+        parse_context.typeInfo = pl->get(pos).getFullTypeInfo();
     }
 }
 
@@ -2860,7 +2860,7 @@ void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &d
     for (unsigned i = 0; i < num_params; ++i) {
         typeList.push_back(va_arg(args, const QoreTypeInfo*));
         defaultArgList.push_back(va_arg(args, QoreSimpleValue));
-        //printd(5, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
+        //printd(5, "qore_process_params() i: %d/%d typeInfo: %p (%s) defArg: %p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
     }
 }
 
@@ -2872,7 +2872,7 @@ void qore_process_params(unsigned num_params, type_vec_t &typeList, arg_vec_t &d
         typeList.push_back(va_arg(args, const QoreTypeInfo *));
         defaultArgList.push_back(va_arg(args, QoreSimpleValue));
         nameList.push_back(va_arg(args, const char*));
-        //printd(5, "qore_process_params() i=%d/%d typeInfo=%p (%s) defArg=%p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
+        //printd(5, "qore_process_params() i: %d/%d typeInfo: %p (%s) defArg: %p\n", i, num_params, typeList[i], typeList[i]->getTypeName(), defaultArgList[i]);
     }
 }
 
