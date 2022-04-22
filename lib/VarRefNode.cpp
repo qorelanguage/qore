@@ -308,9 +308,6 @@ int VarRefDeclNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_contex
     if (parseInitCommon(parse_context)) {
         return -1;
     }
-
-
-
     bool is_assignment = parse_context.pflag & PF_FOR_ASSIGNMENT;
 
     // this expression returns nothing if it's a new local variable

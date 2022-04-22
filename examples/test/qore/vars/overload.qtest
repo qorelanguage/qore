@@ -157,6 +157,7 @@ public class OverloadTest inherits QUnit::Test {
     }
 
     constructor() : Test("Overload test", "1.0") {
+        addTestCase("reference matching", \referenceMatching());
         addTestCase("issue 4419", \issue4419());
         addTestCase("softlist overload test", \softlistOverloadTest());
         addTestCase("issue 3861", \issue3861());
@@ -168,6 +169,14 @@ public class OverloadTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    referenceMatching() {
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", \p.parse(), ("sub t(hash h, softstring str0, reference<bool> i) {}\n"
+                "sub t(hash h, softstring str0, reference i) {} hash<auto> x = {}; softstring w = 1; t(x, w);", ""));
+        }
     }
 
     issue4419() {

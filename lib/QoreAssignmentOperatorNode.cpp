@@ -95,7 +95,11 @@ int QoreAssignmentOperatorNode::parseInitIntern(QoreParseContext& parse_context,
     } else if (QoreTypeInfo::hasType(ti)) {
         bool may_not_match = false;
         bool may_need_filter = false;
-        res = QoreTypeInfo::parseAccepts(ti, parse_context.typeInfo, may_not_match, may_need_filter);
+        qore_type_result_e max_result = QTI_NOT_EQUAL;
+        // only set the initial assignment flag if the lvalue is a declaration
+        bool initial_assignment = (left.getType() == NT_VARREF && left.get<VarRefNode>()->parseIsDecl());
+        res = QoreTypeInfo::parseAccepts(ti, parse_context.typeInfo, may_not_match, may_need_filter, max_result,
+            initial_assignment);
         // issue #2106 do not set the ident flag for any other type in case runtime types are more specific (complex)
         // than parse types and require filtering
         printd(5, "QoreAssignmentOperatorNode::parseInitImpl() '%s' <- '%s' res: %d may_not_match: %d " \

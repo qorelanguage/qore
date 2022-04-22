@@ -756,8 +756,9 @@ void QoreNamespaceList::parseCommit() {
 }
 
 void QoreNamespaceList::parseCommitRuntimeInit(ExceptionSink* xsink) {
-   for (nsmap_t::iterator i = nsmap.begin(), e = nsmap.end(); i != e; ++i)
-      i->second->priv->parseCommitRuntimeInit(xsink);
+    for (auto& i : nsmap) {
+        i.second->priv->parseCommitRuntimeInit(xsink);
+    }
 }
 
 void QoreNamespaceList::parseRollback(ExceptionSink* xsink) {

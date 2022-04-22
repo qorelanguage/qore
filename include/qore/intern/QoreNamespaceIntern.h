@@ -1231,9 +1231,10 @@ protected:
         QORE_TRACE("qore_root_ns_private::parseResolveFunctionEntryIntern()");
 
         const FunctionEntry* f = parseFindFunctionEntryIntern(fname);
-        if (!f)
+        if (!f) {
             // cannot find function, throw exception
             parse_error(*loc, "function '%s()' cannot be found", fname);
+        }
 
         return f;
     }
@@ -1243,12 +1244,13 @@ protected:
 
     DLLLOCAL void parseCommit() {
         // commit pending function lookup entries
-        for (fmap_t::iterator i = pend_fmap.begin(), e = pend_fmap.end(); i != e; ++i)
+        for (fmap_t::iterator i = pend_fmap.begin(), e = pend_fmap.end(); i != e; ++i) {
             fmap.update(i);
+        }
         pend_fmap.clear();
 
         qore_ns_private::parseCommit();
-        // exceptions can be through thrown when performing runtime initialization
+        // exceptions can be thrown when performing runtime initialization
         qore_ns_private::parseCommitRuntimeInit(getProgram()->getParseExceptionSink());
     }
 

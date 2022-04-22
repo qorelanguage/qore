@@ -1518,6 +1518,7 @@ void qore_class_private::addLocalMembersForInit() {
 }
 
 void qore_class_private::parseCommitRuntimeInit(ExceptionSink* xsink) {
+    assert(initialized);
     // finalize constant initialization
     constlist.parseCommitRuntimeInit();
 

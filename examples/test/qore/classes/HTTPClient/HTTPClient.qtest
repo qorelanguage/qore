@@ -500,7 +500,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertEq(("SSL_VERIFY_PEER",), info.ssl_verify_flags);
             assertFalse(hc.getAcceptAllCertificates());
             hc.setSslVerifyMode(SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
-            assertThrows("SOCKET-SSL-ERROR", "self signed cert", \hc.send(), ("", "PUT", NOTHING, {"Connection": "close"}));
+            assertThrows("SOCKET-SSL-ERROR", "self.signed cert", \hc.send(), ("", "PUT", NOTHING, {"Connection": "close"}));
         }
 
         /* test disabled by default due to dependency on external resource ...
