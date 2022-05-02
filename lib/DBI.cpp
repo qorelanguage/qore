@@ -602,6 +602,25 @@ int DBI_concat_string(QoreString* str, QoreValue v, ExceptionSink* xsink) {
     return *xsink;
 }
 
+static char* check_datasource_chars(char* str, const char* chars) {
+    char* p;
+    char* str0 = str;
+    while (true) {
+        // get dbname
+        p = strchrs(str0, chars);
+        if (!p) {
+            break;
+        }
+        // rule out invalid matches with a ':' with non-digits following
+        if ((*p == ':') && !isdigit(*(p + 1))) {
+            str0 = p + 1;
+            continue;
+        }
+        break;
+    }
+    return p;
+}
+
 /*
   parseDatasource()
   parses strings of the form: driver:user/pass@db(encoding)%host:post{option1,option2=value}
@@ -620,23 +639,26 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
     tmp.trim();
     char* str = const_cast<char*>(tmp.getBuffer());
 
+    QoreStringNode* driver = nullptr;
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
     char* p = strchr(str, ':');
     // make sure this is the driver name and not the port at the end
     if (p) {
         *p = '\0';
-        if (strchrs(str, "@/%"))
+        if (strchrs(str, "@/%")) {
             // this is the port at the end, so skip it
             *p = ':';
-        else {
-            h->setKeyValue("type", new QoreStringNode(str), nullptr);
+        } else {
+            driver = new QoreStringNode(str);
+            h->setKeyValue("type", driver, nullptr);
             str = p + 1;
         }
     }
 
     bool has_pass = false;
     p = strchr(str, '/');
-    if (p) {
+    // make sure this is not the start of a path for an in-memory DB with no username and password
+    if (p && ((*str != '@') || (p != (str + 1)))) {
         *p = '\0';
         if (*str)
             h->setKeyValue("user", new QoreStringNode(str), nullptr);
@@ -665,7 +687,8 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
     if (p) {
         char* end = strchr(p, ')');
         if (!end) {
-            xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing parenthesis in charset specification in '%s'", ds);
+            xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing parenthesis in charset specification in "
+                "'%s'", ds);
             return nullptr;
         }
         *p = '\0';  // terminate for db
@@ -675,11 +698,15 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
         str = end + 1;
     }
 
-    // get dbname
-    p = strchrs(str, "%:{");
-    if (!p)
+    // get db name
+    QoreString pattern("(%|{|:[0-9]+})");
+    QoreRegex re();
+
+    p = check_datasource_chars(str, "%:{");
+
+    if (!p) {
         h->setKeyValue("db", new QoreStringNode(db), nullptr);
-    else {
+    } else {
         char tok = *p;
         *p = '\0';
 
@@ -687,10 +714,10 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
         str = p + 1;
 
         if (tok == '%') {
-            p = strchrs(str, ":{");
-
+            p = check_datasource_chars(str, ":{");
             if ((p == str) || !*str) {
-                xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing hostname string after '%%' delimeter in '%s'", ds);
+                xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing hostname string after '%%' delimeter in '%s'",
+                    ds);
                 return nullptr;
             }
 
@@ -700,19 +727,16 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                 tok = *p;
                 *p = '\0';
                 str = p + 1;
-            }
-            else
+            } else {
                 str += strlen(str);
+            }
 
             h->setKeyValue("host", new QoreStringNode(hstr), nullptr);
         }
 
         if (tok == ':') {
             int port = atoi(str);
-            if (!port) {
-                xsink->raiseException(DATASOURCE_PARSE_ERROR, "invalid port number in datasource string");
-                return nullptr;
-            }
+            assert(port);
             h->setKeyValue("port", port, nullptr);
 
             const char* pstr = str;
@@ -721,15 +745,17 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                 tok = *p;
                 *p = '\0';
                 str = p + 1;
-            }
-            else
+            } else {
                 str += strlen(str);
+            }
 
-            while (isdigit(*pstr))
+            while (isdigit(*pstr)) {
                 ++pstr;
+            }
 
             if (*pstr) {
-                xsink->raiseException(DATASOURCE_PARSE_ERROR, "invalid characters present in port number in '%s'", ds);
+                xsink->raiseException(DATASOURCE_PARSE_ERROR, "invalid characters present in port number in '%s'",
+                    ds);
                 return nullptr;
             }
         }
@@ -737,7 +763,8 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
         if (tok == '{') {
             char* end = strchr(str, '}');
             if (!end) {
-                xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing curly bracket '}' in option specification in '%s'", ds);
+                xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing curly bracket '}' in option "
+                    "specification in '%s'", ds);
                 return nullptr;
             }
             *end = '\0';
@@ -757,20 +784,19 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                 if (!eq && !oend) {
                     opt->setKeyValue(p, true, nullptr);
                     p += strlen(p);
-                }
-                else {
+                } else {
                     // if there is more than one option and the next option to be parsed has no value
                     if (oend && (!eq || oend < eq)) {
                         len = oend - p;
                         QoreString tmp(p, len);
                         opt->setKeyValue(tmp.getBuffer(), true, nullptr);
                         p += len;
-                    }
-                    else {
+                    } else {
                         // here we must have an equals sign
                         assert(eq);
                         if (eq == p) {
-                            xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing value after '=' in option specification in '%s'", ds);
+                            xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing value after '=' in option "
+                                "specification in '%s'", ds);
                             return nullptr;
                         }
                         *eq = '\0';
@@ -792,8 +818,9 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                         p = eq + len;
                     }
                 }
-                if (oend)
-                ++p;
+                if (oend) {
+                    ++p;
+                }
             }
 
             h->setKeyValue("options", opt.release(), nullptr);
