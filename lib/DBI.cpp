@@ -717,8 +717,8 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
         str = end + 1;
     }
 
+    // get db name
     p = check_datasource_chars(str, "%:{");
-
     if (!p) {
         h->setKeyValue("db", new QoreStringNode(db), nullptr);
     } else {
