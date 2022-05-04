@@ -145,9 +145,9 @@ struct OptInputHelper {
 };
 
 struct qore_dbi_private {
-    DBIDriverFunctions f;
-    int caps;
     const char* name;
+    int caps;
+    DBIDriverFunctions f;
     dbi_opt_map_t omap;
 
     DLLLOCAL qore_dbi_private(const char* nme, const qore_dbi_mlist_private& methods, int cps);

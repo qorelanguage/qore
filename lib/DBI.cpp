@@ -74,149 +74,153 @@ struct dbi_cap_hash dbi_cap_list[] =
 #define NUM_DBI_CAPS (sizeof(dbi_cap_list) / sizeof(dbi_cap_hash))
 
 struct qore_dbi_mlist_private {
-   dbi_method_list_t l;
-   dbi_opt_map_t omap;
+    dbi_method_list_t l;
+    dbi_opt_map_t omap;
 
-   DLLLOCAL void registerOption(const char* name, const char* desc, const QoreTypeInfo* type = 0) {
-      assert(omap.find(name) == omap.end());
-      omap[name] = DbiOptInfo(desc, type);
-   }
+    DLLLOCAL void registerOption(const char* name, const char* desc, const QoreTypeInfo* type = 0) {
+        assert(omap.find(name) == omap.end());
+        omap[name] = DbiOptInfo(desc, type);
+    }
 
-   DLLLOCAL static qore_dbi_mlist_private* get(const qore_dbi_method_list& ml) {
-      return ml.priv;
-   }
+    DLLLOCAL static qore_dbi_mlist_private* get(const qore_dbi_method_list& ml) {
+        return ml.priv;
+    }
 };
 
 qore_dbi_method_list::qore_dbi_method_list() : priv(new qore_dbi_mlist_private) {
 }
 
 qore_dbi_method_list::~qore_dbi_method_list() {
-   delete priv;
+    delete priv;
 }
 
 // covers open, commit, rollback, and begin transaction
 void qore_dbi_method_list::add(int code, q_dbi_open_t method) {
-   assert(code == QDBI_METHOD_OPEN
-          || code == QDBI_METHOD_COMMIT
-          || code == QDBI_METHOD_ROLLBACK
-          || code == QDBI_METHOD_BEGIN_TRANSACTION
-      );
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_OPEN
+        || code == QDBI_METHOD_COMMIT
+        || code == QDBI_METHOD_ROLLBACK
+        || code == QDBI_METHOD_BEGIN_TRANSACTION
+    );
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // for close
 void qore_dbi_method_list::add(int code, q_dbi_close_t method) {
-   assert(code == QDBI_METHOD_CLOSE);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_CLOSE);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers select, select_rows, and exec
 void qore_dbi_method_list::add(int code, q_dbi_select_t method) {
-   assert(code == QDBI_METHOD_SELECT || code == QDBI_METHOD_SELECT_ROWS || code == QDBI_METHOD_EXEC || code == QDBI_METHOD_DESCRIBE);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_SELECT || code == QDBI_METHOD_SELECT_ROWS || code == QDBI_METHOD_EXEC || code == QDBI_METHOD_DESCRIBE);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers select_row
 void qore_dbi_method_list::add(int code, q_dbi_select_row_t method) {
-   assert(code == QDBI_METHOD_SELECT_ROW);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_SELECT_ROW);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers execRaw
 void qore_dbi_method_list::add(int code, q_dbi_execraw_t method) {
-   assert(code == QDBI_METHOD_EXECRAW);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_EXECRAW);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers get_server_version
 void qore_dbi_method_list::add(int code, q_dbi_get_server_version_t method) {
-   assert(code == QDBI_METHOD_GET_SERVER_VERSION);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_GET_SERVER_VERSION);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers get_client_version
 void qore_dbi_method_list::add(int code, q_dbi_get_client_version_t method) {
-   assert(code == QDBI_METHOD_GET_CLIENT_VERSION);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_GET_CLIENT_VERSION);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers stmt prepare
 void qore_dbi_method_list::add(int code, q_dbi_stmt_prepare_t method) {
-   assert(code == QDBI_METHOD_STMT_PREPARE);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_STMT_PREPARE);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers stmt prepare_raw
 void qore_dbi_method_list::add(int code, q_dbi_stmt_prepare_raw_t method) {
-   assert(code == QDBI_METHOD_STMT_PREPARE_RAW);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_STMT_PREPARE_RAW);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers stmt bind
 void qore_dbi_method_list::add(int code, q_dbi_stmt_bind_t method) {
-   assert(code == QDBI_METHOD_STMT_BIND || code == QDBI_METHOD_STMT_BIND_PLACEHOLDERS || code == QDBI_METHOD_STMT_BIND_VALUES);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_STMT_BIND || code == QDBI_METHOD_STMT_BIND_PLACEHOLDERS
+        || code == QDBI_METHOD_STMT_BIND_VALUES);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers stmt exec, close, define, and affectedRows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_exec_t method) {
-   assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE || code == QDBI_METHOD_STMT_AFFECTED_ROWS || code == QDBI_METHOD_STMT_FREE || code == QDBI_METHOD_STMT_EXEC_DESCRIBE);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_STMT_EXEC || code == QDBI_METHOD_STMT_CLOSE || code == QDBI_METHOD_STMT_DEFINE
+        || code == QDBI_METHOD_STMT_AFFECTED_ROWS || code == QDBI_METHOD_STMT_FREE
+        || code == QDBI_METHOD_STMT_EXEC_DESCRIBE);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers stmt fetch_row, get_output and get_output_rows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_row_t method) {
-   assert(code == QDBI_METHOD_STMT_FETCH_ROW || code == QDBI_METHOD_STMT_GET_OUTPUT_ROWS || code == QDBI_METHOD_STMT_GET_OUTPUT || code == QDBI_METHOD_STMT_DESCRIBE);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_STMT_FETCH_ROW || code == QDBI_METHOD_STMT_GET_OUTPUT_ROWS
+        || code == QDBI_METHOD_STMT_GET_OUTPUT || code == QDBI_METHOD_STMT_DESCRIBE);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers stmt fetch_rows
 void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_rows_t method) {
-   assert(code == QDBI_METHOD_STMT_FETCH_ROWS);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_STMT_FETCH_ROWS);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers stmt fetch_columns
 void qore_dbi_method_list::add(int code, q_dbi_stmt_fetch_columns_t method) {
-   assert(code == QDBI_METHOD_STMT_FETCH_COLUMNS);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_STMT_FETCH_COLUMNS);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 // covers stmt next
 void qore_dbi_method_list::add(int code, q_dbi_stmt_next_t method) {
-   assert(code == QDBI_METHOD_STMT_NEXT);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_STMT_NEXT);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 void qore_dbi_method_list::add(int code, q_dbi_option_set_t method) {
-   assert(code == QDBI_METHOD_OPT_SET);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_OPT_SET);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 void qore_dbi_method_list::add(int code, q_dbi_option_get_t method) {
-   assert(code == QDBI_METHOD_OPT_GET);
-   assert(priv->l.find(code) == priv->l.end());
-   priv->l[code] = (void*)method;
+    assert(code == QDBI_METHOD_OPT_GET);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
 }
 
 void qore_dbi_method_list::registerOption(const char* name, const char* desc, const QoreTypeInfo* type) {
-   priv->registerOption(name, desc, type);
+    priv->registerOption(name, desc, type);
 }
 
 DbiArgHelper::DbiArgHelper(const QoreListNode* ol, bool numeric, ExceptionSink* xs) : orig(ol), nl(0), xsink(xs) {
@@ -241,26 +245,27 @@ DbiArgHelper::DbiArgHelper(const QoreListNode* ol, bool numeric, ExceptionSink* 
     }
 }
 
-OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver, const char* opt, bool set, const QoreValue v) : xsink(xs), val(v), tmp(false) {
+OptInputHelper::OptInputHelper(ExceptionSink* xs, const qore_dbi_private& driver, const char* opt, bool set,
+        const QoreValue v) : xsink(xs), val(v), tmp(false) {
     dbi_opt_map_t::const_iterator i = driver.omap.find(opt);
     if (i == driver.omap.end()) {
         xsink->raiseException("DBI-OPTION-ERROR", "driver '%s' does not support option '%s'", driver.name, opt);
         return;
     }
-    if (!set)
+    if (!set) {
         return;
-
+    }
     const QoreTypeInfo* ti = i->second.typeInfo;
-
-    if (!QoreTypeInfo::mayRequireFilter(ti, v))
+    if (!QoreTypeInfo::mayRequireFilter(ti, v)) {
         return;
-
+    }
     tmp = true;
     val.ref();
     QoreTypeInfo::acceptInputParam(ti, -1, "<dbi driver option>", val, xsink);
 }
 
-qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private& methods, int cps) {
+qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private& methods, int cps)
+        : name(nme), caps(cps){
     // add methods to internal data structure
     for (dbi_method_list_t::const_iterator i = methods.l.begin(), e = methods.l.end(); i != e; ++i) {
         assert((*i).first > 0 && (*i).first <= QDBI_VALID_CODES);
@@ -428,17 +433,17 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
     // ensure either no or minimum opt methods are defined
     assert(!f.opt.set || (f.opt.set && f.opt.get));
 
-    name = nme;
-    caps = cps;
-    if (f.stmt.prepare)
+    if (f.stmt.prepare) {
         caps |= DBI_CAP_HAS_STATEMENT;
 #ifdef DEBUG
-    else
+    } else {
         assert(!(caps & DBI_CAP_HAS_STATEMENT));
 #endif
+    }
 
-    if (f.opt.set)
+    if (f.opt.set) {
         caps |= DBI_CAP_HAS_OPTION_SUPPORT;
+    }
 
     // copy options
     omap = methods.omap;
@@ -458,19 +463,19 @@ DBIDriver::DBIDriver(qore_dbi_private* p) : priv(p) {
 }
 
 DBIDriver::~DBIDriver() {
-   delete priv;
+    delete priv;
 }
 
 const char* DBIDriver::getName() const {
-   return priv->name;
+    return priv->name;
 }
 
 bool DBIDriver::hasStatementAPI() const {
-   return priv->hasStatementAPI();
+    return priv->hasStatementAPI();
 }
 
 QoreHashNode* DBIDriver::getOptionHash() const {
-   return priv->getOptionHash();
+    return priv->getOptionHash();
 }
 
 /* it's not necessary to lock this object because it will only be written to in one thread at a time
@@ -521,25 +526,25 @@ DBIDriverList::DBIDriverList() : priv(new qore_dbi_dlist_private) {
 }
 
 DBIDriverList::~DBIDriverList() {
-   delete priv;
+    delete priv;
 }
 
 DBIDriver* DBIDriverList::find_intern(const char* name) const {
-   return priv->find_intern(name);
+    return priv->find_intern(name);
 }
 
 DBIDriver* DBIDriverList::find(const char* name) const {
-   DBIDriver* d = priv->find_intern(name);
-   if (d)
-      return d;
+    DBIDriver* d = priv->find_intern(name);
+    if (d)
+        return d;
 
-   // to to load the driver if it doesn't exist
-   // ignore any exceptions
-   ExceptionSink xs;
-   MM.runTimeLoadModule(name, &xs);
-   xs.clear();
+    // to to load the driver if it doesn't exist
+    // ignore any exceptions
+    ExceptionSink xs;
+    MM.runTimeLoadModule(name, &xs);
+    xs.clear();
 
-   return priv->find_intern(name);
+    return priv->find_intern(name);
 }
 
 DBIDriver* DBIDriverList::find(const char* name, ExceptionSink* xsink) const {
@@ -555,15 +560,15 @@ DBIDriver* DBIDriverList::find(const char* name, ExceptionSink* xsink) const {
 }
 
 DBIDriver* DBIDriverList::registerDriver(const char* name, const qore_dbi_method_list& methods, int caps) {
-   assert(!priv->find_intern(name));
+    assert(!priv->find_intern(name));
 
-   DBIDriver* dd = new DBIDriver(new qore_dbi_private(name, *qore_dbi_mlist_private::get(methods), caps));
-   priv->l.push_back(dd);
-   return dd;
+    DBIDriver* dd = new DBIDriver(new qore_dbi_private(name, *qore_dbi_mlist_private::get(methods), caps));
+    priv->l.push_back(dd);
+    return dd;
 }
 
 QoreListNode* DBIDriverList::getDriverList() const {
-   return priv->getDriverList();
+    return priv->getDriverList();
 }
 
 void DBI_concat_numeric(QoreString* str, QoreValue v) {
@@ -581,8 +586,7 @@ void DBI_concat_numeric(QoreString* str, QoreValue v) {
         // only search the double added, QoreString::sprintf() concatenates
         q_fix_decimal(str, offset);
         return;
-    }
-    else if (t == NT_NUMBER) {
+    } else if (t == NT_NUMBER) {
         v.get<const QoreNumberNode>()->getStringRepresentation(*str);
         return;
     }
@@ -637,7 +641,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
     // use a QoreString to create a temporary buffer
     QoreString tmp(ds);
     tmp.trim();
-    char* str = const_cast<char*>(tmp.getBuffer());
+    char* str = const_cast<char*>(tmp.c_str());
 
     QoreStringNode* driver = nullptr;
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
@@ -658,10 +662,24 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
     bool has_pass = false;
     p = strchr(str, '/');
     // make sure this is not the start of a path for an in-memory DB with no username and password
-    if (p && ((*str != '@') || (p != (str + 1)))) {
+    if (p) {
+        if ((*str == '@') && (p == (str + 1))) {
+            p = nullptr;
+        // make sure this is not a path in an option
+        } else if (strchr(p + 1, '}')) {
+            *p = '\0';
+            const char* p0 = strchr(str, '{');
+            *p = '/';
+            if (p0) {
+                p = nullptr;
+            }
+        }
+    }
+    if (p) {
         *p = '\0';
-        if (*str)
+        if (*str) {
             h->setKeyValue("user", new QoreStringNode(str), nullptr);
+        }
         str = p + 1;
         has_pass = true;
     }
@@ -675,10 +693,11 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
 
     *p = '\0';
     if (p != str) {
-        if (has_pass)
+        if (has_pass) {
             h->setKeyValue("pass", new QoreStringNode(str), nullptr);
-        else
+        } else {
             h->setKeyValue("user", new QoreStringNode(str), nullptr);
+        }
     }
     str = p + 1;
 
@@ -697,10 +716,6 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
         h->setKeyValue("charset", new QoreStringNode(p), nullptr);
         str = end + 1;
     }
-
-    // get db name
-    QoreString pattern("(%|{|:[0-9]+})");
-    QoreRegex re();
 
     p = check_datasource_chars(str, "%:{");
 
@@ -761,22 +776,39 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
         }
 
         if (tok == '{') {
-            char* end = strchr(str, '}');
-            if (!end) {
-                xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing curly bracket '}' in option "
-                    "specification in '%s'", ds);
-                return nullptr;
-            }
-            *end = '\0';
             p = str;
-            str = end + 1;
+            {
+                char* str0 = str;
+                // open bracket count
+                int obc = 0;
+                while (true) {
+                    if (!*p) {
+                        xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing curly bracket '}' in option "
+                            "specification in '%s'", ds, str);
+                        return nullptr;
+                    }
+                    if (*p == '{') {
+                        ++obc;
+                    } else if (*p == '}') {
+                        if (!obc) {
+                            *p = '\0';
+                            str = p + 1;
+                            break;
+                        }
+                        --obc;
+                    }
+                    ++p;
+                }
+                p = str0;
+            }
 
             // parse option hash
             ReferenceHolder<QoreHashNode> opt(new QoreHashNode(autoTypeInfo), xsink);
 
             while (true) {
-                if (!*p)
+                if (!*p) {
                     break;
+                }
                 char* eq = strchr(p, '=');
                 char* oend = strchr(p, ',');
                 size_t len = 0;
@@ -789,7 +821,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                     if (oend && (!eq || oend < eq)) {
                         len = oend - p;
                         QoreString tmp(p, len);
-                        opt->setKeyValue(tmp.getBuffer(), true, nullptr);
+                        opt->setKeyValue(tmp.c_str(), true, nullptr);
                         p += len;
                     } else {
                         // here we must have an equals sign
@@ -813,7 +845,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                         QoreString value(eq, len);
                         value.trim();
 
-                        opt->setKeyValue(key.getBuffer(), new QoreStringNode(value), nullptr);
+                        opt->setKeyValue(key.c_str(), new QoreStringNode(value), nullptr);
 
                         p = eq + len;
                     }
@@ -827,7 +859,8 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
         }
 
         if (*str) {
-            xsink->raiseException(DATASOURCE_PARSE_ERROR, "unrecognized characters at end of datasource definition in '%s'", ds);
+            xsink->raiseException(DATASOURCE_PARSE_ERROR, "unrecognized characters at end of datasource definition "
+                "in '%s'", ds);
             return nullptr;
         }
     }
