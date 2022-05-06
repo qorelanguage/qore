@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.0.7";
+    version = "2.0.8";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_0_8 Swagger v2.0.8
+    - allow a logger to be set in validators
+      (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)
 
     @subsection swagger_2_0_7 Swagger v2.0.7
     - fixed a bug where global \c consumes and \c produces declarations were not respected
@@ -1103,8 +1107,35 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throws INVALID-FIELD-VALUE field has an invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws SECURITY-ERROR inconsistent security information in schema
-     */
+    */
     public constructor(string schema_source, hash<auto> oh, *hash<auto> opts) : ObjectBase(oh) {
+        constructorIntern(schema_source, oh, opts);
+    }
+
+    #! Builds the schema representation from the deserialized schema hash describing the root document object
+    /** @param logger the logger to use
+        @param oh deserialized hash from the source schema description describing the root document object
+        @param opts options as per @ref SwaggerOptions as follows:
+        - \c compact_serialization (default @ref True "True"): optimize the size of serialized data strings
+        - \c def_path: the default path to use when retrieving external schema references
+        - \c try_import: a call reference or closure to be passed a string name for external schema references, must
+          take a string argument (the resource name) and return a string (the resource data)
+
+        @throws SWAGGER-OPTION-ERROR unsuported options in constructor
+        @throws INVALID-SWAGGER-VERSION invalid or missing Swagger schema version
+        @throws INVALID-FIELD-FORMAT field has an invalid format
+        @throws INVALID-FIELD-TYPE field has an invalid type
+        @throws INVALID-FIELD-VALUE field has an invalid value
+        @throws REQUIRED-FIELD-MISSING required field is missing
+        @throws SECURITY-ERROR inconsistent security information in schema
+    */
+    public constructor(Logger logger, string schema_source, hash<auto> oh, *hash<auto> opts) : ObjectBase(oh),
+            AbstractRestSchemaValidator(logger)  {
+        constructorIntern(schema_source, oh, opts);
+    }
+
+    #! common constructor implementation
+    private constructorIntern(string schema_source, hash<auto> oh, *hash<auto> opts) {
         hash_str = digest("sha256", schema_source).toHex();
 
         # process options
@@ -1178,7 +1209,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             optional_field(objType, oh, "schemes", SwaggerListToStringSet, \schemes);
             # check for invalid schemes
             if ((hash h = (schemes - ValidSchemes)))
-                throw "INVALID-FIELD-VALUE", sprintf("Swagger Object: invalid transfer protocol scheme%s: %y", h.size() == 1 ? "" : "s", keys h);
+                throw "INVALID-FIELD-VALUE", sprintf("Swagger Object: invalid transfer protocol scheme%s: %y",
+                    h.size() == 1 ? "" : "s", keys h);
         }
 
         {
@@ -1186,7 +1218,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             optional_field(objType, oh, "securityDefinitions", NT_HASH, \obj);
             foreach hash item in (obj.pairIterator()) {
                 if (item.value.typeCode() != NT_HASH)
-                    throw "INVALID-FIELD-TYPE", "Swagger Object: invalid security definition datatype: " + item.value.type();
+                    throw "INVALID-FIELD-TYPE", "Swagger Object: invalid security definition datatype: " +
+                        item.value.type();
                 securityDefinitions{item.key} = new SecuritySchemeObject(item.value);
             }
         }

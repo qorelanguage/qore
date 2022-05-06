@@ -39,6 +39,9 @@
 # supports using the DataProvider module to describe input and output records
 %requires(reexport) DataProvider
 
+# supports logging with the Logger module
+%requires(reexport) Logger
+
 %try-module yaml >= 0.5
 %define NoYaml
 %endtry
@@ -52,7 +55,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "2.1.1";
+    version = "2.1.2";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -72,6 +75,10 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_2_1.2 RestSchemaValidator v2.1.2
+    - allow a logger to be set in validators
+      (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)
 
     @subsection restschemavalidator_2_1_1 RestSchemaValidator v2.1.1
     - better fixes to REST URI path handling with schema validation; allow REST validator objects to declare if they
@@ -187,6 +194,24 @@ public namespace RestSchemaValidator {
 
     #! abstract REST schema validation classes
     public class AbstractRestSchemaValidator {
+        private {
+            *Logger::Logger logger;
+        }
+
+        #! Creates the object without a logger
+        constructor() {
+        }
+
+        #! Creates the object with the given logger
+        constructor(Logger::Logger logger) {
+            self.logger = logger;
+        }
+
+        #! Sets a new logger
+        setLogger(Logger::Logger logger) {
+            self.logger = logger;
+        }
+
         #! returns a unique hash for the schema that can be used to compare schemas
         /** @return a unique hash for the schema that can be used to compare schemas
 
@@ -216,7 +241,8 @@ public namespace RestSchemaValidator {
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
-        hash<RestRequestClientInfo> processRequest(string method, string path, auto body, *hash<auto> headers, *softlist<string> content_types) {
+        hash<RestRequestClientInfo> processRequest(string method, string path, auto body, *hash<auto> headers,
+                *softlist<string> content_types) {
             return processRequestImpl(method, path, body, headers, content_types);
         }
 
@@ -232,7 +258,8 @@ public namespace RestSchemaValidator {
             @throw SCHEMA-VALIDATION-ERROR this exception should be thrown if there is a validation error in the request so that a <tt>400 Bad Request</tt> response can be returned to the caller
             @throw INVALID-METHOD invalid HTTP method for the request; the \c arg argument should have a list of acceptable HTTP methods for this request
         */
-        hash<RestRequestServerInfo> parseRequest(string method, string path, *data http_body, reference<hash<auto>> headers) {
+        hash<RestRequestServerInfo> parseRequest(string method, string path, *data http_body,
+                reference<hash<auto>> headers) {
             return parseRequestImpl(method, path, http_body, \headers);
         }
 
@@ -252,7 +279,8 @@ public namespace RestSchemaValidator {
             @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
             an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
-        hash<HttpResponseInfo> processResponse(string method, string path, int code, auto response_body, *hash<auto> headers, *softlist<string> content_types) {
+        hash<HttpResponseInfo> processResponse(string method, string path, int code, auto response_body,
+                *hash<auto> headers, *softlist<string> content_types) {
             return processResponseImpl(method, path, code, response_body, headers, content_types);
         }
 
@@ -265,7 +293,8 @@ public namespace RestSchemaValidator {
 
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
-        hash<RestResponseClientInfo> parseResponse(string method, string path, int code, *data response_body, hash<auto> hdr) {
+        hash<RestResponseClientInfo> parseResponse(string method, string path, int code, *data response_body,
+                hash<auto> hdr) {
             # strip any query arguments from the path when validating
             path =~ s/\?.*//;
             return parseResponseImpl(method, path, code, response_body, hdr);
@@ -311,7 +340,8 @@ public namespace RestSchemaValidator {
 
             @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
         */
-        hash<RestExampleResponseInfo> getExampleResponse(string method, string path, int code, *softlist<string> content_types) {
+        hash<RestExampleResponseInfo> getExampleResponse(string method, string path, int code,
+                *softlist<string> content_types) {
             hash<RestExampleResponseInfo> rv = getExampleResponseImpl(method, path, code, content_types);
             if (!rv.response_uri)
                 rv.response_uri = sprintf("HTTP/1.1 %d %s", code, HttpCodes{code} ?? "Unknown");
@@ -371,7 +401,8 @@ public namespace RestSchemaValidator {
             circular dependency between modules
         */
         private DataProvider::AbstractDataProvider getDataProviderImpl(HTTPClient rest) {
-            throw "DATA-PROVIDER-ERROR", sprintf("the %s class does not support the data provider API", self.className());
+            throw "DATA-PROVIDER-ERROR", sprintf("the %s class does not support the data provider API",
+                self.className());
         }
 
         #! returns a unique hash for the schema that can be used to compare schemas
@@ -399,7 +430,8 @@ public namespace RestSchemaValidator {
 
             @throws SERIALIZATION-ERROR unsupported message body MIME type requested or missing serialization module
         */
-        private abstract hash<RestRequestClientInfo> processRequestImpl(string method, string path, auto body, *hash<auto> headers, *softlist<string> content_types);
+        private abstract hash<RestRequestClientInfo> processRequestImpl(string method, string path, auto body,
+                *hash<auto> headers, *softlist<string> content_types);
 
         #! processes and parses a client request and returns the deserialized message body (if any)
         /** @param method the HTTP method (case-insensitive)
@@ -413,7 +445,8 @@ public namespace RestSchemaValidator {
             @throw SCHEMA-VALIDATION-ERROR this exception should be thrown if there is a validation error in the request so that a <tt>400 Bad Request</tt> response can be returned to the caller
             @throw INVALID-METHOD invalid HTTP method for the request; the \c arg argument should have a list of acceptable HTTP methods for this request
         */
-        private abstract hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body, reference<hash> headers);
+        private abstract hash<RestRequestServerInfo> parseRequestImpl(string method, string path, *data http_body,
+                reference<hash> headers);
 
         #! processes a REST response with a serialized message body, validates any response data against schema definitions if possible
         /** @param method the HTTP method of the original request
@@ -431,7 +464,8 @@ public namespace RestSchemaValidator {
             @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept header field is present, and if the server cannot send a response which is acceptable according to the combined Accept field value, then the server SHOULD send a 406 (not acceptable) response.  To ensure this happens, if
             an Accept error of this nature occurs in this call, an \c "ACCEPT-ERROR" must be thrown
         */
-        private abstract hash<HttpResponseInfo> processResponseImpl(string method, string path, int code, any response_body, *hash<auto> headers, *softlist<string> content_types);
+        private abstract hash<HttpResponseInfo> processResponseImpl(string method, string path, int code,
+                auto response_body, *hash<auto> headers, *softlist<string> content_types);
 
         #! parses and validates the response from the server and returns a hash of the processed info
         /** @param method the HTTP method (case insensitive)
@@ -442,7 +476,8 @@ public namespace RestSchemaValidator {
 
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
-        private abstract hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash<auto> hdr);
+        private abstract hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code,
+                *data response_body, hash<auto> hdr);
 
         #! returns a hash of URI paths as keys with values as lists of supported HTTP methods
         /** @return a hash of URI paths as keys with values as lists of supported HTTP methods
@@ -474,7 +509,8 @@ public namespace RestSchemaValidator {
 
             @return a @ref RestExampleRequestInfo of example message information for the given request
         */
-        private abstract hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types);
+        private abstract hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path,
+                *softlist<string> content_types);
 
         #! returns example Qore code for the given response
         /** @param method the HTTP method of the original request (case insensitive)
@@ -483,7 +519,8 @@ public namespace RestSchemaValidator {
 
             @return a @ref RestSchemaValidator::RestQoreExampleCodeInfo "RestQoreExampleCodeInfo" hash giving example Qore code to generate the given response message
         */
-        private abstract hash<RestQoreExampleCodeInfo> getQoreExampleResponseImpl(string method, string path, int code);
+        private abstract hash<RestQoreExampleCodeInfo> getQoreExampleResponseImpl(string method, string path,
+                int code);
 
         #! returns a hash of example message information for the given request
         /** @param method the HTTP method of the original request (case insensitive)
@@ -493,7 +530,8 @@ public namespace RestSchemaValidator {
 
             @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
         */
-        private abstract hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types);
+        private abstract hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code,
+                *softlist<string> content_types);
     }
 
     #! null REST validator; no schema is used but default serialization and deserialization is performed
@@ -755,6 +793,10 @@ public namespace RestSchemaValidator {
                         ok = True;
                         break;
                     } catch (hash<ExceptionInfo> ex1) {
+                        if (logger) {
+                            logger.log(LoggerLevel::ERROR, "error serializing response with Content-Type %y (%d/%d): "
+                                "%s", ct, $#, ctl.size(), get_exception_string(ex1));
+                        }
                         # ignore serialization exceptions
                         ex = ex1;
                     }
@@ -779,7 +821,8 @@ public namespace RestSchemaValidator {
 
             @throw DESERIALIZATION-ERROR the request body could not be deserialized or had an invalid \c Content-Type
         */
-        private hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code, *data response_body, hash<auto> hdr) {
+        private hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code,
+                *data response_body, hash<auto> hdr) {
             hash<RestResponseClientInfo> rv((
                 "code": code,
                 "hdr": hdr,
@@ -822,7 +865,8 @@ public namespace RestSchemaValidator {
 
             @note if there are more \c Content-Type headers, then @ref False is returned and response is not modified
         */
-        private:internal bool checkResponseContentTypeHeader(reference<hash<HttpResponseInfo>> resp, auto body, *hash<auto> headers, *softlist<string> content_types) {
+        private:internal bool checkResponseContentTypeHeader(reference<hash<HttpResponseInfo>> resp, auto body,
+                *hash<auto> headers, *softlist<string> content_types) {
             # quickly return if body is not in data format
             if (body.typeCode() != NT_BINARY && body.typeCode() != NT_STRING)
                 return False;
@@ -888,7 +932,8 @@ public namespace RestSchemaValidator {
 
             @return a @ref RestExampleRequestInfo of example message information for the given request
         */
-        private hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path, *softlist<string> content_types) {
+        private hash<RestExampleRequestInfo> getExampleRequestImpl(string method, string path,
+                *softlist<string> content_types) {
             return new hash<RestExampleRequestInfo>();
         }
 
@@ -911,7 +956,8 @@ public namespace RestSchemaValidator {
 
             @return a @ref RestSchemaValidator::RestExampleResponseInfo "RestExampleResponseInfo" hash giving example response message info
         */
-        private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code, *softlist<string> content_types) {
+        private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code,
+                *softlist<string> content_types) {
             return new hash<RestExampleResponseInfo>();
         }
     }
