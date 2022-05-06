@@ -38,10 +38,11 @@
 %requires HttpServerUtil >= 1.0
 %requires Mime >= 1.3
 %requires(reexport) RestSchemaValidator >= 1.0
+%requires(reexport) Logger
 %requires reflection
 
 module RestHandler {
-    version = "1.5.1";
+    version = "1.5.2";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -373,6 +374,10 @@ Content-Length: 16
 
     @section resthandler_relnotes RestHandler Release Notes
 
+    @subsection rh_1_5_2 RestHandler v1.5.2
+    - allow a logger to be set in validators
+      (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)
+
     @subsection rh_1_5_1 RestHandler v1.5.1
     - improved error handling and sending error messages when exceptions contain non-serializable objects
       (<a href="https://github.com/qorelanguage/qore/issues/4501">issue 4501</a>)
@@ -616,7 +621,11 @@ public namespace RestHandler {
         }
 
         #! creates the object with the given attributes
-        constructor(RestHandler::AbstractRestStreamRequestHandler n_stream, HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Socket s, hash<auto> cx, hash<auto> hdr, auto body) : HttpServer::AbstractStreamRequest(listener, handler, s, cx + (exists body ? ("deserialized": True) : NOTHING), hdr, body) {
+        constructor(RestHandler::AbstractRestStreamRequestHandler n_stream,
+                HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Socket s,
+                hash<auto> cx, hash<auto> hdr, auto body)
+                : HttpServer::AbstractStreamRequest(listener, handler, s,
+                    cx + (exists body ? ("deserialized": True) : NOTHING), hdr, body) {
             stream = n_stream;
             if (!handler.isPersistent()) {
                 *code c = stream.getPersistentClosedNotification();
@@ -768,7 +777,8 @@ public namespace RestHandler {
         }
 
         #! this method is called by the RestHandler class to match the right object with incoming requests
-        hash<HttpServer::HttpHandlerResponseInfo> handleRequest(HttpListenerInterface listener, RestHandler rh, Socket s, *list<string> cl, string mn, hash<auto> cx, *hash<auto> args) {
+        hash<HttpServer::HttpHandlerResponseInfo> handleRequest(HttpListenerInterface listener, RestHandler rh,
+                Socket s, *list<string> cl, string mn, hash<auto> cx, *hash<auto> args) {
             if (!args && cx.body.typeCode() == NT_HASH) {
                 args = cx.body - "action";
             }
@@ -799,7 +809,8 @@ public namespace RestHandler {
         }
 
         #! this method is called to dispatch streamed requests on the given object
-        private hash<HttpServer::HttpHandlerResponseInfo> dispatchStream(HttpListenerInterface listener, RestHandler rh, Socket s, string mn, *hash<auto> ah, hash<auto> cx) {
+        private hash<HttpServer::HttpHandlerResponseInfo> dispatchStream(HttpListenerInterface listener,
+                RestHandler rh, Socket s, string mn, *hash<auto> ah, hash<auto> cx) {
             string sn = "stream" + mn[0].upr() + mn.substr(1);
             AbstractRestStreamRequestHandler rsh;
             try {
@@ -992,21 +1003,50 @@ public namespace RestHandler {
         }
 
         private {
+            #! logger
+            Logger::Logger logger;
+
             #! REST schema validator
             RestSchemaValidator::AbstractRestSchemaValidator validator;
         }
 
         #! create the object optionally with the given HttpServer::AbstractAuthenticator
-        /** @param auth the authentication object to use to authenticate connections (see HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by default no authentication will be required
-            @param validator a REST API schema validator object; if none is present, then the default REST de/serialization support is provided as documented in @ref RestSchemaValidator::NullRestSchemaValidator
-         */
-        constructor(*HttpServer::AbstractAuthenticator auth, RestSchemaValidator::AbstractRestSchemaValidator validator = new NullRestSchemaValidator()) : HttpServer::AbstractHttpRequestHandler(auth, True) {
+        /** @param auth the authentication object to use to authenticate connections (see
+            HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by
+            default no authentication will be required
+            @param validator a REST API schema validator object; if none is present, then the default REST
+            de/serialization support is provided as documented in @ref RestSchemaValidator::NullRestSchemaValidator
+        */
+        constructor(*HttpServer::AbstractAuthenticator auth,
+                RestSchemaValidator::AbstractRestSchemaValidator validator = new NullRestSchemaValidator())
+                : HttpServer::AbstractHttpRequestHandler(auth, True) {
+            self.validator = validator;
+        }
+
+        #! create the object optionally with the given Logger and authenticator
+        /** @param logger the logger to use for the handler
+            @param auth the authentication object to use to authenticate connections (see
+            HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by
+            default no authentication will be required
+            @param validator a REST API schema validator object; if none is present, then the default REST
+            de/serialization support is provided as documented in @ref RestSchemaValidator::NullRestSchemaValidator
+        */
+        constructor(Logger::Logger logger, *HttpServer::AbstractAuthenticator auth,
+                RestSchemaValidator::AbstractRestSchemaValidator validator = new NullRestSchemaValidator(logger))
+                : HttpServer::AbstractHttpRequestHandler(auth, True) {
+            self.logger = logger;
             self.validator = validator;
         }
 
         #! returns the name of the root REST class
         string name() {
             return "/";
+        }
+
+        #! Sets a new logger
+        setLogger(Logger::Logger logger) {
+            self.logger = logger;
+            validator.setLogger(logger);
         }
 
         #! processes REST API calls outside the HTTP server
@@ -1438,25 +1478,31 @@ public namespace RestHandler {
         responseSerializationError(hash<auto> cx, *hash<auto> aih, hash<auto> rv) {
         }
 
-        #! default implementation is empty; this method is called with informational log messages
+        #! This method is called with informational log messages
         /** reimplement in subclasses to provide for logging
         */
         logInfo(string fmt) {
-            delete argv;
+            if (logger) {
+                logger.logArgs(LoggerLevel::INFO, fmt, argv);
+            }
         }
 
-        #! default implementation is empty; this method is called with error log messages
+        #! This method is called with error log messages
         /** reimplement in subclasses to provide for logging
         */
         logError(string fmt) {
-            delete argv;
+            if (logger) {
+                logger.logArgs(LoggerLevel::ERROR, fmt, argv);
+            }
         }
 
-        #! default implementation is empty; this method is called with debug log messages
+        #! This method is called with debug log messages
         /** reimplement in subclasses to provide for logging
         */
         logDebug(string fmt) {
-            delete argv;
+            if (logger) {
+                logger.logArgs(LoggerLevel::DEBUG, fmt, argv);
+            }
         }
 
         #! creates a hash for an HTTP 200 OK error response with the response message body as a string

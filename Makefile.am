@@ -20,6 +20,7 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/HttpServer.qm \
 	qlib/MapperUtil.qm \
 	qlib/WebSocketUtil.qm \
+	qlib/Logger.qm \
 	qlib/RestSchemaValidator.qm \
 	qlib/Swagger.qm \
 	qlib/RestClient.qm \
@@ -47,7 +48,6 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/FreetdsSqlUtil.qm \
 	qlib/FsUtil.qm \
 	qlib/FtpPoller.qm \
-	qlib/Logger.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
 	qlib/Pop3Client.qm \
