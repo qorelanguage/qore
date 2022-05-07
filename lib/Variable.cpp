@@ -1933,11 +1933,16 @@ const void* ClosureVarValue::getLValueId() const {
 int ClosureVarValue::getLValue(LValueHelper& lvh, bool for_remove) const {
     //printd(5, "ClosureVarValue::getLValue() this: %p type: '%s' %d\n", this, val.getTypeName(), val.getType());
 
-    if (QoreTypeInfo::needsScan(typeInfo))
+    if (QoreTypeInfo::needsScan(typeInfo)) {
         lvh.setClosure(const_cast<ClosureVarValue*>(this));
+    }
 
     QoreSafeVarRWWriteLocker sl(rml);
     if (val.getType() == NT_REFERENCE) {
+        // issue #5413: prevent a crash due to stack exhaustion
+        if (check_stack(lvh.vl.xsink)) {
+            return -1;
+        }
         ReferenceHolder<ReferenceNode> ref(reinterpret_cast<ReferenceNode*>(val.v.n->refSelf()), lvh.vl.xsink);
         sl.unlock();
         LocalRefHelper<ClosureVarValue> helper(this, **ref, lvh.vl.xsink);
