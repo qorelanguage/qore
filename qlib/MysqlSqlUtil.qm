@@ -193,10 +193,11 @@ public namespace MysqlSqlUtil {
         }
     }
 
-    #! the data type for PostgreSQL DECIMAL columns
+    #! the data type for DECIMAL columns
     public class MysqlNumberDataType inherits SqlUtil::AbstractNumericDataType {
         #! creates the object
-        constructor(string native_type, bool nullable, *hash<auto> options) : AbstractNumericDataType(native_type, nullable, options) {
+        constructor(string native_type, bool nullable, *hash<auto> options)
+                : AbstractNumericDataType(native_type, nullable, options) {
         }
     }
 
@@ -733,9 +734,6 @@ auto v = c.name;
                     ),
                 ),
             );
-
-            #! MySQL creation options
-            const MyusqlCreationOptions = AbstractDatabase::CreationOptions;
 
             #! MySQL sequence function
             const MysqlSequenceFunction = "%s(seq_name varchar(40)) returns decimal(14)
@@ -1469,7 +1467,7 @@ end";
                 )
             );
 
-            #! Map @ref SqlUtil::cop_trunc_date() constants to PostgreSQL internal masks
+            #! Map @ref SqlUtil::cop_trunc_date() constants for internal masks
             const MysqlTruncDate = (
                     DT_YEAR     : "'%Y-01-01 00:00:00'",
                     DT_MONTH    : "'%Y-%m-01 00:00:00'",
