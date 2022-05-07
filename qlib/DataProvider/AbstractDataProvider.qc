@@ -1170,7 +1170,7 @@ public class AbstractDataProvider {
     */
     private *hash<auto> processFieldValues(*hash<auto> h, *hash<auto> search_options) {
         if (!h) {
-            return;
+            return h;
         }
         *hash<string, AbstractDataField> rec = getRecordTypeImpl(search_options);
         hash<auto> rv;
