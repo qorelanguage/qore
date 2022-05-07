@@ -210,8 +210,11 @@ const QURL_KEEP_BRACKETS = QURL_KEEP_BRACKETS;
 //! Perform percent decoding on the \c "host", \c "username", and \c "password" fields
 const QURL_DECODE = QURL_DECODE;
 
-//! Decodes all fields like @ref QURL_DECODE plus also performs percent decoding on the \c "path" field
+//! Decodes all fields like @ref QURL_DECODE plus also performs percent decoding on \c "path" and \c "query" fields
 const QURL_DECODE_PATH = QURL_DECODE_PATH;
+
+//! Includes the \a query field, if any is present in the URL
+const QURL_QUERY = QRUL_QUERY;
 //@}
 
 //! a hash describing a parsed URL
@@ -223,6 +226,9 @@ hashdecl UrlInfo {
 
     //! the path given in the URL string, if present
     string path;
+
+    //! the query part of the URL (i.e. text after any \c '?' char), if present
+    string query;
 
     //! the username of the URL, if present
     string username;
@@ -1080,6 +1086,9 @@ hash<UrlInfo> parse_url(string url, bool keep_brackets) {
     - \c path: any path given in the URL; the path will be prefixed by \c "/" if a hostname is found in the URL
       argument string, otherwise it will not if it was not given as such in the argument string; subject to percent
       decoding if @ref QURL_DECODE passed in \a options
+    - \c query: any query component of the URL (i.e. text after any \c '?' character); only present if the
+      @ref QRUL_QUERY argument is present in \a options; subject to percent decoding if
+      @ref QURL_DECODE passed in \a options
     - \c username: any username given in the URL; subject to percent decoding if @ref QURL_DECODE or
       @ref QURL_DECODE_PATH passed in \a options
     - \c password: any password given in the URL; subject to percent decoding if @ref QURL_DECODE or

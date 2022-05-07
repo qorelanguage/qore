@@ -20,6 +20,11 @@
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
       - allow a logger to be set in validators
         (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)
+    - fixed a bug where HTTP redirect messages were encoded twice causing redirect failures in cases where the
+      redirect URI path had encoded elements
+      (<a href="https://github.com/qorelanguage/qore/issues/4515">issue 4515</a>)
+    - fixed a crash related to stack exhaustion resolving deeply-nested references
+      (<a href="https://github.com/qorelanguage/qore/issues/4513">issue 4513</a>)
 
     @section qore_1_7_2 Qore 1.7.2
 
