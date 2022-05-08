@@ -91,12 +91,14 @@ struct con_info {
         password = tmp ? tmp->getBuffer() : "";
 
         if (username.empty() && !password.empty()) {
-            xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: password set without username");
+            xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: password set without "
+                "username");
             return -1;
         }
 
         if (!username.empty() && password.empty()) {
-            xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: username set without password");
+            xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: username set without "
+                "password");
             return -1;
         }
 

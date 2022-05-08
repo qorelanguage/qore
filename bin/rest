@@ -95,10 +95,11 @@ class RestCmd {
 
         if (opt.swagger) {
             opts.validator = SwaggerLoader::fromFile(opt.swagger);
-        } else if (opt.example)
+        } else if (opt.example) {
             error("option -x|--example requires -s|--swagger to provide the schema for generating the example");
-        else if (opt.list)
+        } else if (opt.list) {
             error("option -L|--list requires -s|--swagger to provide the schema for returning the list");
+        }
 
         if (opt.list) {
             printf("URL: %s\n",  opts.validator.getTargetUrl());
@@ -138,8 +139,9 @@ class RestCmd {
             }
         }
 
-        if (opts.validator && url !~ /^[a-z]+:\/\//)
+        if (opts.validator && url !~ /^[a-z]+:\/\//) {
             url = opts.validator.getTargetUrl() + (url !~ /^\// ? "/" : "") + url;
+        }
 
         # get URI path
         hash<UrlInfo> url_info = parse_url(url);
@@ -150,9 +152,21 @@ class RestCmd {
             int code = 200;
             for (int i = 0; i < opt.example.size(); ++i) {
                 switch (opt.example[i]) {
-                    case "q": msg = False; break;
-                    case "r": request = False; if (opt.example.size() > i + 1) code = opt.example.substr(i + 1).toInt(); i = opt.example.size(); break;
-                    default: error("unknown character %y found in example string %y; expected \"qr\"", opt.example[i]);
+                    case "q":
+                        msg = False;
+                        break;
+
+                    case "r":
+                        request = False;
+                        if (opt.example.size() > i + 1) {
+                            code = opt.example.substr(i + 1).toInt();
+                        }
+                        i = opt.example.size();
+                        break;
+
+                    default:
+                        error("unknown character %y found in example string %y; expected \"qr\"",
+                            opt.example[i]);
                 }
             }
 
@@ -164,8 +178,9 @@ class RestCmd {
                     printf("%s\n", rex.request_uri);
                     map printf("%s: %s\n", $1.key, $1.value), rex.hdr.pairIterator();
                     if (rex.body) {
-                        if (rex.hdr)
+                        if (rex.hdr) {
                             print("\n");
+                        }
                         print(rex.body + "\n");
                     }
                 } else {
@@ -174,8 +189,9 @@ class RestCmd {
                     printf("%s\n", res.response_uri);
                     map printf("%s: %s\n", $1.key, $1.value), res.hdr.pairIterator();
                     if (res.body) {
-                        if (res.hdr)
+                        if (res.hdr) {
                             print("\n");
+                        }
                         print(res.body + "\n");
                     }
                 }
@@ -241,20 +257,25 @@ class RestCmd {
             rest.addDefaultHeaders((k: v));
         }
 
-        if (exists body)
+        if (exists body) {
             body = parse_to_qore_value(body);
+        }
 
         if (opt.data) {
-            if (!RestClient::DataSerializationOptions{opt.data})
-                error("data serialization option %y is unknown; valid options: %y", opt.data, RestClient::DataSerializationOptions.keys());
+            if (!RestClient::DataSerializationOptions{opt.data}) {
+                error("data serialization option %y is unknown; valid options: %y", opt.data,
+                    RestClient::DataSerializationOptions.keys());
+            }
             rest.setSerialization(opt.data);
         }
 
         if (opt.sendenc) {
-            if (opt.sendenc === True)
+            if (opt.sendenc === True) {
                 opt.sendenc = "deflate";
-            else if (!RestClient::EncodingSupport{opt.sendenc})
-                error("send encoding option %y is unknown; valid options: %y", opt.sendenc, RestClient::EncodingSupport.keys());
+            } else if (!RestClient::EncodingSupport{opt.sendenc}) {
+                error("send encoding option %y is unknown; valid options: %y", opt.sendenc,
+                    RestClient::EncodingSupport.keys());
+            }
             rest.setSendEncoding(opt.sendenc);
         }
 
@@ -268,8 +289,9 @@ class RestCmd {
             }
 
             h = rest.doRequest(meth, request_path ?? "", body, \info);
-            if (!opt.lit)
+            if (!opt.lit) {
                 printf("%N\n", h.body);
+            }
         } catch (hash<ExceptionInfo> ex) {
             if (opt.fullex) {
                 printf("%s\n", get_exception_string(ex));
@@ -289,8 +311,9 @@ class RestCmd {
                             if (ex.arg.typeCode() == NT_STRING) {
                                 trim ex.arg;
                                 printf("%y", ex.arg);
-                            } else
+                            } else {
                                 printf("%y", ex.arg);
+                            }
                         }
                     }
                     print("\n");
@@ -380,7 +403,8 @@ class RestCmd {
             case NOTHING:
                 break;
             default:
-                throw "UNKNOWN-CONTENT-ENCODING", sprintf("unknown Content-Encoding %y used to send message", info.headers."Content-Encoding");
+                throw "UNKNOWN-CONTENT-ENCODING", sprintf("unknown Content-Encoding %y used to send message",
+                    info.headers."Content-Encoding");
         }
         return trim(info."request-body");
     }

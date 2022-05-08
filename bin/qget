@@ -51,7 +51,7 @@
 # size
 
 # ensure we have the minimum version of qore we need
-%requires qore >= 0.8.13
+%requires qore >= 1.0
 
 %require-our
 %enable-all-warnings
@@ -64,14 +64,14 @@
 our hash o; # global variable for options
 our int start; # global variable for start time
 
-const cstr = "*************************************************";
-const bstr = "-------------------------------------------------";
+const Cstr = "*************************************************";
+const Bstr = "-------------------------------------------------";
 
-const opts = (
+const Opts = {
     "verbose"  : "v,verbose:i+",
     "output"   : "o,output-file=s",
     "help"     : "h,help"
-    );
+};
 
 # run the "main" function
 main();
@@ -143,7 +143,8 @@ class QueueCallBack {
             if (o.verbose) {
                 if (o.verbose > 1)
                     printf("%.9f: ", (clock_getmicros() - start) / 1000000.0);
-                    myprintf("%s %s: %s\n", EVENT_SOURCE_MAP.(e.source), EVENT_MAP.(e.event), QueueCallBack::getstr(e - ("event", "source")));
+                    myprintf("%s %s: %s\n", EVENT_SOURCE_MAP.(e.source), EVENT_MAP.(e.event),
+                        QueueCallBack::getstr(e - ("event", "source")));
                     continue;
             }
 
@@ -247,7 +248,8 @@ class QueueCallBack {
 
         if (body_len) {
             float nh = total_read * 50 / float(body_len);
-            myprintf("\r%3d% %s%s %f %s (%d/%d)    ", total_read * 100 / float(body_len), substr(cstr, 0, nh), substr(bstr, nh), bps, units, total_read, body_len);
+            myprintf("\r%3d% %s%s %f %s (%d/%d)    ", total_read * 100 / float(body_len), substr(Cstr, 0, nh),
+                substr(Bstr, nh), bps, units, total_read, body_len);
         } else {
             myprintf("\r%d bytes %f %s     ", total_read, bps, units);
         }
@@ -268,7 +270,7 @@ sub usage(*bool long) {
 }
 
 sub main() {
-    GetOpt g(opts);
+    GetOpt g(Opts);
 
     try {
     	o = g.parse2(\ARGV);
@@ -304,7 +306,7 @@ sub main() {
                 HTTPClient hc(("url" : url));
                 cb = new QueueCallBack(hc, url);
 
-                x = hc.get(exists u.path ? u.path : "/", {"Accept": "*"});
+                x = hc.get(exists u.path ? u.path : "/", {"Accept": "*/*"});
                 break;
             }
             case "ftps":

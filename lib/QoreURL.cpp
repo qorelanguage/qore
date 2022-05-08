@@ -224,7 +224,8 @@ private:
                 // find the end of port data
                 if (port_start + 1 == sbuf.size()) {
                     if (xsink)
-                        xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid empty port specification", buf);
+                        xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid empty port specification",
+                            buf);
                     invalidate();
                     return;
                 }
@@ -232,7 +233,8 @@ private:
                 for (size_t i = port_start + 1; i < sbuf.size(); ++i) {
                     if (!isdigit(sbuf[i])) {
                         if (xsink)
-                            xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid non-numeric character in the port specification", buf);
+                            xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid non-numeric character "
+                                "in the port specification", buf);
                         invalidate();
                         return;
                     }
