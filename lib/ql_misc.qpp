@@ -212,9 +212,6 @@ const QURL_DECODE = QURL_DECODE;
 
 //! Decodes all fields like @ref QURL_DECODE plus also performs percent decoding on \c "path" and \c "query" fields
 const QURL_DECODE_PATH = QURL_DECODE_PATH;
-
-//! Includes the \a query field, if any is present in the URL
-const QURL_QUERY = QRUL_QUERY;
 //@}
 
 //! a hash describing a parsed URL
