@@ -51,8 +51,6 @@
 typedef std::vector<int> intvec_t;
 
 struct qore_string_private {
-private:
-
 public:
     size_t len = 0;
     size_t allocated = 0;
@@ -74,8 +72,9 @@ public:
     }
 
     DLLLOCAL ~qore_string_private() {
-        if (buf)
+        if (buf) {
             free(buf);
+        }
     }
 
     DLLLOCAL void check_char(size_t i) {

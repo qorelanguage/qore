@@ -663,7 +663,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
     p = strchr(str, '/');
     // make sure this is not the start of a path for an in-memory DB with no username and password
     if (p) {
-        if ((*str == '@') && (p == (str + 1))) {
+        if ((*str == '@') && ((p == (str + 1)) || (*(str + 1) && (p == (str + 2)) && (*(p - 1) == '.')))) {
             p = nullptr;
         // make sure this is not a path in an option
         } else if (strchr(p + 1, '}')) {

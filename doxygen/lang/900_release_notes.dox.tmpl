@@ -11,12 +11,19 @@
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
       - fixed a type error in \c DataProvider::search*() calls with an empty \c where hash argument
         (<a href="https://github.com/qorelanguage/qore/issues/4511">issue 4511</a>)
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
+      - fixed a bug where REST schema validation was not applied in all contexts with specialized REST clients; this
+        was enabled by refactoring the internal code that allowed the validation to be applied
+        (<a href="https://github.com/qorelanguage/qore/issues/4518">issue 4518</a>)
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
       - allow a logger to be set in validators
         (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)
     - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module
       - allow a logger to be set in validators
         (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)
+    - <a href="../../modules/Sqlite3SqlUtil/html/index.html">Sqlite3SqlUtil</a> module
+      - SQLite3 support for SqlUtil
+        (<a href="https://github.com/qorelanguage/qore/issues/4517">issue 4517</a>)
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
       - allow a logger to be set in validators
         (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)

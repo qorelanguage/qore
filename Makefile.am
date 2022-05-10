@@ -63,6 +63,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/Schema.qm \
 	qlib/SchemaReverse.qm \
 	qlib/SmtpClient.qm \
+    qlib/Sqlite3SqlUtil.qm \
 	qlib/Mapper.qm \
 	qlib/TableMapper.qm \
 	qlib/TelnetClient.qm \

@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.7.4";
+    version = "1.7.5";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -64,7 +64,8 @@ module RestClient {
     init = sub () {
         # if no modules for data de/serialization can be loaded, then throw an exception
         if (!RestClient::Accept)
-            throw "RESTCLIENT-ERROR", sprintf("none of the 'yaml', 'xml', or 'json' modules can be loaded; at least one of which is required to support data de/serialization for REST requests and responses");
+            throw "RESTCLIENT-ERROR", sprintf("none of the 'yaml', 'xml', or 'json' modules can be loaded; at least "
+                "one of which is required to support data de/serialization for REST requests and responses");
         ConnectionSchemeCache::registerScheme("rest", RestConnection::ConnectionScheme);
         ConnectionSchemeCache::registerScheme("rests", RestConnection::ConnectionScheme);
     };
@@ -125,6 +126,11 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_7_5 RestClient v1.7.5
+    - fixed a bug where REST schema validation was not applied in all contexts with specialized REST clients; this
+      was enabled by refactoring the internal code that allowed the validation to be applied
+      (<a href="https://github.com/qorelanguage/qore/issues/4518">issue 4518</a>)
 
     @subsection restclientv1_7_4 RestClient v1.7.4
     - removed erroneous / extraneous URI encoding on REST paths before sending
@@ -1040,19 +1046,31 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
                 info."response-body" = h.body;
             }
         }
-        hash<RestResponseClientInfo> sh = validator.parseResponse(m, path, h.status_code, h.body, h);
 
-        if (exists h.body) {
-            h.body = sh.body;
+        return processRestResponse(h, m, path, \info);
+    }
+
+    #! Process the raw REST response received
+    /** @param resp the return value from HTTPClient::send()
+        @param method the HTTP method used
+        @param path the URI path used
+        @param info an optional info hash reference for information about the call
+
+        @return \a resp with additional or processed information
+    */
+    private hash<auto> processRestResponse(hash<auto> resp, string method, string path, *reference<hash<auto>> info) {
+        hash<RestResponseClientInfo> sh = validator.parseResponse(method, path, resp.status_code, resp.body, resp);
+        if (exists resp.body) {
+            resp.body = sh.body;
             info += {
-                "response-serialization": sh.info.code
-                    ?? NullRestSchemaValidator::DataDeserializationSupport.(h."content-type").code
+                "response-serialization": sh.info."code"
+                    ?? NullRestSchemaValidator::DataDeserializationSupport{resp."content-type"}."code"
                     ?? "unknown",
-                "response-body": h.body,
+                "response-body": resp.body,
             };
         }
 
-        return h;
+        return resp;
     }
 
     #! decode any REST errors returned if possible
@@ -1081,10 +1099,11 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             ? h."content-type"[0]
             : h."content-type");
         *hash<auto> dh = NullRestSchemaValidator::DataDeserializationSupport{ct};
-        if (!dh)
+        if (!dh) {
             throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y; types "
                 "supported: %y; response body: %y", h."content-type",
                 NullRestSchemaValidator::DataDeserializationSupport.keys(), h.body);
+        }
 
         string code = dh."code";
         h.body = dh.arg
