@@ -26,7 +26,7 @@
 %requires qore >= 1.0
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.5
+%requires SqlUtil >= 1.7.5
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -124,14 +124,28 @@ public namespace Sqlite3SqlUtil {
 
     #! represents a Sqlite3-specific index
     public class Sqlite3Index inherits SqlUtil::AbstractIndex {
+        public {
+            hash<string, string> collations;
+        }
+
         #! creates the object from the arguments
-        constructor(string name, bool unique, hash<auto> cols) : AbstractIndex(name, unique, cols) {
+        constructor(string name, bool unique, hash<auto> cols, *hash<string, string> collations)
+                : AbstractIndex(name, unique, cols) {
+            if (collations) {
+                self.collations = collations;
+            }
         }
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash<auto> opt) {
             return sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name,
-                (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
+                (foldl $1 + ", " + $2, getColumnCollationList()));
+        }
+
+        #! Returns a list of column name with COLLATE argument per column, if appropriate
+        list<string> getColumnCollationList() {
+            return map sprintf("%s%s", $1, (*string col = collations{$1} ? " COLLATE " + col : NOTHING)),
+                columns.getSqlColumnNameIterator();
         }
 
         #! returns @ref True "True" if the argument is equal to the current index, @ref False "False" if not
@@ -648,7 +662,7 @@ auto v = c.name;
 
         #! returns the last value issued for the given sequence in the current session
         private softint getCurrentSequenceValueImpl(string name) {
-            throw "SQLITE3-SEQUENCE-ERROR", "currval is not supported for emulated Sqlite3 sequences";
+            throw "SQLITE3-SEQUENCE-ERROR", "Sqlite3 does not support sequences";
         }
 
         #! returns @ref True "True" since we have a workaround implementation for sequences in Sqlite3
@@ -769,6 +783,44 @@ auto v = c.name;
         }
 
         private Columns describeImpl() {
+            /*
+            string sql = ds.selectRow("select sql from sqlite_master where type = 'table' and tbl_name = %v",
+                name).sql;
+            *string cols = (sql =~ x/\((.*)\)/)[0];
+            if (cols) {
+                list<string> l = cols.split(",");
+                for (int i = 0; i < l.size(); ++i) {
+                    string str = l[i];
+                    if (str =~ /foreign key/) {
+                        int pc = 0;
+                        string fk = str;
+                        while (True) {
+                            # count to second close paren
+                            int spc = (str =~ x/(\))/g).size();
+                            if (spc) {
+                                pc += spc;
+                                if (pc == 2) {
+                                    break;
+                                }
+                            }
+                            ++i;
+                            if (i == l.size()) {
+                                throw "SQLITE3-ERROR", sprintf("unbalanced parens in sql: %y", sql);
+                            }
+                            str = l[i];
+                            fk += str;
+                        }
+                        (string fk_cols, string other_table, string other_cols) =
+                            (fk =~ x/foreign key\(([^\)]+)\) references ([^\)]+)\((.*)\)/);
+                        Columns targ_columns = getReferencedTableColumnsUnlocked(other_table, opts.table_cache);
+                        ForeignConstraintTarget fct(other_table, targ_columns.subset(other_cols.split(" ")));
+                        list<string> fk_col_list = fk_cols.split(" ");
+                        string fk_name = name + fk_col_list.join("_");
+                        rv{fk_name} = new Sqlite3ForeignConstraint(fk_name, new Columns(columns{fk_col_list}), fct);
+                    }
+                }
+            }
+            */
             # get column descriptions
             *hash<auto> qh = ds.select("pragma table_info(%s)", name);
             if (!qh.name) {
@@ -834,29 +886,29 @@ auto v = c.name;
         }
 
         private Indexes getIndexesImpl() {
-            hash rv;
+            hash<auto> rv;
 
             # get index descriptions
-            *hash qh = ds.select("", name);
-
-            if (qh.index_name) {
+            *hash<auto> qh = ds.select("select * from sqlite_master where type = 'index' and tbl_name = %v", name);
+            if (qh.name) {
                 hash<auto> ih;
                 foreach hash<auto> row in (qh.contextIterator()) {
-                    if (!ih.(row.index_name)) {
-                        ih.(row.index_name) = (
-                            "unique": !row.non_unique,
-                            "type": row.index_type,
-                        );
+                    list<string> cols = map trim($1),
+                        (row.sql =~ x/CREATE (?:UNIQUE )?INDEX.*[^\(]+\((.*)\)$/)[0].split(",");
+                    bool unique = (row.sql =~ /^CREATE UNIQUE INDEX /);
+                    ih{row.name}.unique = unique;
+                    foreach string col in (cols) {
+                        *string collation = (col =~ x/ COLLATE (.*)$/)[0];
+                        if (collation) {
+                            col =~ s/ COLLATE .*//g;
+                            ih{row.name}.collations{col} = collation;
+                        }
+                        ih{row.name}.columns{col} = columns{col};
                     }
-                    # send "blank" column for function index
-                    if (row.column_name =~ /\(.*\)/ || !columns.hasKey(row.column_name))
-                        ih.(row.index_name).columns{row.column_name} = {};
-                    else
-                        ih.(row.index_name).columns{row.column_name} = columns{row.column_name};
                 }
 
                 foreach hash<auto> i in (ih.pairIterator()) {
-                    rv.(i.key) = new Sqlite3Index(i.key, i.value.unique, i.value.columns, i.value.index_type);
+                    rv{i.key} = new Sqlite3Index(i.key, i.value.unique, i.value.columns, i.value.collations);
                 }
             }
 
@@ -864,36 +916,14 @@ auto v = c.name;
         }
 
         private ForeignConstraints getForeignConstraintsImpl(*hash<auto> opts) {
-            hash rv;
-            # get foreign referential constraints
-            # FIXME: use schema name
-            *hash qh = ds.select("");
-            if (qh.constraint_name) {
-                hash ch;
-                foreach hash<auto> row in (qh.contextIterator()) {
-                    reference<hash> c = \ch.(row.constraint_name);
-                    c.columns.(row.source_column) = columns{row.source_column};
-                    c.target.table = row.target_table;
-                    c.target.columns.(row.target_column) = True;
-                }
-
-                foreach hash c in (ch.pairIterator()) {
-                    # get a description of the target table's columns
-                    Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, opts.table_cache);
-                    ForeignConstraintTarget fct(c.value.target.table, targ_columns.subset(c.value.target.columns.keys()));
-                    rv.(c.key) = new Sqlite3ForeignConstraint(c.key, new Columns(c.value.columns), fct);
-                }
-            }
-
-            return new ForeignConstraints(rv);
+            return new ForeignConstraints();
         }
 
         private Constraints getConstraintsImpl() {
-            # sqlite3 does not support check constraints
-            hash rv;
+            hash<auto> rv;
 
             Constraints c = new Constraints(rv);
-
+            /*
             # get unique constraints
             *hash qh = ds.select("");
             delete rv;
@@ -906,13 +936,13 @@ auto v = c.name;
 
             # add unique constraints to constraint hash
             map c.add($1.key, $1.value), rv.pairIterator();
-
+            */
             return c;
         }
 
         private Triggers getTriggersImpl() {
             hash rv;
-
+            /*
             # get trigger description
             *hash qh = ds.select("");
 
@@ -920,30 +950,14 @@ auto v = c.name;
                 string src = sprintf("%s %s on %s for each %s %s", row.action_timing.lwr(), row.event_manipulation.lwr(), name, row.action_orientation.lwr(), row.action_statement);
                 rv{row.trigger_name} = new Sqlite3Trigger(row.trigger_name, src);
             }
-
+            */
             return new Triggers(rv);
         }
 
         string getCreateTableSqlImpl(*hash<auto> opt) {
             string sql = sprintf("create table %s (\n", name);
-
             sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
-            /*
-            {
-                *string encoding = self.table_encoding ?? ds.getDBEncoding();
-                if (encoding.val()) {
-                    sql += sprintf(" character set %s", encoding);
-                }
-            }
-            {
-                # get collation option or connection option, if any
-                *string collation = self.collation ?? ds.getOption("collation");
-                if (collation) {
-                    sql += sprintf(" collate %s", collation);
-                }
-            }
-            */
-
+            sql += "\n)";
             return sql;
         }
 
