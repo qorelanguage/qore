@@ -169,6 +169,9 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
 
             case "array":
                 return new SoftListDataType(getSchemaDataType(path, arrayItems), !required);
+
+            case "object":
+                return new HashDataType();
         }
 
         if (*string newname = OptimalQoreSoftDataTypeMap{typestr}) {
