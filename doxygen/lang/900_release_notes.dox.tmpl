@@ -27,6 +27,10 @@
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
       - allow a logger to be set in validators
         (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)
+    - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
+      - fixed a bug where \c object types in Swagger schemas could be converted directly to \c object types in %Qore
+        instead of \c hash
+        (<a href="https://github.com/qorelanguage/qore/issues/4520">issue 4520</a>)
     - fixed a bug where HTTP redirect messages were encoded twice causing redirect failures in cases where the
       redirect URI path had encoded elements
       (<a href="https://github.com/qorelanguage/qore/issues/4515">issue 4515</a>)

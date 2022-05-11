@@ -38,12 +38,13 @@ public namespace DataProvider {
 #! describes a data type based on a hash
 public class SoftListDataType inherits ListDataType {
     #! creates the object
-    constructor(AbstractDataProviderType element_type, bool or_nothing = False)
-            : ListDataType(element_type, or_nothing) {
+    constructor(AbstractDataProviderType element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
+            : ListDataType(element_type, or_nothing, options, tags) {
     }
 
     #! creates the object
-    constructor(Type element_type, bool or_nothing = False) : ListDataType(element_type, or_nothing) {
+    constructor(Type element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
+            : ListDataType(element_type, or_nothing, options, tags) {
     }
 
     #! returns the base type for the type, if any

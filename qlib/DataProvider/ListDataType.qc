@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
-%requires reflection
-
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hash
@@ -52,12 +41,14 @@ public class ListDataType inherits AbstractDataProviderType {
     }
 
     #! creates the object
-    constructor(AbstractDataProviderType element_type, bool or_nothing = False) {
+    constructor(AbstractDataProviderType element_type, bool or_nothing = False, *hash<auto> options,
+            *hash<auto> tags) : AbstractDataProviderType(options, tags) {
         init(element_type, or_nothing);
     }
 
     #! creates the object
-    constructor(Type element_type, bool or_nothing = False) {
+    constructor(Type element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
+            : AbstractDataProviderType(options, tags) {
         init(AbstractDataProviderType::get(element_type), or_nothing);
     }
 
