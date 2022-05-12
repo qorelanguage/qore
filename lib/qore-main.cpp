@@ -104,6 +104,11 @@ static void q_openssl_locking_function(int mode, int n, const char* file, int li
 }
 #endif
 
+#ifdef OPENSSL_3_PLUS
+OSSL_PROVIDER* ssl_prov_legacy = nullptr,
+    * ssl_prov_default = nullptr;
+#endif
+
 void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
     qore_license = license;
     qore_library_options = n_qore_library_options;
@@ -133,19 +138,18 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
 
 #ifdef OPENSSL_3_PLUS
     // load default provider
-    if (!OSSL_PROVIDER_load(nullptr, "default")) {
-        assert(false);
-    }
+    ssl_prov_default = OSSL_PROVIDER_load(nullptr, "default");
+    assert(ssl_prov_default);
     // load legacy provider
-    if (!OSSL_PROVIDER_load(nullptr, "legacy")) {
-        assert(false);
-    }
+    ssl_prov_legacy = OSSL_PROVIDER_load(nullptr, "legacy");
+    assert(ssl_prov_legacy);
 #endif
 
     qore_ssl_data_index = SSL_get_ex_new_index(0, (void*)"qore data index", NULL, NULL, NULL);
 
-    if (qore_library_options & QLO_DISABLE_GARBAGE_COLLECTION)
+    if (qore_library_options & QLO_DISABLE_GARBAGE_COLLECTION) {
         q_disable_gc = true;
+    }
 
     qore_string_init();
     QoreHttpClientObject::static_init();
@@ -196,8 +200,9 @@ void qore_init(qore_license_t license, const char *def_charset, bool show_module
     WORD wsver = MAKEWORD(2, 2);
     WSADATA wsd;
     int err = WSAStartup(wsver, &wsd);
-    if (err)
+    if (err) {
         printf("qore_init(): WSAStartup() failed with error: %d; sockets will not be available\n", err);
+    }
     _set_output_format(_TWO_DIGIT_EXPONENT);
 #endif
 
@@ -280,6 +285,17 @@ void qore_cleanup() {
         // delete openssl locks
         for (mutex_vec_t::iterator i = q_openssl_mutex_list.begin(), e = q_openssl_mutex_list.end(); i != e; ++i)
             delete *i;
+#endif
+
+#ifdef OPENSSL_3_PLUS
+        // unload legacy provider
+        if (!OSSL_PROVIDER_unload(ssl_prov_legacy)) {
+            assert(false);
+        }
+        // unload default provider
+        if (!OSSL_PROVIDER_unload(ssl_prov_default)) {
+            assert(false);
+        }
 #endif
     }
 
