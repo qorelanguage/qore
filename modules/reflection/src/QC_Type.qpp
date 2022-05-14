@@ -389,10 +389,8 @@ const QTI_NEAR = QTI_NEAR;
 const QTI_IDENT = QTI_IDENT;
 //@}
 
-//! The abstract base class for %Qore data types
+//! The base class for %Qore data types
 /**
-    This class cannot be instantiated directly and also cannot be directly inherited by user-defined classes.
-
     @since %Qore 0.9.0
  */
 qclass Type [ns=Qore::Reflection; arg=QoreType* t; dom=REFLECTION; vparent=Serializable; serializer=reinterpret_cast<q_serializer_t>(Type_serializer); deserializer=Type_deserializer];

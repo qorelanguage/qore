@@ -38,7 +38,7 @@
 %requires(reexport) RestClient
 
 module SwaggerDataProvider {
-    version = "1.2";
+    version = "1.2.1";
     desc = "user module providing a data provider API for Swagger schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,11 @@ module SwaggerDataProvider {
     - @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider"
 
     @section swaggerdataprovider_relnotes Release Notes
+
+    @subsection swaggerdataprovider_v1_2_1 SwaggerDataProvider v1.2.1
+    - fixed a bug where \c object types in Swagger schemas could be converted directly to \c object types in %Qore
+      instead of \c hash
+      (<a href="https://github.com/qorelanguage/qore/issues/4520">issue 4520</a>)
 
     @subsection swaggerdataprovider_v1_2 SwaggerDataProvider v1.2
     - fixed a bug where @ref SwaggerDataProvider::SwaggerDataProvider "SwaggerDataProvider" did not report binary and
