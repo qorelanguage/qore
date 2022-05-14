@@ -797,16 +797,24 @@ public namespace RestSchemaValidator {
                 }
                 bool ok;
                 hash<ExceptionInfo> ex;
+                # last serializer used
+                code last_serializer;
                 foreach string ct in (ctl) {
                     try {
-                        response_body = DataSerializationSupport{ct}(response_body);
+                        code serializer = DataSerializationSupport{ct};
+                        if (serializer == last_serializer) {
+                            continue;
+                        }
+                        last_serializer = serializer;
+                        response_body = serializer(response_body);
                         headers."Content-Type" = ct;
                         ok = True;
                         break;
                     } catch (hash<ExceptionInfo> ex1) {
                         if (logger) {
                             logger.log(LoggerLevel::ERROR, "error serializing response with Content-Type %y (%d/%d): "
-                                "%s", ct, $#, ctl.size(), get_exception_string(ex1));
+                                "%s; failed with response body: %N", ct, $#, ctl.size(), get_exception_string(ex1),
+                                response_body);
                         }
                         # ignore serialization exceptions
                         ex = ex1;
