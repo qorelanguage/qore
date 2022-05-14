@@ -76,6 +76,8 @@ module SwaggerDataProvider {
     @section swaggerdataprovider_relnotes Release Notes
 
     @subsection swaggerdataprovider_v1_2_1 SwaggerDataProvider v1.2.1
+    - fixed a bug where array types failed due to missing item definitions
+      (<a href="https://github.com/qorelanguage/qore/issues/4526">issue 4526</a>)
     - fixed a bug where \c object types in Swagger schemas could be converted directly to \c object types in %Qore
       instead of \c hash
       (<a href="https://github.com/qorelanguage/qore/issues/4520">issue 4520</a>)
