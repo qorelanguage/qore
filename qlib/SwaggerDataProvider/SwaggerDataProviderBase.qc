@@ -117,8 +117,11 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
         map type.addField(getFieldFromSchemaIntern(path + "/" + $1.key, $1.key, NOTHING, $1.value,
             exists schema.required{$1.key})), schema.properties.pairIterator();
         if (schema.additionalProperties) {
+            on_error printf("schema: %N\n", schema);
             type.setDefaultOtherFieldType(getType(path + "/" + schema.additionalProperties.type,
-                schema.additionalProperties.type));
+                schema.additionalProperties.type, schema.additionalProperties.format,
+                schema.additionalProperties.items,
+                !schema.additionalProperties.nullable));
         } else {
             # make sure that extra fields are not supported
             type.setDefaultOtherFieldType();
@@ -168,6 +171,9 @@ public class SwaggerDataProviderBase inherits AbstractDataProvider {
                     : new QoreSoftStringOrNothingDataType(type_options);
 
             case "array":
+                if (!arrayItems) {
+                    throw "SWAGGER-SCHEMA-ERROR", sprintf("no item definition for array path %y", path);
+                }
                 return new SoftListDataType(getSchemaDataType(path, arrayItems), !required);
 
             case "object":

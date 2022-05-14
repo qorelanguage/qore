@@ -265,7 +265,7 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
                     pio.getOperation(name.lwr(), uri_path));
             } catch (hash<ExceptionInfo> ex) {
                 if (ex.err != "INVALID-METHOD") {
-                    rethrow;
+                    rethrow ex.err, sprintf("%s (while resolving %y %y)", ex.desc, name, uri_path);
                 }
             }
         }
