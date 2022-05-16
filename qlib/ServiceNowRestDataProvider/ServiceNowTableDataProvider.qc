@@ -159,6 +159,21 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
                 # NOTE delete_access seems to always be False, while records can still be deleted
                 "supports_delete": access.create_access,
                 "supports_create": access.create_access,
+                "search_operators": {
+                    QUERY_OP_EQ: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_EQ},
+                    QUERY_OP_NE: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_NE},
+                    QUERY_OP_LT: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_LT},
+                    QUERY_OP_LE: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_LE},
+                    QUERY_OP_GT: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_GT},
+                    QUERY_OP_GE: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_GE},
+                    QUERY_OP_IN: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_IN},
+                    QUERY_OP_NOT: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_NOT},
+                    QUERY_OP_LIKE: <DataProviderSearchOperatorInfo>{
+                        "name": "like",
+                        "type": AbstractDataProviderType::get(Reflection::StringType),
+                        "desc": "The value to bind as the 'like' value (ex: '%some string%')",
+                    },
+                },
             };
         }
         return rv;

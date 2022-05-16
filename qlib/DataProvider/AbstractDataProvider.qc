@@ -58,6 +58,18 @@ public hashdecl DataProviderOptionInfo {
     string desc;
 }
 
+#! Data provider search operator info
+public hashdecl DataProviderSearchOperatorInfo {
+    #! The option value type or types
+    softlist<AbstractDataProviderType> type;
+
+    #! The search operator display name
+    string name;
+
+    #! The option description
+    string desc;
+}
+
 #! Data provider info
 public hashdecl DataProviderInfo {
     #! Data provider name
@@ -257,6 +269,13 @@ public hashdecl DataProviderInfo {
     */
     *hash<string, hash<DataProviderOptionInfo>> delete_field_options;
 
+    #! Search operators supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.3
+    */
+    *hash<string, hash<DataProviderSearchOperatorInfo>> search_operators;
+
     #! A hash of mapper key information
     /** @note
         - this is a static attribute; it is the same for all data providers of the same type
@@ -278,6 +297,77 @@ public hashdecl DataProviderInfo {
 #! The AbstractDataProvider class
 public class AbstractDataProvider {
     public {
+        #! Generic search operators
+        /** The following are generic search operators implemented for all data providers that do not provide any
+            native search functionality
+        */
+        const GenericRecordSearchOperators = {
+            DP_SEARCH_OP_EQ: <DataProviderSearchOperatorInfo>{
+                "name": "equals (=)",
+                "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                "desc": "a value for equality comparisons; the type of the value should correspond to the field type",
+            },
+            DP_SEARCH_OP_NE: <DataProviderSearchOperatorInfo>{
+                "name": "not equals (!=)",
+                "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                "desc": "a value for not=equals comparisons; the type of the value should correspond to the field "
+                    "type",
+            },
+            DP_SEARCH_OP_LT: <DataProviderSearchOperatorInfo>{
+                "name": "less than (<)",
+                "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                "desc": "a value for less than comparisons; if the field value is less than the argument, then the "
+                    "operation returns true; the type of the value should correspond to the field type",
+            },
+            DP_SEARCH_OP_LE: <DataProviderSearchOperatorInfo>{
+                "name": "less than or equals (<=)",
+                "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                "desc": "a value for less than or equals comparisons; if the field value is less than or equal to "
+                    "the argument, then the operation returns true; the type of the value should correspond to the "
+                    "field type",
+            },
+            DP_SEARCH_OP_GT: <DataProviderSearchOperatorInfo>{
+                "name": "greater than (>)",
+                "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                "desc": "a value for less than comparisons; if the field value is less than the argument, then the "
+                    "operation returns true; the type of the value should correspond to the field type",
+            },
+            DP_SEARCH_OP_GE: <DataProviderSearchOperatorInfo>{
+                "name": "greater than or equals (>=)",
+                "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                "desc": "a value for greater than or equals comparisons; if the field value is greater than or equal "
+                    "to the argument, then the operation returns true; the type of the value should correspond to "
+                    "the field type",
+            },
+            DP_SEARCH_OP_BETWEEN: <DataProviderSearchOperatorInfo>{
+                "name": "between",
+                "type": AbstractDataProviderType::get(AutoListType),
+                "desc": "A list with two elements giving the lower and upper bounds of the field value; the list "
+                    "element value types must be equal to the field's type",
+            },
+            DP_SEARCH_OP_IN: <DataProviderSearchOperatorInfo>{
+                "name": "in",
+                "type": AbstractDataProviderType::get(AutoListType),
+                "desc": "A list giving possible values of the field;  if the field's value matches any of the values "
+                    "in the list, then the operation returns true; element value types must be equal to the field's "
+                    "type",
+            },
+            DP_SEARCH_OP_NOT: <DataProviderSearchOperatorInfo>{
+                "name": "logical not (!)",
+                "type": AbstractDataProviderType::get(Reflection::NothingType),
+                "desc": "This operator takes no arguments and reverses the logical value of the field value or "
+                    "implicit operand",
+            },
+            DP_SEARCH_OP_REGEX: <DataProviderSearchOperatorInfo>{
+                "name": "regular expression match",
+                "type": (new HashDataType())
+                    .addField(new QoreDataField("pattern", "the regular expression pattern to apply on the field "
+                        "value", StringType))
+                    .addField(new QoreDataField("options", "a bitfield of regular expression options to use; ex: "
+                        "1: case-insensitive, 2: multi line matches, 4: dot matches newlines", IntType)),
+                "desc": "a value for equality comparisons; the type of the value should correspond to the field type",
+            },
+        };
     }
 
     private {

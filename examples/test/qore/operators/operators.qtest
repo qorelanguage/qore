@@ -39,6 +39,7 @@ class DataTest {
 
 class Test inherits QUnit::Test {
     constructor() : QUnit::Test("operators", "1.0", \ARGV) {
+        addTestCase("minor hash test", \minusHashTest());
         addTestCase("push unshift tests", \pushUnshiftTests());
         addTestCase("basic operator tests", \basicTests());
         addTestCase("date tests", \dateTests());
@@ -65,6 +66,15 @@ class Test inherits QUnit::Test {
         addTestCase("push & += tests", \pushPlusEqualsTests());
 
         set_return_value(main());
+    }
+
+    minusHashTest() {
+        hash<string, hash<StatInfo>> h0 = {
+            "a": <StatInfo>{},
+            "b": <StatInfo>{},
+        };
+        hash<string, hash<StatInfo>> h1 = h0 - 'a';
+        assertEq("hash<string, hash<StatInfo>>", h1.fullType());
     }
 
     pushUnshiftTests() {

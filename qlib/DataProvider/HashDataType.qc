@@ -188,13 +188,14 @@ public class HashDataType inherits QoreDataType {
     }
 
     #! adds a field to the type
-    addField(AbstractDataField field) {
+    HashDataType addField(AbstractDataField field) {
         fields{field.getName()} = field;
         # do not allow unnamed fields if any fields are added manually and no default other field type has been set
         # manually
         if (default_other_field_type && !manual_default_other_field_type) {
             remove default_other_field_type;
         }
+        return self;
     }
 
     #! Returns the given field, if present, or @ref nothing if not

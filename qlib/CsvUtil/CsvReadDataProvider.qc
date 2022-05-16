@@ -36,6 +36,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "has_record": True,
             "constructor_options": ConstructorOptions,
             "search_options": GenericRecordSearchOptions,
+            "search_operators": AbstractDataProvider::GenericRecordSearchOperators,
         };
 
         #! Constructor options

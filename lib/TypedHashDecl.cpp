@@ -139,8 +139,9 @@ int typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLocat
     for (auto& i : hd.members.member_list) {
         HashDeclMemberInfo* m = members.find(i.first);
         if (!m) {
-            if (!strict_check && QoreTypeInfo::parseReturns(i.second->getTypeInfo(), NT_NOTHING))
+            if (!strict_check) {
                 continue;
+            }
             parse_error(*loc, "hashdecl '%s' cannot be initialized from %s with hashdecl '%s' due to key '%s' " \
                 "present in hashdecl '%s' but not in the target hashdecl '%s'", name.c_str(), context,
                 hd.name.c_str(), i.first, hd.name.c_str(), name.c_str());

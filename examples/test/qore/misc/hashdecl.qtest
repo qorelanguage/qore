@@ -184,11 +184,6 @@ class HashDeclTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE);
-            assertThrows("PARSE-EXCEPTION", "hashdecl", \p.parse(), ("sub t() {hash<Container> c1; hash<Container2> c2(); c1 = cast<hash<Container>>(c2);}", ""));
-        }
-
-        {
-            Program p(PO_NEW_STYLE);
             assertThrows("PARSE-TYPE-ERROR", "assignment", \p.parse(), ("sub t() {hash<string, int> h = new hash<Container>();}", ""));
         }
 

@@ -47,6 +47,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "search_options": SearchOptions,
             "create_options": CreateOptions,
             "upsert_options": UpsertOptions,
+            "search_operators": (AbstractDataProvider::GenericRecordSearchOperators - DP_SEARCH_OP_REGEX),
             "transaction_management": True,
             "has_record": True,
             "mapper_keys": MapperKeyInfo,
@@ -250,6 +251,21 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     *string getDesc() {
         return sprintf("Record-based data provider for db table `%s`; supports create, read/search, update, delete, "
             "upsert, and bulk operations", table.getSqlName());
+    }
+
+    #! Returns data provider info
+    hash<DataProviderInfo> getInfo() {
+        *hash<string, hash<DataProviderSearchOperatorInfo>> search_operator_info = map {
+            $1.key: <DataProviderSearchOperatorInfo>{
+                "name": $1.value.name,
+                "type": $1.value.type,
+                "desc": $1.value.desc,
+            },
+        }, table.getWhereOperatorMap().pairIterator(), $1.value.name && $1.value.type && $1.value.desc;
+
+        hash<DataProviderInfo> rv = AbstractDataProvider::getInfo();
+        rv.search_operators = search_operator_info;
+        return rv;
     }
 
     #! Returns child providers; return @ref nothing if there are no child providers

@@ -6981,6 +6981,13 @@ string sql = table.getAlignSqlString(table2);
         return getSavepointHelperImpl(savepoint);
     }
 
+    #! returns the "where" operator map for this object
+    /** override in subclasses to return driver-specific options
+    */
+    hash<auto> getWhereOperatorMap() {
+        return DefaultOpMap;
+    }
+
     #! returns @ref True "True" if the underlying DB driver supports bulk DML operations
     abstract bool hasArrayBind();
 
@@ -7101,13 +7108,6 @@ string sql = table.getAlignSqlString(table2);
     */
     private hash<auto> getSqlDataCallbackOptions() {
         return SqlDataCallbackOptions;
-    }
-
-    #! returns the "where" operator map for this object
-    /** override in subclasses to return driver-specific options
-    */
-    private hash<auto> getWhereOperatorMap() {
-        return DefaultOpMap;
     }
 
     #! returns the column operator map for this object
