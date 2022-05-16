@@ -138,6 +138,21 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                     "desc": "uses FOR REFERENCE with the query to update the reference date",
                 },
             },
+            "search_operators": AbstractDataProvider::GenericRecordSearchOperators{
+                DP_SEARCH_OP_EQ,
+                DP_SEARCH_OP_LT,
+                DP_SEARCH_OP_LE,
+                DP_SEARCH_OP_GT,
+                DP_SEARCH_OP_GE,
+                DP_SEARCH_OP_IN,
+                DP_SEARCH_OP_NOT,
+            } + {
+                SOQL_OP_LIKE: <DataProviderSearchOperatorInfo>{
+                    "name": "like",
+                    "type": AbstractDataProviderType::get(StringType),
+                    "desc": "The value to bind as the 'like' value (ex: '%some string%')",
+                },
+            },
             "upsert_options": {
                 "extidfield": <DataProviderOptionInfo>{
                     "type": AbstractDataProviderType::get(StringType),

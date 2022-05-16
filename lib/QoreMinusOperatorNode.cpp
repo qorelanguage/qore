@@ -141,27 +141,31 @@ int QoreMinusOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse
 
     // if either side is a date, then the return type is date (highest priority)
     if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE)
-        || QoreTypeInfo::isType(rightTypeInfo, NT_DATE))
+        || QoreTypeInfo::isType(rightTypeInfo, NT_DATE)) {
         returnTypeInfo = dateTypeInfo;
     // otherwise we have to make sure types are known on both sides of the expression
-    else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
+    } else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
         if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER)
-                || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER))
+                || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER)) {
             returnTypeInfo = numberTypeInfo;
-        else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT)
-                || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT))
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT)
+                || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT)) {
             returnTypeInfo = floatTypeInfo;
-        else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT)
-                || QoreTypeInfo::isType(rightTypeInfo, NT_INT))
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT)
+                || QoreTypeInfo::isType(rightTypeInfo, NT_INT)) {
             returnTypeInfo = bigIntTypeInfo;
-        else if ((QoreTypeInfo::isType(leftTypeInfo, NT_HASH)
-                || QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT))
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH)
+            && (QoreTypeInfo::isType(rightTypeInfo, NT_STRING)
+                || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))) {
+            returnTypeInfo = leftTypeInfo;
+        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT)
                 && (QoreTypeInfo::isType(rightTypeInfo, NT_STRING)
-                || QoreTypeInfo::isType(rightTypeInfo, NT_LIST)))
-            returnTypeInfo = hashTypeInfo;
-        else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo))
+                || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))) {
+            returnTypeInfo = autoHashTypeInfo;
+        } else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo)) {
             // only return type nothing if both types are available and return a single type
             returnTypeInfo = nothingTypeInfo;
+        }
     }
 
     parse_context.typeInfo = returnTypeInfo;

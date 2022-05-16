@@ -2949,6 +2949,11 @@ auto v = c.name;
             return sql;
         }
 
+        #! returns the "where" operator map for this object
+        hash<auto> getWhereOperatorMap() {
+            return OracleOpMap;
+        }
+
         private *list getCreateMiscSqlImpl(*hash opt, bool cache) {
             if (cache)
                 getColumnsUnlocked();
@@ -3038,11 +3043,6 @@ auto v = c.name;
 
         private hash<auto> getAlignTableOptions() {
             return OracleAlignTableOptions;
-        }
-
-        #! returns the "where" operator map for this object
-        private hash<auto> getWhereOperatorMap() {
-            return OracleOpMap;
         }
 
         #! returns the column operator map for this object

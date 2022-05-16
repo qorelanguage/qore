@@ -1552,6 +1552,11 @@ any v = c.name;
             return schema + "." + name;
         }
 
+        #! returns the "where" operator map for this object
+        hash<auto> getWhereOperatorMap() {
+            return FreetdsOpMap;
+        }
+
         private string getFromIntern(string from, *hash qh) {
             # grep from clause with optional hints
             string hstr = from;
@@ -1604,11 +1609,6 @@ any v = c.name;
 
         private hash getAlignTableOptions() {
             return FreetdsAlignTableOptions;
-        }
-
-        #! returns the "where" operator map for this object
-        private hash getWhereOperatorMap() {
-            return FreetdsOpMap;
         }
 
         #! returns the column operator map for this object

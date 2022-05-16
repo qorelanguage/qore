@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "2.2.2";
+    version = "2.3";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -202,7 +202,9 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section dataprovider_relnotes Release Notes
 
-    @subsection dataprovider_v2_2_2 DataProvider v2.2.2
+    @subsection dataprovider_v2_3 DataProvider v2.3
+    - addded \c search_operators to the data provider response to report supported search operators
+      (<a href="https://github.com/qorelanguage/qore/issues/4528">issue 4528</a>)
     - fixed a type error in \c DataProvider::search*() calls with an empty \c where hash argument
       (<a href="https://github.com/qorelanguage/qore/issues/4511">issue 4511</a>)
 

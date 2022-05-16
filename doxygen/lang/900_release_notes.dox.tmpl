@@ -9,6 +9,8 @@
 
     @subsection qore_1_7_3_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - addded \c search_operators to the data provider response to report supported search operators
+        (<a href="https://github.com/qorelanguage/qore/issues/4528">issue 4528</a>)
       - fixed a type error in \c DataProvider::search*() calls with an empty \c where hash argument
         (<a href="https://github.com/qorelanguage/qore/issues/4511">issue 4511</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
@@ -33,6 +35,11 @@
       - fixed a bug where \c object types in Swagger schemas could be converted directly to \c object types in %Qore
         instead of \c hash
         (<a href="https://github.com/qorelanguage/qore/issues/4520">issue 4520</a>)
+    - fixed a bug where the @ref cast "cast<>() operator" threw parse-time exceptions with hashdecls that could
+      succeed at runtime
+      (<a href="https://github.com/qorelanguage/qore/issues/4531">issue 4531</a>)
+    - fixed a bug handling types at parse time with the @ref minus_operator "minus operator" and complex hash operands
+      (<a href="https://github.com/qorelanguage/qore/issues/4529">issue 4529</a>)
     - fixed a static memory leak in libqore shutting down the library when built with openssl 3+
       (<a href="https://github.com/qorelanguage/qore/issues/4522">issue 4522</a>)
     - fixed a bug where HTTP redirect messages were encoded twice causing redirect failures in cases where the

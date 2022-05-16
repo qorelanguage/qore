@@ -4339,36 +4339,39 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 args += arg;
                 return sprintf("%s like %v", cn);
             },
+            "name": "like",
+            "type": AbstractDataProviderType::get(StringType),
+            "desc": "The value to bind as the 'like' value (ex: '%some string%')",
         ),
-        OP_LT: (
+        OP_LT: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_LT} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s < %v", cn);
             },
         ),
-        OP_LE: (
+        OP_LE: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_LE} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s <= %v", cn);
             },
         ),
-        OP_GT: (
+        OP_GT: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_GT} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s > %v", cn);
             },
         ),
-        OP_GE: (
+        OP_GE: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_GE} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s >= %v", cn);
             },
         ),
-        OP_NE: (
+        OP_NE: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_NE} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 if (arg === NULL || !exists arg)
@@ -4377,7 +4380,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 return sprintf("(%s != %v or %s is null)", cn, cn);
             },
         ),
-        OP_EQ: (
+        OP_EQ: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_EQ} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 if (arg === NULL || !exists arg)
@@ -4386,7 +4389,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 return sprintf("%s = %v", cn);
             },
         ),
-        OP_BETWEEN: (
+        OP_BETWEEN: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_BETWEEN} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg[0];
@@ -4394,7 +4397,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 return sprintf("%s between %v and %v", cn);
             },
         ),
-        OP_IN: (
+        OP_IN: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_IN} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
@@ -4418,7 +4421,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "withopt": True,
         },
-        OP_NOT: (
+        OP_NOT: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_NOT} + (
             "recursive": True,
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
@@ -4431,6 +4434,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s < %s", cn, arg);
             },
+            "name": "column <",
+            "type": AbstractDataProviderType::get(StringType),
+            "desc": "a column name for less than comparisons; if the field value is less than the column argument's "
+                "value, then the operation returns true; the other column must have a compatible type",
         ),
         OP_CLE: (
             "argcolumn": True,
@@ -4438,6 +4445,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s <= %s", cn, arg);
             },
+            "name": "column <=",
+            "type": AbstractDataProviderType::get(StringType),
+            "desc": "a column name for less than or equals comparisons; if the field value is less than or equal to "
+                "the column argument's, then the operation returns true; the other column must have a compatible type",
         ),
         OP_CGT: (
             "argcolumn": True,
@@ -4445,6 +4456,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s > %s", cn, arg);
             },
+            "name": "column >",
+            "type": AbstractDataProviderType::get(StringType),
+            "desc": "a column name for less than comparisons; if the field value is less than the column argument's, "
+                "then the operation returns true; the other column must have a compatible type",
         ),
         OP_CGE: (
             "argcolumn": True,
@@ -4452,6 +4467,11 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s >= %s", cn, arg);
             },
+            "name": "column >=",
+            "type": AbstractDataProviderType::get(StringType),
+            "desc": "a column name for greater than or equals comparisons; if the field value is greater than or "
+                "equal to the column argument's, then the operation returns true; the other column must have a "
+                "compatible type",
         ),
         OP_CNE: (
             "argcolumn": True,
@@ -4459,6 +4479,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s != %s", cn, arg);
             },
+            "name": "column !=",
+            "type": AbstractDataProviderType::get(StringType),
+            "desc": "a column name for not=equals comparisons; the other column must have a compatible type",
         ),
         OP_CEQ: (
             "argcolumn": True,
@@ -4466,6 +4489,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 return sprintf("%s = %s", cn, arg);
             },
+            "name": "column =",
+            "type": AbstractDataProviderType::get(StringType),
+            "desc": "a value for equality comparisons; the other column must have a compatible type",
         ),
         OP_SUBSTR: (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
