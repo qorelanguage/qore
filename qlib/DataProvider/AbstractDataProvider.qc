@@ -310,7 +310,7 @@ public class AbstractDataProvider {
             DP_SEARCH_OP_NE: <DataProviderSearchOperatorInfo>{
                 "name": "not equals (!=)",
                 "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
-                "desc": "a value for not=equals comparisons; the type of the value should correspond to the field "
+                "desc": "a value for not-equals comparisons; the type of the value should correspond to the field "
                     "type",
             },
             DP_SEARCH_OP_LT: <DataProviderSearchOperatorInfo>{
