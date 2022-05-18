@@ -50,7 +50,8 @@ public class CdsRestRecordIterator inherits AbstractDataProviderRecordIterator {
         @param where_cond the where clause for the query, if any
         @param search_options search options; assumed to have already been processed for validity before this call
     */
-    constructor(CdsRestClient::CdsRestClient rest, string name, hash<CdsRestRecordInfo> record_info, *hash<auto> where_cond, *hash<auto> search_options) {
+    constructor(CdsRestClient::CdsRestClient rest, string name, hash<CdsRestRecordInfo> record_info,
+            *hash<auto> where_cond, *hash<auto> search_options) {
         self.rest = rest;
         self.name = name;
         self.record_info = record_info;

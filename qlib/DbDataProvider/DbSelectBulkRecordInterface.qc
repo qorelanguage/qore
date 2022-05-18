@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the DbDataProvider module
 public namespace DbDataProvider {
 #! Defines the record iterator class for Table-based iterators
@@ -56,7 +45,7 @@ public class DbSelectBulkRecordInterface inherits AbstractDataProviderBulkRecord
         @throw DBSELECT-BULK-ERROR where_cond must be empty
     */
     constructor(int block_size, AbstractDatasource ds, *hash<auto> where_cond, hash<auto> select_options)
-        : AbstractDataProviderBulkRecordInterface(block_size) {
+            : AbstractDataProviderBulkRecordInterface(block_size) {
         if (where_cond) {
             throw "DBSELECT-BULK-ERROR", sprintf("where_cond must be empty for %s; value provided: %y",
                 self.className(), where_cond);
