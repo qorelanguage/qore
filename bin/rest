@@ -213,7 +213,8 @@ class RestCmd {
             try {
                 AbstractConnection conn = get_connection(opt.conn);
                 if (!(conn instanceof RestConnection)) {
-                    stderr.printf("connection %y is a %y object; expecting \"RestClient\"; exiting\n", opt.conn, conn.className());
+                    stderr.printf("connection %y is a %y object; expecting \"RestClient\"; exiting\n", opt.conn,
+                        conn.className());
                     exit(1);
                 }
                 rest = conn.get();
@@ -224,7 +225,7 @@ class RestCmd {
                 exit(1);
             }
         } else {
-            request_path = "";
+            request_path = url_info.path ?? "/";
             opts.url = url;
 
             if (opt.proxy)
