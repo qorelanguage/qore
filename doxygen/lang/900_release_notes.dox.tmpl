@@ -20,6 +20,9 @@
         was enabled by refactoring the internal code that allowed the validation to be applied
         (<a href="https://github.com/qorelanguage/qore/issues/4518">issue 4518</a>)
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
+      - do not raise a validation error when a response with an unknown code has a message body; this hides the true
+        error message from the caller in case of error messages
+        (<a href="https://github.com/qorelanguage/qore/issues/4534">issue 4534</a>)
       - allow a logger to be set in validators
         (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)
     - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module
