@@ -28,7 +28,7 @@
 %strict-args
 
 # make sure we have the required qore version
-%requires qore >= 1.0
+%requires qore >= 1.7.3
 
 # try importing JSON and YAML modules
 %try-module json
@@ -151,6 +151,9 @@ RestHandler handler(NOTHING, swagger);
     @section swagger_relnotes Swagger Module Release Notes
 
     @subsection swagger_2_0_8 Swagger v2.0.8
+    - do not raise a validation error when a response with an unknown code has a message body; this hides the true
+      error message from the caller in case of error messages
+      (<a href="https://github.com/qorelanguage/qore/issues/4534">issue 4534</a>)
     - allow a logger to be set in validators
       (<a href="https://github.com/qorelanguage/qore/issues/4509">issue 4509</a>)
 
@@ -2761,15 +2764,19 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! validates a response against the response definition, if any
-    validateResponse(string method, string path, PathItemObject pio, int code, reference<auto> response_body, reference<hash<string, bool>> mime_types) {
-        *ResponseObject res = getResponse(code);
+    validateResponse(string method, string path, PathItemObject pio, int http_code, reference<auto> response_body,
+            reference<hash<string, bool>> mime_types) {
+        *ResponseObject res = getResponse(http_code);
         if (res.schema) {
             res.schema.check(True, False, path, method, "response body", \response_body);
-        } else if (response_body != NOTHING)
-            error("SCHEMA-VALIDATION-ERROR", "Response to this path and method should not have any body");
+        } else if (exists res && exists response_body) {
+            error("SCHEMA-VALIDATION-ERROR", "Response code %y to %s %y should not have any body", http_code, method,
+                path);
+        }
 
-        if (produces)
+        if (produces) {
             mime_types = produces;
+        }
     }
 
     #! returns example Qore code for the given request
