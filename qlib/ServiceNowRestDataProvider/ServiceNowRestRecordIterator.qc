@@ -64,6 +64,7 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
             if (query) {
                 uri += sprintf("?%s", query);
             }
+            printf("uri: %s\n", uri);
             i = new ListHashIterator(rest.get(uri, NOTHING, \info).body.response.result);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
@@ -142,23 +143,41 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
             }
             filter += "sysparm_query=" + doWhereExpression(where_cond, search_options);
         }
-        if (search_options.groupby) {
-            if (filter) {
-                filter += "&";
-            }
-            filter += "GROUPBY" + getColumnNames(search_options.groupby);
-        }
         if (search_options.orderby) {
             if (filter) {
-                filter += "&";
+                if (where_cond) {
+                    filter += "^";
+                } else {
+                    filter += "&sysparm_query=";
+                }
+            } else {
+                filter += "sysparm_query=";
             }
             filter += "ORDERBY" + getOrderBy(search_options.orderby);
         }
         if (search_options.orderbydesc) {
             if (filter) {
-                filter += "&";
+                if (where_cond || search_options.orderby) {
+                    filter += "^";
+                } else {
+                    filter += "&sysparm_query=";
+                }
+            } else {
+                filter += "sysparm_query=";
             }
             filter += "ORDERBYDESC" + getOrderBy(search_options.orderbydesc);
+        }
+        if (search_options.groupby) {
+            if (filter) {
+                if (where_cond || search_options.orderby || search_options.orderbydesc) {
+                    filter += "^";
+                } else {
+                    filter += "&sysparm_query=";
+                }
+            } else {
+                filter += "sysparm_query=";
+            }
+            filter += "GROUPBY" + getColumnNames(search_options.groupby);
         }
         if (search_options.limit) {
             if (filter) {

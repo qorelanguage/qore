@@ -37,7 +37,7 @@
 %requires(reexport) ServiceNowRestClient
 
 module ServiceNowRestDataProvider {
-    version = "1.1";
+    version = "1.1.1";
     desc = "user module providing a data provider API for ServiceNow instances through the REST API";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,10 @@ module ServiceNowRestDataProvider {
     - @ref ServiceNowRestDataProvider::ServiceNowTablesDataProvider "ServiceNowTablesDataProvider"
     - @ref ServiceNowRestDataProvider::ServiceNowTableDataProvider "ServiceNowTableDataProvider"
     - @ref ServiceNowRestDataProvider::ServiceNowRestRecordIterator "ServiceNowRestRecordIterator"
+
+    @subsection servicenowrestdataprovider_v1_1_1 ServiceNowRestDataProvider v1.1.1
+    - fixed bugs handling the \c orderby, \c orderbydesc, and \c groupby search options
+      (<a href="https://github.com/qorelanguage/qore/issues/4536">issue 4536</a>)
 
     @subsection servicenowrestdataprovider_v1_1 ServiceNowRestDataProvider v1.1
     - updated to no longer require OAuth2 login params
