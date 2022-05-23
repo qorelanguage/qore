@@ -54,11 +54,6 @@ public class DbTableDataProvider inherits AbstractDataProvider {
                     "desc": "The value to bind as the 'like' value (ex: '%some string%')",
                     "uses_field_type": False,
                 },
-                OP_NOT: <DataProviderSearchOperatorInfo>{
-                    "name": "logical not",
-                    "desc": "Negates the operator expression given as an argument",
-                    "supports_nesting": True,
-                },
             },
             "transaction_management": True,
             "has_record": True,
@@ -272,6 +267,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
                 "name": $1.value.name,
                 "type": $1.value.type,
                 "desc": $1.value.desc,
+                "supports_nesting": $1.value.recursive ?? False,
+                "uses_field_type": !$1.value.argcolumn && !$1.value.recursive,
             },
         }, table.getWhereOperatorMap().pairIterator(), $1.value.name && $1.value.type && $1.value.desc;
 
