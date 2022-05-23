@@ -47,7 +47,14 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "search_options": SearchOptions,
             "create_options": CreateOptions,
             "upsert_options": UpsertOptions,
-            "search_operators": (AbstractDataProvider::GenericRecordSearchOperators - DP_SEARCH_OP_REGEX),
+            "search_operators": (AbstractDataProvider::GenericRecordSearchOperators - DP_SEARCH_OP_REGEX) + {
+                OP_LIKE: <DataProviderSearchOperatorInfo>{
+                    "name": "like",
+                    "type": AbstractDataProviderType::get(Reflection::StringType),
+                    "desc": "The value to bind as the 'like' value (ex: '%some string%')",
+                    "uses_field_type": False,
+                },
+            },
             "transaction_management": True,
             "has_record": True,
             "mapper_keys": MapperKeyInfo,

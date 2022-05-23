@@ -71,6 +71,12 @@ public hashdecl DataProviderSearchOperatorInfo {
 
     #! The option description
     string desc;
+
+    #! Values must be of the field type
+    bool uses_field_type = True;
+
+    #! Supports nesting operators
+    bool supports_nesting = False;
 }
 
 #! Data provider info
@@ -360,6 +366,7 @@ public class AbstractDataProvider {
                 "type": AbstractDataProviderType::get(Reflection::NothingType),
                 "desc": "This operator takes no arguments and reverses the logical value of the field value or "
                     "implicit operand",
+                "supports_nesting": True,
             },
             DP_SEARCH_OP_REGEX: <DataProviderSearchOperatorInfo>{
                 "name": "regular expression match",
@@ -369,6 +376,7 @@ public class AbstractDataProvider {
                     .addField(new QoreDataField("options", "a bitfield of regular expression options to use; ex: "
                         "1: case-insensitive, 2: multi line matches, 4: dot matches newlines", IntType)),
                 "desc": "a value for equality comparisons; the type of the value should correspond to the field type",
+                "uses_field_type": False,
             },
         };
     }

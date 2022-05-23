@@ -151,6 +151,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                     "name": "like",
                     "type": AbstractDataProviderType::get(StringType),
                     "desc": "The value to bind as the 'like' value (ex: '%some string%')",
+                    "uses_field_type": False,
                 },
             },
             "upsert_options": {

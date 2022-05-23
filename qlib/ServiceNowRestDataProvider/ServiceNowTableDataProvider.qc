@@ -172,6 +172,7 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
                         "name": "like",
                         "type": AbstractDataProviderType::get(Reflection::StringType),
                         "desc": "The value to bind as the 'like' value (ex: '%some string%')",
+                        "uses_field_type": False,
                     },
                 },
             };
