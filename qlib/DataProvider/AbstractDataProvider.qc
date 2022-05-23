@@ -363,9 +363,8 @@ public class AbstractDataProvider {
             },
             DP_SEARCH_OP_NOT: <DataProviderSearchOperatorInfo>{
                 "name": "logical not (!)",
-                "type": AbstractDataProviderType::get(Reflection::NothingType),
-                "desc": "This operator takes no arguments and reverses the logical value of the field value or "
-                    "implicit operand",
+                "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                "desc": "This operator reverses the logcal value of the operator expression given as an argument",
                 "supports_nesting": True,
             },
             DP_SEARCH_OP_REGEX: <DataProviderSearchOperatorInfo>{

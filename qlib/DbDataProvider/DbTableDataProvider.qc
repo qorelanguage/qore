@@ -54,6 +54,11 @@ public class DbTableDataProvider inherits AbstractDataProvider {
                     "desc": "The value to bind as the 'like' value (ex: '%some string%')",
                     "uses_field_type": False,
                 },
+                OP_NOT: <DataProviderSearchOperatorInfo>{
+                    "name": "logical not",
+                    "desc": "Negates the operator expression given as an argument",
+                    "supports_nesting": True,
+                },
             },
             "transaction_management": True,
             "has_record": True,
