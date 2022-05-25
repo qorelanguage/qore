@@ -33,6 +33,18 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
+/** @defgroup dataprovider_logic_ops DataProvider Generic Logic Operators
+    These are the generic logic operators that can be used using generic data provider APIs; all logical operations
+    support logic short-circuiting
+*/
+#@{
+#! AND logic
+public const DP_OP_AND = "AND";
+
+#! OR logic
+public const DP_OP_OR = "OR";
+#@}
+
 /** @defgroup dataprovider_generic_search_ops DataProvider Generic Search Operators
     These are the generic operators that can be used for searching using the generic data provider search APIs
 */
@@ -391,6 +403,19 @@ public class AbstractDataProviderRecordIterator inherits AbstractIterator {
                 keys record);
         }
         return rv;
+    }
+
+    #! Checks if the current record matches the search criteria
+    /** in case of a hash value, if the hash was created by a
+        @ref dataprovider_generic_search_op_funcs "search operator function", then that search operation is applied to
+        the input, otherwise a recursive partial match with only the keys given in the value to be checked is
+        performed
+    */
+    private static bool matchGeneric(hash<auto> record, hash<DataProviderExpression> where_cond) {
+        return AbstractDataProvider::evalGenericExpression(record, <DataProviderExpression>{
+            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_AND}.exp,
+            "args": where_cond,
+        });
     }
 
     #! Checks if the current record matches the search criteria

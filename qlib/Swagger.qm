@@ -2689,11 +2689,14 @@ public class OperationObject inherits ObjectBase {
         foreach string key in (keys h.params) {
             # find URI parameter object
             *AbstractParameterObject po = parameters{key} ?? pio.parameters{key};
-            if (!po)
-                error("SCHEMA-VALIDATION-ERROR", "No parameter named %y defined for this path and method", key);
-            if (po.inLoc != "query")
+            if (!po) {
+                error("SCHEMA-VALIDATION-ERROR", "No query parameter named %y defined for this path and method; "
+                    "known query parameters: %y", key, keys (parameters + pio.parameters));
+            }
+            if (po.inLoc != "query") {
                 error("SCHEMA-VALIDATION-ERROR", "invalid parameter %y given in the URI query; expected location %y",
                     key, po.inLoc);
+            }
 
             po.check(serialize, True, path, method, key, \h.params{key});
         }
@@ -2703,8 +2706,9 @@ public class OperationObject inherits ObjectBase {
             # find URI parameter object
             *AbstractParameterObject po = parameters{key} ?? pio.parameters{key};
             # extra headers are OK
-            if (!po || po.inLoc != "header")
+            if (!po || po.inLoc != "header") {
                 continue;
+            }
 
             po.check(serialize, True, path, method, key, \headers{key});
         }
@@ -2712,14 +2716,15 @@ public class OperationObject inherits ObjectBase {
         # check body parameters
         {
             *AbstractParameterObject body_po = self.body ?? pio.body;
-            if (body_po)
+            if (body_po)  {
                 body_po.check(serialize, True, path, method, "body", \body);
-            else if (formData) {
+            } else if (formData) {
                 foreach hash<auto> i in (formData.pairIterator()) {
                     i.value.check(serialize, True, path, method, "formData." + i.key, \body{i.key});
                 }
-            } else if (body)
+            } else if (body) {
                 error("SCHEMA-VALIDATION-ERROR", "No message body is accepted; body keys passed: %y", keys body);
+            }
         }
 
         # check for missing required parameters

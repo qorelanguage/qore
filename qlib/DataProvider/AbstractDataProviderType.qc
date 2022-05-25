@@ -81,7 +81,7 @@ public const OptimalQoreSoftDataTypeMap = OptimalQoreDataTypeMap + {
     Type::Date: "softdate",
 };
 
-#! maps Qore type name constant values to data type objects
+#! Maps Qore type name constant values to data type objects
 public const DataTypeMap = {
     "int": IntType,
     Type::Int: IntType,
@@ -100,6 +100,8 @@ public const DataTypeMap = {
     Type::NothingType: AbstractDataProviderType::nothingType,
     "data": DataType,
     "all": AbstractDataProviderType::anyType,
+    "any": AbstractDataProviderType::anyType,
+    "auto": AbstractDataProviderType::anyType,
     "*int": IntOrNothingType,
     "*integer": IntOrNothingType,
     "*string": StringOrNothingType,
@@ -115,6 +117,10 @@ public const DataTypeMap = {
     "*date": DateOrNothingType,
     "*data": DataOrNothingType,
 };
+
+#! Maps Qore type name constant values to AbstractDataProviderType values
+public const AbstractDataProviderTypeMap = map {$1.key: AbstractDataProviderType::get($1.value)},
+    DataTypeMap.pairIterator();
 
 #! describes type options
 public hashdecl DataProviderTypeOptionInfo {

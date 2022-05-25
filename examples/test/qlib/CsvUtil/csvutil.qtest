@@ -172,6 +172,60 @@ f2:3,00:5:25,34";
 
             {
                 reset();
+                hash<DataProviderExpression> cond = <DataProviderExpression>{
+                    "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_OR}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "serno"},
+                                1234567892,
+                            ),
+                        },
+                        <DataProviderExpression>{
+                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "serno"},
+                                1234567893,
+                            ),
+                        },
+                    )
+                };
+                rows = map $1, dp.searchRecordsExpr(cond);
+                assertEq(5, rows[0].size());
+                assertEq(2, rows.size());
+
+                reset();
+                cond.args += <DataProviderExpression>{
+                    "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_OR}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_NE}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "activated"},
+                                False,
+                            ),
+                        },
+                        <DataProviderExpression>{
+                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_GE}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "received"},
+                                2012-05-31,
+                            ),
+                        },
+                    ),
+                };
+                rows = map $1, dp.searchRecordsExpr(cond);
+                assertEq(5, rows[0].size());
+                assertEq(4, rows.size());
+
+                reset();
+                cond.args[0].args[0].field = "xyz";
+                assertThrows("INVALID-OPERATION", sub () { map $1, dp.searchRecordsExpr(cond); });
+            }
+
+            {
+                reset();
                 rows = map $1, dp.searchRecords();
                 assertEq(5, rows[0].size());
                 assertEq(4, rows.size());
