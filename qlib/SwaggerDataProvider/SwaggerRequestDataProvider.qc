@@ -225,7 +225,36 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
 
     #! Returns an iterator for zero or more records matching the search options
     /** @param req the request to serialize and make according to the request type
-        @param where_cond the search criteria; will be processed by processFieldValues()
+        @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+
+        This will execute the request and perform a default search on any record(s) returned
+
+        @throw SWAGGER-SEARCH-ERROR the response type is not list or hash and does not support searching
+    */
+    private AbstractDataProviderRecordIterator requestSearchRecordsImpl(auto req,
+            *hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
+        hash<auto> resp = doRequestIntern(req, search_options);
+        # return an iterator for the result
+        AbstractIterator i;
+        switch (resp.body.typeCode()) {
+            case NT_HASH:
+                i = new SingleValueIterator(resp.body);
+                break;
+            case NT_LIST:
+                i = new ListIterator(resp.body);
+                break;
+            default:
+                throw "SWAGGER-SEARCH-ERROR", sprintf("the response has type %y, which does not support searching",
+                    resp.body.type());
+                break;
+        }
+        return new DefaultRecordIterator(i, where_cond, NOTHING, record_type);
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param req the request to serialize and make according to the request type
+        @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
 
         This will execute the request and perform a default search on any record(s) returned

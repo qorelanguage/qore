@@ -325,7 +325,7 @@ AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_in(200, 3
     @return an @ref SearchOperatorInfo hash for use in generic search criteria
 */
 public hash<SearchOperatorInfo> sub dp_op_in() {
-    return dp_make_op(DP_SEARCH_OP_IN, (map {$1: True}, argv));
+    return dp_make_op(DP_SEARCH_OP_IN, argv);
 }
 
 #! returns an @ref SearchOperatorInfo hash for the \c "in" operator with the given argument list as the first argument
@@ -339,7 +339,7 @@ AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_in(name_l
     @return an @ref SearchOperatorInfo hash for use in generic search criteria
 */
 public hash<SearchOperatorInfo> sub dp_op_in(list<auto> args) {
-    return dp_make_op(DP_SEARCH_OP_IN, (map {$1: True}, args));
+    return dp_make_op(DP_SEARCH_OP_IN, args);
 }
 
 #! returns an @ref SearchOperatorInfo hash for the \c "not" operator

@@ -191,13 +191,13 @@ f2:3,00:5:25,34";
                         },
                     )
                 };
-                rows = map $1, dp.searchRecordsExpr(cond);
+                rows = map $1, dp.searchRecords(cond);
                 assertEq(5, rows[0].size());
                 assertEq(2, rows.size());
 
                 reset();
                 cond.args += <DataProviderExpression>{
-                    "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_OR}.exp,
+                    "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_AND}.exp,
                     "args": (
                         <DataProviderExpression>{
                             "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_NE}.exp,
@@ -215,13 +215,13 @@ f2:3,00:5:25,34";
                         },
                     ),
                 };
-                rows = map $1, dp.searchRecordsExpr(cond);
+                rows = map $1, dp.searchRecords(cond);
                 assertEq(5, rows[0].size());
                 assertEq(4, rows.size());
 
                 reset();
                 cond.args[0].args[0].field = "xyz";
-                assertThrows("INVALID-OPERATION", sub () { map $1, dp.searchRecordsExpr(cond); });
+                assertThrows("INVALID-OPERATION", sub () { map $1, dp.searchRecords(cond); });
             }
 
             {

@@ -198,7 +198,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
     /** @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
     */
-    private AbstractDataProviderRecordIterator searchRecordsExprImpl(*hash<DataProviderExpression> where_cond,
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<DataProviderExpression> where_cond,
             *hash<auto> search_options) {
         return new DefaultRecordIterator(i, where_cond, search_options, getRecordType());
     }

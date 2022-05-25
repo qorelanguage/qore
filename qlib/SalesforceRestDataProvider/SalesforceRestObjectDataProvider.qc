@@ -138,7 +138,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                     "desc": "uses FOR REFERENCE with the query to update the reference date",
                 },
             },
-            "search_operators": AbstractDataProvider::GenericRecordSearchOperators{
+            "expressions": AbstractDataProvider::GenericExpressions{
                 DP_SEARCH_OP_EQ,
                 DP_SEARCH_OP_LT,
                 DP_SEARCH_OP_LE,
@@ -147,11 +147,14 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                 DP_SEARCH_OP_IN,
                 DP_SEARCH_OP_NOT,
             } + {
-                SOQL_OP_LIKE: <DataProviderSearchOperatorInfo>{
+                SOQL_OP_LIKE: <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "name": "like",
-                    "type": AbstractDataProviderType::get(StringType),
+                    "label": SOQL_OP_LIKE,
+                    "symbol": "like",
                     "desc": "The value to bind as the 'like' value (ex: '%some string%')",
-                    "uses_field_type": False,
+                    "args": (DataProviderSignatureStringType, DataProviderSignatureStringValueType),
+                    "return_type": AbstractDataProviderTypeMap."bool",
                 },
             },
             "upsert_options": {
@@ -186,6 +189,18 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
             }
         }
         return rv;
+    }
+
+    #! Backwards-compatible search expression handler until this class can be ported to use generic expressions
+    *hash<auto> getSearchExpression(*hash<auto> where_cond, *hash<auto> search_options) {
+        if (where_cond instanceof hash<DataProviderExpression>) {
+            throw "WHERE-ERROR", sprintf("DataProvider %y type %y does not yet support generic expressions for "
+                "searching", getName(), self.className());
+        }
+        if (!where_cond) {
+            return;
+        }
+        return processFieldValues(where_cond, search_options);
     }
 
     #! Creates the given record to the data provider

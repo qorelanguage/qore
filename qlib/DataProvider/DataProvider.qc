@@ -372,16 +372,33 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{oracle:us
         # strip types
         hash info = info0;
         foreach hash<auto> i0 in (info.pairIterator()) {
-            if (i0.value.typeCode() == NT_HASH && i0.key =~ /_(options|operators)/) {
-                # if the info key value is a hash with a "type" key, then return the type name instead of the type
-                # object
-                map info{i0.key}{$1.key}.type = (map $1.getName(), $1.value.type),
-                    i0.value.pairIterator(),
-                    $1.value.type;
-                if (with_type_info) {
-                    map info{i0.key}{$1.key}.type_info = (map $1.getInfo(), $1.value.type),
+            if (i0.value.typeCode() == NT_HASH) {
+                if (i0.key =~ /_options/) {
+                    # if the info key value is a hash with a "type" key, then return the type name instead of the type
+                    # object
+                    map info{i0.key}{$1.key}.type = (map $1.getName(), $1.value.type),
                         i0.value.pairIterator(),
                         $1.value.type;
+                    if (with_type_info) {
+                        map info{i0.key}{$1.key}.type_info = (map $1.getInfo(), $1.value.type),
+                            i0.value.pairIterator(),
+                            $1.value.type;
+                    }
+                } else if (i0.key == "expressions") {
+                    foreach hash<auto> i1 in (i0.value.pairIterator()) {
+                        info{i0.key}{i1.key}.args = map (
+                            "type_code": SignatureTypeCodeMap{$1.type_code},
+                            "type": $1.type.getName(),
+                        ), i1.value.args;
+                        info{i0.key}{i1.key}.return_type = i1.value.return_type.getName();
+                        if (with_type_info) {
+                            info{i0.key}{i1.key}.arg_type_info = map (
+                                "type_code": SignatureTypeCodeMap{$1.type_code},
+                                "type": $1.type.getInfo(),
+                            ), i1.value.args;
+                            info{i0.key}{i1.key}.return_type_info = i1.value.return_type.getInfo();
+                        }
+                    }
                 }
             }
         }

@@ -47,12 +47,15 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "search_options": SearchOptions,
             "create_options": CreateOptions,
             "upsert_options": UpsertOptions,
-            "search_operators": (AbstractDataProvider::GenericRecordSearchOperators - DP_SEARCH_OP_REGEX) + {
-                OP_LIKE: <DataProviderSearchOperatorInfo>{
+            "expressions": (AbstractDataProvider::GenericExpressions - DP_SEARCH_OP_REGEX) + {
+                OP_LIKE: <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "name": "like",
-                    "type": AbstractDataProviderType::get(Reflection::StringType),
-                    "desc": "The value to bind as the 'like' value (ex: '%some string%')",
-                    "uses_field_type": False,
+                    "label": OP_LIKE,
+                    "symbol": "like",
+                    "desc": "The SQL 'like' operator')",
+                    "args": (DataProviderSignatureStringType, DataProviderSignatureStringValueType),
+                    "return_type": AbstractDataProviderTypeMap."bool",
                 },
             },
             "transaction_management": True,
@@ -262,18 +265,22 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
     #! Returns data provider info
     hash<DataProviderInfo> getInfo() {
-        *hash<string, hash<DataProviderSearchOperatorInfo>> search_operator_info = map {
-            $1.key: <DataProviderSearchOperatorInfo>{
+        *hash<string, hash<DataProviderExpressionInfo>> expression_info = map {
+            $1.key: <DataProviderExpressionInfo>{
                 "name": $1.value.name,
-                "type": $1.value.type,
+                "label": $1.key,
+                "symbol": $1.key,
+                "args": $1.value.args,
+                "return_type": $1.value.return_type,
                 "desc": $1.value.desc,
-                "supports_nesting": $1.value.recursive ?? False,
-                "uses_field_type": !$1.value.argcolumn && !$1.value.recursive,
             },
-        }, table.getWhereOperatorMap().pairIterator(), $1.value.name && $1.value.type && $1.value.desc;
+        }, table.getWhereOperatorMap().pairIterator(), $1.value.name && $1.value.args && $1.value.return_type
+            && $1.value.desc;
 
         hash<DataProviderInfo> rv = AbstractDataProvider::getInfo();
-        rv.search_operators = search_operator_info;
+        if (expression_info) {
+            rv.expressions = expression_info;
+        }
         return rv;
     }
 
@@ -379,6 +386,18 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return table.getRecordType();
     }
 
+    #! Backwards-compatible search expression handler until this class can be ported to use generic expressions
+    *hash<auto> getSearchExpression(*hash<auto> where_cond, *hash<auto> search_options) {
+        if (where_cond instanceof hash<DataProviderExpression>) {
+            throw "WHERE-ERROR", sprintf("DataProvider %y type %y does not yet support generic expressions for "
+                "searching", getName(), self.className());
+        }
+        if (!where_cond) {
+            return;
+        }
+        return processFieldValues(where_cond, search_options);
+    }
+
     #! Writes the given record to the data provider
     /** @param rec a hash representing a single input record
         @param create_options the create options (see @ref CreateOptions) after processing by validateCreateOptions()
@@ -439,7 +458,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         @throw INVALID-BLOCK-SIZE the block size must be a positive number
         @throw INVALID-OPERATION the data provider does not support reading
     */
-    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000, *hash<auto> where_cond, *hash<auto> search_options) {
+    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000,
+            *hash<auto> where_cond, *hash<auto> search_options) {
         return new DbTableBulkRecordInterface(block_size, table, where_cond, search_options);
     }
 

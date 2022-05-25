@@ -4937,7 +4937,7 @@ string sql = table.getSelectSql(sh, \args);
                 use_prefix = asteriskRequiresPrefix();
             else if (!columns.hasKey(cv) && !psch{cv})
                 throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y; "
-                    "known column aliases: %y", getDesc(), tp, cv, keys columns, keys psch);
+                    "known column aliases: %y", getDesc(), tp, cv, columns.keys(), keys psch);
         }
 
         # ensure that reserved words are properly quoted
@@ -4951,24 +4951,28 @@ string sql = table.getSelectSql(sh, \args);
         return False;
     }
 
-    private getSelectWhereSqlUnlocked(reference<string> sql, reference<list<auto>> args, *hash<auto> qh, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
+    private getSelectWhereSqlUnlocked(reference<string> sql, reference<list<auto>> args, *hash<auto> qh,
+            *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
         if (qh."where")
             sql += getWhereClauseUnlocked(qh."where", \args, NOTHING, jch, join, ch, psch);
     }
 
-    private *string getWhereClause(*hash cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch, bool join = False) {
+    private *string getWhereClause(*hash<auto> cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch,
+            bool join = False) {
         l.lock();
         on_exit l.unlock();
         return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
     }
 
-    private *string getWhereClause(list cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch, bool join = False) {
+    private *string getWhereClause(list cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch,
+            bool join = False) {
         l.lock();
         on_exit l.unlock();
         return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
     }
 
-    private *string getWhereClauseUnlocked(list cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch, bool join = False, *hash pch, *hash<auto> psch) {
+    private *string getWhereClauseUnlocked(list cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch,
+            bool join = False, *hash pch, *hash<auto> psch) {
         getColumnsUnlocked();
         list al = ();
         if (!exists args)
@@ -4982,8 +4986,18 @@ string sql = table.getSelectSql(sh, \args);
             return " where " + (foldl $1 + " or " + $2, al);
     }
 
-    private *string getWhereClauseUnlocked(*hash cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch, bool join = False, *hash pch, *hash<auto> psch) {
+    private *string getWhereExpressionUnlocked(hash<DataProviderExpression> cond, reference<list<auto>> args,
+            *string cprefix, *hash<auto> jch, bool join = False, *hash pch, *hash<auto> psch) {
+        throw "IMPLEMENT-ME";
+    }
+
+    private *string getWhereClauseUnlocked(*hash<auto> cond, reference<list<auto>> args, *string cprefix,
+            *hash<auto> jch, bool join = False, *hash pch, *hash<auto> psch) {
         getColumnsUnlocked();
+        if (cond instanceof hash<DataProviderExpression>) {
+            return getWhereExpressionUnlocked(cast<hash<DataProviderExpression>>(cond), \args, cprefix, jch, join,
+                pch, psch);
+        }
         if (!exists args)
             args = ();
         *list<string> wl = getWhereClauseIntern(cond, \args, cprefix, jch, join, pch, psch);
@@ -4991,39 +5005,48 @@ string sql = table.getSelectSql(sh, \args);
             return " where " + (foldl $1 + " and " + $2, wl);
     }
 
-    private *list<string> getWhereClauseIntern(*hash cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
+    private *list<string> getWhereClauseIntern(*hash<auto> cond, reference<list<auto>> args, *string cprefix,
+            *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
         if (!cond)
             return;
 
-        return map doWhereExpressionIntern(cprefix ? sprintf("%s.%s", cprefix, $1.key) : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch, psch, opt), cond.pairIterator();
+        return map doWhereExpressionIntern(cprefix
+            ? sprintf("%s.%s", cprefix, $1.key)
+            : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch, psch, opt),
+            cond.pairIterator();
     }
 
-    private string doWhereExpressionIntern(string cn, auto we, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
+    private string doWhereExpressionIntern(string cn, auto we, reference<list<auto>> args, *hash<auto> jch,
+            bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
         int wt = we.typeCode();
         if (wt == NT_HASH) {
             if (we.hasKey("cop")) {
                 *hash<auto> psch_copy = psch;
                 string val = doColumnOperatorIntern(we, jch, join, ch, psch, \psch_copy);
                 if (psch_copy != psch)
-                    throw "WHERE-ERROR", sprintf("%s: cannot use column operator function %y in the where clause with column alias specifications", getDesc(), we.cop);
+                    throw "WHERE-ERROR", sprintf("%s: cannot use column operator function %y in the where clause "
+                        "with column alias specifications", getDesc(), we.cop);
                 return sprintf("%s = %s", cn, val);
             }
 
             if (!we.op)
-                throw "WHERE-ERROR", sprintf("%s: argument to key %y is a hash without an \"op\" key: %y", getDesc(), cn, we);
+                throw "WHERE-ERROR", sprintf("%s: argument to key %y is a hash without an \"op\" key: %y", getDesc(),
+                    cn, we);
 
             hash<auto> wm = getWhereOperatorMap();
 
             *hash<auto> cmd = wm{we.op};
             if (!cmd)
-                throw "WHERE-ERROR", sprintf("%s: operator hash for key %y has unknown operator %y: expecting one of: %y (operator hash: %y)", getDesc(), cn, we.op, wm.keys(), we);
+                throw "WHERE-ERROR", sprintf("%s: operator hash for key %y has unknown operator %y: expecting one "
+                    "of: %y (operator hash: %y)", getDesc(), cn, we.op, wm.keys(), we);
 
             if (cmd.recursive) {
                 cn = doWhereExpressionIntern(cn, we.arg, \args, jch, join, ch, psch, opt);
                 delete we.arg;
             } else if (cmd.argcolumn) {
                 if (!we.arg || we.arg.typeCode() != NT_STRING)
-                    throw "WHERE-ERROR", sprintf("%s: operator hash for key %y expects a string column name; got type %y instead", getDesc(), cn, we.arg.type());
+                    throw "WHERE-ERROR", sprintf("%s: operator hash for key %y expects a string column name; got "
+                        "type %y instead", getDesc(), cn, we.arg.type());
                 we.arg = getColumnNameIntern(we.arg, jch, join, ch, psch);
             } else if (cmd.withopt) {
                 return cmd.code(self, cn, we.arg, \args, jch, join, ch, psch, opt);
@@ -5037,7 +5060,8 @@ string sql = table.getSelectSql(sh, \args);
         return sprintf("%s = %v", cn);
     }
 
-    string getOrClause(list<auto> arglist, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
+    string getOrClause(list<auto> arglist, reference<list<auto>> args, *hash<auto> jch, bool join = False,
+            *hash<auto> ch, *hash<auto> psch) {
         list<string> l = ();
         foreach hash<auto> h in (arglist) {
             string str = getOrClause(h, \args, jch, join, ch, psch);
@@ -5047,12 +5071,14 @@ string sql = table.getSelectSql(sh, \args);
         return l ? ("(" + (foldl $1 + " or " + $2, l) + ")") : "";
     }
 
-    string getOrClause(hash<auto> arg, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
+    string getOrClause(hash<auto> arg, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch,
+            *hash<auto> psch) {
         *list<string> wl = getWhereClauseIntern(arg, \args, NOTHING, jch, join, ch, psch);
         return wl ? ("(" + (foldl $1 + " and " + $2, wl) + ")") : "";
     }
 
-    private doSelectOrderBySqlUnlocked(reference<string> sql, reference<list<auto>> args, *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list coll) {
+    private doSelectOrderBySqlUnlocked(reference<string> sql, reference<list<auto>> args, *hash<auto> qh,
+            *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list coll) {
         list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
 
         sql += " order by " + (foldl $1 + ", " + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
@@ -5066,7 +5092,8 @@ int dcnt = table.delCommit(("name": name));
 
         @param cond a hash of conditions for the where clause; see @ref where_clauses for more information
         @param sql an optional reference to a string to return the SQL generated for the select statement
-        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for more info
+        @param opt optional SQL data operation callback options; see @ref AbstractTable::SqlDataCallbackOptions for
+        more info
 
         @return the count of rows deleted
 

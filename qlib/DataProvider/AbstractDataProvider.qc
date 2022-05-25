@@ -62,6 +62,8 @@ public hashdecl DataProviderOptionInfo {
 }
 
 /** @defgroup signature_type_codes Signature Type Codes
+
+    @since DataProvider 2.3
 */
 #@{
 #! Indicates any valid expression that returns the given type (default)
@@ -75,16 +77,6 @@ public const ST_Value = 2;
     referring to the fact that the final type reflects the field's type, which can be of any supported type
 */
 public const ST_Field = 3;
-
-#! The argument must be a operator expression with return type bool where the first arg is a field reference
-/** In this case the type is always "bool"
-*/
-public const ST_BooleanFieldOperator = 4;
-
-#! Indicates a literal value of the type of the previous argument
-/** This cannot be used for the first argument; in this case the type is always "any"
-*/
-public const ST_ConformantValue = 5;
 #@}
 
 #! Maps signature type codes to descriptions
@@ -92,14 +84,14 @@ public const SignatureTypeCodeMap = {
     ST_Any: "any",
     ST_Value: "value",
     ST_Field: "field reference",
-    ST_BooleanFieldOperator: "boolean field operator",
-    ST_ConformantValue: "value of a confrmant type",
 };
 
 #! Maps signature description values to integer codes
 public const SignatureTypeDescMap = map {$1.value: $1.key.toInt()}, SignatureTypeCodeMap.pairIterator();
 
 /** @defgroup expression_role_codes Expression Role Codes
+
+    @since DataProvider 2.3
 */
 #@{
 #! Indicates an expression that can be used in a search operation
@@ -118,6 +110,8 @@ public const RoleCodeMap = {
 public const RoleDescMap = map {$1.value: $1.key.toInt()}, RoleCodeMap.pairIterator();
 
 /** @defgroup logic_capability_codes Logic Capability Codes
+
+    @since DataProvider 2.3
 */
 #@{
 #! Indicates that boolean expressions can be combined with AND logic
@@ -152,18 +146,6 @@ public hashdecl DataProviderSignatureTypeInfo {
 public const DataProviderSignatureFieldType = <DataProviderSignatureTypeInfo>{
     "type": AbstractDataProviderTypeMap."any",
     "type_code": ST_Field,
-};
-
-#! Data provider signature operator type
-public const DataProviderSignatureBooleanFieldOperatorType = <DataProviderSignatureTypeInfo>{
-    "type": AbstractDataProviderTypeMap."bool",
-    "type_code": ST_BooleanFieldOperator,
-};
-
-#! Data provider signature conformant value type
-public const DataProviderSignatureConformantValueType = <DataProviderSignatureTypeInfo>{
-    "type": AbstractDataProviderTypeMap."any",
-    "type_code": ST_ConformantValue,
 };
 
 #! Data provider signature string value type
@@ -202,8 +184,38 @@ public const DataProviderSignatureBoolType = <DataProviderSignatureTypeInfo>{
     "type_code": ST_Any,
 };
 
+#! Data provider signature string type
+public const DataProviderSignatureStringType = <DataProviderSignatureTypeInfo>{
+    "type": AbstractDataProviderTypeMap."string",
+    "type_code": ST_Any,
+};
+
+/** @defgroup dataprovider_expression_type_codes DataProvider Expression Type Codes
+
+    @since DataProvider 2.3
+*/
+#@{
+#! Indicates an operator expression
+public const DET_Operator = 1;
+
+#! Indicates a function expression
+public const DET_Function = 2;
+#@}
+
+#! Maps DataProvider expression type codes to descriptions
+public const ExpressionTypeCodeMap = {
+    DET_Operator: "operator",
+    DET_Function: "function",
+};
+
+#! Maps DataProvider expression type descriptions to integer codes
+public const ExpressionTypeDescMap = map {$1.value: $1.key.toInt()}, ExpressionTypeCodeMap.pairIterator();
+
 #! Data provider signature info
 public hashdecl DataProviderExpressionInfo {
+    #! The type of expression; see @ref dataprovider_expression_type_codes
+    int type;
+
     #! The label used for the expression
     string label;
 
@@ -481,12 +493,14 @@ public hashdecl DataProviderInfo {
 #! The AbstractDataProvider class
 public class AbstractDataProvider {
     public {
+        #! Generic expression implementations for data providers without native search functionality
         const GenericExpressionImplementations = {
             DP_OP_AND: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_OP_AND,
                     "name": "and (&&)",
-                    "desc": "logical AND operation supporting short-circuiting",
+                    "desc": "logical AND operation supporting logic short-circuiting",
                     "symbol": "&&",
                     "args": (DataProviderSignatureBoolType),
                     "varargs": True,
@@ -503,9 +517,10 @@ public class AbstractDataProvider {
             },
             DP_OP_OR: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_OP_OR,
                     "name": "or (||)",
-                    "desc": "logical OF operation supporting short-circuiting",
+                    "desc": "logical OR operation supporting logic short-circuiting",
                     "symbol": "||",
                     "args": (DataProviderSignatureBoolType),
                     "varargs": True,
@@ -522,6 +537,7 @@ public class AbstractDataProvider {
             },
             DP_SEARCH_OP_EQ: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_SEARCH_OP_EQ,
                     "name": "equals (=)",
                     "desc": "a value for equality comparisons; the type of the value should correspond to the field "
@@ -531,12 +547,17 @@ public class AbstractDataProvider {
                     "return_type": AbstractDataProviderTypeMap."bool",
                 },
                 "impl": auto sub (hash<auto> rec, hash<DataProviderExpression> exp) {
-                    return AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[0])
-                        == AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1]);
+                    auto arg0 = AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[0]);
+                    auto arg1 = AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1]);
+                    # for backwards compatibility, if the first argument is a field reference, and the second is a
+                    # hash
+
+                    return arg0 == arg1;
                 },
             },
             DP_SEARCH_OP_NE: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_SEARCH_OP_NE,
                     "name": "not equals (!=)",
                     "desc": "a value for not-equals comparisons; the type of the value should correspond to the "
@@ -552,6 +573,7 @@ public class AbstractDataProvider {
             },
             DP_SEARCH_OP_LT: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_SEARCH_OP_LT,
                     "name": "less than (<)",
                     "desc": "a value for less than comparisons; if the field value is less than the argument, then "
@@ -567,6 +589,7 @@ public class AbstractDataProvider {
             },
             DP_SEARCH_OP_LE: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_SEARCH_OP_LE,
                     "name": "less than or equals (<=)",
                     "desc": "a value for less than or equals comparisons; if the field value is less than or equal "
@@ -583,6 +606,7 @@ public class AbstractDataProvider {
             },
             DP_SEARCH_OP_GT: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_SEARCH_OP_GT,
                     "name": "greater than (>)",
                     "desc": "a value for less than comparisons; if the field value is less than the argument, then "
@@ -598,6 +622,7 @@ public class AbstractDataProvider {
             },
             DP_SEARCH_OP_GE: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_SEARCH_OP_GE,
                     "name": "greater than or equals (>=)",
                     "desc": "a value for greater than or equals comparisons; if the field value is greater than or "
@@ -614,6 +639,7 @@ public class AbstractDataProvider {
             },
             DP_SEARCH_OP_BETWEEN: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_SEARCH_OP_BETWEEN,
                     "name": "between",
                     "desc": "A list with two elements giving the lower and upper bounds of the field value; the list "
@@ -634,6 +660,7 @@ public class AbstractDataProvider {
             },
             DP_SEARCH_OP_IN: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_SEARCH_OP_IN,
                     "name": "in",
                     "desc": "A list giving possible values of the field;  if the field's value matches any of the "
@@ -651,11 +678,12 @@ public class AbstractDataProvider {
             },
             DP_SEARCH_OP_NOT: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_SEARCH_OP_NOT,
                     "name": "logical not (!)",
                     "desc": "This operator reverses the logcal value of the operator expression given as an argument",
                     "symbol": "!",
-                    "args": (DataProviderSignatureBooleanFieldOperatorType),
+                    "args": (DataProviderSignatureBoolType,),
                     "return_type": AbstractDataProviderTypeMap."bool",
                 },
                 "impl": auto sub (hash<auto> rec, hash<DataProviderExpression> exp) {
@@ -664,22 +692,28 @@ public class AbstractDataProvider {
             },
             DP_SEARCH_OP_REGEX: {
                 "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
                     "label": DP_SEARCH_OP_REGEX,
                     "name": "regular expression match",
                     "desc": "regular expression operator; the first argument will be processed with the second as a "
                         "regular expression pattern",
                     "symbol": "regex",
                     "args": (
-                        DataProviderSignatureFieldType,
-                        DataProviderSignatureStringValueType,
-                        DataProviderSignatureOptionalIntValueType,
+                        DataProviderSignatureStringType,
+                        <DataProviderSignatureTypeInfo>{
+                            "type": (new HashDataType())
+                                .addField(new QoreDataField("pattern", "the regular expression pattern",
+                                    AbstractDataProviderTypeMap."string"))
+                                .addField(new QoreDataField("options", "regular expression options",
+                                    AbstractDataProviderTypeMap."*int")),
+                        },
                     ),
                     "return_type": AbstractDataProviderTypeMap."bool",
                 },
                 "impl": auto sub (hash<auto> rec, hash<DataProviderExpression> exp) {
+                    auto arg1 = AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1]);
                     return regex(AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[0]).toString(),
-                        AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1]),
-                        AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[2]));
+                        arg1.pattern, arg1.options);
                 },
             },
         };
@@ -687,6 +721,8 @@ public class AbstractDataProvider {
         #! Generic search operator expressions
         /** The following are generic search operator expressions implemented for all data providers that do not
             provide native search functionality
+
+            @since DataProvider 2.3
         */
         const GenericExpressions = map {$1.key: $1.value.exp}, GenericExpressionImplementations.pairIterator();
     }
@@ -808,11 +844,13 @@ public class AbstractDataProvider {
         @param search_options the search options; will be processed by validateSearchOptions()
 
         @throw INVALID-OPERATION the data provider does not support reading
+
+        @since DataProvider 2.3
     */
-    *hash<auto> searchFirstRecordExpr(hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
+    *hash<auto> searchFirstRecord(hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         checkRead();
         search_options = validateSearchOptions(search_options);
-        return searchFirstRecordExprImpl(processSearchParameters(where_cond, search_options), search_options);
+        return searchFirstRecordImpl(processSearchParameters(where_cond, search_options), search_options);
     }
 
     #! Returns the first record matching the search options
@@ -824,7 +862,7 @@ public class AbstractDataProvider {
     *hash<auto> searchFirstRecord(hash<auto> where_cond, *hash<auto> search_options) {
         checkRead();
         search_options = validateSearchOptions(search_options);
-        return searchFirstRecordImpl(processFieldValues(where_cond, search_options), search_options);
+        return searchFirstRecordImpl(getSearchExpression(where_cond, search_options), search_options);
     }
 
     #! Returns a single record matching the search options
@@ -833,11 +871,13 @@ public class AbstractDataProvider {
 
         @throw INVALID-OPERATION the data provider does not support reading
         @throw MULTIPLE-RECORDS-ERROR multiple records found
+
+        @since DataProvider 2.3
     */
-    *hash<auto> searchSingleRecordExpr(hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
+    *hash<auto> searchSingleRecord(hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         checkRead();
         search_options = validateSearchOptions(search_options);
-        return searchSingleRecordExprImpl(processSearchParameters(where_cond, search_options), search_options);
+        return searchSingleRecordImpl(processSearchParameters(where_cond, search_options), search_options);
     }
 
     #! Returns a single record matching the search options
@@ -850,7 +890,7 @@ public class AbstractDataProvider {
     *hash<auto> searchSingleRecord(hash<auto> where_cond, *hash<auto> search_options) {
         checkRead();
         search_options = validateSearchOptions(search_options);
-        return searchSingleRecordImpl(processFieldValues(where_cond, search_options), search_options);
+        return searchSingleRecordImpl(getSearchExpression(where_cond, search_options), search_options);
     }
 
     #! Returns an iterator iterating all records
@@ -880,6 +920,30 @@ public class AbstractDataProvider {
 
     #! Returns an iterator for zero or more records matching the search options
     /** @param block_size the number of records in a read block; must be a positive number
+        @param where_cond the search criteria; will be processed by processSearchParameters()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @return a bulk record interface object that will return the records in bulk format
+
+        @throw INVALID-BLOCK-SIZE the block size must be a positive number
+        @throw INVALID-OPERATION the data provider does not support reading
+
+        @since DataProvider 2.3
+    */
+    AbstractDataProviderBulkRecordInterface searchRecordsBulk(int block_size = 1000,
+            *hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
+        checkRead();
+        if (block_size <= 0) {
+            throw "INVALID-BLOCK-SIZE", sprintf("block_size %d is invalid; the block size mst be a positive number",
+                block_size);
+        }
+        search_options = validateSearchOptions(search_options);
+        return searchRecordsBulkImpl(block_size, processSearchParameters(where_cond, search_options),
+            search_options);
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param block_size the number of records in a read block; must be a positive number
         @param where_cond the search criteria; will be processed by processFieldValues()
         @param search_options the search options; will be processed by validateSearchOptions()
 
@@ -896,7 +960,7 @@ public class AbstractDataProvider {
                 block_size);
         }
         search_options = validateSearchOptions(search_options);
-        return searchRecordsBulkImpl(block_size, processFieldValues(where_cond, search_options), search_options);
+        return searchRecordsBulkImpl(block_size, getSearchExpression(where_cond, search_options), search_options);
     }
 
     #! Returns an iterator for zero or more records matching the search options
@@ -904,12 +968,14 @@ public class AbstractDataProvider {
         @param search_options the search options; will be processed by validateSearchOptions()
 
         @throw INVALID-OPERATION the data provider does not support reading
+
+        @since DataProvider 2.3
     */
-    AbstractDataProviderRecordIterator searchRecordsExpr(*hash<DataProviderExpression> where_cond,
+    AbstractDataProviderRecordIterator searchRecords(*hash<DataProviderExpression> where_cond,
             *hash<auto> search_options) {
         checkRead();
         search_options = validateSearchOptions(search_options);
-        return searchRecordsExprImpl(processSearchParameters(where_cond, search_options), search_options);
+        return searchRecordsImpl(processSearchParameters(where_cond, search_options), search_options);
     }
 
     #! Returns an iterator for zero or more records matching the search options
@@ -921,7 +987,25 @@ public class AbstractDataProvider {
     AbstractDataProviderRecordIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         checkRead();
         search_options = validateSearchOptions(search_options);
-        return searchRecordsImpl(processFieldValues(where_cond, search_options), search_options);
+        return searchRecordsImpl(getSearchExpression(where_cond, search_options), search_options);
+    }
+
+    #! Returns an iterator for zero or more records matching the search options according to an API request
+    /** @param req the request to serialize and make according to the request type
+        @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options after processing by validateSearchOptions()
+
+        This will execute the request and perform a default search on any record(s) returned
+
+        @throw INVALID-OPERATION the data provider does not support reading records or the request / response API
+
+        @since DataProvider 2.3
+    */
+    AbstractDataProviderRecordIterator requestSearchRecords(auto req, *hash<DataProviderExpression> where_cond,
+            *hash<auto> search_options) {
+        checkRead();
+        checkRequest();
+        return requestSearchRecordsImpl(req, processSearchParameters(where_cond, search_options), search_options);
     }
 
     #! Returns an iterator for zero or more records matching the search options according to an API request
@@ -937,7 +1021,31 @@ public class AbstractDataProvider {
             *hash<auto> search_options) {
         checkRead();
         checkRequest();
-        return requestSearchRecordsImpl(req, where_cond, search_options);
+        return requestSearchRecordsImpl(req, getSearchExpression(where_cond, search_options), search_options);
+    }
+
+    #! Updates a single record matching the search options
+    /** @param set the hash of field data to set; will be processed by processFieldValues()
+        @param where_cond the search criteria; will be processed by processSearchParameters()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @returns @ref True if the record was updated, @ref False if not (no record found)
+
+        @throw INVALID-OPERATION the data provider does not support record updating
+        @throw UPDATE-RECORDS-ERROR error updating records
+
+        @since DataProvider 2.3
+    */
+    bool updateSingleRecord(hash<auto> set, hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
+        checkUpdate();
+        search_options = validateSearchOptions(search_options);
+        on_error {
+            if ($1.err != "DUPLICATE-RECORD" && $1.err != "UPDATE-RECORDS-ERROR") {
+                rethrow "UPDATE-RECORDS-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+            }
+        }
+        return updateSingleRecordImpl(processFieldValues(set, search_options),
+            processSearchParameters(where_cond, search_options), search_options);
     }
 
     #! Updates a single record matching the search options
@@ -959,12 +1067,38 @@ public class AbstractDataProvider {
             }
         }
         return updateSingleRecordImpl(processFieldValues(set, search_options),
-            processFieldValues(where_cond, search_options), search_options);
+            getSearchExpression(where_cond, search_options), search_options);
     }
 
     #! Updates zero or more records matching the search options
     /** @param set the hash of field data to set
-        @param where_cond a hash for identifying the record(s) to be updated
+        @param where_cond a hash for identifying the record(s) to be updated; will be processed by
+        processSearchParameters()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @return the number of records updated
+
+        @throw INVALID-OPERATION the data provider does not support record updating
+        @throw UPDATE-RECORDS-ERROR error updating records
+
+        @since DataProvider 2.3
+    */
+    int updateRecords(hash<auto> set, *hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
+        checkUpdate();
+        search_options = validateSearchOptions(search_options);
+        on_error {
+            if ($1.err != "DUPLICATE-RECORD" && $1.err != "UPDATE-RECORDS-ERROR") {
+                rethrow "UPDATE-RECORDS-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+            }
+        }
+        return updateRecordsImpl(processFieldValues(set, search_options),
+            processSearchParameters(where_cond, search_options), search_options);
+    }
+
+    #! Updates zero or more records matching the search options
+    /** @param set the hash of field data to set
+        @param where_cond a hash for identifying the record(s) to be updated; will be processed by
+        processFieldValues()
         @param search_options the search options; will be processed by validateSearchOptions()
 
         @return the number of records updated
@@ -981,12 +1115,37 @@ public class AbstractDataProvider {
             }
         }
         return updateRecordsImpl(processFieldValues(set, search_options),
-            processFieldValues(where_cond, search_options), search_options);
+            getSearchExpression(where_cond, search_options), search_options);
     }
 
     #! Deletes zero or more records
     /**
-        @param where_cond a hash for identifying the record(s) to be deleted
+        @param where_cond a hash for identifying the record(s) to be deleted; will be processed by
+        processSearchParameters()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @return the number of records deleted
+
+        @throw INVALID-OPERATION the data provider does not support record deletion
+        @throw DELETE-RECORDS-ERROR error deleting records
+
+        @since DataProvider 2.3
+    */
+    int deleteRecords(*hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
+        checkDelete();
+        search_options = validateSearchOptions(search_options);
+        on_error {
+            if ($1.err != "DELETE-RECORDS-ERROR") {
+                rethrow "DELETE-RECORDS-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+            }
+        }
+        return deleteRecordsImpl(processSearchParameters(where_cond, search_options), search_options);
+    }
+
+    #! Deletes zero or more records
+    /**
+        @param where_cond a hash for identifying the record(s) to be deleted; will be processed by
+        processFieldValues()
         @param search_options the search options; will be processed by validateSearchOptions()
 
         @return the number of records deleted
@@ -1002,7 +1161,7 @@ public class AbstractDataProvider {
                 rethrow "DELETE-RECORDS-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
             }
         }
-        return deleteRecordsImpl(processFieldValues(where_cond, search_options), search_options);
+        return deleteRecordsImpl(getSearchExpression(where_cond, search_options), search_options);
     }
 
     #! Makes a request and returns the response
@@ -1444,6 +1603,74 @@ public class AbstractDataProvider {
         }
     }
 
+    #! Returns a search expression for a standard search hash
+    /** @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options; will be processed by validateSearchOptions()
+
+        @return a search expression corresponding to \a where_cond
+
+        @since DataProvider 2.3
+    */
+    *hash<DataProviderExpression> getSearchExpression(*hash<auto> where_cond, *hash<auto> search_options) {
+        if (where_cond instanceof hash<DataProviderExpression>) {
+            return processSearchParameters(where_cond, search_options);
+        }
+        if (!where_cond) {
+            return;
+        }
+        where_cond = processFieldValues(where_cond, search_options);
+        hash<DataProviderInfo> info = getInfo();
+        hash<DataProviderExpressionInfo> expinfo =
+            AbstractDataProvider::GenericExpressionImplementations{DP_OP_AND}.exp;
+        hash<DataProviderExpression> rv = <DataProviderExpression>{
+            "exp": expinfo,
+            "args": map getSimpleArgumentIntern(ER_Search, info, expinfo, $1.key, $1.value),
+                where_cond.pairIterator(),
+        };
+        return rv;
+    }
+
+    #! Returns an argument for an expression
+    private hash<DataProviderExpression> getSimpleArgumentIntern(int role, hash<DataProviderInfo> info,
+            hash<DataProviderExpressionInfo> expinfo, string key, auto value) {
+        # remove any unique suffix from key to get field name
+        key =~ s/:.*//g;
+        hash<DataProviderExpression> rv;
+        if (value.typeCode() == NT_HASH && value.op && value.hasKey("arg")) {
+            rv = <DataProviderExpression>{
+                "exp": getExpression(role, value.op, info),
+                "args": value.arg.op && value.arg.arg
+                    ? <DataProviderExpression>{
+                        "exp": getExpression(role, value.arg.op, info),
+                        "args": (<DataProviderFieldReference>{"field": key},) + value.arg.arg,
+                    }
+                    : (<DataProviderFieldReference>{"field": key}, ) + value.arg,
+            };
+        } else {
+            rv = <DataProviderExpression>{
+                "exp": info.expressions."=",
+                "args": (<DataProviderFieldReference>{"field": key},) + value,
+            };
+        }
+        verifyExpressionIntern(role, info, AbstractDataProviderTypeMap."bool", rv.exp.label, rv.args);
+        return rv;
+    }
+
+    #! Returns an expression definition for an expression code or throws an exception
+    private hash<DataProviderExpressionInfo> getExpression(int role, string exp,
+            hash<DataProviderInfo> info = getInfo()) {
+        *hash<DataProviderExpressionInfo> expinfo = info.expressions{exp};
+        if (!expinfo) {
+            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y is invalid for data provider %y of type "
+                "%y; known expressions: %y", exp, getName(), self.className(), keys info.expressions);
+        }
+        if (!(expinfo.role & role)) {
+            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y is invalid for data provider %y of type "
+                "%y in role %y", exp, getName(), self.className(), RoleCodeMap{role});
+        }
+        return expinfo;
+    }
+
     #! Ensures that no callbacks can be set for dynamic URI resolution
     /** @return False if this call was ignored because callbacks are locked, True if the call was successful
 
@@ -1457,11 +1684,31 @@ public class AbstractDataProvider {
     }
 
     #! Evaluates the given expression with the generic internal implementation and returns the result
+    /**
+        @since DataProvider 2.3
+    */
     static auto evalGenericExpressionValue(hash<auto> rec, auto val) {
         if (val instanceof hash<DataProviderFieldReference>) {
-            auto rv = rec{val.field};
-            if (!exists rv && !rec.hasKey(val.field)) {
-                throw "INVALID-OPERATION", sprintf("expression references invalid field %y", val.field);
+            # allow for dotted references to be respected; allow escaping of dots
+            list<string> f = map regex_subst($1, "\\\\.", ".", RE_Global), val.field.splitRegex("(?<!\\\\)\\.");
+            auto rv = rec;
+            foreach string field in (f) {
+                if (rv.typeCode() != NT_HASH && rv.typeCode() != NT_OBJECT) {
+                    # only throw exceptions on the top-level key
+                    if (!$#) {
+                        throw "INVALID-OPERATION", sprintf("expression references invalid key %y of a value of type "
+                            "%y in field reference %y", field, rv.fullType(), val.field);
+                    }
+                    # otherwise stop searching; no value will be returned
+                    break;
+                }
+                auto new_rv = rv{field};
+                # only throw exceptions on the top-level key
+                if (!$# && !exists new_rv && !rv.hasKey(field)) {
+                    throw "INVALID-OPERATION", sprintf("expression references invalid key %y in field reference "
+                        "%y; valid keys: %y", field, val.field, keys rv);
+                }
+                rv = new_rv;
             }
             return rv;
         }
@@ -1472,13 +1719,18 @@ public class AbstractDataProvider {
     }
 
     #! Evaluates the given expression with the generic internal implementation and returns the result
+    /**
+        @since DataProvider 2.3
+    */
     static auto evalGenericExpression(hash<auto> rec, hash<DataProviderExpression> exp) {
         *hash<auto> expinfo = AbstractDataProvider::GenericExpressionImplementations{exp.exp.label};
         if (!expinfo) {
-            throw "INVALID-OPERATION", sprintf("operator %y is unknown (supported "
+            throw "INVALID-OPERATION", sprintf("operator %y is unknown; supported "
                 "operators: %y", exp.exp.label, keys GenericExpressionImplementations);
         }
-        return expinfo.impl(rec, exp);
+        on_error rethrow $1.err, sprintf("error in return value type %y for %y expression: %s",
+            exp.exp.return_type.getName(), exp.exp.name, $1.desc);
+        return exp.exp.return_type.acceptsValue(expinfo.impl(rec, exp));
     }
 
     #! Set callbacks for dynamic URI resolution to allow for variable URI path elements to be resolved at runtime
@@ -1655,43 +1907,39 @@ public class AbstractDataProvider {
             return exp;
         }
         hash<DataProviderInfo> info = getInfo();
-        return processExpressionIntern(ER_Search, info.expressions, info.search_logic_capabilities,
-            AbstractDataProviderTypeMap."bool", exp);
+        verifyExpressionIntern(ER_Search, info, AbstractDataProviderTypeMap."bool", exp.exp.label, exp.args);
+        return exp;
     }
 
     #! processes an expression in a certain context
     /** @param role the role of the operation being performed
-        @param expmap the map of supported expressions for this data provider
-        @param caps the logic capabilities supported by the data provider for the current operation
-        @param exp the expression to process
+        @param info data provider info
+        @param expected_type the type the expression should be compatible with
+        @param exp the expression code / label to process
+        @param args argument to the expression
 
         @return the processed expression
     */
-    private hash<DataProviderExpression> processExpressionIntern(int role,
-            *hash<string, hash<DataProviderExpressionInfo>> expmap, int caps,
-            AbstractDataProviderType expected_type, hash<DataProviderExpression> exp) {
-        *hash<DataProviderExpressionInfo> expinfo = expmap{exp.exp.label};
-        if (!expinfo) {
-            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y is invalid for data provider %y; known "
-                "expressions: %y", exp.exp.label, getName(), keys expmap);
-        }
-        if (!(expinfo.role & role)) {
-            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y is invalid for data provider %y in role "
-                "%y", exp.exp.label, getName(), RoleCodeMap{role});
-        }
+    private verifyExpressionIntern(int role, hash<DataProviderInfo> info, AbstractDataProviderType expected_type,
+            string exp, auto args) {
+        int caps = role == ER_Search ? info.search_logic_capabilities : 0;
+        hash<DataProviderExpressionInfo> expinfo = getExpression(role, exp, info);
         # check arguments
-        map processExpressionArgValue(role, expmap, caps, expinfo, exp.args, $#), expinfo.args;
-        if (exp.args.size() > expinfo.args.size()) {
-            if (!expinfo.varargs) {
-                throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("value provided for expression %y for data provider "
-                    "%y has too many values (%d); only max %d are accepted", expinfo.label, getName(),
-                    exp.args.size(), expinfo.args.size());
-            }
-            # process the rest of the arguments
-            map processExpressionArgValue(role, expmap, caps, expinfo, exp.args, expinfo.args.size() + $#),
-                xrange(exp.args.size() - expinfo.args.size());
+        if (args.lsize() > expinfo.args.size() && !expinfo.varargs) {
+            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("value provided for expression %y for data provider "
+                "%y has too many values (%d); only max %d are accepted", expinfo.label, getName(),
+                args.lsize(), expinfo.args.size());
         }
-        return exp;
+        map verifyExpressionArgValue(role, info.expressions, caps, expinfo, args, $#), expinfo.args;
+        if (args.lsize() > expinfo.args.size()) {
+            # process the rest of the arguments
+            map verifyExpressionArgValue(role, info.expressions, caps, expinfo, args, expinfo.args.size() + $#),
+                xrange(args.lsize() - expinfo.args.size());
+        }
+        if (!expected_type.isAssignableFrom(expinfo.return_type)) {
+            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expecting a %y value, but expression %y returns a %y "
+                "value instead", expected_type.getName(), expinfo.label, expinfo.return_type.getName());
+        }
     }
 
     #! processes an expression in a certain context
@@ -1702,8 +1950,8 @@ public class AbstractDataProvider {
         @param values the values / arguments for the expression
         @param pos the position in the argument list
     */
-    private processExpressionArgValue(int role, *hash<string, hash<DataProviderExpressionInfo>> expmap, int caps,
-            hash<DataProviderExpressionInfo> expinfo, list<auto> values, int pos) {
+    private verifyExpressionArgValue(int role, *hash<string, hash<DataProviderExpressionInfo>> expmap, int caps,
+            hash<DataProviderExpressionInfo> expinfo, softlist<auto> values, int pos) {
         hash<DataProviderSignatureTypeInfo> arginfo = expinfo.args[pos] ?? expinfo.args.last();
         if (arginfo.type_code == ST_Any) {
             return;
@@ -1729,32 +1977,6 @@ public class AbstractDataProvider {
                         is_exp ? "nested expression" : "value");
                 }
                 return;
-            case ST_BooleanFieldOperator: {
-                if (!is_exp) {
-                    throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y argument %d/%d expects a boolean "
-                        "field operator expression; got %y instead", expinfo.label, pos + 1, values.size(),
-                        is_ref ? "field reference" : "value");
-                }
-                if (!val.exp.return_type.getReturnTypeHash()."bool") {
-                    throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y argument %d/%d expects a boolean "
-                        "field operator expression; got an %y expression that returns %y instead", expinfo.label,
-                        pos + 1, values.size(), val.exp.label, val.exp.return_type.getName());
-                }
-                if (val.exp.args[0].type_code != ST_Field) {
-                    throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y argument %d/%d expects a boolean "
-                        "field operator expression; got an %y expression whose first argument is type %y instead",
-                        expinfo.label, pos + 1, values.size(), val.exp.label,
-                        SignatureTypeCodeMap{val.exp.args[0].type_code});
-                }
-                return;
-            }
-            case ST_ConformantValue: {
-                if (!pos) {
-                    throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y has an illegal argument "
-                        "specification; the first argument cannot be a confrmant value", expinfo.label);
-                }
-                return;
-            }
         }
     }
     #! processes search or set values to convert types if necessary
@@ -1773,7 +1995,12 @@ public class AbstractDataProvider {
         hash<auto> rv;
         foreach hash<auto> i in (h.pairIterator()) {
             if (!rec{i.key}) {
-                error("INVALID-FIELD", "field %y is not a defined field; valid fields: %y", i.key, keys rec);
+                list<string> f = map regex_subst($1, "\\\\.", ".", RE_Global), i.key.splitRegex("(?<!\\\\)\\.");
+                if (!rec{f[0]}) {
+                    error("INVALID-FIELD", "field %y is not a defined field; valid fields: %y", f[0], keys rec);
+                }
+                rv{i.key} = i.value;
+                continue;
             }
             # we assume a hash is a provider-specific search option
             if (i.value.typeCode() == NT_HASH) {
@@ -1806,7 +2033,7 @@ public class AbstractDataProvider {
 
         @note This default method returns immediately as soon as the first matching record is found
     */
-    private *hash<auto> searchFirstRecordExprImpl(hash<DataProviderExpression> where_cond,
+    private *hash<auto> searchFirstRecordImpl(hash<DataProviderExpression> where_cond,
             *hash<auto> search_options) {
         # scans the whole data set to find a single record
         AbstractDataProviderRecordIterator i = searchRecordsImpl(where_cond, search_options);
@@ -1821,6 +2048,7 @@ public class AbstractDataProvider {
 
         @note This default method returns immediately as soon as the first matching record is found
     */
+    /*
     private *hash<auto> searchFirstRecordImpl(hash<auto> where_cond, *hash<auto> search_options) {
         # scans the whole data set to find a single record
         AbstractDataProviderRecordIterator i = searchRecordsImpl(where_cond, search_options);
@@ -1828,6 +2056,7 @@ public class AbstractDataProvider {
             return i.getValue();
         }
     }
+    */
 
     #! Returns a single record matching the search options
     /** @param where_cond the search criteria
@@ -1837,10 +2066,10 @@ public class AbstractDataProvider {
 
         @note This default methods searches the entire data set for a matching record
     */
-    private *hash<auto> searchSingleRecordExprImpl(hash<DataProviderExpression> where_cond,
+    private *hash<auto> searchSingleRecordImpl(hash<DataProviderExpression> where_cond,
             *hash<auto> search_options) {
         # scans the whole data set to find a single record
-        *list<*hash<auto>> records = map $1, searchRecordsExprImpl(where_cond, search_options);
+        *list<*hash<auto>> records = map $1, searchRecordsImpl(where_cond, search_options);
         if (records.lsize() > 1) {
             error("MULTIPLE-RECORDS-ERROR", "%d records found for search: %y", records.size(), where_cond);
         }
@@ -1855,6 +2084,7 @@ public class AbstractDataProvider {
 
         @note This default methods searches the entire data set for a matching record
     */
+    /*
     private *hash<auto> searchSingleRecordImpl(hash<auto> where_cond, *hash<auto> search_options) {
         # scans the whole data set to find a single record
         *list<*hash<auto>> records = map $1, searchRecordsImpl(where_cond, search_options);
@@ -1863,6 +2093,7 @@ public class AbstractDataProvider {
         }
         return records[0];
     }
+    */
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
@@ -2139,24 +2370,39 @@ public class AbstractDataProvider {
 
     #! Returns an iterator for zero or more records matching the search options
     /** @param block_size the number of records in a read block; must be a positive number
-        @param where_cond the search criteria; after processing by processFieldValues()
+        @param where_cond the search criteria; after processing by processSearchParameters()
         @param search_options the search options after processing by validateSearchOptions()
 
         @throw INVALID-BLOCK-SIZE the block size must be a positive number
         @throw INVALID-OPERATION the data provider does not support reading
     */
     private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000,
-            *hash<auto> where_cond, *hash<auto> search_options) {
+            *hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         return new DefaultBulkRecordIterface(block_size, searchRecordsImpl(where_cond, search_options));
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    /** @param where_cond the search criteria
+    /** @param block_size the number of records in a read block; must be a positive number
+        @param where_cond the search criteria; after processing by processFieldValues()
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @throw INVALID-BLOCK-SIZE the block size must be a positive number
+        @throw INVALID-OPERATION the data provider does not support reading
+    */
+    /*
+    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000,
+            *hash<auto> where_cond, *hash<auto> search_options) {
+        return new DefaultBulkRecordIterface(block_size, searchRecordsImpl(where_cond, search_options));
+    }
+    */
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param where_cond the search criteria; after processing by processSearchParameters()
         @param search_options the search options after processing by validateSearchOptions()
 
         @see requestSearchRecordsImpl()
     */
-    private AbstractDataProviderRecordIterator searchRecordsExprImpl(hash<DataProviderExpression> where_cond,
+    private AbstractDataProviderRecordIterator searchRecordsImpl(hash<DataProviderExpression> where_cond,
             *hash<auto> search_options) {
         throwUnimplementedException();
     }
@@ -2167,7 +2413,23 @@ public class AbstractDataProvider {
 
         @see requestSearchRecordsImpl()
     */
+    /*
     private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        throwUnimplementedException();
+    }
+    */
+
+    #! Returns an iterator for zero or more records matching the search options according to an API request
+    /** @param req the request to serialize and make according to the request type
+        @param where_cond the search criteria; after processing by processSearchParameters()
+        @param search_options the search options after processing by validateSearchOptions()
+
+        This will execute the request and perform a default search on any record(s) returned
+
+        @see searchRecordsImpl()
+    */
+    private AbstractDataProviderRecordIterator requestSearchRecordsImpl(auto req,
+            *hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         throwUnimplementedException();
     }
 
@@ -2180,10 +2442,12 @@ public class AbstractDataProvider {
 
         @see searchRecordsImpl()
     */
+    /*
     private AbstractDataProviderRecordIterator requestSearchRecordsImpl(auto req, *hash<auto> where_cond,
             *hash<auto> search_options) {
         throwUnimplementedException();
     }
+    */
 
     #! Creates the given record to the data provider
     /** @param rec a hash representing a single input record
@@ -2213,7 +2477,31 @@ public class AbstractDataProvider {
         @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
     */
+    private bool updateSingleRecordImpl(hash<auto> set, hash<DataProviderExpression> where_cond,
+            *hash<auto> search_options) {
+        throwUnimplementedException();
+    }
+
+    #! Updates a single record matching the search options
+    /** @param set the hash of field data to set
+        @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+    */
+    /*
     private bool updateSingleRecordImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        throwUnimplementedException();
+    }
+    */
+
+    #! Updates zero or more records matching the search options
+    /** @param set the hash of field data to set
+        @param where_cond a hash for identifying the record(s) to be updated
+        @param search_options the update options after processing by validateSearchOptions()
+
+        @return the number of records updated
+    */
+    private int updateRecordsImpl(hash<auto> set, *hash<DataProviderExpression> where_cond,
+            *hash<auto> search_options) {
         throwUnimplementedException();
     }
 
@@ -2224,7 +2512,20 @@ public class AbstractDataProvider {
 
         @return the number of records updated
     */
+    /*
     private int updateRecordsImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+        throwUnimplementedException();
+    }
+    */
+
+    #! Deletes zero or more records
+    /**
+        @param where_cond a hash for identifying the record(s) to be deleted
+        @param search_options the delete options after processing by validateSearchOptions()
+
+        @return the number of records deleted
+    */
+    private int deleteRecordsImpl(*hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         throwUnimplementedException();
     }
 
@@ -2235,9 +2536,11 @@ public class AbstractDataProvider {
 
         @return the number of records deleted
     */
+    /*
     private int deleteRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
         throwUnimplementedException();
     }
+    */
 
     #! Makes a request and returns the response
     /** @param req the request to serialize and make according to the request type
