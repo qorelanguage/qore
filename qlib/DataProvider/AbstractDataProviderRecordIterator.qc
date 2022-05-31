@@ -33,6 +33,18 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
+/** @defgroup dataprovider_logic_ops DataProvider Generic Logic Operators
+    These are the generic logic operators that can be used using generic data provider APIs; all logical operations
+    support logic short-circuiting
+*/
+#@{
+#! AND logic
+public const DP_OP_AND = "AND";
+
+#! OR logic
+public const DP_OP_OR = "OR";
+#@}
+
 /** @defgroup dataprovider_generic_search_ops DataProvider Generic Search Operators
     These are the generic operators that can be used for searching using the generic data provider search APIs
 */
@@ -313,7 +325,7 @@ AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_in(200, 3
     @return an @ref SearchOperatorInfo hash for use in generic search criteria
 */
 public hash<SearchOperatorInfo> sub dp_op_in() {
-    return dp_make_op(DP_SEARCH_OP_IN, (map {$1: True}, argv));
+    return dp_make_op(DP_SEARCH_OP_IN, argv);
 }
 
 #! returns an @ref SearchOperatorInfo hash for the \c "in" operator with the given argument list as the first argument
@@ -327,7 +339,7 @@ AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_in(name_l
     @return an @ref SearchOperatorInfo hash for use in generic search criteria
 */
 public hash<SearchOperatorInfo> sub dp_op_in(list<auto> args) {
-    return dp_make_op(DP_SEARCH_OP_IN, (map {$1: True}, args));
+    return dp_make_op(DP_SEARCH_OP_IN, args);
 }
 
 #! returns an @ref SearchOperatorInfo hash for the \c "not" operator
@@ -391,6 +403,19 @@ public class AbstractDataProviderRecordIterator inherits AbstractIterator {
                 keys record);
         }
         return rv;
+    }
+
+    #! Checks if the current record matches the search criteria
+    /** in case of a hash value, if the hash was created by a
+        @ref dataprovider_generic_search_op_funcs "search operator function", then that search operation is applied to
+        the input, otherwise a recursive partial match with only the keys given in the value to be checked is
+        performed
+    */
+    private static bool matchGeneric(hash<auto> record, hash<DataProviderExpression> where_cond) {
+        return AbstractDataProvider::evalGenericExpression(record, <DataProviderExpression>{
+            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_AND}.exp,
+            "args": where_cond,
+        });
     }
 
     #! Checks if the current record matches the search criteria

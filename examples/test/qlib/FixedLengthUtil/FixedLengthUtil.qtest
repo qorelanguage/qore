@@ -212,13 +212,39 @@ class Test inherits QUnit::Test {
 
             {
                 reset();
+                hash<DataProviderExpression> cond = <DataProviderExpression>{
+                    "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_OR}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "record.col1"},
+                                11111,
+                            ),
+                        },
+                        <DataProviderExpression>{
+                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "record.col3"},
+                                "c",
+                            ),
+                        },
+                    )
+                };
+                rows = map $1, dp.searchRecords(cond);
+                assertEq(2, rows[0].size());
+                assertEq(2, rows.size());
+            }
+
+            {
+                reset();
                 rows = map $1, dp.searchRecords();
                 assertEq(2, rows[0].size());
                 assertEq(2, rows[0].record.size());
                 assertEq(3, rows.size());
 
                 reset();
-                *hash<auto> row = dp.searchSingleRecord({"type": "type1", "record": {"col1": 11111}});
+                *hash<auto> row = dp.searchSingleRecord({"type": "type1", "record.col1": 11111});
                 assertEq(Type::Hash, row.type());
                 assertEq("bb", row.record.col2);
                 assertEq(Type::String, row.record.col2.type());
@@ -271,7 +297,7 @@ class Test inherits QUnit::Test {
                 assertEq(4, rows2.size());
 
                 reset(AmbiguousData, AmbiguousSpecs);
-                *hash<auto> row = dp.searchSingleRecord({"type": "type2", "record": {"col2": "XYZ"}});
+                *hash<auto> row = dp.searchSingleRecord({"type": "type2", "record.col2": "XYZ"});
                 assertEq(Type::Hash, row.type());
                 assertEq("B", row.record.col1);
                 assertEq(Type::String, row.record.col2.type());
@@ -303,7 +329,7 @@ class Test inherits QUnit::Test {
                 assertEq(3, rows.size());
 
                 reset();
-                *hash<auto> row = dp.searchSingleRecord({"type": "type1", "record": {"col1": 11111}});
+                *hash<auto> row = dp.searchSingleRecord({"type": "type1", "record.col1": 11111});
                 assertEq(Type::Hash, row.type());
                 assertEq("bb", row.record.col2);
                 assertEq(Type::String, row.record.col2.type());
@@ -323,7 +349,7 @@ class Test inherits QUnit::Test {
                 assertEq(4, rows2.size());
 
                 reset(AmbiguousData, AmbiguousSpecs);
-                *hash<auto> row = dp.searchSingleRecord({"type": "type2", "record": {"col2": "XYZ"}});
+                *hash<auto> row = dp.searchSingleRecord({"type": "type2", "record.col2": "XYZ"});
                 assertEq(Type::Hash, row.type());
                 assertEq("B", row.record.col1);
                 assertEq(Type::String, row.record.col2.type());

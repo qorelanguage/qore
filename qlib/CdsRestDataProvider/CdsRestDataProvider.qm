@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.5
+%requires qore >= 1.7
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere

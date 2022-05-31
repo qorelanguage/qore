@@ -58,8 +58,10 @@ module Sqlite3SqlUtil {
 
     All the public symbols in the module are defined in the Sqlite3SqlUtil namespace
 
-    @note This module requires the <a href="https://github.com/qorelanguage/module-sqlite3">sqlite3</a> binary module
-    for communication with Sqlite3 databases
+    @note
+    - This module requires the <a href="https://github.com/qorelanguage/module-sqlite3">sqlite3</a> binary module
+      for communication with Sqlite3 databases
+    - This module does not yet support schema management for sqlite3 DBs
 
     @section sqlite_schema_management Schema Management on Sqlite3
 

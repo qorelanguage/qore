@@ -37,7 +37,7 @@
 %enable-all-warnings
 
 module CsvUtil {
-    version = "1.9";
+    version = "1.10";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -252,6 +252,10 @@ while (i.next()) {
     Also the \c "example-multi-file-copy.csv" will contain data from the original file formatted as CSV.
 
     @section csvutil_relnotes Release Notes
+
+    @subsection csvutil_v1_10 Version 1.10
+    - updated with initial support for generic expressions
+      (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
 
     @subsection csvutil_v1_9 Version 1.9
     - added support for resolving locations with the \c FileLocationHandler module

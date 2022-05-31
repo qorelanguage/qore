@@ -35,7 +35,7 @@
 %strict-args
 
 module FixedLengthUtil {
-    version = "1.4";
+    version = "1.5";
     desc    = "user module for working with files with fixed length lines";
     author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -276,6 +276,10 @@ w.write(data);
     @endcode
 
     @section fixedlengthutil_relnotes Release Notes
+
+    @subsection fixedlengthutil_v1_5 Version 1.5
+    - updated with initial support for generic expressions
+      (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
 
     @subsection fixedlengthutil_v1_4 Version 1.4
     - added support for resolving locations with the \c FileLocationHandler module

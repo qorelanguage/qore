@@ -36,7 +36,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "has_record": True,
             "constructor_options": ConstructorOptions,
             "search_options": GenericRecordSearchOptions,
-            "search_operators": AbstractDataProvider::GenericRecordSearchOperators,
+            "expressions": AbstractDataProvider::GenericExpressions,
         };
 
         #! Constructor options
@@ -191,6 +191,15 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
         @param search_options the search options after processing by validateSearchOptions()
     */
     private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+        return new DefaultRecordIterator(i, where_cond, search_options, getRecordType());
+    }
+
+    #! Returns an iterator for zero or more records matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+    */
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<DataProviderExpression> where_cond,
+            *hash<auto> search_options) {
         return new DefaultRecordIterator(i, where_cond, search_options, getRecordType());
     }
 

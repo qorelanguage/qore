@@ -64,7 +64,6 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
             if (query) {
                 uri += sprintf("?%s", query);
             }
-            printf("uri: %s\n", uri);
             i = new ListHashIterator(rest.get(uri, NOTHING, \info).body.response.result);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
@@ -125,14 +124,16 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
         return rv;
     }
 
+    /*
     #! Returns "or" clauses
     string getOrClause(list<auto> arglist) {
         list<auto> l = map $1, (map doWhereExpression($1), arglist), $1;
         return l ? (foldl $1 + "^OR" + $2, l) : "";
     }
+    */
 
     #! Returns the filter for a request
-    *string makeQuery(*hash<auto> where_cond, *hash<auto> search_options) {
+    *string makeQuery(*hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         string filter = "sysparm_exclude_reference_link=true&sysparm_suppress_pagination_header=true";
         if (search_options.columns) {
             filter = "sysparm_fields=" + getColumnNames(search_options.columns);
@@ -202,31 +203,6 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
         return record_info.record_type;
     }
 
-    string getArgValue(string key, auto value) {
-        switch (record_info.field_types{key}) {
-            case "integer":
-                return sprintf("%d", value);
-
-            case "double":
-                return sprintf("%g", value);
-
-            case "boolean":
-                return value ? "true" : "false";
-
-            case "glide_date_time":
-            case "glide_date":
-                if (value.typeCode() == NT_DATE) {
-                    return value.format("YYYY-MM-DD HH:mm:SS.xx");
-                }
-                # fall through
-
-            default:
-                break;
-        }
-
-        return value.toString();
-    }
-
     private string getOrderBy(softlist<string> coll) {
         return foldl $1 + "," + $2, (map $1, coll, checkColumnName($1));
     }
@@ -259,35 +235,62 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
         }
     }
 
-    private string doWhereExpression(hash<auto> where_cond, *hash<auto> search_options) {
+    private string doWhereExpression(hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         list<string> clauses;
-        foreach hash<auto> i in (where_cond.pairIterator()) {
-            clauses += doWhereExpressionIntern(i.key, i.value);
+        if (where_cond.exp.label == DP_OP_AND) {
+            map clauses += doWhereExpressionIntern($1), where_cond.args;
+        } else {
+            clauses += doWhereExpressionIntern(where_cond);
         }
         return foldl $1 + "^" + $2, clauses;
     }
 
-    private string doWhereExpressionIntern(string key, auto value) {
-        if (value.typeCode() == NT_HASH && value.op) {
-            *hash<auto> op = DefaultQueryOpMap{value.op};
-            if (!op) {
-                throw "WHERE-ERROR", sprintf("operator hash for where cond key %y has unknown operator "
-                    "%y: expecting one of: %y (operator hash: %y)", key, value.op, keys DefaultQueryOpMap,
-                    value);
-            }
-            string column_name;
-            if (op.recursive) {
-                column_name = doWhereExpressionIntern(key, value.arg);
-            } else {
-                column_name = key;
-            }
-            if (!op.no_process_arg) {
-                value.arg = getArgValue(key, value.arg);
-            }
-            return op.code(self, column_name, value.arg);
+    private string doWhereExpressionIntern(hash<DataProviderExpression> arg) {
+        *hash<auto> expinfo = ServiceNowTableDataProvider::Expressions{arg.exp.label};
+        if (!expinfo) {
+            throw "WHERE-ERROR", sprintf("expression references unknown operator %y; known operators: %y",
+                arg.exp.label, keys ServiceNowTableDataProvider::Expressions);
+        }
+        if (!(arg.args[0] instanceof hash<DataProviderFieldReference>)) {
+            throw "WHERE-ERROR", sprintf("the first argument to expression %y must be a field reference",
+                arg.exp.label);
+        }
+        string column = (shift arg.args).field;
+        list<auto> args = (column,);
+        if (arg.args) {
+            args += map getArgValue(column, $1), arg.args;
+        }
+        return call_function_args(expinfo.impl, args);
+    }
+
+    private string doWhereExpression(auto arg) {
+        throw "WHERE-ERROR", sprintf("argument for where cond has type %y (%y); expecting an operator expression",
+            arg.fullType(), arg);
+    }
+
+    private string getArgValue(string key, auto value) {
+        switch (record_info.field_types{key}) {
+            case "integer":
+                return sprintf("%d", value);
+
+            case "double":
+                return sprintf("%g", value);
+
+            case "boolean":
+                return value ? "true" : "false";
+
+            case "glide_date_time":
+            case "glide_date":
+                if (value.typeCode() == NT_DATE) {
+                    return value.format("YYYY-MM-DD HH:mm:SS.xx");
+                }
+                # fall through
+
+            default:
+                break;
         }
 
-        return sprintf("%s=%s", key, getArgValue(key, value));
+        return value.toString();
     }
 }
 }

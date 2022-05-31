@@ -77,13 +77,26 @@ public class CdsEntityDataProvider inherits DataProvider::AbstractDataProvider {
         return record_info.record_type;
     }
 
+    #! Backwards-compatible search expression handler until this class can be ported to use generic expressions
+    *hash<auto> getSearchExpression(*hash<auto> where_cond, *hash<auto> search_options) {
+        if (where_cond instanceof hash<DataProviderExpression>) {
+            throw "WHERE-ERROR", sprintf("DataProvider %y type %y does not yet support generic expressions for "
+                "searching", getName(), self.className());
+        }
+        if (!where_cond) {
+            return;
+        }
+        return processFieldValues(where_cond, search_options);
+    }
+
     #! Returns an iterator for zero or more records matching the search options
     /** @param where_cond the search criteria
         @param search_options the search options after processing by validateSearchOptions()
 
         @see requestSearchRecordsImpl()
     */
-    private DataProvider::AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+    private DataProvider::AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond,
+            *hash<auto> search_options) {
        return new CdsRestRecordIterator(rest, name, record_info, where_cond, search_options);
     }
 

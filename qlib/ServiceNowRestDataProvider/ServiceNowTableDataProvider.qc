@@ -48,16 +48,16 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
         #! The REST client object for API calls
         ServiceNowRestClient::ServiceNowRestClient rest;
 
-        #! current object name
+        #! Current object name
         string name;
 
-        #! access description
+        #! Access description
         hash<auto> access;
 
-        #! metadata description
+        #! Metadata description
         hash<auto> meta;
 
-        #! system columns
+        #! System columns
         const SysColumns = {
             "sys_created_by": {
                 "internal_type": {
@@ -78,6 +78,142 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
                 "internal_type": {
                     "value": "glide_date_time",
                 }
+            },
+        };
+
+        #! Supported expressions
+        const Expressions = {
+            DP_OP_AND: {
+                "exp": AbstractDataProvider::GenericExpressions{DP_OP_AND},
+                "impl": string sub (string cn, auto arg) {
+                    throw "WHERE-ERROR", "ServiceNow does not support nested boolean logic in queries";
+                },
+            },
+            QUERY_OP_EQ: {
+                "exp": sym(AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_EQ}, QUERY_OP_EQ),
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%s=%s", cn, arg);
+                },
+            },
+            QUERY_OP_NE: {
+                "exp": sym(AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NE}, QUERY_OP_NE),
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%s!=%s", cn, arg);
+                },
+            },
+            QUERY_OP_LT: {
+                "exp": sym(AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LT}, QUERY_OP_LT),
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%s<%s", cn, arg);
+                },
+            },
+            QUERY_OP_LE: {
+                "exp": sym(AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LE}, QUERY_OP_LE),
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%s<=%s", cn, arg);
+                },
+            },
+            QUERY_OP_GT: {
+                "exp": sym(AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GT}, QUERY_OP_GT),
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%s>%s", cn, arg);
+                },
+            },
+            QUERY_OP_GE: {
+                "exp": sym(AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GE}, QUERY_OP_GE),
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%s>=%s", cn, arg);
+                },
+            },
+            QUERY_OP_IN: {
+                "exp": sym(AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN}, QUERY_OP_IN),
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%sIN%s", cn, (foldl $1 + "," + $2, arg));
+                },
+            },
+            QUERY_OP_NOTIN: {
+                "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
+                    "label": QUERY_OP_NOTIN,
+                    "name": "notin",
+                    "desc": "An expression with the ServiceNow 'notin' operator",
+                    "symbol": "NOTIN",
+                    "args": (DataProviderSignatureFieldType, DataProviderSignatureStringValueType),
+                    "return_type": AbstractDataProviderTypeMap."bool",
+                },
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%sNOTIN%s", cn, (foldl $1 + "," + $2, arg));
+                },
+            },
+            QUERY_OP_LIKE: {
+                "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
+                    "label": QUERY_OP_LIKE,
+                    "name": "like",
+                    "desc": "An expression with the ServiceNow 'like' operator",
+                    "symbol": "LIKE",
+                    "args": (DataProviderSignatureFieldType, DataProviderSignatureStringValueType),
+                    "return_type": AbstractDataProviderTypeMap."bool",
+                },
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%sLIKE%s", cn, arg);
+                },
+            },
+            QUERY_OP_NOTLIKE: {
+                "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
+                    "label": QUERY_OP_NOTLIKE,
+                    "name": "notlike",
+                    "desc": "An expression with the ServiceNow 'notlike' operator",
+                    "symbol": "NOTLIKE",
+                    "args": (DataProviderSignatureFieldType, DataProviderSignatureStringValueType),
+                    "return_type": AbstractDataProviderTypeMap."bool",
+                },
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%sNOTLIKE%s", cn, arg);
+                },
+            },
+            QUERY_OP_STARTSWITH: {
+                "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
+                    "label": QUERY_OP_STARTSWITH,
+                    "name": "like",
+                    "desc": "An expression with the ServiceNow 'startswith' operator",
+                    "symbol": "STARTSWITH",
+                    "args": (DataProviderSignatureFieldType, DataProviderSignatureStringValueType),
+                    "return_type": AbstractDataProviderTypeMap."bool",
+                },
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%sSTARTSWITH%s", cn, arg);
+                },
+            },
+            QUERY_OP_ENDSWITH: {
+                "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
+                    "label": QUERY_OP_ENDSWITH,
+                    "name": "like",
+                    "desc": "An expression with the ServiceNow 'endswith' operator",
+                    "symbol": "ENDSWITH",
+                    "args": (DataProviderSignatureFieldType, DataProviderSignatureStringValueType),
+                    "return_type": AbstractDataProviderTypeMap."bool",
+                },
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%sISEMPTY", cn);
+                },
+            },
+            QUERY_OP_ISNOTEMPTY: {
+                "exp": <DataProviderExpressionInfo>{
+                    "type": DET_Operator,
+                    "label": QUERY_OP_ISNOTEMPTY,
+                    "name": "notlike",
+                    "desc": "An expression with the ServiceNow 'isnotempty' operator",
+                    "symbol": "ISNOTEMPTY",
+                    "args": (DataProviderSignatureFieldType,),
+                    "return_type": AbstractDataProviderTypeMap."bool",
+                },
+                "impl": string sub (string cn, auto arg) {
+                    return sprintf("%sISNOTEMPTY", cn);
+                },
             },
         };
     }
@@ -115,13 +251,15 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
 
         @see requestSearchRecordsImpl()
     */
-    private DataProvider::AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+    private DataProvider::AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond,
+            *hash<auto> search_options) {
        return new ServiceNowRestRecordIterator(rest, name, record_info, where_cond, search_options);
     }
 
     #! Returns data provider static info
     private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
-        hash<DataProviderInfo> rv = ServiceNowRestDataProvider::ProviderInfo - "constructor_options" + <DataProviderInfo>{
+        hash<DataProviderInfo> rv = ServiceNowRestDataProvider::ProviderInfo - "constructor_options"
+                + <DataProviderInfo>{
             "supports_children": False,
             "search_options": {
                 "columns": <DataProviderOptionInfo>{
@@ -159,22 +297,7 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
                 # NOTE delete_access seems to always be False, while records can still be deleted
                 "supports_delete": access.create_access,
                 "supports_create": access.create_access,
-                "search_operators": {
-                    QUERY_OP_EQ: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_EQ},
-                    QUERY_OP_NE: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_NE},
-                    QUERY_OP_LT: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_LT},
-                    QUERY_OP_LE: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_LE},
-                    QUERY_OP_GT: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_GT},
-                    QUERY_OP_GE: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_GE},
-                    QUERY_OP_IN: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_IN},
-                    QUERY_OP_NOT: AbstractDataProvider::GenericRecordSearchOperators{DP_SEARCH_OP_NOT},
-                    QUERY_OP_LIKE: <DataProviderSearchOperatorInfo>{
-                        "name": "like",
-                        "type": AbstractDataProviderType::get(Reflection::StringType),
-                        "desc": "The value to bind as the 'like' value (ex: '%some string%')",
-                        "uses_field_type": False,
-                    },
-                },
+                "expressions": map {$1.key: $1.value.exp}, Expressions.pairIterator(),
             };
         }
         return rv;
@@ -216,11 +339,14 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
 
         @return the number of records updated
     */
-    private int updateRecordsImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
+    private int updateRecordsImpl(hash<auto> set, hash<DataProviderExpression> where_cond,
+            *hash<auto> search_options) {
+        /*
         if (where_cond.sys_id && where_cond.size() == 1) {
             updateSingleRecord(where_cond.sys_id, set);
             return 1;
         }
+        */
 
         AbstractDataProviderRecordIterator i = searchRecords(where_cond, search_options + {"columns": "sys_id"});
         int count = 0;
@@ -235,11 +361,13 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
 
         @return the number of records deleted
     */
-    private int deleteRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+    private int deleteRecordsImpl(*hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
+        /*
         if (where_cond.sys_id && where_cond.size() == 1) {
             deleteSingleRecord(where_cond.sys_id);
             return 1;
         }
+        */
 
         AbstractDataProviderRecordIterator i = searchRecords(where_cond, search_options + {"columns": "sys_id"});
         int count = 0;
@@ -328,5 +456,15 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
             record_info.record_type{i.key} = new QoreDataField(i.key, desc, type);
         }
     }
+}
+}
+
+namespace Priv {
+hash<DataProviderExpressionInfo> sub sym(hash<DataProviderExpressionInfo> exp, string label) {
+    exp.label = label;
+    if (exp.args.size() > 1 && exp.args[0] == DataProviderSignatureAnyType) {
+        exp.args[0] = DataProviderSignatureFieldType;
+    }
+    return exp;
 }
 }

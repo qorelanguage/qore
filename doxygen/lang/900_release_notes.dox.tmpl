@@ -2,19 +2,27 @@
 
     @tableofcontents
 
-    @section qore_1_7_3 Qore 1.7.3
+    @section qore_1_8_0 Qore 1.8.0
 
     @par Release Summary
-    Bugfix release; see below for more information
+    Bugfix release with minor new features in user modules; see below for more information
 
-    @subsection qore_1_7_3_bug_fixes Bug Fixes in Qore
+    @subsection qore_1_8_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/CsvUtil/html/index.html">CsvUtil</a> module
+      - updated with initial support for generic expressions for searches
+        (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - updated with initial support for generic expressions for searches
+        (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
       - addded support for data provider options to support default values
         (<a href="https://github.com/qorelanguage/qore/issues/4532">issue 4532</a>)
       - addded \c search_operators to the data provider response to report supported search operators
         (<a href="https://github.com/qorelanguage/qore/issues/4528">issue 4528</a>)
       - fixed a type error in \c DataProvider::search*() calls with an empty \c where hash argument
         (<a href="https://github.com/qorelanguage/qore/issues/4511">issue 4511</a>)
+    - <a href="../../modules/FixedLengthUtil/html/index.html">FixedLengthUtil</a> module
+      - updated with initial support for generic expressions for searches
+        (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
       - fixed a bug where REST schema validation was not applied in all contexts with specialized REST clients; this
         was enabled by refactoring the internal code that allowed the validation to be applied

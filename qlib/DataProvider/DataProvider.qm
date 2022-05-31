@@ -203,6 +203,8 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v2_3 DataProvider v2.3
+    - updated to use new generic expression support for searches
+      (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
     - addded support for data provider options to support default values
       (<a href="https://github.com/qorelanguage/qore/issues/4532">issue 4532</a>)
     - addded \c search_operators to the data provider response to report supported search operators

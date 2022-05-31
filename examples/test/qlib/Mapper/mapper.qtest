@@ -41,6 +41,7 @@ class TestInputProvider inherits AbstractDataProvider {
         return <DataProviderInfo>{
             "supports_read": True,
             "has_record": True,
+            "expressions": AbstractDataProvider::GenericExpressions,
         };
     }
 
@@ -59,8 +60,12 @@ class TestInputProvider inherits AbstractDataProvider {
         };
     }
 
-    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
+    AbstractDataProviderRecordIterator searchRecords(*hash<auto> where_cond, *hash<auto> search_options) {
         last_where_cond = where_cond;
+        return AbstractDataProvider::searchRecords(where_cond, search_options);
+    }
+
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
         last_search_options = search_options;
         return new DefaultRecordIterator(new HashListIterator({"sub-a": ("a-0", "a-1",), "sub-b": ("b-0", "b-1",)}), where_cond, search_options, getRecordTypeImpl());
     }
