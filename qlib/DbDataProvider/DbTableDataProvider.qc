@@ -386,18 +386,6 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return table.getRecordType();
     }
 
-    #! Backwards-compatible search expression handler until this class can be ported to use generic expressions
-    *hash<auto> getSearchExpression(*hash<auto> where_cond, *hash<auto> search_options) {
-        if (where_cond instanceof hash<DataProviderExpression>) {
-            throw "WHERE-ERROR", sprintf("DataProvider %y type %y does not yet support generic expressions for "
-                "searching", getName(), self.className());
-        }
-        if (!where_cond) {
-            return;
-        }
-        return processFieldValues(where_cond, search_options);
-    }
-
     #! Writes the given record to the data provider
     /** @param rec a hash representing a single input record
         @param create_options the create options (see @ref CreateOptions) after processing by validateCreateOptions()

@@ -297,7 +297,8 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
                 # NOTE delete_access seems to always be False, while records can still be deleted
                 "supports_delete": access.create_access,
                 "supports_create": access.create_access,
-                "expressions": map {$1.key: $1.value.exp}, Expressions.pairIterator(),
+                "supports_search_expressions": True,
+                "expressions": (map {$1.key: $1.value.exp}, Expressions.pairIterator()),
             };
         }
         return rv;
@@ -455,6 +456,15 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
             record_info.field_types{i.key} = type.getBaseTypeName();
             record_info.record_type{i.key} = new QoreDataField(i.key, desc, type);
         }
+    }
+
+    #! Returns an equality comparison expression
+    private hash<DataProviderExpression> getEqualityComparisonExpression(int role, hash<DataProviderInfo> info, string key,
+            auto value) {
+        return <DataProviderExpression>{
+            "exp": info.expressions.eq,
+            "args": (<DataProviderFieldReference>{"field": key},) + value,
+        };
     }
 }
 }
