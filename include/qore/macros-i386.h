@@ -30,6 +30,8 @@
 #ifndef _QORE_MACHINE_MACROS_H
 #define _QORE_MACHINE_MACROS_H
 
+//#pragma message "using macros-i386.h"
+
 #define STACK_DIRECTION_DOWN 1
 
 #ifdef __GNUC__

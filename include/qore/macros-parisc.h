@@ -1,7 +1,8 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 #ifndef _QORE_MACHINE_MACROS_H
-
 #define _QORE_MACHINE_MACROS_H
+
+//#pragma message "using macros-parisc.h"
 
 // need 10KB on HPUX on PA-RISC
 #define QORE_STACK_GUARD (1024 * 10)

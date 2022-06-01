@@ -28,21 +28,21 @@
 */
 
 #ifndef _QORE_CONFIG_MACHINE_MACROS_H
-
 #define _QORE_CONFIG_MACHINE_MACROS_H
 
-// only have support for 32-bit ppc for now
-#ifndef __ppc64
+//#pragma message "using macros-powerpc.h"
 
-#define HAVE_CHECK_STACK_POS
 #define STACK_DIRECTION_DOWN 1
 
+#ifdef __GNUC__
+#define HAVE_CHECK_STACK_POS
+
 static inline size_t get_stack_pos() {
-   size_t addr;
-   __asm("mr %0, r1" : "=r" (addr) );
-   return addr;
+    size_t addr;
+    __asm("mr %0, r1" : "=r" (addr) );
+    return addr;
 }
-
+#else
+#pragma message "warning: not using a GNU compiler"
 #endif
-
 #endif

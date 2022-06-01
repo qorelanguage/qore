@@ -28,37 +28,31 @@
 */
 
 #ifndef _QORE_MACHINE_MACROS_H
-
 #define _QORE_MACHINE_MACROS_H
+
+//#pragma message "using macros-sparc.h"
 
 // we need at least 22K of stack guard on sparc for background threads
 #define QORE_STACK_GUARD (1024 * 22)
 
 // no atomic support or stack guard for 64-bit sparc yet
 #if !defined(__sparcv9)
-
 #define STACK_DIRECTION_DOWN 1
 
 #ifdef __GNUC__
-
 #define HAVE_CHECK_STACK_POS
 
 static inline size_t get_stack_pos() {
-   size_t addr;
-   __asm__("mov %%sp,%0" : "=r" (addr) );
-   return addr;
+    size_t addr;
+    __asm__("mov %%sp,%0" : "=r" (addr) );
+    return addr;
 }
-
 #endif
 
 #ifdef __SUNPRO_CC
-
 #define HAVE_CHECK_STACK_POS
 
 extern "C" size_t get_stack_pos();
-
 #endif
-
 #endif
-
 #endif

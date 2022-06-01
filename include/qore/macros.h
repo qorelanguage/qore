@@ -32,41 +32,36 @@
 
 // include the right assembly macro file for the current architecture
 
-#ifdef __i386
-#include <qore/macros-i386.h>
-#endif // #ifdef __i386
-
 #ifdef __x86_64
 #include <qore/macros-x86_64.h>
-#endif // #ifdef __x86_64
-
-#ifdef __sparc
+#elif defined(__i386)
+#include <qore/macros-i386.h>
+#elif defined(__sparc)
 #include <qore/macros-sparc.h>
-#endif // #ifdef __sparc
-
-#if defined(__ppc) || defined(__ppc__)
-#include <qore/macros-powerpc.h>
-#endif // #ifdef __ppc
-
-#if defined(__ppc64) || defined(__ppc64__)
+#elif defined(__ppc64) || defined(__ppc64__) || defined(__powerpc64__) || defined(_ARCH_PPC64) || defined(__PPC64__)
 #include <qore/macros-ppc64.h>
-#endif // #ifdef __ppc64
-
-#ifdef __hppa
+#elif defined(__ppc) || defined(__ppc__)
+#include <qore/macros-powerpc.h>
+#elif defined(__hppa)
 #include <qore/macros-parisc.h>
-#endif // #ifdef __hppa
-
-#ifdef __ia64
+#elif defined(__ia64)
 #include <qore/macros-ia64.h>
-#endif // #ifdef __ia64
-
-#ifdef __arm__
-#include <qore/macros-arm.h>
-#endif // #ifdef __arm__
-
-#ifdef __aarch64__
+#elif defined(__aarch64__)
 #include <qore/macros-aarch64.h>
-#endif // #ifdef __aarch64__
+#elif defined(__arm__)
+#include <qore/macros-arm.h>
+#else
+#pragma message "no machine-specific macros included"
+#endif
+
+#ifndef HAVE_CHECK_STACK_POS
+#define HAVE_CHECK_STACK_POS
+// returns a pointer to the current stack location
+static inline size_t get_stack_pos() {
+    int i;
+    return reinterpret_cast<size_t>(&i);
+}
+#endif
 
 #endif // #ifndef _QORE_MACROS_H
 

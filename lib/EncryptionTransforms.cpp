@@ -387,6 +387,7 @@ Transform* EncryptionTransforms::getCryptoTransform(const char* cipher, bool do_
     }
 IS_FETCHABLE(cipher, EVP_CIPHER)
 IS_FETCHABLE(digest, EVP_MD)
+/* currently unused
 IS_FETCHABLE(mac, EVP_MAC)
 IS_FETCHABLE(kdf, EVP_KDF)
 IS_FETCHABLE(rand, EVP_RAND)
@@ -397,6 +398,7 @@ IS_FETCHABLE(asym_cipher, EVP_ASYM_CIPHER)
 IS_FETCHABLE(keyexch, EVP_KEYEXCH)
 IS_FETCHABLE(decoder, OSSL_DECODER)
 IS_FETCHABLE(encoder, OSSL_ENCODER)
+*/
 
 DEFINE_STACK_OF(EVP_CIPHER)
 DEFINE_STACK_OF(EVP_MD)

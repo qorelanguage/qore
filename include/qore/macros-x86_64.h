@@ -30,30 +30,26 @@
 #ifndef _QORE_MACHINE_MACROS_H
 #define _QORE_MACHINE_MACROS_H
 
+//#pragma message "using macros-x86_64.h"
+
 #define STACK_DIRECTION_DOWN 1
 
 // we need 32K of stack guard on x86_64
 #define QORE_STACK_GUARD (1024 * 32)
 
 #ifdef __GNUC__
-
 #define HAVE_CHECK_STACK_POS
 
 static inline size_t get_stack_pos() {
-   size_t addr;
-   __asm("movq %%rsp, %0" : "=g" (addr) );
-   return addr;
+    size_t addr;
+    __asm("movq %%rsp, %0" : "=g" (addr) );
+    return addr;
 }
-
 #endif // #ifdef __GNUC__
 
 #ifdef __SUNPRO_CC
-
 #define HAVE_CHECK_STACK_POS
 
 extern "C" size_t get_stack_pos();
-
 #endif // #ifdef __SUNPRO_CC
-
 #endif // #ifndef _QORE_MACHINE_MACROS_H
-
