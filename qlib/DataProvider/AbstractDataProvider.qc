@@ -1646,6 +1646,9 @@ public class AbstractDataProvider {
                     }
                     : (<DataProviderFieldReference>{"field": key}, ) + value.arg,
             };
+        } else if (!info.expressions."=") {
+            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("data provider %s of type %y provides no '=' operator; "
+                "operators provided: %y", getName(), self.className(), keys info.expressions);
         } else {
             rv = <DataProviderExpression>{
                 "exp": info.expressions."=",

@@ -53,7 +53,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
                     "name": "like",
                     "label": OP_LIKE,
                     "symbol": "like",
-                    "desc": "The SQL 'like' operator')",
+                    "desc": "The SQL 'like' operator",
                     "args": (DataProviderSignatureStringType, DataProviderSignatureStringValueType),
                     "return_type": AbstractDataProviderTypeMap."bool",
                 },
