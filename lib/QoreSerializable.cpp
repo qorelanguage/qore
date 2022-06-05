@@ -213,7 +213,8 @@ public:
     imap_t& imap;
     mset_t& mset;
 
-    DLLLOCAL QoreInternalSerializationContext(ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset) : index(index), imap(imap), mset(mset) {
+    DLLLOCAL QoreInternalSerializationContext(ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset)
+            : index(index), imap(imap), mset(mset) {
     }
 
     DLLLOCAL int serializeObject(const QoreObject& obj, std::string& index_str, ExceptionSink* xsink) {
@@ -277,7 +278,8 @@ static QoreHashNode* serialization_get_index(imap_t::iterator i) {
     return rv.release();
 }
 
-QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<QoreHashNode>& index, imap_t& imap,
+        mset_t& mset, ExceptionSink* xsink) {
     switch (val.getType()) {
         case NT_INT:
         case NT_STRING:
@@ -299,7 +301,8 @@ QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<
         }
 
         case NT_HASH: {
-            ReferenceHolder<QoreHashNode> rv(serializeHashToData(*val.get<const QoreHashNode>(), index, imap, mset, xsink), xsink);
+            ReferenceHolder<QoreHashNode> rv(serializeHashToData(*val.get<const QoreHashNode>(), index, imap, mset,
+                xsink), xsink);
             if (*xsink) {
                 return QoreValue();
             }
@@ -307,7 +310,8 @@ QoreValue QoreSerializable::serializeValue(const QoreValue val, ReferenceHolder<
         }
 
         case NT_LIST: {
-            ReferenceHolder<QoreHashNode> rv(serializeListToData(*val.get<const QoreListNode>(), index, imap, mset, xsink), xsink);
+            ReferenceHolder<QoreHashNode> rv(serializeListToData(*val.get<const QoreListNode>(), index, imap, mset,
+                xsink), xsink);
             if (*xsink) {
                 return QoreValue();
             }
@@ -352,7 +356,8 @@ QoreHashNode* QoreSerializable::serializeToData(const QoreValue val, ExceptionSi
     return rv.release();
 }
 
-imap_t::iterator QoreSerializable::serializeObjectToIndex(const QoreObject& obj, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+imap_t::iterator QoreSerializable::serializeObjectToIndex(const QoreObject& obj, ReferenceHolder<QoreHashNode>& index,
+        imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
     // see if object is in index
     QoreString str;
     qore_get_ptr_hash(str, &obj);
@@ -364,12 +369,15 @@ imap_t::iterator QoreSerializable::serializeObjectToIndex(const QoreObject& obj,
         : serializeObjectToIndexIntern(obj, index, imap, mset, str, i, xsink);
 }
 
-QoreValue QoreSerializable::serializeObjectToData(const QoreObject& obj, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+QoreValue QoreSerializable::serializeObjectToData(const QoreObject& obj, ReferenceHolder<QoreHashNode>& index,
+        imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
     imap_t::iterator i = serializeObjectToIndex(obj, index, imap, mset, xsink);
     return *xsink ? QoreValue() : serialization_get_index(i);
 }
 
-imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject& self, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, const QoreString& str, imap_t::iterator hint, ExceptionSink* xsink) {
+imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject& self,
+        ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, const QoreString& str,
+        imap_t::iterator hint, ExceptionSink* xsink) {
     const QoreClass& cls = *self.getClass();
 
     // first write object to index
@@ -403,7 +411,8 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
         {
             bool priv = false;
             if (!current_cls.getClass(*QC_SERIALIZABLE, priv)) {
-                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("cannot serialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for serialization", current_cls.getName()));
+                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("cannot serialize class '%s' as it does "
+                    "not inherit 'Serializable' and therefore is not eligible for serialization", current_cls.getName()));
                 if (!current_cls.isSystem()) {
                     desc->sprintf("; to correct this error, declare Serializable as a parent class of '%s'",
                         current_cls.getName());
@@ -488,7 +497,8 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
                 }
                 if (val) {
                     if (val->getType() != NT_HASH) {
-                        xsink->raiseException("SERIALIZATION-ERROR", "%s::serializeMembers() returned type '%s'; expecting 'hash' or 'nothing'",
+                        xsink->raiseException("SERIALIZATION-ERROR", "%s::serializeMembers() returned type '%s'; "
+                            "expecting 'hash' or 'nothing'",
                             current_cls.getName(), val->getFullTypeName());
                         return imap.end();
                     }
@@ -531,7 +541,8 @@ imap_t::iterator QoreSerializable::serializeObjectToIndexIntern(const QoreObject
     return i;
 }
 
-QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, ReferenceHolder<QoreHashNode>& index,
+        imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclHashSerializationInfo, xsink), xsink);
 
     const TypedHashDecl* thd = h.getHashDecl();
@@ -574,7 +585,8 @@ QoreHashNode* QoreSerializable::serializeHashToData(const QoreHashNode& h, Refer
     return rv.release();
 }
 
-QoreHashNode* QoreSerializable::serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index, imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
+QoreHashNode* QoreSerializable::serializeListToData(const QoreListNode& l, ReferenceHolder<QoreHashNode>& index,
+        imap_t& imap, mset_t& mset, ExceptionSink* xsink) {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclListSerializationInfo, xsink), xsink);
 
     // issue #3318: write complex type to stream, if any
@@ -686,7 +698,8 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                 {
                     bool priv = false;
                     if (!mcls.getClass(*QC_SERIALIZABLE, priv)) {
-                        xsink->raiseException("DESERIALIZATION-ERROR", "cannot deserialize class '%s' as it does not inherit 'Serializable' and therefore is not eligible for deserialization'",
+                        xsink->raiseException("DESERIALIZATION-ERROR", "cannot deserialize class '%s' as it does not "
+                            "inherit 'Serializable' and therefore is not eligible for deserialization'",
                             mcls.getName());
                         return QoreValue();
                     }
@@ -704,7 +717,8 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                         ++found;
                         if (cv) {
                             if (cv.getType() != NT_HASH) {
-                                xsink->raiseException("DESERIALIZATION-ERROR", "serialized data for class '%s' has type '%s'; expecting 'hash' or 'nothing'",
+                                xsink->raiseException("DESERIALIZATION-ERROR", "serialized data for class '%s' has "
+                                    "type '%s'; expecting 'hash' or 'nothing'",
                                     mcls.getName(), cv.getTypeName());
                                 return QoreValue();
                             }
@@ -810,7 +824,9 @@ QoreValue QoreSerializable::deserialize(const QoreHashNode& h, ExceptionSink* xs
                 }
 
                 // create the error string
-                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("incompatible class hierarchy; %d class%s in serialization data, but %d used for deserialization; unmatched classes: ", static_cast<int>(hsize), hsize == 1 ? "" : "es", static_cast<int>(found)));
+                SimpleRefHolder<QoreStringNode> desc(new QoreStringNodeMaker("incompatible class hierarchy; %d "
+                    "class%s in serialization data, but %d used for deserialization; unmatched classes: ",
+                    static_cast<int>(hsize), hsize == 1 ? "" : "es", static_cast<int>(found)));
 
                 for (auto& i : strset) {
                     desc->sprintf("'%s', ", i.c_str());
@@ -1752,7 +1768,7 @@ DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reade
     }
 
     if (!code_is_int(zt) && zt != qore_stream_type::UTF8_STRING) {
-        xsink->raiseException("DESERIALIZATION-ERROR", "invalid absolute date zone type %d read from stream; " \
+        xsink->raiseException("DESERIALIZATION-ERROR", "invalid absolute date zone type %d read from stream; "
             "expecting an integer or UTF-8 string type", (int)zt);
         return nullptr;
     }
@@ -1768,11 +1784,17 @@ DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reade
         zone = QTZM.findCreateOffsetZone(seconds_east);
     } else {
         // read string data type code
+#ifdef DEBUG
         qore_stream_type code = static_cast<qore_stream_type>(reader.readi1(xsink));
+#else
+        reader.readi1(xsink);
+#endif
         if (*xsink) {
             return nullptr;
         }
+#ifdef DEBUG
         assert(code == qore_stream_type::UTF8_STRING);
+#endif
 
         QoreString region;
         if (readStringFromStream(reader, region, "absolute date region", xsink)) {
@@ -1781,7 +1803,8 @@ DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reade
 
         bool is_path = (!region.empty() && region.c_str()[0] == '.') || q_absolute_path(region.c_str());
         if (is_path && runtime_check_parse_option(PO_NO_FILESYSTEM)) {
-            xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region.c_str());
+            xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path "
+                "'%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region.c_str());
         }
 
         zone = is_path
@@ -1793,7 +1816,8 @@ DateTimeNode* QoreSerializable::deserializeAbsDateFromStream(StreamReader& reade
         }
     }
 
-    //printd(5, "QoreSerializable::deserializeDateFromStream() epoch: " QLLD " us: %d zone: '%s'\n", epoch, us, AbstractQoreZoneInfo::getRegionName(zone));
+    //printd(5, "QoreSerializable::deserializeDateFromStream() epoch: " QLLD " us: %d zone: '%s'\n", epoch, us,
+    //    AbstractQoreZoneInfo::getRegionName(zone));
 
     return DateTimeNode::makeAbsolute(zone, epoch, us);
 }

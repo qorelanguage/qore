@@ -240,7 +240,6 @@ int HMACHelper::doHMAC(const char* err, const char* digest, const char* ptr, siz
         xsink->raiseException("DIGEST-ERROR", "error initialing MAC context for MAC '%s'", digest);
         return -1;
     }
-    size_t lsn;
     if (!EVP_MAC_update(ctx, input, input_len)
         || !EVP_MAC_final(ctx, md_value, &len, sizeof(md_value))) {
         xsink->raiseException(err, "error calculating MAC '%s'", digest);

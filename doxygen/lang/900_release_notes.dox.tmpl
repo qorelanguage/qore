@@ -2,6 +2,19 @@
 
     @tableofcontents
 
+    @section qore_1_8_1 Qore 1.8.1
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_8_1_bug_fixes Bug Fixes in Qore
+    - fixed bugs in C++ <tt>QoreSocket::send*()</tt> methods not used in the %Qore language but exposed in the public
+      C++ API that could cause a crash in case of errors
+      (<a href="https://github.com/qorelanguage/qore/issues/4541">issue 4541</a>)
+    - fixed a bug building documentation with release files created from the autotools makefile target, as well as
+      bugs in the cmake configuration generating documentation for builtin modules
+      (<a href="https://github.com/qorelanguage/qore/issues/4540">issue 4540</a>)
+
     @section qore_1_8_0 Qore 1.8.0
 
     @par Release Summary

@@ -1696,7 +1696,8 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
    td->current_class = old_class;
 }
 
-OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
+OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const qore_class_private* qc)
+        : subst(qc ? true : false) {
     if (qc) {
         ThreadData* td = thread_data.get();
         old_class = td->current_class;
@@ -1711,7 +1712,8 @@ OptionalClassOnlySubstitutionHelper::~OptionalClassOnlySubstitutionHelper() {
     }
 }
 
-OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(const qore_class_private* qc) : subst(qc ? true : false) {
+OptionalClassObjSubstitutionHelper::OptionalClassObjSubstitutionHelper(const qore_class_private* qc)
+        : subst(qc ? true : false) {
     if (qc) {
         ThreadData* td = thread_data.get();
         old_obj = td->current_obj;
@@ -1729,7 +1731,8 @@ OptionalClassObjSubstitutionHelper::~OptionalClassObjSubstitutionHelper() {
     }
 }
 
-OptionalObjectOnlySubstitutionHelper::OptionalObjectOnlySubstitutionHelper(QoreObject* obj) : subst(obj ? true : false) {
+OptionalObjectOnlySubstitutionHelper::OptionalObjectOnlySubstitutionHelper(QoreObject* obj)
+        : subst(obj ? true : false) {
     if (obj) {
         ThreadData* td = thread_data.get();
         old_obj = td->current_obj;

@@ -101,7 +101,7 @@ set(REFLECTION_H_SRC
     src/QC_Type.h
 )
 
-set(QORE_DOX_TMPL_SRC
+set(QORE_DOX_REFLECTION_TMPL_SRC
     docs/mainpage.dox.tmpl
 )
 
@@ -129,7 +129,7 @@ set(MODULE_DOX_INPUT ${CMAKE_BINARY_DIR}/modules/reflection/mainpage.dox ${_dox_
 qore_binary_module_qore(${reflection_module_name} "${VERSION}" "/${VERSION}")
 
 if (DOXYGEN_FOUND)
-    qore_wrap_dox(QORE_DOX_SRC ${QORE_DOX_TMPL_SRC})
-    add_custom_target(QORE_REFLECTION_MOD_DOX_FILES DEPENDS ${QORE_DOX_SRC})
+    qore_wrap_dox(QORE_DOX_REFLECTION_SRC ${QORE_DOX_REFLECTION_TMPL_SRC})
+    add_custom_target(QORE_REFLECTION_MOD_DOX_FILES DEPENDS ${QORE_DOX_REFLECTION_SRC})
     add_dependencies(docs-reflection QORE_REFLECTION_MOD_DOX_FILES)
 endif()

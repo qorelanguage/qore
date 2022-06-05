@@ -1136,7 +1136,6 @@ struct qore_socket_private {
 
     DLLLOCAL int set_non_blocking(bool non_blocking, ExceptionSink* xsink) {
         assert(xsink);
-
         // ignore call when socket already closed
         if (sock == QORE_INVALID_SOCKET) {
             assert(!xsink || *xsink);
@@ -1146,28 +1145,35 @@ struct qore_socket_private {
 #ifdef _Q_WINDOWS
         u_long mode = non_blocking ? 1 : 0;
         int rc = ioctlsocket(sock, FIONBIO, &mode);
-        if (check_windows_rc(rc))
+        if (check_windows_rc(rc)) {
             return sock_errno_err("SOCKET-CONNECT-ERROR", "error in ioctlsocket(FIONBIO)", xsink);
+        }
 #else
         int arg;
 
         // get socket descriptor status flags
-        if ((arg = fcntl(sock, F_GETFL, 0)) < 0)
-            return sock_errno_err("SOCKET-CONNECT-ERROR", "error in fcntl() getting socket descriptor status flag", xsink);
+        if ((arg = fcntl(sock, F_GETFL, 0)) < 0) {
+            return sock_errno_err("SOCKET-CONNECT-ERROR", "error in fcntl() getting socket descriptor status "
+                "flag", xsink);
+        }
 
-        if (non_blocking) // set non-blocking
+        if (non_blocking) { // set non-blocking
             arg |= O_NONBLOCK;
-        else // set blocking
+        } else { // set blocking
             arg &= ~O_NONBLOCK;
+        }
 
-        if (fcntl(sock, F_SETFL, arg) < 0)
-            return sock_errno_err("SOCKET-CONNECT-ERROR", "error in fcntl() setting socket descriptor status flag", xsink);
+        if (fcntl(sock, F_SETFL, arg) < 0) {
+            return sock_errno_err("SOCKET-CONNECT-ERROR", "error in fcntl() setting socket descriptor status "
+                "flag", xsink);
+        }
 #endif
 
         return 0;
     }
 
-    DLLLOCAL int connectINET(const char* host, const char* service, int timeout_ms, ExceptionSink* xsink, int family = AF_UNSPEC, int type = SOCK_STREAM, int protocol = 0) {
+    DLLLOCAL int connectINET(const char* host, const char* service, int timeout_ms, ExceptionSink* xsink,
+            int family = AF_UNSPEC, int type = SOCK_STREAM, int protocol = 0) {
         assert(xsink);
         family = q_get_af(family);
         type = q_get_sock_type(type);
@@ -1195,18 +1201,24 @@ struct qore_socket_private {
         int prt = q_get_port_from_addr(aip->ai_addr);
 
         for (struct addrinfo *p = aip; p; p = p->ai_next) {
-            if (!connectINETIntern(host, service, p->ai_family, p->ai_addr, p->ai_addrlen, p->ai_socktype, p->ai_protocol, prt, timeout_ms, xsink, true))
+            if (!connectINETIntern(host, service, p->ai_family, p->ai_addr, p->ai_addrlen, p->ai_socktype,
+                p->ai_protocol, prt, timeout_ms, xsink, true)) {
                 return 0;
-            if (*xsink)
+            }
+            if (*xsink) {
                 break;
+            }
         }
 
-        if (!*xsink)
+        if (!*xsink) {
             qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, host, service);
+        }
         return -1;
     }
 
-    DLLLOCAL int connectINETIntern(const char* host, const char* service, int ai_family, struct sockaddr* ai_addr, size_t ai_addrlen, int ai_socktype, int ai_protocol, int prt, int timeout_ms, ExceptionSink* xsink, bool only_timeout = false) {
+    DLLLOCAL int connectINETIntern(const char* host, const char* service, int ai_family, struct sockaddr* ai_addr,
+            size_t ai_addrlen, int ai_socktype, int ai_protocol, int prt, int timeout_ms, ExceptionSink* xsink,
+            bool only_timeout = false) {
         assert(xsink);
         printd(5, "qore_socket_private::connectINETIntern() host: %s service: %s family: %d timeout_ms: %d\n", host, service, ai_family, timeout_ms);
         if ((sock = socket(ai_family, ai_socktype, ai_protocol)) == QORE_INVALID_SOCKET) {
@@ -2431,7 +2443,8 @@ struct qore_socket_private {
         return rc < 0 || sock == QORE_INVALID_SOCKET ? -1 : 0;
     }
 
-    DLLLOCAL int sendIntern(ExceptionSink* xsink, const char* cname, const char* mname, const char* buf, size_t size, int timeout_ms, int64& total, bool stream = false) {
+    DLLLOCAL int sendIntern(ExceptionSink* xsink, const char* cname, const char* mname, const char* buf, size_t size,
+            int timeout_ms, int64& total, bool stream = false) {
         assert(xsink);
         qore_offset_t rc;
         size_t bs = 0;
@@ -2503,11 +2516,11 @@ struct qore_socket_private {
 
     DLLLOCAL int send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
 
-    DLLLOCAL int send(ExceptionSink* xsink, const char* cname, const char* mname, const char* buf, size_t size, int timeout_ms = -1, int source = QORE_SOURCE_SOCKET) {
+    DLLLOCAL int send(ExceptionSink* xsink, const char* cname, const char* mname, const char* buf, size_t size,
+            int timeout_ms = -1, int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
             se_not_open(cname, mname, xsink, "send");
-
             return QSE_NOT_OPEN;
         }
         if (in_op >= 0) {
@@ -2528,8 +2541,9 @@ struct qore_socket_private {
         bool nb = (timeout_ms >= 0);
         // set non-blocking I/O (and restore on exit) if we have a timeout and a non-ssl connection
         OptionalNonBlockingHelper onbh(*this, !ssl && nb, xsink);
-        if (*xsink)
+        if (*xsink) {
             return -1;
+        }
 
         int64 total = 0;
         qore_offset_t rc = sendIntern(xsink, cname, mname, buf, size, timeout_ms, total);

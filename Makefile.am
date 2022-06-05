@@ -949,6 +949,7 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 	modules/reflection/docs/mainpage.dox.tmpl \
 	modules/reflection/CMakeLists.txt \
 	modules/reflection/cmake/cmake_uninstall.cmake.in \
+    doxygen/lang/mainpage.dox.tmpl \
 	doxygen/lang/Doxyfile.in \
 	doxygen/qlib/Doxyfile.in \
 	doxygen/modules/Doxyfile.in \
