@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.0
+%requires qore >= 1.8
 
 # requires the SqlUtil module
 %requires SqlUtil >= 1.7.5

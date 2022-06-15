@@ -4331,11 +4331,107 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     */
     public const OP_IN_SELECT = "in_select";
 
+    #!
+    public const DefaultExpressionMap = {
+        OP_LIKE: (
+            "exp": <DataProviderExpressionInfo>{
+                "name": "like",
+                "args": (DataProviderSignatureStringType, DataProviderSignatureStringValueType),
+                "return_type": AbstractDataProviderTypeMap."bool",
+                "desc": "The value to bind as the 'like' value (ex: '%some string%')",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                return sprintf("%s like %s",
+                    info.table.getExpressionArg(info, args[0], \bind_args),
+                    info.table.getExpressionArg(info, args[1], \bind_args));
+            },
+        ),
+        OP_LT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LT} + (
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                args += arg;
+                return sprintf("%s < %s", cn);
+            },
+        ),
+        OP_LE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LE} + (
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                args += arg;
+                return sprintf("%s <= %v", cn);
+            },
+        ),
+        OP_GT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GT} + (
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                args += arg;
+                return sprintf("%s > %v", cn);
+            },
+        ),
+        OP_GE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GE} + (
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                args += arg;
+                return sprintf("%s >= %v", cn);
+            },
+        ),
+        OP_NE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NE} + (
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                if (arg === NULL || !exists arg)
+                    return sprintf("%s is not null", cn);
+                args += arg;
+                return sprintf("(%s != %v or %s is null)", cn, cn);
+            },
+        ),
+        OP_EQ: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_EQ} + (
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                if (arg === NULL || !exists arg)
+                    return sprintf("%s is null", cn);
+                args += arg;
+                return sprintf("%s = %v", cn);
+            },
+        ),
+        OP_BETWEEN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_BETWEEN} + (
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                args += arg[0];
+                args += arg[1];
+                return sprintf("%s between %v and %v", cn);
+            },
+        ),
+        OP_IN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN} + (
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
+                return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
+            },
+        ),
+        OP_NOT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NOT} + (
+            "recursive": True,
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                return sprintf("not (%s)", args[0]);
+            },
+        ),
+        OP_SUBSTR: (
+            "exp": <DataProviderExpressionInfo>{
+                "name": "substr",
+                "args": (
+                    DataProviderSignatureStringType,
+                    DataProviderSignatureIntValueType,
+                    DataProviderSignatureOptionalIntValueType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."string",
+                "desc": "",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                bind_args += args[1]; # start
+                if (!exists args[2]) {
+                    return sprintf("substring(%s from %v)", args[0]);
+                }
+                bind_args += args[2]; # count
+                return sprintf("substring(%s from %v for %v)", args[0]);
+            },
+        ),
+    };
+
     #! a hash of valid operators for use in @ref where_clauses
-    public const DefaultOpMap = {
+    public const DefaultOpMap = DefaultExpressionMap + {
         OP_LIKE: (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+                    bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s like %v", cn);
             },
@@ -4346,35 +4442,34 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_LT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LT} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+                    bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s < %v", cn);
             },
         ),
         OP_LE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LE} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+                    bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s <= %v", cn);
             },
         ),
         OP_GT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GT} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+                    bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s > %v", cn);
             },
         ),
         OP_GE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GE} + (
             "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+                    bool join = False, *hash<auto> ch, *hash<auto> psch) {
                 args += arg;
                 return sprintf("%s >= %v", cn);
             },
         ),
         OP_NE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NE} + (
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is not null", cn);
                 args += arg;
@@ -4382,8 +4477,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_EQ: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_EQ} + (
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is null", cn);
                 args += arg;
@@ -4391,23 +4485,21 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_BETWEEN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_BETWEEN} + (
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 args += arg[0];
                 args += arg[1];
                 return sprintf("%s between %v and %v", cn);
             },
         ),
         OP_IN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN} + (
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
                 return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
         OP_IN_SELECT: {
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args,
+                    *hash<auto> opt) {
                 object subtable;
                 if (arg.table.typeCode() == NT_STRING) {
                     subtable = t.getSubtableFromString(arg.table, opt);
@@ -4424,15 +4516,13 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         },
         OP_NOT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NOT} + (
             "recursive": True,
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 return sprintf("not (%s)", cn);
             },
         ),
         OP_CLT: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 return sprintf("%s < %s", cn, arg);
             },
             "name": "column <",
@@ -4442,8 +4532,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_CLE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 return sprintf("%s <= %s", cn, arg);
             },
             "name": "column <=",
@@ -4453,8 +4542,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_CGT: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 return sprintf("%s > %s", cn, arg);
             },
             "name": "column >",
@@ -4464,8 +4552,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_CGE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 return sprintf("%s >= %s", cn, arg);
             },
             "name": "column >=",
@@ -4476,8 +4563,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_CNE: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 return sprintf("%s != %s", cn, arg);
             },
             "name": "column !=",
@@ -4486,8 +4572,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_CEQ: (
             "argcolumn": True,
-            "code": string sub (object t, string cn, string arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, string arg, reference<list<auto>> args) {
                 return sprintf("%s = %s", cn, arg);
             },
             "name": "column =",
@@ -4495,8 +4580,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "desc": "a value for equality comparisons; the other column must have a compatible type",
         ),
         OP_SUBSTR: (
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 args += arg[0]; # start
                 if (!exists arg[1]) {
                     args += arg[2]; # text
@@ -4508,9 +4592,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
         OP_OR: (
-            "code": string sub (object t, string cn, list<auto> arg, reference<list<auto>> args, *hash<auto> jch, bool join = False,
-                *hash<auto> ch, *hash<auto> psch) {
-                return t.getOrClause(arg, \args, jch, join, ch, psch);
+            "code": string sub (hash<QueryInfo> info, string cn, list<auto> arg, reference<list<auto>> args) {
+                return info.table.getOrClause(arg, \args, jch, join, ch, psch);
             },
         ),
     };

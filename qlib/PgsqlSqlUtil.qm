@@ -1449,8 +1449,7 @@ auto v = c.name;
             if (options.tables) {
                 foreach string i in (tables)
                     ds.select(sql, i);
-            }
-            else {
+            } else {
                 ds.select(sql, "");
             }
         }
@@ -1601,6 +1600,47 @@ auto v = c.name;
 
             const PgsqlAlignTableOptions = AbstractTable::AlignTableOptions + PgsqlTableCreationOptions;
 
+            #! Expression map for PostgreSQL
+            const PgsqlExpressionMap = {
+                COP_CAST: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_CAST,
+                        "name": "cast",
+                        "desc": "cast operator",
+                        "symbol": "cast",
+                        "args": (
+                            DataProviderSignatureFieldType,
+                            DataProviderSignatureStringValueType,
+                            DataProviderSignatureOptionalIntValueType,
+                            DataProviderSignatureOptionalIntValueType),
+                        "varargs": True,
+                        "return_type": AbstractDataProviderTypeMap."any",
+                    },
+                    "code": string sub (string cve, list<auto> args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        hash desc = PgsqlTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range)
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s",
+                                            name);
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                } else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                } else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                },
+            };
+
             #! column operator specializations for PostgreSQL
             const PgsqlCopMap = {
                 COP_CAST: (
@@ -1614,12 +1654,10 @@ auto v = c.name;
                                     if (!exists args[1] && !exists desc.size_range)
                                         throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
                                     sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
-                                }
-                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                } else if (desc.size == SZ_NUM && exists args[1]) {
                                     sql += sprintf("(%d", args[1]);
                                     sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
-                                }
-                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                } else if (desc.size == SZ_OPT && exists args[1]) {
                                     sql += sprintf("(%d)", args[1]);
                                 }
                         }
@@ -1713,7 +1751,6 @@ auto v = c.name;
                 ),
                 COP_SEQ_CURRVAL: (
                     "nocolumn": True,
-                    "withalias": True,
                     "code": string sub (*string cve, string arg) {
                         return sprintf("currval('%s')", arg);
                     }

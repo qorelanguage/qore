@@ -97,8 +97,11 @@ public const SignatureTypeDescMap = map {$1.value: $1.key.toInt()}, SignatureTyp
 #! Indicates an expression that can be used in a search operation
 public const ER_Search = (1 << 0);
 
+#! Indicates an expression that can be used in a field
+public const ER_Field = (1 << 1);
+
 #! Indicates an expression that can be used in all contexts
-public const ER_All = ER_Search;
+public const ER_All = ER_Search | ER_Field;
 #@}
 
 #! Role map from codes to descriptions

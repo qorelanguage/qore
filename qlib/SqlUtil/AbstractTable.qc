@@ -24,6 +24,21 @@
 
 #! contains all public definitions in the SqlUtil module
 public namespace SqlUtil {
+#! Query information
+hashdecl QueryInfo {
+    #! The primary table object
+    AbstractTable table;
+
+    #! Tables in this join; table alias -> table
+    hash<string, AbstractTable> join_map;
+
+    #! When executing a superquery, we can only reference colums in the subquery
+    hash<string, bool> subquery_column_map;
+
+    #! Any valid pseudocolumns
+    hash<string, bool> pseudo_column_map;
+}
+
 #! the base abstract class for the table implementation
 /** Use @ref SqlUtil::Table if you need to construct table object directly
 */
@@ -4460,8 +4475,10 @@ string sql = table.getSelectSql(sh, \args);
 
     # column & table information must be retrieved before calling this function
     string getSelectSqlUnlockedIntern(*hash<auto> qh, string from, reference<list<auto>> args, *hash<auto> ch, *hash<auto> opt) {
-        # get pseudo-column hash; += used to keep hash<auto> without stripping types
-        *hash<auto> psch += getPseudoColumnHash();
+        hash<QueryInfo> info = <QueryInfo>{
+            # get pseudo-column hash; += used to keep hash<auto> without stripping types
+            "pseudo_column_map": getPseudoColumnHash(),
+        };
 
         if (qh.hasKey("offset")) {
             if (!qh.orderby) {
@@ -4484,13 +4501,15 @@ string sql = table.getSelectSql(sh, \args);
             $1.value.table.typeCode() == NT_STRING;
 
         # make a hash of aliases to tables when using joins
-        hash<auto> jch = map {$1.alias ?? $1.table.getName(): $1.table}, qh.join.iterator();
+        info.join_map = map {$1.alias ?? $1.table.getName(): $1.table}, qh.join.iterator();
 
         # issue #1909: add an alias for the main table if present
         if (qh.alias) {
-            if (jch{qh.alias})
-                throw "SELECT-ERROR", sprintf("alias %y provided for the main table is also used in a join clause; known aliases in joins: %y", qh.alias, (map {$1.key: $1.value.getName()}, jch.pairIterator()));
-            jch{qh.alias} = self;
+            if (info.join_map{qh.alias}) {
+                throw "SELECT-ERROR", sprintf("alias %y provided for the main table is also used in a join clause; "
+                    "known aliases in joins: %y", qh.alias, (map {$1.key: $1.value.getName()}, info.join_map.pairIterator()));
+            }
+            info.join_map{qh.alias} = self;
         }
 
         # if we have a "superquery" argument, then we need to track which columns are in this subquery
@@ -4505,9 +4524,10 @@ string sql = table.getSelectSql(sh, \args);
             foreach auto cv in (qh.columns) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
-                        string cn = getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
-                        if (qh.superquery)
-                            mch{cv} = True;
+                        string cn = getColumnNameIntern(info, cv);
+                        if (qh.superquery) {
+                            info.subquery_column_map{cv} = True;
+                        }
                         ce += cn;
                         break;
                     }
@@ -4520,15 +4540,17 @@ string sql = table.getSelectSql(sh, \args);
                                 "operator functions; this element is missing hash key \"cop\" giving the column "
                                 "operator; keys provided: %y", getDesc(), $# + 1, qh.columns.lsize(), cv.keys());
                         try {
-                            string val = doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch, \psch);
+                            string val = doColumnOperatorIntern(cv, info.join_map, boolean(qh.join), ch,
+                                info.pseudo_column_map, \info.pseudo_column_map);
                             ce += val;
                         } catch (hash<ExceptionInfo> ex) {
                             # rethrow exception with additional contextual information
                             rethrow ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex),
                                 getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
                         }
-                        if (qh.superquery && cv.cop == COP_AS && cv.arg)
-                            mch{cv.arg} = True;
+                        if (qh.superquery && cv.cop == COP_AS && cv.arg) {
+                            info.subquery_column_map{cv.arg} = True;
+                        }
                         break;
                     }
 
@@ -4539,12 +4561,14 @@ string sql = table.getSelectSql(sh, \args);
             }
             cstr = foldl $1 + ", " + $2, ce.iterator();
             coll = ce;
-        } else
+        } else {
             cstr = "*";
+        }
 
         string sql = sprintf("select %s from %s", cstr, getFromIntern(from, qh));
-        if (qh.alias)
+        if (qh.alias) {
             sql += " " + qh.alias;
+        }
 
         # process join specifications
         foreach auto js in (qh.join.iterator()) {
@@ -4566,12 +4590,13 @@ string sql = table.getSelectSql(sh, \args);
 
             AbstractTable jt;
             if (jh.ta) {
-                if (!jch{jh.ta})
+                if (!info.join_map{jh.ta})
                     throw "SELECT-ERROR", sprintf("%s: can't join with unknown table/alias %y; known tables/aliases: "
-                        "%y", getDesc(), jh.ta, list(getName()) + jch.keys());
-                jt = jch{jh.ta};
-            } else
+                        "%y", getDesc(), jh.ta, (getName(),) + keys info.join_map);
+                jt = info.join_map{jh.ta};
+            } else {
                 jt = self;
+            }
 
             # set join table name
             string jtn;
@@ -4640,17 +4665,21 @@ string sql = table.getSelectSql(sh, \args);
             }
 
             # process any additional join conditions
-            if (jh.cond)
-                jel += jt.getWhereClauseIntern(jh.cond, \args, an, NOTHING, NOTHING, NOTHING, psch);
+            if (jh.cond) {
+                hash<QueryInfo> join_info = <QueryInfo>{
+                    "pseudo_column_map": info.pseudo_column_map,
+                };
+                jel += jt.getWhereClauseIntern(join_info, jh.cond, \args, an);
+            }
 
             sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.opt),
                 jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
         }
 
-        getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch, psch);
+        getSelectWhereSqlUnlocked(\sql, \args, qh, info.join_map, boolean(qh.join), ch, info.pseudo_column_map);
 
         if (qh.groupby) {
-            list ce = getGroupByListUnlocked(qh, jch, ch, psch, coll);
+            list ce = getGroupByListUnlocked(qh, info.join_map, ch, info.pseudo_column_map, coll);
             sql += " group by " + (foldl $1 + ", " + $2, ce.iterator());
         }
 
@@ -4673,12 +4702,12 @@ string sql = table.getSelectSql(sh, \args);
                         "(value: %y)", getDesc(), key, value[0].type(), value[0]);
 
                 *hash<auto> psch_copy = psch;
-                string hstr = doColumnOperatorIntern(value[0], NOTHING, getColumnExpressionIntern(key, jch,
-                    boolean(qh.join), ch, psch), cm, jch, boolean(qh.join), ch, psch);
+                string hstr = doColumnOperatorIntern(value[0], NOTHING, getColumnExpressionIntern(key, info.join_map,
+                    boolean(qh.join), ch, psch), cm, info.join_map, boolean(qh.join), ch, psch);
                 if (psch_copy != psch)
                     throw "HAVING-ERROR", sprintf("%s: cannot use column operator functions in the having clause "
                         "with column alias specifications", getDesc());
-                hl += doWhereExpressionIntern(hstr, value[1], \args, jch, boolean(qh.join), ch, NOTHING, opt);
+                hl += doWhereExpressionIntern(hstr, value[1], \args, info.join_map, boolean(qh.join), ch, NOTHING, opt);
             }
             if (hl)
                 sql += " having " + (foldl $1 + " and " + $2, hl);
@@ -4697,9 +4726,9 @@ string sql = table.getSelectSql(sh, \args);
                     throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match "
                         "any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
 
-                doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch, psch, coll);
+                doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, info.join_map, ch, psch, coll);
             } else {
-                doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
+                doSelectOrderBySqlUnlocked(info, \sql, \args, qh, coll);
             }
         } else if (qh.limit) {
             doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
@@ -4736,6 +4765,17 @@ string sql = table.getSelectSql(sh, \args);
     #! Returns the given table from the argument, using any \c "tablecode" option if present
     AbstractTable getSubtableFromString(string table, *hash<auto> opt) {
         return opt.tablecode ? opt.tablecode(ds, table) : new Table(ds, table).getTable();
+    }
+
+    string getExpressionArg(hash<QueryInfo> info, auto arg, reference<list<auto>> bind_args) {
+        if (arg instanceof hash<DataProviderFieldReference>) {
+            return getColumnNameIntern(info, arg.field);
+        }
+        if (arg instanceof hash<DataProviderExpression>) {
+            xxx;
+        }
+        bind_args += arg;
+        return "%v";
     }
 
     private string getFromIntern(string from, *hash<auto> qh) {
@@ -4897,6 +4937,57 @@ string sql = table.getSelectSql(sh, \args);
         }
     }
 
+    private string getColumnNameIntern(hash<QueryInfo> info, string column_name) {
+        # remove any disposable unique prefix
+        column_name =~ s/^[0-9]+://;
+        # return the name if it's a "technical name" (starts with "_")
+        if (column_name =~ /^_/) {
+            return column_name;
+        }
+
+        bool use_prefix = join_map.toBool();
+
+        # see if we have a table.column spec
+        *string table_prefix = (column_name =~ x/(\w+)\..+/)[0];
+        if (table_prefix) {
+            if (!info.join_map{table_prefix}) {
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this "
+                    "query: %y", getDesc(), table_prefix, column_name, keys info.join_map);
+            }
+            # remove table alias from column name
+            splice column_name, 0, table_prefix.size() + 1;
+
+            if (column_name != "*" && !info.join_map{table_prefix}.describe().hasKey(column_name)
+                && !info.pseudo_column_map{column_name})
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to "
+                    "table %y); known columns: %y", getDesc(), table_prefix, column_name, table_prefix,
+                    info.join_map{table_prefix}.getSqlName(),
+                    keys info.join_map{table_prefix}.describe());
+        } else if (info.pseudo_column_map{column_name}) {
+            # issue #4214: use table prefixes in a join for pseudocolumns
+            return use_prefix ? sprintf("%s.%s", getSqlName(), column_name) : column_name;
+        } else if (info.subquery_column_map) {
+            if (!info.subquery_column_map{column_name} && !info.pseudo_column_map{column_name}) {
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: "
+                    "%y", getDesc(), column_name, keys info.subquery_column_map);
+            }
+            return column_name;
+        } else {
+            table_prefix = getSqlName();
+            if (column_name == "*")
+                use_prefix = asteriskRequiresPrefix();
+            else if (!columns.hasKey(column_name) && !info.pseudo_column_map{column_name})
+                throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y; "
+                    "known column aliases: %y", getDesc(), table_prefix, column_name, columns.keys(),
+                    keys info.pseudo_column_map);
+        }
+
+        # ensure that reserved words are properly quoted
+        column_name = getColumnSqlName(column_name);
+
+        return use_prefix ? sprintf("%s.%s", table_prefix, column_name) : column_name;
+    }
+
     private string getColumnNameIntern(string cv, *hash<auto> jch, bool join, *hash<auto> ch, *hash<auto> psch) {
         # remove any disposable unique prefix
         cv =~ s/^[0-9]+://;
@@ -4978,7 +5069,7 @@ string sql = table.getSelectSql(sh, \args);
         if (!exists args)
             args = ();
         foreach hash<auto> ch in (cond) {
-            *list<string> wl = getWhereClauseIntern(ch, \args, cprefix, jch, join, pch, psch);
+            *list<string> wl = getWhereClauseIntern(info, ch, \args, cprefix);
             if (wl)
                 al += "(" + (foldl $1 + " and " + $2, wl) + ")";
         }
@@ -4988,50 +5079,73 @@ string sql = table.getSelectSql(sh, \args);
 
     private *string getWhereExpressionUnlocked(hash<DataProviderExpression> cond, reference<list<auto>> args,
             *string cprefix, *hash<auto> jch, bool join = False, *hash pch, *hash<auto> psch) {
-        throw "IMPLEMENT-ME";
+        string sql = getWhereExpressionUnlockedIntern(cond, args, cprefix, jch, join, pch, psch);
+        if (sql) {
+            return " where " + sql;
+        }
     }
 
-    private *string getWhereClauseUnlocked(*hash<auto> cond, reference<list<auto>> args, *string cprefix,
-            *hash<auto> jch, bool join = False, *hash pch, *hash<auto> psch) {
+    private *string getWhereExpressionUnlockedIntern(hash<DataProviderExpression> cond, reference<list<auto>> args,
+            *string cprefix, *hash<auto> jch, bool join = False, *hash pch, *hash<auto> psch) {
+        string sql;
+        switch (cond.exp.label) {
+            case DP_OP_AND:
+                break;
+
+            case DP_OP_OR:
+                break;
+
+            default:
+                #ql =
+        }
+        return sql;
+    }
+
+    private *string getWhereClauseUnlocked(hash<QueryInfo> info, *hash<auto> cond, reference<list<auto>> args,
+            *string cprefix) {
         getColumnsUnlocked();
         if (cond instanceof hash<DataProviderExpression>) {
-            return getWhereExpressionUnlocked(cast<hash<DataProviderExpression>>(cond), \args, cprefix, jch, join,
-                pch, psch);
+            return getWhereExpressionUnlocked(info, cast<hash<DataProviderExpression>>(cond), \args, cprefix);
         }
         if (!exists args)
             args = ();
-        *list<string> wl = getWhereClauseIntern(cond, \args, cprefix, jch, join, pch, psch);
-        if (wl)
+        *list<string> wl = getWhereClauseIntern(info, cond, \args, cprefix);
+        if (wl) {
             return " where " + (foldl $1 + " and " + $2, wl);
+        }
     }
 
-    private *list<string> getWhereClauseIntern(*hash<auto> cond, reference<list<auto>> args, *string cprefix,
-            *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
-        if (!cond)
+    private *list<string> getWhereClauseIntern(hash<QueryInfo> info, *hash<auto> cond, reference<list<auto>> args,
+            *string cprefix, *hash<auto> opt) {
+        if (!cond) {
             return;
+        }
 
-        return map doWhereExpressionIntern(cprefix
-            ? sprintf("%s.%s", cprefix, $1.key)
-            : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch, psch, opt),
+        return
+            map doWhereExpressionIntern(info, cprefix
+                ? sprintf("%s.%s", cprefix, $1.key)
+                : getColumnNameIntern(info, $1.key), $1.value, \args, opt),
             cond.pairIterator();
     }
 
-    private string doWhereExpressionIntern(string cn, auto we, reference<list<auto>> args, *hash<auto> jch,
-            bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
+    private string doWhereExpressionIntern(hash<QueryInfo> info, string cn, auto we, reference<list<auto>> args,
+            *hash<auto> opt) {
         int wt = we.typeCode();
         if (wt == NT_HASH) {
             if (we.hasKey("cop")) {
-                *hash<auto> psch_copy = psch;
-                string val = doColumnOperatorIntern(we, jch, join, ch, psch, \psch_copy);
-                if (psch_copy != psch)
+                *hash<auto> psm_copy = info.pseudo_column_map;
+                string val = doColumnOperatorIntern(info, we, \psm_copy);
+                if (psm_copy != info.pseudo_column_map) {
                     throw "WHERE-ERROR", sprintf("%s: cannot use column operator function %y in the where clause "
                         "with column alias specifications", getDesc(), we.cop);
+                }
                 return sprintf("%s = %s", cn, val);
             }
 
-            if (!we.op)
+            if (!we.op) {
                 throw "WHERE-ERROR", sprintf("%s: argument to key %y is a hash without an \"op\" key: %y", getDesc(),
                     cn, we);
+            }
 
             hash<auto> wm = getWhereOperatorMap();
 
@@ -5041,18 +5155,20 @@ string sql = table.getSelectSql(sh, \args);
                     "of: %y (operator hash: %y)", getDesc(), cn, we.op, wm.keys(), we);
 
             if (cmd.recursive) {
-                cn = doWhereExpressionIntern(cn, we.arg, \args, jch, join, ch, psch, opt);
+                cn = doWhereExpressionIntern(info, cn, we.arg, \args, opt);
                 delete we.arg;
             } else if (cmd.argcolumn) {
                 if (!we.arg || we.arg.typeCode() != NT_STRING)
                     throw "WHERE-ERROR", sprintf("%s: operator hash for key %y expects a string column name; got "
                         "type %y instead", getDesc(), cn, we.arg.type());
-                we.arg = getColumnNameIntern(we.arg, jch, join, ch, psch);
+                we.arg = getColumnNameIntern(info, we.arg);
             } else if (cmd.withopt) {
-                return cmd.code(self, cn, we.arg, \args, jch, join, ch, psch, opt);
+                return cmd.code(self, cn, we.arg, \args, info.join_map, info,join_map.toBool(),
+                    info.subquery_column_map, info.pseudo_column_map, opt);
             }
 
-            return cmd.code(self, cn, we.arg, \args, jch, join, ch, psch);
+            return cmd.code(self, cn, we.arg, \args, info.join_map, info,join_map.toBool(),
+                    info.subquery_column_map, info.pseudo_column_map);
         }
         if (we === NULL || !exists we)
             return sprintf("%s is null", cn);
@@ -5060,27 +5176,25 @@ string sql = table.getSelectSql(sh, \args);
         return sprintf("%s = %v", cn);
     }
 
-    string getOrClause(list<auto> arglist, reference<list<auto>> args, *hash<auto> jch, bool join = False,
-            *hash<auto> ch, *hash<auto> psch) {
+    string getOrClause(hash<QueryInfo> info, list<auto> arglist, reference<list<auto>> args) {
         list<string> l = ();
         foreach hash<auto> h in (arglist) {
-            string str = getOrClause(h, \args, jch, join, ch, psch);
-            if (str)
+            string str = getOrClause(info, h, \args);
+            if (str) {
                 l += str;
+            }
         }
         return l ? ("(" + (foldl $1 + " or " + $2, l) + ")") : "";
     }
 
-    string getOrClause(hash<auto> arg, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch,
-            *hash<auto> psch) {
-        *list<string> wl = getWhereClauseIntern(arg, \args, NOTHING, jch, join, ch, psch);
+    string getOrClause(hash<QueryInfo> info, hash<auto> arg, reference<list<auto>> args) {
+        *list<string> wl = getWhereClauseIntern(info, arg, \args);
         return wl ? ("(" + (foldl $1 + " and " + $2, wl) + ")") : "";
     }
 
-    private doSelectOrderBySqlUnlocked(reference<string> sql, reference<list<auto>> args, *hash<auto> qh,
-            *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list coll) {
-        list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
-
+    private doSelectOrderBySqlUnlocked(hash<QueryInfo> info, reference<string> sql, reference<list<auto>> args,
+            *hash<auto> qh, list<auto> coll) {
+        list<auto> ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
         sql += " order by " + (foldl $1 + ", " + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
     }
 
