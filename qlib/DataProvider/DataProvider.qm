@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "2.3";
+    version = "2.4";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -201,6 +201,10 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v2_4 DataProvider v2.4
+    - allow data providers to be introspected with additional information about children
+      (<a href="https://github.com/qorelanguage/qore/issues/4543">issue 4543</a>)
 
     @subsection dataprovider_v2_3 DataProvider v2.3
     - updated to use new generic expression support for searches
