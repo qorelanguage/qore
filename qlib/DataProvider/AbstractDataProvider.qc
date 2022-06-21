@@ -876,7 +876,7 @@ public class AbstractDataProvider {
         hash<DataProviderInfo> info = getStaticInfoImpl();
         return cast<hash<DataProviderSummaryInfo>>(info{DataProviderSummaryInfoKeys} + {
             "name": getName(),
-            "desc": getDesc(),
+            "desc": getDesc() ?? "no description available",
         });
     }
 
