@@ -50,6 +50,8 @@
 #include <qore/macros-aarch64.h>
 #elif defined(__arm__)
 #include <qore/macros-arm.h>
+#elif defined(__riscv)
+#include <qore/macros-riscv.h>
 #else
 #pragma message "no machine-specific macros included"
 #endif
