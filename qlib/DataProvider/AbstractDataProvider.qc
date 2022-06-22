@@ -1422,8 +1422,19 @@ public class AbstractDataProvider {
     }
 
     #! Return data provider summary info
+    /** @note This creates an AbstractDataProvider object for each child; for cases when this is expensive, this
+        method must be overridden / reimplemented in the child class for performance reasons
+    */
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map getChildProvider($1).getSummaryInfo(), getChildProviderNames();
+        *list<hash<DataProviderSummaryInfo>> rv;
+        foreach string name in (getChildProviderNames()) {
+            try {
+                rv += getChildProviderEx(name).getSummaryInfo();
+            } catch (hash<ExceptionInfo> ex) {
+                # ignore exception
+            }
+        }
+        return rv;
     }
 
     #! Returns a list of child data provider names, if any
