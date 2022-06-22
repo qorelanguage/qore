@@ -133,34 +133,37 @@ public hashdecl DataProviderTypeOptionInfo {
 
 #! describes a data type
 public hashdecl DataTypeInfo {
-    #! the name of the type
+    #! The name of the type
     string name;
 
-    #! output: transformation options supported by the type
+    #! The description of the type
+    string desc;
+
+    #! Output: transformation options supported by the type
     *hash<string, hash<DataProviderTypeOptionInfo>> supported_options;
 
-    #! output: current transformation option values
+    #! Output: current transformation option values
     *hash<auto> options;
 
-    #! output: base type
+    #! Output: base type
     string base_type;
 
-    #! output: can be null / missing?
+    #! Output: can be null / missing?
     bool mandatory;
 
-    #! output: list of types accepted
+    #! Output: list of types accepted
     list<string> types_accepted;
 
-    #! input: list of types returned
+    #! Input: list of types returned
     list<string> types_returned;
 
-    #! any fields supported by the type
+    #! Any fields supported by the type
     hash<string, hash<DataFieldInfo>> fields;
 
-    #! if fields can be added dynamically to the type and if the type will accept any field at runtime
+    #! If fields can be added dynamically to the type and if the type will accept any field at runtime
     bool can_manage_fields = False;
 
-    #! default type for fields not listed in \a fields
+    #! Default type for fields not listed in \a fields
     *hash<DataTypeInfo> default_field_type_info;
 
     #! Any tags set on the type
@@ -188,6 +191,9 @@ public class AbstractDataProviderType inherits Serializable {
         static Type anyType = Reflection::AutoType;
         # not initialized here to workaround issue #4048 (circular initializtion error)
         static AbstractDataProviderType anyDataType;
+
+        #! Default description
+        const DefaultDesc = "no description available";
     }
 
     private {
@@ -212,6 +218,11 @@ public class AbstractDataProviderType inherits Serializable {
         if (tags) {
             self.tags = tags;
         }
+    }
+
+    #! Returns the description
+    string getDesc() {
+        return DefaultDesc;
     }
 
     #! Returns supported options
@@ -239,6 +250,7 @@ public class AbstractDataProviderType inherits Serializable {
     hash<DataTypeInfo> getInfo() {
         return <DataTypeInfo>{
             "name": getName(),
+            "desc": getDesc(),
             "supported_options": getSupportedOptions(),
             "options": options
                 ? (map {

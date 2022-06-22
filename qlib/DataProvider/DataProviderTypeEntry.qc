@@ -38,6 +38,9 @@ public hashdecl DataProviderTypeEntryInfo {
     #! The name of the entry
     string name;
 
+    #! The description of the entry
+    string desc;
+
     #! The path to the entry including the name as the last element
     string path;
 
@@ -53,47 +56,6 @@ public hashdecl DataProviderTypeEntryInfo {
 
     #! The names of any children
     *list<string> children;
-}
-
-#! Data provider child type info
-public hashdecl DataProviderChildTypeSummaryInfo {
-    #! The name of the entry
-    string name;
-
-    #! The path to the entry including the name as the last element
-    string path;
-
-    #! @ref True if the entry has a type
-    /** If @ref True then the type has the same name as the entry
-    */
-    bool has_type;
-
-    #! @ref True if the entry is locked and therefore cannot be deleted or updated
-    /** @note only type entries can be locked
-    */
-    bool locked = False;
-}
-
-#! Data provider type entry info with child details
-public hashdecl DataProviderTypeEntryDetailInfo {
-    #! The name of the entry
-    string name;
-
-    #! The path to the entry including the name as the last element
-    string path;
-
-    #! @ref True if the entry has a type
-    /** If @ref True then the type has the same name as the entry
-    */
-    bool has_type;
-
-    #! @ref True if the entry is locked and therefore cannot be deleted or updated
-    /** @note only type entries can be locked
-    */
-    bool locked = False;
-
-    #! The names of any children
-    *list<hash<DataProviderChildTypeSummaryInfo>> children;
 }
 
 #! the DataProviderTypeEntry class
@@ -149,6 +111,11 @@ public class DataProviderTypeEntry inherits Serializable {
     #! Returns the name of the entry
     string getName() {
         return name;
+    }
+
+    #! Returns the description of the entry
+    string getDesc() {
+        return type ? type.getDesc() : "type entry group";
     }
 
     #! Returns the path of the entry
@@ -245,23 +212,7 @@ public class DataProviderTypeEntry inherits Serializable {
     hash<DataProviderTypeEntryInfo> getInfo(*bool rec_children_only) {
         return <DataProviderTypeEntryInfo>{
             "name": name,
-            "path": path,
-            "has_type": exists type,
-            "locked": locked,
-            "children": rec_children_only
-                ? keys (rec_children + children)
-                : keys (type_children + children),
-        };
-    }
-
-    #! Returns information about this entry; child details are returned instead of a list of children
-    /** @param rec_children_only if @ref True, then only children with fields are returned
-
-        @return information about this entry
-    */
-    hash<DataProviderTypeEntryInfo> getInfoDetails(*bool rec_children_only) {
-        return <DataProviderTypeEntryInfo>{
-            "name": name,
+            "desc": getDesc(),
             "path": path,
             "has_type": exists type,
             "locked": locked,

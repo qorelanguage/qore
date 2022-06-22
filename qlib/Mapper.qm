@@ -3081,6 +3081,11 @@ public class AnythingDataType inherits AbstractDataProviderType {
         return "anything";
     }
 
+    #! Returns the description
+    string getDesc() {
+        return sprintf("Equivalent to the Qore \"auto\" type; accepts any type");
+    }
+
     #! returns True if this type can be assigned from values of the argument type
     bool isAssignableFrom(AbstractDataProviderType t) {
         return True;
