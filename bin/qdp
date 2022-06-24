@@ -55,6 +55,8 @@ class QdpCmd {
             "errors": \QdpCmd::errors(),
             "info": \QdpCmd::getInfo(),
             "list": \QdpCmd::listChildren(),
+            "list-details": \QdpCmd::listChildDetails(),
+            "ldetails": \QdpCmd::listChildDetails(),
             "record": \QdpCmd::getRecord(),
             "search": \QdpCmd::search(),
             "update": \QdpCmd::update(),
@@ -238,6 +240,15 @@ class QdpCmd {
         *list<string> children = provider.getChildProviderNames();
         if (children) {
             printf("%y\n", children);
+        } else {
+            printf(provider.getName() + " has no children\n");
+        }
+    }
+
+    static listChildDetails(AbstractDataProvider provider) {
+        *list<hash<DataProviderSummaryInfo>> children = provider.getChildProviderSummaryInfo();
+        if (children) {
+            map printf("- %s: (%s) %s\n", $1.name, $1.has_record ? "REC" : ($1.supports_request ? "API" : "---"), $1.desc), children;
         } else {
             printf(provider.getName() + " has no children\n");
         }
@@ -510,13 +521,15 @@ class QdpCmd {
     errors [<code>]
         lists all error replies
     info
-       show information about the data provider
+        show information about the data provider
     list
-       list child data providers
+        list child data provider names
+    list-details|ldetails
+        list child data providers with details
     provider-create|pcreate <name> <desc hash> [<option hash>]
-       create a new data provider
+        create a new data provider
     provider-delete|pdelete <name>
-       delete a child data provider
+        delete a child data provider
     record
         show the record format (more -v's = more info)
     request

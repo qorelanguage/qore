@@ -113,6 +113,10 @@ public class ServiceNowRestDataProvider inherits DataProvider::AbstractDataProvi
         return "/";
     }
 
+    #! Returns the data provider description
+    string getDesc() {
+        return "ServiceNow top-level data provider";
+    }
 
     #! Returns data provider static info
     private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {

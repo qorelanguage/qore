@@ -28,7 +28,7 @@
 %enable-all-warnings
 
 # make sure we have the required qore version
-%requires qore >= 0.9.4
+%requires qore >= 1.0
 %requires DataProvider
 
 module FtpPollerUtil {
@@ -80,6 +80,11 @@ public class FtpPollerFileEventInfoDataType inherits HashDataType {
         # add members for base hashdecl
         map addField(new QoreDataField($1.getName(), FieldDescriptions{$1.getName()}, $1.getType(),
             $1.getDefaultValue())), TypedHash::forName("FtpPoller::FtpPollerFileEventInfo").getMembers();
+    }
+
+    #! Returns the description
+    string getDesc() {
+        return "FTP polling event data type";
     }
 }
 

@@ -61,6 +61,66 @@ public hashdecl DataProviderOptionInfo {
     auto default_value;
 }
 
+#! Data provider summary info
+public hashdecl DataProviderSummaryInfo {
+    #! The name of the data provider
+    string name;
+
+    #! The description of the data provider; supports markdown
+    string desc;
+
+    #! The name of the provider type
+    string type;
+
+    #! Does the data provider support reading
+    bool supports_read = False;
+
+    #! Does the data provider support record creation?
+    bool supports_create = False;
+
+    #! Does the data provider support record updates?
+    bool supports_update = False;
+
+    #! Does the data provider support record upserts (create or update)?
+    bool supports_upsert = False;
+
+    #! Does the data provider support record deletion?
+    bool supports_delete = False;
+
+    #! Does the data provider support native record searching?
+    bool supports_native_search = False;
+
+    #! Does the data provider support native / optimized bulk reads?
+    /** if this is @ref False and \a supports_read is @ref True, the data provider will still support bulk read
+        APIs but without any performance improvements for bulk data (simulated bulk reads)
+    */
+    bool supports_bulk_read = False;
+
+    #! Does the data provider support native / optimized bulk creation?
+    /** if this is @ref False and \a supports_creation is @ref True, the data provider will still support bulk write
+        APIs but without any performance improvements for bulk data (simulated bulk creates)
+    */
+    bool supports_bulk_create = False;
+
+    #! Does the data provider support native / optimized bulk upserts?
+    /** if this is @ref False and \a supports_upsert is @ref True, the data provider will still support bulk upsert
+        APIs but without any performance improvements for bulk data (simulated bulk upserts)
+    */
+    bool supports_bulk_upsert = False;
+
+    #! Does the data provider support the request API?
+    bool supports_request = False;
+
+    #! Does the data provider support children?
+    bool supports_children = False;
+
+    #! Does the data provider require transaction management?
+    bool transaction_management = False;
+
+    #! Does the data provider provide a record?
+    bool has_record = False;
+}
+
 /** @defgroup signature_type_codes Signature Type Codes
 
     @since DataProvider 2.3
@@ -735,6 +795,10 @@ public class AbstractDataProvider {
             @since DataProvider 2.3
         */
         const GenericExpressions = map {$1.key: $1.value.exp}, GenericExpressionImplementations.pairIterator();
+
+        #! A list of members names of the DataProviderSummaryInfoKeys hashdecl
+        const DataProviderSummaryInfoKeys = map $1.getName(),
+            TypedHash::forName("DataProviderSummaryInfo").getMembers();
     }
 
     private {
@@ -808,6 +872,15 @@ public class AbstractDataProvider {
             rv.has_record = rv.supports_read;
         }
         return rv;
+    }
+
+    #! Return data provider summary info
+    hash<DataProviderSummaryInfo> getSummaryInfo() {
+        hash<DataProviderInfo> info = getStaticInfoImpl();
+        return cast<hash<DataProviderSummaryInfo>>(info{DataProviderSummaryInfoKeys} + {
+            "name": getName(),
+            "desc": getDesc() ?? "no description available",
+        });
     }
 
     #! Returns the data provider description
@@ -1349,6 +1422,22 @@ public class AbstractDataProvider {
     AbstractDataProviderType getErrorResponseType(string error_code) {
         checkRequest();
         return getErrorResponseTypeImpl(error_code);
+    }
+
+    #! Return data provider summary info
+    /** @note This creates an AbstractDataProvider object for each child; for cases when this is expensive, this
+        method must be overridden / reimplemented in the child class for performance reasons
+    */
+    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
+        *list<hash<DataProviderSummaryInfo>> rv;
+        foreach string name in (getChildProviderNames()) {
+            try {
+                rv += getChildProviderEx(name).getSummaryInfo();
+            } catch (hash<ExceptionInfo> ex) {
+                # ignore exception
+            }
+        }
+        return rv;
     }
 
     #! Returns a list of child data provider names, if any

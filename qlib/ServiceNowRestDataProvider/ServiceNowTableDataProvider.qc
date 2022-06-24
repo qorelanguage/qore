@@ -241,6 +241,11 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
         return name;
     }
 
+    #! Returns the data provider description
+    string getDesc() {
+        return sprintf("ServiceNow table %y", name);
+    }
+
     private *hash<string, DataProvider::AbstractDataField> getRecordTypeImpl(*hash<auto> search_options) {
         return record_info.record_type;
     }

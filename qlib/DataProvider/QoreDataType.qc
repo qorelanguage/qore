@@ -115,6 +115,11 @@ public class QoreDataType inherits AbstractDataProviderType {
         return type.getName();
     }
 
+    #! Returns the description
+    string getDesc() {
+        return sprintf("Qore data type %y", type.getName());
+    }
+
     #! returns supported options
     *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
         return or_nothing_type ? NOTHING : SupportedOptions;

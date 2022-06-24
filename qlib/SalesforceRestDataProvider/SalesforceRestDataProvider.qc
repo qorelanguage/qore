@@ -138,12 +138,40 @@ public class SalesforceRestDataProvider inherits AbstractDataProvider {
             "record-based interface", rest.getURL());
     }
 
+    #! Return data provider summary info
+    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
+        *list<auto> v = rest.get("sobjects").body.sobjects;
+        if (!v) {
+            return;
+        }
+        v = sort(v, int sub(hash<auto> l, hash<auto> r) {
+            return l.name <=> r.name;
+        });
+
+        return map <DataProviderSummaryInfo>{
+            "name": $1.name,
+            "desc": sprintf("Salesforce data provider for URL `%s` and sobject `%s`; supports a table-like record-based "
+                "interface", rest.getURL(), $1.name),
+            "type": "SalesforceRestObjectDataProvider",
+            "supports_read": $1.queryable,
+            "supports_create": $1.createable,
+            "supports_update": $1.updateable,
+            "supports_upsert": $1.mergeable,
+            "supports_delete": $1.deletable,
+            "supports_native_search": $1.queryable,
+            "supports_request": False,
+            "supports_children": False,
+            "has_record": $1.queryable || $1.mergeable || $1.deletable || $1.createable,
+        }, v;
+    }
+
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
         hash<auto> v = rest.get("sobjects");
-        return map $1.name, v.body.sobjects, $1.queryable;
+        *list<string> rv = map $1.name, v.body.sobjects, $1.queryable;
+        return rv ? sort(rv) : NOTHING;
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown

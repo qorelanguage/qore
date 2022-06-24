@@ -61,6 +61,11 @@ public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataPro
         return "tables";
     }
 
+    #! Returns the data provider description
+    string getDesc() {
+        return "ServiceNow tables; children are record-based data providers for each table";
+    }
+
     #! Returns data provider static info
     private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ServiceNowRestDataProvider::ProviderInfo;
@@ -85,6 +90,28 @@ public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataPro
         }
     }
 
+    #! Return data provider summary info
+    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
+        return map <DataProviderSummaryInfo>{
+            "name": $1,
+            "desc": sprintf("ServiceNow table %y", $1),
+            "type": "ServiceNowTableDataProvider",
+            "supports_read": ServiceNowRestDataProvider::ProviderInfo.supports_read,
+            "supports_create": ServiceNowRestDataProvider::ProviderInfo.supports_create,
+            "supports_update": ServiceNowRestDataProvider::ProviderInfo.supports_update,
+            "supports_upsert": ServiceNowRestDataProvider::ProviderInfo.supports_upsert,
+            "supports_delete": ServiceNowRestDataProvider::ProviderInfo.supports_delete,
+            "supports_native_search": ServiceNowRestDataProvider::ProviderInfo.supports_native_search,
+            "supports_bulk_read": ServiceNowRestDataProvider::ProviderInfo.supports_bulk_read,
+            "supports_bulk_create": ServiceNowRestDataProvider::ProviderInfo.supports_bulk_create,
+            "supports_bulk_upsert": ServiceNowRestDataProvider::ProviderInfo.supports_bulk_upsert,
+            "supports_request": ServiceNowRestDataProvider::ProviderInfo.supports_request,
+            "supports_children": False,
+            "transaction_management": ServiceNowRestDataProvider::ProviderInfo.transaction_management,
+            "has_record": ServiceNowRestDataProvider::ProviderInfo.has_record,
+        }, getChildProviderNames();
+    }
+
     #! Returns access info for all tables
     private *hash<auto> getAllAccess() {
         if (all_access) {
@@ -104,6 +131,8 @@ public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataPro
             access = map {$1.name: $1 + parseBools($1 - ("name", "super_class", "sys_id"))}, rest.get("table/sys_db_object?"
                 "sysparm_fields=name,sys_id,create_access,delete_access,read_access,update_access,super_class", NOTHING,
                 \info).body.response.result;
+            # sort table names
+            access = access{sort(keys access)};
             all_access = True;
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
@@ -130,7 +159,8 @@ public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataPro
             if (rv.super_class.typeCode() == NT_HASH) {
                 string super_name;
                 getAccessIdIntern(rv.super_class.value, \super_name);
-                access{name}.super_class = accessid{rv.sys_id}.super_class = super_name;
+                access{name}.super_class = super_name;
+                accessid{rv.sys_id} = access{name};
                 scmap{name} = super_name;
             }
             return rv;
@@ -162,6 +192,7 @@ public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataPro
     private *hash<auto> getAccessIdIntern(string sys_id, reference<string> name) {
         *hash<auto> rv = accessid{sys_id};
         if (rv) {
+            name = rv.name;
             return rv;
         }
 
@@ -171,7 +202,7 @@ public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataPro
                 "sysparm_fields=name,sys_id,create_access,delete_access,read_access,update_access&sysparm_query=sys_id=" + sys_id,
                 NOTHING, \info).body.response.result;
             name = rv.name;
-            accessid{sys_id} = access{name} = parseBools(rv - ("name", "sys_id"));
+            accessid{sys_id} = access{name} = rv + parseBools(rv - ("name", "sys_id"));
 
             if (rv.super_class) {
                 string super_name;

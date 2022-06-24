@@ -267,6 +267,29 @@ public class DbDataProvider inherits AbstractDataProvider {
         return new DbSelectRecordIterator(db.getDatasource(), where_cond, search_options);
     }
 
+    #! Return data provider summary info
+    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
+        return map <DataProviderSummaryInfo>{
+            "name": $1,
+            "desc": sprintf("Record-based data provider for db table `%s`; supports create, read/search, update, delete, "
+                "upsert, and bulk operations", $1),
+            "type": "DbTableDataProvider",
+            "supports_read": DbTableDataProvider::ProviderInfo.supports_read,
+            "supports_create": DbTableDataProvider::ProviderInfo.supports_create,
+            "supports_update": DbTableDataProvider::ProviderInfo.supports_update,
+            "supports_upsert": DbTableDataProvider::ProviderInfo.supports_upsert,
+            "supports_delete": DbTableDataProvider::ProviderInfo.supports_delete,
+            "supports_native_search": DbTableDataProvider::ProviderInfo.supports_native_search,
+            "supports_bulk_read": DbTableDataProvider::ProviderInfo.supports_bulk_read,
+            "supports_bulk_create": DbTableDataProvider::ProviderInfo.supports_bulk_create,
+            "supports_bulk_upsert": DbTableDataProvider::ProviderInfo.supports_bulk_upsert,
+            "supports_request": DbTableDataProvider::ProviderInfo.supports_request,
+            "supports_children": False,
+            "transaction_management": DbTableDataProvider::ProviderInfo.transaction_management,
+            "has_record": DbTableDataProvider::ProviderInfo.has_record,
+        }, getChildProviderNames();
+    }
+
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */

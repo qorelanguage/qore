@@ -57,6 +57,12 @@ public class ListDataType inherits AbstractDataProviderType {
         return name;
     }
 
+    #! Returns the description
+    string getDesc() {
+        return sprintf("Qore type %slist<%s>", accept_type_hash{Type::NothingType} ? "*" : "",
+            element_type ? element_type.getName() : "auto");
+    }
+
     #! returns the base type for the type, if any
     *Type getValueType() {
         return accept_type_hash{Type::NothingType} ? AutoListOrNothingType : AutoListType;

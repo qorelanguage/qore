@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.0.8";
+    version = "2.0.9";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_0_9 Swagger v2.0.9
+    - fixed a bug where empty definitions could be ignored
+      (<a href="https://github.com/qorelanguage/qore/issues/4545">issue 4545</a>)
 
     @subsection swagger_2_0_8 Swagger v2.0.8
     - do not raise a validation error when a response with an unknown code has a message body; this hides the true
@@ -1274,10 +1278,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         string rstr = (refstr =~ x/^#\/definitions\/(.*)$/)[0];
         *SchemaObject ref = definitions{rstr};
         if (!ref) {
-            if (*hash<auto> def = source_definition_hash{rstr}) {
+            if (exists (*hash<auto> def = source_definition_hash{rstr})) {
                 ref = processDefinition(rstr, def);
             } else {
-                throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y", name, refstr);
+                throw "INVALID-REFERENCE", sprintf("cannot resolve SchemaObject %y reference %y (%y)", name, refstr);
             }
         }
         # get all non "x-" attributes

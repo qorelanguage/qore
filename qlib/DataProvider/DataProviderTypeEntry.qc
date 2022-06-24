@@ -38,6 +38,9 @@ public hashdecl DataProviderTypeEntryInfo {
     #! The name of the entry
     string name;
 
+    #! The description of the entry
+    string desc;
+
     #! The path to the entry including the name as the last element
     string path;
 
@@ -108,6 +111,11 @@ public class DataProviderTypeEntry inherits Serializable {
     #! Returns the name of the entry
     string getName() {
         return name;
+    }
+
+    #! Returns the description of the entry
+    string getDesc() {
+        return type ? type.getDesc() : "type entry group";
     }
 
     #! Returns the path of the entry
@@ -204,6 +212,7 @@ public class DataProviderTypeEntry inherits Serializable {
     hash<DataProviderTypeEntryInfo> getInfo(*bool rec_children_only) {
         return <DataProviderTypeEntryInfo>{
             "name": name,
+            "desc": getDesc(),
             "path": path,
             "has_type": exists type,
             "locked": locked,

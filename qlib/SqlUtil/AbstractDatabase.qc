@@ -1175,52 +1175,52 @@ string sql = t.getSqlFromList(list);
 
     #! returns a list of string table names in the database
     list<string> listTables() {
-        return listTablesImpl();
+        return sort(listTablesImpl());
     }
 
     #! returns an iterator listing the string table names in the database
     Qore::ListIterator tableIterator() {
-        return listTablesImpl().iterator();
+        return sort(listTablesImpl()).iterator();
     }
 
     #! returns a list of string function names in the database
     list<string> listFunctions() {
-        return listFunctionsImpl();
+        return sort(listFunctionsImpl());
     }
 
     #! returns an iterator listing the string function names in the database
     Qore::ListIterator functionIterator() {
-        return listFunctionsImpl().iterator();
+        return sort(listFunctionsImpl()).iterator();
     }
 
     #! returns a list of string procedure names in the database
     list<string> listProcedures() {
-        return listProceduresImpl();
+        return sort(listProceduresImpl());
     }
 
     #! returns an iterator listing the string procedure names in the database
     Qore::ListIterator procedureIterator() {
-        return listProceduresImpl().iterator();
+        return sort(listProceduresImpl()).iterator();
     }
 
     #! returns a list of string sequence names in the database
     list<string> listSequences() {
-        return listSequencesImpl();
+        return sort(listSequencesImpl());
     }
 
     #! returns an iterator listing the string sequence names in the database
     Qore::ListIterator sequenceIterator() {
-        return listSequencesImpl().iterator();
+        return sort(listSequencesImpl()).iterator();
     }
 
     #! returns a list of string view names in the database
     list<string> listViews() {
-        return listViewsImpl();
+        return sort(listViewsImpl());
     }
 
     #! returns an iterator listing the string view names in the database
     Qore::ListIterator viewIterator() {
-        return listViewsImpl().iterator();
+        return sort(listViewsImpl()).iterator();
     }
 
     #! Rebuild an index in the DB
