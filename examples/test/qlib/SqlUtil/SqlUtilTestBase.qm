@@ -508,7 +508,7 @@ public class SqlTestBase inherits QUnit::Test {
 
         # select a single column and then asterisk
         string col = table.describe().firstKey();
-        hash sh = (
+        hash<auto> sh = (
             "columns": (cop_as(col, "table"), "*"),
             # issue #2163: make sure we can reference aliases that are keywords
             "where": ("table": op_ceq(col)),
@@ -516,10 +516,10 @@ public class SqlTestBase inherits QUnit::Test {
         );
 
         assertEq(Type::Hash, table.selectRow(sh, \sql).type());
-        sh = (
+        sh = {
             "join": join_inner(table, "t", ("id": "id")),
             "limit": 1,
-        );
+        };
 
         assertEq(("id", "id_1"), table.select(sh).("id", "id_1").keys());
         assertEq(("id", "id_1"), table.selectRows(sh)[0].("id", "id_1").keys());

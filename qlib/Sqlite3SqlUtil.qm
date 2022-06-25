@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module Sqlite3SqlUtil {
-    version = "1.0";
+    version = "1.1";
     desc = "user module for working with Sqlite3 SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -86,7 +86,12 @@ module Sqlite3SqlUtil {
 
     @section sqlite3_relnotes Release Notes
 
-    @subsection sqlite3sqlutilv10 Sqlite3SqlUtil v1.0
+    @subsection sqlite3sqlutilv10 Sqlite3SqlUtil_1_1 Sqlite3SqlUtil Module v1.1
+    - implemented support for generating queries based on generic expressions using the DataProvider module's generic
+      expression support
+      (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
+
+    @subsection sqlite3sqlutilv10 Sqlite3SqlUtil_1_0 Sqlite3SqlUtil Module v1.0
     - initial release
 */
 
@@ -1198,22 +1203,23 @@ string str = table.getSqlValue(date);
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list> args) {
            sql += " limit %v";
-           args += qh.limit;
+           args += info.query_hash.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
-            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
-            if (qh.limit) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
+                reference<list> args, list<auto> coll) {
+            doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
+            if (info.query_hash.limit) {
                 sql += " limit %v";
-                args += qh.limit;
+                args += info.query_hash.limit;
             }
 
-            if (qh.offset) {
+            if (info.query_hash.offset) {
                 sql += " offset %v";
-                args += qh.offset;
+                args += info.query_hash.offset;
             }
         }
 
@@ -1223,23 +1229,25 @@ string str = table.getSqlValue(date);
         }
 
         private *hash doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args) {
-            throw "RETURNING-ERROR", sprintf("table %s: the sqlite3 driver does not support the returning clause in an insert statement", getSqlName());
+            throw "RETURNING-ERROR", sprintf("table %s: the sqlite3 driver does not support the returning clause "
+                "in an insert statement", getSqlName());
         }
 
-        private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
-            list ce = ();
-            foreach auto cv in (qh{key}) {
+        private list getGroupOrderByListUnlocked(hash<QueryInfo> info, string key, list<auto> coll) {
+            list<auto> ce = ();
+            foreach auto cv in (info.query_hash{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
-                        if (cv.toInt() == cv)
+                        if (cv.toInt() == cv) {
                             ce += cv;
-                        else
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
+                        } else {
+                            ce += getColumnNameIntern(info, cv);
+                        }
                         break;
                     }
 
                     case NT_HASH: {
-                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
+                        ce += doColumnOperatorIntern(info, cv);
                         break;
                     }
 
@@ -1249,7 +1257,8 @@ string str = table.getSqlValue(date);
                     }
 
                     default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in %s list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in "
+                            "%s list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
                 }
             }
             return ce;

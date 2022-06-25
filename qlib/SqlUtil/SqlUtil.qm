@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.7.5";
+    version = "1.8";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -102,6 +102,11 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_8 SqlUtil v1.8
+    - implemented support for generating queries based on generic expressions using the DataProvider module's generic
+      expression support
+      (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
 
     @subsection sqlutilv1_7_5 SqlUtil v1.7.5
     - respect "or nothing" %Qore types when mapping to column types
@@ -2395,6 +2400,36 @@ public namespace SqlUtil {
     */
     public const COP_ROW_NUMBER = "row_number";
 
+    #! Query information
+    public hashdecl QueryInfo {
+        #! The primary table object
+        object table;
+
+        #! The original query hash
+        *hash<auto> query_hash;
+
+        #! Any query options
+        *hash<auto> query_options;
+
+        #! Tables in this join; table alias -> table
+        *hash<string, AbstractTable> join_map;
+
+        #! When executing a superquery, we can only reference colums in the subquery
+        *hash<string, bool> subquery_column_map;
+
+        #! Any valid pseudocolumns
+        *hash<auto> pseudo_column_map;
+
+        #! The expression map
+        *hash<auto> expression_map;
+
+        #! The old-style backwards-compatible "where operator" map
+        *hash<auto> where_operator_map;
+
+        #! Any custom column operator map
+        *hash<auto> column_operator_map;
+    }
+
     #! a hash of default column operator descriptions
     public const DefaultCopMap = (
         COP_AS: (
@@ -2402,10 +2437,11 @@ public namespace SqlUtil {
             "withalias": True,
             "code": string sub (string cve, string arg, reference<hash<auto>> psch) {
                 # issue #2163: make sure the unquoted alias is inserted in the map
-                if (arg =~ /^(".*"|`.*`)$/)
+                if (arg =~ /^(".*"|`.*`)$/) {
                     psch{arg.substr(1, -1)} = cve;
-                else
+                } else {
                     psch{arg} = cve;
+                }
                 return sprintf("%s as %s", cve, arg);
             },
         ),
@@ -2532,8 +2568,7 @@ public namespace SqlUtil {
         COP_OVER: (
             "columnargs" : True,
             "columnargs_ignore_nothings" : True,
-            "code": string sub (*string cve, hash<auto> args)
-            {
+            "code": string sub (*string cve, hash<auto> args) {
                 *string partitionby = args.args[0];
                 *string orderby = args.args[1];
                 if (!exists partitionby && exists orderby) {
@@ -4331,107 +4366,171 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     */
     public const OP_IN_SELECT = "in_select";
 
-    #!
+    #! Default expressions to be supported by all SqlUtil modules
     public const DefaultExpressionMap = {
-        OP_LIKE: (
+        OP_LIKE: {
             "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": "like",
                 "name": "like",
+                "desc": "The value to bind as the 'like' value (ex: '%some string%')",
+                "symbol": "like",
                 "args": (DataProviderSignatureStringType, DataProviderSignatureStringValueType),
                 "return_type": AbstractDataProviderTypeMap."bool",
-                "desc": "The value to bind as the 'like' value (ex: '%some string%')",
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
                 return sprintf("%s like %s",
                     info.table.getExpressionArg(info, args[0], \bind_args),
                     info.table.getExpressionArg(info, args[1], \bind_args));
             },
-        ),
-        OP_LT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LT} + (
+        },
+        OP_LT: {
+            "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LT},
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
-                args += arg;
-                return sprintf("%s < %s", cn);
+                return sprintf("%s < %s",
+                    info.table.getExpressionArg(info, args[0], \bind_args),
+                    info.table.getExpressionArg(info, args[1], \bind_args));
             },
-        ),
-        OP_LE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LE} + (
+        },
+        OP_LE: {
+            "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LE},
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
-                args += arg;
-                return sprintf("%s <= %v", cn);
+                return sprintf("%s <= %s",
+                    info.table.getExpressionArg(info, args[0], \bind_args),
+                    info.table.getExpressionArg(info, args[1], \bind_args));
             },
-        ),
-        OP_GT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GT} + (
+        },
+        OP_GT: {
+            "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GT},
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
-                args += arg;
-                return sprintf("%s > %v", cn);
+                return sprintf("%s > %s",
+                    info.table.getExpressionArg(info, args[0], \bind_args),
+                    info.table.getExpressionArg(info, args[1], \bind_args));
             },
-        ),
-        OP_GE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GE} + (
+        },
+        OP_GE: {
+            "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GE},
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
-                args += arg;
-                return sprintf("%s >= %v", cn);
+                return sprintf("%s >= %s",
+                    info.table.getExpressionArg(info, args[0], \bind_args),
+                    info.table.getExpressionArg(info, args[1], \bind_args));
             },
-        ),
-        OP_NE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NE} + (
+        },
+        OP_NE: {
+            "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NE},
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
-                if (arg === NULL || !exists arg)
-                    return sprintf("%s is not null", cn);
-                args += arg;
-                return sprintf("(%s != %v or %s is null)", cn, cn);
+                bool null0 = (args[0] === NULL || !exists args[0]);
+                bool null1 = (args[1] === NULL || !exists args[1]);
+                if (null0 && null1) {
+                    return "1 = 0";
+                }
+                if (null0) {
+                    return sprintf("%s is not null", info.table.getExpressionArg(info, args[1], \bind_args));
+                }
+                if (null1) {
+                    return sprintf("%s is not null", info.table.getExpressionArg(info, args[0], \bind_args));
+                }
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args);
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args);
+                return sprintf("%s != %s", exp0, exp1);
             },
-        ),
-        OP_EQ: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_EQ} + (
+        },
+        OP_EQ: {
+            "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_EQ},
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
-                if (arg === NULL || !exists arg)
-                    return sprintf("%s is null", cn);
-                args += arg;
-                return sprintf("%s = %v", cn);
+                bool null0 = (args[0] === NULL || !exists args[0]);
+                bool null1 = (args[1] === NULL || !exists args[1]);
+                if (null0 && null1) {
+                    return "1 = 1";
+                }
+                if (null0) {
+                    return sprintf("%s is null", info.table.getExpressionArg(info, args[1], \bind_args));
+                }
+                if (null1) {
+                    return sprintf("%s is null", info.table.getExpressionArg(info, args[0], \bind_args));
+                }
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args);
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args);
+                return sprintf("%s = %s", exp0, exp1);
             },
-        ),
-        OP_BETWEEN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_BETWEEN} + (
+        },
+        OP_BETWEEN: {
+            "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_BETWEEN},
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
-                args += arg[0];
-                args += arg[1];
-                return sprintf("%s between %v and %v", cn);
+                return sprintf("%s between %s and %s",
+                    info.table.getExpressionArg(info, args[0], \bind_args),
+                    info.table.getExpressionArg(info, args[1], \bind_args),
+                    info.table.getExpressionArg(info, args[2], \bind_args));
             },
-        ),
-        OP_IN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN} + (
+        },
+        OP_IN: {
+            "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN},
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
-                *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
-                return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
+                string exp0 = info.table.getExpressionArg(info, shift args, \bind_args);
+                *string ins = (foldl $1 + "," + $2, (map info.table.getExpressionArg(info, $1, \bind_args), args));
+                return exists ins ? sprintf("%s in (%s)", exp0, ins) : "1 != 1";
             },
-        ),
-        OP_NOT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NOT} + (
-            "recursive": True,
+        },
+        OP_NOT: {
+            "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NOT},
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
-                return sprintf("not (%s)", args[0]);
+                return sprintf("not (%s)", info.table.getExpressionArg(info, args[0], \bind_args));
             },
-        ),
-        OP_SUBSTR: (
+        },
+        OP_SUBSTR: {
             "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": "substr",
                 "name": "substr",
+                "desc": "returns a substring from a string",
+                "symbol": "substr",
                 "args": (
                     DataProviderSignatureStringType,
                     DataProviderSignatureIntValueType,
                     DataProviderSignatureOptionalIntValueType,
                 ),
                 "return_type": AbstractDataProviderTypeMap."string",
-                "desc": "",
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
-                bind_args += args[1]; # start
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args);
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args);
                 if (!exists args[2]) {
-                    return sprintf("substring(%s from %v)", args[0]);
+                    return sprintf("substring(%s from %s)", exp0, exp1);
                 }
-                bind_args += args[2]; # count
-                return sprintf("substring(%s from %v for %v)", args[0]);
+                return sprintf("substring(%s from %s for %s)", exp0, exp1,
+                    info.table.getExpressionArg(info, args[2], \bind_args));
             },
-        ),
+        },
+        OP_IN_SELECT: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": "in_select",
+                "name": "in_select",
+                "desc": "check if a value is in a sub-select; args: value, table name for the subselect, subselect "
+                    "query hash",
+                "symbol": "in_select",
+                "args": (
+                    DataProviderSignatureAnyType,         # any value, expression, or field reference
+                    DataProviderSignatureStringValueType, # table name
+                    DataProviderSignatureHashValueType,   # query hash
+                ),
+                "return_type": AbstractDataProviderTypeMap."bool",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args) {
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args);
+                object subtable = info.table.getSubtableFromString(args[1], info.query_options);
+                list<auto> subargs;
+                string subsql = subtable.getSelectSql(args[2], \subargs);
+                args += subargs;
+                return sprintf("%s in (%s)", exp0, subsql);
+            },
+        },
     };
 
     #! a hash of valid operators for use in @ref where_clauses
-    public const DefaultOpMap = DefaultExpressionMap + {
-        OP_LIKE: (
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                    bool join = False, *hash<auto> ch, *hash<auto> psch) {
+    public const DefaultOpMap = {
+        OP_LIKE: {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 args += arg;
                 return sprintf("%s like %v", cn);
             },
@@ -4439,31 +4538,27 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "args": (DataProviderSignatureStringType, DataProviderSignatureStringValueType),
             "return_type": AbstractDataProviderTypeMap."bool",
             "desc": "The value to bind as the 'like' value (ex: '%some string%')",
-        ),
+        },
         OP_LT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LT} + (
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                    bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 args += arg;
                 return sprintf("%s < %v", cn);
             },
         ),
         OP_LE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LE} + (
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                    bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 args += arg;
                 return sprintf("%s <= %v", cn);
             },
         ),
         OP_GT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GT} + (
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                    bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 args += arg;
                 return sprintf("%s > %v", cn);
             },
         ),
         OP_GE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GE} + (
-            "code": string sub (object t, string cn, auto arg, reference<list<auto>> args, *hash<auto> jch,
-                    bool join = False, *hash<auto> ch, *hash<auto> psch) {
+            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
                 args += arg;
                 return sprintf("%s >= %v", cn);
             },
@@ -4493,7 +4588,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_IN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN} + (
             "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
-                *string ins = (foldl $1 + "," + $2, (map t.getSqlValue($1), arg));
+                *string ins = (foldl $1 + "," + $2, (map info.table.getSqlValue($1), arg));
                 return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
@@ -4502,7 +4597,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                     *hash<auto> opt) {
                 object subtable;
                 if (arg.table.typeCode() == NT_STRING) {
-                    subtable = t.getSubtableFromString(arg.table, opt);
+                    subtable = info.table.getSubtableFromString(arg.table, opt);
                 } else {
                     subtable = arg.table;
                 }
@@ -4593,7 +4688,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_OR: (
             "code": string sub (hash<QueryInfo> info, string cn, list<auto> arg, reference<list<auto>> args) {
-                return info.table.getOrClause(arg, \args, jch, join, ch, psch);
+                return info.table.getOrClause(info, arg, \args);
             },
         ),
     };
@@ -4756,9 +4851,11 @@ int rows_updated = t.update(("counter": uop_divide(2)));
      */
     public hash<OperatorInfo> sub op_between(auto l, auto r) {
         if (!exists l || l === NULL)
-            throw "BETWEEN-ERROR", sprintf("the first argument is %y; both arguments to op_between() must be values that can be used with the BETWEEN operator (ie not NULL or NOTHING)", l);
+            throw "BETWEEN-ERROR", sprintf("the first argument is %y; both arguments to op_between() must be values "
+                "that can be used with the BETWEEN operator (ie not NULL or NOTHING)", l);
         if (!exists r || r === NULL)
-            throw "BETWEEN-ERROR", sprintf("the second argument is %y; both arguments to op_between() must be values that can be used with the BETWEEN operator (ie not NULL or NOTHING)", r);
+            throw "BETWEEN-ERROR", sprintf("the second argument is %y; both arguments to op_between() must be values "
+                "that can be used with the BETWEEN operator (ie not NULL or NOTHING)", r);
         return make_op(OP_BETWEEN, (l, r));
     }
 

@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module FreetdsSqlUtil {
-    version = "1.4.2";
+    version = "1.5";
     desc = "user module for working with FreeTDS SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -116,6 +116,11 @@ module FreetdsSqlUtil {
     To use other types, use the \c "native_type"
     @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the native FreeTDS type name
     instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
+
+    @subsection freetdssqlutilv15 FreetdsSqlUtil v1.5
+    - implemented support for generating queries based on generic expressions using the DataProvider module's generic
+      expression support
+      (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
 
     @subsection freetdssqlutilv141 FreetdsSqlUtil v1.4.2
     - fixed a bug where \c offset and \c limit were not properly supported with MS SQL Server DBs
@@ -1280,7 +1285,7 @@ any v = c.name;
             #! where operator specializations for FreeTDS
             const FreetdsOpMap = DefaultOpMap + (
                 OP_SUBSTR: (
-                    "code": string sub (object t, string cn, softlist arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (hash<QueryInfo> info, string cn, softlist arg, reference<list> args) {
                         args += arg[0]; # start
                         if (!exists arg[1]) {
                             args += arg[2]; # text
@@ -1306,12 +1311,10 @@ any v = c.name;
                                     if (!exists args[1] && !exists desc.size_range)
                                         throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
                                     sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
-                                }
-                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                } else if (desc.size == SZ_NUM && exists args[1]) {
                                     sql += sprintf("(%d", args[1]);
                                     sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
-                                }
-                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                } else if (desc.size == SZ_OPT && exists args[1]) {
                                     sql += sprintf("(%d)", args[1]);
                                 }
                         }
@@ -1363,7 +1366,7 @@ any v = c.name;
                 COP_SEQ: (
                     "nocolumn": True,
                     "withalias": True,
-                    "code": string sub (*string cve, hash arg, reference<hash> psch) {
+                    "code": string sub (*string cve, hash arg, reference<hash<auto>> psch) {
                         string sql = sprintf("next value for %s", arg.seq);
                         if (arg.as) {
                             psch{arg.as} = sql;
@@ -2119,34 +2122,34 @@ order by
         }
 
         #! processes a string for use in SQL select statements with "limit" but no "orderby" or "offset"
-        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list<auto>> args, *hash<auto> qh) {
-            if (!qh.limit) {
+        private doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list<auto>> args) {
+            if (!info.query_hash.limit) {
                 return;
             }
 
             # this rule is broken here with reason:
             # In a SELECT statement, always use an ORDER BY clause with the TOP clause.
             # This is the only way to predictably indicate which rows are affected by TOP
-            sql = regex_subst(sql, "^select ", sprintf("select top %d ", qh.limit));
-            args += qh.limit;
+            sql = regex_subst(sql, "^select ", sprintf("select top %d ", info.query_hash.limit));
+            args += info.query_hash.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list<auto>> args,
-                *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
+                reference<list<auto>> args, list<auto> coll) {
             if (is_sybase) {
                 # NOTE Sybase ASE does not support this, but Sybase SQL Anywhere does
                 throw "UNIMPLEMENTED", "offset not yet implemented";
             }
 
-            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
+            doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
 
             sql += " offset %v rows";
-            args += qh.offset ?? 0;
+            args += info.query_hash.offset ?? 0;
 
-            if (qh.limit) {
+            if (info.query_hash.limit) {
                 sql += " fetch next %v rows only";
-                args += qh.limit;
+                args += info.query_hash.limit;
             }
         }
 
@@ -2164,7 +2167,7 @@ order by
         private copyImpl(AbstractTable old) {
         }
 
-        private *hash doReturningImpl(hash opt, reference<string> sql, list<auto> args) {
+        private *hash<auto> doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args) {
             list l = ();
             foreach auto v in (opt.returning) {
                 hash rh;
@@ -2189,7 +2192,7 @@ order by
                 throw "UNIMPLEMENTED", "output not yet implemented";
             }
 
-            *hash h = execData(opt, sql, args);
+            *hash<auto> h = execData(opt, sql, args);
             return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
         }
 

@@ -241,6 +241,12 @@ public const DataProviderSignatureListValueType = <DataProviderSignatureTypeInfo
     "type_code": ST_Value,
 };
 
+#! Data provider signature hash value type
+public const DataProviderSignatureHashValueType = <DataProviderSignatureTypeInfo>{
+    "type": AbstractDataProviderTypeMap."hash",
+    "type_code": ST_Value,
+};
+
 #! Data provider signature bool type
 public const DataProviderSignatureBoolType = <DataProviderSignatureTypeInfo>{
     "type": AbstractDataProviderTypeMap."bool",
