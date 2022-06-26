@@ -450,18 +450,17 @@ class OracleTest inherits SqlTestBase {
         on_error printf("SQL: %s\n", sql);
 
         Columns cols = table.describe();
-        list cl = cols.keys();
+        list<string> cl = cols.keys();
 
         string col1 = cl[0];
         string col2 = cl[1];
-        hash sh = (
+        hash<auto> sh = {
             "columns": (col1, col2, cop_as(cop_over(cop_max(col2), col1), "max_val")),
-            "superquery": (
+            "superquery": {
                 "columns": (cop_distinct(col1), col2),
-                "where": ("max_val": op_ceq(col2)),
-            ),
-            );
-
+                "where": {"max_val": op_ceq(col2)},
+            },
+        };
         assertEq(Type::List, table.selectRows(sh, \sql).type());
     }
 

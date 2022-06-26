@@ -43,6 +43,7 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "supports_add_field": True,
             "supports_update_field": True,
             "supports_delete_field": True,
+            "supports_search_expressions": True,
             "constructor_options": ConstructorOptions,
             "search_options": SearchOptions,
             "create_options": CreateOptions,

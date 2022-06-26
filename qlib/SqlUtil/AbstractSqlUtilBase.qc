@@ -84,31 +84,35 @@ public class AbstractSqlUtilBase inherits Serializable {
         return dsdesc;
     }
 
-    private validateOptionsIntern(string err, hash ropt, reference<hash> opt, string tag) {
+    private validateOptionsIntern(string err, hash<auto> ropt, reference<hash<auto>> opt0, string tag) {
         # make sure driver-specific options take precedence over generic options
         string dn = getDriverName();
+        # make sure types can be converted
+        hash<auto> opt += opt0;
         AbstractDatabase::checkDriverOptions(\opt, dn);
 
         # check valid options and option value types
-        foreach string k in (opt.keyIterator()) {
+        foreach string k in (keys opt) {
             if (!exists opt{k}) {
                 delete opt{k};
                 continue;
             }
 
-            if (!ropt.hasKey(k))
-                throw err, sprintf("%s: unknown key %y; valid keys for %y: %y", tag, k, self.className(), ropt.keys());
+            if (!ropt.hasKey(k)) {
+                throw err, sprintf("%s: unknown key %y; valid keys for %y: %y", tag, k, self.className(), keys ropt);
+            }
 
             AbstractSqlUtilBase::validateOptionIntern(err, ropt{k}, \opt{k}, k, tag);
         }
     }
 
-    private static validateOptionIntern(string err, string type, reference opt, string k, string tag) {
+    private static validateOptionIntern(string err, string type, reference<auto> opt, string k, string tag) {
         switch (type) {
             case Type::Int: {
                 if (opt.type() != type) {
                     if (!opt.intp())
-                        throw err, sprintf("%s: key %y has type %y, expecting \"int\" (value: %y)", tag, k, opt.type(), opt);
+                        throw err, sprintf("%s: key %y has type %y, expecting \"int\" (value: %y)", tag, k,
+                            opt.type(), opt);
                     opt = opt.toInt();
                 }
                 break;
@@ -116,7 +120,8 @@ public class AbstractSqlUtilBase inherits Serializable {
             case Type::Number: {
                 if (opt.type() != type) {
                     if (!opt.intp())
-                        throw err, sprintf("%s: key %y has type %y, expecting \"number\" (value: %y)", tag, k, opt.type(), opt);
+                        throw err, sprintf("%s: key %y has type %y, expecting \"number\" (value: %y)", tag, k,
+                            opt.type(), opt);
                     opt = number(opt);
                 }
                 break;
@@ -124,7 +129,8 @@ public class AbstractSqlUtilBase inherits Serializable {
             case Type::Boolean: {
                 if (opt.type() != type) {
                     if (!opt.intp())
-                        throw err, sprintf("%s: key %y has type %y, expecting \"boolean\" (value: %y)", tag, k, opt.type(), opt);
+                        throw err, sprintf("%s: key %y has type %y, expecting \"boolean\" (value: %y)", tag, k,
+                            opt.type(), opt);
                     opt = opt.toBool();
                 }
                 break;
@@ -132,7 +138,8 @@ public class AbstractSqlUtilBase inherits Serializable {
             case Type::String: {
                 if (opt.type() != type) {
                     if (!opt.strp())
-                        throw err, sprintf("%s: key %y has type %y, expecting \"string\" (value: %y)", tag, k, opt.type(), opt);
+                        throw err, sprintf("%s: key %y has type %y, expecting \"string\" (value: %y)", tag, k,
+                            opt.type(), opt);
                     opt = opt.toString();
                 }
                 break;
@@ -141,7 +148,8 @@ public class AbstractSqlUtilBase inherits Serializable {
                 softlist l = opt;
                 foreach auto v in (l) {
                     if (v.typeCode() != NT_STRING)
-                        throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
+                        throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" "
+                            "(value: %y)", tag, k, $#, l.size(), v.type(), opt);
                 }
 
                 opt = l;
@@ -155,7 +163,8 @@ public class AbstractSqlUtilBase inherits Serializable {
                         case NT_HASH:
                             break;
                         default:
-                            throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" or \"hash\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
+                            throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting "
+                                "\"string\" or \"hash\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
                     }
                 }
 
@@ -176,10 +185,11 @@ public class AbstractSqlUtilBase inherits Serializable {
                     if (!ok) {
                         if (t == NT_INT) {
                             if (v < 1)
-                                throw err, sprintf("%s: key %y element %d/%d (first is 0) is %d, column numbers must be positive integers", tag, k, $#, l.size(), v);
-                        }
-                        else if (v.typeCode() != NT_HASH)
-                            throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"string\" or \"hash\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
+                                throw err, sprintf("%s: key %y element %d/%d (first is 0) is %d, column numbers must "
+                                    "be positive integers", tag, k, $#, l.size(), v);
+                        } else if (v.typeCode() != NT_HASH)
+                            throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting "
+                                "\"string\" or \"hash\" (value: %y)", tag, k, $#, l.size(), v.type(), opt);
                     }
                 }
 
@@ -190,16 +200,19 @@ public class AbstractSqlUtilBase inherits Serializable {
                 if (opt.typeCode() == NT_LIST) {
                     foreach auto v in (opt) {
                         if (v.typeCode() != NT_HASH)
-                            throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting \"hash\" (value: %y)", tag, k, $#, opt.size(), v.type(), opt);
+                            throw err, sprintf("%s: key %y element %d/%d (first is 0) has type %y, expecting "
+                                "\"hash\" (value: %y)", tag, k, $#, opt.size(), v.type(), opt);
                     }
-                }
-                else if (opt.typeCode() != NT_HASH)
-                    throw err, sprintf("key %y requires type \"list\" or \"hash\" but type %y was passed (%y)", k, opt.type(), opt);
+                } else if (opt.typeCode() != NT_HASH)
+                    throw err, sprintf("key %y requires type \"list\" or \"hash\" but type %y was passed (%y)", k,
+                        opt.type(), opt);
                 break;
             }
             case "Tables": {
                 if (!(opt instanceof Tables))
-                    throw err, sprintf("%s: key %y has type %s, expecting class \"Tables\"", tag, k, opt.typeCode() == NT_OBJECT ? sprintf("class \"%s\"", opt.className()) : sprintf("\"%s\"", opt.type()));
+                    throw err, sprintf("%s: key %y has type %s, expecting class \"Tables\"", tag, k,
+                        opt.typeCode() == NT_OBJECT ? sprintf("class \"%s\"", opt.className()) : sprintf("\"%s\"",
+                        opt.type()));
                 break;
             }
 
@@ -212,7 +225,8 @@ public class AbstractSqlUtilBase inherits Serializable {
             # throw an exception if the type is not supported
             default:
                 if (opt.type() != type)
-                    throw err, sprintf("key %y requires type %y but type %y was passed (%y)", k, type, opt.type(), opt);
+                    throw err, sprintf("key %y requires type %y but type %y was passed (%y)", k, type, opt.type(),
+                        opt);
         }
     }
 
@@ -223,7 +237,8 @@ public class AbstractSqlUtilBase inherits Serializable {
                     HashIterator it(node);
                     while (it.next()) {
                         if (trim(it.getKey()) != it.getKey()) {
-                            throw "VALIDATE-HASH-ERROR", sprintf("Key '%s' contains whitespaces at the end or in the beginning.", it.getKey());
+                            throw "VALIDATE-HASH-ERROR", sprintf("Key '%s' contains whitespaces at the end or in the "
+                                "beginning.", it.getKey());
                         }
                         validateHashKeysForWhitespaces(it.getValue());
                     }

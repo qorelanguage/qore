@@ -1426,8 +1426,8 @@ auto v = c.name;
             return new OracleMaterializedView(name, mvh.src, mvh.logging, mvh.use_index, mvh.tablespace);
         }
 
-        private list getDropSchemaSqlImpl(hash schema_hash, *hash opt) {
-            list l = ();
+        private list<auto> getDropSchemaSqlImpl(hash<auto> schema_hash, *hash<auto> opt) {
+            list<auto> l = ();
 
             if (opt.start) {
                 # drop materialized views
@@ -1442,7 +1442,7 @@ auto v = c.name;
             }
 
             # drop types
-            list tl = dropSqlUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
+            list<auto> tl = dropSqlUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
             if (tl) l += tl;
 
             return l;
@@ -2234,13 +2234,13 @@ auto v = c.name;
             );
 
             #! a hash of valid pseudocolumns
-            const OraclePseudoColumnHash = (
+            const OraclePseudoColumnHash = {
                 "rowid": True,
                 "rownum": True,
                 "object_id": True,
                 "object_value": True,
                 "ora_rowscn": True,
-            );
+            };
         }
 
         private {

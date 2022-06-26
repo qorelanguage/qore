@@ -119,6 +119,9 @@ public hashdecl DataProviderSummaryInfo {
 
     #! Does the data provider provide a record?
     bool has_record = False;
+
+    #! Does this data provide support advanced search experssions?
+    bool supports_search_expressions = False;
 }
 
 /** @defgroup signature_type_codes Signature Type Codes

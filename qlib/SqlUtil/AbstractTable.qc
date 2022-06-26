@@ -1056,7 +1056,7 @@ list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), 
 
         @see inDb() for a method that tells if the table is already in the database or not
     */
-    list<auto> getAddColumnSql(string cname, hash copt, bool nullable = True, *hash<auto> opt) {
+    list<auto> getAddColumnSql(string cname, hash<auto> copt, bool nullable = True, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
         list lsql;
@@ -1179,7 +1179,7 @@ list l = table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 24
 
         @see inDb() for a method that tells if the table is already in the database or not
     */
-    list<auto> getModifyColumnSql(string cname, hash copt, bool nullable = True, *hash<auto> opt) {
+    list<auto> getModifyColumnSql(string cname, hash<auto> copt, bool nullable = True, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
         l.lock();
@@ -1309,11 +1309,11 @@ string sql = table.getRenameColumnSql("name", "family_name");
         return c;
     }
 
-    private validateOptionsIntern(string err, hash ropt, reference<hash> opt) {
+    private validateOptionsIntern(string err, hash<auto> ropt, reference<hash<auto>> opt) {
         AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, name);
     }
 
-    private validateOptionsIntern(string err, hash ropt, reference<hash> opt, string tag) {
+    private validateOptionsIntern(string err, hash<auto> ropt, reference<hash<auto>> opt, string tag) {
         AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, tag);
     }
 
@@ -3460,9 +3460,9 @@ upsert(row_hash);
         - getUpsertClosure()
         - getUpsertClosureWithValidation()
         */
-    code getBulkUpsertClosure(hash example_row, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    code getBulkUpsertClosure(hash<auto> example_row, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         code upsert = getUpsertClosure(example_row, upsert_strategy, opt);
-        return int sub (hash h) {
+        return int sub (hash<auto> h) {
             map upsert($1), h.contextIterator();
             return UR_Verified;
         };
@@ -3490,7 +3490,7 @@ map upsert($1), row_list;
 
         @note the row values passed to the closure for upserting are checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data to the closure will cause the closure to throw an \c UPSERT-ERROR exception; see @ref SqlUtil::AbstractTable::getUpsertClosure() for a similar method that returns a non-validating closure; the closure returned by this method is a little slower than the one returned by @ref SqlUtil::AbstractTable::getUpsertClosure() since each row is validated
         */
-    code getUpsertClosureWithValidation(hash example_row, int upsert_strategy = UpsertAuto, *hash<auto> opt) {
+    code getUpsertClosureWithValidation(hash<auto> example_row, int upsert_strategy = UpsertAuto, *hash<auto> opt) {
         code upsert = getUpsertClosure(example_row, upsert_strategy, opt);
 
         return int sub (hash<auto> row) {
@@ -3533,7 +3533,8 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         - insertFromIteratorCommit()
         - insertFromIterator()
     */
-    *hash upsertFromIteratorCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    *hash<string, int> upsertFromIteratorCommit(Qore::AbstractIterator i,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
 
@@ -3573,28 +3574,32 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         - insertFromIteratorCommit()
         - insertFromIterator()
     */
-    *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    *hash<string, int> upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto,
+            *hash<auto> opt) {
         return upsertFromIteratorIntern(i, upsert_strategy, opt - "commit_block");
     }
 
     #! A legacy SqlUtik::AbstractTable::upsertFromIterator() wrapper
-    deprecated *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    deprecated *hash<string, int> upsertFromIteratorNoCommit(Qore::AbstractIterator i,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(i, upsert_strategy, opt - "commit_block");
     }
 
-    private *hash upsertFromIteratorIntern(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    private *hash<string, int> upsertFromIteratorIntern(Qore::AbstractIterator i,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         # check upsert options
         validateOptionsIntern("OPTION-ERROR", getUpsertOptions(), \opt);
 
         # try to get initial row
-        if (!i.next())
+        if (!i.next()) {
             return;
+        }
 
         # result hash
-        hash rh;
+        hash<string, int> rh;
 
         # primary key value hash for "delete_others"
-        hash pkh;
+        hash<string, bool> pkh;
 
         hash<auto> row = i.getValue();
         code upsert = getUpsertClosure(row, upsert_strategy, opt);
@@ -3603,8 +3608,9 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         do {
             int code = upsert(row);
             ++rh{AbstractTable::UpsertResultMap{code}};
-            if (opt.info_callback)
+            if (opt.info_callback) {
                 opt.info_callback(getSqlName(), row, code);
+            }
 
             if (code != UR_Unchanged && opt.commit_block) {
                 if (++opt.change_count >= opt.commit_block) {
@@ -3614,27 +3620,29 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             }
 
             # save primary key value in primary key hash if "delete_others" is set
-            if (opt.delete_others)
+            if (opt.delete_others) {
                 pkh{foldl $1 + "-" + $2, (map row.$1.toString(), primaryKey.keyIterator())} = True;
+            }
         } while (i.next() && (row = i.getValue()));
 
-        if (opt.delete_others)
+        if (opt.delete_others) {
             rh += doDeleteOthersIntern(pkh, opt);
+        }
 
         return rh;
     }
 
-    private *hash<auto> doDeleteOthersIntern(hash pkh, *hash<auto> opt) {
-        hash rh;
+    private *hash<string, int> doDeleteOthersIntern(hash<auto> pkh, *hash<auto> opt) {
+        hash<string, int> rh;
 
         # iterate through the table to find rows that do not belong and delete them
-        list pkl = primaryKey.keys();
+        list<string> pkl = primaryKey.keys();
         foreach hash<auto> row in (getStatement()) {
             string k = foldl $1 + "-" + $2, (map row.$1.toString(), pkl);
             if (pkh{k})
                 continue;
 
-            hash h = row{pkl};
+            hash<auto> h = row{pkl};
             self.del(h);
 
             ++rh.deleted;
@@ -3651,36 +3659,60 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         return rh;
     }
 
-    #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
+    #! Upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table
     /** @par Example:
         @code{.py}
-hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
+hash<auto> h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOMER")),
+    AbstractTable::UpsertUpdateFirst);
         @endcode
 
+        The transaction is committed if successful, if an error occurs then it is rolled back.
+
         The table argument does not need to be in the same database as the current table; it can also
-        be in a different database server or a database server of a different type (you can use this method to upsert or
-        merge data to or from any database supported by SqlUtil).
+        be in a different database server or a database server of a different type (you can use this method to upsert
+        or merge data to or from any database supported by SqlUtil).
 
-        @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
-        @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+        @param t the table for the source data; this does not need to be in the same database as the target (the
+        current table), nor does it need to be the same database type
+        @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for
+        information about this argument
         @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-        @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+        @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for
+        common options; each driver can support additional driver-specific options
 
-        @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
+        @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values
+        indicating the number of rows processed (keys correspond to
+        @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
         - \c "inserted": the number of rows inserted
-        - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
-        - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-        - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
-        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True"
+        - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert
+          strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+        - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is
+          @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since
+          rows are updated unconditionally with other the upsert strategy codes
+        - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is
+          @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or
+          @ref SqlUtil::AbstractTable::UpsertUpdateOnly
+        - \c "deleted": the number of rows deleted; this can only be returned if
+          @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True"
 
         @throw OPTION-ERROR invalid or unsupported option
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-        @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
+        @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the
+        unique constraint/index are used in the upsert statement
 
         @note
-        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref True "True" and is expensive for large data sets.
-        - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelect() to do manual transaction management instead
-        - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
+        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True", then a
+          hash of primary key values in the input data is built as the input data is iterated.  After iterating, if
+          the row count of the table and the input data matches, then nothing more is done, otherwise, every row of
+          the table is iterated and compared to the primary key hash; if a row does not match a primary key value,
+          then it is deleted.  This operation is only executed if \c delete_others is @ref True "True" and is
+          expensive for large data sets.
+        - this method also calls commit() or rollback() on the source table to release the transaction lock on the
+          underlying source table datasource as an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object
+          is used to pipeline the data to the upsert code; use upsertFromSelect() to do manual transaction management
+          instead
+        - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and
+          accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
         @see
         - upsertFromSelect()
@@ -3690,7 +3722,8 @@ hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOM
         - upsertCommit()
         - getUpsertClosure()
     */
-    *hash upsertFromSelectCommit(AbstractTable t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    *hash<string, int> upsertFromSelectCommit(AbstractTable t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         on_success { ds.commit(); t.commit(); }
         on_error { ds.rollback(); t.rollback(); }
 
@@ -3698,7 +3731,8 @@ hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOM
     }
 
     #! @ref SqlUtil::AbstractTable::upsertFromSelectCommit() variant
-    *hash upsertFromSelectCommit(Table t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    *hash<string, int> upsertFromSelectCommit(Table t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         on_success { ds.commit(); t.commit(); }
         on_error { ds.rollback(); t.rollback(); }
 
@@ -3746,22 +3780,26 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
         - upsertCommit()
         - getUpsertClosure()
     */
-    *hash upsertFromSelect(AbstractTable t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    *hash<string, int> upsertFromSelect(AbstractTable t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::upsertFromSelect() wrapper
-    deprecated *hash upsertFromSelectNoCommit(AbstractTable t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    deprecated *hash<string, int> upsertFromSelectNoCommit(AbstractTable t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
     }
 
     #! @ref SqlUtil::AbstractTable::upsertFromSelect() variant
-    deprecated *hash upsertFromSelect(Table t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    deprecated *hash<string, int> upsertFromSelect(Table t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::upsertFromSelect() wrapper
-    deprecated *hash upsertFromSelectNoCommit(Table t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    deprecated *hash<string, int> upsertFromSelectNoCommit(Table t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
     }
 
@@ -4058,11 +4096,13 @@ AbstractSQLStatement i = table.getStatement();
         return stmt;
     }
 
-    #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+    #! returns a hash representing the row in the table that matches the argument hash
     /** @par Example:
         @code{.py}
-*hash h = table.selectRow(sh);
+*hash<auto> h = table.selectRow(sh);
         @endcode
+
+        If more than one row would be returned an exception is raised
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
         @param sql an optional reference to a string to return the SQL generated for the select statement
@@ -4082,10 +4122,17 @@ AbstractSQLStatement i = table.getStatement();
         return selectRowIntern(sh, \sql, opt);
     }
 
-    private *hash<auto> selectRowIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
+    private *hash<auto> selectRowIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt,
+            *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+        # check data callback options if any
+        validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
 
         sql = getSelectSqlUnlocked(sh, \args, opt);
+
+        if (opt.sqlarg_callback) {
+            opt.sqlarg_callback(sql, args);
+        }
 
         bool rollback_on_error = False;
         if (sh.forupdate) {
@@ -4156,10 +4203,16 @@ hash<SqlResultInfo> info = table.selectRowWithInfo(sh);
         return selectRowsIntern(sh, \sql, opt);
     }
 
-    private *list<auto> selectRowsIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
+    private *list<auto> selectRowsIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt,
+            *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+        # check data callback options if any
+        validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
 
         sql = getSelectSqlUnlocked(sh, \args, opt);
+
+        if (opt.sqlarg_callback)
+            opt.sqlarg_callback(sql, args);
 
         bool rollback_on_error = False;
         if (sh.forupdate) {
@@ -4298,26 +4351,7 @@ hash<SqlResultInfo> info = table.selectWithInfo(sh);
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
     */
     *hash<auto> selectRow(*hash<auto> sh, *hash<auto> opt) {
-        validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
-        # check data callback options if any
-        validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
-
-        list<auto> args;
-        string sql = getSelectSqlUnlocked(sh, \args, opt);
-
-        if (opt.sqlarg_callback)
-            opt.sqlarg_callback(sql, args);
-
-        bool rollback_on_error = False;
-        if (sh.forupdate) {
-            rollback_on_error = !ds.currentThreadInTransaction();
-            if (rollback_on_error)
-                ds.beginTransaction();
-        }
-        on_error if (rollback_on_error)
-            ds.rollback();
-
-        return ds.vselectRow(sql, args);
+        return selectRowIntern(sh, NOTHING, opt);
     }
 
     #! returns a list of hashes representing the rows in the table that match the argument hash
@@ -4338,27 +4372,8 @@ hash<SqlResultInfo> info = table.selectWithInfo(sh);
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
     */
-    *list selectRows(*hash<auto> sh, *hash<auto> opt) {
-        validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
-        # check data callback options if any
-        validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
-
-        list<auto> args;
-        string sql = getSelectSqlUnlocked(sh, \args, opt);
-
-        if (opt.sqlarg_callback)
-            opt.sqlarg_callback(sql, args);
-
-        bool rollback_on_error = False;
-        if (sh.forupdate) {
-            rollback_on_error = !ds.currentThreadInTransaction();
-            if (rollback_on_error)
-                ds.beginTransaction();
-        }
-        on_error if (rollback_on_error)
-            ds.rollback();
-
-        return ds.vselectRows(sql, args);
+    *list<auto> selectRows(*hash<auto> sh, *hash<auto> opt) {
+        return selectRowsIntern(sh, NOTHING, opt);
     }
 
     #! returns a hash of lists representing the columns and rows in the table that match the argument hash
@@ -4460,13 +4475,14 @@ string sql = table.getSelectSql(sh, \args);
 
     # column & table information must be retrieved before calling this function
     string getSelectSqlUnlockedIntern(*hash<auto> qh, string from, reference<list<auto>> args,
-            *hash<string, bool> subquery_column_map, *hash<auto> opt) {
+            *hash<string, bool> subquery_column_map, *hash<auto> opt, *hash<auto> pseudo_column_map) {
         hash<QueryInfo> info = <QueryInfo>{
             "table": self,
-            "query_hash": qh,
+            # make sure query_hash stays "hash<auto>"
+            "query_hash": {} + qh,
             "subquery_column_map": subquery_column_map,
             "query_options": opt,
-            "pseudo_column_map": getPseudoColumnHash(),
+            "pseudo_column_map": pseudo_column_map ?? ({} + getPseudoColumnHash()),
             "expression_map": getExpressionMap(),
 
             # backwards-compatibility
@@ -4544,8 +4560,6 @@ string sql = table.getSelectSql(sh, \args);
                                 cv.keys());
                         try {
                             string val = doColumnOperatorIntern(info, cv, \info.pseudo_column_map);
-                            #string val = doColumnOperatorIntern(cv, info.join_map, boolean(info.query_hash.join),
-                            #    info.subquery_column_map, info.pseudo_column_map, \info.pseudo_column_map);
                             ce += val;
                         } catch (hash<ExceptionInfo> ex) {
                             # rethrow exception with additional contextual information
@@ -4709,11 +4723,6 @@ string sql = table.getSelectSql(sh, \args);
                 hash<QueryInfo> info_new = info;
                 string hstr = doColumnOperatorIntern(info, value[0], NOTHING, getColumnExpressionIntern(info, key),
                     \psch_new);
-                /*
-                string hstr = doColumnOperatorIntern(value[0], NOTHING, getColumnExpressionIntern(key, info.join_map,
-                    boolean(info.query_hash.join), info.subquery_column_map, info.pseudo_column_map), cm, info.join_map,
-                    boolean(info.query_hash.join), ch, info.pseudo_column_map, \psch_new);
-                */
                 if (psch_new != info.pseudo_column_map) {
                     throw "HAVING-ERROR", sprintf("%s: cannot use column operator functions in the having clause "
                         "with column alias specifications", getDesc());
@@ -4769,9 +4778,8 @@ string sql = table.getSelectSql(sh, \args);
 
         if (info.query_hash.superquery) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \info.query_hash.superquery);
-
             return getSelectSqlUnlockedIntern(info.query_hash.superquery, sprintf("(%s) subquery", sql), \args,
-                subquery_column_map);
+                subquery_column_map, opt, (map {$1: True}, keys info.pseudo_column_map));
         }
 
         return sql;
@@ -5026,11 +5034,17 @@ string sql = table.getSelectSql(sh, \args);
     private *string getWhereClause(*hash<auto> cond, reference<list<auto>> args, *string cprefix,
             *hash<string, AbstractTable> join_map) {
         hash<QueryInfo> info = <QueryInfo>{
+            "table": self,
             "query_hash": {
                 "where": cond,
             },
             "join_map": join_map,
-            "pseudo_column_map": getPseudoColumnHash(),
+            "pseudo_column_map": {} + getPseudoColumnHash(),
+            "expression_map": getExpressionMap(),
+
+            # backwards-compatibility
+            "where_operator_map": getWhereOperatorMap(),
+            "column_operator_map": getColumnOperatorMap(),
         };
         l.lock();
         on_exit l.unlock();
@@ -5092,7 +5106,12 @@ string sql = table.getSelectSql(sh, \args);
                     throw "WHERE-ERROR", sprintf("where expression returns type %y; expecting \"bool\"",
                         cond.exp.return_type.getName());
                 }
-                #sql =
+                *hash<auto> exp = info.expression_map{cond.exp.label};
+                if (!exp) {
+                    throw "WHERE-ERROR", sprintf("where expression references unknown expression %y; supported "
+                        "expressions: %y", cond.exp.label, keys info.expression_map);
+                }
+                sql = exp.code(info, cond.args, \args);
                 break;
         }
         return sql;
@@ -5210,28 +5229,28 @@ int dcnt = table.delCommit(("name": name));
 
         @see delete(*hash)
         */
-    int delCommit(hash cond, reference<string> sql, hash<auto> opt) {
+    int delCommit(hash<auto> cond, reference<string> sql, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
         return delIntern(cond, \sql, opt);
     }
 
     #! @ref SqlUtil::AbstractTable::delCommit() variant
-    int delCommit(hash cond, hash<auto> opt) {
+    int delCommit(hash<auto> cond, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
         return delIntern(cond, NOTHING, opt);
     }
 
     #! @ref SqlUtil::AbstractTable::delCommit() variant
-    int delCommit(hash cond, reference<string> sql) {
+    int delCommit(hash<auto> cond, reference<string> sql) {
         on_success ds.commit();
         on_error ds.rollback();
         return delIntern(cond, \sql);
     }
 
     #! @ref SqlUtil::AbstractTable::delCommit() variant
-    int delCommit(hash cond) {
+    int delCommit(hash<auto> cond) {
         on_success ds.commit();
         on_error ds.rollback();
         return delIntern(cond);
@@ -5261,22 +5280,22 @@ int dcnt = table.del(("name": name));
 
         @see delCommit(*hash)
     */
-    int del(hash cond, reference<string> sql, hash<auto> opt) {
+    int del(hash<auto> cond, reference<string> sql, hash<auto> opt) {
         return delIntern(cond, \sql, opt);
     }
 
     #! @ref SqlUtil::AbstractTable::del() variant
-    int del(hash cond, hash<auto> opt) {
+    int del(hash<auto> cond, hash<auto> opt) {
         return delIntern(cond, NOTHING, opt);
     }
 
     #! @ref SqlUtil::AbstractTable::del() variant
-    int del(hash cond, reference<string> sql) {
+    int del(hash<auto> cond, reference<string> sql) {
         return delIntern(cond, \sql);
     }
 
     #! @ref SqlUtil::AbstractTable::del() variant
-    int del(hash cond) {
+    int del(hash<auto> cond) {
         return delIntern(cond);
     }
 
@@ -5307,15 +5326,16 @@ hash<SqlResultInfo> info = table.delWithInfo({"name": name});
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::del() wrapper
-    deprecated int delNoCommit(*hash cond, *reference<string> sql) {
+    deprecated int delNoCommit(*hash<auto> cond, *reference<string> sql) {
         return del(cond, \sql);
     }
 
     private int delIntern(*hash<auto> cond, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
         # make query
         sql = sprintf("delete from %s", getSqlName());
-        if (cond)
+        if (cond) {
             sql += getWhereClause(cond, \args);
+        }
 
         return execData(opt, sql, args);
     }
@@ -5338,35 +5358,35 @@ int ucnt = table.updateCommit(("id": id), ("name": name));
 
         @see update()
     */
-    int updateCommit(hash set, hash cond, reference<string> sql, hash<auto> opt) {
+    int updateCommit(hash<auto> set, hash<auto> cond, reference<string> sql, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
         return updateIntern(set, cond, \sql, opt);
     }
 
     #! A @ref SqlUtil::AbstractTable::updateCommit() variant
-    int updateCommit(hash set, hash cond, reference<string> sql) {
+    int updateCommit(hash<auto> set, hash<auto> cond, reference<string> sql) {
         on_success ds.commit();
         on_error ds.rollback();
         return updateIntern(set, cond, \sql);
     }
 
     #! A @ref SqlUtil::AbstractTable::updateCommit() variant
-    int updateCommit(hash set, hash cond, hash<auto> opt) {
+    int updateCommit(hash<auto> set, hash<auto> cond, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
         return updateIntern(set, cond, NOTHING, opt);
     }
 
     #! A @ref SqlUtil::AbstractTable::updateCommit() variant
-    int updateCommit(hash set, hash cond) {
+    int updateCommit(hash<auto> set, hash<auto> cond) {
         on_success ds.commit();
         on_error ds.rollback();
         return updateIntern(set, cond);
     }
 
     #! A @ref SqlUtil::AbstractTable::updateCommit() variant
-    int updateCommit(hash set) {
+    int updateCommit(hash<auto> set) {
         on_success ds.commit();
         on_error ds.rollback();
         return updateIntern(set);
@@ -5489,12 +5509,12 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::update() wrapper
-    deprecated int updateNoCommit(hash set, *hash cond, *reference<string> sql) {
+    deprecated int updateNoCommit(hash<auto> set, *hash<auto> cond, *reference<string> sql) {
         return updateIntern(set, cond, \sql);
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::update() wrapper
-    deprecated int updateNoCommit(hash set, *hash cond, *hash<auto> opt) {
+    deprecated int updateNoCommit(hash<auto> set, *hash<auto> cond, *hash<auto> opt) {
         return updateIntern(set, cond, NOTHING, opt);
     }
 
@@ -5567,7 +5587,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         return getAllUpsertColumns(row).firstValue();
     }
 
-    private code getUpsertInsertFirst(Columns cols, hash example_row, *hash<auto> opt) {
+    private code getUpsertInsertFirst(Columns cols, hash<auto> example_row, *hash<auto> opt) {
         string insert_sql = getUpsertInsertSql(example_row);
         list updc = ();
         string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
@@ -5581,7 +5601,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         };
     }
 
-    private code getUpsertUpdateFirst(Columns cols, hash example_row, *hash<auto> opt) {
+    private code getUpsertUpdateFirst(Columns cols, hash<auto> example_row, *hash<auto> opt) {
         list updc = ();
         string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
         string insert_sql = getUpsertInsertSql(example_row);
@@ -5595,7 +5615,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         };
     }
 
-    private code getUpsertSelectFirst(Columns cols, hash example_row, *hash<auto> opt) {
+    private code getUpsertSelectFirst(Columns cols, hash<auto> example_row, *hash<auto> opt) {
         #printf("getUpsertSelectFirst() %s: %y\n", name, cols.keys());
         list<string> updc();
         string select_sql = getUpsertSelectSql(example_row, cols, \updc);
@@ -5620,7 +5640,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         };
     }
 
-    private code getUpsertInsertOnly(Columns cols, hash example_row, *hash<auto> opt) {
+    private code getUpsertInsertOnly(Columns cols, hash<auto> example_row, *hash<auto> opt) {
         string insert_sql = getUpsertInsertSql(example_row);
 
         return int sub (hash<auto> row) {
@@ -5628,7 +5648,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         };
     }
 
-    private code getUpsertUpdateOnly(Columns cols, hash example_row, *hash<auto> opt) {
+    private code getUpsertUpdateOnly(Columns cols, hash<auto> example_row, *hash<auto> opt) {
         list updc = ();
         string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
 
@@ -6863,7 +6883,7 @@ string sql = table.getAlignSqlString(table2);
             return;
 
         list<auto> args;
-        hash cond{cname} = op_in(ids);
+        hash<auto> cond{cname} = op_in(ids);
         string sql = getSelectSqlIntern(("where": cond), \args);
 
         return ds.vselectRows(sql, args);
@@ -7303,7 +7323,7 @@ hash<auto> sh = (
 # output
 string sql;
 on_exit printf("SQL> %s\n", sql);
-any res = t.selectRows(sh, \sql);
+*list<auto> res = t.selectRows(sh, \sql);
 # result (from Oracle)
 # list: (1 element)
 #  [0]=hash: (3 members)
