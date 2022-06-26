@@ -1282,6 +1282,22 @@ any v = c.name;
                 "xlock": True,
             );
 
+            #! FreeTDS Expression map
+            const FreetdsExpressionMap = DefaultExpressionMap + {
+                OP_SUBSTR: DefaultExpressionMap{OP_SUBSTR} + {
+                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                            reference<hash<auto>> aliases) {
+                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                        if (!exists args[2]) {
+                            return sprintf("substring(%s,%s,32767)", exp0, exp1);
+                        }
+                        return sprintf("substring(%s,%s,%s)", exp0, exp1,
+                            info.table.getExpressionArg(info, args[2], \bind_args, \aliases));
+                    },
+                },
+            };
+
             #! where operator specializations for FreeTDS
             const FreetdsOpMap = DefaultOpMap + (
                 OP_SUBSTR: (
@@ -1553,6 +1569,11 @@ any v = c.name;
         #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
         string getSqlName() {
             return schema + "." + name;
+        }
+
+        #! Returns the expression map for FreeTDS
+        hash<auto> getExpressionMap() {
+            return FreetdsExpressionMap;
         }
 
         #! returns the "where" operator map for this object
