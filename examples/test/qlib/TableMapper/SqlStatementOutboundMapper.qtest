@@ -8,6 +8,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/Mapper.qm
 %requires ../../../../qlib/TableMapper.qm
@@ -183,9 +184,10 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
     *list<auto> getCreateMiscSqlImpl(*hash<auto> opt, bool cache) {}
     string getCreateSqlImpl(list<auto> l) {}
     bool hasArrayBind(any a) {}
-    nothing doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh) {}
+    nothing doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list> args) {}
     nothing copyImpl(AbstractTable old) {}
-    nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {}
+    nothing doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
+            reference<list> args, list<auto> coll) {}
     AbstractDataProviderType getNumericTypeImpl(string type_name, bool nullable, *hash<auto> options) {}
     AbstractSavepointHelper getSavepointHelperImpl(*string savepoint) {}
     bool isDuplicateRowErrorImpl(hash<::Qore::ExceptionInfo> ex) { return False; }

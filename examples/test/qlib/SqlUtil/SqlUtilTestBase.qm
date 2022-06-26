@@ -493,6 +493,108 @@ public class SqlTestBase inherits QUnit::Test {
                         "substr",
                     ),
                 },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_PREPEND}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "null_f"},
+                                "x-",
+                            ),
+                        },
+                        "prepend",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_APPEND}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "null_f"},
+                                "-x",
+                            ),
+                        },
+                        "append",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_UPPER}.exp,
+                            "args": (
+                                "upper",
+                            ),
+                        },
+                        "upper",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_LOWER}.exp,
+                            "args": (
+                                "LOWER",
+                            ),
+                        },
+                        "lower",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_MINUS}.exp,
+                            "args": (
+                                2,
+                                1,
+                            ),
+                        },
+                        "minus",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_PLUS}.exp,
+                            "args": (
+                                1,
+                                1,
+                            ),
+                        },
+                        "plus",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_DIVIDE}.exp,
+                            "args": (
+                                4,
+                                2,
+                            ),
+                        },
+                        "divide",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_MULTIPLY}.exp,
+                            "args": (
+                                2,
+                                2,
+                            ),
+                        },
+                        "multiply",
+                    ),
+                },
                 "*",
             );
             hash<DataProviderExpression> cond = <DataProviderExpression>{
@@ -520,11 +622,90 @@ public class SqlTestBase inherits QUnit::Test {
                 "orderby": "id",
             };
             rows = table.selectRows(sh, \sql);
+            on_error printf("rows: %N\n", rows);
             assertEq(2, rows.size());
             assertEq(1, rows[0].id);
             assertEq("he", rows[0].substr);
+            assertEq("x-abc", rows[0].prepend);
+            assertEq("abc-x", rows[0].append);
+            assertEq("UPPER", rows[0].upper);
+            assertEq("lower", rows[0].lower);
+            assertEq(1, rows[0].minus);
+            assertEq(2, rows[0].plus);
+            assertEq(2, rows[0].divide);
+            assertEq(4, rows[0].multiply);
             assertEq(2, rows[1].id);
             assertEq("he", rows[1].substr);
+
+            columns = (
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_AVG}.exp,
+                            "args": (
+                                1,
+                            ),
+                        },
+                        "avg",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_SUM}.exp,
+                            "args": (
+                                1,
+                            ),
+                        },
+                        "sum",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_MIN}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "id"},
+                            ),
+                        },
+                        "min",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_MAX}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "id"},
+                            ),
+                        },
+                        "max",
+                    ),
+                },
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{COP_COUNT}.exp,
+                        },
+                        "count",
+                    ),
+                },
+            );
+            sh = {
+                "columns": columns,
+            };
+            hash<auto> row = table.selectRow(sh, \sql);
+            on_error printf("row: %y\n", row);
+            assertEq(1, row.avg);
+            assertEq(2, row.sum);
+            assertEq(1, row.min);
+            assertEq(2, row.max);
+            assertEq(2, row.count);
         }
 
         # check date/time literals

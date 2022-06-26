@@ -118,6 +118,8 @@ module FreetdsSqlUtil {
     instead (under the \c "driver" and \c "freetds" keys for schemas supporting multiple databases).
 
     @subsection freetdssqlutilv15 FreetdsSqlUtil v1.5
+    - fixed the prepend and append column operators
+      (<a href="https://github.com/qorelanguage/qore/issues/4548">issue 4548</a>)
     - implemented support for generating queries based on generic expressions using the DataProvider module's generic
       expression support
       (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
@@ -1296,11 +1298,27 @@ any v = c.name;
                             info.table.getExpressionArg(info, args[2], \bind_args, \aliases));
                     },
                 },
+                COP_PREPEND: DefaultExpressionMap{COP_PREPEND} + {
+                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                            reference<hash<auto>> aliases) {
+                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                        return sprintf("concat(%s, %s)", exp1, exp0);
+                    },
+                },
+                COP_APPEND: DefaultExpressionMap{COP_APPEND} + {
+                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                            reference<hash<auto>> aliases) {
+                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                        return sprintf("concat(%s, %s)", exp0, exp1);
+                    },
+                },
             };
 
             #! where operator specializations for FreeTDS
-            const FreetdsOpMap = DefaultOpMap + (
-                OP_SUBSTR: (
+            const FreetdsOpMap = DefaultOpMap + {
+                OP_SUBSTR: {
                     "code": string sub (hash<QueryInfo> info, string cn, softlist arg, reference<list> args) {
                         args += arg[0]; # start
                         if (!exists arg[1]) {
@@ -1311,8 +1329,22 @@ any v = c.name;
                         args += arg[2]; # text
                         return sprintf("substring(%s,%v,%v) = %v", cn);
                     },
-                ),
-            );
+                },
+                COP_PREPEND: {
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("concat(%s, %s)", arg, cve);
+                    },
+                },
+                COP_APPEND: {
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("concat(%s, %s)", cve, arg);
+                    },
+                },
+            };
 
             #! column operator specializations for FreeTDS
             const FreetdsCopMap = (
@@ -1576,7 +1608,7 @@ any v = c.name;
             return FreetdsExpressionMap;
         }
 
-        #! returns the "where" operator map for this object
+        #! returns the "where" operator map for FreeTDS
         hash<auto> getWhereOperatorMap() {
             return FreetdsOpMap;
         }

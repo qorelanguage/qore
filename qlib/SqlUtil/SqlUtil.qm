@@ -4511,33 +4511,6 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 return sprintf("not (%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
             },
         },
-        COP_AS: {
-            "exp": <DataProviderExpressionInfo>{
-                "type": DET_Operator,
-                "label": "as",
-                "name": "as",
-                "desc": "aliases a result; args: expression or value, string label",
-                "symbol": "as",
-                "role": ER_Field,
-                "args": (
-                    DataProviderSignatureAnyType,
-                    DataProviderSignatureStringValueType,
-                ),
-                "return_type": AbstractDataProviderTypeMap."any",
-            },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                string arg = args[1];
-                # issue #2163: make sure the unquoted alias is inserted in the map
-                if (arg =~ /^(".*"|`.*`)$/) {
-                    aliases{arg.substr(1, -1)} = exp;
-                } else {
-                    aliases{arg} = exp;
-                }
-                return sprintf("%s as %s", exp, arg);
-            },
-        },
         OP_SUBSTR: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
@@ -4588,6 +4561,425 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 return sprintf("%s in (%s)", exp0, subsql);
             },
         },
+        COP_AS: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": "as",
+                "name": "as",
+                "desc": "aliases a result; args: expression or value, string label",
+                "symbol": "as",
+                "role": ER_Field,
+                "args": (
+                    DataProviderSignatureAnyType,
+                    DataProviderSignatureStringValueType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                string exp = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                string arg = args[1];
+                aliases{arg} = exp;
+                return sprintf("%s as %s", exp, info.table.getColumnSqlName(arg));
+            },
+        },
+        COP_PREPEND: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_PREPEND,
+                "name": COP_PREPEND,
+                "desc": "prepends a string to another string; args: string to be prepended, string to prepend to the "
+                    "first string",
+                "symbol": COP_PREPEND,
+                "args": (
+                    DataProviderSignatureStringType,
+                    DataProviderSignatureStringType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."string",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                return sprintf("%s || %s", exp1, exp0);
+            },
+        },
+        COP_APPEND: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_APPEND,
+                "name": COP_APPEND,
+                "desc": "appends or catenates a string to another string; args: string to be appended, string to "
+                    "append or concatenate to the first string",
+                "symbol": COP_APPEND,
+                "args": (
+                    DataProviderSignatureStringType,
+                    DataProviderSignatureStringType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."string",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                return sprintf("%s || %s", exp0, exp1);
+            },
+        },
+        COP_UPPER: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_UPPER,
+                "name": COP_UPPER,
+                "desc": "converts a string to all upper case; arg: string",
+                "symbol": COP_UPPER,
+                "args": (
+                    DataProviderSignatureStringType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."string",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("upper(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+            },
+        },
+        COP_LOWER: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_LOWER,
+                "name": COP_LOWER,
+                "desc": "converts a string to all lower case; arg: string",
+                "symbol": COP_LOWER,
+                "args": (
+                    DataProviderSignatureStringType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."string",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("lower(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+            },
+        },
+        COP_DISTINCT: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_DISTINCT,
+                "name": COP_DISTINCT,
+                "desc": "indicates that only records with distinct values of the given field should be returned",
+                "symbol": COP_DISTINCT,
+                "role": ER_Field,
+                "args": (
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("distinct %s", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+            },
+        },
+        COP_MIN: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_MIN,
+                "name": COP_MIN,
+                "desc": "Returns the minimum value in the group",
+                "symbol": COP_MIN,
+                "role": ER_Field,
+                "args": (
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("min(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+            },
+            "group": True,
+        },
+        COP_MAX: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_MAX,
+                "name": COP_MAX,
+                "desc": "Returns the maximum value in the group",
+                "symbol": COP_MAX,
+                "role": ER_Field,
+                "args": (
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("max(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+            },
+            "group": True,
+        },
+        COP_AVG: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_AVG,
+                "name": COP_AVG,
+                "desc": "Returns the average of the given values in the group",
+                "symbol": COP_AVG,
+                "role": ER_Field,
+                "args": (
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("avg(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+            },
+            "group": True,
+        },
+        COP_SUM: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_SUM,
+                "name": COP_SUM,
+                "desc": "Returns the sum of the given values",
+                "symbol": COP_SUM,
+                "role": ER_Field,
+                "args": (
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("sum(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+            },
+            "group": True,
+        },
+        COP_COUNT: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_COUNT,
+                "name": COP_COUNT,
+                "desc": "Count the number of rows in the group",
+                "symbol": COP_COUNT,
+                "role": ER_Field,
+                "args": (
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."int",
+            },
+            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                if (exists args[0] && args[0] != NULL) {
+                    return sprintf("count(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                }
+                return "count(1)";
+            },
+        },
+        COP_MINUS: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_MINUS,
+                "name": COP_MINUS,
+                "desc": "Subtracts one number from another",
+                "symbol": COP_MINUS,
+                "args": (
+                    DataProviderSignatureAnyType,
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                return sprintf("%s - %s", exp0, exp1);
+            },
+        },
+        COP_PLUS: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_PLUS,
+                "name": COP_PLUS,
+                "desc": "Adds two numbers",
+                "symbol": COP_PLUS,
+                "args": (
+                    DataProviderSignatureAnyType,
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                return sprintf("%s + %s", exp0, exp1);
+            },
+        },
+        COP_DIVIDE: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_DIVIDE,
+                "name": COP_DIVIDE,
+                "desc": "Divides one number by another",
+                "symbol": COP_DIVIDE,
+                "args": (
+                    DataProviderSignatureAnyType,
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                return sprintf("%s / %s", exp0, exp1);
+            },
+        },
+        COP_MULTIPLY: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_MULTIPLY,
+                "name": COP_MULTIPLY,
+                "desc": "Multiplies two numbers",
+                "symbol": COP_MULTIPLY,
+                "args": (
+                    DataProviderSignatureAnyType,
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                return sprintf("%s * %s", exp0, exp1);
+            },
+        },
+        COP_COALESCE: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_COALESCE,
+                "name": COP_COALESCE,
+                "desc": "Returns the value of the first expression with a value",
+                "symbol": COP_COALESCE,
+                "args": (
+                    DataProviderSignatureAnyType,
+                ),
+                "varargs": True,
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("coalesce(%s)", (foldl $1 + "," + $2,
+                    (map info.table.getExpressionArg(info, $1, \bind_args, \aliases), args)));
+            }
+        },
+        COP_LENGTH: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_LENGTH,
+                "name": COP_LENGTH,
+                "desc": "Returns the length of the argument",
+                "symbol": COP_LENGTH,
+                "args": (
+                    DataProviderSignatureAnyType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."int",
+            },
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("length(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+            },
+        },
+        /*
+        COP_SEQ: (
+            "nocolumn": True,
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select sequence %y because this database does not support "
+                    "sequences", arg.seq);
+            }
+        ),
+        COP_SEQ_CURRVAL: (
+            "nocolumn": True,
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support sequences", arg.seq);
+            }
+        ),
+        COP_OVER: (
+            "columnargs" : True,
+            "columnargs_ignore_nothings" : True,
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                *string partitionby = args.args[0];
+                *string orderby = args.args[1];
+                if (!exists partitionby && exists orderby) {
+                    throw "COP-OVER-ERROR", "Argument 'partitionby' must be given in case of usage of 'orderby'";
+                }
+                string sql = cve + " over (";
+                if (exists partitionby)
+                    sql += sprintf("partition by %s", partitionby); # TODO/FIXME: sql injection!
+                if (exists orderby)
+                    sql += sprintf(" order by %s", orderby); # TODO/FIXME: sql injection!
+                sql += ")";
+                return sql;
+            },
+        ),
+        COP_CUME_DIST: (
+            "nocolumn": True,
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return "cume_dist()";
+            },
+        ),
+        COP_DENSE_RANK: (
+            "nocolumn": True,
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases
+            },
+        ),
+        COP_FIRST_VALUE: (
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("first_value(%s)", cve);
+            },
+        ),
+        COP_LAST_VALUE: (
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("last_value(%s)", cve);
+            },
+        ),
+        COP_NTILE: (
+            "sqlvalue": True,
+            "nocolumn": True,
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return sprintf("ntile(%d)", arg);
+            },
+        ),
+        COP_PERCENT_RANK: (
+            "nocolumn": True,
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return "percent_rank()";
+            },
+        ),
+        COP_RANK: (
+            "nocolumn": True,
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return "rank()";
+            },
+        ),
+        COP_ROW_NUMBER: (
+            "nocolumn": True,
+            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                    reference<hash<auto>> aliases) {
+                return "row_number()";
+            },
+        ),
+        */
     };
 
     #! a hash of valid operators for use in @ref where_clauses

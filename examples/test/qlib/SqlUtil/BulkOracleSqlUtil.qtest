@@ -8,6 +8,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/BulkSqlUtil
 %requires ../../../../qlib/OracleSqlUtil.qm
@@ -30,7 +31,7 @@ class OracleTestSchema inherits SqlUtilTestSchema {
     private {
         const GenericOptions = (
             "replace": True,
-            );
+        );
 
         const IndexOptions = {};
 
@@ -43,15 +44,15 @@ class OracleTestSchema inherits SqlUtilTestSchema {
                 "null_f": c_varchar(69),
             ),
             "primary_key": ("name": "pk_oracle_test", "columns": ("id")),
-            );
+        );
 
         const Tables = (
             "oracle_test": T_OracleTest,
-            );
+        );
 
         const Sequences = (
             "oracle_test_seq": {},
-            );
+        );
     }
 
     constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
@@ -91,11 +92,11 @@ class OracleTest inherits SqlTestBase {
         const CustomColumns = (
             "varchar2": (
                 "value": "hello",
-                "size": "20",
+                "size": 20,
             ),
             "char": (
                 "value": "hello",
-                "size": "20",
+                "size": 20,
                 "expect": rpad("hello", 20),
             ),
             "number": (
@@ -121,7 +122,7 @@ class OracleTest inherits SqlTestBase {
             #raw
             #bfile
             #long
-            );
+        );
 
         const ConstColumns = (
             "const_f": (
@@ -129,7 +130,7 @@ class OracleTest inherits SqlTestBase {
                 "value": "test",
                 "size": "20",
             ),
-            );
+        );
     }
 
     constructor() : SqlTestBase("OracleTest", "1.0", \ARGV, MyOpts) {

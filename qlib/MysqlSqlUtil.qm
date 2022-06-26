@@ -92,6 +92,8 @@ module MysqlSqlUtil {
     @section mysql_relnotes Release Notes
 
     @subsection mysqlsqlutilv15 MysqlSqlUtil v1.5
+    - fixed the prepend and append column operators
+      (<a href="https://github.com/qorelanguage/qore/issues/4548">issue 4548</a>)
     - implemented support for generating queries based on generic expressions using the DataProvider module's generic
       expression support
       (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
@@ -1473,6 +1475,44 @@ end";
                 )
             );
 
+            #! MySQL Expression map
+            const MysqlExpressionMap = DefaultExpressionMap + {
+                COP_PREPEND: DefaultExpressionMap{COP_PREPEND} + {
+                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                            reference<hash<auto>> aliases) {
+                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                        return sprintf("concat(%s, %s)", exp1, exp0);
+                    },
+                },
+                COP_APPEND: DefaultExpressionMap{COP_APPEND} + {
+                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                            reference<hash<auto>> aliases) {
+                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                        return sprintf("concat(%s, %s)", exp0, exp1);
+                    },
+                },
+            };
+
+            #! where operator specializations for MySQL
+            const MysqlOpMap = DefaultOpMap + {
+                COP_PREPEND: {
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("concat(%s, %s)", arg, cve);
+                    },
+                },
+                COP_APPEND: {
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("concat(%s, %s)", cve, arg);
+                    },
+                },
+            };
+
             #! Map @ref SqlUtil::cop_trunc_date() constants for internal masks
             const MysqlTruncDate = {
                 DT_YEAR  : "'%Y-01-01 00:00:00'",
@@ -1516,6 +1556,16 @@ end";
         #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
         string getSqlName() {
             return schema + "." + name;
+        }
+
+        #! Returns the expression map for MySQL
+        hash<auto> getExpressionMap() {
+            return MysqlExpressionMap;
+        }
+
+        #! returns the "where" operator map for MySQL
+        hash<auto> getWhereOperatorMap() {
+            return MysqlOpMap;
         }
 
         private hash getTableCreationOptions() {
@@ -1806,12 +1856,15 @@ end";
             return sprintf("alter table %s rename to %s", getSqlName(), new_name);
         }
 
-        private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
+        private AbstractColumn addColumnImpl(string cname, hash<auto> opt, bool nullable = True) {
+            on_error rethrow $1.err, sprintf("%s (table %y column %y: %y)", $1.desc, getSqlName(), cname, opt);
             if (opt.precision || opt.auto_increment || opt.unsigned
                 || (MysqlTypeMap{opt.native_type}.type == Type::Number)
                 || (opt.qore_type == Type::Number))
-                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale, opt.unsigned, opt.auto_increment, opt.pk);
-            return new MysqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
+                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable,
+                    opt.default_value, opt.comment, 0, opt.scale, opt.unsigned, opt.auto_increment, opt.pk);
+            return new MysqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value,
+                opt.comment, 0);
         }
 
         private setPrimaryKeyUnlocked(AbstractPrimaryKey pk) {
