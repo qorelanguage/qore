@@ -1056,7 +1056,7 @@ list l = table.getAddColumnSql("name", ("qore_type": Type::String, "size": 50), 
 
         @see inDb() for a method that tells if the table is already in the database or not
     */
-    list<auto> getAddColumnSql(string cname, hash copt, bool nullable = True, *hash<auto> opt) {
+    list<auto> getAddColumnSql(string cname, hash<auto> copt, bool nullable = True, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
         list lsql;
@@ -1179,7 +1179,7 @@ list l = table.getModifyColumnSql("name", ("qore_type": Type::String, "size": 24
 
         @see inDb() for a method that tells if the table is already in the database or not
     */
-    list<auto> getModifyColumnSql(string cname, hash copt, bool nullable = True, *hash<auto> opt) {
+    list<auto> getModifyColumnSql(string cname, hash<auto> copt, bool nullable = True, *hash<auto> opt) {
         validateOptionsIntern("OPTION-ERROR", getAlignTableOptions(), \opt);
 
         l.lock();
@@ -1309,11 +1309,11 @@ string sql = table.getRenameColumnSql("name", "family_name");
         return c;
     }
 
-    private validateOptionsIntern(string err, hash ropt, reference<hash> opt) {
+    private validateOptionsIntern(string err, hash<auto> ropt, reference<hash<auto>> opt) {
         AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, name);
     }
 
-    private validateOptionsIntern(string err, hash ropt, reference<hash> opt, string tag) {
+    private validateOptionsIntern(string err, hash<auto> ropt, reference<hash<auto>> opt, string tag) {
         AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, tag);
     }
 
@@ -3460,9 +3460,9 @@ upsert(row_hash);
         - getUpsertClosure()
         - getUpsertClosureWithValidation()
         */
-    code getBulkUpsertClosure(hash example_row, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    code getBulkUpsertClosure(hash<auto> example_row, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         code upsert = getUpsertClosure(example_row, upsert_strategy, opt);
-        return int sub (hash h) {
+        return int sub (hash<auto> h) {
             map upsert($1), h.contextIterator();
             return UR_Verified;
         };
@@ -3490,7 +3490,7 @@ map upsert($1), row_list;
 
         @note the row values passed to the closure for upserting are checked if they match the example row passed to the getUpsertClosure() method; passing non-conforming data to the closure will cause the closure to throw an \c UPSERT-ERROR exception; see @ref SqlUtil::AbstractTable::getUpsertClosure() for a similar method that returns a non-validating closure; the closure returned by this method is a little slower than the one returned by @ref SqlUtil::AbstractTable::getUpsertClosure() since each row is validated
         */
-    code getUpsertClosureWithValidation(hash example_row, int upsert_strategy = UpsertAuto, *hash<auto> opt) {
+    code getUpsertClosureWithValidation(hash<auto> example_row, int upsert_strategy = UpsertAuto, *hash<auto> opt) {
         code upsert = getUpsertClosure(example_row, upsert_strategy, opt);
 
         return int sub (hash<auto> row) {
@@ -3533,7 +3533,8 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         - insertFromIteratorCommit()
         - insertFromIterator()
     */
-    *hash upsertFromIteratorCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    *hash<string, int> upsertFromIteratorCommit(Qore::AbstractIterator i,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
 
@@ -3573,28 +3574,32 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         - insertFromIteratorCommit()
         - insertFromIterator()
     */
-    *hash upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    *hash<string, int> upsertFromIterator(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto,
+            *hash<auto> opt) {
         return upsertFromIteratorIntern(i, upsert_strategy, opt - "commit_block");
     }
 
     #! A legacy SqlUtik::AbstractTable::upsertFromIterator() wrapper
-    deprecated *hash upsertFromIteratorNoCommit(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    deprecated *hash<string, int> upsertFromIteratorNoCommit(Qore::AbstractIterator i,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(i, upsert_strategy, opt - "commit_block");
     }
 
-    private *hash upsertFromIteratorIntern(Qore::AbstractIterator i, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    private *hash<string, int> upsertFromIteratorIntern(Qore::AbstractIterator i,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         # check upsert options
         validateOptionsIntern("OPTION-ERROR", getUpsertOptions(), \opt);
 
         # try to get initial row
-        if (!i.next())
+        if (!i.next()) {
             return;
+        }
 
         # result hash
-        hash rh;
+        hash<string, int> rh;
 
         # primary key value hash for "delete_others"
-        hash pkh;
+        hash<string, bool> pkh;
 
         hash<auto> row = i.getValue();
         code upsert = getUpsertClosure(row, upsert_strategy, opt);
@@ -3603,8 +3608,9 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         do {
             int code = upsert(row);
             ++rh{AbstractTable::UpsertResultMap{code}};
-            if (opt.info_callback)
+            if (opt.info_callback) {
                 opt.info_callback(getSqlName(), row, code);
+            }
 
             if (code != UR_Unchanged && opt.commit_block) {
                 if (++opt.change_count >= opt.commit_block) {
@@ -3614,27 +3620,29 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
             }
 
             # save primary key value in primary key hash if "delete_others" is set
-            if (opt.delete_others)
+            if (opt.delete_others) {
                 pkh{foldl $1 + "-" + $2, (map row.$1.toString(), primaryKey.keyIterator())} = True;
+            }
         } while (i.next() && (row = i.getValue()));
 
-        if (opt.delete_others)
+        if (opt.delete_others) {
             rh += doDeleteOthersIntern(pkh, opt);
+        }
 
         return rh;
     }
 
-    private *hash<auto> doDeleteOthersIntern(hash pkh, *hash<auto> opt) {
-        hash rh;
+    private *hash<string, int> doDeleteOthersIntern(hash<auto> pkh, *hash<auto> opt) {
+        hash<string, int> rh;
 
         # iterate through the table to find rows that do not belong and delete them
-        list pkl = primaryKey.keys();
+        list<string> pkl = primaryKey.keys();
         foreach hash<auto> row in (getStatement()) {
             string k = foldl $1 + "-" + $2, (map row.$1.toString(), pkl);
             if (pkh{k})
                 continue;
 
-            hash h = row{pkl};
+            hash<auto> h = row{pkl};
             self.del(h);
 
             ++rh.deleted;
@@ -3651,36 +3659,60 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         return rh;
     }
 
-    #! this method upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table; the transaction is committed if successful, if an error occurs then it is rolled back
+    #! Upserts or merges data from the given foreign table and @ref select_option_hash "select option hash" into the current table
     /** @par Example:
         @code{.py}
-hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertUpdateFirst);
+hash<auto> h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOMER")),
+    AbstractTable::UpsertUpdateFirst);
         @endcode
 
+        The transaction is committed if successful, if an error occurs then it is rolled back.
+
         The table argument does not need to be in the same database as the current table; it can also
-        be in a different database server or a database server of a different type (you can use this method to upsert or
-        merge data to or from any database supported by SqlUtil).
+        be in a different database server or a database server of a different type (you can use this method to upsert
+        or merge data to or from any database supported by SqlUtil).
 
-        @param t the table for the source data; this does not need to be in the same database as the target (the current table), nor does it need to be the same database type
-        @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
+        @param t the table for the source data; this does not need to be in the same database as the target (the
+        current table), nor does it need to be the same database type
+        @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for
+        information about this argument
         @param upsert_strategy see @ref upsert_options for possible values for the upsert strategy
-        @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for common options; each driver can support additional driver-specific options
+        @param opt a hash of options for the upsert operation; see @ref SqlUtil::AbstractTable::UpsertOptions for
+        common options; each driver can support additional driver-specific options
 
-        @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values indicating the number of rows processed (keys correspond to @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
+        @return @ref nothing if no actions were taken or a hash with the following keys assigned to numeric values
+        indicating the number of rows processed (keys correspond to
+        @ref SqlUtil::AbstractTable::UpsertResultDescriptionMap keys):
         - \c "inserted": the number of rows inserted
-        - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
-        - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since rows are updated unconditionally with other the upsert strategy codes
-        - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or @ref SqlUtil::AbstractTable::UpsertUpdateOnly
-        - \c "deleted": the number of rows deleted; this can only be returned if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True"
+        - \c "verified": the number of rows updated unconditionally; note that this key is returned with all upsert
+          strategy codes other than @ref SqlUtil::AbstractTable::UpsertSelectFirst instead of \c "updated"
+        - \c "updated": the number of rows updated; note that this key is only returned if \a upsert_strategy is
+          @ref SqlUtil::AbstractTable::UpsertSelectFirst, otherwise updated rows are reported as \c "verified" since
+          rows are updated unconditionally with other the upsert strategy codes
+        - \c "unchanged": the number of rows unchanged; this key can only be returned if \a upsert_strategy is
+          @ref SqlUtil::AbstractTable::UpsertSelectFirst, @ref SqlUtil::AbstractTable::UpsertInsertOnly, or
+          @ref SqlUtil::AbstractTable::UpsertUpdateOnly
+        - \c "deleted": the number of rows deleted; this can only be returned if
+          @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True"
 
         @throw OPTION-ERROR invalid or unsupported option
         @throw COLUMN-ERROR an unknown column was referenced in the hash to be inserted
-        @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the unique constraint/index are used in the upsert statement
+        @throw UPSERT-ERROR no primary key, unique constraint, or unique index for upsert; not all columns of the
+        unique constraint/index are used in the upsert statement
 
         @note
-        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True", then a hash of primary key values in the input data is built as the input data is iterated.  After iterating, if the row count of the table and the input data matches, then nothing more is done, otherwise, every row of the table is iterated and compared to the primary key hash; if a row does not match a primary key value, then it is deleted.  This operation is only executed if \c delete_others is @ref True "True" and is expensive for large data sets.
-        - this method also calls commit() or rollback() on the source table to release the transaction lock on the underlying source table datasource as an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object is used to pipeline the data to the upsert code; use upsertFromSelect() to do manual transaction management instead
-        - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
+        - if @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True", then a
+          hash of primary key values in the input data is built as the input data is iterated.  After iterating, if
+          the row count of the table and the input data matches, then nothing more is done, otherwise, every row of
+          the table is iterated and compared to the primary key hash; if a row does not match a primary key value,
+          then it is deleted.  This operation is only executed if \c delete_others is @ref True "True" and is
+          expensive for large data sets.
+        - this method also calls commit() or rollback() on the source table to release the transaction lock on the
+          underlying source table datasource as an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object
+          is used to pipeline the data to the upsert code; use upsertFromSelect() to do manual transaction management
+          instead
+        - unlike insertFromSelect() and insertFromSelectCommit(), this method processes arbitrary input data and
+          accepts @ref SqlUtil::AbstractTable::UpsertOptions "upsert options"
 
         @see
         - upsertFromSelect()
@@ -3690,7 +3722,8 @@ hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOM
         - upsertCommit()
         - getUpsertClosure()
     */
-    *hash upsertFromSelectCommit(AbstractTable t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    *hash<string, int> upsertFromSelectCommit(AbstractTable t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         on_success { ds.commit(); t.commit(); }
         on_error { ds.rollback(); t.rollback(); }
 
@@ -3698,7 +3731,8 @@ hash h = table.upsertFromSelectCommit(table2, ("where": ("account_type": "CUSTOM
     }
 
     #! @ref SqlUtil::AbstractTable::upsertFromSelectCommit() variant
-    *hash upsertFromSelectCommit(Table t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    *hash<string, int> upsertFromSelectCommit(Table t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         on_success { ds.commit(); t.commit(); }
         on_error { ds.rollback(); t.rollback(); }
 
@@ -3746,22 +3780,26 @@ hash h = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")),
         - upsertCommit()
         - getUpsertClosure()
     */
-    *hash upsertFromSelect(AbstractTable t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    *hash<string, int> upsertFromSelect(AbstractTable t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::upsertFromSelect() wrapper
-    deprecated *hash upsertFromSelectNoCommit(AbstractTable t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    deprecated *hash<string, int> upsertFromSelectNoCommit(AbstractTable t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
     }
 
     #! @ref SqlUtil::AbstractTable::upsertFromSelect() variant
-    deprecated *hash upsertFromSelect(Table t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    deprecated *hash<string, int> upsertFromSelect(Table t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::upsertFromSelect() wrapper
-    deprecated *hash upsertFromSelectNoCommit(Table t, *hash<auto> sh, int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
+    deprecated *hash<string, int> upsertFromSelectNoCommit(Table t, *hash<auto> sh,
+            int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(t.getStatement(sh), upsert_strategy, opt - "commit_block");
     }
 
@@ -4058,11 +4096,13 @@ AbstractSQLStatement i = table.getStatement();
         return stmt;
     }
 
-    #! returns a hash representing the row in the table that matches the argument hash; if more than one row would be returned an exception is raised
+    #! returns a hash representing the row in the table that matches the argument hash
     /** @par Example:
         @code{.py}
-*hash h = table.selectRow(sh);
+*hash<auto> h = table.selectRow(sh);
         @endcode
+
+        If more than one row would be returned an exception is raised
 
         @param sh a hash of conditions for the select statement; see @ref select_option_hash "select option hash" for information about this argument
         @param sql an optional reference to a string to return the SQL generated for the select statement
@@ -4082,10 +4122,17 @@ AbstractSQLStatement i = table.getStatement();
         return selectRowIntern(sh, \sql, opt);
     }
 
-    private *hash<auto> selectRowIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
+    private *hash<auto> selectRowIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt,
+            *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+        # check data callback options if any
+        validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
 
         sql = getSelectSqlUnlocked(sh, \args, opt);
+
+        if (opt.sqlarg_callback) {
+            opt.sqlarg_callback(sql, args);
+        }
 
         bool rollback_on_error = False;
         if (sh.forupdate) {
@@ -4156,10 +4203,16 @@ hash<SqlResultInfo> info = table.selectRowWithInfo(sh);
         return selectRowsIntern(sh, \sql, opt);
     }
 
-    private *list<auto> selectRowsIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
+    private *list<auto> selectRowsIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt,
+            *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
+        # check data callback options if any
+        validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
 
         sql = getSelectSqlUnlocked(sh, \args, opt);
+
+        if (opt.sqlarg_callback)
+            opt.sqlarg_callback(sql, args);
 
         bool rollback_on_error = False;
         if (sh.forupdate) {
@@ -4298,26 +4351,7 @@ hash<SqlResultInfo> info = table.selectWithInfo(sh);
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
     */
     *hash<auto> selectRow(*hash<auto> sh, *hash<auto> opt) {
-        validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
-        # check data callback options if any
-        validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
-
-        list<auto> args;
-        string sql = getSelectSqlUnlocked(sh, \args, opt);
-
-        if (opt.sqlarg_callback)
-            opt.sqlarg_callback(sql, args);
-
-        bool rollback_on_error = False;
-        if (sh.forupdate) {
-            rollback_on_error = !ds.currentThreadInTransaction();
-            if (rollback_on_error)
-                ds.beginTransaction();
-        }
-        on_error if (rollback_on_error)
-            ds.rollback();
-
-        return ds.vselectRow(sql, args);
+        return selectRowIntern(sh, NOTHING, opt);
     }
 
     #! returns a list of hashes representing the rows in the table that match the argument hash
@@ -4338,27 +4372,8 @@ hash<SqlResultInfo> info = table.selectWithInfo(sh);
         - if \c "offset" is supplied and no \c "orderby" is supplied, then if any primary key exists, the primary key columns will be used for the \c "orderby" option automatically
         - if the \c forupdate @ref select_option_hash "select option" is used, then after a successful select operation, the calling thread will own the thread transaction lock
     */
-    *list selectRows(*hash<auto> sh, *hash<auto> opt) {
-        validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
-        # check data callback options if any
-        validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
-
-        list<auto> args;
-        string sql = getSelectSqlUnlocked(sh, \args, opt);
-
-        if (opt.sqlarg_callback)
-            opt.sqlarg_callback(sql, args);
-
-        bool rollback_on_error = False;
-        if (sh.forupdate) {
-            rollback_on_error = !ds.currentThreadInTransaction();
-            if (rollback_on_error)
-                ds.beginTransaction();
-        }
-        on_error if (rollback_on_error)
-            ds.rollback();
-
-        return ds.vselectRows(sql, args);
+    *list<auto> selectRows(*hash<auto> sh, *hash<auto> opt) {
+        return selectRowsIntern(sh, NOTHING, opt);
     }
 
     #! returns a hash of lists representing the columns and rows in the table that match the argument hash
@@ -4459,76 +4474,106 @@ string sql = table.getSelectSql(sh, \args);
     }
 
     # column & table information must be retrieved before calling this function
-    string getSelectSqlUnlockedIntern(*hash<auto> qh, string from, reference<list<auto>> args, *hash<auto> ch, *hash<auto> opt) {
-        # get pseudo-column hash; += used to keep hash<auto> without stripping types
-        *hash<auto> psch += getPseudoColumnHash();
+    string getSelectSqlUnlockedIntern(*hash<auto> qh, string from, reference<list<auto>> args,
+            *hash<string, bool> subquery_column_map, *hash<auto> opt, *hash<auto> pseudo_column_map) {
+        hash<QueryInfo> info = <QueryInfo>{
+            "table": self,
+            # make sure query_hash stays "hash<auto>"
+            "query_hash": {} + qh,
+            "subquery_column_map": subquery_column_map,
+            "query_options": opt,
+            "pseudo_column_map": pseudo_column_map ?? ({} + getPseudoColumnHash()),
+            "expression_map": getExpressionMap(),
 
-        if (qh.hasKey("offset")) {
-            if (!qh.orderby) {
+            # backwards-compatibility
+            "where_operator_map": getWhereOperatorMap(),
+            "column_operator_map": getColumnOperatorMap(),
+        };
+
+        if (info.query_hash.hasKey("offset")) {
+            if (!info.query_hash.orderby) {
                 # use primary key by default
                 getPrimaryKeyUnlocked();
-                if (!primaryKey.empty())
-                    qh.orderby = primaryKey.keys();
-                else
-                    throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) but no 'orderby' and the table has no primary key", getDesc(), qh.offset);
+                if (!primaryKey.empty()) {
+                    info.query_hash.orderby = primaryKey.keys();
+                } else {
+                    throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) but no 'orderby' and the table "
+                        "has no primary key", getDesc(), info.query_hash.offset);
+                }
             }
-            if (!qh.limit)
-                throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit", getDesc(), qh.offset);
+            if (!info.query_hash.limit) {
+                throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit", getDesc(),
+                    info.query_hash.offset);
+            }
         }
         # do not overwrite args; could be used in a subquery
-        if (!exists args)
+        if (!exists args) {
             args = ();
-
-        # resolve any table names in joins first
-        map qh.join{$1.key}.table = getSubtableFromString($1.value.table, opt), qh.join.pairIterator(),
-            $1.value.table.typeCode() == NT_STRING;
-
-        # make a hash of aliases to tables when using joins
-        hash<auto> jch = map {$1.alias ?? $1.table.getName(): $1.table}, qh.join.iterator();
-
-        # issue #1909: add an alias for the main table if present
-        if (qh.alias) {
-            if (jch{qh.alias})
-                throw "SELECT-ERROR", sprintf("alias %y provided for the main table is also used in a join clause; known aliases in joins: %y", qh.alias, (map {$1.key: $1.value.getName()}, jch.pairIterator()));
-            jch{qh.alias} = self;
         }
 
-        # if we have a "superquery" argument, then we need to track which columns are in this subquery
-        hash mch;
+        # resolve any table names in joins first
+        map info.query_hash.join{$1.key}.table = getSubtableFromString($1.value.table, opt),
+            info.query_hash.join.pairIterator(), $1.value.table.typeCode() == NT_STRING;
+
+        # make a hash of aliases to tables when using joins
+        info.join_map = cast<hash<string, AbstractTable>>(
+            map {$1.alias ?? $1.table.getName() : $1.table}, info.query_hash.join.iterator()
+        );
+
+        # issue #1909: add an alias for the main table if present
+        if (info.query_hash.alias) {
+            if (info.join_map{info.query_hash.alias}) {
+                throw "SELECT-ERROR", sprintf("alias %y provided for the main table is also used in a join clause; "
+                    "known aliases in joins: %y", info.query_hash.alias,
+                    (map {$1.key: $1.value.getName()}, info.join_map.pairIterator()));
+            }
+            info.join_map{info.query_hash.alias} = self;
+        }
+
+        # if we have a "superquery" argument, then we need to track which columns are in this subquery in
+        # subquery_column_map
 
         string cstr;
         # make query
-        list coll = ();
-        if (qh.columns) {
+        list<auto> coll = ();
+        if (info.query_hash.columns) {
             # column expressions
-            list ce = ();
-            foreach auto cv in (qh.columns) {
+            list<auto> ce = ();
+            foreach auto cv in (info.query_hash.columns) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
-                        string cn = getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
-                        if (qh.superquery)
-                            mch{cv} = True;
+                        string cn = getColumnNameIntern(info, cv);
+                        if (info.query_hash.superquery) {
+                            subquery_column_map{cv} = True;
+                        }
                         ce += cn;
                         break;
                     }
 
                     case NT_HASH: {
-                        if (!cv.cop)
-                            throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element "
-                                "%d/%d; the \"columns\" select option must be assigned to a list of strings giving "
-                                "the column names or a list of column operator hashes as returned from column "
-                                "operator functions; this element is missing hash key \"cop\" giving the column "
-                                "operator; keys provided: %y", getDesc(), $# + 1, qh.columns.lsize(), cv.keys());
-                        try {
-                            string val = doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch, \psch);
-                            ce += val;
-                        } catch (hash<ExceptionInfo> ex) {
-                            # rethrow exception with additional contextual information
-                            rethrow ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex),
-                                getName(), $# + 1, qh.columns.lsize(), ex.desc), ex.arg;
+                        if ((cv instanceof hash<DataProviderExpression>)
+                            || (cv instanceof hash<DataProviderFieldReference>)) {
+                            ce += getExpressionArg(info, cv, \args, \info.pseudo_column_map);
+                        } else {
+                            if (!cv.cop)
+                                throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element "
+                                    "%d/%d; the \"columns\" select option must be assigned to a list of strings giving "
+                                    "the column names or a list of column operator hashes as returned from column "
+                                    "operator functions; this element is missing hash key \"cop\" giving the column "
+                                    "operator; keys provided: %y", getDesc(), $# + 1, info.query_hash.columns.lsize(),
+                                    cv.keys());
+                            try {
+                                string val = doColumnOperatorIntern(info, cv, \info.pseudo_column_map);
+                                ce += val;
+                            } catch (hash<ExceptionInfo> ex) {
+                                # rethrow exception with additional contextual information
+                                rethrow ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex),
+                                    getName(), $# + 1, info.query_hash.columns.lsize(), ex.desc), ex.arg;
+                            }
+                            if (info.query_hash.superquery && cv.cop == COP_AS && cv.arg) {
+                                info.subquery_column_map{cv.arg} = True;
+                            }
                         }
-                        if (qh.superquery && cv.cop == COP_AS && cv.arg)
-                            mch{cv.arg} = True;
                         break;
                     }
 
@@ -4539,15 +4584,17 @@ string sql = table.getSelectSql(sh, \args);
             }
             cstr = foldl $1 + ", " + $2, ce.iterator();
             coll = ce;
-        } else
+        } else {
             cstr = "*";
+        }
 
-        string sql = sprintf("select %s from %s", cstr, getFromIntern(from, qh));
-        if (qh.alias)
-            sql += " " + qh.alias;
+        string sql = sprintf("select %s from %s", cstr, getFromIntern(from, info.query_hash));
+        if (info.query_hash.alias) {
+            sql += " " + info.query_hash.alias;
+        }
 
         # process join specifications
-        foreach auto js in (qh.join.iterator()) {
+        foreach auto js in (info.query_hash.join.iterator()) {
             hash jh;
             if (js.typeCode() == NT_HASH)
                 jh = js;
@@ -4566,12 +4613,13 @@ string sql = table.getSelectSql(sh, \args);
 
             AbstractTable jt;
             if (jh.ta) {
-                if (!jch{jh.ta})
+                if (!info.join_map{jh.ta})
                     throw "SELECT-ERROR", sprintf("%s: can't join with unknown table/alias %y; known tables/aliases: "
-                        "%y", getDesc(), jh.ta, list(getName()) + jch.keys());
-                jt = jch{jh.ta};
-            } else
+                        "%y", getDesc(), jh.ta, (getName(),) + keys info.join_map);
+                jt = info.join_map{jh.ta};
+            } else {
                 jt = self;
+            }
 
             # set join table name
             string jtn;
@@ -4583,7 +4631,7 @@ string sql = table.getSelectSql(sh, \args);
             } else {
                 getPrimaryKeyUnlocked();
                 getForeignConstraintsUnlocked();
-                jtn = qh.alias ?? getSqlName();
+                jtn = info.query_hash.alias ?? getSqlName();
             }
 
             # create "join on" clause
@@ -4640,94 +4688,103 @@ string sql = table.getSelectSql(sh, \args);
             }
 
             # process any additional join conditions
-            if (jh.cond)
-                jel += jt.getWhereClauseIntern(jh.cond, \args, an, NOTHING, NOTHING, NOTHING, psch);
+            if (jh.cond) {
+                hash<QueryInfo> join_info = <QueryInfo>{
+                    "pseudo_column_map": info.pseudo_column_map,
+                };
+                jel += jt.getWhereClauseIntern(join_info, jh.cond, \args, an);
+            }
 
             sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.opt),
                 jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
         }
 
-        getSelectWhereSqlUnlocked(\sql, \args, qh, jch, boolean(qh.join), ch, psch);
+        getSelectWhereSqlUnlocked(info, \sql, \args, \info.pseudo_column_map);
 
-        if (qh.groupby) {
-            list ce = getGroupByListUnlocked(qh, jch, ch, psch, coll);
+        if (info.query_hash.groupby) {
+            list ce = getGroupByListUnlocked(info, coll);
             sql += " group by " + (foldl $1 + ", " + $2, ce.iterator());
         }
 
-        if (qh.having) {
+        if (info.query_hash.having) {
             getColumnsUnlocked();
-            hash cm = getColumnOperatorMap();
 
             list<auto> hl = ();
 
-            HashIterator i(qh.having);
+            HashIterator i(info.query_hash.having);
             while (i.next()) {
                 string key = i.getKey();
                 auto value = i.getValue();
-                if (value.typeCode() != NT_LIST)
+                if (value.typeCode() != NT_LIST) {
                     throw "SELECT-ERROR", sprintf("%s: expecting a list<auto> argument to the \"having\" condition "
                         "for column %y; got type %y instead (value: %y)", getDesc(), key, value.type(), value);
-                if (value[0].typeCode() != NT_STRING)
+                }
+                if (value[0].typeCode() != NT_STRING) {
                     throw "SELECT-ERROR", sprintf("%s: expecting a string argument to the \"having\" condition in "
                         "the first position giving the column operator code for column %y; got type %y instead "
                         "(value: %y)", getDesc(), key, value[0].type(), value[0]);
-
-                *hash<auto> psch_copy = psch;
-                string hstr = doColumnOperatorIntern(value[0], NOTHING, getColumnExpressionIntern(key, jch,
-                    boolean(qh.join), ch, psch), cm, jch, boolean(qh.join), ch, psch);
-                if (psch_copy != psch)
+                }
+                *hash<auto> psch_new = info.pseudo_column_map;
+                hash<QueryInfo> info_new = info;
+                string hstr = doColumnOperatorIntern(info, value[0], NOTHING, getColumnExpressionIntern(info, key),
+                    \psch_new);
+                if (psch_new != info.pseudo_column_map) {
                     throw "HAVING-ERROR", sprintf("%s: cannot use column operator functions in the having clause "
                         "with column alias specifications", getDesc());
-                hl += doWhereExpressionIntern(hstr, value[1], \args, jch, boolean(qh.join), ch, NOTHING, opt);
+                }
+                hl += doWhereExpressionIntern(info, hstr, value[1], \args);
             }
-            if (hl)
+            if (hl) {
                 sql += " having " + (foldl $1 + " and " + $2, hl);
+            }
         }
 
-        if (qh.orderby) {
+        if (info.query_hash.orderby) {
             # process minuses to generate the "orderbydesc" keys
-            foreach auto k in (\qh.orderby) {
+            foreach auto k in (\info.query_hash.orderby) {
                 if (k.typeCode() == NT_STRING && k =~ /^-/) {
                     k = k.substr(1);
-                    qh.orderbydesc{k} = True;
+                    info.query_hash.orderbydesc{k} = True;
                 }
             }
-            if (qh.offset || qh.limit) {
-                if (!matchAnyUnique(qh.orderby))
+            if (info.query_hash.offset || info.query_hash.limit) {
+                if (!matchAnyUnique(info.query_hash.orderby)) {
                     throw "SELECT-ERROR", sprintf("%s: 'orderby': %y with 'offset' = %d, 'limit' = %d does not match "
-                        "any unique constraint", getDesc(), qh.orderby, qh.offset, qh.limit);
+                        "any unique constraint", getDesc(), info.query_hash.orderby, info.query_hash.offset,
+                        info.query_hash.limit);
+                }
 
-                doSelectOrderByWithOffsetSqlUnlockedImpl(\sql, \args, qh, jch, ch, psch, coll);
+                doSelectOrderByWithOffsetSqlUnlockedImpl(info, \sql, \args, coll);
             } else {
-                doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
+                doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
             }
-        } else if (qh.limit) {
-            doSelectLimitOnlyUnlockedImpl(\sql, \args, qh);
+        } else if (info.query_hash.limit) {
+            doSelectLimitOnlyUnlockedImpl(info, \sql, \args);
         }
 
         #printf("SQL: %s\nargs: %y\n", sql, args);
 
-        if (qh.forupdate && !qh.superquery)
+        if (info.query_hash.forupdate && !info.query_hash.superquery)
             doForUpdate(\sql);
 
         # issue #4206: splice comments and hints into the SQL query string last
-        if (qh.comment || qh.hint) {
+        if (info.query_hash.comment || info.query_hash.hint) {
             string comment;
-            if (qh.comment) {
-                comment = sprintf("/* %s */ ", replace(qh.comment, "*/", ""));
+            if (info.query_hash.comment) {
+                comment = sprintf("/* %s */ ", replace(info.query_hash.comment, "*/", ""));
             }
-            if (qh.hint) {
-                comment += sprintf("/*+ %s */ ", replace(qh.hint, "*/", ""));
+            if (info.query_hash.hint) {
+                comment += sprintf("/*+ %s */ ", replace(info.query_hash.hint, "*/", ""));
             }
             # splice comment / hint test right before the " from " text in the query
             int i = sql.find(" from ");
             splice sql, i + 1, 0, comment;
         }
 
-        if (qh.superquery) {
-            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \qh.superquery);
-
-            return getSelectSqlUnlockedIntern(qh.superquery, sprintf("(%s) subquery", sql), \args, mch);
+        if (info.query_hash.superquery) {
+            validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \info.query_hash.superquery);
+            return getSelectSqlUnlockedIntern(info.query_hash.superquery, sprintf("(%s) subquery", sql), \args,
+                subquery_column_map, opt, (map {$1: True}, keys info.pseudo_column_map));
         }
 
         return sql;
@@ -4738,23 +4795,41 @@ string sql = table.getSelectSql(sh, \args);
         return opt.tablecode ? opt.tablecode(ds, table) : new Table(ds, table).getTable();
     }
 
+    string getExpressionArg(hash<QueryInfo> info, auto arg, reference<list<auto>> bind_args,
+            reference<hash<auto>> aliases) {
+        if (arg instanceof hash<DataProviderFieldReference>) {
+            return getColumnNameIntern(info, arg.field);
+        }
+        if (arg instanceof hash<DataProviderExpression>) {
+            if (!arg.exp) {
+                throw "EXPRESSION-ERROR", sprintf("expression %y is invalid; missing the \"exp\" key", arg);
+            }
+            *hash<auto> exp = info.expression_map{arg.exp.label};
+            if (!exp) {
+                throw "EXPRESSION-ERROR", sprintf("expression %y does not have an implementation in module %y",
+                    arg.exp.label, self.className());
+            }
+            on_error rethrow $1.err, sprintf("%s (while processing expression %y)", $1.desc, arg.exp.label);
+            return exp.code(info, arg.args, \bind_args, \aliases);
+        }
+        bind_args += arg;
+        return "%v";
+    }
+
     private string getFromIntern(string from, *hash<auto> qh) {
         return from;
     }
 
-    private list<auto> getGroupByListUnlocked(hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch,
-            list coll) {
-        return getGroupOrderByListUnlocked("groupby", qh, jch, ch, psch, coll);
+    private list<auto> getGroupByListUnlocked(hash<QueryInfo> info, list<auto> coll) {
+        return getGroupOrderByListUnlocked(info, "groupby", coll);
     }
 
-    private list<auto> getOrderByListUnlocked(hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch,
-            list coll) {
-        return getGroupOrderByListUnlocked("orderby", qh, jch, ch, psch, coll);
+    private list<auto> getOrderByListUnlocked(hash<QueryInfo> info, list<auto> coll) {
+        return getGroupOrderByListUnlocked(info, "orderby", coll);
     }
 
-    private list<auto> getGroupOrderByListUnlocked(string key, hash<auto> qh, *hash<auto> jch, *hash<auto> ch,
-            *hash<auto> psch, list coll) {
-        list ce = ();
+    private list<auto> getGroupOrderByListUnlocked(hash<QueryInfo> info, string key, list<auto> coll) {
+        list<auto> ce = ();
 
         code do_int = sub (int cv) {
             if (!coll) {
@@ -4763,8 +4838,7 @@ string sql = table.getSelectSql(sh, \args);
                         "expression, and the table has %d column%s", key, cv, ds.getDriverName(), key, columns.size(),
                         columns.size() == 1 ? "" : "s");
                 ce += columns.keys()[cv - 1];
-            }
-            else {
+            } else {
                 if (cv > coll.size())
                     throw "SELECT-ERROR", sprintf("%s %d: %s does not support numeric column offsets for the %s "
                         "expression, and %d column%s %s given in the select argument", key, cv, ds.getDriverName(),
@@ -4775,18 +4849,18 @@ string sql = table.getSelectSql(sh, \args);
             }
         };
 
-        foreach auto cv in (qh{key}) {
+        foreach auto cv in (info.query_hash{key}) {
             switch (cv.typeCode()) {
                 case NT_STRING: {
                     if (cv.toInt() == cv)
                         do_int(cv.toInt());
                     else
-                        ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
+                        ce += getColumnNameIntern(info, cv);
                     break;
                 }
 
                 case NT_HASH: {
-                    ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
+                    ce += doColumnOperatorIntern(info, cv);
                     break;
                 }
 
@@ -4811,33 +4885,34 @@ string sql = table.getSelectSql(sh, \args);
         return getSqlName();
     }
 
-    private string getColumnExpressionIntern(auto cvc, *hash<auto> jch, bool join, *hash<auto> ch, *hash<auto> psch) {
+    private string getColumnExpressionIntern(hash<QueryInfo> info, auto cvc) {
         switch (cvc.typeCode()) {
             case NT_HASH:
-                return doColumnOperatorIntern(cvc, jch, join, ch, psch);
+                return doColumnOperatorIntern(info, cvc);
             case NT_STRING:
-                return getColumnNameIntern(cvc, jch, join, ch, psch);
+                return getColumnNameIntern(info, cvc);
         }
         throw "SELECT-ERROR", sprintf("%s: column operator hash %y has an invalid \"column\" key; expecting a string "
             "column specification or a column operator description hash", getDesc(), cvc);
     }
 
-    private string doColumnOperatorIntern(hash cvc, *hash<auto> jch, bool join, *hash<auto> ch, *hash<auto> psch,
-            *reference psch_ref) {
-        return doColumnOperatorIntern(cvc.cop, cvc.arg, (cvc.column ? getColumnExpressionIntern(cvc.column, jch,
-            join, ch, psch) : NOTHING), getColumnOperatorMap(), jch, join, ch, psch, \psch_ref);
+    private string doColumnOperatorIntern(hash<QueryInfo> info, hash<auto> cvc, *reference<auto> psch_ref) {
+        return doColumnOperatorIntern(info, cvc.cop, cvc.arg,
+            (cvc.column ? getColumnExpressionIntern(info, cvc.column) : NOTHING),
+            \psch_ref);
     }
 
-    private string doColumnOperatorIntern(auto cop, auto arg, *string cve, hash cm, *hash<auto> jch, bool join,
-            *hash<auto> ch, *hash<auto> psch, *reference psch_ref) {
+    private string doColumnOperatorIntern(hash<QueryInfo> info, auto cop, auto arg, *string cve,
+            *reference<auto> psch_ref) {
         if (cop.typeCode() != NT_STRING)
             throw "SELECT-ERROR", sprintf("%s: invalid column operator code %y; use column operator functions to "
                 "create valid column specifications with supported column operators", getDesc(), cop);
 
-        *hash cmd = cm{cop};
-        if (!cmd)
+        *hash<auto> cmd = info.column_operator_map{cop};
+        if (!cmd) {
             throw "SELECT-ERROR", sprintf("%s: unknown column operator %y: expecting one of: %y", getDesc(), cop,
-                cm.keys());
+                keys info.column_operator_map);
+        }
 
         if (cmd.arg) {
             string at = arg.type();
@@ -4850,28 +4925,30 @@ string sql = table.getSelectSql(sh, \args);
             }
         }
 
-        if (cmd.sqlvalue)
+        if (cmd.sqlvalue) {
             arg = getSqlValue(arg);
-        else if (cmd.argcolumn) {
+        } else if (cmd.argcolumn) {
             if (!cmd.argoptional || arg) {
                 # issue #2555: allow the use of literal with other column operators
                 if (arg.cop == COP_VALUE) {
                     arg = arg.arg.toString();
                 } else {
-                    if (arg.typeCode() != NT_STRING)
+                    if (arg.typeCode() != NT_STRING) {
                         throw "SELECT-ERROR", sprintf("%s: expecting a string column designation for column "
                             "operator %y; got type %y instead (value: %y)", getDesc(), cop, arg.type(), arg);
-                    arg = getColumnNameIntern(arg, jch, join, ch, psch);
+                    }
+                    arg = getColumnNameIntern(info, arg);
                 }
             }
         } else if (cmd.columnargs) {
-            if (arg.args.typeCode() != NT_LIST)
+            if (arg.args.typeCode() != NT_LIST) {
                 throw "SELECT-ERROR", sprintf("%s: expecting a list of column designators for column operator %y; got "
                     "type %y instead", getDesc(), cop, arg.args.type());
+            }
             foreach auto narg in (\arg.args) {
                 switch (narg.typeCode()) {
-                    case NT_STRING: narg = getColumnNameIntern(narg, jch, join, ch, psch); break;
-                    case NT_HASH: narg = doColumnOperatorIntern(narg, jch, join, ch, psch); break;
+                    case NT_STRING: narg = getColumnNameIntern(info, narg); break;
+                    case NT_HASH: narg = doColumnOperatorIntern(info, narg); break;
                     # HACK: for COP_OVER. We need to handle situation when arg can be NOTHING
                     #       but also we have to validate non-NOTHING args to real columns.
                     case NT_NOTHING: if (cmd.columnargs_ignore_nothings) continue;
@@ -4881,9 +4958,10 @@ string sql = table.getSelectSql(sh, \args);
             }
         }
 
-        if (!exists cve && !cmd.nocolumn && !cmd.columnargs)
+        if (!exists cve && !cmd.nocolumn && !cmd.columnargs) {
             throw "SELECT-ERROR", sprintf("%s: column operator %y requires a column argument name but none was "
                 "provided", getDesc(), cop);
+        }
 
         if (cmd.withalias) {
             # get escaped AS alias only when required (a reserved word)
@@ -4897,53 +4975,59 @@ string sql = table.getSelectSql(sh, \args);
         }
     }
 
-    private string getColumnNameIntern(string cv, *hash<auto> jch, bool join, *hash<auto> ch, *hash<auto> psch) {
+    private string getColumnNameIntern(hash<QueryInfo> info, string column_name) {
         # remove any disposable unique prefix
-        cv =~ s/^[0-9]+://;
+        column_name =~ s/^[0-9]+://;
         # return the name if it's a "technical name" (starts with "_")
-        if (cv =~ /^_/)
-            return cv;
+        if (column_name =~ /^_/) {
+            return column_name;
+        }
 
-        bool use_prefix = join;
+        bool use_prefix = info.join_map.toBool();
 
         # see if we have a table.column spec
-        *string tp = (cv =~ x/(\w+)\..+/)[0];
-        if (tp) {
-            if (!jch{tp})
+        *string table_prefix = (column_name =~ x/(\w+)\..+/)[0];
+        if (table_prefix) {
+            if (!info.join_map{table_prefix}) {
                 throw "COLUMN-ERROR", sprintf("%s: query references unknown alias %y in %y; known aliases in this "
-                    "query: %y", getDesc(), tp, cv, jch.keys());
+                    "query: %y", getDesc(), table_prefix, column_name, keys info.join_map);
+            }
             # remove table alias from column name
-            splice cv, 0, tp.size() + 1;
+            splice column_name, 0, table_prefix.size() + 1;
 
-            if (cv != "*" && !jch{tp}.describe().hasKey(cv) && !psch{cv})
+            if (column_name != "*" && !info.join_map{table_prefix}.describe().hasKey(column_name)
+                && !info.pseudo_column_map{column_name})
                 throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\" (%y is aliased to "
-                    "table %y); known columns: %y", getDesc(), tp, cv, tp, jch{tp}.getSqlName(),
-                    keys jch{tp}.describe());
-        } else if (psch{cv}) {
-            if (psch{cv}.typeCode() == NT_STRING) {
+                    "table %y); known columns: %y", getDesc(), table_prefix, column_name, table_prefix,
+                    info.join_map{table_prefix}.getSqlName(),
+                    keys info.join_map{table_prefix}.describe());
+        } else if (info.pseudo_column_map{column_name}) {
+            if (info.pseudo_column_map{column_name}.typeCode() == NT_STRING) {
                 # substitute aliases with their actual definition
-                cv = psch{cv};
+                column_name = info.pseudo_column_map{column_name};
             }
             # issue #4214: use table prefixes in a join for pseudocolumns
-            return use_prefix ? sprintf("%s.%s", getSqlName(), cv) : cv;
-        } else if (ch) {
-            if (!ch{cv} && !psch{cv})
+            return use_prefix ? sprintf("%s.%s", getSqlName(), column_name) : column_name;
+        } else if (info.subquery_column_map) {
+            if (!info.subquery_column_map{column_name} && !info.pseudo_column_map{column_name}) {
                 throw "COLUMN-ERROR", sprintf("%s: query references unknown column %y; known columns from subquery: "
-                    "%y", getDesc(), cv, ch.keys());
-            return cv;
+                    "%y", getDesc(), column_name, keys info.subquery_column_map);
+            }
         } else {
-            tp = getSqlName();
-            if (cv == "*")
+            table_prefix = getSqlName();
+            if (column_name == "*") {
                 use_prefix = asteriskRequiresPrefix();
-            else if (!columns.hasKey(cv) && !psch{cv})
+            } else if (!columns.hasKey(column_name) && !info.pseudo_column_map{column_name}) {
                 throw "COLUMN-ERROR", sprintf("%s: query references unknown column \"%s.%s\"; known columns: %y; "
-                    "known column aliases: %y", getDesc(), tp, cv, columns.keys(), keys psch);
+                    "known column aliases: %y", getDesc(), table_prefix, column_name, columns.keys(),
+                    keys info.pseudo_column_map);
+            }
         }
 
         # ensure that reserved words are properly quoted
-        cv = getColumnSqlName(cv);
+        column_name = getColumnSqlName(column_name);
 
-        return use_prefix ? sprintf("%s.%s", tp, cv) : cv;
+        return use_prefix ? sprintf("%s.%s", table_prefix, column_name) : column_name;
     }
 
     #! returns @ref True if the database requires a wildcard \c "*" to be prefixed with the table name when it appears with other column arguments in a select statement
@@ -4951,137 +5035,151 @@ string sql = table.getSelectSql(sh, \args);
         return False;
     }
 
-    private getSelectWhereSqlUnlocked(reference<string> sql, reference<list<auto>> args, *hash<auto> qh,
-            *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch) {
-        if (qh."where")
-            sql += getWhereClauseUnlocked(qh."where", \args, NOTHING, jch, join, ch, psch);
-    }
-
-    private *string getWhereClause(*hash<auto> cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch,
-            bool join = False) {
-        l.lock();
-        on_exit l.unlock();
-        return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
-    }
-
-    private *string getWhereClause(list cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch,
-            bool join = False) {
-        l.lock();
-        on_exit l.unlock();
-        return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
-    }
-
-    private *string getWhereClauseUnlocked(list cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch,
-            bool join = False, *hash pch, *hash<auto> psch) {
-        getColumnsUnlocked();
-        list al = ();
-        if (!exists args)
-            args = ();
-        foreach hash<auto> ch in (cond) {
-            *list<string> wl = getWhereClauseIntern(ch, \args, cprefix, jch, join, pch, psch);
-            if (wl)
-                al += "(" + (foldl $1 + " and " + $2, wl) + ")";
+    private getSelectWhereSqlUnlocked(hash<QueryInfo> info, reference<string> sql, reference<list<auto>> args,
+            reference<hash<auto>> aliases) {
+        if (info.query_hash."where") {
+            sql += getWhereClauseUnlocked(info, info.query_hash."where", \args, \aliases);
         }
-        if (al)
-            return " where " + (foldl $1 + " or " + $2, al);
     }
 
-    private *string getWhereExpressionUnlocked(hash<DataProviderExpression> cond, reference<list<auto>> args,
-            *string cprefix, *hash<auto> jch, bool join = False, *hash pch, *hash<auto> psch) {
-        throw "IMPLEMENT-ME";
+    private *string getWhereClause(*hash<auto> cond, reference<list<auto>> args, *string cprefix,
+            *hash<string, AbstractTable> join_map) {
+        hash<QueryInfo> info = <QueryInfo>{
+            "table": self,
+            "query_hash": {
+                "where": cond,
+            },
+            "join_map": join_map,
+            "pseudo_column_map": {} + getPseudoColumnHash(),
+            "expression_map": getExpressionMap(),
+
+            # backwards-compatibility
+            "where_operator_map": getWhereOperatorMap(),
+            "column_operator_map": getColumnOperatorMap(),
+        };
+        l.lock();
+        on_exit l.unlock();
+        return getWhereClauseUnlocked(info, info.query_hash."where", \args, \info.pseudo_column_map, cprefix);
     }
 
-    private *string getWhereClauseUnlocked(*hash<auto> cond, reference<list<auto>> args, *string cprefix,
-            *hash<auto> jch, bool join = False, *hash pch, *hash<auto> psch) {
+    private *string getWhereExpressionUnlocked(hash<QueryInfo> info, hash<DataProviderExpression> cond,
+            reference<list<auto>> args, reference<hash<auto>> aliases, *string cprefix) {
+        string sql = getExpressionUnlockedIntern(info, cond, \args, \aliases);
+        if (sql) {
+            return " where " + sql;
+        }
+    }
+
+    private *string getExpressionUnlockedIntern(hash<QueryInfo> info, hash<DataProviderExpression> cond,
+            reference<list<auto>> args, reference<hash<auto>> aliases) {
+        /*
+        if (cond.exp.return_type.getBaseTypeCode() != NT_BOOLEAN) {
+            throw "SQLUTIL-EXPRESSION-ERROR", sprintf("expression returns type %y; expecting \"bool\"",
+                cond.exp.return_type.getName());
+        }
+        */
+        *hash<auto> exp = info.expression_map{cond.exp.label};
+        if (!exp) {
+            throw "SQLUTIL-EXPRESSION-ERROR", sprintf("expression references unknown expression %y; supported "
+                "expressions: %y", cond.exp.label, keys info.expression_map);
+        }
+        return exp.code(info, cond.args, \args, \aliases);
+    }
+
+    private *string getWhereClauseUnlocked(hash<QueryInfo> info, *hash<auto> cond, reference<list<auto>> args,
+            reference<hash<auto>> aliases, *string cprefix) {
         getColumnsUnlocked();
         if (cond instanceof hash<DataProviderExpression>) {
-            return getWhereExpressionUnlocked(cast<hash<DataProviderExpression>>(cond), \args, cprefix, jch, join,
-                pch, psch);
+            return getWhereExpressionUnlocked(info, cast<hash<DataProviderExpression>>(cond), \args, \aliases,
+                cprefix);
         }
-        if (!exists args)
+        if (!exists args) {
             args = ();
-        *list<string> wl = getWhereClauseIntern(cond, \args, cprefix, jch, join, pch, psch);
-        if (wl)
+        }
+        *list<string> wl = getWhereClauseIntern(info, cond, \args, cprefix);
+        if (wl) {
             return " where " + (foldl $1 + " and " + $2, wl);
+        }
     }
 
-    private *list<string> getWhereClauseIntern(*hash<auto> cond, reference<list<auto>> args, *string cprefix,
-            *hash<auto> jch, bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
-        if (!cond)
+    private *list<string> getWhereClauseIntern(hash<QueryInfo> info, *hash<auto> cond, reference<list<auto>> args,
+            *string cprefix) {
+        if (!cond) {
             return;
+        }
 
-        return map doWhereExpressionIntern(cprefix
-            ? sprintf("%s.%s", cprefix, $1.key)
-            : getColumnNameIntern($1.key, jch, join, ch, psch), $1.value, \args, jch, join, ch, psch, opt),
+        return
+            map doWhereExpressionIntern(info, cprefix
+                ? sprintf("%s.%s", cprefix, $1.key)
+                : getColumnNameIntern(info, $1.key), $1.value, \args),
             cond.pairIterator();
     }
 
-    private string doWhereExpressionIntern(string cn, auto we, reference<list<auto>> args, *hash<auto> jch,
-            bool join = False, *hash<auto> ch, *hash<auto> psch, *hash<auto> opt) {
+    private string doWhereExpressionIntern(hash<QueryInfo> info, string cn, auto we, reference<list<auto>> args) {
         int wt = we.typeCode();
         if (wt == NT_HASH) {
             if (we.hasKey("cop")) {
-                *hash<auto> psch_copy = psch;
-                string val = doColumnOperatorIntern(we, jch, join, ch, psch, \psch_copy);
-                if (psch_copy != psch)
+                *hash<auto> psm_copy = info.pseudo_column_map;
+                string val = doColumnOperatorIntern(info, we, \psm_copy);
+                if (psm_copy != info.pseudo_column_map) {
                     throw "WHERE-ERROR", sprintf("%s: cannot use column operator function %y in the where clause "
                         "with column alias specifications", getDesc(), we.cop);
+                }
                 return sprintf("%s = %s", cn, val);
             }
 
-            if (!we.op)
+            if (!we.op) {
                 throw "WHERE-ERROR", sprintf("%s: argument to key %y is a hash without an \"op\" key: %y", getDesc(),
                     cn, we);
+            }
 
-            hash<auto> wm = getWhereOperatorMap();
-
-            *hash<auto> cmd = wm{we.op};
-            if (!cmd)
+            *hash<auto> cmd = info.where_operator_map{we.op};
+            if (!cmd) {
                 throw "WHERE-ERROR", sprintf("%s: operator hash for key %y has unknown operator %y: expecting one "
-                    "of: %y (operator hash: %y)", getDesc(), cn, we.op, wm.keys(), we);
+                    "of: %y (operator hash: %y)", getDesc(), cn, we.op, keys info.where_operator_map, we);
+            }
 
             if (cmd.recursive) {
-                cn = doWhereExpressionIntern(cn, we.arg, \args, jch, join, ch, psch, opt);
+                cn = doWhereExpressionIntern(info, cn, we.arg, \args);
                 delete we.arg;
             } else if (cmd.argcolumn) {
                 if (!we.arg || we.arg.typeCode() != NT_STRING)
                     throw "WHERE-ERROR", sprintf("%s: operator hash for key %y expects a string column name; got "
                         "type %y instead", getDesc(), cn, we.arg.type());
-                we.arg = getColumnNameIntern(we.arg, jch, join, ch, psch);
-            } else if (cmd.withopt) {
-                return cmd.code(self, cn, we.arg, \args, jch, join, ch, psch, opt);
+                we.arg = getColumnNameIntern(info, we.arg);
             }
 
-            return cmd.code(self, cn, we.arg, \args, jch, join, ch, psch);
+            return cmd.code(info, cn, we.arg, \args);
         }
-        if (we === NULL || !exists we)
+        if (we === NULL || !exists we) {
             return sprintf("%s is null", cn);
+        }
         args += we;
         return sprintf("%s = %v", cn);
     }
 
-    string getOrClause(list<auto> arglist, reference<list<auto>> args, *hash<auto> jch, bool join = False,
-            *hash<auto> ch, *hash<auto> psch) {
+    string getOrClause(hash<QueryInfo> info, list<auto> arglist, reference<list<auto>> args) {
         list<string> l = ();
         foreach hash<auto> h in (arglist) {
-            string str = getOrClause(h, \args, jch, join, ch, psch);
-            if (str)
+            string str = getOrClause(info, h, \args);
+            if (str) {
                 l += str;
+            }
         }
         return l ? ("(" + (foldl $1 + " or " + $2, l) + ")") : "";
     }
 
-    string getOrClause(hash<auto> arg, reference<list<auto>> args, *hash<auto> jch, bool join = False, *hash<auto> ch,
-            *hash<auto> psch) {
-        *list<string> wl = getWhereClauseIntern(arg, \args, NOTHING, jch, join, ch, psch);
+    string getOrClause(hash<QueryInfo> info, hash<auto> arg, reference<list<auto>> args) {
+        *list<string> wl = getWhereClauseIntern(info, arg, \args);
         return wl ? ("(" + (foldl $1 + " and " + $2, wl) + ")") : "";
     }
 
-    private doSelectOrderBySqlUnlocked(reference<string> sql, reference<list<auto>> args, *hash<auto> qh,
-            *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list coll) {
-        list ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
-
-        sql += " order by " + (foldl $1 + ", " + $2, (map $1 + (qh.desc || qh.orderbydesc.$1 ? " desc" : ""), ce));
+    private doSelectOrderBySqlUnlocked(hash<QueryInfo> info, reference<string> sql, reference<list<auto>> args,
+            list<auto> coll) {
+        list<auto> ce = getOrderByListUnlocked(info, coll);
+        sql += " order by " + (foldl $1 + ", " + $2, (
+            map $1 + (info.query_hash.desc || info.query_hash.orderbydesc.$1 ? " desc" : ""), ce
+        ));
     }
 
     #! deletes rows in the table matching the condition and returns the count of rows deleted; the transaction is committed if successful, if an error occurs then it is rolled back
@@ -5101,28 +5199,28 @@ int dcnt = table.delCommit(("name": name));
 
         @see delete(*hash)
         */
-    int delCommit(hash cond, reference<string> sql, hash<auto> opt) {
+    int delCommit(hash<auto> cond, reference<string> sql, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
         return delIntern(cond, \sql, opt);
     }
 
     #! @ref SqlUtil::AbstractTable::delCommit() variant
-    int delCommit(hash cond, hash<auto> opt) {
+    int delCommit(hash<auto> cond, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
         return delIntern(cond, NOTHING, opt);
     }
 
     #! @ref SqlUtil::AbstractTable::delCommit() variant
-    int delCommit(hash cond, reference<string> sql) {
+    int delCommit(hash<auto> cond, reference<string> sql) {
         on_success ds.commit();
         on_error ds.rollback();
         return delIntern(cond, \sql);
     }
 
     #! @ref SqlUtil::AbstractTable::delCommit() variant
-    int delCommit(hash cond) {
+    int delCommit(hash<auto> cond) {
         on_success ds.commit();
         on_error ds.rollback();
         return delIntern(cond);
@@ -5152,22 +5250,22 @@ int dcnt = table.del(("name": name));
 
         @see delCommit(*hash)
     */
-    int del(hash cond, reference<string> sql, hash<auto> opt) {
+    int del(hash<auto> cond, reference<string> sql, hash<auto> opt) {
         return delIntern(cond, \sql, opt);
     }
 
     #! @ref SqlUtil::AbstractTable::del() variant
-    int del(hash cond, hash<auto> opt) {
+    int del(hash<auto> cond, hash<auto> opt) {
         return delIntern(cond, NOTHING, opt);
     }
 
     #! @ref SqlUtil::AbstractTable::del() variant
-    int del(hash cond, reference<string> sql) {
+    int del(hash<auto> cond, reference<string> sql) {
         return delIntern(cond, \sql);
     }
 
     #! @ref SqlUtil::AbstractTable::del() variant
-    int del(hash cond) {
+    int del(hash<auto> cond) {
         return delIntern(cond);
     }
 
@@ -5198,15 +5296,16 @@ hash<SqlResultInfo> info = table.delWithInfo({"name": name});
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::del() wrapper
-    deprecated int delNoCommit(*hash cond, *reference<string> sql) {
+    deprecated int delNoCommit(*hash<auto> cond, *reference<string> sql) {
         return del(cond, \sql);
     }
 
     private int delIntern(*hash<auto> cond, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
         # make query
         sql = sprintf("delete from %s", getSqlName());
-        if (cond)
+        if (cond) {
             sql += getWhereClause(cond, \args);
+        }
 
         return execData(opt, sql, args);
     }
@@ -5229,35 +5328,35 @@ int ucnt = table.updateCommit(("id": id), ("name": name));
 
         @see update()
     */
-    int updateCommit(hash set, hash cond, reference<string> sql, hash<auto> opt) {
+    int updateCommit(hash<auto> set, hash<auto> cond, reference<string> sql, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
         return updateIntern(set, cond, \sql, opt);
     }
 
     #! A @ref SqlUtil::AbstractTable::updateCommit() variant
-    int updateCommit(hash set, hash cond, reference<string> sql) {
+    int updateCommit(hash<auto> set, hash<auto> cond, reference<string> sql) {
         on_success ds.commit();
         on_error ds.rollback();
         return updateIntern(set, cond, \sql);
     }
 
     #! A @ref SqlUtil::AbstractTable::updateCommit() variant
-    int updateCommit(hash set, hash cond, hash<auto> opt) {
+    int updateCommit(hash<auto> set, hash<auto> cond, hash<auto> opt) {
         on_success ds.commit();
         on_error ds.rollback();
         return updateIntern(set, cond, NOTHING, opt);
     }
 
     #! A @ref SqlUtil::AbstractTable::updateCommit() variant
-    int updateCommit(hash set, hash cond) {
+    int updateCommit(hash<auto> set, hash<auto> cond) {
         on_success ds.commit();
         on_error ds.rollback();
         return updateIntern(set, cond);
     }
 
     #! A @ref SqlUtil::AbstractTable::updateCommit() variant
-    int updateCommit(hash set) {
+    int updateCommit(hash<auto> set) {
         on_success ds.commit();
         on_error ds.rollback();
         return updateIntern(set);
@@ -5281,27 +5380,27 @@ int ucnt = table.update(("id": id), ("name": name));
 
         @see updateCommit()
     */
-    int update(hash set, hash cond, reference<string> sql, hash<auto> opt) {
+    int update(hash<auto> set, hash<auto> cond, reference<string> sql, hash<auto> opt) {
         return updateIntern(set, cond, \sql, opt);
     }
 
     #! A @ref SqlUtil::AbstractTable::update() variant
-    int update(hash set, hash cond, reference<string> sql) {
+    int update(hash<auto> set, hash<auto> cond, reference<string> sql) {
         return updateIntern(set, cond, \sql);
     }
 
     #! A @ref SqlUtil::AbstractTable::update() variant
-    int update(hash set, hash cond, hash<auto> opt) {
+    int update(hash<auto> set, hash<auto> cond, hash<auto> opt) {
         return updateIntern(set, cond, NOTHING, opt);
     }
 
     #! A @ref SqlUtil::AbstractTable::update() variant
-    int update(hash set, hash cond) {
+    int update(hash<auto> set, hash<auto> cond) {
         return updateIntern(set, cond);
     }
 
     #! A @ref SqlUtil::AbstractTable::update() variant
-    int update(hash set) {
+    int update(hash<auto> set) {
         return updateIntern(set);
     }
 
@@ -5380,12 +5479,12 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::update() wrapper
-    deprecated int updateNoCommit(hash set, *hash cond, *reference<string> sql) {
+    deprecated int updateNoCommit(hash<auto> set, *hash<auto> cond, *reference<string> sql) {
         return updateIntern(set, cond, \sql);
     }
 
     #! A legacy @ref SqlUtil::AbstractTable::update() wrapper
-    deprecated int updateNoCommit(hash set, *hash cond, *hash<auto> opt) {
+    deprecated int updateNoCommit(hash<auto> set, *hash<auto> cond, *hash<auto> opt) {
         return updateIntern(set, cond, NOTHING, opt);
     }
 
@@ -5403,14 +5502,16 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
 
         *hash cmd = um{uh.uop};
         if (!cmd)
-            throw "UPDATE-ERROR", sprintf("%s: unknown update operator %y in %y: expecting one of: %y", getDesc(), uh.uop, uh, um.keys());
+            throw "UPDATE-ERROR", sprintf("%s: unknown update operator %y in %y: expecting one of: %y", getDesc(),
+                uh.uop, uh, um.keys());
 
         if (cmd.arg) {
             string at = uh.arg.type();
             switch (cmd.arg) {
                 default: {
                     if (at != cmd.arg)
-                        throw "UPDATE-ERROR", sprintf("%s: invalid argument to update operator %y; got type %y, expecting %y", getDesc(), uh.uop, at, cmd.arg);
+                        throw "UPDATE-ERROR", sprintf("%s: invalid argument to update operator %y; got type %y, "
+                            "expecting %y", getDesc(), uh.uop, at, cmd.arg);
                 }
             }
         }
@@ -5419,24 +5520,30 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
             uh.arg = getSqlValue(uh.arg);
         else if (cmd.argcolumn) {
             if (!cmd.argoptional || uh.arg) {
-                if (uh.arg.typeCode() != NT_STRING)
-                    throw "UPDATE-ERROR", sprintf("%s: expecting a string column designation for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
-                uh.arg = getColumnNameIntern(uh.arg, NOTHING, False);
+                if (uh.arg.typeCode() != NT_STRING) {
+                    throw "UPDATE-ERROR", sprintf("%s: expecting a string column designation for update operator %y; "
+                        "got type %y instead", getDesc(), uh.uop, uh.arg.type());
+                }
+                uh.arg = getColumnNameIntern(<QueryInfo>{}, uh.arg);
             }
         } else if (cmd.columnargs) {
-            if (uh.arg.typeCode() != NT_LIST)
-                throw "UPDATE-ERROR", sprintf("%s: expecting a list of column designators for update operator %y; got type %y instead", getDesc(), uh.uop, uh.arg.type());
+            if (uh.arg.typeCode() != NT_LIST) {
+                throw "UPDATE-ERROR", sprintf("%s: expecting a list of column designators for update operator %y; "
+                    "got type %y instead", getDesc(), uh.uop, uh.arg.type());
+            }
             foreach auto narg in (\uh.arg) {
                 switch (narg.typeCode()) {
-                    case NT_STRING: narg = getColumnNameIntern(narg, NOTHING, False); break;
-                    case NT_HASH: narg = doColumnOperatorIntern(narg, NOTHING, False); break;
-                    default: throw "COLUMN-ERROR", sprintf("%s: expecting a string column designator or a update operator hash; got %y in position %d/%d instead", getDesc(), narg, $#, uh.arg.lsize());
+                    case NT_STRING: narg = getColumnNameIntern(<QueryInfo>{}, narg); break;
+                    case NT_HASH: narg = doColumnOperatorIntern(<QueryInfo>{}, narg); break;
+                    default: throw "COLUMN-ERROR", sprintf("%s: expecting a string column designator or a update "
+                        "operator hash; got %y in position %d/%d instead", getDesc(), narg, $#, uh.arg.lsize());
                 }
             }
         }
 
         string arg = (uh.nest ? getUpdateExpression(col, cast<hash<UpdateOperatorInfo>>(uh.nest)) : col);
 
+        on_error printf("uh: %y\n", uh);
         return cmd.code(arg, uh.arg);
     }
 
@@ -5450,7 +5557,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         return getAllUpsertColumns(row).firstValue();
     }
 
-    private code getUpsertInsertFirst(Columns cols, hash example_row, *hash<auto> opt) {
+    private code getUpsertInsertFirst(Columns cols, hash<auto> example_row, *hash<auto> opt) {
         string insert_sql = getUpsertInsertSql(example_row);
         list updc = ();
         string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
@@ -5464,7 +5571,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         };
     }
 
-    private code getUpsertUpdateFirst(Columns cols, hash example_row, *hash<auto> opt) {
+    private code getUpsertUpdateFirst(Columns cols, hash<auto> example_row, *hash<auto> opt) {
         list updc = ();
         string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
         string insert_sql = getUpsertInsertSql(example_row);
@@ -5478,7 +5585,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         };
     }
 
-    private code getUpsertSelectFirst(Columns cols, hash example_row, *hash<auto> opt) {
+    private code getUpsertSelectFirst(Columns cols, hash<auto> example_row, *hash<auto> opt) {
         #printf("getUpsertSelectFirst() %s: %y\n", name, cols.keys());
         list<string> updc();
         string select_sql = getUpsertSelectSql(example_row, cols, \updc);
@@ -5503,7 +5610,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         };
     }
 
-    private code getUpsertInsertOnly(Columns cols, hash example_row, *hash<auto> opt) {
+    private code getUpsertInsertOnly(Columns cols, hash<auto> example_row, *hash<auto> opt) {
         string insert_sql = getUpsertInsertSql(example_row);
 
         return int sub (hash<auto> row) {
@@ -5511,7 +5618,7 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         };
     }
 
-    private code getUpsertUpdateOnly(Columns cols, hash example_row, *hash<auto> opt) {
+    private code getUpsertUpdateOnly(Columns cols, hash<auto> example_row, *hash<auto> opt) {
         list updc = ();
         string update_sql = getUpsertUpdateSql(example_row, cols, \updc, opt);
 
@@ -6746,7 +6853,7 @@ string sql = table.getAlignSqlString(table2);
             return;
 
         list<auto> args;
-        hash cond{cname} = op_in(ids);
+        hash<auto> cond{cname} = op_in(ids);
         string sql = getSelectSqlIntern(("where": cond), \args);
 
         return ds.vselectRows(sql, args);
@@ -7008,6 +7115,15 @@ string sql = table.getAlignSqlString(table2);
         return getSavepointHelperImpl(savepoint);
     }
 
+    #! Returns the expression map for this database server
+    /** override in subclasses to return driver-specific options
+
+        @since SqlUtil 1.8
+    */
+    hash<auto> getExpressionMap() {
+        return DefaultExpressionMap;
+    }
+
     #! returns the "where" operator map for this object
     /** override in subclasses to return driver-specific options
     */
@@ -7141,8 +7257,7 @@ string sql = table.getAlignSqlString(table2);
     /** subclasses should to implement getColumnOperatorMapImpl() to return driver-specific options
     */
     private hash<auto> getColumnOperatorMap() {
-        return DefaultCopMap + getColumnOperatorMapImpl()
-                                + m_customCopMap;
+        return DefaultCopMap + getColumnOperatorMapImpl() + m_customCopMap;
     }
 
     #! Reimplement in subclasses to provide driver specific column operators
@@ -7178,7 +7293,7 @@ hash<auto> sh = (
 # output
 string sql;
 on_exit printf("SQL> %s\n", sql);
-any res = t.selectRows(sh, \sql);
+*list<auto> res = t.selectRows(sh, \sql);
 # result (from Oracle)
 # list: (1 element)
 #  [0]=hash: (3 members)
@@ -7189,18 +7304,15 @@ any res = t.selectRows(sh, \sql);
     addCustomCopOperator(string name, hash<auto> operator) {
         hash<auto> ops = getColumnOperatorMap();
         if (ops.hasKey(name)) {
-            throw "CUSTOM-OPERATOR-ERROR",
-                    sprintf("Operator '%s' is already registered as: %y", name, ops{name});
+            throw "CUSTOM-OPERATOR-ERROR", sprintf("Operator '%s' is already registered as: %y", name, ops{name});
         }
 
         # input hash validations
         if (!operator.hasKey("code")) {
-            throw "CUSTOM-OPERATOR-ERROR",
-                    "Operator hash must contain key 'code'";
+            throw "CUSTOM-OPERATOR-ERROR", "Operator hash must contain key 'code'";
         } else if (!operator."code".callp()) {
-            throw "CUSTOM-OPERATOR-ERROR",
-                    sprintf("Operator hash must contain key 'code' with a callable value; got type: %s",
-                    operator."code".type());
+            throw "CUSTOM-OPERATOR-ERROR", sprintf("Operator hash must contain key 'code' with a callable value; got "
+                "type: %s", operator."code".type());
         }
 
         m_customCopMap{name} = operator;
@@ -7599,10 +7711,12 @@ any res = t.selectRows(sh, \sql);
     private abstract hash<auto> getTypeMapImpl();
 
     #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-    private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list<auto>> args, *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list coll);
+    private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
+        reference<list<auto>> args, list<auto> coll);
 
     #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-    private abstract doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list<auto>> args, *hash<auto> qh);
+    private abstract doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
+        reference<list<auto>> args);
 
     #! db-specific copy actions
     private abstract copyImpl(AbstractTable old);

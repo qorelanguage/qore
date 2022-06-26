@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.4.4";
+    version = "1.5";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -274,6 +274,11 @@ hash schema = (
     description hash keys.
 
     @section ora_relnotes Release Notes
+
+    @subsection oracle15 OracleSqlUtil v1.5
+    - implemented support for generating queries based on generic expressions using the DataProvider module's generic
+      expression support
+      (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
 
     @subsection oracle144 OracleSqlUtil v1.4.4
     - allow a \c VARCHAR column to be created without a size, assume a default size
@@ -1421,8 +1426,8 @@ auto v = c.name;
             return new OracleMaterializedView(name, mvh.src, mvh.logging, mvh.use_index, mvh.tablespace);
         }
 
-        private list getDropSchemaSqlImpl(hash schema_hash, *hash opt) {
-            list l = ();
+        private list<auto> getDropSchemaSqlImpl(hash<auto> schema_hash, *hash<auto> opt) {
+            list<auto> l = ();
 
             if (opt.start) {
                 # drop materialized views
@@ -1437,7 +1442,7 @@ auto v = c.name;
             }
 
             # drop types
-            list tl = dropSqlUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
+            list<auto> tl = dropSqlUnlocked("type", schema_hash, \getType(), \makeType(), opt, Type::String);
             if (tl) l += tl;
 
             return l;
@@ -1522,7 +1527,8 @@ auto v = c.name;
             string src = foldl $1 + $2, l;
 
             if (!regex(src, "^" + type + "([[:blank:]]|$)", RE_Caseless))
-                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the type name %y; source: %y", type, name, type, src.substr(0, 50));
+                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the type name %y; source: %y",
+                    type, name, type, src.substr(0, 50));
 
             # remove the type name from the beginning of the string
             splice src, 0, type.size() + 1;
@@ -1537,7 +1543,8 @@ auto v = c.name;
 
             # ensure the name of the object is at the beginning of the string
             if (!regex(src, "^(\")?" + name + "(\")?", RE_Caseless))
-                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the %s name %y; source: %y", type, name, type, name, src.substr(0, 50));
+                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the %s name %y; source: %y", type,
+                    name, type, name, src.substr(0, 50));
         }
 
         #! returns a list of string synonym names in the database
@@ -2012,10 +2019,26 @@ auto v = c.name;
                 "partition": Type::String,
             };
 
+            #! Oracle Expression map
+            const OracleExpressionMap = DefaultExpressionMap + {
+                OP_SUBSTR: DefaultExpressionMap{OP_SUBSTR} + {
+                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                            reference<hash<auto>> aliases) {
+                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                        if (!exists args[2]) {
+                            return sprintf("substr(%s,%s)", exp0, exp1);
+                        }
+                        return sprintf("substr(%s,%s,%s)", exp0, exp1,
+                            info.table.getExpressionArg(info, args[2], \bind_args, \aliases));
+                    },
+                },
+            };
+
             #! where operator specializations for Oracle
             const OracleOpMap = DefaultOpMap + (
                 OP_IN: (
-                    "code": string sub (object t, string cn, softlist arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (hash<QueryInfo> info, string cn, softlist arg, reference<list> args) {
 %ifndef NO_ORACLE
                         # Qorus bug #989 SqlUtil: oracle op_in can fail in large amount of input elements
                         # There is no support for CLOBs in WHERE clause in Oracle at all.
@@ -2079,7 +2102,7 @@ auto v = c.name;
                     },
                 ),
                 OP_SUBSTR: (
-                    "code": string sub (object t, string cn, auto arg, reference<list> args, *hash jch, bool join = False, *hash ch, *hash psch) {
+                    "code": string sub (hash<QueryInfo> info, string cn, softlist arg, reference<list> args) {
                         args += arg[0]; # start
                         if (!exists arg[1]) {
                             args += arg[2]; # text
@@ -2229,13 +2252,13 @@ auto v = c.name;
             );
 
             #! a hash of valid pseudocolumns
-            const OraclePseudoColumnHash = (
+            const OraclePseudoColumnHash = {
                 "rowid": True,
                 "rownum": True,
                 "object_id": True,
                 "object_value": True,
                 "ora_rowscn": True,
-            );
+            };
         }
 
         private {
@@ -2598,26 +2621,26 @@ auto v = c.name;
             splice sql, i + 5, 0, sprintf(" /*+ first_rows(%d) */", qh.limit);
         }
 
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list<auto>> args,
-                *hash<auto> qh, *hash<auto> jch, *hash<auto> ch, *hash<auto> psch, list<auto> coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
+                reference<list<auto>> args, list<auto> coll) {
             # Oracle 12c+ supports limit (fetch) and offset
-            if (optimizedLimit(qh)) {
-                doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
+            if (optimizedLimit(info.query_hash)) {
+                doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
 
-                if (qh.offset) {
+                if (info.query_hash.offset) {
                     sql += " offset %v rows";
-                    args += qh.offset;
+                    args += info.query_hash.offset;
                 }
 
-                if (qh.limit) {
+                if (info.query_hash.limit) {
                     sql += " fetch next %v rows only";
-                    args += qh.limit;
+                    args += info.query_hash.limit;
                 }
 
                 return;
             }
 
-            list<auto> ce = getOrderByListUnlocked(qh, jch, ch, psch, coll);
+            list<auto> ce = getOrderByListUnlocked(info, coll);
             string sort = foldl $1 + ", " + $2, ce;
             # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
             # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
@@ -2626,26 +2649,27 @@ auto v = c.name;
             # - https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/ROWNUM-Pseudocolumn.html#GUID-2E40EC12-3FCF-4A4F-B5F2-6BC669021726
             # - https://stackoverflow.com/questions/15091849/how-to-use-oracle-order-by-and-rownum-correctly/15091900
             sql = sprintf("select * from (select /*+ first_rows(%d) */ a.*, rownum rnum from (%s order by %s%s) a "
-                "where rownum <= %v%s) where rnum > %v", qh.limit, sql, sort, qh.desc ? " desc" : "");
-            if (qh.offset)
-                qh.limit += qh.offset;
-            args += qh.limit;
-            args += qh.offset ? qh.offset : 0;
+                "where rownum <= %v%s) where rnum > %v", info.query_hash.limit, sql, sort,
+                info.query_hash.desc ? " desc" : "");
+            if (info.query_hash.offset)
+                info.query_hash.limit += info.query_hash.offset;
+            args += info.query_hash.limit;
+            args += info.query_hash.offset ? info.query_hash.offset : 0;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list<auto>> args, *hash<auto> qh) {
-            if (!qh.limit)
+        private doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list<auto>> args) {
+            if (!info.query_hash.limit)
                 return;
 
             # Oracle 12c+ supports limit (fetch) and offset
-            if (optimizedLimit(qh)) {
+            if (optimizedLimit(info.query_hash)) {
                 sql += " fetch next %v rows only";
-                args += qh.limit;
+                args += info.query_hash.limit;
                 return;
             }
 
-            if (!qh."where") {
+            if (!info.query_hash."where") {
                 sql += " where ";
             } else {
                 int i = sql.find(" where ");
@@ -2653,9 +2677,9 @@ auto v = c.name;
                 sql += ") and ";
             }
             sql += "rownum <= %v";
-            args += qh.limit;
+            args += info.query_hash.limit;
             if (sql.find(" /*+ first_rows(") == -1) {
-                insertLimitOptimizerHint(qh, \sql);
+                insertLimitOptimizerHint(info.query_hash, \sql);
             }
         }
 
@@ -2943,13 +2967,19 @@ auto v = c.name;
             sql += "\n)";
 
             *string ts = opt.data_tablespace ? opt.data_tablespace : tablespace;
-            if (ts)
+            if (ts) {
                 sql += sprintf(" tablespace %s", ts);
+            }
 
             return sql;
         }
 
-        #! returns the "where" operator map for this object
+        #! Returns the expression map for Oracle
+        hash<auto> getExpressionMap() {
+            return OracleExpressionMap;
+        }
+
+        #! returns the "where" operator map for Oracle
         hash<auto> getWhereOperatorMap() {
             return OracleOpMap;
         }

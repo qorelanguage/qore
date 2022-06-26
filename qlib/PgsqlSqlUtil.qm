@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.6";
+    version = "1.7";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -151,6 +151,11 @@ $function$
     to use functionality like @ref SqlUtil::AbstractDatabase::getAlignFunctionSql() "AbstractDatabase::getAlignFunctionSql()" for example.
 
     @section pgsql_relnotes Release Notes
+
+    @subsection pgsqlsqlutilv17 PgsqlSqlUtil v1.7
+    - implemented support for generating queries based on generic expressions using the DataProvider module's generic
+      expression support
+      (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
 
     @subsection pgsqlsqlutilv16 PgsqlSqlUtil v1.6
     - added supoport for the \c XML, \c JSON, and \c JSONB types
@@ -1449,8 +1454,7 @@ auto v = c.name;
             if (options.tables) {
                 foreach string i in (tables)
                     ds.select(sql, i);
-            }
-            else {
+            } else {
                 ds.select(sql, "");
             }
         }
@@ -1601,6 +1605,47 @@ auto v = c.name;
 
             const PgsqlAlignTableOptions = AbstractTable::AlignTableOptions + PgsqlTableCreationOptions;
 
+            #! Expression map for PostgreSQL
+            const PgsqlExpressionMap = {
+                COP_CAST: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_CAST,
+                        "name": "cast",
+                        "desc": "cast operator",
+                        "symbol": "cast",
+                        "args": (
+                            DataProviderSignatureFieldType,
+                            DataProviderSignatureStringValueType,
+                            DataProviderSignatureOptionalIntValueType,
+                            DataProviderSignatureOptionalIntValueType),
+                        "varargs": True,
+                        "return_type": AbstractDataProviderTypeMap."any",
+                    },
+                    "code": string sub (string cve, list<auto> args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        hash desc = PgsqlTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range)
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s",
+                                            name);
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                } else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                } else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                },
+            };
+
             #! column operator specializations for PostgreSQL
             const PgsqlCopMap = {
                 COP_CAST: (
@@ -1612,14 +1657,13 @@ auto v = c.name;
                             default:
                                 if (desc.size == SZ_MAND) {
                                     if (!exists args[1] && !exists desc.size_range)
-                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s",
+                                            name);
                                     sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
-                                }
-                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                } else if (desc.size == SZ_NUM && exists args[1]) {
                                     sql += sprintf("(%d", args[1]);
                                     sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
-                                }
-                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                } else if (desc.size == SZ_OPT && exists args[1]) {
                                     sql += sprintf("(%d)", args[1]);
                                 }
                         }
@@ -1674,7 +1718,8 @@ auto v = c.name;
                 COP_TRUNC_DATE: (
                     "code": string sub(string arg1, auto arg) {
                         if (!PgsqlTruncDate.hasKey(arg)) {
-                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, PgsqlTruncDate.keys());
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg,
+                                PgsqlTruncDate.keys());
                         }
                         return sprintf("date_trunc(%s, %s)", PgsqlTruncDate{arg}, arg1);
                     }
@@ -1713,7 +1758,6 @@ auto v = c.name;
                 ),
                 COP_SEQ_CURRVAL: (
                     "nocolumn": True,
-                    "withalias": True,
                     "code": string sub (*string cve, string arg) {
                         return sprintf("currval('%s')", arg);
                     }
@@ -1787,8 +1831,10 @@ auto v = c.name;
             return PgsqlDatabase::PgsqlReservedWords{col.lwr()} ? ("\"" + col + "\"") : col;
         }
 
-        #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
-        list getColumnSqlNames(softlist cols) {
+        #! returns a list of column names for use in SQL strings
+        /** subclasses can process the argument list in case a column name is a reserved word
+        */
+        list<auto> getColumnSqlNames(softlist<auto> cols) {
             return map (PgsqlDatabase::PgsqlReservedWords{$1.lwr()} ? ("\"" + $1 + "\"") : $1), cols;
         }
 
@@ -2448,22 +2494,23 @@ auto v = c.name;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list> args) {
            sql += " limit %v";
-           args += qh.limit;
+           args += info.query_hash.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
-            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
-            if (qh.limit) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
+                reference<list> args, list<auto> coll) {
+            doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
+            if (info.query_hash.limit) {
                 sql += " limit %v";
-                args += qh.limit;
+                args += info.query_hash.limit;
             }
 
-            if (qh.offset) {
+            if (info.query_hash.offset) {
                 sql += " offset %v";
-                args += qh.offset;
+                args += info.query_hash.offset;
             }
         }
 
@@ -2506,20 +2553,21 @@ auto v = c.name;
             return h ? map {$1.key: $1.value[0]}, h.pairIterator() : h;
         }
 
-        private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
-            list ce = ();
-            foreach auto cv in (qh{key}) {
+        private list<auto> getGroupOrderByListUnlocked(hash<QueryInfo> info, string key, list<auto> coll) {
+            list<auto> ce = ();
+            foreach auto cv in (info.query_hash{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
-                        if (cv.toInt() == cv)
+                        if (cv.toInt() == cv) {
                             ce += cv;
-                        else
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
+                        } else {
+                            ce += getColumnNameIntern(info, cv);
+                        }
                         break;
                     }
 
                     case NT_HASH: {
-                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
+                        ce += doColumnOperatorIntern(info, cv);
                         break;
                     }
 
@@ -2529,7 +2577,8 @@ auto v = c.name;
                     }
 
                     default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in "
+                            "group by list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv);
                 }
             }
             return ce;

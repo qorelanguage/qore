@@ -1353,10 +1353,11 @@ string sql = t.getSqlFromList(list);
         return AbstractDatabase::getDatabase(nds, opts);
     }
 
-    static checkDriverOptions(reference<hash> h, string drv) {
+    static checkDriverOptions(reference<hash<auto>> h, string drv) {
         if (h.driver) {
-            if (h.driver{drv})
+            if (h.driver{drv}) {
                 h += h.driver{drv};
+            }
             delete h.driver;
         }
     }

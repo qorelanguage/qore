@@ -15,6 +15,7 @@ module BulkSqlUtilTestBase {
 }
 
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/BulkSqlUtil
 %requires ../../../../qlib/Schema.qm
@@ -30,7 +31,7 @@ public class SqlUtilTestSchema inherits AbstractSchema {
                 hash ch = (
                     "native_type": type,
                     "notnull": True,
-                    );
+                );
                 if (h.value.typeCode() == NT_HASH)
                     ch += (h.value - ("value", "bind", "expect", "type"));
                 tables{table}.columns{SqlTestBase::getColumnName(h.key)} = ch;
@@ -59,7 +60,7 @@ public class SqlTestBase inherits QUnit::Test {
 
         const MyOpts = Opts + (
             "connstr": "c,conn=s",
-            );
+        );
 
         const OptionColumn = 22;
 

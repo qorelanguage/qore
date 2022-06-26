@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module MysqlSqlUtil {
-    version = "1.4.3";
+    version = "1.5";
     desc = "user module for working with MySQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -90,6 +90,13 @@ module MysqlSqlUtil {
     constraint on the column.
 
     @section mysql_relnotes Release Notes
+
+    @subsection mysqlsqlutilv15 MysqlSqlUtil v1.5
+    - fixed the prepend and append column operators
+      (<a href="https://github.com/qorelanguage/qore/issues/4548">issue 4548</a>)
+    - implemented support for generating queries based on generic expressions using the DataProvider module's generic
+      expression support
+      (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
 
     @subsection mysqlsqlutilv143 MysqlSqlUtil v1.4.3
     - allow a \c VARCHAR column to be created without a size, assume a default size
@@ -413,7 +420,7 @@ string str = col.getRenameSql(t, "new_name");
         private validateConstructor() {
             if (auto_increment && !AUTO_INCREMENT_VALID_TYPES.hasKey(native_type)) {
                 throw "MYSQL-COLUMN-ERROR",
-                      sprintf("AUTO_INCREMENT can be used only with a subset of types. Used: %s, valid types: %n",
+                      sprintf("AUTO_INCREMENT can be used only with a subset of types. Used: %s, valid types: %y",
                               native_type, keys AUTO_INCREMENT_VALID_TYPES);
             }
         }
@@ -1460,22 +1467,61 @@ end";
                 COP_TRUNC_DATE: (
                     "code": string sub(string arg1, auto arg) {
                         if (!MysqlTruncDate.hasKey(arg)) {
-                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, MysqlTruncDate.keys());
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %y: allowed: %y",
+                                arg, MysqlTruncDate.keys());
                         }
                         return sprintf("cast(date_format(%s, %s) as datetime)", arg1, MysqlTruncDate{arg});
                     }
                 )
             );
 
+            #! MySQL Expression map
+            const MysqlExpressionMap = DefaultExpressionMap + {
+                COP_PREPEND: DefaultExpressionMap{COP_PREPEND} + {
+                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                            reference<hash<auto>> aliases) {
+                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                        return sprintf("concat(%s, %s)", exp1, exp0);
+                    },
+                },
+                COP_APPEND: DefaultExpressionMap{COP_APPEND} + {
+                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                            reference<hash<auto>> aliases) {
+                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                        return sprintf("concat(%s, %s)", exp0, exp1);
+                    },
+                },
+            };
+
+            #! where operator specializations for MySQL
+            const MysqlOpMap = DefaultOpMap + {
+                COP_PREPEND: {
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("concat(%s, %s)", arg, cve);
+                    },
+                },
+                COP_APPEND: {
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("concat(%s, %s)", cve, arg);
+                    },
+                },
+            };
+
             #! Map @ref SqlUtil::cop_trunc_date() constants for internal masks
-            const MysqlTruncDate = (
-                    DT_YEAR     : "'%Y-01-01 00:00:00'",
-                    DT_MONTH    : "'%Y-%m-01 00:00:00'",
-                    DT_DAY      : "'%Y-%m-%d 00:00:00'",
-                    DT_HOUR     : "'%Y-%m-%d %H:00:00'",
-                    DT_MINUTE   : "'%Y-%m-%d %H:%i:00'",
-                    DT_SECOND   : "'%Y-%m-%d %H:%i:%s'",
-            );
+            const MysqlTruncDate = {
+                DT_YEAR  : "'%Y-01-01 00:00:00'",
+                DT_MONTH : "'%Y-%m-01 00:00:00'",
+                DT_DAY   : "'%Y-%m-%d 00:00:00'",
+                DT_HOUR  : "'%Y-%m-%d %H:00:00'",
+                DT_MINUTE: "'%Y-%m-%d %H:%i:00'",
+                DT_SECOND: "'%Y-%m-%d %H:%i:%s'",
+            };
         }
 
         private {
@@ -1510,6 +1556,16 @@ end";
         #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
         string getSqlName() {
             return schema + "." + name;
+        }
+
+        #! Returns the expression map for MySQL
+        hash<auto> getExpressionMap() {
+            return MysqlExpressionMap;
+        }
+
+        #! returns the "where" operator map for MySQL
+        hash<auto> getWhereOperatorMap() {
+            return MysqlOpMap;
         }
 
         private hash getTableCreationOptions() {
@@ -1800,12 +1856,15 @@ end";
             return sprintf("alter table %s rename to %s", getSqlName(), new_name);
         }
 
-        private AbstractColumn addColumnImpl(string cname, hash opt, bool nullable = True) {
+        private AbstractColumn addColumnImpl(string cname, hash<auto> opt, bool nullable = True) {
+            on_error rethrow $1.err, sprintf("%s (table %y column %y: %y)", $1.desc, getSqlName(), cname, opt);
             if (opt.precision || opt.auto_increment || opt.unsigned
                 || (MysqlTypeMap{opt.native_type}.type == Type::Number)
                 || (opt.qore_type == Type::Number))
-                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable, opt.default_value, opt.comment, 0, opt.scale, opt.unsigned, opt.auto_increment, opt.pk);
-            return new MysqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value, opt.comment, 0);
+                return new MysqlNumericColumn(cname, opt.native_type, opt.qore_type, opt.precision, nullable,
+                    opt.default_value, opt.comment, 0, opt.scale, opt.unsigned, opt.auto_increment, opt.pk);
+            return new MysqlColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value,
+                opt.comment, 0);
         }
 
         private setPrimaryKeyUnlocked(AbstractPrimaryKey pk) {
@@ -2030,22 +2089,23 @@ string str = table.getSqlValue(date);
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference<string> sql, reference<list> args, *hash qh) {
+        private doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list> args) {
            sql += " limit %v";
-           args += qh.limit;
+           args += info.query_hash.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<string> sql, reference<list> args, *hash qh, *hash jch, *hash ch, *hash psch, list coll) {
-            doSelectOrderBySqlUnlocked(\sql, \args, qh, jch, ch, psch, coll);
-            if (qh.limit) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
+                reference<list> args, list<auto> coll) {
+            doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
+            if (info.query_hash.limit) {
                 sql += " limit %v";
-                args += qh.limit;
+                args += info.query_hash.limit;
             }
 
-            if (qh.offset) {
+            if (info.query_hash.offset) {
                 sql += " offset %v";
-                args += qh.offset;
+                args += info.query_hash.offset;
             }
         }
 
@@ -2054,24 +2114,26 @@ string str = table.getSqlValue(date);
             return True;
         }
 
-        private *hash doReturningImpl(hash opt, reference<string> sql, list<auto> args) {
-            throw "RETURNING-ERROR", sprintf("table %s: the mysql driver does not support the returning clause in an insert statement", getSqlName());
+        private *hash<auto> doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args) {
+            throw "RETURNING-ERROR", sprintf("table %s: the mysql driver does not support the returning clause in an "
+                "insert statement", getSqlName());
         }
 
-        private list getGroupOrderByListUnlocked(string key, hash qh, *hash jch, *hash ch, *hash psch, list coll) {
-            list ce = ();
-            foreach auto cv in (qh{key}) {
+        private list<auto> getGroupOrderByListUnlocked(hash<QueryInfo> info, string key, list<auto> coll) {
+            list<auto> ce = ();
+            foreach auto cv in (info.query_hash{key}) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
-                        if (cv.toInt() == cv)
+                        if (cv.toInt() == cv) {
                             ce += cv;
-                        else
-                            ce += getColumnNameIntern(cv, jch, boolean(qh.join), ch, psch);
+                        } else {
+                            ce += getColumnNameIntern(info, cv);
+                        }
                         break;
                     }
 
                     case NT_HASH: {
-                        ce += doColumnOperatorIntern(cv, jch, boolean(qh.join), ch, psch);
+                        ce += doColumnOperatorIntern(info, cv);
                         break;
                     }
 
@@ -2081,7 +2143,8 @@ string str = table.getSqlValue(date);
                     }
 
                     default:
-                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in %s list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in "
+                            "%s list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
                 }
             }
             return ce;

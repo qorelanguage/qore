@@ -119,6 +119,9 @@ public hashdecl DataProviderSummaryInfo {
 
     #! Does the data provider provide a record?
     bool has_record = False;
+
+    #! Does this data provide support advanced search experssions?
+    bool supports_search_expressions = False;
 }
 
 /** @defgroup signature_type_codes Signature Type Codes
@@ -157,8 +160,11 @@ public const SignatureTypeDescMap = map {$1.value: $1.key.toInt()}, SignatureTyp
 #! Indicates an expression that can be used in a search operation
 public const ER_Search = (1 << 0);
 
+#! Indicates an expression that can be used in a field
+public const ER_Field = (1 << 1);
+
 #! Indicates an expression that can be used in all contexts
-public const ER_All = ER_Search;
+public const ER_All = ER_Search | ER_Field;
 #@}
 
 #! Role map from codes to descriptions
@@ -235,6 +241,12 @@ public const DataProviderSignatureOptionalIntValueType = <DataProviderSignatureT
 #! Data provider signature list value type
 public const DataProviderSignatureListValueType = <DataProviderSignatureTypeInfo>{
     "type": AbstractDataProviderTypeMap."list",
+    "type_code": ST_Value,
+};
+
+#! Data provider signature hash value type
+public const DataProviderSignatureHashValueType = <DataProviderSignatureTypeInfo>{
+    "type": AbstractDataProviderTypeMap."hash",
     "type_code": ST_Value,
 };
 
