@@ -477,6 +477,55 @@ public class SqlTestBase inherits QUnit::Test {
 
         *list<auto> rows = table.selectRows({}, \sql);
         assertEq(2, rows.size());
+        {
+            list<auto> columns = (
+                <DataProviderExpression>{
+                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "args": (
+                        <DataProviderExpression>{
+                            "exp": DefaultExpressionMap{OP_SUBSTR}.exp,
+                            "args": (
+                                <DataProviderFieldReference>{"field": "char_f"},
+                                1,
+                                2,
+                            ),
+                        },
+                        "substr",
+                    ),
+                },
+                "*",
+            );
+            hash<DataProviderExpression> cond = <DataProviderExpression>{
+                "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_OR}.exp,
+                "args": (
+                    <DataProviderExpression>{
+                        "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                        "args": (
+                            <DataProviderFieldReference>{"field": "id"},
+                            1,
+                        ),
+                    },
+                    <DataProviderExpression>{
+                        "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                        "args": (
+                            <DataProviderFieldReference>{"field": "id"},
+                            2,
+                        ),
+                    },
+                )
+            };
+            hash<auto> sh = {
+                "columns": columns,
+                "where": cond,
+                "orderby": "id",
+            };
+            rows = table.selectRows(sh, \sql);
+            assertEq(2, rows.size());
+            assertEq(1, rows[0].id);
+            assertEq("he", rows[0].substr);
+            assertEq(2, rows[1].id);
+            assertEq("he", rows[1].substr);
+        }
 
         # check date/time literals
         {

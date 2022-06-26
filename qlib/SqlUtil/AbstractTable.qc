@@ -4535,10 +4535,10 @@ string sql = table.getSelectSql(sh, \args);
 
         string cstr;
         # make query
-        list coll = ();
+        list<auto> coll = ();
         if (info.query_hash.columns) {
             # column expressions
-            list ce = ();
+            list<auto> ce = ();
             foreach auto cv in (info.query_hash.columns) {
                 switch (cv.typeCode()) {
                     case NT_STRING: {
@@ -4551,23 +4551,28 @@ string sql = table.getSelectSql(sh, \args);
                     }
 
                     case NT_HASH: {
-                        if (!cv.cop)
-                            throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element "
-                                "%d/%d; the \"columns\" select option must be assigned to a list of strings giving "
-                                "the column names or a list of column operator hashes as returned from column "
-                                "operator functions; this element is missing hash key \"cop\" giving the column "
-                                "operator; keys provided: %y", getDesc(), $# + 1, info.query_hash.columns.lsize(),
-                                cv.keys());
-                        try {
-                            string val = doColumnOperatorIntern(info, cv, \info.pseudo_column_map);
-                            ce += val;
-                        } catch (hash<ExceptionInfo> ex) {
-                            # rethrow exception with additional contextual information
-                            rethrow ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex),
-                                getName(), $# + 1, info.query_hash.columns.lsize(), ex.desc), ex.arg;
-                        }
-                        if (info.query_hash.superquery && cv.cop == COP_AS && cv.arg) {
-                            info.subquery_column_map{cv.arg} = True;
+                        if ((cv instanceof hash<DataProviderExpression>)
+                            || (cv instanceof hash<DataProviderFieldReference>)) {
+                            ce += getExpressionArg(info, cv, \args, \info.pseudo_column_map);
+                        } else {
+                            if (!cv.cop)
+                                throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element "
+                                    "%d/%d; the \"columns\" select option must be assigned to a list of strings giving "
+                                    "the column names or a list of column operator hashes as returned from column "
+                                    "operator functions; this element is missing hash key \"cop\" giving the column "
+                                    "operator; keys provided: %y", getDesc(), $# + 1, info.query_hash.columns.lsize(),
+                                    cv.keys());
+                            try {
+                                string val = doColumnOperatorIntern(info, cv, \info.pseudo_column_map);
+                                ce += val;
+                            } catch (hash<ExceptionInfo> ex) {
+                                # rethrow exception with additional contextual information
+                                rethrow ex.err, sprintf("%s: %s: in \"columns\" hash element %d/%d: %s", get_ex_pos(ex),
+                                    getName(), $# + 1, info.query_hash.columns.lsize(), ex.desc), ex.arg;
+                            }
+                            if (info.query_hash.superquery && cv.cop == COP_AS && cv.arg) {
+                                info.subquery_column_map{cv.arg} = True;
+                            }
                         }
                         break;
                     }
@@ -4694,7 +4699,7 @@ string sql = table.getSelectSql(sh, \args);
                 jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
         }
 
-        getSelectWhereSqlUnlocked(info, \sql, \args);
+        getSelectWhereSqlUnlocked(info, \sql, \args, \info.pseudo_column_map);
 
         if (info.query_hash.groupby) {
             list ce = getGroupByListUnlocked(info, coll);
@@ -4790,17 +4795,22 @@ string sql = table.getSelectSql(sh, \args);
         return opt.tablecode ? opt.tablecode(ds, table) : new Table(ds, table).getTable();
     }
 
-    string getExpressionArg(hash<QueryInfo> info, auto arg, reference<list<auto>> bind_args) {
+    string getExpressionArg(hash<QueryInfo> info, auto arg, reference<list<auto>> bind_args,
+            reference<hash<auto>> aliases) {
         if (arg instanceof hash<DataProviderFieldReference>) {
             return getColumnNameIntern(info, arg.field);
         }
         if (arg instanceof hash<DataProviderExpression>) {
+            if (!arg.exp) {
+                throw "EXPRESSION-ERROR", sprintf("expression %y is invalid; missing the \"exp\" key", arg);
+            }
             *hash<auto> exp = info.expression_map{arg.exp.label};
             if (!exp) {
                 throw "EXPRESSION-ERROR", sprintf("expression %y does not have an implementation in module %y",
                     arg.exp.label, self.className());
             }
-            return exp.code(info, arg, \bind_args);
+            on_error rethrow $1.err, sprintf("%s (while processing expression %y)", $1.desc, arg.exp.label);
+            return exp.code(info, arg.args, \bind_args, \aliases);
         }
         bind_args += arg;
         return "%v";
@@ -5025,9 +5035,10 @@ string sql = table.getSelectSql(sh, \args);
         return False;
     }
 
-    private getSelectWhereSqlUnlocked(hash<QueryInfo> info, reference<string> sql, reference<list<auto>> args) {
+    private getSelectWhereSqlUnlocked(hash<QueryInfo> info, reference<string> sql, reference<list<auto>> args,
+            reference<hash<auto>> aliases) {
         if (info.query_hash."where") {
-            sql += getWhereClauseUnlocked(info, info.query_hash."where", \args);
+            sql += getWhereClauseUnlocked(info, info.query_hash."where", \args, \aliases);
         }
     }
 
@@ -5048,80 +5059,39 @@ string sql = table.getSelectSql(sh, \args);
         };
         l.lock();
         on_exit l.unlock();
-        return getWhereClauseUnlocked(info, info.query_hash."where", \args, cprefix);
+        return getWhereClauseUnlocked(info, info.query_hash."where", \args, \info.pseudo_column_map, cprefix);
     }
-
-    /*
-    private *string getWhereClause(list<auto> cond, reference<list<auto>> args, *string cprefix,
-            *hash<string, AbstractTable> join_map) {
-        l.lock();
-        on_exit l.unlock();
-        return getWhereClauseUnlocked(cond, \args, cprefix, jch, join, NOTHING, getPseudoColumnHash());
-    }
-
-    private *string getWhereClauseUnlocked(list cond, reference<list<auto>> args, *string cprefix, *hash<auto> jch,
-            bool join = False, *hash pch, *hash<auto> psch) {
-        getColumnsUnlocked();
-        list al = ();
-        if (!exists args)
-            args = ();
-        foreach hash<auto> ch in (cond) {
-            *list<string> wl = getWhereClauseIntern(info, ch, \args, cprefix);
-            if (wl)
-                al += "(" + (foldl $1 + " and " + $2, wl) + ")";
-        }
-        if (al)
-            return " where " + (foldl $1 + " or " + $2, al);
-    }
-    */
 
     private *string getWhereExpressionUnlocked(hash<QueryInfo> info, hash<DataProviderExpression> cond,
-            reference<list<auto>> args, *string cprefix) {
-        string sql = getWhereExpressionUnlockedIntern(info, cond, \args, cprefix);
+            reference<list<auto>> args, reference<hash<auto>> aliases, *string cprefix) {
+        string sql = getExpressionUnlockedIntern(info, cond, \args, \aliases);
         if (sql) {
             return " where " + sql;
         }
     }
 
-    private *string getWhereExpressionUnlockedIntern(hash<QueryInfo> info, hash<DataProviderExpression> cond,
-            reference<list<auto>> args, *string cprefix) {
-        string sql;
-        switch (cond.exp.label) {
-            case DP_OP_AND:
-                sql = "("
-                    + (foldl $1 + " and " + $2,
-                        (map getWhereExpressionUnlockedIntern(info, $1, \args, cprefix), cond.args))
-                    + ")";
-                break;
-
-            case DP_OP_OR:
-                sql = "("
-                    + (foldl $1 + " or " + $2,
-                        (map getWhereExpressionUnlockedIntern(info, $1, \args, cprefix), cond.args))
-                    + ")";
-                break;
-
-            default:
-                if (cond.exp.return_type.getBaseTypeCode() != NT_BOOLEAN) {
-                    throw "WHERE-ERROR", sprintf("where expression returns type %y; expecting \"bool\"",
-                        cond.exp.return_type.getName());
-                }
-                *hash<auto> exp = info.expression_map{cond.exp.label};
-                if (!exp) {
-                    throw "WHERE-ERROR", sprintf("where expression references unknown expression %y; supported "
-                        "expressions: %y", cond.exp.label, keys info.expression_map);
-                }
-                sql = exp.code(info, cond.args, \args);
-                break;
+    private *string getExpressionUnlockedIntern(hash<QueryInfo> info, hash<DataProviderExpression> cond,
+            reference<list<auto>> args, reference<hash<auto>> aliases) {
+        /*
+        if (cond.exp.return_type.getBaseTypeCode() != NT_BOOLEAN) {
+            throw "SQLUTIL-EXPRESSION-ERROR", sprintf("expression returns type %y; expecting \"bool\"",
+                cond.exp.return_type.getName());
         }
-        return sql;
+        */
+        *hash<auto> exp = info.expression_map{cond.exp.label};
+        if (!exp) {
+            throw "SQLUTIL-EXPRESSION-ERROR", sprintf("expression references unknown expression %y; supported "
+                "expressions: %y", cond.exp.label, keys info.expression_map);
+        }
+        return exp.code(info, cond.args, \args, \aliases);
     }
 
     private *string getWhereClauseUnlocked(hash<QueryInfo> info, *hash<auto> cond, reference<list<auto>> args,
-            *string cprefix) {
+            reference<hash<auto>> aliases, *string cprefix) {
         getColumnsUnlocked();
         if (cond instanceof hash<DataProviderExpression>) {
-            return getWhereExpressionUnlocked(info, cast<hash<DataProviderExpression>>(cond), \args, cprefix);
+            return getWhereExpressionUnlocked(info, cast<hash<DataProviderExpression>>(cond), \args, \aliases,
+                cprefix);
         }
         if (!exists args) {
             args = ();

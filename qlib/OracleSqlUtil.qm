@@ -1527,7 +1527,8 @@ auto v = c.name;
             string src = foldl $1 + $2, l;
 
             if (!regex(src, "^" + type + "([[:blank:]]|$)", RE_Caseless))
-                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the type name %y; source: %y", type, name, type, src.substr(0, 50));
+                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the type name %y; source: %y",
+                    type, name, type, src.substr(0, 50));
 
             # remove the type name from the beginning of the string
             splice src, 0, type.size() + 1;
@@ -1542,7 +1543,8 @@ auto v = c.name;
 
             # ensure the name of the object is at the beginning of the string
             if (!regex(src, "^(\")?" + name + "(\")?", RE_Caseless))
-                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the %s name %y; source: %y", type, name, type, name, src.substr(0, 50));
+                throw "SOURCE-ERROR", sprintf("source to %s %y does not begin with the %s name %y; source: %y", type,
+                    name, type, name, src.substr(0, 50));
         }
 
         #! returns a list of string synonym names in the database
@@ -2015,6 +2017,22 @@ auto v = c.name;
             */
             const OracleSelectOptions = AbstractTable::SelectOptions + {
                 "partition": Type::String,
+            };
+
+            #! Oracle Expression map
+            const OracleExpressionMap = DefaultExpressionMap + {
+                OP_SUBSTR: DefaultExpressionMap{OP_SUBSTR} + {
+                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
+                            reference<hash<auto>> aliases) {
+                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                        if (!exists args[2]) {
+                            return sprintf("substr(%s,%s)", exp0, exp1);
+                        }
+                        return sprintf("substr(%s,%s,%s)", exp0, exp1,
+                            info.table.getExpressionArg(info, args[2], \bind_args, \aliases));
+                    },
+                },
             };
 
             #! where operator specializations for Oracle
@@ -2949,13 +2967,19 @@ auto v = c.name;
             sql += "\n)";
 
             *string ts = opt.data_tablespace ? opt.data_tablespace : tablespace;
-            if (ts)
+            if (ts) {
                 sql += sprintf(" tablespace %s", ts);
+            }
 
             return sql;
         }
 
-        #! returns the "where" operator map for this object
+        #! Returns the expression map for Oracle
+        hash<auto> getExpressionMap() {
+            return OracleExpressionMap;
+        }
+
+        #! returns the "where" operator map for Oracle
         hash<auto> getWhereOperatorMap() {
             return OracleOpMap;
         }
