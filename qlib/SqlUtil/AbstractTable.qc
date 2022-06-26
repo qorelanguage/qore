@@ -4571,7 +4571,7 @@ string sql = table.getSelectSql(sh, \args);
                                     getName(), $# + 1, info.query_hash.columns.lsize(), ex.desc), ex.arg;
                             }
                             if (info.query_hash.superquery && cv.cop == COP_AS && cv.arg) {
-                                info.subquery_column_map{cv.arg} = True;
+                                subquery_column_map{cv.arg} = True;
                             }
                         }
                         break;
