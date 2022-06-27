@@ -662,14 +662,15 @@ string str = col.getRenameSql(t, "new_name");
         #! adds index options onto the sql creation string
         getIndexSql(reference<string> sql, string name, *hash opts) {
             *string ix = opts.index ? opts.index : index;
-            if (ix)
+            if (ix) {
                 sql += sprintf(" using index %s", ix);
-            else {
+            } else {
                 sql += sprintf(" (%s)", (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
 
                 *string ts = opts.index_tablespace ? opts.index_tablespace : tablespace;
-                if (ts)
+                if (ts) {
                     sql += sprintf(" using index tablespace %s", ts);
+                }
             }
         }
     }
@@ -687,7 +688,8 @@ string str = col.getRenameSql(t, "new_name");
             @param e the enabled status of the constraint
             @param ts optional tablespace name
         */
-        constructor(string n, hash n_cols, bool e = True, *string ts) : AbstractUniqueConstraint(n, n_cols), PgsqlUniqueConstraintCommon(ts) {
+        constructor(string n, hash n_cols, bool e = True, *string ts)
+                : AbstractUniqueConstraint(n, n_cols), PgsqlUniqueConstraintCommon(ts) {
             enabled = e;
         }
 
@@ -708,8 +710,10 @@ auto v = c.name;
             @see @ref memberGate_methods
         */
         PgsqlColumn memberGate(string k) {
-            if (!h.hasKey(k))
-                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+            if (!h.hasKey(k)) {
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k,
+                    h.keys());
+            }
             return h{k};
         }
 
@@ -718,16 +722,16 @@ auto v = c.name;
             return getCreateSql(name, table_name, opts);
         }
 
-        list getRenameSql(string table_name, string new_name) {
+        list<auto> getRenameSql(string table_name, string new_name) {
             # the following is only valid with PostgreSQL 9.2+
             #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
-            list l += getDropSql(table_name);
+            list<auto> l += getDropSql(table_name);
             l += getCreateSql(new_name, table_name);
             return l;
         }
 
         #! returns a string that can be used to rename the constraint
-        string getCreateSql(string name, string table_name, *hash opts) {
+        string getCreateSql(string name, string table_name, *hash<auto> opts) {
             string sql = sprintf("alter table %s add constraint %s unique ", table_name, name);
             getIndexSql(\sql, name, opts);
             return sql;

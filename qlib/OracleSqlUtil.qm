@@ -2024,13 +2024,16 @@ auto v = c.name;
                 OP_SUBSTR: DefaultExpressionMap{OP_SUBSTR} + {
                     "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                             reference<hash<auto>> aliases) {
-                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                            AbstractDataProviderTypeMap."string");
+                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                            AbstractDataProviderTypeMap."int");
                         if (!exists args[2]) {
                             return sprintf("substr(%s,%s)", exp0, exp1);
                         }
                         return sprintf("substr(%s,%s,%s)", exp0, exp1,
-                            info.table.getExpressionArg(info, args[2], \bind_args, \aliases));
+                            info.table.getExpressionArg(info, args[2], \bind_args, \aliases,
+                                AbstractDataProviderTypeMap."int"));
                     },
                 },
             };

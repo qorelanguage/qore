@@ -6,7 +6,7 @@
 %require-types
 %strict-args
 
-%requires qore >= 0.9
+%requires qore >= 1.0
 
 %requires Qdx
 
@@ -228,9 +228,9 @@ class qdx {
     }
 
     string getComment(string comment, InputStreamLineIterator ins, bool fix_param = False) {
-        comment =~ s/^[ \t]+//g;
-        if (fix_param)
+        if (fix_param) {
             fixParam(\comment);
+        }
 
         DocumentTableHelper dth();
 
@@ -440,24 +440,72 @@ class qdx {
             }
 
             # see if we have a function or method declaration that spans multiple lines
-            if (line =~ /\w+\s?(\(|\))/) {
+            bool fcall = (line =~ /\w+\s?(\(|\))/);
+            if (fcall || (!fcall && line =~ /[{}]/
+                && line !~ /(namespace|class|struct|public|private|private:internal|private:hierarchy) /)) {
                 # copy of line to check it without parens in quotes
                 string line_copy = line;
                 line_copy =~ s/"(?:[^"\\]|\\.)*"/""/g;
-                # count how many open curly brackets
+                line_copy =~ s/#.*//;
+                trim line_copy;
+                # count how many open parens
                 int ob = (line_copy =~ x/(\()/g).size();
-                # count how many close curly brackets
+                # count how many close parens
                 int cb = (line_copy =~ x/(\))/g).size();
                 int tot = (ob - cb);
-                if (tot > 0) {
-                    trim line;
-                    # read until we have an open bracket
-                    while (ins.next()) {
+                int otot = tot;
+
+                # count how many open curly brackets
+                int ocb = (line_copy =~ x/({)/g).size();
+                # count how many close curly brackets
+                int ccb = (line_copy =~ x/(})/g).size();
+                int ctot = (ocb - ccb);
+                int octot = ctot;
+
+                #printf("l: %y lc: %y ctot: %d\n", line, line_copy, ctot);
+
+                if (tot > 0
+                    || (!tot && !ctot && !ocb && !ccb && line_copy && line_copy !~ /;\s*(#.*)?$/)
+                    || (ctot > 0 && !fcall)) {
+                    # trim trailing whitespace
+                    line =~ s/\s*$//;
+
+                    # read until we have an open curly bracket or all brackets are closed
+                    while (True) {
+                        if (!ins.next()) {
+                            throw "INPUT-ERROR", sprintf("cannot find end of complex line; tot: %d: %y", tot, line);
+                        }
                         string new_line = ins.getValue();
-                        trim new_line;
-                        line += " " + new_line;
-                        #printf("FOUND COMPLEX LINE: %s\n", line);
-                        if (new_line =~ /{\s?(#.*)?$/) {
+                        # trim trailing whitespace
+                        new_line =~ s/\s*$//;
+                        #trim new_line;
+                        line += "\n" + new_line;
+
+                        #printf("FOUND COMPLEX LINE: fcall: %y tot: %d ctot: %d: %y\n", fcall, tot, ctot, line);
+
+                        line_copy = new_line;
+                        line_copy =~ s/"(?:[^"\\]|\\.)*"/""/g;
+                        line_copy =~ s/#.*//;
+
+                        # count how many open parens
+                        ob = (line_copy =~ x/(\()/g).size();
+                        # count how many close parens
+                        cb = (line_copy =~ x/(\))/g).size();
+                        tot += (ob - cb);
+                        if (otot && !tot) {
+                            break;
+                        }
+
+                        # count how many open curly brackets
+                        ocb = (line_copy =~ x/({)/g).size();
+                        # count how many close curly brackets
+                        ccb = (line_copy =~ x/(})/g).size();
+                        ctot += (ocb - ccb);
+                        if ((octot && !ctot) || (fcall && ctot == 1)) {
+                            break;
+                        }
+
+                        if (!tot && !ctot && (new_line =~ /;\s*(#.*)?$/)) {
                             break;
                         }
                     }

@@ -4553,7 +4553,8 @@ string sql = table.getSelectSql(sh, \args);
                     case NT_HASH: {
                         if ((cv instanceof hash<DataProviderExpression>)
                             || (cv instanceof hash<DataProviderFieldReference>)) {
-                            ce += getExpressionArg(info, cv, \args, \info.pseudo_column_map);
+                            ce += getExpressionArg(info, cv, \args, \info.pseudo_column_map,
+                                AbstractDataProviderTypeMap."any", ER_Field);
                         } else {
                             if (!cv.cop)
                                 throw "SELECT-ERROR", sprintf("%s: missing column operator in \"columns\" hash element "
@@ -4796,8 +4797,9 @@ string sql = table.getSelectSql(sh, \args);
     }
 
     string getExpressionArg(hash<QueryInfo> info, auto arg, reference<list<auto>> bind_args,
-            reference<hash<auto>> aliases) {
+            reference<hash<auto>> aliases, AbstractDataProviderType expected_type, int role = ER_Search) {
         if (arg instanceof hash<DataProviderFieldReference>) {
+            # FIXME: check type
             return getColumnNameIntern(info, arg.field);
         }
         if (arg instanceof hash<DataProviderExpression>) {
@@ -4810,8 +4812,11 @@ string sql = table.getSelectSql(sh, \args);
                     arg.exp, self.className());
             }
             on_error rethrow $1.err, sprintf("%s (while processing expression %y)", $1.desc, arg.exp);
+            AbstractDataProvider::verifyExpression(role, exp.exp, LC_All, expected_type,
+                cast<hash<DataProviderExpression>>(arg));
             return exp.code(info, arg.args, \bind_args, \aliases);
         }
+
         bind_args += arg;
         return "%v";
     }
@@ -5064,25 +5069,30 @@ string sql = table.getSelectSql(sh, \args);
 
     private *string getWhereExpressionUnlocked(hash<QueryInfo> info, hash<DataProviderExpression> cond,
             reference<list<auto>> args, reference<hash<auto>> aliases, *string cprefix) {
-        string sql = getExpressionUnlockedIntern(info, cond, \args, \aliases);
+        string sql = getExpressionUnlockedIntern(info, cond, \args, \aliases, AbstractDataProviderTypeMap."bool");
         if (sql) {
             return " where " + sql;
         }
     }
 
     private *string getExpressionUnlockedIntern(hash<QueryInfo> info, hash<DataProviderExpression> cond,
-            reference<list<auto>> args, reference<hash<auto>> aliases) {
+            reference<list<auto>> args, reference<hash<auto>> aliases,
+            AbstractDataProviderType expected_type) {
         *hash<auto> exp = info.expression_map{cond.exp};
         if (!exp) {
             throw "SQLUTIL-EXPRESSION-ERROR", sprintf("expression references unknown expression %y; supported "
                 "expressions: %y", cond.exp, keys info.expression_map);
         }
-        # FIXME: check expression
+
+        AbstractDataProvider::verifyExpression(ER_Search, exp.exp, LC_All, expected_type, cond);
         return exp.code(info, cond.args, \args, \aliases);
     }
 
     private *string getWhereClauseUnlocked(hash<QueryInfo> info, *hash<auto> cond, reference<list<auto>> args,
             reference<hash<auto>> aliases, *string cprefix) {
+        if (!cond) {
+            return;
+        }
         getColumnsUnlocked();
         if (cond instanceof hash<DataProviderExpression>) {
             return getWhereExpressionUnlocked(info, cast<hash<DataProviderExpression>>(cond), \args, \aliases,
@@ -5091,9 +5101,28 @@ string sql = table.getSelectSql(sh, \args);
         if (!exists args) {
             args = ();
         }
-        *list<string> wl = getWhereClauseIntern(info, cond, \args, cprefix);
-        if (wl) {
-            return " where " + (foldl $1 + " and " + $2, wl);
+        *list<string> wl;
+        # for backwards-compatibility, return an "or" clause of all the "and" clauses for a list of hashes
+        if (cond instanceof list) {
+            foreach auto c in (cond) {
+                *list<string> owl;
+                if (c.typeCode() != NT_HASH) {
+                    throw "WHERE-ERROR", sprintf("expected \"hash\" in \"where\" list; got type %y instead",
+                        c.fullType());
+                }
+                owl = getWhereClauseIntern(info, cond, \args, cprefix);
+                if (owl) {
+                    wl += "(" + (foldl $1 + " and " + $2, owl) + ")";
+                }
+            }
+            if (wl) {
+                return " where " + (foldl $1 + " or " + $2, wl);
+            }
+        } else {
+            wl = getWhereClauseIntern(info, cond, \args, cprefix);
+            if (wl) {
+                return " where " + (foldl $1 + " and " + $2, wl);
+            }
         }
     }
 

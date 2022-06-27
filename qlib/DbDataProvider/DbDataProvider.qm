@@ -75,8 +75,6 @@ module DbDataProvider {
     - @ref DbDataProvider::DbTableBulkUpserter "DbTableBulkUpserter"
     - @ref DbDataProvider::DbTableDataProvider "DbTableDataProvider"
     - @ref DbDataProvider::DbTableRecordIterator "DbTableRecordIterator"
-    - @ref DbDataProvider::DbTableTransactionHelper "DbTableTransactionHelper"
-    - @ref DbDataProvider::DbTransactionHelper "DbTransactionHelper"
 
     @section dbdataprovider_relnotes Release Notes
 

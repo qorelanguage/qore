@@ -331,7 +331,7 @@ ServiceNowRestClient rest({
         throw "SERVICENOWRESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 
-    #! returns options for the @ref ServiceNowRestClient::constructor()
+    #! returns options for @ref ServiceNowRestClient::ServiceNowRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
         return opts + {
             "data": "json",
@@ -363,7 +363,7 @@ ServiceNowRestClient rest({
       bodies
     - \c "timeout": transfer timeout to use in milliseconds
 
-    @see @ref ServiceNowRestClient::constructor() for more information on the above options
+    @see @ref ServiceNowRestClient::ServiceNowRestClient::constructor() for more information on the above options
 */
 public class ServiceNowRestConnection inherits RestClient::RestConnection {
     public {

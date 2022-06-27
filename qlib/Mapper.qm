@@ -421,7 +421,7 @@ public hashdecl MapperOptionInfo {
 }
 
 #! this class is a base class for mapping data; see @ref mapperexamples for usage examples
-public class Mapper inherits AbstractDataProcessor {
+public class Mapper inherits DataProvider::AbstractDataProcessor {
     public {
         #! field keys that conflict with "constant" and "index"
         const ConstantConflictList = ("name", "struct", "code", "default");

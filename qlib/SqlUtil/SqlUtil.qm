@@ -75,6 +75,7 @@ module SqlUtil {
     - <a href="../../MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>: for working with MySQL databases
     - <a href="../../OracleSqlUtil/html/index.html">OracleSqlUtil</a>: for working with Oracle databases
     - <a href="../../PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>: for working with PostgreSQL databases
+    - <a href="../../Sqlite3SqlUtil/html/index.html">Sqlite3SqlUtil</a>: for working with SQLite3 databases
 
     The underlying driver-specific module is automatically loaded and used when required; the classes provided in
     the %SqlUtil module provide a generic API that uses the driver-specific implementations for the underlying driver-specific
@@ -330,34 +331,34 @@ module SqlUtil {
     @par From the Primary Key
     To retrieve multiple rows from a list of single primary key values, use @ref SqlUtil::AbstractTable::find(list)
     @code{.py}
-*list rows = table.find(list);
+*list<auto> rows = table.find(list);
     @endcode
     All rows matching the single primary key values in the argument list are returned; if no rows match, @ref nothing is returned.
 
     @par From Simple Where Criteria
     To find all rows matching simple where criteria, use @ref SqlUtil::AbstractTable::findAll():
     @code{.py}
-*list rows = table.findAll(("id": op_gt(100), "created": op_gt(2013-03-01)));
+*list<auto> rows = table.findAll({"id": op_gt(100), "created": op_gt(2013-03-01)});
     @endcode
     See @ref where_clauses for a description of the hash argument; if no rows match, @ref nothing is returned.
 
     @par From Complex Select Criteria
     To select a hash keyed by column name of lists (row values) based on complex select criteria, use @ref SqlUtil::AbstractTable::select():
     @code{.py}
-hash<auto> sh = (
+hash<auto> sh = {
     "columns": ("id", "name", "q.*"),
-    "where": ("type": "user"),
+    "where": {"type": "user"},
     "limit": 100,
     "offset": 200,
     "join": join_inner(queues, "q"),
-);
-*hash h = table.select(sh);
+};
+*hash<auto> h = table.select(sh);
     @endcode
     See @ref select_option_hash for a description of the hash argument; if no rows match, then a hash with column
     names assigned to empty lists is returned.\n\n
     To select a list of row hashes based on complex select criteria, use @ref SqlUtil::AbstractTable::selectRows():
     @code{.py}
-*list rows = table.selectRows(sh);
+*list<auto> rows = table.selectRows(sh);
     @endcode
     If no rows match, then @ref nothing is returned.
 
@@ -381,9 +382,10 @@ Table t(ds, "table_name");
 AbstractSQLStatement i = table.getStatement(sh);
 on_exit table.commit();
 while (True) {
-    list l = i.fetchRows(1000);
-    if (!l)
+    list<auto> l = i.fetchRows(1000);
+    if (!l) {
         break;
+    }
     printf("rows read: %d\n", l.size());
 }
     @endcode
@@ -394,7 +396,10 @@ while (True) {
     @par From Complex Select Criteria
     @ref SqlUtil::AbstractTable "AbstractTable" methods taking a @ref select_option_hash "select option hash argument" support specifying output columns including column operators by assigning a column / column operator list to the @ref select_option_columns "columns" key.
     @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count")), "where": ("type": "user")));
+*list<auto> rows = table.selectRows({
+    "columns": ("id", "name", "started", cop_as("warnings", "warning_count"), cop_as("errors", "error_count")),
+    "where": {"type": "user"},
+});
     @endcode
     @see @ref select_option_columns "select option columns" for details about the \c "columns" option of the @ref select_option_hash "select option hash"
 
@@ -445,12 +450,12 @@ hash soh = (
 
     <b>Alias Example:</b>
     @code{.py}
-hash<auto> sh = (
+hash<auto> sh = {
     "columns": ("t1.*", "t2.customer_name"),
     "join": join_inner(table2, "t2", ("id": "altid"))),
     "alias": "t1",
-);
-*list rows = table.selectRows(sh);
+};
+*list<auto> rows = table.selectRows(sh);
     @endcode
 
     @subsubsection select_option_comment Select Option "comment"
@@ -458,7 +463,7 @@ hash<auto> sh = (
 
     <b>Comment Example:</b>
     @code{.py}
-table.selectRows(("comment": "foo bar"));
+table.selectRows({"comment": "foo bar"});
     @endcode
     will produce select statement like this:
     @code{.py}
@@ -489,14 +494,14 @@ list columns = (
     cop_as("warnings", "warning_count"),
     cop_as("errors", "error_count"),
 );
-*list rows = table.selectRows(("columns": columns, "where": ("type": "user")));
+*list<auto> rows = table.selectRows({"columns": columns, "where": {"type": "user"}});
     @endcode
     By default, all columns are returned from a query; to limit the columns returned, or to perform column operations on the columns returned, use the \c "columns" option of the @ref select_option_hash "select option hash". \n\n
     This option takes a list, each element of the list can be one of the following.\n\n
     <b>A Simple String Giving a Column Name</b>\n
     ex: \c "name"
     @code{.py}
-*list rows = table.selectRows(("columns": ("id", "name", "started")));
+*list<auto> rows = table.selectRows({"columns": ("id", "name", "started")});
     @endcode \n
     <b>A String in Dot Notation</b>\n
     This format is for use with @ref select_option_join "joins"; ex: \c "q.name"
@@ -506,24 +511,24 @@ hash<auto> sh = (
     "join": join_inner(table2, "t2", ("id": "altid"))),
     "alias": "t1",
 );
-*list rows = table.selectRows(sh);
+*list<auto> rows = table.selectRows(sh);
     @endcode \n
     <b>A Column Operation Specified by a Column Operator Function</b>\n
     ex: <tt>cop_as("column_name", "column_alias")</tt> \n
     See @ref sql_cop_funcs "column operator function" for more information on column operator functions
     @code{.py}
-list columns = (
+list<auto> columns = (
     "id",
     cop_as("warnings", "warning_count"),
     cop_as("errors", "error_count"),
 );
-*list rows = table.selectRows(("columns": columns));
+*list<auto> rows = table.selectRows({"columns": columns});
     @endcode
     For @ref sql_cop_funcs "column operator functions" taking a column name, either a string name or a name in dot notation is acceptable\n\n
     <b>The Value \c "*", Meaning All Columns</b>\n
     ex: \c "*"
     @code{.py}
-*list rows = table.selectRows(("columns": "*"));
+*list<auto> rows = table.selectRows({"columns": "*"});
     @endcode
     This is the default if no \c "columns" key is included in the @ref select_option_hash "select option hash" \n\n
     <b>An \c "*" in Dot Notation</b>\n
@@ -531,28 +536,28 @@ list columns = (
     @code{.py}
 hash<auto> sh = (
     "columns": ("table.id", "t2.*"),
-    "join": join_inner(table2, "t2", ("id": "altid")),
+    "join": join_inner(table2, "t2", {"id": "altid"}),
 );
-*list rows = table.selectRows(sh);
+*list<auto> rows = table.selectRows(sh);
     @endcode
 
     @subsubsection select_option_where Select Option "where"
     <b>Where Example:</b>
     @code{.py}
-*list rows = table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+*list<auto> rows = table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
     @endcode
     The hash value assigned to this key describes how the \c "where" clause in the query is built.  Because the \c "where" clause logic is common to many SQL methods, this topic is covered in a separate section.  See @ref where_clauses for a detailed description of the value of this key.
 
     @subsubsection select_option_orderby Select Option "orderby"
     <b>Orderby Example:</b>
     @code{.py}
-hash<auto> sh = (
-    "where": (
+hash<auto> sh = {
+    "where": {
         "account_type": "CUSTOMER",
-    ),
+    },
     "orderby": "created_date",
-);
-*list rows = table.selectRows(sh);
+};
+*list<auto> rows = table.selectRows(sh);
     @endcode
     This option is a list of the following values:
     - a simple string giving a column name; ex: \c "name"
@@ -565,14 +570,14 @@ hash<auto> sh = (
     @subsubsection select_option_desc Select Option "desc"
     <b>Desc Example:</b>
     @code{.py}
-hash<auto> sh = (
-    "where": (
+hash<auto> sh = {
+    "where": {
         "account_type": "CUSTOMER",
-    ),
+    },
     "orderby": "created_date",
     "desc": True,
-);
-*list rows = table.selectRows(sh);
+}
+*list<auto> rows = table.selectRows(sh);
     @endcode
     If the value of this key is @ref True "True" and results are ordered (either due to the @ref select_option_orderby "orderby option" or due to implicit ordering by the primary key due to the use of the @ref select_option_offset "offset option"), then results will be sorted in descending order.\n\n
     Otherwise, ordered results are returned in ascending order by default.
@@ -582,12 +587,12 @@ hash<auto> sh = (
     @subsubsection select_option_limit Select Option "limit"
     <b>Limit Example:</b>
     @code{.py}
-hash<auto> sh = (
-    "where": ("type": "user"),
+hash<auto> sh = {
+    "where": {"type": "user"},
     "limit": 100,
     "offset": 200
-);
-*list rows = table.selectRows(sh);
+};
+*list<auto> rows = table.selectRows(sh);
     @endcode
     This option will limit the number of rows returned.
     @note
@@ -597,12 +602,12 @@ hash<auto> sh = (
     @subsubsection select_option_offset Select Option "offset"
     <b>Offset Example:</b>
     @code{.py}
-hash<auto> sh = (
-    "where": ("type": "user"),
+hash<auto> sh = {
+    "where": {"type": "user"},
     "limit": 100,
     "offset": 200
-);
-*list rows = table.selectRows(sh);
+};
+*list<auto> rows = table.selectRows(sh);
     @endcode
     This option specifies the row number offset for the rows returned where the first row is at offset zero.
     @note
@@ -613,7 +618,7 @@ hash<auto> sh = (
     @subsubsection select_option_join Select Option "join"
     <b>Join Example:</b>
     @code{.py}
-hash<auto> sh = (
+hash<auto> sh = {
     "columns": (
         "name", "version", "id",
         cop_as("st.value", "source"),
@@ -621,8 +626,8 @@ hash<auto> sh = (
     ),
     "join": join_left(function_instance_tags, "st", NOTHING, ("st.tag": "_source"))
             + join_left(function_instance_tags, "lt", NOTHING, ("st.tag": "_offset")),
-);
-*list rows = table.selectRows(sh);
+};
+*list<auto> rows = table.selectRows(sh);
     @endcode
     To join multiple tables in a single query, use the \c "join" option.  The \c "join" hash key should be assigned to a join description hash as returned by one of the @ref sql_jop_funcs or combined join description hash created by concatenating such values (see an example of this above).
     @note the join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
@@ -632,14 +637,14 @@ hash<auto> sh = (
     @subsubsection select_option_groupby Select Option "groupby"
     <b>Groupby Example:</b>
     @code{.py}
-hash<auto> sh = (
+hash<auto> sh = {
     "columns": (
         cop_as(cop_max("service_type"), "type"),
         cop_count(),
     ),
     "groupby": "service_type",
-);
-*list rows = table.selectRows(sh);
+};
+*list<auto> rows = table.selectRows(sh);
     @endcode
     The \c "groupby" option allows for aggregate SQL column operator functions to be used (ex: @ref cop_max(), cop_min()) in select statements.
     The \c "groupby" hash key should be assigned to a list of column specifiers or a single column specifier.  Column specifiers for the \c "groupby"
@@ -648,17 +653,17 @@ hash<auto> sh = (
     @subsubsection select_option_having Select Option "having"
     <b>Having Example:</b>
     @code{.py}
-hash<auto> sh = (
+hash<auto> sh = {
     "columns": (
         cop_as(cop_max("service_type"), "type"),
         cop_count(),
     ),
     "groupby": "service_type",
-    "having": (
+    "having": {
         "service_type": (COP_COUNT, op_ge(100)),
-    ),
-);
-*list rows = table.selectRows(sh);
+    },
+};
+*list<auto> rows = table.selectRows(sh);
     @endcode
     The \c "having" option allows for query results with aggregate SQL column operator functions to be filtered by user-defined criteria.
     The \c "having" hash key should be assigned to a hash where each key is a column specifier (optionally in dot notation) and the values are lists with two elements; the first element must be a @ref sql_cops "column operator code", and the second element is a column operator description normally provided by using a @ref sql_cop_funcs "column operator function" as in the above example.
@@ -666,22 +671,22 @@ hash<auto> sh = (
     @subsubsection select_option_superquery Select Option "superquery"
     <b>Superquery Example:</b>
     @code{.py}
-hash<auto> sh = (
+hash<auto> sh = {
     "columns": (
         "serviceid", "service_methodid",
         cop_as(cop_over(cop_max("service_methodid"), "serviceid"), "max_methodid"),
     ),
-    "superquery": (
+    "superquery": {
         "columns": ("serviceid", "service_methodid"),
         "where": ("max_methodid": op_ceq("service_methodid")),
-    ),
-);
-*list rows = table.selectRows(sh);
+    },
+};
+*list<auto> rows = table.selectRows(sh);
     @endcode
     The \c "superquery" option allows for the rest of the query arguments to define a subquery where as the hash arguments assigned to the \c "superquery" key define the select made from the subquery.  In the example above, the \c "OVER" sql windowing function is used and then rows matching the \c "max_methodid)" result value are selected.\n\n
     The above example results in an SQL command equivalent to the following:
     @code{.py}
-*list rows = table.vselectRows("select serviceid,service_methodid from (select serviceid,service_methodid,max(service_methodid) over (partition by serviceid) as max_methodid from schema.service_methods) subquery where max_methodid = service_methodid");
+*list<auto> rows = table.vselectRows("select serviceid,service_methodid from (select serviceid,service_methodid,max(service_methodid) over (partition by serviceid) as max_methodid from schema.service_methods) subquery where max_methodid = service_methodid");
     @endcode
     @note that MySQL does not support SQL windowing functions so the above example would fail on MySQL.
 
@@ -691,16 +696,16 @@ hash<auto> sh = (
 on_success ds.commit();
 on_error ds.rollback();
 
-hash<auto> sh = (
+hash<auto> sh = {
     "columns": ("serviceid", "service_methodid"),
     "forupdate": True,
-)
-*list rows = table.selectRows(sh);
+};
+*list<auto> rows = table.selectRows(sh);
     @endcode
     \n The \c "forupdate" option allows for the rows selected to be locked for updating; to release the locks, call commit() or rollback() on the underlying datasource object.
   The above example results in an SQL commit equivalent to the following:
     @code{.py}
-*list rows = table.vselectRows("select serviceid,service_methodid from schema.service_methods for update");
+*list<auto> rows = table.vselectRows("select serviceid,service_methodid from schema.service_methods for update");
     @endcode
 
     @subsection sql_paging Select With Paging
@@ -720,7 +725,7 @@ hash<auto> sh = (
     @par Example:
     Select 100 rows starting at row 200 (the table's primary key will be used for the \c "orderby" option by default): \n
     @code{.py}
-*list rows = table.selectRows(("where": ("type": "user"), "limit": 100, "offset": 200));
+*list<auto> rows = table.selectRows({"where": {"type": "user"}, "limit": 100, "offset": 200});
     @endcode
     As an illustration of the different SQL that is generated for different database types; for the above query, here is the SQL generated for Oracle:
     @code{.py}
@@ -735,14 +740,14 @@ ds.vselectRows("select * from public.table where type = %v order by type limit %
 
     Use the @ref SqlUtil::AbstractTable::findSingle() method to find at least one matching row:
     @code{.py}
-*hash h = table.findSingle(("account_type": "CUSTOMER"));
+*hash<auto> h = table.findSingle(("account_type": "CUSTOMER"));
 if (h)
     printf("found 1 customer row: %y\n", l[0]);
     @endcode
 
     Also it's possible to use the \c "limit" option to make an efficient check for at least one matching row as in the following example (which is functionally equivalent to the previous example):
     @code{.py}
-*hash h = table.selectRow(("where": ("account_type": "CUSTOMER"), "limit": 1));
+*hash<auto> h = table.selectRow({"where": {"account_type": "CUSTOMER"}, "limit": 1});
 if (h)
     printf("found 1 customer row: %y\n", l[0]);
     @endcode
@@ -761,7 +766,7 @@ if (h)
 
     @par Example:
     @code{.py}
-table.insert(("id": id, "name": name, "created": now_us()));
+table.insert({"id": id, "name": name, "created": now_us()});
     @endcode
 
     Data can be explicitly inserted into the database with immediate values with @ref SqlUtil::AbstractTable::insert() and @ref SqlUtil::AbstractTable::insertCommit() as in the above example.
@@ -772,7 +777,7 @@ table.insert(("id": id, "name": name, "created": now_us()));
 
     @par Example:
     @code{.py}
-int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("columns": ("cid", "fullname", "created"), "where": ("type": "CUSTOMER"))));
+int rows = table.insertFromSelect(("id", "name", "created"), source_table, {"columns": ("cid", "fullname", "created"), "where": {"type": "CUSTOMER"}});
     @endcode
 
     Data can be inserted into the database based on the results of a select statement with @ref SqlUtil::AbstractTable::insertFromSelect() and @ref SqlUtil::AbstractTable::insertFromSelectCommit() as in the above example.
@@ -791,7 +796,7 @@ return ds.vexec("insert into schema.table (id,name,created) select cid,fullname,
     @par Example:
     @code{.py}
 # get the rows to be inserted
-list l = get_table_rows();
+list<auto> l = get_table_rows();
 # insert the data and commit after every 5000 rows
 table.insertFromIterator(l.iterator(), ("commit_block": 5000));
     @endcode
@@ -847,14 +852,14 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
     Joining tables is made by providing a join specification to the @ref select_option_join "join select option" in
     a @ref select_option_hash "select option hash" as in the following example:
     @code{.py}
-*list rows = table.selectRows(("columns": ("table.id", "t2.customer_name"), "join": join_inner(table2, "t2", ("id": "altid"))));
+*list<auto> rows = table.selectRows({"columns": ("table.id", "t2.customer_name"), "join": join_inner(table2, "t2", ("id": "altid"))});
     @endcode
     In the above example, \a table is joined with \a table2 on <tt>table.id = table2.altid</tt>.
 
     Joins on multiple tables are performed by combining the results of @ref sql_jop_funcs "join functions" with the @ref plus_operator "+ operator"
     as follows:
     @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner(table3, "t3")));
+*list<auto> rows = table.selectRows({"join": join_inner(table2, "t2", ("id": "altid")) + join_inner(table3, "t3")});
     @endcode
     In the above example, \a table is joined with \a table2 on <tt>table.id = table2.altid</tt> and with \a table3 on an
     automatically detected primary key to foreign key relationship between the two tables.
@@ -862,7 +867,7 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
     Joins are by default made with the primary table; to join with another join table, then give the alias for the table as the first
     argument to the @ref sql_jop_funcs "join function" as in the following example:
     @code{.py}
-*list rows = table.selectRows(("join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3, "t3")));
+*list<auto> rows = table.selectRows({"join": join_inner(table2, "t2", ("id": "altid")) + join_inner("t2", table3, "t3")});
     @endcode
     In the above example, \a table is joined with \a table2 on <tt>table.id = table2.altid</tt> and \a table2 (aliased as \c t2) is joined
     with \a table3 (aliased as \c t3) on an automatically detected primary key to foreign key relationship between the two tables.
@@ -871,7 +876,8 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
 
     @section where_clauses Where Clauses
 
-    Several methods accept a hash of conditions to build a \c "where" clause to restrict the rows that are operated on or returned; for example:
+    Several methods accept a hash of conditions to build a \c "where" clause to restrict the rows that are operated on
+    or returned; for example:
     - @ref SqlUtil::AbstractTable::del()
     - @ref SqlUtil::AbstractTable::delCommit()
     - @ref SqlUtil::AbstractTable::findAll()
@@ -888,27 +894,75 @@ return ds.vexec("delete from schema.table where record_type = %v", ("OLD-CUSTOME
     - @ref SqlUtil::AbstractTable::upsertFromSelect()
     - @ref SqlUtil::AbstractTable::upsertFromSelectCommit()
 
-    @note the above list also applies to the corresponding @ref SqlUtil::AbstractTable methods
+    The where clause is made up of a hash in the %SqlUtil API; either @ref where_clauses_advanced or
+    @ref where_clauses_simple.
 
-    The where clause or condition hash is made of keys signifying the column names, and either a direct value meaning that the column value has to match exactly, or SQL operators can be given by using the appropriate operator function as the key value.  Each member of the where hash translates to an expression that is combined with \c "AND" in the SQL query; to combine expressions with \c "OR", there are two options:
+    @subsection where_clauses_advanced Advanced Where Clauses
+
+    These where clauses are arbitrarily-complex expressions defined by a @ref DataProviderExpression hash.
+
+    These clauses can use any kind of logical groupings or operators / functions supported by the SQL driver.
+
+    For a default set of expressions, see @ref DefaultExpressionMap.
+
+    @par Advanced Where Hash Example:
+    @code{.py}
+hash<DataProviderExpression> w = <DataProviderExpression>{
+    "exp": DP_OP_OR,
+    "args": (
+        <DataProviderExpression>{
+            "exp": DP_SEARCH_OP_EQ,
+            "args": (
+                <DataProviderFieldReference>{"field": "id"},
+                1,
+            ),
+        },
+        <DataProviderExpression>{
+            "exp": DP_SEARCH_OP_EQ,
+            "args": (
+                <DataProviderFieldReference>{"field": "id"},
+                2,
+            ),
+        },
+    )
+};
+hash<auto> select_hash = {
+    "where": w;
+};
+list<auto> rows = mytable.selectRows(select_hash);
+    @endcode \n
+    The above example translates to the following SQL:\n
+    @verbatim select * from my_table where id = 1 or id = 2 @endverbatim
+
+    @subsection where_clauses_simple Simple Where Clauses
+
+    The simple version of the where clause or condition hash is made of keys signifying the column names, and either a
+    direct value meaning that the column value has to match exactly, or SQL operators can be given by using the
+    appropriate operator function as the key value.  Each member of the where hash translates to an expression that is
+    combined with
+    \c "AND" in the SQL query; to combine expressions with \c "OR", there are two options:
     - use the @ref SqlUtil::wop_or() function to combine where expressions with the \c "or" operator
-    - use a list of @ref select_option_hash "select option hashes", which will combine each @ref select_option_hash "select option hash" with \c "OR" as in @ref where_list "this example".
+    - use the @ref DataProvider::DP_OP_OR "OR" operator in an @ref where_clauses_advanced
 
     The where condition hash has the following format:
     - each key gives a column name or a table/alias with column name in dot notation
-    - the values are either direct values, meaning that the equality operator (\c "=") is used, or a @ref sql_op_funcs "SQL operator function" for operators in the where clause
+    - the values are either direct values, meaning that the equality operator (\c "=") is used, or a
+      @ref sql_op_funcs "SQL operator function" for operators in the where clause
 
-    @note To reference a column more than once in a where clause, prefix the column specification with a unique number and a colon as in the following example: @code{.py} hash w = ("0:created": op_ge(mindate), "1:created": op_lt(maxdate)); @endcode
+    @note To reference a column more than once in a simple where clause, prefix the column specification with a unique
+    number and a colon as in the following example:
+
+    @code{.py} hash<auto> w = ("0:created": op_ge(mindate), "1:created": op_lt(maxdate)); @endcode
 
     See @ref sql_op_funcs for a list of operator functions.
 
-    @par Where Hash Example:
+    @par Simple Where Hash Example:
     @code{.py}
-hash w = (
+hash<auto> w = {
     "name": "Smith",
     "account_type": op_like("%CUSTOMER%"),
     "id": op_ge(500),
-);
+};
     @endcode \n
     The preceding example results in a where clause equivalent to: \c "name = 'Smith' and type like '%CUSTOMER%' and id >= 500", except
     that bind by value is used, so, if used in a context like the following:
@@ -919,27 +973,6 @@ Table t(ds, "table");
     the complete query would look instead as follows:
     @code{.py}
 ds.vselect("select * from table where name = %v and account_type like %v and id >= %v", ("Smith", "%CUSTOMER%", 500));
-    @endcode
-
-    @anchor where_list
-    @par Where List Example:
-    @code{.py}
-hash w1 = (
-    "name": "Smith",
-    "account_type": op_like("%CUSTOMER%"),
-    "id": op_ge(500),
-);
-hash w2 = (
-    "name": "Jones",
-    "account_type": op_like("%VENDOR%"),
-    "id": op_ge(2500),
-);
-Table t(ds, "table");
-*hash<auto> qh = t.select(("where": (w1, w2)));
-    @endcode \n
-    the complete query would look instead as follows:
-    @code{.py}
-ds.vselect("select * from table where (name = %v and account_type like %v and id >= %v) or (name = %v and account_type like %v and id >= %v)", ("Smith", "%CUSTOMER%", 500, "Jones", "%VENDOR%", 2500));
     @endcode
 
     @par Code Examples:
@@ -961,7 +994,7 @@ ds.vexec("delete from table where name like %v", ("%Smith%"));
     @endcode \n
     Find all rows where \c "id" is greater than \c 100 and \c "created" is after \c 2013-03-01:\n
     @code{.py}
-*list rows = table.findAll(("id": op_gt(100), "created": op_gt(2013-03-01)));
+*list<auto> rows = table.findAll({"id": op_gt(100), "created": op_gt(2013-03-01)});
     @endcode
     resulting in an internal SQL command that looks as follows:
     @code{.py}
@@ -970,7 +1003,8 @@ ds.vexec("select * from table where id > %v and created > %v", (100, 2013-03-01)
 
     @section sql_upsert Upserting or Merging Data
 
-    This module offers a high-level api for "upserting" or merging data from one table into another table through the following methods:
+    This module offers a high-level api for "upserting" or merging data from one table into another table through the
+    following methods:
     - @ref SqlUtil::AbstractTable::upsert()
     - @ref SqlUtil::AbstractTable::upsertCommit()
     - @ref SqlUtil::AbstractTable::getUpsertClosure()
@@ -997,7 +1031,7 @@ table.upsert(("id": id, "name": name, "account_type": account_type));
     @par Simple Example:
     @code{.py}
 # get the rows to be inserted
-list l = get_table_rows();
+list<auto> l = get_table_rows();
 
 if (l) {
     code upsert = table.getUpsertClosure(l[0]);
@@ -1019,7 +1053,7 @@ int upsert_strategy = verbose ? AbstractTable::UpsertSelectFirst : AbstractTable
 hash<auto> sh;
 
 # get the rows to be inserted
-list l = get_table_rows();
+list<auto> l = get_table_rows();
 
 if (l) {
     # get the upsert closure to use based on the first row to be inserted
@@ -1040,16 +1074,18 @@ if (l) {
         if (!verbose) {
             printf(".");
             flush();
-        }
-        else if (verbose > 1)
+        } else if (verbose > 1) {
             printf("*** reference data %s: %y: %s\n", table.getName(), h, change);
+        }
     }
 
     # show table summary
-    if (sh)
-        printf("*** reference data %s: %s\n", table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), sh.pairIterator())));
-    else
+    if (sh) {
+        printf("*** reference data %s: %s\n", table.getName(),
+            (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), sh.pairIterator())));
+    } else {
         printf("*** reference data %s: OK\n", table.getName());
+    }
 }
     @endcode
 
@@ -1060,7 +1096,7 @@ if (l) {
     @par Simple Example:
     @code{.py}
 # get the rows to be inserted
-list l = get_table_rows();
+list<auto> l = get_table_rows();
 table.upsertFromIterator(l.iterator());
     @endcode
 
@@ -1070,7 +1106,7 @@ table.upsertFromIterator(l.iterator());
 int upsert_strategy = verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
 
 # get the rows to be inserted
-list l = get_table_rows();
+list<auto> l = get_table_rows();
 
 code callback = sub (string table_name, hash<auto> row, int result) {
     if (result == AbstractTable::UR_Unchanged)
@@ -1133,7 +1169,7 @@ else
     @par Simple Example: any
     @code{.py}
 # get the rows to be inserted
-list l = get_table_rows();
+list<auto> l = get_table_rows();
 table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertAuto, ("delete_others": True, "commit_block": 5000));
     @endcode
 
@@ -1143,7 +1179,7 @@ table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), Abstract
 int upsert_strategy = verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
 
 # get the rows to be inserted
-list l = get_table_rows();
+list<auto> l = get_table_rows();
 
 code callback = sub (string table_name, hash<auto> row, int result) {
     if (result == AbstractTable::UR_Unchanged)
@@ -1276,7 +1312,7 @@ Tables tables(ds);
     @par Drop All Foreign Constraints to a Table
     The following is an example of how all foreign constraints to a particular table can be dropped:
     @code{.py}
-*list l = tables.getDropAllForeignConstraintsOnTableSql("table_name", ("sql_callback_executed": True));
+*list<auto> l = tables.getDropAllForeignConstraintsOnTableSql("table_name", ("sql_callback_executed": True));
 {
     on_success ds.commit();
     on_error ds.rollback();
@@ -1364,8 +1400,8 @@ const Options = (
             "compute_statistics": True,
             "character_semantics": True,
         ),
-    ),
-    );
+),
+);
 
 const T_Customers = (
     "columns": (
@@ -1432,23 +1468,23 @@ const T_Customers = (
 
 const SequenceList = (
     "seq_customers": {},
-    );
+);
 
 const Sequences = (
     "driver": (
         "oracle": SequenceList,
         "pgsql": SequenceList,
     ),
-    );
+);
 
 const Tables = (
     "customers": T_Customers,
-    );
+);
 
 const Schema = (
     "sequences": Sequences,
     "tables": Tables,
-    );
+);
     @endcode
 
     @section table_management Table Management
@@ -4375,7 +4411,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                     reference<hash<auto>> aliases) {
                 return "("
                     + (foldl $1 + " and " + $2,
-                        (map info.table.getExpressionArg(info, $1, \bind_args, \aliases), args))
+                        (map info.table.getExpressionArg(info, $1, \bind_args, \aliases,
+                            AbstractDataProviderTypeMap."bool"), args))
                     + ")";
             },
         },
@@ -4385,7 +4422,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                     reference<hash<auto>> aliases) {
                 return "("
                     + (foldl $1 + " or " + $2,
-                        (map info.table.getExpressionArg(info, $1, \bind_args, \aliases), args))
+                        (map info.table.getExpressionArg(info, $1, \bind_args, \aliases,
+                            AbstractDataProviderTypeMap."bool"), args))
                     + ")";
             },
         },
@@ -4396,14 +4434,19 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 "name": "like",
                 "desc": "The value to bind as the 'like' value (ex: '%some string%')",
                 "symbol": "like",
-                "args": (DataProviderSignatureStringType, DataProviderSignatureStringValueType),
+                "args": (
+                    DataProviderSignatureStringType,
+                    DataProviderSignatureStringValueType,
+                ),
                 "return_type": AbstractDataProviderTypeMap."bool",
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
                 return sprintf("%s like %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases));
+                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."string"),
+                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."string"));
             },
         },
         OP_LT: {
@@ -4411,8 +4454,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
                 return sprintf("%s < %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases));
+                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"));
             },
         },
         OP_LE: {
@@ -4420,8 +4465,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
                 return sprintf("%s <= %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases));
+                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"));
             },
         },
         OP_GT: {
@@ -4429,8 +4476,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
                 return sprintf("%s > %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases));
+                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"));
             },
         },
         OP_GE: {
@@ -4438,8 +4487,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
                 return sprintf("%s >= %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases));
+                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"));
             },
         },
         OP_NE: {
@@ -4459,8 +4510,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                     return sprintf("%s is not null", info.table.getExpressionArg(info, args[0], \bind_args),
                         \aliases);
                 }
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
                 return sprintf("%s != %s", exp0, exp1);
             },
         },
@@ -4479,8 +4532,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 if (null1) {
                     return sprintf("%s is null", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
                 }
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
                 return sprintf("%s = %s", exp0, exp1);
             },
         },
@@ -4489,9 +4544,12 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
                 return sprintf("%s between %s and %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases),
-                    info.table.getExpressionArg(info, args[2], \bind_args, \aliases));
+                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(info, args[2], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"));
             },
         },
         OP_IN: {
@@ -4499,8 +4557,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
                 string exp0 = info.table.getExpressionArg(info, shift args, \bind_args, \aliases);
-                *string ins = (foldl $1 + "," + $2, (map info.table.getExpressionArg(info, $1, \bind_args, \aliases),
-                    args));
+                *string ins = (foldl $1 + "," + $2, (map info.table.getExpressionArg(info, $1, \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any"), args));
                 return exists ins ? sprintf("%s in (%s)", exp0, ins) : "1 != 1";
             },
         },
@@ -4508,7 +4566,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NOT},
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                return sprintf("not (%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                return sprintf("not (%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."bool"));
             },
         },
         OP_SUBSTR: {
@@ -4527,13 +4586,16 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."string");
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."int");
                 if (!exists args[2]) {
                     return sprintf("substring(%s from %s)", exp0, exp1);
                 }
                 return sprintf("substring(%s from %s for %s)", exp0, exp1,
-                    info.table.getExpressionArg(info, args[2], \bind_args, \aliases));
+                    info.table.getExpressionArg(info, args[2], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."int"));
             },
         },
         OP_IN_SELECT: {
@@ -4553,7 +4615,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
                 object subtable = info.table.getSubtableFromString(args[1], info.query_options);
                 list<auto> subargs;
                 string subsql = subtable.getSelectSql(args[2], \subargs);
@@ -4577,7 +4640,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                string exp = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
+                string exp = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
                 string arg = args[1];
                 aliases{arg} = exp;
                 return sprintf("%s as %s", exp, info.table.getColumnSqlName(arg));
@@ -4599,8 +4663,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."string");
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."string");
                 return sprintf("%s || %s", exp1, exp0);
             },
         },
@@ -4620,8 +4686,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."string");
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."string");
                 return sprintf("%s || %s", exp0, exp1);
             },
         },
@@ -4639,7 +4707,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                return sprintf("upper(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                return sprintf("upper(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."string"));
             },
         },
         COP_LOWER: {
@@ -4656,7 +4725,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                return sprintf("lower(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                return sprintf("lower(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."string"));
             },
         },
         COP_DISTINCT: {
@@ -4674,7 +4744,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                return sprintf("distinct %s", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                return sprintf("distinct %s", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any"));
             },
         },
         COP_MIN: {
@@ -4692,7 +4763,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                return sprintf("min(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                return sprintf("min(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any"));
             },
             "group": True,
         },
@@ -4711,7 +4783,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                return sprintf("max(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                return sprintf("max(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any"));
             },
             "group": True,
         },
@@ -4730,7 +4803,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                return sprintf("avg(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                return sprintf("avg(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any"));
             },
             "group": True,
         },
@@ -4749,7 +4823,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                return sprintf("sum(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                return sprintf("sum(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any"));
             },
             "group": True,
         },
@@ -4769,7 +4844,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
                 if (exists args[0] && args[0] != NULL) {
-                    return sprintf("count(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                    return sprintf("count(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                        AbstractDataProviderTypeMap."any"));
                 }
                 return "count(1)";
             },
@@ -4789,8 +4865,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
                 return sprintf("%s - %s", exp0, exp1);
             },
         },
@@ -4809,8 +4887,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
                 return sprintf("%s + %s", exp0, exp1);
             },
         },
@@ -4829,8 +4909,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
                 return sprintf("%s / %s", exp0, exp1);
             },
         },
@@ -4849,8 +4931,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases);
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases);
+                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any");
                 return sprintf("%s * %s", exp0, exp1);
             },
         },
@@ -4870,7 +4954,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
                 return sprintf("coalesce(%s)", (foldl $1 + "," + $2,
-                    (map info.table.getExpressionArg(info, $1, \bind_args, \aliases), args)));
+                    (map info.table.getExpressionArg(info, $1, \bind_args, \aliases), args,
+                        AbstractDataProviderTypeMap."any")));
             }
         },
         COP_LENGTH: {
@@ -4887,7 +4972,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
             "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
                     reference<hash<auto>> aliases) {
-                return sprintf("length(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                return sprintf("length(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    AbstractDataProviderTypeMap."any"));
             },
         },
         /*

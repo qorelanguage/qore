@@ -417,7 +417,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns a single record matching the search options
-    /** @param search_options the search options (see @ref SearchOptions) after processing by validateSearchOptions()
+    /** @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options (see @ref SearchOptions) after processing by validateSearchOptions()
 
         @throw MULTIPLE-RECORDS-ERROR multiple records found
     */
@@ -446,7 +447,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    /** @param search_options the search options (see @ref SearchOptions) after processing by validateSearchOptions()
+    /** @param where_cond the search criteria; will be processed by processFieldValues()
+        @param search_options the search options (see @ref SearchOptions) after processing by validateSearchOptions()
 
         @note this method acquires a transaction lock if one is not already acquired; the iterator returned performs a
         rollback in the destructor if a new transaction lock was acquired by this call and

@@ -38,7 +38,7 @@ public class DbSelectBulkRecordInterface inherits AbstractDataProviderBulkRecord
     /** @param block_size the number of records in a read block; must be a positive number
         @param ds the datasource to use
         @param where_cond must be empty; an exception will be thrown if search conditions are passed to this constructor
-        @param search_options search options; assumed to have already been processed for validity before this call; contains:
+        @param select_options search options; assumed to have already been processed for validity before this call; contains:
         - \c sql (required): the SQL query
         - \c args (optional): a list of bind arguments to \a sql
 

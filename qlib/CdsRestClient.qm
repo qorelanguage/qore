@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9.5
+%requires qore >= 1.0
 
 # require type definitions everywhere
 %require-types
@@ -322,7 +322,7 @@ CdsRestClient rest({
         throw "CDSRESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 
-    #! returns options for the @ref CdsRestClient::constructor()
+    #! returns options for the @ref CdsRestClient::CdsRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
         return opts + {
             "data": "json",
@@ -356,7 +356,7 @@ CdsRestClient rest({
     - \c "tenant": (required) the tenant ID
     - \c "timeout": transfer timeout to use in milliseconds
 
-    @see @ref CdsRestClient::constructor() for more information on the above options
+    @see @ref CdsRestClient::CdsRestClient::constructor() for more information on the above options
 */
 public class CdsRestConnection inherits RestClient::RestConnection {
     public {

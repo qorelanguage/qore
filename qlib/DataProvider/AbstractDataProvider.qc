@@ -1747,7 +1747,7 @@ public class AbstractDataProvider {
         }
         where_cond = processFieldValues(where_cond, search_options);
         hash<DataProviderInfo> info = getInfo();
-        hash<DataProviderExpressionInfo> expinfo = getExpression(ER_Search, DP_OP_AND, info);
+        hash<DataProviderExpressionInfo> expinfo = getExpression(ER_Search, DP_OP_AND, info.expressions);
         hash<DataProviderExpression> rv = <DataProviderExpression>{
             "exp": DP_OP_AND,
             "args": map getSimpleArgumentIntern(ER_Search, info, expinfo, $1.key, $1.value),
@@ -1766,12 +1766,12 @@ public class AbstractDataProvider {
         key =~ s/:.*//g;
         hash<DataProviderExpression> rv;
         if (value.typeCode() == NT_HASH && value.op && value.hasKey("arg")) {
-            hash<DataProviderExpressionInfo> expinfo = getExpression(role, value.op, info);
+            hash<DataProviderExpressionInfo> expinfo = getExpression(role, value.op, info.expressions);
             rv = <DataProviderExpression>{
                 "exp": expinfo.label,
                 "args": value.arg.op && value.arg.arg
                     ? <DataProviderExpression>{
-                        "exp": getExpression(role, value.arg.op, info).label,
+                        "exp": getExpression(role, value.arg.op, info.expressions).label,
                         "args": (<DataProviderFieldReference>{"field": key},) + value.arg.arg,
                     }
                     : (<DataProviderFieldReference>{"field": key}, ) + value.arg,
@@ -1779,7 +1779,8 @@ public class AbstractDataProvider {
         } else {
             rv = getEqualityComparisonExpression(role, info, key, value);
         }
-        verifyExpressionIntern(role, info, AbstractDataProviderTypeMap."bool", rv);
+        int caps = role == ER_Search ? info.search_logic_capabilities : 0;
+        verifyExpression(role, info.expressions, caps, AbstractDataProviderTypeMap."bool", rv);
         return rv;
     }
 
@@ -1805,16 +1806,16 @@ public class AbstractDataProvider {
     /**
         @since DataProvider 2.3
     */
-    private hash<DataProviderExpressionInfo> getExpression(int role, string exp,
-            hash<DataProviderInfo> info = getInfo()) {
-        *hash<DataProviderExpressionInfo> expinfo = info.expressions{exp};
+    static private hash<DataProviderExpressionInfo> getExpression(int role, string exp,
+            *hash<string, hash<DataProviderExpressionInfo>> expmap) {
+        *hash<DataProviderExpressionInfo> expinfo = expmap{exp};
         if (!expinfo) {
-            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y is invalid for data provider %y of type "
-                "%y; known expressions: %y", exp, getName(), self.className(), keys info.expressions);
+            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y is invalid; known expressions: %y", exp,
+                keys expmap);
         }
         if (!(expinfo.role & role)) {
-            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y is invalid for data provider %y of type "
-                "%y in role %y", exp, getName(), self.className(), RoleCodeMap{role});
+            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y is invalid role %y", exp,
+                RoleCodeMap{role});
         }
         return expinfo;
     }
@@ -1899,6 +1900,90 @@ public class AbstractDataProvider {
         cb_value_needs_resolution = value_needs_resolution;
         cb_resolve_value = resolve_value;
         return True;
+    }
+
+    #! processes an expression in a certain context
+    /** @param role the role of the operation being performed
+        @param expmap the map of supported expressions for this data provider
+        @param caps the logic capabilities supported by the data provider for the current operation
+        @param expected_type the type the expression should be compatible with
+        @param exp the expression code / label to process
+
+        @throw DATA-PROVIDER-EXPRESSION-ERROR the expression has an error; argument mismatch, type error, etc
+    */
+    static verifyExpression(int role, *hash<string, hash<DataProviderExpressionInfo>> expmap, int caps,
+            AbstractDataProviderType expected_type, hash<DataProviderExpression> exp) {
+        hash<DataProviderExpressionInfo> expinfo = AbstractDataProvider::getExpression(role, exp.exp, expmap);
+        return AbstractDataProvider::verifyExpression(role, expinfo, caps, expected_type, exp);
+    }
+
+    #! processes an expression in a certain context
+    /** @param role the role of the operation being performed
+        @param expinfo the definition of the expression to evaluate
+        @param caps the logic capabilities supported by the data provider for the current operation
+        @param expected_type the type the expression should be compatible with
+        @param exp the expression code / label to process
+
+        @throw DATA-PROVIDER-EXPRESSION-ERROR the expression has an error; argument mismatch, type error, etc
+    */
+    static verifyExpression(int role, hash<DataProviderExpressionInfo> expinfo, int caps,
+            AbstractDataProviderType expected_type, hash<DataProviderExpression> exp) {
+        # check arguments
+        if (exp.args.lsize() > expinfo.args.size() && !expinfo.varargs) {
+            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("value provided for expression %y has too many values "
+                "(%d); only max %d are accepted", expinfo.label, exp.args.lsize(), expinfo.args.size());
+        }
+        map AbstractDataProvider::verifyExpressionArgValue(role, caps, expinfo, exp.args, $#), expinfo.args;
+        if (exp.args.lsize() > expinfo.args.size()) {
+            # process the rest of the arguments
+            map AbstractDataProvider::verifyExpressionArgValue(role, caps, expinfo, exp.args, expinfo.args.size() + $#),
+                xrange(exp.args.lsize() - expinfo.args.size());
+        }
+        if (!expected_type.isAssignableFrom(expinfo.return_type)) {
+            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expecting a %y value, but expression %y returns a %y "
+                "value instead", expected_type.getName(), expinfo.label, expinfo.return_type.getName());
+        }
+    }
+
+    #! processes an expression in a certain context
+    /** @param role the role of the operation being performed
+        @param caps the logic capabilities supported by the data provider for the current operation
+        @param expinfo the expression being processed
+        @param values the values / arguments for the expression
+        @param pos the position in the argument list
+    */
+    static verifyExpressionArgValue(int role, int caps, hash<DataProviderExpressionInfo> expinfo,
+            softlist<auto> values, int pos) {
+        hash<DataProviderSignatureTypeInfo> arginfo = expinfo.args[pos] ?? expinfo.args.last();
+        if (arginfo.type_code == ST_Any) {
+            return;
+        }
+        auto val = values[pos];
+        bool is_exp = val instanceof hash<DataProviderExpression>;
+        bool is_ref = is_exp ? False : val instanceof hash<DataProviderFieldReference>;
+
+        switch (arginfo.type_code) {
+            case ST_Any:
+                return;
+            case ST_Value:
+                if (is_exp || is_ref) {
+                    throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y argument %d/%d expects a value; "
+                        "got %y instead", expinfo.label, pos + 1, values.size(),
+                        is_exp ? "nested expression" : "field reference");
+                }
+                if (!arginfo.type.isAssignableFrom(Type::getType(val))) {
+                    throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("argument %d expects type %y; got %y instead",
+                        pos + 1, arginfo.type.getName(), val.fullType());
+                }
+                return;
+            case ST_Field:
+                if (!is_ref) {
+                    throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y argument %d/%d expects a field "
+                        "reference; got %y instead", expinfo.label, pos + 1, values.size(),
+                        is_exp ? "nested expression" : "value");
+                }
+                return;
+        }
     }
 
     #! Checks if callbacks have already been set or locked
@@ -2056,78 +2141,11 @@ public class AbstractDataProvider {
         }
         checkSearchExpressions();
         hash<DataProviderInfo> info = getInfo();
-        verifyExpressionIntern(ER_Search, info, AbstractDataProviderTypeMap."bool", exp);
+        verifyExpression(ER_Search, info.expressions, info.search_logic_capabilities,
+            AbstractDataProviderTypeMap."bool", exp);
         return exp;
     }
 
-    #! processes an expression in a certain context
-    /** @param role the role of the operation being performed
-        @param info data provider info
-        @param expected_type the type the expression should be compatible with
-        @param exp the expression code / label to process
-        @param args argument to the expression
-
-        @throw DATA-PROVIDER-EXPRESSION-ERROR the expression has an error; argument mismatch, type error, etc
-    */
-    private verifyExpressionIntern(int role, hash<DataProviderInfo> info, AbstractDataProviderType expected_type,
-            hash<DataProviderExpression> exp) {
-        int caps = role == ER_Search ? info.search_logic_capabilities : 0;
-        hash<DataProviderExpressionInfo> expinfo = getExpression(role, exp.exp, info);
-        # check arguments
-        if (exp.args.lsize() > expinfo.args.size() && !expinfo.varargs) {
-            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("value provided for expression %y for data provider "
-                "%y has too many values (%d); only max %d are accepted", expinfo.label, getName(),
-                exp.args.lsize(), expinfo.args.size());
-        }
-        map verifyExpressionArgValue(role, info.expressions, caps, expinfo, exp.args, $#), expinfo.args;
-        if (exp.args.lsize() > expinfo.args.size()) {
-            # process the rest of the arguments
-            map verifyExpressionArgValue(role, info.expressions, caps, expinfo, exp.args, expinfo.args.size() + $#),
-                xrange(exp.args.lsize() - expinfo.args.size());
-        }
-        if (!expected_type.isAssignableFrom(expinfo.return_type)) {
-            throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expecting a %y value, but expression %y returns a %y "
-                "value instead", expected_type.getName(), expinfo.label, expinfo.return_type.getName());
-        }
-    }
-
-    #! processes an expression in a certain context
-    /** @param role the role of the operation being performed
-        @param expmap the map of supported expressions for this data provider
-        @param caps the logic capabilities supported by the data provider for the current operation
-        @param expinfo the expression being processed
-        @param values the values / arguments for the expression
-        @param pos the position in the argument list
-    */
-    private verifyExpressionArgValue(int role, *hash<string, hash<DataProviderExpressionInfo>> expmap, int caps,
-            hash<DataProviderExpressionInfo> expinfo, softlist<auto> values, int pos) {
-        hash<DataProviderSignatureTypeInfo> arginfo = expinfo.args[pos] ?? expinfo.args.last();
-        if (arginfo.type_code == ST_Any) {
-            return;
-        }
-        auto val = values[pos];
-        bool is_exp = val instanceof hash<DataProviderExpression>;
-        bool is_ref = is_exp ? False : val instanceof hash<DataProviderFieldReference>;
-
-        switch (arginfo.type_code) {
-            case ST_Any:
-                return;
-            case ST_Value:
-                if (is_exp || is_ref) {
-                    throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y argument %d/%d expects a value; "
-                        "got %y instead", expinfo.label, pos + 1, values.size(),
-                        is_exp ? "nested expression" : "field reference");
-                }
-                return;
-            case ST_Field:
-                if (!is_ref) {
-                    throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y argument %d/%d expects a field "
-                        "reference; got %y instead", expinfo.label, pos + 1, values.size(),
-                        is_exp ? "nested expression" : "value");
-                }
-                return;
-        }
-    }
     #! processes search or set values to convert types if necessary
     /** @param h the hash of field values to process
         @param search_options the search options after processing by validateSearchOptions()
