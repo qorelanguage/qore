@@ -854,7 +854,7 @@ bool b = table.empty();
         string drv = ds.getDriverName();
 
         # extract column options
-        *hash oc = opt.(copt.keys());
+        *hash<auto> oc = opt.(copt.keys());
 
         # process descriptions
         /* issue #1684: sqlutil: schema alignment skips column with name "driver"

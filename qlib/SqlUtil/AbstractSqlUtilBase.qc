@@ -90,6 +90,7 @@ public class AbstractSqlUtilBase inherits Serializable {
         # make sure types can be converted
         hash<auto> opt += opt0;
         AbstractDatabase::checkDriverOptions(\opt, dn);
+        opt0 = opt;
 
         # check valid options and option value types
         foreach string k in (keys opt) {
