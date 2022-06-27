@@ -748,7 +748,7 @@ public class AbstractDataProvider {
                         "values in the list, then the operation returns true; element value types must be equal to "
                         "the field's type",
                     "symbol": "in",
-                    "args": (DataProviderSignatureAnyType, DataProviderSignatureListValueType),
+                    "args": (DataProviderSignatureAnyType),
                     "return_type": AbstractDataProviderTypeMap."bool",
                     "varargs": True,
                 },
