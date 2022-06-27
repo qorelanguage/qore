@@ -173,17 +173,17 @@ f2:3,00:5:25,34";
             {
                 reset();
                 hash<DataProviderExpression> cond = <DataProviderExpression>{
-                    "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_OR}.exp,
+                    "exp": DP_OP_OR,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                            "exp": DP_SEARCH_OP_EQ,
                             "args": (
                                 <DataProviderFieldReference>{"field": "serno"},
                                 1234567892,
                             ),
                         },
                         <DataProviderExpression>{
-                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                            "exp": DP_SEARCH_OP_EQ,
                             "args": (
                                 <DataProviderFieldReference>{"field": "serno"},
                                 1234567893,
@@ -197,17 +197,17 @@ f2:3,00:5:25,34";
 
                 reset();
                 cond.args += <DataProviderExpression>{
-                    "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_AND}.exp,
+                    "exp": DP_OP_AND,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_NE}.exp,
+                            "exp": DP_SEARCH_OP_NE,
                             "args": (
                                 <DataProviderFieldReference>{"field": "activated"},
                                 False,
                             ),
                         },
                         <DataProviderExpression>{
-                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_GE}.exp,
+                            "exp": DP_SEARCH_OP_GE,
                             "args": (
                                 <DataProviderFieldReference>{"field": "received"},
                                 2012-05-31,

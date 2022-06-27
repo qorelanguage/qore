@@ -266,17 +266,10 @@ public class DbTableDataProvider inherits AbstractDataProvider {
 
     #! Returns data provider info
     hash<DataProviderInfo> getInfo() {
-        *hash<string, hash<DataProviderExpressionInfo>> expression_info = map {
-            $1.key: <DataProviderExpressionInfo>{
-                "name": $1.value.name,
-                "label": $1.key,
-                "symbol": $1.key,
-                "args": $1.value.args,
-                "return_type": $1.value.return_type,
-                "desc": $1.value.desc,
-            },
-        }, table.getWhereOperatorMap().pairIterator(), $1.value.name && $1.value.args && $1.value.return_type
-            && $1.value.desc;
+        *hash<string, hash<DataProviderExpressionInfo>> expression_info =
+            cast<hash<string, hash<DataProviderExpressionInfo>>>(
+                map {$1.key: $1.value.exp}, table.getExpressionMap().pairIterator()
+            );
 
         hash<DataProviderInfo> rv = AbstractDataProvider::getInfo();
         if (expression_info) {

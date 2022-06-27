@@ -289,6 +289,8 @@ public hashdecl DataProviderExpressionInfo {
     int type;
 
     #! The label used for the expression
+    /** Must correspond to the key used in any expression hash
+    */
     string label;
 
     #! The display name
@@ -323,8 +325,8 @@ public hashdecl DataProviderFieldReference {
 
 #! Data provider expression
 public hashdecl DataProviderExpression {
-    #! Expression info
-    hash<DataProviderExpressionInfo> exp;
+    #! Expression name
+    string exp;
 
     #! Expression arguments
     /** Either values, field references (hash<DataProviderFieldReference>), or further expressions
@@ -1745,10 +1747,9 @@ public class AbstractDataProvider {
         }
         where_cond = processFieldValues(where_cond, search_options);
         hash<DataProviderInfo> info = getInfo();
-        hash<DataProviderExpressionInfo> expinfo =
-            AbstractDataProvider::GenericExpressionImplementations{DP_OP_AND}.exp;
+        hash<DataProviderExpressionInfo> expinfo = getExpression(ER_Search, DP_OP_AND, info);
         hash<DataProviderExpression> rv = <DataProviderExpression>{
-            "exp": expinfo,
+            "exp": DP_OP_AND,
             "args": map getSimpleArgumentIntern(ER_Search, info, expinfo, $1.key, $1.value),
                 where_cond.pairIterator(),
         };
@@ -1765,11 +1766,12 @@ public class AbstractDataProvider {
         key =~ s/:.*//g;
         hash<DataProviderExpression> rv;
         if (value.typeCode() == NT_HASH && value.op && value.hasKey("arg")) {
+            hash<DataProviderExpressionInfo> expinfo = getExpression(role, value.op, info);
             rv = <DataProviderExpression>{
-                "exp": getExpression(role, value.op, info),
+                "exp": expinfo.label,
                 "args": value.arg.op && value.arg.arg
                     ? <DataProviderExpression>{
-                        "exp": getExpression(role, value.arg.op, info),
+                        "exp": getExpression(role, value.arg.op, info).label,
                         "args": (<DataProviderFieldReference>{"field": key},) + value.arg.arg,
                     }
                     : (<DataProviderFieldReference>{"field": key}, ) + value.arg,
@@ -1777,7 +1779,7 @@ public class AbstractDataProvider {
         } else {
             rv = getEqualityComparisonExpression(role, info, key, value);
         }
-        verifyExpressionIntern(role, info, AbstractDataProviderTypeMap."bool", rv.exp.label, rv.args);
+        verifyExpressionIntern(role, info, AbstractDataProviderTypeMap."bool", rv);
         return rv;
     }
 
@@ -1794,7 +1796,7 @@ public class AbstractDataProvider {
                 "operators provided: %y", getName(), self.className(), keys info.expressions);
         }
         return <DataProviderExpression>{
-            "exp": info.expressions."=",
+            "exp": "=",
             "args": (<DataProviderFieldReference>{"field": key},) + value,
         };
     }
@@ -1869,14 +1871,14 @@ public class AbstractDataProvider {
         @since DataProvider 2.3
     */
     static auto evalGenericExpression(hash<auto> rec, hash<DataProviderExpression> exp) {
-        *hash<auto> expinfo = AbstractDataProvider::GenericExpressionImplementations{exp.exp.label};
+        *hash<auto> expinfo = AbstractDataProvider::GenericExpressionImplementations{exp.exp};
         if (!expinfo) {
             throw "INVALID-OPERATION", sprintf("operator %y is unknown; supported "
-                "operators: %y", exp.exp.label, keys GenericExpressionImplementations);
+                "operators: %y", exp.exp, keys GenericExpressionImplementations);
         }
         on_error rethrow $1.err, sprintf("error in return value type %y for %y expression: %s",
-            exp.exp.return_type.getName(), exp.exp.name, $1.desc);
-        return exp.exp.return_type.acceptsValue(expinfo.impl(rec, exp));
+            expinfo.exp.return_type.getName(), expinfo.exp.name, $1.desc);
+        return expinfo.exp.return_type.acceptsValue(expinfo.impl(rec, exp));
     }
 
     #! Set callbacks for dynamic URI resolution to allow for variable URI path elements to be resolved at runtime
@@ -2054,7 +2056,7 @@ public class AbstractDataProvider {
         }
         checkSearchExpressions();
         hash<DataProviderInfo> info = getInfo();
-        verifyExpressionIntern(ER_Search, info, AbstractDataProviderTypeMap."bool", exp.exp.label, exp.args);
+        verifyExpressionIntern(ER_Search, info, AbstractDataProviderTypeMap."bool", exp);
         return exp;
     }
 
@@ -2065,23 +2067,23 @@ public class AbstractDataProvider {
         @param exp the expression code / label to process
         @param args argument to the expression
 
-        @return the processed expression
+        @throw DATA-PROVIDER-EXPRESSION-ERROR the expression has an error; argument mismatch, type error, etc
     */
     private verifyExpressionIntern(int role, hash<DataProviderInfo> info, AbstractDataProviderType expected_type,
-            string exp, auto args) {
+            hash<DataProviderExpression> exp) {
         int caps = role == ER_Search ? info.search_logic_capabilities : 0;
-        hash<DataProviderExpressionInfo> expinfo = getExpression(role, exp, info);
+        hash<DataProviderExpressionInfo> expinfo = getExpression(role, exp.exp, info);
         # check arguments
-        if (args.lsize() > expinfo.args.size() && !expinfo.varargs) {
+        if (exp.args.lsize() > expinfo.args.size() && !expinfo.varargs) {
             throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("value provided for expression %y for data provider "
                 "%y has too many values (%d); only max %d are accepted", expinfo.label, getName(),
-                args.lsize(), expinfo.args.size());
+                exp.args.lsize(), expinfo.args.size());
         }
-        map verifyExpressionArgValue(role, info.expressions, caps, expinfo, args, $#), expinfo.args;
-        if (args.lsize() > expinfo.args.size()) {
+        map verifyExpressionArgValue(role, info.expressions, caps, expinfo, exp.args, $#), expinfo.args;
+        if (exp.args.lsize() > expinfo.args.size()) {
             # process the rest of the arguments
-            map verifyExpressionArgValue(role, info.expressions, caps, expinfo, args, expinfo.args.size() + $#),
-                xrange(args.lsize() - expinfo.args.size());
+            map verifyExpressionArgValue(role, info.expressions, caps, expinfo, exp.args, expinfo.args.size() + $#),
+                xrange(exp.args.lsize() - expinfo.args.size());
         }
         if (!expected_type.isAssignableFrom(expinfo.return_type)) {
             throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expecting a %y value, but expression %y returns a %y "

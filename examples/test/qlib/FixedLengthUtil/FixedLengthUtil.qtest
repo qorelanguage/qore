@@ -213,17 +213,17 @@ class Test inherits QUnit::Test {
             {
                 reset();
                 hash<DataProviderExpression> cond = <DataProviderExpression>{
-                    "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_OR}.exp,
+                    "exp": DP_OP_OR,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                            "exp": DP_SEARCH_OP_EQ,
                             "args": (
                                 <DataProviderFieldReference>{"field": "record.col1"},
                                 11111,
                             ),
                         },
                         <DataProviderExpression>{
-                            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                            "exp": DP_SEARCH_OP_EQ,
                             "args": (
                                 <DataProviderFieldReference>{"field": "record.col3"},
                                 "c",

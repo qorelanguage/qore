@@ -4804,12 +4804,12 @@ string sql = table.getSelectSql(sh, \args);
             if (!arg.exp) {
                 throw "EXPRESSION-ERROR", sprintf("expression %y is invalid; missing the \"exp\" key", arg);
             }
-            *hash<auto> exp = info.expression_map{arg.exp.label};
+            *hash<auto> exp = info.expression_map{arg.exp};
             if (!exp) {
                 throw "EXPRESSION-ERROR", sprintf("expression %y does not have an implementation in module %y",
-                    arg.exp.label, self.className());
+                    arg.exp, self.className());
             }
-            on_error rethrow $1.err, sprintf("%s (while processing expression %y)", $1.desc, arg.exp.label);
+            on_error rethrow $1.err, sprintf("%s (while processing expression %y)", $1.desc, arg.exp);
             return exp.code(info, arg.args, \bind_args, \aliases);
         }
         bind_args += arg;
@@ -5072,17 +5072,12 @@ string sql = table.getSelectSql(sh, \args);
 
     private *string getExpressionUnlockedIntern(hash<QueryInfo> info, hash<DataProviderExpression> cond,
             reference<list<auto>> args, reference<hash<auto>> aliases) {
-        /*
-        if (cond.exp.return_type.getBaseTypeCode() != NT_BOOLEAN) {
-            throw "SQLUTIL-EXPRESSION-ERROR", sprintf("expression returns type %y; expecting \"bool\"",
-                cond.exp.return_type.getName());
-        }
-        */
-        *hash<auto> exp = info.expression_map{cond.exp.label};
+        *hash<auto> exp = info.expression_map{cond.exp};
         if (!exp) {
             throw "SQLUTIL-EXPRESSION-ERROR", sprintf("expression references unknown expression %y; supported "
-                "expressions: %y", cond.exp.label, keys info.expression_map);
+                "expressions: %y", cond.exp, keys info.expression_map);
         }
+        # FIXME: check expression
         return exp.code(info, cond.args, \args, \aliases);
     }
 

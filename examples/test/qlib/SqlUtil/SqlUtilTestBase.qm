@@ -480,10 +480,10 @@ public class SqlTestBase inherits QUnit::Test {
         {
             list<auto> columns = (
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{OP_SUBSTR}.exp,
+                            "exp": OP_SUBSTR,
                             "args": (
                                 <DataProviderFieldReference>{"field": "char_f"},
                                 1,
@@ -494,10 +494,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_PREPEND}.exp,
+                            "exp": COP_PREPEND,
                             "args": (
                                 <DataProviderFieldReference>{"field": "null_f"},
                                 "x-",
@@ -507,10 +507,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_APPEND}.exp,
+                            "exp": COP_APPEND,
                             "args": (
                                 <DataProviderFieldReference>{"field": "null_f"},
                                 "-x",
@@ -520,10 +520,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_UPPER}.exp,
+                            "exp": COP_UPPER,
                             "args": (
                                 "upper",
                             ),
@@ -532,10 +532,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_LOWER}.exp,
+                            "exp": COP_LOWER,
                             "args": (
                                 "LOWER",
                             ),
@@ -544,10 +544,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_MINUS}.exp,
+                            "exp": COP_MINUS,
                             "args": (
                                 2,
                                 1,
@@ -557,10 +557,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_PLUS}.exp,
+                            "exp": COP_PLUS,
                             "args": (
                                 1,
                                 1,
@@ -570,10 +570,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_DIVIDE}.exp,
+                            "exp": COP_DIVIDE,
                             "args": (
                                 4,
                                 2,
@@ -583,10 +583,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_MULTIPLY}.exp,
+                            "exp": COP_MULTIPLY,
                             "args": (
                                 2,
                                 2,
@@ -598,17 +598,17 @@ public class SqlTestBase inherits QUnit::Test {
                 "*",
             );
             hash<DataProviderExpression> cond = <DataProviderExpression>{
-                "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_OR}.exp,
+                "exp": DP_OP_OR,
                 "args": (
                     <DataProviderExpression>{
-                        "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                        "exp": DP_SEARCH_OP_EQ,
                         "args": (
                             <DataProviderFieldReference>{"field": "id"},
                             1,
                         ),
                     },
                     <DataProviderExpression>{
-                        "exp": AbstractDataProvider::GenericExpressionImplementations{DP_SEARCH_OP_EQ}.exp,
+                        "exp": DP_SEARCH_OP_EQ,
                         "args": (
                             <DataProviderFieldReference>{"field": "id"},
                             2,
@@ -639,10 +639,10 @@ public class SqlTestBase inherits QUnit::Test {
 
             columns = (
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_AVG}.exp,
+                            "exp": COP_AVG,
                             "args": (
                                 1,
                             ),
@@ -651,10 +651,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_SUM}.exp,
+                            "exp": COP_SUM,
                             "args": (
                                 1,
                             ),
@@ -663,10 +663,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_MIN}.exp,
+                            "exp": COP_MIN,
                             "args": (
                                 <DataProviderFieldReference>{"field": "id"},
                             ),
@@ -675,10 +675,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_MAX}.exp,
+                            "exp": COP_MAX,
                             "args": (
                                 <DataProviderFieldReference>{"field": "id"},
                             ),
@@ -687,10 +687,10 @@ public class SqlTestBase inherits QUnit::Test {
                     ),
                 },
                 <DataProviderExpression>{
-                    "exp": DefaultExpressionMap{COP_AS}.exp,
+                    "exp": COP_AS,
                     "args": (
                         <DataProviderExpression>{
-                            "exp": DefaultExpressionMap{COP_COUNT}.exp,
+                            "exp": COP_COUNT,
                         },
                         "count",
                     ),

@@ -413,7 +413,7 @@ public class AbstractDataProviderRecordIterator inherits AbstractIterator {
     */
     private static bool matchGeneric(hash<auto> record, hash<DataProviderExpression> where_cond) {
         return AbstractDataProvider::evalGenericExpression(record, <DataProviderExpression>{
-            "exp": AbstractDataProvider::GenericExpressionImplementations{DP_OP_AND}.exp,
+            "exp": DP_OP_AND,
             "args": where_cond,
         });
     }
