@@ -154,10 +154,10 @@ class FakeAbstractTable inherits SqlUtil::AbstractTable {
     *list<auto> getCreateMiscSqlImpl(*hash<auto> opt, bool cache) {}
     string getCreateSqlImpl(list<auto> l) {}
     bool hasArrayBind(auto a) {}
-    nothing doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list> args) {}
+    nothing doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {}
     nothing copyImpl(AbstractTable old) {}
-    nothing doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
-            reference<list> args, list<auto> coll) {}
+    nothing doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+            list<auto> coll) {}
     AbstractDataProviderType getNumericTypeImpl(string type_name, bool nullable, *hash<auto> options) {}
     AbstractSavepointHelper getSavepointHelperImpl(*string savepoint) {}
     bool isDuplicateRowErrorImpl(hash<::Qore::ExceptionInfo> ex) { return False; }

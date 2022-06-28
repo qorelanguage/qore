@@ -1203,23 +1203,23 @@ string str = table.getSqlValue(date);
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list> args) {
+        private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
            sql += " limit %v";
-           args += info.query_hash.limit;
+           info.args += info.query_hash.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
-                reference<list> args, list<auto> coll) {
-            doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+                list<auto> coll) {
+            doSelectOrderBySqlUnlocked(info, \sql, coll);
             if (info.query_hash.limit) {
                 sql += " limit %v";
-                args += info.query_hash.limit;
+                info.args += info.query_hash.limit;
             }
 
             if (info.query_hash.offset) {
                 sql += " offset %v";
-                args += info.query_hash.offset;
+                info.args += info.query_hash.offset;
             }
         }
 
@@ -1247,7 +1247,7 @@ string str = table.getSqlValue(date);
                     }
 
                     case NT_HASH: {
-                        ce += doColumnOperatorIntern(info, cv);
+                        ce += doColumnOperatorIntern(\info, cv);
                         break;
                     }
 

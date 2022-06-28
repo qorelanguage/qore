@@ -1417,12 +1417,10 @@ end";
                                     if (!exists args[1] && !exists desc.size_range)
                                         throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
                                     sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
-                                }
-                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                } else if (desc.size == SZ_NUM && exists args[1]) {
                                     sql += sprintf("(%d", args[1]);
                                     sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
-                                }
-                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                } else if (desc.size == SZ_OPT && exists args[1]) {
                                     sql += sprintf("(%d)", args[1]);
                                 }
                         }
@@ -1477,24 +1475,156 @@ end";
 
             #! MySQL Expression map
             const MysqlExpressionMap = DefaultExpressionMap + {
+                COP_CAST: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_CAST,
+                        "name": "cast",
+                        "desc": "cast operator",
+                        "symbol": "cast",
+                        "args": (
+                            DataProviderSignatureAnyType,
+                            DataProviderSignatureStringValueType,
+                            DataProviderSignatureOptionalIntValueType,
+                            DataProviderSignatureOptionalIntValueType),
+                        "varargs": True,
+                        "return_type": AbstractDataProviderTypeMap."any",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."any");
+                        string name = QoreTypeMap{args[1]} ?? args[1];
+                        *hash<auto> desc = MysqlTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", exp0, name);
+                        if (desc.size == SZ_MAND) {
+                            if (!exists args[1] && !exists desc.size_range)
+                                throw "OPERATOR-ERROR", sprintf ("cast operator missing size for type %s",
+                                    name);
+                            sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                        } else if (desc.size == SZ_NUM && exists args[1]) {
+                            sql += sprintf("(%d", args[1]);
+                            sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                        } else if (desc.size == SZ_OPT && exists args[1]) {
+                            sql += sprintf("(%d)", args[1]);
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                },
                 COP_PREPEND: DefaultExpressionMap{COP_PREPEND} + {
-                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                            reference<hash<auto>> aliases) {
-                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
                             AbstractDataProviderTypeMap."string");
-                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        string exp1 = info.table.getExpressionArg(\info, role, args[1],
                             AbstractDataProviderTypeMap."string");
                         return sprintf("concat(%s, %s)", exp1, exp0);
                     },
                 },
                 COP_APPEND: DefaultExpressionMap{COP_APPEND} + {
-                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                            reference<hash<auto>> aliases) {
-                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
                             AbstractDataProviderTypeMap."string");
-                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        string exp1 = info.table.getExpressionArg(\info, role, args[1],
                             AbstractDataProviderTypeMap."string");
                         return sprintf("concat(%s, %s)", exp0, exp1);
+                    },
+                },
+                COP_YEAR: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR,
+                        "name": COP_YEAR,
+                        "desc": "returns the year component of a date as a string (ex: `2022`)",
+                        "symbol": COP_YEAR,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("date_format(%s, '%%Y')", exp0);
+                    }
+                },
+                COP_YEAR_MONTH: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR_MONTH,
+                        "name": COP_YEAR_MONTH,
+                        "desc": "returns the year and month components of a date as a string (ex: `2022-06`)",
+                        "symbol": COP_YEAR_MONTH,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("date_format(%s, '%%Y-%%m')", exp0);
+                    }
+                },
+                COP_YEAR_DAY: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR_DAY,
+                        "name": COP_YEAR_DAY,
+                        "desc": "returns the year, month, and day components of a date as a string (ex: `2022-06-29`)",
+                        "symbol": COP_YEAR_DAY,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("date_format(%s, '%%Y-%%m-%%e')", exp0);
+                    }
+                },
+                COP_YEAR_HOUR: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR_HOUR,
+                        "name": COP_YEAR_HOUR,
+                        "desc": "returns the year, month, day, and hour components of a date as a string "
+                            "(ex: `2022-06-29 15`)",
+                        "symbol": COP_YEAR_HOUR,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("date_format(%s, '%%Y-%%m-%%e %%k')", exp0);
+                    }
+                },
+                COP_TRUNC_DATE: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_TRUNC_DATE,
+                        "name": COP_TRUNC_DATE,
+                        "desc": "truncates the given date to the given resolution; args: date, string code: Y: year, "
+                            "M: month, D: day, H: hour, m: minute, S: second",
+                        "symbol": COP_TRUNC_DATE,
+                        "args": (
+                            DataProviderSignatureDateType,
+                            DataProviderSignatureStringValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."date",
+                    },
+                    "code": string sub(reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        *string str = MysqlTruncDate{args[1]};
+                        if (!str) {
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("unknown date truncation format argument %y; "
+                                "supported date format arguments: %y", args[1], keys MysqlTruncDate);
+                        }
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("cast(date_format(%s, %s) as datetime)", exp0, str);
                     },
                 },
             };
@@ -1790,7 +1920,12 @@ end";
             Constraints c = new Constraints(rv);
 
             # get unique constraints
-            *hash qh = ds.select("select t.constraint_name, column_name from information_schema.table_constraints t inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and t.table_name = k.table_name and t.table_schema = k.table_schema and t.constraint_name = k.constraint_name) where constraint_type = 'UNIQUE' and t.table_name = %v and t.table_schema = %v order by ordinal_position", name, schema);
+            *hash<auto> qh = ds.select("select t.constraint_name, column_name from "
+                "information_schema.table_constraints t "
+                "inner join information_schema.key_column_usage k on (t.constraint_schema = k.constraint_schema and "
+                "t.table_name = k.table_name and t.table_schema = k.table_schema and t.constraint_name = "
+                "k.constraint_name) where constraint_type = 'UNIQUE' and t.table_name = %v and t.table_schema = %v "
+                "order by ordinal_position", name, schema);
             delete rv;
             foreach hash<auto> row in (qh.contextIterator()) {
                 reference<MysqlUniqueConstraint> ch = \rv.(row.constraint_name);
@@ -1809,10 +1944,12 @@ end";
             hash rv;
 
             # get trigger description
-            *hash qh = ds.select("select * from information_schema.triggers where event_object_table = %v and event_object_schema = %v", name, schema);
+            *hash<auto> qh = ds.select("select * from information_schema.triggers where event_object_table = %v and "
+                "event_object_schema = %v", name, schema);
 
             foreach hash<auto> row in (qh.contextIterator()) {
-                string src = sprintf("%s %s on %s for each %s %s", row.action_timing.lwr(), row.event_manipulation.lwr(), name, row.action_orientation.lwr(), row.action_statement);
+                string src = sprintf("%s %s on %s for each %s %s", row.action_timing.lwr(),
+                    row.event_manipulation.lwr(), name, row.action_orientation.lwr(), row.action_statement);
                 rv{row.trigger_name} = new MysqlTrigger(row.trigger_name, src);
             }
 
@@ -1914,8 +2051,7 @@ end";
                         else
                             primaryKey = new MysqlPrimaryKey(columns.(list(c.name)));
                         uk = primaryKey;
-                    }
-                    else {
+                    } else {
                         # see if a unique constraint already exists with this name
                         if (constraints.hasKey(c.name)) {
                             if (!(constraints{c.name} instanceof AbstractUniqueConstraint))
@@ -1924,8 +2060,7 @@ end";
                             uk = constraints{c.name};
                             if (uk.size() > 1 || uk.firstKey() != c.name)
                                 throw "AUTO-INCREMENT-ERROR", sprintf("column %y.%y which has \"auto-increment\" set and is also flagged as a unique constraint for the table does not match with the existing unique constraint's column definition: %y", name, c.name, uk.keys());
-                        }
-                        else {
+                        } else {
                             if (!constraints)
                                 constraints = new Constraints();
                             uk = new MysqlUniqueConstraint(c.name, columns.(list(c.name)));
@@ -2093,23 +2228,23 @@ string str = table.getSqlValue(date);
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list> args) {
+        private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
            sql += " limit %v";
-           args += info.query_hash.limit;
+           info.args += info.query_hash.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
-                reference<list> args, list<auto> coll) {
-            doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+                list<auto> coll) {
+            doSelectOrderBySqlUnlocked(info, \sql, coll);
             if (info.query_hash.limit) {
                 sql += " limit %v";
-                args += info.query_hash.limit;
+                info.args += info.query_hash.limit;
             }
 
             if (info.query_hash.offset) {
                 sql += " offset %v";
-                args += info.query_hash.offset;
+                info.args += info.query_hash.offset;
             }
         }
 
@@ -2137,7 +2272,7 @@ string str = table.getSqlValue(date);
                     }
 
                     case NT_HASH: {
-                        ce += doColumnOperatorIntern(info, cv);
+                        ce += doColumnOperatorIntern(\info, cv);
                         break;
                     }
 
@@ -2154,7 +2289,7 @@ string str = table.getSqlValue(date);
             return ce;
         }
 
-        #! returns @ref True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref False "False" if not
+        #! returns @ref True "True" if the current driver supports the \c "returning" clause in insert statements
         bool hasReturningImpl() {
             return False;
         }

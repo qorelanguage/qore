@@ -1287,36 +1287,33 @@ any v = c.name;
             #! FreeTDS Expression map
             const FreetdsExpressionMap = DefaultExpressionMap + {
                 OP_SUBSTR: DefaultExpressionMap{OP_SUBSTR} + {
-                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                            reference<hash<auto>> aliases) {
-                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
                             AbstractDataProviderTypeMap."string");
-                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        string exp1 = info.table.getExpressionArg(\info, role, args[1],
                             AbstractDataProviderTypeMap."int");
                         if (!exists args[2]) {
                             return sprintf("substring(%s,%s,32767)", exp0, exp1);
                         }
                         return sprintf("substring(%s,%s,%s)", exp0, exp1,
-                            info.table.getExpressionArg(info, args[2], \bind_args, \aliases,
-                                AbstractDataProviderTypeMap."int"));
+                            info.table.getExpressionArg(\info, role, args[2], AbstractDataProviderTypeMap."int"));
                     },
                 },
                 COP_PREPEND: DefaultExpressionMap{COP_PREPEND} + {
-                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                            reference<hash<auto>> aliases) {
-                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
                             AbstractDataProviderTypeMap."string");
-                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        string exp1 = info.table.getExpressionArg(\info, role, args[1],
                             AbstractDataProviderTypeMap."string");
                         return sprintf("concat(%s, %s)", exp1, exp0);
                     },
                 },
                 COP_APPEND: DefaultExpressionMap{COP_APPEND} + {
-                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                            reference<hash<auto>> aliases) {
-                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+
                             AbstractDataProviderTypeMap."string");
-                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        string exp1 = info.table.getExpressionArg(\info, role, args[1],
                             AbstractDataProviderTypeMap."string");
                         return sprintf("concat(%s, %s)", exp0, exp1);
                     },
@@ -1326,29 +1323,15 @@ any v = c.name;
             #! where operator specializations for FreeTDS
             const FreetdsOpMap = DefaultOpMap + {
                 OP_SUBSTR: {
-                    "code": string sub (hash<QueryInfo> info, string cn, softlist arg, reference<list> args) {
-                        args += arg[0]; # start
+                    "code": string sub (reference<hash<QueryInfo>> info, string cn, softlist arg) {
+                        info.args += arg[0]; # start
                         if (!exists arg[1]) {
-                            args += arg[2]; # text
+                            info.args += arg[2]; # text
                             return sprintf("substring(%s,%v,32767) = %v", cn); # NOTE: length arg is required
                         }
-                        args += arg[1]; # count
-                        args += arg[2]; # text
+                        info.args += arg[1]; # count
+                        info.args += arg[2]; # text
                         return sprintf("substring(%s,%v,%v) = %v", cn);
-                    },
-                },
-                COP_PREPEND: {
-                    "arg": Type::String,
-                    "sqlvalue": True,
-                    "code": string sub (string cve, string arg) {
-                        return sprintf("concat(%s, %s)", arg, cve);
-                    },
-                },
-                COP_APPEND: {
-                    "arg": Type::String,
-                    "sqlvalue": True,
-                    "code": string sub (string cve, string arg) {
-                        return sprintf("concat(%s, %s)", cve, arg);
                     },
                 },
             };
@@ -1364,7 +1347,8 @@ any v = c.name;
                             default:
                                 if (desc.size == SZ_MAND) {
                                     if (!exists args[1] && !exists desc.size_range)
-                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s",
+                                            name);
                                     sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
                                 } else if (desc.size == SZ_NUM && exists args[1]) {
                                     sql += sprintf("(%d", args[1]);
@@ -1377,20 +1361,20 @@ any v = c.name;
                         return sql;
                     },
                 ),
-                COP_PREPEND: (
+                COP_PREPEND: {
                     "arg": Type::String,
                     "sqlvalue": True,
                     "code": string sub (string cve, string arg) {
-                        return sprintf("%s + %s", arg, cve);
+                        return sprintf("concat(%s, %s)", arg, cve);
                     },
-                ),
-                COP_APPEND: (
+                },
+                COP_APPEND: {
                     "arg": Type::String,
                     "sqlvalue": True,
                     "code": string sub (string cve, string arg) {
-                        return sprintf("%s + %s", cve, arg);
+                        return sprintf("concat(%s, %s)", cve, arg);
                     },
-                ),
+                },
                 COP_SUBSTR: (
                     "code": string sub (string cve, list<auto> args) {
                         if (!exists args[1])
@@ -1433,7 +1417,8 @@ any v = c.name;
                 COP_SEQ_CURRVAL: (
                     "nocolumn": True,
                     "code": string sub (*string cve, hash arg) {
-                        throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support this operation", arg.seq);
+                        throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this "
+                            "database does not support this operation", arg.seq);
                     }
                 ),
                 COP_LENGTH: (
@@ -1444,7 +1429,8 @@ any v = c.name;
                 COP_TRUNC_DATE: (
                     "code": string sub(string arg1, auto arg) {
                         if (!FreetdsTruncDate.hasKey(arg)) {
-                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg, FreetdsTruncDate.keys());
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %n: allowed: %n", arg,
+                                FreetdsTruncDate.keys());
                         }
                         string cmd = FreetdsTruncDate{arg};
                         return replace(cmd, "%s", arg1);
@@ -1460,10 +1446,14 @@ any v = c.name;
             const FreetdsTruncDate = (
                 DT_YEAR     : "datetimefromparts(datepart(year, %s), 1, 1, 0, 0, 0, 0)",
                 DT_MONTH    : "datetimefromparts(datepart(year, %s), datepart(month, %s), 1, 0, 0, 0, 0)",
-                DT_DAY      : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), 0, 0, 0, 0)",
-                DT_HOUR     : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), 0, 0, 0)",
-                DT_MINUTE   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), datepart(minute, %s), 0, 0)",
-                DT_SECOND   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), datepart(hour, %s), datepart(minute, %s), datepart(second, %s), 0)",
+                DT_DAY      : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), "
+                    "0, 0, 0, 0)",
+                DT_HOUR     : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), "
+                    "datepart(hour, %s), 0, 0, 0)",
+                DT_MINUTE   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), "
+                    "datepart(hour, %s), datepart(minute, %s), 0, 0)",
+                DT_SECOND   : "datetimefromparts(datepart(year, %s), datepart(month, %s), datepart(day, %s), "
+                    "datepart(hour, %s), datepart(minute, %s), datepart(second, %s), 0)",
             );
 
             #! a hash of default value operator descriptions for FreeTDS
@@ -1486,7 +1476,8 @@ any v = c.name;
                 COP_SEQ_CURRVAL: (
                     "nocolumn": True,
                     "code": string sub (*string cve, string arg) {
-                        throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support this operation", arg);
+                        throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this "
+                            "database does not support this operation", arg);
                     }
                 ),
             );
@@ -1533,7 +1524,11 @@ any v = c.name;
             return filegroup;
         }
 
-        #! returns a closure for performing upserts; if the underlying dataserver supports an optimized \c MERGE statement (Microsoft SQL Server 2008+), the \a upsert_strategy argument is ignored and a closure using a merge statement is returned, otherwise the standard upsert closure is returned according to @ref SqlUtil::AbstractTable::getUpsertClosure()
+        #! returns a closure for performing upserts
+        /** if the underlying dataserver supports an optimized \c MERGE statement (Microsoft SQL Server 2008+), the
+            \a upsert_strategy argument is ignored and a closure using a merge statement is returned, otherwise the
+            standard upsert closure is returned according to @ref SqlUtil::AbstractTable::getUpsertClosure()
+        */
         code getUpsertClosure(hash<auto> row, int upsert_strategy = UpsertAuto, *hash opt) {
             if (!ss_has_merge)
                 return AbstractTable::getUpsertClosure(row, upsert_strategy, opt);
@@ -2182,7 +2177,7 @@ order by
         }
 
         #! processes a string for use in SQL select statements with "limit" but no "orderby" or "offset"
-        private doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list<auto>> args) {
+        private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
             if (!info.query_hash.limit) {
                 return;
             }
@@ -2191,25 +2186,25 @@ order by
             # In a SELECT statement, always use an ORDER BY clause with the TOP clause.
             # This is the only way to predictably indicate which rows are affected by TOP
             sql = regex_subst(sql, "^select ", sprintf("select top %d ", info.query_hash.limit));
-            args += info.query_hash.limit;
+            info.args += info.query_hash.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
-                reference<list<auto>> args, list<auto> coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+                list<auto> coll) {
             if (is_sybase) {
                 # NOTE Sybase ASE does not support this, but Sybase SQL Anywhere does
                 throw "UNIMPLEMENTED", "offset not yet implemented";
             }
 
-            doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
+            doSelectOrderBySqlUnlocked(info, \sql, coll);
 
             sql += " offset %v rows";
-            args += info.query_hash.offset ?? 0;
+            info.args += info.query_hash.offset ?? 0;
 
             if (info.query_hash.limit) {
                 sql += " fetch next %v rows only";
-                args += info.query_hash.limit;
+                info.args += info.query_hash.limit;
             }
         }
 

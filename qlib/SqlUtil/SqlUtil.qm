@@ -964,8 +964,9 @@ hash<auto> w = {
     "id": op_ge(500),
 };
     @endcode \n
-    The preceding example results in a where clause equivalent to: \c "name = 'Smith' and type like '%CUSTOMER%' and id >= 500", except
-    that bind by value is used, so, if used in a context like the following:
+    The preceding example results in a where clause equivalent to:
+    <tt>"name = 'Smith' and type like '%CUSTOMER%' and id >= 500"</tt>, except that bind by value is used, so, if used
+    in a context like the following:
     @code{.py}
 Table t(ds, "table");
 *hash<auto> qh = t.select(("where": w));
@@ -1021,12 +1022,15 @@ ds.vexec("select * from table where id > %v and created > %v", (100, 2013-03-01)
 table.upsert(("id": id, "name": name, "account_type": account_type));
     @endcode
 
-    To upsert or merge a single row in the database, call @ref SqlUtil::AbstractTable::upsert() or @ref SqlUtil::AbstractTable::upsertCommit() with the
-    single row to be upserted or merged as a hash as in the preceding example.
+    To upsert or merge a single row in the database, call @ref SqlUtil::AbstractTable::upsert() or
+    @ref SqlUtil::AbstractTable::upsertCommit() with the single row to be upserted or merged as a hash as in the
+    preceding example.
 
     @subsection sql_upsert_many Upserting Many Rows Using An Upsert Closure
 
-    To upsert or merge many rows by using an upsert closure, call @ref SqlUtil::AbstractTable::getUpsertClosure() or @ref SqlUtil::AbstractTable::getUpsertClosureWithValidation() and provide an example row as an argument to acquire a closure that will be executed on the rest of the rows as in the following example.
+    To upsert or merge many rows by using an upsert closure, call @ref SqlUtil::AbstractTable::getUpsertClosure() or
+    @ref SqlUtil::AbstractTable::getUpsertClosureWithValidation() and provide an example row as an argument to acquire
+    a closure that will be executed on the rest of the rows as in the following example.
 
     @par Simple Example:
     @code{.py}
@@ -1109,31 +1113,42 @@ int upsert_strategy = verbose ? AbstractTable::UpsertSelectFirst : AbstractTable
 list<auto> l = get_table_rows();
 
 code callback = sub (string table_name, hash<auto> row, int result) {
-    if (result == AbstractTable::UR_Unchanged)
+    if (result == AbstractTable::UR_Unchanged) {
         return;
-    string change = AbstractTable::UpsertResultMap{result};
-    if (verbose)
+    }
+    if (verbose) {
+        string change = AbstractTable::UpsertResultMap{result};
         printf("*** reference data %s: %y: %s\n", table_name, row, change);
+    }
 };
 
-hash<auto> sh = table.upsertFromIterator(l.iterator(), upsert_strategy, False, ("info_callback": callback, "commit_block": 5000));
-if (sh)
+hash<auto> sh = table.upsertFromIterator(l.iterator(), upsert_strategy, False, {
+        "info_callback": callback,
+        "commit_block": 5000,
+    }
+);
+if (sh) {
     printf("*** reference data %s: %s\n", table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), sh.pairIterator())));
-else
+} else {
     printf("*** reference data %s: OK\n", table.getName());
+}
     @endcode
 
-    The iterator given to the @ref SqlUtil::AbstractTable::upsertFromIterator() or @ref SqlUtil::AbstractTable::upsertFromIteratorCommit() methods can be any iterator whose @ref Qore::AbstractIterator::getValue() "getValue()" method returns a @ref hash_type "hash".
+    The iterator given to the @ref SqlUtil::AbstractTable::upsertFromIterator() or
+    @ref SqlUtil::AbstractTable::upsertFromIteratorCommit() methods can be any iterator whose
+    @ref Qore::AbstractIterator::getValue() "getValue()" method returns a @ref hash_type "hash".
 
-    @note the @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
+    @note the @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c "commit_block" can be used to insert a
+    large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
 
     @subsection sql_upsert_from_select Upserting Many Rows from a Select Statement
 
-    To upsert or merge many rows from a select statement, use @ref SqlUtil::AbstractTable::upsertFromSelect() or @ref SqlUtil::AbstractTable::upsertFromSelectCommit() as in the following example:
+    To upsert or merge many rows from a select statement, use @ref SqlUtil::AbstractTable::upsertFromSelect() or
+    @ref SqlUtil::AbstractTable::upsertFromSelectCommit() as in the following example:
 
     @par Simple Example:
     @code{.py}
-table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")));
+table.upsertFromSelect(table2, {"where": {"account_type": "CUSTOMER"}});
     @endcode
 
     @par Complex Example With Callbacks:
@@ -1142,35 +1157,64 @@ table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")));
 int upsert_strategy = verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
 
 code callback = sub (string table_name, hash<auto> row, int result) {
-    if (result == AbstractTable::UR_Unchanged)
+    if (result == AbstractTable::UR_Unchanged) {
         return;
-    string change = AbstractTable::UpsertResultMap{result};
-    if (verbose)
+    }
+    if (verbose) {
+        string change = AbstractTable::UpsertResultMap{result};
         printf("*** reference data %s: %y: %s\n", table_name, row, change);
+    }
 };
 
-hash<auto> sh = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), upsert_strategy, False, ("info_callback": callback, "commit_block": 5000));
-if (sh)
-    printf("*** reference data %s: %s\n", table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), sh.pairIterator())));
-else
+hash<auto> sh = table.upsertFromSelect(table2, {
+        "where": {
+            "account_type": "CUSTOMER",
+        },
+    }, upsert_strategy, False, {
+        "info_callback": callback,
+        "commit_block": 5000,
+    }
+);
+if (sh) {
+    printf("*** reference data %s: %s\n", table.getName(), (
+        foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), sh.pairIterator())
+    ));
+} else {
     printf("*** reference data %s: OK\n", table.getName());
+}
     @endcode
 
-    The source table does not have to be in the same database or even of the same database type (ie you can upsert to and from any database type supported by SqlUtil).
+    The source table does not have to be in the same database or even of the same database type (ie you can upsert to
+    and from any database type supported by SqlUtil).
 
-    @note the @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
+    @note the @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c "commit_block" can be used to insert a
+    large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
 
     @subsection sql_upsert_with_delete Upserting Many Rows and Deleting Unwanted Rows
 
-    Call any of the batch upsert methods with @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others set to @ref True "True" to perform a batch upsert / merge operation on a table, and then scan the table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore for large tables this can be an expensive operation.
+    Call any of the batch upsert methods with @ref SqlUtil::AbstractTable::UpsertOptions "upsert option"
+    \c delete_others set to @ref True "True" to perform a batch upsert / merge operation on a table, and then scan the
+    table and delete any unwanted rows.  If there are no rows to be deleted, these calls have very similar performance
+    to the batch upsert method calls without any deletions, however, if there are rows to be deleted, then the entire
+    source table must be iterated to compare each row to valid data to delete the rows that do not belong.  Therefore
+    for large tables this can be an expensive operation.
 
-    The only difference in the following examples and the preceding ones is  any that @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True" in these examples. any
- any
+    The only difference in the following examples and the preceding ones is that
+    @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True" in these examples.
+
     @par Simple Example: any
     @code{.py}
 # get the rows to be inserted
 list<auto> l = get_table_rows();
-table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), AbstractTable::UpsertAuto, ("delete_others": True, "commit_block": 5000));
+table.upsertFromSelect(table2, {
+        "where": {
+            "account_type": "CUSTOMER",
+        },
+    }, AbstractTable::UpsertAuto, {
+        "delete_others": True,
+        "commit_block": 5000,
+    }
+);
     @endcode
 
     @par Complex Example With Callbacks:
@@ -1182,18 +1226,32 @@ int upsert_strategy = verbose ? AbstractTable::UpsertSelectFirst : AbstractTable
 list<auto> l = get_table_rows();
 
 code callback = sub (string table_name, hash<auto> row, int result) {
-    if (result == AbstractTable::UR_Unchanged)
+    if (result == AbstractTable::UR_Unchanged) {
         return;
-    string change = AbstractTable::UpsertResultMap{result};
-    if (verbose)
+    }
+    if (verbose) {
+        string change = AbstractTable::UpsertResultMap{result};
         printf("*** reference data %s: %y: %s\n", table_name, row, change);
+    }
 };
 
-hash<auto> sh = table.upsertFromSelect(table2, ("where": ("account_type": "CUSTOMER")), upsert_strategy, ("delete_others": True, "info_callback": callback, "commit_block": 5000));
-if (sh)
-    printf("*** reference data %s: %s\n", table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), sh.pairIterator())));
-else
+hash<auto> sh = table.upsertFromSelect(table2, {
+        "where": {
+            "account_type": "CUSTOMER",
+        },
+    }, upsert_strategy, {
+        "delete_others": True,
+        "info_callback": callback,
+        "commit_block": 5000,
+    }
+);
+if (sh) {
+    printf("*** reference data %s: %s\n", table.getName(), (
+        foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), sh.pairIterator())
+    ));
+} else {
     printf("*** reference data %s: OK\n", table.getName());
+}
     @endcode
 
     @note the @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c "commit_block" can be used to insert a large amount of data in pieces in order to avoid overwhelming the database server's rollback cache
@@ -2453,7 +2511,7 @@ public namespace SqlUtil {
         #! When executing a superquery, we can only reference colums in the subquery
         *hash<string, bool> subquery_column_map;
 
-        #! Any valid pseudocolumns
+        #! Any valid pseudocolumns or aliases generated in th query
         *hash<auto> pseudo_column_map;
 
         #! The expression map
@@ -2464,6 +2522,9 @@ public namespace SqlUtil {
 
         #! Any custom column operator map
         *hash<auto> column_operator_map;
+
+        #! arguments to bind in the query generated
+        list<auto> args;
     }
 
     #! a hash of default column operator descriptions
@@ -2471,12 +2532,12 @@ public namespace SqlUtil {
         COP_AS: (
             "arg": Type::String,
             "withalias": True,
-            "code": string sub (string cve, string arg, reference<hash<auto>> psch) {
+            "code": string sub (string cve, string arg, reference<hash<auto>> aliases) {
                 # issue #2163: make sure the unquoted alias is inserted in the map
                 if (arg =~ /^(".*"|`.*`)$/) {
-                    psch{arg.substr(1, -1)} = cve;
+                    aliases{arg.substr(1, -1)} = cve;
                 } else {
-                    psch{arg} = cve;
+                    aliases{arg} = cve;
                 }
                 return sprintf("%s as %s", cve, arg);
             },
@@ -2574,13 +2635,15 @@ public namespace SqlUtil {
         COP_SEQ: (
             "nocolumn": True,
             "code": string sub (*string cve, hash<auto> arg) {
-                throw "SEQUENCE-ERROR", sprintf("cannot select sequence %y because this database does not support sequences", arg.seq);
+                throw "SEQUENCE-ERROR", sprintf("cannot select sequence %y because this database does not support "
+                    "sequences", arg.seq);
             }
         ),
         COP_SEQ_CURRVAL: (
             "nocolumn": True,
             "code": string sub (*string cve, hash<auto> arg) {
-                throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support sequences", arg.seq);
+                throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this "
+                    "database does not support sequences", arg.seq);
             }
         ),
         COP_COALESCE: (
@@ -2612,9 +2675,9 @@ public namespace SqlUtil {
                 }
                 string sql = cve + " over (";
                 if (exists partitionby)
-                    sql += sprintf("partition by %s", partitionby); # TODO/FIXME: sql injection!
+                    sql += sprintf("partition by %s", partitionby);
                 if (exists orderby)
-                    sql += sprintf(" order by %s", orderby); # TODO/FIXME: sql injection!
+                    sql += sprintf(" order by %s", orderby);
                 sql += ")";
                 return sql;
             },
@@ -3387,7 +3450,7 @@ select ntile(10) over (partition by row_type order by id) as "ntile" from test_a
 
         @note MySQL DB family: This analytic function is available only in MariaDB 10.2 and later only.
 
-        @param value an integer value used as count of sp;it buckets
+        @param value an integer value used as count of buckets
 
         @return integer ranging from 1 to the argument value, dividing the partition as equally as possible
 
@@ -4407,23 +4470,19 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         # first the "AND" and "OR" "operators"
         DP_OP_AND: {
             "exp": AbstractDataProvider::GenericExpressions{DP_OP_AND},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return "("
                     + (foldl $1 + " and " + $2,
-                        (map info.table.getExpressionArg(info, $1, \bind_args, \aliases,
-                            AbstractDataProviderTypeMap."bool"), args))
+                        (map info.table.getExpressionArg(\info, role, $1, AbstractDataProviderTypeMap."bool"), args))
                     + ")";
             },
         },
         DP_OP_OR: {
             "exp": AbstractDataProvider::GenericExpressions{DP_OP_OR},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return "("
                     + (foldl $1 + " or " + $2,
-                        (map info.table.getExpressionArg(info, $1, \bind_args, \aliases,
-                            AbstractDataProviderTypeMap."bool"), args))
+                        (map info.table.getExpressionArg(\info, role, $1, AbstractDataProviderTypeMap."bool"), args))
                     + ")";
             },
         },
@@ -4440,133 +4499,108 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."bool",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return sprintf("%s like %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."string"),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."string"));
+                    info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."string"),
+                    info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."string"));
             },
         },
         OP_LT: {
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LT},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return sprintf("%s < %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"));
+                    info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any"));
             },
         },
         OP_LE: {
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LE},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return sprintf("%s <= %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"));
+                    info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any"));
             },
         },
         OP_GT: {
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GT},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return sprintf("%s > %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"));
+                    info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any"));
             },
         },
         OP_GE: {
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GE},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return sprintf("%s >= %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"));
+                    info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any"));
             },
         },
         OP_NE: {
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NE},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 bool null0 = (args[0] === NULL || !exists args[0]);
                 bool null1 = (args[1] === NULL || !exists args[1]);
                 if (null0 && null1) {
                     return "1 = 0";
                 }
                 if (null0) {
-                    return sprintf("%s is not null", info.table.getExpressionArg(info, args[1], \bind_args,
-                        \aliases));
+                    return sprintf("%s is not null",
+                        info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any"));
                 }
                 if (null1) {
-                    return sprintf("%s is not null", info.table.getExpressionArg(info, args[0], \bind_args),
-                        \aliases);
+                    return sprintf("%s is not null",
+                        info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any"));
                 }
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any");
                 return sprintf("%s != %s", exp0, exp1);
             },
         },
         OP_EQ: {
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_EQ},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 bool null0 = (args[0] === NULL || !exists args[0]);
                 bool null1 = (args[1] === NULL || !exists args[1]);
                 if (null0 && null1) {
                     return "1 = 1";
                 }
                 if (null0) {
-                    return sprintf("%s is null", info.table.getExpressionArg(info, args[1], \bind_args, \aliases));
+                    return sprintf("%s is null",
+                        info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any"));
                 }
                 if (null1) {
-                    return sprintf("%s is null", info.table.getExpressionArg(info, args[0], \bind_args, \aliases));
+                    return sprintf("%s is null",
+                        info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any"));
                 }
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any");
                 return sprintf("%s = %s", exp0, exp1);
             },
         },
         OP_BETWEEN: {
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_BETWEEN},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return sprintf("%s between %s and %s",
-                    info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"),
-                    info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"),
-                    info.table.getExpressionArg(info, args[2], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."any"));
+                    info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any"),
+                    info.table.getExpressionArg(\info, role, args[2], AbstractDataProviderTypeMap."any"));
             },
         },
         OP_IN: {
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, shift args, \bind_args, \aliases);
-                *string ins = (foldl $1 + "," + $2, (map info.table.getExpressionArg(info, $1, \bind_args, \aliases,
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string exp0 = info.table.getExpressionArg(\info, role, shift args, AbstractDataProviderTypeMap."any");
+                *string ins = (foldl $1 + "," + $2, (map info.table.getExpressionArg(\info, role, $1,
                     AbstractDataProviderTypeMap."any"), args));
                 return exists ins ? sprintf("%s in (%s)", exp0, ins) : "1 != 1";
             },
         },
         OP_NOT: {
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NOT},
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("not (%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                return sprintf("not (%s)", info.table.getExpressionArg(\info, role, args[0],
                     AbstractDataProviderTypeMap."bool"));
             },
         },
@@ -4584,18 +4618,14 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."string",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."string");
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."int");
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."string");
+                string exp1 = info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."int");
                 if (!exists args[2]) {
                     return sprintf("substring(%s from %s)", exp0, exp1);
                 }
                 return sprintf("substring(%s from %s for %s)", exp0, exp1,
-                    info.table.getExpressionArg(info, args[2], \bind_args, \aliases,
-                        AbstractDataProviderTypeMap."int"));
+                    info.table.getExpressionArg(\info, role, args[2], AbstractDataProviderTypeMap."int"));
             },
         },
         OP_IN_SELECT: {
@@ -4613,10 +4643,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."bool",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any");
                 object subtable = info.table.getSubtableFromString(args[1], info.query_options);
                 list<auto> subargs;
                 string subsql = subtable.getSelectSql(args[2], \subargs);
@@ -4638,12 +4666,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string exp = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any");
                 string arg = args[1];
-                aliases{arg} = exp;
+                info.pseudo_column_map{arg} = exp;
                 return sprintf("%s as %s", exp, info.table.getColumnSqlName(arg));
             },
         },
@@ -4661,12 +4687,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."string",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."string");
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."string");
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."string");
+                string exp1 = info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."string");
                 return sprintf("%s || %s", exp1, exp0);
             },
         },
@@ -4684,12 +4707,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."string",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."string");
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."string");
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."string");
+                string exp1 = info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."string");
                 return sprintf("%s || %s", exp0, exp1);
             },
         },
@@ -4705,9 +4725,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."string",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("upper(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                return sprintf("upper(%s)", info.table.getExpressionArg(\info, role, args[0],
                     AbstractDataProviderTypeMap."string"));
             },
         },
@@ -4723,9 +4742,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."string",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("lower(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                return sprintf("lower(%s)", info.table.getExpressionArg(\info, role, args[0],
                     AbstractDataProviderTypeMap."string"));
             },
         },
@@ -4742,9 +4760,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("distinct %s", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+            "code": string sub (reference<hash<QueryInfo>> info, int role, *list<auto> args) {
+                return sprintf("distinct %s", info.table.getExpressionArg(\info, role, args[0],
                     AbstractDataProviderTypeMap."any"));
             },
         },
@@ -4761,9 +4778,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("min(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+            "code": string sub (reference<hash<QueryInfo>> info, int role, *list<auto> args) {
+                return sprintf("min(%s)", info.table.getExpressionArg(\info, role, args[0],
                     AbstractDataProviderTypeMap."any"));
             },
             "group": True,
@@ -4781,9 +4797,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("max(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+            "code": string sub (reference<hash<QueryInfo>> info, int role, *list<auto> args) {
+                return sprintf("max(%s)", info.table.getExpressionArg(\info, role, args[0],
                     AbstractDataProviderTypeMap."any"));
             },
             "group": True,
@@ -4801,9 +4816,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("avg(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+            "code": string sub (reference<hash<QueryInfo>> info, int role, *list<auto> args) {
+                return sprintf("avg(%s)", info.table.getExpressionArg(\info, role, args[0],
                     AbstractDataProviderTypeMap."any"));
             },
             "group": True,
@@ -4821,9 +4835,8 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("sum(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+            "code": string sub (reference<hash<QueryInfo>> info, int role, *list<auto> args) {
+                return sprintf("sum(%s)", info.table.getExpressionArg(\info, role, args[0],
                     AbstractDataProviderTypeMap."any"));
             },
             "group": True,
@@ -4841,10 +4854,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."int",
             },
-            "code": string sub (hash<QueryInfo> info, *list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, *list<auto> args) {
                 if (exists args[0] && args[0] != NULL) {
-                    return sprintf("count(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    return sprintf("count(%s)", info.table.getExpressionArg(\info, role, args[0],
                         AbstractDataProviderTypeMap."any"));
                 }
                 return "count(1)";
@@ -4863,12 +4875,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any");
                 return sprintf("%s - %s", exp0, exp1);
             },
         },
@@ -4885,12 +4894,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any");
                 return sprintf("%s + %s", exp0, exp1);
             },
         },
@@ -4907,12 +4913,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any");
                 return sprintf("%s / %s", exp0, exp1);
             },
         },
@@ -4929,12 +4932,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
-                string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
-                    AbstractDataProviderTypeMap."any");
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any");
+                string exp1 = info.table.getExpressionArg(\info, role, args[1], AbstractDataProviderTypeMap."any");
                 return sprintf("%s * %s", exp0, exp1);
             },
         },
@@ -4951,11 +4951,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 "varargs": True,
                 "return_type": AbstractDataProviderTypeMap."any",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return sprintf("coalesce(%s)", (foldl $1 + "," + $2,
-                    (map info.table.getExpressionArg(info, $1, \bind_args, \aliases), args,
-                        AbstractDataProviderTypeMap."any")));
+                    (map info.table.getExpressionArg(\info, role, $1, AbstractDataProviderTypeMap."any"), args)));
             }
         },
         COP_LENGTH: {
@@ -4970,109 +4968,215 @@ int rows_updated = t.update(("counter": uop_divide(2)));
                 ),
                 "return_type": AbstractDataProviderTypeMap."int",
             },
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("length(%s)", info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                return sprintf("length(%s)", info.table.getExpressionArg(\info, role, args[0],
                     AbstractDataProviderTypeMap."any"));
             },
         },
-        /*
-        COP_SEQ: (
-            "nocolumn": True,
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+        COP_SEQ: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_SEQ,
+                "name": COP_SEQ,
+                "desc": "returns the next value in the given sequence; args: sequence name",
+                "symbol": COP_SEQ,
+                "args": (
+                    DataProviderSignatureStringValueType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."int",
+            },
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 throw "SEQUENCE-ERROR", sprintf("cannot select sequence %y because this database does not support "
-                    "sequences", arg.seq);
+                    "sequences", args[0]);
             }
-        ),
-        COP_SEQ_CURRVAL: (
-            "nocolumn": True,
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this database does not support sequences", arg.seq);
+        },
+        COP_SEQ_CURRVAL: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_SEQ_CURRVAL,
+                "name": COP_SEQ_CURRVAL,
+                "desc": "returns the current value in the given sequence; args: sequence name",
+                "symbol": COP_SEQ_CURRVAL,
+                "args": (
+                    DataProviderSignatureStringValueType,
+                ),
+                "return_type": AbstractDataProviderTypeMap."int",
+            },
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                throw "SEQUENCE-ERROR", sprintf("cannot select the current value of sequence %y because this "
+                    "database does not support sequences", args[0]);
             }
-        ),
-        COP_OVER: (
-            "columnargs" : True,
-            "columnargs_ignore_nothings" : True,
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                *string partitionby = args.args[0];
-                *string orderby = args.args[1];
+        },
+        COP_OVER: {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_OVER,
+                "name": COP_OVER,
+                "desc": "returns the output of the SQL window given by the arguments; args: *string partiion by, "
+                    "*string order by",
+                "symbol": COP_OVER,
+                "args": (
+                    DataProviderSignatureFieldType,
+                    DataProviderSignatureOptionalStringValueType,
+                    DataProviderSignatureOptionalStringValueType,
+                ),
+                "role": ER_Field,
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                string column_name = args[0];
+                *string partitionby = args[1];
+                *string orderby = args[2];
                 if (!exists partitionby && exists orderby) {
-                    throw "COP-OVER-ERROR", "Argument 'partitionby' must be given in case of usage of 'orderby'";
+                    throw "OVER-ERROR", "Argument 2 (partition by) must be given in case of usage of argument 3 "
+                        "(order by)";
                 }
-                string sql = cve + " over (";
-                if (exists partitionby)
-                    sql += sprintf("partition by %s", partitionby); # TODO/FIXME: sql injection!
-                if (exists orderby)
-                    sql += sprintf(" order by %s", orderby); # TODO/FIXME: sql injection!
+                string sql = column_name + " over (";
+                Columns cols;
+                if (exists partitionby) {
+                    if (!info.pseudo_column_map{partitionby}) {
+                        cols = info.table.describe();
+                        if (!exists cols{partitionby}) {
+                            throw "OVER-ERROR", sprintf("Argument 2 (partition by) %y is not an alias or an "
+                                "accessible column", partitionby);
+                        }
+                    }
+                    sql += sprintf("partition by %s", partitionby);
+                }
+                if (exists orderby) {
+                    if (!info.pseudo_column_map{orderby}) {
+                        if (!cols) {
+                            cols = info.table.describe();
+                            if (!exists cols{orderby}) {
+                                throw "OVER-ERROR", sprintf("Argument 3 (order by) %y is not an alias or an "
+                                    "accessible column", orderby);
+                            }
+                        }
+                    }
+                    sql += sprintf(" order by %s", orderby);
+                }
                 sql += ")";
                 return sql;
-            },
-        ),
-        COP_CUME_DIST: (
-            "nocolumn": True,
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return "cume_dist()";
-            },
-        ),
+            }
+        },
         COP_DENSE_RANK: (
-            "nocolumn": True,
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_DENSE_RANK,
+                "name": COP_DENSE_RANK,
+                "desc": "Returns the rank of a row in an ordered group of rows as a number",
+                "symbol": COP_DENSE_RANK,
+                "args": (),
+                "role": ER_Field,
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                return "dense_rank()";
             },
         ),
         COP_FIRST_VALUE: (
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("first_value(%s)", cve);
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_FIRST_VALUE,
+                "name": COP_FIRST_VALUE,
+                "desc": "Returns the first value in an ordered group of rows",
+                "symbol": COP_FIRST_VALUE,
+                "args": (
+                    DataProviderSignatureFieldType,
+                ),
+                "role": ER_Field,
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                return sprintf("first_value(%s)", args[0]);
             },
         ),
         COP_LAST_VALUE: (
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("last_value(%s)", cve);
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_LAST_VALUE,
+                "name": COP_LAST_VALUE,
+                "desc": "Returns the last value in an ordered group of rows",
+                "symbol": COP_LAST_VALUE,
+                "args": (
+                    DataProviderSignatureFieldType,
+                ),
+                "role": ER_Field,
+                "return_type": AbstractDataProviderTypeMap."any",
+            },
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                return sprintf("last_value(%s)", args[0]);
             },
         ),
         COP_NTILE: (
-            "sqlvalue": True,
-            "nocolumn": True,
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
-                return sprintf("ntile(%d)", arg);
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_NTILE,
+                "name": COP_NTILE,
+                "desc": "Returns the group number of an ordered group of rows",
+                "symbol": COP_NTILE,
+                "args": (
+                    DataProviderSignatureIntValueType,
+                ),
+                "role": ER_Field,
+                "return_type": AbstractDataProviderTypeMap."int",
+            },
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                return sprintf("ntile(%d)", args[0]);
             },
         ),
         COP_PERCENT_RANK: (
-            "nocolumn": True,
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_PERCENT_RANK,
+                "name": COP_PERCENT_RANK,
+                "desc": "Returns the percent rank of a row in an ordered group of rows",
+                "symbol": COP_PERCENT_RANK,
+                "args": (),
+                "role": ER_Field,
+                "return_type": AbstractDataProviderTypeMap."int",
+            },
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return "percent_rank()";
             },
         ),
         COP_RANK: (
-            "nocolumn": True,
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_PERCENT_RANK,
+                "name": COP_PERCENT_RANK,
+                "desc": "Returns the row number of a row in an ordered group of rows",
+                "symbol": COP_PERCENT_RANK,
+                "args": (),
+                "role": ER_Field,
+                "return_type": AbstractDataProviderTypeMap."int",
+            },
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return "rank()";
             },
         ),
         COP_ROW_NUMBER: (
-            "nocolumn": True,
-            "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                    reference<hash<auto>> aliases) {
+            "exp": <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": COP_ROW_NUMBER,
+                "name": COP_ROW_NUMBER,
+                "desc": "Returns the row number of a result set",
+                "symbol": COP_ROW_NUMBER,
+                "args": (),
+                "role": ER_Field,
+                "return_type": AbstractDataProviderTypeMap."int",
+            },
+            "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                 return "row_number()";
             },
         ),
-        */
     };
 
     #! a hash of valid operators for use in @ref where_clauses
     public const DefaultOpMap = {
         OP_LIKE: {
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
-                args += arg;
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
+                info.args += arg;
                 return sprintf("%s like %v", cn);
             },
             "name": "like",
@@ -5081,60 +5185,60 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "desc": "The value to bind as the 'like' value (ex: '%some string%')",
         },
         OP_LT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LT} + (
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
-                args += arg;
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
+                info.args += arg;
                 return sprintf("%s < %v", cn);
             },
         ),
         OP_LE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_LE} + (
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
-                args += arg;
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
+                info.args += arg;
                 return sprintf("%s <= %v", cn);
             },
         ),
         OP_GT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GT} + (
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
-                args += arg;
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
+                info.args += arg;
                 return sprintf("%s > %v", cn);
             },
         ),
         OP_GE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_GE} + (
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
-                args += arg;
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
+                info.args += arg;
                 return sprintf("%s >= %v", cn);
             },
         ),
         OP_NE: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NE} + (
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is not null", cn);
-                args += arg;
+                info.args += arg;
                 return sprintf("(%s != %v or %s is null)", cn, cn);
             },
         ),
         OP_EQ: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_EQ} + (
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
                 if (arg === NULL || !exists arg)
                     return sprintf("%s is null", cn);
-                args += arg;
+                info.args += arg;
                 return sprintf("%s = %v", cn);
             },
         ),
         OP_BETWEEN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_BETWEEN} + (
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
-                args += arg[0];
-                args += arg[1];
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
+                info.args += arg[0];
+                info.args += arg[1];
                 return sprintf("%s between %v and %v", cn);
             },
         ),
         OP_IN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN} + (
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
                 *string ins = (foldl $1 + "," + $2, (map info.table.getSqlValue($1), arg));
                 return exists ins ? sprintf("%s in (%s)", cn, ins) : "1 != 1";
             },
         ),
         OP_IN_SELECT: {
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args,
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg,
                     *hash<auto> opt) {
                 object subtable;
                 if (arg.table.typeCode() == NT_STRING) {
@@ -5145,20 +5249,20 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
                 list<auto> subargs;
                 string subsql = subtable.getSelectSql(arg.select_hash, \subargs);
-                args += subargs;
+                info.args += subargs;
                 return sprintf("%s in (%s)", cn, subsql);
             },
             "withopt": True,
         },
         OP_NOT: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_NOT} + (
             "recursive": True,
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
                 return sprintf("not (%s)", cn);
             },
         ),
         OP_CLT: (
             "argcolumn": True,
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
                 return sprintf("%s < %s", cn, arg);
             },
             "name": "column <",
@@ -5168,7 +5272,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_CLE: (
             "argcolumn": True,
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
                 return sprintf("%s <= %s", cn, arg);
             },
             "name": "column <=",
@@ -5178,7 +5282,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_CGT: (
             "argcolumn": True,
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
                 return sprintf("%s > %s", cn, arg);
             },
             "name": "column >",
@@ -5188,7 +5292,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_CGE: (
             "argcolumn": True,
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
                 return sprintf("%s >= %s", cn, arg);
             },
             "name": "column >=",
@@ -5199,7 +5303,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_CNE: (
             "argcolumn": True,
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
                 return sprintf("%s != %s", cn, arg);
             },
             "name": "column !=",
@@ -5208,7 +5312,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         ),
         OP_CEQ: (
             "argcolumn": True,
-            "code": string sub (hash<QueryInfo> info, string cn, string arg, reference<list<auto>> args) {
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, string arg) {
                 return sprintf("%s = %s", cn, arg);
             },
             "name": "column =",
@@ -5216,20 +5320,20 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             "desc": "a value for equality comparisons; the other column must have a compatible type",
         ),
         OP_SUBSTR: (
-            "code": string sub (hash<QueryInfo> info, string cn, auto arg, reference<list<auto>> args) {
-                args += arg[0]; # start
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
+                info.args += arg[0]; # start
                 if (!exists arg[1]) {
-                    args += arg[2]; # text
+                    info.args += arg[2]; # text
                     return sprintf("substring(%s from %v) = %v", cn);
                 }
-                args += arg[1]; # count
-                args += arg[2]; # text
+                info.args += arg[1]; # count
+                info.args += arg[2]; # text
                 return sprintf("substring(%s from %v for %v) = %v", cn);
             },
         ),
         OP_OR: (
-            "code": string sub (hash<QueryInfo> info, string cn, list<auto> arg, reference<list<auto>> args) {
-                return info.table.getOrClause(info, arg, \args);
+            "code": string sub (reference<hash<QueryInfo>> info, string cn, list<auto> arg) {
+                return info.table.getOrClause(\info, arg);
             },
         ),
     };

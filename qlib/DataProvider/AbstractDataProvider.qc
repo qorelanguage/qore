@@ -214,16 +214,22 @@ public const DataProviderSignatureFieldType = <DataProviderSignatureTypeInfo>{
     "type_code": ST_Field,
 };
 
+#! Data provider signature any type
+public const DataProviderSignatureAnyType = <DataProviderSignatureTypeInfo>{
+    "type": AbstractDataProviderTypeMap."any",
+    "type_code": ST_Any,
+};
+
 #! Data provider signature string value type
 public const DataProviderSignatureStringValueType = <DataProviderSignatureTypeInfo>{
     "type": AbstractDataProviderTypeMap."string",
     "type_code": ST_Value,
 };
 
-#! Data provider signature any type
-public const DataProviderSignatureAnyType = <DataProviderSignatureTypeInfo>{
-    "type": AbstractDataProviderTypeMap."any",
-    "type_code": ST_Any,
+#! Data provider signature optional string value type
+public const DataProviderSignatureOptionalStringValueType = <DataProviderSignatureTypeInfo>{
+    "type": AbstractDataProviderTypeMap."*string",
+    "type_code": ST_Value,
 };
 
 #! Data provider signature int value type
@@ -259,6 +265,12 @@ public const DataProviderSignatureBoolType = <DataProviderSignatureTypeInfo>{
 #! Data provider signature string type
 public const DataProviderSignatureStringType = <DataProviderSignatureTypeInfo>{
     "type": AbstractDataProviderTypeMap."string",
+    "type_code": ST_Any,
+};
+
+#! Data provider signature date type
+public const DataProviderSignatureDateType = <DataProviderSignatureTypeInfo>{
+    "type": AbstractDataProviderTypeMap."date",
     "type_code": ST_Any,
 };
 

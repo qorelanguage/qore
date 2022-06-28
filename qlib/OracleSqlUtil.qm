@@ -2022,26 +2022,280 @@ auto v = c.name;
             #! Oracle Expression map
             const OracleExpressionMap = DefaultExpressionMap + {
                 OP_SUBSTR: DefaultExpressionMap{OP_SUBSTR} + {
-                    "code": string sub (hash<QueryInfo> info, list<auto> args, reference<list<auto>> bind_args,
-                            reference<hash<auto>> aliases) {
-                        string exp0 = info.table.getExpressionArg(info, args[0], \bind_args, \aliases,
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
                             AbstractDataProviderTypeMap."string");
-                        string exp1 = info.table.getExpressionArg(info, args[1], \bind_args, \aliases,
+                        string exp1 = info.table.getExpressionArg(\info, role, args[1],
                             AbstractDataProviderTypeMap."int");
                         if (!exists args[2]) {
                             return sprintf("substr(%s,%s)", exp0, exp1);
                         }
                         return sprintf("substr(%s,%s,%s)", exp0, exp1,
-                            info.table.getExpressionArg(info, args[2], \bind_args, \aliases,
-                                AbstractDataProviderTypeMap."int"));
+                            info.table.getExpressionArg(\info, role, args[2], AbstractDataProviderTypeMap."int"));
                     },
+                },
+                COP_CAST: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_CAST,
+                        "name": "cast",
+                        "desc": "cast operator",
+                        "symbol": "cast",
+                        "args": (
+                            DataProviderSignatureAnyType,
+                            DataProviderSignatureStringValueType,
+                            DataProviderSignatureOptionalIntValueType,
+                            DataProviderSignatureOptionalIntValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."any",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."any");
+                        string name = QoreTypeMap{args[1]} ?? args[1];
+                        *hash<auto> desc = OraTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", exp0, name);
+                        if (desc.size == SZ_MAND) {
+                            if (!exists args[1] && !exists desc.size_range)
+                                throw "OPERATOR-ERROR", sprintf ("cast operator missing size for type %s",
+                                    name);
+                            sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                        } else if (desc.size == SZ_NUM && exists args[1]) {
+                            sql += sprintf("(%d", args[1]);
+                            sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                        } else if (desc.size == SZ_OPT && exists args[1]) {
+                            sql += sprintf("(%d)", args[1]);
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                },
+                COP_YEAR: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR,
+                        "name": COP_YEAR,
+                        "desc": "returns the year component of a date as a string (ex: `2022`)",
+                        "symbol": COP_YEAR,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("to_char(%s, 'YYYY')", exp0);
+                    }
+                },
+                COP_YEAR_MONTH: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR_MONTH,
+                        "name": COP_YEAR_MONTH,
+                        "desc": "returns the year and month components of a date as a string (ex: `2022-06`)",
+                        "symbol": COP_YEAR_MONTH,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("to_char(%s, 'YYYY-MM')", exp0);
+                    }
+                },
+                COP_YEAR_DAY: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR_DAY,
+                        "name": COP_YEAR_DAY,
+                        "desc": "returns the year, month, and day components of a date as a string (ex: `2022-06-29`)",
+                        "symbol": COP_YEAR_DAY,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("to_char(%s, 'YYYY-MM-DD')", exp0);
+                    }
+                },
+                COP_YEAR_HOUR: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR_HOUR,
+                        "name": COP_YEAR_HOUR,
+                        "desc": "returns the year, month, day, and hour components of a date as a string "
+                            "(ex: `2022-06-29 15`)",
+                        "symbol": COP_YEAR_HOUR,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("to_char(%s, 'YYYY-MM-DD HH24')", exp0);
+                    }
+                },
+                COP_TRUNC_DATE: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_TRUNC_DATE,
+                        "name": COP_TRUNC_DATE,
+                        "desc": "truncates the given date to the given resolution; args: date, string code: Y: year, "
+                            "M: month, D: day, H: hour, m: minute, S: second",
+                        "symbol": COP_TRUNC_DATE,
+                        "args": (
+                            DataProviderSignatureDateType,
+                            DataProviderSignatureStringValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."date",
+                    },
+                    "code": string sub(reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        *string str = OracleTruncDate{args[1]};
+                        if (!str && !OracleTruncDate.hasKey(args[1])) {
+                            throw "TRUNC-DATE-ERROR", sprintf("unknown date truncation format argument %y; "
+                                "supported date format arguments: %y", args[1], keys OracleTruncDate);
+                        }
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        if (str) {
+                            return sprintf("trunc(%s, %s)", exp0, str);
+                        }
+                        # for timestamps
+                        return sprintf("cast (%s as date)", exp0);
+                    },
+                },
+                OP_IN: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": OP_IN,
+                        "name": OP_IN,
+                        "desc": "returns True if the first value is in the list of following values",
+                        "symbol": OP_IN,
+                        "args": (
+                            DataProviderSignatureAnyType,
+                            DataProviderSignatureAnyType,
+                        ),
+                        "varargs": True,
+                        "return_type": AbstractDataProviderTypeMap."bool",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+%ifndef NO_ORACLE
+                        auto val = shift args;
+                        # Qorus bug #989 SqlUtil: oracle op_in can fail in large amount of input elements
+                        # There is no support for CLOBs in WHERE clause in Oracle at all.
+                        # Binding large strings (over 4000 chars is performed by a CLOB in Qore driver.
+                        # Result of op_in operator can be "ORA-00932: inconsistent datatypes" if is
+                        # the list longer or if it contains large items with:
+                        # return cn + " in (select regexp_substr(%v,'[^,]+', 1, level) from dual connect by
+                        # regexp_substr(%v, '[^,]+', 1, level) is not null)";
+
+                        # determine list members type. Let's assume the 1st non NULL/NOTHING
+                        # element gives the type code for all elements.
+                        ListIterator it(args);
+                        # get list type code
+                        int ltype;
+                        while (it.next()) {
+                            switch (it.getValue().typeCode()) {
+                                case NT_NULL:
+                                case NT_NOTHING:
+                                    continue;
+                                case NT_DATE:
+                                case NT_INT:
+                                case NT_FLOAT:
+                                case NT_NUMBER:
+                                case NT_STRING:
+                                    ltype = it.getValue().typeCode();
+                                    break;
+                                default:
+                                    throw "ORACLE-IN-OPERATOR-ERROR", sprintf("the \"in\" operator unexpected list "
+                                        "element type: %s; only simple types are supported", it.getValue().type());
+                            }
+                            if (ltype) {
+                                break;
+                            }
+                        }
+
+                        # Split long array to chunks of no more than 32767 elements due to Oracle limitation
+                        # "ORA-22165: OCI-22165: given index [32767] must be in the range of [0] to [32766]"
+                        int count;
+                        while (args) {
+                            ++count;
+                            list<auto> chunk = extract args, 0, 32767;
+
+                            # Bind to Oracle by expected type
+                            switch (ltype) {
+                                case NT_DATE:
+                                    info.args += bindOracleCollection("SYS.ODCIDATELIST", chunk);
+                                    break;
+                                case NT_INT:
+                                case NT_FLOAT:
+                                case NT_NUMBER:
+                                    info.args += bindOracleCollection("SYS.ODCINUMBERLIST", chunk);
+                                    break;
+                                default:
+                                    info.args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", chunk);
+                            }
+                        }
+
+                        if (count) {
+                            string exp0 = info.table.getExpressionArg(\info, role, val,
+                                AbstractDataProviderTypeMap."date");
+                            return exp0 + " in (" + (map "select column_value from table(%v)",
+                                xrange(count)).join(" union all ") + ")";
+                        } else {
+                            return "1 != 1";
+                        }
+%else
+                        throw "MISSING-ORACLE-DRIVER", "requires the oracle driver";
+%endif
+                    },
+                },
+                COP_SEQ: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_SEQ,
+                        "name": COP_SEQ,
+                        "desc": "returns the next value in the given sequence; args: sequence name",
+                        "symbol": COP_SEQ,
+                        "args": (
+                            DataProviderSignatureStringValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."int",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        return sprintf("%s.nextval", args[0]);
+                    }
+                },
+                COP_SEQ_CURRVAL: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_SEQ_CURRVAL,
+                        "name": COP_SEQ_CURRVAL,
+                        "desc": "returns the current value in the given sequence; args: sequence name",
+                        "symbol": COP_SEQ_CURRVAL,
+                        "args": (
+                            DataProviderSignatureStringValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."int",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        return sprintf("%s.currval", args[0]);
+                    }
                 },
             };
 
             #! where operator specializations for Oracle
             const OracleOpMap = DefaultOpMap + (
                 OP_IN: (
-                    "code": string sub (hash<QueryInfo> info, string cn, softlist arg, reference<list> args) {
+                    "code": string sub (reference<hash<QueryInfo>> info, string cn, softlist arg) {
 %ifndef NO_ORACLE
                         # Qorus bug #989 SqlUtil: oracle op_in can fail in large amount of input elements
                         # There is no support for CLOBs in WHERE clause in Oracle at all.
@@ -2082,15 +2336,15 @@ auto v = c.name;
                             # Bind to Oracle by expected type
                             switch (ltype) {
                                 case NT_DATE:
-                                    args += bindOracleCollection("SYS.ODCIDATELIST", chunk);
+                                    info.args += bindOracleCollection("SYS.ODCIDATELIST", chunk);
                                     break;
                                 case NT_INT:
                                 case NT_FLOAT:
                                 case NT_NUMBER:
-                                    args += bindOracleCollection("SYS.ODCINUMBERLIST", chunk);
+                                    info.args += bindOracleCollection("SYS.ODCINUMBERLIST", chunk);
                                     break;
                                 default:
-                                    args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", chunk);
+                                    info.args += bindOracleCollection("SYS.ODCIVARCHAR2LIST", chunk);
                             }
                         }
 
@@ -2105,14 +2359,14 @@ auto v = c.name;
                     },
                 ),
                 OP_SUBSTR: (
-                    "code": string sub (hash<QueryInfo> info, string cn, softlist arg, reference<list> args) {
-                        args += arg[0]; # start
+                    "code": string sub (reference<hash<QueryInfo>> info, string cn, softlist arg) {
+                        info.args += arg[0]; # start
                         if (!exists arg[1]) {
-                            args += arg[2]; # text
+                            info.args += arg[2]; # text
                             return sprintf("substr(%s,%v) = %v", cn);
                         }
-                        args += arg[1]; # count
-                        args += arg[2]; # text
+                        info.args += arg[1]; # count
+                        info.args += arg[2]; # text
                         return sprintf("substr(%s,%v,%v) = %v", cn);
                     },
                 ),
@@ -2131,12 +2385,10 @@ auto v = c.name;
                                     if (!exists args[1] && !exists desc.size_range)
                                         throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s", name);
                                     sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
-                                }
-                                else if (desc.size == SZ_NUM && exists args[1]) {
+                                } else if (desc.size == SZ_NUM && exists args[1]) {
                                     sql += args[1] == "*" ? "(*" : sprintf("(%d", args[1]);
                                     sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
-                                }
-                                else if (desc.size == SZ_OPT && exists args[1]) {
+                                } else if (desc.size == SZ_OPT && exists args[1]) {
                                     sql += sprintf("(%d)", args[1]);
                                 }
                         }
@@ -2198,7 +2450,8 @@ auto v = c.name;
                 COP_TRUNC_DATE: (
                     "code": string sub(string arg1, auto arg) {
                         if (!OracleTruncDate.hasKey(arg)) {
-                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %y: allowed: %y", arg, OracleTruncDate.keys());
+                            throw "COP-TRUNC-DATE-ERROR", sprintf("Not allowed format argument: %y: allowed: %y", arg,
+                                OracleTruncDate.keys());
                         }
                         # seconds are not part of TRUNC() in oracle
                         if (exists OracleTruncDate{arg}) {
@@ -2624,20 +2877,20 @@ auto v = c.name;
             splice sql, i + 5, 0, sprintf(" /*+ first_rows(%d) */", qh.limit);
         }
 
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
-                reference<list<auto>> args, list<auto> coll) {
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+                list<auto> coll) {
             # Oracle 12c+ supports limit (fetch) and offset
             if (optimizedLimit(info.query_hash)) {
-                doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
+                doSelectOrderBySqlUnlocked(info, \sql, coll);
 
                 if (info.query_hash.offset) {
                     sql += " offset %v rows";
-                    args += info.query_hash.offset;
+                    info.args += info.query_hash.offset;
                 }
 
                 if (info.query_hash.limit) {
                     sql += " fetch next %v rows only";
-                    args += info.query_hash.limit;
+                    info.args += info.query_hash.limit;
                 }
 
                 return;
@@ -2656,19 +2909,19 @@ auto v = c.name;
                 info.query_hash.desc ? " desc" : "");
             if (info.query_hash.offset)
                 info.query_hash.limit += info.query_hash.offset;
-            args += info.query_hash.limit;
-            args += info.query_hash.offset ? info.query_hash.offset : 0;
+            info.args += info.query_hash.limit;
+            info.args += info.query_hash.offset ? info.query_hash.offset : 0;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list<auto>> args) {
+        private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
             if (!info.query_hash.limit)
                 return;
 
             # Oracle 12c+ supports limit (fetch) and offset
             if (optimizedLimit(info.query_hash)) {
                 sql += " fetch next %v rows only";
-                args += info.query_hash.limit;
+                info.args += info.query_hash.limit;
                 return;
             }
 
@@ -2680,7 +2933,7 @@ auto v = c.name;
                 sql += ") and ";
             }
             sql += "rownum <= %v";
-            args += info.query_hash.limit;
+            info.args += info.query_hash.limit;
             if (sql.find(" /*+ first_rows(") == -1) {
                 insertLimitOptimizerHint(info.query_hash, \sql);
             }

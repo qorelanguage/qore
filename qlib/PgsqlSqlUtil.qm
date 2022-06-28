@@ -431,8 +431,9 @@ public namespace PgsqlSqlUtil {
         }
 
         #! returns a string that can be used to create the constraint in the database
-        string getCreateSql(string name, string table_name, *hash opt) {
-            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name, (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+        string getCreateSql(string name, string table_name, *hash<auto> opt) {
+            return sprintf("alter table %s add constraint %s foreign key (%s) references %s (%s)", table_name, name,
+                (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
         }
     }
 
@@ -1590,7 +1591,9 @@ auto v = c.name;
                 SqlUtil::BLOB: "bytea",
             );
 
-            #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "functions" for table functions required by triggers on the table
+            #! extends @ref SqlUtil::AbstractTable::TableDescriptionHashOptions with \c "functions"
+            /** for table functions required by triggers on the table
+            */
             const PgsqlTableDescriptionHashOptions = AbstractTable::TableDescriptionHashOptions + (
                 "functions": Type::Hash,
             );
@@ -1610,7 +1613,7 @@ auto v = c.name;
             const PgsqlAlignTableOptions = AbstractTable::AlignTableOptions + PgsqlTableCreationOptions;
 
             #! Expression map for PostgreSQL
-            const PgsqlExpressionMap = {
+            const PgsqlExpressionMap = DefaultExpressionMap + {
                 COP_CAST: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
@@ -1619,34 +1622,163 @@ auto v = c.name;
                         "desc": "cast operator",
                         "symbol": "cast",
                         "args": (
-                            DataProviderSignatureFieldType,
+                            DataProviderSignatureAnyType,
                             DataProviderSignatureStringValueType,
                             DataProviderSignatureOptionalIntValueType,
-                            DataProviderSignatureOptionalIntValueType),
-                        "varargs": True,
+                            DataProviderSignatureOptionalIntValueType,
+                        ),
                         "return_type": AbstractDataProviderTypeMap."any",
                     },
-                    "code": string sub (string cve, list<auto> args) {
-                        string name = QoreTypeMap{args[0]} ?? args[0];
-                        hash desc = PgsqlTypeMap{name};
-                        string sql = sprintf ("cast (%s as %s", cve, name);
-                        switch (name) {
-                            default:
-                                if (desc.size == SZ_MAND) {
-                                    if (!exists args[1] && !exists desc.size_range)
-                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s",
-                                            name);
-                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
-                                } else if (desc.size == SZ_NUM && exists args[1]) {
-                                    sql += sprintf("(%d", args[1]);
-                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
-                                } else if (desc.size == SZ_OPT && exists args[1]) {
-                                    sql += sprintf("(%d)", args[1]);
-                                }
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."any");
+                        string name = QoreTypeMap{args[1]} ?? args[1];
+                        *hash<auto> desc = PgsqlTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", exp0, name);
+                        if (desc.size == SZ_MAND) {
+                            if (!exists args[1] && !exists desc.size_range)
+                                throw "OPERATOR-ERROR", sprintf ("cast operator missing size for type %s",
+                                    name);
+                            sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                        } else if (desc.size == SZ_NUM && exists args[1]) {
+                            sql += sprintf("(%d", args[1]);
+                            sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                        } else if (desc.size == SZ_OPT && exists args[1]) {
+                            sql += sprintf("(%d)", args[1]);
                         }
                         sql += ")";
                         return sql;
                     },
+                },
+                COP_YEAR: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR,
+                        "name": COP_YEAR,
+                        "desc": "returns the year component of a date as a string (ex: `2022`)",
+                        "symbol": COP_YEAR,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("to_char(%s, 'YYYY')", exp0);
+                    }
+                },
+                COP_YEAR_MONTH: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR_MONTH,
+                        "name": COP_YEAR_MONTH,
+                        "desc": "returns the year and month components of a date as a string (ex: `2022-06`)",
+                        "symbol": COP_YEAR_MONTH,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("to_char(%s, 'YYYY-MM')", exp0);
+                    }
+                },
+                COP_YEAR_DAY: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR_DAY,
+                        "name": COP_YEAR_DAY,
+                        "desc": "returns the year, month, and day components of a date as a string (ex: `2022-06-29`)",
+                        "symbol": COP_YEAR_DAY,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("to_char(%s, 'YYYY-MM-DD')", exp0);
+                    }
+                },
+                COP_YEAR_HOUR: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_YEAR_HOUR,
+                        "name": COP_YEAR_HOUR,
+                        "desc": "returns the year, month, day, and hour components of a date as a string "
+                            "(ex: `2022-06-29 15`)",
+                        "symbol": COP_YEAR_HOUR,
+                        "args": (
+                            DataProviderSignatureDateType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."string",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("to_char(%s, 'YYYY-MM-DD HH24')", exp0);
+                    }
+                },
+                COP_TRUNC_DATE: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_TRUNC_DATE,
+                        "name": COP_TRUNC_DATE,
+                        "desc": "truncates the given date to the given resolution; args: date, string code: Y: year, "
+                            "M: month, D: day, H: hour, m: minute, S: second",
+                        "symbol": COP_TRUNC_DATE,
+                        "args": (
+                            DataProviderSignatureDateType,
+                            DataProviderSignatureStringValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."date",
+                    },
+                    "code": string sub(reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        *string str = PgsqlTruncDate{args[1]};
+                        if (!str) {
+                            throw "TRUNC-DATE-ERROR", sprintf("unknown date truncation format argument %y; "
+                                "supported date format arguments: %y", args[1], keys PgsqlTruncDate);
+                        }
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."date");
+                        return sprintf("date_trunc(%s, %s)", str, exp0);
+                    },
+                },
+                COP_SEQ: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_SEQ,
+                        "name": COP_SEQ,
+                        "desc": "returns the next value in the given sequence; args: sequence name",
+                        "symbol": COP_SEQ,
+                        "args": (
+                            DataProviderSignatureStringValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."int",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        return sprintf("nextval('%s')", args[0]);
+                    }
+                },
+                COP_SEQ_CURRVAL: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_SEQ_CURRVAL,
+                        "name": COP_SEQ_CURRVAL,
+                        "desc": "returns the current value in the given sequence; args: sequence name",
+                        "symbol": COP_SEQ_CURRVAL,
+                        "args": (
+                            DataProviderSignatureStringValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."int",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        return sprintf("currval('%s')", args[0]);
+                    }
                 },
             };
 
@@ -2012,6 +2144,11 @@ auto v = c.name;
         #! returns the raw (default) update operator map for this object
         private hash getRawUpdateOperatorMap() {
             return PgsqlUopMap;
+        }
+
+        #! Returns the expression map for PostgreSQL
+        hash<auto> getExpressionMap() {
+            return PgsqlExpressionMap;
         }
 
         private bool checkExistenceImpl() {
@@ -2506,23 +2643,23 @@ auto v = c.name;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(hash<QueryInfo> info, reference<string> sql, reference<list> args) {
+        private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
            sql += " limit %v";
-           args += info.query_hash.limit;
+           info.args += info.query_hash.limit;
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(hash<QueryInfo> info, reference<string> sql,
-                reference<list> args, list<auto> coll) {
-            doSelectOrderBySqlUnlocked(info, \sql, \args, coll);
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+                list<auto> coll) {
+            doSelectOrderBySqlUnlocked(info, \sql, coll);
             if (info.query_hash.limit) {
                 sql += " limit %v";
-                args += info.query_hash.limit;
+                info.args += info.query_hash.limit;
             }
 
             if (info.query_hash.offset) {
                 sql += " offset %v";
-                args += info.query_hash.offset;
+                info.args += info.query_hash.offset;
             }
         }
 
@@ -2582,7 +2719,7 @@ auto v = c.name;
                     }
 
                     case NT_HASH: {
-                        ce += doColumnOperatorIntern(info, cv);
+                        ce += doColumnOperatorIntern(\info, cv);
                         break;
                     }
 
