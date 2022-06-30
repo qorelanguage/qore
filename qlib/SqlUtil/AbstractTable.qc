@@ -4443,7 +4443,7 @@ string sql = table.getSelectSql(sh, \args);
         return getSelectSqlIntern(sh, \args);
     }
 
-    *AbstractUniqueConstraint matchAnyUnique(list cols) {
+    *AbstractUniqueConstraint matchAnyUnique(softlist<auto> cols) {
         if (!manual)
             getPrimaryKeyUnlocked();
         if (!primaryKey.empty() && primaryKey.partialMatchKeys(cols))
