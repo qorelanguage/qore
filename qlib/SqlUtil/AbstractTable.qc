@@ -4492,7 +4492,7 @@ string sql = table.getSelectSql(sh, \args);
         };
         on_success args = info.args;
 
-        if (info.query_hash.hasKey("offset")) {
+        if (exists info.query_hash.offset) {
             if (!info.query_hash.orderby) {
                 # use primary key by default
                 getPrimaryKeyUnlocked();
@@ -4504,8 +4504,8 @@ string sql = table.getSelectSql(sh, \args);
                 }
             }
             if (!info.query_hash.limit) {
-                throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit", getDesc(),
-                    info.query_hash.offset);
+                throw "SELECT-ERROR", sprintf("%s: select 'offset' supplied (%d) without limit (%y)", getDesc(),
+                    info.query_hash.offset, info.query_hash{"offset", "limit", "orderby"});
             }
         }
         # do not overwrite args; could be used in a subquery
