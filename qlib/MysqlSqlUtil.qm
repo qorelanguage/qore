@@ -2230,7 +2230,7 @@ string str = table.getSqlValue(date);
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
         private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
            sql += " limit %v";
-           info.args += info.query_hash.limit;
+           info.args += info.query_hash.limit.toInt();
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
@@ -2239,12 +2239,12 @@ string str = table.getSqlValue(date);
             doSelectOrderBySqlUnlocked(info, \sql, coll);
             if (info.query_hash.limit) {
                 sql += " limit %v";
-                info.args += info.query_hash.limit;
+                info.args += info.query_hash.limit.toInt();
             }
 
             if (info.query_hash.offset) {
                 sql += " offset %v";
-                info.args += info.query_hash.offset;
+                info.args += info.query_hash.offset.toInt();
             }
         }
 

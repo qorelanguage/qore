@@ -2885,12 +2885,12 @@ auto v = c.name;
 
                 if (info.query_hash.offset) {
                     sql += " offset %v rows";
-                    info.args += info.query_hash.offset;
+                    info.args += info.query_hash.offset.toInt();
                 }
 
                 if (info.query_hash.limit) {
                     sql += " fetch next %v rows only";
-                    info.args += info.query_hash.limit;
+                    info.args += info.query_hash.limit.toInt();
                 }
 
                 return;
@@ -2907,10 +2907,11 @@ auto v = c.name;
             sql = sprintf("select * from (select /*+ first_rows(%d) */ a.*, rownum rnum from (%s order by %s%s) a "
                 "where rownum <= %v%s) where rnum > %v", info.query_hash.limit, sql, sort,
                 info.query_hash.desc ? " desc" : "");
-            if (info.query_hash.offset)
+            if (info.query_hash.offset) {
                 info.query_hash.limit += info.query_hash.offset;
-            info.args += info.query_hash.limit;
-            info.args += info.query_hash.offset ? info.query_hash.offset : 0;
+            }
+            info.args += info.query_hash.limit.toInt();
+            info.args += info.query_hash.offset.toInt();
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
@@ -2921,7 +2922,7 @@ auto v = c.name;
             # Oracle 12c+ supports limit (fetch) and offset
             if (optimizedLimit(info.query_hash)) {
                 sql += " fetch next %v rows only";
-                info.args += info.query_hash.limit;
+                info.args += info.query_hash.limit.toInt();
                 return;
             }
 
@@ -2933,7 +2934,7 @@ auto v = c.name;
                 sql += ") and ";
             }
             sql += "rownum <= %v";
-            info.args += info.query_hash.limit;
+            info.args += info.query_hash.limit.toInt();
             if (sql.find(" /*+ first_rows(") == -1) {
                 insertLimitOptimizerHint(info.query_hash, \sql);
             }

@@ -2186,7 +2186,7 @@ order by
             # In a SELECT statement, always use an ORDER BY clause with the TOP clause.
             # This is the only way to predictably indicate which rows are affected by TOP
             sql = regex_subst(sql, "^select ", sprintf("select top %d ", info.query_hash.limit));
-            info.args += info.query_hash.limit;
+            info.args += info.query_hash.limit.toInt();
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
@@ -2200,11 +2200,11 @@ order by
             doSelectOrderBySqlUnlocked(info, \sql, coll);
 
             sql += " offset %v rows";
-            info.args += info.query_hash.offset ?? 0;
+            info.args += info.query_hash.offset.toInt();
 
             if (info.query_hash.limit) {
                 sql += " fetch next %v rows only";
-                info.args += info.query_hash.limit;
+                info.args += info.query_hash.limit.toInt();
             }
         }
 

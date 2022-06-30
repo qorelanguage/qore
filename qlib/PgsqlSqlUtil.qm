@@ -2654,12 +2654,12 @@ auto v = c.name;
             doSelectOrderBySqlUnlocked(info, \sql, coll);
             if (info.query_hash.limit) {
                 sql += " limit %v";
-                info.args += info.query_hash.limit;
+                info.args += info.query_hash.limit.toInt();
             }
 
             if (info.query_hash.offset) {
                 sql += " offset %v";
-                info.args += info.query_hash.offset;
+                info.args += info.query_hash.offset.toInt();
             }
         }
 
