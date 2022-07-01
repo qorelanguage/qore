@@ -2880,17 +2880,19 @@ auto v = c.name;
         private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
                 list<auto> coll) {
             # Oracle 12c+ supports limit (fetch) and offset
+            softint limit = info.query_hash.limit ?? 0;
+            softint offset = info.query_hash.offset ?? 0;
             if (optimizedLimit(info.query_hash)) {
                 doSelectOrderBySqlUnlocked(info, \sql, coll);
 
                 if (info.query_hash.offset) {
                     sql += " offset %v rows";
-                    info.args += info.query_hash.offset.toInt();
+                    info.args += offset;
                 }
 
-                if (info.query_hash.limit) {
+                if (limit) {
                     sql += " fetch next %v rows only";
-                    info.args += info.query_hash.limit.toInt();
+                    info.args += limit;
                 }
 
                 return;
@@ -2905,13 +2907,12 @@ auto v = c.name;
             # - https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/ROWNUM-Pseudocolumn.html#GUID-2E40EC12-3FCF-4A4F-B5F2-6BC669021726
             # - https://stackoverflow.com/questions/15091849/how-to-use-oracle-order-by-and-rownum-correctly/15091900
             sql = sprintf("select * from (select /*+ first_rows(%d) */ a.*, rownum rnum from (%s order by %s%s) a "
-                "where rownum <= %v%s) where rnum > %v", info.query_hash.limit, sql, sort,
-                info.query_hash.desc ? " desc" : "");
-            if (info.query_hash.offset) {
-                info.query_hash.limit += info.query_hash.offset;
+                "where rownum <= %v%s) where rnum > %v", limit, sql, sort, info.query_hash.desc ? " desc" : "");
+            if (offset) {
+                limit += offset;
             }
-            info.args += info.query_hash.limit.toInt();
-            info.args += info.query_hash.offset.toInt();
+            info.args += limit;
+            info.args += offset;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
