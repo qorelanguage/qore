@@ -2542,50 +2542,61 @@ public class OperationObject inherits ObjectBase {
         self.path = path;
         self.method = method.upr();
         string objType = "Operation";
-        *list tagsObj;
+        *list<auto> tagsObj;
         if (optional_field(objType, oh, "tags", NT_LIST, \tagsObj)) {
             foreach auto tag in (tagsObj) {
-                if (tag.typeCode() == NT_STRING)
+                if (tag.typeCode() == NT_STRING) {
                     tags += tag;
-                else if (tag.typeCode() == NT_HASH)
+                } else if (tag.typeCode() == NT_HASH) {
                     tags += new TagObject(tag);
-                else
-                    error("INVALID-FIELD-TYPE", "'tags' list value has invalid type %y; expecting \"hash\" or \"string\"", tag.type());
+                } else {
+                    error("INVALID-FIELD-TYPE", "'tags' list value has invalid type %y; expecting \"hash\" or "
+                        "\"string\"", tag.fullType());
+                }
             }
         }
+
+        on_error rethrow $1.err, sprintf("%s (operation \"%s %s\")", $1.desc, method.upr(), path);
 
         optional_field(objType, oh, "summary", NT_STRING, \summary);
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
         optional_field(objType, oh, "deprecated", NT_BOOLEAN, \deprec);
 
         *hash extDocsObj;
-        if (optional_field(objType, oh, "externalDocs", NT_HASH, \extDocsObj))
+        if (optional_field(objType, oh, "externalDocs", NT_HASH, \extDocsObj)) {
             externalDocs = new ExternalDocumentationObject(extDocsObj);
+        }
 
         optional_field(objType, oh, "operationId", NT_STRING, \operationId);
         # TODO check operationId uniqueness as per docs
 
         # use the global "consumes" definition if none is defined on the operation
-        if (!optional_field(objType, oh, "consumes", SwaggerListToStringSet, \consumes) && swagger.consumes)
+        if (!optional_field(objType, oh, "consumes", SwaggerListToStringSet, \consumes) && swagger.consumes) {
             consumes = swagger.consumes;
+        }
 
         # use the global "produces" definition if none is defined on the operation
-        if (!optional_field(objType, oh, "produces", SwaggerListToStringSet, \produces) && swagger.produces)
+        if (!optional_field(objType, oh, "produces", SwaggerListToStringSet, \produces) && swagger.produces) {
             produces = swagger.produces;
+        }
 
         {
             list listObj;
             optional_field(objType, oh, "parameters", NT_LIST, \listObj);
             foreach auto p in (listObj) {
-                if (p.typeCode() != NT_HASH)
-                    error("INVALID-FIELD-TYPE", "invalid 'parameters' list value datatype %y; expecing \"hash\"", p.type());
-                AbstractParameterObject param = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, listObj.lsize()), p, swagger);
-                if (param.inLoc == "body")
+                if (p.typeCode() != NT_HASH) {
+                    error("INVALID-FIELD-TYPE", "invalid 'parameters' list value datatype %y; expecing \"hash\"",
+                        p.fullType());
+                }
+                AbstractParameterObject param = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1,
+                    listObj.lsize()), p, swagger);
+                if (param.inLoc == "body") {
                     body = param;
-                else if (param.inLoc == "formData")
+                } else if (param.inLoc == "formData") {
                     formData{param.name} = param;
-                else
+                } else {
                     parameters{param.name} = param;
+                }
             }
         }
 
@@ -2600,10 +2611,14 @@ public class OperationObject inherits ObjectBase {
             list schemesList;
             optional_field(objType, oh, "schemes", NT_LIST, \schemesList);
             foreach auto val in (schemesList) {
-                if (val.typeCode() != NT_STRING)
-                    error("INVALID-FIELD-TYPE", "invalid 'schemes' list value datatype %y; expecting \"string\"", val.type());
-                if (!ValidSchemesHash{val})
-                    error("INVALID-FIELD-VALUE", "invalid operation transfer protocol scheme value %y; expecting one of: %y", val, keys ValidSchemesHash);
+                if (val.typeCode() != NT_STRING) {
+                    error("INVALID-FIELD-TYPE", "invalid 'schemes' list value datatype %y; expecting \"string\"",
+                        val.fullType());
+                }
+                if (!ValidSchemesHash{val}) {
+                    error("INVALID-FIELD-VALUE", "invalid operation transfer protocol scheme value %y; expecting one "
+                        "of: %y", val, keys ValidSchemesHash);
+                }
             }
             if (schemesList) {
                 schemes = cast<list<string>>(schemesList);
@@ -2614,18 +2629,20 @@ public class OperationObject inherits ObjectBase {
             list securityList;
             optional_field(objType, oh, "security", NT_LIST, \securityList);
             foreach auto val in (securityList) {
-                if (val.typeCode() != NT_HASH)
-                    error("INVALID-FIELD-TYPE", "invalid 'security' list value datatype %y; expecting \"hash\"", val.type());
-                hash h = val;
-                foreach hash it in (h.pairIterator()) {
-                    if (it.value.typeCode() != NT_LIST)
-                        error("INVALID-FIELD-TYPE",
-                                "invalid Security Requirement Object value type %y (should be a list of hashes)",
-                                val.type());
-                    if ((map True, it.value, $1.typeCode() != NT_STRING).size())
-                        error("INVALID-FIELD-TYPE",
-                                "invalid Security Requirement Object value type %y (should be a list of hashes with list values)",
-                                val.type());
+                if (val.typeCode() != NT_HASH) {
+                    error("INVALID-FIELD-TYPE", "invalid 'security' list value datatype %y; expecting \"hash\"",
+                        val.fullType());
+                }
+                hash<auto> h = val;
+                foreach hash<auto> it in (h.pairIterator()) {
+                    if (it.value.typeCode() != NT_LIST) {
+                        error("INVALID-FIELD-TYPE", "invalid Security Requirement Object value type %y (should be a "
+                            "list of hashes)", val.fullType());
+                    }
+                    if ((map True, it.value, $1.typeCode() != NT_STRING).size()) {
+                        error("INVALID-FIELD-TYPE", "invalid Security Requirement Object value type %y (should be a "
+                            "list of hashes with list values)", val.fullType());
+                    }
                 }
             }
             if (securityList) {
@@ -3108,6 +3125,7 @@ public class AbstractParameterObject inherits ObjectBase {
     public constructor(hash<auto> oh) : ObjectBase(oh) {
         string objType = "Parameter";
         required_field(objType, oh, "name", NT_STRING, \name);
+        on_error rethrow $1.err, sprintf("%s (parameter %y)", $1.desc, name);
         required_field(objType, oh, "in", NT_STRING, \inLoc);
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
         if (inLoc == "path")

@@ -361,10 +361,22 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
         setVerifyMode(qs.ssl_verify_mode, qs.ssl_accept_all_certs, qs.client_target);
     }
 
-#if defined(HAVE_SSL_SET_MAX_PROTO_VERSION) && defined(TLS1_2_VERSION)
-    if (qore_library_options & QLO_DISABLE_TLS_13) {
-        SSL_set_max_proto_version(ssl, TLS1_2_VERSION);
+#if defined(HAVE_SSL_SET_MAX_PROTO_VERSION) && defined(TLS1_3_VERSION)
+    if (qore_library_options & QLO_MINIMUM_TLS_13) {
+        if (!SSL_set_min_proto_version(ssl, TLS1_3_VERSION)) {
+            sslError(xsink, mname, "SSL_set_min_proto_version");
+            assert(*xsink);
+            return -1;
+        }
+    } else if (qore_library_options & QLO_DISABLE_TLS_13) {
+        if (!SSL_set_max_proto_version(ssl, TLS1_2_VERSION)) {
+            sslError(xsink, mname, "SSL_set_max_proto_version");
+            assert(*xsink);
+            return -1;
+        }
     }
+#else
+#error
 #endif
 
     return 0;
@@ -563,7 +575,8 @@ static int q_ssl_verify_accept_default(int preverify_ok, X509_STORE_CTX* x509_ct
 }
 
 void SSLSocketHelper::setVerifyMode(int mode, bool accept_all_certs, const std::string& target) {
-    printd(5, "SSLSocketHelper::setVerifyMode() mode: %d accept_all_certs: %d target: %s\n", mode, (int)accept_all_certs, target.c_str());
+    printd(5, "SSLSocketHelper::setVerifyMode() mode: %d accept_all_certs: %d target: %s\n", mode,
+        (int)accept_all_certs, target.c_str());
     if (!accept_all_certs) {
         // issue #3818: load default CAs
         SSL_CTX_set_default_verify_paths(ctx);
