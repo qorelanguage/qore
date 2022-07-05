@@ -79,8 +79,8 @@ int qore_ssl_data_index = -1;
 
 qore_license_t qore_license;
 
-const QoreStringMaker mpfrInfo("runtime: %s built with: %s (%d.%d.%d)", mpfr_get_version(), MPFR_VERSION_STRING, MPFR_VERSION_MAJOR,
-    MPFR_VERSION_MINOR, MPFR_VERSION_PATCHLEVEL);
+const QoreStringMaker mpfrInfo("runtime: %s built with: %s (%d.%d.%d)", mpfr_get_version(), MPFR_VERSION_STRING,
+    MPFR_VERSION_MAJOR, MPFR_VERSION_MINOR, MPFR_VERSION_PATCHLEVEL);
 
 #ifndef HAVE_OPENSSL_INIT_CRYPTO
 // issue #2135: openssl locking functions were deprecated in openssl 1.0.0 and are no longer used in 1.1.0+
@@ -109,7 +109,7 @@ OSSL_PROVIDER* ssl_prov_legacy = nullptr,
     * ssl_prov_default = nullptr;
 #endif
 
-void qore_init(qore_license_t license, const char *def_charset, bool show_module_errors, int n_qore_library_options) {
+void qore_init(qore_license_t license, const char* def_charset, bool show_module_errors, int n_qore_library_options) {
     qore_license = license;
     qore_library_options = n_qore_library_options;
 

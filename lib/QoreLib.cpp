@@ -2250,6 +2250,9 @@ bool qore_is_gc_enabled() {
 }
 
 int qore_set_library_options(int opts) {
+    if (opts & QLO_MINIMUM_TLS_13) {
+        opts &= ~QLO_DISABLE_TLS_13;
+    }
     int val = opts & QLO_RUNTIME_OPTS;
     qore_library_options |= val;
     return val;

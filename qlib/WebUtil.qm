@@ -23,7 +23,7 @@
 */
 
 # minimum Qore version
-%requires qore >= 0.9.10
+%requires qore >= 1.9
 
 # require type definitions everywhere
 %require-types
@@ -35,7 +35,7 @@
 %new-style
 
 module WebUtil {
-    version = "1.6.1";
+    version = "1.6.2";
     desc = "user module supporting web server operations";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -59,13 +59,25 @@ module WebUtil {
     All the public symbols in the module are defined in the WebUtil namespace
 
     Classes:
-    - @ref WebUtil::TextTemplateBase "TextTemplateBase": the base class for all @ref Qore::Program "Program" containers for template programs where text is rendered from templates made up of mixed %Qore and text
-    - @ref WebUtil::FileTemplate "FileTemplate": models a single template based on a real file on the filesystem and provides compilation and rendering support for the template; supports recompiling on the fly if the file's modification time changes
-    - @ref WebUtil::TemplateFileManager "TemplateFileManager": manages templates based on real files on the filesystem, uses @ref WebUtil::FileTemplate "FileTemplate" to store the templates and render output; uses efficient locking to safely handle multiple concurrent requests
-    - @ref WebUtil::StaticTemplateManager "StaticTemplateManager": manages mixed %Qore and text templates that are rendered to generate a final file; useful for HTML rendering for example
-    - @ref WebUtil::FileHandler "FileHandler": a class for serving files from the file system anchored at a particular URL; also uses @ref WebUtil::TemplateFileManager "TemplateFileManager" to automatically manage any template files found; supports automatic compilation of and rendering from template files
+    - @ref WebUtil::TextTemplateBase "TextTemplateBase": the base class for all @ref Qore::Program "Program"
+      containers for template programs where text is rendered from templates made up of mixed %Qore and text
+    - @ref WebUtil::FileTemplate "FileTemplate": models a single template based on a real file on the filesystem and
+      provides compilation and rendering support for the template; supports recompiling on the fly if the file's
+      modification time changes
+    - @ref WebUtil::TemplateFileManager "TemplateFileManager": manages templates based on real files on the
+      filesystem, uses @ref WebUtil::FileTemplate "FileTemplate" to store the templates and render output; uses
+      efficient locking to safely handle multiple concurrent requests
+    - @ref WebUtil::StaticTemplateManager "StaticTemplateManager": manages mixed %Qore and text templates that are
+      rendered to generate a final file; useful for HTML rendering for example
+    - @ref WebUtil::FileHandler "FileHandler": a class for serving files from the file system anchored at a particular
+      URL; also uses @ref WebUtil::TemplateFileManager "TemplateFileManager" to automatically manage any template
+      files found; supports automatic compilation of and rendering from template files
 
     @section webutil_relnotes Release Notes
+
+    @subsection webutil_v1_6_2 WebUtil v1.6.2
+    - fixed a bug where files outside the root directory could be served with specially-formatted requests
+      (<a href="https://github.com/qorelanguage/qore/issues/4550">issue 4550</a>)
 
     @subsection webutil_v1_6_1 WebUtil v1.6.1
     - fixed a bug serving files did not work in server contexts with multiple threads
@@ -81,7 +93,8 @@ module WebUtil {
     - updated for Qore 0.9
 
     @subsection webutil_v1_4_1 WebUtil v1.4.1
-    - made it possible for FileHandler subclasses to add headers to response (<a href="https://github.com/qorelanguage/qore/issues/2686">issue 2686</a>)
+    - made it possible for FileHandler subclasses to add headers to response
+      (<a href="https://github.com/qorelanguage/qore/issues/2686">issue 2686</a>)
 
     @subsection webutil_v1_4 WebUtil v1.4
     - updated for complex types
@@ -121,7 +134,10 @@ public namespace WebUtil {
         }
 
         #! creates the object
-        constructor(HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, Qore::ReadOnlyFile file, bool textflag, int chunk_size, *hash<auto> respHdr) : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
+        constructor(HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler,
+                Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, Qore::ReadOnlyFile file, bool textflag,
+                int chunk_size, *hash<auto> respHdr)
+                : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
             f = file;
             txt = textflag;
             cs = chunk_size;
@@ -159,9 +175,9 @@ public namespace WebUtil {
 
         #! creates the object
         constructor(HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler,
-            Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, InputStream stream,
-            int chunk_size, *hash<auto> respHdr)
-            : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
+                Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, InputStream stream,
+                int chunk_size, *hash<auto> respHdr)
+                : HttpServer::AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
             self.stream = stream;
             cs = chunk_size;
             self.respHdr = respHdr;
@@ -775,16 +791,16 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
             const DirSep = Qore::DirSep;
 
             #! default configuration values
-            const Defaults = (
+            const Defaults = {
                 # default index file
                 "IndexFile": "index.html",
                 "IndexTemplate": "index.qhtml",
-                "TemplateExtensions": (
+                "TemplateExtensions": {
                     "qhtml": True,
-                ),
+                },
                 "ChunkedThreshold": 10 * 1024,
                 "ChunkSize": 4096,
-                );
+            };
 
             #! dirlisting template
             const Dirlisting = "<html lang=\"en\" >"
@@ -843,25 +859,35 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
             @param url_root the root part of the URL path without the leading \c "/"
             @param opt an optional with one or more of the following option keys:
             - \c default_target: the default relative path to use if a request cannot be satisfied
-            - \c po: the @ref parse_options "Program parse options" for the template file @ref Qore::Program "programs"
-            - \c psetup: an optional @ref closure "closure" or @ref call_reference "call reference" taking a single @ref Qore::Program "Program" argument to be called when initializing template @ref Qore::Program "programs" to set up a custom template API, etc
-            - \c auth: the authentication object to use to authenticate connections (see HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by default no authentication will be required
+            - \c po: the @ref parse_options "Program parse options" for the template file
+              @ref Qore::Program "programs"
+            - \c psetup: an optional @ref closure "closure" or @ref call_reference "call reference" taking a single
+              @ref Qore::Program "Program" argument to be called when initializing template
+              @ref Qore::Program "programs" to set up a custom template API, etc
+            - \c auth: the authentication object to use to authenticate connections (see
+              HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by
+              default no authentication will be required
             - \c error_level: the level of error reporting (0, 1, or 2)
             - \c chunked_threshold: the minimum size for sending files with a chunked transfer encoding
             - \c chunk_size: the HTTP chunk size for sending files with chunked transfer encoding
         */
-        constructor(string new_file_root, string url_root = "/", *hash<auto> opt) : HttpServer::AbstractUrlHandler(url_root, opt.auth), TemplateFileManager(opt.po, opt.psetup) {
+        constructor(string new_file_root, string url_root = "/", *hash<auto> opt)
+                : HttpServer::AbstractUrlHandler(url_root, opt.auth), TemplateFileManager(opt.po, opt.psetup) {
             file_root = normalize_dir(new_file_root);
             # make sure file_root ends in a directory separator character
-            if (file_root[file_root.size() - 1] != DirSep)
+            if (file_root[file_root.size() - 1] != DirSep) {
                 file_root += DirSep;
+            }
             default_target = opt.default_target;
-            if (opt.error_level)
+            if (opt.error_level) {
                 error_level = opt.error_level;
-            if (opt.chunked_threshold)
+            }
+            if (opt.chunked_threshold) {
                 chunked_threshold = opt.chunked_threshold;
-            if (opt.chunk_size)
+            }
+            if (opt.chunk_size) {
                 chunk_size = opt.chunk_size;
+            }
 
             # setup :dirlisting template
             stm.add(":dirlisting", getDirlistingTemplate(), MimeTypeHtml);
@@ -875,15 +901,19 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
         /** @param listener the listener handling the request
             @param s the socket object for the connection
             @param cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by @ref Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by @ref Qore::Socket::getPeerInfo())
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed
+              information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by
+              @ref Qore::Socket::getSocketInfo())
+            - \c peer-info: a hash of socket information for the remote socket (as returned by
+              @ref Qore::Socket::getPeerInfo())
             - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url())
             - \c id: the unique HTTP connection ID
             - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
             - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
             - \c user: the current RBAC username (if any)
-            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys will be present:
+            @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following keys
+            will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
             - \c path: the HTTP path given in the request, after processing by @ref Qore::decode_url()
             - \c http_version: the HTTP version number in the request (either \c "1.0" or \c "1.1")
@@ -892,19 +922,27 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
             @return a hash with the following keys:
             - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
             - \c "body": the message body to return in the response
-            - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
+            - \c "close": (optional) set this key to @ref True "True" if the connection should be unconditionally
+              closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
             The following keys are added to the \a cx argument when calling handleRequestImpl():
-            - \c resource_path: the relative path without any query arguments and with the URL root stripped off (if the request was matched by the URL root, otherwise this will be the request path with any URI query arguments removed)
+            - \c resource_path: the relative path without any query arguments and with the URL root stripped off (if
+              the request was matched by the URL root, otherwise this will be the request path with any URI query
+              arguments removed)
             - \c url_root: the root URL
             - \c file_root: the root directory for serving files
-            - \c isregex: if the \a url_root string is a regular expression or not (this is always @ref False "False" when this class is used)
-            - \c hdr: this is added to the \a cx argument directly from the \a hdr argument, however it also includes the \c "params" key which holds the URI query parameters as returned in the \a params key from @ref HttpServer::parse_uri_query()
+            - \c isregex: if the \a url_root string is a regular expression or not (this is always @ref False "False"
+              when this class is used)
+            - \c hdr: this is added to the \a cx argument directly from the \a hdr argument, however it also includes
+              the \c "params" key which holds the URI query parameters as returned in the \a params key from
+              @ref HttpServer::parse_uri_query()
 
-            If handleRequestImpl() returns @ref nothing and the requested path cannot be matched and served, then unhandledRequest() is called to handle the error
+            If handleRequestImpl() returns @ref nothing and the requested path cannot be matched and served, then
+            unhandledRequest() is called to handle the error
         */
-        hash<HttpResponseInfo> handleRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
+        hash<HttpResponseInfo> handleRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s,
+                hash<auto> cx, hash<auto> hdr, *data body) {
             # get local request path and "localize" it and strip off any query args
             string path = getRelativePath(hdr.path);
 
@@ -922,8 +960,9 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
                         h = tryServeRequest(listener, s, cx, hdr, body);
                     }
                 }
-                if (h)
+                if (h) {
                     return h;
+                }
             } catch (hash<ExceptionInfo> ex) {
                 return serverError(cx, ex);
             }
@@ -969,21 +1008,32 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
             string errstr = get_exception_string(ex);
             logError(errstr);
             string desc;
-            if (!error_level)
+            if (!error_level) {
                 desc = "A server error occurred";
-            else if (error_level == 1)
+            } else if (error_level == 1) {
                 desc = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
-            else
+            } else {
                 desc = errstr;
+            }
             return makeResponse(500, desc);
         }
 
         #! tries to serve the request from the filesystem
-        private *hash<HttpResponseInfo> tryServeRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
+        private *hash<HttpResponseInfo> tryServeRequest(HttpServer::HttpListenerInterface listener, Qore::Socket s,
+                hash<auto> cx, hash<auto> hdr, *data body) {
             string path;
             *hash<StatInfo> stat_hash = statPath(cx, hdr, \path);
             if (!stat_hash) {
                 return;
+            }
+
+            # issue #4550: ensure that the path is inside the file_root
+            if (cx.resource_path =~ /\.\./) {
+                path = normalize_dir(path);
+                if (!path.equalPartialPath(file_root)) {
+                    return makeResponse(400, "cannot service request to path %y; the path is illegal",
+                        cx.resource_path);
+                }
             }
 
             # add index if the request corresponds to a directory
@@ -1015,8 +1065,8 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
             return sendFilePath(listener, s, cx, hdr, body, path, stat_hash);
         }
 
-        private *hash<HttpResponseInfo> sendFilePath(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx,
-            hash<auto> hdr, *data body, string path, hash<StatInfo> stat_hash) {
+        private *hash<HttpResponseInfo> sendFilePath(HttpServer::HttpListenerInterface listener, Qore::Socket s,
+                hash<auto> cx, hash<auto> hdr, *data body, string path, hash<StatInfo> stat_hash) {
             # send an empty response for an empty file
             if (!stat_hash.size) {
                 return makeResponse(204, "");
@@ -1050,7 +1100,8 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
         }
 
         #! must return a AbstractStreamRequest object to stream the requested file with chunked transfer encoding
-        private AbstractStreamRequest getStreamRequestImpl(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, InputStream stream, *hash<auto> respHdr) {
+        private AbstractStreamRequest getStreamRequestImpl(HttpServer::HttpListenerInterface listener, Qore::Socket s,
+                hash<auto> cx, hash<auto> hdr, *data body, InputStream stream, *hash<auto> respHdr) {
             return new InputStreamRequest(listener, self, s, cx, hdr, body, stream, chunk_size, respHdr);
         }
 
@@ -1086,7 +1137,8 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
         }
 
         #! returns a handler hash response with the file's data to be sent in a HTTP message with chunked transfer encoding
-        private hash<HttpResponseInfo> sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s, hash<auto> cx, hash<auto> hdr, *data body, InputStream stream, *hash<auto> respHdr) {
+        private hash<HttpResponseInfo> sendFileChunked(HttpServer::HttpListenerInterface listener, Qore::Socket s,
+                hash<auto> cx, hash<auto> hdr, *data body, InputStream stream, *hash<auto> respHdr) {
             AbstractStreamRequest fsr = getStreamRequestImpl(listener, s, cx, hdr, body, stream, respHdr);
             return cast<hash<HttpResponseInfo>>(fsr.handleRequest());
         }
