@@ -982,6 +982,15 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
                 return;
             }
 
+            # issue #4550: ensure that the path is inside the file_root
+            if (cx.resource_path =~ /\.\./) {
+                path = normalize_dir(path);
+                if (!path.equalPartialPath(file_root)) {
+                    return makeResponse(400, "cannot service request to path %y; the path is illegal",
+                        cx.resource_path);
+                }
+            }
+
             # add index if the request corresponds to a directory
             if (stat_hash.type == "DIRECTORY") {
                 bool found = False;

@@ -352,9 +352,19 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
         setVerifyMode(qs.ssl_verify_mode, qs.ssl_accept_all_certs, qs.client_target);
     }
 
-#if defined(HAVE_SSL_SET_MAX_PROTO_VERSION) && defined(TLS1_2_VERSION)
-    if (qore_library_options & QLO_DISABLE_TLS_13) {
-        SSL_set_max_proto_version(ssl, TLS1_2_VERSION);
+#if defined(HAVE_SSL_SET_MAX_PROTO_VERSION) && defined(TLS1_3_VERSION)
+    if (qore_library_options & QLO_MINIMUM_TLS_13) {
+        if (!SSL_set_min_proto_version(ssl, TLS1_3_VERSION)) {
+            sslError(xsink, mname, "SSL_set_min_proto_version");
+            assert(*xsink);
+            return -1;
+        }
+    } else if (qore_library_options & QLO_DISABLE_TLS_13) {
+        if (!SSL_set_max_proto_version(ssl, TLS1_2_VERSION)) {
+            sslError(xsink, mname, "SSL_set_max_proto_version");
+            assert(*xsink);
+            return -1;
+        }
     }
 #endif
 

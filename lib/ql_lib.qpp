@@ -148,7 +148,14 @@ const QLO_DISABLE_GARBAGE_COLLECTION = QLO_DISABLE_GARBAGE_COLLECTION;
 const QLO_DO_NOT_SEED_RNG = QLO_DO_NOT_SEED_RNG;
 
 //! disable TLS v1.3 (may be set at runtime with qore_set_library_options())
+/** conflicts with @ref QLO_MINIMUM_TLS_13
+*/
 const QLO_DISABLE_TLS_13 = QLO_DISABLE_TLS_13;
+
+//! enable minimum TLS v1.3 (may be set at runtime with qore_set_library_options())
+/** conflicts with and overrides @ref QLO_DISABLE_TLS_13
+*/
+const QLO_MINIMUM_TLS_13 = QLO_MINIMUM_TLS_13;
 
 //! bitmask for library options that can be set at runtime
 /** the following options can be set at runtime:

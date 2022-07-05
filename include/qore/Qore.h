@@ -182,6 +182,7 @@ DLLEXPORT extern const QoreStringMaker mpfrInfo;
 #define QLO_DISABLE_GARBAGE_COLLECTION (1 << 3)  //!< disable garbage collection / recursive object reference detection
 #define QLO_DO_NOT_SEED_RNG            (1 << 4)  //!< disable seeding the random number generator when the Qore library is initialized
 #define QLO_DISABLE_TLS_13             (1 << 5)  //!< disable TLS v1.3 (may be set at runtime with qore_set_library_options())
+#define QLO_MINIMUM_TLS_13             (1 << 6)  //!< minimum TLS v1.3; overrides QLO_DISABLE_TLS_13 (may be set at runtime with qore_set_library_options())
 
 #define QLO_RUNTIME_OPTS (QLO_DISABLE_TLS_13)
 

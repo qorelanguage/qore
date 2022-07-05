@@ -14,6 +14,11 @@
     - <a href="../../modules/Mime/html/index.html">Mime</a> module
       - various fixes from downstream to Mime data handling
         (<a href="https://github.com/qorelanguage/qore/issues/4352">issue 4352</a>)
+    - <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
+      - fixed a bug where files outside the root directory could be served with specially-formatted requests
+        (<a href="https://github.com/qorelanguage/qore/issues/4550">issue 4550</a>)
+    - fixed a bug where it was not possible to set the minimum TLS level to v1.3 for encrypted connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4551">issue 4551</a>)
     - fixed a crashing bug when sorting large lists in background threads caused by excessive recursion and stack
       exhaustion
       (<a href="https://github.com/qorelanguage/qore/issues/4355">issue 4355</a>)
