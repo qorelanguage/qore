@@ -11,6 +11,8 @@
     - <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
       - fixed a bug where files outside the root directory could be served with specially-formatted requests
         (<a href="https://github.com/qorelanguage/qore/issues/4550">issue 4550</a>)
+    - fixed a bug building with openssl 3+ that could cause a runtime crash when encryption is used
+      (<a href="https://github.com/qorelanguage/qore/issues/4553">issue 4553</a>)
     - fixed a bug where it was not possible to set the minimum TLS level to v1.3 for encrypted connections
       (<a href="https://github.com/qorelanguage/qore/issues/4551">issue 4551</a>)
 

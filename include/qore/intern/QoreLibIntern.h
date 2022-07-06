@@ -39,7 +39,9 @@
 #include <cstdarg>
 #include <sys/types.h>
 
-#ifdef HAVE_EVP_MAC_CTX_NEW
+#include <openssl/crypto.h>
+
+#if defined(OPENSSL_VERSION_MAJOR) && OPENSSL_VERSION_MAJOR >= 3
 #define OPENSSL_3_PLUS
 #endif
 
