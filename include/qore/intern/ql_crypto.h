@@ -225,7 +225,7 @@ public:
     }
 };
 
-#ifndef OPENSSL_3_PLUS
+#if !defined(OPENSSL_VERSION_MAJOR) || OPENSSL_VERSION_MAJOR < 3
 class QoreHmacHelper {
 public:
     DLLLOCAL QoreHmacHelper() {
@@ -242,7 +242,7 @@ public:
 #else
         HMAC_CTX_cleanup(&ctx);
 #endif
-}
+    }
 
     DLLLOCAL HMAC_CTX* operator*() {
 #ifdef HAVE_OPENSSL_INIT_CRYPTO

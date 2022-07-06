@@ -47,7 +47,7 @@
 #include <algorithm>
 #include <iterator>
 
-struct string_compare : public std::unary_function<const char*, bool> {
+struct string_compare {
     DLLLOCAL explicit string_compare(const char* const& baseline) : baseline(baseline) {
     }
 

@@ -165,7 +165,7 @@ typedef std::vector<std::pair<const QoreExternalGlobalVar*, const QoreNamespace*
 typedef std::vector<std::pair<const QoreExternalConstant*, const QoreNamespace*>> const_vec_t;
 
 //! functor template for calling free() on pointers
-template <typename T> struct free_ptr : std::unary_function <T*, void> {
+template <typename T> struct free_ptr {
     DLLLOCAL void operator()(T* ptr) {
         free(ptr);
     }
