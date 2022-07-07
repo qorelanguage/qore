@@ -76,7 +76,7 @@ public class SwaggerDataProviderTest inherits QUnit::Test {
 
         {
             AbstractDataProvider p0 = provider.getChildProviderPath("pet/$id/POST");
-            assertEq("Swagger Petstore/v2/pet/1/POST", p0.getInfo().name);
+            assertEq("POST", p0.getInfo().name);
             AbstractDataProviderType req = p0.getRequestType();
             assertEq(NT_HASH, req.getField("formData").getType().getBaseTypeCode());
         }

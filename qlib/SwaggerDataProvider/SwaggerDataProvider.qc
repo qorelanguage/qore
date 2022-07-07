@@ -36,6 +36,9 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         #! current URI path
         string uri_path = "/";
 
+        #! The value to returns as the name of the object
+        string display_name;
+
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "type": "SwaggerDataProvider",
@@ -113,6 +116,8 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         self.uri_path = uri_path;
         self.schema = schema;
         self.rest = rest;
+
+        display_name = uri_path.split("/").last();
     }
 
     #! Creates the object from the arguments
@@ -123,6 +128,9 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
         }
 
         setupTree();
+
+        display_name = schema.info.title;
+        display_name =~ s/\//-/g;
     }
 
     #! Creates the object from constructor options
@@ -168,7 +176,7 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider name
     string getName() {
-        return schema.info.title + uri_path;
+        return display_name;
     }
 
     #! Returns the data provider description

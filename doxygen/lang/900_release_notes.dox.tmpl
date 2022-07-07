@@ -8,6 +8,10 @@
     Bugfix release; see below for more information
 
     @subsection qore_1_9_1_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module updates:
+      - fixed a bug where data providers could return local names as paths with \c "/" characters in them, breaking
+        some clients traversing the data provider hierarchy
+        (<a href="https://github.com/qorelanguage/qore/issues/4555">issue 4555</a>)
     - <a href="../../modules/WebUtil/html/index.html">WebUtil</a> module updates:
       - fixed a bug where files outside the root directory could be served with specially-formatted requests
         (<a href="https://github.com/qorelanguage/qore/issues/4550">issue 4550</a>)
