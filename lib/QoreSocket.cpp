@@ -375,8 +375,6 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
             return -1;
         }
     }
-#else
-#error
 #endif
 
     return 0;
