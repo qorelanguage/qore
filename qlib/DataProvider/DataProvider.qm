@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.1
+%requires qore >= 1.9
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "2.4";
+    version = "2.5";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -201,6 +201,10 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v2_5 DataProvider v2.5
+    - implemented support for the observer pattern / event API
+      (<a href="https://github.com/qorelanguage/qore/issues/4557">issue 4557</a>)
 
     @subsection dataprovider_v2_4 DataProvider v2.4
     - allow data providers to be introspected with additional information about children

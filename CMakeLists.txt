@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8.12)
 
 # NOTE: Qore should always use semantic versioning: https://semver.org/
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 9)
-set(VERSION_SUB 1)
+set(VERSION_MINOR 10)
+set(VERSION_SUB 0)
 #set(VERSION_PATCH 0)
 
 # support <pkg>_ROOT in find_package
@@ -841,13 +841,13 @@ qore_user_module("qlib/MapperUtil.qm" "")
 qore_user_module("qlib/FileLocationHandler" "Util")
 qore_user_module("qlib/DataProvider" "MapperUtil")
 qore_user_module("qlib/Diff.qm" "Util")
-qore_user_module("qlib/FilePoller.qm" "Util")
 qore_user_module("qlib/Logger.qm" "Util")
 qore_user_module("qlib/Mime.qm" "Util")
 qore_user_module("qlib/QUnit.qm" "Util")
 qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
+qore_user_module("qlib/FilePoller.qm" "Util;DataProvider")
 qore_user_module("qlib/SqlUtil" "Util;DataProvider")
 qore_user_module("qlib/ConnectionProvider" "Util;DataProvider")
 qore_user_module("qlib/CsvUtil" "Util;DataProvider")

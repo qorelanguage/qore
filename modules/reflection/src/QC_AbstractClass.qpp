@@ -727,7 +727,7 @@ list<string> AbstractClass::getDomainStringList() [flags=RET_VALUE_ONLY] {
 //! returns the given method variant, otherwise throws an exception if no method variant can be matched
 /** @par Example:
     @code{.py}
-AbstractMethodVariant m = cls.getVariant(name, TypeInt, TypeString);
+AbstractMethodVariant m = cls.getVariant(name, IntType, StringType);
     @endcode
 
     Searches normal methods (including special methods) and then static methods for the given method name and
@@ -756,7 +756,7 @@ AbstractMethodVariant AbstractClass::getVariant(string name, ...) [flags=RET_VAL
 //! returns the given method variant, otherwise throws an exception if no method variant can be matched
 /** @par Example:
     @code{.py}
-AbstractMethodVariant m = cls.getVariantArgs(name, (TypeInt, TypeString));
+AbstractMethodVariant m = cls.getVariantArgs(name, (IntType, StringType));
     @endcode
 
     Searches normal methods (including special methods) and then static methods for the given method name and

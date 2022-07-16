@@ -122,6 +122,9 @@ public hashdecl DataProviderSummaryInfo {
 
     #! Does this data provide support advanced search experssions?
     bool supports_search_expressions = False;
+
+    #! Does this data provider support the event API / Observer pattern?
+    bool supports_observable = False;
 }
 
 /** @defgroup signature_type_codes Signature Type Codes
@@ -487,6 +490,13 @@ public hashdecl DataProviderInfo {
     */
     bool supports_search_expressions = False;
 
+    #! Does this data provider support the event API / Observer pattern?
+    /** If this is @ref True, then the data provider will inherit @ref Observable and can be observed
+
+        @since DataProvider 2.5
+    */
+    bool supports_observable = False;
+
     #! Returns the schema type supported by this data provider
     /**
         @since DataProvider 2.2
@@ -826,7 +836,7 @@ public class AbstractDataProvider {
 
     private {
         #! Logger for logging
-        Logger logger;
+        *Logger logger;
 
         #! flag if callbacks are locked
         static bool callbacks_locked = False;
@@ -1738,6 +1748,19 @@ public class AbstractDataProvider {
         }
     }
 
+    #! Ensures that the data provider supports observer pattern / event API
+    /**
+        @throw INVALID-OPERATION the data provider does not support the observer pattern / event API
+
+        @since DataProvider 2.5
+    */
+    checkObservable() {
+        if (!supportsObservable()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support the observer pattern / "
+                "event API", getName(), self.className());
+        }
+    }
+
     #! Returns a search expression for a standard search hash
     /** @param where_cond the search criteria; if the data provider supports advanced search, and the value is an
         expression, it will be processed by processSearchParameters(), otherwise by processFieldValues()
@@ -2503,6 +2526,13 @@ public class AbstractDataProvider {
         return getStaticInfoImpl().supports_search_expressions;
     }
 
+    #! Returns True if the data provider supports the observer pattern / event API
+    /** @since DataProvider 2.5
+    */
+    bool supportsObservable() {
+        return getStaticInfoImpl().supports_observable;
+    }
+
     #! Returns the schema type for this data provider or @ref nothing if no schema type is supported
     /** @since DataProvider 2.2
     */
@@ -2533,21 +2563,6 @@ public class AbstractDataProvider {
     }
 
     #! Returns an iterator for zero or more records matching the search options
-    /** @param block_size the number of records in a read block; must be a positive number
-        @param where_cond the search criteria; after processing by processFieldValues()
-        @param search_options the search options after processing by validateSearchOptions()
-
-        @throw INVALID-BLOCK-SIZE the block size must be a positive number
-        @throw INVALID-OPERATION the data provider does not support reading
-    */
-    /*
-    private AbstractDataProviderBulkRecordInterface searchRecordsBulkImpl(int block_size = 1000,
-            *hash<auto> where_cond, *hash<auto> search_options) {
-        return new DefaultBulkRecordIterface(block_size, searchRecordsImpl(where_cond, search_options));
-    }
-    */
-
-    #! Returns an iterator for zero or more records matching the search options
     /** @param where_cond the search criteria; after processing by processSearchParameters()
         @param search_options the search options after processing by validateSearchOptions()
 
@@ -2557,18 +2572,6 @@ public class AbstractDataProvider {
             *hash<auto> search_options) {
         throwUnimplementedException();
     }
-
-    #! Returns an iterator for zero or more records matching the search options
-    /** @param where_cond the search criteria
-        @param search_options the search options after processing by validateSearchOptions()
-
-        @see requestSearchRecordsImpl()
-    */
-    /*
-    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
-        throwUnimplementedException();
-    }
-    */
 
     #! Returns an iterator for zero or more records matching the search options according to an API request
     /** @param req the request to serialize and make according to the request type
@@ -2583,22 +2586,6 @@ public class AbstractDataProvider {
             *hash<auto> where_cond, *hash<auto> search_options) {
         throwUnimplementedException();
     }
-
-    #! Returns an iterator for zero or more records matching the search options according to an API request
-    /** @param req the request to serialize and make according to the request type
-        @param where_cond the search criteria; after processing by processFieldValues()
-        @param search_options the search options after processing by validateSearchOptions()
-
-        This will execute the request and perform a default search on any record(s) returned
-
-        @see searchRecordsImpl()
-    */
-    /*
-    private AbstractDataProviderRecordIterator requestSearchRecordsImpl(auto req, *hash<auto> where_cond,
-            *hash<auto> search_options) {
-        throwUnimplementedException();
-    }
-    */
 
     #! Creates the given record to the data provider
     /** @param rec a hash representing a single input record
@@ -2633,17 +2620,6 @@ public class AbstractDataProvider {
         throwUnimplementedException();
     }
 
-    #! Updates a single record matching the search options
-    /** @param set the hash of field data to set
-        @param where_cond the search criteria
-        @param search_options the search options after processing by validateSearchOptions()
-    */
-    /*
-    private bool updateSingleRecordImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
-        throwUnimplementedException();
-    }
-    */
-
     #! Updates zero or more records matching the search options
     /** @param set the hash of field data to set
         @param where_cond a hash for identifying the record(s) to be updated
@@ -2656,19 +2632,6 @@ public class AbstractDataProvider {
         throwUnimplementedException();
     }
 
-    #! Updates zero or more records matching the search options
-    /** @param set the hash of field data to set
-        @param where_cond a hash for identifying the record(s) to be updated
-        @param search_options the update options after processing by validateSearchOptions()
-
-        @return the number of records updated
-    */
-    /*
-    private int updateRecordsImpl(hash<auto> set, hash<auto> where_cond, *hash<auto> search_options) {
-        throwUnimplementedException();
-    }
-    */
-
     #! Deletes zero or more records
     /**
         @param where_cond a hash for identifying the record(s) to be deleted
@@ -2679,19 +2642,6 @@ public class AbstractDataProvider {
     private int deleteRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
         throwUnimplementedException();
     }
-
-    #! Deletes zero or more records
-    /**
-        @param where_cond a hash for identifying the record(s) to be deleted
-        @param search_options the delete options after processing by validateSearchOptions()
-
-        @return the number of records deleted
-    */
-    /*
-    private int deleteRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
-        throwUnimplementedException();
-    }
-    */
 
     #! Makes a request and returns the response
     /** @param req the request to serialize and make according to the request type
