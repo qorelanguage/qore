@@ -367,7 +367,7 @@ bool Class::hasCopyMethod() [flags=RET_VALUE_ONLY] {
 //! returns the given normal (non-static, non-special) method variant, otherwise throws an exception if no method variant can be matched
 /** @par Example:
     @code{.py}
-NormalMethodVariant m = cls.getNormalVariant(name, TypeInt, TypeString);
+NormalMethodVariant m = cls.getNormalVariant(name, IntType, StringType);
     @endcode
 
     Searches normal (non-static, non-special) methods only for the given method name and
@@ -398,7 +398,7 @@ NormalMethodVariant Class::getNormalVariant(string name, ...) [flags=RET_VALUE_O
 //! Returns the given normal (non-static, non-special) method variant, otherwise throws an exception if no method variant can be matched
 /** @par Example:
     @code{.py}
-NormalMethodVariant m = cls.getNormalVariantArgs(name, (TypeInt, TypeString));
+NormalMethodVariant m = cls.getNormalVariantArgs(name, (IntType, StringType));
     @endcode
 
     Searches normal (non-static, non-special) methods only for the given method name and
@@ -428,7 +428,7 @@ NormalMethodVariant Class::getNormalVariantArgs(string name, *softlist<Type> arg
 //! Returns the given static method variant, otherwise throws an exception if no static method variant can be matched
 /** @par Example:
     @code{.py}
-StaticMethodVariant m = cls.getStaticVariant(name, TypeInt, TypeString);
+StaticMethodVariant m = cls.getStaticVariant(name, IntType, StringType);
     @endcode
 
     Searches static methods only for the given method name and
@@ -458,7 +458,7 @@ StaticMethodVariant Class::getStaticVariant(string name, ...) [flags=RET_VALUE_O
 //! Returns the given static method variant, otherwise throws an exception if no static method variant can be matched
 /** @par Example:
     @code{.py}
-StaticMethodVariant m = cls.getStaticVariantArgs(name, (TypeInt, TypeString));
+StaticMethodVariant m = cls.getStaticVariantArgs(name, (IntType, StringType));
     @endcode
 
     Searches static methods only for the given method name and
@@ -488,7 +488,7 @@ StaticMethodVariant Class::getStaticVariantArgs(string name, *softlist<Type> arg
 //! Returns the given constructor method variant, otherwise throws an exception if no constructor method variant can be matched
 /** @par Example:
     @code{.py}
-ConstructorMethodVariant m = cls.getConstructorVariant(TypeInt, TypeString);
+ConstructorMethodVariant m = cls.getConstructorVariant(IntType, StringType);
     @endcode
 
     Searches constructor methods only and then matches the arguments by type to return the variant
@@ -514,7 +514,7 @@ ConstructorMethodVariant Class::getConstructorVariant(...) [flags=RET_VALUE_ONLY
 //! Returns the given constructor method variant, otherwise throws an exception if no constructor method variant can be matched
 /** @par Example:
     @code{.py}
-ConstructorMethodVariant m = cls.getConstructorVariantArgs((TypeInt, TypeString));
+ConstructorMethodVariant m = cls.getConstructorVariantArgs((IntType, StringType));
     @endcode
 
     Searches static methods only for the given method name and

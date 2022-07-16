@@ -37,6 +37,7 @@ public class DataProvider {
             "cdsrest": "CdsRestDataProvider",
             "csvread": "CsvUtil",
             "csvwrite": "CsvUtil",
+            "filepoller": "FilePoller",
             "fixedlengthread": "FixedLengthUtil",
             "fixedlengthwrite": "FixedLengthUtil",
             "salesforcerest": "SalesforceRestDataProvider",
