@@ -34,6 +34,7 @@ public class CsvWriteDataProviderFactory inherits AbstractDataProviderFactory {
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "csvwrite",
             "desc": "CSV writer data provider factory",
+            "children_can_support_records": True,
         };
     }
 

@@ -66,12 +66,16 @@ public class FtpPollerFileEventInfoDataType inherits HashDataType {
     public {
         #! Markdown descriptions for hashdecl members
         const FieldDescriptions = {
-            "name": "the name of the file, link, or directory",
-            "size": "the size of the file in bytes",
-            "mtime": "the last modified date/time of the file",
-            "data": "the file's data; this will be a string unless the `binary` option is set to `True`, in "
-                "which case this key is assigned to the files binary data",
-            "filepath": "the remote filepath relative to SFTP root directory",
+            "name": "The name of the file, link, or directory",
+            "size": "The size of the file in bytes",
+            "mtime": "The last modified date/time of the file",
+            "data": "The file's data if `local_dir` is not set; this will be a string unless the `binary` option is "
+                "set to `True`, in which case this key is assigned to the file's binary data; when `local_dir` is "
+                "set, file data is not included in the event but is rather transferred to the local directory",
+            "filepath": "The remote filepath relative to SFTP root directory",
+            "transfer_time": "The relative date/time value giving the time taken to transfer the file",
+            "local_path": "Only included when `local_dir` is set; the target path for the file where the file will "
+                "be moved to in the post event action",
         };
     }
 
@@ -105,7 +109,13 @@ public hashdecl FtpPollerFileEventInfo {
     */
     data data;
 
-    #! The remote filepath relative to FTP root directory
+    #! The remote filepath relative to the FTP root directory
     string filepath;
+
+    #! The relative date/time value giving the time taken to transfer the file
+    date transfer_time;
+
+    #! Only included when `local_dir` is set; the target path for the file
+    *string local_path;
 }
 }

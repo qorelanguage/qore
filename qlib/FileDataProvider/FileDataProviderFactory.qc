@@ -1,7 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FixedLengthReadDataProviderFactory class definition
 
-/** FixedLengthReadDataProviderFactory.qc Copyright 2022 Qore Technologies, s.r.o.
+/*  FileDataProviderFactory.qc Copyright (C) 2014 - 2022 Qore Technologies s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,19 +21,19 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the FixedLengthUtil module
-public namespace FixedLengthUtil {
-#! The read-only fixed-length data provider factory
-public class FixedLengthReadDataProviderFactory inherits AbstractDataProviderFactory {
+#! Main module namespace
+public namespace FileDataProviderFactory {
+#! The file poller data provider factory
+public class FileDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         #! Data provider type info
-        static Class cls = new Class("FixedLengthReadDataProvider");
+        static Class cls = new Class("FileDataProvider");
 
         #! Factory info
         const FactoryInfo = <DataProviderFactoryInfo>{
-            "name": "fixedlengthread",
-            "desc": "Fixed length data reader data provider factory",
-            "children_can_support_records": True,
+            "name": "file",
+            "desc": "File data provider factory",
+            "children_can_support_apis": True,
         };
     }
 
@@ -49,7 +48,7 @@ public class FixedLengthReadDataProviderFactory inherits AbstractDataProviderFac
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
     private hash<DataProviderInfo> getProviderInfoImpl() {
-        return FixedLengthReadDataProvider::ProviderInfo;
+        return FileDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object

@@ -34,6 +34,7 @@ public class SalesforceRestDataProviderFactory inherits AbstractDataProviderFact
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "salesforcerest",
             "desc": "Salesforce REST data provider factory",
+            "children_can_support_records": True,
         };
     }
 

@@ -8,6 +8,8 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/FilePoller.qm
 
 %exec-class FilePollerTest
@@ -34,11 +36,12 @@ public class FilePollerTest inherits QUnit::Test {
             "file1",
             "file2",
             "file3",
-            );
+        );
     }
 
     constructor() : Test("FilePoller", "1.0") {
         addTestCase("FilePoller", \filePollerTest());
+        addTestCase("FilePollerDataProvider", \filePollerDataProviderTest());
 
         # Return for compatibility with test harness that checks return value
         set_return_value(main());
@@ -59,5 +62,90 @@ public class FilePollerTest inherits QUnit::Test {
         fp.runOnce();
         fp.stop();
         assertEq(Files, fp.fl);
+    }
+
+    private filePollerDataProviderTest() {
+        Logger logger();
+        {
+            LoggerLevel level;
+            if (m_options.verbose > 3) {
+                level = LoggerLevel::getLevelDebug();
+            } else if (m_options.verbose > 2) {
+                level = LoggerLevel::getLevelInfo();
+            } else {
+                level = LoggerLevel::getLevelError();
+            }
+            logger = new Logger("test", level);
+        }
+        logger.addAppender(new TestAppender());
+
+        TmpDir dir("FilePollerDataProvider-");
+
+        MyObserver observer();
+        FilePollerDataProvider fp({
+            "path": dir.path,
+            "poll_interval": 1,
+        });
+        fp.setLogger(logger);
+        fp.registerObserver(observer);
+
+        File f();
+        map f.open2(dir.path + "/" + $1, O_CREAT|O_TRUNC|O_WRONLY), Files;
+        on_exit map unlink($1), dir.path + "/" + Files;
+
+        observer.wait();
+        assertEq("file1", observer.h.file1.name);
+        assertEq("file2", observer.h.file2.name);
+        assertEq("file3", observer.h.file3.name);
+        assertTrue(True);
+    }
+}
+
+class MyObserver inherits Observer {
+    public {
+        hash<string, hash<auto>> h();
+    }
+
+    private {
+        Mutex m();
+        Condition cond();
+    }
+
+    update(string event_id, hash<auto> data_) {
+        h{data_.name} = data_;
+        if (h.size() == 3) {
+            m.lock();
+            on_exit m.unlock();
+
+            cond.broadcast();
+        }
+    }
+
+    wait() {
+        date start = now_us();
+
+        m.lock();
+        on_exit m.unlock();
+
+        while (h.size() != 3) {
+            cond.wait(m, 1s);
+            if ((now_us() - start) > 5s) {
+                throw "ERROR", "no files in timeout";
+            }
+        }
+    }
+}
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
     }
 }

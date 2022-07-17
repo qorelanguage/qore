@@ -26,37 +26,40 @@
 %strict-args
 %require-types
 %enable-all-warnings
+%allow-weak-references
 
 # make sure we have the required qore version
-%requires qore >= 0.9.4
+%requires qore >= 1.10
+
 %requires(reexport) FtpPollerUtil
-%requires DataProvider
+%requires(reexport) DataProvider
 
 module FtpPoller {
-    version = "1.0";
+    version = "2.0";
     desc = "user module providing FTP polling functionality";
     author = "Alzhan Turlybekov <alzhan.turlybekov@qoretechnologies.com>";
     url = "http://qore.org";
     license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::registerFactory(new FtpPollerDataProviderFactory());
+    };
 }
-
-/*  Version History
-    * 2019-10-16 v1.0: Alzhan Turlybekov <alzhan.turlybekov@qoretechnologies.com>
-*/
 
 /** @mainpage FtpPoller Module
 
     @section ftppollerintro Introduction to the FtpPoller Module
 
-    The FtpPoller module implements an abstract class that will poll a remote directory with the FTP protocol and return
-    matching files.
+    The FtpPoller module implements an abstract class that will poll a remote directory with the FTP protocol and
+    return matching files.
 
-    To use this class, subclass the @ref FtpPoller::FtpPoller "FtpPoller" class and implement the @ref FtpPoller::FtpPoller::singleFileEvent() and
-    @ref FtpPoller::FtpPoller::postSingleFileEvent() methods.
+    To use this class, subclass the @ref FtpPoller::FtpPoller "FtpPoller" class and implement the
+    @ref FtpPoller::FtpPoller::singleFileEvent() and @ref FtpPoller::FtpPoller::postSingleFileEvent() methods.
 
     @section ftppollerexamples FtpPoller Module Examples
 
-    The following simple example will poll for files and then print out information for the files polled (as well as all info, detail, and debug messages) and exit immediately:
+    The following simple example will poll for files and then print out information for the files polled (as well as
+    all info, detail, and debug messages) and exit immediately:
     @code
 %requires FtpPoller
 
@@ -66,7 +69,8 @@ class MyFtpPoller inherits FtpPoller {
 
     singleFileEvent(hash<FtpPollerFileEventInfo> file_info) {
         printf("GOT FILE: %y\n", file_info);
-        # in this case, the polling stop operation will take effect after all the singleFileEvent() calls are made for the polling operation
+        # in this case, the polling stop operation will take effect after all the singleFileEvent() calls are made for
+        # the polling operation
         stopNoWait();
     }
 
@@ -90,19 +94,29 @@ FtpPoller poller(ftp_client, opts);
 poller.waitStop();
     @endcode
 
-    Note that @ref FtpPoller::FtpPoller::stopNoWait() "FtpPoller::stopNoWait()" was called in the event thread because calling
-    @ref FtpPoller::FtpPoller::stop() "FtpPoller::stop()" in the event thread would cause an exception to be thrown.
+    Note that @ref FtpPoller::FtpPoller::stopNoWait() "FtpPoller::stopNoWait()" was called in the event thread because
+    calling @ref FtpPoller::FtpPoller::stop() "FtpPoller::stop()" in the event thread would cause an exception to be
+    thrown.
 
-    A useful poller class would implement the @ref FtpPoller::FtpPoller::singleFileEvent() "FtpPoller::singleFileEvent()" method which process already-transferred
-    files and the @ref FtpPoller::FtpPoller::postSingleFileEvent() "FtpPoller::postSingleFileEvent()" by deleting / moving / renaming the files so that they would not be acquired on the next poll.
+    A useful poller class would implement the
+    @ref FtpPoller::FtpPoller::singleFileEvent() "FtpPoller::singleFileEvent()" method which process already-
+    transferred files and the @ref FtpPoller::FtpPoller::postSingleFileEvent() "FtpPoller::postSingleFileEvent()" by
+    deleting / moving / renaming the files so that they would not be acquired on the next poll.
 
     @section ftpollersandbox FtpPoller Module in Sandboxed Programs
 
-    The @ref FtpPoller::FtpPoller "FtpPoller" class includes support for running in sandboxed Program objects with the following parse options set:
-    - \c PO_NO_THREAD_CONTROL: in this case the \c "start_thread" option is required in @ref FtpPoller::FtpPoller::constructor() "FtpPoller::constructor()"
-    - \c PO_NO_PROCESS_CONTROL: in this case the \c "sleep" option is required in @ref FtpPoller::FtpPoller::constructor() "FtpPoller::constructor()"
+    The @ref FtpPoller::FtpPoller "FtpPoller" class includes support for running in sandboxed Program objects with the
+    following parse options set:
+    - \c PO_NO_THREAD_CONTROL: in this case the \c "start_thread" option is required in
+      @ref FtpPoller::FtpPoller::constructor() "FtpPoller::constructor()"
+    - \c PO_NO_PROCESS_CONTROL: in this case the \c "sleep" option is required in
+      @ref FtpPoller::FtpPoller::constructor() "FtpPoller::constructor()"
 
     @section ftppollerrelnotes FtpPoller Module Release Notes
+
+    @section ftppollerv2_0 Version 2.0
+    - added support for the event-based DataProvider API
+      (<a href="https://github.com/qorelanguage/qore/issues/4557">issue 4557</a>)
 
     @section ftppollerv1_0 Version 1.0
     - initial release
@@ -122,7 +136,7 @@ public class FtpPoller {
         const SortNone = 0;
         #! sort by name
         const SortName = 1;
-        #const SortDate = 2;
+        const SortDate = 2;
 
         #! minimum required keys for all constructors
         const RequiredKeys = (
@@ -139,17 +153,19 @@ public class FtpPoller {
 
         #! default values for constructor hash argument
         const Defaults = {
+            "protocol": "ftp",
             "port": 21,
             "mask": "*",
             "poll_interval": 10,
             "reopts": 0,
-            "binary": False,
+            "tempfile_template": ".tmp.%s.part",
+            "atomic_transfer": False,
         };
 
         #! optional constructor hash keys
         const OptionalKeys = (
             "path", "user", "pass", "regex_mask", "minage",
-            "encoding", "log_info", "log_detail", "log_debug", "binary",
+            "log_info", "log_detail", "log_debug", "local_dir",
 %ifndef PO_NO_PROCESS_CONTROL
             "sleep",
 %endif
@@ -159,13 +175,16 @@ public class FtpPoller {
         );
 
         #! all keys
-        const AllKeys = RequiredKeysWithHost + Defaults.keys() + OptionalKeys;
+        const AllKeys = RequiredKeysWithHost + keys Defaults + OptionalKeys;
 
         #! pause when Ftp errors are detected
         const ErrorDelay = 1m;
     }
 
     private {
+        #! Protocol ("ftp" or "ftps")
+        string protocol;
+
         #! host or address name
         string host;
 
@@ -195,6 +214,15 @@ public class FtpPoller {
 
         #! poll interval in seconds
         int poll_interval;
+
+        #! Local directory to transfer file
+        string local_dir;
+
+        #! The temporary filename template when \c local_dir is set
+        string tempfile_template;
+
+        #! Atomic transfer flag for use with \c local_dir
+        bool atomic_transfer;
 
         #! run flag
         bool runflag = False;
@@ -229,9 +257,6 @@ public class FtpPoller {
         #! minimum file age
         *softint minage;
 
-        #! file encoding for text files
-        *string encoding;
-
         #! optional info log closure
         *code log_info;
 
@@ -246,35 +271,45 @@ public class FtpPoller {
 
         #! optional sleep closure
         *code sleep;
-
-        #! binary transfer flag (for singleFileEvent())
-        bool binary;
     }
 
     #! creates the FtpPoller object from the @ref Qore::FtpClient "FtpClient" argument and configuration hash argument passed
     /** @param n_ftp the new @ref Qore::FtpClient "FtpClient" object
-    @param nconf a hash with the following optional keys:
-    - \c poll_interval: the integer polling interval in seconds (default: 10 seconds; must be > 0 if given)
-    - \c mask: the file glob mask to use (default: \c "*", ignored if \c "regex_mask" is also present)
-    - \c path: the remote path(s) for retrieving the files; if a list of strings is given then each path will be polled for matching files according to the \c "mask" or \c "regex_mask" option
-    - \c regex_mask: a regular expression to use as a mask (overrides any \c "mask" value)
-    - \c reopts: regular expression match options (ex RE_Caseless for case-insensitive matches)
-    - \c minage: the minimum file age in seconds before a file will be acquired (default: 0)
-    - \c encoding: the encoding for any text files received
-    - \c binary: if set to @ref True "True" then files are transferred in binary mode by default (with singleFileEvent() usage only), otherwise file data is returned in text format
-    - \c log_info: a @ref closure "closure" or @ref call_reference "call reference" for logging important information; must accept a single string giving the log message
-    - \c log_detail: a @ref closure "closure" or @ref call_reference "call reference" for logging detailed information; must accept a single string giving the log message
-    - \c log_debug: a @ref closure "closure" or @ref call_reference "call reference" for logging verbose debgugging information; must accept a single string giving the log message
-    - \c start_thread: (required when imported into a context where @ref Qore::PO_NO_THREAD_CONTROL is set) a @ref closure "closure" or @ref call_reference "call reference" for starting threads; must return the integer thread ID (if not set then @ref background will be used)
-    - \c sleep: (required when imported into a context where @ref Qore::PO_NO_PROCESS_CONTROL is set) a @ref closure "closure" or @ref call_reference "call reference" to use instead of @ref Qore::sleep() (if not set then @ref Qore::sleep() will be used)
+        @param nconf a hash with the following optional keys:
+        - \c atomic_transfer: if @ref True and \c local_dir is set, then \c tempfile_template is used to write FTP
+          files to a temporary filename during transfer
+        - \c local_dir: a local directory to use to transfer remote files so large file data does not appear in events
+        - \c log_debug: a @ref closure "closure" or @ref call_reference "call reference" for logging verbose
+          debgugging information; must accept a single string giving the log message
+        - \c log_detail: a @ref closure "closure" or @ref call_reference "call reference" for logging detailed
+          information; must accept a single string giving the log message
+        - \c log_info: a @ref closure "closure" or @ref call_reference "call reference" for logging important
+          information; must accept a single string giving the log message
+        - \c mask: the file glob mask to use (default: \c "*", ignored if \c "regex_mask" is also present)
+        - \c minage: the minimum file age in seconds before a file will be acquired (default: 0)
+        - \c path: the remote path(s) for retrieving the files; if a list of strings is given then each path will be
+          polled for matching files according to the \c "mask" or \c "regex_mask" option
+        - \c poll_interval: the integer polling interval in seconds (default: 10 seconds; must be > 0 if given)
+        - \c regex_mask: a regular expression to use as a mask (overrides any \c "mask" value)
+        - \c reopts: regular expression match options (ex RE_Caseless for case-insensitive matches)
+        - \c sleep: (required when imported into a context where @ref Qore::PO_NO_PROCESS_CONTROL is set) a
+          @ref closure "closure" or @ref call_reference "call reference" to use instead of @ref Qore::sleep() (if not
+          set then @ref Qore::sleep() will be used)
+        - \c start_thread: (required when imported into a context where @ref Qore::PO_NO_THREAD_CONTROL is set) a
+          @ref closure "closure" or @ref call_reference "call reference" for starting threads; must return the integer
+          thread ID (if not set then @ref background will be used)
+        - \c tempfile_template: (used when \c local_dir and \c atomic_transfer are set) the temporary filename prefix
+          to use when transferring files to the local directory specified by \c local_dir; use \c "%s" as the
+          placeholder for the target filename
 
-    @throw FTPPOLLER-CONSTRUCTOR-ERROR missing required key, invalid port or poll_interval given
-    @throw FTPCLIENT-PARAMETER-ERROR empty hostname passed
-    @throw SOCKET-CONNECT-ERROR error establishing socket connection (no listener, port blocked, etc); timeout establishing socket connection
-    @throw SSH2CLIENT-CONNECT-ERROR no user name set; ssh2 or libssh2 error
-    @throw SSH2-ERROR error initializing or establishing ssh2 session
-    @throw SSH2CLIENT-AUTH-ERROR no proper authentication method found
-    @throw FTPCLIENT-CONNECT-ERROR error initializing ftp session or getting remote path
+        @throw FTPPOLLER-CONSTRUCTOR-ERROR missing required key, invalid port or poll_interval given
+        @throw FTPCLIENT-PARAMETER-ERROR empty hostname passed
+        @throw SOCKET-CONNECT-ERROR error establishing socket connection (no listener, port blocked, etc); timeout
+        establishing socket connection
+        @throw SSH2CLIENT-CONNECT-ERROR no user name set; ssh2 or libssh2 error
+        @throw SSH2-ERROR error initializing or establishing ssh2 session
+        @throw SSH2CLIENT-AUTH-ERROR no proper authentication method found
+        @throw FTPCLIENT-CONNECT-ERROR error initializing ftp session or getting remote path
     */
     constructor(Qore::FtpClient n_ftp, hash<auto> nconf) {
         # create hash of keys with only valid options in argument hash
@@ -285,6 +320,11 @@ public class FtpPoller {
                 throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("required key %y missing from constructor hash argument)",
                     k);
             }
+        }
+
+        if (exists conf.local_dir && (!is_dir(conf.local_dir) || !is_writable(conf.local_dir))) {
+            throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("invalid local directory %y; directory does not exist or "
+                "cannot be written to", conf.local_dir);
         }
 
         conf.poll_interval = int(conf.poll_interval);
@@ -325,7 +365,7 @@ public class FtpPoller {
 
         port = ftp.getPort();
 
-        url = sprintf("%s@%s:%d", user ?? "<none>", ftp.getHostName(), port);
+        url = sprintf("%s://%s@%s:%d", protocol, user ?? "<none>", ftp.getHostName(), port);
 
         urlh = parse_url(ftp.getURL());
 
@@ -345,30 +385,43 @@ public class FtpPoller {
 
     #! creates the FtpPoller object from the configuration hash argument passed
     /** @param nconf a hash with the following keys:
-    - \c host: (required) the hostname or address to connect to
-    - \c port: the integer port number to connect to (default 21; must be > 0 if given)
-    - \c user: the username to use for the connection
-    - \c pass: the password to use for the connection
-    - \c path: the remote path(s) for retrieving the files
-    - \c poll_interval: the integer polling interval in seconds (default: 10 seconds; must be > 0 if given)
-    - \c mask: the file glob mask to use (default: \c "*", ignored if \c "regex_mask" is also present)
-    - \c regex_mask: a regular expression to use as a mask (overrides any \c "mask" value)
-    - \c reopts: regular expression match options (ex RE_Caseless for case-insensitive matches)
-    - \c minage: the minimum file age in seconds before a file will be acquired (default: 0)
-    - \c encoding: the encoding for any text files received
-    - \c log_info: a @ref closure "closure" or @ref call_reference "call reference" for logging important information; must accept a single string giving the log message
-    - \c log_detail: a @ref closure "closure" or @ref call_reference "call reference" for logging detailed information; must accept a single string giving the log message
-    - \c log_debug: a @ref closure "closure" or @ref call_reference "call reference" for logging verbose debgugging information; must accept a single string giving the log message
-    - \c start_thread: (required when imported into a context where @ref Qore::PO_NO_THREAD_CONTROL is set) a @ref closure "closure" or @ref call_reference "call reference" for starting threads; must return the integer thread ID (if not set then @ref background will be used)
-    - \c sleep: (required when imported into a context where @ref Qore::PO_NO_PROCESS_CONTROL is set) a @ref closure "closure" or @ref call_reference "call reference" to use instead of @ref Qore::sleep() (if not set then @ref Qore::sleep() will be used)
+        - \c atomic_transfer: if @ref True and \c local_dir is set, then \c tempfile_template is used to write FTP
+          files to a temporary filename during transfer
+        - \c host: (required) the hostname or address to connect to
+        - \c local_dir: a local directory to use to transfer remote files so large file data does not appear in events
+        - \c log_debug: a @ref closure "closure" or @ref call_reference "call reference" for logging verbose
+          debgugging information; must accept a single string giving the log message
+        - \c log_detail: a @ref closure "closure" or @ref call_reference "call reference" for logging detailed
+          information; must accept a single string giving the log message
+        - \c log_info: a @ref closure "closure" or @ref call_reference "call reference" for logging important
+          information; must accept a single string giving the log message
+        - \c mask: the file glob mask to use (default: \c "*", ignored if \c "regex_mask" is also present)
+        - \c minage: the minimum file age in seconds before a file will be acquired (default: 0)
+        - \c pass: the password to use for the connection
+        - \c path: the remote path(s) for retrieving the files
+        - \c poll_interval: the integer polling interval in seconds (default: 10 seconds; must be > 0 if given)
+        - \c port: the integer port number to connect to (default 21; must be > 0 if given)
+        - \c protocol: either \c "ftp" (the detault) or \c "ftps" for secure FTP
+        - \c regex_mask: a regular expression to use as a mask (overrides any \c "mask" value)
+        - \c reopts: regular expression match options (ex RE_Caseless for case-insensitive matches)
+        - \c start_thread: (required when imported into a context where @ref Qore::PO_NO_THREAD_CONTROL is set) a
+          @ref closure "closure" or @ref call_reference "call reference" for starting threads; must return the integer
+          thread ID (if not set then @ref background will be used)
+        - \c sleep: (required when imported into a context where @ref Qore::PO_NO_PROCESS_CONTROL is set) a
+          @ref closure "closure" or @ref call_reference "call reference" to use instead of @ref Qore::sleep() (if not
+          set then @ref Qore::sleep() will be used)
+        - \c tempfile_template: (used when \c local_dir and \c atomic_transfer are set) the temporary filename prefix
+          to use when transferring files to the local directory specified by \c local_dir; use \c "%s" as the
+          placeholder for the target filename
+        - \c user: the username to use for the connection
 
-    @throw FTPPOLLER-CONSTRUCTOR-ERROR missing required key, invalid port or poll_interval given
-    @throw FTPCLIENT-PARAMETER-ERROR empty hostname passed
-    @throw SOCKET-CONNECT-ERROR error establishing socket connection (no listener, port blocked, etc)
-    @throw SSH2CLIENT-CONNECT-ERROR no user name set; ssh2 or libssh2 error
-    @throw SSH2-ERROR error initializing or establishing ssh2 session
-    @throw SSH2CLIENT-AUTH-ERROR no proper authentication method found
-    @throw FTPCLIENT-CONNECT-ERROR error initializing ftp session or getting remote path
+        @throw FTPPOLLER-CONSTRUCTOR-ERROR missing required key, invalid port, poll_interval, or protocol given
+        @throw FTPCLIENT-PARAMETER-ERROR empty hostname passed
+        @throw SOCKET-CONNECT-ERROR error establishing socket connection (no listener, port blocked, etc)
+        @throw SSH2CLIENT-CONNECT-ERROR no user name set; ssh2 or libssh2 error
+        @throw SSH2-ERROR error initializing or establishing ssh2 session
+        @throw SSH2CLIENT-AUTH-ERROR no proper authentication method found
+        @throw FTPCLIENT-CONNECT-ERROR error initializing ftp session or getting remote path
     */
     constructor(hash<auto> nconf) {
         # create hash of keys with only valid options in argument hash
@@ -376,16 +429,27 @@ public class FtpPoller {
 
         foreach string k in (RequiredKeysWithHost) {
             if (!exists conf{k}) {
-                throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("required key %y missing from constructor hash argument)",
-                                                            k);
+                throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("required key %y missing from constructor hash "
+                    "argument)", k);
             }
+        }
+
+        if (conf.protocol != "ftp" && conf.protocol != "ftps") {
+            throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("invalid URL scheme %y; expecting \"ftp\" or \"ftps\"",
+                conf.protocol);
+        }
+
+        if (exists conf.local_dir && (!is_dir(conf.local_dir) || !is_writable(conf.local_dir))) {
+            throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("invalid local directory %y; directory does not exist or "
+                "cannot be written to", conf.local_dir);
         }
 
         conf.poll_interval = int(conf.poll_interval);
         conf.port = int(conf.port);
 
         if (conf.poll_interval <= 0) {
-            throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("poll_interval cannot be <= 0 (val: %d)", conf.poll_interval);
+            throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("poll_interval cannot be <= 0 (val: %d)",
+                conf.poll_interval);
         }
         if (conf.port <= 0) {
             throw "FTPPOLLER-CONSTRUCTOR-ERROR", sprintf("port cannot be <= 0 (val: %d)", conf.port);
@@ -407,7 +471,7 @@ public class FtpPoller {
         }
 
         # create FtpClient object
-        ftp = new FtpClient("ftp://" + host + ":" + port);
+        ftp = new FtpClient(sprintf("%s://%s:%d", protocol, host, port));
         if (user) {
             ftp.setUserName(user);
         }
@@ -415,7 +479,7 @@ public class FtpPoller {
             ftp.setPassword(pass);
         }
 
-        url = sprintf("%s@%s:%d", user ? user : "<none>", host, port);
+        url = sprintf("%s://%s@%s:%d", protocol, user ? user : "<none>", host, port);
 
         if (mask) {
             logDetail("%s: file regex mask: %s", url, mask);
@@ -481,13 +545,13 @@ public class FtpPoller {
         # replace ? -> .
         mask =~ s/\?/./g;
         # replace * -> .*
-        mask =~ s/\*/.*/g; #//; # previous comment needed only for broken emacs qore-mode syntax highlighting
+        mask =~ s/\*/.*/g;
         mask = sprintf("^%s$", mask); #");
     }
 
     #! retrieves a remote file and stores it to a local path
     /** @param remote_path the remote file path
-    @param local_path the local file path
+        @param local_path the local file path
     */
     getStoreFile(string remote_path, string local_path) {
         ftp.get(remote_path, local_path);
@@ -524,7 +588,8 @@ public class FtpPoller {
         - \c size: the size of the file in bytes
         - \c mtime: the last modified date/time of the file
     */
-    list<hash<FtpPollerFileEventInfo>> getFiles(string subdir, int sort = FtpPoller::SortNone, int order = FtpPoller::OrderAsc) {
+    list<hash<FtpPollerFileEventInfo>> getFiles(string subdir, int sort = FtpPoller::SortNone,
+            int order = FtpPoller::OrderAsc) {
         ftp.cwd(subdir);
         list<string> fl;
         {
@@ -585,7 +650,18 @@ public class FtpPoller {
             # sort by file name
             case FtpPoller::SortName: {
                 # sort closure
-                code sorter = int sub (hash<auto> lt, hash<auto> rt) { return lt.name <=> rt.name; };
+                code sorter = int sub (hash<FtpPollerFileEventInfo> lt, hash<FtpPollerFileEventInfo> rt) {
+                    return lt.name <=> rt.name;
+                };
+                l = (order == FtpPoller::OrderAsc ? Qore::sort(l, sorter) : sort_descending(l, sorter));
+                break;
+            }
+
+            case FtpPoller::SortDate: {
+                # sort by last modification date
+                code sorter = int sub (hash<FtpPollerFileEventInfo> l, hash<FtpPollerFileEventInfo> r) {
+                    return l.mtime <=> r.mtime;
+                };
                 l = (order == FtpPoller::OrderAsc ? Qore::sort(l, sorter) : sort_descending(l, sorter));
                 break;
             }
@@ -600,7 +676,7 @@ public class FtpPoller {
 
     #! starts polling in the background; returns the thread ID of the polling thread
     /** if polling had already been started, then the thread ID of the polling thread is
-    returned immediately
+        returned immediately
     */
     int start() {
         m.lock();
@@ -635,9 +711,10 @@ public class FtpPoller {
     #! stops the polling operation, returns when the polling operation has been stopped
     /** if polling was not in progress then this method returns immediately
 
-    @throw THREAD-ERROR this exception is thrown if this method is called from the event thread since it would result in a deadlock
+        @throw THREAD-ERROR this exception is thrown if this method is called from the event thread since it would
+        result in a deadlock
 
-    @see stopNoWait()
+        @see stopNoWait()
     */
     stop() {
         if (gettid() == tid && sc.getCount()) {
@@ -651,9 +728,11 @@ public class FtpPoller {
         sc.waitForZero();
     }
 
-    #! waits indefinitely for the polling operation to stop; if polling was not in progress then this method returns immediately
-    /**
-    @throw THREAD-ERROR this exception is thrown if this method is called from the event thread since it would result in a deadlock
+    #! waits indefinitely for the polling operation to stop
+    /** If polling was not in progress then this method returns immediately
+
+        @throw THREAD-ERROR this exception is thrown if this method is called from the event thread since it would
+        result in a deadlock
     */
     waitStop() {
         if (gettid() == tid) {
@@ -664,7 +743,7 @@ public class FtpPoller {
 
     #! starts the polling operation inline (not in a background thread)
     /**
-    @throw FTPPOLLER-ERROR this exception is thrown if polling is already in progress
+        @throw FTPPOLLER-ERROR this exception is thrown if polling is already in progress
     */
     startInline() {
         {
@@ -701,30 +780,27 @@ public class FtpPoller {
                 logDetail("got new files in %y: %y", pwd, files);
 
                 if (fileEvent(files)) {
-                    foreach hash<FtpPollerFileEventInfo> fh in (files) {
-                        # transfer file from server
-                        logInfo("%y: retrieving %s file data", fh.name, binary ? "binary" : "text");
-                        date t1 = now_us();
-
+                    foreach hash<FtpPollerFileEventInfo> event in (files) {
                         get_files = True;
-                        if (fh.size) {
-                            fh.data = binary ? getFile(fh.name) : getTextFile(fh.name);
+                        event.filepath = subdir == "." ? event.name : (subdir + DirSep + event.name);
+                        if (local_dir) {
+                            if (atomic_transfer) {
+                                event = retrieveTempFile(event);
+                            } else {
+                                event = retrieveFile(event);
+                            }
                         } else {
-                            fh.data = binary ? Qore::binary() : "";
+                            event = getRemoteFileData(event);
                         }
-                        logInfo("%y: retrieved %d bytes in %y", fh.name, fh.data.size(), now_us() - t1);
-
                         # make sure any errors after this point cause the polling operation to stop
                         get_files = False;
-                        fh.filepath = subdir == "." ? fh.name : (subdir + DirSep + fh.name);
-                        singleFileEvent(fh);
 
-                        try {
-                            postSingleFileEvent(fh);
-                        } catch () {
-                            fatal = True;
-                            rethrow;
-                        }
+                        singleFileEvent(event);
+
+                        # set the "fatal" flag if an exception is thrown in postSingleFileEvent()
+                        on_error fatal = True;
+
+                        postSingleFileEvent(event);
                     }
                 }
                 ret = True;
@@ -733,13 +809,97 @@ public class FtpPoller {
         return ret;
     }
 
+    #! Retrieves remote file data and adds it to the event data
+    hash<FtpPollerFileEventInfo> getRemoteFileData(hash<FtpPollerFileEventInfo> event) {
+        # get file to binary stream
+        BinaryOutputStream binstream();
+
+        logInfo("retrieving %y (%d bytes) to memory", event.filepath, event.size);
+        date start = now_us();
+        ftp.get(event.filepath, binstream);
+        event.transfer_time = now_us() - start;
+        logInfo("retrieved %y in %y", event.filepath, event.transfer_time);
+
+        # write binary data to event hash
+        event += {
+            "data": binstream.getData(),
+        };
+
+        return event;
+    }
+
+    #! Retrieves the remote file to local_dir using a temporary file
+    private hash<FtpPollerFileEventInfo> retrieveTempFile(hash<FtpPollerFileEventInfo> event) {
+        # add filename
+        string tmp_name = sprintf(tempfile_template, event.name);
+        string tmp_path = normalize_dir(local_dir + DirSep + tmp_name);
+        string local_path = normalize_dir(local_dir + DirSep + event.name);
+
+        logInfo("using local dir %y to stream %y -> %y (%d bytes)", local_dir, event.filepath,
+            tmp_path, event.size);
+        date start = now_us();
+        if (event.size) {
+            # stream remote file to local file
+            ftp.get(event.filepath, tmp_path);
+        } else {
+            File f();
+            f.open2(tmp_path, O_CREAT | O_WRONLY | O_TRUNC);
+        }
+
+        # move to target filename after transfer to ensure atomicity
+        if (tmp_path != local_path) {
+            # NOTE: uses a simple rename() which may cause problems on some OSes if moving between filesystems
+            Qore::rename(tmp_path, local_path);
+            logInfo("renamed %y -> %y", tmp_path, local_path);
+        }
+
+        event += {
+            "transfer_time": now_us() - start,
+            "local_path": local_path,
+        };
+        logInfo("streamed %d byte%s from %y -> %y in %y", event.size, event.size == 1 ? "" : "s", event.filepath,
+            local_path, event.transfer_time);
+        return event;
+    }
+
+    #! Retrieves the remote file to local_dir directly
+    private hash<FtpPollerFileEventInfo> retrieveFile(hash<FtpPollerFileEventInfo> event) {
+        # add filename
+        string local_path = normalize_dir(local_dir + DirSep + event.name);
+
+        logInfo("using local dir %y to stream %y -> %y (%d bytes)", local_dir, event.filepath,
+            local_path, event.size);
+        date start = now_us();
+        if (event.size) {
+            # stream remote file to local file
+            ftp.get(event.filepath, local_path);
+        } else {
+            File f();
+            f.open2(local_path, O_CREAT | O_WRONLY | O_TRUNC);
+        }
+
+        event += {
+            "transfer_time": now_us() - start,
+            "local_path": local_path,
+        };
+        logInfo("streamed %d byte%s from %y -> %y in %y", event.size, event.size == 1 ? "" : "s", event.filepath,
+            local_path, event.transfer_time);
+        return event;
+    }
+
     #! sleeps for the specificed number of seconds
     private ftpSleep(softint secs) {
+        date end = now_us() + seconds(secs);
+        while (runflag) {
 %ifdef PO_NO_PROCESS_CONTROL
-        call_function(sleep, secs);
+            call_function(sleep, 1);
 %else
-        sleep ? call_function(sleep, secs) : Qore::sleep(secs);
+            sleep ? call_function(sleep, 1) : Qore::usleep(250ms);
 %endif
+            if (!runflag || (now_us() >= end)) {
+                break;
+            }
+        }
     }
 
     #! starts the polling operation
@@ -751,15 +911,11 @@ public class FtpPoller {
         while (runflag) {
             try {
                 runOnce();
-                if (runflag) {
-                    ftpSleep(poll_interval);
-                }
+                ftpSleep(poll_interval);
             } catch (hash<ExceptionInfo> ex) {
                 if (get_files) {
                     logInfo("FTP error in %y: %s: %s; waiting %y for next try", path, ex.err, ex.desc, ErrorDelay);
-                    if (runflag) {
-                        ftpSleep(ErrorDelay);
-                    }
+                    ftpSleep(ErrorDelay);
                 } else {
                     # error thrown in "post transfer" code
                     logInfo("error in post transfer code; polling terminated: %s: %s", ex.err, ex.desc);
@@ -771,38 +927,36 @@ public class FtpPoller {
         logInfo("polling finished");
     }
 
-    #! called for each poll with a list of all files matched before transfer; if this method returns False or @ref nothing, then the singleFileEvent method is not called
-    *bool fileEvent(list l) {
+    #! called for each poll with a list of all files matched before transfer
+    /** if this method returns False or @ref nothing, then the singleFileEvent method is not called
+    */
+    *bool fileEvent(list<hash<FtpPollerFileEventInfo>> l) {
         return True;
     }
 
-    #! called for each matching file individually whenever matching files are polled with the list of matching file names; if any error occurs here, the error is logged and the polling operation is retried
-    /** @param fih a hash of file data and information with the following keys:
-        - \c name: the name of the file, link, or directory
-        - \c size: the size of the file in bytes
-        - \c mtime: the last modified date/time of the file
-        - \c data: the file's data; this will be a string unless the \a "binary" option is set to @ref True "True", in which case this key is assigned to the files binary data
-        - \c filepath: the remote filepath relative to FTP root directory
-    */
-    abstract singleFileEvent(hash<FtpPollerFileEventInfo> fih);
+    #! called for each matching file individually whenever matching files are polled
+    /** If any error occurs here, the error is logged and the polling operation is retried
 
-    #! called after singleFileEvent() for each matching file individually whenever matching files are polled with the list of matching file names; if any error occurs here, the polling operation stops
-    /** This method would normally delete / rename / move files processed by singleFileEvent() so that they would not be polled a second time.
-        If an error occurs in this operation, then the polling event will stop since continuing after failing to delete, rename, or move a file already processed
-        would cause the file to be processed more than once.
-
-        @param fih a hash of file data and information with the following keys:
-        - \c name: the name of the file, link, or directory
-        - \c size: the size of the file in bytes
-        - \c mtime: the last modified date/time of the file
-        - \c data: the file's data; this will be a string unless the \a "binary" option is set to @ref True "True", in which case this key is assigned to the files binary data
-        - \c filepath: the remote filepath relative to FTP root directory
+        @param event a hash of file data
     */
-    abstract postSingleFileEvent(hash<FtpPollerFileEventInfo> fih);
+    abstract singleFileEvent(hash<FtpPollerFileEventInfo> event);
+
+    #! called after singleFileEvent() for each matching file individually
+    /** If any error occurs here, the polling operation stops
+
+        This method would normally delete / rename / move files processed by singleFileEvent() so that they would not
+        be polled a second time.
+        If an error occurs in this operation, then the polling event will stop since continuing after failing to
+        delete, rename, or move a file already processed would cause the file to be processed more than once.
+
+        @param event a hash of file data
+    */
+    abstract postSingleFileEvent(hash<FtpPollerFileEventInfo> event);
 
     #! checks a path on the local file system
     /**
-    @throw DIR-ERROR this exception is thrown if the local path does not exist, is not readable, is not a directory, or should be writable and is not
+        @throw DIR-ERROR this exception is thrown if the local path does not exist, is not readable, is not a
+        directory, or should be writable and is not
     */
     static checkPath(string path, string type, bool write = False) {
         *hash<StatInfo> h = hstat(path);
@@ -822,6 +976,246 @@ public class FtpPoller {
         if (write && !is_writable(path)) {
             throw "DIR-ERROR", sprintf("%y: %s path is not writable", path, type);
         }
+    }
+}
+
+#! Event-based data provider for FTP polling events
+/** When using the \c local_dir option, the local file must be removed / moved / archived by the event handler
+*/
+public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvider {
+    public {
+        #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "FtpPollerDataProvider",
+            "supports_observable": True,
+            "constructor_options": ConstructorOptions,
+        };
+
+        #! Constructor options
+        const ConstructorOptions = {
+            "atomic_transfer":  <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(BoolType),
+                "desc": "Use an atomic transfer mechanism with `local_dir` where remote files are first moved to a "
+                    "temporary location and then moved to the final location when they have been fully transferred",
+                "default_value": True,
+            },
+
+            "local_dir": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringOrNothingType),
+                "desc": "A local directory that will be used to retrieve files",
+            },
+
+            "mask": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "The glob mask to use; will be treated as a regex if `regex` is `true`",
+                "default_value": "*",
+            },
+
+            "minage": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(IntType),
+                "desc": "An integer giving the minimum file age in seconds before the file will be polled; this is "
+                    "meant to work around non-atomic file transfer operations",
+            },
+
+            "poll_interval": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(IntType),
+                "desc": "The interval in seconds between polling for files",
+                "default_value": 10,
+            },
+
+            "regex": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(BoolType),
+                "desc": "If `true` then `mask` is treated as a regular expression instead of a glob pattern",
+            },
+
+            "reopt": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(IntType),
+                "desc": "A bitfield of regular expression options (`1` = ignore case, `2` = treat EOL as a regular "
+                    "character); ignored if `regex` is not `true`",
+            },
+
+            "sort_desc": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(BoolType),
+                "desc": "Sort descending; if not given then an ascending sort is assumed if a `sort_type` is given",
+            },
+
+            "sort_type": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "Either `name` or `date` for the data to use for sorting",
+            },
+
+            "url": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "A URL for an FTP connection",
+                "required": True,
+            },
+        };
+    }
+
+    private {
+        #! The file poller itself
+        EmbeddedFtpPoller poller;
+    }
+
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) {
+        hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+        string url = remove copts.url;
+        hash<UrlInfo> url_info = parse_url(url);
+
+        copts += url_info;
+        if (copts.username) {
+            copts.user = remove copts.username;
+        }
+        if (copts.password) {
+            copts.pass = remove copts.password;
+        }
+
+        bool regex = remove copts.regex ?? False;
+        if (!copts.mask) {
+            copts.mask = regex ? ".*" : ConstructorOptions.mask.default_value;
+        }
+        if (*string sort_type = remove copts.sort_type) {
+            if (sort_type == "name") {
+                copts.sort_type = FtpPoller::SortName;
+            } else if (sort_type == "date") {
+                copts.sort_type = FtpPoller::SortDate;
+            } else {
+                throw "CONSTRUCTOR-ERROR", sprintf("expecting \"name\" or \"date\" for the \"sort_type\" option "
+                    "value; got %y instead", sort_type);
+            }
+            if (remove copts.sort_desc) {
+                copts.sort_order = FtpPoller::OrderDesc;
+            }
+        } else {
+            remove copts.sort_desc;
+        }
+
+        if (regex) {
+            copts.regex_mask = remove copts.mask;
+        }
+
+        copts.log_info = sub (string msg) {
+            if (logger) {
+                logger.info("%s", msg);
+            }
+        };
+        copts.log_detail = sub (string msg) {
+            if (logger) {
+                logger.info("%s", msg);
+            }
+        };
+        copts.log_debug = sub (string msg) {
+            if (logger) {
+                logger.debug("%s", msg);
+            }
+        };
+
+        poller = new EmbeddedFtpPoller(self, copts);
+    }
+
+    destructor() {
+        delete poller;
+    }
+
+    string getName() {
+        return "ftppoller";
+    }
+
+    private hash<DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
+    }
+
+    #! Returns the description of an event, if any
+    /** @return the event type for this provider
+    */
+    private *AbstractDataProviderType getEventTypeImpl() {
+        return new FtpPollerFileEventInfoDataType();
+    }
+}
+
+#! Event-based data provider for FTP polling events
+/** When using the \c local_dir option, the local file must be removed / moved / archived by the event handler
+*/
+public class FtpPollerDataProvider inherits FtpPollerDataProviderBase, DataProvider::Observable {
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) : FtpPollerDataProviderBase(options) {
+        poller.start();
+    }
+}
+
+#! Event-based data provider for FTP polling events
+/** When using the \c local_dir option, the local file must be removed / moved / archived by the event handler
+*/
+public class FtpDelayedPollerDataProvider inherits FtpPollerDataProviderBase, DataProvider::DelayedObservable {
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) : FtpPollerDataProviderBase(options) {
+    }
+
+    #! Called when all observers have been added to the object
+    /** This method is meant to trigger event generation
+    */
+    observersReady() {
+        poller.start();
+    }
+}
+
+#! The file poller data provider factory
+public class FtpPollerDataProviderFactory inherits AbstractDataProviderFactory {
+    private {
+        #! Data provider type info
+        static Class cls = new Class("FtpPollerDataProvider");
+
+        #! Factory info
+        const FactoryInfo = <DataProviderFactoryInfo>{
+            "name": "ftppoller",
+            "desc": "FTP poller data provider factory",
+            "children_can_support_observers": True,
+        };
+    }
+
+    #! Returns static factory information without \a provider_info
+    /** @return static factory information without \a provider_info which is provided by @ref getProviderInfo()
+    */
+    private hash<DataProviderFactoryInfo> getInfoImpl() {
+        return FactoryInfo;
+    }
+
+    #! Returns static provider information
+    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    */
+    private hash<DataProviderInfo> getProviderInfoImpl() {
+        return FtpPollerDataProvider::ProviderInfo;
+    }
+
+    #! Returns the class for the data provider object
+    private Class getClassImpl() {
+        return cls;
+    }
+}
+}
+
+# private namespace; not exported
+namespace Priv {
+class EmbeddedFtpPoller inherits FtpPoller {
+    private {
+        #! The parent observer object
+        Observable observable;
+
+        #! The unique ID counter
+        int id = 0;
+    }
+
+    constructor(FtpPollerDataProviderBase provider, hash<auto> options)
+            : FtpPoller(options) {
+        observable := cast<Observable>(provider);
+    }
+
+    singleFileEvent(hash<FtpPollerFileEventInfo> event) {
+        observable.notifyObservers((++id).toString(), event);
+    }
+
+    postSingleFileEvent(hash<FtpPollerFileEventInfo> event) {
     }
 }
 }

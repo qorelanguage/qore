@@ -11,6 +11,8 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/FtpPollerUtil.qm
 %requires ../../../../qlib/FtpPoller.qm
 
 %exec-class FtpPollerTest
@@ -36,7 +38,7 @@ class MyFtpPoller inherits FtpPoller {
     }
 }
 
-public class FtpPollerTest inherits QUnit::Test {
+class FtpPollerTest inherits QUnit::Test {
     public {
     }
 
@@ -50,7 +52,8 @@ public class FtpPollerTest inherits QUnit::Test {
     }
 
     constructor() : Test("FtpPollerTest", "1.0") {
-        addTestCase("main test", \main_test());
+        addTestCase("main test", \mainTest());
+        addTestCase("data provider test", \dataProviderTest());
 
         # Return for compatibility with test harness that checks return value
         set_return_value(main());
@@ -69,12 +72,12 @@ public class FtpPollerTest inherits QUnit::Test {
         return port;
     }
 
-    private main_test() {
+    private mainTest() {
         int port = getPort();
 
         # PORT only supports IPv4, so we can't use "localhost", which may resolve
         # to an IPv6 address
-        FtpServer serv(port, m_options.verbose, "127.0.0.1");
+        FtpServer serv(port, m_options.verbose - 1, "127.0.0.1");
         on_exit serv.shutdown();
 
         port = serv.getPort();
@@ -101,9 +104,112 @@ public class FtpPollerTest inherits QUnit::Test {
         assertTrue(poller.runOnce());
 
         foreach hash<FtpPollerFileEventInfo> file in (poller.files) {
-            printf("check file: %y\n", file.name);
             assertTrue(file.name != NOTHING);
             assertTrue(file_paths.hasKey(file.filepath));
+        }
+    }
+
+    private dataProviderTest() {
+        Logger logger();
+        {
+            LoggerLevel level;
+            if (m_options.verbose > 3) {
+                level = LoggerLevel::getLevelDebug();
+            } else if (m_options.verbose > 2) {
+                level = LoggerLevel::getLevelInfo();
+            } else {
+                level = LoggerLevel::getLevelError();
+            }
+            logger = new Logger("test", level);
+        }
+        logger.addAppender(new TestAppender());
+
+        int port = getPort();
+
+        # PORT only supports IPv4, so we can't use "localhost", which may resolve
+        # to an IPv6 address
+        FtpServer serv(port, m_options.verbose - 1, "127.0.0.1");
+        on_exit serv.shutdown();
+
+        TmpDir tmp_dir();
+        string dir = tmp_dir.path;
+        serv.setPwd(dir);
+        serv.setDirect();
+
+        port = serv.getPort();
+
+        TmpDir local_dir();
+        MyObserver observer();
+        FtpDelayedPollerDataProvider prov({
+            "url": sprintf("ftp://user:pass@127.0.0.1:%d%s", port, tmp_dir.path),
+            "poll_interval": 1,
+            "local_dir": local_dir.path,
+        });
+        prov.setLogger(logger);
+        prov.registerObserver(observer);
+
+        list<TmpFile> files;
+        map files += new TmpFile("ftp_test_" + $1, NOTHING, dir), Files;
+        map $1.file.write(get_random_string()), files;
+
+        prov.observersReady();
+
+        observer.wait();
+        map assertEq($1, observer.h{$1}.name), (map basename($1.path), files);
+
+        assertTrue(True);
+
+        map assertEq(File::readBinaryFile($1.path),
+            File::readBinaryFile(local_dir.path + DirSep + basename($1.path)), basename($1.path)),
+            files;
+    }
+}
+
+class MyObserver inherits Observer {
+    public {
+        hash<string, hash<auto>> h();
+    }
+
+    private {
+        Mutex m();
+        Condition cond();
+    }
+
+    update(string event_id, hash<auto> data_) {
+        h{data_.name} = data_;
+        if (h.size() == 3) {
+            m.lock();
+            on_exit m.unlock();
+
+            cond.broadcast();
+        }
+    }
+
+    wait() {
+        date start = now_us();
+
+        m.lock();
+        on_exit m.unlock();
+
+        while (h.size() != 4) {
+            cond.wait(m, 1s);
+            if ((now_us() - start) > 5s) {
+                throw "ERROR", sprintf("%d/4 files received in timeout: %y", h.size(), keys h);
+            }
+        }
+    }
+}
+
+class TestAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
         }
     }
 }

@@ -48,6 +48,10 @@ public hashdecl DataProviderFactoryInfo {
     bool api_management = False;
     #! Can any child data providers offer API services (request - response data providers)?
     bool children_can_support_apis = False;
+    #! Can any child data providers offer record-based providers?
+    bool children_can_support_records = False;
+    #! Can any child data providers support the observer pattern / event API?
+    bool children_can_support_observers = False;
     #! Which server profiles are supported for API management (if any)?
     *softlist<string> api_profiles;
     #! Info about providers created from this factory (without the \a name and \a children attributes)

@@ -33,6 +33,8 @@ module FilePoller {
     init = sub () {
         # register the data provider factory
         DataProvider::registerFactory(new FilePollerDataProviderFactory());
+        # register the event data type
+        DataProvider::registerType("qore/file/event", new FilePollerFileEventInfoDataType());
     };
 }
 
@@ -77,9 +79,83 @@ module FilePoller {
     - initial release
 */
 
-#! main module namespace
+#! Main module namespace
 public namespace FilePoller {
-#! file polling class
+#! FilePoller file event hash
+public hashdecl FilePollerFileEventInfo {
+    #! The device inode number the file is on
+    int dev;
+
+    #! The inode of the file
+    int inode;
+
+    #! The file protection mode
+    /** A bitfield of file permissions
+    */
+    int mode;
+
+    #! The number of hard links to this file
+    int nlink;
+
+    #! The UID of the owner of the file
+    int uid;
+
+    #! The GID of the owner of the file
+    int gid;
+
+    #! The device type number
+    int rdev;
+
+    #! The size of the file in bytes
+    int size;
+
+    #! The last accessed date/time of the file
+    date atime;
+
+    #! The last modified date/time of the file
+    date mtime;
+
+    #! The created date/time of the file
+    date ctime;
+
+    #! Block size
+    /** may be zero if the platform's internal %stat() (2) function does not provide this info
+    */
+    int blksize;
+
+    #! Blocks allocated for the file
+    /** may be zero if the platform's internal %stat() (2) function does not provide this info
+    */
+    int blocks;
+
+    #! the type of file
+    /** one of:
+        - \c "REGULAR"
+        - \c "DIRECTORY"
+        - \c "SYMBOLIC-LINK"
+        - \c "BLOCK-DEVICE"
+        - \c "CHARACTER-DEVICE"
+        - \c "FIFO"
+        - \c "SYMBOLIC-LINK"
+        - \c "SOCKET"
+        - \c "UNKNOWN"
+    */
+    string type;
+
+    #! a string giving UNIX-style permissions for the file (ex: "-rwxr-xr-x")
+    string perm;
+
+    #! The name of the file, link, or directory
+    string name;
+
+    #! The entire path of the file
+    string filepath;
+
+    #! symbolic link target (if present)
+    *string link;
+}
+
+#! File polling class
 public class FilePoller {
     public {
         #! ascending sort order
@@ -178,13 +254,22 @@ public class FilePoller {
     /** @param n_path the path to poll
         @param n_mask the regular expression mask to use to match the files
         @param n_opts a hash with the following optional keys:
-        - \c "log_info": a @ref closure "closure" or @ref call_reference "call reference" taking a single string argument as an information message for logging
-        - \c "log_detail": a @ref closure "closure" or @ref call_reference "call reference" taking a single string argument as a detail information message for logging
-        - \c "log_debug": a @ref closure "closure" or @ref call_reference "call reference" taking a single string argument as a debug information message for logging
-        - \c "minage": the minimum file age in seconds as calculated from the file's "last modified" timestamp (\c mtime attribute) before a file will be acquired (default: 0); use this option if files could be otherwise read while being written
-        - \c "poll_interval": an integer poll interval in seconds; if this option is not supplied, then the default \c poll_inteval is 10 seconds
-        - \c "reopt": regular expression options; see @ref regex_constants for possible values (ex @ref Qore::RE_Caseless for case-insensitive matches)
-        - \c "sleep": (required when imported into a context where @ref Qore::PO_NO_PROCESS_CONTROL is set) a @ref closure "closure" or @ref call_reference "call reference" to use instead of @ref Qore::sleep() (if not set then @ref Qore::sleep() will be used)
+        - \c "log_info": a @ref closure "closure" or @ref call_reference "call reference" taking a single string
+          argument as an information message for logging
+        - \c "log_detail": a @ref closure "closure" or @ref call_reference "call reference" taking a single string
+          argument as a detail information message for logging
+        - \c "log_debug": a @ref closure "closure" or @ref call_reference "call reference" taking a single string
+          argument as a debug information message for logging
+        - \c "minage": the minimum file age in seconds as calculated from the file's "last modified" timestamp
+          (\c mtime attribute) before a file will be acquired (default: 0); use this option if files could be
+          otherwise read while being written
+        - \c "poll_interval": an integer poll interval in seconds; if this option is not supplied, then the default
+          \c poll_inteval is 10 seconds
+        - \c "reopt": regular expression options; see @ref regex_constants for possible values (ex
+          @ref Qore::RE_Caseless for case-insensitive matches)
+        - \c "sleep": (required when imported into a context where @ref Qore::PO_NO_PROCESS_CONTROL is set) a
+          @ref closure "closure" or @ref call_reference "call reference" to use instead of @ref Qore::sleep() (if not
+          set then @ref Qore::sleep() will be used)
         - \c "sort_order": an integer constant giving the sort order; valid options are:
             - @ref OrderAsc "OrderAsc": ascending (the default)
             - @ref OrderDesc "OrderDesc": descending
@@ -192,17 +277,20 @@ public class FilePoller {
             - @ref SortNone "SortNone": no sort
             - @ref SortName "SortName": sort by file name (the default)
             - @ref SortDate "SortDate": sort by the file's last modified date
-        - \c "start_thread": (required when imported into a context where @ref Qore::PO_NO_THREAD_CONTROL is set) a @ref closure "closure" or @ref call_reference "call reference" for starting threads; must return the integer thread ID (if not set then @ref background will be used)
+        - \c "start_thread": (required when imported into a context where @ref Qore::PO_NO_THREAD_CONTROL is set) a
+          @ref closure "closure" or @ref call_reference "call reference" for starting threads; must return the integer
+          thread ID (if not set then @ref background will be used)
 
         @throw FILEPOLLER-CONSTRUCTOR-ERROR invalid option
     */
-    constructor(string n_path, string n_mask, *hash n_opts) {
+    constructor(string n_path, string n_mask, *hash<auto> n_opts) {
         path = n_path;
         mask = n_mask;
 
         foreach string k in (RequiredKeys) {
             if (!exists n_opts{k})
-                throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("required key %y missing from constructor hash argument)", k);
+                throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("required key %y missing from constructor hash "
+                    "argument)", k);
         }
 
         foreach hash<auto> h in (n_opts.pairIterator()) {
@@ -222,13 +310,15 @@ public class FilePoller {
                 case "minage": {
                     minage = h.value;
                     if (minage < 0)
-                        throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("invalid %y = %d; must be a non-negative number", h.key, h.value);
+                        throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("invalid %y = %d; must be a non-negative "
+                            "number", h.key, h.value);
                     break;
                 }
                 case "poll_interval": {
                     poll_interval = h.value;
                     if (poll_interval <= 0)
-                        throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("invalid %y = %d; must be a positive number", h.key, h.value);
+                        throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("invalid %y = %d; must be a positive number",
+                            h.key, h.value);
                     break;
                 }
                 case "reopt": {
@@ -253,7 +343,8 @@ public class FilePoller {
                 }
 
                 default:
-                    throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("unknown option %y; known options: %y", h.key, Options);
+                    throw "FILEPOLLER-CONSTRUCTOR-ERROR", sprintf("unknown option %y; known options: %y", h.key,
+                        Options);
             }
         }
     }
@@ -267,30 +358,22 @@ public class FilePoller {
     /** @param sort the sort option for the list returned
         @param order the ordering of sorted data returned
 
-        @return a list of regular file hashes with the following keys in each list element:
-        - \c name: the name of the file, link, or directory
-        - \c filepath: the complete file path
-        - \c size: the size of the file in bytes
-        - \c uid: the UID of the owner of the file
-        - \c gid: the GID of the owner of the file
-        - \c mode: the permissions / mode of the file
-        - \c atime: the last accessed date/time of the file
-        - \c mtime: the last modified date/time of the file
-        - \c type: the type of file is always \c "REGULAR"
-        - \c perm: a string giving UNIX-style permissions for the file (ex: "-rwxr-xr-x")
+        @return a list of @ref FilePollerFileEventInfo hashes for each matched file
     */
-    list<auto> getFiles(int sort = FilePoller::SortNone, int order = FilePoller::OrderAsc) {
+    list<hash<FilePollerFileEventInfo>> getFiles(int sort = FilePoller::SortNone, int order = FilePoller::OrderAsc) {
         Dir d();
         d.chdir(path);
 
         # file of file hashes
-        list<auto> ret = map $1 + ("filepath": path + DirSep + $1.name), d.listFiles(mask, reopt, True);
+        list<hash<FilePollerFileEventInfo>> ret =
+            map cast<hash<FilePollerFileEventInfo>>($1 + ("filepath": path + DirSep + $1.name)),
+                d.listFiles(mask, reopt, True);
 
         # remove all files that aren't old enough
         if (minage) {
             date now = Qore::now();
-            list<auto> n = ();
-            foreach hash<auto> h in (ret) {
+            list<hash<FilePollerFileEventInfo>> n = ();
+            foreach hash<FilePollerFileEventInfo> h in (ret) {
                 if ((now - h.mtime).durationSeconds() < minage) {
                     logDebug("file %y is not old enough (minage: %d, current age: %d)", h.name, minage,
                         (now - h.mtime).durationSeconds());
@@ -306,14 +389,30 @@ public class FilePoller {
             case FilePoller::SortName:
                 # sort by file name
                 return order == FilePoller::OrderAsc
-                    ? Qore::sort(ret, int sub (hash<auto> l, hash<auto> r) { return l.name <=> r.name; })
-                    : sort_descending(ret, int sub (hash<auto> l, hash<auto> r) { return l.name <=> r.name; });
+                    ? Qore::sort(ret,
+                        int sub (hash<FilePollerFileEventInfo> l, hash<FilePollerFileEventInfo> r) {
+                            return l.name <=> r.name;
+                        }
+                    )
+                    : sort_descending(ret,
+                        int sub (hash<FilePollerFileEventInfo> l, hash<FilePollerFileEventInfo> r) {
+                            return l.name <=> r.name;
+                        }
+                    );
 
             case FilePoller::SortDate:
                 # sort by last modification date
                 return order == FilePoller::OrderAsc
-                    ? Qore::sort(ret, int sub (hash<auto> l, hash<auto> r) { return l.mtime <=> r.mtime; })
-                    : sort_descending(ret, int sub (hash<auto> l, hash<auto> r) { return l.name <=> r.name; });
+                    ? Qore::sort(ret,
+                        int sub (hash<FilePollerFileEventInfo> l, hash<FilePollerFileEventInfo> r) {
+                            return l.mtime <=> r.mtime;
+                        }
+                    )
+                    : sort_descending(ret,
+                        int sub (hash<FilePollerFileEventInfo> l, hash<FilePollerFileEventInfo> r) {
+                            return l.mtime <=> r.mtime;
+                        }
+                    );
         }
 
         return ret;
@@ -345,7 +444,8 @@ public class FilePoller {
     #! stops the polling operation, returns when the polling operation has been stopped
     /** if polling was not in progress then this method returns immediately
 
-        @throw THREAD-ERROR this exception is thrown if this method is called from the polling thread since it would result in a deadlock
+        @throw THREAD-ERROR this exception is thrown if this method is called from the polling thread since it would
+        result in a deadlock
 
         @see
         - stopNoWait()
@@ -375,9 +475,11 @@ public class FilePoller {
         runflag = False;
     }
 
-    #! waits indefinitely for the polling operation to stop; if polling was not in progress then this method returns immediately
-    /**
-        @throw THREAD-ERROR this exception is thrown if this method is called from the event thread since it would result in a deadlock
+    #! Waits indefinitely for the polling operation to stop
+    /** If polling was not in progress then this method returns immediately
+
+        @throw THREAD-ERROR this exception is thrown if this method is called from the event thread since it would
+        result in a deadlock
 
         @see
         - stop()
@@ -398,8 +500,9 @@ public class FilePoller {
             m.lock();
             on_exit m.unlock();
 
-            if (runflag)
+            if (runflag) {
                 throw "FILEPOLLER-ERROR", sprintf("the polling thread is already running in TID %d", tid);
+            }
 
             runflag = True;
             tid = gettid();
@@ -412,7 +515,7 @@ public class FilePoller {
     bool runOnce() {
         ++pollcnt;
 
-        list files = getFiles(sort_type, sort_order);
+        list<hash<FilePollerFileEventInfo>> files = getFiles(sort_type, sort_order);
         if (files) {
             logDebug("got files in %y: %y", path, files);
             fileEvent(files);
@@ -454,17 +557,21 @@ public class FilePoller {
         logInfo("polling finished");
     }
 
-    #! called for each poll event with a list of all files matched; calls singleFileEvent() on each file hash in the list
-    fileEvent(list<auto> files) {
-        foreach hash<auto> fih in (files) {
-            logInfo("got file: %y", fih.name);
-            logDebug("file info: %y", fih);
-            singleFileEvent(fih);
+    #! Called for each poll event with a list of all files matched
+    /** Calls singleFileEvent() on each file hash in the list
+    */
+    fileEvent(list<hash<FilePollerFileEventInfo>> files) {
+        foreach hash<FilePollerFileEventInfo> event in (files) {
+            logInfo("got file: %y", event.name);
+            logDebug("file info: %y", event);
+            singleFileEvent(event);
         }
     }
 
-    #! called for each matching file individually whenever matching files are polled with the list of matching file names; if any error occurs here, the error is logged and the polling operation is retried
-    /** @param fih a hash of file data and information with the following keys:
+    #! called for each matching file individually when matching files are polled
+    /** If any error occurs here, the error is logged and the polling operation is retried
+
+        @param event a hash of file data and information with the following keys:
         - \c name: the name of the file, link, or directory
         - \c filepath: the complete path to the file including the directory
         - \c size: the size of the file in bytes
@@ -473,17 +580,27 @@ public class FilePoller {
         - \c mode: the permissions / mode of the file
         - \c atime: the last accessed date/time of the file
         - \c mtime: the last modified date/time of the file
-        - \c type: the type of file; one of: \c "REGULAR", \c "DIRECTORY", \c "SYMBOLIC-LINK", \c "BLOCK-DEVICE", \c "CHARACTER-DEVICE", \c "FIFO", \c "SYMBOLIC-LINK", \c "SOCKET", or \c "UNKNOWN"
+        - \c type: the type of file; one of:
+          - \c "REGULAR"
+          - \c "DIRECTORY"
+          - \c "SYMBOLIC-LINK"
+          - \c "BLOCK-DEVICE"
+          - \c "CHARACTER-DEVICE"
+          - \c "FIFO"
+          - \c "SYMBOLIC-LINK"
+          - \c "SOCKET"
+          - \c "UNKNOWN"
         - \c perm: a string giving UNIX-style permissions for the file (ex: "-rwxr-xr-x")
     */
-    abstract singleFileEvent(hash<auto> fih);
+    abstract singleFileEvent(hash<FilePollerFileEventInfo> event);
 
     #! checks a path on the local file system
     /**
-        @throw DIR-ERROR this exception is thrown if the local path does not exist, is not readable, is not a directory, or should be writable and is not
+        @throw DIR-ERROR this exception is thrown if the local path does not exist, is not readable, is not a
+        directory, or should be writable and is not
     */
     static checkPath(string path, string type, bool write = False) {
-        *hash h = hstat(path);
+        *hash<StatInfo> h = hstat(path);
         if (!exists h)
             throw "DIR-ERROR", sprintf("%y: %s path does not exist", path, type);
         if (h.type != "DIRECTORY")
@@ -503,19 +620,19 @@ public class FilePoller {
         return pollcnt;
     }
 
-    #! calls the \c "log_info" @ref closure "closure" or @ref call_reference "call reference" with important information
+    #! calls \c "log_info" with important information, if set
     private logInfo(string fmt) {
         if (log_info)
             log_info(vsprintf(fmt, argv));
     }
 
-    #! calls the \c "log_detail" @ref closure "closure" or @ref call_reference "call reference" with detail information
+    #! calls \c "log_detail" with detail information; if set
     private logDetail(string fmt) {
         if (log_detail)
             log_detail(vsprintf(fmt, argv));
     }
 
-    #! calls the \c "log_debug" @ref closure "closure" or @ref call_reference "call reference" with verbose debugging information
+    #! calls \c "log_debug" with verbose debugging information; if set
     private logDebug(string fmt) {
         if (log_debug)
             log_debug(vsprintf(fmt, argv));
@@ -527,7 +644,7 @@ public class FilePoller {
 
     In the assumed scenario, matches files are removed by a single observer in the first notification event
 */
-class FilePollerDataProvider inherits DataProvider::AbstractDataProvider, DataProvider::Observable {
+public class FilePollerDataProvider inherits DataProvider::AbstractDataProvider, DataProvider::Observable {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -582,18 +699,6 @@ class FilePollerDataProvider inherits DataProvider::AbstractDataProvider, DataPr
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "Either `name` or `date` for the data to use for sorting",
             },
-
-/*
-%ifdef PO_NO_PROCESS_CONTROL
-            "sleep": <DataProviderOptionInfo>{
-            },
-%endif
-
-%ifdef PO_NO_THREAD_CONTROL
-            "start_thread": <DataProviderOptionInfo>{
-            },
-%endif
-*/
         };
     }
 
@@ -606,7 +711,7 @@ class FilePollerDataProvider inherits DataProvider::AbstractDataProvider, DataPr
     constructor(*hash<auto> options) {
         hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         string path = remove copts.path;
-        string mask = remove copts.mask;
+        string mask = remove copts.mask ?? ConstructorOptions.mask.default_value;
         bool regex = remove copts.regex ?? False;
         if (*string sort_type = remove copts.sort_type) {
             if (sort_type == "name") {
@@ -661,6 +766,51 @@ class FilePollerDataProvider inherits DataProvider::AbstractDataProvider, DataPr
     private hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
+
+    #! Returns the description of an event, if any
+    /** @return the event type for this provider
+    */
+    private *AbstractDataProviderType getEventTypeImpl() {
+        return new FilePollerFileEventInfoDataType();
+    }
+}
+
+#! File poller event data description
+public class FilePollerFileEventInfoDataType inherits HashDataType {
+    public {
+        #! Markdown descriptions for hashdecl members
+        const FieldDescriptions = {
+            "dev": "The device inode number the file is on",
+            "inode": "The inode of the file",
+            "mode": "The file protection mode; a bitfield of file permissions",
+            "nlink": "The number of hard links to this file",
+            "uid": "The UID of the owner of the file",
+            "gid": "The GID of the owner of the file",
+            "rdev": "The device type number",
+            "size": "the size of the file in bytes",
+            "atime": "the last accessed date/time of the file",
+            "mtime": "the last modified date/time of the file",
+            "ctime": "the created date/time of the file",
+            "blksize": "Block size; is zero if the file is zero length or if the platform's internal `stat()` (2) "
+                "function does not provide this info",
+            "blocks": "Blocks allocated for the file; is zero if the file is zero length or if the platform's "
+                "internal `stat()` (2) function does not provide this info",
+            "type": "the type of file; one of:\n- `REGULAR`\n- `DIRECTORY`\n- `SYMBOLIC-LINK`\n"
+                "- `BLOCK-DEVICE`\n- `CHARACTER-DEVICE`\n- `FIFO`\n- `SYMBOLIC-LINK`\n- `SOCKET`\n"
+                "- `UNKNOWN`",
+            "perm": "a string giving UNIX-style permissions for the file (ex: `-rwxr-xr-x`)",
+            "name": "the name of the file, link, or directory",
+            "filepath": "the remote filepath relative to SFTP root directory",
+            "link": "symbolic link target (if present)",
+        };
+    }
+
+    #! Creates the type
+    constructor() {
+        # add members for base hashdecl
+        map addField(new QoreDataField($1.getName(), FieldDescriptions{$1.getName()}, $1.getType(),
+            $1.getDefaultValue())), TypedHash::forName("FilePoller::FilePollerFileEventInfo").getMembers();
+    }
 }
 
 #! The file poller data provider factory
@@ -673,6 +823,7 @@ public class FilePollerDataProviderFactory inherits AbstractDataProviderFactory 
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "filepoller",
             "desc": "File poller data provider factory",
+            "children_can_support_observers": True,
         };
     }
 
@@ -713,8 +864,10 @@ class EmbeddedFilePoller inherits FilePoller {
         self.provider := provider;
     }
 
-    singleFileEvent(hash<auto> fih) {
-        provider.notifyObservers((++id).toString(), fih);
+    singleFileEvent(hash<auto> event) {
+        provider.notifyObservers((++id).toString(), event);
     }
+
+
 }
 }

@@ -34,6 +34,7 @@ public class DbDataProviderFactory inherits AbstractDataProviderFactory {
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "db",
             "desc": "Database data provider factory",
+            "children_can_support_records": True,
         };
     }
 

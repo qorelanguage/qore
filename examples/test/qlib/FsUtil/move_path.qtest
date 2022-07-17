@@ -9,18 +9,175 @@
 %require-types
 %enable-all-warnings
 
-%exec-class CopyTreeTest
+%exec-class MovePathTest
 
-public class CopyTreeTest inherits QUnit::Test {
+public class MovePathTest inherits QUnit::Test {
 
-    constructor() : Test ("CopyTreeTest", "1.0") {
-        addTestCase("copy_tree test", \test_copy_tree());
-        addTestCase("copy_tree overwrite test", \test_copy_tree_overwrite());
-        addTestCase("copy_tree exception test", \test_copy_tree_exception());
+    constructor() : Test ("MovePathTest", "1.0") {
+        addTestCase("move_path file test", \test_move_path());
+        addTestCase("move_path file test - exceptions", \test_move_path_exceptions());
+        addTestCase("move_path file test - symlink in source", \test_move_path_symlink_in_src());
+        addTestCase("move_path tree test", \test_move_path_tree());
+        addTestCase("move_path tree overwrite test", \test_move_path_tree_overwrite());
+        addTestCase("move_path tree exception test", \test_move_path_tree_exception());
         set_return_value(main());
     }
 
-    test_copy_tree() {
+    set_content_to_file(string path, string content) {
+        File f();
+        f.open2(path, O_TRUNC | O_WRONLY);
+        f.write(content);
+        f.close();
+    }
+
+    assert_file_contains(string path, string content) {
+        File f();
+        f.open2(path);
+        string actual = f.read(-1);
+        assertEq(content, actual);
+        f.close();
+    }
+
+    test_move_path() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_path);
+        }
+
+        string content = "Hello World!";
+
+        hash<TmpFileHash> original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        original.file.write(content);
+        original.file.close();
+        assert_file_contains(original.path, content);
+        hash<StatInfo> orig_info = hstat(original.path);
+
+        string move0_path = join_paths(tmp_path, "move");
+        assertFalse(path_exists(move0_path));
+        string dest_path = move_path(original.path, move0_path);
+        assertEq(move0_path, dest_path);
+        assertTrue(path_exists(move0_path));
+        assertEq(orig_info.mode, hstat(move0_path).mode);
+        assert_file_contains(move0_path, content);
+
+        # now check that permission bits are copied too
+        move_path(dest_path, original.path);
+        assertEq(0100600, orig_info.mode);
+        chmod(original.path, 0640);
+        orig_info = hstat(original.path);
+        assertEq(0100640, orig_info.mode);
+        dest_path = move_path(original.path, move0_path);
+        assertEq(move0_path, dest_path);
+        assertEq(0100640, hstat(move0_path).mode);
+
+        # now overwrite the file with different content
+        copy_path(dest_path, original.path);
+        string content2 = "Goodbye...";
+        set_content_to_file(original.path, content2);
+        assert_file_contains(original.path, content2);
+        assert_file_contains(move0_path, content);
+        orig_info = hstat(original.path);
+        # first without the overwrite flag
+        assertThrows("PATH-EXISTS-ERROR", \move_path(), (original.path, move0_path));
+        # now with overwrite
+        dest_path = move_path(original.path, move0_path, True);
+        assertEq(move0_path, dest_path);
+        assertEq(orig_info.mode, hstat(move0_path).mode);
+        assert_file_contains(move0_path, content2);
+
+        # now overwrite the file with different permissions
+        copy_path(dest_path, original.path);
+        orig_info = hstat(original.path);
+        assertEq(0100640, orig_info.mode);
+        assertEq(0100640, hstat(move0_path).mode);
+        chmod(original.path, 0600);
+        orig_info = hstat(original.path);
+        assertEq(0100600, orig_info.mode);
+        # first without the overwrite flag
+        assertThrows("PATH-EXISTS-ERROR", \move_path(), (original.path, move0_path));
+        # now with overwrite
+        dest_path = move_path(original.path, move0_path, True);
+        assertEq(move0_path, dest_path);
+        assertEq(0100600, hstat(move0_path).mode);
+    }
+
+    test_move_path_exceptions() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_path);
+        }
+
+        # prepare FS structure
+        hash<TmpFileHash> file1 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        string content = "Hello World!";
+        file1.file.write(content);
+        file1.file.close();
+        assert_file_contains(file1.path, content);
+        string link_file1 = join_paths(tmp_path, "link_file1");
+        symlink(file1.path, link_file1);
+        assertTrue(is_link(link_file1));
+        assertEq(file1.path, readlink(link_file1));
+        string subdir = make_tmp_dir(NOTHING, NOTHING, tmp_path);
+
+        # non-existent source should always fail
+        string non_existent = join_paths(tmp_path, "non_existent.txt");
+        assertThrows("FILE-STAT-ERROR", \move_path(), (non_existent, file1.path));
+
+        # existing destination
+        hash<TmpFileHash> file2 = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        file1.file.close();
+        assertThrows("PATH-EXISTS-ERROR", \move_path(), (file2.path, file1.path));
+
+        # existing destination via a link
+        assertThrows("PATH-EXISTS-ERROR", \move_path(), (file2.path, link_file1));
+
+        # it's possible to move to a directory though
+        hash<StatInfo> orig_info = hstat(file1.path);
+        string move0_path = join_paths(subdir, basename(file1.path));
+        assertFalse(path_exists(move0_path));
+        string dest_path = move_path(file1.path, subdir);
+        assertEq(move0_path, dest_path);
+        assertTrue(path_exists(move0_path));
+        assertEq(orig_info.mode, hstat(move0_path).mode);
+        assert_file_contains(move0_path, content);
+    }
+
+    test_move_path_symlink_in_src() {
+        string tmp_path = make_tmp_dir();
+        on_exit {
+            remove_tree(tmp_path);
+        }
+
+        string content = "Qore is great";
+
+        # get a file
+        hash<TmpFileHash> original = make_tmp_file(NOTHING, NOTHING, tmp_path);
+        original.file.write(content);
+        original.file.close();
+        assert_file_contains(original.path, content);
+
+        # create a link to that file
+        string link_original = join_paths(tmp_path, "link1");
+        symlink(original.path, link_original);
+        assertTrue(is_link(link_original));
+        assertEq(original.path, readlink(link_original));
+
+        # create a target path
+        string move = join_paths(tmp_path, "move");
+
+        hash<StatInfo> orig_info = hstat(link_original);
+
+        # move original via symlink with follow_symlinks
+        string dest_path = move_path(link_original, move);
+        assertEq(move, dest_path);
+        assertTrue(path_exists(move));
+        assertEq(orig_info.mode, hstat(move).mode);
+        assertTrue(is_link(move));
+        assert_file_contains(move, content);
+        unlink(move);
+    }
+
+    test_move_path_tree() {
         # create a temporary directory and a test directory tree in it
         string tmp_root = make_tmp_dir();
         on_exit {
@@ -54,9 +211,9 @@ public class CopyTreeTest inherits QUnit::Test {
         assertTrue(is_link(link_path));
         assertEq(file_path, readlink(link_path));
 
-        # let's copy the source directory tree and check the result too
+        # let's move the source directory tree and check the result too
         string dst_path = join_paths(tmp_root, "dst");
-        string cp_dest_path = copy_tree(source_path, dst_path);
+        string cp_dest_path = move_path(source_path, dst_path);
         assertEq(dst_path, cp_dest_path);
         # this is what we expect
         string dst_dir_path = join_paths(dst_path, "dir");
@@ -72,33 +229,12 @@ public class CopyTreeTest inherits QUnit::Test {
         assertTrue(is_link(dst_link_path));
         assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
         # let's clean it
-        remove_tree(dst_path);
+        move_path(dst_path, source_path);
         assertFalse(path_exists(dst_path));
 
         # let's try again but this time use an existing directory as destination
         mkdir(dst_path);
-        cp_dest_path = copy_tree(source_path, dst_path);
-        string new_dst_path = join_paths(dst_path, basename(source_path));
-        string new_dst_dir_path = join_paths(new_dst_path, "dir");
-        string new_dst_file_path = join_paths(new_dst_path, "file");
-        string new_dst_link_path = join_paths(new_dst_dir_path, "link");
-        assertEq(new_dst_path, cp_dest_path);
-        assertTrue(path_exists(new_dst_path));
-        assertTrue(is_dir(new_dst_path));
-        assertTrue(path_exists(new_dst_dir_path));
-        assertTrue(is_dir(new_dst_dir_path));
-        assertTrue(path_exists(new_dst_file_path));
-        assertTrue(is_file(new_dst_file_path));
-        assertTrue(path_exists(new_dst_link_path));
-        assertTrue(is_link(new_dst_link_path));
-        assertEq(file_path, readlink(new_dst_link_path));  # follow_symlinks=False
-        # let's clean it
-        remove_tree(dst_path);
-        assertFalse(path_exists(dst_path));
-
-        # let's try again with follow_symlinks=True
-        mkdir(dst_path);
-        cp_dest_path = copy_tree(source_path, dst_path, True, True);
+        cp_dest_path = move_path(source_path, dst_path, True);
         assertEq(dst_path, cp_dest_path);
         assertTrue(path_exists(dst_path));
         assertTrue(is_dir(dst_path));
@@ -107,19 +243,20 @@ public class CopyTreeTest inherits QUnit::Test {
         assertTrue(path_exists(dst_file_path));
         assertTrue(is_file(dst_file_path));
         assertTrue(path_exists(dst_link_path));
-        assertTrue(is_file(dst_link_path));  # follow_symlinks=True
+        assertTrue(is_link(dst_link_path));
+        assertEq(file_path, readlink(dst_link_path));  # follow_symlinks=False
         # let's clean it
-        remove_tree(dst_path);
+        move_path(dst_path, source_path);
         assertFalse(path_exists(dst_path));
 
-        # now let's copy it via a link to the source
+        # now let's move it via a link to the source
         # let's try again with follow_symlinks=True
         string src_link_path = join_paths(tmp_root, "src_link");
         assertFalse(path_exists(src_link_path));
         symlink(source_path, src_link_path);
         assertTrue(path_exists(src_link_path));
         assertTrue(is_link(src_link_path));
-        cp_dest_path = copy_tree(source_path, dst_path, True);
+        cp_dest_path = move_path(source_path, dst_path);
         assertEq(dst_path, cp_dest_path);
         assertTrue(path_exists(dst_path));
         assertTrue(is_dir(dst_path));
@@ -128,10 +265,10 @@ public class CopyTreeTest inherits QUnit::Test {
         assertTrue(path_exists(dst_file_path));
         assertTrue(is_file(dst_file_path));
         assertTrue(path_exists(dst_link_path));
-        assertTrue(is_file(dst_link_path));  # follow_symlinks=True
+        assertFalse(is_file(dst_link_path));
     }
 
-    test_copy_tree_overwrite() {
+    test_move_path_tree_overwrite() {
         # create a temporary directory and a test directory tree in it
         TmpDir tmp_root = new TmpDir();
         string source_path = join_paths(tmp_root.path, "src");
@@ -156,9 +293,9 @@ public class CopyTreeTest inherits QUnit::Test {
         assertTrue(path_exists(file_path));
         assertTrue(is_file(file_path));
 
-        # let's copy the source directory tree and check the result too
+        # let's move the source directory tree and check the result too
         string dst_path = join_paths(tmp_root.path, "dst");
-        string cp_dest_path = copy_tree(source_path, dst_path);
+        string cp_dest_path = move_path(source_path, dst_path);
         assertEq(dst_path, cp_dest_path);
         # this is what we expect
         string dst_dir_path = join_paths(dst_path, "dir");
@@ -170,8 +307,10 @@ public class CopyTreeTest inherits QUnit::Test {
         assertTrue(path_exists(dst_file_path));
         assertTrue(is_file(dst_file_path));
 
-        # copy with overwrite
-        cp_dest_path = copy_tree(source_path, dst_path, NOTHING, True);
+        copy_path(dst_path, source_path);
+
+        # it will be OK with overwrite though
+        cp_dest_path = move_path(source_path, dst_path, True);
         assertEq(dst_path, cp_dest_path);
         # everything is copied anew -> let's check it
         dst_dir_path = join_paths(dst_path, "dir");
@@ -183,13 +322,15 @@ public class CopyTreeTest inherits QUnit::Test {
         assertTrue(path_exists(dst_file_path));
         assertTrue(is_file(dst_file_path));
 
-        # now let's add something to the destination path and then overwrite with a new copy
+        copy_path(dst_path, source_path);
+
+        # now let's add something to the destination path and then overwrite with a new move
         string new_dir_dst = join_paths(dst_path, "new_dir");
         mkdir(new_dir_dst);
         assertTrue(path_exists(new_dir_dst));
         assertTrue(is_dir(new_dir_dst));
         # let's overwrite destination now
-        cp_dest_path = copy_tree(source_path, dst_path, NOTHING, True);
+        cp_dest_path = move_path(source_path, dst_path, True);
         assertEq(dst_path, cp_dest_path);
         # everything is copied anew -> let's check it
         dst_dir_path = join_paths(dst_path, "dir");
@@ -204,6 +345,8 @@ public class CopyTreeTest inherits QUnit::Test {
         assertFalse(path_exists(new_dir_dst));
         assertFalse(is_dir(new_dir_dst));
 
+        copy_path(dst_path, source_path);
+
         # now let's add something to the source path and then overwrite destination again
         string new_dir_src = join_paths(source_path, "new_dir");
         mkdir(new_dir_src);
@@ -213,7 +356,7 @@ public class CopyTreeTest inherits QUnit::Test {
         assertFalse(is_dir(new_dir_dst));
 
         # let's overwrite destination now
-        cp_dest_path = copy_tree(source_path, dst_path, NOTHING, True);
+        cp_dest_path = move_path(source_path, dst_path, True);
         assertEq(dst_path, cp_dest_path);
         # everything is copied anew -> let's check it
         dst_dir_path = join_paths(dst_path, "dir");
@@ -229,7 +372,7 @@ public class CopyTreeTest inherits QUnit::Test {
         assertTrue(is_dir(new_dir_dst));
     }
 
-    test_copy_tree_exception() {
+    test_move_path_tree_exception() {
         # create a temporary directory and a test directory tree in it
         string tmp_root = make_tmp_dir();
         on_exit {
@@ -268,65 +411,13 @@ public class CopyTreeTest inherits QUnit::Test {
         assertTrue(path_exists(dest_dir));
         assertTrue(is_dir(dest_dir));
 
-        # try and copy non-existing directory
+        # try and move non-existing directory
         string non_existing = join_paths(tmp_root, "non-existing");
-        assertThrows("DIR-STAT-ERROR", \copy_tree(), (non_existing, dest_dir));
+        assertThrows("FILE-STAT-ERROR", \move_path(), (non_existing, dest_dir));
 
-        # try and copy a file instead of a directory
-        assertThrows("DIR-READ-FAILURE", \copy_tree(), (file_path, dest_dir, NOTHING, True));
-        # without overwrite it will complain about destination path existing instead
-        assertThrows("PATH-EXISTS-ERROR", \copy_tree(), (file_path, dest_dir));
+        # try and move a directory into itself
+        assertThrows("SAME-PATH-ERROR", \move_path(), (dest_dir, dest_dir));
 
-        # try and copy a directory into itself
-        assertThrows("SAME-DIR-ERROR", \copy_tree(), (dest_dir, dest_dir));
-
-        # now let's make tmp_root/src/file unreadable -> copying it should fail
-        chmod(file_path, 0000);
-        bool exception_thrown = False;
-
-        # with overwrite it will fail because of the permissions
-        assertThrows("FILE-OPEN2-ERROR", \copy_tree(), (source_path, dest_dir, NOTHING, True));
-
-        # and now with fail_immediately=False COPY-TREE-ERROR will be thrown
-        try {
-            copy_tree(source_path, dest_dir, NOTHING, True, False);
-        } catch (hash<ExceptionInfo> err) {
-            exception_thrown = True;
-            assertEq("COPY-TREE-ERROR", err.err);
-            assertEq(1, err.desc.size());
-            assertEq("FILE-OPEN2-ERROR", err.desc[0].err);
-            assertGt(-1, index(err.desc[0].desc, file_path));
-        }
-        assertTrue(exception_thrown);
-        remove_tree(dest_dir);
-
-        # try that again with follow_symlinks (i.e. the link will also be unreadable)
-        assertThrows("FILE-OPEN2-ERROR", \copy_tree(), (source_path, dest_dir, True));
-        remove_tree(dest_dir);
-
-        # and now with fail_immediately=False COPY-TREE-ERROR will be thrown
-        exception_thrown = False;
-        try {
-            copy_tree(source_path, dest_dir, True, NOTHING, False);
-        } catch (hash<ExceptionInfo> err) {
-            exception_thrown = True;
-            assertEq("COPY-TREE-ERROR", err.err);
-            assertEq(2, err.desc.size());
-            assertEq("FILE-OPEN2-ERROR", err.desc[0].err);
-            assertEq("FILE-OPEN2-ERROR", err.desc[1].err);
-            assertGt(-1, index(err.desc[0].desc, file_path));
-            assertGt(-1, index(err.desc[1].desc, file_path));
-        }
-        assertTrue(exception_thrown);
-        remove_tree(dest_dir);
-
-        # let's repeat the last two tests with fail_immediately flag
-        assertThrows("FILE-OPEN2-ERROR", \copy_tree(),
-                     (source_path, dest_dir, NOTHING, NOTHING, True));
-        remove_tree(dest_dir);
-
-        assertThrows("FILE-OPEN2-ERROR", \copy_tree(),
-                     (source_path, dest_dir, True, NOTHING, True));
         remove_tree(dest_dir);
     }
 }

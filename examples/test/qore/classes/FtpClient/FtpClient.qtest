@@ -203,8 +203,7 @@ class FtpTest inherits QUnit::Test {
             try {
                 fc.put(local_path);
                 assertTrue(False);
-            }
-            catch (hash<ExceptionInfo> ex1) {
+            } catch (hash<ExceptionInfo> ex1) {
                 ex = ex1;
             }
             assertTrue(ex.err == "SOCKET-TIMEOUT" || ex.err == "FTP-RECEIVE-ERROR");
@@ -215,7 +214,7 @@ class FtpTest inherits QUnit::Test {
         assertNothing(fc.put(local_path));
 
         assertNothing(fc.get(local_path, local_path));
-        assertEq(True, ReadOnlyFile::readTextFile(local_path) =~ /abc/);
+        assertRegex("abc", ReadOnlyFile::readTextFile(local_path));
 
         serv.setBroken("retr", 2s);
         fc.setTimeout(1ms);

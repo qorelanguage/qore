@@ -17,7 +17,9 @@ class FtpServer {
 
         TmpDir t;
 
-        *string pwd;
+        string pwd = "/";
+
+        bool direct;
 
         const PollInterval = 250ms;
     }
@@ -37,6 +39,16 @@ class FtpServer {
 
     setFs() {
         t = new TmpDir();
+    }
+
+    setDirect() {
+        direct = True;
+    }
+
+    *string getLocalDir() {
+        if (t) {
+            return t.path;
+        }
     }
 
     shutdown() {
@@ -213,15 +225,22 @@ class FtpServer {
 
                 if (t) {
                     string path = t.path + DirSep + file;
+
                     if (hstat(path)) {
-                        data.sendFromInputStream(new FileInputStream(path), -1);
+                        data.sendFromInputStream(new FileInputStream(path));
                         data.close();
                         ftpSend(ns, 226, "Transfer completed.");
                         continue;
                     }
                 }
 
-                #printf("get: empty %y\n", get_empty);
+                if (direct && hstat(file)) {
+                    data.sendFromInputStream(new FileInputStream(file));
+                    data.close();
+                    ftpSend(ns, 226, "Transfer completed.");
+                    continue;
+                }
+
                 if (!get_empty) {
                     # write a bunch of data and then exit
                     for (int i = 0; i < 200; ++i)

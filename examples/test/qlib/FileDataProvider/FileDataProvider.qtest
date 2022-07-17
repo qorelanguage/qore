@@ -1,0 +1,69 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/FileDataProvider
+
+%exec-class FileDataProviderTest
+
+public class FileDataProviderTest inherits QUnit::Test {
+    constructor() : Test("FileDataProvider Test", "1.0") {
+        addTestCase("test", \fileDataProviderTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    fileDataProviderTest() {
+        # create test file
+        TmpFile tmp("FileDataProviderTest-");
+        string str = get_random_string();
+        tmp.file.write(str);
+
+        FileDataProvider fdp();
+
+        AbstractDataProvider prov = fdp.getChildProviderEx("stat");
+        hash<auto> h = prov.doRequest({
+            "path": tmp.path,
+        });
+        assertEq(tmp.path, h.filepath);
+        assertEq("REGULAR", h.type);
+
+        prov = fdp.getChildProviderEx("copy");
+        string targ = join_paths(tmp_location(), get_random_string());
+        h = prov.doRequest({
+            "source": tmp.path,
+            "target": targ,
+        });
+        assertEq(targ, h.target);
+        assertTrue(is_file(targ));
+
+        prov = fdp.getChildProviderEx("move");
+        string new_targ = join_paths(tmp_location(), get_random_string());
+        assertNeq(new_targ, targ);
+        h = prov.doRequest({
+            "source": targ,
+            "target": new_targ,
+        });
+        assertEq(new_targ, h.target);
+        assertFalse(is_file(targ));
+        assertTrue(is_file(new_targ));
+
+        prov = fdp.getChildProviderEx("delete");
+        h = prov.doRequest({
+            "path": new_targ,
+        });
+        assertEq(new_targ, h.path);
+        assertFalse(is_file(new_targ));
+    }
+}

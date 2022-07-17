@@ -1457,6 +1457,18 @@ public class AbstractDataProvider {
         return getErrorResponseTypeImpl(error_code);
     }
 
+    #! Returns the description of an event, if any
+    /** @return the event type for this provider
+
+        @throw INVALID-OPERATION the data provider does not support the observer pattern / event API
+
+        @since DataProvider 2.5
+    */
+    *AbstractDataProviderType getEventType() {
+        checkObservable();
+        return getEventTypeImpl();
+    }
+
     #! Return data provider summary info
     /** @note This creates an AbstractDataProvider object for each child; for cases when this is expensive, this
         method must be overridden / reimplemented in the child class for performance reasons
@@ -2762,6 +2774,17 @@ public class AbstractDataProvider {
                 keys err_map);
         }
         return type;
+    }
+
+    #! Returns the description of an event, if any
+    /** @return the event type for this provider
+
+        @note only called if the provider supports the observer pattern / event API
+
+        @since DataProvider 2.5
+    */
+    private *AbstractDataProviderType getEventTypeImpl() {
+        throwUnimplementedException();
     }
 
     #! Throws an \c INVALID-OPERATION exception
