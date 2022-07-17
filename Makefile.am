@@ -28,6 +28,7 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/DebugProgramControl.qm \
 	qlib/WebSocketHandler.qm \
     qlib/FtpPollerUtil.qm \
+	qlib/FsUtil.qm \
 	qlib/WebSocketClient.qm
 
 DOX_SRC_SPLIT_MODULES = \
@@ -46,7 +47,6 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/ServiceNowRestClient.qm \
 	qlib/FilePoller.qm \
 	qlib/FreetdsSqlUtil.qm \
-	qlib/FsUtil.qm \
 	qlib/FtpPoller.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
@@ -81,7 +81,8 @@ DOX_SPLIT_MODULES = \
     qlib/SwaggerDataProvider \
     qlib/SalesforceRestDataProvider \
     qlib/CdsRestDataProvider \
-    qlib/ServiceNowRestDataProvider
+    qlib/ServiceNowRestDataProvider \
+    qlib/FileDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -1081,6 +1082,9 @@ doxygen/qlib/Doxyfile.WebSocketHandler: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.FtpPollerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/FtpPollerUtil.qm:doxygen/qlib/FtpPollerUtil.qm -tDataProvider.tag=../../DataProvider/html $< $@
+
+doxygen/qlib/Doxyfile.FsUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/FsUtil.qm:doxygen/qlib/FsUtil.qm $< $@
 
 doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/astparser/ \

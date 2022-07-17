@@ -34,6 +34,7 @@ public class CsvReadDataProviderFactory inherits AbstractDataProviderFactory {
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "csvread",
             "desc": "CSV reader data provider factory",
+            "children_can_support_records": True,
         };
     }
 

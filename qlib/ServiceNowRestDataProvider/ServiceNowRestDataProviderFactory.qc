@@ -34,6 +34,7 @@ public class ServiceNowRestDataProviderFactory inherits DataProvider::AbstractDa
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "servicenowrest",
             "desc": "ServiceNow REST data provider factory",
+            "children_can_support_records": True,
         };
     }
 

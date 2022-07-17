@@ -2556,7 +2556,8 @@ struct qore_socket_private {
         return rc < 0 || sock == QORE_INVALID_SOCKET ? rc : 0;
     }
 
-    DLLLOCAL void sendFromInputStream(InputStream *is, int64 size, int64 timeout, ExceptionSink *xsink, QoreThreadLock* l) {
+    DLLLOCAL void sendFromInputStream(InputStream *is, int64 size, int64 timeout, ExceptionSink *xsink,
+            QoreThreadLock* l) {
         if (sock == QORE_INVALID_SOCKET) {
             se_not_open("Socket", "sendFromInputStream", xsink);
             return;

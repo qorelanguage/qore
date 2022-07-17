@@ -736,17 +736,18 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
     while (true) {
         // calculate bytes needed
         int bn;
-        if (size == -1)
+        if (size == -1) {
             bn = DEFAULT_SOCKET_BUFSIZE;
-        else {
+        } else {
             bn = size - br;
             if (bn > DEFAULT_SOCKET_BUFSIZE)
                 bn = DEFAULT_SOCKET_BUFSIZE;
         }
 
         rc = brecv(xsink, "recv", buf, bn, 0, timeout_ms);
-        if (rc <= 0)
+        if (rc <= 0) {
             break;
+        }
         br += rc;
 
         do_data_event(QORE_EVENT_SOCKET_DATA_READ, QORE_SOURCE_SOCKET, buf, rc);
@@ -766,7 +767,8 @@ int qore_socket_private::recv(int fd, qore_offset_t size, int timeout_ms, Except
             }
             // write(2) should not return 0, but in case it does, it's treated as an error
             if (errno != EINTR) {
-                xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error writing file after " QSD " bytes read in Socket::send()", br);
+                xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error writing file after " QSD
+                    " bytes read in Socket::send()", br);
                 break;
             }
         }

@@ -692,7 +692,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 12.0.2)
+    set_target_properties(libqore PROPERTIES VERSION 12.0.3)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
 endif (APPLE)
 
@@ -848,6 +848,7 @@ qore_user_module("qlib/TextWrap.qm" "Util")
 
 # base 3 modules
 qore_user_module("qlib/FilePoller.qm" "Util;DataProvider")
+qore_user_module("qlib/FileDataProvider" "FsUtil;DataProvider")
 qore_user_module("qlib/SqlUtil" "Util;DataProvider")
 qore_user_module("qlib/ConnectionProvider" "Util;DataProvider")
 qore_user_module("qlib/CsvUtil" "Util;DataProvider")

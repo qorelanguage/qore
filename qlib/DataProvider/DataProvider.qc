@@ -32,18 +32,20 @@ public class DataProvider {
     public {
         #! Map of known data provider factory names to modules
         const FactoryMap = {
-            "db": "DbDataProvider",
-            "swagger": "SwaggerDataProvider",
             "cdsrest": "CdsRestDataProvider",
             "csvread": "CsvUtil",
             "csvwrite": "CsvUtil",
+            "db": "DbDataProvider",
+            "file": "FileDataProvider",
             "filepoller": "FilePoller",
             "fixedlengthread": "FixedLengthUtil",
             "fixedlengthwrite": "FixedLengthUtil",
+            "ftppoller": "FtpPoller",
             "salesforcerest": "SalesforceRestDataProvider",
             "servicenowrest": "ServiceNowRestDataProvider",
             # provided by the xml module
             "soap": "SoapDataProvider",
+            "swagger": "SwaggerDataProvider",
         };
 
         #! Map of known type path prefixes to modules
@@ -136,8 +138,8 @@ public class DataProvider {
     static AbstractDataProviderFactory getFactoryEx(string name) {
         *AbstractDataProviderFactory factory = DataProvider::getFactory(name);
         if (!factory) {
-            throw "PROVIDER-ERROR", sprintf("data provider factory %y is unknown; known data provider factories: %y", name,
-                keys factory_cache);
+            throw "PROVIDER-ERROR", sprintf("data provider factory %y is unknown; known data provider factories: %y",
+                name, keys factory_cache);
         }
         return factory;
     }
@@ -159,7 +161,8 @@ public class DataProvider {
     }
 
     #! Returns a data provider object from the given factory string
-    /** Factory options are given as string-formatted hash in curly brackets and child data providers are separated by forward slashes
+    /** Factory options are given as string-formatted hash in curly brackets and child data providers are separated by
+        forward slashes
 
         @par Example:
         @code{.py}
@@ -176,7 +179,8 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
     }
 
     #! Returns a data provider object from the given factory string using environment variables to find the factory
-    /** Factory options are given as string-formatted hash in curly brackets and child data providers are separated by forward slashes
+    /** Factory options are given as string-formatted hash in curly brackets and child data providers are separated by
+        forward slashes
 
         @par Example:
         @code{.py}

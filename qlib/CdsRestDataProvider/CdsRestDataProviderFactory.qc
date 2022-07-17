@@ -34,6 +34,7 @@ public class CdsRestDataProviderFactory inherits DataProvider::AbstractDataProvi
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "cdsrest",
             "desc": "Microsoft CDS REST data provider factory",
+            "children_can_support_records": True,
         };
     }
 

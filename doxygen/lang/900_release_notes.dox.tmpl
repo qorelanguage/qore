@@ -7,13 +7,23 @@
     @par Release Summary
     Bugfix release with minor new features in user modules; see below for more information
 
-    @subsection qore_1_10_0_bug_fixes Bug Fixes in Qore
+    @subsection qore_1_10_0_new_features New Features in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
       - implemented support for the observer pattern / event API
+        (<a href="https://github.com/qorelanguage/qore/issues/4557">issue 4557</a>)
+    - <a href="../../modules/FileDataProvider/html/index.html">FileDataProvider</a> module
+      - new module
+    - <a href="../../modules/FtpPoller/html/index.html">FtpPoller</a> module
+      - added support for the event-based DataProvider API
         (<a href="https://github.com/qorelanguage/qore/issues/4557">issue 4557</a>)
     - <a href="../../modules/FilePoller/html/index.html">FilePoller</a> module
       - added support for the event-based DataProvider API
         (<a href="https://github.com/qorelanguage/qore/issues/4557">issue 4557</a>)
+
+    @subsection qore_1_10_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/FsUtil/html/index.html">FsUtil</a> module
+      - fixed inconsistencies handling target directories in copy operations
+        (<a href="https://github.com/qorelanguage/qore/issues/4559">issue 4559</a>)
 
     @section qore_1_9_1 Qore 1.9.1
 

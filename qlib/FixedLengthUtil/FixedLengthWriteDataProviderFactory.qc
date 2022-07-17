@@ -34,6 +34,7 @@ public class FixedLengthWriteDataProviderFactory inherits AbstractDataProviderFa
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "fixedlengthwrite",
             "desc": "Fixed length data writer data provider factory",
+            "children_can_support_records": True,
         };
     }
 

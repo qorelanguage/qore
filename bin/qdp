@@ -52,33 +52,34 @@ class QdpCmd {
 
         #! commands
         const Cmds = {
-            "errors": \QdpCmd::errors(),
-            "info": \QdpCmd::getInfo(),
-            "list": \QdpCmd::listChildren(),
-            "list-details": \QdpCmd::listChildDetails(),
-            "ldetails": \QdpCmd::listChildDetails(),
-            "listen": \QdpCmd::listen(),
-            "record": \QdpCmd::getRecord(),
-            "search": \QdpCmd::search(),
-            "update": \QdpCmd::update(),
             "create": \QdpCmd::create(),
-            "upsert": \QdpCmd::upsert(),
             "delete": \QdpCmd::del(),
-            "request": \QdpCmd::request(),
-            "response": \QdpCmd::response(),
-            "reply": \QdpCmd::response(),
             "dorequest": \QdpCmd::doRequest(),
-            "rsearch": \QdpCmd::doRequestSearch(),
-            "provider-create": \QdpCmd::providerCreate(),
-            "pcreate": \QdpCmd::providerCreate(),
-            "provider-delete": \QdpCmd::providerDelete(),
-            "pdelete": \QdpCmd::providerDelete(),
-            "field-add": \QdpCmd::fieldAdd(),
+            "errors": \QdpCmd::errors(),
+            "event": \QdpCmd::event(),
             "fadd": \QdpCmd::fieldAdd(),
+            "fdelete": \QdpCmd::fieldDelete(),
+            "field-add": \QdpCmd::fieldAdd(),
+            "field-del": \QdpCmd::fieldDelete(),
             "field-update": \QdpCmd::fieldUpdate(),
             "fupdate": \QdpCmd::fieldUpdate(),
-            "field-del": \QdpCmd::fieldDelete(),
-            "fdelete": \QdpCmd::fieldDelete(),
+            "info": \QdpCmd::getInfo(),
+            "ldetails": \QdpCmd::listChildDetails(),
+            "list": \QdpCmd::listChildren(),
+            "list-details": \QdpCmd::listChildDetails(),
+            "listen": \QdpCmd::listen(),
+            "pcreate": \QdpCmd::providerCreate(),
+            "pdelete": \QdpCmd::providerDelete(),
+            "provider-create": \QdpCmd::providerCreate(),
+            "provider-delete": \QdpCmd::providerDelete(),
+            "record": \QdpCmd::getRecord(),
+            "reply": \QdpCmd::response(),
+            "request": \QdpCmd::request(),
+            "response": \QdpCmd::response(),
+            "rsearch": \QdpCmd::doRequestSearch(),
+            "search": \QdpCmd::search(),
+            "update": \QdpCmd::update(),
+            "upsert": \QdpCmd::upsert(),
         };
 
         #! valid field keys
@@ -147,6 +148,10 @@ class QdpCmd {
                 rethrow;
             }
         }
+    }
+
+    static event(AbstractDataProvider provider) {
+        QdpCmd::showType(provider.getEventType());
     }
 
     static errors(AbstractDataProvider provider) {
@@ -543,6 +548,8 @@ class QdpCmd {
         executes a request against the given provider (if supported)
     errors [<code>]
         lists all error replies
+    event
+        shows the event type (if supported)
     info
         show information about the data provider
     list

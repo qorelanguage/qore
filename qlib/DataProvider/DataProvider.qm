@@ -58,11 +58,12 @@ module DataProvider {
     @section dataproviderintro Introduction to the DataProvider Module
 
     The %DataProvider module provides APIs for hierarchical data structures from arbitrary sources to be described,
-    queried, introspected, and updated.  It also supports data providers with request-reply semantics such as REST
-    schemas or with SOAP messaging.
+    queried, introspected, and updated.  It supports data providers supporting record-based APIs as well as
+    request-reply semantics such as REST schemas or with SOAP messaging, as well as event-based data providers.
 
-    The data provider module supports high-performance reading (searching) and writing as well as record creation and
-    upserting and transaction management if supported by the underlying data provider implementation as well.
+    The data provider module supports high-performance reading (native or simulated searching, also with advanced
+    search expression support) and writing as well as record creation, upserting, and transaction management for
+    record-based data providers if supported by the underlying data provider implementation as well.
 
     The %Qore command-line program \c qdp provides a user-friendly interface to data provider functionality.
 
