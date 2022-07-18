@@ -25,7 +25,7 @@
 %requires qore >= 1.9
 
 module FilePoller {
-    version = "0.2";
+    version = "1.0";
     desc = "Filesystem polling solution";
     author = "Petr Vanek <petr@yarpen.cz>";
     url = "http://qore.org";
@@ -56,8 +56,10 @@ module FilePoller {
     The %FilePoller module provides a high level API for file polling.
 
     Available classes:
+    - @ref FilePoller::FileDelayedPollerDataProvider "FileDelayedPollerDataProvider"
     - @ref FilePoller::FilePoller "FilePoller"
     - @ref FilePoller::FilePollerDataProvider "FilePollerDataProvider"
+    - @ref FilePoller::FilePollerDataProviderBase "FilePollerDataProviderBase"
     - @ref FilePoller::FilePollerDataProviderFactory "FilePollerDataProviderFactory"
 
     @section filepollersandbox FilePoller Module in Sandboxed Programs
@@ -71,7 +73,7 @@ module FilePoller {
 
     @section file_poller_relnotes FilePoller Release Notes
 
-    @subsection file_poller_0_2_0 FilePoller v0.2.0
+    @subsection file_poller_1_0 FilePoller v1.0
     - added support for the event-based DataProvider API
       (<a href="https://github.com/qorelanguage/qore/issues/4557">issue 4557</a>)
 
@@ -81,6 +83,10 @@ module FilePoller {
 
 #! Main module namespace
 public namespace FilePoller {
+
+#! File event constant
+public const EVENT_FILE = "file-event";
+
 #! FilePoller file event hash
 public hashdecl FilePollerFileEventInfo {
     #! The device inode number the file is on
@@ -644,7 +650,7 @@ public class FilePoller {
 
     In the assumed scenario, matches files are removed by a single observer in the first notification event
 */
-public class FilePollerDataProvider inherits DataProvider::AbstractDataProvider, DataProvider::Observable {
+public class FilePollerDataProviderBase inherits DataProvider::AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -752,7 +758,6 @@ public class FilePollerDataProvider inherits DataProvider::AbstractDataProvider,
         };
 
         poller = new EmbeddedFilePoller(self, path, mask, copts);
-        poller.start();
     }
 
     destructor() {
@@ -770,8 +775,42 @@ public class FilePollerDataProvider inherits DataProvider::AbstractDataProvider,
     #! Returns the description of an event, if any
     /** @return the event type for this provider
     */
-    private *AbstractDataProviderType getEventTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getEventTypeImpl() {
         return new FilePollerFileEventInfoDataType();
+    }
+}
+
+#! Event-based data provider for file polling events
+/** Note that this class will continue to output all matching files in the given folder until they are removed.
+
+    In the assumed scenario, matches files are removed by a single observer in the first notification event
+
+    The event ID raised for FTP file events is \c "file-event" (see @ref EVENT_FILE)
+*/
+public class FilePollerDataProvider inherits FilePollerDataProviderBase, DataProvider::Observable {
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) : FilePollerDataProviderBase(options) {
+        poller.start();
+    }
+}
+
+#! Event-based data provider for file polling events
+/** Note that this class will continue to output all matching files in the given folder until they are removed.
+
+    In the assumed scenario, matches files are removed by a single observer in the first notification event
+
+    The event ID raised for FTP file events is \c "file-event" (see @ref EVENT_FILE)
+*/
+public class FileDelayedPollerDataProvider inherits FilePollerDataProviderBase, DataProvider::DelayedObservable {
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) : FilePollerDataProviderBase(options) {
+    }
+
+    #! Called when all observers have been added to the object
+    /** This method is meant to trigger event generation
+    */
+    observersReady() {
+        poller.start();
     }
 }
 
@@ -800,7 +839,7 @@ public class FilePollerFileEventInfoDataType inherits HashDataType {
                 "- `UNKNOWN`",
             "perm": "a string giving UNIX-style permissions for the file (ex: `-rwxr-xr-x`)",
             "name": "the name of the file, link, or directory",
-            "filepath": "the remote filepath relative to SFTP root directory",
+            "filepath": "the remote filepath relative to SFILE root directory",
             "link": "symbolic link target (if present)",
         };
     }
@@ -853,21 +892,16 @@ namespace Priv {
 class EmbeddedFilePoller inherits FilePoller {
     private {
         #! The parent observer object
-        FilePollerDataProvider provider;
-
-        #! The unique ID counter
-        int id = 0;
+        Observable observable;
     }
 
-    constructor(FilePollerDataProvider provider, string path, string mask, *hash<auto> options)
+    constructor(FilePollerDataProviderBase provider, string path, string mask, *hash<auto> options)
             : FilePoller(path, mask, options) {
-        self.provider := provider;
+        observable := cast<Observable>(provider);
     }
 
     singleFileEvent(hash<auto> event) {
-        provider.notifyObservers((++id).toString(), event);
+        observable.notifyObservers("file-event", event);
     }
-
-
 }
 }

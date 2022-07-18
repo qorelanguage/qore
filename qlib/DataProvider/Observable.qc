@@ -44,12 +44,8 @@ public class Observable {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
             "observer": observer,
         };
-        foreach auto event_id in (argv) {
-            if (!event_id.typeCode() == NT_STRING) {
-                throw "EVENT-ERROR", sprintf("arguments following the observer must be event ID strings, got "
-                    "type %y (%y) in argument %d instead", event_id.type(), event_id, $# + 2);
-            }
-            info.event_map{event_id} = True;
+        if (argv) {
+            info = registerObserverEventsArgs(info, argv);
         }
         observer_map{observer.uniqueHash()} = info;
     }
@@ -67,12 +63,50 @@ public class Observable {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
             "observer": new ObserverWrapper(observer),
         };
-        foreach auto event_id in (argv) {
-            if (!event_id.typeCode() == NT_STRING) {
-                throw "EVENT-ERROR", sprintf("arguments following the observer must be event ID strings, got "
-                    "type %y (%y) in argument %d instead", event_id.type(), event_id, $# + 2);
-            }
-            info.event_map{event_id} = True;
+        if (argv) {
+            info = registerObserverEventsArgs(info, argv);
+        }
+        observer_map{observer.uniqueHash()} = info;
+    }
+
+    #! The method registers the given observer
+    /** @param observer the observer to be registered
+        @param filter the filter object for events
+        @param ... event IDs for notifications; if no additional arguments are passed, then the observer is
+        notified for all events
+
+        @throw EVENT-ERROR type error; additional argument is not a string event ID
+
+        @since Qorus 5.0 this method supports event IDs after the \a observer argument
+    */
+    registerObserverWithFilter(Observer observer, AbstractEventFilter filter) {
+        hash<ObserverEventInfo> info = <ObserverEventInfo>{
+            "observer": observer,
+            "filter": filter,
+        };
+        if (argv) {
+            info = registerObserverEventsArgs(info, argv);
+        }
+        observer_map{observer.uniqueHash()} = info;
+    }
+
+    #! The method registers the given observer
+    /** @param observer the observer to be registered
+        @param filter the filter object for events
+        @param ... event IDs for notifications; if no additional arguments are passed, then the observer is
+        notified for all events
+
+        @note this variant is meant for Java com.qoretechnologies.qorus.Observer objects
+
+        @since Qorus 5.0 this method supports event IDs after the \a observer argument
+    */
+    registerObserverWithFilter(object observer, AbstractEventFilter filter) {
+        hash<ObserverEventInfo> info = <ObserverEventInfo>{
+            "observer": new ObserverWrapper(observer),
+            "filter": filter,
+        };
+        if (argv) {
+            info = registerObserverEventsArgs(info, argv);
         }
         observer_map{observer.uniqueHash()} = info;
     }
@@ -102,7 +136,8 @@ public class Observable {
         @param data_ hash representing new data to be passed to observers' update() methods
     */
     notifyObservers(string event_id, hash<auto> data_) {
-        map $1.observer.update(event_id, data_), observer_map.iterator(), !$1.event_map || $1.event_map{event_id};
+        map $1.observer.update(event_id, data_), observer_map.iterator(),
+            !$1.event_map || $1.event_map{event_id} || ($1.filter && $1.filter.filter(event_id, data_));
     }
 
     # for backwards-compatibility
@@ -119,6 +154,17 @@ public class Observable {
         delete argv;
         # this method intentionally left blank
     }
+
+    #! Registers observer events
+    hash<ObserverEventInfo> registerObserverEventsArgs(hash<ObserverEventInfo> info, list<auto> events) {
+        foreach auto event_id in (events) {
+            if (event_id.typeCode() != NT_STRING) {
+                throw "EVENT-ERROR", sprintf("arguments following the observer must be event ID strings, got "
+                    "type %y (%y) in argument %d instead", event_id.type(), event_id, $# + 2);
+            }
+            info.event_map{event_id} = True;
+        }
+    }
 }
 
 #! This class represents an observable subject that waits for external confirmation before raising events
@@ -128,6 +174,12 @@ public class DelayedObservable inherits Observable {
     */
     abstract observersReady();
 }
+
+#! This abstract class can be used to filter events that are raised on an Observer
+public class AbstractEventFilter {
+    #! If this returns @ref True, then the event is raised
+    abstract bool filter(string event_id, hash<auto> event);
+}
 }
 
 # private namespace; not exported
@@ -136,6 +188,9 @@ namespace Priv {
 hashdecl ObserverEventInfo {
     # Observer
     Observer observer;
+
+    # event filter object
+    *AbstractEventFilter filter;
 
     # Map of subscribed event IDs; if the map is empty, then all events are registered
     hash<string, bool> event_map;

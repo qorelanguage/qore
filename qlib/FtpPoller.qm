@@ -50,11 +50,21 @@ module FtpPoller {
 
     @section ftppollerintro Introduction to the FtpPoller Module
 
-    The FtpPoller module implements an abstract class that will poll a remote directory with the FTP protocol and
-    return matching files.
+    Available classes:
+    - @ref FtpPoller::FtpDelayedPollerDataProvider "FtpDelayedPollerDataProvider"
+    - @ref FtpPoller::FtpPoller "FtpPoller"
+    - @ref FtpPoller::FtpPollerDataProvider "FtpPollerDataProvider"
+    - @ref FtpPoller::FtpPollerDataProviderBase "FtpPollerDataProviderBase"
+    - @ref FtpPoller::FtpPollerDataProviderFactory "FtpPollerDataProviderFactory"
 
-    To use this class, subclass the @ref FtpPoller::FtpPoller "FtpPoller" class and implement the
+    The FtpPoller module implements FTP file polling event data provider classes as well as an abstract class that
+    will poll a remote directory with the FTP protocol and return matching files.
+
+    To use the @ref FtpPoller::FtpPoller "FtpPoller" class, subclass it and implement the
     @ref FtpPoller::FtpPoller::singleFileEvent() and @ref FtpPoller::FtpPoller::postSingleFileEvent() methods.
+
+    The data provider classes can be used with the data provider infrastructure, and each of these classes uses the
+    @ref FtpPoller::FtpPoller "FtpPoller" class to perform the actual FTP file polling.
 
     @section ftppollerexamples FtpPoller Module Examples
 
@@ -124,6 +134,9 @@ poller.waitStop();
 
 #! main FtpPoller namespace
 public namespace FtpPoller {
+#! FTP file event constant
+public const EVENT_FTP_FILE = "ftp-file-event";
+
 #! FtpPoller client class implementation
 public class FtpPoller {
     public {
@@ -1129,13 +1142,15 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
     #! Returns the description of an event, if any
     /** @return the event type for this provider
     */
-    private *AbstractDataProviderType getEventTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getEventTypeImpl() {
         return new FtpPollerFileEventInfoDataType();
     }
 }
 
 #! Event-based data provider for FTP polling events
 /** When using the \c local_dir option, the local file must be removed / moved / archived by the event handler
+
+    The event ID raised for FTP file events is \c "ftp-file-event" (see @ref EVENT_FTP_FILE)
 */
 public class FtpPollerDataProvider inherits FtpPollerDataProviderBase, DataProvider::Observable {
     #! Creates the object from constructor options
@@ -1146,6 +1161,8 @@ public class FtpPollerDataProvider inherits FtpPollerDataProviderBase, DataProvi
 
 #! Event-based data provider for FTP polling events
 /** When using the \c local_dir option, the local file must be removed / moved / archived by the event handler
+
+    The event ID raised for FTP file events is \c "ftp-file-event" (see @ref EVENT_FTP_FILE)
 */
 public class FtpDelayedPollerDataProvider inherits FtpPollerDataProviderBase, DataProvider::DelayedObservable {
     #! Creates the object from constructor options
@@ -1201,9 +1218,6 @@ class EmbeddedFtpPoller inherits FtpPoller {
     private {
         #! The parent observer object
         Observable observable;
-
-        #! The unique ID counter
-        int id = 0;
     }
 
     constructor(FtpPollerDataProviderBase provider, hash<auto> options)
@@ -1212,7 +1226,7 @@ class EmbeddedFtpPoller inherits FtpPoller {
     }
 
     singleFileEvent(hash<FtpPollerFileEventInfo> event) {
-        observable.notifyObservers((++id).toString(), event);
+        observable.notifyObservers("ftp-file-event", event);
     }
 
     postSingleFileEvent(hash<FtpPollerFileEventInfo> event) {

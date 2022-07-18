@@ -82,7 +82,7 @@ public class FilePollerTest inherits QUnit::Test {
         TmpDir dir("FilePollerDataProvider-");
 
         MyObserver observer();
-        FilePollerDataProvider fp({
+        FileDelayedPollerDataProvider fp({
             "path": dir.path,
             "poll_interval": 1,
         });
@@ -92,6 +92,8 @@ public class FilePollerTest inherits QUnit::Test {
         File f();
         map f.open2(dir.path + "/" + $1, O_CREAT|O_TRUNC|O_WRONLY), Files;
         on_exit map unlink($1), dir.path + "/" + Files;
+
+        fp.observersReady();
 
         observer.wait();
         assertEq("file1", observer.h.file1.name);
