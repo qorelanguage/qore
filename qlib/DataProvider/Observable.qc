@@ -61,7 +61,7 @@ public class Observable {
     */
     registerObserver(object observer) {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
-            "observer": new ObserverWrapper(observer),
+            "observer": observer instanceof Observer ? observer : new ObserverWrapper(observer),
         };
         if (argv) {
             info = registerObserverEventsArgs(info, argv);
@@ -208,7 +208,7 @@ class ObserverWrapper inherits Observer {
         Class cls = Class::getClass(obj);
         on_error rethrow "OBSERVER-ERROR", sprintf("cannot wrap object of class %y; cannot find a compatible "
             "\"update(string, hash<auto>)\" method: %s: %s", cls.getName(), $1.err, $1.desc);
-        cls.getNormalVariant("update", StringType, HashType);
+        cls.findNormalMethod("update").method.getVariant(StringType, HashType);
         self.obj = obj;
     }
 

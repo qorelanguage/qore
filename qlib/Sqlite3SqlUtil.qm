@@ -1056,7 +1056,8 @@ auto v = c.name;
             return new Sqlite3Index(iname, enabled, ch);
         }
 
-        private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash ch, string table, hash tch, *hash<auto> opt) {
+        private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash<auto> ch, string table,
+                hash<auto> tch, *hash<auto> opt) {
             ForeignConstraintTarget fct(table, new Columns(tch));
             return new Sqlite3ForeignConstraint(cname, new Columns(ch), fct);
         }
@@ -1065,7 +1066,7 @@ auto v = c.name;
             throw "SQLITE3-CHECK-CONSTRAINT-ERROR", sprintf("Sqlite3 does not support check constraints");
         }
 
-        private AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash ch, *hash<auto> opt) {
+        private AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash<auto> ch, *hash<auto> opt) {
             return new Sqlite3UniqueConstraint(cname, ch);
         }
 
@@ -1092,11 +1093,11 @@ auto v = c.name;
             return (ex.desc =~ /^Duplicate entry /);
         }
 
-        private hash getQoreTypeMapImpl() {
+        private hash<auto> getQoreTypeMapImpl() {
             return QoreTypeMap;
         }
 
-        private hash getTypeMapImpl() {
+        private hash<auto> getTypeMapImpl() {
             return Sqlite3TypeMap;
         }
 
@@ -1138,7 +1139,7 @@ auto v = c.name;
         }
 
         #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
-        list getColumnSqlNames(softlist cols) {
+        list<string> getColumnSqlNames(softlist<auto> cols) {
             return map getColumnSqlName($1), cols;
         }
 
@@ -1184,7 +1185,7 @@ string str = table.getSqlValue(date);
             }
         }
 
-        private setupTableImpl(hash desc, *hash<auto> opt) {
+        private setupTableImpl(hash<auto> desc, *hash<auto> opt) {
         }
 
         #! returns @ref True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
@@ -1228,12 +1229,12 @@ string str = table.getSqlValue(date);
             return True;
         }
 
-        private *hash doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args) {
+        private *hash<auto> doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args) {
             throw "RETURNING-ERROR", sprintf("table %s: the sqlite3 driver does not support the returning clause "
                 "in an insert statement", getSqlName());
         }
 
-        private list getGroupOrderByListUnlocked(hash<QueryInfo> info, string key, list<auto> coll) {
+        private list<auto> getGroupOrderByListUnlocked(hash<QueryInfo> info, string key, list<auto> coll) {
             list<auto> ce = ();
             foreach auto cv in (info.query_hash{key}) {
                 switch (cv.typeCode()) {
