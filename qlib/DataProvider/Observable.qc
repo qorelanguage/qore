@@ -208,7 +208,42 @@ class ObserverWrapper inherits Observer {
         Class cls = Class::getClass(obj);
         on_error rethrow "OBSERVER-ERROR", sprintf("cannot wrap object of class %y; cannot find a compatible "
             "\"update(string, hash<auto>)\" method: %s: %s", cls.getName(), $1.err, $1.desc);
-        cls.findNormalMethod("update").method.getVariant(StringType, HashType);
+        # verify that there is an "update()" method that takes string and hash args
+        bool ok;
+        list<AbstractMethodVariant> variant_list = cls.findNormalMethod("update").method.getVariants();
+        foreach AbstractVariant v in (variant_list) {
+            if (v.getModifiers() & MC_ABSTRACT) {
+                continue;
+            }
+            list<Type> typelist = v.getParamTypes();
+            if (!typelist.size() && (v.getCodeFlags() & CF_USES_EXTRA_ARGS)) {
+                ok = True;
+                break;
+            }
+            if (typelist.size() == 1 && (v.getCodeFlags() & CF_USES_EXTRA_ARGS)
+                && typelist[0].isAssignableFrom(StringType)) {
+                ok = True;
+                break;
+            }
+            if (typelist.size() != 2) {
+                continue;
+            }
+            if (typelist[0].isAssignableFrom(StringType) && typelist[1].isAssignableFrom(HashType)) {
+                ok = True;
+                break;
+            }
+        }
+        if (!ok) {
+            string desc = foldl $1 + "\n" + $2, (
+                map sprintf("  - %s", $1.toString()), variant_list
+            );
+            if (desc) {
+                desc = ":\n" + desc;
+            }
+            throw "VARIANT-MATCH-ERROR", sprintf("no variable compatible with %s::update(string, hash<auto>) {} "
+                "could be found; tested %d variant%s%s", cls.getName(), variant_list.size(),
+                variant_list.size() == 1 ? "" : "s", desc);
+        }
         self.obj = obj;
     }
 
