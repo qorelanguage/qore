@@ -164,6 +164,7 @@ public class Observable {
             }
             info.event_map{event_id} = True;
         }
+        return info;
     }
 }
 
