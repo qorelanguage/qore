@@ -43,9 +43,12 @@ public class DataProvider {
             "ftppoller": "FtpPoller",
             "salesforcerest": "SalesforceRestDataProvider",
             "servicenowrest": "ServiceNowRestDataProvider",
+
             # provided by the xml module
             "soap": "SoapDataProvider",
+
             "swagger": "SwaggerDataProvider",
+            "wsclient": "WebSocketClient",
         };
 
         #! Map of known type path prefixes to modules

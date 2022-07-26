@@ -35,6 +35,7 @@
 %requires DatasourceProvider
 %requires DbDataProvider
 %requires Util
+%requires Logger
 
 %exec-class QdpCmd
 
@@ -65,8 +66,10 @@ class QdpCmd {
             "fupdate": \QdpCmd::fieldUpdate(),
             "info": \QdpCmd::getInfo(),
             "ldetails": \QdpCmd::listChildDetails(),
+            "levents": \QdpCmd::listEvents(),
             "list": \QdpCmd::listChildren(),
             "list-details": \QdpCmd::listChildDetails(),
+            "list-events": \QdpCmd::listEvents(),
             "listen": \QdpCmd::listen(),
             "pcreate": \QdpCmd::providerCreate(),
             "pdelete": \QdpCmd::providerDelete(),
@@ -101,8 +104,7 @@ class QdpCmd {
         if (opts.listconnections) {
             listConnections();
         }
-        if (opts.listfactories) {
-            listFactories();
+        if (opts.listfactories) {            listFactories();
         }
         if (opts.listtypes) {
             listTypes();
@@ -124,6 +126,7 @@ class QdpCmd {
             provider = getDataProvider((shift path) + opts);
             map provider = provider.getChildProviderEx($1), path;
         }
+        provider.setLogger(getLogger());
 
         string cmd = shift ARGV ?? "list";
         *code action = Cmds{cmd};
@@ -150,8 +153,28 @@ class QdpCmd {
         }
     }
 
+    private Logger getLogger() {
+        LoggerLevel level;
+        if (opts.verbose > 3) {
+            level = LoggerLevel::getLevelDebug();
+        } else if (opts.verbose > 2) {
+            level = LoggerLevel::getLevelInfo();
+        } else {
+            level = LoggerLevel::getLevelError();
+        }
+        Logger logger("console", level);
+        logger.addAppender(new ConsoleAppender());
+        return logger;
+    }
+
+    static listEvents(AbstractDataProvider provider) {
+        hash<string, AbstractDataProviderType> events = provider.getEventTypes();
+        map printf(" - %s\n", $1), keys events;
+    }
+
     static event(AbstractDataProvider provider) {
-        QdpCmd::showType(provider.getEventType());
+        string event = QdpCmd::getString("event", True);
+        QdpCmd::showType(provider.getEventType(event));
     }
 
     static errors(AbstractDataProvider provider) {
@@ -548,8 +571,10 @@ class QdpCmd {
         executes a request against the given provider (if supported)
     errors [<code>]
         lists all error replies
-    event
+    event <event>
         shows the event type (if supported)
+    events
+        list all supported event types
     info
         show information about the data provider
     list
@@ -645,7 +670,22 @@ class Term {
 
 class MyObserver inherits Observer {
     update(string event_id, hash<auto> data_) {
-        stdout.printf("%s received event:\n%N\n", now_us().format("YYYY-MM-DD HH:mm:SS.xx"), data_);
+        string eventstr = sprintf("%N", data_);
+        stdout.printf("< %s received event %y:\n< %s\n", now_us().format("YYYY-MM-DD HH:mm:SS.xx"), event_id, eventstr);
         stdout.sync();
+    }
+}
+
+class ConsoleAppender inherits LoggerAppenderWithLayout {
+    constructor() : LoggerAppenderWithLayout("console", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                print(params);
+                break;
+        }
     }
 }

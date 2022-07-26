@@ -123,9 +123,48 @@ public hashdecl DataProviderSummaryInfo {
     #! Does this data provide support advanced search experssions?
     bool supports_search_expressions = False;
 
-    #! Does this data provider support the event API / Observer pattern?
+    #! Does this data provider support the event API / observer pattern?
+    /**
+        @since DataProvider 2.5
+    */
     bool supports_observable = False;
+
+    #! Message support
+    /** This describes the data provider's support for output messages, if any, and the relationship to observed
+        events, if any.
+
+        @see dataprovider_message_support
+
+        @since DataProvider 2.5
+    */
+    string supports_message = MSG_None;
 }
+
+/** @defgroup dataprovider_message_support Output Message Support
+
+    These constants describe the data provider's support for output messages, if any, and the relationship to observed
+    events, if any.
+
+    @since DataProvider 2.5
+*/
+#@{
+#! No output type
+/** The data provider does not support output messages
+*/
+public const MSG_None = "NONE";
+
+#! Synchronous output type, an output message is expected after each observed event
+/** The data provider supports output messages, and an output message is expected after each input message.
+
+    This can be used to support the server-side request-response API integration pattern
+*/
+public const MSG_Sync = "SYNC";
+
+#! Asynchronous output type, output can happen any time
+/** Input (i.e. observed events) may not be related or supported
+*/
+public const MSG_Async = "ASYNC";
+#@}
 
 /** @defgroup signature_type_codes Signature Type Codes
 
@@ -490,12 +529,19 @@ public hashdecl DataProviderInfo {
     */
     bool supports_search_expressions = False;
 
-    #! Does this data provider support the event API / Observer pattern?
+    #! Does this data provider support the event API / observer pattern?
     /** If this is @ref True, then the data provider will inherit @ref Observable and can be observed
 
         @since DataProvider 2.5
     */
     bool supports_observable = False;
+
+    #! Output message support
+    /** @see dataprovider_message_support
+
+        @since DataProvider 2.5
+    */
+    string supports_message = MSG_None;
 
     #! Returns the schema type supported by this data provider
     /**
@@ -562,6 +608,13 @@ public hashdecl DataProviderInfo {
         @since DataProvider 2.0
     */
     *hash<string, hash<DataProviderOptionInfo>> delete_field_options;
+
+    #! Send message options supported by the data provider
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.5
+    */
+    *hash<string, hash<DataProviderOptionInfo>> send_message_options;
 
     #! Expressions (operators and functions) supported by the data provider
     /** @note this is a static attribute; it is the same for all data providers of the same type
@@ -1386,7 +1439,7 @@ public class AbstractDataProvider {
 
     #! Deletes an existing field
     /** @param name the name of the field to delete
-        @param field_delete_options the options for deleting the new field
+        @param field_delete_options the options for deleting the new field; processed by validateFieldDeleteOptions()
 
         @throw INVALID-OPERATION thrown if the data provider does not support this API
         @throw DELETE-FIELD-ERROR error adding the field
@@ -1397,9 +1450,28 @@ public class AbstractDataProvider {
         checkDeleteField();
         field_delete_options = validateFieldDeleteOptions(field_delete_options);
         on_error if ($1.err != "DELETE-FIELD-ERROR") {
-            rethrow "DELETE-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
+            rethrow "DELETE-FIELD-ERROR", sprintf("%s: %s", $1.err, $1.desc);
         }
         return deleteFieldImpl(name, field_delete_options);
+    }
+
+    #! Sends a message from message-capable data providers
+    /**
+        @param msg the message to send
+        @param send_message_options the options for sending the message; processed by validateSendMessageOptions()
+
+        @throw INVALID-OPERATION thrown if the data provider does not support this API
+        @throw SEND-MESSAGE-ERROR error sending the message
+
+        @since DataProvider 2.5
+    */
+    sendMessage(auto msg, *hash<auto> send_message_options) {
+        checkMessage();
+        send_message_options = validateSendMessageOptions(send_message_options);
+        on_error if ($1.err != "SEND-MESSAGE-ERROR") {
+            rethrow "SEND-MESSAGE-ERROR", sprintf("%s: %s", $1.err, $1.desc);
+        }
+        sendMessageImpl(msg);
     }
 
     #! Returns the schema supporting this data provider
@@ -1457,16 +1529,43 @@ public class AbstractDataProvider {
         return getErrorResponseTypeImpl(error_code);
     }
 
-    #! Returns the description of an event, if any
-    /** @return the event type for this provider
+    #! Returns the description of an observable event, if any
+    /** @string event_id the event ID of the event
+
+        @return the observable event type for this provider
+
+        @throw INVALID-OPERATION the data provider does not support the observer pattern / event API
+        @throw INVALID-EVENT the event_id is not valie
+
+        @since DataProvider 2.5
+    */
+    AbstractDataProviderType getEventType(string event_id) {
+        checkObservable();
+        return getEventTypeImpl(event_id);
+    }
+
+    #! Returns a hash of all supported event types
+    /** @return a hash of all supported event types
 
         @throw INVALID-OPERATION the data provider does not support the observer pattern / event API
 
         @since DataProvider 2.5
     */
-    *AbstractDataProviderType getEventType() {
+    hash<string, AbstractDataProviderType> getEventTypes() {
         checkObservable();
-        return getEventTypeImpl();
+        return getEventTypesImpl();
+    }
+
+    #! Returns the description of an outbound message, if any
+    /** @return the message type for this provider
+
+        @throw INVALID-OPERATION the data provider does not support sending messages
+
+        @since DataProvider 2.5
+    */
+    *AbstractDataProviderType getMessageType() {
+        checkMessage();
+        return getMessageTypeImpl();
     }
 
     #! Return data provider summary info
@@ -1770,6 +1869,19 @@ public class AbstractDataProvider {
         if (!supportsObservable()) {
             throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support the observer pattern / "
                 "event API", getName(), self.className());
+        }
+    }
+
+    #! Ensures that the data provider supports sending messages
+    /**
+        @throw INVALID-OPERATION the data provider does not support sending messages
+
+        @since DataProvider 2.5
+    */
+    checkMessage() {
+        if (!supportsMessage()) {
+            throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support sending messages",
+                getName(), self.className());
         }
     }
 
@@ -2114,6 +2226,15 @@ public class AbstractDataProvider {
         return checkOptions("FIELD-DELETE-OPTION-ERROR", getFieldDeleteOptions(), field_delete_options);
     }
 
+    #! validates send message options
+    /** @throw SEND-MESSAGE-OPTION-ERROR invalid or unsupported send message option
+
+        @since DataProvider 2.5
+    */
+    private *hash<auto> validateSendMessageOptions(*hash<auto> send_message_options) {
+        return checkOptions("SEND-MESSAGE-OPTION-ERROR", getSendMessageOptions(), send_message_options);
+    }
+
     #! processes options passed to the constructor
     private processConstructorOptions(*hash<string, hash<DataProviderOptionInfo>> option_desc, *hash<auto> options) {
         self += checkOptions("CONSTRUCTOR-OPTION-ERROR", option_desc, options);
@@ -2405,6 +2526,24 @@ public class AbstractDataProvider {
         return getStaticInfoImpl().delete_field_options;
     }
 
+    #! Returns options that can be used for sending messages from the data provider
+    /** @return a hash of options that can be used for sending messages; keys are option names, values
+        describe the option; if @ref nothing is returned, then the provider does not support any message send
+        options
+
+        @since DataProvider 2.5
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getSendMessageOptions() {
+        return getStaticInfoImpl().send_message_options;
+    }
+
+    #! Returns a code describing how the data provider supports sending messages
+    /** @since DataProvider 2.5
+    */
+    string getMessageSupport() {
+        return getStaticInfoImpl().supports_message;
+    }
+
     #! Returns @ref True if the data provider supports reading
     /**
     */
@@ -2543,6 +2682,13 @@ public class AbstractDataProvider {
     */
     bool supportsObservable() {
         return getStaticInfoImpl().supports_observable;
+    }
+
+    #! Returns True if the data provider supports sending messages
+    /** @since DataProvider 2.5
+    */
+    bool supportsMessage() {
+        return getStaticInfoImpl().supports_message != MSG_None;
     }
 
     #! Returns the schema type for this data provider or @ref nothing if no schema type is supported
@@ -2721,6 +2867,17 @@ public class AbstractDataProvider {
         throwUnimplementedException();
     }
 
+    #! Sends a message from message-capable data providers
+    /**
+        @param msg the message to send
+        @param send_message_options the options for sending the message
+
+        @since DataProvider 2.5
+    */
+    private sendMessageImpl(auto msg, *hash<auto> send_message_options) {
+        throwUnimplementedException();
+    }
+
     #! Returns the schema object supporting this data provider
     /** @return the schema object supporting this data provider
 
@@ -2776,14 +2933,45 @@ public class AbstractDataProvider {
         return type;
     }
 
-    #! Returns the description of an event, if any
-    /** @return the event type for this provider
+    #! Returns the description of an observable event, if any
+    /** @string event_id the event ID of the event
+
+        @return the observable event type for this provider
+
+        @note only called if the provider supports the observer pattern / event API
+
+        @throw INVALID-EVENT the event is not supported by this data provider
+
+        @since DataProvider 2.5
+    */
+    private AbstractDataProviderType getEventTypeImpl(string event_id) {
+        *hash<string, AbstractDataProviderType> h = getEventTypes();
+        if (!h{event_id}) {
+            throw "INVALID-EVENT", sprintf("provider %y (type %y) does not support event %y; supported events: %y",
+                getName(), self.className(), event_id, keys h);
+        };
+        return h{event_id};
+    }
+
+    #! Returns a hash of all supported event types
+    /** @return a hash of all supported event types
 
         @note only called if the provider supports the observer pattern / event API
 
         @since DataProvider 2.5
     */
-    private *AbstractDataProviderType getEventTypeImpl() {
+    private hash<string, AbstractDataProviderType> getEventTypesImpl() {
+        throwUnimplementedException();
+    }
+
+    #! Returns the description of an outbound message, if any
+    /** @return the message type for this provider
+
+        @note only called if the provider supports sending messages
+
+        @since DataProvider 2.5
+    */
+    private *AbstractDataProviderType getMessageTypeImpl() {
         throwUnimplementedException();
     }
 

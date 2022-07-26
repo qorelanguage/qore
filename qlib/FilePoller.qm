@@ -652,13 +652,6 @@ public class FilePoller {
 */
 public class FilePollerDataProviderBase inherits DataProvider::AbstractDataProvider {
     public {
-        #! Provider info
-        const ProviderInfo = <DataProviderInfo>{
-            "type": "FilePollerDataProvider",
-            "supports_observable": True,
-            "constructor_options": ConstructorOptions,
-        };
-
         #! Constructor options
         const ConstructorOptions = {
             "path": <DataProviderOptionInfo>{
@@ -768,15 +761,15 @@ public class FilePollerDataProviderBase inherits DataProvider::AbstractDataProvi
         return "filepoller";
     }
 
-    private hash<DataProviderInfo> getStaticInfoImpl() {
-        return ProviderInfo;
-    }
+    #! Returns a hash of all supported event types
+    /** @return a hash of all supported event types
 
-    #! Returns the description of an event, if any
-    /** @return the event type for this provider
+        @note only called if the provider supports the observer pattern / event API
     */
-    private *DataProvider::AbstractDataProviderType getEventTypeImpl() {
-        return new FilePollerFileEventInfoDataType();
+    private hash<string, AbstractDataProviderType> getEventTypesImpl() {
+        return {
+            EVENT_FILE: new FilePollerFileEventInfoDataType(),
+        };
     }
 }
 
@@ -785,13 +778,26 @@ public class FilePollerDataProviderBase inherits DataProvider::AbstractDataProvi
 
     In the assumed scenario, matches files are removed by a single observer in the first notification event
 
-    The event ID raised for FTP file events is \c "file-event" (see @ref EVENT_FILE)
+    The event ID raised for file events is \c "file-event" (see @ref EVENT_FILE)
 */
 public class FilePollerDataProvider inherits FilePollerDataProviderBase, DataProvider::Observable {
+    public {
+        #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "FilePollerDataProvider",
+            "supports_observable": True,
+            "constructor_options": ConstructorOptions,
+        };
+    }
+
     #! Creates the object from constructor options
     constructor(*hash<auto> options) : FilePollerDataProviderBase(options) {
         poller.start();
     }
+
+    private hash<DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
+    }
 }
 
 #! Event-based data provider for file polling events
@@ -799,9 +805,18 @@ public class FilePollerDataProvider inherits FilePollerDataProviderBase, DataPro
 
     In the assumed scenario, matches files are removed by a single observer in the first notification event
 
-    The event ID raised for FTP file events is \c "file-event" (see @ref EVENT_FILE)
+    The event ID raised for file events is \c "file-event" (see @ref EVENT_FILE)
 */
 public class FileDelayedPollerDataProvider inherits FilePollerDataProviderBase, DataProvider::DelayedObservable {
+    public {
+        #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "FileDelayedPollerDataProvider",
+            "supports_observable": True,
+            "constructor_options": ConstructorOptions,
+        };
+    }
+
     #! Creates the object from constructor options
     constructor(*hash<auto> options) : FilePollerDataProviderBase(options) {
     }
@@ -811,6 +826,10 @@ public class FileDelayedPollerDataProvider inherits FilePollerDataProviderBase, 
     */
     observersReady() {
         poller.start();
+    }
+
+    private hash<DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
     }
 }
 

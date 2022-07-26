@@ -997,13 +997,6 @@ public class FtpPoller {
 */
 public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvider {
     public {
-        #! Provider info
-        const ProviderInfo = <DataProviderInfo>{
-            "type": "FtpPollerDataProvider",
-            "supports_observable": True,
-            "constructor_options": ConstructorOptions,
-        };
-
         #! Constructor options
         const ConstructorOptions = {
             "atomic_transfer":  <DataProviderOptionInfo>{
@@ -1135,15 +1128,15 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
         return "ftppoller";
     }
 
-    private hash<DataProviderInfo> getStaticInfoImpl() {
-        return ProviderInfo;
-    }
+    #! Returns a hash of all supported event types
+    /** @return a hash of all supported event types
 
-    #! Returns the description of an event, if any
-    /** @return the event type for this provider
+        @note only called if the provider supports the observer pattern / event API
     */
-    private *DataProvider::AbstractDataProviderType getEventTypeImpl() {
-        return new FtpPollerFileEventInfoDataType();
+    private hash<string, AbstractDataProviderType> getEventTypesImpl() {
+        return {
+            EVENT_FTP_FILE: new FtpPollerFileEventDataType(),
+        };
     }
 }
 
@@ -1153,9 +1146,22 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
     The event ID raised for FTP file events is \c "ftp-file-event" (see @ref EVENT_FTP_FILE)
 */
 public class FtpPollerDataProvider inherits FtpPollerDataProviderBase, DataProvider::Observable {
+    public {
+        #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "FtpPollerDataProvider",
+            "supports_observable": True,
+            "constructor_options": ConstructorOptions,
+        };
+    }
+
     #! Creates the object from constructor options
     constructor(*hash<auto> options) : FtpPollerDataProviderBase(options) {
         poller.start();
+    }
+
+    private hash<DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
     }
 }
 
@@ -1165,6 +1171,15 @@ public class FtpPollerDataProvider inherits FtpPollerDataProviderBase, DataProvi
     The event ID raised for FTP file events is \c "ftp-file-event" (see @ref EVENT_FTP_FILE)
 */
 public class FtpDelayedPollerDataProvider inherits FtpPollerDataProviderBase, DataProvider::DelayedObservable {
+    public {
+        #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "FtpDelayedPollerDataProvider",
+            "supports_observable": True,
+            "constructor_options": ConstructorOptions,
+        };
+    }
+
     #! Creates the object from constructor options
     constructor(*hash<auto> options) : FtpPollerDataProviderBase(options) {
     }
@@ -1175,9 +1190,13 @@ public class FtpDelayedPollerDataProvider inherits FtpPollerDataProviderBase, Da
     observersReady() {
         poller.start();
     }
+
+    private hash<DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
+    }
 }
 
-#! The file poller data provider factory
+#! The FTP poller data provider factory
 public class FtpPollerDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         #! Data provider type info

@@ -37,8 +37,6 @@ public class Observable {
         notified for all events
 
         @throw EVENT-ERROR type error; additional argument is not a string event ID
-
-        @since Qorus 5.0 this method supports event IDs after the \a observer argument
     */
     registerObserver(Observer observer) {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
@@ -55,9 +53,7 @@ public class Observable {
         @param ... event IDs for notifications; if no additional arguments are passed, then the observer is
         notified for all events
 
-        @note this variant is meant for Java com.qoretechnologies.qorus.Observer objects
-
-        @since Qorus 5.0 this method supports event IDs after the \a observer argument
+        @note this variant is meant for observer objects implemented in other languages
     */
     registerObserver(object observer) {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
@@ -76,8 +72,6 @@ public class Observable {
         notified for all events
 
         @throw EVENT-ERROR type error; additional argument is not a string event ID
-
-        @since Qorus 5.0 this method supports event IDs after the \a observer argument
     */
     registerObserverWithFilter(Observer observer, AbstractEventFilter filter) {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
@@ -96,9 +90,7 @@ public class Observable {
         @param ... event IDs for notifications; if no additional arguments are passed, then the observer is
         notified for all events
 
-        @note this variant is meant for Java com.qoretechnologies.qorus.Observer objects
-
-        @since Qorus 5.0 this method supports event IDs after the \a observer argument
+        @note this variant is meant for observer objects implemented in other languages
     */
     registerObserverWithFilter(object observer, AbstractEventFilter filter) {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
@@ -125,7 +117,7 @@ public class Observable {
 
         @return True if found otherwise False
 
-        @note this variant is meant for Java com.qoretechnologies.qorus.Observer objects
+        @note this variant is meant for observer objects implemented in other languages
     */
     bool deregisterObserver(object observer) {
         return exists (remove observer_map{observer.uniqueHash()});
@@ -140,11 +132,6 @@ public class Observable {
             !$1.event_map || $1.event_map{event_id} || ($1.filter && $1.filter.filter(event_id, data_));
     }
 
-    # for backwards-compatibility
-    bool unregisterObserver(object observer) {
-        deregisterObserver(observer);
-    }
-
     #! Reimplement this method to implement logging
     /** @param level the Logger level
         @param fmt the format string
@@ -156,7 +143,7 @@ public class Observable {
     }
 
     #! Registers observer events
-    hash<ObserverEventInfo> registerObserverEventsArgs(hash<ObserverEventInfo> info, list<auto> events) {
+    private hash<ObserverEventInfo> registerObserverEventsArgs(hash<ObserverEventInfo> info, list<auto> events) {
         foreach auto event_id in (events) {
             if (event_id.typeCode() != NT_STRING) {
                 throw "EVENT-ERROR", sprintf("arguments following the observer must be event ID strings, got "
