@@ -12,9 +12,24 @@
 
 class RegexTest inherits QUnit::Test {
     constructor() : QUnit::Test("Regex test", "1.0") {
+        addTestCase("replacement test", \replacementTest());
         addTestCase("Test", \test());
         addTestCase("bug329", \test329());
         set_return_value(main());
+    }
+
+    replacementTest() {
+        assertThrows("REGEX-OCTAL-ERROR", \regex_subst(), ("abc", "b", "\\777"));
+        assertThrows("REGEX-OCTAL-ERROR", \regex_subst(), ("abc", "b", "\\400"));
+
+        assertEq("axc", regex_subst("abc", "b", "\\170"));
+        assertEq("a\ac", regex_subst("abc", "b", "\\a"));
+        assertEq("a\bc", regex_subst("abc", "b", "\\b"));
+        assertEq("a\ec", regex_subst("abc", "b", "\\e"));
+        assertEq("a\fc", regex_subst("abc", "b", "\\f"));
+        assertEq("a\nc", regex_subst("abc", "b", "\\n"));
+        assertEq("a\rc", regex_subst("abc", "b", "\\r"));
+        assertEq("a\tc", regex_subst("abc", "b", "\\t"));
     }
 
     test() {
@@ -181,10 +196,10 @@ class RegexTest inherits QUnit::Test {
         ## a '\' followed by any other character(!)
         ## (matching that character taken as an ordinary character, as if the '\'
         ## had not been present(!)),
-        # NOTE: escaping multi-byte characters does not work for some reason (\§)
+        # NOTE: escaping multi-byte characters does not work for some reason (\ï¿½)
         t = 'escaped ordinary character';
         s = '!"%&=~#-_>';
-        # $p = '\a\A\!\"\§\%\&\=\~\#\-\_\>';
+        # $p = '\a\A\!\"\ï¿½\%\&\=\~\#\-\_\>';
         p = '\!\"\%\&\=\~\#\-\_\>';
         # -- digits do not work: REGEX-COMPILATION-ERROR: Invalid back reference
         # printf("%s %s: \"'%s' =~ /%s/\"\n", ( s =~ /\a\A\1\!\"\%\&\=\~\#\-\_\<\>\,\;/ ) ? 'PASS' : 'FAIL' ,t, s, p);
@@ -194,8 +209,8 @@ class RegexTest inherits QUnit::Test {
         # | chained exception:
         # | unhandled QORE System exception thrown at ./regex.q:179
         # | REGEX-COMPILATION-ERROR: invalid UTF-8 string
-        # printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /\a\A\!\"\§\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
-        # printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /\a\A\!\"\§\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+        # printf("%s %s: \"'%s' =~ /%s/\"\n", ( $s =~ /\a\A\!\"\ï¿½\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
+        # printf("%s %s: \"'%s' !~ /%s/\"\n", ( $s !~ /\a\A\!\"\ï¿½\%\&\=\~\#\-\_\>/ ) ? 'PASS' : 'FAIL' ,$t, $s, $p);
         assertTrue(s =~ /\!\"\%\&\=\~\#\-\_\>/, t + ' ' + s + ": '" + s + "' =~ /" + p + "'");
         s = '\!\"\%\&\=\~\#\-\_\>';
         assertTrue(s !~ /\!\"\%\&\=\~\#\-\_\>/, t + ' ' + s + ": '" + s + "' !~ /" + p + "'");

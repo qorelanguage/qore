@@ -120,6 +120,10 @@ extern char* strcasestr(const char* s1, const char* s2);
 #include <map>
 #include <vector>
 
+static bool isoctaldigit(const char x) {
+    return x >= '0' && x <= '7';
+}
+
 // here we define virtual types
 #define NT_NONE             -1
 #define NT_ALL              -2

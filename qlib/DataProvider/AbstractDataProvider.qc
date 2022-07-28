@@ -137,7 +137,7 @@ public hashdecl DataProviderSummaryInfo {
 
         @since DataProvider 2.5
     */
-    string supports_message = MSG_None;
+    string supports_messages = MSG_None;
 }
 
 /** @defgroup dataprovider_message_support Output Message Support
@@ -539,9 +539,12 @@ public hashdecl DataProviderInfo {
     #! Output message support
     /** @see dataprovider_message_support
 
+        This attribute defines if the message API is supported by the data provider as well as the relationship to
+        observable events, if any
+
         @since DataProvider 2.5
     */
-    string supports_message = MSG_None;
+    string supports_messages = MSG_None;
 
     #! Returns the schema type supported by this data provider
     /**
@@ -622,6 +625,20 @@ public hashdecl DataProviderInfo {
         @since DataProvider 2.3
     */
     *hash<string, hash<DataProviderExpressionInfo>> expressions;
+
+    #! List of supported observable events
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.5
+    */
+    *softlist<string> event_ids;
+
+    #! List of supported output message IDs
+    /** @note this is a static attribute; it is the same for all data providers of the same type
+
+        @since DataProvider 2.5
+    */
+    *softlist<string> message_ids;
 
     #! Supported search logic capabilities
     /** This is a bitfield of capabilities; see @ref logic_capability_codes for more info
@@ -956,6 +973,12 @@ public class AbstractDataProvider {
         };
         if (!exists rv.has_record) {
             rv.has_record = rv.supports_read;
+        }
+        if (!rv.event_ids && rv.supports_observable) {
+            rv.event_ids = keys getEventTypes();
+        }
+        if (!rv.message_ids && rv.supports_messages != MSG_None) {
+            rv.message_ids = keys getMessageTypes();
         }
         return rv;
     }
@@ -1457,21 +1480,25 @@ public class AbstractDataProvider {
 
     #! Sends a message from message-capable data providers
     /**
+        @param message_id the message ID to send; must correspond to a valid message ID
         @param msg the message to send
         @param send_message_options the options for sending the message; processed by validateSendMessageOptions()
 
         @throw INVALID-OPERATION thrown if the data provider does not support this API
+        @throw INVALID-MESSAGE the message_id is not valid
         @throw SEND-MESSAGE-ERROR error sending the message
 
         @since DataProvider 2.5
     */
-    sendMessage(auto msg, *hash<auto> send_message_options) {
-        checkMessage();
+    sendMessage(string message_id, auto msg, *hash<auto> send_message_options) {
+        checkMessages();
         send_message_options = validateSendMessageOptions(send_message_options);
+        AbstractDataProviderType message_type = getMessageTypeImpl(message_id);
+        msg = message_type.acceptsValue(msg);
         on_error if ($1.err != "SEND-MESSAGE-ERROR") {
-            rethrow "SEND-MESSAGE-ERROR", sprintf("%s: %s", $1.err, $1.desc);
+            rethrow "SEND-MESSAGE-ERROR", sprintf("%s: (message ID %y) %s", $1.err, message_id, $1.desc);
         }
-        sendMessageImpl(msg);
+        sendMessageImpl(message_id, msg, send_message_options);
     }
 
     #! Returns the schema supporting this data provider
@@ -1535,7 +1562,7 @@ public class AbstractDataProvider {
         @return the observable event type for this provider
 
         @throw INVALID-OPERATION the data provider does not support the observer pattern / event API
-        @throw INVALID-EVENT the event_id is not valie
+        @throw INVALID-EVENT the event_id is not valid
 
         @since DataProvider 2.5
     */
@@ -1557,15 +1584,30 @@ public class AbstractDataProvider {
     }
 
     #! Returns the description of an outbound message, if any
-    /** @return the message type for this provider
+    /** @string message_id the ID of the message
+
+        @return the message type for this provider
+
+        @throw INVALID-OPERATION the data provider does not support sending messages
+        @throw INVALID-MESSAGE the message_id is not valid
+
+        @since DataProvider 2.5
+    */
+    AbstractDataProviderType getMessageType(string message_id) {
+        checkMessages();
+        return getMessageTypeImpl(message_id);
+    }
+
+    #! Returns a hash of all supported outbound messages
+    /** @return a hash of all supported outbound messages
 
         @throw INVALID-OPERATION the data provider does not support sending messages
 
         @since DataProvider 2.5
     */
-    *AbstractDataProviderType getMessageType() {
-        checkMessage();
-        return getMessageTypeImpl();
+    hash<string, AbstractDataProviderType> getMessageTypes() {
+        checkMessages();
+        return getMessageTypesImpl();
     }
 
     #! Return data provider summary info
@@ -1878,8 +1920,8 @@ public class AbstractDataProvider {
 
         @since DataProvider 2.5
     */
-    checkMessage() {
-        if (!supportsMessage()) {
+    checkMessages() {
+        if (!supportsMessages()) {
             throw "INVALID-OPERATION", sprintf("data provider %y (type %y) does not support sending messages",
                 getName(), self.className());
         }
@@ -2541,7 +2583,7 @@ public class AbstractDataProvider {
     /** @since DataProvider 2.5
     */
     string getMessageSupport() {
-        return getStaticInfoImpl().supports_message;
+        return getStaticInfoImpl().supports_messages;
     }
 
     #! Returns @ref True if the data provider supports reading
@@ -2687,8 +2729,8 @@ public class AbstractDataProvider {
     #! Returns True if the data provider supports sending messages
     /** @since DataProvider 2.5
     */
-    bool supportsMessage() {
-        return getStaticInfoImpl().supports_message != MSG_None;
+    bool supportsMessages() {
+        return getStaticInfoImpl().supports_messages != MSG_None;
     }
 
     #! Returns the schema type for this data provider or @ref nothing if no schema type is supported
@@ -2869,12 +2911,13 @@ public class AbstractDataProvider {
 
     #! Sends a message from message-capable data providers
     /**
+        @param message_id the message ID to send; must correspond to a valid message ID
         @param msg the message to send
         @param send_message_options the options for sending the message
 
         @since DataProvider 2.5
     */
-    private sendMessageImpl(auto msg, *hash<auto> send_message_options) {
+    private sendMessageImpl(string message_id, auto msg, *hash<auto> send_message_options) {
         throwUnimplementedException();
     }
 
@@ -2933,7 +2976,7 @@ public class AbstractDataProvider {
         return type;
     }
 
-    #! Returns the description of an observable event, if any
+    #! Returns the type of an observable event, if any
     /** @string event_id the event ID of the event
 
         @return the observable event type for this provider
@@ -2964,14 +3007,32 @@ public class AbstractDataProvider {
         throwUnimplementedException();
     }
 
-    #! Returns the description of an outbound message, if any
-    /** @return the message type for this provider
+    #! Returns the type of an outbound message, if any
+    /** @string message_id the ID of the message
 
-        @note only called if the provider supports sending messages
+        @return the message type for this provider
+
+        @throw INVALID-MESSAGE the message is not supported by this data provider
 
         @since DataProvider 2.5
     */
-    private *AbstractDataProviderType getMessageTypeImpl() {
+    private AbstractDataProviderType getMessageTypeImpl(string message_id) {
+        *hash<string, AbstractDataProviderType> h = getMessageTypes();
+        if (!h{message_id}) {
+            throw "INVALID-MESSAGE", sprintf("provider %y (type %y) does not support message %y; supported "
+                "messages: %y", getName(), self.className(), message_id, keys h);
+        };
+        return h{message_id};
+    }
+
+    #! Returns a hash of all supported outbound messages
+    /** @return a hash of all supported outbound messages
+
+        @throw INVALID-OPERATION the data provider does not support sending messages
+
+        @since DataProvider 2.5
+    */
+    private hash<string, AbstractDataProviderType> getMessageTypesImpl() {
         throwUnimplementedException();
     }
 

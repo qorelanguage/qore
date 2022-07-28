@@ -4,12 +4,14 @@
 
     @section qore_regex_intro Qore Regular Expression Introduction
 
-    Regular expression functionality in %Qore is provided by <a href="http://www.pcre.org">PCRE: Perl-Compatible Regular Expression library</a>.
+    Regular expression functionality in %Qore is provided by
+    <a href="http://www.pcre.org">PCRE: Perl-Compatible Regular Expression library</a>.
 
-    Using this library, %Qore implements regular expression pattern matching using very simple syntax with semantics similar
-    to those of <a href="http://www.perl.org">Perl 5</a>.
-    One difference between %Qore and Perl to keep in mind is that @ref qore_regex_backreferences "backreferences" in %Qore
-    are referenced as \c $1, \c $2, \c $3, etc which differs from Perl's syntax (which uses numbered backslashes instead).
+    Using this library, %Qore implements regular expression pattern matching using very simple syntax with semantics
+    similar to those of <a href="http://www.perl.org">Perl 5</a>.
+    One difference between %Qore and Perl to keep in mind is that @ref qore_regex_backreferences "backreferences" in
+    %Qore are referenced as \c $1, \c $2, \c $3, etc which differs from Perl's syntax (which uses numbered backslashes
+    instead).
 
     @par Examples:
     @code{.py}
@@ -40,15 +42,18 @@
 
     @section qore_regex_operators Qore Regular Expression Operators
 
-    The following is a list of operators based on regular expressions (or similar to regular expressions in the case of the transliteration operator).
+    The following is a list of operators based on regular expressions (or similar to regular expressions in the case
+    of the transliteration operator).
 
     <b>Regular Expression Operators</b>
     |!Operator|!Description
     |@ref regex_match_operator|Returns @ref True "True" if the regular expression matches a string
     |@ref regex_no_match_operator|Returns @ref True "True" if the regular expression does not match a string
     |@ref regex_subst_operator|Substitutes text in a string based on matching a regular expression
-    |@ref regex_extract_operator|Returns a list of substrings in a string based on matching patterns defined by a regular expression
-    |@ref transliteration_operator|Not a regular expression operator; transliterates one or more characters to other characters in a string
+    |@ref regex_extract_operator|Returns a list of substrings in a string based on matching patterns defined by a \
+        regular expression
+    |@ref transliteration_operator|Not a regular expression operator; transliterates one or more characters to other \
+        characters in a string
 
     See the table below for valid regular expression options.
 
@@ -57,25 +62,58 @@
     <b>Regular Expression Options</b>
     |!Option|!Description
     |\c i|Ignores case when matching
-    |\c m|makes start-of-line (<tt>^</tt>) or end-of-line (<tt>$</tt>) match after or before any newline in the subject string
+    |\c m|makes start-of-line (<tt>^</tt>) or end-of-line (<tt>$</tt>) match after or before any newline in the \
+        subject string
     |\c s|makes a dot (<tt>.</tt>) match a newline character
     |\c x|ignores whitespace characters and enables comments prefixed by <tt>#</tt>
     |\c u|extends Posix character matching to Unicode characters
-    |\c g|makes global substitutions or global extractions (only applicable with the substitution and extraction operators)
+    |\c g|makes global substitutions or global extractions (only applicable with the substitution and extraction \
+        operators)
 
     @section qore_regex_functions Qore Regular Expression Functions
 
-    The following is a list of functions providing regular expression functionality where the pattern may be given at run-time:
+    The following is a list of functions providing regular expression functionality where the pattern may be given at
+    run-time:
 
     <b>Regular Expression Functions</b>
     |!Function|!Description
     |regex()|Returns @ref True "True" if the regular expression matches a string
     |regex_subst()|Substitutes a pattern in a string based on regular expressions and returns the new string
-    |regex_extract()|Returns a list of substrings in a string based on matching patterns defined by a regular expression
+    |regex_extract()|Returns a list of substrings in a string based on matching patterns defined by a regular \
+        expression
 
-    @subsection qore_regex_backreferences Qore Regular Expression Backreferences
+    @section qore_regex_escape_patterns Qore Regular Expression Escape Codes
 
-    Qore uses <tt>$</tt><i>num</i> for backreferences in regular expression substitution expressions.  The first backreference is \c $1, the second $2, and so on.
+    Escape characters in the pattern string are processed by the <a href="http://www.pcre.org">PCRE</a> library
+    similar to how Perl5 handles escape characters.
+
+    @subsection qore_regex_escape_replacement_string Qore Regular Expression Replacement String Escape Codes
+
+    Regular expression substitution expressions have the following pattern:
+    - <tt>s/</tt><i>&lt;pattern&gt;</i><tt>/</tt><i>&lt;replacement&gt;</i><tt>/</tt>
+
+    The escape codes in the following table are supported in the replacement string.
+
+    <b>Regular Expression Replacement String Escape Codes</b>
+    |!Escape|!ASCII|!Decimal|!Octal|!Hex|!Description
+    |\\a|\c BEL|\c 7|\c 007|\c 07|alarm or bell
+    |\\b|\c BS|\c 8|\c 010|\c 08|backspace
+    |\\e|\c ESC|\c 27|\c 033|\c 1B|escape character
+    |\\f|\c FF|\c 12|\c 014|\c 0C|form feed
+    |\\n|\c LF|\c 10|\c 012|\c 0A|line feed
+    |\\r|\c CR|\c 13|\c 015|\c 0D|carriage return
+    |\\t|\c HT|\c 9|\c 011|\c 09|horizontal tab
+    |\\v|\c VT|\c 11|\c 013|\c 0B|vertical tab
+    |\\$|\c $|\c 36|\c 044|\c 24|a literal dollar sign character
+    |\\\\|\c \\|\c 134|\c 092|\c 5C|a literal backslash character
+    |\\[0-7][0-7][0-7]|-|-|-|-|the ASCII character represented by the octal code
+
+    Otherwise any backslashes in the replacement string will be copied literally to the output string.
+
+    @section qore_regex_backreferences Qore Regular Expression Backreferences
+
+    Qore uses <tt>$</tt><i>num</i> for backreferences in regular expression substitution expressions.  The first
+    backreference is \c $1, the second $2, and so on.
 
     @par Example
     @code{.py}
@@ -86,5 +124,4 @@
     # remove parentheses from string at the beginning of the line
     str =~ s/^\((.*)\)/$1/;
     @endcode
-
 */

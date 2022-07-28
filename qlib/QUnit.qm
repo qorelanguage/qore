@@ -1011,12 +1011,26 @@ addTestCase(obj);
     }
 
     private string escapeSpecialChars(string str) {
+        str = replace(str, "\a", "<\\a>");
         str = replace(str, "\b", "<\\b>");
+        str = replace(str, "\e", "<\\e>");
         str = replace(str, "\f", "<\\f>");
         str = replace(str, "\n", "<\\n>");
         str = replace(str, "\r", "<\\r>");
         str = replace(str, "\t", "<\\t>");
         str = replace(str, "\v", "<\\v>");
+        return str;
+    }
+
+    private string escapeSpecialChars2(string str) {
+        str = replace(str, "\a", "\\a");
+        str = replace(str, "\b", "\\b");
+        str = replace(str, "\e", "\\e");
+        str = replace(str, "\f", "\\f");
+        str = replace(str, "\n", "\\n");
+        str = replace(str, "\r", "\\r");
+        str = replace(str, "\t", "\\t");
+        str = replace(str, "\v", "\\v");
         return str;
     }
 
@@ -1171,13 +1185,15 @@ addTestCase(obj);
         }
         string v = sprintf("%N", value);
         # issue #2680: when truncating complex data structures, indicate the truncation
-        list l = v.split("\n");
-        v = l[0];
+        list<string> l = v.split("\n");
         if (l.size() > 1) {
-            return v + sprintf("...\" (%s truncated from %d lines)", value.type(), l.size());
-        }
-        else {
-            return sprintf("%s (%s)", v, value.type());
+            if (v.size() < 80) {
+                return escapeSpecialChars2(v);
+            } else {
+                return l[0] + sprintf("...\" (%s truncated from %d lines)", value.type(), l.size());
+            }
+        } else {
+            return sprintf("%s (%s)", l[0], value.type());
         }
     }
 
