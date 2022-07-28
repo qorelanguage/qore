@@ -138,7 +138,7 @@ public class QUnitTest inherits QUnit::Test {
         try {
             assertGt(2, 2);
         } catch (hash<ExceptionInfo> ex) {
-            #printf("%s: %s\n", ex.err, ex.desc);
+            on_error printf("%s: %s\n", ex.err, ex.desc);
             assertEq("TEST-EXCEPTION", ex.err);
             assertRegex("Expected Greater Than", ex.desc);
             # force the test that failed to pass
@@ -233,9 +233,9 @@ public class QUnitTest inherits QUnit::Test {
                 assertEq(l1, l2);
                 assertTrue(False);
             } catch (hash<ExceptionInfo> ex) {
-                #printf("desc: %y\n", ex.desc);
-                assertTrue(ex.desc =~ /hello\\\\nworld/);
-                assertTrue(ex.desc =~ /hello\\\\nmars/);
+                on_error printf("desc: %y\n", ex.desc);
+                assertTrue(ex.desc =~ /hello\\nworld/);
+                assertTrue(ex.desc =~ /hello\\nmars/);
             }
         }
     }

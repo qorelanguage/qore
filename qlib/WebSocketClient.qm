@@ -222,6 +222,9 @@ public const EVENT_WS_DATA = "ws-data-event";
 #! WebSocket connection closed event constant
 public const EVENT_WS_CLOSED = "ws-closed-event";
 
+#! WebSocket message type
+public const MESSAGE_WS_DEFAULT = "default";
+
 #! the main websocket client class
 /** To use this class, create a @ref WebSocketClient::WebSocketClient "WebSocketClient" object and the call
     @ref WebSocketClient::WebSocketClient::connect() "WebSocketClient::connect()".
@@ -430,9 +433,11 @@ ws.connect();
         option hash
     */
     hash<auto> connect(*hash<auto> opts, *reference<hash<auto>> info) {
-        if (opts.hdr && opts.hdr.typeCode() != NT_HASH) {
-            throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() 'hdr' key not assigned to a "
-                "hash; type received: %y", opts.hdr.type());
+        if (opts.hdr) {
+            if (opts.hdr.typeCode() != NT_HASH) {
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() 'hdr' key not assigned to a "
+                    "hash; type received: %y", opts.hdr.type());
+            }
         }
 
         m.lock();
@@ -766,9 +771,11 @@ ws.setEventQueue();
         }
     }
 
-    private hash<auto> connectUnlocked(*hash<auto> hdr, *reference<hash<auto>> info) {
-        if (!hdr."User-Agent")
-            hdr."User-Agent" = DefaultUserAgent;
+    private hash<auto> connectUnlocked(*hash<auto> hdr0, *reference<hash<auto>> info) {
+        # in case hdr0 is hash<string, int> or similar
+        hash<auto> hdr = {
+            "User-Agent": DefaultUserAgent,
+        } + hdr0;
 
         string key = get_random_string(16).toBase64();
         hdr += {
@@ -969,7 +976,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "proxy URL to use",
             },
-            "serialization": <DataProviderOptionInfo>{
+            "data": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "data serialization to use:\n"
 %ifndef NoJson
@@ -1022,7 +1029,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
     constructor(*hash<auto> options) {
         hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
 
-        serialization = remove copts.serialization ??
+        serialization = remove copts."data" ??
 %ifndef NoJson
             "json"
 %else
@@ -1031,7 +1038,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
             ;
 
         if (!SerializationMap{serialization}) {
-            throw "CONSTRUCTOR-ERROR", sprintf("invalid serialization %y; known serialization values: %y",
+            throw "CONSTRUCTOR-ERROR", sprintf("invalid data serialization %y; known serialization values: %y",
                 serialization, keys SerializationMap);
         }
 
@@ -1086,10 +1093,12 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
 
         @note only called if the provider supports sending messages
     */
-    private *AbstractDataProviderType getMessageTypeImpl() {
-        return serialization == "none"
-            ? AbstractDataProviderTypeMap."data",
-            : NOTHING;
+    private hash<string, AbstractDataProviderType> getMessageTypesImpl() {
+        return {
+            MESSAGE_WS_DEFAULT: serialization == "none"
+                ? AbstractDataProviderTypeMap."data",
+                : AbstractDataProviderTypeMap."any",
+        };
     }
 
     #! Sends a message from message-capable data providers
@@ -1097,7 +1106,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         @param msg the message to send
         @param send_message_options the options for sending the message
     */
-    private sendMessageImpl(auto msg, *hash<auto> send_message_options) {
+    private sendMessageImpl(string message_id, auto msg, *hash<auto> send_message_options) {
         try {
             client.send(serializeMessage(msg));
         } catch (hash<ExceptionInfo> ex) {
@@ -1159,7 +1168,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
     }
 
     #! Serializes the message for sending
-    data serializeMessage(data msg) {
+    data serializeMessage(auto msg) {
         switch (serialization) {
             case "none":
                 if (msg.typeCode() != NT_STRING && msg.typeCode() != NT_BINARY) {
@@ -1188,7 +1197,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
 
     #! Throws an UNSUPPORTED-SERIALIZATION error
     private unsupportedSerialization() {
-        throw "UNSUPPORTED-SERIALIZATION", sprintf("unsupported serialization %y; known serialization %y",
+        throw "UNSUPPORTED-SERIALIZATION", sprintf("unsupported data serialization %y; known serialization %y",
             serialization, keys SerializationMap);
     }
 
@@ -1207,8 +1216,10 @@ public class WebSocketClientDataProvider inherits WebSocketClientDataProviderBas
         const ProviderInfo = <DataProviderInfo>{
             "type": "WebSocketClientDataProvider",
             "supports_observable": True,
-            "supports_message": MSG_Async,
+            "supports_messages": MSG_Async,
             "constructor_options": ConstructorOptions,
+            "event_ids": (EVENT_WS_DATA, EVENT_WS_CLOSED),
+            "message_ids": (MESSAGE_WS_DEFAULT,),
         };
     }
 
@@ -1234,8 +1245,10 @@ public class WebSocketClientDelayedDataProvider inherits WebSocketClientDataProv
         const ProviderInfo = <DataProviderInfo>{
             "type": "WebSocketClientDelayedDataProvider",
             "supports_observable": True,
-            "supports_message": MSG_Async,
+            "supports_messages": MSG_Async,
             "constructor_options": ConstructorOptions,
+            "event_ids": (EVENT_WS_DATA, EVENT_WS_CLOSED),
+            "message_ids": (MESSAGE_WS_DEFAULT,),
         };
     }
 

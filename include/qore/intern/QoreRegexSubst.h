@@ -76,7 +76,8 @@ private:
     bool global = false;
     QoreString* newstr = nullptr;
 
-    DLLLOCAL static void concat(QoreString* str, int* ovector, int olen, const char* ptr, const char* target, int rc);
+    DLLLOCAL static int concat(ExceptionSink& xsink, QoreString* str, int* ovector, int olen, const char* ptr,
+            const char* target, int rc);
 };
 
 #endif // _QORE_QOREREGEXSUBST_H

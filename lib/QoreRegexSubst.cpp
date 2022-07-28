@@ -103,14 +103,57 @@ int QoreRegexSubst::parse() {
 }
 
 // static function
-void QoreRegexSubst::concat(QoreString* cstr, int* ovector, int olen, const char* ptr, const char* target, int rc) {
+int QoreRegexSubst::concat(ExceptionSink& xsink, QoreString* cstr, int* ovector, int olen, const char* ptr,
+        const char* target, int rc) {
     while (*ptr) {
-        if (*ptr == '\\' && *(ptr+1) == '\\') {
+        if (*ptr == '\\') {
             ++ptr;
-            cstr->concat(*(ptr++));
-        } else if (*ptr == '\\' && *(ptr+1) == '$') {
-            ++ptr;
-            cstr->concat(*(ptr++));
+                if (isoctaldigit(*ptr) && isoctaldigit(*(ptr + 1)) && isoctaldigit(*(ptr + 2))) {
+                int val = (*ptr - 48) * 64 + (*(ptr + 1) - 48) * 8 + (*(ptr + 2) - 48);
+                if (val > 255) {
+                    xsink.raiseException("REGEX-OCTAL-ERROR", "octal constant \\%c%c%c is too large "
+                        "(decimal %d; must be < 256)", *ptr, *(ptr + 1), *(ptr + 2), val);
+                    return -1;
+                }
+                cstr->concat((const char)val);
+                ptr += 3;
+            } else if (*(ptr) == '\\' || *(ptr) == '$') {
+                cstr->concat(*(ptr++));
+            } else if (*ptr == 'a') {
+                // \a = BEL (bell)
+                cstr->concat((const char)7);
+                ++ptr;
+            } else if (*ptr == 'b') {
+                // \b = BS (backspace)
+                cstr->concat((const char)8);
+                ++ptr;
+            } else if (*ptr == 'e') {
+                // \e = ESC (escape)
+                cstr->concat((const char)27);
+                ++ptr;
+            } else if (*ptr == 'f') {
+                // \f = FF (form feed)
+                cstr->concat((const char)12);
+                ++ptr;
+            } else if (*ptr == 'n') {
+                // \n = NL (newline)
+                cstr->concat((const char)10);
+                ++ptr;
+            } else if (*ptr == 'r') {
+                // \r = CR (carriage return)
+                cstr->concat((const char)13);
+                ++ptr;
+            } else if (*ptr == 't') {
+                // \t = HT (horizontal tab)
+                cstr->concat((const char)9);
+                ++ptr;
+            } else if (*ptr == 'v') {
+                // \v = VT (vertical tab)
+                cstr->concat((const char)11);
+                ++ptr;
+            } else {
+                cstr->concat('\\');
+            }
         } else if (*ptr == '$' && isdigit(ptr[1])) {
             QoreString n;
             ++ptr;
@@ -129,6 +172,7 @@ void QoreRegexSubst::concat(QoreString* cstr, int* ovector, int olen, const char
         }
     }
     //printd(5, "QoreRegexSubst::concat() target: '%s' cstr: '%s'\n", target, cstr->c_str());
+    return 0;
 }
 
 #define SUBST_OVECSIZE 30
@@ -173,7 +217,10 @@ QoreStringNode* QoreRegexSubst::exec(const QoreString* target, const QoreString*
             tstr->concat(ptr, ovector[0] - offset);
         }
 
-        concat(*tstr, ovector, SUBST_LASTELEM, nstr->c_str(), t->c_str(), rc);
+        if (concat(*xsink, *tstr, ovector, SUBST_LASTELEM, nstr->c_str(), t->c_str(), rc)) {
+            assert(*xsink);
+            return nullptr;
+        }
 
         //printd(5, "QoreRegexSubst::exec() '%s' =~ s/?/%s/%s offset=%d, 0=%d, 1=%d ('%s')\n", t->c_str(), nstr->c_str(), global ? "g" : "", offset, ovector[0], ovector[1], tstr->c_str());
 

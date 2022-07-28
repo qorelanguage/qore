@@ -483,9 +483,11 @@ void qore_string_private::concatUTF8FromUnicode(unsigned code) {
 }
 
 // FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
-int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str, bool detect_query) {
+int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_string_private& str,
+        bool detect_query) {
     if (!getEncoding()->isAsciiCompat()) {
-        xsink->raiseException("UNSUPPORTED-ENCODING", "cannot decode a URI to non-ASCII-compatible encoding \"%s\"", getEncoding()->getCode());
+        xsink->raiseException("UNSUPPORTED-ENCODING", "cannot decode a URI to non-ASCII-compatible encoding \"%s\"",
+            getEncoding()->getCode());
         return -1;
     }
 
@@ -499,14 +501,16 @@ int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_
             if ((x1 & 0xc0) == 0xc0) {
                 int x2 = getHex(url);
                 if (x2 == -1) {
-                    xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a multi-byte UTF-8 character but only one byte was provided");
+                    xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a multi-byte UTF-8 "
+                        "character but only one byte was provided");
                     return -1;
                 }
                 // check for a 3-byte sequence
                 if (x1 & 0x20) {
                     int x3 = getHex(url);
                     if (x3 == -1) {
-                        xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a %s-byte UTF-8 character but only two bytes were provided", (x1 & 0x10) ? "four" : "three");
+                        xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a %s-byte UTF-8 "
+                            "character but only two bytes were provided", (x1 & 0x10) ? "four" : "three");
                         return -1;
                     }
 
@@ -514,11 +518,13 @@ int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_
                     if (x1 & 0x10) {
                         int x4 = getHex(url);
                         if (x4 == -1) {
-                            xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a four-byte UTF-8 character but only three bytes were provided");
+                            xsink->raiseException("URL-ENCODING-ERROR", "percent encoding indicated a four-byte "
+                                "UTF-8 character but only three bytes were provided");
                             return -1;
                         }
                         if (!(x2 & 0x80 && x3 & 0x80 && x4 & 0x80)) {
-                            xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid four-byte UTF-8 character");
+                            xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid four-byte "
+                                "UTF-8 character");
                             return -1;
                         }
 
@@ -540,7 +546,8 @@ int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_
                     }
                     // 3-byte sequence
                     if (!(x2 & 0x80 && x3 & 0x80)) {
-                        xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid three-byte UTF-8 character");
+                        xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid three-byte "
+                            "UTF-8 character");
                         return -1;
                     }
 
@@ -561,7 +568,8 @@ int qore_string_private::concatDecodeUriIntern(ExceptionSink* xsink, const qore_
                 }
                 // 2-byte sequence
                 if (!(x2 & 0x80)) {
-                    xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid two-byte UTF-8 character");
+                    xsink->raiseException("URL-ENCODING-ERROR", "percent encoding gave an invalid two-byte UTF-8 "
+                        "character");
                     return -1;
                 }
 
@@ -1037,8 +1045,8 @@ void qore_string_private::terminate(size_t size) {
 }
 
 int qore_string_private::substr_simple(QoreString* ns, qore_offset_t offset, qore_offset_t length) const {
-    printd(5, "qore_string_private::substr_simple(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p len=" QSD ")\n",
-            offset, length, buf, this, len);
+    printd(5, "qore_string_private::substr_simple(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p len="
+        QSD ")\n", offset, length, buf, this, len);
 
     size_t n_offset;
     if (offset < 0)
@@ -1081,11 +1089,12 @@ int qore_string_private::substr_simple(QoreString* ns, qore_offset_t offset) con
     return 0;
 }
 
-int qore_string_private::substr_complex(QoreString* ns, qore_offset_t offset, qore_offset_t length, ExceptionSink* xsink) const {
+int qore_string_private::substr_complex(QoreString* ns, qore_offset_t offset, qore_offset_t length,
+        ExceptionSink* xsink) const {
     assert(xsink);
     QORE_TRACE("qore_string_private::substr_complex(offset, length)");
-    printd(5, "qore_string_private::substr_complex(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p len=" QSD ")\n",
-            offset, length, buf, this, len);
+    printd(5, "qore_string_private::substr_complex(offset=" QSD ", length=" QSD ") string=\"%s\" (this=%p len="
+        QSD ")\n", offset, length, buf, this, len);
 
     char* pend = buf + len;
     if (offset < 0) {
@@ -1247,7 +1256,8 @@ void qore_string_private::splice_complex(qore_offset_t offset, ExceptionSink* xs
     buf[len] = '\0';
 }
 
-void qore_string_private::splice_complex(qore_offset_t offset, qore_offset_t num, ExceptionSink* xsink, QoreString* extract) {
+void qore_string_private::splice_complex(qore_offset_t offset, qore_offset_t num, ExceptionSink* xsink,
+        QoreString* extract) {
     assert(xsink);
     //printd(5, "splice_complex(offset=" QSD ", num=" QSD ", len=" QSD ")\n", offset, num, len);
 
@@ -1462,9 +1472,9 @@ QoreString::QoreString(const char* str, const QoreEncoding* new_qore_encoding) :
         }
         priv->check_char(priv->len);
         priv->buf[priv->len] = '\0';
-    }
-    else
+    } else {
         priv->buf[0] = '\0';
+    }
     priv->encoding = new_qore_encoding;
 }
 
