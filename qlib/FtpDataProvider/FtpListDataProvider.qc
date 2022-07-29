@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FileDataProvider module definition
+#! Qore FtpDataProvider module definition
 
-/** FileDeleteDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpListDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,30 +22,47 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FileDataProvider module
-public namespace FileDataProvider {
-#! The File delete data provider class
-public class FileDeleteDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the FtpDataProvider module
+public namespace FtpDataProvider {
+#! The FTP list data provider class
+public class FtpListDataProvider inherits AbstractDataProvider {
     public {
+        #! FTP connection
+        FtpClient ftp;
+
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FileDeleteDataProvider",
+            "type": "FtpListDataProvider",
+            "constructor_options": FtpDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new FilePathDataType();
+        const RequestType = new FtpPathDataType();
+
+        #! Response type
+        const ResponseType = new ListDataType(FtpStatDataProvider::ResponseType, True);
+    }
+
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) {
+        checkOptions("CONSTRUCTOR-ERROR", FtpDataProvider::ConstructorOptions, options);
+        ftp = FtpDataProvider::getFtpConnection(options);
+    }
+
+    #! Creates the object from an FTP connection
+    constructor(FtpClient ftp) {
+        self.ftp = ftp;
     }
 
     #! Returns the data provider name
     string getName() {
-        return "delete";
+        return "list";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "File delete data provider; deletes files or entire directory trees on the filesystem given a path "
-            "as an argument";
+        return "FTP list data provider; returns file information about the path given as an argument";
     }
 
     #! Makes a request and returns the response
@@ -53,12 +70,12 @@ public class FileDeleteDataProvider inherits AbstractDataProvider {
         @param request_options the request options; will be processed by validateRequestOptions()
 
         @return the response to the request
+
+        @throw LIST-ERROR if the path cannot be read
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        remove_path(req.path);
-        return {
-            "path": req.path,
-        };
+        string path = ftp.getPath(req.path);
+        return map FtpStatDataProvider::doStat(ftp, $1, True), ftp.nlst(path).split("\r\n");
     }
 
     #! Returns the description of a successful request message, if any
@@ -72,7 +89,7 @@ public class FileDeleteDataProvider inherits AbstractDataProvider {
     /** @return the response type for this response message
     */
     private *AbstractDataProviderType getResponseTypeImpl() {
-        return RequestType;
+        return ResponseType;
     }
 
     #! Returns data provider static info

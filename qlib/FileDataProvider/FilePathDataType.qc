@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** FileStatRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FilePathDataType.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,20 +23,14 @@
 
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
-#! Data type for stat file request calls
-public class FileStatRequestDataType inherits HashDataType {
+#! Data type for delete file request calls
+public class FilePathDataType inherits HashDataType {
     private {
         #! Field descriptions
         const Fields = {
             "path": {
                 "type": StringType,
                 "desc": "The file path",
-            },
-            "symlink": {
-                "type": BoolType,
-                "desc": "If True, then if the target path is a symbolic link, information about the link itself will "
-                    "be returned instead of the target",
-                "default_value": False,
             },
         };
     }

@@ -1,0 +1,97 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/FsUtil.qm
+%requires ../../../../qlib/FtpDataProvider
+
+%include  ../../qore/classes/FtpServer.qc
+
+%exec-class FtpDataProviderTest
+
+public class FtpDataProviderTest inherits QUnit::Test {
+    constructor() : Test("FtpDataProvider Test", "1.0") {
+        addTestCase("test", \ftpDataProviderTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    ftpDataProviderTest() {
+        int port = getPort();
+
+        # PORT only supports IPv4, so we can't use "localhost", which may resolve
+        # to an IPv6 address
+        FtpServer serv(port, m_options.verbose - 1, "127.0.0.1");
+        on_exit serv.shutdown();
+
+        serv.setFs();
+        serv.setDirect();
+
+        port = serv.getPort();
+        string url = sprintf("ftp://user:pass@127.0.0.1:%d", port);
+
+        FtpDataProvider root({"url": url});
+        AbstractDataProvider prov = root.getChildProviderEx("create-file");
+        string str = get_random_string();
+        string path = "/test.txt";
+        hash<auto> h = prov.doRequest({
+            "path": path,
+            "data": str,
+        });
+        assertEq(path, h.path);
+
+        prov = root.getChildProviderEx("get-file");
+        h = prov.doRequest({
+            "path": path,
+            "text": True,
+        });
+        assertEq(str, h."data");
+
+        prov = root.getChildProviderEx("stat");
+        h = prov.doRequest({
+            "path": path,
+        });
+        assertEq({
+            "name": "test.txt",
+            "path": "/test.txt",
+            "type": "REGULAR",
+            "size": 15,
+        }, h - "mtime");
+
+        /* test server doesn't support RNFR yet
+        string newpath = "/test1.txt";
+        prov = root.getChildProviderEx("move");
+        h = prov.doRequest({
+            "source": path,
+            "target": newpath,
+        });
+        assertEq(newpath, h.path);
+        path = newpath;
+        */
+
+        prov = root.getChildProviderEx("delete");
+        h = prov.doRequest({
+            "path": path,
+        });
+        assertEq(path, h.path);
+
+        prov = root.getChildProviderEx("stat");
+        assertThrows("FTP-STAT-ERROR", \prov.doRequest(), {
+            "path": path,
+        });
+    }
+
+    private softint getPort() {
+        return m_options.port ?? ENV.FTPCLIENT_TEST_PORT ?? 0;
+    }
+}

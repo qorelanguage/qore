@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FileMoveDataProvider module definition
+#! Qore FileDataProvider module definition
 
-/** FileMoveDataProvider.qc Copyright 2019 - 2022 Qore Technologies, s.r.o.
+/** FileMoveDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,9 +22,9 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FileMoveDataProvider module
+#! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
-#! The File data provider class
+#! The File move data provider class
 public class FileMoveDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info

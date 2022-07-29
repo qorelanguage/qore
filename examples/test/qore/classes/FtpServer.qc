@@ -288,9 +288,17 @@ class FtpServer {
             }
 
             if (cmd =~ /^CWD/i) {
-                string path = (cmd =~ x/^CWD (.+)$/i)[0];
-                pwd = path;
-                ftpSend(ns, 250, "Okay.");
+                string dir = (cmd =~ x/^CWD (.+)$/i)[0];
+
+                *string path = t ? t.path : pwd;
+                path += DirSep + dir;
+
+                if (!is_dir(path)) {
+                    ftpSend(ns, 550, "Failed to change directory to " + dir);
+                } else {
+                    ftpSend(ns, 250, "Okay.");
+                    pwd = dir;
+                }
                 continue;
             }
 
@@ -298,11 +306,15 @@ class FtpServer {
                 string file_name = (cmd =~ x/^MDTM (.+)$/i)[0];
                 # printf("FILE_NAME: %y\n", file_name);
 
-                Dir dir();
-                dir.chdir(pwd);
-                auto file = dir.list(file_name, 0, True)[0];
+                *string path = t ? t.path : pwd;
+                path += DirSep + file_name;
 
-                ftpSend(ns, 250, file.mtime.toString());
+                *hash<StatInfo> info = hstat(path);
+                if (!info) {
+                    ftpSend(ns, 550, "Failed to retrieve modified date for " + file_name);
+                } else {
+                    ftpSend(ns, 250, info.mtime.toString());
+                }
                 continue;
             }
 
@@ -310,11 +322,31 @@ class FtpServer {
                 string file_name = (cmd =~ x/^SIZE (.+)$/i)[0];
                 # printf("FILE_NAME: %y\n", file_name);
 
-                Dir dir();
-                dir.chdir(pwd);
-                auto file = dir.list(file_name, 0, True)[0];
+                *string path = t ? t.path : pwd;
+                path += DirSep + file_name;
 
-                ftpSend(ns, 250, file.size.toString());
+                *hash<StatInfo> info = hstat(path);
+                if (!info) {
+                    ftpSend(ns, 550, "Failed to retrieve size for " + file_name);
+                } else {
+                    ftpSend(ns, 250, info.size.toString());
+                }
+                continue;
+            }
+
+            if (cmd =~ /^DELE/i) {
+                string file_name = (cmd =~ x/^DELE (.+)$/i)[0];
+                # printf("FILE_NAME: %y\n", file_name);
+
+                *string path = t ? t.path : pwd;
+                path += DirSep + file_name;
+
+                int rc = unlink(path);
+                if (rc) {
+                    ftpSend(ns, 550, "Failed to delete " + file_name);
+                } else {
+                    ftpSend(ns, 250, "Okay.");
+                }
                 continue;
             }
 

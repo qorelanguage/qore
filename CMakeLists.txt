@@ -849,6 +849,7 @@ qore_user_module("qlib/TextWrap.qm" "Util")
 # base 3 modules
 qore_user_module("qlib/FilePoller.qm" "Util;DataProvider")
 qore_user_module("qlib/FileDataProvider" "FsUtil;DataProvider")
+qore_user_module("qlib/FtpDataProvider" "DataProvider")
 qore_user_module("qlib/SqlUtil" "Util;DataProvider")
 qore_user_module("qlib/ConnectionProvider" "Util;DataProvider")
 qore_user_module("qlib/CsvUtil" "Util;DataProvider")

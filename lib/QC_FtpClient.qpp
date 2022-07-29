@@ -176,7 +176,7 @@ nothing FtpClient::connect() {
 
     @par Example:
     @code{.py}
-delete ftp;
+ftp.disconnect();
     @endcode
  */
 nothing FtpClient::disconnect() {

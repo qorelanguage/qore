@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FileDataProvider module definition
+#! Qore FtpDataProvider module definition
 
-/** FileDeleteDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpGetFileDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,30 +22,47 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FileDataProvider module
-public namespace FileDataProvider {
-#! The File delete data provider class
-public class FileDeleteDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the FtpDataProvider module
+public namespace FtpDataProvider {
+#! The FTP get file data provider class
+public class FtpGetFileDataProvider inherits AbstractDataProvider {
     public {
+        #! FTP connection
+        FtpClient ftp;
+
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FileDeleteDataProvider",
+            "type": "FtpGetFileDataProvider",
+            "constructor_options": FtpDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new FilePathDataType();
+        const RequestType = new FtpGetFileRequestDataType();
+
+        #! Response type
+        const ResponseType = new FtpGetFileResponseDataType();
+    }
+
+    #! Gets the object from constructor options
+    constructor(*hash<auto> options) {
+        checkOptions("CONSTRUCTOR-ERROR", FtpDataProvider::ConstructorOptions, options);
+        ftp = FtpDataProvider::getFtpConnection(options);
+    }
+
+    #! Gets the object from an FTP connection
+    constructor(FtpClient ftp) {
+        self.ftp = ftp;
     }
 
     #! Returns the data provider name
     string getName() {
-        return "delete";
+        return "get-file";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "File delete data provider; deletes files or entire directory trees on the filesystem given a path "
-            "as an argument";
+        return "FTP get file data provider; gets a file in the given location";
     }
 
     #! Makes a request and returns the response
@@ -55,9 +72,16 @@ public class FileDeleteDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        remove_path(req.path);
+        string path = ftp.getPath(req.path);
+        OutputStream out = req.text
+            ? new StringOutputStream(req.encoding)
+            : new BinaryOutputStream();
+        ftp.get(path, out);
         return {
-            "path": req.path,
+            "path": path,
+            "data": req.text
+                ? cast<StringOutputStream>(out).getData()
+                : cast<BinaryOutputStream>(out).getData(),
         };
     }
 
@@ -72,7 +96,7 @@ public class FileDeleteDataProvider inherits AbstractDataProvider {
     /** @return the response type for this response message
     */
     private *AbstractDataProviderType getResponseTypeImpl() {
-        return RequestType;
+        return ResponseType;
     }
 
     #! Returns data provider static info

@@ -821,7 +821,7 @@ class InputHelper {
         Linenoise::set_callback(\completion());
 
         try {
-            Linenoise::history_load(HistoryFile);
+            Linenoise::history_load(ENV.HOME + "/" + HistoryFile);
         } catch (hash<ExceptionInfo> ex) {
             printf("cannot load history: %s: %s\n", ex.err, ex.desc);
         }

@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** FileStatRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpStatResponseDataType.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,30 +21,26 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FileDataProvider module
-public namespace FileDataProvider {
-#! Data type for stat file request calls
-public class FileStatRequestDataType inherits HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "path": {
-                "type": StringType,
-                "desc": "The file path",
-            },
-            "symlink": {
-                "type": BoolType,
-                "desc": "If True, then if the target path is a symbolic link, information about the link itself will "
-                    "be returned instead of the target",
-                "default_value": False,
-            },
+#! contains all public definitions in the FtpDataProvider module
+public namespace FtpDataProvider {
+#! Data type for FTP stat response calls
+public class FtpStatResponseDataType inherits HashDataType {
+    public {
+        #! Markdown descriptions for hashdecl members
+        const FieldDescriptions = {
+            "name": "The name of the remote file or directory",
+            "path": "The full FTP path",
+            "type": "The type of remote file; one of:\n- `REGULAR`\n- `DIRECTORY`\n- `UNKNOWN`",
+            "mtime": "The last modified timestamp of the file",
+            "size": "The size of the remote file in bytes",
         };
     }
 
-    #! Creates the object
+    #! Creates the type
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        # add members for base hashdecl
+        map addField(new QoreDataField($1.getName(), FieldDescriptions{$1.getName()}, $1.getType(),
+            $1.getDefaultValue())), TypedHash::forName("Qore::StatInfo").getMembers();
     }
 }
 }

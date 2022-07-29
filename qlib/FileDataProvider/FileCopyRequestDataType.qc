@@ -21,7 +21,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FileCopyDataProvider module
+#! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! Data type for copy file request calls
 public class FileCopyRequestDataType inherits FileMoveRequestDataType {

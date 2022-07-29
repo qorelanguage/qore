@@ -21,7 +21,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FileMoveDataProvider module
+#! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! Data type for move file request calls
 public class FileMoveRequestDataType inherits HashDataType {

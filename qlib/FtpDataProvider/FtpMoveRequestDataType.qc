@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** FileStatRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpMoveRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,22 +21,20 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FileDataProvider module
-public namespace FileDataProvider {
-#! Data type for stat file request calls
-public class FileStatRequestDataType inherits HashDataType {
+#! contains all public definitions in the FtpDataProvider module
+public namespace FtpDataProvider {
+#! Data type for FTP get file request calls
+public class FtpMoveRequestDataType inherits HashDataType {
     private {
         #! Field descriptions
         const Fields = {
-            "path": {
+            "source": {
                 "type": StringType,
-                "desc": "The file path",
+                "desc": "The source file path",
             },
-            "symlink": {
-                "type": BoolType,
-                "desc": "If True, then if the target path is a symbolic link, information about the link itself will "
-                    "be returned instead of the target",
-                "default_value": False,
+            "target": {
+                "type": StringType,
+                "desc": "The target file path",
             },
         };
     }

@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** FileDeleteRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpCreateFileRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,17 +21,21 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FileDeleteDataProvider module
-public namespace FileDataProvider {
-#! Data type for delete file request calls
-public class FileDeleteRequestDataType inherits HashDataType {
+#! contains all public definitions in the FtpDataProvider module
+public namespace FtpDataProvider {
+#! Data type for FTP create file request calls
+public class FtpCreateFileRequestDataType inherits HashDataType {
     private {
         #! Field descriptions
         const Fields = {
             "path": {
                 "type": StringType,
-                "desc": "The file path",
+                "desc": "The ftp path",
             },
+            "data": {
+                "type": DataType,
+                "desc": "The string or binary data for the file",
+            }
         };
     }
 

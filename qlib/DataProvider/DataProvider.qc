@@ -40,6 +40,7 @@ public class DataProvider {
             "filepoller": "FilePoller",
             "fixedlengthread": "FixedLengthUtil",
             "fixedlengthwrite": "FixedLengthUtil",
+            "ftp": "FtpDataProvider",
             "ftppoller": "FtpPoller",
             "salesforcerest": "SalesforceRestDataProvider",
             "servicenowrest": "ServiceNowRestDataProvider",

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FileStatDataProvider module definition
+#! Qore FileDataProvider module definition
 
-/** FileStatDataProvider.qc Copyright 2019 - 2022 Qore Technologies, s.r.o.
+/** FileStatDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,9 +22,9 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FileStatDataProvider module
+#! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
-#! The File data provider class
+#! The File stat data provider class
 public class FileStatDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info

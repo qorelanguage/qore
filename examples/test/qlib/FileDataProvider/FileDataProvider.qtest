@@ -65,5 +65,27 @@ public class FileDataProviderTest inherits QUnit::Test {
         });
         assertEq(new_targ, h.path);
         assertFalse(is_file(new_targ));
+
+        prov = fdp.getChildProviderEx("create");
+        h = prov.doRequest({
+            "path": new_targ,
+            "data": str,
+        });
+        assertEq(new_targ, h.path);
+        assertTrue(is_file(new_targ));
+
+        prov = fdp.getChildProviderEx("get");
+        h = prov.doRequest({
+            "path": new_targ,
+            "text": True,
+        });
+        assertEq(new_targ, h.path);
+        assertEq(str, h."data");
+
+        prov = fdp.getChildProviderEx("list");
+        h = prov.doRequest({
+            "path": dirname(tmp.path),
+        })[0];
+        assertEq(basename(new_targ), h.name);
     }
 }

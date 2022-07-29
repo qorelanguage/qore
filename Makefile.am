@@ -82,7 +82,8 @@ DOX_SPLIT_MODULES = \
     qlib/SalesforceRestDataProvider \
     qlib/CdsRestDataProvider \
     qlib/ServiceNowRestDataProvider \
-    qlib/FileDataProvider
+    qlib/FileDataProvider \
+    qlib/FtpDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider

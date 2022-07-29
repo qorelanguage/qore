@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FileDataProvider module definition
+#! Qore FtpDataProvider module definition
 
-/*  FileDataProvider.qm Copyright 2022 Qore Technologies, s.r.o.
+/*  FtpDataProvider.qm Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -34,42 +34,39 @@
 %enable-all-warnings
 
 %requires(reexport) DataProvider
-%requires FsUtil
 
-module FileDataProvider {
+module FtpDataProvider {
     version = "1.0";
-    desc = "user module providing a data provider API for local filesystems";
+    desc = "user module providing a data provider API for FTP servers";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
         # register the data provider factory
-        DataProvider::registerFactory(new FileDataProviderFactory());
+        DataProvider::registerFactory(new FtpDataProviderFactory());
     };
 }
 
-/** @mainpage FileDataProvider Module
+/** @mainpage FtpDataProvider Module
 
     @tableofcontents
 
-    @section filedataproviderintro Introduction to the FileDataProvider Module
+    @section ftpdataproviderintro Introduction to the FtpDataProvider Module
 
-    The %FileDataProvider module provides a data provider API for the local filesystem through the
+    The %FtpDataProvider module provides a data provider API for FTP servers through the
     @ref dataproviderintro "DataProvider" API.
 
     The following classes are provided by this module:
-    - @ref FileDataProvider::FileCopyDataProvider "FileCopyDataProvider"
-    - @ref FileDataProvider::FileDeleteDataProvider "FileDeleteDataProvider"
-    - @ref FileDataProvider::FileDataProvider "FileDataProvider"
-    - @ref FileDataProvider::FileDataProviderFactory "FileDataProviderFactory"
-    - @ref FileDataProvider::FileMoveDataProvider "FileMoveDataProvider"
+    - @ref FtpDataProvider::FtpDeleteDataProvider "FtpDeleteDataProvider"
+    - @ref FtpDataProvider::FtpDataProvider "FtpDataProvider"
+    - @ref FtpDataProvider::FtpDataProviderFactory "FtpDataProviderFactory"
 
-    @section filedataprovider_relnotes Release Notes
+    @section ftpdataprovider_relnotes Release Notes
 
-    @subsection filedataprovider_v1_0 FileDataProvider v1.0
+    @subsection ftpdataprovider_v1_0 FtpDataProvider v1.0
     - initial release of the module
 */
 
-#! contains all public definitions in the FileDataProvider module
-public namespace FileDataProvider {
+#! contains all public definitions in the FtpDataProvider module
+public namespace FtpDataProvider {
 }

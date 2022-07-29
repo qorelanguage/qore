@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** FileStatResponseDataType.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FileListResponseDataType.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,7 +24,7 @@
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! Data type for stat file response calls
-public class FileStatResponseDataType inherits HashDataType {
+public class FileListResponseDataType inherits HashDataType {
     public {
         #! Markdown descriptions for hashdecl members
         const FieldDescriptions = {
@@ -48,7 +48,7 @@ public class FileStatResponseDataType inherits HashDataType {
                 "- `UNKNOWN`",
             "perm": "A string giving UNIX-style permissions for the file (ex: `-rwxr-xr-x`)",
             "name": "The name of the file, link, or directory",
-            "filepath": "The full filepath",
+            "link": "Symbolic link target (if present)",
         };
     }
 
@@ -56,7 +56,7 @@ public class FileStatResponseDataType inherits HashDataType {
     constructor() {
         # add members for base hashdecl
         map addField(new QoreDataField($1.getName(), FieldDescriptions{$1.getName()}, $1.getType(),
-            $1.getDefaultValue())), TypedHash::forName("Qore::StatInfo").getMembers();
+            $1.getDefaultValue())), TypedHash::forName("Qore::DirStatInfo").getMembers();
     }
 }
 }

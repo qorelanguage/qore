@@ -21,7 +21,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FileCopyDataProvider module
+#! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! Data type for file response APIs with a single "target" key
 public class FileTargetResponseDataType inherits HashDataType {

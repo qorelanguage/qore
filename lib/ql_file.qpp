@@ -683,8 +683,9 @@ nothing unlink() [flags=RUNTIME_NOOP;dom=FILESYSTEM] {
 
     @par Example:
     @code{.py}
-if (unlink(path))
+if (umask(mask)) {
     printf("%s: %s\n", path, strerror());
+}
     @endcode
  */
 int umask(softint mask) [dom=PROCESS] {

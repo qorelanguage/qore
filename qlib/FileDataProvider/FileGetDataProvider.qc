@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore FileDataProvider module definition
 
-/** FileDeleteDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FileGetDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,40 +24,49 @@
 
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
-#! The File delete data provider class
-public class FileDeleteDataProvider inherits AbstractDataProvider {
+#! The get file data provider class
+public class FileGetDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FileDeleteDataProvider",
+            "type": "FileGetDataProvider",
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new FilePathDataType();
+        const RequestType = new FileGetRequestDataType();
+
+        #! Response type
+        const ResponseType = new FileGetResponseDataType();
+    }
+
+    #! Gets the object from constructor options
+    constructor(*hash<auto> options) {
+        checkOptions("CONSTRUCTOR-ERROR", NOTHING, options);
     }
 
     #! Returns the data provider name
     string getName() {
-        return "delete";
+        return "get";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "File delete data provider; deletes files or entire directory trees on the filesystem given a path "
-            "as an argument";
+        return "Get file data provider; gets a file in the given location";
     }
 
     #! Makes a request and returns the response
     /** @param req the request info
-        @param request_options the request options; will be processed by validateRequestOptions()
+        @param request_options the request options after processing by validateRequestOptions()
 
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        remove_path(req.path);
         return {
             "path": req.path,
+            "data": req.text
+                ? ReadOnlyFile::readTextFile(req.path, req.encoding, req.max_len)
+                : ReadOnlyFile::readBinaryFile(req.path, req.max_len),
         };
     }
 
@@ -72,7 +81,7 @@ public class FileDeleteDataProvider inherits AbstractDataProvider {
     /** @return the response type for this response message
     */
     private *AbstractDataProviderType getResponseTypeImpl() {
-        return RequestType;
+        return ResponseType;
     }
 
     #! Returns data provider static info

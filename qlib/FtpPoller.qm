@@ -628,7 +628,7 @@ public class FtpPoller {
                 continue;
             }
             if ((mh.code / 100) != 2) {
-                throw "FTP-CWD-ERROR", sprintf("MDTM %s failure; got from server: %d %y ", fn, mh.code, mh.msg);
+                throw "FTP-ERROR", sprintf("%s: MDTM failure; got from server: %d %y ", fn, mh.code, mh.msg);
             }
             date mtime = date(mh.msg);
             # check minimum age
@@ -644,7 +644,7 @@ public class FtpPoller {
             mh = ftp.sendControlMessage("SIZE", fn);
 
             if ((mh.code / 100) != 2) {
-                throw "FTP-CWD-ERROR", sprintf("SIZE %s failure; got from server: %d %y ", fn, mh.code, mh.msg);
+                throw "FTP-ERROR", sprintf("SIZE %s failure; got from server: %d %y ", fn, mh.code, mh.msg);
             }
             int size = mh.msg.toInt();
             l += <FtpPollerFileEventInfo>{
