@@ -26,7 +26,8 @@ public class FileDataProviderTest inherits QUnit::Test {
 
     fileDataProviderTest() {
         # create test file
-        TmpFile tmp("FileDataProviderTest-");
+        TmpDir tmpdir("FileDataProviderTest-");
+        TmpFile tmp("FileDataProviderTest-", NOTHING, tmpdir.path);
         string str = get_random_string();
         tmp.file.write(str);
 
@@ -40,16 +41,17 @@ public class FileDataProviderTest inherits QUnit::Test {
         assertEq("REGULAR", h.type);
 
         prov = fdp.getChildProviderEx("copy");
-        string targ = join_paths(tmp_location(), get_random_string());
+        string targ = join_paths(tmpdir.path, get_random_string());
         h = prov.doRequest({
             "source": tmp.path,
             "target": targ,
         });
         assertEq(targ, h.target);
+        assertTrue(is_file(tmp.path));
         assertTrue(is_file(targ));
 
         prov = fdp.getChildProviderEx("move");
-        string new_targ = join_paths(tmp_location(), get_random_string());
+        string new_targ = join_paths(tmpdir.path, get_random_string());
         assertNeq(new_targ, targ);
         h = prov.doRequest({
             "source": targ,
@@ -65,6 +67,9 @@ public class FileDataProviderTest inherits QUnit::Test {
         });
         assertEq(new_targ, h.path);
         assertFalse(is_file(new_targ));
+
+	# delete original file
+	delete tmp;
 
         prov = fdp.getChildProviderEx("create");
         h = prov.doRequest({
@@ -84,8 +89,22 @@ public class FileDataProviderTest inherits QUnit::Test {
 
         prov = fdp.getChildProviderEx("list");
         h = prov.doRequest({
-            "path": dirname(tmp.path),
+            "path": tmpdir.path,
         })[0];
         assertEq(basename(new_targ), h.name);
+
+        string dir = get_random_string();
+        prov = fdp.getChildProviderEx("mkdir");
+        h = prov.doRequest({
+            "path": dir,
+        });
+        assertEq(dir, h.path);
+
+        prov = fdp.getChildProviderEx("stat");
+        h = prov.doRequest({
+            "path": dir,
+        });
+        assertEq(dir, h.name);
+        assertEq("DIRECTORY", h.type);
     }
 }

@@ -283,18 +283,16 @@ class FtpServer {
             }
 
             if (cmd =~ /^PWD/i) {
-                ftpSend(ns, 257, pwd);
+                ftpSend(ns, 257, pwd ?? "/");
                 continue;
             }
 
             if (cmd =~ /^CWD/i) {
                 string dir = (cmd =~ x/^CWD (.+)$/i)[0];
-
-                *string path = t ? t.path : pwd;
-                path += DirSep + dir;
+                string path = getPath(dir);
 
                 if (!is_dir(path)) {
-                    ftpSend(ns, 550, "Failed to change directory to " + dir);
+                    ftpSend(ns, 550, "Failed to change directory to %y: %s", path, strerror());
                 } else {
                     ftpSend(ns, 250, "Okay.");
                     pwd = dir;
@@ -302,16 +300,26 @@ class FtpServer {
                 continue;
             }
 
+            if (cmd =~ /^MKD/i) {
+                string dir = (cmd =~ x/^MKD (.+)$/i)[0];
+                string path = getPath(dir);
+
+                if (mkdir(path, 0755, True)) {
+                    ftpSend(ns, 550, "Failed to make directory " + dir);
+                } else {
+                    ftpSend(ns, 250, "Okay.");
+                }
+                continue;
+            }
+
             if (cmd =~ /^MDTM/i) {
                 string file_name = (cmd =~ x/^MDTM (.+)$/i)[0];
                 # printf("FILE_NAME: %y\n", file_name);
-
-                *string path = t ? t.path : pwd;
-                path += DirSep + file_name;
+                string path = getPath(file_name);
 
                 *hash<StatInfo> info = hstat(path);
                 if (!info) {
-                    ftpSend(ns, 550, "Failed to retrieve modified date for " + file_name);
+                    ftpSend(ns, 550, "Failed to retrieve modified date for %s: %s", path, strerror());
                 } else {
                     ftpSend(ns, 250, info.mtime.toString());
                 }
@@ -321,9 +329,7 @@ class FtpServer {
             if (cmd =~ /^SIZE/i) {
                 string file_name = (cmd =~ x/^SIZE (.+)$/i)[0];
                 # printf("FILE_NAME: %y\n", file_name);
-
-                *string path = t ? t.path : pwd;
-                path += DirSep + file_name;
+                string path = getPath(file_name);
 
                 *hash<StatInfo> info = hstat(path);
                 if (!info) {
@@ -337,9 +343,7 @@ class FtpServer {
             if (cmd =~ /^DELE/i) {
                 string file_name = (cmd =~ x/^DELE (.+)$/i)[0];
                 # printf("FILE_NAME: %y\n", file_name);
-
-                *string path = t ? t.path : pwd;
-                path += DirSep + file_name;
+                string path = getPath(file_name);
 
                 int rc = unlink(path);
                 if (rc) {
@@ -355,6 +359,14 @@ class FtpServer {
 
         # ensure any data connections terminate
         termWaitData(data, dcnt, \dataquit);
+    }
+
+    #! Returns the target path
+    private string getPath(string p) {
+        if (absolute_path(p)) {
+            return t ? t.path + DirSep + p : p;
+        }
+        return (t ? t.path : pwd) + DirSep + p;
     }
 
     private bool doBroken(string cmd, Socket data) {

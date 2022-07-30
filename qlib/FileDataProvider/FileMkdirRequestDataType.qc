@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** FtpDeleteRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FileMkdirRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -15,27 +15,32 @@
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR DELETERIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! Data type for delete FTP file request calls
-public class FtpDeleteRequestDataType inherits HashDataType {
+#! contains all public definitions in the FileDataProvider module
+public namespace FileDataProvider {
+#! Data type for mkdir file request calls
+public class FileMkdirRequestDataType inherits HashDataType {
     private {
         #! Field descriptions
         const Fields = {
+            "mode": {
+                "type": IntType,
+                "desc": "The mode for the new file (default `0775`)",
+                "default_value": 0755,
+            },
             "path": {
                 "type": StringType,
-                "desc": "The ftp path",
+                "desc": "The file path",
             },
         };
     }
 
-    #! Creates the object
+    #! Mkdirs the object
     constructor() {
         map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
             Fields.pairIterator();

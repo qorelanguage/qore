@@ -68,7 +68,7 @@ public class FtpDataProviderTest inherits QUnit::Test {
             "size": 15,
         }, h - "mtime");
 
-        /* test server doesn't support RNFR yet
+        /* test server doesn't support RNFR / RNTO yet
         string newpath = "/test1.txt";
         prov = root.getChildProviderEx("move");
         h = prov.doRequest({
@@ -89,6 +89,19 @@ public class FtpDataProviderTest inherits QUnit::Test {
         assertThrows("FTP-STAT-ERROR", \prov.doRequest(), {
             "path": path,
         });
+
+        string dir = get_random_string();
+        prov = root.getChildProviderEx("mkdir");
+        h = prov.doRequest({
+            "path": dir,
+        });
+        assertEq("/" + dir, h.path);
+
+        prov = root.getChildProviderEx("stat");
+        h = prov.doRequest({
+            "path": dir,
+        });
+        assertEq("DIRECTORY", h.type);
     }
 
     private softint getPort() {

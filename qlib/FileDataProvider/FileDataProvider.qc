@@ -41,6 +41,7 @@ public class FileDataProvider inherits AbstractDataProvider {
             "delete": Class::forName("FileDataProvider::FileDeleteDataProvider"),
             "get": Class::forName("FileDataProvider::FileGetDataProvider"),
             "list": Class::forName("FileDataProvider::FileListDataProvider"),
+            "mkdir": Class::forName("FileDataProvider::FileMkdirDataProvider"),
             "move": Class::forName("FileDataProvider::FileMoveDataProvider"),
             "stat": Class::forName("FileDataProvider::FileStatDataProvider"),
         };

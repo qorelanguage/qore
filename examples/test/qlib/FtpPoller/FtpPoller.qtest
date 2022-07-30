@@ -100,10 +100,11 @@ class FtpPollerTest inherits QUnit::Test {
 
         # printf("files: %y\n", file_paths);
 
-        MyFtpPoller poller(ftp_client, {"path": dir});
+        MyFtpPoller poller(ftp_client, {"path": tmp_dir.path});
         assertTrue(poller.runOnce());
 
         foreach hash<FtpPollerFileEventInfo> file in (poller.files) {
+            on_error printf("file: %y file_paths: %y\n", file - "data", keys file_paths);
             assertTrue(file.name != NOTHING);
             assertTrue(file_paths.hasKey(file.filepath));
         }

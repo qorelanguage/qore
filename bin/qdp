@@ -183,13 +183,13 @@ class QdpCmd {
     }
 
     static listEvents(AbstractDataProvider provider) {
-        hash<string, AbstractDataProviderType> events = provider.getEventTypes();
+        hash<string, hash<DataProviderMessageInfo>> events = provider.getEventTypes();
         map printf(" - %s\n", $1), keys events;
     }
 
     static event(AbstractDataProvider provider) {
         string event = QdpCmd::getString("event", True);
-        QdpCmd::showType(provider.getEventType(event));
+        QdpCmd::showType(event, provider.getEventInfo(event));
     }
 
     static errors(AbstractDataProvider provider) {
@@ -343,13 +343,13 @@ class QdpCmd {
     }
 
     static listMessages(AbstractDataProvider provider) {
-        hash<string, AbstractDataProviderType> messages = provider.getMessageTypes();
+        hash<string, hash<DataProviderMessageInfo>> messages = provider.getMessageTypes();
         map printf(" - %s\n", $1), keys messages;
     }
 
     static message(AbstractDataProvider provider) {
         string message = QdpCmd::getString("message", True);
-        QdpCmd::showType(provider.getMessageType(message));
+        QdpCmd::showType(message, provider.getMessageInfo(message));
     }
 
     static listen(AbstractDataProvider provider) {
@@ -523,12 +523,17 @@ class QdpCmd {
         # this method intentionally left empty
     }
 
+    static showType(string msg, hash<DataProviderMessageInfo> info) {
+        printf("%s: %s\n", msg, info.desc);
+        QdpCmd::showType(info.type);
+    }
+
     static showType(AbstractDataProviderType type, *string offset) {
         *hash<string, AbstractDataField> fields = type.getFields();
         if (fields) {
             QdpCmd::showRecord(fields, offset);
         } else {
-            printf("%s%s%s\n", offset, type.getName());
+            printf("%s%s%s (%s)\n", offset, type.getName());
         }
     }
 
@@ -800,7 +805,7 @@ class ConsoleAppender inherits LoggerAppenderWithLayout {
 class InputHelper {
     public {
         # message map
-        hash<string, AbstractDataProviderType> mmap;
+        hash<string, hash<DataProviderMessageInfo>> mmap;
 
         const Prompt = "> ";
         const HistoryFile = ".qdp";

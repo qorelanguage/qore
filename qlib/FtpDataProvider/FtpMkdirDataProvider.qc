@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore FtpDataProvider module definition
 
-/** FtpDeleteDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpMkdirDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,15 +24,15 @@
 
 #! contains all public definitions in the FtpDataProvider module
 public namespace FtpDataProvider {
-#! The FTP delete data provider class
-public class FtpDeleteDataProvider inherits AbstractDataProvider {
+#! The FTP mkdir data provider class
+public class FtpMkdirDataProvider inherits AbstractDataProvider {
     public {
         #! FTP connection
         MyFtpClient ftp;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FtpDeleteDataProvider",
+            "type": "FtpMkdirDataProvider",
             "constructor_options": FtpDataProvider::ConstructorOptions,
             "supports_request": True,
         };
@@ -54,12 +54,12 @@ public class FtpDeleteDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider name
     string getName() {
-        return "delete";
+        return "mkdir";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "FTP delete data provider; deletes files on a remote FTP server given the path "
+        return "FTP mkdir data provider; creates a directory on the server given the path "
             "as an argument";
     }
 
@@ -71,19 +71,7 @@ public class FtpDeleteDataProvider inherits AbstractDataProvider {
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         string path = ftp.getPath(req.path);
-        hash<FtpResponseInfo> mh = ftp.sendControlMessage("SIZE", path);
-        if (mh."code" == 550) {
-            on_error rethrow "DELETE-ERROR", sprintf("%y: cannot delete path: %s", path, $1.desc);
-            try {
-                ftp.cwd(path);
-            } catch (hash<ExceptionInfo> ex) {
-                ftp.del(path);
-            }
-            # check if it's a directory
-            ftp.rmdir(path);
-        } else {
-            ftp.del(path);
-        }
+        ftp.mkdir(path);
         return {
             "path": path,
         };

@@ -761,14 +761,22 @@ public class FilePollerDataProviderBase inherits DataProvider::AbstractDataProvi
         return "filepoller";
     }
 
+    #! Returns the data provider description
+    *string getDesc() {
+        return "Provides an event-based file polling source";
+    }
+
     #! Returns a hash of all supported event types
     /** @return a hash of all supported event types
 
         @note only called if the provider supports the observer pattern / event API
     */
-    private hash<string, AbstractDataProviderType> getEventTypesImpl() {
+    private hash<string, hash<DataProviderMessageInfo>> getEventTypesImpl() {
         return {
-            EVENT_FILE: new FilePollerFileEventInfoDataType(),
+            EVENT_FILE: <DataProviderMessageInfo>{
+                "desc": "File polled event",
+                "type": new FilePollerFileEventInfoDataType(),
+            },
         };
     }
 }
