@@ -603,7 +603,9 @@ public class FtpPoller {
     */
     list<hash<FtpPollerFileEventInfo>> getFiles(string subdir, int sort = FtpPoller::SortNone,
             int order = FtpPoller::OrderAsc) {
-        ftp.cwd(subdir);
+        if (subdir.val()) {
+            ftp.cwd(subdir);
+        }
         list<string> fl;
         {
             *string nlst = ftp.nlst();
@@ -642,7 +644,6 @@ public class FtpPoller {
             }
 
             mh = ftp.sendControlMessage("SIZE", fn);
-
             if ((mh.code / 100) != 2) {
                 throw "FTP-ERROR", sprintf("SIZE %s failure; got from server: %d %y ", fn, mh.code, mh.msg);
             }
@@ -787,6 +788,7 @@ public class FtpPoller {
             string pwd = ftp.pwd();
             logInfo("polling %y", pwd);
 
+            subdir =~ s/\/+$//;
             list<hash<FtpPollerFileEventInfo>> files = getFiles(subdir);
 
             if (files) {
@@ -1128,14 +1130,22 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
         return "ftppoller";
     }
 
+    #! Returns the data provider description
+    *string getDesc() {
+        return "Provides an event-based FTP polling source";
+    }
+
     #! Returns a hash of all supported event types
     /** @return a hash of all supported event types
 
         @note only called if the provider supports the observer pattern / event API
     */
-    private hash<string, AbstractDataProviderType> getEventTypesImpl() {
+    private hash<string, hash<DataProviderMessageInfo>> getEventTypesImpl() {
         return {
-            EVENT_FTP_FILE: new FtpPollerFileEventDataType(),
+            EVENT_FTP_FILE: <DataProviderMessageInfo>{
+                "desc": "FTP file polled event",
+                "type": new FtpPollerFileEventDataType(),
+            },
         };
     }
 }

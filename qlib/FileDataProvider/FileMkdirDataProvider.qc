@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FtpDataProvider module definition
+#! Qore FileDataProvider module definition
 
-/** FtpDeleteDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FileMkdirDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,45 +22,32 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! The FTP delete data provider class
-public class FtpDeleteDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the FileDataProvider module
+public namespace FileDataProvider {
+#! The File mkdir data provider class
+public class FileMkdirDataProvider inherits AbstractDataProvider {
     public {
-        #! FTP connection
-        MyFtpClient ftp;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FtpDeleteDataProvider",
-            "constructor_options": FtpDataProvider::ConstructorOptions,
+            "type": "FileMkdirDataProvider",
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new FtpPathDataType();
-    }
+        const RequestType = new FileMkdirRequestDataType();
 
-    #! Creates the object from constructor options
-    constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", FtpDataProvider::ConstructorOptions, options);
-        ftp = FtpDataProvider::getFtpConnection(options);
-    }
-
-    #! Creates the object from an FTP connection
-    constructor(MyFtpClient ftp) {
-        self.ftp = ftp;
+        #! Response type
+        const ResponseType = new FilePathDataType();
     }
 
     #! Returns the data provider name
     string getName() {
-        return "delete";
+        return "mkdir";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "FTP delete data provider; deletes files on a remote FTP server given the path "
-            "as an argument";
+        return "File mkdir data provider; creates a directory given a path as an argument";
     }
 
     #! Makes a request and returns the response
@@ -70,22 +57,9 @@ public class FtpDeleteDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string path = ftp.getPath(req.path);
-        hash<FtpResponseInfo> mh = ftp.sendControlMessage("SIZE", path);
-        if (mh."code" == 550) {
-            on_error rethrow "DELETE-ERROR", sprintf("%y: cannot delete path: %s", path, $1.desc);
-            try {
-                ftp.cwd(path);
-            } catch (hash<ExceptionInfo> ex) {
-                ftp.del(path);
-            }
-            # check if it's a directory
-            ftp.rmdir(path);
-        } else {
-            ftp.del(path);
-        }
+        mkdir(req.path, req.mode, True);
         return {
-            "path": path,
+            "path": req.path,
         };
     }
 
@@ -100,7 +74,7 @@ public class FtpDeleteDataProvider inherits AbstractDataProvider {
     /** @return the response type for this response message
     */
     private *AbstractDataProviderType getResponseTypeImpl() {
-        return RequestType;
+        return ResponseType;
     }
 
     #! Returns data provider static info

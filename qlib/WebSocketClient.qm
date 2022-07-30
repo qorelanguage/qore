@@ -219,11 +219,35 @@ public const WsDefaultPort = 80;
 #! WebSocket data event constant
 public const EVENT_WS_DATA = "ws-data-event";
 
+#! WebSocket ping event constant
+public const EVENT_WS_PING = "ws-ping-event";
+
+#! WebSocket pong event constant
+public const EVENT_WS_PONG = "ws-pong-event";
+
 #! WebSocket connection closed event constant
 public const EVENT_WS_CLOSED = "ws-closed-event";
 
-#! WebSocket message type
-public const MESSAGE_WS_DEFAULT = "default";
+#! WebSocket data message type
+/** Sends a WebSocket message to the remote end; the message will be serialized according to the serialization option
+    on the WebSocketClient object
+*/
+public const MESSAGE_WS_DATA = "data";
+
+#! WebSocket raw data message type
+/** Sends a raw message to the remote end; the message is sent as-is
+*/
+public const MESSAGE_WS_RAW = "raw";
+
+#! WebSocket ping message type
+/** Sends a \c PING message to the server, a PONG event should be generated
+*/
+public const MESSAGE_WS_PING = "ping";
+
+#! WebSocket pong message type
+/** Sends a \c PONG message to the server; should be sent when a \c PING event is received
+*/
+public const MESSAGE_WS_PONG = "pong";
 
 #! the main websocket client class
 /** To use this class, create a @ref WebSocketClient::WebSocketClient "WebSocketClient" object and the call
@@ -249,6 +273,7 @@ public class WebSocketClient {
         Counter c();
         code callback;
         code raw_callback;
+        code pong_callback;
         *code log;
         *code errlog;
         *code debuglog;
@@ -339,9 +364,17 @@ WebSocketClient ws(\event(), {
         if (http_opts.hasKey("raw_callback")) {
             if (!http_opts.raw_callback.callp()) {
                 throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
-                    "'raw_callback' key with type %y; must be a callable value", opts.yield.type());
+                    "'raw_callback' key with type %y; must be a callable value", opts.raw_callback.type());
             }
             raw_callback = http_opts.raw_callback;
+        }
+
+        if (http_opts.hasKey("pong_callback")) {
+            if (!http_opts.pong_callback.callp()) {
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
+                    "'pong_callback' key with type %y; must be a callable value", opts.pong_callback.type());
+            }
+            pong_callback = http_opts.pong_callback;
         }
 
         hash<UrlInfo> uh = parse_url(http_opts.url);
@@ -356,10 +389,11 @@ WebSocketClient ws(\event(), {
         }
 
         # ensure that the timeout value is set correctly and consistently
-        if (http_opts."timeout")
+        if (http_opts."timeout") {
             timeout_ms = http_opts."timeout";
-        else
+        } else {
             http_opts."timeout" = timeout_ms;
+        }
 
         hc = new HTTPClient(http_opts);
         log = http_opts.log;
@@ -696,6 +730,9 @@ ws.setEventQueue();
                 } else if (h.op == WSOP_Text || h.op == WSOP_Binary) {
                     callback(h.msg);
                     continue;
+                } else if (h.op == WSOP_Pong) {
+                    receivedPong(h.msg);
+                    continue;
                 } else if (h.op == WSOP_Continuation) {
                     logError("FIN bit set with %d: %y opcode, but no data has been buffered", h.op,
                         WSOPMap{h.op} ?? "unknown");
@@ -728,8 +765,14 @@ ws.setEventQueue();
         logDebug("disconnected websocket connection");
     }
 
+    private receivedPong(*data msg) {
+        if (pong_callback) {
+            pong_callback(msg);
+        }
+    }
+
     private handlePing(hash<auto> h) {
-        hc.send2(ws_encode_message(h.msg, WSOP_Pong, True), timeout_ms);
+        hc.send2(ws_encode_message(h.msg ?? "heartbeat", WSOP_Pong, True), timeout_ms);
     }
 
     private logInfo(string fmt) {
@@ -787,16 +830,24 @@ ws.setEventQueue();
 
         hash<auto> rh = hc.send(NOTHING, "GET", NOTHING, hdr, NOTHING, \info);
 
-        if (rh.status_code != 101)
-            throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned status code %d: %s to our request", hc.getURL(), rh.status_code, rh.status_message);
+        if (rh.status_code != 101) {
+            throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned status code '%d %s' to our request; "
+                "expecting '101 Switching Protocols'",
+                hc.getURL(), rh.status_code, rh.status_message);
+        }
 
-        if (!rh."sec-websocket-accept")
-            throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y did not return the Sec-WebSocket-Accept response header (headers returned: %y)", hc.getURL(), rh);
+        if (!rh."sec-websocket-accept") {
+            throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y did not return the Sec-WebSocket-Accept response "
+                "header (headers returned: %y)", hc.getURL(), rh);
+        }
 
         {
             string expected_key = ws_get_response_key(key);
-            if (rh."sec-websocket-accept" != expected_key)
-                throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned an invalid value in the Sec-WebSocket-Accept response header: %y; expecting %y", hc.getURL(), rh."sec-websocket-accept", expected_key);
+            if (rh."sec-websocket-accept" != expected_key) {
+                throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned an invalid value in the "
+                    "Sec-WebSocket-Accept response header: %y; expecting %y", hc.getURL(), rh."sec-websocket-accept",
+                    expected_key);
+            }
         }
 
         logDebug("connected websocket connection: %y", hc.isOpen());
@@ -806,12 +857,20 @@ ws.setEventQueue();
         return rh;
     }
 
+    #! Sends a \c PING message to the server as a unidirectional keep-alive message
+    /** @since WebSocketClient 2.0
+    */
+    ping(*data msg) {
+        logDebug("sending PING %y (open: %y connected: %y)", msg, hc.isOpen(), hc.isConnected());
+        hc.send2(ws_encode_message(msg ?? "", WSOP_Ping, True), timeout_ms);
+    }
+
     #! Sends a \c PONG message to the server as a unidirectional keep-alive message
     /** @since WebSocketClient 1.6.1
     */
-    pong() {
-        logDebug("sending PONG (%y %y)", hc.isOpen(), hc.isConnected());
-        hc.send2(ws_encode_message("", WSOP_Pong, True), timeout_ms);
+    pong(*data msg) {
+        logDebug("sending PONG %y (open: %y connected: %y)", msg, hc.isOpen(), hc.isConnected());
+        hc.send2(ws_encode_message(msg ?? "", WSOP_Pong, True), timeout_ms);
     }
 
     #! Sends string data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
@@ -821,7 +880,7 @@ ws.setEventQueue();
         @see Socket::send()
     */
     send(string str) {
-        logDebug("sending string: %y (%y %y)", str, hc.isOpen(), hc.isConnected());
+        logDebug("sending string: %y (open: %y connected: %y)", str, hc.isOpen(), hc.isConnected());
         hc.send2(ws_encode_message(str, WSOP_Text, True), timeout_ms);
     }
 
@@ -832,7 +891,7 @@ ws.setEventQueue();
         @see Socket::send()
     */
     send(binary bin) {
-        logDebug("sending binary: %y (%y %y)", bin, hc.isOpen(), hc.isConnected());
+        logDebug("sending binary: %y (open: %y connected: %y)", bin, hc.isOpen(), hc.isConnected());
         hc.send2(ws_encode_message(bin, WSOP_Binary, True), timeout_ms);
     }
 
@@ -1058,6 +1117,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                     logger.debug("%s", msg);
                 }
             },
+            "pong_callback": \pong(),
         };
         client = new WebSocketClient(\event(), copts);
     }
@@ -1081,10 +1141,24 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
 
         @note only called if the provider supports the observer pattern / event API
     */
-    private hash<string, AbstractDataProviderType> getEventTypesImpl() {
+    private hash<string, hash<DataProviderMessageInfo>> getEventTypesImpl() {
         return {
-            EVENT_WS_DATA: new WebSocketClientEventDataType(),
-            EVENT_WS_CLOSED: new HashDataType(),
+            EVENT_WS_DATA: <DataProviderMessageInfo>{
+                "desc": "A data event; data will be deserialized according to the serialization option",
+                "type": new WebSocketClientEventDataType(),
+            },
+            EVENT_WS_PING: <DataProviderMessageInfo>{
+                "desc": "A `PING` event; after this a `PONG` message should be sent",
+                "type": new WebSocketClientEventDataType(),
+            },
+            EVENT_WS_PONG: <DataProviderMessageInfo>{
+                "desc": "A `PONG` event; sent in reply to a `PING` message",
+                "type": new WebSocketClientEventDataType(),
+            },
+            EVENT_WS_CLOSED: <DataProviderMessageInfo>{
+                "desc": "",
+                "type": new HashDataType(),
+            },
         };
     }
 
@@ -1093,11 +1167,26 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
 
         @note only called if the provider supports sending messages
     */
-    private hash<string, AbstractDataProviderType> getMessageTypesImpl() {
+    private hash<string, hash<DataProviderMessageInfo>> getMessageTypesImpl() {
         return {
-            MESSAGE_WS_DEFAULT: serialization == "none"
-                ? AbstractDataProviderTypeMap."data",
-                : AbstractDataProviderTypeMap."any",
+            MESSAGE_WS_DATA: <DataProviderMessageInfo>{
+                "desc": "An outgoing WebSocket message that will be serialzed according to the serialization option",
+                "type": serialization == "none"
+                    ? AbstractDataProviderTypeMap."data"
+                    : AbstractDataProviderTypeMap."any",
+            },
+            MESSAGE_WS_PING: <DataProviderMessageInfo>{
+                "desc": "A WebSocket `PING` message; should result in a `PONG` event being raised by the remote end",
+                "type": AbstractDataProviderTypeMap."*data",
+            },
+            MESSAGE_WS_PONG: <DataProviderMessageInfo>{
+                "desc": "A WebSocket `PONG` message; sent in reply to a `PING` message",
+                "type": AbstractDataProviderTypeMap."*data",
+            },
+            MESSAGE_WS_RAW: <DataProviderMessageInfo>{
+                "desc": "A raw WebSocket message to be sent to the remote end (without serialization)",
+                "type": AbstractDataProviderTypeMap."data",
+            },
         };
     }
 
@@ -1108,7 +1197,27 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
     */
     private sendMessageImpl(string message_id, auto msg, *hash<auto> send_message_options) {
         try {
-            client.send(serializeMessage(msg));
+            switch (message_id) {
+                case MESSAGE_WS_DATA:
+                    client.send(serializeMessage(msg));
+                    break;
+
+                case MESSAGE_WS_RAW:
+                    client.send(msg);
+                    break;
+
+                case MESSAGE_WS_PING:
+                    client.ping(msg);
+                    break;
+
+                case MESSAGE_WS_PONG:
+                    client.pong(msg);
+                    break;
+
+                default:
+                    throw "UNSUPPORTED-MESSAGE", sprintf("message_id %y is unsupported; supported messages: %y",
+                        keys getMessageTypesImpl());
+            }
         } catch (hash<ExceptionInfo> ex) {
             if (logger) {
                 logger.error("error sending WebSocket message: %s", get_exception_string(ex));
@@ -1130,6 +1239,11 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                     get_exception_string(ex));
             }
         }
+    }
+
+    #! Got a pong message
+    private pong(*data msg) {
+        notifyObservers(EVENT_WS_PONG, {"data": msg});
     }
 
     #! Deserializes the message
@@ -1218,8 +1332,8 @@ public class WebSocketClientDataProvider inherits WebSocketClientDataProviderBas
             "supports_observable": True,
             "supports_messages": MSG_Async,
             "constructor_options": ConstructorOptions,
-            "event_ids": (EVENT_WS_DATA, EVENT_WS_CLOSED),
-            "message_ids": (MESSAGE_WS_DEFAULT,),
+            "event_ids": (EVENT_WS_DATA, EVENT_WS_PING, EVENT_WS_PONG, EVENT_WS_CLOSED),
+            "message_ids": (MESSAGE_WS_DATA, MESSAGE_WS_RAW, MESSAGE_WS_PING, MESSAGE_WS_PONG),
         };
     }
 
@@ -1247,8 +1361,8 @@ public class WebSocketClientDelayedDataProvider inherits WebSocketClientDataProv
             "supports_observable": True,
             "supports_messages": MSG_Async,
             "constructor_options": ConstructorOptions,
-            "event_ids": (EVENT_WS_DATA, EVENT_WS_CLOSED),
-            "message_ids": (MESSAGE_WS_DEFAULT,),
+            "event_ids": (EVENT_WS_DATA, EVENT_WS_PING, EVENT_WS_PONG, EVENT_WS_CLOSED),
+            "message_ids": (MESSAGE_WS_DATA, MESSAGE_WS_RAW, MESSAGE_WS_PING, MESSAGE_WS_PONG),
         };
     }
 

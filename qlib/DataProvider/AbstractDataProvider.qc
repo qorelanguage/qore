@@ -140,6 +140,17 @@ public hashdecl DataProviderSummaryInfo {
     string supports_messages = MSG_None;
 }
 
+#! Data provider message and event info
+public hashdecl DataProviderMessageInfo {
+    #! The description of the message or event
+    /** Markdown is supported
+    */
+    string desc;
+
+    #! The data type of the message or event
+    AbstractDataProviderType type;
+}
+
 /** @defgroup dataprovider_message_support Output Message Support
 
     These constants describe the data provider's support for output messages, if any, and the relationship to observed
@@ -1493,11 +1504,11 @@ public class AbstractDataProvider {
     sendMessage(string message_id, auto msg, *hash<auto> send_message_options) {
         checkMessages();
         send_message_options = validateSendMessageOptions(send_message_options);
-        AbstractDataProviderType message_type = getMessageTypeImpl(message_id);
-        msg = message_type.acceptsValue(msg);
+        hash<DataProviderMessageInfo> message_info = getMessageInfoImpl(message_id);
         on_error if ($1.err != "SEND-MESSAGE-ERROR") {
             rethrow "SEND-MESSAGE-ERROR", sprintf("%s: (message ID %y) %s", $1.err, message_id, $1.desc);
         }
+        msg = message_info.type.acceptsValue(msg);
         sendMessageImpl(message_id, msg, send_message_options);
     }
 
@@ -1566,9 +1577,9 @@ public class AbstractDataProvider {
 
         @since DataProvider 2.5
     */
-    AbstractDataProviderType getEventType(string event_id) {
+    hash<DataProviderMessageInfo> getEventInfo(string event_id) {
         checkObservable();
-        return getEventTypeImpl(event_id);
+        return getEventInfoImpl(event_id);
     }
 
     #! Returns a hash of all supported event types
@@ -1578,7 +1589,7 @@ public class AbstractDataProvider {
 
         @since DataProvider 2.5
     */
-    hash<string, AbstractDataProviderType> getEventTypes() {
+    hash<string, hash<DataProviderMessageInfo>> getEventTypes() {
         checkObservable();
         return getEventTypesImpl();
     }
@@ -1593,9 +1604,9 @@ public class AbstractDataProvider {
 
         @since DataProvider 2.5
     */
-    AbstractDataProviderType getMessageType(string message_id) {
+    hash<DataProviderMessageInfo> getMessageInfo(string message_id) {
         checkMessages();
-        return getMessageTypeImpl(message_id);
+        return getMessageInfoImpl(message_id);
     }
 
     #! Returns a hash of all supported outbound messages
@@ -1605,7 +1616,7 @@ public class AbstractDataProvider {
 
         @since DataProvider 2.5
     */
-    hash<string, AbstractDataProviderType> getMessageTypes() {
+    hash<string, hash<DataProviderMessageInfo>> getMessageTypes() {
         checkMessages();
         return getMessageTypesImpl();
     }
@@ -2987,8 +2998,8 @@ public class AbstractDataProvider {
 
         @since DataProvider 2.5
     */
-    private AbstractDataProviderType getEventTypeImpl(string event_id) {
-        *hash<string, AbstractDataProviderType> h = getEventTypes();
+    private hash<DataProviderMessageInfo> getEventInfoImpl(string event_id) {
+        *hash<string, hash<DataProviderMessageInfo>> h = getEventTypes();
         if (!h{event_id}) {
             throw "INVALID-EVENT", sprintf("provider %y (type %y) does not support event %y; supported events: %y",
                 getName(), self.className(), event_id, keys h);
@@ -3003,7 +3014,7 @@ public class AbstractDataProvider {
 
         @since DataProvider 2.5
     */
-    private hash<string, AbstractDataProviderType> getEventTypesImpl() {
+    private hash<string, hash<DataProviderMessageInfo>> getEventTypesImpl() {
         throwUnimplementedException();
     }
 
@@ -3016,8 +3027,8 @@ public class AbstractDataProvider {
 
         @since DataProvider 2.5
     */
-    private AbstractDataProviderType getMessageTypeImpl(string message_id) {
-        *hash<string, AbstractDataProviderType> h = getMessageTypes();
+    private hash<DataProviderMessageInfo> getMessageInfoImpl(string message_id) {
+        *hash<string, hash<DataProviderMessageInfo>> h = getMessageTypes();
         if (!h{message_id}) {
             throw "INVALID-MESSAGE", sprintf("provider %y (type %y) does not support message %y; supported "
                 "messages: %y", getName(), self.className(), message_id, keys h);
@@ -3032,7 +3043,7 @@ public class AbstractDataProvider {
 
         @since DataProvider 2.5
     */
-    private hash<string, AbstractDataProviderType> getMessageTypesImpl() {
+    private hash<string, hash<DataProviderMessageInfo>> getMessageTypesImpl() {
         throwUnimplementedException();
     }
 

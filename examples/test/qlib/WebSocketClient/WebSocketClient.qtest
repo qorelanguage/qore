@@ -20,6 +20,9 @@
 
 class MyWsConnection inherits WebSocketConnection {
     constructor(WebSocketHandler handler) : WebSocketConnection(handler) {
+    }
+
+    sendData() {
         map send($1), WebSocketClientTest::Data;
     }
 
@@ -34,8 +37,12 @@ class MyWsHandler inherits WebSocketHandler {
         bool debug = False;
     }
 
-    WebSocketConnection getConnectionImpl(hash cx, hash hdr, string cid) {
-        return new MyWsConnection(self);
+    WebSocketConnection getConnectionImpl(hash<auto> cx, hash<auto> hdr, string cid) {
+        MyWsConnection conn(self);
+        if (hdr."send-data") {
+            conn.sendData();
+        }
+        return conn;
     }
 
     logError(string fmt) {
@@ -64,6 +71,8 @@ class WebSocketClientTest inherits QUnit::Test {
         int port;
         int responseSize;
 
+        Logger logger;
+
         const Data = (
             "test1",
             <beeffeed>,
@@ -72,10 +81,11 @@ class WebSocketClientTest inherits QUnit::Test {
     }
 
     constructor() : Test("WebSocketClientTest", "1.0") {
+        addTestCase("data provider test", \dataProviderTest());
         addTestCase("WebSocketClient tests", \webSocketClientTests());
         addTestCase("connection tests", \connectionTests());
 
-        Logger logger("test", LoggerLevel::getLevelInfo());
+        logger = new Logger("test", LoggerLevel::getLevelInfo());
         if (m_options.verbose > 2) {
             logger.addAppender(new TestAppender());
         }
@@ -91,6 +101,21 @@ class WebSocketClientTest inherits QUnit::Test {
         set_return_value(main());
 
         mServer.stop();
+    }
+
+    dataProviderTest() {
+        MyObserver observer();
+        WebSocketClientDelayedDataProvider prov({
+            "url": "ws://localhost:" + port,
+        });
+        prov.setLogger(logger);
+        prov.registerObserver(observer);
+        prov.observersReady();
+
+        prov.sendMessage(MESSAGE_WS_PING, "hb");
+
+        observer.wait();
+        assertTrue(True);
     }
 
     webSocketClientTests() {
@@ -118,7 +143,7 @@ class WebSocketClientTest inherits QUnit::Test {
             "debuglog": log("DEBUG"),
         };
         WebSocketClient wsc(cb, opts);
-        wsc.connect();
+        wsc.connect({"hdr": {"Send-Data": 1}});
         c.waitForZero();
         assertEq(Data, l);
         c.inc();
@@ -126,7 +151,7 @@ class WebSocketClientTest inherits QUnit::Test {
         responseSize = 1;
         # issue #2566: send a unidirectional PONG to make sure that the WebSocketHandler can handle it
         # https://tools.ietf.org/html/rfc6455#section-5.5.3: unsolicited PONG messages must be ignored
-        wsc.pong();
+        wsc.pong("heartbeat");
         wsc.send("REQUEST");
         c.waitForZero();
         assertEq(list("RESPONSE:REQUEST"), l);
@@ -161,6 +186,46 @@ class TestAppender inherits LoggerAppenderWithLayout {
             case EVENT_LOG:
                 print(params);
                 break;
+        }
+    }
+}
+
+class MyObserver inherits Observer {
+    public {
+        list<hash<auto>> l();
+    }
+
+    private {
+        Mutex m();
+        Condition cond();
+        int waiting;
+    }
+
+    update(string event_id, hash<auto> data_) {
+        m.lock();
+        on_exit m.unlock();
+
+        l += {
+            "id": event_id,
+            "data": data_,
+        };
+
+        if (waiting) {
+            cond.broadcast();
+        }
+    }
+
+    wait() {
+        date start = now_us();
+
+        m.lock();
+        on_exit m.unlock();
+
+        while (!l) {
+            cond.wait(m, 1s);
+            if ((now_us() - start) > 5s) {
+                throw "ERROR", "no data received in timeout";
+            }
         }
     }
 }

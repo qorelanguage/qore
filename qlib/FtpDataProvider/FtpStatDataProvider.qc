@@ -73,25 +73,31 @@ public class FtpStatDataProvider inherits AbstractDataProvider {
 
         hash<FtpResponseInfo> mh = ftp.sendControlMessage("SIZE", path);
         if (mh."code" == 550) {
-            # check if it's a directory
-            try {
-                ftp.cwd(path);
+            if (FtpStatDataProvider::checkDir(ftp, path)) {
+                mtime = 1970-01-01Z;
+                size = 0;
                 type = "DIRECTORY";
-            } catch (hash<ExceptionInfo> ex) {
-                if (!assume_known) {
-                    rethrow "FTP-STAT-ERROR", sprintf("%y: server returned no information for path", path);
+            } else {
+                if (assume_known) {
+                    mtime = 1970-01-01Z;
+                    size = 0;
+                    type = "UNKNOWN";
+                } else {
+                    throw "FTP-STAT-ERROR", sprintf("%y: server returned no information for path", path);
                 }
-                type = "UNKNOWN";
             }
-            mtime = 1970-01-01Z;
-            size = 0;
         } else {
             if ((mh."code" / 100) != 2) {
                 throw "FTP-STAT-ERROR", sprintf("%s: SIZE failure: %d %y ", path, mh."code", mh.msg);
             }
             size = mh.msg.toInt();
             mtime = FtpStatDataProvider::getModifiedTime(ftp, path);
-            type = "REGULAR";
+
+            if (FtpStatDataProvider::checkDir(ftp, path)) {
+                type = "DIRECTORY";
+            } else {
+                type = "REGULAR";
+            }
         }
 
         return {
@@ -111,6 +117,16 @@ public class FtpStatDataProvider inherits AbstractDataProvider {
             throw "FTP-ERROR", sprintf("%s: MDTM failure: %d %y ", path, mh."code", mh.msg);
         }
         return date(mh.msg);
+    }
+
+    static bool checkDir(FtpClient ftp, string path) {
+        # check if it's a directory
+        try {
+            ftp.cwd(path);
+            return True;
+        } catch (hash<ExceptionInfo> ex) {
+        }
+        return False;
     }
 
     #! Makes a request and returns the response

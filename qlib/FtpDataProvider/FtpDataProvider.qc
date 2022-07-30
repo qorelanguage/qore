@@ -56,6 +56,7 @@ public class FtpDataProvider inherits AbstractDataProvider {
             "delete": Class::forName("FtpDataProvider::FtpDeleteDataProvider"),
             "get-file": Class::forName("FtpDataProvider::FtpGetFileDataProvider"),
             "list": Class::forName("FtpDataProvider::FtpListDataProvider"),
+            "mkdir": Class::forName("FtpDataProvider::FtpMkdirDataProvider"),
             "move": Class::forName("FtpDataProvider::FtpMoveDataProvider"),
             "stat": Class::forName("FtpDataProvider::FtpStatDataProvider"),
         };
