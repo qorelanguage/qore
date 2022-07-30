@@ -23,7 +23,7 @@
 
 #! Main module namespace
 public namespace FtpDataProvider {
-#! The ftp poller data provider factory
+#! The ftp data provider factory
 public class FtpDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         #! Data provider type info

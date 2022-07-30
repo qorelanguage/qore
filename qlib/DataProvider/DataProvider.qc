@@ -44,6 +44,7 @@ public class DataProvider {
             "ftppoller": "FtpPoller",
             "salesforcerest": "SalesforceRestDataProvider",
             "servicenowrest": "ServiceNowRestDataProvider",
+            "smtpclient": "SmtpClient",
 
             # provided by the xml module
             "soap": "SoapDataProvider",

@@ -28,7 +28,7 @@ public namespace FtpDataProvider {
 public class FtpDeleteDataProvider inherits AbstractDataProvider {
     public {
         #! FTP connection
-        MyFtpClient ftp;
+        FtpClient ftp;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -48,7 +48,7 @@ public class FtpDeleteDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from an FTP connection
-    constructor(MyFtpClient ftp) {
+    constructor(FtpClient ftp) {
         self.ftp = ftp;
     }
 
@@ -70,7 +70,7 @@ public class FtpDeleteDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string path = ftp.getPath(req.path);
+        string path = FtpDataProvider::getPath(ftp, req.path);
         hash<FtpResponseInfo> mh = ftp.sendControlMessage("SIZE", path);
         if (mh."code" == 550) {
             on_error rethrow "DELETE-ERROR", sprintf("%y: cannot delete path: %s", path, $1.desc);

@@ -74,7 +74,7 @@ public class FtpListDataProvider inherits AbstractDataProvider {
         @throw LIST-ERROR if the path cannot be read
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string path = ftp.getPath(req.path);
+        string path = FtpDataProvider::getPath(ftp, req.path);
         return map FtpStatDataProvider::doStat(ftp, $1, True), ftp.nlst(path).split("\r\n");
     }
 

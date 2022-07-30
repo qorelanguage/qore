@@ -28,7 +28,7 @@ public namespace FtpDataProvider {
 public class FtpMoveDataProvider inherits AbstractDataProvider {
     public {
         #! FTP connection
-        MyFtpClient ftp;
+        FtpClient ftp;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -51,7 +51,7 @@ public class FtpMoveDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from an FTP connection
-    constructor(MyFtpClient ftp) {
+    constructor(FtpClient ftp) {
         self.ftp = ftp;
     }
 
@@ -73,8 +73,8 @@ public class FtpMoveDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string source = ftp.getPath(req.source);
-        string target = ftp.getPath(req.target);
+        string source = FtpDataProvider::getPath(ftp, req.source);
+        string target = FtpDataProvider::getPath(ftp, req.target);
         ftp.rename(source, target);
         return {
             "path": target,

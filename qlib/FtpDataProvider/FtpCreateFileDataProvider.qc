@@ -72,7 +72,7 @@ public class FtpCreateFileDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string path = ftp.getPath(req.path);
+        string path = FtpDataProvider::getPath(ftp, req.path);
         ftp.put(req."data".typeCode() == NT_STRING
             ? new StringInputStream(req."data")
             : new BinaryInputStream(req."data"), path);

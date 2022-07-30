@@ -25,7 +25,7 @@
 */
 
 # minimum qore version
-%requires qore >= 1.0
+%requires qore >= 1.10
 
 # need mime definitions
 %requires Mime >= 1.4
@@ -34,14 +34,16 @@
 %requires MailMessage >= 1.3
 
 %requires(reexport) ConnectionProvider >= 1.4
+%requires(reexport) DataProvider
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
 
 module SmtpClient {
-    version = "1.9.3";
+    version = "2.0";
     desc = "SMTP client support module";
-    author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, Pavol Potoncok <ppotancok@gmail.com>";
+    author = "Wolfgang Ritzinger <aargon@rat.at>, Marian Bonda <marian_bonda@users.sourceforge.net>, "
+        "Pavol Potoncok <ppotancok@gmail.com>";
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
@@ -51,6 +53,9 @@ module SmtpClient {
         ConnectionSchemeCache::registerScheme("esmtp", SmtpConnection::ConnectionScheme);
         ConnectionSchemeCache::registerScheme("esmtps", SmtpConnection::ConnectionScheme);
         ConnectionSchemeCache::registerScheme("esmtptls", SmtpConnection::ConnectionScheme);
+
+        # register the data provider factory
+        DataProvider::registerFactory(new SmtpClientDataProviderFactory());
     };
 }
 
@@ -137,6 +142,10 @@ smtp.sendMessage(msg);@endcode
     - http://tools.ietf.org/html/rfc2822: message structure, headers, body, etc
 
     @section smtpclient_relnotes SmtpClient Release Notes
+
+    @subsection smtpclient_v2_0 SmtpClient 2.0
+    - added support for the DataProvider API
+      (<a href="https://github.com/qorelanguage/qore/issues/4564">issue 4564</a>)
 
     @subsection smtpclient_v1_9_3 SmtpClient 1.9.3
     - fixed message serialization for SMTP handling in case of single \c "." characters on a line in serialized data
@@ -349,8 +358,10 @@ public class SmtpClient {
     #! creates the SmtpClient object
     /** @param host the hostname of the SMTP server (use \c "[hostname]" to explicitly specify an ipv6 connection)
         @param port the port number of the SMTP server
-        @param log a closure or call reference for log messages; a single string argument will be passed to this code for logging
-        @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this code for logging
+        @param log a closure or call reference for log messages; a single string argument will be passed to this code
+        for logging
+        @param dbglog a closure for debugging/technical log messages; a single string argument will be passed to this
+        code for logging
     */
     constructor(string host, softint port, *code log, *code dbglog) {
         log_info = log;
@@ -366,13 +377,20 @@ public class SmtpClient {
 SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log());
         @endcode
 
-        @param url the URL of the SMTP server (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no protocol (scheme) and no port is given for non-UNIX sockets, then @ref SmtpPort is used as the default port number.  This argument is parsed with parse_url(); see @ref smtpclient_protocols for a description of the handling of the protocol (scheme) component of the URL including default ports per protocol (scheme). If an unknown protocol (scheme) is given then a \c SMTP-UNKNOWN-PROTOCOL exception is raised
-        @param log an optional closure or call reference for log messages; a single string argument will be passed to this code for logging
-        @param dbglog an optional closure or call reference for debugging/technical log messages; a single string argument will be passed to this code for logging
+        @param url the URL of the SMTP server (use \c "[hostname]" or \c "[address]" for ipv6 connections); if no
+        protocol (scheme) and no port is given for non-UNIX sockets, then @ref SmtpPort is used as the default port
+        number.  This argument is parsed with parse_url(); see @ref smtpclient_protocols for a description of the
+        handling of the protocol (scheme) component of the URL including default ports per protocol (scheme). If an
+        unknown protocol (scheme) is given then a \c SMTP-UNKNOWN-PROTOCOL exception is raised
+        @param log an optional closure or call reference for log messages; a single string argument will be passed to
+        this code for logging
+        @param dbglog an optional closure or call reference for debugging/technical log messages; a single string
+        argument will be passed to this code for logging
 
         @throw PARSE-URL-ERROR the \a url argument could not be parsed with parse_url()
         @throw SMTPCLIENT-UNKNOWN-PROTOCOL the protocol (scheme) given is unknown or unsupported
-        @throw SMTPCLIENT-INVALID-AUTHENTICATION partial authentication credentials passed; the username or password is missing
+        @throw SMTPCLIENT-INVALID-AUTHENTICATION partial authentication credentials passed; the username or password
+        is missing
     */
     constructor(string url, *code log, *code dbglog) {
         log_info = log;
@@ -383,7 +401,8 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
         if (uh.protocol) {
             *hash<auto> ph = Protocols.(uh.protocol);
             if (!ph) {
-                throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported scheme %y in %y; known schemes: %y", uh.protocol, url, keys Protocols);
+                throw "SMTPCLIENT-UNKNOWN-PROTOCOL", sprintf("unsupported scheme %y in %y; known schemes: %y",
+                    uh.protocol, url, keys Protocols);
             }
 
             if (!uh.port && uh.host[0] != "/") {
@@ -400,13 +419,15 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
 
         if (uh.username) {
             if (!uh.password)
-                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL %y", url);
+                throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("username is set but password is missing in URL "
+                    "%y", url);
             user = uh.username;
             pass = uh.password;
 
             logDbg("set authentication credentials to %s/xxx", user);
         } else if (uh.password)
-            throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y", url);
+            throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y",
+                url);
     }
 
     #! disconnects if connected and destroys the object
@@ -420,6 +441,16 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
         }
     }
 
+    #! Set info log closure
+    setInfoLogClosure(*code log) {
+        self.log_info = log;
+    }
+
+    #! Set debug  log closure
+    setDebugLogClosure(*code log) {
+        self.log_debug = log;
+    }
+
     #! Returns the connection target string
     /** @since %SmtpClient 1.7
     */
@@ -428,12 +459,15 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
     }
 
     #! sets the TLS/SSL flag
-    /** @param n_tls if @ref True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a \c "STARTTLS" command after connecting and negotiate a secure TLS/SSL connection to the server; will also in this case turn off the SSL connection flag
+    /** @param n_tls if @ref True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will issue a
+        \c "STARTTLS" command after connecting and negotiate a secure TLS/SSL connection to the server; will also in
+        this case turn off the SSL connection flag
     */
     tls(bool n_tls) {
         tls = n_tls;
-        if (ssl)
+        if (ssl) {
             ssl = False;
+        }
     }
 
     #! returns the TLS/SSL flag
@@ -442,12 +476,15 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
     }
 
     #! sets the SSL connection flag
-    /** @param n_ssl if @ref True "True" then connections to the SMTP server will immediately try to negotiate transport layer TSL/SSL security; will also in this case turn off the TLS/SSL \c "STARTTLS" application layer security flag
+    /** @param n_ssl if @ref True "True" then connections to the SMTP server will immediately try to negotiate
+        transport layer TSL/SSL security; will also in this case turn off the TLS/SSL \c "STARTTLS" application layer
+        security flag
     */
     ssl(bool n_ssl) {
         ssl = n_ssl;
-        if (tls)
+        if (tls) {
             tls = False;
+        }
     }
 
     #! returns the SSL connection flag
@@ -535,7 +572,8 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
     #! send a Message to the server
     /** @param message the Message to send
 
-        @return a hash of data returned by the SMTP server (the return structure hashes described below are made up of the following keys: \c "code": the return code, \c "desc": the string description):
+        @return a hash of data returned by the SMTP server (the return structure hashes described below are made up of
+        the following keys: \c "code": the return code, \c "desc": the string description):
         - \c HELO or \c EHLO: a hash of the reply received from the \c HELO or \c EHLO command
         - \c RCPT: hash keyed by email address with hash return structures values for the RCPT TO command
         - \c MSGID: return structure after the send; generally contains message id
@@ -610,23 +648,29 @@ smtp.clearWarningQueue();
 smtp.setWarningQueue(5000, 5000, queue, "socket-1");
         @endcode
 
-        @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
+        @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if
+        exceeded, a socket warning is placed on the warning queue with the following keys:
         - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
         - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
         - \c "us": an integer giving the number of microseconds for the operation
         - \c "timeout": an integer giving the warning threshold in microseconds
-        - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here
-        @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
+        - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "SmtpClient::setWarningQueue()"
+          method, it will be included in the warning hash here
+        @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket
+        warning is placed on the warning queue with the following keys:
         - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
         - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
         - \c "bytes": the amount of bytes sent
         - \c "us": an integer giving the number of microseconds for the operation
         - \c "bytes_sec": a float giving the transfer speed in bytes per second
         - \c "threshold": an integer giving the warning threshold in bytes per second
-        - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "SmtpClient::setWarningQueue()" method, it will be included in the warning hash here
+        - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "SmtpClient::setWarningQueue()"
+          method, it will be included in the warning hash here
         @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
-        @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
-        @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
+        @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to
+        identify the socket for example)
+        @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for
+        triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
 
         @throw QUEUE-ERROR the Queue passed has a maximum size set
         @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
@@ -650,9 +694,12 @@ hash<auto> h = smtp.getUsageInfo();
         - \c "bytes_recv": an integer giving the total amount of bytes received
         - \c "us_sent": an integer giving the total number of microseconds spent sending data
         - \c "us_recv": an integer giving the total number of microseconds spent receiving data
-        - \c "arg": (only if warning values have been set with @ref setWarningQueue() "SmtpClient::setWarningQueue()") the optional argument for warning hashes
-        - \c "timeout": (only if warning values have been set with @ref setWarningQueue() "SmtpClient::setWarningQueue()") the warning timeout in microseconds
-        - \c "min_throughput": (only if warning values have been set with @ref setWarningQueue() "SmtpClient::setWarningQueue()") the minimum warning throughput in bytes/sec
+        - \c "arg": (only if warning values have been set with @ref setWarningQueue() "SmtpClient::setWarningQueue()")
+          the optional argument for warning hashes
+        - \c "timeout": (only if warning values have been set with
+          @ref setWarningQueue() "SmtpClient::setWarningQueue()") the warning timeout in microseconds
+        - \c "min_throughput": (only if warning values have been set with
+          @ref setWarningQueue() "SmtpClient::setWarningQueue()") the minimum warning throughput in bytes/sec
 
         @since %SmtpClient 1.3
 
@@ -697,8 +744,11 @@ smtp.setEventQueue(queue);
         sock.setEventQueue(queue, arg, with_data);
     }
 
-    #! Removes any @ref Qore::Thread::Queue "Queue" object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
-    /** @par Example:
+    #! Removes any @ref Qore::Thread::Queue "Queue" object
+    /** After this call, @ref socket_events "socket events" are no longer added to any currently-set
+        @ref Qore::Thread::Queue "Queue"
+
+        @par Example:
         @code{.py}
 smtp.setEventQueue();
         @endcode
@@ -748,7 +798,8 @@ smtp.setEventQueue();
 
             hello_reply{hello} = rh;
 
-            # try to automatically set the tls flag if it's not already set and we are talking to an ESMTP server and we are not already in a secure connection
+            # try to automatically set the tls flag if it's not already set and we are talking to an ESMTP server and
+            # we are not already in a secure connection
             if (!tls && esmtp && !ssl && rh.desc =~ /STARTTLS/) {
                 logDbg("server supports STARTTLS; automatically setting STARTTLS flag");
                 tls = True;
@@ -775,7 +826,8 @@ smtp.setEventQueue();
     }
 
     private loginIntern() {
-        hash<SmtpResponseInfo> rh = sendCommand("AUTH PLAIN %s", make_base64_string(binary(user) + <00> + binary(user) + <00> + binary(pass)));
+        hash<SmtpResponseInfo> rh = sendCommand("AUTH PLAIN %s",
+            make_base64_string(binary(user) + <00> + binary(user) + <00> + binary(pass)));
         if (rh.code != 235)
             throw "SMTP-DATA-EXCEPTION", sprintf("login failed: %y", rh);
         logged_in = True;
@@ -886,32 +938,37 @@ smtp.setEventQueue();
     # don't reimplement this method; fix/enhance it in the module
     final private hash<auto> sendMessageInfoIntern(MailMessage::Message message) {
         # open connection to server
-        if (!isConnected())
+        if (!isConnected()) {
             connectIntern();
+        }
 
         # issue login if credentials supplied and we have not already logged in
-        if (!logged_in && user)
+        if (!logged_in && user) {
             loginIntern();
+        }
 
         hash<SmtpResponseInfo> rh;
         hash<auto> reply = hello_reply;
 
         rh = sendCommand("MAIL FROM: <%s>", message.getFrom());
-        if (rh.code >= 500)
+        if (rh."code" >= 500) {
             throw "SMTP-DATA-EXCEPTION", sprintf("error sending FROM command: %y", rh);
+        }
 
         # send recipient
         foreach string rcpt in (message.getRecipients()) {
             rh = sendCommand("RCPT TO: <%s>", rcpt);
             reply.RCPT{rcpt} = rh;
-            if (rh.code >= 500)
+            if (rh."code" >= 500) {
                 throw "SMTP-DATA-EXCEPTION", sprintf("error sending RCPT command: %y", rh);
+            }
         }
 
         # send data
         rh = sendCommand("DATA");
-        if (rh.code != 354)
+        if (rh."code" != 354) {
             throw "SMTP-DATA-EXCEPTION", sprintf("error sending DATA command (expected code 354): %y", rh);
+        }
 
         return reply;
     }
@@ -975,6 +1032,24 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
         };
     }
 
+    #! returns an SmtpClientDataProvider object for this connection
+    /** @return an SmtpClientDataProvider object for this connection
+
+        @see hasDataProvider()
+    */
+    DataProvider::AbstractDataProvider getDataProvider() {
+        return new SmtpClientDataProvider(get());
+    }
+
+    #! returns @ref True, as the connection returns a data provider with the @ref getDataProvider() method
+    /** @return @ref True, as the connection returns a data provider with the @ref getDataProvider() method
+
+        @see @ref getDataProvider()
+    */
+    bool hasDataProvider() {
+        return True;
+    }
+
     #! returns an @ref SmtpClient object
     /** @param connect if @ref True "True", then @ref SmtpClient::SmtpClient::connect() "SmtpClient::connect()" is called
         @param rtopts supports the following runtime options in getImpl() for connection logging:
@@ -993,6 +1068,362 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
     #! Returns the ConnectionSchemeInfo hash for this object
     private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         return ConnectionScheme;
+    }
+}
+
+#! Data provider implementing an API for sending email messages
+/**
+*/
+public class SmtpClientDataProvider inherits DataProvider::AbstractDataProvider {
+    public {
+        #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "SmtpClientDataProvider",
+            "supports_children": True,
+            "constructor_options": ConstructorOptions,
+        };
+
+        #! Constructor options
+        const ConstructorOptions = {
+            "url": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "A URL for an SMTP server",
+                "required": True,
+            },
+        };
+    }
+
+    private {
+        #! The SmtpClient object
+        SmtpClient smtp;
+
+        const ChildMap = {
+            "send-email": Class::forName("SmtpClient::SmtpClientSendEmailDataProvider"),
+        };
+    }
+
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) {
+        hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+        code log_info = sub (string msg) {
+            if (logger) {
+                logger.info("%s", msg);
+            }
+        };
+        code log_debug = sub (string msg) {
+            if (logger) {
+                logger.debug("%s", msg);
+            }
+        };
+
+        smtp = new SmtpClient(copts.url, log_info, log_debug);
+    }
+
+    #! Creates the object from an SmtpClient object
+    constructor(SmtpClient smtp) {
+        self.smtp = smtp;
+    }
+
+    string getName() {
+        return "smtpclient";
+    }
+
+    #! Returns the data provider description
+    *string getDesc() {
+        return "Data provider for SMTP servers; children provide APIs related to sending emails";
+    }
+
+    #! Return data provider summary info
+    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
+        return map $1.getStaticMember("StaticInfo").getValue(), ChildMap.iterator();
+    }
+
+    #! Returns a list of child data provider names, if any
+    /** @return a list of child data provider names, if any
+    */
+    private *list<string> getChildProviderNamesImpl() {
+        return keys ChildMap;
+    }
+
+    #! Returns the given child provider or @ref nothing if the given child is unknown
+    /** @return the given child provider or @ref nothing if the given child is unknown
+
+        @see getChildProviderEx()
+    */
+    private *AbstractDataProvider getChildProviderImpl(string name) {
+        *Class cls = ChildMap{name};
+        if (!cls) {
+            return;
+        }
+        return cls.newObject(smtp);
+    }
+
+    #! Returns data provider static info
+    private hash<DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
+    }
+}
+
+#! Send email data provider
+public class SmtpClientSendEmailDataProvider inherits AbstractDataProvider {
+    public {
+        #! SMTP connection
+        SmtpClient smtp;
+
+        #! Provider info
+        const ProviderInfo = <DataProviderInfo>{
+            "type": "SmtpClientSendEmailDataProvider",
+            "constructor_options": SmtpClientDataProvider::ConstructorOptions,
+            "supports_request": True,
+        };
+
+        #! Request type
+        const RequestType = new SmtpSendEmailRequestDataType();
+
+        #! Response type
+        const ResponseType = new SmtpSendEmailResponseDataType();
+    }
+
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) {
+        checkOptions("CONSTRUCTOR-ERROR", SmtpClientDataProvider::ConstructorOptions, options);
+        code log_info = sub (string msg) {
+            if (logger) {
+                logger.info("%s", msg);
+            }
+        };
+        code log_debug = sub (string msg) {
+            if (logger) {
+                logger.debug("%s", msg);
+            }
+        };
+
+        smtp = new SmtpClient(options.url, log_info, log_debug);
+    }
+
+    #! Creates the object from an SMTP connection
+    constructor(SmtpClient smtp) {
+        self.smtp = smtp;
+        smtp.setInfoLogClosure(sub (string msg) {
+            if (logger) {
+                logger.info("%s", msg);
+            }
+        });
+        smtp.setDebugLogClosure(sub (string msg) {
+            if (logger) {
+                logger.debug("%s", msg);
+            }
+        });
+    }
+
+    #! Returns the data provider name
+    string getName() {
+        return "send-email";
+    }
+
+    #! Returns the data provider description
+    *string getDesc() {
+        return "SMTP send email data provider";
+    }
+
+    #! Makes a request and returns the response
+    /** @param req the request info
+        @param request_options the request options; will be processed by validateRequestOptions()
+
+        @return the response to the request
+    */
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        Message msg(req.sender, req.subject);
+        map msg.addTO($1), req.to;
+        map msg.addCC($1), req.cc;
+        map msg.addBCC($1), req.bcc;
+        msg.setBody(req.body, req."body-encoding", req."body-mime-type");
+        map msg.attach($1.name, $1."mime-type", $1."data", $1.encoding, $1.hdr), req.attachments;
+        return smtp.sendMessage(msg);
+    }
+
+    #! Returns the description of a successful request message, if any
+    /** @return the request type for this provider
+    */
+    private *AbstractDataProviderType getRequestTypeImpl() {
+        return RequestType;
+    }
+
+    #! Returns the description of a response message, if this object represents a response message
+    /** @return the response type for this response message
+    */
+    private *AbstractDataProviderType getResponseTypeImpl() {
+        return ResponseType;
+    }
+
+    #! Returns data provider static info
+    hash<DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
+    }
+}
+
+#! SMTP attachment type
+public class SmtpSendEmailAttachmentDataType inherits HashDataType {
+    private {
+        #! Field descriptions
+        const Fields = {
+            "data": {
+                "type": DataType,
+                "desc": "The data for the attachment",
+                "required": True,
+            },
+            "encoding": {
+                "type": StringType,
+                "desc": "The encoding to use for the attachment:\n"
+                    "- `default`: `quoted-printable` for string data, `base64` for binary data\n"
+                    "- `none`: no content encoding (not recommended)\n"
+                    "- `quoted-printable`: quoted printable encoding \n"
+                    "- `base64`: base64 encoding",
+                "default_value": "default",
+            },
+            "hdr": {
+                "type": HashOrNothingType,
+                "desc": "Optional headers to send with the attachment",
+            },
+            "mime-type": {
+                "type": StringType,
+                "desc": "The MIME type of the attachment",
+                "required": True,
+            },
+            "name": {
+                "type": StringType,
+                "desc": "The name or filename of the attachment",
+                "required": True,
+            },
+        };
+    }
+
+    #! Creates the object
+    constructor() {
+        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
+            Fields.pairIterator();
+    }
+}
+
+#! SMTP send email request type
+public class SmtpSendEmailRequestDataType inherits HashDataType {
+    private {
+        #! Field descriptions
+        const Fields = {
+            "attachments": {
+                "type": new SoftListDataType(new SmtpSendEmailAttachmentDataType(), True),
+                "desc": "Any attachments for the message",
+            },
+            "bcc": {
+                "type": new SoftListDataType(StringType, True),
+                "desc": "One or more `Bcc:` addresses for the email",
+            },
+            "body": {
+                "type": DataType,
+                "desc": "The message body",
+            },
+            "body-encoding": {
+                "type": StringType,
+                "desc": "The encoding to use for the attachment:\n"
+                    "- `default`: `quoted-printable` for string data, `base64` for binary data\n"
+                    "- `none`: no content encoding (not recommended)\n"
+                    "- `quoted-printable`: quoted printable encoding \n"
+                    "- `base64`: base64 encoding",
+                "default_value": "default",
+            },
+            "body-mime-type": {
+                "type": StringOrNothingType,
+                "desc": "The MIME type of the message body",
+            },
+            "cc": {
+                "type": new SoftListDataType(StringType, True),
+                "desc": "One or more `Cc:` addresses for the email",
+            },
+            "sender": {
+                "type": StringType,
+                "desc": "The sender address for the email",
+                "required": True,
+            },
+            "subject": {
+                "type": StringType,
+                "desc": "The subject for the email",
+            },
+            "to": {
+                "type": new SoftListDataType(StringType, True),
+                "desc": "One or more `To:` addresses for the email",
+            },
+        };
+    }
+
+    #! Creates the object
+    constructor() {
+        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
+            Fields.pairIterator();
+    }
+}
+
+#! SMTP send email response info type
+public class SmtpSendEmailResponseInfoDataType inherits HashDataType {
+    private {
+        #! Field descriptions
+        const Fields = {
+            "code": {
+                "type": IntType,
+                "desc": "The return code provided by the SMTP server for the command",
+            },
+            "desc": {
+                "type": StringType,
+                "desc": "The string description returned by the server",
+            },
+        };
+    }
+
+    #! Creates the object
+    constructor() {
+        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
+            Fields.pairIterator();
+    }
+}
+
+#! SMTP send email response data type
+public class SmtpSendEmailResponseDataType inherits HashDataType {
+    #! Creates the object
+    constructor() {
+        setDefaultOtherFieldType(new SmtpSendEmailResponseInfoDataType());
+    }
+}
+
+#! The SMTP data provider factory
+public class SmtpClientDataProviderFactory inherits AbstractDataProviderFactory {
+    private {
+        #! Data provider type info
+        static Class cls = new Class("SmtpClientDataProvider");
+
+        #! Factory info
+        const FactoryInfo = <DataProviderFactoryInfo>{
+            "name": "smtpclient",
+            "desc": "SMTP client data provider factory",
+            "children_can_support_apis": True,
+        };
+    }
+
+    #! Returns static factory information without \a provider_info
+    /** @return static factory information without \a provider_info which is provided by @ref getProviderInfo()
+    */
+    private hash<DataProviderFactoryInfo> getInfoImpl() {
+        return FactoryInfo;
+    }
+
+    #! Returns static provider information
+    /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
+    */
+    private hash<DataProviderInfo> getProviderInfoImpl() {
+        return SmtpClientDataProvider::ProviderInfo;
+    }
+
+    #! Returns the class for the data provider object
+    private Class getClassImpl() {
+        return cls;
     }
 }
 }

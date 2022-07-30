@@ -72,7 +72,7 @@ public class FtpGetFileDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string path = ftp.getPath(req.path);
+        string path = FtpDataProvider::getPath(ftp, req.path);
         OutputStream out = req.text
             ? new StringOutputStream(req.encoding)
             : new BinaryOutputStream();

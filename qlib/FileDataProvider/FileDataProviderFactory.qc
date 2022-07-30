@@ -23,7 +23,7 @@
 
 #! Main module namespace
 public namespace FileDataProvider {
-#! The file poller data provider factory
+#! The file data provider factory
 public class FileDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         #! Data provider type info

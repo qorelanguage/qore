@@ -69,20 +69,12 @@ class Queue;
    - proFTPd 1.3.0 (Darwin/OS X 10.4.7) EPSV, PORT, AUTH TLS, PBSZ 0, PROT P
 */
 class QoreFtpClient {
-protected:
-    //! private implementation of the object
-    struct qore_ftp_private *priv;
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreFtpClient(const QoreFtpClient&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreFtpClient& operator=(const QoreFtpClient&);
-
+    friend class qore_ftp_private;
 public:
     //! creates the object and sets connection parameters based on the url passed
     /** a Qore-language exception will be raised if the URL is invalid (protocol is not "ftp"
-         or "ftps") or the hostname is missing.
+        or "ftps") or the hostname is missing.
+
         @param url the URL string to use to set connection parameters
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
@@ -96,56 +88,67 @@ public:
 
     //! connects to the remote host and logs in
     /** if there are any connection or authentication errors, Qore-language exceptions are raised
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
     */
     DLLEXPORT int connect(ExceptionSink* xsink);
 
     //! disconnects from the remote host if connected
     /**
-         @return 0 for OK, non-zero for error (currently always returns 0)
+        @return 0 for OK, non-zero for error (currently always returns 0)
     */
     DLLEXPORT int disconnect();
 
     //! changes the working directory on the remote host
     /** if there are any errors (if no connection has been previously established, it's an error),
-         Qore-language exceptions are raised.
+        Qore-language exceptions are raised.
+
         @param dir the directory to change to
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
     */
     DLLEXPORT int cwd(const char* dir, ExceptionSink* xsink);
 
     //! returns the working directory on the remote host (caller owns the reference count returned)
     /** the connection must be already established before this function is called or an error will be raised.
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return a string giving the working directory on the remote host (caller owns the reference count returned), 0 if an error occured
     */
     DLLEXPORT QoreStringNode* pwd(ExceptionSink* xsink);
 
     //! sends a file from the local filesystem to the remote server
     /** the connection must be already established before this function is called or an error will be raised.
-         @param localpath the local path of the file to send
+
+        @param localpath the local path of the file to send
         @param remotename the name of the file on the remote server
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
     */
     DLLEXPORT int put(const char* localpath, const char* remotename, ExceptionSink* xsink);
 
     //! sends the content of an InputStream to the remote server
     /** the connection must be already established before this function is called or an error will be raised.
-         @param is the input stream
+
+        @param is the input stream
         @param remotename the name of the file on the remote server
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
     */
     DLLEXPORT int put(InputStream* is, const char* remotename, ExceptionSink* xsink);
 
     //! gets a file from the remote server and saves it on the local filesystem
     /** the connection must be already established before this function is called or an error will be raised.
-         @param remotepath the path of the file on the remote server
+
+        @param remotepath the path of the file on the remote server
         @param localname the local name of the file
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
 
         @see QoreFtpClient::getAsString()
@@ -155,9 +158,11 @@ public:
 
     //! gets a file from the remote server and writes it to an OutputStream
     /** the connection must be already established before this function is called or an error will be raised.
-         @param remotepath the path of the file on the remote server
+
+        @param remotepath the path of the file on the remote server
         @param os the output stream
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
 
         @see QoreFtpClient::getAsString()
@@ -167,10 +172,12 @@ public:
 
     //! sends a file data io the remote server
     /** the connection must be already established before this function is called or an error will be raised.
-         @param data the data to send
+
+        @param data the data to send
         @param len the length of the data to send (if 0, a Qore-language exception will be raised)
         @param remotename the name of the file on the remote server
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
     */
     DLLEXPORT int putData(const void* data, size_t len, const char* remotename, ExceptionSink* xsink);
@@ -200,50 +207,62 @@ public:
 
     //! gets a file from the remote server and returns it as a binary node
     /** the connection must be already established before this function is called or an error will be raised.
-         @param remotepath the path of the file on the remote server
+
+        @param remotepath the path of the file on the remote server
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return file data received as a binary node, otherwise 0 = error (meaning that an exception has been raised)
     */
     DLLEXPORT BinaryNode* getAsBinary(const char* remotepath, ExceptionSink* xsink);
 
     //! renames/moves a file on the remote server
     /** the connection must be already established before this function is called or an error will be raised.
-         @param from the original file path on the remote server
+
+        @param from the original file path on the remote server
         @param to the new file path on the remote server
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
     */
     DLLEXPORT int rename(const char* from, const char* to, ExceptionSink* xsink);
 
     //! returns a string listing the directory contents on the remote host (caller owns the reference count returned)
     /** the connection must be already established before this function is called or an error will be raised.
-         @param path the path to list
+
+        @param path the path to list
         @param long_list if true then a "long list" is made
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return a string giving the directory listing on the remote host (caller owns the reference count returned), 0 if an error occured
     */
     DLLEXPORT QoreStringNode* list(const char* path, bool long_list, ExceptionSink* xsink);
 
     //! deletes the given file on the remote server
     /** the connection must be already established before this function is called or an error will be raised.
-         @param file the filename to delete
+
+        @param file the filename to delete
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
     */
     DLLEXPORT int del(const char* file, ExceptionSink* xsink);
 
     //! creates a directory on the remote server
     /** the connection must be already established before this function is called or an error will be raised.
-         @param remotepath the path of the directory on the remote server
+
+        @param remotepath the path of the directory on the remote server
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
     */
     DLLEXPORT int mkdir(const char* remotepath, ExceptionSink* xsink);
 
     //! removes a directory on the remote server
     /** the connection must be already established before this function is called or an error will be raised.
-         @param remotepath the path of the directory on the remote server
+
+        @param remotepath the path of the directory on the remote server
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return 0 for OK, non-zero for error (meaning that an exception has been raised)
     */
     DLLEXPORT int rmdir(const char* remotepath, ExceptionSink* xsink);
@@ -262,7 +281,8 @@ public:
 
     //! sets the connection parameters from a URL
     /** a Qore-language exception will be raised if the URL is invalid (protocol is not "ftp"
-         or "ftps") or the hostname is missing.
+        or "ftps") or the hostname is missing.
+
         @param url the URL string to use to set connection parameters
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
@@ -288,12 +308,12 @@ public:
 
     //! sets the secure connection parameter flag (to use the FTPS protocol)
     /** @return 0 for OK, -1 for error, not set (if a connection is currently established, then this flag cannot be changed)
-        */
+    */
     DLLEXPORT int setSecure();
 
     //! unsets the secure connection parameter flag (to use the FTP protocol)
     /** @return 0 for OK, -1 for error, not set (if a connection is currently established, then this flag cannot be changed)
-        */
+    */
     DLLEXPORT int setInsecure();
 
     //! sets the secure data connection parameter flag
@@ -368,6 +388,7 @@ public:
 
     //! returns peer information for a connected control socket
     /** if the socket is not connected, a Qore-language exception is thrown
+
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
 
@@ -386,6 +407,7 @@ public:
 
     //! returns peer information for a connected data socket
     /** if the socket is not connected, a Qore-language exception is thrown
+
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
 
@@ -404,6 +426,7 @@ public:
 
     //! returns information for the current control socket; the socket must be open
     /** if the socket is not open, a Qore-language exception is thrown
+
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
 
@@ -422,6 +445,7 @@ public:
 
     //! returns information for the current control socket; the socket must be open
     /** if the socket is not open, a Qore-language exception is thrown
+
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
 
@@ -445,7 +469,7 @@ public:
 
         @since %Qore 0.9.4
     */
-    QoreHashNode* sendControlMessage(const char* cmd, const char* arg, ExceptionSink* xsink);
+    DLLEXPORT QoreHashNode* sendControlMessage(const char* cmd, const char* arg, ExceptionSink* xsink);
 
     //! sets the socket I/O timeout value in milliseconds
     /** @since Qore 0.8.12.3
@@ -467,6 +491,13 @@ public:
     DLLLOCAL void setControlEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data);
 
     DLLLOCAL void cleanup(ExceptionSink* xsink);
+
+protected:
+    //! private implementation of the object
+    struct qore_ftp_private* priv;
+
+    DLLLOCAL QoreFtpClient(const QoreFtpClient&) = delete;
+    DLLLOCAL QoreFtpClient& operator=(const QoreFtpClient&) = delete;
 };
 
-#endif // _QORE_OBJECTS_FTPCLIENT_H
+#endif // _QORE_QOREFTPCLIENT_H

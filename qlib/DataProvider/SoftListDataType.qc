@@ -89,7 +89,6 @@ public class SoftListDataType inherits ListDataType {
         if (typename == Type::List) {
             return map element_type.acceptsValue($1), value;
         } else {
-            printf("return: %y\n", (element_type.acceptsValue(value),));
             return (element_type.acceptsValue(value),);
         }
     }

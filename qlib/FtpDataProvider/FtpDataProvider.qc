@@ -47,7 +47,7 @@ public class FtpDataProvider inherits AbstractDataProvider {
             },
         };
 
-        MyFtpClient ftp;
+        FtpClient ftp;
     }
 
     private {
@@ -69,7 +69,7 @@ public class FtpDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from an FTP connection
-    constructor(MyFtpClient ftp) {
+    constructor(FtpClient ftp) {
         self.ftp = ftp;
     }
 
@@ -89,12 +89,18 @@ public class FtpDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns an FTP connection from constructor options
-    static MyFtpClient getFtpConnection(hash<auto> options) {
-        MyFtpClient ftp(options.url);
+    static FtpClient getFtpConnection(hash<auto> options) {
+        FtpClient ftp(options.url);
         if (options."timeout") {
             ftp.setTimeout(options."timeout");
         }
         return ftp;
+    }
+
+    #! Returns the path based on the FtpClient's base path
+    static string getPath(FtpClient ftp, string path1) {
+        path1 =~ s/^\/+//;
+        return ftp.path + "/" + path1;
     }
 
     #! Returns a list of child data provider names, if any
@@ -120,25 +126,6 @@ public class FtpDataProvider inherits AbstractDataProvider {
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-}
-
-# private namespace, not exported
-namespace Priv {
-class MyFtpClient inherits FtpClient {
-    public {
-        string path;
-    }
-
-    constructor(string url) : FtpClient(url) {
-        path = parse_url(url).path ?? "";
-        path =~ s/\/+$//;
-    }
-
-    string getPath(string path1) {
-        path1 =~ s/^\/+//;
-        return path + "/" + path1;
     }
 }
 }

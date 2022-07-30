@@ -68,8 +68,8 @@ public class FileDataProviderTest inherits QUnit::Test {
         assertEq(new_targ, h.path);
         assertFalse(is_file(new_targ));
 
-	# delete original file
-	delete tmp;
+        # delete original file
+        delete tmp;
 
         prov = fdp.getChildProviderEx("create");
         h = prov.doRequest({

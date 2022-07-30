@@ -74,11 +74,32 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
         };
     }
 
+    #! returns an FtpDataProvider object for this connection
+    /** @return an FtpDataProvider object for this connection
+
+        @see hasDataProvider()
+    */
+    DataProvider::AbstractDataProvider getDataProvider() {
+        # to avoid circular dependencies, this object loads the ServiceNowRestDataProvider and creates the data provider
+        # object dynamically
+        load_module("FtpDataProvider");
+        return create_object("FtpDataProvider", get());
+    }
+
+    #! returns @ref True, as the connection returns a data provider with the @ref getDataProvider() method
+    /** @return @ref True, as the connection returns a data provider with the @ref getDataProvider() method
+
+        @see @ref getDataProvider()
+    */
+    bool hasDataProvider() {
+        return True;
+    }
+
     #! returns an @ref Qore::FtpClient object
     /** @param connect if @ref True "True" then a connection is made any if there is any path in the URL a \c CWD operation is performed to change to the target directory
         @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
     */
-    private FtpClient getImpl(bool connect = True, *hash rtopts) {
+    private FtpClient getImpl(bool connect = True, *hash<auto> rtopts) {
         # set runtime path
         *string rtpath = rtopts.path ?* urlh.path;
         if (rtopts.path_add.val()) {
@@ -93,6 +114,7 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
             fc.connect();
             if (rtpath.val()) {
                 fc.cwd(rtpath);
+                fc.path = rtpath;
             }
         }
         return fc;
