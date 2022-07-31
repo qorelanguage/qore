@@ -637,19 +637,19 @@ public hashdecl DataProviderInfo {
     */
     *hash<string, hash<DataProviderExpressionInfo>> expressions;
 
-    #! List of supported observable events
+    #! hash of observable events and event types
     /** @note this is a static attribute; it is the same for all data providers of the same type
 
         @since DataProvider 2.5
     */
-    *softlist<string> event_ids;
+    *hash<string, hash<DataProviderMessageInfo>> events;
 
-    #! List of supported output message IDs
+    #! List of output message IDs and message types
     /** @note this is a static attribute; it is the same for all data providers of the same type
 
         @since DataProvider 2.5
     */
-    *softlist<string> message_ids;
+    *hash<string, hash<DataProviderMessageInfo>> messages;
 
     #! Supported search logic capabilities
     /** This is a bitfield of capabilities; see @ref logic_capability_codes for more info
@@ -985,11 +985,11 @@ public class AbstractDataProvider {
         if (!exists rv.has_record) {
             rv.has_record = rv.supports_read;
         }
-        if (!rv.event_ids && rv.supports_observable) {
-            rv.event_ids = keys getEventTypes();
+        if (!rv.events && rv.supports_observable) {
+            rv.events = getEventTypes();
         }
-        if (!rv.message_ids && rv.supports_messages != MSG_None) {
-            rv.message_ids = keys getMessageTypes();
+        if (!rv.messages && rv.supports_messages != MSG_None) {
+            rv.messages = getMessageTypes();
         }
         return rv;
     }

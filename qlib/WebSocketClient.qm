@@ -1332,8 +1332,6 @@ public class WebSocketClientDataProvider inherits WebSocketClientDataProviderBas
             "supports_observable": True,
             "supports_messages": MSG_Async,
             "constructor_options": ConstructorOptions,
-            "event_ids": (EVENT_WS_DATA, EVENT_WS_PING, EVENT_WS_PONG, EVENT_WS_CLOSED),
-            "message_ids": (MESSAGE_WS_DATA, MESSAGE_WS_RAW, MESSAGE_WS_PING, MESSAGE_WS_PONG),
         };
     }
 
@@ -1361,8 +1359,6 @@ public class WebSocketClientDelayedDataProvider inherits WebSocketClientDataProv
             "supports_observable": True,
             "supports_messages": MSG_Async,
             "constructor_options": ConstructorOptions,
-            "event_ids": (EVENT_WS_DATA, EVENT_WS_PING, EVENT_WS_PONG, EVENT_WS_CLOSED),
-            "message_ids": (MESSAGE_WS_DATA, MESSAGE_WS_RAW, MESSAGE_WS_PING, MESSAGE_WS_PONG),
         };
     }
 

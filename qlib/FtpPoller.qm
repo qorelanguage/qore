@@ -1162,7 +1162,6 @@ public class FtpPollerDataProvider inherits FtpPollerDataProviderBase, DataProvi
             "type": "FtpPollerDataProvider",
             "supports_observable": True,
             "constructor_options": ConstructorOptions,
-            "event_ids": EVENT_FTP_FILE,
         };
     }
 
@@ -1188,7 +1187,6 @@ public class FtpDelayedPollerDataProvider inherits FtpPollerDataProviderBase, Da
             "type": "FtpDelayedPollerDataProvider",
             "supports_observable": True,
             "constructor_options": ConstructorOptions,
-            "event_ids": EVENT_FTP_FILE,
         };
     }
 

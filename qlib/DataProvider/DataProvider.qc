@@ -383,7 +383,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{oracle:us
         hash info = info0;
         foreach hash<auto> i0 in (info.pairIterator()) {
             if (i0.value.typeCode() == NT_HASH) {
-                if (i0.key =~ /_options/) {
+                if (i0.key =~ /_options/ || i0.key == "events" || i0.key == "messages") {
                     # if the info key value is a hash with a "type" key, then return the type name instead of the type
                     # object
                     map info{i0.key}{$1.key}.type = (map $1.getName(), $1.value.type),

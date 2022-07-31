@@ -795,7 +795,6 @@ public class FilePollerDataProvider inherits FilePollerDataProviderBase, DataPro
             "type": "FilePollerDataProvider",
             "supports_observable": True,
             "constructor_options": ConstructorOptions,
-            "event_ids": EVENT_FILE,
         };
     }
 
@@ -823,7 +822,6 @@ public class FileDelayedPollerDataProvider inherits FilePollerDataProviderBase, 
             "type": "FileDelayedPollerDataProvider",
             "supports_observable": True,
             "constructor_options": ConstructorOptions,
-            "event_ids": EVENT_FILE,
         };
     }
 
