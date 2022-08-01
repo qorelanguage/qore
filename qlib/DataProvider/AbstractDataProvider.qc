@@ -59,6 +59,9 @@ public hashdecl DataProviderOptionInfo {
 
     #! Any default value
     auto default_value;
+
+    #! Is the option value sensitive?
+    bool sensitive = False;
 }
 
 #! Data provider summary info

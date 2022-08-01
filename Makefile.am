@@ -83,7 +83,8 @@ DOX_SPLIT_MODULES = \
     qlib/CdsRestDataProvider \
     qlib/ServiceNowRestDataProvider \
     qlib/FileDataProvider \
-    qlib/FtpDataProvider
+    qlib/FtpDataProvider \
+    qlib/HttpClientDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider

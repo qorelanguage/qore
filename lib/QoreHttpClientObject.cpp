@@ -763,7 +763,8 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
     n = opts->getKeyValue("http_version");
     if (!n.isNothing()) {
         if (n.getType() != NT_STRING) {
-            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string version ('1.0', '1.1') as value for the \"http_version\" key in the options hash");
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string version ('1.0', '1.1') as value for "
+                "the \"http_version\" key in the options hash");
             return -1;
         }
         if (setHTTPVersion((n.get<const QoreStringNode>())->c_str(), xsink))
@@ -773,7 +774,8 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
     n = opts->getKeyValue("headers");
     if (!n.isNothing()) {
         if (n.getType() != NT_HASH) {
-            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting hash of headers as value for the \"headers\" key in the options hash");
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting hash of headers as value for the "
+                "\"headers\" key in the options hash");
             return -1;
         }
         addDefaultHeaders(n.get<const QoreHashNode>());
@@ -800,7 +802,8 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
     n = opts->getKeyValue("additional_methods");
     if (!n.isNothing()) {
         if (n.getType() != NT_HASH) {
-            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "Option \"additional_methods\" requires a hash as a value; got: %s", n.getTypeName());
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "Option \"additional_methods\" requires a hash as a "
+                "value; got: %s", n.getTypeName());
             return -1;
         }
         ConstHashIterator hi(n.get<const QoreHashNode>());
@@ -813,7 +816,7 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
     n = opts->getKeyValue("assume_encoding");
     if (!n.isNothing()) {
         if (n.getType() != NT_STRING) {
-            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string as value for the \"assume_encoding\" "\
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string as value for the \"assume_encoding\" "
                 "key in the options hash; got type \"%s\" instead", n.getTypeName());
             return -1;
         }
@@ -821,74 +824,130 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         qore_socket_private::get(*priv->socket)->setAssumedEncoding(!val->empty() ? val->c_str() : nullptr);
     }
 
-    n = opts->getKeyValue("ssl_cert_path");
-    if (*xsink)
-        return -1;
-    if (!n.isNothing()) {
-        if (n.getType() != NT_STRING) {
-            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string filename as value for the \"ssl_cert_path\" key in the options hash; got type \"%s\" instead", n.getTypeName());
+    n = opts->getKeyValue("ssl_cert_data");
+    if (n) {
+        SimpleRefHolder<QoreSSLCertificate> cert;
+        if (n.getType() == NT_BINARY) {
+            cert = new QoreSSLCertificate(n.get<const BinaryNode>(), xsink);
+            if (*xsink) {
+                return -1;
+            }
+        } else if (n.getType() == NT_STRING) {
+            cert = new QoreSSLCertificate(n.get<const QoreStringNode>(), xsink);
+            if (*xsink) {
+                return -1;
+            }
+        } else {
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting \"string\" or \"binary\" value assigned to "
+                "\"ssl_cert_data\" HTTPClient option; got type \"%s\" instead", n.getTypeName());
             return -1;
         }
-        const QoreStringNode* path = n.get<const QoreStringNode>();
-        if (runtime_check_parse_option(PO_NO_FILESYSTEM)) {
-            xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot use the \"ssl_cert_path\" option = \"%s\" when sandboxing restriction PO_NO_FILESYSTEM is set", path->c_str());
-            return -1;
-        }
-
-        // read in certificate file and set the certificate
-        QoreFile f;
-        if (f.open2(xsink, path->c_str()))
-            return -1;
-
-        QoreString pem;
-        if (f.read(pem, -1, xsink))
-            return -1;
-
-        SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(&pem, xsink));
-        if (*xsink)
-            return -1;
 
         assert(!priv->cert);
         priv->cert = cert.release();
+    } else {
+        n = opts->getKeyValue("ssl_cert_path");
+        if (!n.isNothing()) {
+            if (n.getType() != NT_STRING) {
+                xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string filename as value for the "
+                    "\"ssl_cert_path\" key in the options hash; got type \"%s\" instead", n.getTypeName());
+                return -1;
+            }
+            const QoreStringNode* path = n.get<const QoreStringNode>();
+            if (runtime_check_parse_option(PO_NO_FILESYSTEM)) {
+                xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot use the \"ssl_cert_path\" option = \"%s\" "
+                    "when sandboxing restriction PO_NO_FILESYSTEM is set", path->c_str());
+                return -1;
+            }
+
+            // read in certificate file and set the certificate
+            QoreFile f;
+            if (f.open2(xsink, path->c_str())) {
+                return -1;
+            }
+
+            QoreString pem;
+            if (f.read(pem, -1, xsink)) {
+                return -1;
+            }
+
+            SimpleRefHolder<QoreSSLCertificate> cert(new QoreSSLCertificate(&pem, xsink));
+            if (*xsink) {
+                return -1;
+            }
+
+            assert(!priv->cert);
+            priv->cert = cert.release();
+        }
     }
 
     const char* key_password = nullptr;
     n = opts->getKeyValue("ssl_key_password");
     if (!n.isNothing()) {
         if (n.getType() != NT_STRING) {
-            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string value for the \"ssl_key_password\" key in the options hash; got type \"%s\" instead", n.getTypeName());
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string value for the \"ssl_key_password\" "
+                "key in the options hash; got type \"%s\" instead", n.getTypeName());
             return -1;
         }
         key_password = n.get<const QoreStringNode>()->c_str();
     }
 
-    n = opts->getKeyValue("ssl_key_path");
-    if (!n.isNothing()) {
-        if (n.getType() != NT_STRING) {
-            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string filename as value for the \"ssl_key_path\" key in the options hash; got type \"%s\" instead", n.getTypeName());
+    n = opts->getKeyValue("ssl_key_data");
+    if (n) {
+        SimpleRefHolder<QoreSSLPrivateKey> pk;
+        if (n.getType() == NT_BINARY) {
+            // no private key possible with keys in DER format
+            pk = new QoreSSLPrivateKey(n.get<const BinaryNode>(), xsink);
+            if (*xsink) {
+                return -1;
+            }
+        } else if (n.getType() == NT_STRING) {
+            pk = new QoreSSLPrivateKey(n.get<const QoreStringNode>(), key_password, xsink);
+            if (*xsink) {
+                return -1;
+            }
+        } else {
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting \"string\" or \"binary\" value assigned to "
+                "\"ssl_key_data\" HTTPClient option; got type \"%s\" instead", n.getTypeName());
             return -1;
         }
-        const QoreStringNode* path = n.get<const QoreStringNode>();
-        if (runtime_check_parse_option(PO_NO_FILESYSTEM)) {
-            xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot use the \"ssl_key_path\" option = \"%s\" when sandboxing restriction PO_NO_FILESYSTEM is set", path->c_str());
-            return -1;
-        }
-
-        // read in private key file and set the private key
-        QoreFile f;
-        if (f.open2(xsink, path->c_str()))
-            return -1;
-
-        QoreString pem;
-        if (f.read(pem, -1, xsink))
-            return -1;
-
-        SimpleRefHolder<QoreSSLPrivateKey> pk(new QoreSSLPrivateKey(&pem, key_password, xsink));
-        if (*xsink)
-            return -1;
 
         assert(!priv->pk);
         priv->pk = pk.release();
+    } else {
+        n = opts->getKeyValue("ssl_key_path");
+        if (!n.isNothing()) {
+            if (n.getType() != NT_STRING) {
+                xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting string filename as value for the "
+                    "\"ssl_key_path\" key in the options hash; got type \"%s\" instead", n.getTypeName());
+                return -1;
+            }
+            const QoreStringNode* path = n.get<const QoreStringNode>();
+            if (runtime_check_parse_option(PO_NO_FILESYSTEM)) {
+                xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot use the \"ssl_key_path\" option = \"%s\" "
+                    "when sandboxing restriction PO_NO_FILESYSTEM is set", path->c_str());
+                return -1;
+            }
+
+            // read in private key file and set the private key
+            QoreFile f;
+            if (f.open2(xsink, path->c_str())) {
+                return -1;
+            }
+
+            QoreString pem;
+            if (f.read(pem, -1, xsink)) {
+                return -1;
+            }
+
+            SimpleRefHolder<QoreSSLPrivateKey> pk(new QoreSSLPrivateKey(&pem, key_password, xsink));
+            if (*xsink) {
+                return -1;
+            }
+
+            assert(!priv->pk);
+            priv->pk = pk.release();
+        }
     }
 
     n = opts->getKeyValue("ssl_verify_cert");
@@ -915,7 +974,7 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
     n = opts->getKeyValue("encoding");
     if (!n.isNothing()) {
         if (n.getType() != NT_STRING) {
-            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting a string encoding as the value for the " \
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting a string encoding as the value for the "
                 "\"encoding\" key in the options hash; got type \"%s\" instead", n.getTypeName());
             return -1;
         }

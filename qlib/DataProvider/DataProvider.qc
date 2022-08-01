@@ -42,6 +42,7 @@ public class DataProvider {
             "fixedlengthwrite": "FixedLengthUtil",
             "ftp": "FtpDataProvider",
             "ftppoller": "FtpPoller",
+            "httpclient": "HttpClientDataProvider",
             "salesforcerest": "SalesforceRestDataProvider",
             "servicenowrest": "ServiceNowRestDataProvider",
             "smtpclient": "SmtpClient",

@@ -145,6 +145,27 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
         return "http";
     }
 
+    #! returns an HttpDataProvider object for this connection
+    /** @return an HttpDataProvider object for this connection
+
+        @see hasDataProvider()
+    */
+    DataProvider::AbstractDataProvider getDataProvider() {
+        # to avoid circular dependencies, this object loads the HttpDataProvider and creates the data provider
+        # object dynamically
+        load_module("HttpDataProvider");
+        return create_object("HttpDataProvider", get());
+    }
+
+    #! returns @ref True, as the connection returns a data provider with the @ref getDataProvider() method
+    /** @return @ref True, as the connection returns a data provider with the @ref getDataProvider() method
+
+        @see @ref getDataProvider()
+    */
+    bool hasDataProvider() {
+        return True;
+    }
+
     #! returns an @ref Qore::HTTPClient object
     /** @param connect if @ref True "True" then a connection is made by calling @ref Qore::HTTPClient::connect() before returning the object
         @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
