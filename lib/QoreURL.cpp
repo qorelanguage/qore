@@ -165,11 +165,15 @@ private:
             path_start = sbuf.find('?');
         }
         if (path_start != std::string::npos) {
+
             // issue #3457: make sure there are no ':' and '@' signs after this mark
             size_t char_pos = sbuf.find(':', path_start + 1);
             if (char_pos != std::string::npos) {
-                char_pos = sbuf.find('@', char_pos + 1);
-                if (char_pos != std::string::npos) {
+                size_t char_pos2 = sbuf.find('@', path_start + 1);
+                if (char_pos2 != std::string::npos) {
+                    if (char_pos2 > char_pos) {
+                        char_pos = char_pos2;
+                    }
                     path_start = sbuf.find('/', char_pos + 1);
                     if (path_start == std::string::npos) {
                         path_start = sbuf.find('?', char_pos + 1);
@@ -223,9 +227,10 @@ private:
             if (port_start != 1 || sbuf[0] != ':') {
                 // find the end of port data
                 if (port_start + 1 == sbuf.size()) {
-                    if (xsink)
+                    if (xsink) {
                         xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid empty port specification",
                             buf);
+                    }
                     invalidate();
                     return;
                 }
@@ -234,7 +239,7 @@ private:
                     if (!isdigit(sbuf[i])) {
                         if (xsink)
                             xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid non-numeric character "
-                                "in the port specification", buf);
+                                "in the port specification (char: '%c' ue: %lld sbuf: '%s')", buf, sbuf[i], username_end, sbuf.c_str());
                         invalidate();
                         return;
                     }

@@ -1,0 +1,31 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/SmtpClient.qm
+
+%exec-class SmtpClientDataProviderTest
+
+public class SmtpClientDataProviderTest inherits QUnit::Test {
+    constructor() : Test("SmtpClientDataProvider Test", "1.0") {
+        addTestCase("test", \smtpClientDataProviderTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    smtpClientDataProviderTest() {
+        SmtpClientDataProvider parent({"url": "esmtp.gmail.com"});
+        AbstractDataProvider prov = parent.getChildProviderEx("send-email");
+        assertEq("send-email", prov.getName());
+    }
+}

@@ -34,6 +34,11 @@
     - <a href="../../modules/FsUtil/html/index.html">FsUtil</a> module
       - fixed inconsistencies handling target directories in copy operations
         (<a href="https://github.com/qorelanguage/qore/issues/4559">issue 4559</a>)
+    - fixed a bug in @ref Qore::parse_url() "parse_url()" parsing URLs with special symbols in the password
+      (<a href="https://github.com/qorelanguage/qore/issues/4568">issue 4568</a>)
+    - fixed a bug in the @ref Qore::HTTPClient "HTTPClient" class where it was not possible to use an X.509
+      certificate or private key from data
+      (<a href="https://github.com/qorelanguage/qore/issues/4567">issue 4567</a>)
     - fixed bugs where \\a and \\e escape codes were not supported in %Qore strings
       (<a href="https://github.com/qorelanguage/qore/issues/4562">issue 4562</a>)
     - fixed a bug handling escape codes in regular expression replacement strings (see

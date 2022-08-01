@@ -80,7 +80,7 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
         @see hasDataProvider()
     */
     DataProvider::AbstractDataProvider getDataProvider() {
-        # to avoid circular dependencies, this object loads the ServiceNowRestDataProvider and creates the data provider
+        # to avoid circular dependencies, this object loads the FtpDataProvider and creates the data provider
         # object dynamically
         load_module("FtpDataProvider");
         return create_object("FtpDataProvider", get());

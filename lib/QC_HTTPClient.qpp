@@ -167,15 +167,21 @@ qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket
 HTTPClient httpclient(("url":"http://hostname:8080/path"));
     @endcode
 
-    @param opts sets options and changes default behaviour for the object, etc; key names are case-sensitive and therefore must all be in lower-case:
-    - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the values are @ref True "True" or @ref False "False" indicating if the method can accept a message body; for example:
+    @param opts sets options and changes default behaviour for the object, etc; key names are case-sensitive and
+    therefore must all be in lower-case:
+    - \c additional_methods: An optional hash defining additional HTTP methods to handle.  This allows the HTTPClient
+      class to handle various HTTP extensions like e.g. WebDAV. The hash is defined with new method names as keys; the
+      values are @ref True "True" or @ref False "False" indicating if the method can accept a message body; for
+      example:
     @code{.py}
     # add two new HTTP methods for WebDAV; both require message bodies
     HTTPClient httpclient({"url": url, "additional_methods": {"PROPFIND": True, "MKCOL": True}});
     @endcode
     - \c assume_encoding: assumes the given encoding if the server does not send a charset value
-    - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
-    - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+    - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can be a
+      @ref relative_dates "relative date-time value" for clarity, ex: \c 30s)
+    - \c default_path: The default path to use for new connections if a path is not otherwise specified in the
+      connection URL
     - \c default_port: The default port number to connect to if none is given in the URL
     - \c encoding: The default character encoding for outgoing messge bodies
     - \c encoding_passthru: Do not decode known content-encodings but rather pass the body through as-is
@@ -183,28 +189,47 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
       \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
       like any other response
     - \c headers: A hash of headers to send in every outgoing request
-    - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing message headers
+    - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing
+      message headers
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
-    - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a boolean value to indicate that an SSL connection should be established
+    - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer
+      giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a
+      boolean value to indicate that an SSL connection should be established
     - \c proxy: The proxy URL for connecting through a proxy
     - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead of
       processed
-    - \c ssl_cert_path: a path to an X.509 client certificate file in PEM format; if this option is used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at runtime
-    - \c ssl_key_path: a path to a private key file in PEM format for the X.509 client certificate; if this option is used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at runtime
+    - \c ssl_cert_data: a binary (DER) or string (PEM) value representing the certificate; if this option is used,
+      then \c ssl_cert_path is ignored
+    - \c ssl_cert_path: a path to an X.509 client certificate file in PEM format; if this option is used, then the
+      calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which is checked at
+      runtime
+    - \c ssl_key_data: a binary (DER) or string (PEM) value representing the private key; if this option is used,
+      then \c ssl_key_path is ignored
+    - \c ssl_key_path: a path to a private key file in PEM format for the X.509 client certificate; if this option is
+      used, then the calling context must not be restricted with sandbox restriction @ref Qore::PO_NO_FILESYSTEM which
+      is checked at runtime
     - \c ssl_key_password: the password to the private key given with \c ssl_key_path
     - \c ssl_verify_cert: if @ref True "True" then the server's certificate will only be accepted if it's verified
-    - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for clarity, ex: \c 5m)
+    - \c timeout: The timeout value in milliseconds (also can be a @ref relative_dates "relative date-time value" for
+      clarity, ex: \c 5m)
     - \c url: A string giving the URL to connect to
 
     @throw HTTP-CLIENT-OPTION-ERROR invalid or unknown option passed in option hash
     @throw HTTP-CLIENT-URL-ERROR invalid URL string
     @throw HTTP-CLIENT-UNKNOWN-PROTOCOL unknown protocol passed in URL
-    @throw ILLEGAL-FILESYSTEM-ACCESS if the calling context is restricted with the @ref Qore::PO_NO_FILESYSTEM sandboxing restriction and one of the following options is used: \c ssl_cert_path or \c ssl_key_path
+    @throw ILLEGAL-FILESYSTEM-ACCESS if the calling context is restricted with the @ref Qore::PO_NO_FILESYSTEM
+    sandboxing restriction and one of the following options is used: \c ssl_cert_path or \c ssl_key_path
 
     @note
-    - URLs with UNIX sockets are generally supported in Qore with the following syntax: <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example: \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the host portion of the URL and for the URL to include a URL path as well.
-    - other I/O errors can be thrown opening and reading the certificate and/or private key files if the \c ssl_cert_path or \c ssl_key_path options are used
-    - the @ref Qore::PO_NO_FILESYSTEM sandbox restriction is checked at runtime if one of the following options is used: \c ssl_cert_path or \c ssl_key_path
+    - URLs with UNIX sockets are generally supported in Qore with the following syntax:
+      <tt><b>scheme://socket=</b></tt><i>url_encoded_path</i><tt><b>/path</b></tt>, where <i>url_encoded_path</i> is a
+      path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example:
+      \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the
+      host portion of the URL and for the URL to include a URL path as well.
+    - Other I/O errors can be thrown opening and reading the certificate and/or private key files if the
+      \c ssl_cert_path or \c ssl_key_path options are used
+    - The @ref Qore::PO_NO_FILESYSTEM sandbox restriction is checked at runtime if one of the following options is
+      used: \c ssl_cert_path or \c ssl_key_path
 
     @since
     - %Qore 0.8.13 added the following options:
@@ -222,6 +247,9 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
       - \c encoding
     - %Qore 0.9.5 added the following option:
       - \c headers
+    - %Qore 1.10 added the following options:
+      - \c ssl_cert_data
+      - \c ssl_key_data
  */
 HTTPClient::constructor(hash<auto> opts) {
     ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);

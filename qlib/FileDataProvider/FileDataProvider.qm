@@ -59,10 +59,26 @@ module FileDataProvider {
 
     The following classes are provided by this module:
     - @ref FileDataProvider::FileCopyDataProvider "FileCopyDataProvider"
-    - @ref FileDataProvider::FileDeleteDataProvider "FileDeleteDataProvider"
-    - @ref FileDataProvider::FileDataProvider "FileDataProvider"
+    - @ref FileDataProvider::FileCopyRequestDataType "FileCopyRequestDataType"
+    - @ref FileDataProvider::FileCreateDataProvider "FileCreateDataProvider"
+    - @ref FileDataProvider::FileCreateRequestDataType "FileCreateRequestDataType"
     - @ref FileDataProvider::FileDataProviderFactory "FileDataProviderFactory"
+    - @ref FileDataProvider::FileDataProvider "FileDataProvider"
+    - @ref FileDataProvider::FileDeleteDataProvider "FileDeleteDataProvider"
+    - @ref FileDataProvider::FileGetDataProvider "FileGetDataProvider"
+    - @ref FileDataProvider::FileGetRequestDataType "FileGetRequestDataType"
+    - @ref FileDataProvider::FileGetResponseDataType "FileGetResponseDataType"
+    - @ref FileDataProvider::FileListDataProvider "FileListDataProvider"
+    - @ref FileDataProvider::FileListResponseDataType "FileListResponseDataType"
+    - @ref FileDataProvider::FileMkdirDataProvider "FileMkdirDataProvider"
+    - @ref FileDataProvider::FileMkdirRequestDataType "FileMkdirRequestDataType"
     - @ref FileDataProvider::FileMoveDataProvider "FileMoveDataProvider"
+    - @ref FileDataProvider::FileMoveRequestDataType "FileMoveRequestDataType"
+    - @ref FileDataProvider::FilePathDataType "FilePathDataType"
+    - @ref FileDataProvider::FileStatDataProvider "FileStatDataProvider"
+    - @ref FileDataProvider::FileStatRequestDataType "FileStatRequestDataType"
+    - @ref FileDataProvider::FileStatResponseDataType "FileStatResponseDataType"
+    - @ref FileDataProvider::FileTargetResponseDataType "FileTargetResponseDataType"
 
     @section filedataprovider_relnotes Release Notes
 

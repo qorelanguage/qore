@@ -57,9 +57,21 @@ module FtpDataProvider {
     @ref dataproviderintro "DataProvider" API.
 
     The following classes are provided by this module:
-    - @ref FtpDataProvider::FtpDeleteDataProvider "FtpDeleteDataProvider"
-    - @ref FtpDataProvider::FtpDataProvider "FtpDataProvider"
+    - @ref FtpDataProvider::FtpCreateFileDataProvider "FtpCreateFileDataProvider"
+    - @ref FtpDataProvider::FtpCreateFileRequestDataType "FtpCreateFileRequestDataType"
     - @ref FtpDataProvider::FtpDataProviderFactory "FtpDataProviderFactory"
+    - @ref FtpDataProvider::FtpDataProvider "FtpDataProvider"
+    - @ref FtpDataProvider::FtpDeleteDataProvider "FtpDeleteDataProvider"
+    - @ref FtpDataProvider::FtpGetFileDataProvider "FtpGetFileDataProvider"
+    - @ref FtpDataProvider::FtpGetFileRequestDataType "FtpGetFileRequestDataType"
+    - @ref FtpDataProvider::FtpGetFileResponseDataType "FtpGetFileResponseDataType"
+    - @ref FtpDataProvider::FtpListDataProvider "FtpListDataProvider"
+    - @ref FtpDataProvider::FtpMkdirDataProvider "FtpMkdirDataProvider"
+    - @ref FtpDataProvider::FtpMoveDataProvider "FtpMoveDataProvider"
+    - @ref FtpDataProvider::FtpMoveRequestDataType "FtpMoveRequestDataType"
+    - @ref FtpDataProvider::FtpPathDataType "FtpPathDataType"
+    - @ref FtpDataProvider::FtpStatDataProvider "FtpStatDataProvider"
+    - @ref FtpDataProvider::FtpStatResponseDataType "FtpStatResponseDataType"
 
     @section ftpdataprovider_relnotes Release Notes
 

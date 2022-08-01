@@ -141,9 +141,6 @@ public class ConnectionProviderTest inherits QUnit::Test {
     }
 
     customParseUrlTest() {
-        # Qore::parse_url() must fail on this URL
-        assertThrows("PARSE-URL-ERROR", \Qore::parse_url(), MyConnection::URL);
-
         # and now the custom parsing
         MyConnection db();
         assertEq("pgsql", db.urlh.type);

@@ -93,7 +93,7 @@ public class FileDataProviderTest inherits QUnit::Test {
         })[0];
         assertEq(basename(new_targ), h.name);
 
-        string dir = get_random_string();
+        string dir = join_paths(tmpdir.path, get_random_string());
         prov = fdp.getChildProviderEx("mkdir");
         h = prov.doRequest({
             "path": dir,
@@ -104,7 +104,7 @@ public class FileDataProviderTest inherits QUnit::Test {
         h = prov.doRequest({
             "path": dir,
         });
-        assertEq(dir, h.name);
+        assertEq(basename(dir), h.name);
         assertEq("DIRECTORY", h.type);
     }
 }
