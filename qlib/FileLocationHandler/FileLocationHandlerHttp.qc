@@ -66,11 +66,21 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
                 "type": "bool",
                 "desc": "redirect responses will be passed to the caller instead of folllowed",
             },
+            "ssl_cert_data": <FileHandlerOptionInfo>{
+                "type": "data",
+                "desc": "the X.509 certificate data in PEM format (string) or in DER format (binary); if this "
+                    "option is set, then `ssl_cert_path` is ignored",
+            },
             "ssl_cert_path": <FileHandlerOptionInfo>{
                 "type": "string",
                 "desc": "a path to an X.509 client certificate file in PEM format; if this option is used, then the "
                     "calling context must not be restricted with sandbox restriction `PO_NO_FILESYSTEM` which is "
                     "checked at runtime",
+            },
+            "ssl_key_data": <FileHandlerOptionInfo>{
+                "type": "data",
+                "desc": "the X.509 private key data in PEM format (string) or in DER format (binary); if this "
+                    "option is set, then `ssl_key_path` is ignored",
             },
             "ssl_key_path": <FileHandlerOptionInfo>{
                 "type": "string",

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore HttpClientDataProvider module definition
+#! Qore RestClientDataProvider module definition
 
-/** HttpPostDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** RestPostDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,37 +22,37 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the HttpClientDataProvider module
-public namespace HttpClientDataProvider {
-#! The HTTP post data provider class
-public class HttpClientPostDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the RestClientDataProvider module
+public namespace RestClientDataProvider {
+#! The REST client POST data provider class
+public class RestClientPostDataProvider inherits AbstractDataProvider {
     public {
-        #! HTTP connection
-        HTTPClient http;
+        #! REST client connection
+        RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "HttpClientPostDataProvider",
-            "constructor_options": HttpClientDataProvider::ConstructorOptions,
+            "type": "RestClientPostDataProvider",
+            "constructor_options": RestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new HttpClientCallRequestDataType();
+        const RequestType = new RestClientCallRequestDataType();
 
         #! Response type
-        const ResponseType = new HttpClientCallResponseDataType();
+        const ResponseType = new RestClientCallResponseDataType();
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", HttpClientDataProvider::ConstructorOptions, options);
-        http = HttpClientDataProvider::getHttpConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", RestClientDataProvider::ConstructorOptions, options);
+        rest = RestClientDataProvider::getRestConnection(options);
     }
 
-    #! Creates the object from an HTTP connection
-    constructor(HTTPClient http) {
-        self.http = http;
+    #! Creates the object from a REST connection
+    constructor(RestClient rest) {
+        self.rest = rest;
     }
 
     #! Returns the data provider name
@@ -62,7 +62,7 @@ public class HttpClientPostDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider description
     *string getDesc() {
-        return "HTTP POST data provider; makes a `POST` request to an HTTP server and returns the response";
+        return "REST POST data provider; makes a `POST` request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response
@@ -72,7 +72,7 @@ public class HttpClientPostDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return HttpClientDataProvider::makeRequest(http, "POST", req.body, req.path, req.hdr);
+        return RestClientDataProvider::makeRequest(rest, "POST", req.body, req.path, req.hdr);
     }
 
     #! Returns the description of a successful request message, if any

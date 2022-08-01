@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/*  HttpClientDataProviderFactory.qc Copyright (C) 2022 Qore Technologies s.r.o.
+/*  RestClientDataProviderFactory.qc Copyright (C) 2022 Qore Technologies s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,17 +22,17 @@
 */
 
 #! Main module namespace
-public namespace HttpClientDataProvider {
-#! The httpclient data provider factory
-public class HttpClientDataProviderFactory inherits AbstractDataProviderFactory {
+public namespace RestClientDataProvider {
+#! The restclient data provider factory
+public class RestClientDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         #! Data provider type info
-        static Class cls = new Class("HttpClientDataProvider");
+        static Class cls = new Class("RestClientDataProvider");
 
         #! Factory info
         const FactoryInfo = <DataProviderFactoryInfo>{
-            "name": "httpclient",
-            "desc": "HTTP client data provider factory",
+            "name": "restclient",
+            "desc": "REST client data provider factory",
             "children_can_support_apis": True,
         };
     }
@@ -48,7 +48,7 @@ public class HttpClientDataProviderFactory inherits AbstractDataProviderFactory 
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
     private hash<DataProviderInfo> getProviderInfoImpl() {
-        return HttpClientDataProvider::ProviderInfo;
+        return RestClientDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object

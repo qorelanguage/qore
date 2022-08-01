@@ -62,7 +62,17 @@ public class HttpClientHeadDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider description
     *string headDesc() {
-        return "HTTP HEAD data provider; makes HEAD request to an HTTP server and returns the response";
+        return "HTTP HEAD data provider; makes a `HEAD` request to an HTTP server and returns the response";
+    }
+
+    #! Makes a request and returns the response
+    /** @param req the request info
+        @param request_options the request options after processing by validateRequestOptions()
+
+        @return the response to the request
+    */
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        return HttpClientDataProvider::makeRequest(http, "HEAD", NOTHING, req.path, req.hdr);
     }
 
     #! Makes a request and returnscallwithoutbody

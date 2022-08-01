@@ -782,8 +782,11 @@ hash<auto> ans = rest.post("/orders", ("product": "xyz123", "options": 500));
         @endcode
 
         @param path the URI path to add (will be appended to any root path given in the constructor)
-        @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-        @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+        @param body an optional message body to be included in the request; if a value for this parameter is passed to
+        the method, then the body will be serialized according to the serialization rules set in
+        @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+        @param info an optional reference to a hash that will be used as an output variable giving a hash of request
+        headers and other information about the HTTP request; if present the hash will contain the following keys:
         - \c headers: a hash of outgoing HTTP request headers
         - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
         - \c body-content-type: the outgoing message body Mime \c Content-Type value
@@ -793,15 +796,23 @@ hash<auto> ans = rest.post("/orders", ("product": "xyz123", "options": 500));
         - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
         - \c response-code: the HTTP response code
         - \c response-body: the raw message body in the response (after any content decoding)
-        - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
+        - \c response-serialization: the type of message serialization in the response; see
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
         - \c request-body: the raw message body in the request (before any content encoding)
-        - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
-        @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+        - \c request-serialization: the type of message serialization in the request; see
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
+        @param hdr any headers to be sent with the request; headers here will override default headers for the object
+        as well
 
-        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
+        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any
+        message body is included in the response, it will be deserialized to %Qore data and assigned to the value of
+        the \c "body" key
 
-        @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
-        @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+        @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid
+        serialization)
+        @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an
+        HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response
+        information can be retrieved in the \a info hash output keys as follows:
         - \c "response-code": the HTTP response code given
         - \c "response-headers": a hash of processed response headers
         - \c "response-headers-raw": a hash of raw unprocessed response headers
@@ -827,8 +838,11 @@ hash<auto> ans = rest.del("/orders/1");
         @endcode
 
         @param path the URI path to add (will be appended to any root path given in the constructor)
-        @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-        @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+        @param body an optional message body to be included in the request; if a value for this parameter is passed to
+        the method, then the body will be serialized according to the serialization rules set in
+        @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+        @param info an optional reference to a hash that will be used as an output variable giving a hash of request
+        headers and other information about the HTTP request; if present the hash will contain the following keys:
         - \c headers: a hash of outgoing HTTP request headers
         - \c request-uri: the request URI string sent (ex: \c "DELETE /services/async/38.0/job HTTP/1.1")
         - \c body-content-type: the outgoing message body Mime \c Content-Type value
@@ -838,15 +852,23 @@ hash<auto> ans = rest.del("/orders/1");
         - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
         - \c response-code: the HTTP response code
         - \c response-body: the raw message body in the response (after any content decoding)
-        - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
+        - \c response-serialization: the type of message serialization in the response; see
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
         - \c request-body: the raw message body in the request (before any content encoding)
-        - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
-        @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+        - \c request-serialization: the type of message serialization in the request; see
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
+        @param hdr any headers to be sent with the request; headers here will override default headers for the object
+        as well
 
-        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
+        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any
+        message body is included in the response, it will be deserialized to %Qore data and assigned to the value of
+        the \c "body" key
 
-        @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
-        @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+        @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid
+        serialization)
+        @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an
+        HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response
+        information can be retrieved in the \a info hash output keys as follows:
         - \c "response-code": the HTTP response code given
         - \c "response-headers": a hash of processed response headers
         - \c "response-headers-raw": a hash of raw unprocessed response headers
@@ -1151,7 +1173,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         object for REST message validation (if present, overrides any REST schema validation option provided as a
         connection option)
 
-    @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above options
+    @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above
+    options
 
     @since %RestConnection 1.4
 */
@@ -1293,7 +1316,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     #! returns a @ref RestClient::RestClient "RestClient" object
     /** @param connect if @ref True "True", then the connection is returned already connected
         @param rtopts supports the following runtime option in getImpl():
-        - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object for REST message validation (if present, overrides any REST schema validation option provided as a connection option)
+        - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
+          object for REST message validation (if present, overrides any REST schema validation option provided as a
+          connection option)
 
         @return a @ref RestClient::RestClient "RestClient" object
     */
@@ -1346,8 +1371,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         return "rest";
     }
 
-    #! returns a data provider object for this connection, if supported by any REST schema validator object
-    /** @return a data provider object for this connection, if supported by any REST schema validator object
+    #! returns a data provider object for this connection
+    /** @return a data provider object for this connection; the data provider is:
+        - \c SwaggerDataProvider: if an appropriate schema is configured
+        - \c RestClientDataProvider: if there is no schema configured
 
         @throw DATA-PROVIDER-ERROR this object does not support the data provider API
     */
@@ -1362,20 +1389,25 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 return validator.getDataProvider(rest);
             }
         }
-        throw "DATA-PROVIDER-ERROR", sprintf("there is no validator object in the %s object to use to return a "
-            "data provider", self.className());
+
+        # to avoid circular dependencies, this object loads the RestClientDataProvider and creates the data provider
+        # object dynamically
+        load_module("RestClientDataProvider");
+        return create_object("RestClientDataProvider", get());
     }
 
-    #! returns @ref True if this connection returns a data provider with the @ref getDataProvider() method
-    /** @return @ref True if this connection returns a data provider with the @ref getDataProvider() method
+    #! returns @ref True, as this connection always returns a data provider with the @ref getDataProvider() method
+    /** @return @ref True, as this connection always returns a data provider with the @ref getDataProvider() method
 
         @see @ref getDataProvider()
     */
     bool hasDataProvider() {
-        return exists opts.swagger || opts.validator;
+        return True;
     }
 
-    #! processes options for the constructor; in particular parses any string as a value of the \c "headers" option to return a hash
+    #! processes options for the constructor
+    /** In particular it parses any string as a value of the \c "headers" option to return a hash
+    */
     static hash<auto> processOptions(*hash<auto> opts) {
         hash<auto> rv = {} + opts;
         switch (opts.headers.typeCode()) {

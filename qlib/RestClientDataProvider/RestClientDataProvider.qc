@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore HttpClientDataProvider class definition
+#! Qore RestClientDataProvider class definition
 
-/** HttpClientDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** RestClientDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,14 +22,14 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the HttpClientDataProvider module
-public namespace HttpClientDataProvider {
-#! The HTTP data provider class, provides API classes as children
-public class HttpClientDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the RestClientDataProvider module
+public namespace RestClientDataProvider {
+#! The REST client data provider class, provides API classes as children
+public class RestClientDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "HttpClientDataProvider",
+            "type": "RestClientDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_children": True,
         };
@@ -45,12 +45,43 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
                 "desc": "The connection timeout to use in milliseconds (default: 45 seconds)",
                 "default_value": 45000,
             },
+            "content_encoding": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "Sets the send encoding (if the `send_encoding` option is not set) and the "
+                        "response encoding to request.  The following options are supported:\n"
+                    "- `bzip`: use bzip2 compression\n"
+                    "- `deflate`: use deflate compression\n"
+                    "- `gzip`: use gzip compression\n"
+                    "- `identity`: no compression\n"
+                    "Sets the send encoding (if the `send_encoding` option is not set) and the requested response "
+                    "encoding (note that only outgoing message bodies over `1024` bytes in size are compressed)",
+                "default_value": "gzip",
+            },
+            "data": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "Determines how message bodies are serialized:\n"
+                    "- `auto`: uses the following serialization options in order of availability: `json`, `yaml`, "
+                        "`rawxml`, `xml`, `url`, and `text`\n"
+                    "- `bin`: message bodies are not serialized, binary data is used instead\n"
+                    "- `json`: use JSON serialization\n"
+                    "- `rawxml`: message bodies are encoded with XML without any data type encodings\n"
+                    "- `xml`: use XML-RPC value serialization\n"
+                    "- `text`: message bodies are not serialized, plain text value is used\n"
+                    "- `url`: message bodies are encoded in URL form encoded format (see "
+                        "[RFC 2738 2.2](https://tools.ietf.org/html/rfc1738))\n"
+                    "- `yaml`: use YAML serialization",
+                "default_value": "auto",
+            },
             "error_passthru": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(BoolType),
-                "desc": "If `True` then HTTP status codes indicating errors will not cause an "
-                    "`HTTP-CLIENT-RECEIVE-ERROR` exception to be raised, rather such responses will be "
+                "desc": "If `True` then REST status codes indicating errors will not cause an "
+                    "`REST-CLIENT-RECEIVE-ERROR` exception to be raised, rather such responses will be "
                     "passed through to the caller like any other response",
                 "default_value": False,
+            },
+            "headers": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(HashType),
+                "desc": "An optional hash of headers to send with every request"
             },
             "http_version": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
@@ -61,6 +92,10 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
                 "type": AbstractDataProviderType::get(IntType),
                 "desc": "Maximum redirects to support",
             },
+            "no_charset": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(BoolType),
+                "desc": "If `True` no charset will be added to the `Content-Type` header",
+            },
             "proxy": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "The proxy URL to use",
@@ -69,6 +104,19 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
                 "type": AbstractDataProviderType::get(BoolType),
                 "desc": "if `True` then redirect responses will be passed to the caller instead of processed",
                 "default_value": False,
+            },
+            "send_encoding": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "Sets the send encoding (if the `send_encoding` option is not set) and the "
+                        "response encoding to request.  The following options are supported:\n"
+                    "- `auto`: use `gzip` compression\n"
+                    "- `bzip`: use bzip2 compression\n"
+                    "- `deflate`: use deflate compression\n"
+                    "- `gzip`: use gzip compression\n"
+                    "- `identity`: no compression\n"
+                    "Sets the send encoding (if the `send_encoding` option is not set) and the requested response "
+                    "encoding (note that only outgoing message bodies over `1024` bytes in size are compressed)",
+                "default_value": "auto",
             },
             "ssl_cert_der": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(BoolType),
@@ -106,6 +154,13 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
                 "desc": "if `True` then the server's certificate will only be accepted if it's verified",
                 "default_value": False,
             },
+            "swagger": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType, NOTHING, {
+                    DTT_FromFile: True,
+                    DTT_FromLocation: True,
+                }),
+                "desc": "A Swagger 2.0 schema location or file data for the REST connection",
+            },
             "timeout": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(IntType),
                 "desc": "Transfer timeout to use in milliseconds (default: 45 seconds)",
@@ -113,46 +168,51 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
             },
             "url": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "A URL for an HTTP or HTTPS connection",
+                "desc": "A URL for a REST or RESTS connection",
                 "required": True,
+            },
+            "validator_base_path": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "In case a REST validator is used, the base path in the schema can be overridden with this "
+                    "option",
             },
         };
 
-        HTTPClient http;
+        RestClient rest;
     }
 
     private {
         const ChildMap = {
-            "call": Class::forName("HttpClientDataProvider::HttpClientCallDataProvider"),
-            "delete": Class::forName("HttpClientDataProvider::HttpClientDeleteDataProvider"),
-            "get": Class::forName("HttpClientDataProvider::HttpClientGetDataProvider"),
-            "head": Class::forName("HttpClientDataProvider::HttpClientHeadDataProvider"),
-            "options": Class::forName("HttpClientDataProvider::HttpClientOptionsDataProvider"),
-            "path": Class::forName("HttpClientDataProvider::HttpClientPatchDataProvider"),
-            "post": Class::forName("HttpClientDataProvider::HttpClientPostDataProvider"),
-            "put": Class::forName("HttpClientDataProvider::HttpClientPutDataProvider"),
+            "call": Class::forName("RestClientDataProvider::RestClientCallDataProvider"),
+            "delete": Class::forName("RestClientDataProvider::RestClientDeleteDataProvider"),
+            "get": Class::forName("RestClientDataProvider::RestClientGetDataProvider"),
+            "head": Class::forName("RestClientDataProvider::RestClientHeadDataProvider"),
+            "options": Class::forName("RestClientDataProvider::RestClientOptionsDataProvider"),
+            "path": Class::forName("RestClientDataProvider::RestClientPatchDataProvider"),
+            "post": Class::forName("RestClientDataProvider::RestClientPostDataProvider"),
+            "put": Class::forName("RestClientDataProvider::RestClientPutDataProvider"),
         };
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
-        http = getHttpConnection(options);
+        rest = getRestConnection(options);
     }
 
-    #! Creates the object from an HTTP connection
-    constructor(HTTPClient http) {
-        self.http = http;
+    #! Creates the object from a REST connection
+    constructor(RestClient rest) {
+        self.rest = rest;
     }
 
     #! Returns the data provider name
     string getName() {
-        return "http";
+        return "rest";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "Data provider for HTTP servers";
+        return "Data provider for REST servers";
     }
 
     #! Return data provider summary info
@@ -160,8 +220,8 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
         return map $1.getStaticMember("StaticInfo").getValue(), ChildMap.iterator();
     }
 
-    #! Returns an HTTP connection
-    static HTTPClient getHttpConnection(hash<auto> options) {
+    #! Returns a REST connection
+    static RestClient getRestConnection(hash<auto> options) {
         if (*string loc = remove options.ssl_cert_location) {
             if (options.ssl_cert_location =~ /^[a-z]+:\/\//) {
                 options.ssl_cert_data = options.ssl_cert_der
@@ -180,21 +240,26 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
                 options.ssl_key_path = loc;
             }
         }
-        return new HTTPClient(options);
+        if (*string base_path = remove options.validator_base_path) {
+            options.swagger_base_path = base_path;
+        }
+        return new RestClient(options);
     }
 
-    #! Makes an HTTP request and returns the response
-    static hash<auto> makeRequest(HTTPClient http, string meth, *data body, string path, *hash<auto> hdr) {
+    #! Makes a REST request and returns the response
+    static hash<auto> makeRequest(RestClient rest, string meth, *data body, string path, *hash<auto> hdr) {
         hash<auto> info;
-        hash<auto> resp = http.send(body, meth, path, hdr, NOTHING, \info);
+        hash<auto> resp = rest.doRequest(meth, path, body, \info, NOTHING, hdr);
         return {
             "request-headers": info.headers,
+            "request-serialization": info."request-serialization",
             "request-uri": info."request-uri",
             "response-body": resp.body,
             "response-headers": (map {$1.key.lwr(): $1.value}, info."response-headers-raw".pairIterator()),
             "response-headers-raw": info."response-headers-raw",
+            "response-serialization": info."response-serialization",
             "response-uri": info."response-uri",
-            "status-code": resp.status_code,
+            "status-code": info."response-code",
             "status-message": info."response-headers".status_message,
         };
     }
@@ -216,7 +281,7 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
         if (!cls) {
             return;
         }
-        return cls.newObject(http);
+        return cls.newObject(rest);
     }
 
     #! Returns data provider static info

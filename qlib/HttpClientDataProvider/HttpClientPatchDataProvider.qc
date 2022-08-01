@@ -62,7 +62,7 @@ public class HttpClientPatchDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider description
     *string getDesc() {
-        return "HTTP PATCH data provider; makes PATCH request to an HTTP server and returns the response";
+        return "HTTP PATCH data provider; makes a `PATCH` request to an HTTP server and returns the response";
     }
 
     #! Makes a request and returns the response

@@ -22,16 +22,11 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-%require-types
-%enable-all-warnings
-%new-style
-%strict-args
-
 #! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
 public namespace ConnectionProvider {
 #! base class for HTTP-based connections that need their URLs rewritten to create the real connection object
 /** Example of the usage is in \c RestConnection where the scheme \c rest:// is internally used as \c http://
-    */
+*/
 public class HttpBasedConnection inherits AbstractConnectionWithInfo {
     public {
         #! A string containing real url. With http(s) internal schema.
@@ -50,7 +45,7 @@ public class HttpBasedConnection inherits AbstractConnectionWithInfo {
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string desc, string url, hash<auto> attributes, hash<auto> options)
-        : AbstractConnectionWithInfo(name, desc, url, attributes, options) {
+            : AbstractConnectionWithInfo(name, desc, url, attributes, options) {
         string scheme = (url =~ x/^([^:]+)/)[0];
         bool ssl = (scheme =~ /s$/);
         string targ = "http" + (ssl ? "s" : "");

@@ -43,6 +43,7 @@ public class DataProvider {
             "ftp": "FtpDataProvider",
             "ftppoller": "FtpPoller",
             "httpclient": "HttpClientDataProvider",
+            "restclient": "RestClientDataProvider",
             "salesforcerest": "SalesforceRestDataProvider",
             "servicenowrest": "ServiceNowRestDataProvider",
             "smtpclient": "SmtpClient",

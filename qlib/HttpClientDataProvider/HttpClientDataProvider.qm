@@ -58,8 +58,20 @@ module HttpClientDataProvider {
     @ref dataproviderintro "DataProvider" API.
 
     The following classes are provided by this module:
-    - @ref HttpClientDataProvider::HttpClientDataProvider "HttpClientDataProvider"
+    - @ref HttpClientDataProvider::HttpClientCallDataType "HttpClientCallDataType"
+    - @ref HttpClientDataProvider::HttpClientCallRequestDataType "HttpClientCallRequestDataType"
+    - @ref HttpClientDataProvider::HttpClientCallResponseDataType "HttpClientCallResponseDataType"
+    - @ref HttpClientDataProvider::HttpClientCallWithMethodRequestDataType "HttpClientCallWithMethodRequestDataType"
+    - @ref HttpClientDataProvider::HttpClientCallWithoutBodyRequestDataType "HttpClientCallWithoutBodyRequestDataType"
     - @ref HttpClientDataProvider::HttpClientDataProviderFactory "HttpClientDataProviderFactory"
+    - @ref HttpClientDataProvider::HttpClientDataProvider "HttpClientDataProvider"
+    - @ref HttpClientDataProvider::HttpClientDeleteDataProvider "HttpClientDeleteDataProvider"
+    - @ref HttpClientDataProvider::HttpClientGetDataProvider "HttpClientGetDataProvider"
+    - @ref HttpClientDataProvider::HttpClientHeadDataProvider "HttpClientHeadDataProvider"
+    - @ref HttpClientDataProvider::HttpClientOptionsDataProvider "HttpClientOptionsDataProvider"
+    - @ref HttpClientDataProvider::HttpClientPatchDataProvider "HttpClientPatchDataProvider"
+    - @ref HttpClientDataProvider::HttpClientPostDataProvider "HttpClientPostDataProvider"
+    - @ref HttpClientDataProvider::HttpClientPutDataProvider "HttpClientPutDataProvider"
 
     @section httpclientdataprovider_relnotes Release Notes
 

@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** HttpCallWithMethodRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
+/** RestCallRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,18 +21,13 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the HttpClientDataProvider module
-public namespace HttpClientDataProvider {
-#! Data type for HTTP client request call with an explicit method
-public class HttpClientCallWithMethodRequestDataType inherits HashDataType {
+#! contains all public definitions in the RestClientDataProvider module
+public namespace RestClientDataProvider {
+#! Data type for REST call requests
+public class RestClientCallRequestDataType inherits HashDataType {
     private {
         #! Field descriptions
         const Fields = {
-            "method": {
-                "type": StringType,
-                "desc": "The HTTP method to use",
-                "required": True,
-            },
             "body": {
                 "type": DataOrNothingType,
                 "desc": "The message body",

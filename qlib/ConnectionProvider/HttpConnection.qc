@@ -89,6 +89,11 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                     "desc": "if `True` then redirect responses will be passed to the caller instead of processed",
                     "default_value": False,
                 },
+                "ssl_cert_data": <ConnectionOptionInfo>{
+                    "type": "data",
+                    "desc": "the X.509 certificate data in PEM format (string) or in DER format (binary); if this "
+                        "option is set, then `ssl_cert_path` is ignored",
+                },
                 "ssl_cert_path": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "a path to an X.509 client certificate file in PEM format",
@@ -98,6 +103,11 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                     "type": "string",
                     "desc": "the password to the private key given with `ssl_key_path`",
                     "sensitive": True,
+                },
+                "ssl_key_data": <ConnectionOptionInfo>{
+                    "type": "data",
+                    "desc": "the X.509 private key data in PEM format (string) or in DER format (binary); if this "
+                        "option is set, then `ssl_key_path` is ignored",
                 },
                 "ssl_key_path": <ConnectionOptionInfo>{
                     "type": "string",

@@ -892,7 +892,7 @@ qore_user_module("qlib/Swagger.qm" "Mime;Util;HttpServerUtil;RestSchemaValidator
 qore_user_module("qlib/VscDebugAdapter.qm" "DebugCmdLine;DebugUtil;Util")
 
 # base 6 modules
-qore_user_module("qlib/RestClient.qm" "ConnectionProvider;Mime;RestSchemaValidator;Swagger;FileLocationHandler")
+qore_user_module("qlib/RestClient.qm" "DataProvider;ConnectionProvider;Mime;RestSchemaValidator;Swagger;FileLocationHandler")
 
 # base 7 modules
 qore_user_module("qlib/SalesforceRestClient.qm" "ConnectionProvider;Mime;RestClient;DataProvider")

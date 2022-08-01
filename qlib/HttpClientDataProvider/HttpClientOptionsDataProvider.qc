@@ -56,32 +56,42 @@ public class HttpClientOptionsDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns the data provider name
-    string optionsName() {
+    string getsName() {
         return "options";
     }
 
     #! Returns the data provider description
-    *string optionsDesc() {
-        return "HTTP OPTIONS data provider; makes OPTIONS request to an HTTP server and returns the response";
+    *string getDesc() {
+        return "HTTP OPTIONS data provider; makes an `OPTIONS` request to an HTTP server and returns the response";
+    }
+
+    #! Makes a request and returns the response
+    /** @param req the request info
+        @param request_options the request options after processing by validateRequestOptions()
+
+        @return the response to the request
+    */
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        return HttpClientDataProvider::makeRequest(http, "OPTIONS", NOTHING, req.path, req.hdr);
     }
 
     #! Makes a request and returnscallwithoutbody
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType optionsRequestTypeImpl() {
+    private *AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType optionsResponseTypeImpl() {
+    private *AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> optionsStaticInfoImpl() {
+    hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }

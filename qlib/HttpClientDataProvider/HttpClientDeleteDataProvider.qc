@@ -62,7 +62,7 @@ public class HttpClientDeleteDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider description
     *string getDesc() {
-        return "HTTP DELETE data provider; makes DELETE request to an HTTP server and returns the response";
+        return "HTTP DELETE data provider; makes a `DELETE` request to an HTTP server and returns the response";
     }
 
     #! Makes a request and returns the response

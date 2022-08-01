@@ -62,7 +62,17 @@ public class HttpClientGetDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider description
     *string getDesc() {
-        return "HTTP GET data provider; makes GET request to an HTTP server and returns the response";
+        return "HTTP GET data provider; makes a `GET` request to an HTTP server and returns the response";
+    }
+
+    #! Makes a request and returns the response
+    /** @param req the request info
+        @param request_options the request options after processing by validateRequestOptions()
+
+        @return the response to the request
+    */
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        return HttpClientDataProvider::makeRequest(http, "GET", NOTHING, req.path, req.hdr);
     }
 
     #! Makes a request and returnscallwithoutbody
