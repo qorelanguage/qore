@@ -849,7 +849,7 @@ qore_user_module("qlib/TextWrap.qm" "Util")
 # base 3 modules
 qore_user_module("qlib/FilePoller.qm" "Util;DataProvider")
 qore_user_module("qlib/FileDataProvider" "FsUtil;DataProvider")
-qore_user_module("qlib/FtpDataProvider" "DataProvider")
+qore_user_module("qlib/FtpClientDataProvider" "DataProvider")
 qore_user_module("qlib/HttpClientDataProvider" "DataProvider;FileLocationHandler")
 qore_user_module("qlib/SqlUtil" "Util;DataProvider")
 qore_user_module("qlib/ConnectionProvider" "Util;DataProvider")
@@ -906,9 +906,11 @@ qore_user_module("qlib/AwsRestClient.qm" "ConnectionProvider;RestClient;RestSche
 qore_user_module("qlib/SwaggerDataProvider" "Swagger;RestClient;RestSchemaValidator;DataProvider")
 qore_user_module("qlib/CdsRestDataProvider" "RestClient;CdsRestClient;RestSchemaValidator;DataProvider")
 qore_user_module("qlib/ServiceNowRestDataProvider" "RestClient;ServiceNowRestClient;RestSchemaValidator;DataProvider")
+qore_user_module("qlib/RestClientDataProvider" "RestClient;DataProvider")
 
 # base 8 modules
 qore_user_module("qlib/SalesforceRestDataProvider" "RestClient;SalesforceRestClient;DataProvider")
+qore_user_module("qlib/AwsRestClientDataProvider" "RestClient;DataProvider;RestClientDataProvider")
 
 # print info
 message(STATUS "")

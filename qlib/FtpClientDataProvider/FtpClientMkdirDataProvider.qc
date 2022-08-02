@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FtpDataProvider module definition
+#! Qore FtpClientDataProvider module definition
 
-/** FtpMoveDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpClientMkdirDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,32 +22,29 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! The FTP move data provider class
-public class FtpMoveDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the FtpClientDataProvider module
+public namespace FtpClientDataProvider {
+#! The FTP client mkdir data provider class
+public class FtpClientMkdirDataProvider inherits AbstractDataProvider {
     public {
         #! FTP connection
         FtpClient ftp;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FtpMoveDataProvider",
-            "constructor_options": FtpDataProvider::ConstructorOptions,
+            "type": "FtpClientMkdirDataProvider",
+            "constructor_options": FtpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new FtpMoveRequestDataType();
-
-        #! Response type
-        const ResponseType = new FtpPathDataType();
+        const RequestType = new FtpClientPathDataType();
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", FtpDataProvider::ConstructorOptions, options);
-        ftp = FtpDataProvider::getFtpConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", FtpClientDataProvider::ConstructorOptions, options);
+        ftp = FtpClientDataProvider::getFtpClientConnection(options);
     }
 
     #! Creates the object from an FTP connection
@@ -57,13 +54,13 @@ public class FtpMoveDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider name
     string getName() {
-        return "move";
+        return "mkdir";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "FTP move data provider; moves a file on a remote FTP server given the source and target paths as "
-            "arguments";
+        return "FTP mkdir data provider; creates a directory on the server given the path "
+            "as an argument";
     }
 
     #! Makes a request and returns the response
@@ -73,11 +70,10 @@ public class FtpMoveDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string source = FtpDataProvider::getPath(ftp, req.source);
-        string target = FtpDataProvider::getPath(ftp, req.target);
-        ftp.rename(source, target);
+        string path = FtpClientDataProvider::getPath(ftp, req.path);
+        ftp.mkdir(path);
         return {
-            "path": target,
+            "path": path,
         };
     }
 

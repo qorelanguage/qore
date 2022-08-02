@@ -1,0 +1,84 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! Qore FtpClientDataProvider module definition
+
+/*  FtpClientDataProvider.qm Copyright 2022 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 1.10
+# assume local scope for variables, do not use "$" signs
+%new-style
+# require type definitions everywhere
+%require-types
+# strict argument handling
+%strict-args
+# enable all warnings
+%enable-all-warnings
+
+%requires(reexport) DataProvider
+
+module FtpClientDataProvider {
+    version = "1.0";
+    desc = "user module providing a data provider API for FTP servers";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::registerFactory(new FtpClientDataProviderFactory());
+    };
+}
+
+/** @mainpage FtpClientDataProvider Module
+
+    @tableofcontents
+
+    @section ftpclientdataproviderintro Introduction to the FtpClientDataProvider Module
+
+    The %FtpClientDataProvider module provides a data provider API for FTP servers through the
+    @ref dataproviderintro "DataProvider" API.
+
+    The following classes are provided by this module:
+    - @ref FtpClientDataProvider::FtpClientCreateFileDataProvider "FtpClientCreateFileDataProvider"
+    - @ref FtpClientDataProvider::FtpClientCreateFileRequestDataType "FtpClientCreateFileRequestDataType"
+    - @ref FtpClientDataProvider::FtpClientDataProviderFactory "FtpClientDataProviderFactory"
+    - @ref FtpClientDataProvider::FtpClientDataProvider "FtpClientDataProvider"
+    - @ref FtpClientDataProvider::FtpClientDeleteDataProvider "FtpClientDeleteDataProvider"
+    - @ref FtpClientDataProvider::FtpClientGetFileDataProvider "FtpClientGetFileDataProvider"
+    - @ref FtpClientDataProvider::FtpClientGetFileRequestDataType "FtpClientGetFileRequestDataType"
+    - @ref FtpClientDataProvider::FtpClientGetFileResponseDataType "FtpClientGetFileResponseDataType"
+    - @ref FtpClientDataProvider::FtpClientListDataProvider "FtpClientListDataProvider"
+    - @ref FtpClientDataProvider::FtpClientMkdirDataProvider "FtpClientMkdirDataProvider"
+    - @ref FtpClientDataProvider::FtpClientMoveDataProvider "FtpClientMoveDataProvider"
+    - @ref FtpClientDataProvider::FtpClientMoveRequestDataType "FtpClientMoveRequestDataType"
+    - @ref FtpClientDataProvider::FtpClientPathDataType "FtpClientPathDataType"
+    - @ref FtpClientDataProvider::FtpClientStatDataProvider "FtpClientStatDataProvider"
+    - @ref FtpClientDataProvider::FtpClientStatResponseDataType "FtpClientStatResponseDataType"
+
+    @section ftpclientdataprovider_relnotes Release Notes
+
+    @subsection ftpclientdataprovider_v1_0 FtpClientDataProvider v1.0
+    - initial release of the module
+*/
+
+#! contains all public definitions in the FtpClientDataProvider module
+public namespace FtpClientDataProvider {
+}

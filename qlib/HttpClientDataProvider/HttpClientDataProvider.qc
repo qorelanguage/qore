@@ -56,6 +56,15 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
                 "default_value": "1.1",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "value": "1.0",
+                        "desc": "Use HTTP version \"1.0\"",
+                    }, <AllowedValueInfo>{
+                        "value": "1.1",
+                        "desc": "Use HTTP version \"1.1\" (the default)",
+                    },
+                ),
             },
             "max_redirects": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(IntType),
@@ -128,7 +137,7 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
             "get": Class::forName("HttpClientDataProvider::HttpClientGetDataProvider"),
             "head": Class::forName("HttpClientDataProvider::HttpClientHeadDataProvider"),
             "options": Class::forName("HttpClientDataProvider::HttpClientOptionsDataProvider"),
-            "path": Class::forName("HttpClientDataProvider::HttpClientPatchDataProvider"),
+            "patch": Class::forName("HttpClientDataProvider::HttpClientPatchDataProvider"),
             "post": Class::forName("HttpClientDataProvider::HttpClientPostDataProvider"),
             "put": Class::forName("HttpClientDataProvider::HttpClientPutDataProvider"),
         };

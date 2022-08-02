@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** FtpMoveRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpClientMoveRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,10 +21,10 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! Data type for FTP get file request calls
-public class FtpMoveRequestDataType inherits HashDataType {
+#! contains all public definitions in the FtpClientDataProvider module
+public namespace FtpClientDataProvider {
+#! Data type for FTP client get file request calls
+public class FtpClientMoveRequestDataType inherits HashDataType {
     private {
         #! Field descriptions
         const Fields = {

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FtpDataProvider module definition
+#! Qore AwsRestClientDataProvider module definition
 
-/** FtpGetFileDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** AwsRestGetDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,69 +22,60 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! The FTP get file data provider class
-public class FtpGetFileDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the AwsRestClientDataProvider module
+public namespace AwsRestClientDataProvider {
+#! The AWS REST client GET data provider class
+public class AwsRestClientGetDataProvider inherits AbstractDataProvider {
     public {
-        #! FTP connection
-        FtpClient ftp;
+        #! REST client connection
+        AwsRestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FtpGetFileDataProvider",
-            "constructor_options": FtpDataProvider::ConstructorOptions,
+            "type": "AwsRestClientGetDataProvider",
+            "constructor_options": AwsRestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new FtpGetFileRequestDataType();
+        const RequestType = new RestClientCallWithoutBodyRequestDataType();
 
         #! Response type
-        const ResponseType = new FtpGetFileResponseDataType();
+        const ResponseType = new RestClientCallResponseDataType();
     }
 
-    #! Gets the object from constructor options
+    #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", FtpDataProvider::ConstructorOptions, options);
-        ftp = FtpDataProvider::getFtpConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", AwsRestClientDataProvider::ConstructorOptions, options);
+        rest = AwsRestClientDataProvider::getAwsRestConnection(options);
     }
 
-    #! Gets the object from an FTP connection
-    constructor(FtpClient ftp) {
-        self.ftp = ftp;
+    #! Creates the object from a REST connection
+    constructor(AwsRestClient rest) {
+        self.rest = rest;
     }
 
     #! Returns the data provider name
     string getName() {
-        return "get-file";
+        return "get";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "FTP get file data provider; gets a file in the given location";
+        return "AWS REST GET data provider; makes a `GET` request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response
     /** @param req the request info
-        @param request_options the request options; will be processed by validateRequestOptions()
+        @param request_options the request options after processing by validateRequestOptions()
 
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string path = FtpDataProvider::getPath(ftp, req.path);
-        OutputStream out = req.text
-            ? new StringOutputStream(req.encoding)
-            : new BinaryOutputStream();
-        ftp.get(path, out);
-        return {
-            "path": path,
-            "data": req.text
-                ? cast<StringOutputStream>(out).getData()
-                : cast<BinaryOutputStream>(out).getData(),
-        };
+        return RestClientDataProvider::makeRequest(rest, "GET", NOTHING, req.path, req.hdr);
     }
 
+    #! Makes a request and returnscallwithoutbody
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */

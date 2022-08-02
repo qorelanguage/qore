@@ -56,7 +56,7 @@ public class HttpClientOptionsDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns the data provider name
-    string getsName() {
+    string getName() {
         return "options";
     }
 

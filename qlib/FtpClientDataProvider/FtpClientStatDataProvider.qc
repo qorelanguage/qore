@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FtpDataProvider module definition
+#! Qore FtpClientDataProvider module definition
 
-/** FtpStatDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpClientStatDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,32 +22,32 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! The FTP stat data provider class
-public class FtpStatDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the FtpClientDataProvider module
+public namespace FtpClientDataProvider {
+#! The FTP client stat data provider class
+public class FtpClientStatDataProvider inherits AbstractDataProvider {
     public {
         #! FTP connection
         FtpClient ftp;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FtpStatDataProvider",
-            "constructor_options": FtpDataProvider::ConstructorOptions,
+            "type": "FtpClientStatDataProvider",
+            "constructor_options": FtpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new FtpPathDataType();
+        const RequestType = new FtpClientPathDataType();
 
         #! Response type
-        const ResponseType = new FtpStatResponseDataType();
+        const ResponseType = new FtpClientStatResponseDataType();
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", FtpDataProvider::ConstructorOptions, options);
-        ftp = FtpDataProvider::getFtpConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", FtpClientDataProvider::ConstructorOptions, options);
+        ftp = FtpClientDataProvider::getFtpClientConnection(options);
     }
 
     #! Creates the object from an FTP connection
@@ -73,7 +73,7 @@ public class FtpStatDataProvider inherits AbstractDataProvider {
 
         hash<FtpResponseInfo> mh = ftp.sendControlMessage("SIZE", path);
         if (mh."code" == 550) {
-            if (FtpStatDataProvider::checkDir(ftp, path)) {
+            if (FtpClientStatDataProvider::checkDir(ftp, path)) {
                 mtime = 1970-01-01Z;
                 size = 0;
                 type = "DIRECTORY";
@@ -91,9 +91,9 @@ public class FtpStatDataProvider inherits AbstractDataProvider {
                 throw "FTP-STAT-ERROR", sprintf("%s: SIZE failure: %d %y ", path, mh."code", mh.msg);
             }
             size = mh.msg.toInt();
-            mtime = FtpStatDataProvider::getModifiedTime(ftp, path);
+            mtime = FtpClientStatDataProvider::getModifiedTime(ftp, path);
 
-            if (FtpStatDataProvider::checkDir(ftp, path)) {
+            if (FtpClientStatDataProvider::checkDir(ftp, path)) {
                 type = "DIRECTORY";
             } else {
                 type = "REGULAR";
@@ -138,7 +138,7 @@ public class FtpStatDataProvider inherits AbstractDataProvider {
         @throw STAT-ERROR if the path cannot be read
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string path = FtpDataProvider::getPath(ftp, req.path);
+        string path = FtpClientDataProvider::getPath(ftp, req.path);
         return doStat(ftp, path);
     }
 

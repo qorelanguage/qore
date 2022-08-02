@@ -27,7 +27,29 @@ public class HttpClientDataProviderTest inherits QUnit::Test {
 
     httpClientDataProviderTest() {
         HttpClientDataProvider parent({"url": "localhost"});
-        AbstractDataProvider prov = parent.getChildProviderEx("post");
+
+        AbstractDataProvider prov = parent.getChildProviderEx("call");
+        assertEq("call", prov.getName());
+
+        prov = parent.getChildProviderEx("delete");
+        assertEq("delete", prov.getName());
+
+        prov = parent.getChildProviderEx("get");
+        assertEq("get", prov.getName());
+
+        prov = parent.getChildProviderEx("head");
+        assertEq("head", prov.getName());
+
+        prov = parent.getChildProviderEx("options");
+        assertEq("options", prov.getName());
+
+        prov = parent.getChildProviderEx("post");
         assertEq("post", prov.getName());
+
+        prov = parent.getChildProviderEx("put");
+        assertEq("put", prov.getName());
+
+        prov = parent.getChildProviderEx("patch");
+        assertEq("patch", prov.getName());
     }
 }

@@ -46,6 +46,15 @@ public const UpsertResultUnchanged = "unchanged";
 public const UpsertResultDeleted = "deleted";
 #@}
 
+#! Allowed value hash
+public hashdecl AllowedValueInfo {
+    #! The value
+    auto value;
+
+    #! Description for the value
+    string desc;
+}
+
 #! Data provider option info
 public hashdecl DataProviderOptionInfo {
     #! The option value type or types
@@ -62,6 +71,9 @@ public hashdecl DataProviderOptionInfo {
 
     #! Is the option value sensitive?
     bool sensitive = False;
+
+    #! List of allowed values (enum)
+    *softlist<hash<AllowedValueInfo>> allowed_values;
 }
 
 #! Data provider summary info

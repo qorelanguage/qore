@@ -43,14 +43,9 @@ public class CdsRestDataProvider inherits DataProvider::AbstractDataProvider {
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "the CDS API version to use",
             },
-            "cdsrestclient": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(new Type("CdsRestClient")),
-                "desc": "the CdsRestClient object",
-            },
             "cdsrestclient_options": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "options to the CdsRestClient constructor; only used if a CdsRestClient object "
-                    "is created for a call",
+                "desc": "options to the CdsRestClient constructor",
             },
             "client_id": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
@@ -70,8 +65,8 @@ public class CdsRestDataProvider inherits DataProvider::AbstractDataProvider {
             },
             "url": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the URL to the CDS server; overrides any URL in the schema or in any RestClient object "
-                    "passed as an option",
+                "desc": "the URL to the CDS server",
+                "required": True,
             },
         };
 
@@ -115,14 +110,7 @@ public class CdsRestDataProvider inherits DataProvider::AbstractDataProvider {
                 exists ENV{$1.value} && !exists options{$1.key};
         }
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
-        if (copts.cdsrestclient) {
-            copts.cdsrestclient.checkClientOptions(copts);
-            rest = copts.cdsrestclient;
-        }
-
-        if (!rest) {
-            rest = new CdsRestClient(getClientOptions(copts));
-        }
+        rest = new CdsRestClient(getClientOptions(copts));
     }
 
     #! Returns the data provider name

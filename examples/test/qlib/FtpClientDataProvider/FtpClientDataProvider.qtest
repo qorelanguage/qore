@@ -12,14 +12,14 @@
 %requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/FsUtil.qm
-%requires ../../../../qlib/FtpDataProvider
+%requires ../../../../qlib/FtpClientDataProvider
 
 %include  ../../qore/classes/FtpServer.qc
 
-%exec-class FtpDataProviderTest
+%exec-class FtpClientDataProviderTest
 
-public class FtpDataProviderTest inherits QUnit::Test {
-    constructor() : Test("FtpDataProvider Test", "1.0") {
+public class FtpClientDataProviderTest inherits QUnit::Test {
+    constructor() : Test("FtpClientDataProvider Test", "1.0") {
         addTestCase("test", \ftpDataProviderTest());
 
         # Return for compatibility with test harness that checks return value.
@@ -40,7 +40,7 @@ public class FtpDataProviderTest inherits QUnit::Test {
         port = serv.getPort();
         string url = sprintf("ftp://user:pass@127.0.0.1:%d", port);
 
-        FtpDataProvider root({"url": url});
+        FtpClientDataProvider root({"url": url});
         AbstractDataProvider prov = root.getChildProviderEx("create-file");
         string str = get_random_string();
         string path = "/test.txt";

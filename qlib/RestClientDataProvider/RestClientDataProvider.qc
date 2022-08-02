@@ -48,29 +48,58 @@ public class RestClientDataProvider inherits AbstractDataProvider {
             "content_encoding": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "Sets the send encoding (if the `send_encoding` option is not set) and the "
-                        "response encoding to request.  The following options are supported:\n"
-                    "- `bzip`: use bzip2 compression\n"
-                    "- `deflate`: use deflate compression\n"
-                    "- `gzip`: use gzip compression\n"
-                    "- `identity`: no compression\n"
+                        "response encoding to request"
                     "Sets the send encoding (if the `send_encoding` option is not set) and the requested response "
                     "encoding (note that only outgoing message bodies over `1024` bytes in size are compressed)",
                 "default_value": "gzip",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "value": "gzip",
+                        "desc": "use GNU zip encoding ([RFC 1952](https://tools.ietf.org/html/rfc1952))",
+                    }, <AllowedValueInfo>{
+                        "value": "bzip2",
+                        "desc": "use bzip2 encoding",
+                    }, <AllowedValueInfo>{
+                        "value": "deflate",
+                        "desc": "use the deflate algorithm ([RFC 1951](https://tools.ietf.org/html/rfc1951))",
+                    }, <AllowedValueInfo>{
+                        "value": "identity",
+                        "desc": "use no content encoding",
+                    },
+                ),
             },
             "data": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "Determines how message bodies are serialized:\n"
-                    "- `auto`: uses the following serialization options in order of availability: `json`, `yaml`, "
-                        "`rawxml`, `xml`, `url`, and `text`\n"
-                    "- `bin`: message bodies are not serialized, binary data is used instead\n"
-                    "- `json`: use JSON serialization\n"
-                    "- `rawxml`: message bodies are encoded with XML without any data type encodings\n"
-                    "- `xml`: use XML-RPC value serialization\n"
-                    "- `text`: message bodies are not serialized, plain text value is used\n"
-                    "- `url`: message bodies are encoded in URL form encoded format (see "
-                        "[RFC 2738 2.2](https://tools.ietf.org/html/rfc1738))\n"
-                    "- `yaml`: use YAML serialization",
+                "desc": "Determines how message bodies are serialized",
                 "default_value": "auto",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "value": "auto",
+                        "desc": "Prefers in this order: `json`, `yaml`, `rawxml`, `xml`, `url`, and `text`",
+                    }, <AllowedValueInfo>{
+                        "value": "bin",
+                        "desc": "For binary message bodies without data serialization",
+                    }, <AllowedValueInfo>{
+                        "value": "json",
+                        "desc": "Use JSON serialization",
+                    }, <AllowedValueInfo>{
+                        "value": "rawxml",
+                        "desc": "Message bodies are encoded with XML without any data type encodings",
+                    }, <AllowedValueInfo>{
+                        "value": "text",
+                        "desc": "Use only plain text; no serialization is used",
+                    }, <AllowedValueInfo>{
+                        "value": "url",
+                        "desc": "For URL-encoded message bodies "
+                            "(see [RFC 2738 2.2](https://tools.ietf.org/html/rfc1738))",
+                    }, <AllowedValueInfo>{
+                        "value": "xml",
+                        "desc": "Use only XML-RPC value serialization",
+                    }, <AllowedValueInfo>{
+                        "value": "yaml",
+                        "desc": "Use only YAML serialization",
+                    },
+                ),
             },
             "error_passthru": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(BoolType),
@@ -87,6 +116,15 @@ public class RestClientDataProvider inherits AbstractDataProvider {
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
                 "default_value": "1.1",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "value": "1.0",
+                        "desc": "Use HTTP version \"1.0\"",
+                    }, <AllowedValueInfo>{
+                        "value": "1.1",
+                        "desc": "Use HTTP version \"1.1\" (the default)",
+                    },
+                ),
             },
             "max_redirects": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(IntType),
@@ -107,16 +145,23 @@ public class RestClientDataProvider inherits AbstractDataProvider {
             },
             "send_encoding": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "Sets the send encoding (if the `send_encoding` option is not set) and the "
-                        "response encoding to request.  The following options are supported:\n"
-                    "- `auto`: use `gzip` compression\n"
-                    "- `bzip`: use bzip2 compression\n"
-                    "- `deflate`: use deflate compression\n"
-                    "- `gzip`: use gzip compression\n"
-                    "- `identity`: no compression\n"
-                    "Sets the send encoding (if the `send_encoding` option is not set) and the requested response "
+                "desc": "Sets the send encoding (if the `send_encoding` option is not set) and the requested response "
                     "encoding (note that only outgoing message bodies over `1024` bytes in size are compressed)",
-                "default_value": "auto",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "value": "gzip",
+                        "desc": "use GNU zip encoding ([RFC 1952](https://tools.ietf.org/html/rfc1952))",
+                    }, <AllowedValueInfo>{
+                        "value": "bzip2",
+                        "desc": "use bzip2 encoding",
+                    }, <AllowedValueInfo>{
+                        "value": "deflate",
+                        "desc": "use the deflate algorithm ([RFC 1951](https://tools.ietf.org/html/rfc1951))",
+                    }, <AllowedValueInfo>{
+                        "value": "identity",
+                        "desc": "use no content encoding",
+                    },
+                ),
             },
             "ssl_cert_der": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(BoolType),
@@ -188,7 +233,7 @@ public class RestClientDataProvider inherits AbstractDataProvider {
             "get": Class::forName("RestClientDataProvider::RestClientGetDataProvider"),
             "head": Class::forName("RestClientDataProvider::RestClientHeadDataProvider"),
             "options": Class::forName("RestClientDataProvider::RestClientOptionsDataProvider"),
-            "path": Class::forName("RestClientDataProvider::RestClientPatchDataProvider"),
+            "patch": Class::forName("RestClientDataProvider::RestClientPatchDataProvider"),
             "post": Class::forName("RestClientDataProvider::RestClientPostDataProvider"),
             "put": Class::forName("RestClientDataProvider::RestClientPutDataProvider"),
         };
@@ -222,6 +267,30 @@ public class RestClientDataProvider inherits AbstractDataProvider {
 
     #! Returns a REST connection
     static RestClient getRestConnection(hash<auto> options) {
+        options = RestClientDataProvider::processRestOptions(options);
+        return new RestClient(options);
+    }
+
+    #! Makes a REST request and returns the response
+    static hash<auto> makeRequest(RestClient rest, string meth, *data body, string path, *hash<auto> hdr) {
+        hash<auto> info;
+        hash<auto> resp = rest.doRequest(meth, path, body, \info, NOTHING, hdr);
+        return {
+            "request-headers": info.headers,
+            "request-serialization": info."request-serialization",
+            "request-uri": info."request-uri",
+            "response-body": resp.body,
+            "response-headers": (map {$1.key.lwr(): $1.value}, info."response-headers-raw".pairIterator()),
+            "response-headers-raw": info."response-headers-raw",
+            "response-serialization": info."response-serialization",
+            "response-uri": info."response-uri",
+            "status-code": info."response-code",
+            "status-message": info."response-headers".status_message,
+        };
+    }
+
+    #! Processes common REST options
+    static hash<auto> processRestOptions(hash<auto> options) {
         if (*string loc = remove options.ssl_cert_location) {
             if (options.ssl_cert_location =~ /^[a-z]+:\/\//) {
                 options.ssl_cert_data = options.ssl_cert_der
@@ -243,25 +312,7 @@ public class RestClientDataProvider inherits AbstractDataProvider {
         if (*string base_path = remove options.validator_base_path) {
             options.swagger_base_path = base_path;
         }
-        return new RestClient(options);
-    }
-
-    #! Makes a REST request and returns the response
-    static hash<auto> makeRequest(RestClient rest, string meth, *data body, string path, *hash<auto> hdr) {
-        hash<auto> info;
-        hash<auto> resp = rest.doRequest(meth, path, body, \info, NOTHING, hdr);
-        return {
-            "request-headers": info.headers,
-            "request-serialization": info."request-serialization",
-            "request-uri": info."request-uri",
-            "response-body": resp.body,
-            "response-headers": (map {$1.key.lwr(): $1.value}, info."response-headers-raw".pairIterator()),
-            "response-headers-raw": info."response-headers-raw",
-            "response-serialization": info."response-serialization",
-            "response-uri": info."response-uri",
-            "status-code": info."response-code",
-            "status-message": info."response-headers".status_message,
-        };
+        return options;
     }
 
     #! Returns a list of child data provider names, if any

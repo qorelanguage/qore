@@ -53,10 +53,7 @@ public class DbDataProvider inherits AbstractDataProvider {
                     AbstractDataProviderType::get(new Type("AbstractDatasource")),
                 ),
                 "desc": "the datasource connection string or an abstract datasource object",
-            },
-            "database": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(new Type("AbstractDatabase")),
-                "desc": "the database for the object",
+                "required": True,
             },
         };
 
@@ -120,18 +117,6 @@ public class DbDataProvider inherits AbstractDataProvider {
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
-        if (copts.database instanceof AbstractDatabase) {
-            if (copts.datasource instanceof AbstractDatasource
-                && copts.datasource != copts.database.getDatasource()) {
-                error("CONSTRUCTOR-ERROR", "option \"database\" is based on a different datasource than the one "
-                    "supplied in the \"datasource\" option");
-            }
-            self.db = copts.database;
-            return;
-        }
-        if (!copts.datasource) {
-            error("CONSTRUCTOR-ERROR", "option \"datasource\" is required if no \"database\" option is provided");
-        }
         AbstractDatasource ds;
         if (copts.datasource instanceof AbstractDatasource) {
             ds = copts.datasource;

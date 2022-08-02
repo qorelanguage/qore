@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** FtpGetFileRequestDataType.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpClientPathDataType.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,26 +21,16 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! Data type for FTP get file request calls
-public class FtpGetFileRequestDataType inherits HashDataType {
+#! contains all public definitions in the FtpClientDataProvider module
+public namespace FtpClientDataProvider {
+#! Data type for FTP client stat request calls
+public class FtpClientPathDataType inherits HashDataType {
     private {
         #! Field descriptions
         const Fields = {
             "path": {
                 "type": StringType,
-                "desc": "The path on the FTP server",
-            },
-            "text": {
-                "type": BoolType,
-                "desc": "If `True` the file will be returned as a string, `False` (the default) as binary data",
-                "default_value": False,
-            },
-            "encoding": {
-                "type": StringType,
-                "desc": "The string encoding to use if `text` = `True` (default: `UTF-8`)",
-                "default_value": "UTF-8",
+                "desc": "The FTP path for the operation",
             },
         };
     }

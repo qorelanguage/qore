@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FtpDataProvider module definition
+#! Qore AwsRestClientDataProvider module definition
 
-/** FtpCreateFileDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** AwsRestCallDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,47 +22,47 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! The FTP create file data provider class
-public class FtpCreateFileDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the AwsRestClientDataProvider module
+public namespace AwsRestClientDataProvider {
+#! The AWS REST client call data provider class
+public class AwsRestClientCallDataProvider inherits AbstractDataProvider {
     public {
-        #! FTP connection
-        FtpClient ftp;
+        #! REST client connection
+        AwsRestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FtpCreateFileDataProvider",
-            "constructor_options": FtpDataProvider::ConstructorOptions,
+            "type": "AwsRestClientCallDataProvider",
+            "constructor_options": AwsRestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new FtpCreateFileRequestDataType();
+        const RequestType = new RestClientCallWithMethodRequestDataType();
 
         #! Response type
-        const ResponseType = new FtpPathDataType();
+        const ResponseType = new RestClientCallResponseDataType();
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", FtpDataProvider::ConstructorOptions, options);
-        ftp = FtpDataProvider::getFtpConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", AwsRestClientDataProvider::ConstructorOptions, options);
+        rest = AwsRestClientDataProvider::getAwsRestConnection(options);
     }
 
-    #! Creates the object from an FTP connection
-    constructor(FtpClient ftp) {
-        self.ftp = ftp;
+    #! Creates the object from a REST connection
+    constructor(AwsRestClient rest) {
+        self.rest = rest;
     }
 
     #! Returns the data provider name
     string getName() {
-        return "create-file";
+        return "call";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "FTP create file data provider; creates a file in the given location";
+        return "AWS REST call data provider; makes a request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response
@@ -72,13 +72,7 @@ public class FtpCreateFileDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string path = FtpDataProvider::getPath(ftp, req.path);
-        ftp.put(req."data".typeCode() == NT_STRING
-            ? new StringInputStream(req."data")
-            : new BinaryInputStream(req."data"), path);
-        return {
-            "path": path,
-        };
+        return RestClientDataProvider::makeRequest(rest, req.method, req.body, req.path, req.hdr);
     }
 
     #! Returns the description of a successful request message, if any

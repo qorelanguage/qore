@@ -36,7 +36,8 @@ DOX_SRC_SPLIT_MODULES = \
     qlib/SqlUtil \
     qlib/DataProvider \
     qlib/DbDataProvider \
-    qlib/FileLocationHandler
+    qlib/FileLocationHandler \
+    qlib/RestClientDataProvider
 
 DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
@@ -83,8 +84,9 @@ DOX_SPLIT_MODULES = \
     qlib/CdsRestDataProvider \
     qlib/ServiceNowRestDataProvider \
     qlib/FileDataProvider \
-    qlib/FtpDataProvider \
-    qlib/HttpClientDataProvider
+    qlib/FtpClientDataProvider \
+    qlib/HttpClientDataProvider \
+    qlib/AwsRestClientDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -98,6 +100,7 @@ SwaggerDataProvider_modverdir = $(modverdir)/SwaggerDataProvider
 SalesforceRestDataProvider_modverdir = $(modverdir)/SalesforceRestDataProvider
 CdsRestDataProvider_modverdir = $(modverdir)/CdsRestDataProvider
 ServiceNowRestDataProvider_modverdir = $(modverdir)/ServiceNowRestDataProvider
+RestClientDataProvider_modverdir = $(modverdir)/RestClientDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
@@ -111,6 +114,7 @@ dist_SwaggerDataProvider_modver_DATA = $(wildcard qlib/SwaggerDataProvider/*.q[c
 dist_SalesforceRestDataProvider_modver_DATA = $(wildcard qlib/SalesforceRestDataProvider/*.q[cm])
 dist_CdsRestDataProvider_modver_DATA = $(wildcard qlib/CdsRestDataProvider/*.q[cm])
 dist_ServiceNowRestDataProvider_modver_DATA = $(wildcard qlib/ServiceNowRestDataProvider/*.q[cm])
+dist_RestClientDataProvider_modver_DATA = $(wildcard qlib/RestClientDataProvider/*.q[cm])
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
@@ -1069,6 +1073,9 @@ doxygen/qlib/Doxyfile.Swagger: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.RestClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/RestClient.qm:doxygen/qlib/RestClient.qm -tDataProvider.tag=../../DataProvider/html -tMime.tag=../../Mime/html -tConnectionProvider.tag=../../ConnectionProvider/html -tRestSchemaValidator.tag=../../RestSchemaValidator/html -tSwagger.tag=../../Swagger/html $< $@
+
+doxygen/qlib/Doxyfile.RestClientDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/RestClientDataProvider:doxygen/qlib/RestClientDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html $< $@
 
 doxygen/qlib/Doxyfile.DebugUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/DebugUtil.qm:doxygen/qlib/DebugUtil.qm $< $@

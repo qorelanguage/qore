@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore RestClientDataProvider module definition
+#! Qore FtpClientDataProvider module definition
 
-/** RestHeadDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpClientMoveDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,60 +22,65 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the RestClientDataProvider module
-public namespace RestClientDataProvider {
-#! The REST client HEAD data provider class
-public class RestClientHeadDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the FtpClientDataProvider module
+public namespace FtpClientDataProvider {
+#! The FTP client move data provider class
+public class FtpClientMoveDataProvider inherits AbstractDataProvider {
     public {
-        #! REST client connection
-        RestClient rest;
+        #! FTP connection
+        FtpClient ftp;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "RestClientHeadDataProvider",
-            "constructor_options": RestClientDataProvider::ConstructorOptions,
+            "type": "FtpClientMoveDataProvider",
+            "constructor_options": FtpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new RestClientCallWithoutBodyRequestDataType();
+        const RequestType = new FtpClientMoveRequestDataType();
 
         #! Response type
-        const ResponseType = new RestClientCallResponseDataType();
+        const ResponseType = new FtpClientPathDataType();
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", RestClientDataProvider::ConstructorOptions, options);
-        rest = RestClientDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", FtpClientDataProvider::ConstructorOptions, options);
+        ftp = FtpClientDataProvider::getFtpClientConnection(options);
     }
 
-    #! Creates the object from a REST connection
-    constructor(RestClient rest) {
-        self.rest = rest;
+    #! Creates the object from an FTP connection
+    constructor(FtpClient ftp) {
+        self.ftp = ftp;
     }
 
     #! Returns the data provider name
     string getName() {
-        return "head";
+        return "move";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "REST HEAD data provider; makes a `HEAD` request to a REST server and returns the response";
+        return "FTP move data provider; moves a file on a remote FTP server given the source and target paths as "
+            "arguments";
     }
 
     #! Makes a request and returns the response
     /** @param req the request info
-        @param request_options the request options after processing by validateRequestOptions()
+        @param request_options the request options; will be processed by validateRequestOptions()
 
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return RestClientDataProvider::makeRequest(rest, "HEAD", NOTHING, req.path, req.hdr);
+        string source = FtpClientDataProvider::getPath(ftp, req.source);
+        string target = FtpClientDataProvider::getPath(ftp, req.target);
+        ftp.rename(source, target);
+        return {
+            "path": target,
+        };
     }
 
-    #! Makes a request and returnscallwithoutbody
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
@@ -87,7 +92,7 @@ public class RestClientHeadDataProvider inherits AbstractDataProvider {
     /** @return the response type for this response message
     */
     private *AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return RequestType;
     }
 
     #! Returns data provider static info

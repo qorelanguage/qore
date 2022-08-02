@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FtpDataProvider class definition
+#! Qore FtpClientDataProvider class definition
 
-/** FtpDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpClientDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,14 +22,14 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! The FTP data provider class, provides API classes as children
-public class FtpDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the FtpClientDataProvider module
+public namespace FtpClientDataProvider {
+#! The FTP client data provider class, provides API classes as children
+public class FtpClientDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FtpDataProvider",
+            "type": "FtpClientDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_children": True,
         };
@@ -52,20 +52,20 @@ public class FtpDataProvider inherits AbstractDataProvider {
 
     private {
         const ChildMap = {
-            "create-file": Class::forName("FtpDataProvider::FtpCreateFileDataProvider"),
-            "delete": Class::forName("FtpDataProvider::FtpDeleteDataProvider"),
-            "get-file": Class::forName("FtpDataProvider::FtpGetFileDataProvider"),
-            "list": Class::forName("FtpDataProvider::FtpListDataProvider"),
-            "mkdir": Class::forName("FtpDataProvider::FtpMkdirDataProvider"),
-            "move": Class::forName("FtpDataProvider::FtpMoveDataProvider"),
-            "stat": Class::forName("FtpDataProvider::FtpStatDataProvider"),
+            "create-file": Class::forName("FtpClientDataProvider::FtpClientCreateFileDataProvider"),
+            "delete": Class::forName("FtpClientDataProvider::FtpClientDeleteDataProvider"),
+            "get-file": Class::forName("FtpClientDataProvider::FtpClientGetFileDataProvider"),
+            "list": Class::forName("FtpClientDataProvider::FtpClientListDataProvider"),
+            "mkdir": Class::forName("FtpClientDataProvider::FtpClientMkdirDataProvider"),
+            "move": Class::forName("FtpClientDataProvider::FtpClientMoveDataProvider"),
+            "stat": Class::forName("FtpClientDataProvider::FtpClientStatDataProvider"),
         };
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
-        ftp = getFtpConnection(options);
+        ftp = getFtpClientConnection(options);
     }
 
     #! Creates the object from an FTP connection
@@ -89,7 +89,7 @@ public class FtpDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns an FTP connection from constructor options
-    static FtpClient getFtpConnection(hash<auto> options) {
+    static FtpClient getFtpClientConnection(hash<auto> options) {
         FtpClient ftp(options.url);
         if (options."timeout") {
             ftp.setTimeout(options."timeout");

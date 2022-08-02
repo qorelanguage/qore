@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FtpDataProvider module definition
+#! Qore FtpClientDataProvider module definition
 
-/** FtpDeleteDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpClientListDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,29 +22,32 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! The FTP delete data provider class
-public class FtpDeleteDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the FtpClientDataProvider module
+public namespace FtpClientDataProvider {
+#! The FTP client list data provider class
+public class FtpClientListDataProvider inherits AbstractDataProvider {
     public {
         #! FTP connection
         FtpClient ftp;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FtpDeleteDataProvider",
-            "constructor_options": FtpDataProvider::ConstructorOptions,
+            "type": "FtpClientListDataProvider",
+            "constructor_options": FtpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new FtpPathDataType();
+        const RequestType = new FtpClientPathDataType();
+
+        #! Response type
+        const ResponseType = new ListDataType(FtpClientStatDataProvider::ResponseType, True);
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", FtpDataProvider::ConstructorOptions, options);
-        ftp = FtpDataProvider::getFtpConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", FtpClientDataProvider::ConstructorOptions, options);
+        ftp = FtpClientDataProvider::getFtpClientConnection(options);
     }
 
     #! Creates the object from an FTP connection
@@ -54,13 +57,12 @@ public class FtpDeleteDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider name
     string getName() {
-        return "delete";
+        return "list";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "FTP delete data provider; deletes files on a remote FTP server given the path "
-            "as an argument";
+        return "FTP list data provider; returns file information about the path given as an argument";
     }
 
     #! Makes a request and returns the response
@@ -68,25 +70,12 @@ public class FtpDeleteDataProvider inherits AbstractDataProvider {
         @param request_options the request options; will be processed by validateRequestOptions()
 
         @return the response to the request
+
+        @throw LIST-ERROR if the path cannot be read
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string path = FtpDataProvider::getPath(ftp, req.path);
-        hash<FtpResponseInfo> mh = ftp.sendControlMessage("SIZE", path);
-        if (mh."code" == 550) {
-            on_error rethrow "DELETE-ERROR", sprintf("%y: cannot delete path: %s", path, $1.desc);
-            try {
-                ftp.cwd(path);
-            } catch (hash<ExceptionInfo> ex) {
-                ftp.del(path);
-            }
-            # check if it's a directory
-            ftp.rmdir(path);
-        } else {
-            ftp.del(path);
-        }
-        return {
-            "path": path,
-        };
+        string path = FtpClientDataProvider::getPath(ftp, req.path);
+        return map FtpClientStatDataProvider::doStat(ftp, $1, True), ftp.nlst(path).split("\r\n");
     }
 
     #! Returns the description of a successful request message, if any
@@ -100,7 +89,7 @@ public class FtpDeleteDataProvider inherits AbstractDataProvider {
     /** @return the response type for this response message
     */
     private *AbstractDataProviderType getResponseTypeImpl() {
-        return RequestType;
+        return ResponseType;
     }
 
     #! Returns data provider static info

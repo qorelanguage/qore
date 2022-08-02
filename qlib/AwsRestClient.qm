@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9.5
+%requires qore >= 1.10
 
 # require type definitions everywhere
 %require-types
@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.4
 
 module AwsRestClient {
-    version = "1.1";
+    version = "1.2";
     desc = "user module for calling AWS REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -95,6 +95,10 @@ printf("%N\n", ans.body);
     @endcode
 
     @section Awsrestclientrelnotes Release Notes
+
+    @subsection awsrestclientv2_0 AwsRestClient v1.2
+    - added support for the DataProvider API
+      (<a href="https://github.com/qorelanguage/qore/issues/4564">issue 4564</a>)
 
     @subsection awsrestclientv1_1 AwsRestClient v1.1
     - implemented support for a data provider scheme cache and rich option information for connections
@@ -492,13 +496,47 @@ public class AwsRestConnection inherits RestClient::RestConnection {
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : RestConnection(name, description, url, attributes, options) {
+            : RestConnection(name, description, url, attributes, options) {
         real_opts = {"url": real_url} + urlh.("username", "password") + self.opts;
     }
 
     #! returns \c "awsrest"
     string getType() {
         return "awsrest";
+    }
+
+    #! returns a data provider object for this connection
+    /** @return a data provider object for this connection; the data provider is:
+        - \c SwaggerDataProvider: if an appropriate schema is configured
+        - \c RestClientDataProvider: if there is no schema configured
+
+        @throw DATA-PROVIDER-ERROR this object does not support the data provider API
+    */
+    DataProvider::AbstractDataProvider getDataProvider() {
+        if (opts.validator || opts.swagger) {
+            # get a REST client object without connecting
+            AwsRestClient rest = get(False);
+            # get any validator
+            *AbstractRestSchemaValidator validator = rest.getValidator();
+            if (validator) {
+                # if there's a validator, return the provider
+                return validator.getDataProvider(rest);
+            }
+        }
+
+        # to avoid circular dependencies, this object loads the RestClientDataProvider and creates the data provider
+        # object dynamically
+        load_module("AwsRestClientDataProvider");
+        return create_object("AwsRestClientDataProvider", get());
+    }
+
+    #! returns @ref True, as this connection always returns a data provider with the @ref getDataProvider() method
+    /** @return @ref True, as this connection always returns a data provider with the @ref getDataProvider() method
+
+        @see @ref getDataProvider()
+    */
+    bool hasDataProvider() {
+        return True;
     }
 
     #! returns a @ref AwsRestClient::AwsRestClient object

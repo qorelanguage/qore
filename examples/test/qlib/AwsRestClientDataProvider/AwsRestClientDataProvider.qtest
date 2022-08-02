@@ -1,0 +1,37 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/AwsRestClientDataProvider
+
+%exec-class AwsRestClientDataProviderTest
+
+public class AwsRestClientDataProviderTest inherits QUnit::Test {
+    constructor() : Test("AwsRestClientDataProvider Test", "1.0") {
+        addTestCase("test", \httpClientDataProviderTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    httpClientDataProviderTest() {
+        assertThrows("SOCKET-CONNECT-ERROR", sub () { AwsRestClientDataProvider parent({"url": "localhost:1"}); });
+        assertThrows("SOCKET-CONNECT-ERROR", sub () { AwsRestClientCallDataProvider parent({"url": "localhost:1"}); });
+        assertThrows("SOCKET-CONNECT-ERROR", sub () { AwsRestClientDeleteDataProvider parent({"url": "localhost:1"}); });
+        assertThrows("SOCKET-CONNECT-ERROR", sub () { AwsRestClientGetDataProvider parent({"url": "localhost:1"}); });
+        assertThrows("SOCKET-CONNECT-ERROR", sub () { AwsRestClientHeadDataProvider parent({"url": "localhost:1"}); });
+        assertThrows("SOCKET-CONNECT-ERROR", sub () { AwsRestClientOptionsDataProvider parent({"url": "localhost:1"}); });
+        assertThrows("SOCKET-CONNECT-ERROR", sub () { AwsRestClientPostDataProvider parent({"url": "localhost:1"}); });
+        assertThrows("SOCKET-CONNECT-ERROR", sub () { AwsRestClientPutDataProvider parent({"url": "localhost:1"}); });
+        assertThrows("SOCKET-CONNECT-ERROR", sub () { AwsRestClientPatchDataProvider parent({"url": "localhost:1"}); });
+    }
+}

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore FtpDataProvider module definition
+#! Qore FtpClientDataProvider module definition
 
-/** FtpListDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** FtpClientCreateFileDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,32 +22,32 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the FtpDataProvider module
-public namespace FtpDataProvider {
-#! The FTP list data provider class
-public class FtpListDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the FtpClientDataProvider module
+public namespace FtpClientDataProvider {
+#! The FTP client create file data provider class
+public class FtpClientCreateFileDataProvider inherits AbstractDataProvider {
     public {
         #! FTP connection
         FtpClient ftp;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "FtpListDataProvider",
-            "constructor_options": FtpDataProvider::ConstructorOptions,
+            "type": "FtpClientCreateFileDataProvider",
+            "constructor_options": FtpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new FtpPathDataType();
+        const RequestType = new FtpClientCreateFileRequestDataType();
 
         #! Response type
-        const ResponseType = new ListDataType(FtpStatDataProvider::ResponseType, True);
+        const ResponseType = new FtpClientPathDataType();
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", FtpDataProvider::ConstructorOptions, options);
-        ftp = FtpDataProvider::getFtpConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", FtpClientDataProvider::ConstructorOptions, options);
+        ftp = FtpClientDataProvider::getFtpClientConnection(options);
     }
 
     #! Creates the object from an FTP connection
@@ -57,25 +57,28 @@ public class FtpListDataProvider inherits AbstractDataProvider {
 
     #! Returns the data provider name
     string getName() {
-        return "list";
+        return "create-file";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "FTP list data provider; returns file information about the path given as an argument";
+        return "FTP create file data provider; creates a file in the given location";
     }
 
     #! Makes a request and returns the response
     /** @param req the request info
-        @param request_options the request options; will be processed by validateRequestOptions()
+        @param request_options the request options after processing by validateRequestOptions()
 
         @return the response to the request
-
-        @throw LIST-ERROR if the path cannot be read
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string path = FtpDataProvider::getPath(ftp, req.path);
-        return map FtpStatDataProvider::doStat(ftp, $1, True), ftp.nlst(path).split("\r\n");
+        string path = FtpClientDataProvider::getPath(ftp, req.path);
+        ftp.put(req."data".typeCode() == NT_STRING
+            ? new StringInputStream(req."data")
+            : new BinaryInputStream(req."data"), path);
+        return {
+            "path": path,
+        };
     }
 
     #! Returns the description of a successful request message, if any

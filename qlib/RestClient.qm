@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.7.5";
+    version = "1.8";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -126,6 +126,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_8 RestClient v1.8
+    - added support for the DataProvider API
+      (<a href="https://github.com/qorelanguage/qore/issues/4564">issue 4564</a>)
 
     @subsection restclientv1_7_5 RestClient v1.7.5
     - fixed a bug where REST schema validation was not applied in all contexts with specialized REST clients; this

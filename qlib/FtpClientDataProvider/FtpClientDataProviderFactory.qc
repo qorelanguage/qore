@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/*  FtpDataProviderFactory.qc Copyright (C) 2022 Qore Technologies s.r.o.
+/*  FtpClientDataProviderFactory.qc Copyright (C) 2022 Qore Technologies s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,17 +22,17 @@
 */
 
 #! Main module namespace
-public namespace FtpDataProvider {
-#! The ftp data provider factory
-public class FtpDataProviderFactory inherits AbstractDataProviderFactory {
+public namespace FtpClientDataProvider {
+#! The ftpclient data provider factory
+public class FtpClientDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         #! Data provider type info
-        static Class cls = new Class("FtpDataProvider");
+        static Class cls = new Class("FtpClientDataProvider");
 
         #! Factory info
         const FactoryInfo = <DataProviderFactoryInfo>{
-            "name": "ftp",
-            "desc": "FTP data provider factory",
+            "name": "ftpclient",
+            "desc": "FTP client data provider factory",
             "children_can_support_apis": True,
         };
     }
@@ -48,7 +48,7 @@ public class FtpDataProviderFactory inherits AbstractDataProviderFactory {
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
     private hash<DataProviderInfo> getProviderInfoImpl() {
-        return FtpDataProvider::ProviderInfo;
+        return FtpClientDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object

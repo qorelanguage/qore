@@ -40,7 +40,7 @@ public class DataProvider {
             "filepoller": "FilePoller",
             "fixedlengthread": "FixedLengthUtil",
             "fixedlengthwrite": "FixedLengthUtil",
-            "ftp": "FtpDataProvider",
+            "ftpclient": "FtpClientDataProvider",
             "ftppoller": "FtpPoller",
             "httpclient": "HttpClientDataProvider",
             "restclient": "RestClientDataProvider",

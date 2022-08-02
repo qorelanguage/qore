@@ -141,6 +141,36 @@ public class RestClientDataProviderTest inherits QUnit::Test {
             hash<auto> h = prov.doRequest({"path": "/api_bin"});
             assertEq("0", h."response-headers"."content-length");
         }
+
+        {
+            RestClientDataProvider parent({"url": "http://localhost:" + port});
+            AbstractDataProvider prov = parent.getChildProviderEx("delete");
+            assertEq("delete", prov.getName());
+        }
+
+        {
+            RestClientDataProvider parent({"url": "http://localhost:" + port});
+            AbstractDataProvider prov = parent.getChildProviderEx("head");
+            assertEq("head", prov.getName());
+        }
+
+        {
+            RestClientDataProvider parent({"url": "http://localhost:" + port});
+            AbstractDataProvider prov = parent.getChildProviderEx("patch");
+            assertEq("patch", prov.getName());
+        }
+
+        {
+            RestClientDataProvider parent({"url": "http://localhost:" + port});
+            AbstractDataProvider prov = parent.getChildProviderEx("post");
+            assertEq("post", prov.getName());
+        }
+
+        {
+            RestClientDataProvider parent({"url": "http://localhost:" + port});
+            AbstractDataProvider prov = parent.getChildProviderEx("put");
+            assertEq("put", prov.getName());
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore RestClientDataProvider module definition
+#! Qore AwsRestClientDataProvider module definition
 
-/** RestHeadDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
+/** AwsRestPutDataProvider.qc Copyright 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,23 +22,23 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! contains all public definitions in the RestClientDataProvider module
-public namespace RestClientDataProvider {
-#! The REST client HEAD data provider class
-public class RestClientHeadDataProvider inherits AbstractDataProvider {
+#! contains all public definitions in the AwsRestClientDataProvider module
+public namespace AwsRestClientDataProvider {
+#! The AWS REST client PUT data provider class
+public class AwsRestClientPutDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        AwsRestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "RestClientHeadDataProvider",
-            "constructor_options": RestClientDataProvider::ConstructorOptions,
+            "type": "AwsRestClientPutDataProvider",
+            "constructor_options": AwsRestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
         #! Request type
-        const RequestType = new RestClientCallWithoutBodyRequestDataType();
+        const RequestType = new RestClientCallRequestDataType();
 
         #! Response type
         const ResponseType = new RestClientCallResponseDataType();
@@ -46,23 +46,23 @@ public class RestClientHeadDataProvider inherits AbstractDataProvider {
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", RestClientDataProvider::ConstructorOptions, options);
-        rest = RestClientDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", AwsRestClientDataProvider::ConstructorOptions, options);
+        rest = AwsRestClientDataProvider::getAwsRestConnection(options);
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(AwsRestClient rest) {
         self.rest = rest;
     }
 
     #! Returns the data provider name
     string getName() {
-        return "head";
+        return "put";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return "REST HEAD data provider; makes a `HEAD` request to a REST server and returns the response";
+        return "AWS REST PUT data provider; makes a `PUT` request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response
@@ -72,10 +72,9 @@ public class RestClientHeadDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return RestClientDataProvider::makeRequest(rest, "HEAD", NOTHING, req.path, req.hdr);
+        return RestClientDataProvider::makeRequest(rest, "PUT", req.body, req.path, req.hdr);
     }
 
-    #! Makes a request and returnscallwithoutbody
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */

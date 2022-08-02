@@ -56,12 +56,12 @@ public class HttpClientHeadDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns the data provider name
-    string headName() {
+    string getName() {
         return "head";
     }
 
     #! Returns the data provider description
-    *string headDesc() {
+    *string getDesc() {
         return "HTTP HEAD data provider; makes a `HEAD` request to an HTTP server and returns the response";
     }
 
@@ -79,19 +79,19 @@ public class HttpClientHeadDataProvider inherits AbstractDataProvider {
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType headRequestTypeImpl() {
+    private *AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType headResponseTypeImpl() {
+    private *AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> headStaticInfoImpl() {
+    hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }

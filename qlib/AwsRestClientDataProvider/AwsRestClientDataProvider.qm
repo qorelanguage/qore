@@ -1,0 +1,86 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! Qore AwsRestClientDataProvider module definition
+
+/*  AwsRestClientDataProvider.qm Copyright 2022 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 1.10
+# assume local scope for variables, do not use "$" signs
+%new-style
+# require type definitions everywhere
+%require-types
+# strict argument handling
+%strict-args
+# enable all warnings
+%enable-all-warnings
+
+%requires(reexport) DataProvider
+%requires(reexport) AwsRestClient
+%requires(reexport) RestClientDataProvider
+%requires FileLocationHandler
+
+module AwsRestClientDataProvider {
+    version = "1.0";
+    desc = "user module providing a data provider API for AWS REST servers";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::registerFactory(new AwsRestClientDataProviderFactory());
+    };
+}
+
+/** @mainpage AwsRestClientDataProvider Module
+
+    @tableofcontents
+
+    @section restclientdataproviderintro Introduction to the AwsRestClientDataProvider Module
+
+    The %AwsRestClientDataProvider module provides a data provider API for REST servers through the
+    @ref dataproviderintro "DataProvider" API.
+
+    The following classes are provided by this module:
+    - @ref AwsRestClientDataProvider::AwsRestClientCallDataType "AwsRestClientCallDataType"
+    - @ref AwsRestClientDataProvider::AwsRestClientCallRequestDataType "AwsRestClientCallRequestDataType"
+    - @ref AwsRestClientDataProvider::AwsRestClientCallResponseDataType "AwsRestClientCallResponseDataType"
+    - @ref AwsRestClientDataProvider::AwsRestClientCallWithMethodRequestDataType "AwsRestClientCallWithMethodRequestDataType"
+    - @ref AwsRestClientDataProvider::AwsRestClientCallWithoutBodyRequestDataType "AwsRestClientCallWithoutBodyRequestDataType"
+    - @ref AwsRestClientDataProvider::AwsRestClientDataProviderFactory "AwsRestClientDataProviderFactory"
+    - @ref AwsRestClientDataProvider::AwsRestClientDataProvider "AwsRestClientDataProvider"
+    - @ref AwsRestClientDataProvider::AwsRestClientDeleteDataProvider "AwsRestClientDeleteDataProvider"
+    - @ref AwsRestClientDataProvider::AwsRestClientGetDataProvider "AwsRestClientGetDataProvider"
+    - @ref AwsRestClientDataProvider::AwsRestClientHeadDataProvider "AwsRestClientHeadDataProvider"
+    - @ref AwsRestClientDataProvider::AwsRestClientOptionsDataProvider "AwsRestClientOptionsDataProvider"
+    - @ref AwsRestClientDataProvider::AwsRestClientPatchDataProvider "AwsRestClientPatchDataProvider"
+    - @ref AwsRestClientDataProvider::AwsRestClientPostDataProvider "AwsRestClientPostDataProvider"
+    - @ref AwsRestClientDataProvider::AwsRestClientPutDataProvider "AwsRestClientPutDataProvider"
+
+    @section restclientdataprovider_relnotes Release Notes
+
+    @subsection restclientdataprovider_v1_0 AwsRestClientDataProvider v1.0
+    - initial release of the module
+*/
+
+#! contains all public definitions in the AwsRestClientDataProvider module
+public namespace AwsRestClientDataProvider {
+}
