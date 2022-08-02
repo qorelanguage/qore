@@ -1135,7 +1135,7 @@ public class SmtpClientDataProvider inherits DataProvider::AbstractDataProvider 
 
     #! Return data provider summary info
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getStaticMember("StaticInfo").getValue(), ChildMap.iterator();
+        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
     }
 
     #! Returns a list of child data provider names, if any
@@ -1172,10 +1172,17 @@ public class SmtpClientSendEmailDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "send-email",
+            "desc": "SMTP send email data provider",
             "type": "SmtpClientSendEmailDataProvider",
             "constructor_options": SmtpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new SmtpSendEmailRequestDataType();
@@ -1219,11 +1226,6 @@ public class SmtpClientSendEmailDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "send-email";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "SMTP send email data provider";
     }
 
     #! Makes a request and returns the response

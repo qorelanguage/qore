@@ -29,9 +29,17 @@ public class FileDeleteDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "delete",
+            "desc": "File delete data provider; deletes files or entire directory trees on the filesystem given a "
+                "path as an argument",
             "type": "FileDeleteDataProvider",
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new FilePathDataType();
@@ -40,12 +48,6 @@ public class FileDeleteDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "delete";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "File delete data provider; deletes files or entire directory trees on the filesystem given a path "
-            "as an argument";
     }
 
     #! Makes a request and returns the response

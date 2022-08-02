@@ -32,10 +32,17 @@ public class HttpClientPutDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "put",
+            "desc": "HTTP PUT data provider; makes PUT request to an HTTP server and returns the response",
             "type": "HttpClientPutDataProvider",
             "constructor_options": HttpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new HttpClientCallRequestDataType();
@@ -58,11 +65,6 @@ public class HttpClientPutDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "put";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "HTTP PUT data provider; makes PUT request to an HTTP server and returns the response";
     }
 
     #! Makes a request and returns the response

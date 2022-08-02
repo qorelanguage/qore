@@ -29,9 +29,16 @@ public class FileMkdirDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "mkdir",
+            "desc": "File mkdir data provider; creates a directory given a path as an argument",
             "type": "FileMkdirDataProvider",
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new FileMkdirRequestDataType();
@@ -43,11 +50,6 @@ public class FileMkdirDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "mkdir";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "File mkdir data provider; creates a directory given a path as an argument";
     }
 
     #! Makes a request and returns the response

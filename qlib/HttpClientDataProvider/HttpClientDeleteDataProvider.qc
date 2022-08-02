@@ -32,10 +32,17 @@ public class HttpClientDeleteDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "delete",
+            "desc": "HTTP DELETE data provider; makes a `DELETE` request to an HTTP server and returns the response",
             "type": "HttpClientDeleteDataProvider",
             "constructor_options": HttpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new HttpClientCallRequestDataType();
@@ -58,11 +65,6 @@ public class HttpClientDeleteDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "delete";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "HTTP DELETE data provider; makes a `DELETE` request to an HTTP server and returns the response";
     }
 
     #! Makes a request and returns the response

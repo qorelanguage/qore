@@ -32,10 +32,17 @@ public class RestClientHeadDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "head",
+            "desc": "REST HEAD data provider; makes a `HEAD` request to a REST server and returns the response",
             "type": "RestClientHeadDataProvider",
             "constructor_options": RestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new RestClientCallWithoutBodyRequestDataType();
@@ -58,11 +65,6 @@ public class RestClientHeadDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "head";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "REST HEAD data provider; makes a `HEAD` request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response

@@ -29,9 +29,17 @@ public class FileCopyDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "copy",
+            "desc": "File copy data provider; copies files or entire directory trees on the filesystem given source "
+                "and target paths as arguments",
             "type": "FileCopyDataProvider",
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new FileCopyRequestDataType();
@@ -43,12 +51,6 @@ public class FileCopyDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "copy";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "File copy data provider; copies files or entire directory trees on the filesystem given source and "
-            "target paths as arguments";
     }
 
     #! Makes a request and returns the response

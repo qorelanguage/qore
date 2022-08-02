@@ -32,10 +32,18 @@ public class FtpClientDeleteDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "delete",
+            "desc": "FTP delete data provider; deletes files on a remote FTP server given the path "
+               "as an argument",
             "type": "FtpClientDeleteDataProvider",
             "constructor_options": FtpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new FtpClientPathDataType();
@@ -55,12 +63,6 @@ public class FtpClientDeleteDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "delete";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "FTP delete data provider; deletes files on a remote FTP server given the path "
-            "as an argument";
     }
 
     #! Makes a request and returns the response

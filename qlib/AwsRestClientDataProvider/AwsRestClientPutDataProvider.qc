@@ -32,10 +32,17 @@ public class AwsRestClientPutDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "put",
+            "desc": "AWS REST PUT data provider; makes a `PUT` request to a REST server and returns the response",
             "type": "AwsRestClientPutDataProvider",
             "constructor_options": AwsRestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new RestClientCallRequestDataType();
@@ -58,11 +65,6 @@ public class AwsRestClientPutDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "put";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "AWS REST PUT data provider; makes a `PUT` request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response

@@ -32,10 +32,17 @@ public class RestClientPostDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "post",
+            "desc": "REST POST data provider; makes a `POST` request to a REST server and returns the response",
             "type": "RestClientPostDataProvider",
             "constructor_options": RestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new RestClientCallRequestDataType();
@@ -58,11 +65,6 @@ public class RestClientPostDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "post";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "REST POST data provider; makes a `POST` request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response

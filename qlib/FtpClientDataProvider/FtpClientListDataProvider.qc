@@ -32,10 +32,17 @@ public class FtpClientListDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "list",
+            "desc": "FTP list data provider; returns file information about the path given as an argument",
             "type": "FtpClientListDataProvider",
             "constructor_options": FtpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new FtpClientPathDataType();
@@ -58,11 +65,6 @@ public class FtpClientListDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "list";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "FTP list data provider; returns file information about the path given as an argument";
     }
 
     #! Makes a request and returns the response

@@ -32,10 +32,17 @@ public class HttpClientCallDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "call",
+            "desc": "HTTP call data provider; makes a request to an HTTP server and returns the response",
             "type": "HttpClientCallDataProvider",
             "constructor_options": HttpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new HttpClientCallWithMethodRequestDataType();
@@ -58,11 +65,6 @@ public class HttpClientCallDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "call";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "HTTP call data provider; makes a request to an HTTP server and returns the response";
     }
 
     #! Makes a request and returns the response

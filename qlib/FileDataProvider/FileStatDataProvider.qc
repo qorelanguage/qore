@@ -29,9 +29,16 @@ public class FileStatDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "stat",
+            "desc": "File stat data provider; returns information about the path given as an argument",
             "type": "FileStatDataProvider",
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new FileStatRequestDataType();

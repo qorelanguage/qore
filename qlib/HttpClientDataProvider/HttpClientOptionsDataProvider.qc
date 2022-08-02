@@ -32,10 +32,17 @@ public class HttpClientOptionsDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "options",
+            "desc": "HTTP OPTIONS data provider; makes an `OPTIONS` request to an HTTP server and returns the response",
             "type": "HttpClientOptionsDataProvider",
             "constructor_options": HttpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new HttpClientCallWithoutBodyRequestDataType();
@@ -58,11 +65,6 @@ public class HttpClientOptionsDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "options";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "HTTP OPTIONS data provider; makes an `OPTIONS` request to an HTTP server and returns the response";
     }
 
     #! Makes a request and returns the response

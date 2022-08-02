@@ -64,7 +64,7 @@ public class FileDataProvider inherits AbstractDataProvider {
 
     #! Return data provider summary info
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getStaticMember("StaticInfo").getValue(), ChildMap.iterator();
+        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
     }
 
     #! Returns a list of child data provider names, if any

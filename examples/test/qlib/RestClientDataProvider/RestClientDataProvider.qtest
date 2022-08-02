@@ -117,7 +117,13 @@ public class RestClientDataProviderTest inherits QUnit::Test {
     httpClientDataProviderTest() {
         {
             RestClientDataProvider parent({"url": "http://localhost:" + port});
+            hash<DataProviderSummaryInfo> sinfo = parent.getSummaryInfo();
+            assertEq("rest", sinfo.name);
+            assertEq(Type::String, sinfo.desc.type());
             AbstractDataProvider prov = parent.getChildProviderEx("get");
+            sinfo = prov.getSummaryInfo();
+            assertEq("get", sinfo.name);
+            assertEq(Type::String, sinfo.desc.type());
             assertEq("get", prov.getName());
 
             assertThrows("REST-RESPONSE-ERROR", \prov.doRequest(), {"path": "/api_text", "hdr": {"Do-Error": True}});
@@ -125,6 +131,9 @@ public class RestClientDataProviderTest inherits QUnit::Test {
         {
             RestClientDataProvider parent({"url": "http://localhost:" + port, "error_passthru": True});
             AbstractDataProvider prov = parent.getChildProviderEx("get");
+            hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
+            assertEq("get", sinfo.name);
+            assertEq(Type::String, sinfo.desc.type());
             assertEq("get", prov.getName());
 
             hash<auto> h = prov.doRequest({"path": "/api_text", "hdr": {"Do-Error": True}});
@@ -136,6 +145,9 @@ public class RestClientDataProviderTest inherits QUnit::Test {
         {
             RestClientDataProvider parent({"url": "http://localhost:" + port});
             AbstractDataProvider prov = parent.getChildProviderEx("options");
+            hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
+            assertEq("options", sinfo.name);
+            assertEq(Type::String, sinfo.desc.type());
             assertEq("options", prov.getName());
 
             hash<auto> h = prov.doRequest({"path": "/api_bin"});
@@ -145,30 +157,45 @@ public class RestClientDataProviderTest inherits QUnit::Test {
         {
             RestClientDataProvider parent({"url": "http://localhost:" + port});
             AbstractDataProvider prov = parent.getChildProviderEx("delete");
+            hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
+            assertEq("delete", sinfo.name);
+            assertEq(Type::String, sinfo.desc.type());
             assertEq("delete", prov.getName());
         }
 
         {
             RestClientDataProvider parent({"url": "http://localhost:" + port});
             AbstractDataProvider prov = parent.getChildProviderEx("head");
+            hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
+            assertEq("head", sinfo.name);
+            assertEq(Type::String, sinfo.desc.type());
             assertEq("head", prov.getName());
         }
 
         {
             RestClientDataProvider parent({"url": "http://localhost:" + port});
             AbstractDataProvider prov = parent.getChildProviderEx("patch");
+            hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
+            assertEq("patch", sinfo.name);
+            assertEq(Type::String, sinfo.desc.type());
             assertEq("patch", prov.getName());
         }
 
         {
             RestClientDataProvider parent({"url": "http://localhost:" + port});
             AbstractDataProvider prov = parent.getChildProviderEx("post");
+            hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
+            assertEq("post", sinfo.name);
+            assertEq(Type::String, sinfo.desc.type());
             assertEq("post", prov.getName());
         }
 
         {
             RestClientDataProvider parent({"url": "http://localhost:" + port});
             AbstractDataProvider prov = parent.getChildProviderEx("put");
+            hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
+            assertEq("put", sinfo.name);
+            assertEq(Type::String, sinfo.desc.type());
             assertEq("put", prov.getName());
         }
     }

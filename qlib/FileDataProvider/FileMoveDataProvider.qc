@@ -29,9 +29,17 @@ public class FileMoveDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "move",
+            "desc": "File move data provider; moves files or entire directory trees on the filesystem given source "
+                "and target paths as arguments",
             "type": "FileMoveDataProvider",
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new FileMoveRequestDataType();
@@ -43,12 +51,6 @@ public class FileMoveDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "move";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "File move data provider; moves files or entire directory trees on the filesystem given source and "
-            "target paths as arguments";
     }
 
     #! Makes a request and returns the response

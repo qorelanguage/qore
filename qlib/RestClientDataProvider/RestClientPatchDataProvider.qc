@@ -32,10 +32,17 @@ public class RestClientPatchDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "patch",
+            "desc": "REST PATCH data provider; makes a `PATCH` request to a REST server and returns the response",
             "type": "RestClientPatchDataProvider",
             "constructor_options": RestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new RestClientCallRequestDataType();
@@ -58,11 +65,6 @@ public class RestClientPatchDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "patch";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "REST PATCH data provider; makes a `PATCH` request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response

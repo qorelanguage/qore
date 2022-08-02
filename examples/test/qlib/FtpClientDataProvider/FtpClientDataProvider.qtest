@@ -42,6 +42,11 @@ public class FtpClientDataProviderTest inherits QUnit::Test {
 
         FtpClientDataProvider root({"url": url});
         AbstractDataProvider prov = root.getChildProviderEx("create-file");
+        hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
+        assertEq("create-file", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
+        assertGt(0, sinfo.desc.size());
+
         string str = get_random_string();
         string path = "/test.txt";
         hash<auto> h = prov.doRequest({
@@ -51,6 +56,10 @@ public class FtpClientDataProviderTest inherits QUnit::Test {
         assertEq(path, h.path);
 
         prov = root.getChildProviderEx("get-file");
+        sinfo = prov.getSummaryInfo();
+        assertEq("get-file", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
+        assertGt(0, sinfo.desc.size());
         h = prov.doRequest({
             "path": path,
             "text": True,
@@ -58,6 +67,9 @@ public class FtpClientDataProviderTest inherits QUnit::Test {
         assertEq(str, h."data");
 
         prov = root.getChildProviderEx("stat");
+        sinfo = prov.getSummaryInfo();
+        assertEq("stat", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         h = prov.doRequest({
             "path": path,
         });
@@ -68,9 +80,12 @@ public class FtpClientDataProviderTest inherits QUnit::Test {
             "size": 15,
         }, h - "mtime");
 
+        prov = root.getChildProviderEx("move");
+        sinfo = prov.getSummaryInfo();
+        assertEq("move", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         /* test server doesn't support RNFR / RNTO yet
         string newpath = "/test1.txt";
-        prov = root.getChildProviderEx("move");
         h = prov.doRequest({
             "source": path,
             "target": newpath,
@@ -80,18 +95,27 @@ public class FtpClientDataProviderTest inherits QUnit::Test {
         */
 
         prov = root.getChildProviderEx("delete");
+        sinfo = prov.getSummaryInfo();
+        assertEq("delete", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         h = prov.doRequest({
             "path": path,
         });
         assertEq(path, h.path);
 
         prov = root.getChildProviderEx("stat");
+        sinfo = prov.getSummaryInfo();
+        assertEq("stat", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         assertThrows("FTP-STAT-ERROR", \prov.doRequest(), {
             "path": path,
         });
 
         string dir = get_random_string();
         prov = root.getChildProviderEx("mkdir");
+        sinfo = prov.getSummaryInfo();
+        assertEq("mkdir", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         h = prov.doRequest({
             "path": dir,
         });

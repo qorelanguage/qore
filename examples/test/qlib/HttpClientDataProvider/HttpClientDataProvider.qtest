@@ -29,27 +29,51 @@ public class HttpClientDataProviderTest inherits QUnit::Test {
         HttpClientDataProvider parent({"url": "localhost"});
 
         AbstractDataProvider prov = parent.getChildProviderEx("call");
+        hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
+        assertEq("call", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         assertEq("call", prov.getName());
 
         prov = parent.getChildProviderEx("delete");
+        sinfo = prov.getSummaryInfo();
+        assertEq("delete", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         assertEq("delete", prov.getName());
 
         prov = parent.getChildProviderEx("get");
+        sinfo = prov.getSummaryInfo();
+        assertEq("get", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         assertEq("get", prov.getName());
 
         prov = parent.getChildProviderEx("head");
+        sinfo = prov.getSummaryInfo();
+        assertEq("head", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         assertEq("head", prov.getName());
 
         prov = parent.getChildProviderEx("options");
+        sinfo = prov.getSummaryInfo();
+        assertEq("options", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         assertEq("options", prov.getName());
 
         prov = parent.getChildProviderEx("post");
+        sinfo = prov.getSummaryInfo();
+        assertEq("post", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         assertEq("post", prov.getName());
 
         prov = parent.getChildProviderEx("put");
+        sinfo = prov.getSummaryInfo();
+        assertEq("put", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         assertEq("put", prov.getName());
 
         prov = parent.getChildProviderEx("patch");
+        sinfo = prov.getSummaryInfo();
+        assertEq("patch", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
         assertEq("patch", prov.getName());
     }
 }

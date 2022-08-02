@@ -60,7 +60,7 @@ module AwsRestClientDataProvider {
     @ref dataproviderintro "DataProvider" API.
 
     The following classes are provided by this module:
-    - @ref AwsRestClientDataProvider::AwsRestClientCallDataType "AwsRestClientCallDataType"
+    - @ref AwsRestClientDataProvider::AwsRestClientCallDataProvider "AwsRestClientCallDataProvider"
     - @ref AwsRestClientDataProvider::AwsRestClientCallRequestDataType "AwsRestClientCallRequestDataType"
     - @ref AwsRestClientDataProvider::AwsRestClientCallResponseDataType "AwsRestClientCallResponseDataType"
     - @ref AwsRestClientDataProvider::AwsRestClientCallWithMethodRequestDataType "AwsRestClientCallWithMethodRequestDataType"

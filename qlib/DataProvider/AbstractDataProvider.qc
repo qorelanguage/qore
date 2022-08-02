@@ -990,13 +990,16 @@ public class AbstractDataProvider {
 
     #! Returns data provider info
     hash<DataProviderInfo> getInfo() {
-        hash<DataProviderInfo> rv({
-            "name": getName(),
-            "desc": getDesc(),
-        });
+        hash<DataProviderInfo> rv();
         rv += getStaticInfoImpl() + {
             "children": getChildProviderNames(),
         };
+        if (!rv.name) {
+            rv.name = getName();
+        }
+        if (!rv.desc) {
+            rv.desc = getDesc() ?? "no description available";
+        }
         if (!exists rv.has_record) {
             rv.has_record = rv.supports_read;
         }
@@ -1012,15 +1015,18 @@ public class AbstractDataProvider {
     #! Return data provider summary info
     hash<DataProviderSummaryInfo> getSummaryInfo() {
         hash<DataProviderInfo> info = getStaticInfoImpl();
-        return cast<hash<DataProviderSummaryInfo>>(info{DataProviderSummaryInfoKeys} + {
-            "name": getName(),
-            "desc": getDesc() ?? "no description available",
-        });
+        if (!info.name) {
+            info.name = getName();
+        }
+        if (!info.desc) {
+            info.desc = getDesc() ?? "no description available";
+        }
+        return cast<hash<DataProviderSummaryInfo>>(info{DataProviderSummaryInfoKeys});
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        # this method intentionally left blank
+        return getStaticInfoImpl().desc;
     }
 
     #! Creates the given record in the data provider

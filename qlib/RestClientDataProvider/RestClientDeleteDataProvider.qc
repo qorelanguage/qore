@@ -32,10 +32,17 @@ public class RestClientDeleteDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "delete",
+            "desc": "REST DELETE data provider; makes a `DELETE` request to a REST server and returns the response",
             "type": "RestClientDeleteDataProvider",
             "constructor_options": RestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new RestClientCallRequestDataType();
@@ -58,11 +65,6 @@ public class RestClientDeleteDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "delete";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "REST DELETE data provider; makes a `DELETE` request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response

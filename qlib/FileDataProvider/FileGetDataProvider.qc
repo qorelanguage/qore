@@ -29,9 +29,16 @@ public class FileGetDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "get",
+            "desc": "Get file data provider; gets a file in the given location",
             "type": "FileGetDataProvider",
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new FileGetRequestDataType();
@@ -48,11 +55,6 @@ public class FileGetDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "get";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "Get file data provider; gets a file in the given location";
     }
 
     #! Makes a request and returns the response

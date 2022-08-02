@@ -32,10 +32,17 @@ public class AwsRestClientCallDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "call",
+            "desc": "AWS REST call data provider; makes a request to a REST server and returns the response",
             "type": "AwsRestClientCallDataProvider",
             "constructor_options": AwsRestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new RestClientCallWithMethodRequestDataType();
@@ -58,11 +65,6 @@ public class AwsRestClientCallDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "call";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "AWS REST call data provider; makes a request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response

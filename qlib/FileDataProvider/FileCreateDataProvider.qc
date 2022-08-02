@@ -29,9 +29,16 @@ public class FileCreateDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "create",
+            "desc": "Create file data provider; creates a file in the given location",
             "type": "FileCreateDataProvider",
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new FileCreateRequestDataType();
@@ -48,11 +55,6 @@ public class FileCreateDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "create";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "Create file data provider; creates a file in the given location";
     }
 
     #! Makes a request and returns the response

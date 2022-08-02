@@ -32,10 +32,18 @@ public class AwsRestClientOptionsDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "options",
+            "desc": "AWS REST OPTIONS data provider; makes an `OPTIONS` request to a REST server and returns the "
+                "response",
             "type": "AwsRestClientOptionsDataProvider",
             "constructor_options": AwsRestClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new RestClientCallWithoutBodyRequestDataType();
@@ -58,11 +66,6 @@ public class AwsRestClientOptionsDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "options";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "AWS REST OPTIONS data provider; makes an `OPTIONS` request to a REST server and returns the response";
     }
 
     #! Makes a request and returns the response

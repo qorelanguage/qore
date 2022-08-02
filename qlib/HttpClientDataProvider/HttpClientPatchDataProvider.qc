@@ -32,10 +32,17 @@ public class HttpClientPatchDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "patch",
+            "desc": "HTTP PATCH data provider; makes a `PATCH` request to an HTTP server and returns the response",
             "type": "HttpClientPatchDataProvider",
             "constructor_options": HttpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new HttpClientCallRequestDataType();
@@ -58,11 +65,6 @@ public class HttpClientPatchDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "patch";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "HTTP PATCH data provider; makes a `PATCH` request to an HTTP server and returns the response";
     }
 
     #! Makes a request and returns the response

@@ -59,7 +59,7 @@ module RestClientDataProvider {
     @ref dataproviderintro "DataProvider" API.
 
     The following classes are provided by this module:
-    - @ref RestClientDataProvider::RestClientCallDataType "RestClientCallDataType"
+    - @ref RestClientDataProvider::RestClientCallDataProvider "RestClientCallDataProvider"
     - @ref RestClientDataProvider::RestClientCallRequestDataType "RestClientCallRequestDataType"
     - @ref RestClientDataProvider::RestClientCallResponseDataType "RestClientCallResponseDataType"
     - @ref RestClientDataProvider::RestClientCallWithMethodRequestDataType "RestClientCallWithMethodRequestDataType"

@@ -32,10 +32,18 @@ public class FtpClientMoveDataProvider inherits AbstractDataProvider {
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
+            "name": "move",
+            "desc": "FTP move data provider; moves a file on a remote FTP server given the source and target paths "
+                "as arguments",
             "type": "FtpClientMoveDataProvider",
             "constructor_options": FtpClientDataProvider::ConstructorOptions,
             "supports_request": True,
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
 
         #! Request type
         const RequestType = new FtpClientMoveRequestDataType();
@@ -58,12 +66,6 @@ public class FtpClientMoveDataProvider inherits AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "move";
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return "FTP move data provider; moves a file on a remote FTP server given the source and target paths as "
-            "arguments";
     }
 
     #! Makes a request and returns the response
