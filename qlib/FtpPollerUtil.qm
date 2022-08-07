@@ -39,7 +39,7 @@ module FtpPollerUtil {
     license = "MIT";
     init = sub () {
         # register the event data type
-        DataProvider::registerType("qore/ftp/event", new FtpPollerFileEventDataType());
+        DataProvider::registerType("qore/ftp/event", new FtpPollerFileEventInfoDataType());
     };
 }
 
@@ -62,7 +62,7 @@ module FtpPollerUtil {
 #! main FtpPoller namespace
 public namespace FtpPoller {
 #! Single file event data description
-public class FtpPollerFileEventDataType inherits HashDataType {
+public class FtpPollerFileEventInfoDataType inherits HashDataType {
     public {
         #! Markdown descriptions for hashdecl members
         const FieldDescriptions = {

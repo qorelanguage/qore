@@ -1144,7 +1144,7 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
         return {
             EVENT_FTP_FILE: <DataProviderMessageInfo>{
                 "desc": "FTP file polled event",
-                "type": new FtpPollerFileEventDataType(),
+                "type": new FtpPollerFileEventInfoDataType(),
             },
         };
     }
