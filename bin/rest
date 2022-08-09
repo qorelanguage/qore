@@ -97,11 +97,11 @@ class RestCmd {
             opts.validator = SwaggerLoader::fromFile(opt.swagger);
         } else if (opt.example) {
             error("option -x|--example requires -s|--swagger to provide the schema for generating the example");
-        } else if (opt.list) {
+        } else if (opt."list") {
             error("option -L|--list requires -s|--swagger to provide the schema for returning the list");
         }
 
-        if (opt.list) {
+        if (opt."list") {
             printf("URL: %s\n",  opts.validator.getTargetUrl());
             foreach hash h in (opts.validator.getPathOperationHash().pairIterator()) {
                 map printf("%s /%s\n", $1.upr(), h.key), h.value;
@@ -225,7 +225,6 @@ class RestCmd {
                 exit(1);
             }
         } else {
-            request_path = url_info.path ?? "/";
             opts.url = url;
 
             if (opt.proxy)
@@ -262,12 +261,12 @@ class RestCmd {
             body = parse_to_qore_value(body);
         }
 
-        if (opt.data) {
-            if (!RestClient::DataSerializationOptions{opt.data}) {
-                error("data serialization option %y is unknown; valid options: %y", opt.data,
+        if (opt."data") {
+            if (!RestClient::DataSerializationOptions{opt."data"}) {
+                error("data serialization option %y is unknown; valid options: %y", opt."data",
                     RestClient::DataSerializationOptions.keys());
             }
-            rest.setSerialization(opt.data);
+            rest.setSerialization(opt."data");
         }
 
         if (opt.sendenc) {
