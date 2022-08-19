@@ -56,8 +56,6 @@
 
 #define YY_USER_ACTION { yylloc->update(yylineno, yyleng, yytext); }
 
-#define isoctaldigit(x) (x >= '0' && x <= '7')
-
 // issue #3166: use q_strtod() from Qore and avoid warnings
 DLLEXPORT double q_strtod(const char* str);
 
