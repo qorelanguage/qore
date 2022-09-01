@@ -22,6 +22,8 @@
 
 const Opts = {
     "help": "h,help",
+    "classes": "c,classes",
+    "dryrun": "d,dry-run",
     "input": "i,input=s",
     "output": "o,output=s",
     "module": "m,module=s",
@@ -33,6 +35,9 @@ class QJar {
 
     private {
         hash<auto> opts;
+
+        #! output file map
+        hash<string, bool> omap;
     }
 
     constructor() {
@@ -57,6 +62,15 @@ class QJar {
         print("WARNING: no jni module available; cannot generate Java class files\n");
 %endif
 
+        if (!omap && opts.verbose) {
+            if (opts."module") {
+                stderr.printf("WARNING: %s: no output files produced for module %y!\n", get_script_name(),
+                    opts."module");
+            } else {
+                stderr.printf("WARNING: %s: no output files produced!\n", get_script_name());
+            }
+        }
+
         if (opts.output) {
             string args = opts.verbose ? "cvf" : "cf";
             system(sprintf("jar %s %s -C %s .", args, opts.output, opts.input));
@@ -71,6 +85,11 @@ class QJar {
         p.loadModule("jni");
         p.loadModule("reflection");
         p.parse("binary sub byte_code(Class cls) { return get_byte_code('::' + cls.getPathName()); }", "api");
+
+        if (opts."module" =~ /(\.|\/|\\)/) {
+            opts."module" = basename(opts."module");
+            opts."module" =~ s/\.qm$//;
+        }
 
         # scan for classes from the module
         getClasses(p, Namespace::forName(p, "::"));
@@ -99,6 +118,12 @@ class QJar {
             path =~ s/::/\//g;
             path += ".class";
             ofn += DirSep + path;
+            omap{ofn} = True;
+
+            if (opts.dryrun) {
+                print(ofn + "\n");
+                continue;
+            }
 
             # make directory if needed
             if (!dir) {
@@ -155,6 +180,7 @@ class QJar {
     usage() {
         printf("usage: %s [options] [-i=<input_root_dir> | -m=<module>] -o=<output_jar>
   -c,--classes        scan input for Java classes to retrieve byte code for
+  -d,--dry-run        do not create any output files, only output file paths that would be created
   -h,--help           this help text
   -i,--input=ARG      (required) the root input directory
   -m,--module=ARG     the Qore module to generate class files for
