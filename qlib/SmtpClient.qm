@@ -1081,6 +1081,9 @@ public class SmtpClientDataProvider inherits DataProvider::AbstractDataProvider 
             "type": "SmtpClientDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
+            "children_can_support_apis": True,
+            "children_can_support_records": False,
+            "children_can_support_observers": False,
         };
 
         #! Constructor options

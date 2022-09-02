@@ -32,6 +32,9 @@ public class FtpClientDataProvider inherits AbstractDataProvider {
             "type": "FtpClientDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_children": True,
+            "children_can_support_apis": True,
+            "children_can_support_records": False,
+            "children_can_support_observers": False,
         };
 
         #! Constructor arguments

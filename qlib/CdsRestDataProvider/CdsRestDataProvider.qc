@@ -35,6 +35,9 @@ public class CdsRestDataProvider inherits DataProvider::AbstractDataProvider {
             "type": "CdsRestDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
+            "children_can_support_apis": False,
+            "children_can_support_records": True,
+            "children_can_support_observers": False,
         };
 
         #! Constructor options

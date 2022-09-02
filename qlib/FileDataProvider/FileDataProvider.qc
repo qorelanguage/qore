@@ -31,6 +31,9 @@ public class FileDataProvider inherits AbstractDataProvider {
         const ProviderInfo = <DataProviderInfo>{
             "type": "FileDataProvider",
             "supports_children": True,
+            "children_can_support_apis": True,
+            "children_can_support_records": False,
+            "children_can_support_observers": False,
         };
     }
 

@@ -203,6 +203,10 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section dataprovider_relnotes Release Notes
 
+    @subsection dataprovider_v2_6 DataProvider v2.6
+    - added child capability support to data provider info
+      (<a href="https://github.com/qorelanguage/qore/issues/4572">issue 4572</a>)
+
     @subsection dataprovider_v2_5 DataProvider v2.5
     - implemented support for the observer pattern / event API
       (<a href="https://github.com/qorelanguage/qore/issues/4557">issue 4557</a>)

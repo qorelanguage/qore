@@ -35,6 +35,9 @@ public class ServiceNowRestDataProvider inherits DataProvider::AbstractDataProvi
             "type": "ServiceNowRestDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
+            "children_can_support_apis": False,
+            "children_can_support_records": True,
+            "children_can_support_observers": False,
         };
 
         #! Constructor options
