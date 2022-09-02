@@ -572,6 +572,21 @@ public hashdecl DataProviderInfo {
     */
     string supports_messages = MSG_None;
 
+    #! Can any child data providers offer API services (request - response data providers)?
+    /** @since DataProvider 2.6
+    */
+    bool children_can_support_apis = False;
+
+    #! Can any child data providers offer record-based providers?
+    /** @since DataProvider 2.6
+    */
+    bool children_can_support_records = False;
+
+    #! Can any child data providers support the observer pattern / event API?
+    /** @since DataProvider 2.6
+    */
+    bool children_can_support_observers = False;
+
     #! Returns the schema type supported by this data provider
     /**
         @since DataProvider 2.2

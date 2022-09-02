@@ -58,6 +58,9 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
             "transaction_management": False,
             "supports_schema": True,
             "schema_type": "swagger",
+            "children_can_support_apis": True,
+            "children_can_support_records": False,
+            "children_can_support_observers": False,
         };
 
         #! Constructor options
