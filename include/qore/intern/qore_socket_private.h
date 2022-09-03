@@ -1267,7 +1267,8 @@ struct qore_socket_private {
         stype = ai_socktype;
         sprot = ai_protocol;
         port = prt;
-        //printd(5, "qore_socket_private::connectINETIntern(this: %p, host='%s', port: %d, timeout_ms: %d) success, rc: %d, sock: %d\n", this, host, port, timeout_ms, rc, sock);
+        //printd(5, "qore_socket_private::connectINETIntern(this: %p, host='%s', port: %d, timeout_ms: %d) success, "
+        //    "rc: %d, sock: %d\n", this, host, port, timeout_ms, rc, sock);
 
         do_connected_event();
 
@@ -1276,7 +1277,8 @@ struct qore_socket_private {
         return 0;
     }
 
-    DLLLOCAL int upgradeClientToSSLIntern(const char* mname, const char* sni_target_host, X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
+    DLLLOCAL int upgradeClientToSSLIntern(const char* mname, const char* sni_target_host, X509* cert, EVP_PKEY* pkey,
+            int timeout_ms, ExceptionSink* xsink) {
         assert(!ssl);
         SSLSocketHelperHelper sshh(this, true);
 
@@ -1286,7 +1288,8 @@ struct qore_socket_private {
         if (!sni_target_host && !client_target.empty()) {
             sni_target_host = client_target.c_str();
         }
-        if ((rc = ssl->setClient(mname, sni_target_host, sock, cert, pkey, xsink)) || ssl->connect(mname, timeout_ms, xsink)) {
+        if ((rc = ssl->setClient(mname, sni_target_host, sock, cert, pkey, xsink)) || ssl->connect(mname, timeout_ms,
+            xsink)) {
             sshh.error();
             return rc ? rc : -1;
         }
@@ -1295,7 +1298,8 @@ struct qore_socket_private {
         return 0;
     }
 
-    DLLLOCAL int upgradeServerToSSLIntern(const char* mname, X509* cert, EVP_PKEY* pkey, int timeout_ms, ExceptionSink* xsink) {
+    DLLLOCAL int upgradeServerToSSLIntern(const char* mname, X509* cert, EVP_PKEY* pkey, int timeout_ms,
+            ExceptionSink* xsink) {
         assert(!ssl);
         //printd(5, "qore_socket_private::upgradeServerToSSLIntern() this: %p mode: %d\n", this, ssl_verify_mode);
         SSLSocketHelperHelper sshh(this, true);
