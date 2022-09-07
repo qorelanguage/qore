@@ -578,24 +578,41 @@ void QoreSocketObject::setPrivateKey(QoreSSLPrivateKey* p) {
     priv->pk = p;
 }
 
+void QoreSocketObject::setCertificateAndPrivateKey(QoreSSLCertificate* c, QoreSSLPrivateKey* p) {
+    AutoLocker al(priv->m);
+    if (priv->cert) {
+        priv->cert->deref();
+    }
+    priv->cert = c;
+    if (priv->pk) {
+        priv->pk->deref();
+    }
+    priv->pk = p;
+
+}
+
 void QoreSocketObject::upgradeClientToSSL(ExceptionSink* xsink) {
     AutoLocker al(priv->m);
-    priv->socket->upgradeClientToSSL(priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, xsink);
+    priv->socket->upgradeClientToSSL(priv->cert ? priv->cert->getData() : nullptr,
+        priv->pk ? priv->pk->getData() : nullptr, xsink);
 }
 
 void QoreSocketObject::upgradeServerToSSL(ExceptionSink* xsink) {
     AutoLocker al(priv->m);
-    priv->socket->upgradeServerToSSL(priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, xsink);
+    priv->socket->upgradeServerToSSL(priv->cert ? priv->cert->getData() : nullptr,
+        priv->pk ? priv->pk->getData() : nullptr, xsink);
 }
 
 void QoreSocketObject::upgradeClientToSSL(int timeout_ms, ExceptionSink* xsink) {
     AutoLocker al(priv->m);
-    priv->socket->upgradeClientToSSL(priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, timeout_ms, xsink);
+    priv->socket->upgradeClientToSSL(priv->cert ? priv->cert->getData() : nullptr,
+        priv->pk ? priv->pk->getData() : nullptr, timeout_ms, xsink);
 }
 
 void QoreSocketObject::upgradeServerToSSL(int timeout_ms, ExceptionSink* xsink) {
     AutoLocker al(priv->m);
-    priv->socket->upgradeServerToSSL(priv->cert ? priv->cert->getData() : 0, priv->pk ? priv->pk->getData() : 0, timeout_ms, xsink);
+    priv->socket->upgradeServerToSSL(priv->cert ? priv->cert->getData() : nullptr,
+        priv->pk ? priv->pk->getData() : nullptr, timeout_ms, xsink);
 }
 
 void QoreSocketObject::setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {

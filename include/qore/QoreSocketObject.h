@@ -205,6 +205,8 @@ public:
     DLLEXPORT void setCertificate(QoreSSLCertificate* c);
     // p must be already referenced before this call
     DLLEXPORT void setPrivateKey(QoreSSLPrivateKey* p);
+    // c and p must be already referenced before this call
+    DLLEXPORT void setCertificateAndPrivateKey(QoreSSLCertificate* c, QoreSSLPrivateKey* p);
     DLLEXPORT int setNoDelay(int nodelay);
     DLLEXPORT int getNoDelay();
     DLLEXPORT void setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data);

@@ -1039,7 +1039,7 @@ doxygen/qlib/Doxyfile.FileLocationHandler: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/FileLocationHandler:doxygen/qlib/FileLocationHandler.qm -tUtil.tag=../../Util/html $< $@
 
 doxygen/qlib/Doxyfile.HttpServerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/HttpServerUtil.qm:doxygen/qlib/HttpServerUtil.qm -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@
+	$(QDX) -M=qlib/HttpServerUtil.qm:doxygen/qlib/HttpServerUtil.qm -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html -tFileLocationHandler.tag=../../FileLocationHandler/html $< $@
 
 doxygen/qlib/Doxyfile.HttpServer: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/HttpServer.qm:doxygen/qlib/HttpServer.qm -tHttpServerUtil.tag=../../HttpServerUtil/html -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html $< $@

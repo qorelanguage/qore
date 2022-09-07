@@ -857,7 +857,7 @@ qore_user_module("qlib/CsvUtil" "Util;DataProvider")
 qore_user_module("qlib/FixedLengthUtil" "Util;DataProvider")
 qore_user_module("qlib/Mapper.qm" "MapperUtil;DataProvider")
 qore_user_module("qlib/DebugProgramControl.qm" "DebugUtil")
-qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util")
+qore_user_module("qlib/HttpServerUtil.qm" "Mime;Util;FileLocationHandler")
 qore_user_module("qlib/MailMessage.qm" "Mime")
 qore_user_module("qlib/FtpPollerUtil.qm" "DataProvider")
 

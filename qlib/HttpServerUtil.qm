@@ -26,6 +26,7 @@
 %requires Mime >= 1.0
 %requires(reexport) Util >= 1.0
 %requires Logger
+%requires FileLocationHandler
 
 %new-style
 %require-types
@@ -33,7 +34,7 @@
 %enable-all-warnings
 
 module HttpServerUtil {
-    version = "1.0.12";
+    version = "1.1";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -92,6 +93,10 @@ module HttpServerUtil {
       infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
+
+    @subsection httputil1_1 HttpServerUtil 1.1
+    - implemented support for reloading X.509 certificate information without manually restarting listeners
+      (<a href="https://github.com/qorelanguage/qore/issues/4574">issue 4574</a>)
 
     @subsection httputil1_0_12 HttpServerUtil 1.0.12
     - updated version to match %Qore and server version
@@ -158,7 +163,7 @@ module HttpServerUtil {
  */
 public namespace HttpServer {
 #! version of the HttpServer's implementation
-public const HttpServerVersion = "1.0.12";
+public const HttpServerVersion = "1.1";
 
 #! default HTTP server string
 public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);
@@ -367,6 +372,21 @@ public hashdecl HttpHandlerResponseInfo {
 
 # hashdecl for SSL info
 public hashdecl HttpCertInfo {
+    #! The X.509 certificate file location
+    /** For use when re-reading the certificate file from its original location
+    */
+    *string cert_loc;
+
+    #! The private key file location for the X.509 certificate
+    /** For use when re-reading the private key file from its original location
+    */
+    *string key_loc;
+
+    #! The private key password, if any
+    /** For use when re-reading the private key file from its original location
+    */
+    *string key_password;
+
     #! X.509 certificate
     *SSLCertificate cert;
     #! private key for cert
@@ -383,6 +403,21 @@ public hashdecl HttpListenerOptionInfo {
 
     #! the name of the listener
     *string name;
+
+    #! The X.509 certificate file location
+    /** For use when re-reading the certificate file from its original location
+    */
+    *string cert_loc;
+
+    #! The private key file location for the X.509 certificate
+    /** For use when re-reading the private key file from its original location
+    */
+    *string key_loc;
+
+    #! The private key password, if any
+    /** For use when re-reading the private key file from its original location
+    */
+    *string key_password;
 
     #! SSL cert
     *Qore::SSLCertificate cert;
@@ -563,37 +598,43 @@ public string sub http_mask_data(string msg) {
 #! returns a listener option info hash from flat arguments
 /** @param node the node name or address (at least one of either \a node or \a service must be provided to make a bind)
     @param service the service port (at least one of either \a node or \a service must be provided to make a bind)
-    @param cert_path the path to an X.509 certificate
-    @param key_path the path to the certificate's private key
+    @param cert_loc the location of an X.509 certificate file (this is actually a file location; supports schemes for
+      file locations; ex: file:///path/to/file; if no scheme is present, defaults to \c file://)
+    @param key_loc the location of a private key file; if not present, then the certificate is assumed to also have
+    the private key in it (this is actually a file location; supports schemes for file locations; ex:
+        file:///path/to/file; if no scheme is present, defaults to \c file://)
     @param key_password the password to the private key, if any
 
     @return a listener option info hash
 */
 public hash<HttpListenerOptionInfo> sub http_get_listener_options(*string node, *softstring service,
-        *string cert_path, *string key_path, *string key_password) {
+        *string cert_loc, *string key_loc, *string key_password) {
     hash<HttpListenerOptionInfo> rv({
         "node": node,
         "service": service,
     });
-    if (cert_path) {
-        rv += http_get_ssl_objects(cert_path, key_path, key_password);
+    if (cert_loc) {
+        rv += http_get_ssl_objects(cert_loc, key_loc, key_password);
     }
     return rv;
 }
 
 #! returns a listener option info hash from flat arguments
 /** @param bind a bind address as host:port or just port or a filepath for a UNIX domain socket
-    @param cert_path the path to an X.509 certificate
-    @param key_path the path to the certificate's private key
+    @param cert_loc the location of an X.509 certificate file (this is actually a file location; supports schemes for
+      file locations; ex: file:///path/to/file; if no scheme is present, defaults to \c file://)
+    @param key_loc the location of a private key file; if not present, then the certificate is assumed to also have
+    the private key in it (this is actually a file location; supports schemes for file locations; ex:
+        file:///path/to/file; if no scheme is present, defaults to \c file://)
     @param key_password the password to the private key, if any
 
     @return a listener option info hash
 */
-public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*softstring bind, *string cert_path,
-        *string key_path, *string key_password) {
+public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*softstring bind, *string cert_loc,
+        *string key_loc, *string key_password) {
     hash<HttpListenerOptionInfo> rv();
-    if (cert_path) {
-        rv += http_get_ssl_objects(cert_path, key_path, key_password);
+    if (cert_loc) {
+        rv += http_get_ssl_objects(cert_loc, key_loc, key_password);
     }
 
     if (bind =~ /:\w+/) {
@@ -634,9 +675,11 @@ public hash<HttpListenerOptionInfo> sub http_get_listener_options_from_bind(*sof
 
 #! converts a hash to HTTP certificate info if possible
 /** @param listener_params can have the following keys:
-    - \c cert_path: the path to an X.509 certificate file
-    - \c key_path: the path to a private key file; if not present, then the certificate is assumed to also have
-        the private key in it
+    - \c cert_path: the location of an X.509 certificate file (this is actually a file location; supports schemes for
+      file locations; ex: file:///path/to/file; if no scheme is present, defaults to \c file://)
+    - \c key_path: the location of a private key file; if not present, then the certificate is assumed to also have
+        the private key in it (this is actually a file location; supports schemes for file locations; ex:
+        file:///path/to/file; if no scheme is present, defaults to \c file://)
     - \c key_password: the password to the private key file
 
     @return an @ref HttpServer::HttpCertInfo "HttpCertInfo" hash
@@ -667,74 +710,69 @@ public hash<HttpCertInfo> sub http_get_ssl_objects(hash<auto> listener_params) {
 
 #! converts a hash to HTTP certificate info if possible
 /**
-    @param cert_path the path to an X.509 certificate file
-    @param key_path the path to a private key file; if not present, then the certificate is assumed to also have
-    the private key in it
+    @param cert_loc the location of an X.509 certificate file (this is actually a file location; supports schemes for
+      file locations; ex: file:///path/to/file; if no scheme is present, defaults to \c file://)
+    @param key_loc the location of a private key file; if not present, then the certificate is assumed to also have
+    the private key in it (this is actually a file location; supports schemes for file locations; ex:
+        file:///path/to/file; if no scheme is present, defaults to \c file://)
     @param pwd the password to the private key file
 
     @return an @ref HttpServer::HttpCertInfo "HttpCertInfo" hash
 */
-public hash<HttpCertInfo> sub http_get_ssl_objects(string cert_path, *string key_path, *string pwd) {
-    # issue #3397: user friendly error messages are necessary for SSL cert or key errors
-    *hash<StatInfo> statinfo = hstat(cert_path);
-    if (!statinfo) {
-        throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from inaccessible path "
-            "%y", cert_path);
-    }
-    if (!statinfo.size) {
-        throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from empty file %y",
-            cert_path);
-    }
-
-    File f();
-
+public hash<HttpCertInfo> sub http_get_ssl_objects(string cert_loc, *string key_loc, *string pwd) {
     SSLCertificate cert;
     data cert_data;
     try {
         # read in X.509 certificate file
-        f.open2(cert_path);
-        # read in X.509 certificate file
-        cert_data = cert_path =~ /\.der$/
-            ? f.readBinary(MaxSslFileLen)
-            : f.read(MaxSslFileLen);
+        cert_data = cert_loc =~ /\.der$/
+            ? FileLocationHandler::getBinaryFileFromLocation(cert_loc)
+            : FileLocationHandler::getTextFileFromLocation(cert_loc);
+        if (cert_data.size() > MaxSslFileLen) {
+            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("certificate file %y is %d bytes, exceeding the maximum "
+                "length of %d bytes", cert_loc, cert_data.size(), MaxSslFileLen);
+        } else if (!cert_data.size()) {
+            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("certificate file %y is empty; cannot setup X.509 "
+                "certificate from empty file", cert_loc);
+        }
         # create certificate object
         cert = new SSLCertificate(cert_data);
     } catch (hash<ExceptionInfo> ex) {
         # rethrow user-friendly exception
-        throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from path %y: %s: %s",
-            cert_path, ex.err, ex.desc);
+        throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup X.509 certificate from location %y: %s: %s",
+            cert_loc, ex.err, ex.desc);
     }
 
     SSLPrivateKey key;
-    if (key_path.val()) {
-        statinfo = hstat(key_path);
-        if (!statinfo) {
-            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from inaccessible path "
-                "%y", key_path);
-        }
-        if (!statinfo.size) {
-            throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from empty file %y",
-                key_path);
-        }
-    }
-
     try {
         # read in private key file
-        if (key_path.val()) {
-            f.open2(key_path);
-            key = key_path =~ /\.der$/
-                ? new SSLPrivateKey(f.readBinary(-1))
-                : new SSLPrivateKey(f.read(-1), pwd);
+        if (key_loc.val()) {
+            # read in private key file
+            bool der = key_loc =~ /\.der$/;
+            data key_data = der
+                ? FileLocationHandler::getBinaryFileFromLocation(key_loc)
+                : FileLocationHandler::getTextFileFromLocation(key_loc);
+            if (key_data.size() > MaxSslFileLen) {
+                throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("private key file %y is %d bytes, exceeding the "
+                    "maximum length of %d bytes", key_loc, key_data.size(), MaxSslFileLen);
+            } else if (!key_data.size()) {
+                throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("private key file %y is empty; cannot setup private "
+                    "key from empty file", key_loc);
+            }
+            # create private key
+            key = der ? new SSLPrivateKey(key_data) : new SSLPrivateKey(key_data, pwd);
         } else {
             key = new SSLPrivateKey(cert_data, pwd);
         }
     } catch (hash<ExceptionInfo> ex) {
         # rethrow user-friendly exception
-        throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from from path %y: %s: %s",
-            key_path.val() ? key_path : cert_path, ex.err, ex.desc);
+        throw "HTTPSERVER-SSL-SETUP-ERROR", sprintf("cannot setup private key from from location %y: %s: %s",
+            key_loc.val() ? key_loc : cert_loc, ex.err, ex.desc);
     }
 
     return <HttpCertInfo>{
+        "cert_loc": cert_loc,
+        "key_loc": key_loc,
+        "key_password": pwd,
         "cert": cert,
         "key": key,
     };
