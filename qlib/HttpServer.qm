@@ -32,7 +32,7 @@
 %new-style
 
 module HttpServer {
-    version = "1.0.12";
+    version = "1.1";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -47,23 +47,37 @@ module HttpServer {
 
     The %HttpServer module provides a multi-threaded HTTP server to Qore programs.
 
-    The %HttpServer implemented is designed for serving REST, RPC-style, and file-system-based requests as well as other types of traffic with an appropriate handler (for example handlers requiring protocol changes such as with the WebSocket protocol are supported as well).
+    The %HttpServer implemented is designed for serving REST, RPC-style, and file-system-based requests as well as
+    other types of traffic with an appropriate handler (for example handlers requiring protocol changes such as with
+    the WebSocket protocol are supported as well).
 
-    To use this module, use \c "%requires HttpServer" in your code.  See examples/httpserver.q for an example program using this module
+    To use this module, use \c "%requires HttpServer" in your code.  See examples/httpserver.q for an example program
+    using this module
 
     All the public symbols in the module are defined in the HttpServer namespace.
 
-    The main classes is (see @ref httpserverutilintro "HttpServerUtil" for supporting definitions; note that the @ref httpserverutilintro "HttpServerUtil" module's definitions are also imported into @ref Qore::Program "Program" objects @ref requires "requiring" this module):
-    - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided by this module
+    The main classes is (see @ref httpserverutilintro "HttpServerUtil" for supporting definitions; note that the
+    @ref httpserverutilintro "HttpServerUtil" module's definitions are also imported into @ref Qore::Program "Program"
+    objects @ref requires "requiring" this module):
+    - @ref HttpServer::HttpServer "HttpServer": this class implements the main interface to the HTTP server provided
+      by this module
 
     See also:
-    - <a href="../../RestHandler/html/index.html">RestHandler</a>: a module providing a handler framework for this module for implementing server-side REST services
-    - <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a>: a module providing a handler framework for this module for implementing server-side WebSocket services
-    - <a href="../../WebUtil/html/index.html">WebUtil</a>: a module providing higher-level HTTP services using this module as a base as well as providing support for dynamic template-based HTML rendering (ie rendering qhtml files which are a mix of HTML and Qore code)
-    - <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>: provides infrastructure for implementing JSON-RPC server-side services using the HttpServer module
-    - <a href="http://www.qore.org/manual/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>: provides infrastructure for implementing YAML-RPC server-side services using the HttpServer module
-    - <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: provides infrastructure for implementing XML-RPC server-side services using the HttpServer module
-    - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides infrastructure for implementing SOAP server-side services using the HttpServer module
+    - <a href="../../RestHandler/html/index.html">RestHandler</a>: a module providing a handler framework for this
+      module for implementing server-side REST services
+    - <a href="../../WebSocketHandler/html/index.html">WebSocketHandler</a>: a module providing a handler framework
+      for this module for implementing server-side WebSocket services
+    - <a href="../../WebUtil/html/index.html">WebUtil</a>: a module providing higher-level HTTP services using this
+      module as a base as well as providing support for dynamic template-based HTML rendering (ie rendering qhtml
+      files which are a mix of HTML and Qore code)
+    - <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>:
+      provides infrastructure for implementing JSON-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>:
+      provides infrastructure for implementing YAML-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>:
+      provides infrastructure for implementing XML-RPC server-side services using the HttpServer module
+    - <a href="http://www.qore.org/manual/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides
+      infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @par Example:
     @code{.py}
@@ -115,6 +129,10 @@ log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http1_1 HttpServer 1.1
+    - implemented support for reloading X.509 certificate information without manually restarting listeners
+      (<a href="https://github.com/qorelanguage/qore/issues/4574">issue 4574</a>)
 
     @subsection http1_0_12 HttpServer 1.0.12
     - fixed a bug where incorrect URI decoding was applied to URLs in received HTTP messages instead of URL decoding
@@ -738,14 +756,48 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         lm.enter();
         on_exit lm.exit();
 
-        *int id = smap{name};
-        if (!id)
-            id = nmap{name};
-
-        if (!id)
-            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with name or bind address %y", name);
-
+        softstring id = getListenerIdFromBindUnlocked(name);
         return listeners{id}.getInfo();
+    }
+
+    #! Reloads an HTTPS certificate from the original location for the given listener from the listener ID
+    /** @param id the listener ID
+
+        Subsequent connections will use the new certificate definition; the listener must have been started with the
+        location information for the X.509 certificate and private key, or a REFRESH-CERTIFICATE-ERROR exception is
+        raised
+
+        @throw REFRESH-CERTIFICATE-ERROR not an HTTPS listener or certificate location information not present
+
+        @since HttpServer 1.1
+    */
+    reloadListenerCertificate(int id) {
+        lm.enter();
+        on_exit lm.exit();
+
+        if (!listeners.hasKey(id)) {
+            throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
+        }
+
+        listeners{id}.reloadCertificate();
+    }
+
+    #! Reloads an HTTPS certificate from the original location for the given listener from the listener name
+    /** @param name the listener name or bind address
+
+        Subsequent connections will use the new certificate definition; the listener must have been started with the
+        location information for the X.509 certificate and private key, or a REFRESH-CERTIFICATE-ERROR exception is
+        raised
+
+        @throw REFRESH-CERTIFICATE-ERROR not an HTTPS listener or certificate location information not present
+
+        @since HttpServer 1.1
+    */
+    reloadListenerCertificateName(string name) {
+        lm.enter();
+        on_exit lm.exit();
+
+        listeners{getListenerIdFromBindUnlocked(name)}.reloadCertificate();
     }
 
     #! returns the number of running HTTP listeners
@@ -1284,12 +1336,10 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     /** @throw INVALID-LISTENER-ERROR invalid listener bind address
     */
     private int getListenerIdFromBindUnlocked(string bind) {
-        *int id = smap{bind};
-        if (!id)
-            id = nmap{bind};
-
-        if (!id)
+        *int id;
+        if (!(id = (smap{bind} ?? nmap{bind}))){
             throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with name or bind address %y", bind);
+        }
         return id;
     }
 
@@ -1837,8 +1887,11 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
     private {
         HttpServer serv;
         Sequence ss;
-        *SSLCertificate cert;
-        *SSLPrivateKey key;
+
+        *hash<HttpListenerOptionInfo> opts;
+
+        #*SSLCertificate cert;
+        #*SSLPrivateKey key;
         bool ssl = False;
         auto socket;
         hash socket_info;
@@ -1923,7 +1976,13 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
     */
     constructor(HttpServer server, string name, int id, Sequence ss, *hash<HttpListenerOptionInfo> opts) {
         self.name = name;
-        # we originally set for utf-8 and then per-connection the encoding is set according to the client's content-type header (with iso-8859-1 as the default)
+        if (opts.cert_loc && !opts.cert) {
+            opts += http_get_ssl_objects(opts.cert_loc, opts.key_loc, opts.key_password);
+        }
+        self.opts = opts;
+
+        # we originally set for utf-8 and then per-connection the encoding is set according to the client's
+        # content-type header (with iso-8859-1 as the default)
         # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)
         setEncoding("utf-8");
 
@@ -1942,14 +2001,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
 
         # create SSL certificate and private key objects from PEM files if passed
         if (opts.cert) {
-            if (!opts.key) {
-                throw "HTTP-ADDLISTENER-ERROR", sprintf("SSL certificate given without private key for listener %y", name);
-            }
-            # set SSL cert and key
-            cert = opts.cert;
-            setCertificate(cert);
-            key = opts.key;
-            setPrivateKey(key);
+            setupSslIntern();
             if (opts.get_remote_certs) {
                 # issue #3512: enable remote certificates to be retrieved by default for HTTPS listeners
                 captureRemoteCertificates();
@@ -2008,10 +2060,29 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         tid = background mainThread();
     }
 
-    # params: server, id, session ID sequence object, socket, rbac obj, [cert, key]
-    constructor(HttpServer server, int id, Sequence ss, *string node, *softstring service,
-            *Qore::SSLCertificate cert, *Qore::SSLPrivateKey key, *hash<auto> hi, *Logger logger, *code stopc,
-            string name, int family = AF_UNSPEC) {
+    #! Reloads the HTTPS certificate from the original location
+    /** Subsequent connections will use the new certificate definition; the listener must have been started with the
+        location information for the X.509 certificate and private key, or a REFRESH-CERTIFICATE error is raised
+
+        @throw REFRESH-CERTIFICATE-ERROR not an HTTPS listener or certificate location information not present
+
+        @since HttpServer 1.1
+    */
+    reloadCertificate() {
+        if (!ssl) {
+            throw "REFRESH-CERTIFICATE-ERROR", sprintf("listener %y (id %d) is not an HTTPS listener", name, id);
+        }
+        if (!opts.cert_loc) {
+            throw "REFRESH-CERTIFICATE-ERROR", sprintf("listener %y (id %d) cannot reload the certificate from the "
+                "source location as no source location was provided for the current certificate; the certificate was "
+                "provided in binary format when the listener was started; in order to reload certificates at "
+                "runtime, make sure to use APIs that provide the certificate location when starting the listener",
+                name, id);
+        }
+
+        on_error rethrow "REFRESH-CERTIFICATE-ERROR", sprintf("%s: %s", $1.err, $1.desc);
+        hash<HttpCertInfo> info = http_get_ssl_objects(opts.cert_loc, opts.key_loc, opts.key_password);
+        setCertificateAndPrivateKey(opts.cert, opts.key);
     }
 
     #! add handlers to the listener
@@ -2189,6 +2260,16 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
             "ssl_verify_flags": getSslVerifyModeList(),
             "ssl_accept_all_certs": ssl_accept_all_certs,
          };
+    }
+
+    private setupSslIntern() {
+        if (!opts.key) {
+            throw "HTTP-ADDLISTENER-ERROR", sprintf("SSL certificate given without private key for listener %y",
+                name);
+        }
+        # set SSL cert and key
+        setCertificate(opts.cert);
+        setPrivateKey(opts.key);
     }
 
     private softlist<string> getSslVerifyModeList() {

@@ -2964,6 +2964,22 @@ nothing Socket::setPrivateKey(binary key_der) {
     s->setPrivateKey(key.release());
 }
 
+//! Sets the X.509 certificate and private key in one atomic operation to use for negotiating encrypted connections
+/** @par Example:
+    @code{.py}
+sock.setCertificateAndPrivateKey(cert, key);
+    @endcode
+
+    @param cert This must be an SSLCertificate object
+    @param key This must be an QoreSSLPrivateKey object
+
+    @since %Qore 1.11.0
+*/
+nothing Socket::setCertificateAndPrivateKey(SSLCertificate[QoreSSLCertificate] cert, SSLPrivateKey[QoreSSLPrivateKey] key) {
+    // pass reference from QoreObject::getReferencedPrivateData() to QoreSocketObject::setCertificate()
+    s->setCertificateAndPrivateKey(cert, key);
+}
+
 //! Removes any @ref Qore::Thread::Queue "Queue" object from the Socket object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
 /** @par Example:
     @code{.py}
