@@ -101,6 +101,10 @@ SalesforceRestDataProvider_modverdir = $(modverdir)/SalesforceRestDataProvider
 CdsRestDataProvider_modverdir = $(modverdir)/CdsRestDataProvider
 ServiceNowRestDataProvider_modverdir = $(modverdir)/ServiceNowRestDataProvider
 RestClientDataProvider_modverdir = $(modverdir)/RestClientDataProvider
+AwsRestClientDataProvider_modverdir = $(modverdir)/AwsRestClientDataProvider
+FileDataProvider_modverdir = $(modverdir)/FileDataProvider
+FtpClientDataProvider_modverdir = $(modverdir)/FtpClientDataProvider
+HttpClientDataProvider_modverdir = $(modverdir)/HttpClientDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
@@ -115,6 +119,10 @@ dist_SalesforceRestDataProvider_modver_DATA = $(wildcard qlib/SalesforceRestData
 dist_CdsRestDataProvider_modver_DATA = $(wildcard qlib/CdsRestDataProvider/*.q[cm])
 dist_ServiceNowRestDataProvider_modver_DATA = $(wildcard qlib/ServiceNowRestDataProvider/*.q[cm])
 dist_RestClientDataProvider_modver_DATA = $(wildcard qlib/RestClientDataProvider/*.q[cm])
+dist_AwsRestClientDataProvider_modver_DATA = $(wildcard qlib/AwsRestClientDataProvider/*.q[cm])
+dist_FileDataProvider_modver_DATA = $(wildcard qlib/FileDataProvider/*.q[cm])
+dist_FtpClientDataProvider_modver_DATA = $(wildcard qlib/FtpClientDataProvider/*.q[cm])
+dist_HttpClientDataProvider_modver_DATA = $(wildcard qlib/HttpClientDataProvider/*.q[cm])
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
