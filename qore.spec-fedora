@@ -193,7 +193,7 @@ make check
 * Sun Jun 5 2022 David Nichols <david@qore.org> 1.8.1-1
 - updated version to 1.8.1-1
 
-* Mon May 6 2022 David Nichols <david@qore.org> 1.8.0-1
+* Fri May 6 2022 David Nichols <david@qore.org> 1.8.0-1
 - updated version to 1.8.0-1
 
 * Mon May 2 2022 David Nichols <david@qore.org> 1.7.2-1
@@ -267,7 +267,7 @@ make check
 * Tue Sep 7 2021 David Nichols <david@qore.org> 1.0.4-1
 - updated version to 1.0.4-1
 
-* Sat Aug 16 2021 David Nichols <david@qore.org> 1.0.3-1
+* Mon Aug 16 2021 David Nichols <david@qore.org> 1.0.3-1
 - updated version to 1.0.3-1
 - updated libqore version to 7.1.0
 - added module api 1.1

@@ -298,7 +298,7 @@ rm -rf $RPM_BUILD_ROOT
 * Sun Jun 5 2022 David Nichols <david@qore.org> 1.8.1
 - updated version to 1.8.1
 
-* Mon May 6 2022 David Nichols <david@qore.org> 1.8.0
+* Fri May 6 2022 David Nichols <david@qore.org> 1.8.0
 - updated version to 1.8.0
 
 * Mon May 2 2022 David Nichols <david@qore.org> 1.7.2
@@ -372,7 +372,7 @@ rm -rf $RPM_BUILD_ROOT
 * Tue Sep 7 2021 David Nichols <david@qore.org> 1.0.4
 - updated version to 1.0.4
 
-* Sat Aug 16 2021 David Nichols <david@qore.org> 1.0.3
+* Mon Aug 16 2021 David Nichols <david@qore.org> 1.0.3
 - updated version to 1.0.3
 - updated libqore version to 7.1.0
 - added module api 1.1

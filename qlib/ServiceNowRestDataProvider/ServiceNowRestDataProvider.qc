@@ -107,7 +107,7 @@ public class ServiceNowRestDataProvider inherits DataProvider::AbstractDataProvi
         }
 
         if (!rest) {
-            if (!opts.url && !opts.snrestclient) {
+            if (!options.url && !options.snrestclient) {
                 throw "CONSTRUCTOR-ERROR", sprintf("missing 'url' option for connection to the ServiceNow instance");
             }
             rest = new ServiceNowRestClient(getClientOptions(copts));
