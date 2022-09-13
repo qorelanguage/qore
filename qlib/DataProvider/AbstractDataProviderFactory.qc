@@ -52,6 +52,8 @@ public hashdecl DataProviderFactoryInfo {
     bool children_can_support_records = False;
     #! Can any child data providers support the observer pattern / event API?
     bool children_can_support_observers = False;
+    #! Can any child data providers support messages?
+    bool children_can_support_messages = False;
     #! Which server profiles are supported for API management (if any)?
     *softlist<string> api_profiles;
     #! Info about providers created from this factory (without the \a name and \a children attributes)

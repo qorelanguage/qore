@@ -1398,6 +1398,7 @@ public class WebSocketClientDataProviderFactory inherits AbstractDataProviderFac
             "name": "wsclient",
             "desc": "WebSocket client data provider factory",
             "children_can_support_observers": True,
+            "children_can_support_messages": True,
         };
     }
 
