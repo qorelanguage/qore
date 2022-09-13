@@ -165,6 +165,7 @@ public class SalesforceRestDataProvider inherits AbstractDataProvider {
             "supports_request": False,
             "supports_children": False,
             "has_record": $1.queryable || $1.mergeable || $1.deletable || $1.createable,
+            "children_can_support_records": False,
         }, v;
     }
 

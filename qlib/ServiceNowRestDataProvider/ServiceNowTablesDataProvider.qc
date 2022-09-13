@@ -109,6 +109,7 @@ public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataPro
             "supports_children": False,
             "transaction_management": ServiceNowRestDataProvider::ProviderInfo.transaction_management,
             "has_record": ServiceNowRestDataProvider::ProviderInfo.has_record,
+            "children_can_support_records": False,
         }, getChildProviderNames();
     }
 
