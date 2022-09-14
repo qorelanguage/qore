@@ -1315,6 +1315,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
         : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
         real_opts = {"url": real_url} + opts;
+        children_can_support_apis = True;
     }
 
     #! returns a @ref RestClient::RestClient "RestClient" object

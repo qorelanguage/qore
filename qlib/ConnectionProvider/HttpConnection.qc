@@ -148,6 +148,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
     */
     constructor(string name, string desc, string url, hash<auto> attributes = {}, hash<auto> options = {})
         : AbstractConnectionWithInfo(name, desc, url, attributes, options) {
+        children_can_support_apis = True;
     }
 
     #! returns \c "http"

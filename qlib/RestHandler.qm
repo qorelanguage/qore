@@ -42,7 +42,7 @@
 %requires reflection
 
 module RestHandler {
-    version = "1.5.2";
+    version = "1.6";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -373,6 +373,11 @@ Content-Length: 16
     @ref Qore::ExceptionInfo "ExceptionInfo" hash.
 
     @section resthandler_relnotes RestHandler Release Notes
+
+    @subsection rh_1_6 RestHandler v1.6
+    - added request arguments to the @ref RestHandler::RestHandler::unknownSubClassError() "RestHandler::unknownSubClassError()"
+      and @ref RestHandler::RestHandler::doGetPossibleSubClasses() "RestHandler::doGetPossibleSubClasses()" methods
+      (<a href="https://github.com/qorelanguage/qore/issues/4578">issue 4578</a>)
 
     @subsection rh_1_5_2 RestHandler v1.5.2
     - allow a logger to be set in validators
@@ -795,7 +800,7 @@ public namespace RestHandler {
                     }
 
                     rh.logDebug("REST DBG: class %y: unknown subclass %y: method %y args: %y", name(), cname, mn, args);
-                    return unknownSubClassError(cname, cx);
+                    return unknownSubClassError(cname, cx, args);
                 }
 
                 rh.logDebug("REST DBG: class %y: dispatching to subclass %y: method %y args: %y", name(), cname, mn, args);
@@ -925,14 +930,20 @@ public namespace RestHandler {
         #! returns a 404 Not Found response when a request tries to access an unknown subclass
         /** @param cls_name the URI path element that could not be matched to a REST subclass
             @param cx the HTTP call context hash
+            @param ah the holds URI and / or message body arguments for the REST call; if a request has both URI
+            query arguments and message body arguments, then this value will be a combination of URI query arguments
+            and deserialized message body arguments with URI query arguments taking precedence over the message body
+            arguments
 
             @return REST response information
 
-            @since RestHandler 1.3 added the \a cx argument
+            @since
+            - RestHandler 1.3 added the \a cx argument
+            - RestHandler 1.6 added the \a ah argument
         */
-        private hash<HttpServer::HttpHandlerResponseInfo> unknownSubClassError(string cls_name, hash<auto> cx) {
+        private hash<HttpServer::HttpHandlerResponseInfo> unknownSubClassError(string cls_name, hash<auto> cx, *hash<auto> ah) {
             # return possible subclasses, if any are known
-            *hash<string, bool> name_set = doGetPossibleSubClasses(cx);
+            *hash<string, bool> name_set = doGetPossibleSubClasses(cx, ah);
             string msg;
             if (name_set) {
                 msg = sprintf("; known subclasses: %s", (foldl $1 + ", " + $2, (map sprintf("%y", $1), keys name_set)));
@@ -947,12 +958,18 @@ public namespace RestHandler {
 
         #! returns a set of possible subclasses for a particular request
         /** @param cx the HTTP call context hash
+            @param ah the holds URI and / or message body arguments for the REST call; if a request has both URI
+            query arguments and message body arguments, then this value will be a combination of URI query arguments
+            and deserialized message body arguments with URI query arguments taking precedence over the message body
+            arguments
 
             @return a set of possible subclasses for the request
 
-            @since RestHandler 1.3
+            @since
+            - RestHandler 1.3
+            - RestHandler 1.6 added the \a ah argument
         */
-        private *hash<string, bool> doGetPossibleSubClasses(hash<auto> cx) {
+        private *hash<string, bool> doGetPossibleSubClasses(hash<auto> cx, *hash<auto> ah) {
             # set of subclass names
             *hash<string, bool> name_set = map {$1 : True}, keys class_hash;
 
@@ -1158,7 +1175,8 @@ public namespace RestHandler {
                     }
 
                     if (!c) {
-                        throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)", cls, cx.url.path, sort(keys doGetPossibleSubClasses(cx))), 404;
+                        throw "REST-CLASS-ERROR", sprintf("unknown root REST class %y in path %y (valid classes: %y)",
+                            cls, cx.url.path, sort(keys doGetPossibleSubClasses(cx, args))), 404;
                     }
                 }
                 rcls = c;
@@ -1412,7 +1430,7 @@ public namespace RestHandler {
                     }
 
                     if (!rcls) {
-                        return unknownSubClassError(cls, cx);
+                        return unknownSubClassError(cls, cx, args);
                     }
                 } else {
                     rcls = c;

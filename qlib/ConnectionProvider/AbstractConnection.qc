@@ -85,36 +85,48 @@ public class AbstractConnection inherits Serializable {
         #! connection tags; user-defined key-value pairs
         hash<auto> tags = {};
 
+        #! if the data provider or any of its children support requests (APIs)
+        bool children_can_support_apis = False;
+
+        #! if the data provider or any of its children support records
+        bool children_can_support_records = False;
+
+        #! if the data provider or any of its children support events
+        bool children_can_support_observers = False;
+
+        #! if the data provider or any of its children support messages
+        bool children_can_support_messages = False;
+
         #! internal tags
         hash<auto> internal_info;
     }
 
     #! creates the AbstractConnection object
-    /** @param n_name the name of the connection
-        @param n_desc connection description
-        @param n_url connection URL (potentially with password info)
-        @param n_monitor monitoring flag
-        @param n_opts connection options
-        @param n_urlh broken down URL hash (as returned by @ref Qore::parse_url())
-        @param n_safe_url "safe" URL (password information removed); if not set this will be set automatically by calling @ref getSafeUrl()
-        @param n_enabled enabled/disabled flag
+    /** @param name the name of the connection
+        @param desc connection description
+        @param url connection URL (potentially with password info)
+        @param monitor monitoring flag
+        @param opts connection options
+        @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
+        @param safe_url "safe" URL (password information removed); if not set this will be set automatically by calling @ref getSafeUrl()
+        @param enabled enabled/disabled flag
     */
     deprecated
-    constructor(string n_name,
-                string n_desc,
-                string n_url,
-                bool n_monitor,
-                *hash n_opts,
-                hash n_urlh,
-                *string n_safe_url,
-                *bool n_enabled) {
+    constructor(string name,
+                string desc,
+                string url,
+                bool monitor,
+                *hash opts,
+                hash urlh,
+                *string safe_url,
+                *bool enabled) {
         # remove "enabled" option from option hash, if any
-        *bool opt_enabled = remove n_opts.enabled;
+        *bool opt_enabled = remove opts.enabled;
         hash<auto> attributes = {
-            "monitor": n_monitor,
-            "enabled": n_enabled ?? opt_enabled ?? True,
+            "monitor": monitor,
+            "enabled": enabled ?? opt_enabled ?? True,
         };
-        constructorInit(n_name, n_desc, n_url, attributes, n_opts ?? {});
+        constructorInit(name, desc, url, attributes, opts ?? {});
     }
 
     #! creates the AbstractConnection object
@@ -197,7 +209,8 @@ public class AbstractConnection inherits Serializable {
     hash<ConnectionInfo> getInfo(*hash<auto> opts) {
         hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self{
             "name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled",
-            "locked", "debug_data", "tags",
+            "locked", "debug_data", "tags", "children_can_support_apis", "children_can_support_records",
+            "children_can_support_observers", "children_can_support_messages",
         } + {
             "type": getType(),
             "url_hash": urlh,
