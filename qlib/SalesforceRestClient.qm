@@ -1143,6 +1143,7 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
         : RestConnection(name, description, url, attributes, options) {
         real_opts = ("url": real_url) + urlh.("username", "password") + opts;
+        children_can_support_records = True;
     }
 
     #! returns \c "sfrests"
