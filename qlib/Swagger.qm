@@ -4391,9 +4391,10 @@ namespace Priv {
     */
     sub required_field(string objType, hash<auto> oh, string name, int typeCode, reference<auto> target) {
         if (!oh.hasKey(name))
-            throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: %y field is missing; fields present: %y", objType, name, keys oh);
+            throw "REQUIRED-FIELD-MISSING", sprintf("%s Object%s: %y field is missing; fields present: %y", objType,
+                oh.name ? sprintf(" %y", oh.name) : "", name, keys oh);
         auto val = oh{name};
-        check_type_code(objType, name, val, typeCode);
+        check_type_code(objType, oh, name, val, typeCode);
         get_value(objType, name, typeCode, val, \target);
     }
 
@@ -4410,11 +4411,13 @@ namespace Priv {
     */
     sub required_field(string objType, hash<auto> oh, string name, hash<string, bool> typeCodes, reference<auto> target) {
         if (!oh.hasKey(name))
-            throw "REQUIRED-FIELD-MISSING", sprintf("%s Object: %y field is missing; fields present: %y", objType, name, keys oh);
+            throw "REQUIRED-FIELD-MISSING", sprintf("%s Object%s: %y field is missing; fields present: %y", objType,
+                oh.name ? sprintf(" %y", oh.name) : "", name, keys oh);
         auto val = oh{name};
 
         if (!typeCodes{val.typeCode()})
-            throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y", objType, name, val.type());
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object%s: %y field has invalid type %y", objType,
+                oh.name ? sprintf(" %y", oh.name) : "", name, val.type());
         get_value(objType, name, val.typeCode(), val, \target);
     }
 
@@ -4434,7 +4437,7 @@ namespace Priv {
         if (!oh.hasKey(name))
             return False;
         auto val = oh{name};
-        check_type_code(objType, name, val, typeCode);
+        check_type_code(objType, oh, name, val, typeCode);
         get_value(objType, name, typeCode, val, \target);
         return True;
     }
@@ -4451,23 +4454,27 @@ namespace Priv {
 
         @throws INVALID-FIELD-TYPE field has invalid type
     */
-    bool sub optional_field(string objType, hash<auto> oh, string name, hash<string, bool> typeCodes, reference<auto> target) {
+    bool sub optional_field(string objType, hash<auto> oh, string name, hash<string, bool> typeCodes,
+            reference<auto> target) {
         if (!oh.hasKey(name))
             return False;
         auto val = oh{name};
         if (!typeCodes{val.typeCode()})
-            throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y", objType, name, val.type());
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object%s: %y field has invalid type %y", objType,
+                oh.name ? sprintf(" %y", oh.name) : "", name, val.type());
         get_value(objType, name, val.typeCode(), val, \target);
         return True;
     }
 
     #! verifies the type of a field
-    sub check_type_code(string objType, string name, auto val, int typeCode) {
+    sub check_type_code(string objType, hash<auto> oh, string name, auto val, int typeCode) {
         int vtc = val.typeCode();
-        if ((typeCode == SwaggerListToStringSet || typeCode == SwaggerListToAnySet || typeCode == SwaggerListToHashOfStrings) && vtc == NT_LIST)
+        if ((typeCode == SwaggerListToStringSet || typeCode == SwaggerListToAnySet
+            || typeCode == SwaggerListToHashOfStrings) && vtc == NT_LIST)
             return;
         if (vtc != typeCode)
-            throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y field has invalid type %y; expecting %y", objType, name, val.type(), TypeMap{typeCode});
+            throw "INVALID-FIELD-TYPE", sprintf("%s Object%s: %y field has invalid type %y; expecting %y", objType,
+                oh.name ? sprintf(" %y", oh.name) : "", name, val.type(), TypeMap{typeCode});
     }
 
     #! assigns a value to a field
@@ -4475,28 +4482,36 @@ namespace Priv {
         if (typeCode == SwaggerListToStringSet) {
             foreach auto v in (val) {
                 if (v.typeCode() != NT_STRING)
-                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in list value has type %y; expecting \"string\"", objType, name, $# + 1, val.size(), v.type());
+                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in list value has type %y; "
+                        "expecting \"string\"", objType, name, $# + 1, val.size(), v.type());
                 target{v} = True;
             }
         } else if (typeCode == SwaggerListToAnySet) {
             foreach auto v in (val) {
                 if (!v.strp())
-                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in list value has type %y which cannot be converted to a string; the Swagger module only supports types that can be converted to a string for this field", objType, name, $# + 1, val.size(), v.type());
+                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in list value has type %y which "
+                        "cannot be converted to a string; the Swagger module only supports types that can be "
+                        "converted to a string for this field", objType, name, $# + 1, val.size(), v.type());
                 target{v} = True;
             }
         } else if (typeCode == SwaggerListToHashOfStrings) {
             foreach auto v in (val) {
                 int pos = $# + 1;
                 if (v.typeCode() != NT_HASH)
-                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d value has type %y; expecting \"hash\"", objType, name, pos, val.size(), v.type());
+                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d value has type %y; expecting "
+                        "\"hash\"", objType, name, pos, val.size(), v.type());
                 if (v.size() > 1)
-                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d value has a hash with more than one key: %y; expecting a hash with a single key", objType, name, pos, val.size(), v);
+                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d value has a hash with more than "
+                        "one key: %y; expecting a hash with a single key", objType, name, pos, val.size(), v);
                 string key = v.firstKey();
                 if (target.hasKey(key))
-                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d has duplicate key %y", objType, name, pos, val.size(), key);
+                    throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d has duplicate key %y", objType,
+                        name, pos, val.size(), key);
                 foreach auto fv in (v.firstValue()) {
                     if (fv.typeCode() != NT_STRING)
-                        throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in %y list value has type %y in position %d/%d; expecting \"string\"", objType, name, pos, val.size(), key, fv.type(), $# + 1, fv.lsize());
+                        throw "INVALID-FIELD-TYPE", sprintf("%s Object: %y element %d/%d in %y list value has "
+                            "type %y in position %d/%d; expecting \"string\"", objType, name, pos, val.size(), key,
+                            fv.type(), $# + 1, fv.lsize());
                 }
                 target += v;
             }
