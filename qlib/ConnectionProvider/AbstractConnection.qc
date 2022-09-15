@@ -502,13 +502,20 @@ scheme://user:pass@hostname:port/path
 
         opts = validateOptions(options);
         orig_opts = opts;
+        setChildCapabilitiesImpl();
+    }
+
+    #! Override to set child data provider capabilities once per child class
+    private setChildCapabilitiesImpl() {
+        # this method intentionally left empty
     }
 
     #! returns the string type name for the connection object
     abstract string getType();
 
     #! this method must return the connection object corresponding to the object's configuration
-    /** @param connect if @ref True "True" then the connection should be returned connected (and if possible a round-trip "ping" of the server should be made)
+    /** @param connect if @ref True "True" then the connection should be returned connected (and if possible a
+        round-trip "ping" of the server should be made)
         @param rtopts if the object acquisition requires any runtime options, then these are passed here
 
         @return the connection object

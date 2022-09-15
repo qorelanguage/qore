@@ -147,8 +147,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string desc, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : AbstractConnectionWithInfo(name, desc, url, attributes, options) {
-        children_can_support_apis = True;
+            : AbstractConnectionWithInfo(name, desc, url, attributes, options) {
     }
 
     #! returns \c "http"
@@ -175,6 +174,11 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
     */
     bool hasDataProvider() {
         return True;
+    }
+
+    #! Sets child data provider capabilities
+    private setChildCapabilities() {
+        children_can_support_apis = True;
     }
 
     #! returns an @ref Qore::HTTPClient object

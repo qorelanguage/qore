@@ -407,7 +407,6 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         real_opts = {
             "url": real_url,
         } + urlh{"username", "password"} + self.opts;
-        children_can_support_records = True;
     }
 
     #! returns \c "cdsrest"
@@ -432,6 +431,11 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         # object dynamically
         load_module("CdsRestDataProvider");
         return create_object("CdsRestDataProvider", get());
+    }
+
+    #! Sets child data provider capabilities
+    private setChildCapabilities() {
+        children_can_support_records = True;
     }
 
     #! returns a @ref CdsRestClient object

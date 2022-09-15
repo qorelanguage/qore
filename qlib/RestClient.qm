@@ -1313,9 +1313,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
+            : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
         real_opts = {"url": real_url} + opts;
-        children_can_support_apis = True;
     }
 
     #! returns a @ref RestClient::RestClient "RestClient" object
@@ -1360,7 +1359,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
             object to validate request and response messages; conflicts with \a swagger
 
-        @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above options
+        @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above
+        options
     */
     hash<auto> getOptions() {
         return Options;
@@ -1443,6 +1443,11 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 "AbstractRestSchemaValidator object", opts.validator.fullType());
         }
         return rv;
+    }
+
+    #! Sets child data provider capabilities
+    private setChildCapabilities() {
+        children_can_support_apis = True;
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

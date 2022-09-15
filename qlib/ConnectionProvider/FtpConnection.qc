@@ -55,7 +55,6 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
         : AbstractConnectionWithInfo(name, description, url, attributes, options) {
-        children_can_support_apis = True;
     }
 
     #! returns \c "ftp"
@@ -94,6 +93,11 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
     */
     bool hasDataProvider() {
         return True;
+    }
+
+    #! Sets child data provider capabilities
+    private setChildCapabilities() {
+        children_can_support_apis = True;
     }
 
     #! returns an @ref Qore::FtpClient object

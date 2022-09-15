@@ -416,7 +416,6 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         real_opts = {
             "url": real_url,
         } + urlh{"username", "password"} + self.opts;
-        children_can_support_records = True;
     }
 
     #! returns \c "snrest"
@@ -441,6 +440,11 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         # object dynamically
         load_module("ServiceNowRestDataProvider");
         return create_object("ServiceNowRestDataProvider", get());
+    }
+
+    #! Sets child data provider capabilities
+    private setChildCapabilities() {
+        children_can_support_records = True;
     }
 
     #! returns a @ref ServiceNowRestClient object

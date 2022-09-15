@@ -999,10 +999,34 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
         if (rtopts.dbglog) {
             rtopts.debuglog = remove rtopts.dbglog;
         }
-        WebSocketClient ws(rtopts.callback, ("url": url) + rtopts.("log", "errlog", "debuglog") + opts);
+        WebSocketClient ws(rtopts.callback, {"url": url} + rtopts.("log", "errlog", "debuglog") + opts);
         if (connect)
             ws.connect();
         return ws;
+    }
+
+    #! returns an WebSocketClientDataProvider object for this connection
+    /** @return an WebSocketClientDataProvider object for this connection
+
+        @see hasDataProvider()
+    */
+    DataProvider::AbstractDataProvider getDataProvider() {
+        return new WebSocketClientDataProvider({"url": url});
+    }
+
+    #! returns @ref True, as the connection returns a data provider with the @ref getDataProvider() method
+    /** @return @ref True, as the connection returns a data provider with the @ref getDataProvider() method
+
+        @see @ref getDataProvider()
+    */
+    bool hasDataProvider() {
+        return True;
+    }
+
+    #! Sets child data provider capabilities
+    private setChildCapabilities() {
+        children_can_support_observers = True;
+        children_can_support_messages = True;
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object
