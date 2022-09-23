@@ -399,7 +399,7 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
         #message(STATUS "Preparing generation of documentation for module: ${f}")
 
         # prepare directories for the documentation
-        file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doxygen/qlib/)
+        file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/doxygen/qlib/${f})
 
         # prepare needed vars
         set(MOD_DOXYFILE "${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}")
@@ -415,12 +415,18 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
         string (REPLACE ";" " " TAGFILES "${TAGFILES}")
 
         set(_dox_output ${CMAKE_BINARY_DIR}/docs/${f})
-        set(_dox_input ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
+        #set(_dox_input ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
+        set(_dox_input "")
+        foreach(fn0 ${_mod_targets})
+            get_filename_component(fn1 ${fn0} NAME)
+            set(_dox_input ${_dox_input} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}/${fn1}.dox.h)
+        endforeach(fn0)
+        string(REPLACE ";" " " _dox_input "${_dox_input}")
 
         # prepare QDX arguments
         configure_file(${QORE_USERMODULE_DOXYGEN_TEMPLATE} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f} @ONLY)
         #set(QDX_DOXYFILE_ARGS -T${CMAKE_SOURCE_DIR} -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_BINARY_DIR}/doxygen/Doxyfile.${f}.tmpl ${MOD_DOXYFILE})
-        set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
+        set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}/${f}.qm.dox.h)
 
         # add CMake target for the documentation
         #message(STATUS "Doxyfile for ${f}")

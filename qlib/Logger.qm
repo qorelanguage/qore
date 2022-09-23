@@ -33,7 +33,7 @@
 %requires Util
 
 module Logger {
-    version = "0.2";
+    version = "0.3";
     desc = "user module implementing Log4q logger library";
     author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
@@ -204,6 +204,10 @@ module Logger {
     }
     # wait till finished
     @endcode
+
+    @subsection logger_v0_3 v0.3
+    - fixed a race condition handling log file rotation with active logs
+      (<a href="https://github.com/qorelanguage/qore/issues/4583">issue 4583</a>)
 
     @subsection logger_v0_2 v0.2
     - added support for the \c %%h and \c %%P patterns for hostname and PID, respectively
@@ -738,7 +742,7 @@ public namespace Logger {
                 if (!rec) {
                     break;
                 }
-                rec.appender.processEventImpl(rec.type, rec.params);
+                rec.appender.processEvent(rec.type, rec.params);
             }
         }
 
@@ -821,7 +825,7 @@ public namespace Logger {
             runningCounter.inc();
             on_exit runningCounter.dec();
             try {
-                map appender.processEventImpl($1.type, $1.params), events;
+                map appender.processEvent($1.type, $1.params), events;
             } catch (hash<ExceptionInfo> ex) {
                 # ignore exceptions
             }
@@ -966,10 +970,12 @@ public namespace Logger {
             const EVENT_CLOSE = 3;
         }
 
-        private:internal {
+        private {
             #! The lock to ensure proper serialization with concurrent access
             RWLock lock();
+        }
 
+        private:internal {
             #! An inactive appender won't accept any logging request
             bool active = False;
 
@@ -993,11 +999,13 @@ public namespace Logger {
 
         destructor() {
             /*
-                Note that we cannot enforce calling close() method in destructor potentially generating an event
-                because the related member object instance (e.g. File) might be already destroyed in time when the event is
-                being processed. So such an appander instance should be closed explicitly in user code.
+                Note that we cannot enforce calling the close() method in the destructor potentially generating an
+                event, because the related member object instance (e.g. File) might be already destroyed at the time
+                the event is processed. So such an appander instance should be closed explicitly in user code.
+
+                In any case due to Qore's deterministic GC, File and other objects are deleted automatically when they
+                are no longer referenced
             */
-            # close();
         }
 
         #! Returns the appender name
@@ -1108,26 +1116,26 @@ public namespace Logger {
         #! Serializes the given event to put in the queue or write to the target device
         /**
             The appender implementaion can define any format for serialization. The data are passed
-            to @ref processEventImpl() method in the \c params argument when \c type is \c EVENT_LOG.
+            to @ref processEvent() method in the \c params argument when \c type is \c EVENT_LOG.
 
             @return the serialized event
         */
         abstract private auto serializeImpl(LoggerEvent event);
 
-        #! Pushes the given event on the queue or calls @ref processEventImpl() in case of synchronous processing
+        #! Pushes the given event on the queue or calls @ref processEvent() in case of synchronous processing
         /**
             @param type the event type
             @param params parameters for the event according to the event type
 
             @return @ref True if the event was accepted/processed, @ref False if not
 
-            @see @ref processEventImpl()
+            @see @ref processEvent()
         */
         private bool pushEvent(int type, auto params) {
             if (exists queue) {
                 return queue.push(self, type, params);
             } else {
-                processEventImpl(type, params);
+                processEvent(type, params);
                 return True;
             }
         }
@@ -1135,10 +1143,10 @@ public namespace Logger {
         #! Posts the given event to the output queue
         /**
             Invokes filters; when the event is accepted then it is posted to the queue in case of
-            asynchronous processing, or it is immediately logged by the @ref processEventImpl() method
+            asynchronous processing, or it is immediately logged by the @ref processEvent() method
             in case of synchronous processing.
 
-            @see @ref processEventImpl()
+            @see @ref processEvent()
 
             @param event the event to post
             @return True if the event has been posted, @ref False if not (filtered out, appender inactive,
@@ -1166,6 +1174,22 @@ public namespace Logger {
             return pushEvent(EVENT_LOG, serialized);
         }
 
+        #! Processes an event to the physical target
+        /**
+            @see @ref serializeImpl()
+
+            @param type see \c "EVENT_xxx" constants
+            @param params processing parameters
+        */
+        public processEvent(int type, auto params) {
+            # the following call may return a lock holder object that will be released when the local variable goes
+            # out of scope
+            *object holder = ensureAtomicOperations(type);
+            processEventImpl(type, params);
+            # to avoid an "unreferenced-variable" warning
+            remove holder;
+        }
+
         #! Processes the event to the physical target
         /**
             Must be implemented by non-abstract subclasses
@@ -1176,6 +1200,10 @@ public namespace Logger {
             @param params processing parameters
         */
         abstract public processEventImpl(int type, auto params);
+
+        #! Returns an object that can be used to ensure atomic operations for appender operations
+        private *object ensureAtomicOperations(int type) {
+        }
     }
 
     #! Implements appender which does nothing
@@ -1709,6 +1737,17 @@ public namespace Logger {
             closeFile();
             openFile();
         }
+
+        #! Returns an object that can be used to ensure atomic operations for appender operations
+        private *object ensureAtomicOperations(int type) {
+            switch (type) {
+                case EVENT_REOPEN:
+                    return new AutoWriteLock(lock);
+
+                case EVENT_LOG:
+                    return new AutoReadLock(lock);
+            }
+        }
     }
 
 %ifdef HAVE_TERMIOS
@@ -1718,7 +1757,6 @@ public namespace Logger {
         Unavailable when @ref Qore::PO_NO_TERMINAL_IO parse option is applied.
     */
     public class LoggerAppenderStdOut inherits LoggerAppenderWithLayout {
-
         #! Creates the object
         /**
             @param name the name of the appender
@@ -1747,7 +1785,6 @@ public namespace Logger {
         Unavailable when @ref Qore::PO_NO_TERMINAL_IO parse option is applied.
     */
     public class LoggerAppenderStdErr inherits LoggerAppenderWithLayout {
-
         #! Creates the object
         /**
             @param name the name of the appender
@@ -1780,7 +1817,8 @@ public namespace Logger {
             const DEFAULT_ROTATION_COUNT = 10;
         }
 
-        constructor(*string name, LoggerLayout layout, *string encoding): LoggerAppenderFile(name, layout, "", encoding) {}
+        constructor(*string name, LoggerLayout layout, *string encoding)
+                : LoggerAppenderFile(name, layout, "", encoding) {}
 
         #! Pushes rotate event
         /**
@@ -1799,6 +1837,17 @@ public namespace Logger {
 
         #! Abstract method to get count of rotation objects
         public abstract int getCount();
+
+        #! Returns an object that can be used to ensure atomic operations for appender operations
+        private *object ensureAtomicOperations(int type) {
+            switch (type) {
+                case EVENT_ROTATE:
+                    return new AutoWriteLock(lock);
+
+                case EVENT_LOG:
+                    return new AutoReadLock(lock);
+            }
+        }
     }
 
     #! Implements appender writing to a file with file rotation support
@@ -2257,6 +2306,17 @@ public namespace Logger {
                 "timestamp": now_us(),
                 "filename": fileName,
             });
+        }
+
+        #! Returns an object that can be used to ensure atomic operations for appender operations
+        private *object ensureAtomicOperations(int type) {
+            switch (type) {
+                case EVENT_ARCHIVE:
+                    return new AutoWriteLock(lock);
+
+                case EVENT_LOG:
+                    return new AutoReadLock(lock);
+            }
         }
     }
 
