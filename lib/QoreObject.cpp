@@ -761,36 +761,25 @@ void qore_object_private::setValueIntern(const qore_class_private* class_ctx, co
         RSetHelper rsh(*this);
 }
 
-// helper function for QoreObject::evalBuiltinMethodWithPrivateData() variations
-static void check_meth_eval(const QoreClass* cls, const char* mname, const QoreClass* mclass, ExceptionSink* xsink) {
-   if (!xsink->isException()) {
-      if (cls == mclass) {
-         xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() cannot be executed because the object " \
-            "has already been deleted", cls->getName(), mname);
-      } else {
-         xsink->raiseException("OBJECT-ALREADY-DELETED", "the method %s::%s() (base class of '%s') cannot be " \
-            "executed because the object has already been deleted", mclass->getName(), mname, cls->getName());
-      }
-   }
-}
-
 QoreValue qore_object_private::evalBuiltinMethodWithPrivateData(const QoreMethod& method,
         const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags,
         ExceptionSink* xsink) {
-   // get referenced object
-   ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(
-       qore_class_private::get(*meth->getClass())->methodID, xsink
+    // get referenced object
+    ReferenceHolder<AbstractPrivateData> pd(getReferencedPrivateData(
+        qore_class_private::get(*meth->getClass())->methodID, xsink
     ), xsink);
 
-   if (pd)
-      return meth->evalImpl(obj, *pd, args, rtflags, xsink);
+    //printd(5, "qore_object_private::evalBuiltingMethodWithPrivateData() this: %p obj: %p (%s) pd: %p, call: "
+    //       "%s::%s() class ID: %d method class ID: %d\n", this, obj, theclass->getName(), *pd,
+    //       method.getClass()->getName(), method.getName(), method.getClass()->getID(),
+    //       qore_class_private::get(*method->getClass())->methodID);
 
-   //printd(5, "qore_object_private::evalBuiltingMethodWithPrivateData() this: %p obj: %p (%s) pd: %p, call: "
-   //       "%s::%s() class ID: %d method class ID: %d\n", this, obj, theclass->getName(), *pd,
-   //       method.getClass()->getName(), method.getName(), method.getClass()->getID(),
-   //       qore_class_private::get(*method->getClass())->methodID);
-   check_meth_eval(theclass, method.getName(), method.getClass(), xsink);
-   return QoreValue();
+    if (*xsink) {
+        assert(!pd);
+        return QoreValue();
+    }
+    assert(pd);
+    return meth->evalImpl(obj, *pd, args, rtflags, xsink);
 }
 
 AbstractPrivateData* qore_object_private::getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const {
@@ -798,12 +787,13 @@ AbstractPrivateData* qore_object_private::getReferencedPrivateData(qore_classid_
 
     if (status == OS_DELETED || !privateData) {
         makeAccessDeletedObjectException(xsink, theclass->getName());
-        return 0;
+        return nullptr;
     }
 
     AbstractPrivateData* d = privateData->getReferencedPrivateData(key);
-    if (!d)
+    if (!d) {
         makeAccessDeletedObjectException(xsink, theclass->getName());
+    }
 
     return d;
 }
@@ -1098,8 +1088,7 @@ void QoreObject::evalCopyMethodWithPrivateData(const QoreClass &thisclass, const
         pd->deref(xsink);
         return;
     }
-
-    check_meth_eval(priv->theclass, "copy", &thisclass, xsink);
+    assert(*xsink);
 }
 
 bool QoreObject::validInstanceOf(qore_classid_t cid) const {

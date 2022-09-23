@@ -8,8 +8,11 @@
 %allow-injection
 
 %requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/ConnectionProvider
+
+%include ../../qore/classes/FtpServer.qc
 
 %exec-class ConnectionProviderTest
 
@@ -43,11 +46,19 @@ public class ConnectionProviderTest inherits QUnit::Test {
     }
 
     ftpConnectionTest() {
-        string url = "ftp://user:pass@localhost:1234/some_path";
+        FtpServer ftp(0, m_options.verbose);
+        on_exit ftp.shutdown();
+
+        int ftp_port = ftp.getPort();
+
+        string url = "ftp://user:pass@localhost:" + ftp_port + "/";
         FtpConnection fc("name", "desc", url);
         assertEq(True, fc.enabled, "connection is enabled by default");
         assertEq(True, fc.monitor, "connection is monitored by default");
         assertEq(False, fc.locked, "connection is unlocked by default");
+
+        AbstractDataProvider prov = fc.getDataProvider();
+        assertEq("ftp", prov.getName());
 
         # issue #3696: test connection serialization
         FtpConnection conn2 = Serializable::deserialize(fc.serialize());
