@@ -38,7 +38,7 @@
 %requires(reexport) RestClient
 
 module SwaggerDataProvider {
-    version = "1.2.2";
+    version = "1.2.3";
     desc = "user module providing a data provider API for Swagger schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,10 @@ module SwaggerDataProvider {
     - @ref SwaggerDataProvider::SwaggerRequestDataProvider "SwaggerRequestDataProvider"
 
     @section swaggerdataprovider_relnotes Release Notes
+
+    @subsection swaggerdataprovider_v1_2_3 SwaggerDataProvider v1.2.3
+    - fixed a bug setting the datas provider name in Swagger schemas provided by files
+      (<a href="https://github.com/qorelanguage/qore/issues/4587">issue 4587</a>)
 
     @subsection swaggerdataprovider_v1_2_2 SwaggerDataProvider v1.2.2
     - fixed a bug where data providers could return local names as paths with \c "/" characters in them, breaking
