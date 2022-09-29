@@ -125,15 +125,12 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
 
     #! Creates the object from the arguments
     constructor(SwaggerSchema schema, *RestClient rest) {
-        self.schema = schema;
         if (rest) {
             self.rest = rest;
         }
 
+        setSchema(schema);
         setupTree();
-
-        display_name = schema.info.title;
-        display_name =~ s/\//-/g;
     }
 
     #! Creates the object from constructor options
@@ -144,14 +141,16 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
                 # determine if the string is a file or a location
                 if (copts.schema.size() > 1024 || copts.schema =~ /^swagger:/ || copts.schema =~ /^{/
                     || copts.schema =~ /^swagger":/) {
-                    schema = SwaggerLoader::fromString(copts.schema);
+                    setSchema(SwaggerLoader::fromString(copts.schema));
                 } else {
-                    schema = SwaggerLoader::fromUrl(copts.schema);
+                    setSchema(SwaggerLoader::fromUrl(copts.schema));
                 }
                 break;
             case NT_OBJECT:
-                schema = copts.schema;
+                setSchema(copts.schema);
                 break;
+            default:
+                throw "SWAGGER-ERROR", sprintf("unsupported schema type: %y", copts.schema.type());
         }
 
         if (copts.restclient) {
@@ -201,6 +200,13 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
             }
         }
         return sprintf("Swagger/OpenAPI data provider for URL `%s` and URI path `%s`", url, uri_path);
+    }
+
+    #! Sets the schema and display name
+    private setSchema(SwaggerSchema schema) {
+        self.schema = schema;
+        display_name = schema.info.title;
+        display_name =~ s/\//-/g;
     }
 
     #! Checks the REST client
