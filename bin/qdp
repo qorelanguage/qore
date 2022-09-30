@@ -292,11 +292,57 @@ class QdpCmd {
     static listChildDetails(AbstractDataProvider provider) {
         *list<hash<DataProviderSummaryInfo>> children = provider.getChildProviderSummaryInfo();
         if (children) {
-            map printf("- %s: (%s) %s\n", $1.name,
-                $1.has_record ? "REC" : ($1.supports_request ? "API" : "---"), $1.desc), children;
+            code get_code = string sub (hash<auto> h) {
+                if (h.has_record) {
+                    return "REC";
+                }
+                if (h.supports_request) {
+                    return "API";
+                }
+                if (h.supports_observable) {
+                    return "EVT";
+                }
+                if (h.supports_messages != MSG_None) {
+                    return "MSG";
+                }
+                if (h.children_can_support_records) {
+                    return "REC";
+                }
+                if (h.children_can_support_apis) {
+                    return "API";
+                }
+                if (h.children_can_support_observers) {
+                    return "EVT";
+                }
+                if (h.children_can_support_messages) {
+                    return "MSG";
+                }
+                return "---";
+            };
+            map printf("- %s: (%s) %s\n", $1.name, get_code($1), QdpCmd::getDesc(10, $1, "name")), children;
         } else {
             printf(provider.getName() + " has no children\n");
         }
+    }
+
+    static string getDesc(int offset, hash<auto> h) {
+        int len = TermIOS::getWindowSize().columns - offset;
+        map len -= h{$1}.length(), argv;
+        string desc = h.desc ?? "";
+        desc =~ s/\n/ /g;
+        desc =~ s/ +/ /g;
+        if (len < 0) {
+            return "";
+        }
+        if (desc.length() > len) {
+            if (len <= 3) {
+                splice desc, len;
+            } else {
+                splice desc, len - 3;
+                desc += "...";
+            }
+        }
+        return desc;
     }
 
     static interactive(AbstractDataProvider provider) {
@@ -390,7 +436,7 @@ class QdpCmd {
                 string txt = sprintf("%s%s %s", offset, type.getName(), i.key);
                 string info;
                 if (*string desc = i.value.getDescription()) {
-                    info = sprintf("desc: %y", desc);
+                    info = sprintf("desc: %y", QdpCmd::getDesc(0, {"desc": desc}));
                 }
                 if (auto val = i.value.getDefaultValue()) {
                     if (info) {
@@ -524,7 +570,7 @@ class QdpCmd {
     }
 
     static showType(string msg, hash<DataProviderMessageInfo> info) {
-        printf("%s: %s\n", msg, info.desc);
+        printf("%s: %s\n", msg, QdpCmd::getDesc(0, info));
         QdpCmd::showType(info.type);
     }
 
