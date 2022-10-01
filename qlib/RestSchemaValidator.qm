@@ -758,14 +758,17 @@ public namespace RestSchemaValidator {
             @param path the URI path of the original request (without query arguments)
             @param code the HTTP response code
             @param response_body the response body data (if any)
-            @param headers HTTP headers to include in the response
+            @param headers HTTP headers to include in the response; note that if this value contains a \c Content-Type
+            key, this type will be used for the response serialization if it is supported and if the client can accept
+            it, otherwise an \c ACCEPT-ERROR exception is raised resulting in a <tt>406 Not Acceptable</tt> error
+            being returned to the client
             @param content_types the desired MIME types for serialization in order of preference; if none are usable
             then an exception is thrown; if this argument is not present, then json is preferred over yaml
 
             @return an HttpResponseInfo hash for the response
 
             @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a
-            supported type
+            supported type; results in a <tt>406 Not Acceptable</tt> error being returned to the client
             @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
 
             @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an
@@ -786,14 +789,30 @@ public namespace RestSchemaValidator {
                     return rv;
                 }
 
-                list<string> ctl = !content_types
-                    ? keys DataSerializationSupport
-                    : map $1, content_types, DataSerializationSupport{$1};
+                list<string> ctl;
+                if (*string ct = headers."Content-Type" ?? headers."content-type") {
+                    ctl = (ct,);
+                    if (!DataSerializationSupport{ct}) {
+                        if (logger) {
+                            logger.log(LoggerLevel::ERROR, "error serializing response with unsupported "
+                                "Content-Type %y required by the REST handler response: failed with response body: "
+                                "%N", ct, response_body);
+                        }
+                        throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; "
+                            "types supported: %y (required by REST response handler); discarding response: %y",
+                            content_types, keys DataSerializationSupport, response_body),
+                            {"types": ctl};
+                    }
+                } else {
+                    ctl = !content_types
+                        ? keys DataSerializationSupport
+                        : map $1, content_types, DataSerializationSupport{$1};
+                }
 
                 if (!ctl) {
                     throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; types "
                         "supported: %y; discarding response: %y", content_types, keys DataSerializationSupport,
-                        response_body), ("types": keys DataSerializationSupport);
+                        response_body), {"types": keys DataSerializationSupport};
                 }
                 bool ok;
                 hash<ExceptionInfo> ex;
