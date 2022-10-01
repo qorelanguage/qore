@@ -306,9 +306,10 @@ public class QUnit::TestResultValue inherits QUnit::AbstractTestResult {
 
 #! Class representing a partial match of a hash value. Common keys have to be identical.
 public class QUnit::TestResultPartialHashMatch inherits QUnit::AbstractTestResult {
-    constructor(hash value) : AbstractTestResult("PartialHashMatch") {
-        if (value == NULL)
+    constructor(hash<auto> value) : AbstractTestResult("PartialHashMatch") {
+        if (value == NULL) {
             return;
+        }
         m_value = value;
     }
 
@@ -323,7 +324,7 @@ public class QUnit::TestResultPartialHashMatch inherits QUnit::AbstractTestResul
             return False;
         }
         # All keys from this hash must be present in r and match.
-        foreach string key in (m_value.keyIterator()) {
+        foreach string key in (keys m_value) {
             if (!r.m_value.hasKey(key))
                 return False;
 
@@ -346,7 +347,8 @@ public class QUnit::TestResultExceptionType inherits QUnit::AbstractTestResult {
     }
 
     #! creates the object from the exception arguments
-    /** @param exceptionType corresponds to the \c "err" key of @ref Qore::ExceptionInfo "ExceptionInfo" (the first value of a @ref throw "throw statement")
+    /** @param exceptionType corresponds to the \c "err" key of @ref Qore::ExceptionInfo "ExceptionInfo" (the first
+        value of a @ref throw "throw statement")
     */
     constructor(string exceptionType) : AbstractTestResult("Exception") {
         m_exceptionType = exceptionType;
@@ -1721,6 +1723,41 @@ assertFalse(functionThatShouldReturnFalse());
         testAssertionValue(name, actual, False);
     }
 
+    #! Tests that a piece of code throws an exception with given description and exception arg keys
+    /** @par Example:
+        @code{.py}
+assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression", sub(int a) {print(5/a);}, 0);
+        @endcode
+
+        @param expectedErr the expected exception type
+        @param expectedDesc the expected exception detail as a regex pattern (desc field); ignored if @ref nothing
+        @param expectedArg the expected keys in the exception \c arg hash; ignored if @ref nothing
+        @param theCode the code to execute
+        @param args optional arguments to the code
+        @param name an optional label for the assertion
+     */
+    public assertThrows(string expectedErr, *string expectedDesc, *hash<auto> arg, code theCode, *softlist<auto> args,
+            *string name) {
+        TestCase tc = getTestCase("assertEqThrows");
+        tc.incAssertions();
+        ++num_asserts;
+
+        string exp = sprintf("Exception: %s", expectedErr)
+            + (expectedDesc ? sprintf(": Detail '%s'", expectedDesc) : "")
+            + (arg ? sprintf(": exception arg: %y", arg) : "");
+        try {
+            call_function_args(theCode, args);
+        } catch (hash<ExceptionInfo> e) {
+            if (e.err == expectedErr && ((!exists expectedDesc) || e.desc.regex(expectedDesc))
+                && (!arg || comparePartialHash(arg, e.arg))) {
+                assertionOk(name);
+                return;
+            }
+            throw "TEST-EXCEPTION", printUnexpectedData(exp, get_exception_string(e));
+        }
+        throw "TEST-EXCEPTION", sprintf("Expected %s was not thrown", exp);
+    }
+
     #! Tests that a piece of code throws an exception with given description
     /** @par Example:
         @code{.py}
@@ -1728,27 +1765,13 @@ assertThrows("DIVISION-BY-ZERO", "division by zero found in integer expression",
         @endcode
 
         @param expectedErr the expected exception type
-        @param expectedDesc the expected exception detail (desc field), ignored if NOTHING
+        @param expectedDesc the expected exception detail as a regex pattern (desc field); ignored if @ref nothing
         @param theCode the code to execute
         @param args optional arguments to the code
         @param name an optional label for the assertion
      */
     public assertThrows(string expectedErr, *string expectedDesc, code theCode, *softlist<auto> args, *string name) {
-        TestCase tc = getTestCase("assertEqThrows");
-        tc.incAssertions();
-        ++num_asserts;
-
-        string exp = sprintf("Exception: %s", expectedErr) + (expectedDesc ? sprintf(": Detail '%s'", expectedDesc) : "");
-        try {
-            call_function_args(theCode, args);
-        } catch (hash<ExceptionInfo> e) {
-            if (e.err == expectedErr && (expectedDesc == NOTHING || e.desc.regex(expectedDesc))) {
-                assertionOk(name);
-                return;
-            }
-            throw "TEST-EXCEPTION", printUnexpectedData(exp, get_exception_string(e));
-        }
-        throw "TEST-EXCEPTION", sprintf("Expected %s was not thrown", exp);
+        assertThrows(expectedErr, expectedDesc, NOTHING, theCode, args, name);
     }
 
     #! Tests that a piece of code throws an exception
@@ -1763,7 +1786,7 @@ assertThrows("DIVISION-BY-ZERO", sub(int a) {print(5/a);}, 0);
         @param name an optional label for the assertion
      */
     public assertThrows(string expectedErr, code theCode, *softlist<auto> args, *string name) {
-        assertThrows(expectedErr, NOTHING, theCode, args, name);
+        assertThrows(expectedErr, NOTHING, NOTHING, theCode, args, name);
     }
 
     #! Skips assertion on purpose
@@ -2119,6 +2142,26 @@ fail("Unexpected code executed");
                 np = foldl $1 + " <- " + $2, l;
         }
         return np ? sprintf("at %s", np) : "<no name>";
+    }
+
+    #! Returns True if the keys given in the first hash match those in the second hash
+    static bool comparePartialHash(hash<auto> expects, auto value) {
+        if (value.typeCode() != NT_HASH) {
+            return False;
+        }
+        foreach hash<auto> i in (expects.pairIterator()) {
+            auto val = value{i.key};
+            if (i.value.typeCode() == NT_HASH) {
+                if (!Test::comparePartialHash(i.value, val)) {
+                    return False;
+                }
+                continue;
+            }
+            if (val !== i.value) {
+                return False;
+            }
+        }
+        return True;
     }
 }
 

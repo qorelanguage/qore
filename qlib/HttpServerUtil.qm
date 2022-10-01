@@ -348,13 +348,19 @@ public hashdecl HttpHandlerResponseInfo {
     #! the HTTP return code (see @ref HttpServer::HttpCodes for possible values)
     int code;
 
-    #! the message body to return in the response; for higher-level handlers this can be any data type that will later be serialized for sending over the HTTP socket
+    #! the message body to return in the response
+    /** For higher-level handlers this can be any data type that will later be serialized for sending over the HTTP
+        socket
+    */
     auto body;
 
     #! set this key to @ref True "True" if the connection should be unconditionally closed when the handler returns
     softbool close = False;
 
     #! set this key to a hash of extra header information to be returned with the response
+    /** @note The default \c NullRestSchemaValidator class will try use any \c Content-Type header if set here to
+        serialize the response if the MIME type is supported and acceptable by the client
+    */
     *hash<auto> hdr;
 
     #! this key can be set to @ref True "True" if the reply has already been sent (by a chunked callback for example)

@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.8";
+    version = "1.9";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -126,6 +126,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_9 RestClient v1.9
+    - enable the deserialized body to be returned in REST exception info when possible
+      (<a href="https://github.com/qorelanguage/qore/issues/4591">issue 4591</a>)
 
     @subsection restclientv1_8 RestClient v1.8
     - added support for the DataProvider API
@@ -1061,10 +1065,11 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             if (ex.arg) {
                 if (decode_errors && ex.arg.body) {
                     decodeError(ex.arg, \info);
+                    ex.arg.deserialized_body = info."response-body";
                 }
             }
 
-            rethrow;
+            rethrow ex.err, ex.desc, ex.arg;
         }
 
         on_error {
