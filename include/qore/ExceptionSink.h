@@ -40,9 +40,11 @@
 
 // forward references
 class QoreException;
+class ExceptionSink;
 class QoreXSinkException;
 struct QoreProgramLocation;
 struct QoreCallStack;
+class AbstractStatement;
 
 //! container for holding Qore-language exception information and also for registering a "thread_exit" call
 class ExceptionSink {

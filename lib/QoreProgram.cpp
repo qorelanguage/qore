@@ -1351,6 +1351,10 @@ QoreListNode* qore_program_private::runtimeFindCallVariants(const char* name, Ex
     return qore_root_ns_private::get(*RootNS)->runtimeFindCallVariants(name, xsink);
 }
 
+int qore_program_private::serialize(OutputStream* out) {
+    return 0;
+}
+
 /*
     When a debug handler is invoked then current stack frame/node is not visible in get_thread_call_stack()
     as a statement is injected (not real function call). The statment information are passed as handler parameters
@@ -1670,14 +1674,16 @@ void QoreProgram::parse(FILE* fp, const char* name, ExceptionSink* xsink, Except
     priv->parse(fp, name, xsink, wS, wm);
 }
 
-void QoreProgram::parse(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+void QoreProgram::parse(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS,
+        int wm) {
     if (!str || str->empty())
         return;
 
     priv->parse(str, lstr, xsink, wS, wm);
 }
 
-void QoreProgram::parse(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
+void QoreProgram::parse(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS,
+        int wm, const QoreString* source, int offset) {
     if (!str || str->empty())
         return;
 
@@ -1691,26 +1697,30 @@ void QoreProgram::parse(const char* code, const char* label, ExceptionSink* xsin
     priv->parse(code, label, xsink, wS, wm);
 }
 
-void QoreProgram::parse(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* source, int offset) {
+void QoreProgram::parse(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm,
+        const char* source, int offset) {
     if (!code || !code[0])
         return;
 
     priv->parse(code, label, xsink, wS, wm, source, offset);
 }
 
-void QoreProgram::parseFile(const char* filename, ExceptionSink* xsink, ExceptionSink* wS, int wm, bool only_first_except) {
+void QoreProgram::parseFile(const char* filename, ExceptionSink* xsink, ExceptionSink* wS, int wm,
+        bool only_first_except) {
     priv->only_first_except = only_first_except;
     priv->parseFile(filename, xsink, wS, wm);
 }
 
-void QoreProgram::parsePending(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm) {
+void QoreProgram::parsePending(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS,
+        int wm) {
     if (!str || str->empty())
         return;
 
     priv->parsePending(str, lstr, xsink, wS, wm);
 }
 
-void QoreProgram::parsePending(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
+void QoreProgram::parsePending(const QoreString* str, const QoreString* lstr, ExceptionSink* xsink, ExceptionSink* wS,
+        int wm, const QoreString* source, int offset) {
     if (!str || str->empty())
         return;
 
@@ -1724,11 +1734,27 @@ void QoreProgram::parsePending(const char* code, const char* label, ExceptionSin
     priv->parsePending(code, label, xsink, wS, wm);
 }
 
-void QoreProgram::parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* source, int offset) {
+void QoreProgram::parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm,
+        const char* source, int offset) {
     if (!code || !code[0])
         return;
 
     priv->parsePending(code, label, xsink, wS, wm, source, offset);
+}
+
+int QoreProgram::parseToBinary(OutputStream* out, const QoreString* str, const QoreString* lstr,
+        ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
+    if (str && !str->empty()) {
+        priv->parsePending(str, lstr, xsink, wS, wm, source, offset);
+        if (*xsink) {
+            return -1;
+        }
+    }
+    return priv->serialize(out);
+}
+
+int QoreProgram::parseFromBinary(InputStream* in, ExceptionSink* xsink) {
+    return 0;
 }
 
 QoreValue QoreProgram::runTopLevel(ExceptionSink* xsink) {

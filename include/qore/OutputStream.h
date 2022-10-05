@@ -81,7 +81,7 @@ public:
       * @param data the data to write
       * @param xsink the exception sink
       */
-    DLLLOCAL void writeHelper(const BinaryNode *data, ExceptionSink *xsink) {
+    DLLLOCAL void writeHelper(const BinaryNode* data, ExceptionSink* xsink) {
         if (!check(xsink)) {
             return;
         }

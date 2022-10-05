@@ -33,6 +33,10 @@
 #define _QORE_STREAMBASE_H
 
 #include "qore/AbstractPrivateData.h"
+#include "qore/qore_thread.h"
+#include "qore/QoreString.h"
+#include "qore/ExceptionSink.h"
+#include "qore/BinaryNode.h"
 
 #include <atomic>
 

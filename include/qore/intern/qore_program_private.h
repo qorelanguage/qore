@@ -212,56 +212,56 @@ public:
         * then is set to DBG_RS_STOPPED. It's simple lock and debugging is disabled
         * till returns from this event handler. To be precise it should be
         * locked by an atomic lock but it is good enough not to break performance.
-        */
+    */
 
     /**
         * Executed when starting thread or thread context first time for given program
-        */
+    */
     DLLLOCAL void dbgAttach(ExceptionSink* xsink);
     /**
         * Executed from any thread when terminated to detach program
-        */
+    */
     DLLLOCAL void dbgDetach(ExceptionSink* xsink);
     /**
         * Executed every step in BlockStatement.
         * @param statement is step being processed
         * @return 0 as neutral value or RC_RETURN/BREAK/CONTINUE to terminate block
-        */
+    */
     DLLLOCAL int dbgStep(const StatementBlock* blockStatement, const AbstractStatement* statement, ExceptionSink* xsink);
     /**
         * Executed when a function is entered. If step-over is requested then flag is cleared not to break
-        */
+    */
     DLLLOCAL void dbgFunctionEnter(const StatementBlock* statement, ExceptionSink* xsink);
     /**
         * Executed when a function is exited.
-        */
+    */
     DLLLOCAL void dbgFunctionExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink);
     /**
         * Executed when an exception is raised.
-        */
+    */
     DLLLOCAL void dbgException(const AbstractStatement* statement, ExceptionSink* xsink);
     /**
         * Executed when a thread or program is exited.
-        */
+    */
     DLLLOCAL void dbgExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink);
 
     /**
         * Executed from any thread to break running program
-        */
+    */
     DLLLOCAL void dbgBreak() {
         printd(5, "ThreadLocalProgramData::dbgBreak(), this: %p\n", this);
         breakFlag = true;
     }
     /**
         * Executed from any thread to set pending attach flag
-        */
+    */
     DLLLOCAL void dbgPendingAttach() {
         printd(5, "ThreadLocalProgramData::dbgPendingAttach(), this: %p\n", this);
         attachFlag = 1;
     }
     /**
         * Executed from any thread to set pending detach flag
-        */
+    */
     DLLLOCAL void dbgPendingDetach() {
         printd(5, "ThreadLocalProgramData::dbgPendingDetach(), this: %p\n", this);
         attachFlag = -1;
@@ -269,7 +269,7 @@ public:
 
     /**
         * Check if attached to debugger
-        */
+    */
     DLLLOCAL bool dbgIsAttached() {
         return /*runState != DBG_RS_STOPPED &&*/ runState != DBG_RS_DETACH;
     }
@@ -975,7 +975,8 @@ public:
         return 0;
     }
 
-    DLLLOCAL int parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = nullptr, int offset = 0) {
+    DLLLOCAL int parsePending(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm,
+            const char* orig_src = nullptr, int offset = 0) {
         //printd(5, "qore_program_private::parsePending() wm=0x%x UV=0x%x on: %d\n", wm, QP_WARN_UNREFERENCED_VARIABLE, wm & QP_WARN_UNREFERENCED_VARIABLE);
 
         ProgramRuntimeParseContextHelper pch(xsink, pgm);
@@ -1263,7 +1264,7 @@ public:
         if (source && !source->empty() && !src.set(source, QCS_DEFAULT, xsink))
             return;
 
-        parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm, source ? src->getBuffer() : 0, offset);
+        parsePending(tstr->c_str(), tlstr->c_str(), xsink, wS, wm, source ? src->c_str() : nullptr, offset);
     }
 
     // called during run time (not during parsing)
@@ -2166,7 +2167,7 @@ public:
     }
 
     DLLLOCAL static void makeParseWarning(QoreProgram* pgm, const QoreProgramLocation &loc, int code, const char* warn, QoreStringNode* desc) {
-        //printd(5, "QoreProgram::makeParseWarning(code: %d, warn: '%s', desc: '%s') priv->pwo.warn_mask: %d priv->warnSink: %p %s\n", code, warn, desc->getBuffer(), priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
+        //printd(5, "QoreProgram::makeParseWarning(code: %d, warn: '%s', desc: '%s') priv->pwo.warn_mask: %d priv->warnSink: %p %s\n", code, warn, desc->c_str(), priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
         if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask)) {
             desc->deref();
             return;
@@ -2477,6 +2478,8 @@ public:
             return i->second;
         }
     }
+
+    DLLLOCAL int serialize(OutputStream* out);
 
     DLLLOCAL static QoreObject* getQoreObject(QoreProgram* pgm) {
         QoreAutoRWWriteLocker al(&lck_programMap);

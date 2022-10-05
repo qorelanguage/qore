@@ -37,7 +37,8 @@
 
 #include <qore/AbstractPrivateData.h>
 #include <qore/Restrictions.h>
-//#include <qore/intern/qore_program_private.h>
+#include <qore/OutputStream.h>
+#include <qore/InputStream.h>
 
 // warnings - must correspond with the string order in QoreProgram.cpp
 // new warnings must also be added as constants
@@ -412,6 +413,35 @@ public:
         @see QoreProgram::parseCommit()
     */
     DLLEXPORT int parseRollback(ExceptionSink* xsink);
+
+    //! Parses code from the given string and serializes the data to the given output stream
+    /** Does not commit changes to the QoreProgram
+
+        @param out the output stream where the serialized data will be written
+        @param str the code to parse
+        @param lstr the label of the code being parsed to be used as a file name
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param warn_sink if a warning is raised, the warning information will be added here (0 = no warnings)
+        @param warn_mask the warning mask to set (-1 sets all possible warnings)
+        @param source the source file name (if lstr is a label representing a section of a file for example)
+        @param offset the line offset from the label to the file
+
+        @return -1 if an error occurs, a positive number for the number of bytes written to \a out
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT int parseToBinary(OutputStream* out, const QoreString* str, const QoreString* lstr,
+            ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset);
+
+    //! Creates the program object from binary data created with parseToBinary
+    /** @param in the input data
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return -1 if an error occurs, a positive number for the number of bytes read from \a in
+
+        @since %Qore 1.12
+     */
+    DLLEXPORT int parseFromBinary(InputStream* in, ExceptionSink* xsink);
 
     //! returns true if the given function exists as a user function, false if not
     DLLEXPORT bool existsFunction(const char* name);
