@@ -95,6 +95,13 @@ public:
     DLLLOCAL int read(const char* mname, char* buf, int size, int timeout_ms, ExceptionSink* xsink);
     // returns 0 for success
     DLLLOCAL int write(const char* mname, const void* buf, int size, int timeout_ms, ExceptionSink* xsink);
+
+    //! Starts an SSL negotiation for a client in nonblocking mode
+    DLLLOCAL int startConnect(ExceptionSink* xsink);
+
+    //! Starts an SSL negotiation for a server in nonblocking mode
+    DLLLOCAL int startAccept(ExceptionSink* xsink);
+
     DLLLOCAL const char* getCipherName() const;
     DLLLOCAL const char* getCipherVersion() const;
     DLLLOCAL X509* getPeerCertificate() const;
@@ -122,6 +129,9 @@ private:
 
     // must be called with refs > 1
     DLLLOCAL bool sslError(ExceptionSink* xsink, const char* meth, const char* msg, bool always_error = true);
+
+    // must be called with refs > 1
+    DLLLOCAL int sysCallError(ExceptionSink* xsink, int rc, const char* mname, const char* ssl_func);
 
     DLLLOCAL void handleErrorIntern(ExceptionSink* xsink, int e, const char* mname, const char* func,
             bool always_error);

@@ -352,6 +352,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         if (m_options.verbose) {
             verbose = m_options.verbose;
         }
+        addTestCase("poll test", \pollTest());
         addTestCase("chunked HEAD test", \chunkedHeadTest());
         addTestCase("assume encoding", \assumedEncoding());
         addTestCase("chunked disconnect test", \chunkedDisconnectTest());
@@ -363,6 +364,69 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         addTestCase("SSL read test", \sslReadTest());
         addTestCase("issue 2610", \issue2610());
         set_return_value(main());
+    }
+
+    pollTest() {
+        {
+            RealTestHttpServer serv();
+            on_exit delete serv;
+
+            {
+                Socket tmp();
+                if (tmp.bind("localhost:0", True)) {
+                    throw "SOCKET-BIND-ERROR", strerror();
+                }
+                tmp.listen();
+                int port = tmp.getSocketInfo().port;
+                tmp.close();
+                tmp.shutdown();
+
+                HTTPClient hc({
+                    "url": "https://localhost:" + port,
+                });
+
+                SocketPollOperation spop = hc.startPollConnect();
+                assertEq("connect", spop.getGoal());
+                assertEq("connecting", spop.getState());
+                assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+            }
+
+            HTTPClient hc({
+                "url": "http://localhost:" + serv.getPort(),
+            });
+
+            SocketPollOperation spop = hc.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+            assertNothing(spop.getOutput());
+        }
+        {
+            TempFile cert("cert.pem", TestCert);
+
+            RealTestHttpServer serv(cert.getPath(), cert.getPath());
+            on_exit delete serv;
+
+            HTTPClient hc({
+                "url": "https://localhost:" + serv.getPort(),
+            });
+
+            SocketPollOperation spop = hc.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+            assertNothing(spop.getOutput());
+        }
     }
 
     assumedEncoding() {

@@ -62,6 +62,28 @@ void QoreSocketObject::deref() {
     }
 }
 
+AbstractPollState* QoreSocketObject::startConnect(const char* name, ExceptionSink* xsink) {
+    AutoLocker al(priv->m);
+    return priv->socket->startConnect(name, xsink);
+}
+
+AbstractPollState* QoreSocketObject::startSslConnect(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey) {
+    AutoLocker al(priv->m);
+    return priv->socket->startSslConnect(xsink, cert, pkey);
+}
+
+/*
+int QoreSocketObject::startAccept(ExceptionSink* xsink) {
+    AutoLocker al(priv->m);
+    return priv->socket->startAccept(xsink);
+}
+
+int QoreSocketObject::startSslAccept(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey) {
+    AutoLocker al(priv->m);
+    return priv->socket->startSslAccept(xsink, cert, pkey);
+}
+*/
+
 int QoreSocketObject::connect(const char* name, int timeout_ms, ExceptionSink* xsink) {
     AutoLocker al(priv->m);
     return priv->socket->connect(name, timeout_ms, xsink);

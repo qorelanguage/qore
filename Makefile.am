@@ -411,8 +411,7 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/reflection/src/QC_AbstractMethod.h \
 	modules/reflection/src/QC_AbstractMember.qpp \
 	modules/reflection/src/QC_AbstractMethod.qpp \
-	modules/reflection/src/QC_DestructorMethodVariant.h \
-	modules/reflection/src/QC_PseudoMethod.qpp \
+	modules/reflection/src/QC_DestructorMethodVariant.h \_H
 	modules/reflection/src/QC_Namespace.qpp \
 	modules/reflection/src/QC_ConstructorMethod.qpp \
 	modules/reflection/src/QC_TypedHash.h \
@@ -552,7 +551,8 @@ include_HEADERS = \
 	include/qore/AbstractException.h \
 	include/qore/QoreStandardException.h \
 	include/qore/QoreXSinkException.h \
-	include/qore/UnicodeCharacterIterator.h
+	include/qore/UnicodeCharacterIterator.h \
+    include/qore/AbstractPollState.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
@@ -853,6 +853,9 @@ noinst_HEADERS = \
 	include/qore/intern/QC_TreeMap.h \
 	include/qore/intern/QC_AbstractThreadResource.h \
 	include/qore/intern/QC_Serializable.h \
+	include/qore/intern/QC_AbstractPollOperation.h \
+	include/qore/intern/QC_SocketPollOperationBase.h \
+	include/qore/intern/QC_SocketPollOperation.h \
 	lib/getopt_long.h \
 	command-line.h
 

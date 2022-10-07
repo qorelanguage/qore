@@ -33,6 +33,7 @@
 #include <qore/QoreHttpClientObject.h>
 #include "qore/intern/QC_HTTPClient.h"
 #include "qore/intern/QC_Queue.h"
+#include "qore/intern/QC_SocketPollOperation.h"
 #include "qore/intern/ssl_constants.h"
 #include "qore/minitest.hpp"
 #include "qore/QoreSSLCertificate.h"
@@ -291,6 +292,13 @@ HTTPClient::destructor() {
     client->deref(xsink);
 }
 
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the HTTP connection for the given goal
+/** @since %Qore 1.12
+*/
+AbstractPollOperation HTTPClient::startPollConnect() {
+    return qore_httpclient_priv::get(*client)->startPollConnect(xsink, self, client);
+}
+
 //! Sets the HTTP protocol version string for headers in outgoing messages, allowed values are \c "1.0" and \"1.1\".
 /** @param ver \c "1.0" or \"1.1\" for the HTTP protocol compliance version
 
@@ -347,9 +355,13 @@ bool HTTPClient::isSecure() [flags=CONSTANT] {
 }
 
 //! Connects to the remote socket; SSL/TLS negotiation is performed if required
-/** If the protocol indicates that a secure connection should be established (or HTTPClient::setSecure() was called previsouly), SSL/TLS negotiation will be attempted.
+/** If the protocol indicates that a secure connection should be established (or HTTPClient::setSecure() was called
+    previsouly), SSL/TLS negotiation will be attempted.
 
-    If the \c TCP_NODELAY flag has been set (see HTTPClient::setNoDelay()), then after a successful connection to the remote socket, this option will be set on the socket. If an error occurs setting the \c TCP_NODELAY option, the internal flag is set to false (use HTTPClient::getNoDelay() to check the flag's state) and the error code can be retrieved with errno().
+    If the \c TCP_NODELAY flag has been set (see HTTPClient::setNoDelay()), then after a successful connection to the
+    remote socket, this option will be set on the socket. If an error occurs setting the \c TCP_NODELAY option, the
+    internal flag is set to false (use HTTPClient::getNoDelay() to check the flag's state) and the error code can be
+    retrieved with errno().
 
     @par Example:
     @code{.py}
@@ -357,7 +369,8 @@ httpclient.connect();
     @endcode
 
     @par Events:
-    @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
+    @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED,
+    @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
     @note For possible exceptions, see the Socket::connect() method (or Socket::connectSSL() for secure connections).
  */
@@ -376,35 +389,50 @@ nothing HTTPClient::disconnect() {
     client->disconnect();
 }
 
-//! Sends an HTTP request with the specified method and optional message body and returns headers and any body received as a response in a hash format
-/** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
+//! Sends an HTTP request with the specified method and optional message body
+/** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before
+    sending the message
 
     @par Example:
     @code{.py}
 hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
-    @param body The message body to send; note that sending an HTTP message bosdy with a \c GET request is not standards compliant; see @ref httpclient_get_with_body for more information
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a \c additional_methods option.
+    @param body The message body to send; note that sending an HTTP message bosdy with a \c GET request is not
+    standards compliant; see @ref httpclient_get_with_body for more information
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE",
+    \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a
+    \c additional_methods option.
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
-    @param headers An optional hash of headers to include in the message; values are converted to strings; a list is converted to a string of comma-separated values; headers that differ only in case will be overwritten by the last header in the hash with a matching name with a case-insensitive search
-    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
-    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
-    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    @param headers An optional hash of headers to include in the message; values are converted to strings; a list is
+    converted to a string of comma-separated values; headers that differ only in case will be overwritten by the last
+    header in the hash with a matching name with a case-insensitive search
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no
+    \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies
+    without a \c "Content-Length" header.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request
+    headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of
+      \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to
+      the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in
+      this key
     - \c body-content-type: the outgoing message body MIME \c Content-Type value
     - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
     - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
     - \c request-body: the raw message body in the request (before any content encoding)
     - \c response-body: the raw message body in the response (after any content decoding)
-    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+      each header in the response message, plus the following %Qore-provided keys:
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
     - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
-    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
+    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if
+    any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the
+    \c "status_code" key.
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
@@ -419,11 +447,13 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
-    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout
+    period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
 
-    @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+    @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or
+    Socket::connectSSL() for secure connections)
 
     @see @ref httpclient_get_with_body
 
@@ -1308,7 +1338,7 @@ nothing HTTPClient::setProxyURL(string url) {
     @see getSafeProxyURL()
 */
 *string HTTPClient::getProxyURL() [flags=CONSTANT] {
-   return client->getProxyURL();
+    return client->getProxyURL();
 }
 
 //! Returns the current proxy URL without the password field
@@ -1327,7 +1357,6 @@ nothing HTTPClient::setProxyURL(string url) {
 *string HTTPClient::getSafeProxyURL() [flags=CONSTANT] {
     return client->getSafeProxyURL();
 }
-
 
 //! Clears the new proxy URL value for the next connection
 /**

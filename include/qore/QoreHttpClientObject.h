@@ -50,6 +50,8 @@ class Queue;
  */
 class QoreHttpClientObject : public QoreSocketObject {
 private:
+    friend struct qore_httpclient_priv;
+
     //! private implementation of the class
     struct qore_httpclient_priv* http_priv;
 
@@ -212,8 +214,9 @@ public:
 
     //! sets the username and password for the proxy connection
     /** @param user the username to set
-         @param pass the password to set
-        @note these settings will only take effect if a proxy URL is set, so it only makes sense to call this function after setProxyURL(); also setProxyURL() will overwrite any settings here.
+        @param pass the password to set
+        @note these settings will only take effect if a proxy URL is set, so it only makes sense to call this function
+        after setProxyURL(); also setProxyURL() will overwrite any settings here.
     */
     DLLEXPORT void setProxyUserPassword(const char* user, const char* pass);
 
@@ -240,22 +243,31 @@ public:
 
     //! opens a connection and returns a code giving the result
     /** @return -1 if an exception was thrown, 0 for OK
-        */
+    */
     DLLEXPORT int connect(ExceptionSink* xsink);
 
     //! disconnects from the remote server
     DLLEXPORT void disconnect();
 
+    //! starts a non-blocking connection and returns a code giving the result
+    /** @return -1 if an exception was thrown, 0 for OK
+    */
+    DLLEXPORT int startConnect(ExceptionSink* xsink);
+
     //! sends a message to the remote server and returns the entire response as a hash, caller owns the QoreHashNode reference returned
     /** possible errors: method not recognized, redirection errors, socket communication errors, timeout errors
+
         @param meth the HTTP method name to send
         @param path the path string to send in the header
         @param headers a hash of headers to add to the message
         @param data optional data to send (may be 0)
         @param size the byte length of the data to send (if this is 0 then no data is sent)
         @param getbody if true then a body will be read even if there is no "Content-Length:" header
-        @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
+        @param info if not 0 then additional information about the HTTP communication will be added to the hash
+        (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted
+        with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return the entire response as a hash, caller owns the QoreHashNode reference returned (0 if there was an error)
     */
     DLLEXPORT QoreHashNode* send(const char* meth, const char* path, const QoreHashNode* headers, const void* data,

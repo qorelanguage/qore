@@ -89,6 +89,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("RestClientTest", "1.0") {
+        addTestCase("poll test", \pollTest());
         addTestCase("issue 3472", \issue3472());
         addTestCase("connection tests", \connectionTests());
         addTestCase("OPTIONS tests", \methodOptionsTest());
@@ -122,6 +123,38 @@ public class Main inherits QUnit::Test {
 
     tearDown() {
         delete m_http;
+    }
+
+    pollTest() {
+        RestClient rest({"url": "http://localhost:" + port});
+
+        {
+            SocketPollOperation spop = rest.startPoll("connect");
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+        }
+
+        string url = "http://localhost:" + port;
+        RestConnection conn("test", "test", url);
+
+        assertTrue(conn.supportsPollingApi());
+        {
+            SocketPollOperation spop = conn.startConnectPoll();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+        }
     }
 
     issue3472() {

@@ -30,7 +30,7 @@
 #! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
 public namespace ConnectionProvider {
 #! class for HTTP connections; returns @ref Qore::HTTPClient objects
-/** supports the following options:
+/** Supports the following options:
     - \c "assume_encoding": assumes the given encoding if the server does not send a charset value
     - \c "connect_timeout": connection timeout to use in milliseconds (default: 45 seconds)
     - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
@@ -135,7 +135,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
             exists $1.value.default_value;
     }
 
-    #! creates the HttpConnection object
+    #! Creates the HttpConnection object
     /** @param name the name of the connection
         @param desc connection description
         @param url connection URL (potentially with password info)
@@ -150,12 +150,12 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
             : AbstractConnectionWithInfo(name, desc, url, attributes, options) {
     }
 
-    #! returns \c "http"
+    #! Returns \c "http"
     string getType() {
         return "http";
     }
 
-    #! returns an HttpDataProvider object for this connection
+    #! Returns an HttpDataProvider object for this connection
     /** @return an HttpDataProvider object for this connection
 
         @see hasDataProvider()
@@ -167,13 +167,34 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
         return create_object("HttpDataProvider", get());
     }
 
-    #! returns @ref True, as the connection returns a data provider with the @ref getDataProvider() method
+    #! Returns @ref True, as the connection returns a data provider with the @ref getDataProvider() method
     /** @return @ref True, as the connection returns a data provider with the @ref getDataProvider() method
 
         @see @ref getDataProvider()
     */
     bool hasDataProvider() {
         return True;
+    }
+
+    #! returns @ref True, since this connection type supports the %Qore @ref Qore::Socket "Socket-based" polling API
+    /** @return @ref True
+
+        @since ConnectionProvider 1.7
+    */
+    bool supportsPollingApi() {
+        return True;
+    }
+
+    #! Called to start the connection if the connection supports the polling API
+    /**
+        @return a socket poll operation object that will allow the connection goal to be reached with polling
+
+        @see supportsPollingApi()
+
+        @since ConnectionProvider 1.7
+    */
+    SocketPollOperation startPollConnect() {
+        return getImpl(False).startPollConnect();
     }
 
     #! Sets child data provider capabilities

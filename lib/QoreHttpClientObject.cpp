@@ -40,6 +40,7 @@
 #include "qore/intern/ql_misc.h"
 #include "qore/intern/QC_Socket.h"
 #include "qore/intern/QC_Queue.h"
+#include "qore/intern/QC_SocketPollOperation.h"
 #include "qore/intern/QoreHttpClientObjectIntern.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
@@ -97,8 +98,8 @@ struct qore_httpclient_priv {
     method_map_t additional_methods_map;
 
     DLLLOCAL qore_httpclient_priv(my_socket_priv* ms) :
-        msock(ms),
-        connection(HTTPCLIENT_DEFAULT_PORT) {
+            msock(ms),
+            connection(HTTPCLIENT_DEFAULT_PORT) {
         assert(ms);
         // setup protocol map
         prot_map["http"] = make_protocol(80, false);
@@ -137,6 +138,34 @@ struct qore_httpclient_priv {
 
     DLLLOCAL void lock() { msock->m.lock(); }
     DLLLOCAL void unlock() { msock->m.unlock(); }
+
+    DLLLOCAL QoreObject* startPollConnect(ExceptionSink* xsink, QoreObject* self, QoreHttpClientObject* client) {
+        bool connect_ssl;
+        {
+            SafeLocker sl(client->priv->m);
+
+            connect_ssl = proxy_connection.has_url()
+                ? proxy_connection.ssl
+                : connection.ssl;
+        }
+        //printd(5, "qore_http_client_priv::startPoll() self: %p client: %p msock: %p (== %p)\n", self, client,
+        //    msock, client->priv);
+
+        client->ref();
+        ReferenceHolder<SocketPollOperationBase> poller(new SocketConnectPollOperation(xsink, connect_ssl,
+            socketpath.c_str(), client), xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+        SocketPollOperationBase* p = *poller;
+        ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, poller.release()), xsink);
+        if (!*xsink) {
+            p->setSelf(*rv);
+            rv->setValue("sock", self->objectRefSelf(), xsink);
+            rv->setValue("goal", new QoreStringNode("connect"), xsink);
+        }
+        return rv.release();
+    }
 
     // returns -1 if an exception was thrown, 0 for OK
     DLLLOCAL int connect_unlocked(ExceptionSink* xsink) {
@@ -615,6 +644,14 @@ struct qore_httpclient_priv {
             h.setKeyValue("Proxy-Authorization", auth_str, xsink);
             assert(!*xsink);
         }
+    }
+
+    DLLLOCAL static qore_httpclient_priv* get(QoreHttpClientObject& client) {
+        return client.http_priv;
+    }
+
+    DLLLOCAL static const qore_httpclient_priv* get(const QoreHttpClientObject& client) {
+        return client.http_priv;
     }
 };
 

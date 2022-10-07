@@ -354,6 +354,9 @@
 #include "QC_StdoutOutputStream.cpp"
 #include "QC_StderrOutputStream.cpp"
 #include "QC_Serializable.cpp"
+#include "QC_AbstractPollOperation.cpp"
+#include "QC_SocketPollOperationBase.cpp"
+#include "QC_SocketPollOperation.cpp"
 
 #include "QorePseudoMethods.cpp"
 

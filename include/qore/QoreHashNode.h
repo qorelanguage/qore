@@ -171,6 +171,8 @@ public:
         @param exists true if the key existed (in case no value is returned), false if not
         @param xsink Qore language exceptions are raised here (ex: key is not valid for a hashdecl-derived hash)
 
+        @return the value of the given key, if the key is present; the value is not referenced for the return
+
         @since %Qore 0.8.13
     */
     DLLEXPORT QoreValue getKeyValueExistence(const char* key, bool& exists, ExceptionSink* xsink) const;
@@ -178,6 +180,8 @@ public:
     //! returns the value of the given key
     /** @param key the key to return
         @param exists true if the key existed (in case no value is returned), false if not
+
+        @return the value of the given key, if the key is present; the value is not referenced for the return
 
         @since %Qore 0.8.13
     */
@@ -187,12 +191,16 @@ public:
     /** @param key the key to return
         @param xsink Qore language exceptions are raised here (ex: key is not valid for a hashdecl-derived hash)
 
+        @return the value of the given key, if the key is present; the value is not referenced for the return
+
         @since %Qore 0.8.13
     */
     DLLEXPORT QoreValue getKeyValue(const char* key, ExceptionSink* xsink) const;
 
     //! returns the value of the given key
     /** @param key the key to return
+
+        @return the value of the given key, if the key is present; the value is not referenced for the return
 
         @since %Qore 0.8.13
     */
@@ -203,6 +211,8 @@ public:
         @param exists true if the key existed (in case no value is returned), false if not
         @param xsink Qore language exceptions are raised here (ex: key is not valid for a hashdecl-derived hash)
 
+        @return the value of the given key, if the key is present; the value is not referenced for the return
+
         @since %Qore 0.8.13
     */
     DLLEXPORT QoreValue getKeyValueExistence(const QoreString& key, bool& exists, ExceptionSink* xsink) const;
@@ -211,6 +221,8 @@ public:
     /** @param key the key to return
         @param exists true if the key existed (in case no value is returned), false if not
 
+        @return the value of the given key, if the key is present; the value is not referenced for the return
+
         @since %Qore 0.8.13
     */
     DLLEXPORT QoreValue getKeyValueExistence(const QoreString& key, bool& exists) const;
@@ -218,6 +230,8 @@ public:
     //! returns the value of the given key
     /** @param key the key to return
         @param xsink Qore language exceptions are raised here (ex: key is not valid for a hashdecl-derived hash)
+
+        @return the value of the given key, if the key is present; the value is not referenced for the return
 
         @since %Qore 0.8.13
     */

@@ -8,6 +8,9 @@
     Bugfix release with minor new features in user modules; see below for more information
 
     @subsection qore_1_12_0_new_features New Features in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - allow multiple connections to be polled from a single thread
+        (<a href="https://github.com/qorelanguage/qore/issues/4595">issue 4595</a>)
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
       - added child capability support to data provider summary info
         (<a href="https://github.com/qorelanguage/qore/issues/4576">issue 4576</a>)
@@ -21,6 +24,14 @@
       - added request arguments to the \c RestHandler::unknownSubClassError() and
         \c RestHandler::doGetPossibleSubClasses() methods
         (<a href="https://github.com/qorelanguage/qore/issues/4578">issue 4578</a>)
+    - new classes:
+      - @ref Qore::AbstractPollOperation "AbstractPollOperation"
+      - @ref Qore::SocketPollOperationBase "SocketPollOperationBase"
+      - @ref Qore::SocketPollOperation "SocketPollOperation"
+    - new methods:
+      - @ref Qore::Socket::startPollConnect() "Socket::startPollConnect()"
+      - @ref Qore::Socket::startPollConnectSsl() "Socket::startPollConnectSsl()"
+      - @ref Qore::HTTPClient::startPollConnect() "HTTPClient::startPollConnect()"
 
     @subsection qore_1_12_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
@@ -30,6 +41,8 @@
       - fixed a race condition handling log file rotation with active logs
         (<a href="https://github.com/qorelanguage/qore/issues/4583">issue 4583</a>)
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
+      - fixed a bug where HTTP method names were not accepted as wildcard values in URI paths
+        (<a href="https://github.com/qorelanguage/qore/issues/4598">issue 4598</a>)
       - fixed a bug setting the data provider name in Swagger schemas provided by files
         (<a href="https://github.com/qorelanguage/qore/issues/4587">issue 4587</a>)
 
@@ -386,8 +399,7 @@
 
     @subsection qore_1_4_0_new_features New Features in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
-      - added support for tags on data provider types (i.e.
-        @ref DataProvider::AbstractDataProviderType "AbstractDataProviderType")
+      - added support for tags on data provider types (i.e. \c DataProvider::AbstractDataProviderType)
         (<a href="https://github.com/qorelanguage/qore/issues/4442">issue 4442</a>)
       - fixed data provider factory info to provide info about the actual data provider factory instead of only
         provider info; note that the data provider factory abstract API has changed with this fix

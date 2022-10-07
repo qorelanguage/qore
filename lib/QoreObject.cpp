@@ -1360,6 +1360,10 @@ QoreValue QoreObject::getReferencedMemberNoMethod(const char* key, const QoreCla
 }
 
 int QoreObject::setMemberValue(const char* key, const QoreClass* cls, const QoreValue val, ExceptionSink* xsink) {
+    if (!cls) {
+        setValue(key, val, xsink);
+        return *xsink ? -1 : 0;
+    }
     LValueHelper lvh(xsink);
     if (priv->getLValue(key, lvh, qore_class_private::get(*cls), false, xsink)) {
         return -1;

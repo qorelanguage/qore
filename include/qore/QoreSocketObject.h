@@ -48,8 +48,9 @@ class QoreSocketObject : public AbstractPrivateData {
 private:
     friend class my_socket_priv;
     friend struct qore_httpclient_priv;
+    friend class SocketConnectPollOperation;
 
-    DLLLOCAL QoreSocketObject(QoreSocket* s, QoreSSLCertificate* cert = 0, QoreSSLPrivateKey* pk = 0);
+    DLLLOCAL QoreSocketObject(QoreSocket* s, QoreSSLCertificate* cert = nullptr, QoreSSLPrivateKey* pk = nullptr);
 
 protected:
     my_socket_priv* priv;
@@ -62,13 +63,32 @@ public:
     DLLEXPORT virtual void deref(ExceptionSink* xsink);
     DLLEXPORT virtual void deref();
 
-    DLLEXPORT int connect(const char* name, int timeout_ms, ExceptionSink* xsink = NULL);
-    DLLEXPORT int connectINET(const char* host, int port, int timeout_ms, ExceptionSink* xsink = NULL);
-    DLLEXPORT int connectINET2(const char* host, const char* service, int family, int sock_type, int protocol, int timeout_ms = -1, ExceptionSink* xsink = NULL);
-    DLLEXPORT int connectUNIX(const char* p, int socktype, int protocol, ExceptionSink* xsink = NULL);
+    //! Starts a non-blocking socket connection to the given target
+    DLLEXPORT AbstractPollState* startConnect(const char* name, ExceptionSink* xsink);
+
+    //! Atarts a non-blocking client SSL upgrade on a connected socket
+    /** @param xsink %Qore-language exceptions will be raised here
+        @param cert the client cert to use, may be nullptr
+        @param pkey the private key to use for the client cert, may be nullptr
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate connection
+    */
+    DLLEXPORT AbstractPollState* startSslConnect(ExceptionSink* xsink, X509* cert = nullptr, EVP_PKEY* pkey = nullptr);
+
+    /*
+    DLLEXPORT int startAccept(ExceptionSink* xsink);
+    DLLEXPORT int startSslAccept(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey);
+    */
+
+    DLLEXPORT int connect(const char* name, int timeout_ms, ExceptionSink* xsink = nullptr);
+    DLLEXPORT int connectINET(const char* host, int port, int timeout_ms, ExceptionSink* xsink = nullptr);
+    DLLEXPORT int connectINET2(const char* host, const char* service, int family, int sock_type, int protocol,
+            int timeout_ms = -1, ExceptionSink* xsink = nullptr);
+    DLLEXPORT int connectUNIX(const char* p, int socktype, int protocol, ExceptionSink* xsink = nullptr);
     DLLEXPORT int connectSSL(const char* name, int timeout_ms, ExceptionSink* xsink);
     DLLEXPORT int connectINETSSL(const char* host, int port, int timeout_ms, ExceptionSink* xsink);
-    DLLEXPORT int connectINET2SSL(const char* host, const char* service, int family, int sock_type, int protocol, int timeout_ms = -1, ExceptionSink* xsink = NULL);
+    DLLEXPORT int connectINET2SSL(const char* host, const char* service, int family, int sock_type, int protocol,
+            int timeout_ms = -1, ExceptionSink* xsink = nullptr);
     DLLEXPORT int connectUNIXSSL(const char* p, int socktype, int protocol, ExceptionSink* xsink);
     // to bind to either a UNIX socket or an INET interface:port
     DLLEXPORT int bind(const char* name, bool reuseaddr = false);
@@ -78,7 +98,8 @@ public:
     DLLEXPORT int bind(const char* iface, int port, bool reuseaddr = false);
 
     DLLEXPORT int bindUNIX(const char* name, int socktype, int protocol, ExceptionSink* xsink);
-    DLLEXPORT int bindINET(const char* name, const char* service, bool reuseaddr, int family, int socktype, int protocol, ExceptionSink* xsink);
+    DLLEXPORT int bindINET(const char* name, const char* service, bool reuseaddr, int family, int socktype,
+            int protocol, ExceptionSink* xsink);
 
     // get port number for INET sockets
     DLLEXPORT int getPort();
@@ -178,9 +199,11 @@ public:
     DLLEXPORT QoreHashNode* readHTTPChunkedBody(int timeout, ExceptionSink* xsink);
 
     // receive a binary message in HTTP chunked format
-    DLLEXPORT void readHTTPChunkedBodyBinaryWithCallback(const ResolvedCallReferenceNode& recv_callback, QoreObject* obj, int timeout_ms, ExceptionSink* xsink);
+    DLLEXPORT void readHTTPChunkedBodyBinaryWithCallback(const ResolvedCallReferenceNode& recv_callback,
+            QoreObject* obj, int timeout_ms, ExceptionSink* xsink);
     // receive a string message in HTTP chunked format
-    DLLEXPORT void readHTTPChunkedBodyWithCallback(const ResolvedCallReferenceNode& recv_callback, QoreObject* obj, int timeout_ms, ExceptionSink* xsink);
+    DLLEXPORT void readHTTPChunkedBodyWithCallback(const ResolvedCallReferenceNode& recv_callback, QoreObject* obj,
+            int timeout_ms, ExceptionSink* xsink);
 
     DLLEXPORT QoreStringNode* readHTTPHeaderString(ExceptionSink* xsink, int timeout_ms);
 
@@ -221,7 +244,8 @@ public:
     DLLEXPORT void upgradeServerToSSL(int timeout_ms, ExceptionSink* xsink);
 
     DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
-    DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg, int64 min_ms = 1000);
+    DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg,
+            int64 min_ms = 1000);
     DLLEXPORT QoreHashNode* getUsageInfo() const;
     DLLEXPORT void clearStats();
     DLLEXPORT bool pendingHttpChunkedBody() const;

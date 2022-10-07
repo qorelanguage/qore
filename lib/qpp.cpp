@@ -1799,7 +1799,7 @@ protected:
                 continue;
             }
 
-            // do not precess complex types in arg handling
+            // do not process complex types in arg handling
             std::string ptype;
             {
                 size_t i = p.type.find('<');
@@ -1918,7 +1918,8 @@ protected:
                 continue;
             }
             if (ptype == "*data") {
-                fprintf(fp, "    const AbstractQoreNode* %s = get_param_value(args, %d).get<const AbstractQoreNode>();\n", p.name.c_str(), i);
+                fprintf(fp, "    const AbstractQoreNode* %s = "
+                    "get_param_value(args, %d).get<const AbstractQoreNode>();\n", p.name.c_str(), i);
                 continue;
             }
             // skip "..." arg which is just for documentation
@@ -2967,7 +2968,8 @@ public:
             ++p1;
 
         if (*p1) {
-            error("%s:%d: invalid character '%c' in hashdecl declaration; only whitespace is acceptable after the '{' char\n", fileName, lineNumber, *p1);
+            error("%s:%d: invalid character '%c' in hashdecl declaration; only whitespace is acceptable after the '{' "
+                "char\n", fileName, lineNumber, *p1);
             valid = false;
             return;
         }
@@ -2993,11 +2995,14 @@ public:
                     valid = false;
                     return;
                 }
-                if (!line.compare(0, 3, "/**")) {
+                size_t t = line.find("/**", 3);
+                if (t != std::string::npos) {
                     if (get_dox_comment(fileName, lineNumber, line, fp, true)) {
                         valid = false;
                         return;
                     }
+                    trim_end(line);
+                    cdoc += "\n";
                     cdoc += line;
                     line.clear();
 

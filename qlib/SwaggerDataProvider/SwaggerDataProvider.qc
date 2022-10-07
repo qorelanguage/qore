@@ -287,7 +287,7 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
             }
         }
 
-        if (exists path_tree."*" && !HttpMethods{name.upr()}) {
+        if (exists path_tree."*") {
             return getChildIntern("*", name);
         }
     }

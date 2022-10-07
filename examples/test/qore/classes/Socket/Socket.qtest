@@ -183,6 +183,124 @@ class SocketTest inherits QUnit::Test {
 
         list<hash<SocketPollInfo>> new_list;
 
+        {
+            if (s0.bind("localhost:0", True)) {
+                throw "SOCKET-BIND-ERROR", strerror();
+            }
+            s0.listen();
+            int port = s0.getSocketInfo().port;
+
+            Socket s2();
+
+            {
+                SocketPollOperation spop = s2.startPollConnect("-1");
+                assertEq("connecting", spop.getState());
+                assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+            }
+            {
+                SocketPollOperation spop = s2.startPollConnect("65536");
+                assertEq("connecting", spop.getState());
+                assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+            }
+
+            string target = "localhost:" + port;
+            SocketPollOperation spop = s2.startPollConnect(target);
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                new_list = Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+
+            Socket s3 = s0.accept();
+            string test_msg = get_random_string();
+            s3.send(test_msg);
+
+            string msg = s2.recv(-1);
+            assertEq(test_msg, msg);
+
+            Socket s4();
+            if (s4.bind("localhost:0", True)) {
+                throw "SOCKET-BIND-ERROR", strerror();
+            }
+            s4.listen();
+            int port2 = s4.getSocketInfo().port;
+            s4.close();
+            s4.shutdown();
+            target = "localhost:" + port2;
+            spop = s2.startPollConnect(target);
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+
+            spop = s2.startPollConnectSsl(target);
+            assertEq("connect-ssl", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+
+            {
+                msg = get_random_string();
+
+                Queue q();
+                background sub () {
+                    Socket ssl();
+                    # bind on a random free port
+                    ssl.bind(0);
+                    ssl.listen();
+
+                    q.push(ssl.getSocketInfo().port);
+
+                    ssl.setCertificate(TestCert);
+                    ssl.setPrivateKey(TestCert);
+
+                    Socket ns = ssl.acceptSSL();
+                    ns.send(msg);
+                }();
+
+                int port3 = q.get();
+
+                target = "localhost:" + port3;
+                spop = s2.startPollConnectSsl(target);
+                assertEq("connect-ssl", spop.getGoal());
+                assertEq("connecting", spop.getState());
+                while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                    #printf("info: %y\n", info);
+                    new_list = Socket::poll((info,), 1s);
+                }
+                assertEq("connected", spop.getState());
+                assertTrue(spop.goalReached());
+                assertNothing(spop.getOutput());
+                assertEq(msg, s2.recv(-1));
+            }
+
+            {
+                Queue q();
+                background sub () {
+                    Socket ssl();
+                    # bind on a random free port
+                    ssl.bind(0);
+                    ssl.listen();
+
+                    q.push(ssl.getSocketInfo().port);
+
+                    ssl.accept();
+                }();
+
+                int port3 = q.get();
+
+                target = "localhost:" + port3;
+                spop = s2.startPollConnectSsl(target);
+                assertEq("connect-ssl", spop.getGoal());
+                assertEq("connecting", spop.getState());
+                assertThrows("SOCKET-SSL-ERROR", \spop.continuePoll());
+                assertFalse(spop.goalReached());
+                assertNothing(spop.getOutput());
+            }
+        }
+
+        # bind and listen again
         if (s0.bind("localhost:0", True)) {
             throw "SOCKET-BIND-ERROR", strerror();
         }
