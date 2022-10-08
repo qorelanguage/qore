@@ -54,21 +54,54 @@ public:
     QoreSSLCertificate* cert = nullptr;
     QoreSSLPrivateKey* pk = nullptr;
     mutable QoreThreadLock m;
+    bool in_non_block = false;
 
     DLLLOCAL my_socket_priv(QoreSocket* s, QoreSSLCertificate* c = nullptr, QoreSSLPrivateKey* p = nullptr)
-        : socket(s), cert(c), pk(p) {
+            : socket(s), cert(c), pk(p) {
     }
 
     DLLLOCAL my_socket_priv() : socket(new QoreSocket) {
     }
 
     DLLLOCAL ~my_socket_priv() {
-        if (cert)
+        if (cert) {
             cert->deref();
-        if (pk)
+        }
+        if (pk) {
             pk->deref();
+        }
 
         delete socket;
+    }
+
+    //! Throws an exception if the in_non_block flag is set
+    DLLLOCAL int checkNonBlock(ExceptionSink* xsink) {
+        // must be called with the lock held
+        assert(m.trylock());
+
+        if (in_non_block) {
+            xsink->raiseException("SOCKET-NON-BLOCK-ERROR", "a non-blocking operation is currently in progress");
+            return -1;
+        }
+        return 0;
+    }
+
+    //! Sets the in_non_block flag
+    DLLLOCAL void setNonBlock() {
+        // must be called with the lock held
+        assert(m.trylock());
+
+        assert(!in_non_block);
+        in_non_block = true;
+    }
+
+    //! Clears the in_non_block flag
+    DLLLOCAL void clearNonBlock() {
+        // must be called with the lock held
+        assert(m.trylock());
+        if (in_non_block) {
+            in_non_block = false;
+        }
     }
 
     //! sets backwards-compatible members on accept in a new object - will be removed in a future version of qore

@@ -156,14 +156,14 @@ public:
     /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::startConnectINET() is called.
         Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::startConnectUNIX() is called.
 
-        @param name the name of the socket (either hostname:port or file name)
         @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+        @param name the name of the socket (either hostname:port or file name)
 
         @return a socket poll state object or nullptr in case of an exception or an immediate connection
 
         @since %Qore 1.12
     */
-    DLLEXPORT AbstractPollState* startConnect(const char* name, ExceptionSink* xsink);
+    DLLEXPORT AbstractPollState* startConnect(ExceptionSink* xsink, const char* name);
 
     //! Starts a non-blocking upgrade to an SSL connection on a connected client connection
     /**

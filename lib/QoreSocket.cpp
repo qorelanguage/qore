@@ -1795,7 +1795,7 @@ int QoreSocket::connectUNIX(const char* p, int sock_type, int protocol, Exceptio
 // * QoreSocket::startConnect("hostname:<port_number>");
 // for AF_UNIX sockets:
 // * QoreSocket::startConnect("filename");
-AbstractPollState* QoreSocket::startConnect(const char* name, ExceptionSink* xsink) {
+AbstractPollState* QoreSocket::startConnect(ExceptionSink* xsink, const char* name) {
     const char* p;
     int rc;
 

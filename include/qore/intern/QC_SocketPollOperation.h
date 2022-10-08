@@ -52,12 +52,27 @@ public:
     DLLLOCAL SocketConnectPollOperation(ExceptionSink* xsink, bool ssl, const char* target,
             QoreSocketObject* sock) : sock(sock) {
         sgoal = ssl ? SPG_CONNECT_SSL : SPG_CONNECT;
-        poll_state.reset(sock->startConnect(target, xsink));
-        state = SPS_CONNECTING;
+        if (!sock->setNonBlock(xsink)) {
+            set_non_block = true;
+            poll_state.reset(sock->startConnect(xsink, target));
+            if (!*xsink) {
+                if (poll_state) {
+                    state = SPS_CONNECTING;
+                } else {
+                    sock->clearNonBlock();
+                    state = SPS_CONNECTED;
+                }
+            } else {
+                sock->clearNonBlock();
+            }
+        }
     }
 
     DLLLOCAL void deref(ExceptionSink* xsink) {
         if (ROdereference()) {
+            if (set_non_block) {
+                sock->clearNonBlock();
+            }
             sock->deref(xsink);
             delete this;
         }
@@ -80,7 +95,7 @@ public:
 
                 // if we are just connecting, we are done
                 if (sgoal == SPG_CONNECT) {
-                    state = SPS_CONNECTED;
+                    // SPS_CONNECTED set below
                     break;
                 }
 
@@ -104,7 +119,11 @@ public:
                     break;
                 }
 
-                state = SPS_CONNECTED;
+                // SPS_CONNECTED set below
+                break;
+            }
+
+            if (SPS_CONNECTED) {
                 break;
             }
 
@@ -118,6 +137,9 @@ public:
             } else {
                 state = SPS_CONNECTED;
             }
+            sock->clearNonBlock();
+        } else {
+            assert(!*xsink);
         }
         return rv;
     }
@@ -129,6 +151,8 @@ private:
 
     int sgoal = 0;
     int state = SPS_NONE;
+
+    bool set_non_block = false;
 
     DLLLOCAL virtual const char* getStateImpl() const {
         const char* str;

@@ -45,17 +45,9 @@ class Queue;
 class my_socket_priv;
 
 class QoreSocketObject : public AbstractPrivateData {
-private:
     friend class my_socket_priv;
     friend struct qore_httpclient_priv;
     friend class SocketConnectPollOperation;
-
-    DLLLOCAL QoreSocketObject(QoreSocket* s, QoreSSLCertificate* cert = nullptr, QoreSSLPrivateKey* pk = nullptr);
-
-protected:
-    my_socket_priv* priv;
-
-    DLLLOCAL virtual ~QoreSocketObject();
 
 public:
     DLLEXPORT QoreSocketObject();
@@ -64,7 +56,14 @@ public:
     DLLEXPORT virtual void deref();
 
     //! Starts a non-blocking socket connection to the given target
-    DLLEXPORT AbstractPollState* startConnect(const char* name, ExceptionSink* xsink);
+    /** @param xsink %Qore-language exceptions will be raised here
+        @param name the connection target (ex: "host:port" or "/tmp/socket-file", etc)
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate connection
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT AbstractPollState* startConnect(ExceptionSink* xsink, const char* name);
 
     //! Atarts a non-blocking client SSL upgrade on a connected socket
     /** @param xsink %Qore-language exceptions will be raised here
@@ -72,13 +71,10 @@ public:
         @param pkey the private key to use for the client cert, may be nullptr
 
         @return a socket poll state object or nullptr in case of an exception or an immediate connection
+
+        @since %Qore 1.12
     */
     DLLEXPORT AbstractPollState* startSslConnect(ExceptionSink* xsink, X509* cert = nullptr, EVP_PKEY* pkey = nullptr);
-
-    /*
-    DLLEXPORT int startAccept(ExceptionSink* xsink);
-    DLLEXPORT int startSslAccept(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey);
-    */
 
     DLLEXPORT int connect(const char* name, int timeout_ms, ExceptionSink* xsink = nullptr);
     DLLEXPORT int connectINET(const char* host, int port, int timeout_ms, ExceptionSink* xsink = nullptr);
@@ -256,6 +252,20 @@ public:
     DLLEXPORT bool captureRemoteCertificates(bool set);
     DLLEXPORT QoreObject* getRemoteCertificate() const;
     DLLEXPORT int64 getConnectionId() const;
+
+    //! Sets the non-blocking connection flag
+    DLLEXPORT int setNonBlock(ExceptionSink* xsink);
+
+    //! Clears the non-blocking connection flag
+    DLLEXPORT void clearNonBlock();
+
+private:
+    DLLLOCAL QoreSocketObject(QoreSocket* s, QoreSSLCertificate* cert = nullptr, QoreSSLPrivateKey* pk = nullptr);
+
+protected:
+    my_socket_priv* priv;
+
+    DLLLOCAL virtual ~QoreSocketObject();
 };
 
 #endif // _QORE_QORE_SOCKET_OBJECT_H

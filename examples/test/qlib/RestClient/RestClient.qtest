@@ -129,7 +129,7 @@ public class Main inherits QUnit::Test {
         RestClient rest({"url": "http://localhost:" + port});
 
         {
-            SocketPollOperation spop = rest.startPoll("connect");
+            SocketPollOperation spop = rest.startPollConnect();
             assertEq("connect", spop.getGoal());
             assertEq("connecting", spop.getState());
             while (*hash<SocketPollInfo> info = spop.continuePoll()) {
@@ -145,7 +145,7 @@ public class Main inherits QUnit::Test {
 
         assertTrue(conn.supportsPollingApi());
         {
-            SocketPollOperation spop = conn.startConnectPoll();
+            SocketPollOperation spop = conn.startPollConnect();
             assertEq("connect", spop.getGoal());
             assertEq("connecting", spop.getState());
             while (*hash<SocketPollInfo> info = spop.continuePoll()) {

@@ -194,6 +194,8 @@ class SocketTest inherits QUnit::Test {
 
             {
                 SocketPollOperation spop = s2.startPollConnect("-1");
+                assertThrows("SOCKET-NON-BLOCK-ERROR", \s2.startPollConnect(), "x");
+                assertThrows("SOCKET-NON-BLOCK-ERROR", \s2.connect(), "x");
                 assertEq("connecting", spop.getState());
                 assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
             }
