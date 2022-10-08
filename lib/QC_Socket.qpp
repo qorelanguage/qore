@@ -516,6 +516,9 @@ Socket::copy() {
 //! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the socket for a standard connection
 /** @param target the URL target
 
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the socket for a standard
+    connection
+
     @since %Qore 1.12
 */
 AbstractPollOperation Socket::startPollConnect(string target) {
@@ -536,6 +539,9 @@ AbstractPollOperation Socket::startPollConnect(string target) {
 //! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the socket for an SSL connection
 /** @param target the URL target
 
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the socket for an SSL
+    connection
+
     @since %Qore 1.12
 */
 AbstractPollOperation Socket::startPollConnectSsl(string target) {
@@ -549,6 +555,57 @@ AbstractPollOperation Socket::startPollConnectSsl(string target) {
     if (!*xsink) {
         rv->setValue("sock", self->objectRefSelf(), xsink);
         rv->setValue("goal", new QoreStringNode("connect-ssl"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send data in non-blocking mode
+/** @param data the data to send
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send data in non-blocking mode
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollSend(string data) {
+    SimpleRefHolder<QoreStringNode> tmp;
+    if (data->getEncoding() != s->getEncoding()) {
+        tmp = data->convertEncoding(s->getEncoding(), xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+    }
+
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketSendPollOperation(xsink,
+        tmp ? tmp.release() : data->stringRefSelf(), s), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("send"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send data in non-blocking mode
+/** @param data the data to send
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send data in non-blocking mode
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollSend(binary data) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketSendPollOperation(xsink, data->binRefSelf(), s), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("send"), xsink);
     }
     return rv.release();
 }

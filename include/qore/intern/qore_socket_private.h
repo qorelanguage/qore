@@ -252,7 +252,7 @@ public:
         - SOCK_POLLIN = wait for read and call this again
         - SOCK_POLLOUT = wait for write and call this again
         - 0 = done
-        - < 1 = error (exception raised)
+        - < 0 = error (exception raised)
     */
     DLLLOCAL virtual int continuePoll(ExceptionSink* xsink);
 
@@ -285,7 +285,7 @@ public:
         - SOCK_POLLIN = wait for read and call this again
         - SOCK_POLLOUT = wait for write and call this again
         - 0 = done
-        - < 1 = error (exception raised)
+        - < 0 = error (exception raised)
     */
     DLLLOCAL virtual int continuePoll(ExceptionSink* xsink);
 
@@ -309,7 +309,7 @@ public:
         - SOCK_POLLIN = wait for read and call this again
         - SOCK_POLLOUT = wait for write and call this again
         - 0 = done
-        - < 1 = error (exception raised)
+        - < 0 = error (exception raised)
     */
     DLLLOCAL virtual int continuePoll(ExceptionSink* xsink);
 
@@ -320,6 +320,30 @@ private:
     DLLLOCAL int checkConnection(ExceptionSink* xsink);
 };
 
+constexpr int SCIPS_SEND = 0;
+constexpr int SCIPS_WAIT = 1;
+
+class SocketSendPollState : public AbstractPollState {
+public:
+    DLLLOCAL SocketSendPollState(ExceptionSink* xsink, qore_socket_private* sock, const char* data, size_t size);
+
+    /** returns:
+        - SOCK_POLLIN = wait for read and call this again
+        - SOCK_POLLOUT = wait for write and call this again
+        - 0 = done
+        - < 0 = error (exception raised)
+    */
+    DLLLOCAL virtual int continuePoll(ExceptionSink* xsink);
+
+private:
+    qore_socket_private* sock;
+    const char* data;
+    size_t size;
+    size_t sent = 0;
+    int state = SCIPS_SEND;
+
+    DLLLOCAL int doSend(ExceptionSink* xsink);
+};
 
 struct qore_socket_private {
     friend class PrivateQoreSocketTimeoutHelper;

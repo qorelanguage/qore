@@ -80,6 +80,16 @@ public:
     DLLLOCAL int doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int num, int timeout_ms,
             SslAction action, bool do_timeout = true);
 
+    // do nonblocking I/O for polling
+    /** returns:
+        - SOCK_POLLIN = wait for read and call this again
+        - SOCK_POLLOUT = wait for write and call this again
+        - 0 = done
+        - < 0 = error (exception raised)
+    */
+    DLLLOCAL int doNonBlockingIo(ExceptionSink* xsink, const char* mname, void* buf, size_t size, SslAction action,
+            size_t& real_io);
+
     DLLLOCAL int setClient(const char* mname, const char* sni_target_host, int sd, X509* cert, EVP_PKEY* pk,
             ExceptionSink* xsink);
     DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);

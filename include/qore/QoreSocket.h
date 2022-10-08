@@ -175,6 +175,19 @@ public:
     */
     DLLEXPORT AbstractPollState* startSslConnect(ExceptionSink* xsink, X509* cert = nullptr, EVP_PKEY* pkey = nullptr);
 
+    //! Starts a non-blocking send operation on a connection socket
+    /**
+        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+        @param data the data to send, must stay valid for the lifetime of the AbstractPollState object returned
+        @param size the size of the data to send
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate connection
+
+        @since %Qore 1.12
+     */
+    DLLEXPORT AbstractPollState* startSend(ExceptionSink* xsink, const char* data, size_t size);
+
+#if 0
     //! Starts a non-blocking accept operation on the socket
     /**
         @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
@@ -194,6 +207,7 @@ public:
         @since %Qore 1.12
     */
     DLLEXPORT int startSslAccept(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey);
+#endif
 
     //! connects to a socket and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::connectINET() is called.

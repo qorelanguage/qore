@@ -191,6 +191,84 @@ private:
     }
 };
 
+class SocketSendPollOperation : public SocketPollOperationBase {
+public:
+    // "data" must be passed already referenced
+    DLLLOCAL SocketSendPollOperation(ExceptionSink* xsink, QoreStringNode* data, QoreSocketObject* sock)
+            : data(data), sock(sock), buf(data->c_str()), size(data->size()) {
+        assert(data->getEncoding() == sock->getEncoding());
+        if (!sock->setNonBlock(xsink)) {
+            poll_state.reset(sock->startSend(xsink, buf, size));
+            if (!poll_state) {
+                sock->clearNonBlock();
+            } else {
+                set_non_block = true;
+            }
+        }
+    }
+
+    // "data" must be passed already referenced
+    DLLLOCAL SocketSendPollOperation(ExceptionSink* xsink, BinaryNode* data, QoreSocketObject* sock)
+            : data(data), sock(sock), buf(reinterpret_cast<const char*>(data->getPtr())),
+            size(data->size()) {
+        if (!sock->setNonBlock(xsink)) {
+            poll_state.reset(sock->startSend(xsink, buf, size));
+            if (!poll_state) {
+                sock->clearNonBlock();
+            } else {
+                set_non_block = true;
+            }
+        }
+    }
+
+    DLLLOCAL void deref(ExceptionSink* xsink) {
+        if (ROdereference()) {
+            if (set_non_block) {
+                sock->clearNonBlock();
+            }
+            sock->deref(xsink);
+            delete this;
+        }
+    }
+
+    DLLLOCAL virtual bool goalReached() const {
+        return sent;
+    }
+
+    DLLLOCAL virtual const char* getStateImpl() const {
+        return sent ? "sent" : "sending";
+    }
+
+    DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink) {
+        assert(poll_state.get());
+
+        // see if we are able to continue
+        int rc = poll_state->continuePoll(xsink);
+        //printd(5, "SocketConnectPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(), rc,
+        //    (int)*xsink);
+        if (*xsink || !rc) {
+            // release the AbstractPollState value
+            poll_state.reset();
+            sock->clearNonBlock();
+            set_non_block = false;
+            if (!*xsink) {
+                sent = true;
+            }
+            return nullptr;
+        }
+        return getSocketPollInfoHash(xsink, rc);
+    }
+
+private:
+    unique_ptr<AbstractPollState> poll_state;
+    SimpleRefHolder<SimpleValueQoreNode> data;
+    QoreSocketObject* sock;
+    const char* buf;
+    size_t size;
+    bool set_non_block = false;
+    bool sent = false;
+};
+
 DLLLOCAL QoreClass* initSocketPollOperationClass(QoreNamespace& qorens);
 
 #endif // _QORE_CLASS_SOCKETPOLLOPERATION_H

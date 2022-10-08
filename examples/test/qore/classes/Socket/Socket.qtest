@@ -204,6 +204,7 @@ class SocketTest inherits QUnit::Test {
                 assertEq("connecting", spop.getState());
                 assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
             }
+            assertThrows("SOCKET-NOT-OPEN", \s2.startPollSend(), <abcd>);
 
             string target = "localhost:" + port;
             SocketPollOperation spop = s2.startPollConnect(target);
@@ -221,6 +222,15 @@ class SocketTest inherits QUnit::Test {
             s3.send(test_msg);
 
             string msg = s2.recv(-1);
+            assertEq(test_msg, msg);
+
+            spop = s3.startPollSend(test_msg);
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("send info: %y\n", info);
+                new_list = Socket::poll((info,), 1s);
+            }
+
+            msg = s2.recv(-1);
             assertEq(test_msg, msg);
 
             Socket s4();
@@ -258,7 +268,11 @@ class SocketTest inherits QUnit::Test {
                     ssl.setPrivateKey(TestCert);
 
                     Socket ns = ssl.acceptSSL();
-                    ns.send(msg);
+                    SocketPollOperation spop0 = ns.startPollSend(msg);
+                    while (*hash<SocketPollInfo> info = spop0.continuePoll()) {
+                        printf("send info: %y\n", info);
+                        Socket::poll((info,), 1s);
+                    }
                 }();
 
                 int port3 = q.get();

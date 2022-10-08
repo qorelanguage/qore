@@ -1108,6 +1108,102 @@ int SocketConnectSslPollState::continuePoll(ExceptionSink* xsink) {
     return sock->ssl->startConnect(xsink);
 }
 
+SocketSendPollState::SocketSendPollState(ExceptionSink* xsink, qore_socket_private* sock, const char* data,
+        size_t size) : sock(sock), data(data), size(size) {
+}
+
+/** returns:
+    - SOCK_POLLIN = wait for read and call this again
+    - SOCK_POLLOUT = wait for write and call this again
+    - 0 = done
+    - < 0 = error (exception raised)
+*/
+int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
+    switch (state) {
+        case SCIPS_SEND:
+            return doSend(xsink);
+
+        case SCIPS_WAIT: {
+            int rc = sock->asyncIoWait(0, false, true, "Socket", "send", xsink);
+            if (rc < 0) {
+                assert(*xsink);
+                return rc;
+            }
+            if (!rc) {
+                return SOCK_POLLOUT;
+            }
+            // if rc > 0, we are done
+            break;
+        }
+    }
+    return 0;
+}
+
+int SocketSendPollState::doSend(ExceptionSink* xsink) {
+    while (true) {
+        ssize_t rc;
+        if (sock->ssl) {
+            size_t real_io = 0;
+            rc = sock->ssl->doNonBlockingIo(xsink, "send", const_cast<char*>(data + sent), size - sent,
+                SslAction::WRITE, real_io);
+            if (*xsink) {
+                return -1;
+            }
+            if (!rc) {
+                sent += real_io;
+                if (sent == size) {
+                    break;
+                }
+                // do another send
+                continue;
+            }
+            return rc;
+        } else {
+            rc = ::send(sock->sock, data, size, 0);
+            if (*xsink) {
+                return -1;
+            }
+            if (rc >= 0) {
+                sent += rc;
+                if (sent == size) {
+                    break;
+                }
+                // do another send
+                continue;
+            }
+            sock_get_error();
+            if (errno == EINTR) {
+                continue;
+            }
+            if (errno == EAGAIN
+#ifdef EWOULDBLOCK
+                || errno == EWOULDBLOCK
+#endif
+            ) {
+                state = SCIPS_WAIT;
+                return SOCK_POLLOUT;
+            }
+            xsink->raiseErrnoException("SOCKET-SEND-ERROR", errno, "error while executing Socket::send()");
+
+            /*
+            // do not close the socket even if we have EPIPE or ECONNRESET in case there is data to be read when streaming
+#ifdef EPIPE
+            if (!stream && errno == EPIPE) {
+                close();
+            }
+#endif
+#ifdef ECONNRESET
+            if (!stream && errno == ECONNRESET) {
+                close();
+            }
+#endif
+            */
+            break;
+        }
+    }
+    return 0;
+}
+
 int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, ExceptionSink* xsink) {
     assert(xsink);
 
@@ -1388,6 +1484,99 @@ void QoreSocket::doException(int rc, const char* meth, int timeout_ms, Exception
     }
 }
 
+/**
+    we assume the socket has already been put in a nonblock state
+
+    returns:
+    - SOCK_POLLIN = wait for read and call this again
+    - SOCK_POLLOUT = wait for write and call this again
+    - 0 = done
+    - < 0 = error (exception raised)
+*/
+int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, void* buf, size_t size,
+        SslAction action, size_t& real_io) {
+    //printd(5, "SSLSocketHelper::doNonBlockingIo() %s size: %ld timeout_ms: %d action: %d\n", mname, size, action);
+    assert(xsink);
+    assert(size);
+    assert(!real_io);
+    SSLSocketReferenceHelper ssrh(this);
+
+    int rc;
+    while (true) {
+        ERR_clear_error();
+        switch (action) {
+            case READ:
+                rc = SSL_read_ex(ssl, buf, size, &real_io);
+                break;
+            case WRITE:
+                rc = SSL_write_ex(ssl, buf, size, &real_io);
+                break;
+            case PEEK:
+                rc = SSL_peek_ex(ssl, buf, size, &real_io);
+                break;
+        }
+
+        if (rc > 0) {
+            rc = 0;
+            break;
+        }
+
+        int err = SSL_get_error(ssl, rc);
+        if (err == SSL_ERROR_WANT_READ) {
+            rc = SOCK_POLLIN;
+            break;
+        } else if (err == SSL_ERROR_WANT_WRITE) {
+            rc = SOCK_POLLOUT;
+            break;
+        } else if (err == SSL_ERROR_ZERO_RETURN) {
+            // here we allow the remote side to disconnect and return 0 the first time just like regular recv()
+            if (action != WRITE)
+                rc = 0;
+            else {
+                if (!sslError(xsink, mname, "SSL_write"))
+                    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the socket was closed by the "
+                        "remote host while calling SSL_write()", mname);
+                rc = QSE_SSL_ERR;
+            }
+
+            break;
+        } else if (err == SSL_ERROR_SYSCALL) {
+            if (!sslError(xsink, mname, get_action_method(action), action == WRITE)) {
+                if (!rc) {
+                    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
+                        "an EOF condition that violates the SSL protocol while calling %s()", mname,
+                        get_action_method(action));
+                } else if (rc == -1) {
+                    xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the " \
+                        "openssl library reported an I/O error while calling %s()", mname, get_action_method(action));
+#ifdef ECONNRESET
+                    // close the socket if connection reset received
+                    if (qs.isOpen() && sock_get_error() == ECONNRESET) {
+                        qs.close();
+                    }
+#endif
+                } else {
+                    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
+                        "error code %d in %s() but the error queue is empty", mname, rc, get_action_method(action));
+                }
+            }
+
+            rc = !*xsink ? 0 : QSE_SSL_ERR;
+            break;
+        } else {
+            //printd(5, "SSLSocketHelper::doNonBlockingIo(buf: %p size: %ld) rc: %d err: %d\n", buf, size, rc, err);
+            // always throw an exception if an error occurs while writing
+            if (!sslError(xsink, mname, get_action_method(action), action == WRITE)) {
+                rc = 0;
+            }
+            break;
+        }
+    }
+
+    //printd(5, "SSLSocketHelper::doNonBlockingIo(buf: %p size: %d action: %d) rc: %d\n", buf, size, action, rc);
+    return rc;
+}
+
 int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int size, int timeout_ms,
         SslAction action, bool do_timeout) {
     //printd(5, "SSLSocketHelper::doSSLRW() %s size: %d timeout_ms: %d read: %d do_timeout: %d\n", mname, size, timeout_ms, read, do_timeout);
@@ -1484,9 +1673,9 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
                     xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the " \
                         "openssl library reported an I/O error while calling %s()", mname, get_action_method(action));
 #ifdef ECONNRESET
-                // close the socket if connection reset received
-                if (qs.isOpen() && sock_get_error() == ECONNRESET)
-                    qs.close();
+                    // close the socket if connection reset received
+                    if (qs.isOpen() && sock_get_error() == ECONNRESET)
+                        qs.close();
 #endif
                 } else {
                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
@@ -1828,6 +2017,16 @@ AbstractPollState* QoreSocket::startSslConnect(ExceptionSink* xsink, X509* cert,
     return new SocketConnectSslPollState(xsink, priv, cert, pkey);
 }
 
+AbstractPollState* QoreSocket::startSend(ExceptionSink* xsink, const char* data, size_t size) {
+    if (priv->sock == QORE_INVALID_SOCKET) {
+        se_not_open("Socket", "startSslConnect", xsink);
+        return nullptr;
+    }
+
+    return new SocketSendPollState(xsink, priv, data, size);
+}
+
+#if 0
 int QoreSocket::startAccept(ExceptionSink* xsink) {
     if (priv->sock == QORE_INVALID_SOCKET) {
         se_not_open("Socket", "startAccept", xsink);
@@ -1847,6 +2046,7 @@ int QoreSocket::startSslAccept(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey)
     }
     return priv->startSslAccept(xsink, "startSslAccept", cert, pkey);
 }
+#endif
 
 // currently hardcoded to SOCK_STREAM (tcp-only)
 // opens and connects to a remote socket

@@ -72,6 +72,11 @@ AbstractPollState* QoreSocketObject::startSslConnect(ExceptionSink* xsink, X509*
     return priv->socket->startSslConnect(xsink, cert, pkey);
 }
 
+AbstractPollState* QoreSocketObject::startSend(ExceptionSink* xsink, const char* data, size_t size) {
+    AutoLocker al(priv->m);
+    return priv->socket->startSend(xsink, data, size);
+}
+
 /*
 int QoreSocketObject::startAccept(ExceptionSink* xsink) {
     AutoLocker al(priv->m);
