@@ -320,6 +320,33 @@ private:
     DLLLOCAL int checkConnection(ExceptionSink* xsink);
 };
 
+#if 0
+class SocketAcceptPollState : public AbstractPollState {
+public:
+    DLLLOCAL SocketAcceptPollState(ExceptionSink* xsink, qore_socket_private* sock);
+private:
+    qore_socket_private* sock;
+};
+
+class SocketAcceptSslPollState : public AbstractPollState {
+    DLLLOCAL SocketAcceptSslPollState(ExceptionSink* xsink, qore_socket_private* sock, X509* cert, EVP_PKEY* pkey)
+            : sock(sock) {
+        assert(!sock->ssl);
+        SSLSocketHelperHelper sshh(sock, true);
+
+        sock->do_start_ssl_event();
+        int rc;
+        if (rc = sock->ssl->setServer("acceotSSL", sock->sock, cert, pkey, xsink)) {
+            sshh.error();
+            assert(*xsink);
+            return;
+        }
+
+        ssl->startAccept(xsink);
+    }
+};
+#endif
+
 constexpr int SCIPS_IO = 0;
 constexpr int SCIPS_WAIT = 1;
 
@@ -1335,25 +1362,6 @@ struct qore_socket_private {
         //printd(5, "qore_socket_private::set_non_blocking() set: %d\n", non_blocking);
 
         return 0;
-    }
-
-    DLLLOCAL int startAccept(ExceptionSink* xsink) {
-        xsink->raiseException("SOCKET-STARTACCEPT-ERROR", "not yet implemented");
-        return -1;
-    }
-
-    DLLLOCAL int startSslAccept(ExceptionSink* xsink, const char* mname, X509* cert, EVP_PKEY* pkey) {
-        assert(!ssl);
-        SSLSocketHelperHelper sshh(this, true);
-
-        do_start_ssl_event();
-        int rc;
-        if (rc = ssl->setServer(mname, sock, cert, pkey, xsink)) {
-            sshh.error();
-            return rc;
-        }
-
-        return ssl->startAccept(xsink);
     }
 
     DLLLOCAL int connectINET(const char* host, const char* service, int timeout_ms, ExceptionSink* xsink,

@@ -79,7 +79,7 @@ public:
 
     //! Starts a non-blocking send operation on a connected socket
     /**
-        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @param data the data to send, must stay valid for the lifetime of the AbstractPollState object returned
         @param size the size of the data to send
 
@@ -91,7 +91,7 @@ public:
 
     //! Starts a non-blocking receive operation on a connected socket
     /**
-        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @param size the size of the data to read, must be > 0
 
         @return a socket poll state object or nullptr in case of an exception or an immediate receive

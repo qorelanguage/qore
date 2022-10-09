@@ -2147,24 +2147,24 @@ AbstractPollState* QoreSocket::startRecv(ExceptionSink* xsink, size_t size) {
 }
 
 #if 0
-int QoreSocket::startAccept(ExceptionSink* xsink) {
+AbstractPollState* QoreSocket::startAccept(ExceptionSink* xsink) {
     if (priv->sock == QORE_INVALID_SOCKET) {
         se_not_open("Socket", "startAccept", xsink);
-        return -1;
+        return nullptr;
     }
-    return priv->startAccept(xsink);
+    return new SocketAcceptPollState(xsink, priv);
 }
 
-int QoreSocket::startSslAccept(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey) {
+AbstractPollState* QoreSocket::startSslAccept(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey) {
     if (priv->sock == QORE_INVALID_SOCKET) {
         se_not_open("Socket", "startSslAccept", xsink);
-        return -1;
+        return nullptr;
     }
     if (priv->ssl) {
         se_ssl_already_established("Socket", "startSslAccept", xsink);
-        return -1;
+        return nullptr;
     }
-    return priv->startSslAccept(xsink, "startSslAccept", cert, pkey);
+    return new SocketAcceptSslPollState(xsink, priv, cert, pkey);
 }
 #endif
 

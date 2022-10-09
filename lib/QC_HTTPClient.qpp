@@ -292,8 +292,10 @@ HTTPClient::destructor() {
     client->deref(xsink);
 }
 
-//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the HTTP connection for the given goal
-/** @since %Qore 1.12
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to make a non-blocking HTTP connection
+/** @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to make a non-blocking HTTP connection
+
+    @since %Qore 1.12
 */
 AbstractPollOperation HTTPClient::startPollConnect() {
     return qore_httpclient_priv::get(*client)->startPollConnect(xsink, self, client);
@@ -387,6 +389,50 @@ httpclient.disconnect();
  */
 nothing HTTPClient::disconnect() {
     client->disconnect();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the response
+/**
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE",
+    \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a
+    \c additional_methods option.
+    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
+    @param body The message body to send; note that sending an HTTP message bosdy with a \c GET request is not
+    standards compliant; see @ref httpclient_get_with_body for more information
+    @param headers An optional hash of headers to include in the message; values are converted to strings; a list is
+    converted to a string of comma-separated values; headers that differ only in case will be overwritten by the last
+    header in the hash with a matching name with a case-insensitive search
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the
+    response
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation HTTPClient::startPollSendRecv(string method, *string path, string body, *hash<auto> headers) {
+    return qore_httpclient_priv::get(*client)->startPollSendRecv(xsink, self, client, method, path, body,
+        body->c_str(), body->size(), headers, body->getEncoding());
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the response
+/**
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE",
+    \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a
+    \c additional_methods option.
+    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
+    @param body The message body to send; note that sending an HTTP message bosdy with a \c GET request is not
+    standards compliant; see @ref httpclient_get_with_body for more information
+    @param headers An optional hash of headers to include in the message; values are converted to strings; a list is
+    converted to a string of comma-separated values; headers that differ only in case will be overwritten by the last
+    header in the hash with a matching name with a case-insensitive search
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the
+    response
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation HTTPClient::startPollSendRecv(string method, *string path, *binary body, *hash<auto> headers) {
+    return qore_httpclient_priv::get(*client)->startPollSendRecv(xsink, self, client, method, path, body,
+        body ? body->getPtr() : nullptr, body ? body->size() : 0, headers);
 }
 
 //! Sends an HTTP request with the specified method and optional message body

@@ -130,21 +130,6 @@ class QoreSocket {
     friend class QoreSocketObject;
     friend class QoreFtpClient;
 
-private:
-    //! private implementation of the class
-    struct qore_socket_private *priv;
-
-    //! private constructor, not exported in the library's public interface
-    DLLLOCAL QoreSocket(int n_sock, int n_sfamily, int n_stype, int s_prot, const QoreEncoding *csid);
-
-    DLLLOCAL static void convertHeaderToHash(QoreHashNode* h, char* p);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreSocket(const QoreSocket&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreSocket& operator=(const QoreSocket&);
-
 public:
     //! creates an empty, unconnected socket
     DLLEXPORT QoreSocket();
@@ -156,7 +141,7 @@ public:
     /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::startConnectINET() is called.
         Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::startConnectUNIX() is called.
 
-        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @param name the name of the socket (either hostname:port or file name)
 
         @return a socket poll state object or nullptr in case of an exception or an immediate connection
@@ -167,7 +152,7 @@ public:
 
     //! Starts a non-blocking upgrade to an SSL connection on a connected client connection
     /**
-        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
 
         @return a socket poll state object or nullptr in case of an exception or an immediate connection
 
@@ -177,7 +162,7 @@ public:
 
     //! Starts a non-blocking send operation on a connected socket
     /**
-        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @param data the data to send, must stay valid for the lifetime of the AbstractPollState object returned
         @param size the size of the data to send
 
@@ -189,7 +174,7 @@ public:
 
     //! Starts a non-blocking receive operation on a connected socket
     /**
-        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @param size the size of the data to read, must be > 0
 
         @return a socket poll state object or nullptr in case of an exception or an immediate receive
@@ -207,7 +192,7 @@ public:
 
         @since %Qore 1.12
     */
-    DLLEXPORT int startAccept(ExceptionSink* xsink);
+    DLLEXPORT AbstractPollState* startAccept(ExceptionSink* xsink);
 
     //! Starts a non-blocking upgrade to an SSL connection on a connected server connection
     /**
@@ -217,7 +202,7 @@ public:
 
         @since %Qore 1.12
     */
-    DLLEXPORT int startSslAccept(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey);
+    DLLEXPORT AbstractPollState* startSslAccept(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey);
 #endif
 
     //! connects to a socket and returns a status code, Qore-language exceptions are raised in the case of any errors
@@ -1937,6 +1922,18 @@ public:
 
     //! sets backwards-compatible members on accept in a new object - will be removed in a future version of qore
     DLLLOCAL void setAccept(QoreObject* o);
+
+private:
+    //! private implementation of the class
+    struct qore_socket_private *priv;
+
+    //! private constructor, not exported in the library's public interface
+    DLLLOCAL QoreSocket(int n_sock, int n_sfamily, int n_stype, int s_prot, const QoreEncoding* csid);
+
+    DLLLOCAL static void convertHeaderToHash(QoreHashNode* h, char* p);
+
+    DLLLOCAL QoreSocket(const QoreSocket&) = delete;
+    DLLLOCAL QoreSocket& operator=(const QoreSocket&) = delete;
 };
 
 class QoreSocketTimeoutHelper {

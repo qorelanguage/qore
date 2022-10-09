@@ -41,6 +41,7 @@
 #include "qore/intern/QC_Socket.h"
 #include "qore/intern/QC_Queue.h"
 #include "qore/intern/QC_SocketPollOperation.h"
+#include "qore/intern/QC_SocketPollOperationBase.h"
 #include "qore/intern/QoreHttpClientObjectIntern.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 
@@ -56,6 +57,114 @@ static const int ABORTED_TIMEOUT_MS = 5000;
 
 method_map_t method_map;
 strcase_set_t header_ignore;
+
+constexpr int SPS_SENDING = 3;
+constexpr int SPS_SEND_WAIT = 4;
+constexpr int SPS_RECEIVING = 5;
+constexpr int SPS_RECV_WAIT = 6;
+constexpr int SPS_REDIRECTING = 7;
+constexpr int SPS_RECEIVED = 8;
+
+// states: none [-> connecting [-> connecting-ssl]] -> sending -> send_wait -> receiving -> recv-wait [-> redirecting] -> received
+class HttpClientSendRecvPollOperation : public SocketPollOperationBase {
+public:
+    DLLLOCAL HttpClientSendRecvPollOperation(ExceptionSink* xsink, QoreHttpClientObject* client, std::string method,
+            std::string path, const void* data, size_t size, const QoreHashNode* headers,
+            const QoreEncoding* enc = nullptr);
+
+    DLLLOCAL virtual void deref(ExceptionSink* xsink);
+
+    DLLLOCAL virtual bool goalReached() const {
+        return state == SPS_RECEIVED;
+    }
+
+    DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink);
+
+private:
+    QoreHttpClientObject* client;
+    std::string method, path;
+    const void* data;
+    size_t size;
+    const QoreEncoding* enc;
+
+    ReferenceHolder<QoreHashNode> request_headers;
+    ReferenceHolder<QoreHashNode> proxy_headers;
+    std::string method_orig;
+
+    int state = SPS_NONE;
+
+    bool set_non_block = false;
+    bool keep_alive = true;
+    bool host_override = false;
+    bool use_proxy_connect = false;
+    const char* proxy_path = nullptr;
+
+    unsigned redirect_count;
+
+    DLLLOCAL virtual const char* getStateImpl() const {
+        const char* str;
+        switch (state) {
+            case SPS_NONE:
+                return "none";
+            case SPS_CONNECTING:
+                return "connecting";
+            case SPS_CONNECTING_SSL:
+                return "connecting-ssl";
+            case SPS_SENDING:
+                return "sending";
+            case SPS_SEND_WAIT:
+                return "wend-wait";
+            case SPS_RECEIVING:
+                return "receiving";
+            case SPS_RECV_WAIT:
+                return "recv-wait";
+            case SPS_REDIRECTING:
+                return "redirecting";
+            case SPS_RECEIVED:
+                return "received";
+            default:
+                assert(false);
+        }
+        return "";
+    }
+};
+
+static const QoreStringNode* get_string_header_node(ExceptionSink* xsink, QoreHashNode& h, const char* header,
+        bool allow_multiple = false) {
+    QoreValue n = h.getKeyValue(header);
+    if (n.isNothing())
+        return nullptr;
+
+    qore_type_t t = n.getType();
+    if (t == NT_STRING)
+        return n.get<const QoreStringNode>();
+    assert(t == NT_LIST);
+    if (!allow_multiple) {
+        xsink->raiseException("HTTP-HEADER-ERROR", "multiple \"%s\" headers received in HTTP message", header);
+        return nullptr;
+    }
+    // convert list to a comma-separated string
+    const QoreListNode* l = n.get<const QoreListNode>();
+    // get first list entry
+    n = l->retrieveEntry(0);
+    assert(n.getType() == NT_STRING);
+    QoreStringNode* rv = n.get<QoreStringNode>()->copy();
+    for (size_t i = 1; i < l->size(); ++i) {
+        n = l->retrieveEntry(i);
+        assert(n.getType() == NT_STRING);
+        rv->concat(',');
+        rv->concat(n.get<const QoreStringNode>());
+    }
+    // dereference old list and save reference to return value in header hash
+    h.setKeyValue(header, rv, xsink);
+    return rv;
+}
+
+static const char* get_string_header(ExceptionSink* xsink, QoreHashNode& h, const char* header,
+        bool allow_multiple = false) {
+   const QoreStringNode* str = get_string_header_node(xsink, h, header, allow_multiple);
+   return str && !str->empty() ? str->c_str() : nullptr;
+}
 
 struct qore_httpclient_priv {
     my_socket_priv* msock;
@@ -139,21 +248,57 @@ struct qore_httpclient_priv {
     DLLLOCAL void lock() { msock->m.lock(); }
     DLLLOCAL void unlock() { msock->m.unlock(); }
 
+    DLLLOCAL QoreObject* startPollSendRecv(ExceptionSink* xsink, QoreObject* self, QoreHttpClientObject* client,
+            const QoreString* method, const QoreString* path, const AbstractQoreNode* data_save, const void* data,
+            size_t size, const QoreHashNode* headers, const QoreEncoding* enc = nullptr) {
+        client->ref();
+        ReferenceHolder<HttpClientSendRecvPollOperation> poller(new HttpClientSendRecvPollOperation(xsink, client,
+            method->c_str(), path ? path->c_str() : "", data, size, headers, enc), xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+        SocketPollOperationBase* p = *poller;
+        ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, poller.release()), xsink);
+        if (!*xsink) {
+            p->setSelf(*rv);
+            rv->setValue("sock", self->objectRefSelf(), xsink);
+            rv->setValue("goal", new QoreStringNode("received"), xsink);
+            if (data_save && size) {
+                assert(data);
+                rv->setValue("data_save", data_save->refSelf(), xsink);
+            } else {
+                assert(!data || !size);
+            }
+        }
+        return rv.release();
+    }
+
     DLLLOCAL QoreObject* startPollConnect(ExceptionSink* xsink, QoreObject* self, QoreHttpClientObject* client) {
         bool connect_ssl;
+        std::string connect_path;
         {
             SafeLocker sl(client->priv->m);
 
             connect_ssl = proxy_connection.has_url()
                 ? proxy_connection.ssl
                 : connection.ssl;
+
+            connect_path = socketpath;
+
+            // FIXME: move to HttpClientConnectPollOperation - also set nodelay after a successful socket connection
+            //        if appropriate
+            if (msock->socket->priv->sock == QORE_INVALID_SOCKET && persistent) {
+                xsink->raiseException("PERSISTENCE-ERROR", "the current connection has been temporarily marked as " \
+                    "persistent, but has been disconnected");
+                return nullptr;
+            }
         }
         //printd(5, "qore_http_client_priv::startPoll() self: %p client: %p msock: %p (== %p)\n", self, client,
         //    msock, client->priv);
 
         client->ref();
         ReferenceHolder<SocketPollOperationBase> poller(new SocketConnectPollOperation(xsink, connect_ssl,
-            socketpath.c_str(), client), xsink);
+            connect_path.c_str(), client), xsink);
         if (*xsink) {
             return nullptr;
         }
@@ -611,6 +756,176 @@ struct qore_httpclient_priv {
         return (const char*)pstr.c_str();
     }
 
+    DLLLOCAL const char* checkMethod(ExceptionSink* xsink, const char* meth, bool& bodyp) const {
+        method_map.find(meth);
+
+        // check if method is valid
+        method_map_t::const_iterator i = method_map.find(meth);
+        if (i == method_map.end()) {
+            i = additional_methods_map.find(meth);
+            if (i == additional_methods_map.end()) {
+                xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%s) not recognized.", meth);
+                return nullptr;
+            }
+        }
+
+        // make sure the capitalized version is used
+        bodyp = i->second;
+        return i->first.c_str();
+    }
+
+    DLLLOCAL QoreHashNode* getRequestHeaders(ExceptionSink* xsink, const QoreHashNode* headers,
+            const QoreEncoding* string_body_enc, bool msg_body, bool send_chunked, bool& keep_alive,
+            bool& host_override) {
+        ReferenceHolder<QoreHashNode> nh(new QoreHashNode(autoTypeInfo), xsink);
+        bool transfer_encoding = false;
+        // issue #1824: find content-type header, if any
+        const char* ct = nullptr;
+        if (headers) {
+            // issue #2340 track headers in a case-insensitive way
+            strcase_set_t hdrs;
+            ConstHashIterator hi(headers);
+            while (hi.next()) {
+                // if one of the mandatory headers is found, then ignore it
+                strcase_set_t::iterator si = header_ignore.find(hi.getKey());
+                if (si != header_ignore.end()) {
+                    continue;
+                }
+
+                // otherwise set the value in the hash
+                const QoreValue n = hi.get();
+                if (!n.isNothing()) {
+                    if (!strcasecmp(hi.getKey(), "transfer-encoding")) {
+                        transfer_encoding = true;
+                    } else if (!strcasecmp(hi.getKey(), "host")) {
+                        host_override = true;
+                    }
+
+                    addAppendHeader(hdrs, **nh, hi.getKey(), n, xsink);
+
+                    if (!strcasecmp(hi.getKey(), "connection")
+                        || (proxy_connection.has_url() && !strcasecmp(hi.getKey(), "proxy-connection"))) {
+                        const char* conn = get_string_header(xsink, **nh, hi.getKey(), true);
+                        if (*xsink) {
+                            disconnect_unlocked();
+                            return 0;
+                        }
+                        if (conn && !strcasecmp(conn, "close")) {
+                            keep_alive = false;
+                        }
+                    } else if (!strcasecmp(hi.getKey(), "content-type")) {
+                        const char* ct_value = get_string_header(xsink, **nh, hi.getKey(), true);
+                        if (*xsink) {
+                            disconnect_unlocked();
+                            return nullptr;
+                        }
+                        if (ct_value && !strstr(ct_value, "charset=") && !strstr(ct_value, "boundary=")) {
+                            ct = hi.getKey();
+                        }
+                    }
+                }
+            }
+        }
+
+        // add default headers if they weren't overridden
+        for (auto& hdri : default_headers) {
+            // look in original headers to see if the key was already given
+            if (headers) {
+                bool skip = false;
+                ConstHashIterator hi(headers);
+                while (hi.next()) {
+                    if (!strcasecmp(hi.getKey(), hdri.first.c_str())) {
+                        skip = true;
+                        break;
+                    }
+                }
+                if (skip) {
+                    continue;
+                }
+            }
+            const char* hdr_value = hdri.second.c_str();
+            // if there is no message body then do not send the "content-type" header
+            if (!strcmp(hdri.first.c_str(), "Content-Type")) {
+                if (!msg_body) {
+                    continue;
+                }
+                if (!strstr(hdr_value, "charset=") && !strstr(hdr_value, "boundary=")) {
+                    ct = hdri.first.c_str();
+                }
+            }
+            nh->setKeyValue(hdri.first.c_str(), new QoreStringNode(hdr_value), xsink);
+        }
+
+        // issue #1824: add ";charset=xxx" to Content-Type header if sending non-ISO-8891-1 text
+        if (string_body_enc && ct) {
+            if (!enc) {
+                enc = msock->socket->getEncoding();
+            }
+            // any string will be converted to the socket's encoding before sending, so we have to compare the socket's
+            // encoding and not the string's
+            if (enc != QCS_ISO_8859_1) {
+                QoreStringNode* v = nh->getKeyValue(ct).get<QoreStringNode>();
+                assert(v->is_unique());
+                QoreString code(string_body_enc->getCode());
+                code.tolwr();
+                v->sprintf(";charset=%s", code.c_str());
+            }
+        }
+
+        // set Transfer-Encoding: chunked if used with a send callback
+        if (send_chunked && !transfer_encoding) {
+            nh->setKeyValue("Transfer-Encoding", new QoreStringNode("chunked"), xsink);
+        }
+
+        if (!connection.username.empty()) {
+            // check for "Authorization" header
+            bool auth_found = false;
+            if (headers) {
+                ConstHashIterator hi(headers);
+                while (hi.next()) {
+                    if (!strcasecmp(hi.getKey(), "Authorization")) {
+                        auth_found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!auth_found) {
+                QoreString tmp;
+                tmp.sprintf("%s:%s", connection.username.c_str(), connection.password.c_str());
+                QoreStringNode* auth_str = new QoreStringNode("Basic ");
+                auth_str->concatBase64(&tmp);
+                nh->setKeyValue("Authorization", auth_str, xsink);
+            }
+        }
+
+        return nh.release();
+    }
+
+    DLLLOCAL QoreHashNode* setProxyHeaders(ExceptionSink* xsink, QoreHashNode* headers, bool& use_proxy_connect,
+            const char*& proxy_path) const {
+        ReferenceHolder<QoreHashNode> proxy_headers(xsink);
+        // use CONNECT if we need to make an HTTPS connection from the proxy
+        if (!proxy_connection.ssl && connection.ssl) {
+            use_proxy_connect = true;
+            SimpleRefHolder<QoreStringNode> hostport(new QoreStringNode(connection.host));
+            // RFC 7231 section 4.3.6 (https://tools.ietf.org/html/rfc7231#section-4.3.6) states
+            // that the hostname and port number should be included when establishing an HTTP tunnel
+            // with the CONNECT method
+            if (connection.port) {
+                hostport->sprintf(":%d", connection.port);
+            }
+            proxy_path = hostport->c_str();
+            proxy_headers = new QoreHashNode(autoTypeInfo);
+            proxy_headers->setKeyValue("Host", hostport.release(), xsink);
+
+            addProxyAuthorization(headers, **proxy_headers, xsink);
+        } else {
+            addProxyAuthorization(headers, *headers, xsink);
+        }
+        return proxy_headers.release();
+    }
+
     DLLLOCAL QoreHashNode* send_internal(ExceptionSink* xsink, const char* mname, const char* meth, const char* mpath,
         const QoreHashNode* headers, const QoreStringNode* body, const void* data, unsigned size,
         const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms,
@@ -618,7 +933,7 @@ struct qore_httpclient_priv {
         OutputStream* os = nullptr, InputStream* is = nullptr, size_t max_chunk_size = 0,
         const ResolvedCallReferenceNode* trailer_callback = nullptr);
 
-    DLLLOCAL void addProxyAuthorization(const QoreHashNode* headers, QoreHashNode& h, ExceptionSink* xsink) {
+    DLLLOCAL void addProxyAuthorization(const QoreHashNode* headers, QoreHashNode& h, ExceptionSink* xsink) const {
         if (proxy_connection.username.empty())
             return;
 
@@ -654,6 +969,81 @@ struct qore_httpclient_priv {
         return client.http_priv;
     }
 };
+
+#if 0
+class HttpClientSendRecvPollState : public AbstractPollState {
+public:
+    DLLLOCAL HttpClientSendRecvPollState(ExceptionSink* xsink, qore_httpclient_priv* http, const char* meth,
+            const char* path, const QoreHashNode* headers, const void* data, unsigned size) : http(http) {
+    }
+
+    /** returns:
+        - SOCK_POLLIN = wait for read and call this again
+        - SOCK_POLLOUT = wait for write and call this again
+        - 0 = done
+        - < 0 = error (exception raised)
+    */
+    DLLLOCAL virtual int continuePoll(ExceptionSink* xsink) {
+        return 0;
+    }
+
+private:
+    qore_httpclient_priv* http;
+};
+#endif
+
+// states: none [-> connecting [-> connecting-ssl]] -> sending -> send_wait -> receiving -> recv-wait [-> redirecting] -> received
+HttpClientSendRecvPollOperation::HttpClientSendRecvPollOperation(ExceptionSink* xsink, QoreHttpClientObject* client,
+        std::string method, std::string path, const void* data, size_t size, const QoreHashNode* headers,
+        const QoreEncoding* enc) : client(client), method(method), path(path), data(data), size(size),
+        request_headers(nullptr), proxy_headers(nullptr) {
+    if (headers) {
+        headers->ref();
+    }
+    bool bodyp = false;
+    {
+        const char* m = client->http_priv->checkMethod(xsink, method.c_str(), bodyp);
+        if (*xsink) {
+            return;
+        }
+        method = m;
+    }
+
+    // save original HTTP method in case we have to issue a CONNECT request to a proxy for an HTTPS connection
+    method_orig = method;
+
+    SafeLocker sl(client->priv->m);
+    Queue* event_queue = client->priv->socket->getQueue();
+
+    request_headers = client->http_priv->getRequestHeaders(xsink, headers, enc, data && size, false, keep_alive,
+        host_override);
+    if (*xsink) {
+        return;
+    }
+
+    if (!client->http_priv->proxy_connected && client->http_priv->proxy_connection.has_url()) {
+        proxy_headers = client->http_priv->setProxyHeaders(xsink, *request_headers, use_proxy_connect, proxy_path);
+        if (proxy_headers) {
+            method = "CONNECT";
+            assert(use_proxy_connect);
+            assert(proxy_path);
+        }
+    }
+}
+
+void HttpClientSendRecvPollOperation::deref(ExceptionSink* xsink) {
+    if (ROdereference()) {
+        if (set_non_block) {
+            client->clearNonBlock();
+        }
+        client->deref(xsink);
+        delete this;
+    }
+}
+
+QoreHashNode* HttpClientSendRecvPollOperation::continuePoll(ExceptionSink* xsink) {
+    return nullptr;
+}
 
 // static initialization
 void QoreHttpClientObject::static_init() {
@@ -1208,7 +1598,6 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     // if the transfer was aborted with a streaming send, but the socket is still open, then try to read a response
     ReferenceHolder<QoreHashNode> response_hash(xsink);
     while (true) {
-        //ReferenceHolder<QoreHashNode> ans(msock->socket->readHTTPHeader(xsink, info, timeout, QORE_SOURCE_HTTPCLIENT), xsink);
         qore_offset_t rc;
         response_hash = msock->socket->priv->readHTTPHeader(xsink, info, timeout, rc, QORE_SOURCE_HTTPCLIENT,
             "response-headers-raw");
@@ -1252,7 +1641,8 @@ void do_content_length_event(Queue *event_queue, qore_socket_private* priv, int 
     }
 }
 
-void do_redirect_event(Queue *event_queue, qore_socket_private* priv, const QoreStringNode* loc, const QoreStringNode* msg) {
+void do_redirect_event(Queue *event_queue, qore_socket_private* priv, const QoreStringNode* loc,
+        const QoreStringNode* msg) {
     if (event_queue) {
         QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_REDIRECT, QORE_SOURCE_HTTPCLIENT);
         qore_hash_private* hh = qore_hash_private::get(*h);
@@ -1270,7 +1660,8 @@ void do_event(Queue *event_queue, qore_socket_private* priv, int event) {
     }
 }
 
-void check_headers(const char* str, int len, bool &multipart, QoreHashNode& ans, const QoreEncoding *enc, ExceptionSink* xsink) {
+void check_headers(const char* str, int len, bool &multipart, QoreHashNode& ans, const QoreEncoding *enc,
+        ExceptionSink* xsink) {
     // see if the string starts with "multipart/"
     if (!multipart) {
         if (len > 10 && !strncasecmp(str, "multipart/", 10)) {
@@ -1285,41 +1676,6 @@ void check_headers(const char* str, int len, bool &multipart, QoreHashNode& ans,
     }
 }
 
-static const QoreStringNode* get_string_header_node(ExceptionSink* xsink, QoreHashNode& h, const char* header, bool allow_multiple = false) {
-    QoreValue n = h.getKeyValue(header);
-    if (n.isNothing())
-        return nullptr;
-
-    qore_type_t t = n.getType();
-    if (t == NT_STRING)
-        return n.get<const QoreStringNode>();
-    assert(t == NT_LIST);
-    if (!allow_multiple) {
-        xsink->raiseException("HTTP-HEADER-ERROR", "multiple \"%s\" headers received in HTTP message", header);
-        return nullptr;
-    }
-    // convert list to a comma-separated string
-    const QoreListNode* l = n.get<const QoreListNode>();
-    // get first list entry
-    n = l->retrieveEntry(0);
-    assert(n.getType() == NT_STRING);
-    QoreStringNode* rv = n.get<QoreStringNode>()->copy();
-    for (size_t i = 1; i < l->size(); ++i) {
-        n = l->retrieveEntry(i);
-        assert(n.getType() == NT_STRING);
-        rv->concat(',');
-        rv->concat(n.get<const QoreStringNode>());
-    }
-    // dereference old list and save reference to return value in header hash
-    h.setKeyValue(header, rv, xsink);
-    return rv;
-}
-
-static const char* get_string_header(ExceptionSink* xsink, QoreHashNode& h, const char* header, bool allow_multiple = false) {
-   const QoreStringNode* str = get_string_header_node(xsink, h, header, allow_multiple);
-   return str && !str->empty() ? str->c_str() : nullptr;
-}
-
 QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const char* mname, const char* meth,
         const char* mpath, const QoreHashNode* headers, const QoreStringNode* msg_body, const void* data,
         unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info,
@@ -1330,19 +1686,11 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     assert(!(is && send_callback));
     assert(!info || info->is_unique());
 
-    // check if method is valid
-    method_map_t::const_iterator i = method_map.find(meth);
-    if (i == method_map.end()) {
-        i = additional_methods_map.find(meth);
-        if (i == additional_methods_map.end()) {
-            xsink->raiseException("HTTP-CLIENT-METHOD-ERROR", "HTTP method (%s) not recognized.", meth);
-            return nullptr;
-        }
+    bool bodyp = false;
+    meth = checkMethod(xsink, meth, bodyp);
+    if (*xsink) {
+        return nullptr;
     }
-
-    // make sure the capitalized version is used
-    meth = i->first.c_str();
-    bool bodyp = i->second;
 
     // use the default timeout value if a zero value is given in the call
     if (!timeout_ms)
@@ -1351,127 +1699,11 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     SafeLocker sl(msock->m);
     Queue* event_queue = msock->socket->getQueue();
 
-    ReferenceHolder<QoreHashNode> nh(new QoreHashNode(autoTypeInfo), xsink);
     bool keep_alive = true;
-
-    bool transfer_encoding = false;
-
-    // issue #1824: find content-type header, if any
-    const char* ct = nullptr;
-    if (headers) {
-        // issue #2340 track headers in a case-insensitive way
-        strcase_set_t hdrs;
-        ConstHashIterator hi(headers);
-        while (hi.next()) {
-            // if one of the mandatory headers is found, then ignore it
-            strcase_set_t::iterator si = header_ignore.find(hi.getKey());
-            if (si != header_ignore.end())
-                continue;
-
-            // otherwise set the value in the hash
-            const QoreValue n = hi.get();
-            if (!n.isNothing()) {
-                if (!strcasecmp(hi.getKey(), "transfer-encoding")) {
-                    transfer_encoding = true;
-                }
-
-                addAppendHeader(hdrs, **nh, hi.getKey(), n, xsink);
-
-                if (!strcasecmp(hi.getKey(), "connection")
-                    || (proxy_connection.has_url() && !strcasecmp(hi.getKey(), "proxy-connection"))) {
-                    const char* conn = get_string_header(xsink, **nh, hi.getKey(), true);
-                    if (*xsink) {
-                        disconnect_unlocked();
-                        return 0;
-                    }
-                    if (conn && !strcasecmp(conn, "close"))
-                        keep_alive = false;
-                } else if (!strcasecmp(hi.getKey(), "content-type")) {
-                    const char* ct_value = get_string_header(xsink, **nh, hi.getKey(), true);
-                    if (*xsink) {
-                        disconnect_unlocked();
-                        return 0;
-                    }
-                    if (ct_value && !strstr(ct_value, "charset=") && !strstr(ct_value, "boundary=")) {
-                        ct = hi.getKey();
-                    }
-                }
-            }
-        }
-    }
-
-    // add default headers if they weren't overridden
-    for (header_map_t::const_iterator hdri = default_headers.begin(), e = default_headers.end(); hdri != e; ++hdri) {
-        // look in original headers to see if the key was already given
-        if (headers) {
-            bool skip = false;
-            ConstHashIterator hi(headers);
-            while (hi.next()) {
-                if (!strcasecmp(hi.getKey(), hdri->first.c_str())) {
-                    skip = true;
-                    break;
-                }
-            }
-            if (skip)
-                continue;
-        }
-        const char* hdr_value = hdri->second.c_str();
-        // if there is no message body then do not send the "content-type" header
-        if (!strcmp(hdri->first.c_str(), "Content-Type")) {
-            if (!data && !is && !send_callback) {
-                continue;
-            }
-            if (!strstr(hdr_value, "charset=") && !strstr(hdr_value, "boundary=")) {
-                ct = hdri->first.c_str();
-            }
-        }
-        nh->setKeyValue(hdri->first.c_str(), new QoreStringNode(hdr_value), xsink);
-    }
-
-    // issue #1824: add ";charset=xxx" to Content-Type header if sending non-ISO-8891-1 text
-    if (msg_body && ct) {
-        if (!enc) {
-            enc = msock->socket->getEncoding();
-        }
-        // any string will be converted to the socket's encoding before sending, so we have to compare the socket's
-        // encoding and not the string's
-        if (enc != QCS_ISO_8859_1) {
-            QoreStringNode* v = nh->getKeyValue(ct).get<QoreStringNode>();
-            assert(v->is_unique());
-            QoreString code(msg_body->getEncoding()->getCode());
-            // apply "tolower()" to each character
-            for (char* c = const_cast<char*>(code.c_str()); *c; ++c) {
-                *c = (*c > 64 && *c < 91) ? *c + 32 : *c;
-            }
-            v->sprintf(";charset=%s", code.c_str());
-        }
-    }
-
-    // set Transfer-Encoding: chunked if used with a send callback
-    if ((send_callback || is) && !transfer_encoding)
-        nh->setKeyValue("Transfer-Encoding", new QoreStringNode("chunked"), xsink);
-
-    if (!connection.username.empty()) {
-        // check for "Authorization" header
-        bool auth_found = false;
-        if (headers) {
-            ConstHashIterator hi(headers);
-            while (hi.next()) {
-                if (!strcasecmp(hi.getKey(), "Authorization")) {
-                    auth_found = true;
-                    break;
-                }
-            }
-        }
-
-        if (!auth_found) {
-            QoreString tmp;
-            tmp.sprintf("%s:%s", connection.username.c_str(), connection.password.c_str());
-            QoreStringNode* auth_str = new QoreStringNode("Basic ");
-            auth_str->concatBase64(&tmp);
-            nh->setKeyValue("Authorization", auth_str, xsink);
-        }
-    }
+    bool host_override = false;
+    ReferenceHolder<QoreHashNode> nh(getRequestHeaders(xsink, headers,
+        msg_body ? msg_body->getEncoding() : nullptr, (data || is || send_callback), (send_callback || is),
+        keep_alive, host_override), xsink);
 
     // save original HTTP method in case we have to issue a CONNECT request to a proxy for an HTTPS connection
     const char* meth_orig = meth;
@@ -1479,29 +1711,20 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     bool use_proxy_connect = false;
     const char* proxy_path = nullptr;
     ReferenceHolder<QoreHashNode> proxy_headers(xsink);
-    QoreString hostport;
     if (!proxy_connected && proxy_connection.has_url()) {
-        // use CONNECT if we need to make an HTTPS connection from the proxy
-        if (!proxy_connection.ssl && connection.ssl) {
+        proxy_headers = setProxyHeaders(xsink, *nh, use_proxy_connect, proxy_path);
+        if (*xsink) {
+            return nullptr;
+        }
+        if (proxy_headers) {
             meth = "CONNECT";
-            use_proxy_connect = true;
-            hostport.concat(connection.host);
-            // RFC 7231 section 4.3.6 (https://tools.ietf.org/html/rfc7231#section-4.3.6) states
-            // that the hostname and port number should be included when establishing an HTTP tunnel
-            // with the CONNECT method
-            if (connection.port)
-                hostport.sprintf(":%d", connection.port);
-            proxy_path = hostport.c_str();
-            proxy_headers = new QoreHashNode(autoTypeInfo);
-            proxy_headers->setKeyValue("Host", new QoreStringNode(hostport), xsink);
-
-            addProxyAuthorization(headers, **proxy_headers, xsink);
+            assert(use_proxy_connect);
+            assert(proxy_path);
         } else {
-            addProxyAuthorization(headers, **nh, xsink);
+            assert(!use_proxy_connect);
+            assert(!proxy_path);
         }
     }
-
-    bool host_override = headers ? (bool)headers->getKeyValue("Host") : false;
 
     int code;
     ReferenceHolder<QoreHashNode> ans(xsink);
@@ -2074,7 +2297,7 @@ AbstractQoreNode* QoreHttpClientObject::post(const char* new_path, const QoreHas
 // @since Qore 0.9.4: do not send getbody = true which only works with completely broken HTTP servers and small messages and causes deadlocks on correct HTTP servers
 AbstractQoreNode* QoreHttpClientObject::post(const char* new_path, const QoreHashNode* headers,
         const QoreStringNode& body, QoreHashNode* info, ExceptionSink* xsink) {
-        const QoreEncoding* enc = http_priv->getEncoding();
+    const QoreEncoding* enc = http_priv->getEncoding();
     QoreStringNodeValueHelper tstr(&body, enc, xsink);
     if (*xsink) {
         return nullptr;
