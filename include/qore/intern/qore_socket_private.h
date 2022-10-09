@@ -320,7 +320,7 @@ private:
     DLLLOCAL int checkConnection(ExceptionSink* xsink);
 };
 
-constexpr int SCIPS_SEND = 0;
+constexpr int SCIPS_IO = 0;
 constexpr int SCIPS_WAIT = 1;
 
 class SocketSendPollState : public AbstractPollState {
@@ -340,9 +340,38 @@ private:
     const char* data;
     size_t size;
     size_t sent = 0;
-    int state = SCIPS_SEND;
+    int state = SCIPS_IO;
 
     DLLLOCAL int doSend(ExceptionSink* xsink);
+};
+
+class SocketRecvPollState : public AbstractPollState {
+public:
+    DLLLOCAL SocketRecvPollState(ExceptionSink* xsink, qore_socket_private* sock, size_t size);
+
+    /** returns:
+        - SOCK_POLLIN = wait for read and call this again
+        - SOCK_POLLOUT = wait for write and call this again
+        - 0 = done
+        - < 0 = error (exception raised)
+    */
+    DLLLOCAL virtual int continuePoll(ExceptionSink* xsink);
+
+    //! Returns the data read
+    DLLLOCAL QoreValue takeOutput() {
+        QoreValue rv = bin.release();
+        bin = nullptr;
+        return rv;
+    }
+
+private:
+    qore_socket_private* sock;
+    SimpleRefHolder<BinaryNode> bin;
+    size_t size;
+    size_t received = 0;
+    int state = SCIPS_IO;
+
+    DLLLOCAL int doRecv(ExceptionSink* xsink);
 };
 
 struct qore_socket_private {

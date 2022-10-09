@@ -123,7 +123,7 @@ public:
                 break;
             }
 
-            if (SPS_CONNECTED) {
+            case SPS_CONNECTED: {
                 break;
             }
 
@@ -267,6 +267,83 @@ private:
     size_t size;
     bool set_non_block = false;
     bool sent = false;
+};
+
+class SocketRecvPollOperation : public SocketPollOperationBase {
+public:
+    // "data" must be passed already referenced
+    DLLLOCAL SocketRecvPollOperation(ExceptionSink* xsink, ssize_t size, QoreSocketObject* sock, bool to_string)
+            : sock(sock), size(size), to_string(to_string) {
+        if (!sock->setNonBlock(xsink)) {
+            poll_state.reset(sock->startRecv(xsink, size));
+            if (!poll_state) {
+                sock->clearNonBlock();
+            } else {
+                set_non_block = true;
+            }
+        }
+    }
+
+    DLLLOCAL void deref(ExceptionSink* xsink) {
+        if (ROdereference()) {
+            if (set_non_block) {
+                sock->clearNonBlock();
+            }
+            sock->deref(xsink);
+            delete this;
+        }
+    }
+
+    DLLLOCAL virtual bool goalReached() const {
+        return received;
+    }
+
+    DLLLOCAL virtual const char* getStateImpl() const {
+        return received ? "received" : "receiving";
+    }
+
+    DLLLOCAL virtual QoreValue getOutput() const {
+        return data ? data->refSelf() : QoreValue();
+    }
+
+    DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink) {
+        assert(poll_state.get());
+
+        // see if we are able to continue
+        int rc = poll_state->continuePoll(xsink);
+        //printd(5, "SocketConnectPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(), rc,
+        //    (int)*xsink);
+        if (!rc) {
+            // get output data
+            SimpleRefHolder<BinaryNode> d(poll_state->takeOutput().get<BinaryNode>());
+            if (to_string) {
+                size_t len = d->size();
+                data = new QoreStringNode(reinterpret_cast<char*>(d->giveBuffer()), len, len + 1,
+                    sock->getEncoding());
+            } else {
+                data = d.release();
+            }
+            received = true;
+        }
+        if (*xsink || !rc) {
+
+            // release the AbstractPollState value
+            poll_state.reset();
+            sock->clearNonBlock();
+            set_non_block = false;
+            return nullptr;
+        }
+        return getSocketPollInfoHash(xsink, rc);
+    }
+
+private:
+    unique_ptr<AbstractPollState> poll_state;
+    SimpleRefHolder<SimpleValueQoreNode> data;
+    QoreSocketObject* sock;
+    size_t size;
+    bool to_string;
+    bool set_non_block = false;
+    bool received = false;
 };
 
 DLLLOCAL QoreClass* initSocketPollOperationClass(QoreNamespace& qorens);

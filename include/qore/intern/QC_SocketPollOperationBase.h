@@ -72,8 +72,8 @@ public:
 
     DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink) = 0;
 
-    DLLLOCAL virtual QoreHashNode* getOutput() const {
-        return nullptr;
+    DLLLOCAL virtual QoreValue getOutput() const {
+        return QoreValue();
     }
 
 protected:

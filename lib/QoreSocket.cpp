@@ -1120,7 +1120,7 @@ SocketSendPollState::SocketSendPollState(ExceptionSink* xsink, qore_socket_priva
 */
 int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
     switch (state) {
-        case SCIPS_SEND:
+        case SCIPS_IO:
             return doSend(xsink);
 
         case SCIPS_WAIT: {
@@ -1184,9 +1184,10 @@ int SocketSendPollState::doSend(ExceptionSink* xsink) {
                 return SOCK_POLLOUT;
             }
             xsink->raiseErrnoException("SOCKET-SEND-ERROR", errno, "error while executing Socket::send()");
-
+            return -1;
             /*
-            // do not close the socket even if we have EPIPE or ECONNRESET in case there is data to be read when streaming
+            // do not close the socket even if we have EPIPE or ECONNRESET in case there is data to be read when
+            // streaming
 #ifdef EPIPE
             if (!stream && errno == EPIPE) {
                 close();
@@ -1199,6 +1200,116 @@ int SocketSendPollState::doSend(ExceptionSink* xsink) {
 #endif
             */
             break;
+        }
+    }
+    return 0;
+}
+
+SocketRecvPollState::SocketRecvPollState(ExceptionSink* xsink, qore_socket_private* sock, size_t size) : sock(sock),
+        size(size) {
+    bin = new BinaryNode;
+    if (bin->preallocate(size)) {
+        xsink->outOfMemory();
+        return;
+    }
+    // first take any data in the socket buffer
+    if (sock->buflen) {
+        if (sock->buflen <= size) {
+            bin->append(sock->rbuf + sock->bufoffset, sock->buflen);
+            received = sock->buflen;
+            sock->buflen = 0;
+            sock->bufoffset = 0;
+        } else {
+            bin->append(sock->rbuf + sock->bufoffset, size);
+            received = size;
+            sock->buflen -= size;
+            sock->bufoffset += size;
+        }
+    }
+}
+
+/** returns:
+    - SOCK_POLLIN = wait for read and call this again
+    - SOCK_POLLOUT = wait for write and call this again
+    - 0 = done
+    - < 0 = error (exception raised)
+*/
+int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
+    if (received == size) {
+        return 0;
+    }
+
+    switch (state) {
+        case SCIPS_IO:
+            return doRecv(xsink);
+
+        case SCIPS_WAIT: {
+            int rc = sock->asyncIoWait(0, true, false, "Socket", "recv", xsink);
+            if (rc < 0) {
+                assert(*xsink);
+                return rc;
+            }
+            if (!rc) {
+                return SOCK_POLLIN;
+            }
+            // if rc > 0, we are done
+            break;
+        }
+    }
+    return 0;
+}
+
+int SocketRecvPollState::doRecv(ExceptionSink* xsink) {
+    while (true) {
+        ssize_t rc;
+        if (sock->ssl) {
+            size_t real_io = 0;
+            rc = sock->ssl->doNonBlockingIo(xsink, "read",
+                reinterpret_cast<void*>(const_cast<char*>(reinterpret_cast<const char*>(bin->getPtr()) + received)),
+                size - received, SslAction::READ, real_io);
+            if (*xsink) {
+                return -1;
+            }
+            if (!rc) {
+                received += real_io;
+                bin->setSize(received);
+                if (received == size) {
+                    break;
+                }
+                // do another send
+                continue;
+            }
+            return rc;
+        } else {
+            rc = ::recv(sock->sock,
+                reinterpret_cast<void*>(const_cast<char*>(reinterpret_cast<const char*>(bin->getPtr()) + received)),
+                size - received, 0);
+            if (*xsink) {
+                return -1;
+            }
+            if (rc >= 0) {
+                received += rc;
+                bin->setSize(received);
+                if (received == size) {
+                    break;
+                }
+                // do another send
+                continue;
+            }
+            sock_get_error();
+            if (errno == EINTR) {
+                continue;
+            }
+            if (errno == EAGAIN
+#ifdef EWOULDBLOCK
+                || errno == EWOULDBLOCK
+#endif
+            ) {
+                state = SCIPS_WAIT;
+                return SOCK_POLLIN;
+            }
+            xsink->raiseErrnoException("SOCKET-RECV-ERROR", errno, "error while executing Socket::recv()");
+            return -1;
         }
     }
     return 0;
@@ -2019,11 +2130,20 @@ AbstractPollState* QoreSocket::startSslConnect(ExceptionSink* xsink, X509* cert,
 
 AbstractPollState* QoreSocket::startSend(ExceptionSink* xsink, const char* data, size_t size) {
     if (priv->sock == QORE_INVALID_SOCKET) {
-        se_not_open("Socket", "startSslConnect", xsink);
+        se_not_open("Socket", "startSend", xsink);
         return nullptr;
     }
 
     return new SocketSendPollState(xsink, priv, data, size);
+}
+
+AbstractPollState* QoreSocket::startRecv(ExceptionSink* xsink, size_t size) {
+    if (priv->sock == QORE_INVALID_SOCKET) {
+        se_not_open("Socket", "startRecv", xsink);
+        return nullptr;
+    }
+
+    return new SocketRecvPollState(xsink, priv, size);
 }
 
 #if 0

@@ -44,6 +44,11 @@ public:
         - < 1 = error (exception raised)
     */
     DLLLOCAL virtual int continuePoll(ExceptionSink* xsink) = 0;
+
+    //! Returns any data captured
+    DLLLOCAL virtual QoreValue takeOutput() {
+        return QoreValue();
+    }
 };
 
 #endif // _QORE_INTERN_ABSTRACTPOLLSTATE_H

@@ -77,6 +77,11 @@ AbstractPollState* QoreSocketObject::startSend(ExceptionSink* xsink, const char*
     return priv->socket->startSend(xsink, data, size);
 }
 
+AbstractPollState* QoreSocketObject::startRecv(ExceptionSink* xsink, size_t size) {
+    AutoLocker al(priv->m);
+    return priv->socket->startRecv(xsink, size);
+}
+
 /*
 int QoreSocketObject::startAccept(ExceptionSink* xsink) {
     AutoLocker al(priv->m);

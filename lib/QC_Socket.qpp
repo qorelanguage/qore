@@ -610,6 +610,54 @@ AbstractPollOperation Socket::startPollSend(binary data) {
     return rv.release();
 }
 
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+/** @param size the size of the string to receive
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+
+    The @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" call will return a string
+    after a successful poll for inbound socket data
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollRecvString(int size) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvPollOperation(xsink, size, s, true), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("send"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+/** @param size the size of the string to receive
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+
+    The @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" call will return a binary
+    object after a successful poll for inbound socket data
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollRecvBinary(int size) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvPollOperation(xsink, size, s, false), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("send"), xsink);
+    }
+    return rv.release();
+}
+
 //! Connects to a remote port (if the string has a format "host:port") or UNIX domain socket file
 /** Connects the socket to a remote (or local) port or UNIX domain socket file, for network (ipv4 and ipv6)
     connections, accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values"
