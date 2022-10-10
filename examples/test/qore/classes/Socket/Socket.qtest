@@ -259,6 +259,30 @@ class SocketTest inherits QUnit::Test {
             }
             assertEq(binary(test_msg), spop.getOutput());
 
+            {
+                binary bigmsg = get_random_bytes(10 * 1024 * 1024);
+                SocketPollOperation spop_send = s3.startPollSend(bigmsg);
+                SocketPollOperation spop_recv = s2.startPollRecvBinary(bigmsg.size());
+                while (True) {
+                    poll_list = ();
+                    *hash<SocketPollInfo> info_send = spop_send.continuePoll();
+                    if (info_send) {
+                        printf("send info: %y\n", info_send);
+                        poll_list += info_send;
+                    }
+                    *hash<SocketPollInfo> info_recv = spop_recv.continuePoll();
+                    if (info_recv) {
+                        printf("recv info: %y\n", info_recv);
+                        poll_list += info_recv;
+                    }
+                    if (!poll_list) {
+                        break;
+                    }
+                    new_list = Socket::poll(poll_list, 1s);
+                }
+                assertEq(bigmsg, spop_recv.getOutput());
+            }
+
             Socket s4();
             if (s4.bind("localhost:0", True)) {
                 throw "SOCKET-BIND-ERROR", strerror();

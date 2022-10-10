@@ -949,11 +949,7 @@ int64 QoreSocketObject::getConnectionId() const {
 
 int QoreSocketObject::setNonBlock(ExceptionSink* xsink) {
     AutoLocker al(priv->m);
-    if (!priv->checkNonBlock(xsink)) {
-        priv->setNonBlock();
-        return 0;
-    }
-    return -1;
+    return priv->setNonBlock(xsink);
 }
 
 void QoreSocketObject::clearNonBlock() {

@@ -1119,27 +1119,11 @@ SocketSendPollState::SocketSendPollState(ExceptionSink* xsink, qore_socket_priva
     - < 0 = error (exception raised)
 */
 int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
-    switch (state) {
-        case SCIPS_IO:
-            return doSend(xsink);
-
-        case SCIPS_WAIT: {
-            int rc = sock->asyncIoWait(0, false, true, "Socket", "send", xsink);
-            if (rc < 0) {
-                assert(*xsink);
-                return rc;
-            }
-            if (!rc) {
-                return SOCK_POLLOUT;
-            }
-            // if rc > 0, we are done
-            break;
-        }
+    OptionalNonBlockingHelper nbh(*sock, true, xsink);
+    if (*xsink) {
+        return -1;
     }
-    return 0;
-}
 
-int SocketSendPollState::doSend(ExceptionSink* xsink) {
     while (true) {
         ssize_t rc;
         if (sock->ssl) {
@@ -1159,7 +1143,9 @@ int SocketSendPollState::doSend(ExceptionSink* xsink) {
             }
             return rc;
         } else {
-            rc = ::send(sock->sock, data, size, 0);
+            rc = ::send(sock->sock, data + sent, size - sent, 0);
+            //printd(5, "SocketSendPollState::continuePoll() left: %ld rc: %d errno: %d)\n", size - sent, rc,
+            //    errno);
             if (*xsink) {
                 return -1;
             }
@@ -1180,26 +1166,10 @@ int SocketSendPollState::doSend(ExceptionSink* xsink) {
                 || errno == EWOULDBLOCK
 #endif
             ) {
-                state = SCIPS_WAIT;
                 return SOCK_POLLOUT;
             }
             xsink->raiseErrnoException("SOCKET-SEND-ERROR", errno, "error while executing Socket::send()");
             return -1;
-            /*
-            // do not close the socket even if we have EPIPE or ECONNRESET in case there is data to be read when
-            // streaming
-#ifdef EPIPE
-            if (!stream && errno == EPIPE) {
-                close();
-            }
-#endif
-#ifdef ECONNRESET
-            if (!stream && errno == ECONNRESET) {
-                close();
-            }
-#endif
-            */
-            break;
         }
     }
     return 0;
@@ -1239,27 +1209,11 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
         return 0;
     }
 
-    switch (state) {
-        case SCIPS_IO:
-            return doRecv(xsink);
-
-        case SCIPS_WAIT: {
-            int rc = sock->asyncIoWait(0, true, false, "Socket", "recv", xsink);
-            if (rc < 0) {
-                assert(*xsink);
-                return rc;
-            }
-            if (!rc) {
-                return SOCK_POLLIN;
-            }
-            // if rc > 0, we are done
-            break;
-        }
+    OptionalNonBlockingHelper nbh(*sock, true, xsink);
+    if (*xsink) {
+        return -1;
     }
-    return 0;
-}
 
-int SocketRecvPollState::doRecv(ExceptionSink* xsink) {
     while (true) {
         ssize_t rc;
         if (sock->ssl) {
@@ -1272,8 +1226,8 @@ int SocketRecvPollState::doRecv(ExceptionSink* xsink) {
             }
             if (!rc) {
                 received += real_io;
-                bin->setSize(received);
                 if (received == size) {
+                    bin->setSize(size);
                     break;
                 }
                 // do another send
@@ -1284,16 +1238,18 @@ int SocketRecvPollState::doRecv(ExceptionSink* xsink) {
             rc = ::recv(sock->sock,
                 reinterpret_cast<void*>(const_cast<char*>(reinterpret_cast<const char*>(bin->getPtr()) + received)),
                 size - received, 0);
+            //printd(5, "SocketRecvPollState::continuePoll() left: %ld rc: %d errno: %d)\n", size - received, rc,
+            //    errno);
             if (*xsink) {
                 return -1;
             }
             if (rc >= 0) {
                 received += rc;
-                bin->setSize(received);
                 if (received == size) {
+                    bin->setSize(size);
                     break;
                 }
-                // do another send
+                // do another recv
                 continue;
             }
             sock_get_error();
@@ -1305,7 +1261,6 @@ int SocketRecvPollState::doRecv(ExceptionSink* xsink) {
                 || errno == EWOULDBLOCK
 #endif
             ) {
-                state = SCIPS_WAIT;
                 return SOCK_POLLIN;
             }
             xsink->raiseErrnoException("SOCKET-RECV-ERROR", errno, "error while executing Socket::recv()");

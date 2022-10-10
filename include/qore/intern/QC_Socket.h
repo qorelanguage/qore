@@ -95,6 +95,18 @@ public:
         in_non_block = true;
     }
 
+    //! Sets the in_non_block flag
+    DLLLOCAL int setNonBlock(ExceptionSink* xsink) {
+        // must be called with the lock held
+        assert(m.trylock());
+
+        if (!checkNonBlock(xsink)) {
+            setNonBlock();
+            return 0;
+        }
+        return -1;
+    }
+
     //! Clears the in_non_block flag
     DLLLOCAL void clearNonBlock() {
         // must be called with the lock held

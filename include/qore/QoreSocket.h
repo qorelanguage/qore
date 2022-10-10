@@ -129,6 +129,9 @@ class QoreSocket {
     friend struct qore_httpclient_priv;
     friend class QoreSocketObject;
     friend class QoreFtpClient;
+    friend class HttpClientConnectPollOperation;
+    friend class HttpClientReceiveHeaderPollState;
+    friend class HttpClientSendRecvPollOperation;
 
 public:
     //! creates an empty, unconnected socket

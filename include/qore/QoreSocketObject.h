@@ -48,6 +48,9 @@ class QoreSocketObject : public AbstractPrivateData {
     friend class my_socket_priv;
     friend struct qore_httpclient_priv;
     friend class SocketConnectPollOperation;
+    friend class SocketSendPollOperation;
+    friend class SocketRecvPollOperation;
+    friend class HttpClientConnectPollOperation;
 
 public:
     DLLEXPORT QoreSocketObject();
