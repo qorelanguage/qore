@@ -1667,6 +1667,23 @@ public class AbstractHttpRequestHandler {
         };
     }
 
+    #! creates a hash for an HTTP response with the response code and the response message body as binary data
+    static hash<HttpResponseInfo> makeResponse(int code, binary body) {
+        return <HttpResponseInfo>{
+            "code": code,
+            "body": body,
+        };
+    }
+
+    #! creates a hash for an HTTP response with the response code and the response message body as binary data
+    static hash<HttpResponseInfo> makeResponse(hash<auto> hdr, int code, binary body) {
+        return <HttpResponseInfo>{
+            "code": code,
+            "body": body,
+            "hdr": hdr,
+        };
+    }
+
     #! creates a hash for an HTTP response with the response code and a literal response message body
     static hash<HttpResponseInfo> makeResponse(int code, *data body, *hash<auto> hdr) {
         return <HttpResponseInfo>{

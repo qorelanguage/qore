@@ -240,13 +240,13 @@ class SocketTest inherits QUnit::Test {
 
             spop = s3.startPollSend(test_msg);
             while (*hash<SocketPollInfo> info = spop.continuePoll()) {
-                #printf("send info: %y\n", info);
+                #printf("recv info: %y\n", info);
                 new_list = Socket::poll((info,), 1s);
             }
 
             spop = s2.startPollRecvString(test_msg.size());
             while (*hash<SocketPollInfo> info = spop.continuePoll()) {
-                #printf("send info: %y\n", info);
+                #printf("recv info: %y\n", info);
                 new_list = Socket::poll((info,), 1s);
             }
             assertEq(test_msg, spop.getOutput());
@@ -254,25 +254,25 @@ class SocketTest inherits QUnit::Test {
             s3.send(test_msg);
             spop = s2.startPollRecvBinary(test_msg.size());
             while (*hash<SocketPollInfo> info = spop.continuePoll()) {
-                #printf("send info: %y\n", info);
+                #printf("recv info: %y\n", info);
                 new_list = Socket::poll((info,), 1s);
             }
             assertEq(binary(test_msg), spop.getOutput());
 
+            binary bigmsg = get_random_bytes(10 * 1024 * 1024);
             {
-                binary bigmsg = get_random_bytes(10 * 1024 * 1024);
                 SocketPollOperation spop_send = s3.startPollSend(bigmsg);
                 SocketPollOperation spop_recv = s2.startPollRecvBinary(bigmsg.size());
                 while (True) {
                     poll_list = ();
                     *hash<SocketPollInfo> info_send = spop_send.continuePoll();
                     if (info_send) {
-                        printf("send info: %y\n", info_send);
+                        #printf("send info: %y\n", info_send);
                         poll_list += info_send;
                     }
                     *hash<SocketPollInfo> info_recv = spop_recv.continuePoll();
                     if (info_recv) {
-                        printf("recv info: %y\n", info_recv);
+                        #printf("recv info: %y\n", info_recv);
                         poll_list += info_recv;
                     }
                     if (!poll_list) {
@@ -335,6 +335,12 @@ class SocketTest inherits QUnit::Test {
                         #printf("send info: %y\n", info);
                         Socket::poll((info,), 1s);
                     }
+
+                    spop0 = ns.startPollSend(bigmsg);
+                    while (*hash<SocketPollInfo> info = spop0.continuePoll()) {
+                        #printf("send info: %y\n", info);
+                        Socket::poll((info,), 1s);
+                    }
                 }();
 
                 int port3 = q.get();
@@ -344,7 +350,7 @@ class SocketTest inherits QUnit::Test {
                 assertEq("connect-ssl", spop.getGoal());
                 assertEq("connecting", spop.getState());
                 while (*hash<SocketPollInfo> info = spop.continuePoll()) {
-                    #printf("info: %y\n", info);
+                    #printf("recv info: %y\n", info);
                     new_list = Socket::poll((info,), 1s);
                 }
                 assertEq("connected", spop.getState());
@@ -354,17 +360,24 @@ class SocketTest inherits QUnit::Test {
 
                 spop = s2.startPollRecvString(msg.size());
                 while (*hash<SocketPollInfo> info = spop.continuePoll()) {
-                    #printf("send info: %y\n", info);
+                    #printf("recv info: %y\n", info);
                     new_list = Socket::poll((info,), 1s);
                 }
                 assertEq(msg, spop.getOutput());
 
                 spop = s2.startPollRecvBinary(msg.size());
                 while (*hash<SocketPollInfo> info = spop.continuePoll()) {
-                    #printf("send info: %y\n", info);
+                    #printf("recv info: %y\n", info);
                     new_list = Socket::poll((info,), 1s);
                 }
                 assertEq(binary(msg), spop.getOutput());
+
+                spop = s2.startPollRecvBinary(bigmsg.size());
+                while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                    #printf("recv info: %y\n", info);
+                    new_list = Socket::poll((info,), 1s);
+                }
+                assertEq(bigmsg, spop.getOutput());
             }
 
             {

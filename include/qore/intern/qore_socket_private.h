@@ -2283,7 +2283,7 @@ struct qore_socket_private {
     }
 
     DLLLOCAL QoreHashNode* readHTTPHeader(ExceptionSink* xsink, QoreHashNode* info, int timeout,
-        qore_offset_t& rc, int source, const char* headers_raw_key = "headers-raw") {
+            qore_offset_t& rc, int source, const char* headers_raw_key = "headers-raw") {
         assert(xsink);
         QoreStringNodeHolder hdr(readHTTPData(xsink, "readHTTPHeader", timeout, rc));
         if (!hdr) {
@@ -2296,8 +2296,13 @@ struct qore_socket_private {
         }
         assert(rc > 0);
 
-        const char* buf = hdr->c_str();
+        return processHttpHeaderString(xsink, hdr, info, source, headers_raw_key);
+    }
 
+    //! processes a header string to a hash and raises socket events
+    DLLLOCAL QoreHashNode* processHttpHeaderString(ExceptionSink* xsink, QoreStringNodeHolder& hdr,
+            QoreHashNode* info, int source, const char* headers_raw_key = "headers-raw") {
+        const char* buf = hdr->c_str();
         char* p;
         if ((p = (char*)strstr(buf, "\r\n"))) {
             *p = '\0';
@@ -2311,15 +2316,15 @@ struct qore_socket_private {
         } else {
             // readHTTPData will only return a string that satisifies one of the above conditions,
             // however an embedded 0 could have been sent which would make the above searches invalid
-            xsink->raiseException("SOCKET-HTTP-ERROR", "invalid header received with embedded nulls in " \
+            xsink->raiseException("SOCKET-HTTP-ERROR", "invalid header received with embedded nulls in "
                 "Socket::readHTTPHeader()");
             return nullptr;
         }
 
         char* t1;
         if (!(t1 = (char*)strstr(buf, "HTTP/"))) {
-            xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "missing HTTP version string in first " \
-                "header line in Socket::readHTTPHeader()");
+            xsink->raiseExceptionArg("SOCKET-HTTP-ERROR", hdr.release(), "missing HTTP version string in "
+                "first header line in Socket::readHTTPHeader()");
             return nullptr;
         }
 
@@ -2332,8 +2337,9 @@ struct qore_socket_private {
         {
             QoreStringNode* hv = new QoreStringNode(t1 + 5, 3, enc);
             h->setKeyValue("http_version", hv, nullptr);
-            if (*hv == "1.1")
+            if (*hv == "1.1") {
                 flags |= CHF_HTTP11;
+            }
         }
 
         // if we are getting a response
@@ -2390,14 +2396,17 @@ struct qore_socket_private {
         do_read_http_header(QORE_EVENT_HTTP_MESSAGE_RECEIVED, *h, source);
 
         // process header info
-        if ((flags & CHF_REQUEST) && info)
+        if ((flags & CHF_REQUEST) && info) {
             info->setKeyValue("close", close, 0);
+        }
 
         return h.release();
     }
 
     // info must be already referenced for the assignment, if present
-    DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr, QoreHashNode* info, bool send_aborted = false, QoreObject* obj = nullptr) {
+    DLLLOCAL int runHeaderCallback(ExceptionSink* xsink, const char* cname, const char* mname,
+            const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreHashNode* hdr, QoreHashNode* info,
+            bool send_aborted = false, QoreObject* obj = nullptr) {
         assert(xsink);
         assert(obj);
         ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
@@ -2413,7 +2422,8 @@ struct qore_socket_private {
         return runCallback(xsink, cname, mname, rv, callback, l, *args);
     }
 
-    DLLLOCAL int runTrailerCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, ReferenceHolder<QoreHashNode>& hdr) {
+    DLLLOCAL int runTrailerCallback(ExceptionSink* xsink, const char* cname, const char* mname,
+            const ResolvedCallReferenceNode& callback, QoreThreadLock* l, ReferenceHolder<QoreHashNode>& hdr) {
         ValueHolder rv(xsink);
         if (runCallback(xsink, cname, mname, rv, callback, l, nullptr))
             return -1;
@@ -2426,13 +2436,15 @@ struct qore_socket_private {
                 break;
             }
             default:
-                xsink->raiseException("HTTP-TRAILER-ERROR", "chunked callback returned type '%s'; expecting 'hash' or 'NOTHING'", rv->getTypeName());
+                xsink->raiseException("HTTP-TRAILER-ERROR", "chunked callback returned type '%s'; expecting 'hash' "
+                    "or 'NOTHING'", rv->getTypeName());
                 return -1;
         }
         return 0;
     }
 
-    DLLLOCAL int runDataCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const AbstractQoreNode* data, bool chunked) {
+    DLLLOCAL int runDataCallback(ExceptionSink* xsink, const char* cname, const char* mname,
+            const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const AbstractQoreNode* data, bool chunked) {
         assert(xsink);
         ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
         QoreHashNode* arg = new QoreHashNode(autoTypeInfo);
@@ -2444,7 +2456,8 @@ struct qore_socket_private {
         return runCallback(xsink, cname, mname, rv, callback, l, *args);
     }
 
-    DLLLOCAL int runCallback(ExceptionSink* xsink, const char* cname, const char* mname, ValueHolder& res, const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreListNode* args = nullptr) {
+    DLLLOCAL int runCallback(ExceptionSink* xsink, const char* cname, const char* mname, ValueHolder& res,
+            const ResolvedCallReferenceNode& callback, QoreThreadLock* l, const QoreListNode* args = nullptr) {
         assert(xsink);
         // FIXME: subtract callback execution time from socket performance measurement
 
@@ -2467,7 +2480,9 @@ struct qore_socket_private {
         return 0;
     }
 
-    DLLLOCAL int sendHttpChunkedWithCallback(ExceptionSink* xsink, const char* cname, const char* mname, const ResolvedCallReferenceNode& send_callback, QoreThreadLock& l, int source, int timeout_ms = -1, bool* aborted = nullptr) {
+    DLLLOCAL int sendHttpChunkedWithCallback(ExceptionSink* xsink, const char* cname, const char* mname,
+            const ResolvedCallReferenceNode& send_callback, QoreThreadLock& l, int source, int timeout_ms = -1,
+            bool* aborted = nullptr) {
         assert(xsink);
         assert(!aborted || !(*aborted));
 

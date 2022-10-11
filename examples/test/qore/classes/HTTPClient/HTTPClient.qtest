@@ -74,13 +74,14 @@ class HttpTestServer {
 class TestStreamRequest inherits AbstractStreamRequest {
     private:internal {
         hash<auto> strhdr;
-        string data;
+        data data;
 
         list<auto> l = ();
     }
 
     # setup the object and the headers for the response
-    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash<auto> cx, hash<auto> hdr, auto body)
+    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash<auto> cx,
+            hash<auto> hdr, auto body)
             : AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
         strhdr."Content-Type" = hdr."content-type";
         if (hdr."transfer-encoding" == "chunked")
@@ -139,7 +140,8 @@ class EchoHandler inherits AbstractHttpRequestHandler {
     }
 
     # return the stream request handler
-    AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
+    AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash<auto> cx,
+            hash<auto> hdr, *data body) {
         # test for #1824
         if (body.typeCode() == NT_STRING && (body.encoding() !~ /iso-8859-1/i) &&
                 !regex(hdr._qore_orig_content_type, body.encoding(), RE_Caseless)) {
@@ -405,6 +407,40 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertEq("connected", spop.getState());
             assertTrue(spop.goalReached());
             assertNothing(spop.getOutput());
+
+            hc.disconnect();
+
+            string msg = get_random_string(100);
+            assertEq(msg, hc.send(msg, "PUT").body);
+
+            spop = hc.startPollSendRecv("PUT", "/", msg);
+            assertEq("received", spop.getGoal());
+            assertEq("none", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            hash<auto> h = spop.getOutput();
+            on_error printf("h: %N\n", h);
+            assertEq(200, h."code");
+
+            binary bigmsg = get_random_bytes(10 * 1024 * 1024);
+            assertEq(bigmsg, binary(hc.send(bigmsg, "PUT", "/", {"Content-Type": MimeTypeOctetStream}).body));
+
+            spop = hc.startPollSendRecv("PUT", "/", bigmsg, {"Content-Type": MimeTypeOctetStream});
+            assertEq("received", spop.getGoal());
+            assertEq("none", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            on_error printf("h: %N\n", h);
+            assertEq(200, h."code");
         }
         {
             TempFile cert("cert.pem", TestCert);
@@ -426,6 +462,40 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertEq("connected", spop.getState());
             assertTrue(spop.goalReached());
             assertNothing(spop.getOutput());
+
+            hc.disconnect();
+
+            string msg = get_random_string(100);
+            assertEq(msg, hc.send(msg, "PUT").body);
+
+            spop = hc.startPollSendRecv("PUT", "/", msg);
+            assertEq("received", spop.getGoal());
+            assertEq("none", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            hash<auto> h = spop.getOutput();
+            on_error printf("h: %N\n", h);
+            assertEq(200, h."code");
+
+            binary bigmsg = get_random_bytes(10 * 1024 * 1024);
+            assertEq(bigmsg, binary(hc.send(bigmsg, "PUT", "/", {"Content-Type": MimeTypeOctetStream}).body));
+
+            spop = hc.startPollSendRecv("PUT", "/", bigmsg, {"Content-Type": MimeTypeOctetStream});
+            assertEq("received", spop.getGoal());
+            assertEq("none", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            on_error printf("h: %N\n", h);
+            assertEq(200, h."code");
         }
     }
 
