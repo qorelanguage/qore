@@ -494,6 +494,19 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertEq("received", spop.getState());
             assertTrue(spop.goalReached());
             h = spop.getOutput();
+            assertEq(200, h."code");
+
+            spop = hc.startPollSendRecv("PUT", "/", msg);
+            assertEq("received", spop.getGoal());
+            assertEq("none", spop.getState());
+            hc.disconnect();
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
             on_error printf("h: %N\n", h);
             assertEq(200, h."code");
         }
