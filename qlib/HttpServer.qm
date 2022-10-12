@@ -1790,6 +1790,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     rv.body = bzip2(rv.body);
                 }
             }
+
             doResponse(listener, s, cx, rv);
         }
 

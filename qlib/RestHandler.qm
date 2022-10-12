@@ -630,7 +630,7 @@ public namespace RestHandler {
                 HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Socket s,
                 hash<auto> cx, hash<auto> hdr, auto body)
                 : HttpServer::AbstractStreamRequest(listener, handler, s,
-                    cx + (exists body ? ("deserialized": True) : NOTHING), hdr, body) {
+                    cx + (exists body ? {"deserialized": True} : NOTHING), hdr, body) {
             stream = n_stream;
             if (!handler.isPersistent()) {
                 *code c = stream.getPersistentClosedNotification();

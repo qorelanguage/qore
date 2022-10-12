@@ -55,6 +55,11 @@ public:
 
         AutoLocker al(sock->priv->m);
 
+        // throw an exception and exit if the object is no longer valid
+        if (sock->priv->checkValid(xsink)) {
+            return;
+        }
+
         if (preVerify(xsink)) {
             return;
         }
@@ -100,6 +105,18 @@ public:
         QoreHashNode* rv = nullptr;
 
         AutoLocker al(sock->priv->m);
+
+        if (state == SPS_CONNECTED) {
+            // throw an exception and exit if the object is no longer valid
+            if (sock->priv->checkValid(xsink)) {
+                return nullptr;
+            }
+        } else {
+            // throw an exception and exit if the object is no longer open or valid
+            if (sock->priv->checkOpen(xsink)) {
+                return nullptr;
+            }
+        }
 
         switch (state) {
             case SPS_CONNECTING: {
@@ -243,6 +260,11 @@ public:
             : data(data), sock(sock), buf(data->c_str()), size(data->size()) {
         AutoLocker al(sock->priv->m);
 
+        // throw an exception and exit if the object is no longer open or valid
+        if (sock->priv->checkOpen(xsink)) {
+            return;
+        }
+
         assert(data->getEncoding() == sock->getEncoding());
         if (!sock->priv->setNonBlock(xsink)) {
             poll_state.reset(sock->priv->socket->startSend(xsink, buf, size));
@@ -259,6 +281,11 @@ public:
             : data(data), sock(sock), buf(reinterpret_cast<const char*>(data->getPtr())),
             size(data->size()) {
         AutoLocker al(sock->priv->m);
+
+        // throw an exception and exit if the object is no longer open or valid
+        if (sock->priv->checkOpen(xsink)) {
+            return;
+        }
 
         if (!sock->priv->setNonBlock(xsink)) {
             poll_state.reset(sock->priv->socket->startSend(xsink, buf, size));
@@ -290,6 +317,12 @@ public:
 
     DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink) {
         AutoLocker al(sock->priv->m);
+
+        // throw an exception and exit if the object is no longer open or valid
+        if (sock->priv->checkOpen(xsink)) {
+            return nullptr;
+        }
+
         if (!poll_state) {
             return nullptr;
         }
@@ -328,6 +361,11 @@ public:
             : sock(sock), size(size), to_string(to_string) {
         AutoLocker al(sock->priv->m);
 
+        // throw an exception and exit if the object is no longer open or valid
+        if (sock->priv->checkOpen(xsink)) {
+            return;
+        }
+
         if (!sock->priv->setNonBlock(xsink)) {
             poll_state.reset(sock->priv->socket->startRecv(xsink, size));
             if (!poll_state) {
@@ -362,13 +400,19 @@ public:
 
     DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink) {
         AutoLocker al(sock->priv->m);
+
+        // throw an exception and exit if the object is no longer open or valid
+        if (sock->priv->checkOpen(xsink)) {
+            return nullptr;
+        }
+
         if (!poll_state) {
             return nullptr;
         }
 
         // see if we are able to continue
         int rc = poll_state->continuePoll(xsink);
-        //printd(5, "SocketConnectPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(), rc,
+        //printd(5, "SocketRecvPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(), rc,
         //    (int)*xsink);
         if (!rc) {
             // get output data

@@ -50,8 +50,7 @@ class Queue;
  */
 class QoreHttpClientObject : public QoreSocketObject {
     friend struct qore_httpclient_priv;
-    friend class HttpClientConnectPollOperation;
-    friend class HttpClientSendRecvPollOperation;
+    friend class HttpClientConnectSendRecvPollOperation;
 
 public:
     //! creates the QoreHttpClientObject object

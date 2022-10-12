@@ -55,6 +55,7 @@ public:
     QoreSSLPrivateKey* pk = nullptr;
     mutable QoreThreadLock m;
     bool in_non_block = false;
+    bool valid = true;
 
     DLLLOCAL my_socket_priv(QoreSocket* s, QoreSSLCertificate* c = nullptr, QoreSSLPrivateKey* p = nullptr)
             : socket(s), cert(c), pk(p) {
@@ -74,7 +75,30 @@ public:
         delete socket;
     }
 
-    //! Throws an exception if the in_non_block flag is set
+    //! Invalidates the object
+    DLLLOCAL void invalidate() {
+        // must be called with the lock held
+        assert(m.trylock());
+
+        if (valid) {
+            valid = false;
+        }
+    }
+
+    //! Throws an exception if the object is no longer valid
+    DLLLOCAL int checkValid(ExceptionSink* xsink) {
+        // must be called with the lock held
+        assert(m.trylock());
+
+        if (!valid) {
+            xsink->raiseException("OBJECT-ALREADY-DELETED", "the underlying socket object has already been deleted "
+                "and can no longer be used");
+            return -1;
+        }
+        return 0;
+    }
+
+    //! Throws an exception if the in_non_block flag is set or is not valid
     DLLLOCAL int checkNonBlock(ExceptionSink* xsink) {
         // must be called with the lock held
         assert(m.trylock());
@@ -83,8 +107,12 @@ public:
             xsink->raiseException("SOCKET-NON-BLOCK-ERROR", "a non-blocking operation is currently in progress");
             return -1;
         }
-        return 0;
+
+        return checkValid(xsink);
     }
+
+    //! Throws a \c SOCKET-NOT-OPEN exception if the socket is not open or valid
+    DLLLOCAL int checkOpen(ExceptionSink* xsink);
 
     //! Sets the in_non_block flag
     DLLLOCAL void setNonBlock() {

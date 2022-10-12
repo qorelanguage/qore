@@ -623,6 +623,19 @@ long SSLSocketHelper::verifyPeerCertificate() const {
     return rc;
 }
 
+int my_socket_priv::checkOpen(ExceptionSink* xsink) {
+    // must be called with the lock held
+    assert(m.trylock());
+
+    if (!socket->priv->isOpen()) {
+        xsink->raiseException("SOCKET-NOT-OPEN", "the underlying socket object has been closed, so the operation "
+            "cannot continue");
+        return -1;
+    }
+
+    return checkValid(xsink);
+}
+
 thread_local qore_socket_private* qore_socket_private::current_socket;
 
 static int q_ssl_verify_accept_all(int preverify_ok, X509_STORE_CTX* x509_ctx) {
