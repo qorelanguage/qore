@@ -663,7 +663,8 @@ struct qore_socket_private {
         }
         // add data and content-length header if necessary
         if (size || addsize) {
-            hdr.sprintf("Content-Length: " QSD "\r\n", size);
+            hdr.sprintf("Content-Length: " QLLD "\r\n", size);
+            //printd(5, "qore_socket_private::do_headers() added Content-Length: " QLLD "\n", size);
         }
 
         hdr.concat("\r\n");

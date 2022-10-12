@@ -97,8 +97,14 @@ class TestStreamRequest inherits AbstractStreamRequest {
         l += v;
     }
 
-    hash<HttpResponseInfo> getResponseHeaderMessageImpl() {
-        #printf("l: %N\n", l);
+    private auto sendImpl() {
+        if (!data) {
+            return {};
+        }
+        return extract data, 0, 4096;
+    }
+
+    hash<HttpHandlerResponseInfo> getResponseHeaderMessageImpl() {
         hash<auto> hdr = strhdr + {
             "X-Got-Chunks": l.size() - 1,
         };
@@ -106,7 +112,19 @@ class TestStreamRequest inherits AbstractStreamRequest {
         if (self.hdr.method == "HEAD") {
             hdr."Transfer-Encoding" = "chunked";
         }
-        return AbstractHttpRequestHandler::makeResponse(hdr, 200, data ?? "OK");
+        if (!data) {
+            data = "OK";
+        }
+        hash<HttpHandlerResponseInfo> rv = <HttpHandlerResponseInfo>{
+            "code": 200,
+            "hdr": hdr,
+        };
+        if (self.hdr."x-do-chunked-response") {
+            rv.hdr."Transfer-Encoding" = "chunked";
+        } else {
+            rv.body = data;
+        }
+        return rv;
     }
 }
 
@@ -440,8 +458,27 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertEq("received", spop.getState());
             assertTrue(spop.goalReached());
             h = spop.getOutput();
-            on_error printf("h: %N\n", h);
             assertEq(200, h."code");
+            assertEq(bigmsg.size(), h."response-body".size());
+            assertEq(bigmsg, h."response-body");
+
+            spop = hc.startPollSendRecv("PUT", "/", bigmsg, {
+                "Content-Type": MimeTypeOctetStream,
+                "X-Do-Chunked-Response": "True",
+            });
+            assertEq("received", spop.getGoal());
+            assertEq("sending", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("send/recv info: %y (state: %y)\n", info, spop.getState());
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+            assertEq("chunked", h."response-hdr"."transfer-encoding");
+            assertEq(bigmsg.size(), h."response-body".size());
+            assertEq(bigmsg, h."response-body");
         }
         {
             TempFile cert("cert.pem", TestCert);
@@ -498,6 +535,24 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             h = spop.getOutput();
             assertEq(200, h."code");
             assertEq(bigmsg.size(), h."response-body".size());
+
+            spop = hc.startPollSendRecv("PUT", "/", bigmsg, {
+                "Content-Type": MimeTypeOctetStream,
+                "X-Do-Chunked-Response": "True",
+            });
+            assertEq("received", spop.getGoal());
+            assertEq("sending", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("send/recv info: %y (state: %y)\n", info, spop.getState());
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+            assertEq("chunked", h."response-hdr"."transfer-encoding");
+            assertEq(bigmsg.size(), h."response-body".size());
+            assertEq(bigmsg, h."response-body");
 
             spop = hc.startPollSendRecv("PUT", "/", msg);
             assertEq("received", spop.getGoal());

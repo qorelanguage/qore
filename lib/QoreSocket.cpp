@@ -1198,16 +1198,20 @@ SocketRecvPollState::SocketRecvPollState(ExceptionSink* xsink, qore_socket_priva
     // first take any data in the socket buffer
     if (sock->buflen) {
         if (sock->buflen <= size) {
-            bin->append(sock->rbuf + sock->bufoffset, sock->buflen);
+            // cannot fail - memory preallocated above
+            bin->writeTo(0, sock->rbuf + sock->bufoffset, sock->buflen);
             received = sock->buflen;
             sock->buflen = 0;
             sock->bufoffset = 0;
         } else {
-            bin->append(sock->rbuf + sock->bufoffset, size);
+            // cannot fail - memory preallocated above
+            bin->writeTo(0, sock->rbuf + sock->bufoffset, size);
             received = size;
             sock->buflen -= size;
             sock->bufoffset += size;
         }
+        //printd(5, "SocketRecvPollState::SocketRecvPollState(size: " QLLD ") wrote %d bytes of memory from buffer to "
+        //    "bin (remaining %d bytes in buffer)\n", size, received, sock->buflen);
     }
 }
 

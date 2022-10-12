@@ -661,7 +661,8 @@ struct qore_httpclient_priv {
         return str.release();
     }
 
-    DLLLOCAL static void addAppendHeader(strcase_set_t& hdrs, QoreHashNode& nh, const char* key, const QoreValue v, ExceptionSink* xsink) {
+    DLLLOCAL static void addAppendHeader(strcase_set_t& hdrs, QoreHashNode& nh, const char* key, const QoreValue v,
+            ExceptionSink* xsink) {
         if (v.getType() == NT_LIST) {
             QoreStringNode* str = getHeaderString(hdrs, nh, key, xsink);
             ConstListIterator li(v.get<const QoreListNode>());
@@ -679,9 +680,11 @@ struct qore_httpclient_priv {
         QoreStringNodeValueHelper vh(v);
         if (!vh->empty()) {
             QoreStringNode* str = getHeaderString(hdrs, nh, key, xsink);
-            if (!str->empty())
+            if (!str->empty()) {
                 str->concat(',');
+            }
             str->concat(*vh);
+            //printd(5, "qore_httpclient_priv::addAppendHeader() %s: %s\n", key, str->c_str());
         }
     }
 
@@ -1094,7 +1097,7 @@ struct qore_httpclient_priv {
     }
 };
 
-void do_content_length_event(Queue* event_queue, qore_socket_private* priv, int len) {
+void do_content_length_event(Queue* event_queue, qore_socket_private* priv, size_t len) {
     if (event_queue) {
         QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_CONTENT_LENGTH, QORE_SOURCE_HTTPCLIENT);
         qore_hash_private* hh = qore_hash_private::get(*h);
@@ -1127,12 +1130,13 @@ constexpr int HS_R = 1;
 constexpr int HS_RN = 2;
 constexpr int HS_RNR = 3;
 
-class HttpClientReceiveHeaderPollState : public AbstractPollState {
+class HttpClientRecvHeaderPollState : public AbstractPollState {
 public:
-    DLLLOCAL HttpClientReceiveHeaderPollState(ExceptionSink* xsink, qore_httpclient_priv* http,
+    DLLLOCAL HttpClientRecvHeaderPollState(ExceptionSink* xsink, qore_httpclient_priv* http,
             bool exit_early = false) : http(http), hdr(
                 new QoreStringNode(http->msock->socket->priv->enc ? http->msock->socket->priv->enc : http->enc)
             ), exit_early(exit_early) {
+        assert(http->msock->m.trylock());
     }
 
     /** returns:
@@ -1145,11 +1149,72 @@ public:
         qore_socket_private* spriv = http->msock->socket->priv;
         assert(http->msock->m.trylock());
 
-        if (spriv->sock == QORE_INVALID_SOCKET) {
-            se_not_open("HTTPClient", "startPollSendRecv", xsink, "HttpClientReceiveHeaderPollState");
+        assert(spriv->isOpen());
+
+        return readHeaderIntern(xsink);
+    }
+
+    //! Returns the data read
+    DLLLOCAL virtual QoreValue takeOutput() {
+        return hdr.release();
+    }
+
+protected:
+    qore_httpclient_priv* http;
+    QoreStringNodeHolder hdr;
+    int state = HS_NONE;
+    bool exit_early;
+
+    // returns -1 = err, 0 = data available in buffer, 1 = wait read, 2 = wait write
+    DLLLOCAL int doRecv(ExceptionSink* xsink) {
+        qore_socket_private* spriv = http->msock->socket->priv;
+        OptionalNonBlockingHelper nbh(*spriv, true, xsink);
+        if (*xsink) {
             return -1;
         }
 
+        while (true) {
+            ssize_t rc;
+            if (spriv->ssl) {
+                size_t real_io = 0;
+                rc = spriv->ssl->doNonBlockingIo(xsink, "read", spriv->rbuf, DEFAULT_SOCKET_BUFSIZE, SslAction::READ,
+                    real_io);
+                if (*xsink) {
+                    return -1;
+                }
+                if (!rc) {
+                    assert(!spriv->bufoffset);
+                    spriv->buflen = real_io;
+                }
+                assert(!rc || rc == 1 || rc == 2 || rc == 3 || rc == -1);
+                return rc;
+            } else {
+                rc = ::recv(spriv->sock, spriv->rbuf, DEFAULT_SOCKET_BUFSIZE, 0);
+                assert(rc);
+                if (rc > 0) {
+                    assert(!spriv->bufoffset);
+                    spriv->buflen = rc;
+                    break;
+                }
+                sock_get_error();
+                if (errno == EINTR) {
+                    continue;
+                }
+                if (errno == EAGAIN
+    #ifdef EWOULDBLOCK
+                    || errno == EWOULDBLOCK
+    #endif
+                ) {
+                    return SOCK_POLLIN;
+                }
+                xsink->raiseErrnoException("SOCKET-RECV-ERROR", errno, "error while executing Socket::recv()");
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+    DLLLOCAL int readHeaderIntern(ExceptionSink* xsink) {
         while (true) {
             char c;
             if (http->msock->socket->priv->readByteFromBuffer(c)) {
@@ -1204,58 +1269,218 @@ public:
 
         return 0;
     }
+};
+
+constexpr int PSC_READING_SIZE = 0;
+constexpr int PSC_READING_CHUNK = 1;
+constexpr int PSC_READING_CHUNK_EOR = 2;
+constexpr int PSC_READING_TRAILERS = 3;
+
+class HttpClientRecvChunkedPollState : public HttpClientRecvHeaderPollState {
+public:
+    DLLLOCAL HttpClientRecvChunkedPollState(ExceptionSink* xsink, qore_httpclient_priv* http)
+            : HttpClientRecvHeaderPollState(xsink, http, true), chunked_body(new BinaryNode) {
+    }
+
+    /** returns:
+        - SOCK_POLLIN = wait for read and call this again
+        - SOCK_POLLOUT = wait for write and call this again
+        - 0 = done
+        - < 0 = error (exception raised)
+    */
+    DLLLOCAL virtual int continuePoll(ExceptionSink* xsink) {
+        qore_socket_private* spriv = http->msock->socket->priv;
+        assert(http->msock->m.trylock());
+
+        assert(spriv->isOpen());
+
+        int rc;
+        while (true) {
+            //printd(5, "HttpClientRecvChunkedPollState::continuePoll() pstate: %d\n", pstate);
+            if (pstate == PSC_READING_SIZE) {
+                rc = readSizeIntern(xsink);
+                //printd(5, "rc: %d *xsink: %d chunk size: %ld\n", rc, (bool)*xsink, chunk_size);
+            } else if (pstate == PSC_READING_CHUNK) {
+                rc = readChunkIntern(xsink);
+            } else if (pstate == PSC_READING_CHUNK_EOR) {
+                rc = readChunkEorIntern(xsink);
+            } else if (pstate == PSC_READING_TRAILERS) {
+                hdr->clear();
+                rc = readHeaderIntern(xsink);
+                //printd(5, "rc: %d (*xsink: %d) trailer: '%s' last chunk size: %ld\n", rc, (bool)*xsink,
+                //    hdr->c_str(), chunk_size);
+                if (!rc) {
+                    if (chunk_size || !hdr->empty()) {
+                        pstate = PSC_READING_SIZE;
+                        hdr->clear();
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                assert(false);
+            }
+            if (rc) {
+                break;
+            }
+        }
+
+        return rc;
+    }
 
     //! Returns the data read
     DLLLOCAL virtual QoreValue takeOutput() {
-        return hdr.release();
+        return chunked_body.release();
     }
 
 private:
-    qore_httpclient_priv* http;
-    QoreStringNodeHolder hdr;
-    int state = HS_NONE;
-    bool exit_early;
+    int pstate = PSC_READING_SIZE;
+    SimpleRefHolder<BinaryNode> chunked_body;
+    size_t chunk_size = 0;
+    size_t chunk_received = 0;
+    // read \r while reading size
+    bool got_r = false;
 
-    // returns -1 = err, 0 = data available in buffer, 1 = wait read, 2 = wait write
-    DLLLOCAL int doRecv(ExceptionSink* xsink) {
+    DLLLOCAL int readSizeIntern(ExceptionSink* xsink) {
         qore_socket_private* spriv = http->msock->socket->priv;
+
         while (true) {
-            ssize_t rc;
-            if (spriv->ssl) {
-                size_t real_io = 0;
-                rc = spriv->ssl->doNonBlockingIo(xsink, "read", spriv->rbuf, DEFAULT_SOCKET_BUFSIZE, SslAction::READ,
-                    real_io);
-                if (*xsink) {
-                    return -1;
-                }
+            char c;
+            if (spriv->readByteFromBuffer(c)) {
+                int rc = doRecv(xsink);
                 if (!rc) {
-                    assert(!spriv->bufoffset);
-                    spriv->buflen = real_io;
-                    return 0;
-                }
-                return rc;
-            } else {
-                rc = ::recv(spriv->sock, spriv->rbuf, DEFAULT_SOCKET_BUFSIZE, 0);
-                assert(rc);
-                if (rc > 0) {
-                    assert(!spriv->bufoffset);
-                    spriv->buflen = rc;
-                    return 0;
-                }
-                sock_get_error();
-                if (errno == EINTR) {
                     continue;
                 }
-                if (errno == EAGAIN
-    #ifdef EWOULDBLOCK
-                    || errno == EWOULDBLOCK
-    #endif
-                ) {
-                    return SOCK_POLLIN;
+                if (*xsink) {
+                    //printd(5, "HttpClientRecvChunkedPollState::readSizeIntern() doRecv() return -1\n");
+                    return -1;
                 }
-                xsink->raiseErrnoException("SOCKET-RECV-ERROR", errno, "error while executing Socket::recv()");
+                return rc;
+            }
+
+            if (c == '\r') {
+                if (got_r) {
+                    xsink->raiseException("READ-HTTP-CHUNK-ERROR", "unexpected \\r character found in chunked input "
+                        "while reading chunk size");
+                    return -1;
+                }
+                got_r = true;
+                continue;
+            }
+            if (c == '\n') {
+                if (got_r) {
+                    if (!hdr) {
+                        xsink->raiseException("READ-HTTP-CHUNK-ERROR", "chunk has no size");
+                        return -1;
+                    }
+
+                    //printd(5, "HttpClientRecvChunkedPollState::readSizeIntern() hdr: '%s'\n", hdr->c_str());
+
+                    // terminate string at ';' char if present
+                    ssize_t i = hdr->find(';');
+                    if (i >= 0) {
+                        hdr->terminate(i);
+                    }
+                    chunk_size = strtoll(hdr->c_str(), nullptr, 16);
+                    spriv->do_chunked_read(QORE_EVENT_HTTP_CHUNK_SIZE, chunk_size, hdr->size(),
+                        QORE_SOURCE_HTTPCLIENT);
+                    hdr->clear();
+                    if (!chunk_size) {
+                        pstate = PSC_READING_TRAILERS;
+                    } else if (chunk_size < 0) {
+                        xsink->raiseException("READ-HTTP-CHUNK-ERROR", "negative value given for chunk size (%ld)",
+                            chunk_size);
+                        return -1;
+                    } else {
+                        chunk_received = 0;
+                        pstate = PSC_READING_CHUNK;
+                    }
+                    return 0;
+                }
+            }
+            if (got_r) {
+                xsink->raiseException("READ-HTTP-CHUNK-ERROR", "unexpected character (ASCII %d) found in chunked "
+                    "input after \\r character while reading chunk size", (int)c);
                 return -1;
             }
+            hdr->concat(c);
+        }
+    }
+
+    DLLLOCAL int readChunkIntern(ExceptionSink* xsink) {
+        qore_socket_private* spriv = http->msock->socket->priv;
+
+        int rc;
+        while (true) {
+            size_t chunk_needed = chunk_size - chunk_received;
+
+            // first take any data in the socket buffer
+            if (spriv->buflen) {
+                if (spriv->buflen <= chunk_needed) {
+                    chunked_body->append(spriv->rbuf + spriv->bufoffset, spriv->buflen);
+                    chunk_received += spriv->buflen;
+                    chunk_needed -= spriv->buflen;
+                    spriv->buflen = 0;
+                    spriv->bufoffset = 0;
+                } else {
+                    chunked_body->append(spriv->rbuf + spriv->bufoffset, chunk_needed);
+                    chunk_received += chunk_needed;
+                    spriv->buflen -= chunk_needed;
+                    spriv->bufoffset += chunk_needed;
+                }
+
+                if (chunk_received == chunk_size) {
+                    pstate = PSC_READING_CHUNK_EOR;
+                    got_r = false;
+                    //printd(5, "HttpClientRecvChunkedPollState::readChunkIntern() chunk: %ld received: %ld "
+                    //    "needed: %ld total read: %ld\n", chunk_size, chunk_received, chunk_needed,
+                    //    chunked_body->size());
+                    return 0;
+                }
+            }
+
+            int rc = doRecv(xsink);
+            if (!rc) {
+                continue;
+            }
+            if (*xsink) {
+                return -1;
+            }
+            break;
+        }
+
+        return rc;
+    }
+
+    DLLLOCAL int readChunkEorIntern(ExceptionSink* xsink) {
+        qore_socket_private* spriv = http->msock->socket->priv;
+
+        while (true) {
+            char c;
+            if (spriv->readByteFromBuffer(c)) {
+                int rc = doRecv(xsink);
+                if (!rc) {
+                    continue;
+                }
+                if (*xsink) {
+                    //printd(5, "HttpClientRecvChunkedPollState::readSizeIntern() doRecv() return -1\n");
+                    return -1;
+                }
+                return rc;
+            }
+
+            if (c == '\r' && !got_r) {
+                got_r = true;
+                continue;
+            } else if (c == '\n' && got_r) {
+                got_r = false;
+                pstate = PSC_READING_SIZE;
+                break;
+            }
+
+            xsink->raiseException("READ-HTTP-CHUNK-ERROR", "unexpected character with ASCII %d found in chunked "
+                "input while end of chunk data", (int)c);
+            return -1;
         }
         return 0;
     }
@@ -1370,6 +1595,12 @@ QoreValue HttpClientConnectSendRecvPollOperation::getOutput() const {
         }
         rv->setKeyValue("info", info->hashRefSelf(), nullptr);
     }
+    if (request_headers) {
+        if (!rv) {
+            rv = new QoreHashNode(autoTypeInfo);
+        }
+        rv->setKeyValue("request-hdr", request_headers->refSelf(), nullptr);
+    }
     if (response_headers) {
         if (!rv) {
             rv = new QoreHashNode(autoTypeInfo);
@@ -1472,7 +1703,7 @@ QoreHashNode* HttpClientConnectSendRecvPollOperation::continuePoll(ExceptionSink
             }
             assert(!poll_state);
             data_holder = nullptr;
-            poll_state.reset(new HttpClientReceiveHeaderPollState(xsink, client->http_priv));
+            poll_state.reset(new HttpClientRecvHeaderPollState(xsink, client->http_priv));
             if (*xsink) {
                 break;
             }
@@ -1621,19 +1852,17 @@ int HttpClientConnectSendRecvPollOperation::processResponse(ExceptionSink* xsink
 
     // get Transfer-Encoding header
     bool chunked = false;
-    {
-        const char* transfer_encoding = get_string_header(xsink, **response_headers, "transfer-encoding");
-        if (*xsink) {
+    const char* transfer_encoding = get_string_header(xsink, **response_headers, "transfer-encoding");
+    if (*xsink) {
+        return -1;
+    }
+    if (transfer_encoding) {
+        if (!strcasecmp(transfer_encoding, "chunked")) {
+            chunked = true;
+        } else {
+            xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "cannot handle Transfer-Encoding: %s; expecting "
+                "'chunked'", transfer_encoding);
             return -1;
-        }
-        if (transfer_encoding) {
-            if (!strcasecmp(transfer_encoding, "chunked")) {
-                chunked = true;
-            } else {
-                xsink->raiseException("HTTP-CLIENT-RECEIVE-ERROR", "cannot handle Transfer-Encoding: %s; expecting "
-                    "'chunked'", transfer_encoding);
-                return -1;
-            }
         }
     }
 
@@ -1642,11 +1871,18 @@ int HttpClientConnectSendRecvPollOperation::processResponse(ExceptionSink* xsink
     if (*xsink) {
         return -1;
     }
-    int len = content_length ? atoi(content_length) : 0;
+    ssize_t len = content_length ? strtoll(content_length, nullptr, 10) : 0;
 
     // issue #3691: read the body until the socket is closed if we have Connection: close
-    if (!chunked && close_connection) {
-        len = -1;
+    if (!chunked && close_connection && !content_length) {
+        //poll_state.reset(new HttpClientRecvUntilClosePollState(xsink, client->http_priv));
+        //state = SPS_RECEIVING_BODY;
+        //printd(0, "HttpClientConnectSendRecvPollOperation::processResponse() created "
+        //    "HttpClientRecvUntilClosePollState\n", len);
+        //return 0;
+
+        xsink->raiseException("UNIMPLEMENTED", "implement HttpClientRecvUntilClosePollState");
+        return -1;
     }
 
     if (content_length) {
@@ -1657,16 +1893,18 @@ int HttpClientConnectSendRecvPollOperation::processResponse(ExceptionSink* xsink
     }
 
     if (chunked) {
-        //poll_state.reset(new SocketRecvChunkedPollState(xsink, spriv));
-        //state = SPS_RECEIVING_BODY;
-        //return 0;
-        xsink->raiseException("UNIMPLEMENTED", "cannot handle receiving polled chunked bodies; implement me");
-        return -1;
+        poll_state.reset(new HttpClientRecvChunkedPollState(xsink, client->http_priv));
+        state = SPS_RECEIVING_BODY;
+        //printd(5, "HttpClientConnectSendRecvPollOperation::processResponse() created "
+        //    "HttpClientRecvChunkedPollState (Transfer-Encoding: %s Content-Length: %ld)\n", transfer_encoding, len);
+        return 0;
     }
 
-    if (len) {
+    if (len > 0) {
         poll_state.reset(new SocketRecvPollState(xsink, spriv, len));
         state = SPS_RECEIVING_BODY;
+        //printd(5, "HttpClientConnectSendRecvPollOperation::processResponse() created SocketRecvPollState "
+        //    "(Content-Length: %ld)\n", len);
         return 0;
     }
 
@@ -1684,10 +1922,9 @@ int HttpClientConnectSendRecvPollOperation::processReceivedBody(ExceptionSink* x
     }
 
     if (content_encoding) {
-        // check for misuse (? check RFCs ?) of this field by including a character encoding value
+        // check for misuse of this header by including a character encoding value
         if (!strncasecmp(content_encoding, "iso", 3) || !strncasecmp(content_encoding, "utf-", 4)) {
             client->http_priv->msock->socket->setEncoding(QEM.findCreate(content_encoding));
-            content_encoding = nullptr;
         } else {
             qore_uncompress_to_binary_t dec = nullptr;
             // only decode message bodies automatically if there is no receive callback
@@ -1702,13 +1939,24 @@ int HttpClientConnectSendRecvPollOperation::processReceivedBody(ExceptionSink* x
                     "'%s'", content_encoding);
                 return -1;
             }
+
+// XXX DEBUG DELETEME
+DigestHelper dh(**data_holder);
+if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink)) {
+    return -1;
+}
+
+            int64 body_size = data_holder->size();
             data_holder = dec(*data_holder, xsink);
             if (*xsink) {
+                QoreString sha512;
+                dh.getString(sha512);
+                xsink->appendLastDescription(": while decompressing '%s' Content-Encoding with size " QLLD " (%s)",
+                    content_encoding, body_size, sha512.c_str());
                 return -1;
             }
         }
     }
-
 
     return responseDone(xsink);
 }
@@ -2738,7 +2986,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         }
 
         if (content_encoding && !os) {
-            // check for misuse (? not sure: check RFCs again) of this field by including a character encoding value
+            // check for misuse of this header by including a character encoding value
             if (!strncasecmp(content_encoding, "iso", 3) || !strncasecmp(content_encoding, "utf-", 4)) {
                 msock->socket->setEncoding(QEM.findCreate(content_encoding));
                 content_encoding = nullptr;

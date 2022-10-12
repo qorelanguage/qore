@@ -62,7 +62,7 @@ void BinaryNode::clear() {
 }
 
 // returns 0 = equal, 1 = not equal
-int BinaryNode::compare(const BinaryNode *obj) const {
+int BinaryNode::compare(const BinaryNode* obj) const {
     // if the sizes are not equal, then the objects can't be equal
     if (len != obj->len)
         return 1;
@@ -86,7 +86,7 @@ BinaryNode* BinaryNode::copy() const {
     if (!len)
         return new BinaryNode();
 
-    void *np = malloc(len);
+    void* np = malloc(len);
     memcpy(np, ptr, len);
     return new BinaryNode(np, len);
 }
@@ -95,7 +95,19 @@ const void* BinaryNode::getPtr() const {
     return ptr;
 }
 
-void BinaryNode::append(const void *nptr, size_t size) {
+int BinaryNode::writeTo(size_t pos, const void* nptr, size_t size) {
+    if ((pos + size) > len) {
+        // resize buffer
+        ptr = q_realloc(ptr, pos + size);
+        if (!ptr) {
+            return -1;
+        }
+    }
+    memcpy((char*)ptr + pos, nptr, size);
+    return 0;
+}
+
+void BinaryNode::append(const void* nptr, size_t size) {
     bool self_copy = nptr == ptr;
     ptr = realloc(ptr, len + size);
     if (self_copy) {
@@ -106,7 +118,7 @@ void BinaryNode::append(const void *nptr, size_t size) {
     len += size;
 }
 
-void BinaryNode::append(const BinaryNode *b) {
+void BinaryNode::append(const BinaryNode* b) {
     append(b->ptr, b->len);
 }
 
@@ -114,7 +126,7 @@ void BinaryNode::append(const BinaryNode &b) {
     append(b.ptr, b.len);
 }
 
-void BinaryNode::prepend(const void *nptr, size_t size) {
+void BinaryNode::prepend(const void* nptr, size_t size) {
     ptr = realloc(ptr, len + size);
     // move memory forward
     memmove((char*)ptr + size, ptr, len);
@@ -144,10 +156,10 @@ QoreString* BinaryNode::getAsString(bool& del, int foff, ExceptionSink* xsink) c
 int BinaryNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
     if (foff == FMT_YAML_SHORT) {
         QoreString bstr(this, -1);
-        str.sprintf("!!binary %s", bstr.getBuffer());
-    }
-    else
+        str.sprintf("!!binary %s", (bstr.empty() ? "" : bstr.c_str()));
+    } else {
         str.sprintf("binary object %p (" QSD " byte%s)", getPtr(), size(), size() == 1 ? "" : "s");
+    }
     return 0;
 }
 
@@ -157,16 +169,16 @@ AbstractQoreNode* BinaryNode::realCopy() const {
 
 // performs a lexical compare, return -1, 0, or 1 if the "this" value is less than, equal, or greater than
 // the "val" passed
-//DLLLOCAL virtual int compare(const AbstractQoreNode *val) const;
+//DLLLOCAL virtual int compare(const AbstractQoreNode* val) const;
 // the type passed must always be equal to the current type
-bool BinaryNode::is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const {
-    const BinaryNode *b = dynamic_cast<const BinaryNode *>(v);
+bool BinaryNode::is_equal_soft(const AbstractQoreNode* v, ExceptionSink *xsink) const {
+    const BinaryNode* b = dynamic_cast<const BinaryNode*>(v);
     if (!b)
         return false;
     return !compare(b);
 }
 
-bool BinaryNode::is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const {
+bool BinaryNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink *xsink) const {
     return is_equal_soft(v, xsink);
 }
 
