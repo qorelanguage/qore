@@ -8,6 +8,9 @@
     Bugfix release with minor new features in user modules; see below for more information
 
     @subsection qore_1_12_0_new_features New Features in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - allow multiple connections to be polled from a single thread
+        (<a href="https://github.com/qorelanguage/qore/issues/4595">issue 4595</a>)
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
       - added child capability support to data provider summary info
         (<a href="https://github.com/qorelanguage/qore/issues/4576">issue 4576</a>)
@@ -21,6 +24,18 @@
       - added request arguments to the \c RestHandler::unknownSubClassError() and
         \c RestHandler::doGetPossibleSubClasses() methods
         (<a href="https://github.com/qorelanguage/qore/issues/4578">issue 4578</a>)
+    - new classes:
+      - @ref Qore::AbstractPollOperation "AbstractPollOperation"
+      - @ref Qore::SocketPollOperationBase "SocketPollOperationBase"
+      - @ref Qore::SocketPollOperation "SocketPollOperation"
+    - new methods for non-blocking, polling-based Socket I/O:
+      - @ref Qore::HTTPClient::startPollConnect() "HTTPClient::startPollConnect()"
+      - @ref Qore::HTTPClient::startPollSendRecv() "HTTPClient::startPollSendRecv()"
+      - @ref Qore::Socket::startPollConnect() "Socket::startPollConnect()"
+      - @ref Qore::Socket::startPollConnectSsl() "Socket::startPollConnectSsl()"
+      - @ref Qore::Socket::startPollRecvBinary() "Socket::startPollRecvBinary()"
+      - @ref Qore::Socket::startPollRecvString() "Socket::startPollRecvString()"
+      - @ref Qore::Socket::startPollSend() "Socket::startPollSend()"
 
     @subsection qore_1_12_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
@@ -29,9 +44,18 @@
     - <a href="../../modules/Logger/html/index.html">Logger</a> module
       - fixed a race condition handling log file rotation with active logs
         (<a href="https://github.com/qorelanguage/qore/issues/4583">issue 4583</a>)
+    - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module
+      - fixed a bug handling objects in schemas other than \c public
+        (<a href="https://github.com/qorelanguage/qore/issues/4602">issue 4602</a>)
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
+      - fixed a bug where HTTP method names were not accepted as wildcard values in URI paths
+        (<a href="https://github.com/qorelanguage/qore/issues/4598">issue 4598</a>)
       - fixed a bug setting the data provider name in Swagger schemas provided by files
         (<a href="https://github.com/qorelanguage/qore/issues/4587">issue 4587</a>)
+    - fixed bugs handling \c CONNECT messages to HTTP proxies for HTTPS connections to the target server
+      (<a href="https://github.com/qorelanguage/qore/issues/4601">issue 4601</a>)
+    - fixed a bug handling redirect messages with message bodies
+      (<a href="https://github.com/qorelanguage/qore/issues/4600">issue 4600</a>)
 
     @section qore_1_11_0 Qore 1.11.0
 
@@ -386,8 +410,7 @@
 
     @subsection qore_1_4_0_new_features New Features in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
-      - added support for tags on data provider types (i.e.
-        @ref DataProvider::AbstractDataProviderType "AbstractDataProviderType")
+      - added support for tags on data provider types (i.e. \c DataProvider::AbstractDataProviderType)
         (<a href="https://github.com/qorelanguage/qore/issues/4442">issue 4442</a>)
       - fixed data provider factory info to provide info about the actual data provider factory instead of only
         provider info; note that the data provider factory abstract API has changed with this fix

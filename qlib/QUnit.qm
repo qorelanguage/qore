@@ -828,7 +828,7 @@ public class QUnit::TestReporter {
         if (testcase.result != TEST_SUCCESS) {
             string out = "";
             printf("%s at %s\n", testcase.error, testcase.pos);
-            ListIterator errorDescription(testcase.detail.split("\n"));
+            ListIterator errorDescription(testcase.detail ? testcase.detail.split("\n") : ());
             while (errorDescription.next()) {
                 out += sprintf("\t>> %s\n", errorDescription.getValue());
             }

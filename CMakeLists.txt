@@ -184,6 +184,9 @@ set(LIBQORE_QPP_SRC
     lib/QC_StdoutOutputStream.qpp
     lib/QC_StderrOutputStream.qpp
     lib/QC_Serializable.qpp
+    lib/QC_AbstractPollOperation.qpp
+    lib/QC_SocketPollOperationBase.qpp
+    lib/QC_SocketPollOperation.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp
     lib/ql_thread.qpp
@@ -692,7 +695,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 12.0.3)
+    set_target_properties(libqore PROPERTIES VERSION 12.1.0)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
 endif (APPLE)
 

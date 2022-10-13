@@ -34,7 +34,7 @@
 %requires(reexport) DataProvider
 
 module ConnectionProvider {
-    version = "1.6.1";
+    version = "1.7";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -102,7 +102,12 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section connectionproviderrelnotes Release Notes
 
-    @subsection connectionprovider_1_6_1 ConnectionProvider 1.6.1
+    @subsection connectionprovider_1_7 ConnectionProvider 1.7
+    - allow multiple connections to be polled from a single thread; added:
+      - @ref ConnectionProvider::AbstractConnection::supportsPollingApi() "AbstractConnection::supportsPollingApi()"
+      - @ref ConnectionProvider::AbstractConnection::startPollConnect() "AbstractConnection::startPollConnect()"
+      \n
+      (<a href="https://github.com/qorelanguage/qore/issues/4595">issue 4595</a>)
     - fixed a bug acquiring a data provider object from connection objects
       (<a href="https://github.com/qorelanguage/qore/issues/4584">issue 4584</a>)
 

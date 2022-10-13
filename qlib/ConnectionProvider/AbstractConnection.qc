@@ -364,6 +364,35 @@ public class AbstractConnection inherits Serializable {
         return False;
     }
 
+    #! returns @ref True if the connection supports the %Qore @ref Qore::Socket "Socket-based" polling API
+    /** @return @ref True if the connection supports the polling API where multiple connections can be polled from a
+        single thread
+
+        This base class method returns @ref False; to support the new polling API, override this method in child
+        classes
+
+        @see
+        - @ref startConnectPoll()
+
+        @since ConnectionProvider 1.7
+    */
+    bool supportsPollingApi() {
+        return False;
+    }
+
+    #! Called to start the connection polling operation
+    /** Only called if the connection supports the polling API
+
+        @return a socket poll operation object that will allow the connection goal to be reached with polling
+
+        @see supportsPollingApi()
+
+        @since ConnectionProvider 1.7
+    */
+    SocketPollOperation startPollConnect() {
+        throw "UNSUPPORTED", sprintf("connection %y (%s) does not support the polling API", name, safe_url);
+    }
+
     #! Parse the URL to a hash
     /** @param url a string with url
         @return hash untyped, depends on the parsing method
@@ -384,9 +413,9 @@ public class AbstractConnection inherits Serializable {
         This base/default implementation expects the \c urlh
         as returned by @ref Qore::parse_url())
 
-        Public attribute \c safe_url is created from the \c url calling
+        The public attribute \c safe_url is created from the \c url calling
         AbstractConnection::getSafeUrl(). Reimplement this method if your
-        connection does not follow standard URL in form:
+        connection does not follow the standard URL format like:
         @code
 scheme://user:pass@hostname:port/path
         @endcode

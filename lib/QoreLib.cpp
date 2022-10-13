@@ -1328,11 +1328,12 @@ char* q_dirname(const char* path) {
    return x;
 }
 
-void *q_realloc(void* ptr, size_t size) {
-   void *p = realloc(ptr, size);
-   if (!p)
-      free(ptr);
-   return p;
+void* q_realloc(void* ptr, size_t size) {
+    void* p = realloc(ptr, size);
+    if (!p) {
+        free(ptr);
+    }
+    return p;
 }
 
 static inline void assign_hv(QoreHashNode* h, const char* key, char* val) {

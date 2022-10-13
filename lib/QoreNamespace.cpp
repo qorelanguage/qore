@@ -61,6 +61,8 @@
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/QC_TreeMap.h"
 #include "qore/intern/QC_Serializable.h"
+#include "qore/intern/QC_SocketPollOperationBase.h"
+#include "qore/intern/QC_SocketPollOperation.h"
 
 #include "qore/intern/QC_Datasource.h"
 #include "qore/intern/QC_DatasourcePool.h"
@@ -150,6 +152,7 @@ DLLLOCAL QoreClass* initTransformInputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initTransformOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initStdoutOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initStderrOutputStreamClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractPollOperationClass(QoreNamespace& ns);
 
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
@@ -1082,6 +1085,10 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     preinitSerializableClass();
     preinitInputStreamClass();
     preinitOutputStreamClass();
+
+    qns.addSystemClass(initAbstractPollOperationClass(qns));
+    qns.addSystemClass(initSocketPollOperationBaseClass(qns));
+    qns.addSystemClass(initSocketPollOperationClass(qns));
 
     // add stream classes
     qns.addSystemClass(initStreamBaseClass(qns));

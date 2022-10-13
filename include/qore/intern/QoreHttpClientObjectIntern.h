@@ -183,7 +183,6 @@ struct con_info {
 DLLLOCAL extern method_map_t method_map;
 DLLLOCAL extern strcase_set_t header_ignore;
 
-DLLLOCAL void do_content_length_event(Queue *event_queue, int64 id, int len);
 DLLLOCAL void do_redirect_event(Queue *event_queue, int64 id, const QoreStringNode *loc, const QoreStringNode *msg);
 DLLLOCAL void do_event(Queue *event_queue, int64 id, int event);
 DLLLOCAL void check_headers(const char *str, int len, bool &multipart, QoreHashNode &ans, const QoreEncoding *enc,

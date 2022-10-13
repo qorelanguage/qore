@@ -33,7 +33,7 @@ public class HttpBasedConnection inherits AbstractConnectionWithInfo {
         string real_url;
     }
 
-    #! creates the invalid connection object
+    #! Creates the connection object
     /** @param name the name of the connection
         @param desc connection description
         @param url connection URL (potentially with password info)
@@ -50,6 +50,27 @@ public class HttpBasedConnection inherits AbstractConnectionWithInfo {
         bool ssl = (scheme =~ /s$/);
         string targ = "http" + (ssl ? "s" : "");
         real_url = regex_subst(url, "^" + scheme, targ);
+    }
+
+    #! returns @ref True, since this connection type supports the %Qore @ref Qore::Socket "Socket-based" polling API
+    /** @return @ref True
+
+        @since ConnectionProvider 1.7
+    */
+    bool supportsPollingApi() {
+        return True;
+    }
+
+    #! Called to start the connection if the connection supports the polling API
+    /**
+        @return a socket poll operation object that will allow the connection goal to be reached with polling
+
+        @see supportsPollingApi()
+
+        @since ConnectionProvider 1.7
+    */
+    SocketPollOperation startPollConnect() {
+        return getImpl(False).startPollConnect();
     }
 }
 } # ConnectionProvider namespace
