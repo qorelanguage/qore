@@ -399,7 +399,16 @@ class SocketTest inherits QUnit::Test {
                 spop = s2.startPollConnectSsl(target);
                 assertEq("connect-ssl", spop.getGoal());
                 assertEq("connecting", spop.getState());
-                assertThrows("SOCKET-SSL-ERROR", \spop.continuePoll());
+                on_error printf("goal reached: %y state: %y output: %y\n", spop.goalReached(), spop.getState(), spop.getOutput());
+                assertThrows("SOCKET-SSL-ERROR", sub () {
+                    *hash<SocketPollInfo> info;
+                    do {
+                        info = spop.continuePoll();
+                        if (info) {
+                            Socket::poll((info,), 250ms);
+                        }
+                    } while (info);
+                });
                 assertFalse(spop.goalReached());
                 assertNothing(spop.getOutput());
             }
