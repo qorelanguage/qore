@@ -30,8 +30,11 @@
       - @ref Qore::SocketPollOperation "SocketPollOperation"
     - new methods:
       - @ref Qore::HTTPClient::startPollConnect() "HTTPClient::startPollConnect()"
+      - @ref Qore::HTTPClient::startPollSendRecv() "HTTPClient::startPollSendRecv()"
       - @ref Qore::Socket::startPollConnect() "Socket::startPollConnect()"
       - @ref Qore::Socket::startPollConnectSsl() "Socket::startPollConnectSsl()"
+      - @ref Qore::Socket::startPollRecvBinary() "Socket::startPollRecvBinary()"
+      - @ref Qore::Socket::startPollRecvString() "Socket::startPollRecvString()"
       - @ref Qore::Socket::startPollSend() "Socket::startPollSend()"
 
     @subsection qore_1_12_0_bug_fixes Bug Fixes in Qore
@@ -41,11 +44,18 @@
     - <a href="../../modules/Logger/html/index.html">Logger</a> module
       - fixed a race condition handling log file rotation with active logs
         (<a href="https://github.com/qorelanguage/qore/issues/4583">issue 4583</a>)
+    - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module
+      - fixed a bug handling objects in schemas other than \c public
+        (<a href="https://github.com/qorelanguage/qore/issues/4602">issue 4602</a>)
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
       - fixed a bug where HTTP method names were not accepted as wildcard values in URI paths
         (<a href="https://github.com/qorelanguage/qore/issues/4598">issue 4598</a>)
       - fixed a bug setting the data provider name in Swagger schemas provided by files
         (<a href="https://github.com/qorelanguage/qore/issues/4587">issue 4587</a>)
+    - fixed bugs handling \c CONNECT messages to HTTP proxies for HTTPS connections to the target server
+      (<a href="https://github.com/qorelanguage/qore/issues/4601">issue 4601</a>)
+    - fixed a bug handling redirect messages with message bodies
+      (<a href="https://github.com/qorelanguage/qore/issues/4600">issue 4600</a>)
 
     @section qore_1_11_0 Qore 1.11.0
 

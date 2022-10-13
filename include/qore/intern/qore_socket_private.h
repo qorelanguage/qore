@@ -57,7 +57,7 @@
 #endif
 
 #ifndef DEFAULT_SOCKET_BUFSIZE
-#define DEFAULT_SOCKET_BUFSIZE 4096
+#define DEFAULT_SOCKET_BUFSIZE (64 * 1024)
 #endif
 
 #ifndef QORE_MAX_HEADER_SIZE
@@ -940,7 +940,7 @@ struct qore_socket_private {
             QoreHashNode* h = getEvent(QORE_EVENT_HTTP_SEND_MESSAGE, source);
             h->setKeyValue("message", new QoreStringNode(str), nullptr);
             //printd(5, "do_send_http_message_event() str='%s' headers: %p (%d %s)\n", str.getBuffer(), headers, headers->getType(), headers->getTypeName());
-            h->setKeyValue("headers", headers->hashRefSelf(), nullptr);
+            h->setKeyValue("headers", headers->copy(), nullptr);
             event_queue->pushAndTakeRef(h);
         }
     }
@@ -2291,6 +2291,7 @@ struct qore_socket_private {
             assert(*xsink);
             return nullptr;
         }
+
         if (hdr->empty()) {
             xsink->raiseException("SOCKET-HTTP-ERROR", "remote closed the connection while reading the HTTP header");
             return nullptr;

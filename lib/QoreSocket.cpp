@@ -627,13 +627,17 @@ int my_socket_priv::checkOpen(ExceptionSink* xsink) {
     // must be called with the lock held
     assert(m.trylock());
 
+    if (checkValid(xsink)) {
+        return -1;
+    }
+
     if (!socket->priv->isOpen()) {
         xsink->raiseException("SOCKET-NOT-OPEN", "the underlying socket object has been closed, so the operation "
             "cannot continue");
         return -1;
     }
 
-    return checkValid(xsink);
+    return 0;
 }
 
 thread_local qore_socket_private* qore_socket_private::current_socket;
@@ -1157,7 +1161,7 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
             return rc;
         } else {
             rc = ::send(sock->sock, data + sent, size - sent, 0);
-            //printd(5, "SocketSendPollState::continuePoll() left: %ld rc: %d errno: %d)\n", size - sent, rc,
+            //printd(5, "SocketSendPollState::continuePoll() left: %ld rc: %ld errno: %d)\n", size - sent, rc,
             //    errno);
             if (*xsink) {
                 return -1;
@@ -1426,7 +1430,8 @@ void qore_socket_private::captureRemoteCert(X509_STORE_CTX* x509_ctx) {
     if (current_socket->remote_cert) {
         current_socket->remote_cert->deref(nullptr);
     }
-    current_socket->remote_cert = new QoreObject(QC_SSLCERTIFICATE, getProgram(), new QoreSSLCertificate(X509_dup(x509)));
+    current_socket->remote_cert = new QoreObject(QC_SSLCERTIFICATE, getProgram(),
+        new QoreSSLCertificate(X509_dup(x509)));
 }
 
 QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeout_ms, ExceptionSink* xsink) {
@@ -1957,25 +1962,25 @@ QoreSocket::QoreSocket(int n_sock, int n_sfamily, int n_stype, int n_prot, const
 }
 
 QoreSocket::~QoreSocket() {
-   delete priv;
+    delete priv;
 }
 
 int QoreSocket::setNoDelay(int nodelay) {
-   return setsockopt(priv->sock, IPPROTO_TCP, TCP_NODELAY, (SETSOCKOPT_ARG_4)&nodelay, sizeof(int));
+    return setsockopt(priv->sock, IPPROTO_TCP, TCP_NODELAY, (SETSOCKOPT_ARG_4)&nodelay, sizeof(int));
 }
 
 int QoreSocket::getNoDelay() const {
-   int rc;
-   socklen_t optlen = sizeof(int);
-   int sorc = getsockopt(priv->sock, IPPROTO_TCP, TCP_NODELAY, (GETSOCKOPT_ARG_4)&rc, &optlen);
-   //printd(5, "Socket::getNoDelay() sorc: %d rc: %d optlen: %d\n", sorc, rc, optlen);
-   if (sorc)
-       return sorc;
-   return rc;
+    int rc;
+    socklen_t optlen = sizeof(int);
+    int sorc = getsockopt(priv->sock, IPPROTO_TCP, TCP_NODELAY, (GETSOCKOPT_ARG_4)&rc, &optlen);
+    //printd(5, "Socket::getNoDelay() sorc: %d rc: %d optlen: %d\n", sorc, rc, optlen);
+    if (sorc)
+        return sorc;
+    return rc;
 }
 
 int QoreSocket::close() {
-   return priv->close();
+    return priv->close();
 }
 
 int QoreSocket::shutdown() {
@@ -1997,64 +2002,65 @@ int QoreSocket::shutdownSSL(ExceptionSink* xsink) {
 }
 
 int QoreSocket::getSocket() const {
-   return priv->sock;
+    return priv->sock;
 }
 
 const QoreEncoding* QoreSocket::getEncoding() const {
-   return priv->enc;
+    return priv->enc;
 }
 
 void QoreSocket::setEncoding(const QoreEncoding* id) {
-   priv->enc = id;
+    priv->enc = id;
 }
 
 bool QoreSocket::isOpen() const {
-   return (bool)(priv->sock != QORE_INVALID_SOCKET);
+    return (bool)(priv->sock != QORE_INVALID_SOCKET);
 }
 
 const char* QoreSocket::getSSLCipherName() const {
-   if (!priv->ssl)
-      return 0;
-   return priv->ssl->getCipherName();
+    if (!priv->ssl)
+        return 0;
+    return priv->ssl->getCipherName();
 }
 
 const char* QoreSocket::getSSLCipherVersion() const {
-   if (!priv->ssl)
-      return 0;
-   return priv->ssl->getCipherVersion();
+    if (!priv->ssl)
+        return 0;
+    return priv->ssl->getCipherVersion();
 }
 
 bool QoreSocket::isSecure() const {
-   return (bool)priv->ssl;
+    return (bool)priv->ssl;
 }
 
 long QoreSocket::verifyPeerCertificate() const {
-   if (!priv->ssl)
-      return -1;
-   return priv->ssl->verifyPeerCertificate();
+    if (!priv->ssl)
+        return -1;
+    return priv->ssl->verifyPeerCertificate();
 }
 
 // hardcoded to SOCK_STREAM (tcp only)
 int QoreSocket::connectINET(const char* host, int prt, int timeout_ms, ExceptionSink* xsink) {
-   QoreString service;
-   service.sprintf("%d", prt);
+    QoreString service;
+    service.sprintf("%d", prt);
 
-   return priv->connectINET(host, service.c_str(), timeout_ms, xsink);
+    return priv->connectINET(host, service.c_str(), timeout_ms, xsink);
 }
 
 int QoreSocket::connectINET(const char* host, int prt, ExceptionSink* xsink) {
-   QoreString service;
-   service.sprintf("%d", prt);
+    QoreString service;
+    service.sprintf("%d", prt);
 
-   return priv->connectINET(host, service.c_str(), -1, xsink);
+    return priv->connectINET(host, service.c_str(), -1, xsink);
 }
 
-int QoreSocket::connectINET2(const char* name, const char* service, int family, int socktype, int protocol, int timeout_ms, ExceptionSink* xsink) {
-   return priv->connectINET(name, service, timeout_ms, xsink, family, socktype, protocol);
+int QoreSocket::connectINET2(const char* name, const char* service, int family, int socktype, int protocol,
+        int timeout_ms, ExceptionSink* xsink) {
+    return priv->connectINET(name, service, timeout_ms, xsink, family, socktype, protocol);
 }
 
 int QoreSocket::connectUNIX(const char* p, ExceptionSink* xsink) {
-   return priv->connectUNIX(p, SOCK_STREAM, 0, xsink);
+    return priv->connectUNIX(p, SOCK_STREAM, 0, xsink);
 }
 
 int QoreSocket::connectUNIX(const char* p, int sock_type, int protocol, ExceptionSink* xsink) {

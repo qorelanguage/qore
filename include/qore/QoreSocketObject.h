@@ -58,6 +58,13 @@ public:
     DLLEXPORT virtual void deref(ExceptionSink* xsink);
     DLLEXPORT virtual void deref();
 
+    //! Invalidates the socket
+    /** Normally called only in the %Qore object's destructor
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT void invalidate(ExceptionSink* xsink);
+
     //! Starts a non-blocking socket connection to the given target
     /** @param xsink %Qore-language exceptions will be raised here
         @param name the connection target (ex: "host:port" or "/tmp/socket-file", etc)

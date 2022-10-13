@@ -513,6 +513,14 @@ Socket::copy() {
     self->setPrivate(CID_SOCKET, new QoreSocketObject);
 }
 
+//! Deletes the object
+/**
+*/
+Socket::destructor() {
+    s->invalidate(xsink);
+    s->deref(xsink);
+}
+
 //! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the socket for a standard connection
 /** @param target the URL target
 
@@ -525,7 +533,7 @@ AbstractPollOperation Socket::startPollConnect(string target) {
     s->ref();
     ReferenceHolder<SocketPollOperationBase> poller(new SocketConnectPollOperation(xsink, false, target->c_str(), s),
         xsink);
-    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, *poller), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
     poller->setSelf(*rv);
     poller.release();
 
@@ -548,7 +556,7 @@ AbstractPollOperation Socket::startPollConnectSsl(string target) {
     s->ref();
     ReferenceHolder<SocketPollOperationBase> poller(new SocketConnectPollOperation(xsink, true, target->c_str(), s),
         xsink);
-    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, *poller), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
     poller->setSelf(*rv);
     poller.release();
 
@@ -578,7 +586,7 @@ AbstractPollOperation Socket::startPollSend(string data) {
     s->ref();
     ReferenceHolder<SocketPollOperationBase> poller(new SocketSendPollOperation(xsink,
         tmp ? tmp.release() : data->stringRefSelf(), s), xsink);
-    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, *poller), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
     poller->setSelf(*rv);
     poller.release();
 
@@ -599,7 +607,7 @@ AbstractPollOperation Socket::startPollSend(string data) {
 AbstractPollOperation Socket::startPollSend(binary data) {
     s->ref();
     ReferenceHolder<SocketPollOperationBase> poller(new SocketSendPollOperation(xsink, data->binRefSelf(), s), xsink);
-    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, *poller), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
     poller->setSelf(*rv);
     poller.release();
 
@@ -623,7 +631,7 @@ AbstractPollOperation Socket::startPollSend(binary data) {
 AbstractPollOperation Socket::startPollRecvString(int size) {
     s->ref();
     ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvPollOperation(xsink, size, s, true), xsink);
-    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, *poller), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
     poller->setSelf(*rv);
     poller.release();
 
@@ -647,7 +655,7 @@ AbstractPollOperation Socket::startPollRecvString(int size) {
 AbstractPollOperation Socket::startPollRecvBinary(int size) {
     s->ref();
     ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvPollOperation(xsink, size, s, false), xsink);
-    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, *poller), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
     poller->setSelf(*rv);
     poller.release();
 

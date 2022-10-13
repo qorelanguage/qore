@@ -367,12 +367,19 @@ qibte1W+dyK5IZEpk3f081N6GegIv+ulzcdcedp4oRCtaOUBziqSlZqXXkoiFyQ4
 P1CvlJwL79QntIvjfC5nRMHwMy2wE6Eqt57sFlUnvD25CbbX/TNDSNqXhXQbYaCZ
 I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
 -----END CERTIFICATE-----";
+
+        const MyOpts = {
+            "proxy": "P,proxy=s",
+        } + Opts;
+
+        const OptionColumn = 22;
     }
 
-    constructor() : Test("HttpClientTest", "1.0") {
+    constructor() : Test("HttpClientTest", "1.0", \ARGV, MyOpts) {
         if (m_options.verbose) {
             verbose = m_options.verbose;
         }
+        addTestCase("poll proxy test", \pollProxyTest());
         addTestCase("poll test", \pollTest());
         addTestCase("chunked HEAD test", \chunkedHeadTest());
         addTestCase("assume encoding", \assumedEncoding());
@@ -385,6 +392,109 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         addTestCase("SSL read test", \sslReadTest());
         addTestCase("issue 2610", \issue2610());
         set_return_value(main());
+    }
+
+   private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-P,--proxy=ARG", "the proxy to use for proxy tests", OptionColumn);
+    }
+
+    pollProxyTest() {
+        #m_options.proxy = "http://198.59.191.234:8080"; #"http://75.119.130.35:3128";
+        if (!m_options.proxy) {
+            testSkip("no proxy set");
+        }
+
+        {
+            HTTPClient hc({
+                "url": "http://hq.qoretechnologies.com",
+                "proxy": m_options.proxy,
+            });
+
+            SocketPollOperation spop = hc.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+            assertNothing(spop.getOutput());
+
+            hc.disconnect();
+            spop = hc.startPollSendRecv("GET", "/");
+            assertEq("received", spop.getGoal());
+            assertEq("connecting", spop.getState());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            hash<auto> h = spop.getOutput();
+            assertEq(200, h."code");
+
+            spop = hc.startPollSendRecv("GET", "/");
+            assertEq("received", spop.getGoal());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+        }
+
+        {
+            HTTPClient hc({
+                "url": "https://hq.qoretechnologies.com",
+                "proxy": m_options.proxy,
+            });
+
+            SocketPollOperation spop = hc.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+            hash<auto> h = spop.getOutput();
+            assertEq(200, h."code");
+
+            hc.disconnect();
+            spop = hc.startPollSendRecv("GET", "/");
+            assertEq("received", spop.getGoal());
+            assertEq("connecting", spop.getState());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+
+            spop = hc.startPollSendRecv("GET", "/");
+            assertEq("received", spop.getGoal());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+        }
     }
 
     pollTest() {
@@ -476,7 +586,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertTrue(spop.goalReached());
             h = spop.getOutput();
             assertEq(200, h."code");
-            assertEq("chunked", h."response-hdr"."transfer-encoding");
+            assertEq("chunked", h.info."response-headers"."transfer-encoding");
             assertEq(bigmsg.size(), h."response-body".size());
             assertEq(bigmsg, h."response-body");
         }
@@ -550,7 +660,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertTrue(spop.goalReached());
             h = spop.getOutput();
             assertEq(200, h."code");
-            assertEq("chunked", h."response-hdr"."transfer-encoding");
+            assertEq("chunked", h.info."response-headers"."transfer-encoding");
             assertEq(bigmsg.size(), h."response-body".size());
             assertEq(bigmsg, h."response-body");
 
@@ -559,6 +669,13 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
             assertEq("sending", spop.getState());
             hc.disconnect();
             assertThrows("SOCKET-NOT-OPEN", \spop.continuePoll());
+            delete spop;
+
+            spop = hc.startPollSendRecv("PUT", "/", msg);
+            assertEq("received", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            delete hc;
+            assertThrows("OBJECT-ALREADY-DELETED", \spop.continuePoll());
         }
     }
 

@@ -121,7 +121,7 @@ public:
     This class does no implement any thread locking; thread locking must be performed at
     a higher level (for example, as with QoreHTTPClient and QoreFtpClient).
 
-    @note currently only supports IPv4, TCP sockets
+    @note currently only supports TCP sockets
     @see QoreEncoding
 */
 class QoreSocket {
@@ -131,6 +131,7 @@ class QoreSocket {
     friend class QoreFtpClient;
     friend class HttpClientRecvHeaderPollState;
     friend class HttpClientRecvChunkedPollState;
+    friend class HttpClientRecvUntilClosePollState;
     friend class HttpClientConnectSendRecvPollOperation;
     friend class my_socket_priv;
 

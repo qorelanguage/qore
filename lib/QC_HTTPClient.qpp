@@ -404,7 +404,22 @@ nothing HTTPClient::disconnect() {
     header in the hash with a matching name with a case-insensitive search
 
     @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the
-    response
+    response; the @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" method returns
+    a hash with the following keys after a successful request and response:
+    - \c code: the HTTP response code returned
+    - \c info: a hash of information about the request with the following keys:
+      - \c request-uri: a string giving the request line (ex: <tt>PUT / HTTP/1.1</tt>)
+      - \c response-uri: a string giving the response line (ex: <tt>HTTP/1.1 200 OK</tt>)
+      - \c headers-raw: a hash of raw response headers received
+      - \c charset: the character encoding used in the response
+      - [\c body-content-type]: the Content-Type for the response body (if any)
+      - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+        each header in the response message, plus the following %Qore-provided keys:
+        - \c http_version: the HTTP version in the response URI
+        - \c status_code: the HTTP status code of the response
+        - \c status_message: the HTTP status message of the response
+    - \c request-headers: a hash of headers sent in the request
+    - [\c response-body]: a binary object of any response body
 
     @since %Qore 1.12
 */
@@ -426,7 +441,22 @@ AbstractPollOperation HTTPClient::startPollSendRecv(string method, *string path,
     header in the hash with a matching name with a case-insensitive search
 
     @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the
-    response
+    response; the @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" method returns
+    a hash with the following keys after a successful request and response:
+    - \c code: the HTTP response code returned
+    - \c info: a hash of information about the request with the following keys:
+      - \c request-uri: a string giving the request line (ex: <tt>PUT / HTTP/1.1</tt>)
+      - \c response-uri: a string giving the response line (ex: <tt>HTTP/1.1 200 OK</tt>)
+      - \c headers-raw: a hash of raw response headers received
+      - \c charset: the character encoding used in the response
+      - [\c body-content-type]: the Content-Type for the response body (if any)
+      - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+        each header in the response message, plus the following %Qore-provided keys:
+        - \c http_version: the HTTP version in the response URI
+        - \c status_code: the HTTP status code of the response
+        - \c status_message: the HTTP status message of the response
+    - \c request-headers: a hash of headers sent in the request
+    - [\c response-body]: a binary object of any response body
 
     @since %Qore 1.12
 */

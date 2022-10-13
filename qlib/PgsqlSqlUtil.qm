@@ -38,7 +38,7 @@
 %enable-all-warnings
 
 module PgsqlSqlUtil {
-    version = "1.7";
+    version = "1.7.1";
     desc = "user module for working with PostgreSQL SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -151,6 +151,10 @@ $function$
     to use functionality like @ref SqlUtil::AbstractDatabase::getAlignFunctionSql() "AbstractDatabase::getAlignFunctionSql()" for example.
 
     @section pgsql_relnotes Release Notes
+
+    @subsection pgsqlsqlutilv17 PgsqlSqlUtil v1.7.1
+    - fixed a bug handling objects in schemas other than \c public
+      (<a href="https://github.com/qorelanguage/qore/issues/4602">issue 4602</a>)
 
     @subsection pgsqlsqlutilv17 PgsqlSqlUtil v1.7
     - implemented support for generating queries based on generic expressions using the DataProvider module's generic
@@ -1325,11 +1329,11 @@ auto v = c.name;
 
         #! returns a list of string table names in the database
         private list<string> listTablesImpl() {
-            string sql = "select n.nspname as schema, c.relname as name, pg_catalog.pg_get_userbyid(c.relowner) as owner,"
-                               " case c.relkind when 'r' then 'table' when 'v' then 'view' when 'i' then 'index' when 'S' then 'sequence' when 's' then 'special' when 'f' then 'foreign table' end as type"
-                          " from pg_catalog.pg_class c left join pg_catalog.pg_namespace n ON n.oid = c.relnamespace"
-                         " where c.relkind in ('r','') and n.nspname <> 'pg_catalog' and n.nspname <> 'information_schema' and n.nspname !~ '^pg_toast' and pg_catalog.pg_table_is_visible(c.oid) order by 1,2";
-            return ds.select(sql).name;
+            string sql = "select * from information_schema.tables "
+                "where table_schema not in ('pg_catalog', 'information_schema');";
+            return map
+                $1.table_schema != 'public' ? sprintf("%s.%s", $1.table_schema, $1.table_name) : $1.table_name,
+                ds.select(sql).contextIterator();
         }
 
         #! returns a list of string function names in the database
@@ -1338,10 +1342,11 @@ auto v = c.name;
             @return a list of string function names in the database
         */
         private list<string> listFunctionsImpl() {
-            string sql = "select n.nspname as schema, p.proname as name, pg_catalog.pg_get_function_result(p.oid) as result_type, pg_catalog.pg_get_function_arguments(p.oid) as args,"
-                               " case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end as type"
-                          " from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n on n.oid = p.pronamespace"
-                         " where n.nspname ~ '^(public)$' order by 1, 2, 4";
+            string sql = "select n.nspname as schema, p.proname as name, pg_catalog.pg_get_function_result(p.oid) "
+                "as result_type, pg_catalog.pg_get_function_arguments(p.oid) as args,"
+                " case when p.proisagg then 'agg' when p.proiswindow then 'window' when p.prorettype = 'pg_catalog.trigger'::pg_catalog.regtype then 'trigger' else 'normal' end as type"
+                " from pg_catalog.pg_proc p left join pg_catalog.pg_namespace n on n.oid = p.pronamespace"
+                " where n.nspname ~ '^(public)$' order by 1, 2, 4";
             *hash qh = ds.select(sql);
 
             return map sprintf("%s(%s)", $1.name, $1.args), qh.contextIterator();

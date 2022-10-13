@@ -119,12 +119,14 @@ private:
     bool use_proxy_connect = false;
     bool path_already_encoded = false;
     bool bodyp = false;
+    bool close_connection = false;
     bool connect_only;
     const char* proxy_path = nullptr;
 
     unsigned redirect_count = 0;
 
-    SimpleRefHolder<BinaryNode> data_holder;
+    SimpleRefHolder<BinaryNode> send_data_holder;
+    SimpleRefHolder<BinaryNode> recv_data_holder;
     int http_response_code = -1;
 
     DLLLOCAL virtual const char* getStateImpl() const {
@@ -221,6 +223,34 @@ static const char* get_string_header(ExceptionSink* xsink, QoreHashNode& h, cons
    return str && !str->empty() ? str->c_str() : nullptr;
 }
 
+void do_content_length_event(Queue* event_queue, qore_socket_private* priv, size_t len) {
+    if (event_queue) {
+        QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_CONTENT_LENGTH, QORE_SOURCE_HTTPCLIENT);
+        qore_hash_private* hh = qore_hash_private::get(*h);
+        hh->setKeyValueIntern("len", len);
+        event_queue->pushAndTakeRef(h);
+    }
+}
+
+void do_redirect_event(Queue* event_queue, qore_socket_private* priv, const QoreStringNode* loc,
+        const QoreStringNode* msg) {
+    if (event_queue) {
+        QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_REDIRECT, QORE_SOURCE_HTTPCLIENT);
+        qore_hash_private* hh = qore_hash_private::get(*h);
+        hh->setKeyValueIntern("location", loc->refSelf());
+        if (msg)
+            hh->setKeyValueIntern("status_message", msg->refSelf());
+        event_queue->pushAndTakeRef(h);
+    }
+}
+
+void do_event(Queue* event_queue, qore_socket_private* priv, int event) {
+    if (event_queue) {
+        QoreHashNode* h = priv->getEvent(event, QORE_SOURCE_HTTPCLIENT);
+        event_queue->pushAndTakeRef(h);
+    }
+}
+
 struct qore_httpclient_priv {
     my_socket_priv* msock;
 
@@ -307,13 +337,15 @@ struct qore_httpclient_priv {
             const QoreString* method, const QoreString* path, const AbstractQoreNode* data_save, const void* data,
             size_t size, const QoreHashNode* headers, const QoreEncoding* enc = nullptr) {
         client->ref();
-        ReferenceHolder<HttpClientConnectSendRecvPollOperation> poller(new HttpClientConnectSendRecvPollOperation(xsink, client,
-            method->c_str(), path ? path->c_str() : "", data, size, headers, enc), xsink);
+        ReferenceHolder<HttpClientConnectSendRecvPollOperation> poller(
+            new HttpClientConnectSendRecvPollOperation(xsink, client,
+                method->c_str(), path ? path->c_str() : "", data, size, headers, enc
+            ), xsink);
         if (*xsink) {
             return nullptr;
         }
         SocketPollOperationBase* p = *poller;
-        ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, poller.release()), xsink);
+        ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), poller.release()), xsink);
         if (!*xsink) {
             p->setSelf(*rv);
             rv->setValue("sock", self->objectRefSelf(), xsink);
@@ -339,7 +371,7 @@ struct qore_httpclient_priv {
             return nullptr;
         }
         SocketPollOperationBase* p = *poller;
-        ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, nullptr, poller.release()), xsink);
+        ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), poller.release()), xsink);
         if (!*xsink) {
             p->setSelf(*rv);
             rv->setValue("sock", self->objectRefSelf(), xsink);
@@ -734,7 +766,7 @@ struct qore_httpclient_priv {
                 : (const char*)connection.path.c_str();
         }
 
-        if (proxy_connection.has_url()) {
+        if (proxy_connection.has_url() && !proxy_connected) {
             // create URL string for path for proxy
             pstr.concat("http");
             if (connection.ssl) {
@@ -795,7 +827,7 @@ struct qore_httpclient_priv {
             }
         }
 
-        //printd(5, "getMsgPath() cpath: '%s' dp: '%s' mpath: '%s' pstr: '%s'\n",
+        //printd(5, "qore_httpclient_priv::getMsgPath() cpath: '%s' dp: '%s' mpath: '%s' pstr: '%s'\n",
         //    !connection.path.empty() ? connection.path.c_str() : "",
         //    !default_path.empty() ? default_path.c_str() : "",
         //    mpath, pstr.c_str());
@@ -1006,8 +1038,8 @@ struct qore_httpclient_priv {
                 ++c;
             }
 
-            printd(5, "QoreHttpClientObject::continuePoll() setting encoding to '%s' from content-type header: '%s' "
-                "(cs=%p c=%p %d)\n", enc.c_str(), str, p + 8, c);
+            printd(5, "qore_httpclient_priv::processContentType() setting encoding to '%s' from content-type "
+                "header: '%s' (cs: %p c: %p %d)\n", enc.c_str(), str, p + 8, c);
 
             // set new encoding
             msock->socket->setEncoding(QEM.findCreate(&enc));
@@ -1088,6 +1120,48 @@ struct qore_httpclient_priv {
         }
     }
 
+    int getDiscardMessageBody(ExceptionSink* xsink, QoreHashNode& ans, int timeout_ms) {
+        const char* te = get_string_header(xsink, ans, "transfer-encoding");
+        if (*xsink) {
+            return -1;
+        }
+
+        // get response body, if any
+        const char* cl = get_string_header(xsink, ans, "content-length");
+        if (*xsink) {
+            return -1;
+        }
+
+        int len = cl ? atoi(cl) : 0;
+        Queue* event_queue = msock->socket->getQueue();
+        // do not try to get a body in any case if Content-Length: 0 is sent
+        if (cl && event_queue) {
+            do_content_length_event(event_queue, msock->socket->priv, len);
+        }
+
+        if (te && !strcasecmp(te, "chunked")) { // check for chunked response body
+            do_event(event_queue, msock->socket->priv, QORE_EVENT_HTTP_CHUNKED_START);
+            ReferenceHolder<QoreHashNode> nah(msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink,
+                "HTTPClient", QORE_SOURCE_HTTPCLIENT), xsink);
+            do_event(event_queue, msock->socket->priv, QORE_EVENT_HTTP_CHUNKED_END);
+            if (*xsink) {
+                return -1;
+            }
+            return 0;
+        }
+
+        if (len) {
+            qore_offset_t rc;
+            QoreStringNodeHolder bstr(msock->socket->priv->recv(xsink, len, timeout_ms, rc,
+                    QORE_SOURCE_HTTPCLIENT));
+            if (*xsink) {
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+
     DLLLOCAL static qore_httpclient_priv* get(QoreHttpClientObject& client) {
         return client.http_priv;
     }
@@ -1096,34 +1170,6 @@ struct qore_httpclient_priv {
         return client.http_priv;
     }
 };
-
-void do_content_length_event(Queue* event_queue, qore_socket_private* priv, size_t len) {
-    if (event_queue) {
-        QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_CONTENT_LENGTH, QORE_SOURCE_HTTPCLIENT);
-        qore_hash_private* hh = qore_hash_private::get(*h);
-        hh->setKeyValueIntern("len", len);
-        event_queue->pushAndTakeRef(h);
-    }
-}
-
-void do_redirect_event(Queue* event_queue, qore_socket_private* priv, const QoreStringNode* loc,
-        const QoreStringNode* msg) {
-    if (event_queue) {
-        QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_REDIRECT, QORE_SOURCE_HTTPCLIENT);
-        qore_hash_private* hh = qore_hash_private::get(*h);
-        hh->setKeyValueIntern("location", loc->refSelf());
-        if (msg)
-            hh->setKeyValueIntern("status_message", msg->refSelf());
-        event_queue->pushAndTakeRef(h);
-    }
-}
-
-void do_event(Queue* event_queue, qore_socket_private* priv, int event) {
-    if (event_queue) {
-        QoreHashNode* h = priv->getEvent(event, QORE_SOURCE_HTTPCLIENT);
-        event_queue->pushAndTakeRef(h);
-    }
-}
 
 constexpr int HS_NONE = 0;
 constexpr int HS_R = 1;
@@ -1190,7 +1236,9 @@ protected:
                 return rc;
             } else {
                 rc = ::recv(spriv->sock, spriv->rbuf, DEFAULT_SOCKET_BUFSIZE, 0);
-                assert(rc);
+                if (!rc) {
+                    return 0;
+                }
                 if (rc > 0) {
                     assert(!spriv->bufoffset);
                     spriv->buflen = rc;
@@ -1201,9 +1249,9 @@ protected:
                     continue;
                 }
                 if (errno == EAGAIN
-    #ifdef EWOULDBLOCK
+#ifdef EWOULDBLOCK
                     || errno == EWOULDBLOCK
-    #endif
+#endif
                 ) {
                     return SOCK_POLLIN;
                 }
@@ -1215,11 +1263,17 @@ protected:
     }
 
     DLLLOCAL int readHeaderIntern(ExceptionSink* xsink) {
+        qore_socket_private* spriv = http->msock->socket->priv;
         while (true) {
             char c;
-            if (http->msock->socket->priv->readByteFromBuffer(c)) {
+            if (spriv->readByteFromBuffer(c)) {
                 int rc = doRecv(xsink);
                 if (!rc) {
+                    if (!spriv->buflen) {
+                        xsink->raiseException("SOCKET-HTTP-ERROR", "remote end closed connection while reading "
+                            "header (read " QLLD " byte%s; '%s')", hdr->size(), hdr->size() == 1 ? "" : "s", hdr->c_str());
+                        return -1;
+                    }
                     continue;
                 }
                 if (*xsink) {
@@ -1266,6 +1320,8 @@ protected:
             }
         }
         hdr->concat('\n');
+
+        //printd(5, "HttpClientRecvHeaderPollState::readHeaderIntern() read hdr: '%s'\n", hdr->c_str());
 
         return 0;
     }
@@ -1349,6 +1405,11 @@ private:
             if (spriv->readByteFromBuffer(c)) {
                 int rc = doRecv(xsink);
                 if (!rc) {
+                    if (!spriv->buflen) {
+                        xsink->raiseException("SOCKET-HTTP-ERROR", "remote end closed connection while reading "
+                            "chunk");
+                        return -1;
+                    }
                     continue;
                 }
                 if (*xsink) {
@@ -1395,7 +1456,7 @@ private:
                         chunk_received = 0;
                         pstate = PSC_READING_CHUNK;
                     }
-                    return 0;
+                    break;
                 }
             }
             if (got_r) {
@@ -1405,6 +1466,7 @@ private:
             }
             hdr->concat(c);
         }
+        return 0;
     }
 
     DLLLOCAL int readChunkIntern(ExceptionSink* xsink) {
@@ -1439,8 +1501,13 @@ private:
                 }
             }
 
-            int rc = doRecv(xsink);
+            rc = doRecv(xsink);
             if (!rc) {
+                if (!spriv->buflen) {
+                    xsink->raiseException("SOCKET-HTTP-ERROR", "remote end closed connection while reading "
+                        "chunk data");
+                    return -1;
+                }
                 continue;
             }
             if (*xsink) {
@@ -1460,6 +1527,11 @@ private:
             if (spriv->readByteFromBuffer(c)) {
                 int rc = doRecv(xsink);
                 if (!rc) {
+                    if (!spriv->buflen) {
+                        xsink->raiseException("SOCKET-HTTP-ERROR", "remote end closed connection while reading "
+                            "chunk data trailing bytes");
+                        return -1;
+                    }
                     continue;
                 }
                 if (*xsink) {
@@ -1486,7 +1558,99 @@ private:
     }
 };
 
-// states: none [-> connecting [-> connecting-ssl]] -> sending -> receiving-header [-> receiving-body] [-> connecting-proxy-ssl] -> received
+class HttpClientRecvUntilClosePollState : public AbstractPollState {
+public:
+    DLLLOCAL HttpClientRecvUntilClosePollState(ExceptionSink* xsink, qore_httpclient_priv* http) : http(http) {
+        assert(http->msock->m.trylock());
+
+        qore_socket_private* spriv = http->msock->socket->priv;
+
+        // first take any data in the socket buffer
+        if (spriv->buflen) {
+            body->append(spriv->rbuf + spriv->bufoffset, spriv->buflen);
+            spriv->buflen = 0;
+            spriv->bufoffset = 0;
+        }
+    }
+
+    /** returns:
+        - SOCK_POLLIN = wait for read and call this again
+        - SOCK_POLLOUT = wait for write and call this again
+        - 0 = done
+        - < 0 = error (exception raised)
+    */
+    DLLLOCAL virtual int continuePoll(ExceptionSink* xsink) {
+        qore_socket_private* spriv = http->msock->socket->priv;
+        assert(http->msock->m.trylock());
+
+        assert(spriv->isOpen());
+
+        OptionalNonBlockingHelper nbh(*spriv, true, xsink);
+        if (*xsink) {
+            return -1;
+        }
+
+        // socket buffer must be empty
+        assert(!spriv->buflen);
+        assert(!spriv->bufoffset);
+
+        while (true) {
+            ssize_t rc;
+            if (spriv->ssl) {
+                size_t real_io = 0;
+                rc = spriv->ssl->doNonBlockingIo(xsink, "read", spriv->rbuf, DEFAULT_SOCKET_BUFSIZE, SslAction::READ,
+                    real_io);
+                if (*xsink) {
+                    return -1;
+                }
+                if (!rc) {
+                    if (!real_io) {
+                        break;
+                    }
+                    body->append(spriv->rbuf, real_io);
+                    continue;
+                }
+                assert(!rc || rc == 1 || rc == 2 || rc == 3 || rc == -1);
+                return rc;
+            } else {
+                rc = ::recv(spriv->sock, spriv->rbuf, DEFAULT_SOCKET_BUFSIZE, 0);
+                assert(rc);
+                if (rc > 0) {
+                    body->append(spriv->rbuf, rc);
+                    continue;
+                }
+                if (!rc) {
+                    break;
+                }
+                sock_get_error();
+                if (errno == EINTR) {
+                    continue;
+                }
+                if (errno == EAGAIN
+    #ifdef EWOULDBLOCK
+                    || errno == EWOULDBLOCK
+    #endif
+                ) {
+                    return SOCK_POLLIN;
+                }
+                xsink->raiseErrnoException("SOCKET-RECV-ERROR", errno, "error while executing Socket::recv()");
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+    //! Returns the data read
+    DLLLOCAL virtual QoreValue takeOutput() {
+        return body.release();
+    }
+
+protected:
+    qore_httpclient_priv* http;
+    SimpleRefHolder<BinaryNode> body;
+};
+
+// states: none [-> connecting [-> connecting-ssl]] -> sending -> receiving-header [-> receiving-body] [-> connecting-proxy-ssl] -> [received | connected]
 /**
     state transitions:
     - none
@@ -1499,7 +1663,7 @@ private:
                -> received
             -> connecting...
             -> sending...
-            -> connecting-proxy-ssl
+            -> connecting->proxy-ssl
                -> sending...
 */
 HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation(ExceptionSink* xsink,
@@ -1519,7 +1683,7 @@ HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation(E
         client->http_priv->disconnect_unlocked();
     }
 
-    if (!client->http_priv->proxy_connected && client->http_priv->proxy_connection.has_url()) {
+    if (client->http_priv->proxy_connection.has_url()) {
         proxy_headers = client->http_priv->setProxyHeaders(xsink, *request_headers, use_proxy_connect, proxy_path);
         if (proxy_headers) {
             assert(use_proxy_connect);
@@ -1566,6 +1730,9 @@ HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation(E
             assert(proxy_path);
         }
     }
+    //printd(5, "HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation() this: %p "
+    //    "proxy connected: %d proxy: %d use_proxy_connect: %d proxy_path: %s\n", this, client->http_priv->proxy_connected,
+    //    client->http_priv->proxy_connection.has_url(), use_proxy_connect, proxy_path ? proxy_path : "n/a");
 
     connectOrSend(xsink);
 }
@@ -1599,24 +1766,18 @@ QoreValue HttpClientConnectSendRecvPollOperation::getOutput() const {
         if (!rv) {
             rv = new QoreHashNode(autoTypeInfo);
         }
-        rv->setKeyValue("request-hdr", request_headers->refSelf(), nullptr);
+        rv->setKeyValue("request-headers", request_headers->refSelf(), nullptr);
     }
-    if (response_headers) {
+    if (recv_data_holder) {
         if (!rv) {
             rv = new QoreHashNode(autoTypeInfo);
         }
-        rv->setKeyValue("response-hdr", response_headers->refSelf(), nullptr);
-    }
-    if (data_holder) {
-        if (!rv) {
-            rv = new QoreHashNode(autoTypeInfo);
-        }
-        rv->setKeyValue("response-body", data_holder->refSelf(), nullptr);
+        rv->setKeyValue("response-body", recv_data_holder->refSelf(), nullptr);
     }
     return rv.release();
 }
 
-// states: none [-> connecting [-> connecting-ssl]] -> sending -> receiving-header [-> receiving-body] [-> connecting-proxy-ssl] -> received
+// states: none [-> connecting [-> connecting-ssl]] -> sending -> receiving-header [-> receiving-body] [-> connecting-proxy-ssl] -> [received | connected]
 /**
     state transitions:
     - none
@@ -1650,6 +1811,9 @@ QoreHashNode* HttpClientConnectSendRecvPollOperation::continuePoll(ExceptionSink
     }
 
     while (true) {
+        //printd(5, "HttpClientConnectSendRecvPollOperation::continuePoll() this: %p %s xsink: %d poll_state: %d\n",
+        //    this, getStateImpl(), (bool)*xsink, (bool)poll_state);
+
         if (state == SPS_CONNECTING) {
             int rc = checkContinuePoll(xsink);
             if (rc != 0) {
@@ -1661,8 +1825,6 @@ QoreHashNode* HttpClientConnectSendRecvPollOperation::continuePoll(ExceptionSink
             if (connectDone(xsink)) {
                 break;
             }
-            //printd(5, "HttpClientConnectSendRecvPollOperation::continuePoll() connecting -> %s xsink: %d poll_state: %d rc: %d\n",
-            //    getStateImpl(), (bool)*xsink, (bool)poll_state, rc);
             continue;
         } else if (state == SPS_CONNECTING_SSL) {
             int rc = checkContinuePoll(xsink);
@@ -1676,7 +1838,8 @@ QoreHashNode* HttpClientConnectSendRecvPollOperation::continuePoll(ExceptionSink
                 break;
             }
             continue;
-        } else if (state == SPS_CONNECTING_PROXY_SSL) {
+       } else if (state == SPS_CONNECTING_PROXY_SSL) {
+            assert(!client->http_priv->proxy_connected);
             int rc = checkContinuePoll(xsink);
             if (rc != 0) {
                 rv = *xsink ? nullptr : getSocketPollInfoHash(xsink, rc);
@@ -1685,15 +1848,22 @@ QoreHashNode* HttpClientConnectSendRecvPollOperation::continuePoll(ExceptionSink
             assert(!poll_state);
             client->http_priv->proxy_connected = true;
             // remove "Proxy-Authorization" header
-            if (!request_headers->is_unique()) {
-                request_headers = request_headers->copy();
+            if (request_headers) {
+                if (!request_headers->is_unique()) {
+                    request_headers = request_headers->copy();
+                }
+                request_headers->removeKey("Proxy-Authorization", xsink);
+                assert(!*xsink);
             }
-            request_headers->removeKey("Proxy-Authorization", xsink);
-            assert(!*xsink);
+            assert(!use_proxy_connect);
+            assert(!proxy_path);
+            assert(client->http_priv->proxy_connected);
+            send_data_holder = nullptr;
 
             if (startSend(xsink)) {
                 break;
             }
+
             continue;
         } else if (state == SPS_SENDING) {
             int rc = checkContinuePoll(xsink);
@@ -1702,7 +1872,6 @@ QoreHashNode* HttpClientConnectSendRecvPollOperation::continuePoll(ExceptionSink
                 break;
             }
             assert(!poll_state);
-            data_holder = nullptr;
             poll_state.reset(new HttpClientRecvHeaderPollState(xsink, client->http_priv));
             if (*xsink) {
                 break;
@@ -1738,6 +1907,9 @@ QoreHashNode* HttpClientConnectSendRecvPollOperation::continuePoll(ExceptionSink
 
             continue;
         } else if (state == SPS_RECEIVED || state == SPS_CONNECTED) {
+            if (close_connection) {
+                client->http_priv->disconnect_unlocked();
+            }
             break;
         } else {
             assert(false);
@@ -1796,6 +1968,9 @@ int HttpClientConnectSendRecvPollOperation::processResponse(ExceptionSink* xsink
         return -1;
     }
 
+    //printd(5, "HttpClientConnectSendRecvPollOperation::processResponse() this: %p got: '%s'\n", this,
+    //    rhdr->c_str());
+
     // check HTTP status code
     QoreValue n = response_headers->getKeyValue("status_code");
     if (n.isNothing()) {
@@ -1806,7 +1981,7 @@ int HttpClientConnectSendRecvPollOperation::processResponse(ExceptionSink* xsink
     http_response_code = (int)n.getAsBigInt();
     // continue processing if "100 Continue" response received (ignore this response)
     if (http_response_code == 100) {
-        data_holder = nullptr;
+        recv_data_holder = nullptr;
         return startSend(xsink);
     }
 
@@ -1815,12 +1990,6 @@ int HttpClientConnectSendRecvPollOperation::processResponse(ExceptionSink* xsink
 
     if (!response_headers->is_unique()) {
         response_headers = response_headers->copy();
-    }
-
-    // issue #3116: pass a 304 Not Modified message back to the caller without processing
-    if (!client->http_priv->redirect_passthru && http_response_code >= 300 && http_response_code < 400
-        && http_response_code != 304) {
-        return redirect(xsink);
     }
 
     // process content-type
@@ -1838,17 +2007,20 @@ int HttpClientConnectSendRecvPollOperation::processResponse(ExceptionSink* xsink
         the message.
     */
 
+    // do not process message body if no message body can be sent
     if (!bodyp || (http_response_code >= 100 && http_response_code < 200) || (http_response_code == 204)
         || (http_response_code == 304)) {
         return responseDone(xsink);
     }
+
+    // process message body
 
     // get Connection header
     const char* conn = get_string_header(xsink, **response_headers, "connection", true);
     if (*xsink) {
         return -1;
     }
-    bool close_connection = conn && !strcasecmp(conn, "close");
+    close_connection = conn && !strcasecmp(conn, "close");
 
     // get Transfer-Encoding header
     bool chunked = false;
@@ -1875,14 +2047,11 @@ int HttpClientConnectSendRecvPollOperation::processResponse(ExceptionSink* xsink
 
     // issue #3691: read the body until the socket is closed if we have Connection: close
     if (!chunked && close_connection && !content_length) {
-        //poll_state.reset(new HttpClientRecvUntilClosePollState(xsink, client->http_priv));
-        //state = SPS_RECEIVING_BODY;
-        //printd(0, "HttpClientConnectSendRecvPollOperation::processResponse() created "
+        poll_state.reset(new HttpClientRecvUntilClosePollState(xsink, client->http_priv));
+        state = SPS_RECEIVING_BODY;
+        //printd(5, "HttpClientConnectSendRecvPollOperation::processResponse() created "
         //    "HttpClientRecvUntilClosePollState\n", len);
-        //return 0;
-
-        xsink->raiseException("UNIMPLEMENTED", "implement HttpClientRecvUntilClosePollState");
-        return -1;
+        return 0;
     }
 
     if (content_length) {
@@ -1908,12 +2077,11 @@ int HttpClientConnectSendRecvPollOperation::processResponse(ExceptionSink* xsink
         return 0;
     }
 
-    setFinal(SPS_RECEIVED);
-    return 0;
+    return responseDone(xsink);
 }
 
 int HttpClientConnectSendRecvPollOperation::processReceivedBody(ExceptionSink* xsink) {
-    data_holder = poll_state->takeOutput().get<BinaryNode>();
+    recv_data_holder = poll_state->takeOutput().get<BinaryNode>();
     poll_state.reset();
 
     const char* content_encoding = get_string_header(xsink, **response_headers, "content-encoding");
@@ -1940,23 +2108,23 @@ int HttpClientConnectSendRecvPollOperation::processReceivedBody(ExceptionSink* x
                 return -1;
             }
 
-// XXX DEBUG DELETEME
-DigestHelper dh(**data_holder);
-if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink)) {
-    return -1;
-}
-
-            int64 body_size = data_holder->size();
-            data_holder = dec(*data_holder, xsink);
+            int64 body_size = recv_data_holder->size();
+            recv_data_holder = dec(*recv_data_holder, xsink);
             if (*xsink) {
-                QoreString sha512;
-                dh.getString(sha512);
-                xsink->appendLastDescription(": while decompressing '%s' Content-Encoding with size " QLLD " (%s)",
-                    content_encoding, body_size, sha512.c_str());
+                xsink->appendLastDescription(": while decompressing '%s' Content-Encoding with size " QLLD,
+                    content_encoding, body_size);
                 return -1;
             }
         }
     }
+
+    //printd(5, "HttpClientConnectSendRecvPollOperation::processReceivedBody() this: %p received body: %ld "
+    //    "(Content-Encoding: '%s')\n", this, recv_data_holder ? recv_data_holder->size() : 0l,
+    //    content_encoding ? content_encoding : "n/a");
+
+    // warning, the following line will output raw binary data
+    //printd(5, "HttpClientConnectSendRecvPollOperation::processReceivedBody() this: %p body received: '%s'\n", this,
+    //    recv_data_holder ? recv_data_holder->getPtr() : "n/a");
 
     return responseDone(xsink);
 }
@@ -1964,19 +2132,37 @@ if (dh.doDigest(SHA512_ERR, EVP_sha512(), xsink)) {
 int HttpClientConnectSendRecvPollOperation::responseDone(ExceptionSink* xsink) {
     assert(client->http_priv->msock->m.trylock());
 
+    // issue #3116: pass a 304 Not Modified message back to the caller without processing
+    if (!client->http_priv->redirect_passthru && http_response_code >= 300 && http_response_code < 400
+        && http_response_code != 304) {
+        //printd(5, "HttpClientConnectSendRecvPollOperation::responseDone() code: %d redirecting\n",
+        //    http_response_code);
+        return redirect(xsink);
+    }
+
     if (use_proxy_connect) {
+        //printd(5, "HttpClientConnectSendRecvPollOperation::responseDone() code: %d connecting SSL (proxy connect: %d "
+        //    "proxy path: %s)\n", http_response_code, use_proxy_connect, proxy_path);
+
         use_proxy_connect = false;
         proxy_path = nullptr;
 
-        if (client->http_priv->msock->socket->startSslConnect(xsink,
+        // set client target for SNI
+        client->http_priv->msock->socket->priv->client_target = client->http_priv->connection.host;
+
+        poll_state.reset(client->http_priv->msock->socket->startSslConnect(xsink,
             client->http_priv->msock->cert ? client->http_priv->msock->cert->getData() : nullptr,
-            client->http_priv->msock->pk ? client->http_priv->msock->pk->getData() : nullptr)) {
+            client->http_priv->msock->pk ? client->http_priv->msock->pk->getData() : nullptr));
+        if (*xsink) {
             return -1;
         }
+
         state = SPS_CONNECTING_PROXY_SSL;
         return 0;
     }
 
+    //printd(5, "HttpClientConnectSendRecvPollOperation::responseDone() code: %d done -> received\n",
+    //    http_response_code);
     setFinal(SPS_RECEIVED);
     return 0;
 }
@@ -1992,6 +2178,8 @@ int HttpClientConnectSendRecvPollOperation::redirect(ExceptionSink* xsink) {
         proxy_path = nullptr;
         client->http_priv->disconnect_unlocked();
     }
+    // purge outbound message buffer
+    send_data_holder = nullptr;
 
     host_override = false;
     const QoreStringNode* mess = response_headers->getKeyValue("status_message").get<QoreStringNode>();
@@ -2073,40 +2261,49 @@ int HttpClientConnectSendRecvPollOperation::startSend(ExceptionSink* xsink) {
     qore_socket_private* spriv = client->http_priv->msock->socket->priv;
 
     assert(!poll_state);
-    if (!data_holder) {
+    if (!send_data_holder) {
         if (use_proxy_connect) {
             QoreString hdr(spriv->enc);
             spriv->getSendHttpMessageHeaders(hdr, *info, "CONNECT",
                 proxy_path, client->http_priv->http11 ? "1.1" : "1.0", *proxy_headers, 0, QORE_SOURCE_HTTPCLIENT);
-            data_holder = getMessage(hdr);
+            send_data_holder = getMessage(hdr);
         } else if (connect_only) {
             setFinal(SPS_CONNECTED);
             return 0;
         } else {
+            // set host field automatically if not overridden
+            if (!host_override) {
+                request_headers->setKeyValue("Host", client->http_priv->getHostHeaderValueUnlocked(), xsink);
+                assert(!*xsink);
+            }
+
             QoreString pathstr(spriv->enc);
             client->http_priv->getMsgPath(path.c_str(), pathstr, path_already_encoded);
             QoreString hdr(spriv->enc);
             spriv->getSendHttpMessageHeaders(hdr, *info, method.c_str(),
                 pathstr.c_str(), client->http_priv->http11 ? "1.1" : "1.0", *request_headers, size,
                 QORE_SOURCE_HTTPCLIENT);
-            data_holder = getMessage(hdr);
+            send_data_holder = getMessage(hdr);
             if (data) {
                 assert(size);
-                data_holder->append(data, size);
+                send_data_holder->append(data, size);
             }
         }
     }
 
-    if (data_holder) {
-        poll_state.reset(new SocketSendPollState(xsink, spriv, (const char*)data_holder->getPtr(),
-            data_holder->size()));
-    } else {
-        assert(*xsink);
-    }
-
+    assert(send_data_holder);
+    poll_state.reset(new SocketSendPollState(xsink, spriv, (const char*)send_data_holder->getPtr(),
+        send_data_holder->size()));
     if (*xsink) {
         return -1;
     }
+
+    //printd(5, "HttpClientConnectSendRecvPollOperation::startSend() this: %p sending %ld bytes\n", this,
+    //    send_data_holder->size());
+
+    // NOTE: the following line will print binary data
+    //printd(5, "HttpClientConnectSendRecvPollOperation::startSend() this: %p sending: '%s'\n", this,
+    //    send_data_holder->getPtr());
 
     state = SPS_SENDING;
     assert(poll_state);
@@ -2125,7 +2322,6 @@ void HttpClientConnectSendRecvPollOperation::setFinal(int final_state) {
     client->priv->clearNonBlock();
     set_non_block = false;
 }
-
 // static initialization
 void QoreHttpClientObject::static_init() {
     // setup static members of QoreHttpClientObject class
@@ -2682,8 +2878,8 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     // HTTP response for error reporting
     if (aborted && (timeout < 0 || timeout > ABORTED_TIMEOUT_MS)) {
         timeout = ABORTED_TIMEOUT_MS;
-        printd(0, "qore_httpclient_priv::sendMessageAndGetResponse() aborted: %d timeout: %d open: %d\n", aborted,
-            timeout, msock->socket->isOpen());
+        //printd(5, "qore_httpclient_priv::sendMessageAndGetResponse() aborted: %d timeout: %d open: %d\n", aborted,
+        //    timeout, msock->socket->isOpen());
     }
 
     // if the transfer was aborted with a streaming send, but the socket is still open, then try to read a response
@@ -2822,7 +3018,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             }
         }
 
-        //printd(5, "qore_httpclient_priv::send_internal() meth=%s proxy_path=%s mpath=%s upc=%d\n", meth,
+        //printd(5, "qore_httpclient_priv::send_internal() meth: %s proxy_path: %s mpath: %s upc: %d\n", meth,
         //    proxy_path ? proxy_path : "n/a", mpath, use_proxy_connect);
         // send HTTP message and get response header
         if (use_proxy_connect) {
@@ -2850,7 +3046,13 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
 
         // issue #3116: pass a 304 Not Modified message back to the caller without processing
         if (!redirect_passthru && code >= 300 && code < 400 && code != 304) {
-            disconnect_unlocked();
+            // only disconnect if we have no proxy or we need to use proxy_connect
+            if (!proxy_connection.has_url()) {
+                //printd(5, "qore_httpclient_priv::send_internal() disconnecting; no proxy\n");
+                disconnect_unlocked();
+            } else if (proxy_connected) {
+                proxy_connected = false;
+            }
 
             host_override = false;
             const QoreStringNode* mess = ans->getKeyValue("status_message").get<QoreStringNode>();
@@ -2867,8 +3069,17 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                 return nullptr;
             }
 
-            if (event_queue)
+            if (event_queue) {
                 do_redirect_event(event_queue, msock->socket->priv, loc, mess);
+            }
+
+            // issue #4601: get and ignore any message body
+            if (msock->socket->priv->isOpen() && strcmp(mname, "HEAD") && code != 204 && code != 304
+                && getDiscardMessageBody(xsink, **ans, timeout_ms)) {
+                assert(*xsink);
+                disconnect_unlocked();
+                return nullptr;
+            }
 
             if (++redirect_count > max_redirects) {
                 break;
@@ -2877,12 +3088,27 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             if (redirectUrlUnlocked(location, xsink)) {
                 sl.unlock();
                 const char* msg = mess ? mess->c_str() : "<no message>";
-                xsink->appendLastDescription(": while setting URL for redirect location '%s' (code %d: message: '%s')",
-                    location, code, msg);
+                xsink->appendLastDescription(": while setting URL for redirect location '%s' (code %d: "
+                    "message: '%s')", location, code, msg);
                 return nullptr;
             }
             if (!path_already_encoded) {
                 path_already_encoded = true;
+            }
+
+            if (proxy_connection.has_url()) {
+                proxy_headers = setProxyHeaders(xsink, *nh, use_proxy_connect, proxy_path);
+                if (*xsink) {
+                    return nullptr;
+                }
+                if (proxy_headers) {
+                    meth = "CONNECT";
+                    assert(use_proxy_connect);
+                    assert(proxy_path);
+                } else {
+                    assert(!use_proxy_connect);
+                    assert(!proxy_path);
+                }
             }
 
             // set redirect info in info hash if present
@@ -2907,7 +3133,12 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             meth = meth_orig;
             use_proxy_connect = false;
             proxy_path = nullptr;
-            if (msock->socket->upgradeClientToSSL(0, 0, xsink)) {
+
+            // set client target for SNI
+            msock->socket->priv->client_target = connection.host;
+
+            if (msock->socket->upgradeClientToSSL(msock->cert ? msock->cert->getData() : nullptr,
+                msock->pk ? msock->pk->getData() : nullptr, xsink)) {
                 disconnect_unlocked();
                 return nullptr;
             }
@@ -3034,8 +3265,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             do_content_length_event(event_queue, msock->socket->priv, len);
 
         if (te && !strcasecmp(te, "chunked")) { // check for chunked response body
-            if (event_queue)
-                do_event(event_queue, msock->socket->priv, QORE_EVENT_HTTP_CHUNKED_START);
+            do_event(event_queue, msock->socket->priv, QORE_EVENT_HTTP_CHUNKED_START);
             ReferenceHolder<QoreHashNode> nah(xsink);
             if (os) {
                 msock->socket->priv->readHttpChunkedBodyBinary(timeout_ms, xsink, "HTTPClient",
@@ -3057,8 +3287,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                         QORE_SOURCE_HTTPCLIENT);
                 }
             }
-            if (event_queue)
-                do_event(event_queue, msock->socket->priv, QORE_EVENT_HTTP_CHUNKED_END);
+            do_event(event_queue, msock->socket->priv, QORE_EVENT_HTTP_CHUNKED_END);
 
             if (!nah && !recv_callback) {
                 if (!msock->socket->isOpen()) {
@@ -3112,7 +3341,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             if (*xsink && !msock->socket->isOpen()) {
                 disconnect_unlocked();
             }
-            //printf("body=%p\n", body);
+            //printf("body: %p\n", body);
         }
     }
 
@@ -3359,6 +3588,8 @@ void QoreHttpClientObject::setEventQueue(ExceptionSink* xsink, Queue* q, QoreVal
 
 void QoreHttpClientObject::cleanup(ExceptionSink* xsink) {
     AutoLocker al(priv->m);
+    priv->socket->close();
+    priv->invalidate();
     priv->socket->cleanup(xsink);
 }
 

@@ -62,6 +62,12 @@ void QoreSocketObject::deref() {
     }
 }
 
+void QoreSocketObject::invalidate(ExceptionSink* xsink) {
+    AutoLocker al(priv->m);
+    priv->invalidate();
+    priv->socket->cleanup(xsink);
+}
+
 AbstractPollState* QoreSocketObject::startConnect(ExceptionSink* xsink, const char* name) {
     AutoLocker al(priv->m);
     return priv->socket->startConnect(xsink, name);
