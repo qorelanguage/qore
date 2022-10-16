@@ -33,8 +33,9 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_Socket.h"
-#include "qore/intern/ssl_constants.h"
+#include "qore/intern/QC_SocketPollOperation.h"
 #include "qore/intern/QC_Queue.h"
+#include "qore/intern/ssl_constants.h"
 #include "qore/intern/qore_socket_private.h"
 #include "qore/QoreSSLCertificate.h"
 #include "qore/QoreSSLPrivateKey.h"
@@ -79,16 +80,17 @@ static int check_response_code(int status_code, ExceptionSink* xsink) {
     return 0;
 }
 
-//! Socket poll info hash
+//! Socket or other pollable object poll info hash
 /** for use with @ref Qore::Socket::poll() "Socket::poll()""
 */
 hashdecl Qore::SocketPollInfo {
-    //! Socket poll type; see @ref socket_poll_constants for possible values to be combined with binary or
+    //! The poll type; see @ref socket_poll_constants for possible values to be combined with binary or
     /** On input, these are the events to check, on output, this value gives the events found in the timeout period
     */
     int events;
-    //! the socket to monitor
-    Socket socket;
+
+    //! the pollable object to monitor
+    Qore::AbstractPollableIoObject socket;
 }
 
 /** @defgroup socket_poll_constants Socket Poll Constants
@@ -495,7 +497,7 @@ const SOCK_RAW = SOCK_RAW;
     |\c family|The network address family (see @ref network_address_family_constants)
     |\c familystr|A string describing the network address family (ex: \c "ipv4")
 */
-qclass Socket [public_members=*string source,*string source_host; flags=unsetPublicMemberFlag; arg=QoreSocketObject* s; dom=NETWORK];
+qclass Socket [public_members=*string source,*string source_host; flags=unsetPublicMemberFlag; arg=QoreSocketObject* s; dom=NETWORK; vparent=AbstractPollableIoObjectBase];
 
 //! Creates the socket object
 /** @par Example:
@@ -549,6 +551,8 @@ AbstractPollOperation Socket::startPollConnect(string target) {
 
     @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the socket for an SSL
     connection
+
+    The poll operation returned will perform the connection and an immediate upgrade to an SSL/TLS connection
 
     @since %Qore 1.12
 */
@@ -661,7 +665,78 @@ AbstractPollOperation Socket::startPollRecvBinary(int size) {
 
     if (!*xsink) {
         rv->setValue("sock", self->objectRefSelf(), xsink);
-        rv->setValue("goal", new QoreStringNode("send"), xsink);
+        rv->setValue("goal", new QoreStringNode("received"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+/** @param pattern the pattern to use to signify the end of the socket data to read
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+
+    The @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" call will return a string
+    after a successful poll for inbound socket data
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollRecvUntilBytesString(string pattern) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvUntilBytesPollOperation(xsink, pattern, s, true), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("received"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+/** @param pattern the pattern to use to signify the end of the socket data to read
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+
+    The @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" call will return a binary
+    object after a successful poll for inbound socket data
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollRecvUntilBytesBinary(string pattern) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvUntilBytesPollOperation(xsink, pattern, s, false), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("received"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to upgrade a connected client socket to SSL
+/** @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to upgrade a connected client socket to
+    SSL
+
+    The poll operation returned will upgrade a client connection to an SSL/TLS connection using any certificate and
+    private key set for the socket.
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollUpgradeClientToSSL() {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketUpgradeClientSslPollOperation(xsink, s), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("upgrade-client-ssl"), xsink);
     }
     return rv.release();
 }
@@ -2863,7 +2938,9 @@ if (sock.setRecvTimeout(20s))
     printf("error setting timeout on socket: %s\n", strerror(errno()));
     @endcode
 
-    @param timeout_ms the receive timeout to set with a resolution of milliseconds; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+    @param timeout_ms the receive timeout to set with a resolution of milliseconds; Note that like all %Qore functions
+    and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units
+    clear (i.e. \c 2m = two minutes, etc.)
 
     @return 0 for success, -1 for error (check errno() for the actual error in this case)
 */

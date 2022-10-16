@@ -27,7 +27,9 @@
 %new-style
 %strict-args
 
-#! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
+#! The ConnectionProvider namespace
+/** All public declarations in the %ConnectionProvider module are defined in this namespace
+*/
 public namespace ConnectionProvider {
 #! class for HTTP connections; returns @ref Qore::HTTPClient objects
 /** Supports the following options:
@@ -193,7 +195,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
 
         @since ConnectionProvider 1.7
     */
-    SocketPollOperation startPollConnect() {
+    AbstractPollOperation startPollConnect() {
         return getImpl(False).startPollConnect();
     }
 

@@ -33,6 +33,8 @@
 
 #define _QORE_SSLSOCKETHELPER_H
 
+#include <openssl/ssl.h>
+
 #ifdef NEED_SSL_CTX_NEW_CONST
 #define SSL_METHOD_CONST const
 #else

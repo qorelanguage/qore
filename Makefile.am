@@ -158,92 +158,96 @@ QDX_DEP = $(QDX_SRC) qore
 endif
 
 LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
+	lib/QC_AbstractBidirectionalIterator.qpp \
+	lib/QC_AbstractDatasource.qpp \
+	lib/QC_AbstractIterator.qpp \
+	lib/QC_AbstractLineIterator.qpp \
+    lib/QC_AbstractPollableIoObject.qpp \
+    lib/QC_AbstractPollableIoObjectBase.qpp \
+	lib/QC_AbstractQuantifiedIterator.qpp \
+	lib/QC_AbstractQuantifiedBidirectionalIterator.qpp \
+	lib/QC_AbstractSQLStatement.qpp \
+	lib/QC_AbstractThreadResource.qpp \
 	lib/QC_AutoGate.qpp \
 	lib/QC_AutoLock.qpp \
 	lib/QC_AutoReadLock.qpp \
 	lib/QC_AutoWriteLock.qpp \
+	lib/QC_BinaryInputStream.qpp \
+	lib/QC_BinaryOutputStream.qpp \
+	lib/QC_BufferedStreamReader.qpp \
+	lib/QC_Breakpoint.qpp \
 	lib/QC_Condition.qpp \
 	lib/QC_Counter.qpp \
-	lib/QC_AbstractIterator.qpp \
-	lib/QC_AbstractQuantifiedIterator.qpp \
-	lib/QC_AbstractBidirectionalIterator.qpp \
-	lib/QC_AbstractQuantifiedBidirectionalIterator.qpp \
-	lib/QC_ListIterator.qpp \
-	lib/QC_ListReverseIterator.qpp \
+	lib/QC_DataLineIterator.qpp \
+	lib/QC_Datasource.qpp \
+	lib/QC_DatasourcePool.qpp \
+	lib/QC_DebugProgram.qpp \
+	lib/QC_Dir.qpp \
+	lib/QC_EncodingConversionInputStream.qpp \
+	lib/QC_EncodingConversionOutputStream.qpp \
+	lib/QC_Expression.qpp \
+	lib/QC_File.qpp \
+	lib/QC_FileInputStream.qpp \
+	lib/QC_FileOutputStream.qpp \
+	lib/QC_FileLineIterator.qpp \
+	lib/QC_FtpClient.qpp \
+	lib/QC_Gate.qpp \
+	lib/QC_GetOpt.qpp \
 	lib/QC_HashIterator.qpp \
-	lib/QC_HashReverseIterator.qpp \
+	lib/QC_HashListIterator.qpp \
+	lib/QC_HashListReverseIterator.qpp \
 	lib/QC_HashKeyIterator.qpp \
 	lib/QC_HashKeyReverseIterator.qpp \
 	lib/QC_HashPairIterator.qpp \
 	lib/QC_HashPairReverseIterator.qpp \
+	lib/QC_HashReverseIterator.qpp \
+	lib/QC_HTTPClient.qpp \
+	lib/QC_InputStream.qpp \
+	lib/QC_InputStreamLineIterator.qpp \
+	lib/QC_ListHashIterator.qpp \
+	lib/QC_ListHashReverseIterator.qpp \
+	lib/QC_ListIterator.qpp \
+	lib/QC_ListReverseIterator.qpp \
+	lib/QC_Mutex.qpp \
 	lib/QC_ObjectIterator.qpp \
 	lib/QC_ObjectReverseIterator.qpp \
 	lib/QC_ObjectKeyIterator.qpp \
 	lib/QC_ObjectKeyReverseIterator.qpp \
 	lib/QC_ObjectPairIterator.qpp \
 	lib/QC_ObjectPairReverseIterator.qpp \
-	lib/QC_HashListIterator.qpp \
-	lib/QC_HashListReverseIterator.qpp \
-	lib/QC_ListHashIterator.qpp \
-	lib/QC_ListHashReverseIterator.qpp \
-	lib/QC_AbstractLineIterator.qpp \
-	lib/QC_DataLineIterator.qpp \
-	lib/QC_FileLineIterator.qpp \
-	lib/QC_InputStreamLineIterator.qpp \
-	lib/QC_SingleValueIterator.qpp \
-	lib/QC_AbstractDatasource.qpp \
-	lib/QC_AbstractSQLStatement.qpp \
-	lib/QC_RangeIterator.qpp \
-	lib/QC_Datasource.qpp \
-	lib/QC_DatasourcePool.qpp \
-	lib/QC_Dir.qpp \
-	lib/QC_ReadOnlyFile.qpp \
-	lib/QC_File.qpp \
-	lib/QC_FtpClient.qpp \
-	lib/QC_Gate.qpp \
-	lib/QC_GetOpt.qpp \
-	lib/QC_HTTPClient.qpp \
-	lib/QC_Mutex.qpp \
-	lib/QC_Program.qpp \
-	lib/QC_ProgramControl.qpp \
-	lib/QC_DebugProgram.qpp \
-	lib/QC_Breakpoint.qpp \
-	lib/QC_Expression.qpp \
-	lib/QC_Queue.qpp \
-	lib/QC_RWLock.qpp \
-	lib/QC_SQLStatement.qpp \
-	lib/QC_Sequence.qpp \
-	lib/QC_Socket.qpp \
-	lib/QC_TermIOS.qpp \
-	lib/QC_TimeZone.qpp \
-	lib/QC_SSLCertificate.qpp \
-	lib/QC_SSLPrivateKey.qpp \
-	lib/QC_ThreadPool.qpp \
-	lib/QC_TreeMap.qpp \
-	lib/QC_AbstractThreadResource.qpp \
-	lib/QC_StreamBase.qpp \
-	lib/QC_InputStream.qpp \
-	lib/QC_BinaryInputStream.qpp \
-	lib/QC_StringInputStream.qpp \
-	lib/QC_FileInputStream.qpp \
-	lib/QC_EncodingConversionInputStream.qpp \
 	lib/QC_OutputStream.qpp \
-	lib/QC_BinaryOutputStream.qpp \
-	lib/QC_StringOutputStream.qpp \
-	lib/QC_FileOutputStream.qpp \
-	lib/QC_EncodingConversionOutputStream.qpp \
-	lib/QC_StreamPipe.qpp \
 	lib/QC_PipeInputStream.qpp \
 	lib/QC_PipeOutputStream.qpp \
-	lib/QC_StreamWriter.qpp \
+	lib/QC_Program.qpp \
+	lib/QC_ProgramControl.qpp \
+	lib/QC_Queue.qpp \
+	lib/QC_RangeIterator.qpp \
+	lib/QC_ReadOnlyFile.qpp \
+	lib/QC_RWLock.qpp \
+	lib/QC_Serializable.qpp \
+	lib/QC_Sequence.qpp \
+	lib/QC_SingleValueIterator.qpp \
+	lib/QC_Socket.qpp \
+    lib/QC_SocketPollOperation.qpp \
+    lib/QC_SocketPollOperationBase.qpp \
+	lib/QC_SSLCertificate.qpp \
+	lib/QC_SSLPrivateKey.qpp \
+	lib/QC_StdoutOutputStream.qpp \
+	lib/QC_StderrOutputStream.qpp \
+	lib/QC_StreamBase.qpp \
+	lib/QC_StreamPipe.qpp \
 	lib/QC_StreamReader.qpp \
-	lib/QC_BufferedStreamReader.qpp \
+	lib/QC_StreamWriter.qpp \
+	lib/QC_StringInputStream.qpp \
+	lib/QC_StringOutputStream.qpp \
+	lib/QC_SQLStatement.qpp \
+	lib/QC_TermIOS.qpp \
+	lib/QC_ThreadPool.qpp \
+	lib/QC_TimeZone.qpp \
+	lib/QC_TreeMap.qpp \
 	lib/QC_Transform.qpp \
 	lib/QC_TransformInputStream.qpp \
 	lib/QC_TransformOutputStream.qpp \
-	lib/QC_StdoutOutputStream.qpp \
-	lib/QC_StderrOutputStream.qpp \
-	lib/QC_Serializable.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -411,7 +415,7 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/reflection/src/QC_AbstractMethod.h \
 	modules/reflection/src/QC_AbstractMember.qpp \
 	modules/reflection/src/QC_AbstractMethod.qpp \
-	modules/reflection/src/QC_DestructorMethodVariant.h \_H
+	modules/reflection/src/QC_DestructorMethodVariant.h \
 	modules/reflection/src/QC_Namespace.qpp \
 	modules/reflection/src/QC_ConstructorMethod.qpp \
 	modules/reflection/src/QC_TypedHash.h \
@@ -552,7 +556,8 @@ include_HEADERS = \
 	include/qore/QoreStandardException.h \
 	include/qore/QoreXSinkException.h \
 	include/qore/UnicodeCharacterIterator.h \
-    include/qore/AbstractPollState.h
+    include/qore/AbstractPollState.h \
+    include/qore/AbstractPollableIoObjectBase.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
@@ -853,7 +858,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_TreeMap.h \
 	include/qore/intern/QC_AbstractThreadResource.h \
 	include/qore/intern/QC_Serializable.h \
-	include/qore/intern/QC_AbstractPollOperation.h \
+    include/qore/intern/QC_AbstractPollableIoObjectBase.h \
 	include/qore/intern/QC_SocketPollOperationBase.h \
 	include/qore/intern/QC_SocketPollOperation.h \
 	lib/getopt_long.h \

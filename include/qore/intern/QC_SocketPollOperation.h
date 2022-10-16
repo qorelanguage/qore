@@ -37,6 +37,8 @@
 #include "qore/intern/qore_socket_private.h"
 #include "qore/QoreSocketObject.h"
 
+#include <memory>
+
 // goals: connect, connect-ssl
 constexpr int SPG_CONNECT = 1;
 constexpr int SPG_CONNECT_SSL = 2;
@@ -49,43 +51,7 @@ constexpr int SPS_CONNECTED = 3;
 
 class SocketConnectPollOperation : public SocketPollOperationBase {
 public:
-    DLLLOCAL SocketConnectPollOperation(ExceptionSink* xsink, bool ssl, const char* target, QoreSocketObject* sock)
-            : sock(sock) {
-        sgoal = ssl ? SPG_CONNECT_SSL : SPG_CONNECT;
-
-        AutoLocker al(sock->priv->m);
-
-        // throw an exception and exit if the object is no longer valid
-        if (sock->priv->checkValid(xsink)) {
-            return;
-        }
-
-        if (preVerify(xsink)) {
-            return;
-        }
-        if (!sock->priv->setNonBlock(xsink)) {
-            set_non_block = true;
-            poll_state.reset(sock->priv->socket->startConnect(xsink, target));
-            if (!*xsink) {
-                if (poll_state) {
-                    state = SPS_CONNECTING;
-                } else {
-                    if (sgoal == SPG_CONNECT) {
-                        sock->priv->clearNonBlock();
-                        set_non_block = false;
-                        connected();
-                    } else {
-                        assert(sgoal == SPG_CONNECT_SSL);
-                        startSslConnect(xsink);
-                    }
-                }
-            }
-            if (*xsink) {
-                sock->priv->clearNonBlock();
-                set_non_block = false;
-            }
-        }
-    }
+    DLLLOCAL SocketConnectPollOperation(ExceptionSink* xsink, bool ssl, const char* target, QoreSocketObject* sock);
 
     DLLLOCAL void deref(ExceptionSink* xsink) {
         if (ROdereference()) {
@@ -101,76 +67,7 @@ public:
         return state == SPS_CONNECTED;
     }
 
-    DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink) {
-        QoreHashNode* rv = nullptr;
-
-        AutoLocker al(sock->priv->m);
-
-        if (state == SPS_CONNECTED) {
-            // throw an exception and exit if the object is no longer valid
-            if (sock->priv->checkValid(xsink)) {
-                return nullptr;
-            }
-        } else {
-            // throw an exception and exit if the object is no longer open or valid
-            if (sock->priv->checkOpen(xsink)) {
-                return nullptr;
-            }
-        }
-
-        switch (state) {
-            case SPS_CONNECTING: {
-                int rc = checkContinuePoll(xsink);
-                if (rc != 0) {
-                    rv = *xsink ? nullptr : getSocketPollInfoHash(xsink, rc);
-                    break;
-                }
-
-                // if we are just connecting, we are done
-                if (sgoal == SPG_CONNECT) {
-                    // SPS_CONNECTED set below
-                    break;
-                }
-
-                assert(sgoal == SPG_CONNECT_SSL);
-
-                if (startSslConnect(xsink)) {
-                    break;
-                }
-            }
-            // fall down to next case
-
-            case SPS_CONNECTING_SSL: {
-                int rc = checkContinuePoll(xsink);
-                if (rc != 0) {
-                    rv = *xsink ? nullptr : getSocketPollInfoHash(xsink, rc);
-                    break;
-                }
-
-                // SPS_CONNECTED set below
-                break;
-            }
-
-            case SPS_CONNECTED: {
-                break;
-            }
-
-            default:
-                assert(false);
-        }
-
-        if (!rv) {
-            if (*xsink) {
-                state = SPS_NONE;
-            } else {
-                connected();
-            }
-            sock->priv->clearNonBlock();
-        } else {
-            assert(!*xsink);
-        }
-        return rv;
-    }
+    DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink);
 
 protected:
     QoreSocketObject* sock;
@@ -181,32 +78,13 @@ protected:
     }
 
     //! Called when the connection is established
-    DLLLOCAL virtual void connected() {
-        // socket lock must be held here
-        assert(sock->priv->m.trylock());
-        state = SPS_CONNECTED;
-    }
+    DLLLOCAL virtual void connected();
 
     //! Called to switch to the connect-ssl state
-    DLLLOCAL int startSslConnect(ExceptionSink* xsink) {
-        // socket lock must be held here
-        assert(sock->priv->m.trylock());
-
-        state = SPS_CONNECTING_SSL;
-
-        poll_state.reset(sock->priv->socket->startSslConnect(xsink,
-            sock->priv->cert ? sock->priv->cert->getData() : nullptr,
-            sock->priv->pk ? sock->priv->pk->getData() : nullptr));
-        if (*xsink) {
-            poll_state.reset();
-            state = SPS_NONE;
-            return -1;
-        }
-        return 0;
-    }
+    DLLLOCAL int startSslConnect(ExceptionSink* xsink);
 
 private:
-    unique_ptr<AbstractPollState> poll_state;
+    std::unique_ptr<AbstractPollState> poll_state;
     std::string target;
 
     int sgoal = 0;
@@ -215,7 +93,6 @@ private:
     bool set_non_block = false;
 
     DLLLOCAL virtual const char* getStateImpl() const {
-        const char* str;
         switch (state) {
             case SPS_NONE:
                 return "none";
@@ -231,71 +108,16 @@ private:
         return "";
     }
 
-    DLLLOCAL int checkContinuePoll(ExceptionSink* xsink) {
-        // socket lock must be held here
-        assert(sock->priv->m.trylock());
-        assert(poll_state.get());
-
-        // see if we are able to continue
-        int rc = poll_state->continuePoll(xsink);
-        //printd(5, "SocketConnectPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(), rc,
-        //    (int)*xsink);
-        if (*xsink) {
-            assert(rc < 0);
-            state = SPS_NONE;
-            return -1;
-        }
-        if (!rc) {
-            // release the AbstractPollState value
-            poll_state.reset();
-        }
-        return rc;
-    }
+    DLLLOCAL int checkContinuePoll(ExceptionSink* xsink);
 };
 
 class SocketSendPollOperation : public SocketPollOperationBase {
 public:
     // "data" must be passed already referenced
-    DLLLOCAL SocketSendPollOperation(ExceptionSink* xsink, QoreStringNode* data, QoreSocketObject* sock)
-            : data(data), sock(sock), buf(data->c_str()), size(data->size()) {
-        AutoLocker al(sock->priv->m);
-
-        // throw an exception and exit if the object is no longer open or valid
-        if (sock->priv->checkOpen(xsink)) {
-            return;
-        }
-
-        assert(data->getEncoding() == sock->getEncoding());
-        if (!sock->priv->setNonBlock(xsink)) {
-            poll_state.reset(sock->priv->socket->startSend(xsink, buf, size));
-            if (!poll_state) {
-                sock->priv->clearNonBlock();
-            } else {
-                set_non_block = true;
-            }
-        }
-    }
+    DLLLOCAL SocketSendPollOperation(ExceptionSink* xsink, QoreStringNode* data, QoreSocketObject* sock);
 
     // "data" must be passed already referenced
-    DLLLOCAL SocketSendPollOperation(ExceptionSink* xsink, BinaryNode* data, QoreSocketObject* sock)
-            : data(data), sock(sock), buf(reinterpret_cast<const char*>(data->getPtr())),
-            size(data->size()) {
-        AutoLocker al(sock->priv->m);
-
-        // throw an exception and exit if the object is no longer open or valid
-        if (sock->priv->checkOpen(xsink)) {
-            return;
-        }
-
-        if (!sock->priv->setNonBlock(xsink)) {
-            poll_state.reset(sock->priv->socket->startSend(xsink, buf, size));
-            if (!poll_state) {
-                sock->priv->clearNonBlock();
-            } else {
-                set_non_block = true;
-            }
-        }
-    }
+    DLLLOCAL SocketSendPollOperation(ExceptionSink* xsink, BinaryNode* data, QoreSocketObject* sock);
 
     DLLLOCAL void deref(ExceptionSink* xsink) {
         if (ROdereference()) {
@@ -315,37 +137,10 @@ public:
         return sent ? "sent" : "sending";
     }
 
-    DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink) {
-        AutoLocker al(sock->priv->m);
-
-        // throw an exception and exit if the object is no longer open or valid
-        if (sock->priv->checkOpen(xsink)) {
-            return nullptr;
-        }
-
-        if (!poll_state) {
-            return nullptr;
-        }
-
-        // see if we are able to continue
-        int rc = poll_state->continuePoll(xsink);
-        //printd(5, "SocketConnectPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(), rc,
-        //    (int)*xsink);
-        if (*xsink || !rc) {
-            // release the AbstractPollState value
-            poll_state.reset();
-            sock->priv->clearNonBlock();
-            set_non_block = false;
-            if (!*xsink) {
-                sent = true;
-            }
-            return nullptr;
-        }
-        return getSocketPollInfoHash(xsink, rc);
-    }
+    DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink);
 
 private:
-    unique_ptr<AbstractPollState> poll_state;
+    std::unique_ptr<AbstractPollState> poll_state;
     SimpleRefHolder<SimpleValueQoreNode> data;
     QoreSocketObject* sock;
     const char* buf;
@@ -354,29 +149,14 @@ private:
     bool sent = false;
 };
 
-class SocketRecvPollOperation : public SocketPollOperationBase {
+
+class SocketRecvPollOperationBase : public SocketPollOperationBase {
 public:
-    // "data" must be passed already referenced
-    DLLLOCAL SocketRecvPollOperation(ExceptionSink* xsink, ssize_t size, QoreSocketObject* sock, bool to_string)
-            : sock(sock), size(size), to_string(to_string) {
-        AutoLocker al(sock->priv->m);
-
-        // throw an exception and exit if the object is no longer open or valid
-        if (sock->priv->checkOpen(xsink)) {
-            return;
-        }
-
-        if (!sock->priv->setNonBlock(xsink)) {
-            poll_state.reset(sock->priv->socket->startRecv(xsink, size));
-            if (!poll_state) {
-                sock->priv->clearNonBlock();
-            } else {
-                set_non_block = true;
-            }
-        }
+    DLLLOCAL SocketRecvPollOperationBase(QoreSocketObject* sock, bool to_string) : sock(sock),
+            to_string(to_string) {
     }
 
-    DLLLOCAL void deref(ExceptionSink* xsink) {
+    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
         if (ROdereference()) {
             if (set_non_block) {
                 sock->clearNonBlock();
@@ -398,52 +178,67 @@ public:
         return data ? data->refSelf() : QoreValue();
     }
 
-    DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink) {
-        AutoLocker al(sock->priv->m);
+    DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink);
 
-        // throw an exception and exit if the object is no longer open or valid
-        if (sock->priv->checkOpen(xsink)) {
-            return nullptr;
-        }
-
-        if (!poll_state) {
-            return nullptr;
-        }
-
-        // see if we are able to continue
-        int rc = poll_state->continuePoll(xsink);
-        //printd(5, "SocketRecvPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(), rc,
-        //    (int)*xsink);
-        if (!rc) {
-            // get output data
-            SimpleRefHolder<BinaryNode> d(poll_state->takeOutput().get<BinaryNode>());
-            if (to_string) {
-                size_t len = d->size();
-                data = new QoreStringNode(reinterpret_cast<char*>(d->giveBuffer()), len, len + 1,
-                    sock->getEncoding());
-            } else {
-                data = d.release();
-            }
-            received = true;
-        }
-        if (*xsink || !rc) {
-            // release the AbstractPollState value
-            poll_state.reset();
-            sock->priv->clearNonBlock();
-            set_non_block = false;
-            return nullptr;
-        }
-        return getSocketPollInfoHash(xsink, rc);
-    }
-
-private:
-    unique_ptr<AbstractPollState> poll_state;
+protected:
+    std::unique_ptr<AbstractPollState> poll_state;
     SimpleRefHolder<SimpleValueQoreNode> data;
     QoreSocketObject* sock;
-    size_t size;
     bool to_string;
     bool set_non_block = false;
     bool received = false;
+
+    DLLLOCAL int initIntern(ExceptionSink* xsink);
+};
+
+class SocketRecvPollOperation : public SocketRecvPollOperationBase {
+public:
+    // "data" must be passed already referenced
+    DLLLOCAL SocketRecvPollOperation(ExceptionSink* xsink, ssize_t size, QoreSocketObject* sock, bool to_string);
+
+private:
+    size_t size;
+};
+
+class SocketRecvUntilBytesPollOperation : public SocketRecvPollOperationBase {
+public:
+    // "data" must be passed already referenced
+    DLLLOCAL SocketRecvUntilBytesPollOperation(ExceptionSink* xsink, const QoreStringNode* pattern,
+            QoreSocketObject* sock, bool to_string);
+
+private:
+    SimpleRefHolder<QoreStringNode> pattern;
+};
+
+class SocketUpgradeClientSslPollOperation : public SocketPollOperationBase {
+public:
+    DLLLOCAL SocketUpgradeClientSslPollOperation(ExceptionSink* xsink, QoreSocketObject* sock);
+
+    DLLLOCAL void deref(ExceptionSink* xsink) {
+        if (ROdereference()) {
+            if (set_non_block) {
+                sock->clearNonBlock();
+            }
+            sock->deref(xsink);
+            delete this;
+        }
+    }
+
+    DLLLOCAL virtual bool goalReached() const {
+        return done;
+    }
+
+    DLLLOCAL virtual QoreHashNode* continuePoll(ExceptionSink* xsink);
+
+    DLLLOCAL virtual const char* getStateImpl() const {
+        return "connecting-ssl";
+    }
+
+private:
+    QoreSocketObject* sock;
+    std::unique_ptr<AbstractPollState> poll_state;
+    bool set_non_block = false;
+    bool done = false;
 };
 
 DLLLOCAL QoreClass* initSocketPollOperationClass(QoreNamespace& qorens);

@@ -36,6 +36,7 @@
 #include <qore/QoreURL.h>
 #include <qore/QoreSocket.h>
 
+#include "qore/intern/QC_FtpClient.h"
 #include "qore/intern/QC_Queue.h"
 #include "qore/intern/qore_socket_private.h"
 #include "qore/intern/qore_string_private.h"
@@ -52,11 +53,11 @@
 
 //! to set the FTP mode
 enum qore_ftp_mode {
-   FTP_MODE_UNKNOWN,
-   FTP_MODE_PORT,
-   FTP_MODE_PASV,
-   FTP_MODE_EPSV
-   //FTP_MODE_LPSV
+    FTP_MODE_UNKNOWN,
+    FTP_MODE_PORT,
+    FTP_MODE_PASV,
+    FTP_MODE_EPSV
+    //FTP_MODE_LPSV
 };
 
 class TmpLocalName {
@@ -838,7 +839,15 @@ struct qore_ftp_private {
     DLLLOCAL static qore_ftp_private* get(QoreFtpClient& ftp) {
         return ftp.priv;
     }
+
+    DLLLOCAL static qore_ftp_private* get(const QoreFtpClient& ftp) {
+        return ftp.priv;
+    }
 };
+
+const char* QoreFtpClientClass::getUrlPath() const {
+    return qore_ftp_private::get(*this)->url_path;
+}
 
 QoreFtpClient::QoreFtpClient(const QoreString* url, ExceptionSink* xsink) : priv(new qore_ftp_private(url, xsink)) {
 }

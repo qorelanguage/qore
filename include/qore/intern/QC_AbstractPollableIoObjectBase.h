@@ -1,6 +1,6 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-    QC_File.h
+    QC_AbstractPollableIoObjectBase.h
 
     Qore Programming Language
 
@@ -29,25 +29,12 @@
     information.
 */
 
-#ifndef _QORE_CLASS_FILE_H
+#ifndef _QORE_CLASS_ABSTRACTPOLLABLEIOOBJECTBASE_H
 
-#define _QORE_CLASS_FILE_H
+#define _QORE_CLASS_ABSTRACTPOLLABLEIOOBJECTBASE_H
 
-DLLLOCAL QoreClass* initFileClass(QoreNamespace& qorens);
-DLLLOCAL TypedHashDecl* init_hashdecl_PipeInfo(QoreNamespace& ns);
+#include "qore/AbstractPollableIoObjectBase.h"
 
-extern void preinitReadOnlyFileClass();
-extern void preinitFileClass();
+DLLLOCAL QoreClass* initAbstractPollableIoObjectBaseClass(QoreNamespace& qorens);
 
-#include <qore/QoreFile.h>
-
-DLLLOCAL inline int check_terminal_io(const QoreObject* self, const char* m, ExceptionSink* xsink) {
-    // check for no-terminal-io at runtime with system objecs
-    if (self->isSystemObject() && runtime_check_parse_option(PO_NO_TERMINAL_IO)) {
-        xsink->raiseException("ILLEGAL-EXPRESSION", "%s() cannot be called with a system constant object when 'no-terminal-io' is set", m);
-        return -1;
-    }
-    return 0;
-}
-
-#endif // _QORE_CLASS_FILE_H
+#endif // _QORE_CLASS_ABSTRACTPOLLABLEIOOBJECTBASE_H

@@ -31,6 +31,7 @@
 %strict-args
 
 %requires Util
+%requires Logger
 %requires(reexport) DataProvider
 
 module ConnectionProvider {
@@ -48,19 +49,29 @@ module ConnectionProvider {
     @section connectionproviderintro ConnectionProvider Module Introduction
 
     The %ConnectionProvider module provides an API for providing pluggable network connections objects
-    to Qore.   This module can also be used to provide URL strings from identifiers from registered
-    connection providers as well.
+    to Qore.  This module can also be used to provide connection objects and URL strings from identifiers from
+    registered connection providers as well.
 
     To use this module, use \c "%requires ConnectionProvider" in your code.
 
     All the public symbols in the module are defined in the ConnectionProvider namespace.
 
-    Class:
+    Classes:
     - @ref ConnectionProvider::AbstractConnection "AbstractConnection"
+    - @ref ConnectionProvider::AbstractConnectionWithInfo "AbstractConnectionWithInfo"
+    - @ref ConnectionProvider::ConnectionSchemeCache "ConnectionSchemeCache"
+    - @ref ConnectionProvider::FilesystemConnection "FilesystemConnection"
+    - @ref ConnectionProvider::FtpConnection "FtpConnection"
+    - @ref ConnectionProvider::HttpConnection "HttpConnection"
+    - @ref ConnectionProvider::HttpBasedConnection "HttpBasedConnection"
+    - @ref ConnectionProvider::InvalidConnection "InvalidConnection"
+    - @ref ConnectionProvider::PollingConnectionMonitor "PollingConnectionMonitor"
 
     Hashdecls:
     - @ref ConnectionProvider::ConfigInfo "ConfigInfo"
     - @ref ConnectionProvider::ConnectionInfo "ConnectionInfo"
+    - @ref ConnectionProvider::ConnectionOptionInfo "ConnectionOptionInfo"
+    - @ref ConnectionProvider::ConnectionSchemeInfo "ConnectionSchemeInfo"
     - @ref ConnectionProvider::PingInfo "PingInfo"
 
     Functions:
@@ -104,6 +115,7 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @subsection connectionprovider_1_7 ConnectionProvider 1.7
     - allow multiple connections to be polled from a single thread; added:
+      - @ref ConnectionProvider::PollingConnectionMonitor "PollingConnectionMonitor"
       - @ref ConnectionProvider::AbstractConnection::supportsPollingApi() "AbstractConnection::supportsPollingApi()"
       - @ref ConnectionProvider::AbstractConnection::startPollConnect() "AbstractConnection::startPollConnect()"
       \n
@@ -162,7 +174,9 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     - the initial version of the ConnectionProvider module
 */
 
-#! the ConnectionProvider namespace contains all the objects in the ConnectionProvider module
+#! The ConnectionProvider namespace
+/** All public declarations in the %ConnectionProvider module are defined in this namespace
+*/
 public namespace ConnectionProvider {
 #! information that can be used to dynamically construct a connection object
 /** as returned by AbstractConnection::getConstructorInfo()

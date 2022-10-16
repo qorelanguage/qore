@@ -22,14 +22,16 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
+#! The ConnectionProvider namespace
+/** All public declarations in the %ConnectionProvider module are defined in this namespace
+*/
 public namespace ConnectionProvider {
 #! base class for HTTP-based connections that need their URLs rewritten to create the real connection object
 /** Example of the usage is in \c RestConnection where the scheme \c rest:// is internally used as \c http://
 */
 public class HttpBasedConnection inherits AbstractConnectionWithInfo {
     public {
-        #! A string containing real url. With http(s) internal schema.
+        #! A string containing the real URL using a http/https scheme
         string real_url;
     }
 
@@ -69,7 +71,7 @@ public class HttpBasedConnection inherits AbstractConnectionWithInfo {
 
         @since ConnectionProvider 1.7
     */
-    SocketPollOperation startPollConnect() {
+    AbstractPollOperation startPollConnect() {
         return getImpl(False).startPollConnect();
     }
 }

@@ -1853,8 +1853,8 @@ public class DataProviderTest inherits QUnit::Test {
 
         {
             ListDataType t(IntType);
-            assertThrows("RUNTIME-TYPE-ERROR", "does not accept.*integer", \t.acceptsValue(), (1,));
-            assertThrows("RUNTIME-TYPE-ERROR", "does not accept.*NULL", \t.acceptsValue(), (NULL,));
+            assertThrows("RUNTIME-TYPE-ERROR", "expects.*got type 'integer'", \t.acceptsValue(), (1,));
+            assertThrows("RUNTIME-TYPE-ERROR", "expects.*got type 'NULL'", \t.acceptsValue(), (NULL,));
             assertEq((1,), t.acceptsValue((1,)));
         }
 

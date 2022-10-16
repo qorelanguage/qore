@@ -36,7 +36,7 @@
 #define _QORE_QORE_SOCKET_OBJECT_H
 
 #include <qore/QoreSocket.h>
-#include <qore/AbstractPrivateData.h>
+#include <qore/AbstractPollableIoObjectBase.h>
 #include <qore/QoreThreadLock.h>
 
 class QoreSSLCertificate;
@@ -44,12 +44,15 @@ class QoreSSLPrivateKey;
 class Queue;
 class my_socket_priv;
 
-class QoreSocketObject : public AbstractPrivateData {
+class QoreSocketObject : public AbstractPollableIoObjectBase {
     friend class my_socket_priv;
     friend struct qore_httpclient_priv;
     friend class SocketConnectPollOperation;
     friend class SocketSendPollOperation;
+    friend class SocketRecvPollOperationBase;
     friend class SocketRecvPollOperation;
+    friend class SocketRecvUntilBytesPollOperation;
+    friend class SocketUpgradeClientSslPollOperation;
     friend class HttpClientConnectPollOperation;
 
 public:
@@ -109,6 +112,19 @@ public:
         @since %Qore 1.12
     */
     DLLEXPORT AbstractPollState* startRecv(ExceptionSink* xsink, size_t size);
+
+    //! Starts a non-blocking receive operation on a connected socket
+    /**
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param pattern the bytes to expect that indicate the end of the data, must stay valid for the lifetime of the
+        AbstractPollState object returned
+        @param size the size of pattern in bytes
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate receive
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT AbstractPollState* startRecvUntilBytes(ExceptionSink* xsink, const char* pattern, size_t size);
 
     DLLEXPORT int connect(const char* name, int timeout_ms, ExceptionSink* xsink = nullptr);
     DLLEXPORT int connectINET(const char* host, int port, int timeout_ms, ExceptionSink* xsink = nullptr);
@@ -236,6 +252,13 @@ public:
             int timeout_ms, ExceptionSink* xsink);
 
     DLLEXPORT QoreStringNode* readHTTPHeaderString(ExceptionSink* xsink, int timeout_ms);
+
+    //! Returns the underlying file descriptor; -1 if not open
+    /** @return the underlying file descriptor; -1 if not open
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT int getPollableDescriptor() const;
 
     DLLEXPORT int setSendTimeout(int ms);
     DLLEXPORT int setRecvTimeout(int ms);

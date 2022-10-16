@@ -204,6 +204,8 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v2_7 DataProvider v2.7
+    - fixed a bug accepting the element type in @ref DataProvider::SoftListDataType "SoftListDataType"
+      (<a href="https://github.com/qorelanguage/qore/issues/4603">issue 4603</a>)
     - added child capability support to data provider summary info
       (<a href="https://github.com/qorelanguage/qore/issues/4576">issue 4576</a>)
 

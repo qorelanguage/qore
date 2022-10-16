@@ -188,6 +188,19 @@ public:
     */
     DLLEXPORT AbstractPollState* startRecv(ExceptionSink* xsink, size_t size);
 
+    //! Starts a non-blocking receive operation on a connected socket
+    /**
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param pattern the bytes to expect that indicate the end of the data, must stay valid for the lifetime of the
+        AbstractPollState object returned
+        @param size the size of pattern in bytes
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate receive
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT AbstractPollState* startRecvUntilBytes(ExceptionSink* xsink, const char* pattern, size_t size);
+
 #if 0
     //! Starts a non-blocking accept operation on the socket
     /**

@@ -61,6 +61,7 @@
 #include "qore/intern/QC_TimeZone.h"
 #include "qore/intern/QC_TreeMap.h"
 #include "qore/intern/QC_Serializable.h"
+#include "qore/intern/QC_AbstractPollableIoObjectBase.h"
 #include "qore/intern/QC_SocketPollOperationBase.h"
 #include "qore/intern/QC_SocketPollOperation.h"
 
@@ -153,6 +154,7 @@ DLLLOCAL QoreClass* initTransformOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initStdoutOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initStderrOutputStreamClass(QoreNamespace& ns);
 DLLLOCAL QoreClass* initAbstractPollOperationClass(QoreNamespace& ns);
+DLLLOCAL QoreClass* initAbstractPollableIoObjectClass(QoreNamespace& ns);
 
 DLLLOCAL void init_type_constants(QoreNamespace& ns);
 DLLLOCAL void init_compression_constants(QoreNamespace& ns);
@@ -174,6 +176,7 @@ DLLLOCAL void init_QC_Number_constants(QoreNamespace& ns);
 DLLLOCAL void preinitTimeZoneClass();
 DLLLOCAL void preinitInputStreamClass();
 DLLLOCAL void preinitOutputStreamClass();
+DLLLOCAL void preinitAbstractPollableIoObjectClass();
 DLLLOCAL void preinitSocketClass();
 
 StaticSystemNamespace* staticSystemNamespace;
@@ -195,7 +198,8 @@ const TypedHashDecl* hashdeclStatInfo,
     * hashdeclListSerializationInfo,
     * hashdeclUrlInfo,
     * hashdeclFtpResponseInfo,
-    * hashdeclSocketPollInfo;
+    * hashdeclSocketPollInfo,
+    * hashdeclPipeInfo;
 
 DLLLOCAL void init_context_functions(QoreNamespace& ns);
 DLLLOCAL void init_RangeIterator_functions(QoreNamespace& ns);
@@ -1075,8 +1079,11 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     hashdeclListSerializationInfo = init_hashdecl_ListSerializationInfo(qns);
     hashdeclUrlInfo = init_hashdecl_UrlInfo(qns);
     hashdeclFtpResponseInfo = init_hashdecl_FtpResponseInfo(qns);
-    preinitSocketClass();
+    preinitAbstractPollableIoObjectClass();
     hashdeclSocketPollInfo = init_hashdecl_SocketPollInfo(qns);
+    preinitReadOnlyFileClass();
+    preinitFileClass();
+    hashdeclPipeInfo = init_hashdecl_PipeInfo(qns);
 
     qore_ns_private::addNamespace(qns, get_thread_ns(qns));
 
@@ -1088,7 +1095,10 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
 
     qns.addSystemClass(initAbstractPollOperationClass(qns));
     qns.addSystemClass(initSocketPollOperationBaseClass(qns));
+    preinitSocketClass();
     qns.addSystemClass(initSocketPollOperationClass(qns));
+    qns.addSystemClass(initAbstractPollableIoObjectClass(qns));
+    qns.addSystemClass(initAbstractPollableIoObjectBaseClass(qns));
 
     // add stream classes
     qns.addSystemClass(initStreamBaseClass(qns));

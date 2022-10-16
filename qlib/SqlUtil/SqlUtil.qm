@@ -7732,7 +7732,6 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             src2 =~ s/\n/ /g;
 
             if (src1 != src2) {
-                # XXX DEBUG
                 #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
                 return False;
             }
