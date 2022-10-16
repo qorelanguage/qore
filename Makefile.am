@@ -417,6 +417,7 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/reflection/src/QC_AbstractMember.qpp \
 	modules/reflection/src/QC_AbstractMethod.qpp \
 	modules/reflection/src/QC_DestructorMethodVariant.h \
+    modules/reflection/src/QC_PseudoMethod.qpp \
 	modules/reflection/src/QC_Namespace.qpp \
 	modules/reflection/src/QC_ConstructorMethod.qpp \
 	modules/reflection/src/QC_TypedHash.h \
