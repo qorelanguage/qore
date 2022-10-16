@@ -35,17 +35,25 @@ public class ListDataType inherits QoreDataType {
     }
 
     #! creates the object
+    private constructor(string name, Type qelement_type, AbstractDataProviderType element_type, bool or_nothing,
+            *hash<auto> options, *hash<auto> tags)
+            : QoreDataType(qelement_type, options, tags) {
+        self.name = name;
+        self.element_type = element_type;
+    }
+
+    #! creates the object
     constructor(AbstractDataProviderType element_type, bool or_nothing = False, *hash<auto> options,
             *hash<auto> tags)
             : QoreDataType(ListDataType::getQoreType(element_type.getValueType(), or_nothing), options, tags) {
-        name = sprintf("%slist<%s>", or_nothing ? "*" : "", type.getName());
+        name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
         self.element_type = element_type;
     }
 
     #! creates the object
     constructor(Type element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
             : QoreDataType(ListDataType::getQoreType(element_type, or_nothing), options, tags) {
-        name = sprintf("%slist<%s>", or_nothing ? "*" : "", type.getName());
+        name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
         self.element_type = AbstractDataProviderType::get(element_type);
     }
 
@@ -77,7 +85,7 @@ public class ListDataType inherits QoreDataType {
 
     #! returns the base type for the type, if any
     *Type getValueType() {
-        return accept_type_hash{Type::NothingType} ? AutoListOrNothingType : AutoListType;
+        return type;
     }
 
     #! returns the subtype (for lists or hashes) if there is only one

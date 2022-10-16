@@ -1853,6 +1853,19 @@ public class DataProviderTest inherits QUnit::Test {
 
         {
             ListDataType t(IntType);
+            assertEq("list<int>", t.getName());
+            assertEq("list<int>", t.getValueType().getName());
+            assertThrows("RUNTIME-TYPE-ERROR", "list.*integer", \t.acceptsValue(), 1);
+            assertThrows("RUNTIME-TYPE-ERROR", "expects.*got type 'integer'", \t.acceptsValue(), (1,));
+            assertThrows("RUNTIME-TYPE-ERROR", "int.*string", \t.acceptsValue(), (("a",),));
+            assertThrows("RUNTIME-TYPE-ERROR", "expects.*got type 'NULL'", \t.acceptsValue(), (NULL,));
+            assertEq((1,), t.acceptsValue((1,)));
+        }
+
+        {
+            ListDataType t(AbstractDataProviderType::get("int"));
+            assertEq("list<int>", t.getName());
+            assertEq("list<int>", t.getValueType().getName());
             assertThrows("RUNTIME-TYPE-ERROR", "list.*integer", \t.acceptsValue(), 1);
             assertThrows("RUNTIME-TYPE-ERROR", "expects.*got type 'integer'", \t.acceptsValue(), (1,));
             assertThrows("RUNTIME-TYPE-ERROR", "int.*string", \t.acceptsValue(), (("a",),));
@@ -1862,6 +1875,17 @@ public class DataProviderTest inherits QUnit::Test {
 
         {
             SoftListDataType t(StringType);
+            assertEq("softlist<string>", t.getName());
+            assertEq("softlist<string>", t.getValueType().getName());
+            assertThrows("RUNTIME-TYPE-ERROR", "integer.*string", \t.acceptsValue(), 1);
+            assertEq(("a",), t.acceptsValue(("a",)));
+            assertEq(("a",), t.acceptsValue("a"));
+        }
+
+        {
+            SoftListDataType t(AbstractDataProviderType::get("string"));
+            assertEq("softlist<string>", t.getName());
+            assertEq("softlist<string>", t.getValueType().getName());
             assertThrows("RUNTIME-TYPE-ERROR", "integer.*string", \t.acceptsValue(), 1);
             assertEq(("a",), t.acceptsValue(("a",)));
             assertEq(("a",), t.acceptsValue("a"));
