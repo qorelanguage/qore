@@ -203,6 +203,16 @@ return 0;
 }"
 HAVE_EVP_MAC_CTX_NEW)
 
+# check for SSL_read_ex)
+check_cxx_source_compiles("
+#include <openssl/ssl.h>
+int main(void) {
+size_t num;
+SSL_read_ex(nullptr, nullptr, 0, &num);
+return 0;
+}"
+HAVE_SSL_READ_EX)
+
 unset(CMAKE_REQUIRED_INCLUDES)
 unset(CMAKE_REQUIRED_LIBRARIES)
 

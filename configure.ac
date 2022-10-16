@@ -1213,6 +1213,15 @@ else
         AC_DEFINE([HAVE_EVP_MAC_CTX_NEW], 1, [Define if EVP_MAC_CTX_new() is present])],
        [AC_MSG_RESULT([no EVP_MAC_CTX_new() present])])
 
+    # check for SSL_read_ex()
+    AC_MSG_CHECKING([SSL_read_ex() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/ssl.h>]],
+    [[size_t num; SSL_read_ex(nullptr, nullptr, 0, &num);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_SSL_READ_EX], 1, [Define if SSL_read_ex() is present])],
+       [AC_MSG_RESULT([no HAVE_SSL_READ_EX() present])])
+
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"
 fi

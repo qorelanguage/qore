@@ -152,6 +152,7 @@
 #cmakedefine HAVE_SSL_SET_HOSTFLAGS
 #cmakedefine HAVE_SSL_SET1_HOST
 #cmakedefine HAVE_EVP_MAC_CTX_NEW
+#cmakedefine HAVE_SSL_READ_EX
 
 /* mpfr */
 #cmakedefine HAVE_MPFR_BUILDOPT_TLS_P

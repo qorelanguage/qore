@@ -1692,6 +1692,44 @@ void QoreSocket::doException(int rc, const char* meth, int timeout_ms, Exception
     }
 }
 
+#ifndef HAVE_SSL_READ_EX
+DLLLOCAL int SSL_read_ex(SSL* ssl, void* buf, size_t num, size_t* readbytes) {
+    (*readbytes) = 0;
+    int rc = SSL_read(ssl, buf, num);
+    if (rc > 0) {
+        (*readbytes) = rc;
+        rc = 1;
+    } else {
+        rc = 0;
+    }
+    return rc;
+}
+
+DLLLOCAL int SSL_peek_ex(SSL* ssl, void* buf, size_t num, size_t* readbytes) {
+    (*readbytes) = 0;
+    int rc = SSL_peek(ssl, buf, num);
+    if (rc > 0) {
+        (*readbytes) = rc;
+        rc = 1;
+    } else {
+        rc = 0;
+    }
+    return rc;
+}
+
+DLLLOCAL int SSL_write_ex(SSL* ssl, const void* buf, size_t num, size_t* written) {
+    (*written) = 0;
+    int rc = SSL_write(ssl, buf, num);
+    if (rc > 0) {
+        (*written) = rc;
+        rc = 1;
+    } else {
+        rc = 0;
+    }
+    return rc;
+}
+#endif
+
 /**
     we assume the socket has already been put in a nonblock state
 
