@@ -162,8 +162,9 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_AbstractDatasource.qpp \
 	lib/QC_AbstractIterator.qpp \
 	lib/QC_AbstractLineIterator.qpp \
-    lib/QC_AbstractPollableIoObject.qpp \
-    lib/QC_AbstractPollableIoObjectBase.qpp \
+	lib/QC_AbstractPollableIoObject.qpp \
+	lib/QC_AbstractPollableIoObjectBase.qpp \
+	lib/QC_AbstractPollOperation.qpp \
 	lib/QC_AbstractQuantifiedIterator.qpp \
 	lib/QC_AbstractQuantifiedBidirectionalIterator.qpp \
 	lib/QC_AbstractSQLStatement.qpp \

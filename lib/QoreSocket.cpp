@@ -885,7 +885,7 @@ int SocketConnectInetPollState::doConnect(ExceptionSink* xsink) {
 
 #ifdef _Q_WINDOWS
         if (sock_get_error() != EAGAIN) {
-            qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, 0, 0, ai_addr);
+            qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, 0, 0, p->ai_addr);
             return -1;
         }
 #else
@@ -918,7 +918,7 @@ int SocketConnectInetPollState::checkConnection(ExceptionSink* xsink) {
     // windows select() returns an error in the error socket set instead of an WSAECONNREFUSED error like
     // UNIX, so we simulate it here
     if (rc != QORE_SOCKET_ERROR && aborted) {
-        qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, 0, 0, p);
+        qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, 0, 0, p->ai_addr);
         return -1;
     }
 #else
@@ -981,15 +981,11 @@ int SocketConnectInetPollState::nextIntern(ExceptionSink* xsink) {
     return 0;
 }
 
+#ifndef _Q_WINDOWS
 SocketConnectUnixPollState::SocketConnectUnixPollState(ExceptionSink* xsink, qore_socket_private* sock,
         const char* name, int sock_type, int protocol)
         : sock(sock), name(name) {
     assert(xsink);
-
-#ifdef _Q_WINDOWS
-    xsink->raiseException("SOCKET-CONNECTUNIX-ERROR", "UNIX sockets are not available under Windows");
-    return -1;
-#endif
 
     // close socket if already open
     sock->close();
@@ -1115,6 +1111,7 @@ int SocketConnectUnixPollState::checkConnection(ExceptionSink* xsink) {
     sock->confirmConnected(nullptr);
     return 0;
 }
+#endif
 
 SocketConnectSslPollState::SocketConnectSslPollState(ExceptionSink* xsink, qore_socket_private* sock, X509* cert,
         EVP_PKEY* pkey) : sock(sock) {
@@ -1271,7 +1268,11 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
             return rc;
         } else {
             rc = ::recv(sock->sock,
+#ifdef _Q_WINDOWS
+                const_cast<char*>(reinterpret_cast<const char*>(bin->getPtr()) + received),
+#else
                 reinterpret_cast<void*>(const_cast<char*>(reinterpret_cast<const char*>(bin->getPtr()) + received)),
+#endif
                 size - received, 0);
             //printd(5, "SocketRecvPollState::continuePoll() left: %ld rc: %d errno: %d)\n", size - received, rc,
             //    errno);
@@ -2247,7 +2248,12 @@ AbstractPollState* QoreSocket::startConnect(ExceptionSink* xsink, const char* na
     }
 
     // otherwise assume it's a file name for a UNIX domain socket
+#ifndef _Q_WINDOWS
     return new SocketConnectUnixPollState(xsink, priv, name);
+#else
+    missing_function_error("Socket::startConnect(<UNIX socket file>)", "UNIX_FILEMGT", xsink);
+    return nullptr;
+#endif
 }
 
 AbstractPollState* QoreSocket::startSslConnect(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey) {

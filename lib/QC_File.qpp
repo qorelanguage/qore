@@ -1133,6 +1133,7 @@ nothing File::redirect(Qore::File[File] file) {
     @since %Qore 1.12
 */
 static hash<PipeInfo> File::getPipe() {
+#ifndef _Q_WINDOWS
     int pipefd[2];
     if (pipe(pipefd)) {
         xsink->raiseErrnoException("PIPE-ERROR", errno, "failed to create pipe");
@@ -1153,4 +1154,7 @@ static hash<PipeInfo> File::getPipe() {
     rv->setKeyValue("write", writeobj.release(), xsink);
 
     return rv.release();
+#else
+    return missing_method_error("File::pipe", "UNIX_FILEMGT", xsink);
+#endif
 }

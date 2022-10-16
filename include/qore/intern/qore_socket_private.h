@@ -280,6 +280,7 @@ private:
     DLLLOCAL int nextIntern(ExceptionSink* xsink);
 };
 
+#ifndef _Q_WINDOWS
 class SocketConnectUnixPollState : public AbstractPollState {
 public:
     DLLLOCAL SocketConnectUnixPollState(ExceptionSink* xsink, qore_socket_private* sock, const char* name,
@@ -304,6 +305,7 @@ private:
     // returns 0 = connected, 1 = try again, -1 = error
     DLLLOCAL int checkConnection(ExceptionSink* xsink);
 };
+#endif
 
 class SocketConnectSslPollState : public AbstractPollState {
 public:
