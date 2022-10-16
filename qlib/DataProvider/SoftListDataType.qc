@@ -94,7 +94,7 @@ public class SoftListDataType inherits ListDataType {
     */
     auto acceptsValue(auto value) {
         string typename = value.type();
-        on_error rethrow $1.ex, sprintf("%s (while accepting a value of type %y for type %y (%s)", $1.desc,
+        on_error rethrow $1.err, sprintf("%s (while accepting a value of type %y for type %y (%s)", $1.desc,
             value.fullType(), name, type.getName());
 
         if (typename == Type::List) {

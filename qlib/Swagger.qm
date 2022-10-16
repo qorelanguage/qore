@@ -3810,7 +3810,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string hash_str) : ObjectBase(oh), SchemaBase("Schema", oh) {
+    private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string hash_str)
+            : ObjectBase(oh), SchemaBase("Schema", oh) {
         self.name = name;
         # add static map reference
         swagger.cacheSchemaObject(name, hash_str ?? sprintf("%y", oh).toSHA1(), self);
@@ -3818,9 +3819,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
         if (optional_field(objType, oh, "type", NT_STRING, \type)) {
             if (!ReferenceTypes{type})
-                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; expected one of: %y", name, type, keys ReferenceTypes);
-            if (type == "array")
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; "
+                    "expected one of: %y", name, type, keys ReferenceTypes);
+            if (type == "array") {
                 items = newSchemaObject("items", oh.items, swagger);
+            }
 
             if (oh.hasKey("default")) {
                 defaultVal = oh."default";
