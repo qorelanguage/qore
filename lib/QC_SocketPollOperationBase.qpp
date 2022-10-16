@@ -42,6 +42,8 @@
     - string goal: the polling goal
 
     This class is only usable by internal classes; it is not directly usable by %Qore classes.
+
+    @since %Qore 1.12
 */
 qclass SocketPollOperationBase [private_members=object sock,string goal,auto data_save; ns=Qore; arg=SocketPollOperationBase* poll; vparent=AbstractPollOperation];
 
@@ -49,7 +51,8 @@ qclass SocketPollOperationBase [private_members=object sock,string goal,auto dat
 /** @throw INTERNAL-ONLY this class is not usable by %Qore classes
 */
 SocketPollOperationBase::constructor() {
-    xsink->raiseException("INTERNAL-ONLY", "the SocketPollOperationBase class is not usable by %Qore classes");
+    xsink->raiseException("INTERNAL-ONLY", "the SocketPollOperationBase class is not usable by %Qore classes; "
+        "inherit a builtin derived class");
 }
 
 //! Destroys the object

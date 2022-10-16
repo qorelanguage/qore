@@ -71,7 +71,7 @@ public class WebUtilTest inherits QUnit::Test {
 
         Logger logger("test", LoggerLevel::getLevelInfo());
         if (m_options.verbose > 2) {
-            logger.addAppender(new TestAppender());
+            logger.addAppender(new StdoutAppender());
         }
         hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
             "logger": logger,
@@ -102,19 +102,5 @@ public class WebUtilTest inherits QUnit::Test {
         respHdr."content-type" =~ s/;.*//;
         assertEq(MimeTypeHtml, respHdr."content-type");
         assertTrue(respHdr.hasKey("Cache-Control") || respHdr.hasKey("cache-control"));
-    }
-}
-
-class TestAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
-        open();
-    }
-
-    processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_LOG:
-                print(params);
-                break;
-        }
     }
 }

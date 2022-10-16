@@ -1,6 +1,8 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-    QC_File.h
+    QC_AbstractPollableIoObjectBase.qpp
+
+    AbstractPollableIoObjectBase class definition
 
     Qore Programming Language
 
@@ -29,25 +31,28 @@
     information.
 */
 
-#ifndef _QORE_CLASS_FILE_H
+#include "qore/Qore.h"
+#include "qore/intern/QC_AbstractPollableIoObjectBase.h"
 
-#define _QORE_CLASS_FILE_H
+//! Interface for builtin classes that support I/O polling
+/**
+    This class is only usable by internal classes; it is not directly usable by %Qore classes.
 
-DLLLOCAL QoreClass* initFileClass(QoreNamespace& qorens);
-DLLLOCAL TypedHashDecl* init_hashdecl_PipeInfo(QoreNamespace& ns);
+    @since %Qore 1.12
+*/
+qclass AbstractPollableIoObjectBase [ns=Qore; arg=AbstractPollableIoObjectBase* pollable; vparent=AbstractPollableIoObject];
 
-extern void preinitReadOnlyFileClass();
-extern void preinitFileClass();
-
-#include <qore/QoreFile.h>
-
-DLLLOCAL inline int check_terminal_io(const QoreObject* self, const char* m, ExceptionSink* xsink) {
-    // check for no-terminal-io at runtime with system objecs
-    if (self->isSystemObject() && runtime_check_parse_option(PO_NO_TERMINAL_IO)) {
-        xsink->raiseException("ILLEGAL-EXPRESSION", "%s() cannot be called with a system constant object when 'no-terminal-io' is set", m);
-        return -1;
-    }
-    return 0;
+//! Throws an exception; this class is not usable by %Qore classes
+/** @throw INTERNAL-ONLY this class is not usable by %Qore classes
+*/
+AbstractPollableIoObjectBase::constructor() {
+    xsink->raiseException("INTERNAL-ONLY", "the AbstractPollableIoObjectBase class is not usable by %Qore classes; "
+        "inherit a builtin derived class");
 }
 
-#endif // _QORE_CLASS_FILE_H
+//! Returns a pollable file / socket / I/O descriptor
+/** @return a pollable file / socket / I/O descriptor
+*/
+int AbstractPollableIoObjectBase::getPollableDescriptor() {
+    return pollable->getPollableDescriptor();
+}

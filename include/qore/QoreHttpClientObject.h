@@ -59,6 +59,18 @@ public:
     //! destroys the object and frees all associated memory
     DLLEXPORT virtual ~QoreHttpClientObject();
 
+    //! Starts a socket connect poll operation
+    /** @since %Qore 1.12
+    */
+    DLLEXPORT QoreObject* startPollConnect(ExceptionSink* xsink, QoreObject* self);
+
+    //! Starts a non-blocking, polling HTTP send/receive operation
+    /** @since %QOre 1.12
+    */
+    DLLEXPORT QoreObject* startPollSendRecv(ExceptionSink* xsink, QoreObject* self, const QoreString* method,
+            const QoreString* path, const AbstractQoreNode* data_save, const void* data, size_t size,
+            const QoreHashNode* headers, const QoreEncoding* enc = nullptr);
+
     //! set options with a hash, returns -1 if an exception was thrown, 0 for OK
     /** options are:
         - protocols: a hash where each key is a protocol name and the value must be set to a integer giving a port

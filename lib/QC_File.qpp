@@ -34,6 +34,8 @@
 #include "qore/intern/QC_Queue.h"
 #include "qore/intern/QC_TermIOS.h"
 
+#include <unistd.h>
+
 extern QoreClass* QC_READONLYFILE;
 
 #ifndef TCSANOW
@@ -109,6 +111,19 @@ static int file_lock_error(const char* f, ExceptionSink* xsink) {
 AbstractQoreNode* missing_method_error(const char* meth, const char* feat, ExceptionSink* xsink) {
     xsink->raiseException("MISSING-FEATURE-ERROR", "the %s() method is not available on this build; for maximum portability, check Option::HAVE_%s before calling this method", meth, feat);
     return nullptr;
+}
+
+//! Pipe info hash description
+/** @see Qore::File::getPipe() "File::getPipe()"
+
+    @since %Qore 1.12
+*/
+hashdecl PipeInfo {
+    //! Read end of the pipe
+    ReadOnlyFile read;
+
+    //! Write end of the pipe
+    File write;
 }
 
 /** @defgroup file_open_constants File Open Constants
@@ -1054,15 +1069,19 @@ stdin.setTerminalAttributes(TCSADRAIN, termios);
 
     @param action a binary or'ed value of the following actions:
     - @ref Qore::TCSANOW "TCSANOW": the change occurs immediately
-    - @ref Qore::TCSADRAIN "TCSADRAIN": the change occurs after all output written to the %File has been transmitted to the terminal
-    - @ref Qore::TCSAFLUSH "TCSAFLUSH": the change occurs after all output written to the %File has been transmitted to the terminal
+    - @ref Qore::TCSADRAIN "TCSADRAIN": the change occurs after all output written to the %File has been transmitted
+      to the terminal
+    - @ref Qore::TCSAFLUSH "TCSAFLUSH": the change occurs after all output written to the %File has been transmitted
+      to the terminal
     - @ref Qore::TCSASOFT "TCSASOFT": the values of the \c c_cflag, \c c_ispeed, and \c c_ospeed fields are ignored
     @param termios the TermIOS to use
 
     @throw FILE-OPERATION-ERROR the %File is not open
     @throw TERMIOS-SET-ERROR error setting terminal attributes on the file descriptor
-    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_TERMIOS before calling this method to avoid this exception
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+    @throw MISSING-FEATURE-ERROR this method is not supported on this platform; check Option::HAVE_TERMIOS before
+    calling this method to avoid this exception
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin,
+    @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 nothing File::setTerminalAttributes(softint action = TCSANOW, TermIOS[QoreTermIOS] termios) {
 #ifdef HAVE_TERMIOS_H
@@ -1087,10 +1106,13 @@ stderr.redirect(my_file);
     @param file the file that the current object will be redirected to
 
     @throw FILE-REDIRECT-ERROR the underlying call to \c dup2() failed
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called on or with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called on or with a system constant object (@ref stdin,
+    @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
-    @note Once this method has been successfully executed, the file descriptor of the current object mirrors all operations of the argument's file descriptor and vice-versa, however the internal state and file path information is not kept synchronized between the linked objects in %Qore, which must be taken into
-    consideration when performing operations on objects linked through calls to this method.
+    @note Once this method has been successfully executed, the file descriptor of the current object mirrors all
+    operations of the argument's file descriptor and vice-versa, however the internal state and file path information
+    is not kept synchronized between the linked objects in %Qore, which must be taken into consideration when
+    performing operations on objects linked through calls to this method.
 
     @since Qore 0.9
 */
@@ -1101,4 +1123,34 @@ nothing File::redirect(Qore::File[File] file) {
         return QoreValue();
 
     f->redirect(*file, xsink);
+}
+
+//! Returns a hash with read and write files on an internal FIFO pipe
+/** @return a hash with read and write files on an internal FIFO pipe
+
+    @note the files returned in the return value are considered "special" files that cannot be reopened
+
+    @since %Qore 1.12
+*/
+static hash<PipeInfo> File::getPipe() {
+    int pipefd[2];
+    if (pipe(pipefd)) {
+        xsink->raiseErrnoException("PIPE-ERROR", errno, "failed to create pipe");
+        return QoreValue();
+    }
+
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(hashdeclPipeInfo, xsink), xsink);
+
+    ReferenceHolder<File> read(new File(QCS_DEFAULT), xsink);
+    read->makeSpecial(pipefd[0]);
+    ReferenceHolder<QoreObject> readobj(new QoreObject(QC_READONLYFILE, getProgram(), read.release()), xsink);
+
+    ReferenceHolder<File> write(new File(QCS_DEFAULT), xsink);
+    write->makeSpecial(pipefd[1]);
+    ReferenceHolder<QoreObject> writeobj(new QoreObject(QC_FILE, getProgram(), write.release()), xsink);
+
+    rv->setKeyValue("read", readobj.release(), xsink);
+    rv->setKeyValue("write", writeobj.release(), xsink);
+
+    return rv.release();
 }

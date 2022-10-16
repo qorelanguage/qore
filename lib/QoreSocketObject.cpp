@@ -88,6 +88,11 @@ AbstractPollState* QoreSocketObject::startRecv(ExceptionSink* xsink, size_t size
     return priv->socket->startRecv(xsink, size);
 }
 
+AbstractPollState* QoreSocketObject::startRecvUntilBytes(ExceptionSink* xsink, const char* pattern, size_t size) {
+    AutoLocker al(priv->m);
+    return priv->socket->startRecvUntilBytes(xsink, pattern, size);
+}
+
 /*
 int QoreSocketObject::startAccept(ExceptionSink* xsink) {
     AutoLocker al(priv->m);
@@ -665,6 +670,10 @@ bool QoreSocketObject::isSecure() {
 long QoreSocketObject::verifyPeerCertificate() {
     AutoLocker al(priv->m);
     return priv->socket->verifyPeerCertificate();
+}
+
+int QoreSocketObject::getPollableDescriptor() const {
+    return priv->socket->getSocket();
 }
 
 int QoreSocketObject::getSocket() {

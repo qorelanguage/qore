@@ -184,6 +184,8 @@ set(LIBQORE_QPP_SRC
     lib/QC_StdoutOutputStream.qpp
     lib/QC_StderrOutputStream.qpp
     lib/QC_Serializable.qpp
+    lib/QC_AbstractPollableIoObject.qpp
+    lib/QC_AbstractPollableIoObjectBase.qpp
     lib/QC_AbstractPollOperation.qpp
     lib/QC_SocketPollOperationBase.qpp
     lib/QC_SocketPollOperation.qpp

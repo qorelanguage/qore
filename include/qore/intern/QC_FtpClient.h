@@ -45,9 +45,6 @@ DLLLOCAL QoreClass *initFtpClientClass(QoreNamespace& ns);
 DLLLOCAL TypedHashDecl* init_hashdecl_FtpResponseInfo(QoreNamespace& ns);
 
 class QoreFtpClientClass : public AbstractPrivateData, public QoreFtpClient {
-protected:
-    DLLLOCAL virtual ~QoreFtpClientClass() {}
-
 public:
     DLLLOCAL inline QoreFtpClientClass() {}
 
@@ -60,6 +57,11 @@ public:
             delete this;
         }
     }
+
+    DLLLOCAL const char* getUrlPath() const;
+
+protected:
+    DLLLOCAL virtual ~QoreFtpClientClass() {}
 };
 
 #endif // _QORE_CLASS_FTPCLIENT_H

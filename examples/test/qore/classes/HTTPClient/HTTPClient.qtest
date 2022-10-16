@@ -201,7 +201,7 @@ class RealTestHttpServer inherits HttpServer {
     hash<HttpServerOptionInfo> getOptions() {
         Logger logger("test", LoggerLevel::getLevelInfo());
         if (Main::verbose > 2) {
-            logger.addAppender(new TestAppender());
+            logger.addAppender(new StdoutAppender());
         }
         return <HttpServerOptionInfo>{
             "logger": logger,
@@ -1192,19 +1192,5 @@ class TempFile {
 
     string getPath() {
         return path;
-    }
-}
-
-class TestAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
-        open();
-    }
-
-    processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_LOG:
-                print(params);
-                break;
-        }
     }
 }

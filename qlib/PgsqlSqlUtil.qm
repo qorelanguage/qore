@@ -2327,8 +2327,8 @@ auto v = c.name;
         private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
             hash rv;
             # get foreign referential constraints
-            *hash qh = ds.select("select constraint_name, att2.attname source_column, ns.nspname schema, cl.relname target_table, "
-                "att.attname target_column from (select con1.conname constraint_name, "
+            *hash qh = ds.select("select constraint_name, att2.attname source_column, ns.nspname \"schema\", "
+                "cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, "
                 "generate_subscripts(con1.conkey, 1) AS rn, unnest(con1.conkey) parent, unnest(con1.confkey) child, "
                 "con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid "
                 "join pg_constraint con1 on con1.conrelid = cl.oid where cl.relname = %v and ns.nspname = %v "

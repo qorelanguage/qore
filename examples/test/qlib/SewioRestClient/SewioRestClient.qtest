@@ -69,7 +69,7 @@ public class Main inherits QUnit::Test {
     setUp() {
         Logger logger("test", LoggerLevel::getLevelInfo());
         if (m_options.verbose > 2) {
-            logger.addAppender(new TestAppender());
+            logger.addAppender(new StdoutAppender());
         }
         hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
             "logger": logger,
@@ -128,19 +128,5 @@ public class Main inherits QUnit::Test {
         # issue #3321: check default timeouts
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
-    }
-} # class Main
-
-class TestAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
-        open();
-    }
-
-    processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_LOG:
-                print(params);
-                break;
-        }
     }
 }

@@ -60,6 +60,8 @@ static SocketConnectPollOperation* get_connect_poll_operation(ExceptionSink* xsi
     private members:
     - @ref Qore::Socket "Socket" sock: the Socket being polled
     - @ref string_type "string" goal: the goal of the poll operation
+
+    @since %Qore 1.12
 */
 qclass SocketPollOperation [private_members=string goal; arg=SocketPollOperationBase* op; vparent=SocketPollOperationBase];
 

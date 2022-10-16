@@ -22,7 +22,9 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
+#! The ConnectionProvider namespace
+/** All public declarations in the %ConnectionProvider module are defined in this namespace
+*/
 public namespace ConnectionProvider {
 #! abstract base class for connections
 /** this class can be specialized to provide for user-defined connection types
@@ -149,6 +151,42 @@ public class AbstractConnection inherits Serializable {
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {}) {
         constructorInit(name, description, url, attributes, options);
+    }
+
+    #! Returns the connection name
+    /** @return the connection name
+
+        @since %ConnectionProvider 1.7
+    */
+    string getName() {
+        return name;
+    }
+
+    #! Returns the connection description
+    /** @return the connection description
+
+        @since %ConnectionProvider 1.7
+    */
+    string getDescription() {
+        return desc;
+    }
+
+    #! Returns the connection URL
+    /** @return the connection URL
+
+        @since %ConnectionProvider 1.7
+    */
+    string getUrl() {
+        return url;
+    }
+
+    #! Returns the connection safe URL (without password info)
+    /** @return the connection safe URL (without password info)
+
+        @since %ConnectionProvider 1.7
+    */
+    string getSafeUrl() {
+        return safe_url;
     }
 
     #! returns a hash with the results of the ping operation
@@ -389,7 +427,7 @@ public class AbstractConnection inherits Serializable {
 
         @since ConnectionProvider 1.7
     */
-    SocketPollOperation startPollConnect() {
+    AbstractPollOperation startPollConnect() {
         throw "UNSUPPORTED", sprintf("connection %y (%s) does not support the polling API", name, safe_url);
     }
 

@@ -5,7 +5,7 @@
     @section qore_1_12_0 Qore 1.12.0
 
     @par Release Summary
-    Bugfix release with minor new features in user modules; see below for more information
+    Bugfix release with minor new features; see below for more information
 
     @subsection qore_1_12_0_new_features New Features in Qore
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
@@ -25,22 +25,31 @@
         \c RestHandler::doGetPossibleSubClasses() methods
         (<a href="https://github.com/qorelanguage/qore/issues/4578">issue 4578</a>)
     - new classes:
+      - @ref Qore::AbstractPollableIoObject "AbstractPollableIoObject"
+      - @ref Qore::AbstractPollableIoObjectBase "AbstractPollableIoObjectBase"
       - @ref Qore::AbstractPollOperation "AbstractPollOperation"
       - @ref Qore::SocketPollOperationBase "SocketPollOperationBase"
       - @ref Qore::SocketPollOperation "SocketPollOperation"
-    - new methods for non-blocking, polling-based Socket I/O:
+    - new I/O methods:
+      - @ref Qore::File::getPipe() "File::getPipe()"
       - @ref Qore::HTTPClient::startPollConnect() "HTTPClient::startPollConnect()"
       - @ref Qore::HTTPClient::startPollSendRecv() "HTTPClient::startPollSendRecv()"
       - @ref Qore::Socket::startPollConnect() "Socket::startPollConnect()"
       - @ref Qore::Socket::startPollConnectSsl() "Socket::startPollConnectSsl()"
       - @ref Qore::Socket::startPollRecvBinary() "Socket::startPollRecvBinary()"
       - @ref Qore::Socket::startPollRecvString() "Socket::startPollRecvString()"
+      - @ref Qore::Socket::startPollRecvUntilBytesBinary() "Socket::startPollRecvUntilBytesBinary()"
+      - @ref Qore::Socket::startPollRecvUntilBytesString() "Socket::startPollRecvUntilBytesString()"
       - @ref Qore::Socket::startPollSend() "Socket::startPollSend()"
+      - @ref Qore::Socket::startPollUpgradeClientToSSL() "Socket::startPollUpgradeClientToSSL()"
 
     @subsection qore_1_12_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - fixed a bug acquiring a data provider object from connection objects
         (<a href="https://github.com/qorelanguage/qore/issues/4584">issue 4584</a>)
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - fixed a bug accepting the element type in \c SoftListDataType
+        (<a href="https://github.com/qorelanguage/qore/issues/4603">issue 4603</a>)
     - <a href="../../modules/Logger/html/index.html">Logger</a> module
       - fixed a race condition handling log file rotation with active logs
         (<a href="https://github.com/qorelanguage/qore/issues/4583">issue 4583</a>)

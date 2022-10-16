@@ -81,6 +81,8 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_Transform.cpp QC_TransformInputStream.cpp QC_TransformOutputStream.cpp \
 	QC_StdoutOutputStream.cpp QC_StderrOutputStream.cpp \
 	QC_Serializable.cpp \
+    QC_AbstractPollableIoObject.cpp \
+    QC_AbstractPollableIoObjectBase.cpp \
     QC_AbstractPollOperation.cpp \
     QC_SocketPollOperationBase.cpp \
     QC_SocketPollOperation.cpp \

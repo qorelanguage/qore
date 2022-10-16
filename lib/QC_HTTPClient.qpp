@@ -298,7 +298,7 @@ HTTPClient::destructor() {
     @since %Qore 1.12
 */
 AbstractPollOperation HTTPClient::startPollConnect() {
-    return qore_httpclient_priv::get(*client)->startPollConnect(xsink, self, client);
+    return client->startPollConnect(xsink, self);
 }
 
 //! Sets the HTTP protocol version string for headers in outgoing messages, allowed values are \c "1.0" and \"1.1\".
@@ -424,8 +424,8 @@ nothing HTTPClient::disconnect() {
     @since %Qore 1.12
 */
 AbstractPollOperation HTTPClient::startPollSendRecv(string method, *string path, string body, *hash<auto> headers) {
-    return qore_httpclient_priv::get(*client)->startPollSendRecv(xsink, self, client, method, path, body,
-        body->c_str(), body->size(), headers, body->getEncoding());
+    return client->startPollSendRecv(xsink, self, method, path, body, body->c_str(), body->size(), headers,
+        body->getEncoding());
 }
 
 //! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the response
@@ -461,8 +461,8 @@ AbstractPollOperation HTTPClient::startPollSendRecv(string method, *string path,
     @since %Qore 1.12
 */
 AbstractPollOperation HTTPClient::startPollSendRecv(string method, *string path, *binary body, *hash<auto> headers) {
-    return qore_httpclient_priv::get(*client)->startPollSendRecv(xsink, self, client, method, path, body,
-        body ? body->getPtr() : nullptr, body ? body->size() : 0, headers);
+    return client->startPollSendRecv(xsink, self, method, path, body, body ? body->getPtr() : nullptr,
+        body ? body->size() : 0, headers);
 }
 
 //! Sends an HTTP request with the specified method and optional message body

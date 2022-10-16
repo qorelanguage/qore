@@ -39,12 +39,25 @@ public namespace DataProvider {
 public class SoftListDataType inherits ListDataType {
     #! creates the object
     constructor(AbstractDataProviderType element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
-            : ListDataType(element_type, or_nothing, options, tags) {
+            : ListDataType(sprintf("%ssoftlist<%s>", or_nothing ? "*" : "", element_type.getName()), element_type,
+                or_nothing, options, tags) {
     }
 
     #! creates the object
     constructor(Type element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
-            : ListDataType(element_type, or_nothing, options, tags) {
+            : ListDataType(sprintf("%ssoftlist<%s>", or_nothing ? "*" : "", element_type.getName()), element_type,
+                or_nothing, options, tags) {
+    }
+
+    #! creates the object
+    constructor(string name, AbstractDataProviderType element_type, bool or_nothing = False, *hash<auto> options,
+            *hash<auto> tags)
+            : ListDataType(name, element_type, or_nothing, options, tags) {
+    }
+
+    #! creates the object
+    constructor(string name, Type element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
+            : ListDataType(name, element_type, or_nothing, options, tags) {
     }
 
     #! returns the base type for the type, if any
@@ -81,10 +94,8 @@ public class SoftListDataType inherits ListDataType {
     */
     auto acceptsValue(auto value) {
         string typename = value.type();
-        if (!accept_type_hash{typename} && !accept_type_hash."any") {
-            throw "RUNTIME-TYPE-ERROR", sprintf("type %y does not accept values of type %y", getName(),
-                value.fullType());
-        }
+        on_error rethrow $1.ex, sprintf("%s (while accepting a value of type %y for type %y (%s)", $1.desc,
+            value.fullType(), name, type.getName());
 
         if (typename == Type::List) {
             return map element_type.acceptsValue($1), value;

@@ -32,8 +32,12 @@
 #ifndef _QORE_QORE_SOCKET_PRIVATE_H
 #define _QORE_QORE_SOCKET_PRIVATE_H
 
-#include "qore/intern/SSLSocketHelper.h"
+#include "qore/AbstractPollState.h"
+#include "qore/QoreSocket.h"
+#include "qore/InputStream.h"
+#include "qore/OutputStream.h"
 
+#include "qore/intern/SSLSocketHelper.h"
 #include "qore/intern/QC_Queue.h"
 
 #include <cctype>
@@ -336,7 +340,7 @@ class SocketAcceptSslPollState : public AbstractPollState {
 
         sock->do_start_ssl_event();
         int rc;
-        if (rc = sock->ssl->setServer("acceotSSL", sock->sock, cert, pkey, xsink)) {
+        if (rc = sock->ssl->setServer("acceptSSL", sock->sock, cert, pkey, xsink)) {
             sshh.error();
             assert(*xsink);
             return;
@@ -391,6 +395,39 @@ private:
     size_t size;
     size_t received = 0;
 };
+
+class SocketRecvUntilBytesPollState : public AbstractPollState {
+public:
+    DLLLOCAL SocketRecvUntilBytesPollState(ExceptionSink* xsink, qore_socket_private* sock, const char* bytes,
+            size_t size);
+
+    /** returns:
+        - SOCK_POLLIN = wait for read and call this again
+        - SOCK_POLLOUT = wait for write and call this again
+        - 0 = done
+        - < 0 = error (exception raised)
+    */
+    DLLLOCAL virtual int continuePoll(ExceptionSink* xsink);
+
+    //! Returns the data read
+    DLLLOCAL virtual QoreValue takeOutput() {
+        size_t len = bin->size();
+        BinaryNode* rv = new BinaryNode(bin->giveBuffer(), len);
+        bin = nullptr;
+        return rv;
+    }
+
+private:
+    qore_socket_private* sock;
+    // we are using QoreStringNode as it has a much better append / concat implementation than BinaryNode
+    SimpleRefHolder<QoreStringNode> bin;
+    const char* bytes;
+    size_t size;
+    size_t matched = 0;
+
+    DLLLOCAL int doRecv(ExceptionSink* xsink);
+};
+
 
 struct qore_socket_private {
     friend class PrivateQoreSocketTimeoutHelper;

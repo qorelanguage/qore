@@ -38,7 +38,10 @@
 #include <qore/QoreSocketObject.h>
 #include <qore/QoreSSLCertificate.h>
 
+#include "qore/intern/QC_Socket.h"
+#include "qore/intern/QC_SocketPollOperation.h"
 #include "qore/intern/qore_socket_private.h"
+#include "qore/intern/QoreClassIntern.h"
 
 void se_in_op(const char* cname, const char* meth, ExceptionSink* xsink) {
     assert(xsink);
@@ -632,8 +635,21 @@ int my_socket_priv::checkOpen(ExceptionSink* xsink) {
     }
 
     if (!socket->priv->isOpen()) {
-        xsink->raiseException("SOCKET-NOT-OPEN", "the underlying socket object has been closed, so the operation "
+        xsink->raiseException("SOCKET-NOT-OPEN", "the underlying socket object is not open, so the operation "
             "cannot continue");
+        return -1;
+    }
+
+    return 0;
+}
+
+int my_socket_priv::checkOpenAndNotSsl(ExceptionSink* xsink) {
+    if (checkOpen(xsink)) {
+        return -1;
+    }
+
+    if (socket->priv->ssl) {
+        xsink->raiseException("SOCKET-SSL-CONNECTED", "a TLS/SSL connection has already been established");
         return -1;
     }
 
@@ -1109,8 +1125,7 @@ SocketConnectSslPollState::SocketConnectSslPollState(ExceptionSink* xsink, qore_
     sock->do_start_ssl_event();
     // issue #3053: send target hostname to support SNI
     const char* sni_target_host = sock->client_target.empty() ? "" : sock->client_target.c_str();
-    int rc;
-    if (rc = sock->ssl->setClient("connectSsl", sni_target_host, sock->sock, cert, pkey, xsink)) {
+    if (sock->ssl->setClient("connectSsl", sni_target_host, sock->sock, cert, pkey, xsink)) {
         sshh.error();
     }
 }
@@ -1193,8 +1208,7 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
 }
 
 SocketRecvPollState::SocketRecvPollState(ExceptionSink* xsink, qore_socket_private* sock, size_t size) : sock(sock),
-        size(size) {
-    bin = new BinaryNode;
+        bin(new BinaryNode), size(size) {
     if (bin->preallocate(size)) {
         xsink->outOfMemory();
         return;
@@ -1272,6 +1286,103 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
                 }
                 // do another recv
                 continue;
+            }
+            sock_get_error();
+            if (errno == EINTR) {
+                continue;
+            }
+            if (errno == EAGAIN
+#ifdef EWOULDBLOCK
+                || errno == EWOULDBLOCK
+#endif
+            ) {
+                return SOCK_POLLIN;
+            }
+            xsink->raiseErrnoException("SOCKET-RECV-ERROR", errno, "error while executing Socket::recv()");
+            return -1;
+        }
+    }
+    return 0;
+}
+
+SocketRecvUntilBytesPollState::SocketRecvUntilBytesPollState(ExceptionSink* xsink, qore_socket_private* sock,
+        const char* bytes, size_t size) : sock(sock), bin(new QoreStringNode), bytes(bytes), size(size) {
+}
+
+/** returns:
+    - SOCK_POLLIN = wait for read and call this again
+    - SOCK_POLLOUT = wait for write and call this again
+    - 0 = done
+    - < 0 = error (exception raised)
+*/
+int SocketRecvUntilBytesPollState::continuePoll(ExceptionSink* xsink) {
+    if (matched == size) {
+        return 0;
+    }
+
+    while (true) {
+        char c;
+        if (sock->readByteFromBuffer(c)) {
+            int rc = doRecv(xsink);
+            if (!rc) {
+                if (!sock->buflen) {
+                    xsink->raiseException("SOCKET-HTTP-ERROR", "remote end closed connection while reading "
+                        "chunk");
+                    return -1;
+                }
+                continue;
+            }
+            if (*xsink) {
+                //printd(5, "HttpClientRecvChunkedPollState::readSizeIntern() doRecv() return -1\n");
+                return -1;
+            }
+            return rc;
+        }
+
+        bin->concat(c);
+        if (c == bytes[matched]) {
+            ++matched;
+            if (matched == size) {
+                break;
+            }
+        } else if (matched) {
+            matched = 0;
+        }
+    }
+
+    return 0;
+}
+
+int SocketRecvUntilBytesPollState::doRecv(ExceptionSink* xsink) {
+    OptionalNonBlockingHelper nbh(*sock, true, xsink);
+    if (*xsink) {
+        return -1;
+    }
+
+    while (true) {
+        ssize_t rc;
+        if (sock->ssl) {
+            size_t real_io = 0;
+            rc = sock->ssl->doNonBlockingIo(xsink, "read", sock->rbuf, DEFAULT_SOCKET_BUFSIZE, SslAction::READ,
+                real_io);
+            if (*xsink) {
+                return -1;
+            }
+            if (!rc) {
+                assert(!sock->bufoffset);
+                sock->buflen = real_io;
+            }
+            assert(!rc || rc == 1 || rc == 2 || rc == 3 || rc == -1);
+            return rc;
+        } else {
+            rc = ::recv(sock->sock, sock->rbuf, DEFAULT_SOCKET_BUFSIZE, 0);
+            if (!rc) {
+                return 0;
+            }
+            if (rc > 0) {
+                assert(!sock->bufoffset);
+                sock->buflen = rc;
+                break;
             }
             sock_get_error();
             if (errno == EINTR) {
@@ -1459,30 +1570,39 @@ QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeo
         int64 events = h->getKeyAsBigInt("events", found);
 
         // get the socket
-        QoreObject* obj = h->getKeyValue("socket").get<QoreObject>();
-        ReferenceHolder<QoreSocketObject> sock(xsink);
-        if (obj) {
-            sock = reinterpret_cast<QoreSocketObject*>(obj->getReferencedPrivateData(CID_SOCKET, xsink));
-            if (*xsink) {
-                xsink->appendLastDescription(": while processing element " QLLD "/" QLLD " (starting from 1) in " \
-                    "the socket list", li.index() + 1, poll_list->size());
+        QoreObject* obj;
+        {
+            QoreValue v = h->getKeyValue("socket");
+            if (v.getType() != NT_OBJECT) {
+                assert(v.isNothing());
+                xsink->raiseException("SOCKET-POLL-ERROR", "element " QLLD "/" QLLD " (starting from 1) is missing "
+                    "the 'socket' value", li.index() + 1, poll_list->size());
                 return nullptr;
             }
+            obj = v.get<QoreObject>();
+        }
+
+        int fd;
+        // first see if the object inherits AbstractPollableIoObjectBase
+        TryPrivateDataRefHolder<AbstractPollableIoObjectBase> io(obj, CID_ABSTRACTPOLLABLEIOOBJECTBASE, xsink);
+        if (*xsink) {
+            return nullptr;
+        }
+        // if so, get the descriptor; this is faster than executing a %Qore method
+        if (io) {
+            fd = io->getPollableDescriptor();
         } else {
-            sock = nullptr;
+            fd = obj->evalMethod("getPollableDescriptor", nullptr, xsink).getAsBigInt();
+            if (*xsink) {
+                return nullptr;
+            }
         }
-
-        if (!sock) {
-            xsink->raiseException("SOCKET-POLL-ERROR", "element " QLLD "/" QLLD " (starting from 1) is missing the " \
-                "'socket' value", li.index() + 1, poll_list->size());
+        if (fd < 0) {
+            xsink->raiseException("DESCRIPTOR-NOT-OPEN", "element " QLLD "/" QLLD " (starting from 1) references a " \
+                "pollable object that is not open", li.index() + 1, poll_list->size());
             return nullptr;
         }
-
-        if (!sock->isOpen()) {
-            xsink->raiseException("SOCKET-NOT-OPEN", "element " QLLD "/" QLLD " (starting from 1) references a " \
-                "Socket object that is not open", li.index() + 1, poll_list->size());
-            return nullptr;
-        }
+        //printd(5, "qore_socket_private::poll() %s fd: %d\n", obj->getClassName(), fd);
 
         short arg = 0;
         if (events & SOCK_POLLIN) {
@@ -1498,7 +1618,7 @@ QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeo
             return nullptr;
         }
 
-        fds[li.index()] = {sock->getSocket(), arg, 0};
+        fds[li.index()] = {fd, arg, 0};
     }
 
     int rc;
@@ -2075,7 +2195,6 @@ int QoreSocket::connectUNIX(const char* p, int sock_type, int protocol, Exceptio
 // * QoreSocket::startConnect("filename");
 AbstractPollState* QoreSocket::startConnect(ExceptionSink* xsink, const char* name) {
     const char* p;
-    int rc;
 
     if ((p = strrchr(name, ':'))) {
         QoreString host(name, p - name);
@@ -2122,6 +2241,15 @@ AbstractPollState* QoreSocket::startRecv(ExceptionSink* xsink, size_t size) {
     }
 
     return new SocketRecvPollState(xsink, priv, size);
+}
+
+AbstractPollState* QoreSocket::startRecvUntilBytes(ExceptionSink* xsink, const char* pattern, size_t size) {
+    if (priv->sock == QORE_INVALID_SOCKET) {
+        se_not_open("Socket", "startRecvUntilBytes", xsink);
+        return nullptr;
+    }
+
+    return new SocketRecvUntilBytesPollState(xsink, priv, pattern, size);
 }
 
 #if 0
@@ -3408,4 +3536,368 @@ QoreSocketThroughputHelper::~QoreSocketThroughputHelper() {
 
 void QoreSocketThroughputHelper::finalize(int64 bytes) {
     priv->finalize(bytes);
+}
+
+SocketConnectPollOperation::SocketConnectPollOperation(ExceptionSink* xsink, bool ssl, const char* target, QoreSocketObject* sock)
+        : sock(sock) {
+    sgoal = ssl ? SPG_CONNECT_SSL : SPG_CONNECT;
+
+    AutoLocker al(sock->priv->m);
+
+    // throw an exception and exit if the object is no longer valid
+    if (sock->priv->checkValid(xsink)) {
+        return;
+    }
+
+    if (preVerify(xsink)) {
+        return;
+    }
+    if (!sock->priv->setNonBlock(xsink)) {
+        set_non_block = true;
+        poll_state.reset(sock->priv->socket->startConnect(xsink, target));
+        if (!*xsink) {
+            if (poll_state) {
+                state = SPS_CONNECTING;
+            } else {
+                if (sgoal == SPG_CONNECT) {
+                    sock->priv->clearNonBlock();
+                    set_non_block = false;
+                    connected();
+                } else {
+                    assert(sgoal == SPG_CONNECT_SSL);
+                    startSslConnect(xsink);
+                }
+            }
+        }
+        if (*xsink) {
+            sock->priv->clearNonBlock();
+            set_non_block = false;
+        }
+    }
+}
+
+QoreHashNode* SocketConnectPollOperation::continuePoll(ExceptionSink* xsink) {
+    QoreHashNode* rv = nullptr;
+
+    AutoLocker al(sock->priv->m);
+
+    if (state == SPS_CONNECTED) {
+        // throw an exception and exit if the object is no longer valid
+        if (sock->priv->checkValid(xsink)) {
+            return nullptr;
+        }
+    } else {
+        // throw an exception and exit if the object is no longer open or valid
+        if (sock->priv->checkOpen(xsink)) {
+            return nullptr;
+        }
+    }
+
+    switch (state) {
+        case SPS_CONNECTING: {
+            int rc = checkContinuePoll(xsink);
+            if (rc != 0) {
+                rv = *xsink ? nullptr : getSocketPollInfoHash(xsink, rc);
+                break;
+            }
+
+            // if we are just connecting, we are done
+            if (sgoal == SPG_CONNECT) {
+                // SPS_CONNECTED set below
+                break;
+            }
+
+            assert(sgoal == SPG_CONNECT_SSL);
+
+            if (startSslConnect(xsink)) {
+                break;
+            }
+        }
+        // fall down to next case
+
+        case SPS_CONNECTING_SSL: {
+            int rc = checkContinuePoll(xsink);
+            if (rc != 0) {
+                rv = *xsink ? nullptr : getSocketPollInfoHash(xsink, rc);
+                break;
+            }
+
+            // SPS_CONNECTED set below
+            break;
+        }
+
+        case SPS_CONNECTED: {
+            break;
+        }
+
+        default:
+            assert(false);
+    }
+
+    if (!rv) {
+        if (*xsink) {
+            state = SPS_NONE;
+        } else {
+            connected();
+        }
+        sock->priv->clearNonBlock();
+    } else {
+        assert(!*xsink);
+    }
+    return rv;
+}
+
+void SocketConnectPollOperation::connected() {
+    // socket lock must be held here
+    assert(sock->priv->m.trylock());
+    state = SPS_CONNECTED;
+}
+
+int SocketConnectPollOperation::startSslConnect(ExceptionSink* xsink) {
+    // socket lock must be held here
+    assert(sock->priv->m.trylock());
+
+    state = SPS_CONNECTING_SSL;
+
+    poll_state.reset(sock->priv->socket->startSslConnect(xsink,
+        sock->priv->cert ? sock->priv->cert->getData() : nullptr,
+        sock->priv->pk ? sock->priv->pk->getData() : nullptr));
+    if (*xsink) {
+        poll_state.reset();
+        state = SPS_NONE;
+        return -1;
+    }
+    return 0;
+}
+
+int SocketConnectPollOperation::checkContinuePoll(ExceptionSink* xsink) {
+    // socket lock must be held here
+    assert(sock->priv->m.trylock());
+    assert(poll_state.get());
+
+    // see if we are able to continue
+    int rc = poll_state->continuePoll(xsink);
+    //printd(5, "SocketConnectPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(), rc,
+    //    (int)*xsink);
+    if (*xsink) {
+        assert(rc < 0);
+        state = SPS_NONE;
+        return -1;
+    }
+    if (!rc) {
+        // release the AbstractPollState value
+        poll_state.reset();
+    }
+    return rc;
+}
+
+SocketUpgradeClientSslPollOperation::SocketUpgradeClientSslPollOperation(ExceptionSink* xsink, QoreSocketObject* sock)
+        : sock(sock) {
+    AutoLocker al(sock->priv->m);
+
+    // throw an exception and exit if the object is no longer open and valid or if a TLS/SSL connection has already
+    // been established
+    if (sock->priv->checkOpenAndNotSsl(xsink)) {
+        return;
+    }
+
+    if (!sock->priv->setNonBlock(xsink)) {
+        set_non_block = true;
+
+        poll_state.reset(sock->priv->socket->startSslConnect(xsink,
+            sock->priv->cert ? sock->priv->cert->getData() : nullptr,
+            sock->priv->pk ? sock->priv->pk->getData() : nullptr));
+        if (*xsink) {
+            sock->priv->clearNonBlock();
+            set_non_block = false;
+        }
+    }
+}
+
+QoreHashNode* SocketUpgradeClientSslPollOperation::continuePoll(ExceptionSink* xsink) {
+    AutoLocker al(sock->priv->m);
+
+    if (done) {
+        return nullptr;
+    }
+
+    // throw an exception and exit if the object is no longer open and valid
+    if (sock->priv->checkOpen(xsink)) {
+        return nullptr;
+    }
+
+    assert(poll_state);
+
+    // see if we are able to continue
+    int rc = poll_state->continuePoll(xsink);
+    //printd(5, "SocketUpgradeClientSslPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(),
+    //    rc, (int)*xsink);
+    if (*xsink) {
+        assert(rc < 0);
+        return nullptr;
+    }
+    if (!rc) {
+        // release the AbstractPollState value
+        poll_state.reset();
+        sock->priv->clearNonBlock();
+        set_non_block = false;
+        done = true;
+        return nullptr;
+    }
+
+    return getSocketPollInfoHash(xsink, rc);
+}
+
+SocketSendPollOperation::SocketSendPollOperation(ExceptionSink* xsink, QoreStringNode* data, QoreSocketObject* sock)
+        : data(data), sock(sock), buf(data->c_str()), size(data->size()) {
+    AutoLocker al(sock->priv->m);
+
+    // throw an exception and exit if the object is no longer open or valid
+    if (sock->priv->checkOpen(xsink)) {
+        return;
+    }
+
+    assert(data->getEncoding() == sock->getEncoding());
+    if (!sock->priv->setNonBlock(xsink)) {
+        poll_state.reset(sock->priv->socket->startSend(xsink, buf, size));
+        if (!poll_state) {
+            sock->priv->clearNonBlock();
+        } else {
+            set_non_block = true;
+        }
+    }
+}
+
+SocketSendPollOperation::SocketSendPollOperation(ExceptionSink* xsink, BinaryNode* data, QoreSocketObject* sock)
+        : data(data), sock(sock), buf(reinterpret_cast<const char*>(data->getPtr())),
+        size(data->size()) {
+    AutoLocker al(sock->priv->m);
+
+    // throw an exception and exit if the object is no longer open or valid
+    if (sock->priv->checkOpen(xsink)) {
+        return;
+    }
+
+    if (!sock->priv->setNonBlock(xsink)) {
+        poll_state.reset(sock->priv->socket->startSend(xsink, buf, size));
+        if (!poll_state) {
+            sock->priv->clearNonBlock();
+        } else {
+            set_non_block = true;
+        }
+    }
+}
+
+QoreHashNode* SocketSendPollOperation::continuePoll(ExceptionSink* xsink) {
+    AutoLocker al(sock->priv->m);
+
+    // throw an exception and exit if the object is no longer open or valid
+    if (sock->priv->checkOpen(xsink)) {
+        return nullptr;
+    }
+
+    if (!poll_state) {
+        return nullptr;
+    }
+
+    // see if we are able to continue
+    int rc = poll_state->continuePoll(xsink);
+    //printd(5, "SocketConnectPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(), rc,
+    //    (int)*xsink);
+    if (*xsink || !rc) {
+        // release the AbstractPollState value
+        poll_state.reset();
+        sock->priv->clearNonBlock();
+        set_non_block = false;
+        if (!*xsink) {
+            sent = true;
+        }
+        return nullptr;
+    }
+    return getSocketPollInfoHash(xsink, rc);
+}
+
+QoreHashNode* SocketRecvPollOperationBase::continuePoll(ExceptionSink* xsink) {
+    AutoLocker al(sock->priv->m);
+
+    // throw an exception and exit if the object is no longer open or valid
+    if (sock->priv->checkOpen(xsink)) {
+        return nullptr;
+    }
+
+    if (!poll_state) {
+        return nullptr;
+    }
+
+    // see if we are able to continue
+    int rc = poll_state->continuePoll(xsink);
+    //printd(5, "SocketRecvPollOperation::continuePoll() state: %s rc: %d (exp: %d)\n", getStateImpl(), rc,
+    //    (int)*xsink);
+    if (!rc) {
+        // get output data
+        SimpleRefHolder<BinaryNode> d(poll_state->takeOutput().get<BinaryNode>());
+        if (to_string) {
+            size_t len = d->size();
+            data = new QoreStringNode(reinterpret_cast<char*>(d->giveBuffer()), len, len + 1,
+                sock->getEncoding());
+        } else {
+            data = d.release();
+        }
+        received = true;
+    }
+    if (*xsink || !rc) {
+        // release the AbstractPollState value
+        poll_state.reset();
+        sock->priv->clearNonBlock();
+        set_non_block = false;
+        return nullptr;
+    }
+    return getSocketPollInfoHash(xsink, rc);
+}
+
+int SocketRecvPollOperationBase::initIntern(ExceptionSink* xsink) {
+    assert(sock->priv->m.trylock());
+
+    // throw an exception and exit if the object is no longer open or valid
+    if (sock->priv->checkOpen(xsink)) {
+        return -1;
+    }
+
+    if (sock->priv->setNonBlock(xsink)) {
+        return -1;
+    }
+
+    set_non_block = true;
+    return 0;
+}
+
+SocketRecvPollOperation::SocketRecvPollOperation(ExceptionSink* xsink, ssize_t size, QoreSocketObject* sock, bool to_string)
+        : SocketRecvPollOperationBase(sock, to_string), size(size) {
+    AutoLocker al(sock->priv->m);
+
+    if (initIntern(xsink)) {
+        return;
+    }
+
+    poll_state.reset(sock->priv->socket->startRecv(xsink, size));
+    if (*xsink) {
+        sock->priv->clearNonBlock();
+        set_non_block = false;
+    }
+}
+
+SocketRecvUntilBytesPollOperation::SocketRecvUntilBytesPollOperation(ExceptionSink* xsink, const QoreStringNode* pattern,
+        QoreSocketObject* sock, bool to_string) : SocketRecvPollOperationBase(sock, to_string),
+        pattern(pattern->stringRefSelf()) {
+    AutoLocker al(sock->priv->m);
+
+    if (initIntern(xsink)) {
+        return;
+    }
+
+    poll_state.reset(sock->priv->socket->startRecvUntilBytes(xsink, pattern->c_str(), pattern->size()));
+    if (*xsink) {
+        sock->priv->clearNonBlock();
+        set_non_block = false;
+    }
 }

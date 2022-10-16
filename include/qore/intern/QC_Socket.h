@@ -114,6 +114,9 @@ public:
     //! Throws a \c SOCKET-NOT-OPEN exception if the socket is not open or valid
     DLLLOCAL int checkOpen(ExceptionSink* xsink);
 
+    //! Throws an exception if the socket is not open or valid or if SSL is already connected
+    DLLLOCAL int checkOpenAndNotSsl(ExceptionSink* xsink);
+
     //! Sets the in_non_block flag
     DLLLOCAL void setNonBlock() {
         // must be called with the lock held

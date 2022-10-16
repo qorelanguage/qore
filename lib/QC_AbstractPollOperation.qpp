@@ -36,8 +36,8 @@
 class AbstractPollOperation {
 };
 
-//! Abstract poll operation object returned socket polling methods
-/** This class implements the polling logic and the state machine behind it
+//! Abstract poll operation objects provide the polling interface for pollable objects
+/** This class implements polling logic for pollable operations and the state machine behind it
 */
 qclass AbstractPollOperation [arg=AbstractPollOperation* poll; ns=Qore];
 

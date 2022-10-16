@@ -99,7 +99,7 @@ public:
     DLLLOCAL virtual QoreValue getOutput() const;
 
 private:
-    unique_ptr<AbstractPollState> poll_state;
+    std::unique_ptr<AbstractPollState> poll_state;
     QoreHttpClientObject* client;
     std::string method, path;
     const void* data = nullptr;
@@ -130,7 +130,6 @@ private:
     int http_response_code = -1;
 
     DLLLOCAL virtual const char* getStateImpl() const {
-        const char* str;
         switch (state) {
             case SPS_NONE:
                 return "none";
@@ -1560,17 +1559,9 @@ private:
 
 class HttpClientRecvUntilClosePollState : public AbstractPollState {
 public:
-    DLLLOCAL HttpClientRecvUntilClosePollState(ExceptionSink* xsink, qore_httpclient_priv* http) : http(http) {
+    DLLLOCAL HttpClientRecvUntilClosePollState(ExceptionSink* xsink, qore_httpclient_priv* http) : http(http),
+            body(new BinaryNode) {
         assert(http->msock->m.trylock());
-
-        qore_socket_private* spriv = http->msock->socket->priv;
-
-        // first take any data in the socket buffer
-        if (spriv->buflen) {
-            body->append(spriv->rbuf + spriv->bufoffset, spriv->buflen);
-            spriv->buflen = 0;
-            spriv->bufoffset = 0;
-        }
     }
 
     /** returns:
@@ -1590,6 +1581,12 @@ public:
             return -1;
         }
 
+        // first take any data in the socket buffer
+        if (spriv->buflen) {
+            body->append(spriv->rbuf + spriv->bufoffset, spriv->buflen);
+            spriv->buflen = 0;
+            spriv->bufoffset = 0;
+        }
         // socket buffer must be empty
         assert(!spriv->buflen);
         assert(!spriv->bufoffset);
@@ -2201,7 +2198,7 @@ int HttpClientConnectSendRecvPollOperation::redirect(ExceptionSink* xsink) {
         do_redirect_event(event_queue, spriv, loc, mess);
     }
 
-    if (++redirect_count > client->http_priv->max_redirects) {
+    if (++redirect_count > (unsigned)client->http_priv->max_redirects) {
         const char* msg = mess && !mess->empty() ? mess->c_str() : "<no message>";
         xsink->raiseException("HTTP-CLIENT-MAXIMUM-REDIRECTS-EXCEEDED", "maximum redirections (%d) exceeded; "
             "redirect code %d to '%s' ignored (message: '%s')", client->http_priv->max_redirects, http_response_code,
@@ -2322,6 +2319,7 @@ void HttpClientConnectSendRecvPollOperation::setFinal(int final_state) {
     client->priv->clearNonBlock();
     set_non_block = false;
 }
+
 // static initialization
 void QoreHttpClientObject::static_init() {
     // setup static members of QoreHttpClientObject class
@@ -2355,6 +2353,16 @@ void QoreHttpClientObject::deref(ExceptionSink* xsink) {
         cleanup(xsink);
         delete this;
     }
+}
+
+QoreObject* QoreHttpClientObject::startPollConnect(ExceptionSink* xsink, QoreObject* self) {
+    return http_priv->startPollConnect(xsink, self, this);
+}
+
+QoreObject* QoreHttpClientObject::startPollSendRecv(ExceptionSink* xsink, QoreObject* self, const QoreString* method,
+            const QoreString* path, const AbstractQoreNode* data_save, const void* data, size_t size,
+            const QoreHashNode* headers, const QoreEncoding* enc) {
+    return http_priv->startPollSendRecv(xsink, self, this, method, path, data_save, data, size, headers, enc);
 }
 
 void QoreHttpClientObject::setDefaultPort(int def_port) {
