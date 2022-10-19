@@ -558,10 +558,9 @@ static inline MethodVariantBase* new_method_variant(const QoreProgramLocation* l
     }
 
     if (!strcmp(name, "methodGate") || !strcmp(name, "memberGate") || !strcmp(name, "memberNotification")) {
-        if (mod & OFM_FINAL)
+        if (mod & OFM_FINAL) {
             parse_error(*loc, "%s() methods cannot be declared final; they are not inherited anyway", name);
-        if (mod & OFM_ABSTRACT)
-            parse_error(*loc, "%s() methods cannot be declared abstract; they are not inherited anyway", name);
+        }
     }
 
     if (mod & OFM_FINAL && mod & OFM_ABSTRACT)

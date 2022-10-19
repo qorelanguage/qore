@@ -10,6 +10,16 @@
 
 %exec-class ClassesTest
 
+class Issue4605 {
+    abstract memberGate(string m);
+}
+
+class Issue4605Child inherits Issue4605 {
+    string memberGate(string m) {
+        return m;
+    }
+}
+
 # class initialization
 class InitTest {
     public {
@@ -778,6 +788,7 @@ class Issue_4419_T {
 public class ClassesTest inherits QUnit::Test {
     constructor() : Test("Classes test", "1.0") {
         v = 1;
+        addTestCase("issue 4605", \issue4605());
         addTestCase("another abstract test", \anotherAbstractTest());
         addTestCase("issue 4419", \issue4419());
         addTestCase("init test", \initTest());
@@ -808,6 +819,11 @@ public class ClassesTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    issue4605() {
+        Issue4605Child c();
+        assertEq("x", c.x);
     }
 
     anotherAbstractTest() {
@@ -1108,7 +1124,7 @@ sub test() {
         } catch (hash<ExceptionInfo> nex) {
             ex = nex;
         }
-        assertEq(554, ex.callstack[0].line);
+        assertEq(564, ex.callstack[0].line);
 
         Child2 c2();
         Child1 c1(c2);

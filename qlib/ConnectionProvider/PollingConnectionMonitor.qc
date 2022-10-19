@@ -39,17 +39,14 @@ public class PollingConnectionMonitor {
         #! Connection cache; unique name -> connection object wrapper
         hash<string, hash<PollInfo>> cache;
 
-        #! I/O thread counter
-        Counter cnt();
-
         #! I/O thread TID
         int tid;
 
-        #! I/O thread command queue
-        Queue cmdq();
-
         #! Logger
         *Logger logger;
+
+        #! Autostart monitoring thread with first connection
+        bool autostart = True;
 
         #! ping timeout duration
         date ping_timeout = DefaultPingTimeout;
@@ -69,6 +66,9 @@ public class PollingConnectionMonitor {
         #! I/O thread command: quit
         const IO_QUIT = "quit";
 
+        #! I/O thread command: quit and remove all connection
+        const IO_QUIT_REMOVE_ALL = "quit-remove-all";
+
         #! Default ping timeout duration
         const DefaultPingTimeout = 30s;
 
@@ -85,6 +85,12 @@ public class PollingConnectionMonitor {
 
         #! Semaphore descriptor info
         hash<SocketPollInfo> sem_info;
+
+        #! I/O thread counter
+        Counter mcnt();
+
+        #! I/O thread command queue
+        Queue cmdq();
     }
 
     #! Creates the object
@@ -109,19 +115,27 @@ public class PollingConnectionMonitor {
         self.logger = logger;
     }
 
+    #! Set autostart flag
+    setAutostart(bool autostart = True) {
+        self.autostart = autostart;
+    }
+
+    #! Get autostart flag
+    bool getAutostart() {
+        return autostart;
+    }
+
     #! Starts monitoring
     /** @throw MONITOR-START-ERROR if the I/O thread is already running
     */
     start() {
         AutoLock al(m);
 
-        if (cnt.getCount()) {
+        if (tid) {
             throw "MONITOR-START-ERROR", sprintf("I/O thread is already running in TID %d", tid);
         }
 
-        cnt.inc();
-        on_error cnt.dec();
-        tid = background ioThread();
+        startIntern();
     }
 
     #! Stops monitoring
@@ -132,12 +146,23 @@ public class PollingConnectionMonitor {
                 sendCmd(IO_QUIT);
             }
         }
-        cnt.waitForZero();
+        mcnt.waitForZero();
+    }
+
+    #! Stops monitoring and clears all connections
+    stopClear() {
+        int count;
+        {
+            AutoLock al(m);
+            count = tid ? stopIntern() : 0;
+        }
+        mcnt.waitForZero();
+        log(LoggerLevel::INFO, "removed all connections (%d connection%s removed)", count, count == 1 ? "" : "s");
     }
 
     #! Returns @ref True if the I/O thread is running
     bool running() {
-        return cnt.getCount() > 0;
+        return mcnt.getCount() > 0;
     }
 
     #! Adds a connection to be monitored
@@ -166,6 +191,9 @@ public class PollingConnectionMonitor {
         cache{name} = <PollInfo>{
             "conn": conn,
         };
+        if (autostart && !tid) {
+            startIntern();
+        }
         restartPing(name, True);
         sendCmd(IO_ADD);
     }
@@ -205,17 +233,29 @@ public class PollingConnectionMonitor {
 
         @return @ref True if the connection was removed, @ref False if no such connection is being monitored
 
+        @note Stops the I/O thread if the last connection is removed and the \a autostart flag is enabled
+
         @see removeConnectionEx()
     */
     bool removeConnection(string name) {
         bool rv;
+        bool stopped;
 
-        AutoLock al(m);
-        if (remove cache{name}) {
-            rv = True;
-            sendCmd(IO_REMOVE);
-        } else {
-            rv = False;
+        {
+            AutoLock al(m);
+            if (remove cache{name}) {
+                rv = True;
+                sendCmd(IO_REMOVE);
+                if (autostart && !cache) {
+                    stopIntern();
+                    stopped = True;
+                }
+            } else {
+                rv = False;
+            }
+        }
+        if (stopped) {
+            mcnt.waitForZero();
         }
         return rv;
     }
@@ -233,15 +273,34 @@ public class PollingConnectionMonitor {
         }
     }
 
+    logArgs(int lvl, string msg, auto args) {
+        logger.logArgs(lvl, msg, args);
+    }
+
+    log(int lvl, string msg) {
+        logArgs(lvl, msg, argv);
+    }
+
+    private startIntern() {
+        mcnt.inc();
+        on_error mcnt.dec();
+        tid = background ioThread();
+    }
+
+    private int stopIntern() {
+        sendCmd(IO_QUIT);
+        return (remove cache).size();
+    }
+
     private ioThread() {
-        logger.log(LoggerLevel::INFO, "started polling connection monitor I/O thread");
+        log(LoggerLevel::INFO, "started polling connection monitor I/O thread");
         on_exit {
             {
                 AutoLock al(m);
                 remove tid;
             }
-            cnt.dec();
-            logger.log(LoggerLevel::INFO, "exiting polling connection monitor I/O thread");
+            log(LoggerLevel::INFO, "exiting polling connection monitor I/O thread");
+            mcnt.dec();
         }
 
         while (True) {
@@ -262,7 +321,7 @@ public class PollingConnectionMonitor {
                         } else if (i.value.spop) {
                             try {
                                 *hash<SocketPollInfo> info = i.value.spop.continuePoll();
-                                logger.log(LoggerLevel::DEBUG, "%y: got ping info: %y", i.key, info);
+                                log(LoggerLevel::DEBUG, "%y: got ping info: %y", i.key, info);
                                 if (!info) {
                                     handlePingSuccess(i.key);
                                 } else {
@@ -278,7 +337,7 @@ public class PollingConnectionMonitor {
                     }
 
                     timeout_ms = min ? (min - now).durationMilliseconds() : -1;
-                    logger.log(LoggerLevel::DEBUG, "timeout: %d poll_list: %y", timeout_ms, poll_list);
+                    log(LoggerLevel::DEBUG, "timeout: %d poll_list: %y", timeout_ms, poll_list);
                 }
                 # ignore return value, all active ping operations are sent in each poll call
                 Socket::poll(poll_list, timeout_ms);
@@ -288,20 +347,20 @@ public class PollingConnectionMonitor {
                     break;
                 }
             } catch (hash<ExceptionInfo> ex) {
-               logger.log(LoggerLevel::ERROR, "%s", get_exception_string(ex));
+               log(LoggerLevel::ERROR, "%s", get_exception_string(ex));
             }
         }
     }
 
     #! Handles a successful ping
     private handlePingSuccess(string name) {
-        logger.log(LoggerLevel::INFO, "%y (poll state %y): successful ping", name, cache{name}.spop.getState());
+        log(LoggerLevel::INFO, "%y (poll state %y): successful ping", name, cache{name}.spop.getState());
         restartPing(name);
     }
 
     #! Handles a failed ping
     private handlePingFailed(string name, hash<ExceptionInfo> ex) {
-        logger.log(LoggerLevel::ERROR, "%y (poll state %y): error in ping: %s", name, cache{name}.spop.getState(),
+        log(LoggerLevel::ERROR, "%y (poll state %y): error in ping: %s", name, cache{name}.spop.getState(),
             get_exception_string(ex));
         restartPing(name);
     }
@@ -309,7 +368,7 @@ public class PollingConnectionMonitor {
     #! Handles a poll timeout
     private handlePingTimeout(string name) {
         if (cache{name}.spop) {
-            logger.log(LoggerLevel::ERROR, "%y (poll state %y): %s connection ping timed out after: %y; restarting "
+            log(LoggerLevel::ERROR, "%y (poll state %y): %s connection ping timed out after: %y; restarting "
                 "poll", name, cache{name}.spop.getState(), cache{name}.conn.getType(), ping_timeout);
         }
         restartPing(name);
@@ -322,10 +381,10 @@ public class PollingConnectionMonitor {
         } else {
             try {
                 cache{name}.spop = cache{name}.conn.startPollConnect();
-                logger.log(LoggerLevel::DEBUG, "%y: starting connect ping; poll state: %y", name,
+                log(LoggerLevel::DEBUG, "%y: starting connect ping; poll state: %y", name,
                     cache{name}.spop.getState());
             } catch (hash<ExceptionInfo> ex) {
-                logger.log(LoggerLevel::ERROR, "%y: error handling ping restart: %s", name, get_exception_string(ex));
+                log(LoggerLevel::ERROR, "%y: error handling ping restart: %s", name, get_exception_string(ex));
             }
         }
         cache{name}.start = now_us();
@@ -342,7 +401,7 @@ public class PollingConnectionMonitor {
         }
         try {
             while (hash<auto> h = cmdq.get(-1)) {
-                logger.log(LoggerLevel::DEBUG, "I/O thread got command: %y", h);
+                #log(LoggerLevel::DEBUG, "I/O thread got command: %y", h);
                 switch (h.cmd) {
                     case IO_QUIT:
                         return True;
@@ -362,13 +421,17 @@ public class PollingConnectionMonitor {
     }
 
     private sendCmd(string cmd) {
+        # only send the command if the I/O thread is running
+        if (!tid) {
+            return;
+        }
         cmdq.push({
             "cmd": cmd,
             "args": argv,
         });
-        logger.log(LoggerLevel::DEBUG, "wrote command %y args %y to the command queue", cmd, argv);
+        #log(LoggerLevel::DEBUG, "wrote command %y args %y to the command queue", cmd, argv);
         sem_write.write(".");
-        logger.log(LoggerLevel::DEBUG, "notified I/O thread to wake up");
+        #log(LoggerLevel::DEBUG, "notified I/O thread to wake up");
     }
 }
 }

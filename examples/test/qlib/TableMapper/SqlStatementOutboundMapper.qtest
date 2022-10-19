@@ -111,7 +111,8 @@ class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
     nothing exec() { throw "X"; }
     nothing beginTransaction() { throw "X"; }
     nothing bindPlaceholdersArgs(softlist<auto> vargs) { throw "X"; }
-}
+    auto memberGate(string m) { }
+    auto methodGate(string m) { }}
 
 # dummy datasource-like class for FakeAbstractTable
 class FakeDatasource inherits Qore::SQL::AbstractDatasource {
