@@ -2082,11 +2082,11 @@ public:
     DLLLOCAL void parseImportMembers(qore_class_private& qc, ClassAccess access);
 
     DLLLOCAL bool parseHasMemberGate() const {
-        return memberGate || hm.find("memberGate") != hm.end();
+        return memberGate || hm.find("memberGate") != hm.end() || ahm.find("memberGate") != ahm.end();
     }
 
     DLLLOCAL bool parseHasMethodGate() const {
-        return methodGate || hm.find("methodGate") != hm.end();
+        return methodGate || hm.find("methodGate") != hm.end() || ahm.find("methodGate") != ahm.end();
     }
 
     // checks for all special methods except constructor & destructor
@@ -2200,7 +2200,7 @@ public:
 
         // only raise a parse error for illegal access to private members if there is not memberGate function
         if ((access > Public) && !parseHasMemberGate() && !parseCheckPrivateClassAccess()) {
-            memberTypeInfo = 0;
+            memberTypeInfo = nullptr;
             parse_error(*loc, "illegal access to private member '%s' of class '%s'", mem, name.c_str());
             return -1;
         }
