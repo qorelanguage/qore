@@ -167,11 +167,12 @@ public class PollingConnectionMonitor {
 
     #! Adds a connection to be monitored
     /** @param conn the connection to be monitored; must support the connection polling API
+        @param other a free-form hash to be stored alongside the connection
 
         @throw MONITOR-CONNECTION-ERROR the connection does not support the connection polling API
         @throw MONITOR-ADD-ERROR a different connection with this name is already being monitored
     */
-    add(AbstractConnection conn) {
+    add(AbstractConnection conn, *hash<auto> other) {
         string name = conn.getName();
         if (!conn.supportsPollingApi()) {
             throw "MONITOR-CONNECTION-ERROR", sprintf("connection %y does not support the polling API and cannot be added to "
@@ -190,6 +191,7 @@ public class PollingConnectionMonitor {
         }
         cache{name} = <PollInfo>{
             "conn": conn,
+            "other": other,
         };
         if (autostart && !tid) {
             startIntern();
@@ -200,10 +202,11 @@ public class PollingConnectionMonitor {
 
     #! Adds or updates an existing connection that is already being monitored
     /** @param conn the connection to be monitored; must support the connection polling API
+        @param other a free-form hash to be stored alongside the connection
 
         @throw MONITOR-CONNECTION-ERROR the connection does not support the connection polling API
     */
-    addOrUpdate(AbstractConnection conn) {
+    addOrUpdate(AbstractConnection conn, *hash<auto> other) {
         string name = conn.getName();
         if (!conn.supportsPollingApi()) {
             throw "MONITOR-CONNECTION-ERROR", sprintf("connection %y does not support the polling API and cannot be added to "
@@ -223,6 +226,7 @@ public class PollingConnectionMonitor {
         }
         cache{name} = <PollInfo>{
             "conn": conn,
+            "other": other,
         };
         restartPing(name, True);
         sendCmd(cmd);
@@ -316,7 +320,10 @@ public class PollingConnectionMonitor {
                     foreach hash<auto> i in (cache.pairIterator()) {
                         date delta = i.value.spop ? ping_timeout : ping_repeat;
                         date trigger = i.value.start + delta;
+                        AbstractConnection c = i.value.conn;
                         if (trigger <= now) {
+                            c.last_check = i.value.start;
+                            c.up = False;
                             handlePingTimeout(i.key, delta);
                             continue;
                         } else if (i.value.spop) {
@@ -324,11 +331,16 @@ public class PollingConnectionMonitor {
                                 *hash<SocketPollInfo> info = i.value.spop.continuePoll();
                                 log(LoggerLevel::DEBUG, "%y: got ping info: %y", i.key, info);
                                 if (!info) {
-                                    handlePingSuccess(i.key, now_us() - i.value.start);
+                                    *bool oldok = c.last_check ? c.up : NOTHING;
+                                    c.last_check = i.value.start;
+                                    c.up = True;
+                                    handlePingSuccess(i.key, now_us() - i.value.start, oldok);
                                 } else {
                                     poll_list += info;
                                 }
                             } catch (hash<ExceptionInfo> ex) {
+                                c.last_check = i.value.start;
+                                c.up = False;
                                 handlePingFailed(i.key, now_us() - i.value.start, ex);
                             }
                         }
@@ -354,7 +366,7 @@ public class PollingConnectionMonitor {
     }
 
     #! Handles a successful ping
-    private handlePingSuccess(string name, date delta) {
+    private handlePingSuccess(string name, date delta, *bool oldok) {
         log(LoggerLevel::INFO, "%y (poll state %y): successful ping (duration: %y)", name,
             cache{name}.spop.getState(), delta);
         restartPing(name);
@@ -364,6 +376,7 @@ public class PollingConnectionMonitor {
     private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
         log(LoggerLevel::ERROR, "%y (poll state %y): error in ping (duration: %y): %s", name,
             cache{name}.spop.getState(), delta, get_exception_string(ex));
+
         restartPing(name);
     }
 
@@ -454,5 +467,8 @@ hashdecl PollInfo {
 
     # poll operation
     AbstractPollOperation spop;
+
+    # other data stored alongside the connection
+    *hash<auto> other;
 }
 }

@@ -101,8 +101,8 @@ class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
         return msgq.get();
     }
 
-    private handlePingSuccess(string name, date delta) {
-        PollingConnectionMonitor::handlePingSuccess(name, delta);
+    private handlePingSuccess(string name, date delta, *bool oldok) {
+        PollingConnectionMonitor::handlePingSuccess(name, delta, oldok);
         msgq.push({"name": name});
     }
 
