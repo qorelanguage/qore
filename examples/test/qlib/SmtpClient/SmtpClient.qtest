@@ -101,18 +101,18 @@ class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
         return msgq.get();
     }
 
-    private handlePingSuccess(string name) {
-        PollingConnectionMonitor::handlePingSuccess(name);
+    private handlePingSuccess(string name, date delta) {
+        PollingConnectionMonitor::handlePingSuccess(name, delta);
         msgq.push({"name": name});
     }
 
-    private handlePingFailed(string name, hash<ExceptionInfo> ex) {
-        PollingConnectionMonitor::handlePingFailed(name, ex);
+    private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
+        PollingConnectionMonitor::handlePingFailed(name, delta, ex);
         msgq.push({"name": name, "ex": ex});
     }
 
-    private handlePingTimeout(string name) {
-        PollingConnectionMonitor::handlePingTimeout(name);
+    private handlePingTimeout(string name, date delta) {
+        PollingConnectionMonitor::handlePingTimeout(name, delta);
         msgq.push({"name": name});
     }
 }

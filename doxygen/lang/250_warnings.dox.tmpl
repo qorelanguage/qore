@@ -122,7 +122,8 @@
 
     <hr>
     @section unreferenced-variable unreferenced-variable
-    Raised when a variable is declared but never referenecd
+    Raised when a variable is declared but never referenced as long as the variable cannot hold an object.  Variables
+    holding objects can be used to release resources in the class destructor when they go out of scope.
     @since %Qore 0.8.2
 
     <hr>
