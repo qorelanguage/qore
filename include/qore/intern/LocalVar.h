@@ -325,6 +325,10 @@ public:
             parse_assigned = false;
     }
 
+    DLLLOCAL bool isAssigned() const {
+        return parse_assigned;
+    }
+
     DLLLOCAL void instantiate() {
         if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
             //printd(5, "LocalVar::instantiate() this: %p '%s' typeInfo: %s\n", this, name.c_str(), QoreTypeInfo::getName(typeInfo));

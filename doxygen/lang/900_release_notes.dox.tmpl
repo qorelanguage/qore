@@ -12,6 +12,10 @@
       not respected in some cases when referring to undeclared members or methods of a class with the method in
       question defined as an @ref abstract "abstract method"
       (<a href="https://github.com/qorelanguage/qore/issues/4605">issue 4605</a>)
+    - fixed a bug where the @ref unreferenced-variable warning was raised in situations where it was not warranted,
+      such as when a local variable is assigned a new object and the destructur performs resource cleanup when the
+      local variable goes out of scope
+      (<a href="https://github.com/qorelanguage/qore/issues/4607">issue 4607</a>)
 
     @section qore_1_12_0 Qore 1.12.0
 

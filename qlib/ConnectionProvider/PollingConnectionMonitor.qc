@@ -314,21 +314,22 @@ public class PollingConnectionMonitor {
                     # process poll info hashes
                     *date min;
                     foreach hash<auto> i in (cache.pairIterator()) {
-                        date trigger = i.value.start + (i.value.spop ? ping_timeout : ping_repeat);
+                        date delta = i.value.spop ? ping_timeout : ping_repeat;
+                        date trigger = i.value.start + delta;
                         if (trigger <= now) {
-                            handlePingTimeout(i.key);
+                            handlePingTimeout(i.key, delta);
                             continue;
                         } else if (i.value.spop) {
                             try {
                                 *hash<SocketPollInfo> info = i.value.spop.continuePoll();
                                 log(LoggerLevel::DEBUG, "%y: got ping info: %y", i.key, info);
                                 if (!info) {
-                                    handlePingSuccess(i.key);
+                                    handlePingSuccess(i.key, now_us() - i.value.start);
                                 } else {
                                     poll_list += info;
                                 }
                             } catch (hash<ExceptionInfo> ex) {
-                                handlePingFailed(i.key, ex);
+                                handlePingFailed(i.key, now_us() - i.value.start, ex);
                             }
                         }
                         if (!min || trigger < min) {
@@ -353,25 +354,31 @@ public class PollingConnectionMonitor {
     }
 
     #! Handles a successful ping
-    private handlePingSuccess(string name) {
-        log(LoggerLevel::INFO, "%y (poll state %y): successful ping", name, cache{name}.spop.getState());
+    private handlePingSuccess(string name, date delta) {
+        log(LoggerLevel::INFO, "%y (poll state %y): successful ping (duration: %y)", name,
+            cache{name}.spop.getState(), delta);
         restartPing(name);
     }
 
     #! Handles a failed ping
-    private handlePingFailed(string name, hash<ExceptionInfo> ex) {
-        log(LoggerLevel::ERROR, "%y (poll state %y): error in ping: %s", name, cache{name}.spop.getState(),
-            get_exception_string(ex));
+    private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
+        log(LoggerLevel::ERROR, "%y (poll state %y): error in ping (duration: %y): %s", name,
+            cache{name}.spop.getState(), delta, get_exception_string(ex));
         restartPing(name);
     }
 
     #! Handles a poll timeout
-    private handlePingTimeout(string name) {
+    private handlePingTimeout(string name, date delta) {
         if (cache{name}.spop) {
-            log(LoggerLevel::ERROR, "%y (poll state %y): %s connection ping timed out after: %y; restarting "
-                "poll", name, cache{name}.spop.getState(), cache{name}.conn.getType(), ping_timeout);
+            handlePingTimeoutIntern(name, delta);
         }
         restartPing(name);
+    }
+
+    #! Handles a ping timeout
+    private handlePingTimeoutIntern(string name, date delta) {
+        log(LoggerLevel::ERROR, "%y (poll state %y): %s connection ping timed out after: %y; restarting poll", name,
+            cache{name}.spop.getState(), cache{name}.conn.getType(), delta);
     }
 
     #! Restarts a ping operation
