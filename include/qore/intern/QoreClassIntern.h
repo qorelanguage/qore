@@ -3052,16 +3052,19 @@ public:
         return getClassIntern(qc, n_access, true);
     }
 
-    DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
-        if (equal(qc))
+    DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access,
+            bool toplevel) const {
+        if (equal(qc)) {
             return cls;
+        }
 
 #ifdef DEBUG_1
         if (qc.name == name) {
             QoreString lh, rh;
             hash.toString(lh);
             qc.hash.toString(rh);
-            printd(0, "qore_class_private::getClassIntern() this: %p '%s' != '%s' scl: %p (hash: %s qc.hash: %s)\n", this, name.c_str(), qc.name.c_str(), scl, lh.getBuffer(), rh.getBuffer());
+            printd(5, "qore_class_private::getClassIntern() this: %p '%s' != '%s' scl: %p (hash: %s qc.hash: %s)\n",
+                this, name.c_str(), qc.name.c_str(), scl, lh.getBuffer(), rh.getBuffer());
         }
 #endif
 
