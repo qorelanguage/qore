@@ -37,7 +37,7 @@ class QoreParseCastOperatorNode : public QoreSingleExpressionOperatorNode<> {
 friend class QoreCastOperatorNode;
 public:
     DLLLOCAL QoreParseCastOperatorNode(const QoreProgramLocation* loc, QoreParseTypeInfo* pti, QoreValue exp)
-        : QoreSingleExpressionOperatorNode<>(loc, exp), pti(pti) {
+            : QoreSingleExpressionOperatorNode<>(loc, exp), pti(pti) {
     }
 
     // type is unknown before resolution
@@ -78,7 +78,7 @@ protected:
 class QoreCastOperatorNode : public QoreSingleExpressionOperatorNode<> {
 public:
     DLLLOCAL QoreCastOperatorNode(const QoreProgramLocation* loc, QoreValue exp)
-        : QoreSingleExpressionOperatorNode<>(loc, exp) {
+            : QoreSingleExpressionOperatorNode<>(loc, exp) {
     }
 
     DLLLOCAL virtual ~QoreCastOperatorNode() = default;
@@ -98,6 +98,9 @@ public:
         return QoreParseCastOperatorNode::cast_str.getBuffer();
     }
 
+    // checks if the value matches the expected type
+    DLLLOCAL virtual int checkValue(ExceptionSink* xsink, const QoreValue& val, bool lvalue) const = 0;
+
 protected:
     DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
         return 0;
@@ -107,8 +110,8 @@ protected:
 class QoreClassCastOperatorNode : public QoreCastOperatorNode {
 public:
     DLLLOCAL QoreClassCastOperatorNode(const QoreProgramLocation* loc, const QoreClass* qc, QoreValue exp,
-        bool or_nothing)
-        : QoreCastOperatorNode(loc, exp), qc(qc), or_nothing(or_nothing) {
+            bool or_nothing)
+            : QoreCastOperatorNode(loc, exp), qc(qc), or_nothing(or_nothing) {
     }
 
     DLLLOCAL virtual ~QoreClassCastOperatorNode() = default;
@@ -124,6 +127,9 @@ public:
         return new QoreClassCastOperatorNode(loc, qc, n_exp.release(), or_nothing);
     }
 
+    // checks if the value matches the expected type
+    DLLLOCAL virtual int checkValue(ExceptionSink* xsink, const QoreValue& val, bool lvalue) const;
+
 protected:
     const QoreClass* qc;
     bool or_nothing;
@@ -134,8 +140,8 @@ protected:
 class QoreHashDeclCastOperatorNode : public QoreCastOperatorNode {
 public:
     DLLLOCAL QoreHashDeclCastOperatorNode(const QoreProgramLocation* loc, const TypedHashDecl* hd, QoreValue exp,
-        bool or_nothing)
-        : QoreCastOperatorNode(loc, exp), hd(hd), or_nothing(or_nothing) {
+            bool or_nothing)
+            : QoreCastOperatorNode(loc, exp), hd(hd), or_nothing(or_nothing) {
     }
 
     DLLLOCAL virtual ~QoreHashDeclCastOperatorNode() = default;
@@ -151,6 +157,9 @@ public:
         return new QoreHashDeclCastOperatorNode(loc, hd, n_exp.release(), or_nothing);
     }
 
+    // checks if the value matches the expected type
+    DLLLOCAL virtual int checkValue(ExceptionSink* xsink, const QoreValue& val, bool lvalue) const;
+
 protected:
     const TypedHashDecl* hd;
     bool or_nothing;
@@ -161,8 +170,8 @@ protected:
 class QoreComplexHashCastOperatorNode : public QoreCastOperatorNode {
 public:
     DLLLOCAL QoreComplexHashCastOperatorNode(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo,
-        QoreValue exp, bool or_nothing)
-        : QoreCastOperatorNode(loc, exp), typeInfo(typeInfo), or_nothing(or_nothing) {
+            QoreValue exp, bool or_nothing)
+            : QoreCastOperatorNode(loc, exp), typeInfo(typeInfo), or_nothing(or_nothing) {
     }
 
     DLLLOCAL virtual ~QoreComplexHashCastOperatorNode() = default;
@@ -179,6 +188,9 @@ public:
         return new QoreComplexHashCastOperatorNode(loc, typeInfo, n_exp.release(), or_nothing);
     }
 
+    // checks if the value matches the expected type
+    DLLLOCAL virtual int checkValue(ExceptionSink* xsink, const QoreValue& val, bool lvalue) const;
+
 protected:
     const QoreTypeInfo* typeInfo;
     bool or_nothing;
@@ -189,8 +201,8 @@ protected:
 class QoreComplexListCastOperatorNode : public QoreCastOperatorNode {
 public:
     DLLLOCAL QoreComplexListCastOperatorNode(const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo,
-        QoreValue exp, bool or_nothing)
-        : QoreCastOperatorNode(loc, exp), typeInfo(typeInfo), or_nothing(or_nothing) {
+            QoreValue exp, bool or_nothing)
+            : QoreCastOperatorNode(loc, exp), typeInfo(typeInfo), or_nothing(or_nothing) {
     }
 
     DLLLOCAL virtual ~QoreComplexListCastOperatorNode() = default;
@@ -205,6 +217,9 @@ public:
             return nullptr;
         return new QoreComplexListCastOperatorNode(loc, typeInfo, n_exp.release(), or_nothing);
     }
+
+    // checks if the value matches the expected type
+    DLLLOCAL virtual int checkValue(ExceptionSink* xsink, const QoreValue& val, bool lvalue) const;
 
 protected:
     const QoreTypeInfo* typeInfo;
