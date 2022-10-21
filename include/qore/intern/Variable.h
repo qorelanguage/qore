@@ -441,8 +441,7 @@ public:
         //printd(5, "LValueHelper::resetValue() this: %p new val: %p\n", this, &nv);
         if (qv) {
             qv = nullptr;
-        }
-        else {
+        } else {
             assert(val);
         }
         val = &nv;
@@ -456,8 +455,7 @@ public:
         //printd(5, "LValueHelper::resetValue() this: %p new qv: %p\n", this, &nqv);
         if (val) {
             val = nullptr;
-        }
-        else {
+        } else {
             assert(qv);
         }
         qv = &nqv;
@@ -468,10 +466,11 @@ public:
     }
 
     DLLLOCAL void clearPtr() {
-        if (val)
+        if (val) {
             val = nullptr;
-        else if (qv)
+        } else if (qv) {
             qv = nullptr;
+        }
         typeInfo = nullptr;
         before = false;
     }

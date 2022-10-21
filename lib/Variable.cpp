@@ -629,12 +629,24 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
                 return -1;
             }
         } else {
-            assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n.getInternalNode()));
-            const QoreHashObjectDereferenceOperatorNode* hop = n.get<const QoreHashObjectDereferenceOperatorNode>();
-            if (doHashObjLValue(hop, for_remove)) {
-                // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
-                clearPtr();
-                return -1;
+            const QoreCastOperatorNode* cast_op = dynamic_cast<const QoreCastOperatorNode*>(n.getInternalNode());
+            if (cast_op) {
+                if (doLValue(cast_op->getExp(), for_remove)) {
+                    clearPtr();
+                    return -1;
+                }
+                if (cast_op->checkValue(vl.xsink, val ? val->getValue() : *qv, true)) {
+                    clearPtr();
+                    return -1;
+                }
+            } else {
+                assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n.getInternalNode()));
+                const QoreHashObjectDereferenceOperatorNode* hop = n.get<const QoreHashObjectDereferenceOperatorNode>();
+                if (doHashObjLValue(hop, for_remove)) {
+                    // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
+                    clearPtr();
+                    return -1;
+                }
             }
         }
     }

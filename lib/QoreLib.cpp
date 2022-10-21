@@ -1661,43 +1661,48 @@ int check_lvalue(QoreValue n, bool assignment) {
 
 // returns 0 for OK, -1 for error
 int check_lvalue(AbstractQoreNode* node, bool assignment) {
-   qore_type_t ntype = node->getType();
-   //printd(5, "type: %s\n", node->getTypeName());
-   if (ntype == NT_VARREF) {
-      if (assignment)
-         reinterpret_cast<VarRefNode*>(node)->parseAssigned();
-      return 0;
-   }
+    qore_type_t ntype = node->getType();
+    //printd(5, "type: %s\n", node->getTypeName());
+    if (ntype == NT_VARREF) {
+        if (assignment)
+            reinterpret_cast<VarRefNode*>(node)->parseAssigned();
+        return 0;
+    }
 
-   if (ntype == NT_SELF_VARREF)
-      return 0;
+    if (ntype == NT_SELF_VARREF)
+        return 0;
 
-   if (ntype == NT_CLASS_VARREF)
-      return 0;
+    if (ntype == NT_CLASS_VARREF)
+        return 0;
 
-   if (ntype == NT_OPERATOR) {
-      {
-         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
-         if (op) {
-            return check_lvalue(op->getLeft(), assignment);
-         }
-      }
-      {
-         QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<QoreSquareBracketsRangeOperatorNode*>(node);
-         if (op) {
-            return check_lvalue(op->get(0), assignment);
-         }
-      }
-      {
-         QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
-         if (op) {
-            return check_lvalue(op->getLeft(), assignment);
-         }
-         return -1;
-      }
-   }
+    if (ntype == NT_OPERATOR) {
+        {
+            QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
+            if (op) {
+                return check_lvalue(op->getLeft(), assignment);
+            }
+        }
+        {
+            QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<QoreSquareBracketsRangeOperatorNode*>(node);
+            if (op) {
+                return check_lvalue(op->get(0), assignment);
+            }
+        }
+        {
+            QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
+            if (op) {
+                return check_lvalue(op->getLeft(), assignment);
+            }
+        }
+        {
+            QoreCastOperatorNode* op = dynamic_cast<QoreCastOperatorNode*>(node);
+            if (op) {
+                return check_lvalue(op->getExp(), assignment);
+            }
+        }
+    }
 
-   return -1;
+    return -1;
 }
 
 static void stat_get_blocks(const struct stat &sbuf, int64& blksize, int64& blocks) {
