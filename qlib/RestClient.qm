@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.9";
+    version = "1.9.1";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -126,6 +126,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_9_1 RestClient v1.9.1
+    - non-blocking polling fixes
+      (<a href="https://github.com/qorelanguage/qore/issues/4595">issue 4595</a>)
 
     @subsection restclientv1_9 RestClient v1.9
     - enable the deserialized body to be returned in REST exception info when possible
@@ -1334,7 +1338,18 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         @return a @ref RestClient::RestClient "RestClient" object
     */
     private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new RestClient(real_opts + (rtopts.validator ? ("validator": rtopts.validator) : NOTHING), !connect);
+        return new RestClient(real_opts + (rtopts.validator ? {"validator": rtopts.validator} : NOTHING), !connect);
+    }
+
+    #! Returns an unconnected object for a non-blocking poll operation
+    /** @return an unconnected object for a non-blocking poll operation
+
+        @since %RestClient 1.9.1
+    */
+    object getPollImpl() {
+        # ensure that no validator is used, as loading the schema cannot be done in a nonblocking way in the polling
+        # thread
+        return getImpl(False, {"validator": new NullRestSchemaValidator()});
     }
 
     #! gets options

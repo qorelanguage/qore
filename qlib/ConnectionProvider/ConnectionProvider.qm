@@ -35,7 +35,7 @@
 %requires(reexport) DataProvider
 
 module ConnectionProvider {
-    version = "1.7";
+    version = "1.7.1";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -112,6 +112,10 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section connectionproviderrelnotes Release Notes
+
+    @subsection connectionprovider_1_7_1 ConnectionProvider 1.7.1
+    - non-blocking polling fixes
+      (<a href="https://github.com/qorelanguage/qore/issues/4595">issue 4595</a>)
 
     @subsection connectionprovider_1_7 ConnectionProvider 1.7
     - allow multiple connections to be polled from a single thread; added:

@@ -431,6 +431,15 @@ public class AbstractConnection inherits Serializable {
         throw "UNSUPPORTED", sprintf("connection %y (%s) does not support the polling API", name, safe_url);
     }
 
+    #! Returns an unconnected object for a non-blocking poll operation
+    /** @return an unconnected object for a non-blocking poll operation
+
+        @since ConnectionProvider 1.7.1
+    */
+    object getPollImpl() {
+        return getImpl(False);
+    }
+
     #! Parse the URL to a hash
     /** @param url a string with url
         @return hash untyped, depends on the parsing method

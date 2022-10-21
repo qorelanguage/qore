@@ -196,7 +196,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
         @since ConnectionProvider 1.7
     */
     AbstractPollOperation startPollConnect() {
-        return getImpl(False).startPollConnect();
+        return getPollImpl().startPollConnect();
     }
 
     #! Sets child data provider capabilities
