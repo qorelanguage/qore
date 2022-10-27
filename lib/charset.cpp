@@ -46,7 +46,12 @@ const QoreEncoding* QCS_DEFAULT, *QCS_USASCII, *QCS_UTF8,
     *QCS_ISO_8859_5, *QCS_ISO_8859_6, *QCS_ISO_8859_7, *QCS_ISO_8859_8,
     *QCS_ISO_8859_9, *QCS_ISO_8859_10, *QCS_ISO_8859_11, *QCS_ISO_8859_13,
     *QCS_ISO_8859_14, *QCS_ISO_8859_15, *QCS_ISO_8859_16,
-    *QCS_KOI8_R, *QCS_KOI8_U, *QCS_KOI7;
+    *QCS_KOI8_R, *QCS_KOI8_U, *QCS_KOI7, *QCS_WINDOWS_874,
+    *QCS_WINDOWS_936, *QCS_WINDOWS_1250, *QCS_WINDOWS_1251,
+    *QCS_WINDOWS_1252, *QCS_WINDOWS_1253, *QCS_WINDOWS_1254,
+    *QCS_WINDOWS_1255, *QCS_WINDOWS_1256, *QCS_WINDOWS_1257,
+    *QCS_WINDOWS_1258;
+
 
 static size_t UTF8_getLength(const char* p, const char* end, bool& invalid);
 static size_t UTF8_getByteLen(const char* p, const char* end, size_t l, bool& invalid);
@@ -410,6 +415,63 @@ QoreEncodingManager::QoreEncodingManager() {
     addAlias(QCS_KOI8_U, "KOI8U");
 
     QCS_KOI7 = addUnlocked("KOI7", "Russian: Kod Obmena Informatsiey, 7 bit characters");
+
+    // Windows encodings
+    QCS_WINDOWS_874 = addUnlocked("WINDOWS-874", "Windows 874: Latin/Thai, similar to ISO-8859-11");
+    addAlias(QCS_WINDOWS_874, "WINDOWS874");
+    addAlias(QCS_WINDOWS_874, "CP-874");
+    addAlias(QCS_WINDOWS_874, "CP874");
+
+    QCS_WINDOWS_936 = addUnlocked("WINDOWS-936", "Windows 936: Simplified Chinese");
+    addAlias(QCS_WINDOWS_936, "WINDOWS936");
+    addAlias(QCS_WINDOWS_936, "CP-936");
+    addAlias(QCS_WINDOWS_936, "CP936");
+
+    QCS_WINDOWS_1250 = addUnlocked("WINDOWS-1250", "Windows 1250: Central/Eastern European");
+    addAlias(QCS_WINDOWS_1250, "WINDOWS1250");
+    addAlias(QCS_WINDOWS_1250, "CP-1250");
+    addAlias(QCS_WINDOWS_1250, "CP1250");
+
+    QCS_WINDOWS_1251 = addUnlocked("WINDOWS-1251", "Windows 1251: Cyrillic: Russian, Ukrainian, Balarusian, "
+        "Bulgarian, Serbian Cyrillic, Macedonian, and others");
+    addAlias(QCS_WINDOWS_1251, "WINDOWS1251");
+    addAlias(QCS_WINDOWS_1251, "CP-1251");
+    addAlias(QCS_WINDOWS_1251, "CP1251");
+
+    QCS_WINDOWS_1252 = addUnlocked("WINDOWS-1252", "Windows 1252: European: Spanish, French, German");
+    addAlias(QCS_WINDOWS_1252, "WINDOWS1252");
+    addAlias(QCS_WINDOWS_1252, "CP-1252");
+    addAlias(QCS_WINDOWS_1252, "CP1252");
+
+    QCS_WINDOWS_1253 = addUnlocked("WINDOWS-1253", "Windows 1253: Greek");
+    addAlias(QCS_WINDOWS_1253, "WINDOWS1253");
+    addAlias(QCS_WINDOWS_1253, "CP-1253");
+    addAlias(QCS_WINDOWS_1253, "CP1253");
+
+    QCS_WINDOWS_1254 = addUnlocked("WINDOWS-1254", "Windows 1254: Turkish");
+    addAlias(QCS_WINDOWS_1254, "WINDOWS1254");
+    addAlias(QCS_WINDOWS_1254, "CP-1254");
+    addAlias(QCS_WINDOWS_1254, "CP1254");
+
+    QCS_WINDOWS_1255 = addUnlocked("WINDOWS-1255", "Windows 1255: Hebrew");
+    addAlias(QCS_WINDOWS_1255, "WINDOWS1255");
+    addAlias(QCS_WINDOWS_1255, "CP-1255");
+    addAlias(QCS_WINDOWS_1255, "CP1255");
+
+    QCS_WINDOWS_1256 = addUnlocked("WINDOWS-1256", "Windows 1256: Arabic");
+    addAlias(QCS_WINDOWS_1256, "WINDOWS1256");
+    addAlias(QCS_WINDOWS_1256, "CP-1256");
+    addAlias(QCS_WINDOWS_1256, "CP1256");
+
+    QCS_WINDOWS_1257 = addUnlocked("WINDOWS-1257", "Windows 1257: Baltic languages");
+    addAlias(QCS_WINDOWS_1257, "WINDOWS1257");
+    addAlias(QCS_WINDOWS_1257, "CP-1257");
+    addAlias(QCS_WINDOWS_1257, "CP1257");
+
+    QCS_WINDOWS_1258 = addUnlocked("WINDOWS-1258", "Windows 1258: Vietnamese");
+    addAlias(QCS_WINDOWS_1258, "WINDOWS1258");
+    addAlias(QCS_WINDOWS_1258, "CP-1258");
+    addAlias(QCS_WINDOWS_1258, "CP1258");
 
     QCS_DEFAULT = QCS_UTF8;
 };

@@ -245,9 +245,9 @@ DLLEXPORT extern QoreEncodingManager QEM;
 DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for the Qore library
    *QCS_USASCII,                                  //!< ascii encoding
    *QCS_UTF8,                                     //!< UTF-8 multi-byte encoding (only UTF-8 and UTF-16 are multi-byte encodings)
-   *QCS_UTF16,                                    //!< UTF-16 (only UTF-8 and UTF-16* are multi-byte encodings)
-   *QCS_UTF16BE,                                  //!< UTF-16BE (only UTF-8 and UTF-16* are multi-byte encodings)
-   *QCS_UTF16LE,                                  //!< UTF-16LE (only UTF-8 and UTF-16* are multi-byte encodings)
+   *QCS_UTF16,                                    //!< UTF-16 (only UTF-* are multi-byte encodings)
+   *QCS_UTF16BE,                                  //!< UTF-16BE (only UTF-* are multi-byte encodings)
+   *QCS_UTF16LE,                                  //!< UTF-16LE (only UTF-* are multi-byte encodings)
    *QCS_ISO_8859_1,                               //!< latin-1, Western European encoding
    *QCS_ISO_8859_2,                               //!< latin-2, Central European encoding
    *QCS_ISO_8859_3,                               //!< latin-3, Southern European character set
@@ -265,6 +265,17 @@ DLLEXPORT extern const QoreEncoding* QCS_DEFAULT, //!< the default encoding for 
    *QCS_ISO_8859_16,                              //!< latin-10, Southeast European character set
    *QCS_KOI8_R,                                   //!< Russian: Kod Obmena Informatsiey, 8 bit
    *QCS_KOI8_U,                                   //!< Ukrainian: Kod Obmena Informatsiey, 8 bit
-   *QCS_KOI7;                                     //!< Russian: Kod Obmena Informatsiey, 7 bit characters
+   *QCS_KOI7,                                     //!< Russian: Kod Obmena Informatsiey, 7 bit characters
+   *QCS_WINDOWS_874,                              //!< Windows 874: Latin/Thai - similar to ISO-8859-11
+   *QCS_WINDOWS_936,                              //!< Windows 936: Simplified Chinese
+   *QCS_WINDOWS_1250,                             //!< Windows 1250: Central/Eastern European
+   *QCS_WINDOWS_1251,                             //!< Windows 1251: Cyrillic: Russian, Ukrainian, Balarusian, Bulgarian, Serbian Cyrillic, Macedonian, ...
+   *QCS_WINDOWS_1252,                             //!< Windows 1252: European: Spanish, French, German
+   *QCS_WINDOWS_1253,                             //!< Windows 1253: Greek
+   *QCS_WINDOWS_1254,                             //!< Windows 1254: Turkish
+   *QCS_WINDOWS_1255,                             //!< Windows 1255: Hebrew
+   *QCS_WINDOWS_1256,                             //!< Windows 1256: Arabic
+   *QCS_WINDOWS_1257,                             //!< Windows 1257: Baltic
+   *QCS_WINDOWS_1258;                             //!< Windows 1258: Vietnamese
 
 #endif // _QORE_ENCODING_H
