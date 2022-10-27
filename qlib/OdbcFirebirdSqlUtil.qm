@@ -86,7 +86,7 @@ module OdbcFirebirdSqlUtil {
 
     @section odbcfirebird_relnotes Release Notes
 
-    @subsection odbcfirebirdsqlutilv10 OdbcFirebirdSqlUtil_1_0 OdbcFirebirdSqlUtil Module v1.0
+    @subsection odbcfirebirdsqlutilv_0_1 OdbcFirebirdSqlUtil_0_1 OdbcFirebirdSqlUtil Module v0.1
     - initial release
 */
 
@@ -677,7 +677,7 @@ auto v = c.name;
         }
 
         private list<string> featuresImpl() {
-            return (DB_TABLES, DB_VIEWS);
+            return (DB_TABLES, DB_VIEWS, DB_SEQUENCES);
         }
 
         string getSchemaName() {
@@ -828,6 +828,9 @@ auto v = c.name;
                 "blob": {
                     "qore": Type::Binary,
                 },
+                "blob sub_type text": {
+                    "qore": Type::String,
+                },
                 "boolean": {
                     "qore": Type::Boolean,
                 },
@@ -975,7 +978,7 @@ auto v = c.name;
                 switch (row.type) {
                     case 7: {
                         switch (row.subtype) {
-                            case 0: typename = "smallint"; break;
+                            case 0: typename = "smallint"; remove row.length; break;
                             case 1: typename = "numeric"; break;
                             case 2: typename = "decimal"; break;
                         }
@@ -983,31 +986,47 @@ auto v = c.name;
                     }
                     case 8: {
                         switch (row.subtype) {
-                            case 0: typename = "integer"; break;
+                            case 0: typename = "integer"; remove row.length; break;
                             case 1: typename = "numeric"; break;
                             case 2: typename = "decimal"; break;
                         }
                         break;
                     }
                     case 9: typename = "quad"; break;
-                    case 10: typename = "float"; break;
-                    case 12: typename = "date"; break;
-                    case 13: typename = "time"; break;
-                    case 14: typename = "char"; break;
+                    case 10: typename = "float"; remove row.length; break;
+                    case 12: typename = "date"; remove row.length; break;
+                    case 13: typename = "time"; remove row.length; break;
+                    case 14: typename = row.subtype == 1 ? "binary" : "char"; break;
                     case 16: {
                         switch (row.subtype) {
-                            case 0: typename = "bigint"; break;
+                            case 0: typename = "bigint"; remove row.length; break;
                             case 1: typename = "numeric"; break;
                             case 2: typename = "decimal"; break;
                         }
                         break;
                     }
-                    case 27: typename = "double"; break;
-                    case 35: typename = "timestamp"; break;
-                    case 37: typename = "varchar"; break;
+                    case 23: typename = "boolean"; remove row.length; break;
+                    case 27: typename = "double"; remove row.length; break;
+                    case 29: typename = "timestamp with time zone"; remove row.length; break;
+                    case 35: typename = "timestamp"; remove row.length; break;
+                    case 37: typename = typename = row.subtype == 1 ? "varbinary" : "varchar"; break;
                     case 40: typename = "cstring"; break;
                     case 45: typename = "blob_id"; break;
-                    case 261: typename = "blob"; break;
+                    case 261: {
+                        typename = "blob";
+                        if (row.subtype == 1) {
+                            typename += " sub_type text";
+                        }
+                        remove row.length;
+                        break;
+                    }
+                }
+                if (!typename) {
+                    throw "FIREBIRD-ERROR", sprintf("column %s.%s: unknown column type %d", getSqlName(), row.name,
+                        row.type);
+                }
+                if (row.scale < 0) {
+                    row.scale = -row.scale;
                 }
 
                 auto defval = exists row.default_value && row.default_value !== NULL && row.default_value != "NULL"
@@ -1043,7 +1062,7 @@ auto v = c.name;
                     defval = getSqlValue(defval);
                 }
 
-                OdbcFirebirdColumn c(row.name, typename, th.qore, row.length, !!row.null_flag, defval, row.comment,
+                OdbcFirebirdColumn c(row.name, typename, th.qore, row.length ?? 0, !row.null_flag, defval, row.comment,
                     row.scale);
                 rv{row.name} = c;
             }
@@ -1134,7 +1153,8 @@ where
             *hash qh = ds.select("");
 
             foreach hash<auto> row in (qh.contextIterator()) {
-                string src = sprintf("%s %s on %s for each %s %s", row.action_timing.lwr(), row.event_manipulation.lwr(), name, row.action_orientation.lwr(), row.action_statement);
+                string src = sprintf("%s %s on %s for each %s %s", row.action_timing.lwr(),
+                    row.event_manipulation.lwr(), name, row.action_orientation.lwr(), row.action_statement);
                 rv{row.trigger_name} = new OdbcFirebirdTrigger(row.trigger_name, src);
             }
             */
@@ -1148,7 +1168,7 @@ where
             return sql;
         }
 
-        #! returns @ref False "False" because the odbcfirebird driver does not support array binds / bulk DML operations
+        #! returns @ref False "False" because the odbcfirebird driver does not support array binds / bulk DML
         bool hasArrayBind() {
             return False;
         }
@@ -1187,7 +1207,7 @@ where
         }
 
         private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash<auto> opt) {
-            throw "ODBCFIREBIRD-CHECK-CONSTRAINT-ERROR", sprintf("OdbcFirebird does not support check constraints");
+            throw "FIREBIRD-CHECK-CONSTRAINT-ERROR", sprintf("not yet implemented");
         }
 
         private AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash<auto> ch, *hash<auto> opt) {
@@ -1225,12 +1245,16 @@ where
             return OdbcFirebirdTypeMap;
         }
 
-        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument
+        /** returns NOTHING if the type cannot be converted to an SQL string
+        */
         private *string getSqlValueImpl(auto v) {
             return OdbcFirebirdTable::getSqlValueIntern(v);
         }
 
-        #! returns a string for use in SQL queries representing the DB-specific value of the argument; returns NOTHING if the type cannot be converted to an SQL string
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument
+        /** returns NOTHING if the type cannot be converted to an SQL string
+        */
         private static *string getSqlValueIntern(auto v) {
             switch (v.typeCode()) {
                 case NT_FLOAT:
@@ -1329,22 +1353,26 @@ string str = table.getSqlValue(date);
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
         private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
-           sql += " limit %v";
-           info.args += info.query_hash.limit.toInt();
+            if (!info.query_hash.limit) {
+                return;
+            }
+
+            # this rule is broken here with reason:
+            # In a SELECT statement, always use an ORDER BY clause with the FIRST clause.
+            # This is the only way to predictably indicate which rows are affected by FIRST
+            sql = regex_subst(sql, "^select ", sprintf("select first %d ", info.query_hash.limit));
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
         private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
                 list<auto> coll) {
             doSelectOrderBySqlUnlocked(info, \sql, coll);
-            if (info.query_hash.limit) {
-                sql += " limit %v";
-                info.args += info.query_hash.limit.toInt();
-            }
 
-            if (info.query_hash.offset) {
-                sql += " offset %v";
-                info.args += info.query_hash.offset.toInt();
+            # NOTE: we do not bind the variables by value here, because it doesn't work
+            sql += sprintf(" offset %d rows", info.query_hash.offset.toInt());
+
+            if (info.query_hash.limit) {
+                sql += sprintf(" fetch next %d rows only", info.query_hash.limit.toInt());
             }
         }
 
@@ -1354,8 +1382,7 @@ string str = table.getSqlValue(date);
         }
 
         private *hash<auto> doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args) {
-            throw "RETURNING-ERROR", sprintf("table %s: the odbcfirebird driver does not support the returning clause "
-                "in an insert statement", getSqlName());
+            throw "RETURNING-ERROR", sprintf("table %s: returning not yet implemented for Firebird", getSqlName());
         }
 
         private list<auto> getGroupOrderByListUnlocked(hash<QueryInfo> info, string key, list<auto> coll) {

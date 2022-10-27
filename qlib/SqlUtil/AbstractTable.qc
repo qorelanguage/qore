@@ -7486,6 +7486,7 @@ on_exit printf("SQL> %s\n", sql);
     private execData(AbstractSQLStatement stmt, *hash<auto> opt, *list<auto> args) {
         if (opt.sqlarg_callback)
             opt.sqlarg_callback(stmt.getSQL(), args);
+        on_error rethrow $1.err, sprintf("%s (SQL: %s)", $1.desc, stmt.getSQL());
         stmt.execArgs(args);
     }
 
