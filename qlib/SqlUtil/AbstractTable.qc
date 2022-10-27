@@ -7490,23 +7490,15 @@ on_exit printf("SQL> %s\n", sql);
     }
 
     static AbstractTable getTable(AbstractDatasource nds, string nname, *hash<auto> opts) {
-        string drv = nds.getDriverName();
-
-        # generate module and module namespace name
-        string mn = drv[0].upr() + drv.substr(1) + "SqlUtil";
-
-        # try to load module
-        try {
-            load_module(mn);
-        } catch (hash<ExceptionInfo> ex) {
-            rethrow "TABLE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
-        }
+        string drv;
+        string mn = AbstractDatabase::loadModule(nds, \drv);
 
         # try to get AbstractTable object
         try {
             return call_function(mn + "::" + "get_table", nds, nname, opts);
         } catch (hash<ExceptionInfo> ex) {
-            rethrow "TABLE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractTable object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
+            rethrow "TABLE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractTable object for driver %y: %s: %s",
+                get_ex_pos(ex), drv, ex.err, ex.desc);
         }
     }
 

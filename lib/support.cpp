@@ -150,18 +150,20 @@ void trace_function(int code, const char *funcname) {
 #endif
 }
 
-char *remove_trailing_newlines(char *str) {
-   int i = strlen(str);
-   while (i && (str[i - 1] == '\n'))
-      str[--i] = '\0';
-   return str;
+char* remove_trailing_newlines(char *str) {
+    int i = strlen(str);
+    while (i && (str[i - 1] == '\n')) {
+        str[--i] = '\0';
+    }
+    return str;
 }
 
-char *remove_trailing_blanks(char *str) {
-   int i = strlen(str);
-   while (i && (str[--i] == ' '))
-      str[i] = '\0';
-   return str;
+char* remove_trailing_blanks(char *str) {
+    int i = strlen(str);
+    while (i && (str[--i] == ' ')) {
+        str[i] = '\0';
+    }
+    return str;
 }
 
 void parse_error(const QoreProgramLocation& loc, const char *fmt, ...) {
