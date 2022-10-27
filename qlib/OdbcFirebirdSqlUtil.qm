@@ -86,7 +86,7 @@ module OdbcFirebirdSqlUtil {
 
     @section odbcfirebird_relnotes Release Notes
 
-    @subsection odbcfirebirdsqlutilv10 OdbcFirebirdSqlUtil_1_0 OdbcFirebirdSqlUtil Module v1.0
+    @subsection odbcfirebirdsqlutilv10 OdbcFirebirdSqlUtil_0_1 OdbcFirebirdSqlUtil Module v0.1
     - initial release
 */
 
