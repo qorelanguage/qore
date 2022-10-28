@@ -1377,7 +1377,8 @@ string sql = t.getSqlFromList(list);
     static checkDriverOptions(reference<hash<auto>> h, string drv) {
         if (h.driver) {
             if (h.driver{drv}) {
-                h += h.driver{drv};
+                hash<auto> nh = h + h.driver{drv};
+                h = nh;
             }
             delete h.driver;
         }

@@ -4078,7 +4078,8 @@ AbstractSQLStatement i = table.getStatement();
         return getStatementIntern(sh, NOTHING, opt, True);
     }
 
-    private Qore::SQL::AbstractSQLStatement getStatementIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *bool no_exec, *reference<softlist<auto>> args) {
+    private Qore::SQL::AbstractSQLStatement getStatementIntern(*hash<auto> sh, *reference<string> sql,
+            *hash<auto> opt, *bool no_exec, *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
         sql = getSelectSqlIntern(sh, \args, opt);
