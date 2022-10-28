@@ -77,7 +77,7 @@ module OdbcFirebirdSqlUtil {
     |\c float|<tt>double precision</tt>
     |\c number|\c varchar
     |\c string|\c varchar
-    |\c date|<tt>timestamp with time zone</tt>
+    |\c date|<tt>timestamp</tt>
     |\c binary|\c varbinary
     |\c bool|\c boolean
     |@ref SqlUtil::BLOB|\c blob
@@ -86,7 +86,7 @@ module OdbcFirebirdSqlUtil {
 
     @section odbcfirebird_relnotes Release Notes
 
-    @subsection odbcfirebirdsqlutilv_0_1 OdbcFirebirdSqlUtil_0_1 OdbcFirebirdSqlUtil Module v0.1
+    @subsection odbcfirebirdsqlutilv_0_1 OdbcFirebirdSqlUtil Module v0.1
     - initial release
 */
 
@@ -894,7 +894,7 @@ auto v = c.name;
                 "float": "double precision",
                 "number": "varchar",
                 "string": "varchar",
-                "date": "timestamp with time zone",
+                "date": "timestamp",
                 "binary": "varbinary",
                 "bool": "boolean",
                 SqlUtil::CHAR: "char",
