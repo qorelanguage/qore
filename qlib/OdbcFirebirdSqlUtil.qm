@@ -132,7 +132,8 @@ public namespace OdbcFirebirdSqlUtil {
 
         #! returns a string that can be used to create the index in the database
         string getCreateSql(string table_name, *hash<auto> opt) {
-            return sprintf("create %sindex %s on %s", unique ? "unique " : "", name, table_name);
+            return sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name,
+                (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
         }
 
         #! returns @ref True "True" if the argument is equal to the current index, @ref False "False" if not
@@ -850,6 +851,10 @@ auto v = c.name;
                     "size_range": (1, 38),
                     "scale_range": (0, 38)
                 },
+                "double": {
+                    "qore": Type::Float,
+                    "size": SZ_NUM,
+                },
                 "double precision": {
                     "qore": Type::Float,
                     "size": SZ_NUM,
@@ -858,7 +863,23 @@ auto v = c.name;
                     "qore": Type::Float,
                     "size": SZ_NUM,
                 },
+                "int128": {
+                    "qore": Type::String,
+                },
                 "integer": {
+                    "qore": Type::Int,
+                },
+                "numeric": {
+                    "qore": Type::Number,
+                    "size": SZ_NUM,
+                    "size_range": (1, 38),
+                    "scale_range": (0, 38)
+                },
+                "real": {
+                    "qore": Type::Float,
+                    "size": SZ_NUM,
+                },
+                "smallint": {
                     "qore": Type::Int,
                 },
                 "time": {
@@ -1104,14 +1125,20 @@ where
                 "   rdb$indices ix, rdb$relation_constraints rc "
                 "where "
                 "   rdb$system_flag = 0 and rc.rdb$index_name = ix.rdb$index_name "
-                "   and rc.rdb$constraint_type != 'PRIMARY KEY'", name.upr());
+                "   and rc.rdb$constraint_type != 'PRIMARY KEY' and ix.rdb$relation_name = %v", name.upr());
             hash<auto> ih;
             foreach hash<auto> row in (qh.contextIterator()) {
                 ih{row.name}.unique = row.unique;
                 *hash<auto> ch = ds.select("select lower(rdb$field_name) as cname from rdb$index_segments "
                     "where rdb$index_name = %v order by rdb$field_position", row.name.upr());
+
                 foreach string col in (ch.cname) {
+                    on_error rethrow $1, sprintf("%s (index %y column %y)", $1.desc, row.name, col);
                     ih{row.name}.columns{col} = columns{col};
+                }
+
+                if (!ih{row.name}.columns) {
+                    throw "INDEX-ERROR", sprintf("index %y on table %y has no columns", row.name, getSqlName());
                 }
             }
             foreach hash<auto> i in (ih.pairIterator()) {

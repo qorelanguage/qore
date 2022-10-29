@@ -7049,8 +7049,7 @@ string sql = table.getAlignSqlString(table2);
         @since SqlUtil 1.6
     */
     AbstractDataField getColumnDataField(AbstractColumn column, *hash<SqlUtilDataTypeOptionInfo> options, *string append_desc) {
-        AbstractDataProviderType type = getDbType(column.native_type, column.qore_type,
-            exists column.def_val ? True : column.nullable, column.size ? column.size : -1, options);
+        AbstractDataProviderType type = getDbType(column, options);
 
         string desc = column.getNativeTypeString();
         if (!column.nullable) {
@@ -7082,17 +7081,33 @@ string sql = table.getAlignSqlString(table2);
             throw "COLUMN-ERROR", sprintf("column %y is unknown; valid columns: %y", column_name, columns.keys());
         }
 
-        return getDbType(column.native_type, column.qore_type, column.nullable, column.size ? column.size : -1,
-            options);
+        return getDbType(column, options);
     }
 
     #! returns the DB type for the given column type
     /** @since SqlUtil 1.6
     */
-    AbstractDataProviderType getDbType(string native_type, *string qore_type, bool nullable, int max_size = -1, *hash<SqlUtilDataTypeOptionInfo> options) {
+    AbstractDataProviderType getDbType(AbstractColumn column, *hash<SqlUtilDataTypeOptionInfo> options) {
+        string name = column.native_type;
+        if (column.size) {
+            name += column.scale ? sprintf("(%d,%d)", column.size, column.scale) : sprintf("(%d)", column.size);
+        }
+
+        return getDbType(name, column.qore_type, exists column.def_val ? True : column.nullable,
+            column.size ? column.size : -1, options);
+    }
+
+    #! returns the DB type for the given column type
+    /** @since SqlUtil 1.6
+    */
+    AbstractDataProviderType getDbType(string native_type, *string qore_type, bool nullable, int max_size = -1,
+            *hash<SqlUtilDataTypeOptionInfo> options) {
         hash<auto> type_options;
         if (nullable && options.mandatory) {
             nullable = False;
+        }
+        if (nullable && native_type[0] != "*") {
+            native_type = "*" + native_type;
         }
         if (options.maxlen && (max_size < 0 || max_size > options.maxlen)) {
             type_options."string.max_size_chars" = options.maxlen;
