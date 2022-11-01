@@ -2,6 +2,15 @@
 
     @tableofcontents
 
+    @section qore_1_12_2 Qore 1.12.2
+
+    @subsection qore_1_12_2_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
+      - fixed a bug serializing and deserializing \c Table objects using the \c odbc driver
+        (<a href="https://github.com/qorelanguage/qore/issues/4620">issue 4620</a>)
+
+    @par Release Summary
+
     @section qore_1_12_1 Qore 1.12.1
 
     @par Release Summary
@@ -10,6 +19,7 @@
     @subsection qore_1_12_1_new_features New Features in Qore
     - <a href="../../modules/OdbcFirebirdSqlUtil/html/index.html">OdbcFirebirdSqlUtil</a> module
       - added the \c OdbcFirebirdSqlUtil module to enable Firebird databases to be used with SqlUtil
+
     @subsection qore_1_12_1_bug_fixes Bug Fixes in Qore
     - fixed a bug in the @ref cast "cast<> operator" where class casts would not enforce the specified class at
       runtime

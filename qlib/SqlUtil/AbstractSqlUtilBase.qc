@@ -39,12 +39,14 @@ public class AbstractSqlUtilBase inherits Serializable {
 
     # assigs the object's members after deserialization
     private:internal deserializeMembers(hash<auto> members) {
-        # load any dependent module
-        load_module(remove members.mod);
         # create datasource
         hash<auto> dsh = remove members.ds;
         # must initialize transient members explicitly when "deserializeMembers()" is defined
         ds = sqlutil_get_ds(dsh.ds_type, dsh.ds);
+
+        # load any dependent module
+        AbstractDatabase::loadModule(ds);
+
         l = new Mutex();
 
         self += members;
@@ -52,10 +54,7 @@ public class AbstractSqlUtilBase inherits Serializable {
 
     # serializes the object's data to a hash
     private:internal hash<auto> serializeMembers(hash<auto> members) {
-        string mod = ds.getDriverName();
-        mod = mod[0].upr() + mod.substr(1) + "SqlUtil";
         return members + {
-            "mod": mod,
             "ds": sqlutil_ds(ds),
         };
     }
