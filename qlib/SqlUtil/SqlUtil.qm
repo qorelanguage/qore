@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.8";
+    version = "1.8.1";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -103,6 +103,10 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_8_1 SqlUtil v1.8.1
+    - fixed a bug serializing and deserializing \c Table objects using the \c odbc driver
+      (<a href="https://github.com/qorelanguage/qore/issues/4620">issue 4620</a>)
 
     @subsection sqlutilv1_8 SqlUtil v1.8
     - implemented support for generating queries based on generic expressions using the DataProvider module's generic
