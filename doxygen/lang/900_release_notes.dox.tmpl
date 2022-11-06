@@ -6,6 +6,9 @@
 
     @subsection qore_1_12_2_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - \c AbstractDataProvider::search*() fails with record-based data providers that do not provide a record
+        definition
+        (<a href="https://github.com/qorelanguage/qore/issues/4624">issue 4624</a>)
       - \c AbstractDataProvider::search*() methods fail with an empty \c where hash argument
         (<a href="https://github.com/qorelanguage/qore/issues/4622">issue 4622</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
