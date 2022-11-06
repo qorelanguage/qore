@@ -87,6 +87,7 @@ public class FileLocationHandlerTest inherits QUnit::Test {
         if (m_options.verbose) {
             verbose = m_options.verbose;
         }
+        addTestCase("data tests", \dataTests());
         addTestCase("file tests", \fileTests());
         addTestCase("ftp tests", \ftpTests());
         addTestCase("http tests", \httpTests());
@@ -94,6 +95,16 @@ public class FileLocationHandlerTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value
         set_return_value(main());
+    }
+
+    private dataTests() {
+        assertEq("test", FileLocationHandler::getTextFileFromLocation("data://test"));
+        assertEq("test".toBinary(), FileLocationHandler::getBinaryFileFromLocation("data://test"));
+        assertEq("test", FileLocationHandler::getStreamReaderFromLocation("data://test").readString());
+        assertEq("test".toBinary(), FileLocationHandler::getBinaryStreamFromLocation("data://test").read(100));
+
+        assertThrows("DATA-WRITE-ERROR", \FileLocationHandler::writeFileToLocation(), ("data://test", "x"));
+        assertThrows("DATA-WRITE-ERROR", \FileLocationHandler::getOutputStreamForLocation(), "data://test");
     }
 
     private fileTests() {
