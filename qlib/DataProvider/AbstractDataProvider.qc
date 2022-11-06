@@ -2445,7 +2445,7 @@ public class AbstractDataProvider {
         foreach hash<auto> i in (h.pairIterator()) {
             if (!rec{i.key}) {
                 list<string> f = map regex_subst($1, "\\\\.", ".", RE_Global), i.key.splitRegex("(?<!\\\\)\\.");
-                if (!rec{f[0]}) {
+                if (rec && !rec{f[0]}) {
                     error("INVALID-FIELD", "field %y is not a defined field; valid fields: %y", f[0], keys rec);
                 }
                 rv{i.key} = i.value;
@@ -2456,7 +2456,9 @@ public class AbstractDataProvider {
                 rv{i.key} = i.value;
                 continue;
             }
-            rv{i.key} = rec{i.key}.acceptsValue(i.value);
+            rv{i.key} = rec
+                ? rec{i.key}.acceptsValue(i.value)
+                : i.value;
         }
         return rv;
     }

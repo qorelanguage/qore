@@ -204,6 +204,9 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v2_7_1 DataProvider v2.7.1
+    - \c AbstractDataProvider::search*() fails with record-based data providers that do not provide a record
+      definition
+      (<a href="https://github.com/qorelanguage/qore/issues/4624">issue 4624</a>)
     - \c AbstractDataProvider::search*() methods fail with an empty \c where hash argument
       (<a href="https://github.com/qorelanguage/qore/issues/4622">issue 4622</a>)
 
