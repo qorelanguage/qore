@@ -45,6 +45,7 @@ public class DataProvider {
             "httpclient": "HttpClientDataProvider",
             "restclient": "RestClientDataProvider",
             "salesforcerest": "SalesforceRestDataProvider",
+            "sax": "SaxDataProvider",
             "servicenowrest": "ServiceNowRestDataProvider",
             "smtpclient": "SmtpClient",
 

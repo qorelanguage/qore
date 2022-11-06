@@ -2013,7 +2013,7 @@ public class AbstractDataProvider {
             return processSearchParameters(where_cond, search_options);
         }
         if (!where_cond) {
-            return;
+            return where_cond;
         }
         if (!supportsSearchExpressions()) {
             return processFieldValues(where_cond, search_options);
