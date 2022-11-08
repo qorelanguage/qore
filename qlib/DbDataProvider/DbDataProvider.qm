@@ -43,7 +43,7 @@
 %requires(reexport) BulkSqlUtil
 
 module DbDataProvider {
-    version = "2.0";
+    version = "2.0.1";
     desc = "user module providing a data provider API for databases";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -77,6 +77,11 @@ module DbDataProvider {
     - @ref DbDataProvider::DbTableRecordIterator "DbTableRecordIterator"
 
     @section dbdataprovider_relnotes Release Notes
+
+    @subsection dbdataprovider_v2.0.1 DbDataProvider v2.0.1
+    - fixed \c sequence and \c sequence_currval mapper options in
+      @ref DbDataProvider::DbTableDataProvider "DbTableDataProvider"
+      (<a href="https://github.com/qorelanguage/qore/issues/4628">issue 4628</a>)
 
     @subsection dbdataprovider_v2.0 DbDataProvider v2.0
     - added the @ref DbDataProvider::DbTransactionHelper "DbTransactionHelper" class

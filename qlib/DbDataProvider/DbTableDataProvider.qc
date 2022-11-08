@@ -355,24 +355,16 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         return rv;
     }
 
-    #! Processes the \c sequence runtime key in mappers
-    int doSequenceKey(string sequence_name) {
-        try {
-            return db.getNextSequenceValue(sequence_name);
-        } catch (hash<ExceptionInfo> ex) {
-            # rethrow exception adding the sequence name to the description
-            rethrow ex.err, sprintf("%s (sequence: %y)", ex.desc, sequence_name), ex.arg;
-        }
+    #! Processes the \c sequence runtime key in mappers as a mapper key handler
+    int doSequenceKey(string sequence_name, hash<auto> ctx, *reference<bool> missing_input) {
+        on_error rethrow $1.err, sprintf("%s (mapper 'sequence' error; sequence: %y)", $1.desc, sequence_name);
+        return db.getNextSequenceValue(sequence_name);
     }
 
-    #! Processes the \c sequence_currval runtime key in mappers
-    int doSequenceCurrvalKey(string sequence_name) {
-        try {
-            return db.getCurrentSequenceValue(sequence_name);
-        } catch (hash<ExceptionInfo> ex) {
-            # rethrow exception adding the sequence name to the description
-            rethrow ex.err, sprintf("%s (sequence: %y)", ex.desc, sequence_name), ex.arg;
-        }
+    #! Processes the \c sequence_currval runtime key in mappers as a mapper key handler
+    int doSequenceCurrvalKey(string sequence_name, hash<auto> ctx, *reference<bool> missing_input) {
+        on_error rethrow $1.err, sprintf("%s (mapper 'sequence_currval' error; sequence: %y)", $1.desc, sequence_name);
+        return db.getCurrentSequenceValue(sequence_name);
     }
 
     #! Returns the description of the record type, if any
