@@ -61,8 +61,8 @@ f2:3,00:5:25,34";
     }
 
     constructor() : Test("CsvUtilTest", "1.0") {
-        addTestCase("multi-line fields", \multiLineFieldTest());
         addTestCase("data provider", \dataProviderTest());
+        addTestCase("multi-line fields", \multiLineFieldTest());
         addTestCase("issue 2806 test", \issue2806());
         addTestCase("issue 2746 test", \issue2746());
         addTestCase("Basic CSV tests", \csvTest());
@@ -139,6 +139,42 @@ f2:3,00:5:25,34";
                     "activated": "bool",
                 },
             };
+
+            {
+                dp = DataProvider::getFactoryObjectWithTemplate("csvread", {
+                    "path": "$template:value",
+                }, constructor_options);
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertEq(Type::String, info.name.type());
+                assertTrue(info.has_record);
+                assertTrue(info.supports_read);
+                assertEq(Type::String, info.desc.type());
+            }
+
+            {
+                dp = DataProvider::getFactoryObjectFromExample("csvread", CsvInputWithHeader, constructor_options);
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertEq(Type::String, info.name.type());
+                assertTrue(info.has_record);
+                assertTrue(info.supports_read);
+                assertEq(Type::String, info.desc.type());
+                rows = map $1, dp.searchRecords();
+                assertEq(5, rows[0].size());
+                assertEq(4, rows.size());
+            }
+
+            {
+                dp = DataProvider::getFactoryObjectFromExample("csvread", new StringInputStream(CsvInputWithHeader),
+                    constructor_options);
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertEq(Type::String, info.name.type());
+                assertTrue(info.has_record);
+                assertTrue(info.supports_read);
+                assertEq(Type::String, info.desc.type());
+                rows = map $1, dp.searchRecords();
+                assertEq(5, rows[0].size());
+                assertEq(4, rows.size());
+            }
 
             # the CSV data can only be iterated once and then the provider needs to be recreated
             code reset = sub () {
