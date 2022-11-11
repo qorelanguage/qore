@@ -204,6 +204,12 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section dataprovider_relnotes Release Notes
 
     @subsection dataprovider_v2_7_1 DataProvider v2.7.1
+    - added
+      @ref DataProvider::DataProvider::getFactoryObjectWithTemplate() "DataProvider::getFactoryObjectWithTemplate()"
+      and
+      @ref DataProvider::AbstractDataProviderFactory::createWithTemplate() "AbstractDataProviderFactory::createWithTemplate()"
+      to allow data providers to be created from factories with template arguments
+      (<a href="https://github.com/qorelanguage/qore/issues/4624">issue 4624</a>)
     - \c AbstractDataProvider::search*() fails with record-based data providers that do not provide a record
       definition
       (<a href="https://github.com/qorelanguage/qore/issues/4624">issue 4624</a>)

@@ -154,6 +154,26 @@ public class DataProvider {
 
     #! Returns a data provider object from the given factory, created with the given constructor options
     /** @param path the \c "/"-separated path to the target data provider; the first element is the factory name
+        @param template_options
+        @param options factory creation options
+
+        @throw PROVIDER-ERROR the given provider factory or child provider is unknown
+
+        @since DataProvider 2.7.1
+    */
+    static AbstractDataProvider getFactoryObjectWithTemplate(string path, hash<auto> template_options,
+            *hash<auto> options) {
+        AbstractDataProvider provider;
+        {
+            list<string> path_list = path.split("/");
+            provider = DataProvider::getFactoryEx(shift path_list).createWithTemplate(template_options, options);
+            map provider = provider.getChildProviderEx($1), path_list;
+        }
+        return provider;
+    }
+
+    #! Returns a data provider object from the given factory, created with the given constructor options
+    /** @param path the \c "/"-separated path to the target data provider; the first element is the factory name
         @param options factory creation options
 
         @throw PROVIDER-ERROR the given provider factory or child provider is unknown

@@ -75,6 +75,23 @@ public class AbstractDataProviderFactory {
         return con.call(options);
     }
 
+    #! Creates an object from the given constructor options
+    AbstractDataProvider createWithTemplate(hash<auto> template_options, *hash<auto> options) {
+        ConstructorMethodVariant con;
+        try {
+            con = getClass().getConstructorVariant(AutoHashType, AutoHashOrNothingType);
+        } catch (hash<ExceptionInfo> ex) {
+            try {
+                con = getClass().getConstructorVariant(AutoHashOrNothingType);
+            } catch (hash<ExceptionInfo> ex) {
+                error("DATA-PROVIDER-ERROR", "data provider does not support a constructor from a template option "
+                    "hash and an option hash nor a constructor from an option hash");
+            }
+            return con.call(options);
+        }
+        return con.call(template_options, options);
+    }
+
     #! Returns the name of the data provider factory
     string getName() {
         return getNameImpl();
