@@ -76,7 +76,7 @@ public class AbstractDataProviderFactory {
     }
 
     #! Creates an object from the given constructor options
-    AbstractDataProvider createWithTemplate(hash<auto> template_options, *hash<auto> options) {
+    AbstractDataProvider createWithTemplate(*hash<auto> template_options, *hash<auto> options) {
         ConstructorMethodVariant con;
         try {
             con = getClass().getConstructorVariant(AutoHashType, AutoHashOrNothingType);

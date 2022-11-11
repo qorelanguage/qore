@@ -163,7 +163,7 @@ public class DataProvider {
 
         @since DataProvider 2.7.1
     */
-    static AbstractDataProvider getFactoryObjectWithTemplate(string path, hash<auto> template_options,
+    static AbstractDataProvider getFactoryObjectWithTemplate(string path, *hash<auto> template_options,
             *hash<auto> options) {
         AbstractDataProvider provider;
         {
