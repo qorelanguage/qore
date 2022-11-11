@@ -88,6 +88,11 @@ module Util {
 
     @section utilrelnotes Release Notes
 
+    @subsection util_1_8_1 Util 1.8.1
+    - fixed a bug in @ref Util::substitute_env_vars() "substitute_env_vars()" where an exception would be thrown if
+      any referenced environment variable was not set
+      (<a href="https://github.com/qorelanguage/qore/issues/4632">issue 4632</a>)
+
     @subsection util_1_8 Util 1.8
     - added @ref Util::get_relative_path() "get_relative_path()"
       (<a href="https://github.com/qorelanguage/qore/issues/4488">issue 4488</a>)
@@ -1891,7 +1896,7 @@ check_ip_address(str, True);
                 splice var, 0, 1;
 
                 # substitute environment variable
-                str = regex_subst(str, "\\\$" + var, ENV{var});
+                str = regex_subst(str, "\\\$" + var, ENV{var} ?? "");
             }
         }
         return str;

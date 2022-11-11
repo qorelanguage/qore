@@ -6,6 +6,9 @@
 
     @subsection qore_1_12_2_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - added \c DataProvider::getFactoryObjectWithTemplate() and \c AbstractDataProviderFactory::createWithTemplate()
+        to allow data providers to be created from factories with template arguments
+        (<a href="https://github.com/qorelanguage/qore/issues/4624">issue 4624</a>)
       - \c AbstractDataProvider::search*() fails with record-based data providers that do not provide a record
         definition
         (<a href="https://github.com/qorelanguage/qore/issues/4624">issue 4624</a>)
@@ -23,6 +26,10 @@
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
       - fixed a bug serializing and deserializing \c Table objects using the \c odbc driver
         (<a href="https://github.com/qorelanguage/qore/issues/4620">issue 4620</a>)
+    - <a href="../../modules/Util/html/index.html">Util</a> module
+      - fixed a bug in \c substitute_env_vars() where an exception would be thrown if
+        any referenced environment variable was not set
+        (<a href="https://github.com/qorelanguage/qore/issues/4632">issue 4632</a>)
 
     @par Release Summary
 
