@@ -176,7 +176,7 @@ make check
 * Tue Nov 1 2022 David Nichols <david@qore.org> 1.12.2-1
 - updated version to 1.12.2-1
 
-* Wed Sep 19 2022 David Nichols <david@qore.org> 1.12.1-1
+* Mon Sep 19 2022 David Nichols <david@qore.org> 1.12.1-1
 - updated version to 1.12.1-1
 - updated libqore version to 12.1.1
 
