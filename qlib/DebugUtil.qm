@@ -23,7 +23,9 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 1.12.2
+
+%requires Logger
 
 %require-types
 %enable-all-warnings
@@ -31,7 +33,7 @@
 %no-debugging
 
 module DebugUtil {
-    version = "0.1";
+    version = "0.1.1";
     desc = "user module providing common debug stuff";
     author = "Tomas Mandys <tomas.mandys@qoretechnologies.org>";
     url = "http://qoretechnologies.org";
@@ -45,6 +47,10 @@ module DebugUtil {
     @section debugutilintro Introduction to the DebugUtil Module
 
     The %DebugUtil module provides common functionality for implementing debugger utilities
+
+    @subsection du_v0_1_1 v0.1.1
+    - fixed issues with debug logging
+      (<a href="https://github.com/qorelanguage/qore/issues/4635">issue 4635</a>)
 
     @subsection du_v0_1 v0.1
     - the initial version of the DebugUtil module
@@ -145,13 +151,13 @@ public namespace DebugUtil {
     public const QoreDebugProtocolVersion = "0.1";
 
     #! logging constant: no logging
-    public const DUV_NONE = 0;
+    public const DUV_NONE = LoggerLevel::OFF;
     #! logging constant: info messages
-    public const DUV_INFO = 1;
+    public const DUV_INFO = LoggerLevel::INFO;
     #! logging constant: debug messages
-    public const DUV_DEBUG = 2;
+    public const DUV_DEBUG = LoggerLevel::DEBUG;
     #! logging constant: detailed debug messages
-    public const DUV_DEBUG_1 = 3;
+    public const DUV_DEBUG_1 = LoggerLevel::TRACE;
 
     #! class that can be used for logging
     public class DebugLogger {
@@ -168,6 +174,7 @@ public namespace DebugUtil {
         public log(int verbosity, string fmt) {
             log2(verbosity, fmt, argv);
         }
+
         #! implement logging
         /**
           @param verbosity use DPC_xxx constants
@@ -175,7 +182,7 @@ public namespace DebugUtil {
           @param args arguments to format
         */
         public log2(int verbosity, string fmt, *list args) {
-            if (verbose >= verbosity) {
+            if (verbose < verbosity) {
                 # note: \r\n is necessary for clients using linenoise even on UNIX/Linux
                 stdout.vprintf(fmt+"\r\n", args);
             }
