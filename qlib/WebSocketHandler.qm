@@ -38,7 +38,7 @@
 %new-style
 
 module WebSocketHandler {
-    version = "1.5.3";
+    version = "1.5.4";
     desc = "user module for providing WebSocket server services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -64,6 +64,10 @@ module WebSocketHandler {
     - @ref WebSocketHandler::WebSocketHandler
 
     @section websockethandler_relnotes WebSocketHandler Release History
+
+    @subsection websockethandler_v1_5_4 Version 1.5.4
+    - fixed a bug in @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()"
+      (<a href="https://github.com/qorelanguage/qore/issues/4634">issue 4634</a>)
 
     @subsection websockethandler_v1_5_3 Version 1.5.3
     - fixed a bug handling valid empty \c PING messages
@@ -777,7 +781,7 @@ public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
             throw "WEBSOCKET-CONNECTION-ERROR", sprintf("connection %y does not exist (valid connections: %y)", id,
                 keys ch);
         #logDebug("sending data to connection: %y", id);
-        ch{id}.send2(d);
+        ch{id}.send(d);
     }
 
     #! stop given connection ID

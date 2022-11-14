@@ -11,6 +11,7 @@
 %requires DebugCmdLine
 %requires DebugLinenoiseCmdLine
 %requires ConnectionProvider
+%requires Logger
 
 %exec-class DebugWrapper
 
@@ -202,7 +203,19 @@ class DebugWrapper {
         }
         logger = new DebugLogger();
         if (opt.verbose) {
-            logger.verbose = opt.verbose;
+            int verbose;
+            if (opt.verbose == 1) {
+                verbose = LoggerLevel::INFO;
+            } else if (opt.verbose == 2) {
+                verbose = LoggerLevel::DEBUG;
+            } else if (opt.verbose == 3) {
+                verbose = LoggerLevel::TRACE;
+            } else {
+                verbose = LoggerLevel::ALL;
+            }
+            logger.verbose = verbose;
+        } else {
+            logger.verbose = LoggerLevel::WARN;
         }
         logger.log(DUV_INFO, "url: %s, verbose: %d", opt.url, logger.verbose);
         dcl = new DebugCommandLineRemote(opt);
