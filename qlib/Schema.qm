@@ -388,6 +388,9 @@ public namespace Schema {
         */
         bool created;
 
+        #! The total number of changes made
+        int num_changes;
+
         #! Change map; action code -> count
         *hash<string, int> change_map;
 
@@ -438,6 +441,7 @@ public namespace Schema {
         hash<SchemaAlignmentInfo> getInfo() {
             return <SchemaAlignmentInfo>{
                 "created": created ?? False,
+                "num_changes": ((foldl $1 + $2, change_map.iterator()) + (foldl $1 + $2, data_change_map.iterator())) ?? 0,
                 "change_map": change_map,
                 "data_change_map": data_change_map,
             };
@@ -446,7 +450,7 @@ public namespace Schema {
         #! this is the informational callback method for schema operations
         infoCallback(string str, int ac, *string type, *string name, *string table, *string new_name, *string info) {
             # maintain change map
-            ++change_map{ac};
+            ++change_map{AbstractDatabase::ActionMap{ac}};
 
             if (!exists created) {
                 if (CreateActionMap{ac}) {
@@ -679,7 +683,7 @@ public namespace Schema {
         */
         int align(bool force = False, int verbose = 0, bool do_msgs = True) {
             SchemaCallbackHelper sch = alignIntern(force, verbose, do_msgs);
-            return sch.change_count + sch.data_change_map.size();
+            return sch.change_count + (foldl $1 + $2, sch.data_change_map.iterator());
         }
 
         #! executes a schema alignment action on the database with the current schema template
@@ -1289,7 +1293,8 @@ public namespace Schema {
                 if (tsh) {
                     if (verbose == 1 || dot)
                         logProgress("\n");
-                    log("** reference data %s: %s", table.getName(), (foldl $1 + ", " + $2, (map sprintf("%s: %d", $1.key, $1.value), tsh.pairIterator())));
+                    log("** reference data %s: %s", table.getName(), (foldl $1 + ", " + $2,
+                        (map sprintf("%s: %d", $1.key, $1.value), tsh.pairIterator())));
                 } else {
                     if (verbose > 1) {
                         if (dot)
