@@ -155,7 +155,7 @@ public class AbstractDataProcessor {
     #! Returns @ref True if the data processor supports bulk operation
     /** @return @ref True if the data processor supports bulk operation
 
-        @see dataprovider_pipeline_bulk_processing
+        @see @ref dataprovider_pipeline_bulk_processing
     */
     private abstract bool supportsBulkApiImpl();
 }

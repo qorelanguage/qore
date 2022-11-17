@@ -71,7 +71,7 @@ public hashdecl PipelineInfo {
     int num_queues;
 
     #! Flag that indicates if the pipeline is capable of bulk record processing
-    /** @see dataprovider_pipeline_bulk_processing
+    /** @see @ref dataprovider_pipeline_bulk_processing
     */
     bool bulk;
 
@@ -404,7 +404,7 @@ public class DataProviderPipeline {
         hash<string, PipelineQueue> pmap;
 
         #! Bulk flag
-        /** @see dataprovider_pipeline_bulk_processing
+        /** @see @ref dataprovider_pipeline_bulk_processing
         */
         bool do_bulk = True;
 
@@ -870,7 +870,7 @@ public class DataProviderPipeline {
     #! Submits bulk data for processing
     /** Must be called with the lock held
 
-        @see dataprovider_pipeline_bulk_processing
+        @see @ref dataprovider_pipeline_bulk_processing
     */
     private:internal submitBulkIntern(AbstractDataProviderBulkRecordInterface i) {
         while (*hash<auto> recs = i.getValue()) {
