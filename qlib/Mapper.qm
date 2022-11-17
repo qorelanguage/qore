@@ -850,7 +850,7 @@ Mapper mapv(DataMap);
     }
 
     #! Submits the data for processing by the mapper
-    /** @param enqueue s closure taking a single arugment that enqueues the processed data for the next step in the
+    /** @param enqueue s closure taking a single argument that enqueues the processed data for the next step in the
         pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
         onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
         then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode

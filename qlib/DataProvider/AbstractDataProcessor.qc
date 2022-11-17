@@ -77,7 +77,7 @@ public class AbstractDataProcessor {
     }
 
     #! Submits the data for processing
-    /** @param enqueue a closure taking a single arugment that enqueues the processed data for the next step in the
+    /** @param enqueue a closure taking a single argument that enqueues the processed data for the next step in the
         pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
         onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
         then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
@@ -103,7 +103,7 @@ public class AbstractDataProcessor {
     }
 
     #! This method is called for each pipeline element to permit flushing of any pending data at the end of processing
-    /** @param enqueue a closure taking a single arugment that enqueues the processed data for the next step in the
+    /** @param enqueue a closure taking a single argument that enqueues the processed data for the next step in the
         pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
         onwards, then \a enqueue should be called only once; if multiple records are generated, then call it once for
         each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
@@ -129,7 +129,7 @@ public class AbstractDataProcessor {
     }
 
     #! This method is called for each pipeline element to permit flushing of any pending data at the end of processing
-    /** @param enqueue a closure taking a single arugment that enqueues the processed data for the next step in the
+    /** @param enqueue a closure taking a single argument that enqueues the processed data for the next step in the
         pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
         onwards, then \a enqueue should be called only once; if multiple records are generated, then call it once for
         each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
@@ -144,7 +144,7 @@ public class AbstractDataProcessor {
     }
 
     #! Submits the data for processing
-    /** @param enqueue a closure taking a single arugment that enqueues the processed data for the next step in the
+    /** @param enqueue a closure taking a single argument that enqueues the processed data for the next step in the
         pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
         onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
         then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
