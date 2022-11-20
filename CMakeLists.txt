@@ -756,7 +756,7 @@ install(FILES ${CMAKE_BINARY_DIR}/include/qore/qore-version.h
         DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/qore)
 install(FILES qore.1
         DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1)
-install(FILES doxygen/Doxyfile.in doxygen/qore-logo-55x200.png
+install(FILES doxygen/Doxyfile.in doxygen/qore-logo-55x200.png doxygen/qore-logo-55x151-white.png
         DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/qore)
 
 # prepare documentation targets

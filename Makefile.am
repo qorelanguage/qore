@@ -988,7 +988,8 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 dist_modver_DATA = $(USER_MODULES)
 
 dist_qoredata_DATA = doxygen/Doxyfile.in \
-	doxygen/qore-logo-55x200.png
+	doxygen/qore-logo-55x200.png \
+    doxygen/qore-logo-55x151-white.png
 
 include $(srcdir)/qoretests.mk
 
