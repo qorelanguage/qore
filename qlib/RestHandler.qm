@@ -1368,7 +1368,7 @@ public namespace RestHandler {
                 hash<HttpResponseInfo> res;
 
                 try {
-                    res = validator.processResponse(hdr.method, req.path, rv.code, rv.body, rv.hdr,
+                    res = validator.processResponse(hdr.method, req.path, rv."code", rv.body, rv.hdr,
                         aih."*/*" ? NOTHING : keys aih);
                 } catch (hash<ExceptionInfo> ex) {
                     logDebug("REST DBG: %s", get_exception_string(ex));

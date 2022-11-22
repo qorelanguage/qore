@@ -55,7 +55,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "2.1.2";
+    version = "2.1.3";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -75,6 +75,10 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_2_1.3 RestSchemaValidator v2.1.3
+    - allow for the client's time zone locale to be set for data serialization / deserialization
+      (<a href="https://github.com/qorelanguage/qore/issues/4639">issue 4639</a>)
 
     @subsection restschemavalidator_2_1.2 RestSchemaValidator v2.1.2
     - allow a logger to be set in validators
@@ -401,6 +405,26 @@ public namespace RestSchemaValidator {
             return True;
         }
 
+        #! Allows the time zone locale to be set for serialization / deserialization
+        /** @param tz the time zone locale to set
+
+            @since RestSchemaValidator 2.1.3
+        */
+        setTimeZoneLocale(*TimeZone tz) {
+            # must be performed in the implementing module's Program container
+            setTimeZoneLocaleImpl(tz);
+        }
+
+        #! Returns the time zone locale used for serialization / deserialization
+        /** @return the time zone locale to set
+
+            @since RestSchemaValidator 2.1.3
+        */
+        *TimeZone getTimeZoneLocale() {
+            # must be performed in the implementing module's Program container
+            return getTimeZoneLocaleImpl();
+        }
+
         #! returns a data provider object for this connection, if supported by any REST schema validator object
         /** @param rest the \c RestClient object to make the connection
 
@@ -543,6 +567,20 @@ public namespace RestSchemaValidator {
         */
         private abstract hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code,
                 *softlist<string> content_types);
+
+        #! Allows the time zone locale to be set for serialization / deserialization
+        /** @param tz the time zone locale to set
+
+            @since RestSchemaValidator 2.1.3
+        */
+        private abstract setTimeZoneLocaleImpl(*TimeZone tz);
+
+        #! Returns the time zone locale used for serialization / deserialization
+        /** @return the time zone locale to set
+
+            @since RestSchemaValidator 2.1.3
+        */
+        private abstract *TimeZone getTimeZoneLocaleImpl();
     }
 
     #! null REST validator; no schema is used but default serialization and deserialization is performed
@@ -997,6 +1035,24 @@ public namespace RestSchemaValidator {
         private hash<RestExampleResponseInfo> getExampleResponseImpl(string method, string path, int code,
                 *softlist<string> content_types) {
             return new hash<RestExampleResponseInfo>();
+        }
+
+        #! Allows the time zone locale to be set for serialization / deserialization
+        /** @param tz the time zone locale to set
+
+            @since RestSchemaValidator 2.1.3
+        */
+        private setTimeZoneLocaleImpl(*TimeZone tz) {
+            set_thread_tz(tz);
+        }
+
+        #! Returns the time zone locale used for serialization / deserialization
+        /** @return the time zone locale to set
+
+            @since RestSchemaValidator 2.1.3
+        */
+        private *TimeZone getTimeZoneLocaleImpl() {
+            return get_thread_tz();
         }
     }
 }

@@ -5869,7 +5869,7 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
     }
 
     #! abstract container class that throws an exception if an unknown key is accessed
-    public class AbstractHashContainer inherits Serializable {
+    public class AbstractHashContainer inherits Qore::Serializable {
         public {}
 
         private {
@@ -6209,7 +6209,7 @@ bool b = h.hasKeyValue(key);
     }
 
     #! abstract container class that throws an exception if an unknown key is accessed
-    public class AbstractListContainer inherits Serializable {
+    public class AbstractListContainer inherits Qore::Serializable {
         public {}
 
         private {
@@ -6764,7 +6764,7 @@ AbstractColumn c = cols.id;
     }
 
     #! the base class for named objects
-    public class AbstractDdlObject inherits Serializable {
+    public class AbstractDdlObject inherits Qore::Serializable {
         public {
             #! the name of the object
             string name;
@@ -7034,7 +7034,7 @@ AbstractIndex ix = indexes.pk_jobs;
     }
 
     #! the abstract base class for index information
-    public class AbstractIndex inherits Serializable {
+    public class AbstractIndex inherits Qore::Serializable {
         public {
             #! the name of the index
             string name;
@@ -7226,7 +7226,7 @@ AbstractConstraint ix = constraints.uk_jobs;
     }
 
     #! abstract base class for constraints
-    public class AbstractConstraint inherits Serializable {
+    public class AbstractConstraint inherits Qore::Serializable {
         public {}
 
         private {
@@ -7559,7 +7559,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! a class describing a foreign constraint target
-    public class ForeignConstraintTarget inherits Serializable {
+    public class ForeignConstraintTarget inherits Qore::Serializable {
         public {
             #! the name of the target table
             string table;
@@ -7601,7 +7601,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for sequences
-    public class AbstractSequence inherits Serializable {
+    public class AbstractSequence inherits Qore::Serializable {
         public {
             #! the name of the sequence
             string name;
@@ -7650,7 +7650,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for views
-    public class AbstractView inherits Serializable {
+    public class AbstractView inherits Qore::Serializable {
         public {
             # ! potential object schema
             *string schema;
@@ -7689,7 +7689,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for function or objects with code
-    public class AbstractFunctionBase inherits Serializable {
+    public class AbstractFunctionBase inherits Qore::Serializable {
         public {
             #! the name of the object
             string name;

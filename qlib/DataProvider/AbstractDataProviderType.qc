@@ -185,7 +185,7 @@ public const DTT_ClientOnly = "client_only";
 #@}
 
 #! describes a data type
-public class AbstractDataProviderType inherits Serializable {
+public class AbstractDataProviderType inherits Qore::Serializable {
     public {
         static Type nothingType = Reflection::NothingType;
         static Type anyType = Reflection::AutoType;

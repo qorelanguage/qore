@@ -310,7 +310,7 @@ public namespace PgsqlSqlUtil {
     }
 
     #! represents a PostgreSQL type
-    public class PgsqlType inherits Serializable {
+    public class PgsqlType inherits Qore::Serializable {
         public {
             #! the name of the type
             string name;

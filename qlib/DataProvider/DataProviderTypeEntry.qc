@@ -59,7 +59,7 @@ public hashdecl DataProviderTypeEntryInfo {
 }
 
 #! the DataProviderTypeEntry class
-public class DataProviderTypeEntry inherits Serializable {
+public class DataProviderTypeEntry inherits Qore::Serializable {
     private {
         #! The path to this entry
         string path;
