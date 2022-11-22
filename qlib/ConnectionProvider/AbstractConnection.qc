@@ -31,7 +31,7 @@ public namespace ConnectionProvider {
 
     @deprecated use AbstractConnectionWithInfo instead
 */
-public class AbstractConnection inherits Serializable {
+public class AbstractConnection inherits Qore::Serializable {
     public {
         #! connection name
         string name;

@@ -25,7 +25,7 @@
 #! contains all public definitions in the SqlUtil module
 public namespace SqlUtil {
 #! base class for abstract SqlUtil classes
-public class AbstractSqlUtilBase inherits Serializable {
+public class AbstractSqlUtilBase inherits Qore::Serializable {
     private {
         #! datasource description
         string dsdesc;

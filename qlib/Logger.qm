@@ -236,7 +236,7 @@ public namespace Logger {
     The set of built-in levels includes \c TRACE, \c DEBUG, \c INFO, \c WARN, \c ERROR and \c FATAL. Log4q also supports
     custom log levels where the \c LoggerLevel class may be subclassed to define a larger level set.
 */
-public class LoggerLevel inherits Serializable {
+public class LoggerLevel inherits Qore::Serializable {
     public {
         #! The highest logger level
         const OFF = MAXINT;
@@ -498,7 +498,7 @@ public class LoggerEventParameter {
     an exception then exception instance is passed for formatting. So it should be considered if format string and
     use for example "%y" to get readable data.
 */
-public class LoggerEvent inherits Serializable {
+public class LoggerEvent inherits Qore::Serializable {
     private:internal {
         #! origin stamp to calculate relative time
         static date startTime = now_us();
