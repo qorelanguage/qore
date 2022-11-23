@@ -472,7 +472,9 @@ ENDMACRO (QORE_EXTERNAL_USER_MODULE)
 # Files will be installed automatically in 'make install' target
 MACRO (QORE_USER_MODULES _inputs)
     # first - handle qlib documentation
-    find_package(Doxygen)
+    if (NOT DOXYGEN_FOUND)
+        find_package(Doxygen)
+    endif()
     foreach(f ${_inputs})
         unset(_mod_targets)
         if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/${f})
