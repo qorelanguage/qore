@@ -818,6 +818,8 @@ HTML_FOOTER            = doxygen/footer_template.html
 
 HTML_STYLESHEET        =
 
+HTML_EXTRA_STYLESHEET  = ../../doxygen/dox_qore.css
+
 HTML_COLORSTYLE        = DARK
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output.

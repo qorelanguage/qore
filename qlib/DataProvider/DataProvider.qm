@@ -57,6 +57,12 @@ module DataProvider {
 
     @section dataproviderintro Introduction to the DataProvider Module
 
+    @htmlonly
+    <div class="image">
+      <img src="DataProvider-Full.svg" alt="DataProvider Logo" style="width:40%;">
+    </div>
+    @endhtmlonly
+
     The %DataProvider module provides APIs for hierarchical data structures from arbitrary sources to be described,
     queried, introspected, and updated.  It supports data providers supporting record-based APIs as well as
     request-reply semantics such as REST schemas or with SOAP messaging, as well as event-based data providers.

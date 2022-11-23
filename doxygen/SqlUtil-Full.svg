@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="190.00002mm"
+   height="57.000004mm"
+   viewBox="0 0 190 57"
+   version="1.1"
+   id="svg381829"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="SqlUtil-Full-Light.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview381831"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     units="mm"
+     inkscape:zoom="2.8792368"
+     inkscape:cx="105.23622"
+     inkscape:cy="134.0633"
+     inkscape:window-width="1551"
+     inkscape:window-height="991"
+     inkscape:window-x="26"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g426820" />
+  <defs
+     id="defs381826" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g381925"
+       transform="matrix(0.26458333,0,0,0.26458333,3.6338368,5.6095484)">
+      <g
+         id="g426820"
+         transform="matrix(3.5655921,0,0,3.5655921,-14.41398,-12)">
+        <path
+           style="fill:#424a60"
+           d="M 50.455,8 V 8 C 49.724,3.538 39.281,0 26.5,0 13.719,0 3.276,3.538 2.545,8 V 8 H 2.5 V 8.5 20 20.5 21 32 32.5 33 45 h 0.045 c 0.731,4.461 11.175,8 23.955,8 12.78,0 23.224,-3.539 23.955,-8 H 50.5 V 33 32.5 32 21 20.5 20 8.5 8 Z"
+           id="path381833" />
+        <g
+           id="g381841">
+	<path
+   style="fill:#c00070;stroke:none"
+   d="M 26.5,41 C 13.245,41 2.5,37.194 2.5,32.5 V 45 h 0.045 c 0.731,4.461 11.175,8 23.955,8 12.78,0 23.224,-3.539 23.955,-8 H 50.5 V 32.5 c 0,4.694 -10.745,8.5 -24,8.5 z"
+   id="path381835" />
+
+	<path
+   style="fill:#424a60"
+   d="m 2.5,32 v 0.5 c 0,-0.168 0.018,-0.334 0.045,-0.5 z"
+   id="path381837" />
+
+	<path
+   style="fill:#424a60"
+   d="m 50.455,32 c 0.027,0.166 0.045,0.332 0.045,0.5 V 32 Z"
+   id="path381839" />
+
+</g>
+        <g
+           id="g381849">
+	<path
+   style="fill:#ce4a97;fill-opacity:1;stroke-width:0.99958;stroke-miterlimit:4;stroke-dasharray:none;stroke:none"
+   d="M 26.5,29 C 13.245,29 2.5,25.194 2.5,20.5 V 33 h 0.045 c 0.731,4.461 11.175,8 23.955,8 12.78,0 23.224,-3.539 23.955,-8 H 50.5 V 20.5 c 0,4.694 -10.745,8.5 -24,8.5 z"
+   id="path381843" />
+
+	<path
+   style="fill:#556080"
+   d="m 2.5,20 v 0.5 c 0,-0.168 0.018,-0.334 0.045,-0.5 z"
+   id="path381845" />
+
+	<path
+   style="fill:#556080"
+   d="m 50.455,20 c 0.027,0.166 0.045,0.332 0.045,0.5 V 20 Z"
+   id="path381847" />
+
+</g>
+        <ellipse
+           style="fill:#f8dcec;fill-opacity:1;stroke:none"
+           cx="26.5"
+           cy="8.5"
+           rx="24.000521"
+           ry="8.5"
+           id="ellipse381851" />
+        <g
+           id="g381859">
+	<path
+   style="fill:#ea91c5;fill-opacity:1;stroke:none;stroke-width:0.99958;stroke-miterlimit:4;stroke-dasharray:none"
+   d="M 26.5,17 C 13.245,17 2.5,13.194 2.5,8.5 V 21 h 0.045 c 0.731,4.461 11.175,8 23.955,8 12.78,0 23.224,-3.539 23.955,-8 H 50.5 V 8.5 c 0,4.694 -10.745,8.5 -24,8.5 z"
+   id="path381853" />
+
+	<path
+   style="fill:#7383bf"
+   d="M 2.5,8 V 8.5 C 2.5,8.332 2.518,8.166 2.545,8 Z"
+   id="path381855" />
+
+	<path
+   style="fill:#7383bf"
+   d="M 50.455,8 C 50.482,8.166 50.5,8.332 50.5,8.5 V 8 Z"
+   id="path381857" />
+
+</g>
+      </g>
+      <g
+         id="g381861"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381863"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381865"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381867"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381869"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381871"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381873"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381875"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381877"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381879"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381881"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381883"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381885"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381887"
+         transform="translate(-8,-12)">
+</g>
+      <g
+         id="g381889"
+         transform="translate(-8,-12)">
+</g>
+      <text
+         xml:space="preserve"
+         style="font-style:normal;font-weight:normal;font-size:181.333px;line-height:1.25;font-family:sans-serif;fill:#000000;fill-opacity:1;stroke:none;stroke-width:3.77953;stroke-miterlimit:4;stroke-dasharray:none"
+         x="193.62483"
+         y="149.36813"
+         id="text397938"><tspan
+           sodipodi:role="line"
+           id="tspan397936"
+           x="193.62483"
+           y="149.36813"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:181.333px;font-family:'Neo Sans Pro';-inkscape-font-specification:'Neo Sans Pro';stroke-width:3.77953;stroke-miterlimit:4;stroke-dasharray:none"><tspan
+             style="font-style:normal;font-variant:normal;font-weight:500;font-stretch:normal;font-size:181.333px;font-family:'Neo Sans Pro';-inkscape-font-specification:'Neo Sans Pro Medium';fill:none;stroke:#c00070;stroke-width:3.77953;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+             id="tspan440661">Sql</tspan><tspan
+             style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-size:181.333px;font-family:'Neo Sans Pro';-inkscape-font-specification:'Neo Sans Pro Light';fill:#c00070"
+             id="tspan481443">Util</tspan></tspan></text>
+    </g>
+  </g>
+</svg>

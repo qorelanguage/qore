@@ -53,6 +53,10 @@ endif ()
 
 find_package(Java)
 
+if (DEFINED ENV{DOXYGEN_EXECUTABLE})
+    set(DOXYGEN_EXECUTABLE $ENV{DOXYGEN_EXECUTABLE})
+endif()
+
 # simulate QoreConfig
 set(QORE_QDX_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qdx")
 set(QORE_QJAR_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qjar")
@@ -756,7 +760,7 @@ install(FILES ${CMAKE_BINARY_DIR}/include/qore/qore-version.h
         DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/qore)
 install(FILES qore.1
         DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1)
-install(FILES doxygen/Doxyfile.in doxygen/qore-logo-55x200.png doxygen/qore-logo-55x151-white.png
+install(FILES doxygen/Doxyfile.in doxygen/qore-logo-55x200.png doxygen/qore-logo-55x151-white.png doxygen/dox_qore.css doxygen/DataProvider-Full.svg doxygen/SqlUtil-Full.svg
         DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/qore)
 
 # prepare documentation targets
@@ -844,7 +848,7 @@ qore_user_module("qlib/MapperUtil.qm" "")
 
 # base 2 modules
 qore_user_module("qlib/FileLocationHandler" "Util")
-qore_user_module("qlib/DataProvider" "MapperUtil")
+qore_user_module("qlib/DataProvider" "MapperUtil" "DataProvider-Full.svg")
 qore_user_module("qlib/Diff.qm" "Util")
 qore_user_module("qlib/Logger.qm" "Util")
 qore_user_module("qlib/Mime.qm" "Util")
@@ -856,7 +860,7 @@ qore_user_module("qlib/FilePoller.qm" "Util;DataProvider")
 qore_user_module("qlib/FileDataProvider" "FsUtil;DataProvider")
 qore_user_module("qlib/FtpClientDataProvider" "DataProvider")
 qore_user_module("qlib/HttpClientDataProvider" "DataProvider;FileLocationHandler")
-qore_user_module("qlib/SqlUtil" "Util;DataProvider")
+qore_user_module("qlib/SqlUtil" "Util;DataProvider" "SqlUtil-Full.svg")
 qore_user_module("qlib/ConnectionProvider" "Util;DataProvider")
 qore_user_module("qlib/CsvUtil" "Util;DataProvider")
 qore_user_module("qlib/FixedLengthUtil" "Util;DataProvider")

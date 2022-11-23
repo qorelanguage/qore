@@ -989,7 +989,10 @@ dist_modver_DATA = $(USER_MODULES)
 
 dist_qoredata_DATA = doxygen/Doxyfile.in \
 	doxygen/qore-logo-55x200.png \
-    doxygen/qore-logo-55x151-white.png
+    doxygen/qore-logo-55x151-white.png \
+    doxygen/dox_qore.css \
+    doxygen/DataProvider-Full.svg \
+    doxygen/SqlUtil-Full.svg
 
 include $(srcdir)/qoretests.mk
 

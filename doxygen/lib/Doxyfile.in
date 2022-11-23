@@ -817,6 +817,8 @@ HTML_FOOTER            = "@CMAKE_BINARY_DIR@/doxygen/footer_template.html"
 
 HTML_STYLESHEET        =
 
+HTML_EXTRA_STYLESHEET  = @CMAKE_SOURCE_DIR@/doxygen/dox_qore.css
+
 HTML_COLORSTYLE        = DARK
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output.

@@ -280,6 +280,8 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
         set(qm_install_subdir "") # common qm file
     endif()
 
+    set (_extra_files ${ARGN})
+
     if (DOXYGEN_FOUND)
         # get module name
         #message(STATUS "Preparing generation of documentation for module: ${f}")
@@ -296,8 +298,13 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
             SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=../../${i}/html)
         endforeach(i)
 
+        SET(EXTRA_FILES)
+        foreach(i ${_extra_files})
+            SET(EXTRA_FILES ${EXTRA_FILES} ${i})
+        endforeach(i)
+
         # prepare QDX arguments
-        set(QDX_DOXYFILE_ARGS -T${CMAKE_SOURCE_DIR} -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE})
+        set(QDX_DOXYFILE_ARGS -T${CMAKE_SOURCE_DIR} -M=${CMAKE_SOURCE_DIR}/${_module_file}:${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h ${MOD_DEPS} ${CMAKE_SOURCE_DIR}/doxygen/qlib/Doxyfile.tmpl ${MOD_DOXYFILE} --extra-files ${EXTRA_FILES})
         set(QDX_QMDOXH_ARGS ${CMAKE_SOURCE_DIR}/${_module_file} ${CMAKE_BINARY_DIR}/doxygen/qlib/${f}.qm.dox.h)
 
         # add CMake target for the documentation

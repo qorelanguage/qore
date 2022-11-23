@@ -56,6 +56,12 @@ module SqlUtil {
 
     @section sqlutilintro Introduction to the SqlUtil Module
 
+    @htmlonly
+    <div class="image">
+      <img src="SqlUtil-Full.svg" alt="SqlUtil Logo" style="width:30%;">
+    </div>
+    @endhtmlonly
+
     The %SqlUtil module provides a high level database-independent API for working with database objects and SQL.
 
     To use this module, use \c "%requires SqlUtil" in your code.
