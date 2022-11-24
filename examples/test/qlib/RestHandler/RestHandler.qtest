@@ -147,7 +147,7 @@ class MyRestHandler inherits RestHandler {
         return RestHandler::makeResponse(200, exists ah.action);
     }
 
-    private *hash<auto> errorResponseHeaders() {
+    private *hash<auto> errorResponseHeaders(hash<auto> cx) {
         return {
             "Error": "True",
         };

@@ -1257,12 +1257,12 @@ public namespace RestHandler {
                     || ex.err == "DESERIALIZATION-ERROR"
                     || ex.err == "SCHEMA-VALIDATION-ERROR")
                     return AbstractHttpRequestHandler::makeResponse(400, sprintf("%s: %s", ex.err, ex.desc),
-                        errorResponseHeaders());
+                        errorResponseHeaders(cx));
                 if (ex.err == "INVALID-METHOD") {
                     string ml = (foldl $1 + "," + $2, ex.arg) ?? "";
                     return AbstractHttpRequestHandler::makeResponse(405, sprintf("HTTP method %y is not supported "
                         "with URI path %y; supported methods: %s", hdr.method, path, ml ?* "<none>"),
-                        errorResponseHeaders() + {"Allow": ml});
+                        errorResponseHeaders(cx) + {"Allow": ml});
                 }
                 rethrow;
             }
@@ -1417,7 +1417,7 @@ public namespace RestHandler {
         #! Retrieves headers for an error response
         /** @return the base method returns @ref NOTHING; override to return additional headers for an error response
         */
-        private *hash<auto> errorResponseHeaders() {
+        private *hash<auto> errorResponseHeaders(hash<auto> cx) {
         }
 
         #! Dispatches the request and returns the response
