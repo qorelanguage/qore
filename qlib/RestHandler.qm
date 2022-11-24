@@ -42,7 +42,7 @@
 %requires reflection
 
 module RestHandler {
-    version = "1.6";
+    version = "1.6.1";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -374,8 +374,14 @@ Content-Length: 16
 
     @section resthandler_relnotes RestHandler Release Notes
 
+    @subsection rh_1_6_1 RestHandler v1.6.1
+    - implemented the @ref RestHandler::RestHandler::errorResponseHeaders() to allow subclasses to return custom
+      headers in error responses, such as when a request cannot be deserialized
+      (<a href="https://github.com/qorelanguage/qore/issues/4646">issue 4646</a>)
+
     @subsection rh_1_6 RestHandler v1.6
-    - added request arguments to the @ref RestHandler::RestHandler::unknownSubClassError() "RestHandler::unknownSubClassError()"
+    - added request arguments to the
+      @ref RestHandler::RestHandler::unknownSubClassError() "RestHandler::unknownSubClassError()"
       and @ref RestHandler::RestHandler::doGetPossibleSubClasses() "RestHandler::doGetPossibleSubClasses()" methods
       (<a href="https://github.com/qorelanguage/qore/issues/4578">issue 4578</a>)
 
@@ -1250,11 +1256,13 @@ public namespace RestHandler {
                     || ex.err == "ENCODING-CONVERSION-ERROR"
                     || ex.err == "DESERIALIZATION-ERROR"
                     || ex.err == "SCHEMA-VALIDATION-ERROR")
-                    return AbstractHttpRequestHandler::make400("%s: %s", ex.err, ex.desc);
+                    return AbstractHttpRequestHandler::makeResponse(400, sprintf("%s: %s", ex.err, ex.desc),
+                        errorResponseHeaders());
                 if (ex.err == "INVALID-METHOD") {
                     string ml = (foldl $1 + "," + $2, ex.arg) ?? "";
                     return AbstractHttpRequestHandler::makeResponse(405, sprintf("HTTP method %y is not supported "
-                        "with URI path %y; supported methods: %s", hdr.method, path, ml ?* "<none>"), ("Allow": ml));
+                        "with URI path %y; supported methods: %s", hdr.method, path, ml ?* "<none>"),
+                        errorResponseHeaders() + {"Allow": ml});
                 }
                 rethrow;
             }
@@ -1404,6 +1412,12 @@ public namespace RestHandler {
             #logDebug("REST DBG: rv: %N", rv);
 
             return cast<hash<HttpResponseInfo>>(rv);
+        }
+
+        #! Retrieves headers for an error response
+        /** @return the base method returns @ref NOTHING; override to return additional headers for an error response
+        */
+        private *hash<auto> errorResponseHeaders() {
         }
 
         #! Dispatches the request and returns the response

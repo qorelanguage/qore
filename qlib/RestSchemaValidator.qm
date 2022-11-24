@@ -77,6 +77,9 @@ module RestSchemaValidator {
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
 
     @subsection restschemavalidator_2_1.3 RestSchemaValidator v2.1.3
+    - REST handlers must throw a \c DESERIALIZATION-ERROR when deserialization errors occur, so that a
+      <tt>400 Bad Request</tt> response is returned
+      (<a href="https://github.com/qorelanguage/qore/issues/4647">issue 4647</a>)
     - allow for the client's time zone locale to be set for data serialization / deserialization
       (<a href="https://github.com/qorelanguage/qore/issues/4639">issue 4639</a>)
 
@@ -781,9 +784,13 @@ public namespace RestSchemaValidator {
                         keys DataDeserializationSupport, http_body);
 
                 string ds_code = dh.code;
-                rv.body = dh.arg
-                    ? dh.in(http_body, \ds_code)
-                    : dh.in(http_body);
+                try {
+                    rv.body = dh.arg
+                        ? dh.in(http_body, \ds_code)
+                        : dh.in(http_body);
+                } catch (hash<ExceptionInfo> ex) {
+                    rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc);
+                }
 
                 rv.info.code = ds_code;
             }
@@ -920,12 +927,16 @@ public namespace RestSchemaValidator {
                         "body type is %y", ct, response_body.type());
                 }
 
-                string ds_code = dh.code;
-                rv.body = dh.arg
-                    ? dh.in(response_body, \ds_code)
-                    : dh.in(response_body);
+                string ds_code = dh."code";
+                try {
+                    rv.body = dh.arg
+                        ? dh.in(response_body, \ds_code)
+                        : dh.in(response_body);
+                } catch (hash<ExceptionInfo> ex) {
+                    rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc);
+                }
 
-                rv.info.code = ds_code;
+                rv.info."code" = ds_code;
             }
 
             return rv;

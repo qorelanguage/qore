@@ -205,71 +205,71 @@ public:
     */
 
     /**
-        * Data local for each program and thread. dbgXXX function are called from
-        * AbstractStatement places when particular action related to debugging is taken.
-        * xsink is passed as debugger can raise exception to be passed to program.
-        * When dbgXXX function is executed then runState is tested unless is DBG_RS_STOPPED
-        * then is set to DBG_RS_STOPPED. It's simple lock and debugging is disabled
-        * till returns from this event handler. To be precise it should be
-        * locked by an atomic lock but it is good enough not to break performance.
-        */
+        Data local for each program and thread. dbgXXX function are called from
+        AbstractStatement places when particular action related to debugging is taken.
+        xsink is passed as debugger can raise exception to be passed to program.
+        When dbgXXX function is executed then runState is tested unless is DBG_RS_STOPPED
+        then is set to DBG_RS_STOPPED. It's simple lock and debugging is disabled
+        till returns from this event handler. To be precise it should be
+        locked by an atomic lock but it is good enough not to break performance.
+    */
 
     /**
-        * Executed when starting thread or thread context first time for given program
-        */
+        Executed when starting thread or thread context first time for given program
+    */
     DLLLOCAL void dbgAttach(ExceptionSink* xsink);
     /**
-        * Executed from any thread when terminated to detach program
-        */
+        Executed from any thread when terminated to detach program
+    */
     DLLLOCAL void dbgDetach(ExceptionSink* xsink);
     /**
-        * Executed every step in BlockStatement.
-        * @param statement is step being processed
-        * @return 0 as neutral value or RC_RETURN/BREAK/CONTINUE to terminate block
-        */
+        Executed every step in BlockStatement.
+        @param statement is step being processed
+        @return 0 as neutral value or RC_RETURN/BREAK/CONTINUE to terminate block
+    */
     DLLLOCAL int dbgStep(const StatementBlock* blockStatement, const AbstractStatement* statement, ExceptionSink* xsink);
     /**
-        * Executed when a function is entered. If step-over is requested then flag is cleared not to break
-        */
+        Executed when a function is entered. If step-over is requested then flag is cleared not to break
+    */
     DLLLOCAL void dbgFunctionEnter(const StatementBlock* statement, ExceptionSink* xsink);
     /**
-        * Executed when a function is exited.
-        */
+        Executed when a function is exited.
+    */
     DLLLOCAL void dbgFunctionExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink);
     /**
-        * Executed when an exception is raised.
-        */
+        Executed when an exception is raised.
+    */
     DLLLOCAL void dbgException(const AbstractStatement* statement, ExceptionSink* xsink);
     /**
-        * Executed when a thread or program is exited.
-        */
+        Executed when a thread or program is exited.
+    */
     DLLLOCAL void dbgExit(const StatementBlock* statement, QoreValue& returnValue, ExceptionSink* xsink);
 
     /**
-        * Executed from any thread to break running program
-        */
+        Executed from any thread to break running program
+    */
     DLLLOCAL void dbgBreak() {
         printd(5, "ThreadLocalProgramData::dbgBreak(), this: %p\n", this);
         breakFlag = true;
     }
     /**
-        * Executed from any thread to set pending attach flag
-        */
+        Executed from any thread to set pending attach flag
+    */
     DLLLOCAL void dbgPendingAttach() {
         printd(5, "ThreadLocalProgramData::dbgPendingAttach(), this: %p\n", this);
         attachFlag = 1;
     }
     /**
-        * Executed from any thread to set pending detach flag
-        */
+        Executed from any thread to set pending detach flag
+    */
     DLLLOCAL void dbgPendingDetach() {
         printd(5, "ThreadLocalProgramData::dbgPendingDetach(), this: %p\n", this);
         attachFlag = -1;
     }
 
     /**
-        * Check if attached to debugger
-        */
+        Check if attached to debugger
+    */
     DLLLOCAL bool dbgIsAttached() {
         return /*runState != DBG_RS_STOPPED &&*/ runState != DBG_RS_DETACH;
     }
@@ -328,11 +328,11 @@ public:
 
     // for the thread counter, used only with plock
     QoreCondition pcond;
-    ptid_map_t tidmap;         // map of tids -> thread count in program object
-    unsigned thread_count;     // number of threads currently running in this Program
-    unsigned thread_waiting;   // number of threads waiting on all threads to terminate or parsing to complete
-    unsigned parse_count = 0;  // recursive parse count
-    int parse_tid = -1;        // thread with the parse lock
+    ptid_map_t tidmap;           // map of tids -> thread count in program object
+    unsigned thread_count = 0;   // number of threads currently running in this Program
+    unsigned thread_waiting = 0; // number of threads waiting on all threads to terminate or parsing to complete
+    unsigned parse_count = 0;    // recursive parse count
+    int parse_tid = -1;          // thread with the parse lock
 
     // file name and unique string storage
     cstr_vector_t str_vec;
@@ -363,9 +363,11 @@ public:
 
     // weak reference dependency counter, when this hits zero, the object is deleted
     QoreReferenceCounter dc;
-    ExceptionSink* parseSink, *warnSink, *pendingParseSink;
-    RootQoreNamespace* RootNS;
-    QoreNamespace* QoreNS;
+    ExceptionSink* parseSink = nullptr,
+        * warnSink = nullptr,
+        * pendingParseSink = nullptr;
+    RootQoreNamespace* RootNS = nullptr;
+    QoreNamespace* QoreNS = nullptr;
 
     // top level statements
     TopLevelStatementBlock sb;
@@ -388,10 +390,10 @@ public:
     q_exp_set_t exp_set;
     q_exp_t new_expression = nullptr;
 
-    int tclear;   // clearing thread-local variables in progress? if so, this is the TID
+    int tclear = 0;   // clearing thread-local variables in progress? if so, this is the TID
 
-    int exceptions_raised,
-        ptid;      // TID of thread destroying the program's private data
+    int exceptions_raised = 0,
+        ptid = 0;      // TID of thread destroying the program's private data
 
     ParseWarnOptions pwo;
 
@@ -429,27 +431,29 @@ public:
     QoreProgram* pgm;
 
     DLLLOCAL qore_program_private_base(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr)
-            : thread_count(0), thread_waiting(0), plock(&ma_recursive), parseSink(nullptr), warnSink(nullptr),
-            pendingParseSink(nullptr), RootNS(nullptr), QoreNS(nullptr),
+            : plock(&ma_recursive),
             sb(this),
-            only_first_except(false), po_locked(false), po_allow_restrict(true), exec_class(false), base_object(false),
+            only_first_except(false),
+            po_locked(false),
+            po_allow_restrict(true),
+            exec_class(false),
+            base_object(false),
             requires_exception(false),
             parsing_done(false),
             parsing_in_progress(false),
             ns_const(false),
             ns_vars(false),
             expression_mode(false),
-            tclear(0),
-            exceptions_raised(0), ptid(0), pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(nullptr), twaiting(0),
+            pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(nullptr), twaiting(0),
             thr_init(nullptr), pgm(n_pgm) {
         printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
 
         // must set priv before calling setParent()
         pgm->priv = (qore_program_private*)this;
 
-        if (p_pgm)
+        if (p_pgm) {
             setParent(p_pgm, n_parse_options);
-        else {
+        } else {
             TZ = QTZM.getLocalZoneInfo();
             newProgram();
         }
@@ -662,7 +666,8 @@ public:
         AutoLocker al(plock);
 
         if (ptid) {
-            xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore no new threads can be started in it");
+            xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore no "
+                "new threads can be started in it");
             return -1;
         }
 
@@ -692,7 +697,8 @@ public:
     /*
     DLLLOCAL int checkValid(ExceptionSink* xsink) {
         if (ptid && ptid != q_gettid()) {
-            xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
+            xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore "
+                "cannot be accessed at runtime");
             return -1;
         }
         return 0;
@@ -707,11 +713,13 @@ public:
         AutoLocker al(plock);
 
         if (ptid && ptid != tid) {
-            xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
+            xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore "
+                "cannot be accessed at runtime");
             return -1;
         }
         if (parsing_in_progress) {
-            xsink->raiseException("PROGRAM-ERROR", "the Program accessed is currently undergoing parsing and cannot be accessed at runtime");
+            xsink->raiseException("PROGRAM-ERROR", "the Program accessed is currently undergoing parsing and cannot "
+                "be accessed at runtime");
         }
 
         ++tidmap[tid];
@@ -727,10 +735,12 @@ public:
         AutoLocker al(plock);
 
         if (ptid && ptid != tid) {
-            throw QoreStandardException("PROGRAM-ERROR", "the Program accessed has already been deleted and therefore cannot be accessed at runtime");
+            throw QoreStandardException("PROGRAM-ERROR", "the Program accessed has already been deleted and "
+                "therefore cannot be accessed at runtime");
         }
         if (parsing_in_progress) {
-            throw QoreStandardException("PROGRAM-ERROR", "the Program accessed is currently undergoing parsing and cannot be accessed at runtime");
+            throw QoreStandardException("PROGRAM-ERROR", "the Program accessed is currently undergoing parsing and "
+                "cannot be accessed at runtime");
         }
 
         ++tidmap[tid];
@@ -773,9 +783,10 @@ public:
         }
 
         if (ptid && ptid != q_gettid()) {
-            if (xsink)
-                xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and " \
+            if (xsink) {
+                xsink->raiseException("PROGRAM-ERROR", "the Program accessed has already been deleted and "
                     "therefore cannot be accessed");
+            }
             return -1;
         }
 
@@ -1153,8 +1164,68 @@ public:
         warnSink = nullptr;
     }
 
+#if 0
+    // for REPL support
+    // FIXME: first parse rollback needs to be implemented
+    DLLLOCAL int parseStatement(const QoreString& str, const QoreString& lstr, ExceptionSink* xsink,
+            ExceptionSink* wS = nullptr, int wm = 0, const QoreString* source = nullptr, int offset = 0) {
+        assert(xsink);
+        if (!str.strlen()) {
+            xsink->raiseException("STATEMENT-ERROR", "the statement cannot be empty");
+            return -1;
+        }
+
+        // ensure code string has correct character set encoding
+        TempEncodingHelper tstr(str, QCS_DEFAULT, xsink);
+        if (*xsink) {
+            return -1;
+        }
+
+        // ensure label string has correct character set encoding
+        TempEncodingHelper tlstr(lstr, QCS_DEFAULT, xsink);
+        if (*xsink) {
+            return -1;
+        }
+
+        TempEncodingHelper src;
+        if (source && !source->empty() && !src.set(source, QCS_DEFAULT, xsink)) {
+            return -1;
+        }
+
+        return parseStatement(tstr->c_str(), tlstr->c_str(), xsink, wS, wm, source ? src->c_str() : nullptr, offset);
+    }
+
+    DLLLOCAL int parseStatement(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS,
+            int wm, const char* orig_src = nullptr, int offset = 0) {
+        //printd(5, "qore_program_private::parseStatement(%s) pgm: %p po: %lld\n", label, pgm, pwo.parse_options);
+
+        assert(code && code[0]);
+        assert(xsink);
+
+        ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
+        if (*xsink) {
+            return -1;
+        }
+
+        startParsing(xsink, wS, wm);
+
+        // parse text given
+        if (!internParsePending(xsink, code, label, orig_src, offset, false)) {
+            internParseCommit(false);   // finalize parsing, back out or commit all changes
+        } else {
+            parsing_in_progress = false;
+        }
+
+#ifdef DEBUG
+        parseSink = nullptr;
+#endif
+        warnSink = nullptr;
+        return *xsink ? -1 : 0;
+    }
+#endif
+
     DLLLOCAL q_exp_t parseExpression(const QoreString& str, const QoreString& lstr, ExceptionSink* xsink,
-        ExceptionSink* wS = nullptr, int wm = 0, const QoreString* source = nullptr, int offset = 0) {
+            ExceptionSink* wS = nullptr, int wm = 0, const QoreString* source = nullptr, int offset = 0) {
         assert(xsink);
         if (!str.strlen()) {
             xsink->raiseException("EXPRESSION-ERROR", "the expression cannot be empty");
@@ -1178,8 +1249,9 @@ public:
         return parseExpression(tstr->c_str(), tlstr->c_str(), xsink, wS, wm, source ? src->c_str() : nullptr, offset);
     }
 
-    DLLLOCAL q_exp_t parseExpression(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS, int wm, const char* orig_src = nullptr, int offset = 0) {
-        //printd(5, "qore_program_private::parse(%s) pgm: %p po: %lld\n", label, pgm, pwo.parse_options);
+    DLLLOCAL q_exp_t parseExpression(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS,
+            int wm, const char* orig_src = nullptr, int offset = 0) {
+        //printd(5, "qore_program_private::parseExpression(%s) pgm: %p po: %lld\n", label, pgm, pwo.parse_options);
 
         assert(code && code[0]);
         assert(xsink);
@@ -1773,7 +1845,8 @@ public:
 
     DLLLOCAL void addStatement(AbstractStatement* s);
 
-    DLLLOCAL q_exp_t createExpression(const QoreStringNode& source, const QoreStringNode& label, ExceptionSink* xsink) {
+    DLLLOCAL q_exp_t createExpression(const QoreStringNode& source, const QoreStringNode& label,
+            ExceptionSink* xsink) {
         return parseExpression(source, label, xsink);
     }
 

@@ -151,6 +151,9 @@ RestHandler handler(NOTHING, swagger);
     @section swagger_relnotes Swagger Module Release Notes
 
     @subsection swagger_2_0_10 Swagger v2.0.10
+    - REST handlers must throw a \c DESERIALIZATION-ERROR when deserialization errors occur, so that a
+      <tt>400 Bad Request</tt> response is returned
+      (<a href="https://github.com/qorelanguage/qore/issues/4647">issue 4647</a>)
     - do not reserialize already deserialized data when processing responses
       (<a href="https://github.com/qorelanguage/qore/issues/4640">issue 4640</a>)
     - allow for the client's time zone locale to be set for data serialization / deserialization
@@ -1425,9 +1428,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 if (!ds) {
                     body = http_body;
                 } else {
-                    auto any_body = ds(http_body);
-                    if (exists any_body) {
-                        body = any_body;
+                    try {
+                        auto any_body = ds(http_body);
+                        if (exists any_body) {
+                            body = any_body;
+                        }
+                    } catch (hash<ExceptionInfo> ex) {
+                        rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc);
                     }
                 }
             }
@@ -1517,7 +1524,11 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 *code ds = MimeDataTypes{content}.deserialize;
                 # if the content-type is unknown, then assume it is a type that cannot be deserialized
                 # the validity of the type is checked below in any case
-                rv.body = ds ? ds(response_body) : response_body;
+                try {
+                    rv.body = ds ? ds(response_body) : response_body;
+                } catch (hash<ExceptionInfo> ex) {
+                    rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc);
+                }
             }
         }
 
