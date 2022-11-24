@@ -49,11 +49,11 @@
 
 static const QoreFunction* get_builtin_func(const QoreStringNode* str, ExceptionSink* xsink) {
    const qore_ns_private* ns;
-   const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), str->getBuffer(), ns);
+   const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), str->c_str(), ns);
    if (f)
       return f;
 
-   xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", str->getBuffer());
+   xsink->raiseException("NO-FUNCTION", "cannot find any builtin function '%s()'", str->c_str());
    return nullptr;
 }
 
@@ -520,7 +520,7 @@ const SignalToName = (
    SIGXCPU: "SIGXCPU",
    SIGXFSZ: "SIGXFSZ",
    SIGXRES: "SIGXRES",
-   );
+);
 //@}
 
 /** @defgroup signal_handling_functions Signal Handing Functions
@@ -547,12 +547,15 @@ set_signal_handler(SIGINT, \signal_handler());
 */
 nothing set_signal_handler(softint signal, code f) [dom=PROCESS] {
 #ifdef HAVE_SIGNAL_HANDLING
-   if (!signal || signal > QORE_SIGNAL_MAX)
-      return xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
+    if (signal <= 0 || signal > QORE_SIGNAL_MAX)
+        return xsink->raiseException("SET-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
 
-   QSM.setHandler(signal, f, xsink);
+    QSM.setHandler(signal, f, xsink);
 #else
-   return xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
+    return xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore "
+        "the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum "
+        "portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before "
+        "calling");
 #endif
 }
 
@@ -574,11 +577,15 @@ remove_signal_handler(SIGINT);
 */
 nothing remove_signal_handler(softint signal) [dom=PROCESS] {
 #ifdef HAVE_SIGNAL_HANDLING
-   if (!signal || signal > QORE_SIGNAL_MAX)
-      return xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
-   QSM.removeHandler(signal, xsink);
+    if (signal <= 0 || signal > QORE_SIGNAL_MAX) {
+        return xsink->raiseException("REMOVE-SIGNAL-HANDLER-ERROR", "%d is not a valid signal", signal);
+    }
+    QSM.removeHandler(signal, xsink);
 #else
-   return xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before calling");
+    return xsink->raiseException("MISSING-FEATURE-ERROR", "this platform does not support signal handling, therefore "
+        "the set_signal_handler() and remove_signal_handler() functions are not available in Qore; for maximum "
+        "portability, use the constant Option::HAVE_SIGNAL_HANDLING to check if this function is implemented before "
+        "calling");
 #endif
 }
 //@}
@@ -675,7 +682,7 @@ auto result = call_function_args("func_name", (arg1, arg2));
     - call_object_method_args()
 */
 auto call_function_args(string name, *softlist<auto> vargs) {
-   return getProgram()->callFunction(name->getBuffer(), vargs, xsink);
+    return getProgram()->callFunction(name->c_str(), vargs, xsink);
 }
 
 //! Calls the given @ref call_reference "call reference" or @ref closure "closure" and returns the result, using the optional second argument as a list of arguments to the @ref call_reference "call reference" or @ref closure "closure"
@@ -698,7 +705,7 @@ auto result = call_function_args(call_ref, (arg1, arg2));
     - call_object_method_args()
 */
 auto call_function_args(code f, *softlist<auto> vargs) {
-   return f->execValue(vargs, xsink);
+    return f->execValue(vargs, xsink);
 }
 
 //! Calls a function and returns the return value, passing the remaining arguments after the function name to the builtin function
@@ -754,11 +761,11 @@ auto result = call_builtin_function_args("func_name", (arg1, arg2));
     @since 0.8.4 this function no longer restricts its search to builtin functions as as of Qore 0.8.4 builtin and user functions are stored identically internally; there is only one function implementation which can contain both builtin and user variants
 */
 auto call_builtin_function_args(string name, *softlist<auto> vargs) {
-   const QoreFunction* f = get_builtin_func(name, xsink);
-   if (!f)
-      return QoreValue();
+    const QoreFunction* f = get_builtin_func(name, xsink);
+    if (!f)
+        return QoreValue();
 
-   return f->evalDynamic(vargs, xsink);
+    return f->evalDynamic(vargs, xsink);
 }
 
 //! A function performing the same role as the @ref exists "exists operator"
@@ -772,9 +779,9 @@ bool b = exists(val);
     @endcode
 */
 bool exists(...) [flags=CONSTANT] {
-   // to emulate the exists operator, we must return True if more than one argument is passed
-   // as this will appear to be a list to the exists operator, which is different from NOTHING
-   return (num_args(args) <= 1) ? !get_param_value(args, 0).isNothing() : true;
+    // to emulate the exists operator, we must return True if more than one argument is passed
+    // as this will appear to be a list to the exists operator, which is different from NOTHING
+    return (num_args(args) <= 1) ? !get_param_value(args, 0).isNothing() : true;
 }
 
 //! Returns @ref True if the function exists in the current program's function name space
@@ -785,7 +792,7 @@ bool exists(...) [flags=CONSTANT] {
     @deprecated use exists_function(); camel-case function names were deprecated in %Qore 0.8.12
 */
 bool existsFunction(string name) [flags=CONSTANT,DEPRECATED] {
-   return getProgram()->existsFunction(name->getBuffer());
+    return getProgram()->existsFunction(name->c_str());
 }
 
 //! Always returns @ref True
@@ -798,7 +805,7 @@ bool existsFunction(string name) [flags=CONSTANT,DEPRECATED] {
     @deprecated use exists_function(); camel-case function names were deprecated in %Qore 0.8.12
 */
 bool existsFunction(code[doc] c) [flags=NOOP,DEPRECATED] {
-   return true;
+    return true;
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -820,7 +827,7 @@ bool b = exists_function("func_name");
     @since %Qore 0.8.12 as a replacement for deprecated camel-case existsFunction()
 */
 bool exists_function(string name) [flags=CONSTANT] {
-   return getProgram()->existsFunction(name->getBuffer());
+    return getProgram()->existsFunction(name->c_str());
 }
 
 //! Always returns @ref True
@@ -844,12 +851,12 @@ bool exists_function(code[doc] c) [flags=NOOP] {
     @deprecated use function_type(); camel-case function names were deprecated in %Qore 0.8.12
 */
 *string functionType(string name) [flags=CONSTANT,DEPRECATED] {
-   const qore_ns_private* ns;
-   const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
-   if (!f)
-      return QoreValue();
+    const qore_ns_private* ns;
+    const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->c_str(), ns);
+    if (!f)
+        return QoreValue();
 
-   return new QoreStringNode(f->hasBuiltin() ? "builtin" : "user");
+    return new QoreStringNode(f->hasBuiltin() ? "builtin" : "user");
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -871,12 +878,12 @@ nothing functionType() [flags=RUNTIME_NOOP,DEPRECATED] {
     @since %Qore 0.8.12 as a replacement for deprecated camel-case functionType()
 */
 *string function_type(string name) {
-   const qore_ns_private* ns;
-   const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->getBuffer(), ns);
-   if (!f)
-      return QoreValue();
+    const qore_ns_private* ns;
+    const QoreFunction* f = qore_root_ns_private::runtimeFindFunction(*(getRootNS()), name->c_str(), ns);
+    if (!f)
+        return QoreValue();
 
-   return new QoreStringNode(f->hasBuiltin() ? "builtin" : "user");
+    return new QoreStringNode(f->hasBuiltin() ? "builtin" : "user");
 }
 
 //! Returns a string with characters needing HTML escaping translated to HTML escape codes
@@ -894,8 +901,8 @@ string str = html_encode("<hello>"); # returns "&lt;hello&gt;"
     @see <string>::getEncoded()
 */
 string html_encode(string str) [flags=CONSTANT] {
-   QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
-   return rv->concatEncode(xsink, *str, CE_HTML) ? QoreValue() : rv.release();
+    QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
+    return rv->concatEncode(xsink, *str, CE_HTML) ? QoreValue() : rv.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -919,8 +926,8 @@ string str = html_decode("&lt;hello&gt;"); # returns "<hello>"
     @see <string>::getDecoded()
 */
 string html_decode(string str) [flags=CONSTANT] {
-   QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
-   return rv->concatDecode(xsink, *str, CD_HTML) ? QoreValue() : rv.release();
+    QoreStringNodeHolder rv(new QoreStringNode(str->getEncoding()));
+    return rv->concatDecode(xsink, *str, CD_HTML) ? QoreValue() : rv.release();
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -938,7 +945,7 @@ string encoding = get_default_encoding();
     @endcode
 */
 string get_default_encoding() {
-   return new QoreStringNode(QCS_DEFAULT->getCode());
+    return new QoreStringNode(QCS_DEFAULT->getCode());
 }
 
 //! Adds the text passed to the current program's code, tagged with the given label
@@ -966,18 +973,17 @@ parse(code, filename);
     and @ref Qore::Program::parsePending() "Program::parsePending()" methods
 */
 *hash<auto> parse(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC,IN_MODULE] {
+    if (warning_mask) {
+        ExceptionSink wsink;
+        getProgram()->parse(code, label, xsink, &wsink, warning_mask, source, offset);
+        if (!wsink.isException())
+            return QoreValue();
 
-   if (warning_mask) {
-      ExceptionSink wsink;
-      getProgram()->parse(code, label, xsink, &wsink, warning_mask, source, offset);
-      if (!wsink.isException())
-         return QoreValue();
+        QoreException* e = wsink.catchException();
+        return e->makeExceptionObjectAndDelete(xsink);
+    }
 
-      QoreException* e = wsink.catchException();
-      return e->makeExceptionObjectAndDelete(xsink);
-   }
-
-   getProgram()->parse(code, label, xsink, 0, 0, source, offset);
+    getProgram()->parse(code, label, xsink, 0, 0, source, offset);
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -994,7 +1000,7 @@ nothing parse() [flags=RUNTIME_NOOP;dom=EMBEDDED_LOGIC,IN_MODULE] {
     @deprecated use get_class_name(); camel-case function names were deprecated in %Qore 0.8.12
 */
 string getClassName(object obj) [flags=CONSTANT,DEPRECATED] {
-   return new QoreStringNode(obj->getClass()->getName());
+    return new QoreStringNode(obj->getClass()->getName());
 }
 
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
@@ -1018,7 +1024,7 @@ string name = get_class_name(obj);
     @since %Qore 0.8.12 as a replacement for deprecated camel-case getClassName()
 */
 string get_class_name(object obj) [flags=CONSTANT] {
-   return new QoreStringNode(obj->getClass()->getName());
+    return new QoreStringNode(obj->getClass()->getName());
 }
 
 //! Parses a URL string and returns a hash of the components
@@ -1190,7 +1196,7 @@ string files = backquote("ls", \rc);
 */
 string backquote(string cmd, *reference<int> rc) [dom=EXTERNAL_PROCESS] {
     int prc;
-    SimpleRefHolder<QoreStringNode> str(backquoteEval(cmd->getBuffer(), prc, xsink));
+    SimpleRefHolder<QoreStringNode> str(backquoteEval(cmd->c_str(), prc, xsink));
     if (!*xsink && rc) {
         QoreTypeSafeReferenceHelper rh(rc, xsink);
         if (!rh)
@@ -1615,7 +1621,7 @@ bool has_key(object obj, string key) {
     Furthermore this function is identical to getByte(), except this function has no @ref RUNTIME_NOOP variant
 */
 *int get_byte(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char* ptr = (unsigned char* )str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->c_str();
    int size = str->strlen();
 
    if (offset >= size || offset < 0)
@@ -1662,7 +1668,7 @@ bool has_key(object obj, string key) {
     @deprecated since %Qore 0.8.4 marked as deprecated; use the get_byte() function instead
 */
 *int getByte(string str, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
-   unsigned char* ptr = (unsigned char* )str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->c_str();
    int size = str->strlen();
 
    if (offset >= size || offset < 0)
@@ -1715,7 +1721,7 @@ nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
     @see get_word_16_lsb()
 */
 *int get_word_16(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char* ptr = (unsigned char* )str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->c_str();
    int size = str->strlen();
 
    if (offset >= (size - 1) || offset < 0)
@@ -1767,7 +1773,7 @@ nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
     @see get_word_32_lsb()
 */
 *int get_word_32(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char* ptr = (unsigned char* )str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->c_str();
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
@@ -1816,7 +1822,7 @@ nothing getByte() [flags=RUNTIME_NOOP,DEPRECATED] {
     @deprecated %Qore 0.8.4 marked as deprecated; use the get_word_32() function instead
 */
 *int getWord32(string str, softint offset = 0) [flags=CONSTANT,DEPRECATED] {
-   unsigned char* ptr = (unsigned char* )str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->c_str();
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
@@ -1869,7 +1875,7 @@ nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
     @see get_word_64_lsb()
 */
 *int get_word_64(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char* ptr = (unsigned char* )str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->c_str();
    int size = str->strlen();
 
    if (offset >= (size - 7) || offset < 0)
@@ -1919,7 +1925,7 @@ nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
     @see get_word_16()
 */
 *int get_word_16_lsb(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char* ptr = (unsigned char* )str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->c_str();
    int size = str->strlen();
 
    if (offset >= (size - 1) || offset < 0)
@@ -1971,7 +1977,7 @@ nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
     @see get_word_32()
 */
 *int get_word_32_lsb(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char* ptr = (unsigned char* )str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->c_str();
    int size = str->strlen();
 
    if (offset >= (size - 3) || offset < 0)
@@ -2021,7 +2027,7 @@ nothing getWord32() [flags=RUNTIME_NOOP,DEPRECATED] {
     @see get_word_64()
 */
 *int get_word_64_lsb(string str, softint offset = 0) [flags=CONSTANT] {
-   unsigned char* ptr = (unsigned char* )str->getBuffer();
+   unsigned char* ptr = (unsigned char* )str->c_str();
    int size = str->strlen();
 
    if (offset >= (size - 7) || offset < 0)
@@ -2331,7 +2337,7 @@ int hextoint(string str) {
 
    int64 rc = 0;
    int64 pow = 0;
-   const char* buf = str->getBuffer();
+   const char* buf = str->c_str();
    size_t len = str->size();
    if (*buf == '0' && *(buf + 1) == 'x') {
       buf += 2;
@@ -2378,9 +2384,9 @@ int i = strtoint("41", 8);
 */
 int strtoint(string num, softint base = 10) {
    errno = 0;
-   int64 rv = strtoll(num->getBuffer(), 0, base);
+   int64 rv = strtoll(num->c_str(), 0, base);
    if (errno == EINVAL || errno == ERANGE)
-      xsink->raiseException("STRTOINT-ERROR", "could not parse '%s' to an integer", num->getBuffer());
+      xsink->raiseException("STRTOINT-ERROR", "could not parse '%s' to an integer", num->c_str());
    return rv;
 }
 
@@ -2495,7 +2501,7 @@ reload_module("FixedLengthUtil");
     @since %Qore 0.8.12
 */
 nothing reload_module(string name) [dom=MODULES,INJECTION] {
-    QMM.runTimeLoadModule(*xsink, *xsink, name->getBuffer(), 0, 0, QMLO_RELOAD);
+    QMM.runTimeLoadModule(*xsink, *xsink, name->c_str(), 0, 0, QMLO_RELOAD);
 }
 
 //! Decodes percent numeric codes in a URL string and returns the decoded string in UTF-8 encoding

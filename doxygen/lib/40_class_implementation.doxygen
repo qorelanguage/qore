@@ -6,7 +6,7 @@
 
     Once the QoreClass object has been created, the class' unique class identifier should be saved and all methods should be added to the class object, as in the following example:
 
-    @code
+    @code{.cpp}
     // returns the QoreClass definition for the "Mutex" class to be added to the Qore system namespace
     QoreClass *initMutexClass()
     {
@@ -43,10 +43,10 @@
 
     Here is an example for the Mutex class (note that all constructor method arguments are ignored, for argument handling see the section on builtin function argument handling), for each method in the class the SmartMutex class performs the actual work:
 
-    @code
+    @code{.cpp}
     static void MUTEX_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
     {
-       // unconditionally save the SmartMutex object as the private data for the QoreObject 
+       // unconditionally save the SmartMutex object as the private data for the QoreObject
        // using the class ID CID_MUTEX as saved in initMutexClass()
        self->setPrivate(CID_MUTEX, new SmartMutex());
     }
@@ -64,7 +64,7 @@
 
     Here is an example of the Mutex' class copy method:
 
-    @code
+    @code{.cpp}
     static void MUTEX_copy(QoreObject *self, QoreObject *old, SmartMutex *m, ExceptionSink *xsink)
     {
        // the "old" and "m" parameters representing the old object are ignored
@@ -74,7 +74,7 @@
 
     Notice that the third parameter of the function is defined as "SmartMutex *" and not as "AbstractPrivateData *".  This is for convenience to avoid a cast in the function, there is a cast when the copy method is assigned to the QoreClass object as follows:
 
-    @code
+    @code{.cpp}
     // set the copy method
     QC_MUTEX->setCopy((q_copy_t)MUTEX_copy);
     @endcode
@@ -89,7 +89,7 @@
 
     The Mutex class can throw an exception when deleted (for example, if a thread is still holding the lock when the object should be deleted), here is the code:
 
-    @code
+    @code{.cpp}
     static void MUTEX_destructor(QoreObject *self, SmartMutex *m, ExceptionSink *xsink)
     {
        // run the actual destructor code implemented in SmartMutex
@@ -102,7 +102,7 @@
 
     As with the copy method, a cast is used when the destructor is assigned to the QoreClass object as follows:
 
-    @code
+    @code{.cpp}
     // set the destructor method
     QC_MUTEX->setDestructor((q_destructor_t)MUTEX_destructor);
     @endcode
@@ -115,7 +115,7 @@
 
     Previously the \ref MUTEX_lock function implementation (for Qore class method Mutex::lock()) was given as an example, and here you can see how it's bound to the QoreClass object:
 
-    @code
+    @code{.cpp}
        QC_MUTEX->addMethod("lock",          (q_method_t)MUTEX_lock);
     @endcode
 
@@ -125,7 +125,7 @@
 
     Static class methods have the same signature as builtin functions, and are added with the QoreClass::addStaticMethod() function as in the following example:
 
-    @code
+    @code{.cpp}
        static AbstractQoreNode *f_QDir_tempPath(const QoreListNode *params, ExceptionSink *xsink)
        {
           return new QoreStringNode(QDir::tempPath().toUtf8().data(), QCS_UTF8);
@@ -159,12 +159,12 @@
 
    Here is an example of the XmlRpcClient class implementation calling QoreClass::addDefaultBuiltinBaseClass() to add the HTTPClient class as the default base class:
 
-   @code
+   @code{.cpp}
    // to set up the XmlRpcClient class, a pointer to the HTTPClient class implementation is passed as an argument
    QoreClass *initXmlRpcClientClass(QoreClass *http_client)
    {
       // create the XmlRpcClient QoreClass object
-      QoreClass* client = new QoreClass("XmlRpcClient", QDOM_NETWORK); 
+      QoreClass* client = new QoreClass("XmlRpcClient", QDOM_NETWORK);
 
       // get the class ID (although it's not used anywhere at the moment)
       CID_XMLRPCCLIENT = client->getID();
@@ -181,7 +181,7 @@
       // add the regular methods
       client->addMethod("callArgs", (q_method_t)XRC_callArgs);
       client->addMethod("call",     (q_method_t)XRC_call);
-      
+
       // return the new class implementation
       return client;
    }
@@ -189,7 +189,7 @@
 
    However, the parent's constructor will have already been run by the time the child's constructor is run, so the parent's private data may be retrieved and modified by the child' constructor, for example as in the implementation of the XmlRpcClient class in the Qore library (which adds the HTTPClient as the default base class) as follows:
 
-   @code
+   @code{.cpp}
    static void XRC_constructor(QoreObject *self, const QoreListNode *params, ExceptionSink *xsink)
    {
       // get HTTPClient object's private data
@@ -202,7 +202,7 @@
       client->setDefaultHeaderValue("Content-Type", "text/xml");
       client->setDefaultHeaderValue("Accept", "text/xml");
       client->setDefaultHeaderValue("User-Agent", "Qore XML-RPC Client v" PACKAGE_VERSION);
-      
+
       client->addProtocol("xmlrpc", 80, false);
       client->addProtocol("xmlrpcs", 443, true);
 
@@ -212,10 +212,10 @@
          return;
 
       // connect to the client in the constructor
-      client->connect(xsink); 
+      client->connect(xsink);
 
       // NOTE there is no call to QoreObject::setPrivateData() - this object only uses the
-      // parent class' (HTTPClient) private data due to the call to 
+      // parent class' (HTTPClient) private data due to the call to
       // QoreClass::addDefaultBuiltinBaseClass() when registering the class
    }
    @endcode
@@ -230,7 +230,7 @@
 
    Here is an example (in the Qt module) of the QWidget class adding two builtin virtual base classes:
 
-   @code
+   @code{.cpp}
    QoreClass *initQWidgetClass(QoreClass *qobject, QoreClass *qpaintdevice)
    {
       QC_QWidget = new QoreClass("QWidget", QDOM_GUI);
@@ -240,7 +240,7 @@
       QC_QWidget->addBuiltinVirtualBaseClass(qobject);
       // set QPaintDevice as a virtual base class
       QC_QWidget->addBuiltinVirtualBaseClass(qpaintdevice);
-      
+
       QC_QWidget->setConstructor(QWIDGET_constructor);
       QC_QWidget->setCopy((q_copy_t)QWIDGET_copy);
 
@@ -252,5 +252,5 @@
    }
    @endcode
 
-   In this case the class' constructor, copy, and destructor methods are implemented normally, and the constructor, copy, and destructor methods of the parent classes (in this case QObject and QPaintDevice) are never run, instead the child class' special methods must take care to provide all the required functionality of the parent class' special methods. 
+   In this case the class' constructor, copy, and destructor methods are implemented normally, and the constructor, copy, and destructor methods of the parent classes (in this case QObject and QPaintDevice) are never run, instead the child class' special methods must take care to provide all the required functionality of the parent class' special methods.
 */

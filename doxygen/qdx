@@ -162,7 +162,8 @@ class qdx {
             else if (line =~ /{qore_src_dir}/) {
                 line = replace(line, "{qore_src_dir}", o.src_root);
             } else if (line =~ /{extra_files}/) {
-                line = replace(line, "{extra_files}", (map sprintf("../doxygen/%s", $1), o.extra).join(" "));
+                line = replace(line, "{extra_files}",
+                    o.extra ? (map sprintf("../doxygen/%s", $1), o.extra).join(" ") : "");
             }
 
             w.write(line);

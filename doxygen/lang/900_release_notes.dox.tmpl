@@ -22,6 +22,9 @@
     - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module
       - fixed a bug in \c WebSocketHandler::sendOne()
         (<a href="https://github.com/qorelanguage/qore/issues/4634">issue 4634</a>)
+    - fixed crashes in @ref Qore::set_signal_handler() "set_signal_handler()" and
+      @ref Qore::remove_signal_handler() "remove_signal_handler()" with negative signal values
+      (<a href="https://github.com/qorelanguage/qore/issues/4643">issue 4643</a>)
 
     @section qore_1_12_2 Qore 1.12.2
 
@@ -354,7 +357,7 @@
     Bugfix release; see below for more information
 
     @subsection qore_1_7_2_bug_fixes Bug Fixes in Qore
-    - Fixed @ref Qore::parse_datasource() "parse_datasource()" to parse datasource strings with a DB name as a path or
+    - Fixed @ref Qore::SQL::parse_datasource() "parse_datasource()" to parse datasource strings with a DB name as a path or
       with \c ':' chars in the DB or host name
       (<a href="https://github.com/qorelanguage/qore/issues/4505">issue 4505</a>)
 

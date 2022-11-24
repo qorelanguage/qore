@@ -109,6 +109,7 @@ namespace detail {
     };
 } // namespace detail
 
+//! Base value class; parent of QoreValue; designed to be passed by value
 class QoreSimpleValue {
 public:
     //! the actual value is stored here
