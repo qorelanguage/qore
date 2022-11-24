@@ -1,0 +1,23 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class SignalTest
+
+class SignalTest inherits QUnit::Test {
+    constructor() : QUnit::Test("Signal test", "1.0") {
+        addTestCase("SignalTest", \signalTest());
+        set_return_value(main());
+    }
+
+    signalTest() {
+        assertThrows("SET-SIGNAL-HANDLER-ERROR", \set_signal_handler(), (-1, sub () {}));
+        assertThrows("REMOVE-SIGNAL-HANDLER-ERROR", \remove_signal_handler(), -1);
+    }
+}
