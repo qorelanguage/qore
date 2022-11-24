@@ -881,7 +881,7 @@ HTML_FILE_EXTENSION    = .html
 # have to redo this when upgrading to a newer version of doxygen or when
 # changing the value of configuration settings such as GENERATE_TREEVIEW!
 
-HTML_HEADER            =
+HTML_HEADER            = doxygen/header_template.html
 
 # The HTML_FOOTER tag can be used to specify a personal HTML footer for
 # each generated HTML page. If it is left blank doxygen will generate a
@@ -915,7 +915,7 @@ HTML_EXTRA_STYLESHEET  = @CMAKE_SOURCE_DIR@/doxygen/dox_qore.css
 # files. In the HTML_STYLESHEET file, use the file name only. Also note that
 # the files will be copied as-is; there are no commands or markers available.
 
-HTML_EXTRA_FILES       =
+HTML_EXTRA_FILES       = @CMAKE_SOURCE_DIR@/doxygen/Qore-Q.ico
 
 HTML_COLORSTYLE        = DARK
 

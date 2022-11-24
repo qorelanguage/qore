@@ -210,6 +210,7 @@ public class AbstractDataProviderType inherits Qore::Serializable {
 
     #! creates the type and sets options
     /** @param options a hash of options, if any options match supported options for this type, they are set
+        @param tags any user-defined tags to set on the type
 
         @throw TYPE-OPTION-ERROR option value has an invalid type
     */

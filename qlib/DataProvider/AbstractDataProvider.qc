@@ -1629,7 +1629,7 @@ public class AbstractDataProvider {
     }
 
     #! Returns the description of an observable event, if any
-    /** @string event_id the event ID of the event
+    /** @param event_id the event ID of the event
 
         @return the observable event type for this provider
 
@@ -1656,7 +1656,7 @@ public class AbstractDataProvider {
     }
 
     #! Returns the description of an outbound message, if any
-    /** @string message_id the ID of the message
+    /** @param message_id the ID of the message
 
         @return the message type for this provider
 
@@ -3051,7 +3051,7 @@ public class AbstractDataProvider {
     }
 
     #! Returns the type of an observable event, if any
-    /** @string event_id the event ID of the event
+    /** @param event_id the event ID of the event
 
         @return the observable event type for this provider
 
@@ -3082,7 +3082,7 @@ public class AbstractDataProvider {
     }
 
     #! Returns the type of an outbound message, if any
-    /** @string message_id the ID of the message
+    /** @param message_id the ID of the message
 
         @return the message type for this provider
 

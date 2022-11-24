@@ -992,7 +992,9 @@ dist_qoredata_DATA = doxygen/Doxyfile.in \
     doxygen/qore-logo-55x151-white.png \
     doxygen/dox_qore.css \
     doxygen/DataProvider-Full.svg \
-    doxygen/SqlUtil-Full.svg
+    doxygen/SqlUtil-Full.svg \
+    doxygen/Qore-Q.ico \
+    doxygen/header_template.html
 
 include $(srcdir)/qoretests.mk
 
