@@ -69,23 +69,29 @@ module SqlUtil {
     All the public symbols in the module are defined in the SqlUtil namespace
 
     Major sections of this documentation:
-    - @subpage sql_operations "SQL Operations": working with database data (finding, updating, inserting, deleting, merging data, etc)
-    - @subpage schema_management "Schema Management": working schema definitions (creating, modifying, aligning tables, functions, types, triggers, etc)
+    - @subpage sql_operations "SQL Operations": working with database data (finding, updating, inserting, deleting,
+      merging data, etc)
+    - @subpage schema_management "Schema Management": working schema definitions (creating, modifying, aligning
+      tables, functions, types, triggers, etc)
     - @subpage dba_management "DBA Management": special database administrator tools
 
-    The %SqlUtil module provides generic functionality and a framework for SQL operations and schema management, and in order
-    to use the %SqlUtil module with a particular database, a driver-specific module has to be available as well.
+    The %SqlUtil module provides generic functionality and a framework for SQL operations and schema management, and
+    in order to use the %SqlUtil module with a particular database, a driver-specific module has to be available as
+    well.
 
     Currently the following driver-specific modules are available:
-    - <a href="../../FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a>: for working with MS SQL Server and Sybase databases through the <a href="https://github.com/qorelanguage/module-sybase">freetds DBI driver</a>
+    - <a href="../../FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a>: for working with MS SQL Server and Sybase
+      databases through the <a href="https://github.com/qorelanguage/module-sybase">freetds driver</a>
     - <a href="../../MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>: for working with MySQL databases
     - <a href="../../OracleSqlUtil/html/index.html">OracleSqlUtil</a>: for working with Oracle databases
     - <a href="../../PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>: for working with PostgreSQL databases
     - <a href="../../Sqlite3SqlUtil/html/index.html">Sqlite3SqlUtil</a>: for working with SQLite3 databases
+    - <a href="../../OdbcFirebirdSqlUtil/html/index.html">OdbcFirebirdSqlUtil</a>: for working with Firebird databases
+      through the <a href="https://github.com/qorelanguage/module-odbc">odbc driver</a>
 
     The underlying driver-specific module is automatically loaded and used when required; the classes provided in
-    the %SqlUtil module provide a generic API that uses the driver-specific implementations for the underlying driver-specific
-    implementation.
+    the %SqlUtil module provide a generic API that uses the driver-specific implementations for the underlying
+    driver-specific implementation.
 
     @section sqlutil_overview Overview of Functionality
 
