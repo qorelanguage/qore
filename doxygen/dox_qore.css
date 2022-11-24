@@ -11,4 +11,8 @@ pre.fragment {
     font-size: 95%;
 }
 
+span.stringliteral {
+    color: #d9f
+}
+
 body {background-color:#1a1a1a;}
