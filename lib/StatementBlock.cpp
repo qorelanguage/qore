@@ -161,6 +161,8 @@ QoreValue StatementBlock::exec(ExceptionSink* xsink) {
 void StatementBlock::addStatement(AbstractStatement* s) {
     //QORE_TRACE("StatementBlock::addStatement()");
 
+    //printd(5, "StatementBlock::addStatement() this: %p s: %p\n", this, s);
+
     if (s) {
         statement_list.push_back(s);
         OnBlockExitStatement* obe = dynamic_cast<OnBlockExitStatement*>(s);
@@ -187,10 +189,10 @@ int StatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
     // instantiate local variables
     LVListInstantiator lvi(lvars, xsink);
 
-    return execIntern(return_value, xsink);
+    return execIntern(xsink, return_value, statement_list.begin());
 }
 
-int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
+int StatementBlock::execIntern(ExceptionSink* xsink, QoreValue& return_value, statement_list_t::iterator it) {
     QORE_TRACE("StatementBlock::execImpl()");
     int rc = 0;
 
@@ -208,19 +210,21 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
     rc = tlpd->dbgStep(this, 0, xsink);
     if (!rc && !*xsink) {
         // execute block
-        for (auto i : statement_list) {
-            rc = tlpd->dbgStep(this, i, xsink);
+        for (; it != statement_list.end(); ++it) {
+            rc = tlpd->dbgStep(this, (*it), xsink);
             if (rc || *xsink) {
                 break;
             }
-            rc = i->exec(return_value, xsink);
+            rc = (*it)->exec(return_value, xsink);
             if (*xsink) {
-                tlpd->dbgException(i, xsink);
+                tlpd->dbgException(*it, xsink);
                 if (*xsink) {
                     break;
                 }
             }
-            if (rc) break;
+            if (rc) {
+                break;
+            }
         }
     }
     // execute "on block exit" code if applicable
@@ -253,14 +257,16 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
                     // that all on_(exit|error) statements are executed even if exceptions are thrown
                     if (obe_xsink) {
                         xsink->assimilate(obe_xsink);
-                        if (!error)
+                        if (!error) {
                             error = true;
+                        }
                     }
                 }
             }
         }
-        if (nrc)
+        if (nrc) {
             rc = nrc;
+        }
     }
 
     return rc;
@@ -551,7 +557,8 @@ int StatementBlock::parseInitClosure(UserVariantBase* uvb, UserClosureFunction* 
 int TopLevelStatementBlock::parseInit() {
     QORE_TRACE("TopLevelStatementBlock::parseInit");
 
-    //printd(5, "TopLevelStatementBlock::parseInit(rns=%p) first=%d\n", &rns, first);
+    //printd(5, "TopLevelStatementBlock::parseInit() this: %p first: %d hwm at end: %s\n", this, first,
+    //    hwm == statement_list.end() ? "true" : "false");
 
     // resolve global variables before initializing the top-level statements
     if (!qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchies()) {
@@ -608,8 +615,9 @@ int TopLevelStatementBlock::parseInit() {
     return err;
 }
 
-void TopLevelStatementBlock::parseCommit(QoreProgram* pgm) {
-    //printd(5, "TopLevelStatementBlock::parseCommit(this=%p)\n", this);
+void TopLevelStatementBlock::parseCommit(QoreProgram* pgm, bool postpone_hwm_update) {
+    //printd(5, "TopLevelStatementBlock::parseCommit(postpone_hwm_update: %d) this: %p at end: %s\n",
+    //    postpone_hwm_update, this, hwm == statement_list.end() ? "true" : "false");
     statement_list_t::iterator start = hwm;
     if (start != statement_list.end()) {
         ++start;
@@ -623,12 +631,36 @@ void TopLevelStatementBlock::parseCommit(QoreProgram* pgm) {
         (*start)->parseCommit(pgm);
         start++;
     }
-    hwm = statement_list.last();
+    if (!postpone_hwm_update) {
+        hwm = statement_list.last();
+    }
+}
+
+QoreValue TopLevelStatementBlock::execNew(ExceptionSink* xsink) {
+    // printd(5, "TopLevelStatementBlock::execNew() this: %p at end: %s\n", this,
+    //    hwm == statement_list.end() ? "true" : "false");
+
+    if (statement_list.empty()) {
+        return QoreValue();
+    }
+
+    QoreValue return_value;
+    statement_list_t::iterator i = hwm;
+    if (i == statement_list.end()) {
+        i = statement_list.begin();
+    } else {
+        ++i;
+    }
+    if (i != statement_list.end()) {
+        execIntern(xsink, return_value, i);
+        hwm = statement_list.last();
+    }
+    return return_value;
 }
 
 int TopLevelStatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
     // do not instantiate local vars here; they are instantiated by the QoreProgram object for each thread
-    return execIntern(return_value, xsink);
+    return execIntern(xsink, return_value, statement_list.begin());
 }
 
 QoreParseContextLvarHelper::~QoreParseContextLvarHelper() {

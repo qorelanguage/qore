@@ -136,7 +136,7 @@ void SignatureHash::update(const QoreString& str) {
 #ifdef DEBUG
     //QoreString dbg;
     //toString(dbg);
-    //printd(5, "class hash %p set to: %s\n", this, dbg.getBuffer());
+    //printd(5, "class hash %p set to: %s\n", this, dbg.c_str());
 #endif
 }
 
@@ -424,7 +424,7 @@ DLLLOCAL QoreStringNode* AbstractMethodMap::checkAbstract(const char* name) cons
         AbstractMethod::checkAbstract(name, i.first.c_str(), i.second->vlist, desc);
     }
 
-    //printd(5, "AbstractMethodMap::parseCheckAbstract() class: %s desc: %p (%s)\n", name, desc, desc ? desc->getBuffer() : "n/a");
+    //printd(5, "AbstractMethodMap::parseCheckAbstract() class: %s desc: %p (%s)\n", name, desc, desc ? desc->c_str() : "n/a");
     return desc;
 }
 
@@ -1071,7 +1071,7 @@ int qore_class_private::initializeIntern() {
         do_sig(csig, constlist);
 
         if (!csig.empty()) {
-            printd(5, "qore_class_private::initializeIntern() this: %p '%s' sig:\n%s", this, name.c_str(), csig.getBuffer());
+            printd(5, "qore_class_private::initializeIntern() this: %p '%s' sig:\n%s", this, name.c_str(), csig.c_str());
             hash.update(csig);
         }
 
@@ -1460,7 +1460,8 @@ void qore_class_private::parseCommit() {
             // if there are any signature changes, then change the class' signature
             if (has_sig_changes) {
                 if (!csig.empty()) {
-                    printd(5, "qore_class_private::parseCommit() this:%p '%s' sig:\n%s", this, name.c_str(), csig.getBuffer());
+                    printd(5, "qore_class_private::parseCommit() this:%p '%s' sig:\n%s", this, name.c_str(),
+                        csig.c_str());
                     hash.update(csig);
                 }
                 has_sig_changes = false;
@@ -3099,14 +3100,17 @@ void qore_class_private::parseImportMembers(qore_class_private& qc, ClassAccess 
 }
 
 void qore_class_private::parseRollback() {
-    if (parse_init_called)
+    if (parse_init_called) {
         parse_init_called = false;
+    }
 
-    if (parse_init_partial_called)
+    if (parse_init_partial_called) {
         parse_init_partial_called = false;
+    }
 
-    if (has_sig_changes)
+    if (has_sig_changes) {
         has_sig_changes = false;
+    }
 
     if (!has_new_user_changes) {
 #ifdef DEBUG
@@ -3156,8 +3160,9 @@ void qore_class_private::parseRollback() {
     }
 
     // set flags
-    if (pending_has_public_memdecl)
+    if (pending_has_public_memdecl) {
         pending_has_public_memdecl = false;
+    }
 
     has_new_user_changes = false;
 }
@@ -4533,7 +4538,7 @@ qore_type_result_e qore_class_private::parseCheckCompatibleClassIntern(const qor
     QoreString h1, h2;
     hash.toString(h1);
     oc.hash.toString(h2);
-    printd(5, "qore_class_private::parseCheckCompatibleClass() %p '%s' (%d %s) == %p '%s' (%d %s)\n", this, name.c_str(), classID, h1.getBuffer(), &oc, oc.name.c_str(), oc.classID, h2.getBuffer());
+    printd(5, "qore_class_private::parseCheckCompatibleClass() %p '%s' (%d %s) == %p '%s' (%d %s)\n", this, name.c_str(), classID, h1.c_str(), &oc, oc.name.c_str(), oc.classID, h2.c_str());
 #endif
 
     if (parseEqual(oc))

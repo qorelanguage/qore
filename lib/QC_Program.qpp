@@ -2461,6 +2461,26 @@ Expression Program::getExpression(string source, string label) {
     return QoreValue();
 }
 
+//! Parses the given code with the given code label
+/** @param source The source to the expression
+    @param label the label for the expression
+
+    @since %Qore 1.13.0
+*/
+nothing Program::parseStatement(string source, string label) {
+    qore_program_private::get(*p)->parseStatement(xsink, *source, *label, PCF_STANDARD);
+}
+
+//! Parses the given code with the given code label and executes any new top-level code
+/** @param source The source to the expression
+    @param label the label for the expression
+
+    @since %Qore 1.13.0
+*/
+auto Program::parseStatementRun(string source, string label) {
+    return qore_program_private::get(*p)->parseStatement(xsink, *source, *label, PCF_STANDARD | PCF_EXEC_NEW);
+}
+
 //! Returns a list of strings of the builtin and module-supplied features of Qore
 /** @return a list of strings of the builtin and module-supplied features of Qore
 

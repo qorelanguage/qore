@@ -178,7 +178,8 @@ protected:
     DLLLOCAL bool hasLastReturn(AbstractStatement* as);
     DLLLOCAL int parseCheckReturn();
 
-    DLLLOCAL int execIntern(QoreValue& return_value, ExceptionSink* xsink);
+    DLLLOCAL int execIntern(ExceptionSink* xsink, QoreValue& return_value,
+            statement_list_t::iterator i);
 
     DLLLOCAL StatementBlock(qore_program_private_base* p);
 };
@@ -195,21 +196,26 @@ public:
     using StatementBlock::parseInit;
     DLLLOCAL int parseInit();
 
-    DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
+    DLLLOCAL virtual void parseCommit(QoreProgram* pgm, bool postpone_hwm_update = false);
 
     DLLLOCAL void parseRollback() {
         // delete all statements after the high water mark (hwm) to the end of the list
         statement_list_t::iterator start = hwm;
-        if (start != statement_list.end())
+        if (start != statement_list.end()) {
             ++start;
-        else
+        } else {
             start = statement_list.begin();
+        }
 
-        for (statement_list_t::iterator i = start, e = statement_list.end(); i != e; ++i)
+        for (statement_list_t::iterator i = start, e = statement_list.end(); i != e; ++i) {
             delete *i;
+        }
 
         statement_list.erase_to_end(hwm);
     }
+
+    // execute any new statements and return the value
+    DLLLOCAL QoreValue execNew(ExceptionSink* xsink);
 
     // local vars are not instantiated here because they are instantiated by the QoreProgram object
     DLLLOCAL virtual int execImpl(QoreValue& return_value, ExceptionSink* xsink);

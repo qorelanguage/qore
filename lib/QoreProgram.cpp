@@ -558,7 +558,7 @@ void qore_program_private::internParseRollback(ExceptionSink* xsink) {
     str_set.clear();
     str_vec.clear();
     loc_set.clear();
-    pgmloc.clear();
+    pgmloc.rollback();
 
     // issue #2907 delete & clear statement index maps when doing a parse rollback
     for (auto& i : statementByFileIndex) {
@@ -703,14 +703,15 @@ void qore_program_private::clear(ExceptionSink* xsink) {
     depDeref();
 }
 
-int qore_program_private::internParseCommit(bool standard_parse) {
+int qore_program_private::internParseCommit(int parse_commit_flags) {
     QORE_TRACE("qore_program_private::internParseCommit()");
-    printd(5, "qore_program_private::internParseCommit() pgm: %p isEvent: %d standard_parse: %d parsing_done: %d\n", pgm, parseSink->isEvent(), standard_parse, parsing_done);
+    printd(5, "qore_program_private::internParseCommit() pgm: %p isEvent: %d parse_commit_flags: %d "
+        "parsing_done: %d\n", pgm, parseSink->isEvent(), parse_commit_flags, parsing_done);
 
     // if a parse exception has occurred, then back out all new
     // changes to the QoreProgram atomically
     int rc;
-    if (standard_parse) {
+    if (parse_commit_flags & PCF_STANDARD) {
         assert(!parsing_done);
 
         // if the first stage of parsing has already failed,
@@ -738,7 +739,7 @@ int qore_program_private::internParseCommit(bool standard_parse) {
             qore_root_ns_private::parseCommit(*RootNS);
 
             // commit pending statements
-            sb.parseCommit(pgm);
+            sb.parseCommit(pgm, parse_commit_flags & PCF_EXEC_NEW ? true : false);
 
             // commit pending domain
             dom |= pend_dom;
@@ -759,6 +760,10 @@ int qore_program_private::internParseCommit(bool standard_parse) {
         str_set.clear();
         loc_set.clear();
         rc = 0;
+    }
+
+    if (!rc) {
+        pgmloc.commit();
     }
 
     return rc;
@@ -1359,6 +1364,14 @@ QoreListNode* qore_program_private::runtimeFindCallVariants(const char* name, Ex
     ProgramRuntimeParseAccessHelper rah(xsink, pgm);
 
     return qore_root_ns_private::get(*RootNS)->runtimeFindCallVariants(name, xsink);
+}
+
+QoreValue qore_program_private::runTopLevelNew(ExceptionSink* xsink) {
+    ProgramThreadCountContextHelper tch(xsink, pgm, true);
+    if (*xsink) {
+        return QoreValue();
+    }
+    return sb.execNew(xsink);
 }
 
 /*

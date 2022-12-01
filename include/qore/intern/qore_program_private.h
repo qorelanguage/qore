@@ -304,13 +304,26 @@ struct pgmloc_vec_t : public std::vector<QoreProgramLocation*> {
         clear();
     }
 
+    DLLLOCAL void rollback() {
+        for (size_t i = hwm, e = size(); i < e; ++i) {
+            delete (*this)[i];
+        }
+        resize(hwm);
+    }
+
     DLLLOCAL void clear() {
         for (auto& i : *this) {
             delete i;
         }
-        //std::for_each(begin(), end(), simple_delete<QoreProgramLocation>());
         std::vector<QoreProgramLocation*>::clear();
     }
+
+    DLLLOCAL void commit() {
+        hwm = size();
+    }
+
+private:
+    size_t hwm = 0;
 };
 
 class qore_program_private_base {
@@ -536,6 +549,11 @@ public:
 };
 
 class QoreBreakpoint;
+
+// parse commit flags
+#define PCF_NONE      (1 << 0)
+#define PCF_STANDARD  (1 << 1)
+#define PCF_EXEC_NEW  (1 << 2)
 
 class qore_program_private : public qore_program_private_base {
 private:
@@ -1010,7 +1028,7 @@ public:
     }
 
    // caller must have grabbed the lock and put the current program on the program stack
-   DLLLOCAL int internParseCommit(bool standard_parse = true);
+   DLLLOCAL int internParseCommit(int parse_commit_flags = PCF_STANDARD);
 
     DLLLOCAL int parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
         ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
@@ -1109,8 +1127,9 @@ public:
         }
 
         yylex_destroy(lexer);
-        if (only_first_except && exceptions_raised > 1)
+        if (only_first_except && exceptions_raised > 1) {
             fprintf(stderr, "\n%d exception(s) skipped\n\n", exceptions_raised);
+        }
     }
 
     DLLLOCAL void parse(const QoreString *str, const QoreString *lstr, ExceptionSink* xsink, ExceptionSink* wS,
@@ -1155,8 +1174,9 @@ public:
         startParsing(xsink, wS, wm);
 
         // parse text given
-        if (!internParsePending(xsink, code, label, orig_src, offset))
+        if (!internParsePending(xsink, code, label, orig_src, offset)) {
             internParseCommit();   // finalize parsing, back out or commit all changes
+        }
 
 #ifdef DEBUG
         parseSink = nullptr;
@@ -1164,11 +1184,11 @@ public:
         warnSink = nullptr;
     }
 
-#if 0
     // for REPL support
     // FIXME: first parse rollback needs to be implemented
-    DLLLOCAL int parseStatement(const QoreString& str, const QoreString& lstr, ExceptionSink* xsink,
-            ExceptionSink* wS = nullptr, int wm = 0, const QoreString* source = nullptr, int offset = 0) {
+    DLLLOCAL int parseStatement(ExceptionSink* xsink, const QoreString& str, const QoreString& lstr,
+            int parse_commit_flags, ExceptionSink* wS = nullptr, int wm = 0, const QoreString* source = nullptr,
+            int offset = 0) {
         assert(xsink);
         if (!str.strlen()) {
             xsink->raiseException("STATEMENT-ERROR", "the statement cannot be empty");
@@ -1192,26 +1212,34 @@ public:
             return -1;
         }
 
-        return parseStatement(tstr->c_str(), tlstr->c_str(), xsink, wS, wm, source ? src->c_str() : nullptr, offset);
+        return parseStatement(xsink, tstr->c_str(), tlstr->c_str(), parse_commit_flags, wS, wm,
+            source ? src->c_str() : nullptr, offset);
     }
 
-    DLLLOCAL int parseStatement(const char* code, const char* label, ExceptionSink* xsink, ExceptionSink* wS,
-            int wm, const char* orig_src = nullptr, int offset = 0) {
+    DLLLOCAL QoreValue parseStatement(ExceptionSink* xsink, const char* code, const char* label,
+            int parse_commit_flags, ExceptionSink* wS = nullptr, int wm = 0, const char* orig_src = nullptr,
+            int offset = 0) {
         //printd(5, "qore_program_private::parseStatement(%s) pgm: %p po: %lld\n", label, pgm, pwo.parse_options);
+        assert(parse_commit_flags & PCF_STANDARD);
 
         assert(code && code[0]);
         assert(xsink);
 
         ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
         if (*xsink) {
-            return -1;
+            return QoreValue();
         }
 
         startParsing(xsink, wS, wm);
 
+        if (parsing_done) {
+            parsing_done = false;
+        }
+
         // parse text given
-        if (!internParsePending(xsink, code, label, orig_src, offset, false)) {
-            internParseCommit(false);   // finalize parsing, back out or commit all changes
+        if (!internParsePending(xsink, code, label, orig_src, offset, true)) {
+            // finalize parsing, back out or commit all changes
+            internParseCommit(parse_commit_flags);
         } else {
             parsing_in_progress = false;
         }
@@ -1220,9 +1248,16 @@ public:
         parseSink = nullptr;
 #endif
         warnSink = nullptr;
-        return *xsink ? -1 : 0;
+
+        // execute the new top-level code, if any
+        if (!*xsink && (parse_commit_flags & PCF_EXEC_NEW)) {
+            return runTopLevelNew(xsink);
+        }
+
+        return QoreValue();
     }
-#endif
+
+    DLLLOCAL QoreValue runTopLevelNew(ExceptionSink* xsink);
 
     DLLLOCAL q_exp_t parseExpression(const QoreString& str, const QoreString& lstr, ExceptionSink* xsink,
             ExceptionSink* wS = nullptr, int wm = 0, const QoreString* source = nullptr, int offset = 0) {
@@ -1271,7 +1306,7 @@ public:
 
         // parse text given
         if (!internParsePending(xsink, exp_code.c_str(), label, orig_src, offset, false)) {
-            internParseCommit(false);   // finalize parsing, back out or commit all changes
+            internParseCommit(PCF_NONE);   // finalize parsing, back out or commit all changes
         } else {
             parsing_in_progress = false;
         }

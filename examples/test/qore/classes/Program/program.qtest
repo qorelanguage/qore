@@ -200,6 +200,7 @@ class ProgramTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
+        addTestCase("repl", \replTest());
         addTestCase("call static method", \callStaticMethodTest());
         addTestCase("expression test", \expressionTest());
         addTestCase("call ref", \callRefTest());
@@ -221,6 +222,25 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("Program info test", \programInfoTest());
 	    addTestCase("Find runtime function test", \findRuntimeTest());
     	set_return_value(main());
+    }
+
+    replTest() {
+        {
+            Program p(PO_NEW_STYLE);
+            p.parseStatement("int sub a() { return 1; }", "");
+            assertEq(1, p.callFunction("a"));
+            p.parseStatement("int sub b() { return 2; }", "");
+            assertEq(2, p.callFunction("b"));
+
+            assertThrows("PARSE-EXCEPTION", \p.parseStatement(), ("int sub c {}", ""));
+            assertEq(1, p.callFunction("a"));
+            assertEq(2, p.callFunction("b"));
+
+            p.parseStatementRun("our int x = 1;", "");
+            assertEq(1, p.getGlobalVariable("x"));
+            p.parseStatementRun("++x;", "");
+            assertEq(2, p.getGlobalVariable("x"));
+        }
     }
 
     callStaticMethodTest() {
