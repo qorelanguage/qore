@@ -14,6 +14,7 @@
 
 const Opts = {
     "dox":        "d,dox",
+    "extra_pfx":  "X,extra-prefix=s",
     "extra":      "E,extra-files=s@",
     "help":       "h,help",
     "keepdollar": "k,keep-dollar",
@@ -39,6 +40,8 @@ class qdx {
 
         const EC_SEMICOLON = ";";
         const EC_BRACKET = "}";
+
+        const DefaultExtraPrefix = "../doxygen/";
     }
 
     public {
@@ -47,7 +50,9 @@ class qdx {
 
     constructor() {
         GetOpt g(Opts);
-        o = g.parse3(\ARGV);
+        o = {
+            "extra_pfx": DefaultExtraPrefix,
+        } + g.parse3(\ARGV);
 
         if (o.help || ARGV.empty())
             usage();
@@ -162,8 +167,11 @@ class qdx {
             else if (line =~ /{qore_src_dir}/) {
                 line = replace(line, "{qore_src_dir}", o.src_root);
             } else if (line =~ /{extra_files}/) {
-                line = replace(line, "{extra_files}",
-                    o.extra ? (map sprintf("../doxygen/%s", $1), o.extra).join(" ") : "");
+                string extra;
+                if (o.extra) {
+                    extra = (map sprintf("%s%s", o.extra_pfx, $1), o.extra).join(" ");
+                }
+                line = replace(line, "{extra_files}", extra ?? "");
             }
 
             w.write(line);

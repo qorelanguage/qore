@@ -105,9 +105,8 @@ Qore library.
 %dir %{_libdir}/cmake
 %{_libdir}/cmake/Qore/
 %{_includedir}/qore/
-%{_datarootdir}/qore/Doxyfile.in
-%{_datarootdir}/qore/qore-logo-55x200.png
-%{_datarootdir}/qore/qore-logo-55x151-white.png
+%{_datarootdir}/qore/
+
 %license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %package devel-doc
