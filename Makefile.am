@@ -978,7 +978,9 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
     doxygen/lang/mainpage.dox.tmpl \
 	doxygen/lang/Doxyfile.in \
 	doxygen/qlib/Doxyfile.in \
+    doxygen/qlib/Doxyfile.cmake.tmpl \
 	doxygen/modules/Doxyfile.in \
+    doxygen/modules/Doxyfile.cmake.in \
 	doxygen/lib/Doxyfile.in \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \
