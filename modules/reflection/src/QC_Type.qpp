@@ -66,7 +66,7 @@ static void Type_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreD
 
     @since %Qore 0.9.0
 */
-//@{
+///@{
 //! @ref auto_type "auto type"
 /**
 */
@@ -356,13 +356,13 @@ const TimeoutType = qore(get_type_object(timeoutTypeInfo));
 /**
 */
 const TimeoutOrNothingType = qore(get_type_object(timeoutOrNothingTypeInfo));
-//@}
+///@}
 
 /** @defgroup type_match_constants Type Match Constants
 
     @since %Qore 0.9.4
 */
-//@{
+///@{
 //! types do not match
 /**
 */
@@ -387,7 +387,7 @@ const QTI_NEAR = QTI_NEAR;
 /**
 */
 const QTI_IDENT = QTI_IDENT;
-//@}
+///@}
 
 //! The base class for %Qore data types
 /**

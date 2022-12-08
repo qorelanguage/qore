@@ -35,7 +35,7 @@
 
 /** @defgroup astparser_node_type_constants AST Node Type Constants
  */
-//@{
+///@{
 namespace astparser;
 //! None/null node type constant.
 const ANT_None = ANT_None;
@@ -57,11 +57,11 @@ const ANT_ParseOption = ANT_ParseOption;
 
 //! Statement node type constant.
 const ANT_Statement = ANT_Statement;
-//@}
+///@}
 
 /** @defgroup astparser_declaration_kind_constants AST Declaration Kind Constants
  */
-//@{
+///@{
 namespace astparser;
 //! Class declaration kind.
 const ADK_Class = ADK_Class;
@@ -95,11 +95,11 @@ const ADK_Variable = ADK_Variable;
 
 //! Variable list declaration kind.
 const ADK_VarList = ADK_VarList;
-//@}
+///@}
 
 /** @defgroup astparser_expression_kind_constants AST Expression Kind Constants
  */
-//@{
+///@{
 namespace astparser;
 //! Variable access (dot operator) expression kind.
 const AEK_Access = AEK_Access;
@@ -190,11 +190,11 @@ const AEK_Ternary = AEK_Ternary;
 
 //! Unary expression kind.
 const AEK_Unary = AEK_Unary;
-//@}
+///@}
 
 /** @defgroup astparser_statement_kind_constants AST Statement Kind Constants
  */
-//@{
+///@{
 namespace astparser;
 //! Statement block statement kind.
 const ASK_Block = ASK_Block;
@@ -252,11 +252,11 @@ const ASK_Try = ASK_Try;
 
 //! While statement kind.
 const ASK_While = ASK_While;
-//@}
+///@}
 
 /** @defgroup astparser_symbol_kind_constants AST Symbol Kind Constants
  */
-//@{
+///@{
 namespace astparser;
 //! None/null symbol kind (default).
 const ASYK_None = ASYK_None;
@@ -314,11 +314,11 @@ const ASYK_Boolean = ASYK_Boolean;
 
 //! Symbol kind constant for arrays.
 const ASYK_Array = ASYK_Array;
-//@}
+///@}
 
 /** @defgroup astparser_symbol_usage_kind_constants AST Symbol Usage Kind Constants
  */
-//@{
+///@{
 namespace astparser;
 //! None/null symbol usage kind (default).
 const ASUK_None = ASUK_None;
@@ -478,4 +478,4 @@ const ASUK_TryStmtCatchVar = ASUK_TryStmtCatchVar;
 
 //! Symbol usage kind for conditions in \c while statements.
 const ASUK_WhileStmtCond = ASUK_WhileStmtCond;
-//@}
+///@}
