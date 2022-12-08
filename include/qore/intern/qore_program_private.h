@@ -1370,7 +1370,7 @@ public:
         if (source && !source->empty() && !src.set(source, QCS_DEFAULT, xsink))
             return;
 
-        parsePending(tstr->getBuffer(), tlstr->getBuffer(), xsink, wS, wm, source ? src->getBuffer() : 0, offset);
+        parsePending(tstr->c_str(), tlstr->c_str(), xsink, wS, wm, source ? src->c_str() : 0, offset);
     }
 
     // called during run time (not during parsing)
@@ -2215,7 +2215,8 @@ public:
         return pgm->priv->runTimeIsDefined(name);
     }
 
-    DLLLOCAL static void parseDefine(QoreProgram* pgm, const QoreProgramLocation* loc, const char* str, QoreValue val) {
+    DLLLOCAL static void parseDefine(QoreProgram* pgm, const QoreProgramLocation* loc, const char* str,
+            QoreValue val) {
         pgm->priv->parseDefine(loc, str, val);
     }
 
@@ -2223,17 +2224,20 @@ public:
         pgm->priv->runTimeDefine(str, val, xsink);
     }
 
-    DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink* xsink, const QoreProgramLocation* loc = nullptr) {
+    DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink* xsink,
+            const QoreProgramLocation* loc = nullptr) {
         assert(xsink);
         pgm->priv->addParseException(*xsink, loc);
         delete xsink;
     }
 
-    DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink& xsink, const QoreProgramLocation* loc = nullptr) {
+    DLLLOCAL static void addParseException(QoreProgram* pgm, ExceptionSink& xsink,
+            const QoreProgramLocation* loc = nullptr) {
         pgm->priv->addParseException(xsink, loc);
     }
 
-    DLLLOCAL static void exportFunction(QoreProgram* srcpgm, ExceptionSink* xsink, QoreProgram* trgpgm, const char* name, const char* new_name = nullptr, bool inject = false) {
+    DLLLOCAL static void exportFunction(QoreProgram* srcpgm, ExceptionSink* xsink, QoreProgram* trgpgm,
+            const char* name, const char* new_name = nullptr, bool inject = false) {
         srcpgm->priv->exportFunction(xsink, trgpgm->priv, name, new_name, inject);
     }
 
@@ -2255,10 +2259,14 @@ public:
         return rv;
     }
 
-    DLLLOCAL static void makeParseWarning(QoreProgram* pgm, const QoreProgramLocation &loc, int code, const char* warn, const char* fmt, ...) {
-        //printd(5, "QP::mPW(code: %d, warn: '%s', fmt: '%s') priv->pwo.warn_mask: %d priv->warnSink: %p %s\n", code, warn, fmt, priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
-        if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask))
+    DLLLOCAL static void makeParseWarning(QoreProgram* pgm, const QoreProgramLocation &loc, int code,
+            const char* warn, const char* fmt, ...) {
+        //printd(5, "QP::mPW(code: %d, warn: '%s', fmt: '%s') priv->pwo.warn_mask: %d priv->warnSink: %p %s\n", code,
+        //    warn, fmt, priv->pwo.warn_mask, priv->warnSink,
+        //    priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
+        if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask)) {
             return;
+        }
 
         QoreStringNode* desc = new QoreStringNode;
         while (true) {
@@ -2273,8 +2281,11 @@ public:
         pgm->priv->warnSink->raiseException(ne);
     }
 
-    DLLLOCAL static void makeParseWarning(QoreProgram* pgm, const QoreProgramLocation &loc, int code, const char* warn, QoreStringNode* desc) {
-        //printd(5, "QoreProgram::makeParseWarning(code: %d, warn: '%s', desc: '%s') priv->pwo.warn_mask: %d priv->warnSink: %p %s\n", code, warn, desc->getBuffer(), priv->pwo.warn_mask, priv->warnSink, priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
+    DLLLOCAL static void makeParseWarning(QoreProgram* pgm, const QoreProgramLocation &loc, int code,
+            const char* warn, QoreStringNode* desc) {
+        //printd(5, "QoreProgram::makeParseWarning(code: %d, warn: '%s', desc: '%s') priv->pwo.warn_mask: %d "
+        //    "priv->warnSink: %p %s\n", code, warn, desc->c_str(), priv->pwo.warn_mask, priv->warnSink,
+        //    priv->warnSink && (code & priv->pwo.warn_mask) ? "OK" : "SKIPPED");
         if (!pgm->priv->warnSink || !(code & pgm->priv->pwo.warn_mask)) {
             desc->deref();
             return;
@@ -2284,7 +2295,8 @@ public:
         pgm->priv->warnSink->raiseException(ne);
     }
 
-    DLLLOCAL static void exportGlobalVariable(QoreProgram* pgm, const char* name, bool readonly, QoreProgram* tpgm, ExceptionSink* xsink) {
+    DLLLOCAL static void exportGlobalVariable(QoreProgram* pgm, const char* name, bool readonly, QoreProgram* tpgm,
+            ExceptionSink* xsink) {
         pgm->priv->exportGlobalVariable(name, readonly, *(tpgm->priv), xsink);
     }
 
@@ -2296,7 +2308,8 @@ public:
         if (dpgm == n_dpgm)
             return;
         dpgm = const_cast<qore_debug_program_private*>(n_dpgm);
-        printd(5, "qore_program_private::attachDebug, dpgm: %p, pgm_data_map: size:%d, begin: %p, end: %p\n", dpgm, pgm_data_map.size(), pgm_data_map.begin(), pgm_data_map.end());
+        printd(5, "qore_program_private::attachDebug, dpgm: %p, pgm_data_map: size:%d, begin: %p, end: %p\n", dpgm,
+            pgm_data_map.size(), pgm_data_map.begin(), pgm_data_map.end());
         for (auto& i : pgm_data_map) {
             i.second->dbgPendingAttach();
             i.second->dbgBreak();
@@ -2311,11 +2324,13 @@ public:
         if (!n_dpgm)
             return;
         dpgm = nullptr;
-        printd(5, "qore_program_private::detachDebug, dpgm: %p, pgm_data_map: size:%d, begin: %p, end: %p\n", dpgm, pgm_data_map.size(), pgm_data_map.begin(), pgm_data_map.end());
+        printd(5, "qore_program_private::detachDebug, dpgm: %p, pgm_data_map: size:%d, begin: %p, end: %p\n", dpgm,
+            pgm_data_map.size(), pgm_data_map.begin(), pgm_data_map.end());
         for (auto& i : pgm_data_map) {
             i.second->dbgPendingDetach();
         }
-        // debug_program_counter may be non zero to finish pending calls. Just this instance cannot be deleted, it's satisfied in destructor
+        // debug_program_counter may be non zero to finish pending calls. Just this instance cannot be deleted, it's
+        // satisfied in the destructor
     }
 
     DLLLOCAL void onAttach(DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);

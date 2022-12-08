@@ -769,6 +769,7 @@ install(FILES
             doxygen/SqlUtil-Full.svg
             doxygen/Qore-Q.ico
             doxygen/header_template.html
+            doxygen/footer_template.html
         DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/qore)
 
 # prepare documentation targets

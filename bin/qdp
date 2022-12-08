@@ -100,6 +100,20 @@ class QdpCmd {
             "upsert": \QdpCmd::upsert(),
         };
 
+        #! Disambiguation for common commands with the same initial letters
+        const DisambiguationMap = {
+            "search": "supports_read",
+            "send-message": "supports_messages",
+            "smessage": "supports_messages",
+            "smsg": "supports_messages",
+
+            "record": "has_record",
+            "reply": "supports_request",
+            "request": "supports_request",
+            "response": "supports_request",
+            "rsearch": "supports_request",
+        };
+
         #! valid field keys
         const FieldKeys = (
             "type",
@@ -148,6 +162,15 @@ class QdpCmd {
         if (!action) {
             # see if an abbreviation matches
             hash<string, bool> match = map {$1: True}, keys Cmds, $1.equalPartial(cmd);
+            # try to disambiguate
+            if (match.size() > 1) {
+                # only consider commands that are applicable for this data provider
+                # AbstractDataProvider::getSummaryInfo() is generally faster than getInfo()
+                hash<DataProviderSummaryInfo> info = provider.getSummaryInfo();
+                match = map {$1: True}, keys match, !exists DisambiguationMap{$1}
+                    || (info{DisambiguationMap{$1}} === True)
+                    || (info{DisambiguationMap{$1}}.typeCode() == NT_STRING && info{DisambiguationMap{$1}} != "NONE");
+            }
             if (match.size() == 1) {
                 action = Cmds{match.firstKey()};
             } else if (match) {

@@ -978,7 +978,9 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
     doxygen/lang/mainpage.dox.tmpl \
 	doxygen/lang/Doxyfile.in \
 	doxygen/qlib/Doxyfile.in \
+    doxygen/qlib/Doxyfile.cmake.tmpl \
 	doxygen/modules/Doxyfile.in \
+    doxygen/modules/Doxyfile.cmake.in \
 	doxygen/lib/Doxyfile.in \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \
@@ -994,7 +996,8 @@ dist_qoredata_DATA = doxygen/Doxyfile.in \
     doxygen/DataProvider-Full.svg \
     doxygen/SqlUtil-Full.svg \
     doxygen/Qore-Q.ico \
-    doxygen/header_template.html
+    doxygen/header_template.html \
+    doxygen/footer_template.html
 
 include $(srcdir)/qoretests.mk
 
@@ -1058,7 +1061,7 @@ doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm $< $@
 
 doxygen/qlib/Doxyfile.DataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/DataProvider:doxygen/qlib/DataProvider.qm $< $@
+	$(QDX) -M=qlib/DataProvider:doxygen/qlib/DataProvider.qm -X=doxygen/ -E=DataProvider-Full.svg $< $@
 
 doxygen/qlib/Doxyfile.FileLocationHandler: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/FileLocationHandler:doxygen/qlib/FileLocationHandler.qm -tUtil.tag=../../Util/html $< $@
@@ -1073,7 +1076,7 @@ doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/SqlUtil:doxygen/qlib/SqlUtil.qm -tUtil.tag=../../Util/html -tDataProvider.tag=../../DataProvider/html $< $@
+	$(QDX) -M=qlib/SqlUtil:doxygen/qlib/SqlUtil.qm -tUtil.tag=../../Util/html -tDataProvider.tag=../../DataProvider/html -X=doxygen/ -E=SqlUtil-Full.svg $< $@
 
 doxygen/qlib/Doxyfile.DbDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/DbDataProvider:doxygen/qlib/DbDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tSqlUtil.tag=../../SqlUtil/html $< $@
@@ -1123,6 +1126,7 @@ doxygen/qlib/Doxyfile.FsUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/astparser/ \
         -e "s/@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@/${PACKAGE_VERSION}/" \
+        -e 's/@_dox_input@/modules\/astparser\/src modules\/astparser\/docs\/mainpage.dox/' \
         -e 's/@_dox_output@/docs\/modules\/astparser\//' \
         -e 's/@_dox_src@/modules\/astparser\/docs/' \
         -e 's/@CMAKE_CURRENT_BINARY_DIR@/modules\/astparser\/src/' \
@@ -1132,6 +1136,7 @@ doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 doxygen/modules/Doxyfile.reflection: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/reflection/ \
         -e "s/@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@/${PACKAGE_VERSION}/" \
+        -e 's/@_dox_input@/modules\/reflection\/src modules\/reflection\/docs\/mainpage.dox/' \
         -e 's/@_dox_output@/docs\/modules\/reflection\//' \
         -e 's/@_dox_src@/modules\/reflection\/docs/' \
         -e 's/@CMAKE_CURRENT_BINARY_DIR@/modules\/reflection\/src/' \
@@ -1174,7 +1179,10 @@ $(TMP_MOD_HTML_TARG): docs/modules/%/html: doxygen/qlib/%.qm doxygen/qlib/Doxyfi
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.$*
 	$(top_srcdir)/doxygen/pdox $@ $@/search
 
-docs/modules/astparser/html: doxygen/modules/Doxyfile.astparser
+modules/astparser/docs/mainpage.dox: modules/astparser/docs/mainpage.dox.tmpl $(QPP) modules/astparser
+	$(QPP) -t $< -o $@
+
+docs/modules/astparser/html: doxygen/modules/Doxyfile.astparser modules/astparser/docs/mainpage.dox
 	${MAKE} -C modules/astparser
 	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/modules/Doxyfile.astparser
@@ -1183,7 +1191,7 @@ docs/modules/astparser/html: doxygen/modules/Doxyfile.astparser
 modules/reflection/docs/mainpage.dox: modules/reflection/docs/mainpage.dox.tmpl $(QPP) modules/reflection
 	$(QPP) -t $< -o $@
 
-docs/modules/reflection/html: modules/reflection doxygen/modules/Doxyfile.reflection
+docs/modules/reflection/html: modules/reflection doxygen/modules/Doxyfile.reflection modules/reflection/docs/mainpage.dox
 	${MAKE} -C modules/reflection
 	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/modules/Doxyfile.reflection
