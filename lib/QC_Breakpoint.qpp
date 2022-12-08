@@ -42,7 +42,7 @@
 
     @since %Qore 0.8.13
 */
-//@{
+///@{
 //! Thread list is ignored
 const BreakpointPolicyNone = BKP_PO_NONE;
 
@@ -52,7 +52,7 @@ const BreakpointPolicyAccept = BKP_PO_ACCEPT;
 //! Consider all thread except those enumerated in thread list
 const BreakpointPolicyReject = BKP_PO_REJECT;
 
-//@}
+///@}
 
 
 //! Breakpoint class supports breakpoint setting for particular %Qore @ref Qore::ProgramControl "ProgramControl" when debugging.

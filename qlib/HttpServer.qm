@@ -423,7 +423,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
             - HttpServer::setListenerLogOptions()
             - HttpServer::setListenerLogOptionsID()
          */
-        #@{
+        #/@{
         #! listener log option: log recv headers
         const LLO_RECV_HEADERS = (1 << 0);
 
@@ -435,7 +435,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
 
         #! listener log option: log sent message body
         const LLO_SEND_BODY = (1 << 3);
-        #@}
+        #/@}
     }
 
     #! @cond nodoc

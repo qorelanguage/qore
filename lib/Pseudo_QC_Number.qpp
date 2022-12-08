@@ -34,7 +34,7 @@
 
 /** @defgroup number_formatting_constants Number Formatting Constants
 */
-//@{
+///@{
 //! for the default format with a rounding heuristic to try to remove noise in insignificant digits from the binary to digital conversion of high-precision numbers
 const NF_Default = QORE_NF_DEFAULT;
 
@@ -49,11 +49,11 @@ const NF_Scientific = QORE_NF_SCIENTIFIC;
     @endcode
  */
 const NF_Raw = QORE_NF_RAW;
-//@}
+///@}
 
 /** @defgroup number_string_formatting_constants Number String Formatting Constants
 */
-//@{
+///@{
 //! This is a special constant to be used with string number formatting pseudo-methods that take an integer \a prec argument; this value indicates that all available digits should be included in the output string
 /** @see the following pseudo-methods that accept this value in the \a prec argument:
     - @ref <number>::format(int, string, string)
@@ -61,7 +61,7 @@ const NF_Raw = QORE_NF_RAW;
     - @ref <int>::format(int, string, string)
  */
 const SNF_AllDigits = QORE_NUM_ALL_DIGITS;
-//@}
+///@}
 
 //! Methods in this pseudo-class can be executed on @ref number "arbitrary precision number values"
 /**

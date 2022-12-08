@@ -36,10 +36,10 @@
 
 /** @defgroup BufferedStreamReader Constants
 */
-//@{
+///@{
 //! The default buffer size for the @ref Qore::BufferedStreamReader "BufferedStreamReader" class
 const DefaultStreamBufferSize = 4096;
-//@}
+///@}
 
 //! This class defines a buffered stream reader for input streams.
 /** @since %Qore 0.8.13

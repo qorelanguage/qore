@@ -37,18 +37,18 @@ public namespace DataProvider {
     These are the generic logic operators that can be used using generic data provider APIs; all logical operations
     support logic short-circuiting
 */
-#@{
+#/@{
 #! AND logic
 public const DP_OP_AND = "AND";
 
 #! OR logic
 public const DP_OP_OR = "OR";
-#@}
+#/@}
 
 /** @defgroup dataprovider_generic_search_ops DataProvider Generic Search Operators
     These are the generic operators that can be used for searching using the generic data provider search APIs
 */
-#@{
+#/@{
 #! Identifies the regex operator for use in generic search criteria
 /** @see dp_op_like()
 */
@@ -98,7 +98,7 @@ public const DP_SEARCH_OP_IN = "in";
 /** @see dp_op_not()
 */
 public const DP_SEARCH_OP_NOT = "not";
-#@}
+#/@}
 
 #! Generic operator info hash as returned by all @ref dataprovider_generic_search_op_funcs "generic search operator functions"
 public hashdecl SearchOperatorInfo {
@@ -175,7 +175,7 @@ public const DefaultGenericSearchOpMap = {
     - dp_op_not(): for negating other operators
     - dp_op_regex(): for the regular expression matches
 */
-#@{
+#/@{
 #! returns an @ref SearchOperatorInfo hash
 public hash<SearchOperatorInfo> sub dp_make_op(string op, auto arg) {
     return new hash<SearchOperatorInfo>({"op": op, "arg": arg});
@@ -353,7 +353,7 @@ AbstractDataProviderRecordIterator i = dp.searchRecords({"name": dp_op_not(dp_op
 public hash<SearchOperatorInfo> sub dp_op_not(hash<auto> arg) {
     return dp_make_op(DP_SEARCH_OP_NOT, arg);
 }
-#@}
+#/@}
 
 #! Defines the abstract class for data provider iterators; the destructor releases the iterator
 /** this class also implements generic search APIs that can be used to filter record sets for data providers that do

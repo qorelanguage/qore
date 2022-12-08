@@ -126,7 +126,7 @@ module WebSocketHandler {
 public namespace WebSocketHandler {
 /** @defgroup WSHandlerRawCallbackReturnCodes WebSocketHandler Raw Callback Return Codes
 */
-#@{
+#/@{
 #! If the server should process the message normally
 public const WSC_Process = 0;
 
@@ -135,7 +135,7 @@ public const WSC_Continue = 1;
 
 #! If the server should stop listening (message already processed)
 public const WSC_Break = 2;
-#@}
+#/@}
 
 #! this class represents a connection to a websocket client
 /** @par Receiving WebSocket Messages from Clients

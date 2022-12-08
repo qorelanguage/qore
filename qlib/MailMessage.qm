@@ -132,7 +132,7 @@ msg.addTO("My Best Friend <you@friend.com>");
 public namespace MailMessage {
     /** @defgroup MessageEncodings Message Encodings
      */
-    #@{
+    #/@{
     #! default content transfer encoding depending on attachment type
     /** The default encodings are as follows per file type:
         - text data: @ref EncQuotedPrintable
@@ -156,7 +156,7 @@ public namespace MailMessage {
         EncBase64,
         EncQuotedPrintable,
     );
-    #@}
+    #/@}
 
     #! The %Message class holds the information for a single email %Message
     /** @par Example:

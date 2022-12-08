@@ -2360,15 +2360,15 @@ protected:
 
             // inject open group marker in block comment if necessary
             if (!open_group && line.find("*/") != std::string::npos) {
-                str += "//@{\n";
+                str += "///@{\n";
                 open_group_injected = true;
-            } else if (open_group_injected && !line.compare(0, 4, "//@{")) {
+            } else if (open_group_injected && !line.compare(0, 5, "///@{")) {
                 break;
             }
 
             str += line;
 
-            if (!line.compare(0, 4, "//@{")) {
+            if (!line.compare(0, 5, "///@{")) {
                 break;
             } else if (line.find("@{") != std::string::npos) {
                 open_group = true;
@@ -2450,7 +2450,8 @@ protected:
     }
 
 public:
-    Group(std::string& buf, FILE* fp, const char* fn, unsigned& ln) : valid(true), fileName(fn), startLineNumber(ln), lineNumber(ln) {
+    Group(std::string& buf, FILE* fp, const char* fn, unsigned& ln)
+            : valid(true), fileName(fn), startLineNumber(ln), lineNumber(ln) {
         doc = buf;
         if (readUntilOpenGroup(fileName, lineNumber, doc, fp)) {
             error("%s:%d: could not find start of group\n", fileName, lineNumber);
@@ -2462,7 +2463,7 @@ public:
         while (true) {
             std::string line;
             if (read_line(lineNumber, line, fp)) {
-                error("%s:%d: premature EOF reading group\n", fileName, lineNumber);
+                error("%s:%d: a premature EOF reading group\n", fileName, lineNumber);
                 valid = false;
                 return;
             }
@@ -2679,7 +2680,7 @@ public:
                 return -1;
 
         // serialize group trailer
-        fputs("//@}\n", fp);
+        fputs("///@}\n", fp);
 
         outputNamespaceEnd(fp);
 
@@ -2706,7 +2707,7 @@ public:
                 return -1;
 
         // serialize group trailer
-        fputs("/** @} */\n", fp);
+        fputs("///@}\n", fp);
 
         if (needs_prefix) {
             outputNamespaceEnd(fp);

@@ -191,7 +191,7 @@ rc.bulkJobClose(h.id);
 public namespace SalesforceRestClient {
 /** @defgroup bulkjob_operations Salesforce.com Bulk REST API Job Operations
 */
-#@{
+#/@{
 #! Salesforce.com bulk job "query" operation
 public const BulkJobQuery = "query";
 
@@ -206,7 +206,7 @@ public const BulkJobUpsert = "upsert";
 
 #! Salesforce.com bulk job "delete" operation
 public const BulkJobDelete = "delete";
-#@}
+#/@}
 
 #! a hash of Salesforce.com bulk job operations; keys are @ref bulkjob_operations
 /** valid operations are:
@@ -226,7 +226,7 @@ public const BulkJobOperations = {
 
 /** @defgroup bulkjob_contenttypes Salesforce.com Bulk REST API Job Content Types
 */
-#@{
+#/@{
 #! Salesforce.com bulk job "CSV" content type
 public const BulkJobCsv = "CSV";
 
@@ -244,7 +244,7 @@ public const BulkJobZipJson = "ZIP_JSON";
 
 #! Salesforce.com bulk job "ZIP_XML" content type
 public const BulkJobZipXml = "ZIP_XML";
-#@}
+#/@}
 
 #! a hash of Salesforce.com bulk job content types; keys are @ref bulkjob_contenttypes; values are Mime \c Content-Type strings
 /** valid content types are:

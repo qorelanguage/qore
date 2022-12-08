@@ -220,7 +220,7 @@
 /** @defgroup option_constants Option Constants
     Option constants
 */
-//@{
+///@{
 namespace Qore::Option;
 //! Indicates if the %Qore library supports fast atomic reference counting
 /** Note that if this constant is @ref False, atomic operations are supported by mutexes and are therefore slower than with native atomic reference counting operations
@@ -370,4 +370,4 @@ const HAVE_GET_STACK_SIZE = bool(QORE_CONST_HAVE_GET_STACK_SIZE);
 /** @since %Qore 0.9.0
 */
 const HAVE_THREAD_NAME = bool(QORE_CONST_HAVE_THREAD_NAME);
-//@}
+///@}

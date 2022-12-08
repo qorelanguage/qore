@@ -202,7 +202,7 @@ public const WsSchemes = {
 
 /** @defgroup WSClientRawCallbackReturnCodes WebSocketClient Raw Callback Return Codes
 */
-#@{
+#/@{
 #! If the client should process the message normally
 public const WSC_Process = 0;
 
@@ -211,7 +211,7 @@ public const WSC_Continue = 1;
 
 #! If the client should stop listening (message already processed)
 public const WSC_Break = 2;
-#@}
+#/@}
 
 #! default port for connections
 public const WsDefaultPort = 80;

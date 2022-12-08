@@ -549,11 +549,11 @@ public class LoggerEvent inherits Qore::Serializable {
 
         @param logger Instance of the Logger class
         @param level The event level
-        @param message The payload as format for @ref sprintf()
+        @param message The payload as format for @ref Qore::sprintf() "sprintf()"()
         @param args The arguments for formatting
         @param location_info code location related to logging event
-        @param thread_id thread related to the event, Default: @ref gettid()
-        @param time_stamp logging event timestamp. Default value is @ref now_us
+        @param thread_id thread related to the event, Default: @ref Qore::gettid() "gettid()"
+        @param time_stamp logging event timestamp. Default value is @ref Qore::now_us() "now_us()"
         @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with the logging event
     */
     constructor(Logger logger, LoggerLevel level, string message, *list<auto> args,
@@ -578,11 +578,11 @@ public class LoggerEvent inherits Qore::Serializable {
         @param fqcn name of the caller class.
         @param category The event category.
         @param level The event level
-        @param message The payload as format for @ref sprintf()
+        @param message The payload as format for @ref Qore::sprintf() "sprintf()"()
         @param args The arguments for formatting
         @param location_info code location related to logging event
-        @param thread_id thread related to the event, Default: @ref gettid()
-        @param time_stamp logging event timestamp. Default value is @ref now_us
+        @param thread_id thread related to the event, Default: @ref Qore::gettid() "gettid()"
+        @param time_stamp logging event timestamp. Default value is @ref Qore::now_us() "now_us()"
         @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with the logging event
     */
     constructor(string fqcn, softstring category, LoggerLevel level, string message, *list<auto> args,
@@ -1412,27 +1412,27 @@ public class LoggerLayout {
 
 #! Implements the formatting of @ref LoggerEvent objects with a pattern
 /**
-    The \c LoggerLayoutPattern lets the user specify the output format according to conversion patterns similar to the @ref sprintf() function.
+    The \c LoggerLayoutPattern lets the user specify the output format according to conversion patterns similar to the @ref Qore::sprintf() "sprintf()"() function.
 
     The following table explains the characters used in @ref LoggerPattern and all other characters that you can use in your custom pattern:
 
     | !Conversion character | !Meaning |
     | \c %%c | Used to output the category of the logging event, i.e. logger name |
     | \c %%C | Used to output the class name of the caller issuing the logging request, i.e. logger class name |
-    | \c %%d | Used to output the date of the logging event using @ref format_date. Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}" |
+    | \c %%d | Used to output the date of the logging event using @ref Qore::format_date() "format_date()". Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}" |
     | \c %%E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
     | \c %%F | Used to output the file name where the logging request was issued |
     | \c %%h | Used to output the hostname where the logging event was generated |
     | \c %%l | Used to output location information of the caller which generated the logging event, i.e. \c "file:line [function()]" |
-    | \c %%L | Used to output the line number from where the logging request was issued, option may specify @ref sprintf() format, e.g. \c "%.3d" |
+    | \c %%L | Used to output the line number from where the logging request was issued, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
     | \c %%m | Used to output the application supplied message associated with the logging event |
     | \c %%M | Used to output the method name where the logging request was issued |
     | \c %%n | Outputs the platform dependent line separator character or characters |
     | \c %%p | Used to output the priority of the logging event |
     | \c %%P | Used to output the PID where the logging event was generated |
-    | \c %%r | Used to output the number of milliseconds elapsed from the construction of the layout until the creation of the logging event, option may specify @ref sprintf() format, e.g. \c "%.3d" |
-    | \c %%t | Used to output the thread id that generated the logging event, option may specify @ref sprintf() format, e.g. \c "%.3d" |
-    | \c %%u | Used to output logging event unique id, option may specify @ref sprintf() format, e.g. \c "%.3d" |
+    | \c %%r | Used to output the number of milliseconds elapsed from the construction of the layout until the creation of the logging event, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
+    | \c %%t | Used to output the thread id that generated the logging event, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
+    | \c %%u | Used to output logging event unique id, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
     | \c %%x | Used to output exception string using @ref Util::get_exception_string() |
     | \c %% | The literal percent sign. \c "%%" will print a \c "%" sign |
 
@@ -1893,8 +1893,8 @@ public class LoggerAppenderFileRotate inherits public AbstractLoggerAppenderFile
         | \c %%P | Used to output the current logging path with filename |
         | \c %%p | Used to output the current logging path |
         | \c %%f | Used to output the current logging filename |
-        | \c %%i | Used to output the current file index from 1 to count. option may specify @ref sprintf() format, e.g. \c "%.3d" |
-        | \c %%n | Used to output the rotation count. Option may specify @ref sprintf() format, e.g. \c "%.3d" |
+        | \c %%i | Used to output the current file index from 1 to count. option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
+        | \c %%n | Used to output the rotation count. Option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
 
         For example, the archive pattern \c "%p%f.%i" rotates log file \c "/var/run/log/MyLogger.log" to:
         \c "/var/run/log/MyLogger.log.1" \c "/var/run/log/MyLogger.log.2" \c "/var/run/log/MyLogger.log.3".
@@ -2038,11 +2038,11 @@ public class LoggerAppenderFileRing inherits public AbstractLoggerAppenderFileRo
         The following table explains the characters used in @ref LoggerPattern and all other characters that you can use in your custom pattern:
 
         | !Conversion character | !Meaning |
-        | i | Used to output the current file index from 0 to count-1. option may specify @ref sprintf() format, e.g. \c "%.3d" |
-        | n | Used to output the rotation count. Option may specify @ref sprintf() format, e.g. \c "%.3d" |
+        | i | Used to output the current file index from 0 to count-1. option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
+        | n | Used to output the rotation count. Option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
         | c | Used to output the appender name. |
         | C | Used to output the appender class name. |
-        | d | Used to output the date of the logging event using @ref format_date. Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}", default value is \c "YYYYMMDDHHmmSS" |
+        | d | Used to output the date of the logging event using @ref Qore::format_date() "format_date()". Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}", default value is \c "YYYYMMDDHHmmSS" |
         | E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
         | % | The literal percent sign. \c "%%" will print a \c "%" sign |
 
@@ -2190,7 +2190,7 @@ public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, priva
         | \c %%P | Used to output the current logging path with filename |
         | \c %%p | Used to output the current logging path |
         | \c %%f | Used to output the current logging filename |
-        | \c %%d | Used to output the date of the logging event using @ref format_date. Option may specify date \
+        | \c %%d | Used to output the date of the logging event using @ref Qore::format_date() "format_date()". Option may specify date \
             format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}", default value is \c "YYYYMMDDHHmmSS" |
 
         For example, the archive pattern \c "%p/archive/%d/%f" archives log file \c "/var/run/log/MyLogger.log" to:

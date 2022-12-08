@@ -170,11 +170,11 @@ DLLEXPORT extern ThreadCleanupList tclist;
 
 /** @defgroup q_register_foreign_thread_rv Return Value Codes for q_register_foreign_thread()
  */
-//@{
+///@{
 #define QFT_OK          0  //!< OK response when calling q_register_foreign_thread()
 #define QFT_ERROR      -1  //!< error when calling q_register_foreign_thread()
 #define QFT_REGISTERED -2  //!< thread already registered when calling q_register_foreign_thread()
-//@}
+///@}
 
 //! registers the current thread as a Qore thread
 /** call q_deregister_foreign_thread() when Qore functionality is no longer required; not calling

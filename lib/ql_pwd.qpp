@@ -60,7 +60,7 @@
     |\c pw_uid|@ref int_type|The user's userid
     |\c pw_gid|@ref int_type|The group id of the user's primary group
  */
-//@{
+///@{
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
  */
@@ -298,12 +298,12 @@ hash getgrnam2(string name) [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
    return missing_function_error("getgrnam2", "UNIX_USERMGT", xsink);
 #endif
 }
-//@}
+///@}
 
 /** @defgroup user_and_group_functions Platform-Independent User and Group Functions
     Platform-Independent user and group functions
 */
-//@{
+///@{
 //! returns the current username
 /** @par Example:
     @code{.py}
@@ -353,4 +353,4 @@ string getusername() [flags=RET_VALUE_ONLY;dom=EXTERNAL_INFO] {
 #endif
 #endif
 }
-//@}
+///@}

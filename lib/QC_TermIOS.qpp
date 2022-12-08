@@ -35,7 +35,7 @@
 /** @defgroup tattr_local_mode_constants Terminal Attribute Local Mode Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{
+///@{
 #ifndef ECHOKE
 #define ECHOKE 0
 #endif
@@ -131,12 +131,12 @@ const PENDIN = PENDIN;
 #endif
 //! don't flush after interrupt
 const NOFLSH = NOFLSH;
-//@}
+///@}
 
 /** @defgroup tattr_control_mode_constants Terminal Attribute Control Mode Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{
+///@{
 #ifndef CSIZE
 #define CSIZE 0
 #endif
@@ -238,12 +238,12 @@ const CCAR_OFLOW = CCAR_OFLOW;
 #endif
 //! old name for CCAR_OFLOW
 const MDMBUF = MDMBUF;
-//@}
+///@}
 
 /** @defgroup tattr_output_mode_constants Terminal Attributes Output Mode Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{
+///@{
 #ifndef OPOST
 #define OPOST 0
 #endif
@@ -291,12 +291,12 @@ const ONOCR = ONOCR;
 #endif
 //! NL performs CR function
 const ONLRET = ONLRET;
-//@}
+///@}
 
 /** @defgroup tattr_input_mode_constants Terminal Attributes Input Mode Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{
+///@{
 #ifndef IGNBRK
 #define IGNBRK 0
 #endif
@@ -380,12 +380,12 @@ const IMAXBEL = IMAXBEL;
 #endif
 //!
 const IUCLC = IUCLC;
-//@}
+///@}
 
 /** @defgroup tattr_control_character_constants Terminal Attributes Control Character Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{
+///@{
 #ifndef VEOF
 #define VEOF 0
 #endif
@@ -499,12 +499,12 @@ const VSTATUS = VSTATUS;
 #endif
 //! if the value of any key is this value, it means that the key is disabled
 const _POSIX_VDISABLE = _POSIX_VDISABLE;
-//@}
+///@}
 
 /** @defgroup tattr_term_setting_constants Terminal Attributes Terminal Setting Constants
     If any of the constants in this group is not defined on the host system, then it will be assigned to 0 in Qore.
  */
-//@{
+///@{
 #ifndef TCSANOW
 #define TCSANOW 0
 #endif
@@ -528,7 +528,7 @@ const TCSAFLUSH = TCSAFLUSH;
 #endif
 //! flag - don't alter hardware state
 const TCSASOFT = TCSASOFT;
-//@}
+///@}
 
 //! This class allows %Qore scripts to get or set terminal settings on UNIX platforms
 /** On platforms without TermIOS support (such as Windows), none of the methods in this class are available; to write a portable program, check the @ref Qore::Option::HAVE_TERMIOS constant at runtime before using this functionality.

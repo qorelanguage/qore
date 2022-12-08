@@ -200,7 +200,7 @@ static const char* tlist[] = { "OPTION", "ALGORITHM", "FUNCTION" };
 
     @since %Qore 1.0.10
  */
-//@{
+///@{
 //! If the hostname or address is enclosed in square brackets, the brackets will be included in the \c "host" key
 /** Square brackets are used by some %Qore methods to denote IPv6 addresses; for example see
     @ref Qore::Socket::connect() "Socket::connect()"
@@ -212,7 +212,7 @@ const QURL_DECODE = QURL_DECODE;
 
 //! Decodes all fields like @ref QURL_DECODE plus also performs percent decoding on \c "path" and \c "query" fields
 const QURL_DECODE_PATH = QURL_DECODE_PATH;
-//@}
+///@}
 
 //! a hash describing a parsed URL
 /** @since %Qore 0.9.3
@@ -246,7 +246,7 @@ hashdecl UrlInfo {
 
     @since %Qore 0.8.12
  */
-//@{
+///@{
 //! code for encoding HTML 5 symbols as named character references
 /** encodes all HTML 5 symbols as <a href="http://www.w3.org/TR/html5/syntax.html#named-character-references">named character references</a>
 
@@ -284,7 +284,7 @@ const CE_XHTML = CE_XHTML;
 /** @see @ref Qore::CD_ALL
  */
 const CE_ALL = CE_ALL;
-//@}
+///@}
 
 /** @defgroup StringConcatDecoding String Concatenation Decoding Codes
 
@@ -292,7 +292,7 @@ const CE_ALL = CE_ALL;
 
     @since %Qore 0.8.12
  */
-//@{
+///@{
 //! code for decoding HTML 5 named character references to their native symbols
 /** decodes all HTML 5 <a href="http://www.w3.org/TR/html5/syntax.html#named-character-references">named character references</a> to their native symbols
 
@@ -328,12 +328,12 @@ const CD_XHTML = CD_XHTML;
 /** @see @ref Qore::CE_ALL
  */
 const CD_ALL = CD_ALL;
-//@}
+///@}
 
 /** @defgroup signal_constants Signal Constants
     Signal constants - if any of the constants in this section are not defined on the host; the constant's value will be 0
 */
-//@{
+///@{
 //! SIGABRT
 const SIGABRT = SIGABRT;
 //! SIGALRM
@@ -521,12 +521,12 @@ const SignalToName = (
    SIGXFSZ: "SIGXFSZ",
    SIGXRES: "SIGXRES",
 );
-//@}
+///@}
 
 /** @defgroup signal_handling_functions Signal Handing Functions
     Signal handing functions
 */
-//@{
+///@{
 //! Sets or replaces a signal handler according to the signal number and closure or call reference (function or object method reference) passed
 /** @par Platform Availability:
     @ref Qore::Option::HAVE_SIGNAL_HANDLING
@@ -588,12 +588,12 @@ nothing remove_signal_handler(softint signal) [dom=PROCESS] {
         "calling");
 #endif
 }
-//@}
+///@}
 
 /** @defgroup misc_functions Miscellaneous Functions
     Miscellaneous functions
  */
-//@{
+///@{
 //! Calls a function and returns the return value, passing the remaining arguments after the function name to the function
 /**
     @param name The name of the function to call
@@ -1090,7 +1090,7 @@ hash<UrlInfo> parse_url(string url, bool keep_brackets) {
       argument string, otherwise it will not if it was not given as such in the argument string; subject to percent
       decoding if @ref QURL_DECODE passed in \a options
     - \c query: any query component of the URL (i.e. text after any \c '?' character); only present if the
-      @ref QRUL_QUERY argument is present in \a options; subject to percent decoding if
+      @ref QURL_QUERY argument is present in \a options; subject to percent decoding if
       @ref QURL_DECODE passed in \a options
     - \c username: any username given in the URL; subject to percent decoding if @ref QURL_DECODE or
       @ref QURL_DECODE_PATH passed in \a options
@@ -3006,4 +3006,4 @@ nothing set_module_option(string module, string option, auto value) [dom=PROCESS
 code get_call_reference(string identifier) [flags=RET_VALUE_ONLY] {
     return get_call_reference_intern(runtime_get_stack_object(), identifier, xsink);
 }
-//@}
+///@}

@@ -40,7 +40,7 @@
     Qore::ReadOnlyFile::hstat(), Qore::hstat(), etc, or with element 2 of the status list as returned from
     Qore::ReadOnlyFile::stat(), Qore::stat(), etc.
 */
-//@{
+///@{
 //! %File type bitmask
 const S_IFMT = S_IFMT;
 
@@ -165,7 +165,7 @@ const S_ISGID = S_ISGID;
 
 //! Bit signifying restricted deletes for directories; equal to 0 on native Windows ports
 const S_ISVTX = S_ISVTX;
-//@}
+///@}
 
 //! The %ReadOnlyFile class allows %Qore programs to read existing files
 /** @note This class is not available with the @ref PO_NO_FILESYSTEM parse option

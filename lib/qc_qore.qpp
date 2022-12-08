@@ -52,7 +52,7 @@ DLLEXPORT extern QoreClass* QC_FILEOUTPUTSTREAM;
 /** @defgroup type_code_constants Type Code Constants
     Type code constants as returned by <value>::typeCode()
 */
-//@{
+///@{
 //! type code for wildcard types (both with - \c "all" and without - \c "auto" type stripping)
 /** @since %Qore 0.9.4
 */
@@ -99,13 +99,13 @@ const NT_CLOSURE = NT_RUNTIME_CLOSURE;
 
 //! type code for @ref call_reference "call references"
 const NT_CALLREF = NT_FUNCREF;
-//@}
+///@}
 
 /** @defgroup type_code_map_constants Type Code Map Constants
     Type code map constants to look up type codes (as returned by <value>::typeCode()) from type
     names (as returned by <value>::type()) and vice-versa.
 */
-//@{
+///@{
 //! type code map, looks up type names from type code values
 const TypeCodeMap = (
     "0": "nothing",
@@ -141,41 +141,41 @@ const TypeNameMap = (
     "call reference": NT_FUNCREF,
     "closure": NT_RUNTIME_CLOSURE,
 );
-//@}
+///@}
 
 /** @defgroup boolean_constants Boolean Constants
  */
-//@{
+///@{
 //! logical @ref True
 const True = bool(true);
 
 //! logical @ref False
 const False = bool(false);
-//@}
+///@}
 
 /** @defgroup null_and_nothing_constants NULL and NOTHING Constants
  */
-//@{
+///@{
 //! a constant representing the lack of a value
 const NOTHING = qore(&Nothing);
 
 //! logical @ref False
 const NULL = qore(&Null);
-//@}
+///@}
 
 /** @defgroup exception_type_constants Exception Type Constants
  */
-//@{
+///@{
 //! Exception type code system exceptions (thrown in internal %Qore code or in modules)
 const ET_System = "System";
 
 //! Exception type for user exceptions (thrown by the @ref throw "throw statement")
 const ET_User = "User";
-//@}
+///@}
 
 /** @defgroup call_type_constants Call Type Constants
  */
-//@{
+///@{
 //! Call type for user code
 const CT_User = CT_USER;
 
@@ -187,11 +187,11 @@ const CT_NewThread = CT_NEWTHREAD;
 
 //! Call type for an exception thrown by the @ref rethrow "rethrow statement"
 const CT_Rethrow = CT_RETHROW;
-//@}
+///@}
 
 /** @defgroup system_and_build_constants System and Build Constants
  */
-//@{
+///@{
 //! The full %Qore version string
 const VersionString = qore(new QoreStringNode(qore_version_string));
 
@@ -246,11 +246,11 @@ const DirSep = qore(new QoreStringNode(QORE_DIR_SEP_STR));
     @since %Qore 0.8.13
  */
 const PathSep = qore(new QoreStringNode(QORE_PATH_SEP_STR));
-//@}
+///@}
 
 /** @defgroup event_source_constants Event Source Constants
  */
-//@{
+///@{
 //! @ref Socket "Socket class" source code
 const SOURCE_SOCKET = QORE_SOURCE_SOCKET;
 
@@ -262,11 +262,11 @@ const SOURCE_FTPCLIENT = QORE_SOURCE_FTPCLIENT;
 
 //! @ref File "File class" source code
 const SOURCE_FILE = QORE_SOURCE_FILE;
-//@}
+///@}
 
 /** @defgroup event_map_constants Event Map Constants
  */
-//@{
+///@{
 //! Maps from @ref event_source_constants (the keys) to descriptive strings (the values)
 const EVENT_SOURCE_MAP = (
     "1": "SOCKET",
@@ -309,11 +309,11 @@ const EVENT_MAP = (
     "30": "SOCKET_DATA_SENT",
     "31": "HTTP_HEADERS_READ",
 );
-//@}
+///@}
 
 /** @defgroup event_constants Event Constants
  */
-//@{
+///@{
 //! Raised when a network packet is received
 const EVENT_PACKET_READ = QORE_EVENT_PACKET_READ;
 
@@ -418,14 +418,14 @@ const EVENT_SOCKET_DATA_SENT = QORE_EVENT_SOCKET_DATA_SENT;
 /** @since %Qore 0.9.4
 */
 const EVENT_HTTP_HEADERS_READ = QORE_EVENT_HTTP_HEADERS_READ;
-//@}
+///@}
 
 /** @defgroup io_constants I/O Constants
     These constants are all instantiations of the @ref File "File class"
 
     None of these constants are available if the parse option @ref PO_NO_TERMINAL_IO is set
  */
-//@{
+///@{
 //! system constant for stdin (file descriptor 0)
 const stdin = qore(QC_FILE->execSystemConstructor(0));
 
@@ -443,4 +443,4 @@ const stdout_stream = qore(QC_FILEOUTPUTSTREAM->execSystemConstructor(1));
 
 //! system constant for stderr OutputStream (file descriptor 2)
 const stderr_stream = qore(QC_FILEOUTPUTSTREAM->execSystemConstructor(2));
-//@}
+///@}

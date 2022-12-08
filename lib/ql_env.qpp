@@ -38,7 +38,7 @@
 /** @defgroup env_functions Environment Functions
     Environment functions
 */
-//@{
+///@{
 //! Retrieves the value of an environment variable or @ref nothing if the variable is not set
 /**
     @param var the name of the environment variable
@@ -114,4 +114,4 @@ int unsetenv(string env) [dom=PROCESS] {
  */
 nothing unsetenv() [flags=NOOP;dom=EXTERNAL_INFO] {
 }
-//@}
+///@}

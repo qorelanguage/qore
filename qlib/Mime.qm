@@ -205,7 +205,7 @@ public namespace Mime {
     /** @defgroup MimeTypeDefinitions MIME Type Definitions
         These are constants for common MIME types
      */
-    #@{
+    #/@{
     #! MIME type for unknown file types
     public const MimeTypeUnknown = MimeTypeOctetStream;
 
@@ -516,11 +516,11 @@ public namespace Mime {
         ")": True,
         ",": True
         );
-    #@}
+    #/@}
 
     /** @defgroup MimeContentTransferEncodingConstants MIME Content Transfer Encoding Constants
      */
-    #@{
+    #/@{
     #! default Content-Transfer-Encoding if none is present; implies lines < 1000 chars (= no encoding)
     public const ContentTransEnc7Bit = "7bit";
 
@@ -545,11 +545,11 @@ public namespace Mime {
     /** <a href="http://tools.ietf.org/html/rfc2045#section-6.7">RFC 2045 section 6.7</a>
      */
     public const MimeQuotedPrintableLineLen = 76;
-    #@}
+    #/@}
 
     /** @defgroup MimeEncodingFunctions MIME Encoding Functions
      */
-    #@{
+    #/@{
     #! returns a string in "BASE64" encoding according to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
     /** @param str the string to encode
         @param len the maximum line length
@@ -664,11 +664,11 @@ public namespace Mime {
     public string sub mime_encode_header_word_q(string str) {
         return sprintf("=?%s?Q?%s?=", get_encoding(str), mime_encode_quoted_printable(str, True));
     }
-    #@}
+    #/@}
 
     /** @defgroup MimeDecodingFunctions MIME Decoding Functions
      */
-    #@{
+    #/@{
     #! returns a binary value from a string in "BASE64" encoding
     /** According to <a href="http://tools.ietf.org/html/rfc2045">RFC 2045</a>
 
@@ -810,11 +810,11 @@ public namespace Mime {
         }
         return hdr;
     }
-    #@}
+    #/@}
 
     /** @defgroup MimeMiscFunctions Misc MIME Functions
      */
-    #@{
+    #/@{
     #! returns the mime type for the given filename from the extension or the default type if the extension is not present or unknown
     public string sub get_mime_type_from_ext(string path, string def_type = MimeTypeUnknown) {
         *string ext = (path =~ x/\.([a-z0-9]+)$/i)[0];
@@ -954,11 +954,11 @@ public namespace Mime {
 
         return rv;
     }
-    #@}
+    #/@}
 
     /** @defgroup MultiPartConstants MultiPartMessage Constants
      */
-    #@{
+    #/@{
     #! for form data (http://tools.ietf.org/html/rfc1867, http://tools.ietf.org/html/rfc2388)
     public const MPT_FORM_DATA   = "form-data";
 
@@ -985,7 +985,7 @@ public namespace Mime {
 
     #! for sending noncontiguous byte ranges of a single message (http://tools.ietf.org/html/rfc2616)
     public const MPT_BYTERANGES  = "byteranges";
-    #@}
+    #/@}
 
     #! MultiPartMessage class implementation
     public class MultiPartMessage {

@@ -123,7 +123,7 @@ static QoreValue auto_cast(const QoreValue v) {
 /** @defgroup string_type_constants String Type Constants
     String type constants as returned by type() and typename()
 */
-//@{
+///@{
 namespace Qore::Type;
 
 //! Gives the type for @ref boolean "boolean" values
@@ -167,11 +167,11 @@ const CallReference = "call reference";
 
 //! Gives the type for @ref closure "closures"
 const Closure = "closure";
-//@}
+///@}
 
 /** @defgroup type_conversion_functions Type Conversion Functions
  */
-//@{
+///@{
 
 //! Converts the argument to a boolean value
 /**
@@ -572,4 +572,4 @@ list<int> int_list = auto_cast(tmp);
 auto auto_cast(auto val) [flags=CONSTANT] {
     return auto_cast(val);
 }
-//@}
+///@}
