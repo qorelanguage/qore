@@ -35,7 +35,7 @@
 /** @defgroup old_dbi_functions Old DBI Functions
     Old DBI functions; see @ref dbi_functions
  */
-//@{
+///@{
 namespace Qore::SQL;
 
 //! Returns a @ref datasource_hash "datasource hash" of the components of a datasource string
@@ -107,7 +107,7 @@ nothing getDBIDriverCapabilityList() [flags=NOOP,DEPRECATED] {
  */
 nothing getDBIDriverCapabilities() [flags=NOOP,DEPRECATED] {
 }
-//@}
+///@}
 
 /** @defgroup dbi_functions DBI Functions
     These DBI functions were added in %Qore 0.8.6; the original functions used camel case names and had @ref NOOP variants (see @ref old_dbi_functions)
@@ -123,7 +123,7 @@ nothing getDBIDriverCapabilities() [flags=NOOP,DEPRECATED] {
     |\c port|the port number to use for the connection, if present in the string
     |\c options|A hash of options given in the string, if present. Special options are \c "min" and \c "max", which are respected by the DatasourcePool::constructor(hash) variant for setting the minimum and maximum connections in the pool, respectively; other options are passed to the DBI driver
 */
-//@{
+///@{
 namespace Qore::SQL;
 
 //! Returns a @ref datasource_hash "datasource hash" of the components of a datasource string
@@ -224,12 +224,12 @@ int dbi_get_driver_capabilities(string driver) [flags=CONSTANT] {
     DBIDriver* dd = DBI.find(driver->getBuffer());
     return !dd ? 0 : qore_dbi_private::get(*dd)->getOptionHash();
 }
-//@}
+///@}
 
 /** @defgroup sql_constants SQL Constants
     SQL constants
  */
-//@{
+///@{
 namespace Qore::SQL;
 
 //! for binding string values
@@ -263,5 +263,5 @@ const DATE = "date";
 /** @since %Qore 0.8.13
 */
 const RESULTSET = "resultset";
-//@}
+///@}
 

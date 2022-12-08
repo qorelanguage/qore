@@ -295,13 +295,13 @@ public const HttpCodes = {
 
 /** @defgroup HttpServerLoggingOptions HttpServer Logging Options
 */
-#@{
+#/@{
 #! bit for logging argument
 public const LP_LOGPARAMS = 1 << 16;
 
 #! mask for the log level
 public const LP_LEVELMASK = LP_LOGPARAMS - 1;
-#@}
+#/@}
 
 #! the return value of HTTP handler methods where any message body has been serialized for sending over the HTTP socket
 public hashdecl HttpResponseInfo {

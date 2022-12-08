@@ -95,7 +95,7 @@ hashdecl Qore::SocketPollInfo {
 
 /** @defgroup socket_poll_constants Socket Poll Constants
 */
-//@{
+///@{
 //! (input and output) for polling for read events
 const SOCK_POLLIN = SOCK_POLLIN;
 
@@ -104,13 +104,13 @@ const SOCK_POLLOUT = SOCK_POLLOUT;
 
 //! (output only) indicates that the socket or connection is closed
 const SOCK_POLLERR = SOCK_POLLERR;
-//@}
+///@}
 
 /** @defgroup ssl_mode_constants SSL Verification Mode Constants
     These are integer contants to be used with @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()"
     and are returned by @ref Qore::Socket::getSslVerifyMode() "Socket::getSslVerifyMode()"
 */
-//@{
+///@{
 //! Do not verify the peer's certificate
 /** @par Server Mode
     The server will not send a client certificate request to the client, so the client will not send a certificate
@@ -164,7 +164,7 @@ const SSL_VERIFY_FAIL_IF_NO_PEER_CERT = SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
     @note must be used with @ref Qore::SSL_VERIFY_PEER (combined with binary or)
 */
 const SSL_VERIFY_CLIENT_ONCE = SSL_VERIFY_CLIENT_ONCE;
-//@}
+///@}
 
 /** @defgroup x509_verification_constants X.509 Verification Constants
     These are string contants for values returned by the following methods:
@@ -172,7 +172,7 @@ const SSL_VERIFY_CLIENT_ONCE = SSL_VERIFY_CLIENT_ONCE;
     - HTTPClient::verifyPeerCertificate()
     - Socket::verifyPeerCertificate()
 */
-//@{
+///@{
 //! Verification OK
 const X509_V_OK = "X509_V_OK";
 
@@ -308,12 +308,12 @@ const X509_VerificationReasons = (
     "X509_V_ERR_KEYUSAGE_NO_CERTSIGN": "The keyUsage extension does not permit certificate signing",
     "X509_V_ERR_APPLICATION_VERIFICATION": "Verification failure",
 );
-//@}
+///@}
 
 /** @defgroup network_address_family_constants Network Address Family Constants
     These are the possible network address family constants
 */
-//@{
+///@{
 //! IPv4 address family
 const AF_INET = AF_INET;
 
@@ -345,13 +345,13 @@ const AFStrMap = (
     "AF_UNSPEC": AF_UNSPEC,
 );
 
-//@}
+///@}
 
 /** @defgroup network_address_information_constants Network Address Information Constants
     These are the possible network address information constants for the getaddrinfo() function;
     if any of these constants are not defined on the current platform, they will be assigned to 0 in %Qore
 */
-//@{
+///@{
 #ifndef AI_ADDRCONFIG
 #define AI_ADDRCONFIG 0
 #endif
@@ -405,23 +405,23 @@ const AI_PASSIVE = AI_PASSIVE;
 /** The AI_V4MAPPED flag is ignored unless family is AF_INET6
 */
 const AI_V4MAPPED = AI_V4MAPPED;
-//@}
+///@}
 
 /** @defgroup protocol_constants Network Protocol Constants
     These are the possible network protocol constants
 */
-//@{
+///@{
 //! for the UDP protocol
 const IPPROTO_UDP = IPPROTO_UDP;
 
 //! for the TCP protocol
 const IPPROTO_TCP = IPPROTO_TCP;
-//@}
+///@}
 
 /** @defgroup socket_type_constants Socket Type Constants
     These are the possible socket type constants
 */
-//@{
+///@{
 //! for sequenced, reliable, two-way connection-based byte streams (the default)
 const SOCK_STREAM = SOCK_STREAM;
 
@@ -430,7 +430,7 @@ const SOCK_DGRAM = SOCK_DGRAM;
 
 //! raw socket interface, only available to the superuser, untested
 const SOCK_RAW = SOCK_RAW;
-//@}
+///@}
 
 //! The Socket class allows %Qore programs safe access to network sockets
 /** @note This class is not available with the @ref PO_NO_NETWORK parse option.

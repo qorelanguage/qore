@@ -37,7 +37,7 @@
 public namespace DataProvider {
 /** @defgroup pipeline_status_codes Pipeline Status Codes
 */
-#@{
+#/@{
 #! Pipeline status: ABORTED
 public const PS_ABORTED = "ABORTED";
 
@@ -46,7 +46,7 @@ public const PS_RUNNING = "RUNNING";
 
 #! Pipeline status: IDLE
 public const PS_IDLE = "IDLE";
-#@}
+#/@}
 
 #! Pipeline info
 public hashdecl PipelineInfo {

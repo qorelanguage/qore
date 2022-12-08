@@ -87,7 +87,7 @@ QoreListNode* range_intern(int64 start, int64 stop, int64 step, ExceptionSink* x
 /** @defgroup list_functions List Functions
     List functions
  */
-//@{
+///@{
 //! This function variant does nothing at all
 /** it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore
     type errors in arguments
@@ -1038,4 +1038,4 @@ range(-3); # (0, -1, -2, -3)
 list<int> range(int stop) [flags=CONSTANT] {
     return range_intern(0, stop, 1, xsink);
 }
-//@}
+///@}

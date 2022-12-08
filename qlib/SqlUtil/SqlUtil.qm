@@ -2244,7 +2244,7 @@ public namespace SqlUtil {
     /** @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */
-    #@{
+    #/@{
     #! Features constants
 
     #! Feature: functions
@@ -2265,12 +2265,12 @@ public namespace SqlUtil {
     public const DB_VIEWS = "views";
     #! Feature: synonyms
     public const DB_SYNONYMS = "synonyms";
-    #@}
+    #/@}
 
     /* @defgroup SqlTypeConstants SQL Type Constants
         These constants can be used for the \c "qore_type" values when creating columns to specify additional SQL column types
     */
-    #@{
+    #/@{
     #! specifies a \c VARCHAR column (equivalent to @ref Qore::Type::String)
     public const VARCHAR = "string";
 
@@ -2285,12 +2285,12 @@ public namespace SqlUtil {
 
     #! specifies a large variable-length character column (ie \c CLOB or \c TEXT, etc)
     public const CLOB = "clob";
-    #@}
+    #/@}
 
     /** @defgroup ColumnSizeOptions Column Size Options
         These constants represent the possible values for column size options
      */
-    #@{
+    #/@{
     #! the data type does not take a size parameter
     public const SZ_NONE = 0;
 
@@ -2302,12 +2302,12 @@ public namespace SqlUtil {
 
     #! the data type is numeric so takes an optional precision and scale
     public const SZ_NUM = 3;
-    #@}
+    #/@}
 
     /** @defgroup sql_cops SQL Column Operators
         These are the operators that can be used in the \c "columns" argument for select statements
      */
-    #@{
+    #/@{
     #! to rename a column on output
     /** @see cop_as()
     */
@@ -2746,7 +2746,7 @@ public namespace SqlUtil {
             },
         ),
     );
-    #@}
+    #/@}
 
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
         These are functions that can be used in the \c "columns" argument for select statements:
@@ -2788,7 +2788,7 @@ public namespace SqlUtil {
 *list<auto> rows = t.selectRows(("columns": cop_as(cop_lower("permission_type"), "perm"), "where": ("permission_type": "USER"), "limit": 100, "offset": 200));
         @endcode
      */
-    #@{
+    #/@{
     #! returns a @ref ColumnOperatorInfo hash
     /** @param cop the column operator (one of @ref sql_cops)
         @param column the column name
@@ -3575,7 +3575,7 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
         return make_cop(COP_ROW_NUMBER, "");
     }
 
-    #@}
+    #/@}
 
     /** @defgroup sql_cop_trunc_date_enum cop_trunc_date formats
         These are formatting constant which can be used in @ref cop_trunc_date() formatting argument.
@@ -3595,7 +3595,7 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
               with this operator.
 
      */
-    #@{
+    #/@{
     #! Format unit: year
     public const DT_YEAR = "Y";
 
@@ -3616,12 +3616,12 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
 
     # let's simulate and enum here'
     const DT_ALL_VALUES = ( DT_YEAR, DT_MONTH, DT_DAY, DT_HOUR, DT_MINUTE, DT_SECOND );
-    #@}
+    #/@}
 
     /** @defgroup sql_uops SQL Update Operators
         These are the operators that can be used in update statements to process column values automatically
      */
-    #@{
+    #/@{
     #! a hash of valid update operators
     public const DefaultUopMap = (
         COP_PREPEND: True,
@@ -3672,7 +3672,7 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
             }
         ),
         );
-    #@}
+    #/@}
 
     /** @defgroup sql_uop_funcs SQL Update Operator Functions
         These are functions that can be used as the values of update keys in select statements:
@@ -3694,7 +3694,7 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
 int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
         @endcode
      */
-    #@{
+    #/@{
     #! returns an @ref UpdateOperatorInfo hash
     /** @param uop the update operator (one of @ref sql_uops)
         @param arg the argument to the operator
@@ -3869,14 +3869,14 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     public hash<UpdateOperatorInfo> sub uop_seq_currval(string seq) {
         return make_uop(COP_SEQ_CURRVAL, seq);
     }
-    #@}
+    #/@}
 
     /** @defgroup sql_jops SQL Join Operators
         These are the operators that can be used in the @ref select_option_join "join" argument in a @ref select_option_hash "select option hash"
 
         @note these operators are normally not used directly, but rather are used by the @ref sql_jop_funcs
     */
-    #@{
+    #/@{
     #! for standard inner joins
     /** @see join_inner()
     */
@@ -3898,7 +3898,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         JOP_LEFT: "left outer",
         JOP_RIGHT: "right outer",
     };
-    #@}
+    #/@}
 
     /** @defgroup sql_jop_funcs SQL Join Operator Functions
         These are functions that can be used in the @ref select_option_join "join" argument in a @ref select_option_hash "select option hash":
@@ -3908,7 +3908,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @note for join functions, explicit join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
      */
-    #@{
+    #/@{
     #! returns hash keyed with the table name assigned to a @ref JoinOperatorInfo hash
     /**
         @note this function is normally not used directly, but rather is called by the other @ref sql_jop_funcs
@@ -4380,12 +4380,12 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     public hash<string, hash<JoinOperatorInfo>> sub join_right_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash<auto> opt) {
         return make_jop(JOP_RIGHT, table_name, alias, jcols, cond, ta, opt);
     }
-    #@}
+    #/@}
 
     /** @defgroup sql_ops SQL Operators
         These are the operators that can be used in where clauses; see @ref where_clauses for more information
      */
-    #@{
+    #/@{
     #! the SQL "like" operator for use in @ref where_clauses
     /** @see op_like()
     */
@@ -5353,7 +5353,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
     };
-    #@}
+    #/@}
 
     /** @defgroup sql_op_funcs SQL Operator Functions
         These are the operators that can be used in where clauses; see @ref where_clauses for more information:
@@ -5377,7 +5377,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         - op_ceq(): for the \c "=" operator when comparing the values of two columns
         - wop_or(): for combining SQL expressions with \c "or"
      */
-    #@{
+    #/@{
     #! returns an @ref OperatorInfo hash
     public hash<OperatorInfo> sub make_op(string op, auto arg) {
         return new hash<OperatorInfo>({"op": op, "arg": arg});
@@ -5759,14 +5759,14 @@ select * from schema.table where name = other_name and ((type = %v and validatio
             l += argv;
         return new hash<string, hash<OperatorInfo>>((sprintf("%d:_OR_", rand() % 10000000): make_op(OP_OR, l)));
     }
-    #@}
+    #/@}
 
     /** @defgroup sql_iops SQL Insert Operators
         These are operators that can be used for special value functions as the values of inserted columns.
 
         @note these operators are normally not used directly, but rather are used by the @ref sql_iop_funcs
     */
-    #@{
+    #/@{
     #! for using the value of a sequence
     /** @see iop_seq()
     */
@@ -5779,13 +5779,13 @@ select * from schema.table where name = other_name and ((type = %v and validatio
 
     #! a hash of default insert operator descriptions (currently empty, all operators are driver-dependent)
     public const DefaultIopMap = {};
-    #@}
+    #/@}
 
     /** @defgroup sql_iop_funcs SQL Insert Operator Functions
         These are functions that can be used to give special values in insert queries
         - @ref iop_seq(): insert the value of a sequence into the column
     */
-    #@{
+    #/@{
     #! returns an @ref InsertOperatorInfo hash
     /** @param iop the value operator (one of @ref sql_iops)
         @param arg the argument to the operator
@@ -5825,7 +5825,7 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
     public hash<InsertOperatorInfo> sub iop_seq_currval(string arg) {
         return make_iop(IOP_SEQ_CURRVAL, arg);
     }
-    #@}
+    #/@}
 
     #! known drivers
     public const SqlUtilDrivers = (

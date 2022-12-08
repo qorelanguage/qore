@@ -53,7 +53,7 @@ static double minus_infinity() {
 /** @defgroup math_constants Math Constants
     Math constants
  */
-//@{
+///@{
 //! PI (floating-point)
 const M_PI = 3.14159265358979323846;
 
@@ -71,12 +71,12 @@ const MAXINT = LLONG_MAX;
 /** @since %Qore 0.8.6
  */
 const MININT = qore(QoreValue(-LLONG_MAX - 1));
-//@}
+///@}
 
 /** @defgroup math_functions Math Functions
     Math functions
 */
-//@{
+///@{
 
 //! Returns the multiple of <b>-prec</b>-th power of 10 that is closest to <b>num</b> (numbers halfway between two such powers of 10 are rounded away from zero). (So, for non-negative <b>prec</b> just returns <b>num</b>).
 /** @param num an integer number to round
@@ -1186,7 +1186,7 @@ int compare(float n1, float n2, float epsilon) [flags=CONSTANT] {
     }
     return rv;
 }
-//@}
+///@}
 
 typedef enum {ROUND, CEIL, FLOOR} FUN;
 long long round_ceil_floor_intern(long long num, int prec, FUN fun) {

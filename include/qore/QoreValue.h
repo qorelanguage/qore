@@ -39,13 +39,13 @@ typedef unsigned char valtype_t;
 //! @defgroup QoreValue type constants
 /** the possible values for QoreValue::type
  */
-//@{
+///@{
 #define QV_Bool  (valtype_t)0  //!< for boolean values
 #define QV_Int   (valtype_t)1  //!< for integer values
 #define QV_Float (valtype_t)2  //!< for floating-point values
 #define QV_Node  (valtype_t)3  //!< for heap-allocated values
 #define QV_Ref   (valtype_t)4  //!< for references (when used with lvalues)
-//@}
+///@}
 
 // forward references
 class AbstractQoreNode;

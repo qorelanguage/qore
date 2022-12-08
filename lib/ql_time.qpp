@@ -419,7 +419,7 @@ hashdecl IsoWeekInfo {
 
     @bug currently only English month abbreviations are accepted in the date/time mask
 */
-//@{
+///@{
 
 //! Returns the current date and time with a resolution to the millisecond
 /**
@@ -1825,4 +1825,4 @@ date dt = date("20100401 234520 230394", "YYYYMMDD HHmmSS ssssss"); # returns 20
 date date(string dtstr, string mask) [flags=RET_VALUE_ONLY] {
    return make_date_with_mask(currentTZ(), *dtstr, *mask, xsink);
 }
-//@}
+///@}

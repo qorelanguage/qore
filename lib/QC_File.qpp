@@ -129,7 +129,7 @@ hashdecl PipeInfo {
 /** @defgroup file_open_constants File Open Constants
     These are the possible values that can be or'ed together when calling File::open() or File::open2()
 */
-//@{
+///@{
 //! Mask for access modes (O_RDONLY|O_WRONLY|O_RDWR)
 const O_ACCMODE = O_ACCMODE;
 //! Open the file in append mode (append on each write)
@@ -184,33 +184,33 @@ const O_DIRECT = O_DIRECT;
 const O_DIRECTORY = O_DIRECTORY;
 //! don't follow links (0 on platforms where this is not available)
 const O_NOFOLLOW = O_NOFOLLOW;
-//@}
+///@}
 
 /** @defgroup file_locking_constants File Locking Constants
     These are the possible values for the File::lock() or File::lockBlocking() methods.
 
     @note These contants are set to 0 on platforms where HAVE_FILE_LOCKING is @ref False (such as native Windows ports)
 */
-//@{
+///@{
 //! Use for read-only locking
 const F_RDLCK = F_RDLCK;
 //! Use for exclusive write locking
 const F_WRLCK = F_WRLCK;
 //! Use for unlocking a lock
 const F_UNLCK = F_UNLCK;
-//@}
+///@}
 
 /** @defgroup file_seek_constants File Seek Constants
     These are the possible values for the \c whence parameter of the File::lock() and File::lockBlocking() methods
  */
-//@{
+///@{
 //! Indicates that the offset is from the start of the file
 const SEEK_SET = SEEK_SET;
 //! Indicates that the offset is from the current position in the file
 const SEEK_CUR = SEEK_CUR;
 //! Indicates that the offset is from the end of the file
 const SEEK_END = SEEK_END;
-//@}
+///@}
 
 //! The %File class allows %Qore programs to read, write, and create files
 /** @note This class is not available with the @ref PO_NO_FILESYSTEM parse option

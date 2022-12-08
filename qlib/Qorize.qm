@@ -98,7 +98,7 @@ public namespace Qorize {
 
 /** @defgroup QorizeFunctions Qorize Functions
  */
-#@{
+#/@{
 
 #! create code from the boolean value
 /**
@@ -542,7 +542,7 @@ public string sub qorize_val(hash val, int indentation = 2, bool curlyHash = Tru
 public string sub qorize_val(auto val) {
     return sprintf("%s", QorizeHelper::escape(val));
 }
-#@}
+#/@}
 
 
 # a helper class holding all logic

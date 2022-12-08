@@ -215,7 +215,7 @@ foreach int i in(xrange(5))
 # i=5
 	@endcode
  */
-//@{
+///@{
 //! Returns a RangeIterator containing an arithmetic progression of integers.
 /**
     @par Example:
@@ -283,4 +283,4 @@ RangeIterator xrange(int stop) [flags=CONSTANT] {
 
     return new QoreObject(QC_RANGEITERATOR, 0, r.release());
 }
-//@}
+///@}

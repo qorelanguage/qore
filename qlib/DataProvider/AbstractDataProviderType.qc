@@ -173,7 +173,7 @@ public hashdecl DataTypeInfo {
 /** @defgroup data_type_tags Data Type Tag Constants
     These constants provide predefined data type tags
 */
-#@{
+#/@{
 #! Tag indicating that a string value can be taken from a file
 public const DTT_FromFile = "from_file";
 
@@ -182,7 +182,7 @@ public const DTT_FromLocation = "from_location";
 
 #! Tag indicates that the value is only applicable in client contexts
 public const DTT_ClientOnly = "client_only";
-#@}
+#/@}
 
 #! describes a data type
 public class AbstractDataProviderType inherits Qore::Serializable {

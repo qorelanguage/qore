@@ -27,7 +27,7 @@ public namespace DataProvider {
 /** @defgroup data_provider_api_profiles DataProvider API Profiles
     These constants define supported server profiles for data provider factories that provide API management services
 */
-#@{
+#/@{
 #! Data provider HTTP server profile
 /** This profile indicates that the given data provider factory supports serving APIs with REST and a REST schema
 */
@@ -36,7 +36,7 @@ public const DPSP_REST = "rest";
 /** This profile indicates that the given data provider factory supports serving APIs with SOAP and a WSDL schema
 */
 public const DPSP_SOAP = "soap";
-#@}
+#/@}
 
 #! Data provider factory info
 public hashdecl DataProviderFactoryInfo {

@@ -77,7 +77,7 @@ hashdecl SourceLocationInfo {
 
     @since %Qore 0.9.3
 */
-//@{
+///@{
 //! Imports the object with the same module visibility
 const CSP_UNCHANGED = CSP_UNCHANGED;
 
@@ -86,14 +86,14 @@ const CSP_SETPUB = CSP_SETPUB;
 
 //! Imports the object with private visibility
 const CSP_SETPRIV = CSP_SETPRIV;
-//@}
+///@}
 
 /** @defgroup functional_domain_constants Functional Domain Constants
     Constants providing values for functional domains; each constant is a unique element of a bitfield
 
     @since %Qore 0.9
 */
-//@{
+///@{
 //! provides process control functionality (can affect or stop the current process)
 /** @see
     - @ref Qore::PO_NO_PROCESS_CONTROL "PO_NO_PROCESS_CONTROL"
@@ -211,12 +211,12 @@ const DOM_DEBUGGER = QDOM_DEBUGGER;
 /** @see @ref Qore::PO_NO_REFLECTION "PO_NO_REFLECTION"
 */
 const DOM_REFLECTION = QDOM_REFLECTION;
-//@}
+///@}
 
 /** @defgroup parse_options Parse Option Constants
     These are the possible values that can be or'ed together to set @ref Qore::Program "Program" parse options
 */
-//@{
+///@{
 //! Maps from parse option code values (as string keys) to parse option names
 /** @see ParseOptionStringMap for the reverse mapping
 
@@ -753,12 +753,12 @@ const PO_STRICT_TYPES = PO_STRICT_TYPES;
 /** @since %Qore 1.0
 */
 const PO_NO_INHERIT_PROGRAM_DATA = PO_NO_INHERIT_PROGRAM_DATA;
-//@}
+///@}
 
 /** @defgroup warning_constants Warning Constants
     These are the possible values that can be or'ed together to set the @ref Qore::Program "Program" warning mask
 */
-//@{
+///@{
 //! Enables all warnings
 const WARN_ALL = QP_WARN_ALL;
 
@@ -887,7 +887,7 @@ const WARN_BROKEN_LOGIC_PRECEDENCE = QP_WARN_BROKEN_LOGIC_PRECEDENCE;
     @since %Qore 1.0
 */
 const WARN_INVALID_CATCH = QP_WARN_INVALID_CATCH;
-//@}
+///@}
 
 //! Program objects allow %Qore programs to support subprograms with the option to restrict capabilities, for example, to support user-defined logic for application actions
 /** Parsing in %Qore happens in two steps; first all code is parsed to pending data structures, and then in the second stage,

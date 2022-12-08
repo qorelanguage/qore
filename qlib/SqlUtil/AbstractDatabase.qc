@@ -62,7 +62,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
             - @ref ActionDescMap
             - @ref ActionLetterMap
             */
-        #@{
+        #/@{
         #! used when an existing object matches the template and no changes are made
         const AC_Unchanged = 0;
 
@@ -98,7 +98,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
 
         #! used when dropping object but the object is not present
         const AC_NotFound = 11;
-        #@}
+        #/@}
 
         #! maps from action codes to action descriptions
         const ActionMap = (

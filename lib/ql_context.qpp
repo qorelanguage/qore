@@ -38,7 +38,7 @@ static AbstractQoreNode* cx_err(const char* func, ExceptionSink* xsink) {
 
 /** @defgroup context_functions Context Functions
 */
-//@{
+///@{
 //! Returns the current value of the given column while iterating a @ref context "context statement"
 /**
     @param key the column name to return the value for
@@ -162,4 +162,4 @@ int cx_total() [flags=RET_VALUE_ONLY] {
 
    return c->getTotal();
 }
-//@}
+///@}

@@ -252,7 +252,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
 
             to specify the upsert strategy when synchronizing table data
         */
-        #@{
+        #/@{
         #! Upsert option: insert first, if the insert fails, then update
         /** with this option an insert is attempted, and if it fails due to a duplicate row, then an update is made unconditionally; with
             this upsert strategy, the following row result codes are possible:
@@ -322,12 +322,12 @@ public class AbstractTable inherits AbstractSqlUtilBase {
             "UpsertInsertOnly": UpsertInsertOnly,
             "UpsertUpdateOnly": UpsertUpdateOnly,
         };
-        #@}
+        #/@}
 
         /** @defgroup upsert_results Upsert Result Codes
             @see @ref UpsertResultMap and @ref UpsertResultDescriptionMap
             */
-        #@{
+        #/@{
         #! row was inserted
         const UR_Inserted = 1;
 
@@ -342,7 +342,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
 
         #! row was deleted (only possible with batch upsert methods such as @ref AbstractTable::upsertFromIterator() where @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True")
         const UR_Deleted = 5;
-        #@}
+        #/@}
 
         #! hash mapping upsert results to a description
         /** @see @ref UpsertResultDescriptionMap for a reverse mapping

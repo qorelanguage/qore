@@ -449,7 +449,7 @@ QoreStringNode* format_float_intern(int prec, const QoreString& dsep, const Qore
     The constants in this group can be combined with @ref bitwise_or_operator "binary or" to give regular expression options
     for the regex(), regex_subst(), and regex_extract() functions.
  */
-//@{
+///@{
 //! Ignores case when matching regular expressions, equivalent to <tt>/i</tt>
 const RE_Caseless = PCRE_CASELESS;
 
@@ -469,7 +469,7 @@ const RE_Global = QRE_GLOBAL;
 /** @since %Qore 0.9.4
 */
 const RE_Unicode = PCRE_UCP;
-//@}
+///@}
 
 /** @defgroup string_functions String Functions
 
@@ -556,7 +556,7 @@ string abc = "He\llo\, worl\d!";
 printf(abc); # will print out "Hello, world!"
     @endcode
  */
-//@{
+///@{
 
 //! Returns the length in characters for the string passed
 /** Note that the byte length may differ from the character length with multi-byte @ref character_encoding "character encodings". To get the byte length of a string, see strlen().
@@ -2235,4 +2235,4 @@ int parse_int(string str, string fmt) [flags=RET_VALUE_ONLY] {
 
    return strtoll(tmp.getBuffer(), 0, 10);
 }
-//@}
+///@}

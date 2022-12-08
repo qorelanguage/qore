@@ -132,7 +132,7 @@ hashdecl CallStackInfo {
 /** @defgroup threading_functions Threading Functions
     Threading functions
  */
-//@{
+///@{
 //! Returns the %Qore thread ID (TID) of the current thread
 /**
     @return the %Qore thread ID (TID) of the current thread
@@ -871,4 +871,4 @@ nothing set_thread_name(string name) [dom=THREAD_CONTROL] {
     return QoreValue();
 #endif
 }
-//@}
+///@}

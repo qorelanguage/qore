@@ -40,7 +40,7 @@ public hashdecl SoqlColumnOperatorInfo {
 /** @defgroup soql_cops SOQL Column Operators
     These are the operators that can be used in the \c "columns" argument for select statements
 */
-#@{
+#/@{
 #! to return the minimum value
 /** @see soql_cop_min
 */
@@ -259,12 +259,12 @@ public const DefaultSoqlCopMap = {
         },
     },
 };
-#@}
+#/@}
 
 /** @defgroup soql_ops SOQL Operators
     These are the operators that can be used in where clauses
 */
-#@{
+#/@{
 #! like operator
 const SOQL_OP_LIKE = "like";
 
@@ -317,7 +317,7 @@ public const SOQL_OP_NOT = "not";
 /** @see soql_wsoql_op_or()
 */
 public const SOQL_OP_OR = "or";
-#@}
+#/@}
 
 /** @defgroup soql_soql_cop_funcs SOQL Column Operator Functions
     These are functions that can be used in the \c "columns" argument for select statements:
@@ -343,7 +343,7 @@ public const SOQL_OP_OR = "or";
     - @ref soql_cop_week_in_month(): return the week in the month of a date or date/time value
     - @ref soql_cop_week_in_year(): return the week in the year of a date or date/time value
 */
-#@{
+#/@{
 #! returns a @ref SoqlColumnOperatorInfo hash
 /** @param cop the column operator (one of @ref soql_cops)
     @param column the column name
@@ -649,7 +649,8 @@ AbstractDataProviderRecordIterator i = provider.searchRecords({"columns": {"Acco
 */
 public hash<SoqlColumnOperatorInfo> sub soql_cop_week_in_year(auto column) {
     return soql_make_cop(SOQL_COP_WEEK_IN_YEAR, column);
-}#@}
+}
+#/@}
 
 /** @defgroup soql_op_funcs SOQL Operator Functions
     These are the operators that can be used in Salesforce where clauses
@@ -665,7 +666,7 @@ public hash<SoqlColumnOperatorInfo> sub soql_cop_week_in_year(auto column) {
     - soql_op_not(): for negating other operators
     - soql_wop_or(): for combining SOQL expressions with \c "or"
 */
-#@{
+#/@{
 #! returns an @ref SoqlOperatorInfo hash
 public hash<SoqlOperatorInfo> sub soql_make_op(string op, auto arg) {
     return new hash<SoqlOperatorInfo>({"op": op, "arg": arg});
@@ -866,7 +867,7 @@ public hash<string, hash<SoqlOperatorInfo>> sub soql_wop_or(hash<auto> h1, hash<
         l += argv;
     return new hash<string, hash<SoqlOperatorInfo>>((sprintf("%d:_OR_", rand() % 10000000): soql_make_op(SOQL_OP_OR, l)));
 }
-#@}
+#/@}
 
 #! a hash of valid operators for use in where clauses
 public const DefaultSoqlOpMap = {
@@ -931,5 +932,5 @@ public const DefaultSoqlOpMap = {
         },
     ),
 };
-#@}
+#/@}
 }
