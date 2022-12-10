@@ -1345,7 +1345,7 @@ public:
         - < 0 = error (exception raised)
     */
     DLLLOCAL virtual int continuePoll(ExceptionSink* xsink) {
-#ifdef
+#ifdef DEBUG
         qore_socket_private* spriv = http->msock->socket->priv;
         assert(http->msock->m.trylock());
         assert(spriv->isOpen());
@@ -1626,9 +1626,9 @@ public:
                     continue;
                 }
                 if (errno == EAGAIN
-    #ifdef EWOULDBLOCK
+#ifdef EWOULDBLOCK
                     || errno == EWOULDBLOCK
-    #endif
+#endif
                 ) {
                     return SOCK_POLLIN;
                 }
