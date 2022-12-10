@@ -901,7 +901,7 @@ int check_stack(ExceptionSink* xsink) {
     if (td->stack_limit < get_stack_pos()) {
 #endif
         xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit " \
-            "'(%ld bytes)", td->stack_size - QORE_STACK_GUARD);
+            "(%ld bytes)", td->stack_size - QORE_STACK_GUARD);
         return -1;
     }
 
