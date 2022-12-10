@@ -1350,7 +1350,7 @@ const QoreStackLocation* get_runtime_stack_location() {
 
 // called when pushing a new location on the stack
 const QoreStackLocation* update_get_runtime_stack_location(QoreStackLocation* stack_loc,
-    const AbstractStatement*& current_stmt, QoreProgram*& current_pgm) {
+        const AbstractStatement*& current_stmt, QoreProgram*& current_pgm) {
     ThreadData* td = thread_data.get();
 
     current_pgm = td->current_pgm;
@@ -1367,7 +1367,8 @@ const QoreStackLocation* update_get_runtime_stack_location(QoreStackLocation* st
 }
 
  const QoreStackLocation* update_get_runtime_stack_builtin_location(QoreStackLocation* stack_loc,
-    const AbstractStatement*& current_stmt, QoreProgram*& current_pgm, const QoreProgramLocation*& old_runtime_loc) {
+        const AbstractStatement*& current_stmt, QoreProgram*& current_pgm,
+        const QoreProgramLocation*& old_runtime_loc) {
     ThreadData* td = thread_data.get();
 
     current_pgm = td->current_pgm;
@@ -1414,7 +1415,7 @@ const QoreProgramLocation* get_runtime_location() {
 }
 
 void update_get_runtime_statement_location(const AbstractStatement* stmt,
-    const QoreProgramLocation* loc, const AbstractStatement*& old_stmt, const QoreProgramLocation*& old_loc) {
+        const QoreProgramLocation* loc, const AbstractStatement*& old_stmt, const QoreProgramLocation*& old_loc) {
     ThreadData* td = thread_data.get();
     old_stmt = td->runtime_statement;
     old_loc = td->runtime_loc;
@@ -1435,48 +1436,49 @@ const QoreProgramLocation* update_get_runtime_location(const QoreProgramLocation
 }
 
 void update_runtime_location(const QoreProgramLocation* loc) {
-   thread_data.get()->runtime_loc = loc;
+    thread_data.get()->runtime_loc = loc;
 }
 
 void set_parse_file_info(QoreProgramLocation& loc) {
-   ThreadData* td = thread_data.get();
-   loc.setFile(td->parse_file);
-   loc.setSource(td->parse_source);
-   loc.offset = td->parse_offset;
-   //printd(5, "set_parse_file_info() setting %s src: %s:%d\n", loc.getFile(), loc.getSource() ? loc.getSource() : "(null)", loc.offset);
+    ThreadData* td = thread_data.get();
+    loc.setFile(td->parse_file);
+    loc.setSource(td->parse_source);
+    loc.offset = td->parse_offset;
+    //printd(5, "set_parse_file_info() setting %s src: %s:%d\n", loc.getFile(), loc.getSource() ? loc.getSource() : "(null)", loc.offset);
 }
 
 const char* get_parse_code() {
-   return (thread_data.get())->parse_code;
+    return (thread_data.get())->parse_code;
 }
 
-void parseSetCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo, const char*& old_code, const QoreTypeInfo*& old_returnTypeInfo) {
-   ThreadData* td = thread_data.get();
-   old_code = td->parse_code;
-   old_returnTypeInfo = td->parse_return_type_info;
-   td->parse_code = parse_code;
-   td->parse_return_type_info = returnTypeInfo;
+void parseSetCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo, const char*& old_code,
+        const QoreTypeInfo*& old_returnTypeInfo) {
+    ThreadData* td = thread_data.get();
+    old_code = td->parse_code;
+    old_returnTypeInfo = td->parse_return_type_info;
+    td->parse_code = parse_code;
+    td->parse_return_type_info = returnTypeInfo;
 }
 
 void parseRestoreCodeInfo(const char* parse_code, const QoreTypeInfo* returnTypeInfo) {
-   ThreadData* td = thread_data.get();
-   td->parse_code = parse_code;
-   td->parse_return_type_info = returnTypeInfo;
+    ThreadData* td = thread_data.get();
+    td->parse_code = parse_code;
+    td->parse_return_type_info = returnTypeInfo;
 }
 
 const QoreTypeInfo* parse_get_return_type_info() {
-   return (thread_data.get())->parse_return_type_info;
+    return (thread_data.get())->parse_return_type_info;
 }
 
 const QoreTypeInfo* getReturnTypeInfo() {
-   return (thread_data.get())->returnTypeInfo;
+    return (thread_data.get())->returnTypeInfo;
 }
 
 const QoreTypeInfo* saveReturnTypeInfo(const QoreTypeInfo* returnTypeInfo) {
-   ThreadData* td = thread_data.get();
-   const QoreTypeInfo* rv = td->returnTypeInfo;
-   td->returnTypeInfo = returnTypeInfo;
-   return rv;
+    ThreadData* td = thread_data.get();
+    const QoreTypeInfo* rv = td->returnTypeInfo;
+    td->returnTypeInfo = returnTypeInfo;
+    return rv;
 }
 
 const AbstractQoreZoneInfo* currentTZ() {
@@ -1493,7 +1495,8 @@ const AbstractQoreZoneInfo* currentTZ() {
 void set_thread_tz(const AbstractQoreZoneInfo* tz) {
     ThreadData* td = thread_data.get();
     if (!td->tlpd) {
-        printd(0, "set_thread_tz(%p '%s') ignored - no current thread-local program data\n", tz, tz ? tz->getRegionName() : "(null)");
+        printd(0, "set_thread_tz(%p '%s') ignored - no current thread-local program data\n", tz,
+            tz ? tz->getRegionName() : "(null)");
         return;
     }
     td->tlpd->setTZ(tz);
@@ -1683,17 +1686,17 @@ QoreProgramContextHelper::~QoreProgramContextHelper() {
 }
 
 ObjectSubstitutionHelper::ObjectSubstitutionHelper(QoreObject* obj, const qore_class_private* c) {
-   ThreadData* td  = thread_data.get();
-   old_obj = td->current_obj;
-   old_class = td->current_class;
-   td->current_obj = obj;
-   td->current_class = c;
+    ThreadData* td  = thread_data.get();
+    old_obj = td->current_obj;
+    old_class = td->current_class;
+    td->current_obj = obj;
+    td->current_class = c;
 }
 
 ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
-   ThreadData* td  = thread_data.get();
-   td->current_obj = old_obj;
-   td->current_class = old_class;
+    ThreadData* td  = thread_data.get();
+    td->current_obj = old_obj;
+    td->current_class = old_class;
 }
 
 OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const qore_class_private* qc)

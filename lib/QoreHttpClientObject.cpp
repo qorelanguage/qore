@@ -1191,10 +1191,11 @@ public:
         - < 0 = error (exception raised)
     */
     DLLLOCAL virtual int continuePoll(ExceptionSink* xsink) {
+#ifdef DEBUG
         qore_socket_private* spriv = http->msock->socket->priv;
         assert(http->msock->m.trylock());
-
         assert(spriv->isOpen());
+#endif
 
         return readHeaderIntern(xsink);
     }
@@ -1344,10 +1345,11 @@ public:
         - < 0 = error (exception raised)
     */
     DLLLOCAL virtual int continuePoll(ExceptionSink* xsink) {
+#ifdef
         qore_socket_private* spriv = http->msock->socket->priv;
         assert(http->msock->m.trylock());
-
         assert(spriv->isOpen());
+#endif
 
         int rc;
         while (true) {

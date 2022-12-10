@@ -517,6 +517,7 @@ include_HEADERS = \
 	include/qore/macros-parisc.h \
 	include/qore/macros-arm.h \
 	include/qore/macros-aarch64.h \
+	include/qore/macros-s390x.h \
 	include/qore/QoreSocket.h \
 	include/qore/QoreSocketObject.h \
 	include/qore/QoreNet.h \
@@ -1002,8 +1003,13 @@ dist_qoredata_DATA = doxygen/Doxyfile.in \
 include $(srcdir)/qoretests.mk
 
 # all tests
-TESTS = $(qore_tests)
-#TESTS = `find ./examples/test/ -name "*.qtest"`
+TESTS = examples/test/qore/threads/background.qtest \
+    examples/test/qore/threads/deadlock.qtest \
+    examples/test/qore/threads/max-threads-count.qtest \
+    examples/test/qore/threads/set_thread_init.qtest \
+    examples/test/qore/threads/thread-object.qtest \
+    examples/test/qore/threads/thread-resources.qtest \
+    examples/test/qore/threads/tld.qtest
 
 AM_TESTS_ENVIRONMENT = QORE_MODULE_DIR='$(srcdir)/qlib'; export QORE_MODULE_DIR;
 

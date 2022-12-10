@@ -52,17 +52,12 @@
 #include <qore/macros-arm.h>
 #elif defined(__riscv)
 #include <qore/macros-riscv.h>
-#else
-#pragma message "no machine-specific macros included"
+#elif (defined(__s390__) || defined(__s390x__) || defined(__zarch__))
+#include <qore/macros-s390x.h>
 #endif
 
 #ifndef HAVE_CHECK_STACK_POS
-#define HAVE_CHECK_STACK_POS
-// returns a pointer to the current stack location
-static inline size_t get_stack_pos() {
-    int i;
-    return reinterpret_cast<size_t>(&i);
-}
+#error need a solution to get the stack pointer with this compiler and on this CPU architecture
 #endif
 
 #endif // #ifndef _QORE_MACROS_H

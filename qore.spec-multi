@@ -246,10 +246,15 @@ mkdir -p $RPM_BUILD_ROOT/%{module_dir}
 %fdupes -s docs/library/html
 %endif
 
-%if 0%{!?sles_version}
 %check
-make check
-%endif
+export QORE_MODULE_DIR=qlib
+./qore examples/test/qore/threads/background.qtest
+./qore examples/test/qore/threads/deadlock.qtest
+./qore examples/test/qore/threads/max-threads-count.qtest
+./qore examples/test/qore/threads/set_thread_init.qtest
+./qore examples/test/qore/threads/thread-object.qtest
+./qore examples/test/qore/threads/thread-resources.qtest
+./qore examples/test/qore/threads/tld.qtest
 
 %clean
 rm -rf $RPM_BUILD_ROOT

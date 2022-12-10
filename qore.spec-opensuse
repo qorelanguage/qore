@@ -181,6 +181,16 @@ rm %{buildroot}/%{_libdir}/libqore.la
 # mime info
 cp addon/freedesktop/qore.xml %{buildroot}/%{_datadir}/mime/packages
 
+%check
+export QORE_MODULE_DIR=qlib
+./qore examples/test/qore/threads/background.qtest
+./qore examples/test/qore/threads/deadlock.qtest
+./qore examples/test/qore/threads/max-threads-count.qtest
+./qore examples/test/qore/threads/set_thread_init.qtest
+./qore examples/test/qore/threads/thread-object.qtest
+./qore examples/test/qore/threads/thread-resources.qtest
+./qore examples/test/qore/threads/tld.qtest
+
 %post
 /usr/bin/update-mime-database %{_datadir}/mime &> /dev/null
 
