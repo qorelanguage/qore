@@ -8,6 +8,8 @@
 #ifdef __GNUC__
 #define HAVE_CHECK_STACK_POS
 
+#define __S390__ 1
+
 static inline size_t get_stack_pos() {
     size_t addr;
     __asm("lr %0, 15" : "=r" (addr) );

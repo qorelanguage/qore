@@ -409,11 +409,36 @@ public:
             foreign(n_foreign),
             try_reexport(false),
             finalizing(false) {
+        setThreadLimits(ptid);
+    }
+
+    DLLLOCAL ~ThreadData() {
+        // delete all user TLD
+        for (auto& i : u_tld_map) {
+            if (i.second.destructor) {
+                i.second.destructor(i.second.data);
+            }
+        }
+
+        assert(on_block_exit_list.empty());
+        assert(!tpd);
+        assert(!trlist->prev);
+        delete pcs;
+        delete trlist;
+    }
+
+#if defined(__S390__) && defined(__GNUC__)
+    // we need to ensure that this function call is not inlines on S390 to ensure that we can read the correct 
+    // position in the new thread's stack
+    DLLLOCAL void __attribute__ ((noinline)) setThreadLimits(int tid) {
+#else
+    DLLLOCAL void setThreadLimits(int tid) {
+#endif
 #ifdef QORE_MANAGE_STACK
         // save this thread's stack size as the default stack size can change
         size_t stack_guard = QORE_STACK_GUARD;
         // on Linux the initial thread's stack is extended automatically, so we put a large number here
-        if (ptid == initial_thread) {
+        if (tid == initial_thread) {
 #ifdef _Q_WINDOWS
             // windows uses a 1MB stack size for the main thread
             stack_size = 1024 * 1024;
@@ -444,21 +469,6 @@ public:
 #endif // #ifdef IA64_64
 
 #endif // #ifdef QORE_MANAGE_STACK
-    }
-
-    DLLLOCAL ~ThreadData() {
-        // delete all user TLD
-        for (auto& i : u_tld_map) {
-            if (i.second.destructor) {
-                i.second.destructor(i.second.data);
-            }
-        }
-
-        assert(on_block_exit_list.empty());
-        assert(!tpd);
-        assert(!trlist->prev);
-        delete pcs;
-        delete trlist;
     }
 
     DLLLOCAL void endFileParsing() {
@@ -901,7 +911,7 @@ int check_stack(ExceptionSink* xsink) {
     if (td->stack_limit < get_stack_pos()) {
 #endif
         xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit " \
-            "(%ld bytes)", td->stack_size - QORE_STACK_GUARD);
+            "(%lu bytes)", td->stack_size - QORE_STACK_GUARD);
         return -1;
     }
 
@@ -2471,7 +2481,6 @@ static void set_tid_thread_name(int tid) {
 #endif
 }
 
-
 // put functions in an unnamed namespace to make them 'static extern "C"'
 namespace {
     extern "C" void* q_run_thread(void* arg) {
@@ -2532,7 +2541,6 @@ namespace {
         // register thread
         register_thread(btp->tid, pthread_self(), btp->pgm);
         printd(5, "op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
-        //printf("op_background_thread() btp: %p TID %d started\n", btp, btp->tid);
 
         set_tid_thread_name(btp->tid);
 
