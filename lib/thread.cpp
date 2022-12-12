@@ -409,38 +409,6 @@ public:
             foreign(n_foreign),
             try_reexport(false),
             finalizing(false) {
-        setThreadLimits(ptid);
-    }
-
-    DLLLOCAL ~ThreadData() {
-        // delete all user TLD
-        for (auto& i : u_tld_map) {
-            if (i.second.destructor) {
-                i.second.destructor(i.second.data);
-            }
-        }
-
-        assert(on_block_exit_list.empty());
-        assert(!tpd);
-        assert(!trlist->prev);
-        delete pcs;
-        delete trlist;
-    }
-
-#if defined(__S390__) && defined(__GNUC__)
-    // we need to ensure that this function call is not inlined on S390 to ensure that we can read the correct
-    // position in the new thread's stack
-    DLLLOCAL void __attribute__ ((noinline)) setThreadLimits(int tid) {
-        // force the compiler to generate a function
-        static int dummy = 0;
-        if (dummy) {
-            ++dummy;
-        }
-        // another trick to force the compiler to generate a function
-        asm("");
-#else
-    DLLLOCAL void setThreadLimits(int tid) {
-#endif
 #ifdef QORE_MANAGE_STACK
         // save this thread's stack size as the default stack size can change
         size_t stack_guard = QORE_STACK_GUARD;
@@ -475,6 +443,21 @@ public:
         rse_limit = get_rse_bsp() + stack_adjusted_size;
 #endif // #ifdef IA64_64
 #endif // #ifdef QORE_MANAGE_STACK
+    }
+
+    DLLLOCAL ~ThreadData() {
+        // delete all user TLD
+        for (auto& i : u_tld_map) {
+            if (i.second.destructor) {
+                i.second.destructor(i.second.data);
+            }
+        }
+
+        assert(on_block_exit_list.empty());
+        assert(!tpd);
+        assert(!trlist->prev);
+        delete pcs;
+        delete trlist;
     }
 
     DLLLOCAL void endFileParsing() {

@@ -12,7 +12,7 @@
 
 static inline size_t get_stack_pos() {
     size_t addr;
-    __asm("lr %0, 15" : "=r" (addr) );
+    __asm("lgr %0, 15" : "=r" (addr) );
     return addr;
 }
 #else
