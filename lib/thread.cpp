@@ -428,9 +428,11 @@ public:
     }
 
 #if defined(__S390__) && defined(__GNUC__)
-    // we need to ensure that this function call is not inlines on S390 to ensure that we can read the correct 
+    // we need to ensure that this function call is not inlined on S390 to ensure that we can read the correct
     // position in the new thread's stack
     DLLLOCAL void __attribute__ ((noinline)) setThreadLimits(int tid) {
+        static int dummy = 0;
+        asm("");
 #else
     DLLLOCAL void setThreadLimits(int tid) {
 #endif
