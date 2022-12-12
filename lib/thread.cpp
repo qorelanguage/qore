@@ -431,7 +431,12 @@ public:
     // we need to ensure that this function call is not inlined on S390 to ensure that we can read the correct
     // position in the new thread's stack
     DLLLOCAL void __attribute__ ((noinline)) setThreadLimits(int tid) {
+        // force the compiler to generate a function
         static int dummy = 0;
+        if (dummy) {
+            ++dummy;
+        }
+        // another trick to force the compiler to generate a function
         asm("");
 #else
     DLLLOCAL void setThreadLimits(int tid) {
@@ -469,7 +474,6 @@ public:
         // RSE stack grows up
         rse_limit = get_rse_bsp() + stack_adjusted_size;
 #endif // #ifdef IA64_64
-
 #endif // #ifdef QORE_MANAGE_STACK
     }
 
