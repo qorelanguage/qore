@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.12)
 # NOTE: Qore should always use semantic versioning: https://semver.org/
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 12)
-set(VERSION_SUB 3)
+set(VERSION_SUB 4)
 #set(VERSION_PATCH 0)
 
 # support <pkg>_ROOT in find_package
@@ -701,7 +701,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 12.1.1)
+    set_target_properties(libqore PROPERTIES VERSION 12.1.2)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
 endif (APPLE)
 

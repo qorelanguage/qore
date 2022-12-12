@@ -2,7 +2,7 @@
 %global user_module_dir %{_datadir}/qore-modules/
 
 Name: qore
-Version: 1.12.3
+Version: 1.12.4
 Release: 1%{?dist}
 Summary: Multithreaded Programming Language
 
@@ -43,7 +43,7 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.12.1.1
+%{_libdir}/libqore.so.12.1.2
 %{_libdir}/libqore.so.12
 %license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 %doc README.md README-MODULES RELEASE-NOTES AUTHORS ABOUT
@@ -180,6 +180,9 @@ export QORE_MODULE_DIR=qlib
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Mon Dec 12 2022 David Nichols <david@qore.org> 1.12.4-1
+- updated version to 1.12.4-1
+
 * Mon Nov 14 2022 David Nichols <david@qore.org> 1.12.3-1
 - updated version to 1.12.3-1
 
