@@ -17,6 +17,9 @@
     - <a href="../../modules/RestClientDataProvider/html/index.html">RestClientDataProvider</a> module
       - added support for the \c pre_encoded_urls option in the \c HttpConnection class
         (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+    - fixed a race condition in deadlock detection where a deadlock could occur due to the lack of atomic reads of a
+      critical attribute
+      (<a href="https://github.com/qorelanguage/qore/issues/4658">issue 4658</a>)
     - added the \c pre_encoded_urls option to the @ref Qore::HTTPClient "HTTPClient" class as well as the following
       methods:
       - @ref Qore::HTTPClient::setPreEncodedUrls() "HTTPClient::setPreEncodedUrls()"
