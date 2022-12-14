@@ -113,7 +113,7 @@ class TestStreamRequest inherits AbstractStreamRequest {
             hdr."Transfer-Encoding" = "chunked";
         }
         if (!data) {
-            data = "OK";
+            data = (self.hdr.path =~ x/\?(.*)/)[0] ?* "OK";
         }
         hash<HttpHandlerResponseInfo> rv = <HttpHandlerResponseInfo>{
             "code": 200,
@@ -379,6 +379,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         if (m_options.verbose) {
             verbose = m_options.verbose;
         }
+        addTestCase("pre-encoded-urls", \preEncodedUrlsTest());
         addTestCase("poll proxy test", \pollProxyTest());
         addTestCase("poll test", \pollTest());
         addTestCase("chunked HEAD test", \chunkedHeadTest());
@@ -397,6 +398,30 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
    private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-P,--proxy=ARG", "the proxy to use for proxy tests", OptionColumn);
+    }
+
+    preEncodedUrlsTest() {
+        RealTestHttpServer serv();
+        on_exit delete serv;
+
+        HTTPClient hc({
+            "url": "http://localhost:" + serv.getPort(),
+            "pre_encoded_urls": True,
+        });
+        hc.connect();
+
+        assertTrue(hc.getPreEncodedUrls());
+
+        assertEq("hello[]", hc.send(NOTHING, "PUT", "?hello%5B%5D").body);
+
+        assertThrows("URL-ENCODING-ERROR", "\\?hello\\[\\]", \hc.send(), (NOTHING, "PUT", "?hello[]"));
+
+        assertTrue(hc.setPreEncodedUrls());
+        assertTrue(hc.setPreEncodedUrls(False));
+        assertFalse(hc.getPreEncodedUrls());
+
+        assertEq("hello[]", hc.send(NOTHING, "PUT", "?hello[]").body);
+        assertEq("hello%5B%5D", hc.send(NOTHING, "PUT", "?hello%5B%5D").body);
     }
 
     pollProxyTest() {

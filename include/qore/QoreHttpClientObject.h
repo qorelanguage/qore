@@ -491,6 +491,16 @@ public:
     */
     DLLEXPORT QoreStringNode* getAssumedEncoding() const;
 
+    //! sets the new and returns the old pre_encoded_urls flag
+    /** @since %Qore 1.13.0
+     */
+    DLLEXPORT bool setPreEncodedUrls(bool set);
+
+    //! returns the current pre_encoded_urls flag
+    /** @since %Qore 1.13.0
+     */
+    DLLEXPORT bool getPreEncodedUrls() const;
+
     DLLLOCAL static void static_init();
 
     DLLLOCAL void cleanup(ExceptionSink* xsink);

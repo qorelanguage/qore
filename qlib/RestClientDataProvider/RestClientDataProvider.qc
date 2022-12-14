@@ -137,6 +137,13 @@ public class RestClientDataProvider inherits AbstractDataProvider {
                 "type": AbstractDataProviderType::get(BoolType),
                 "desc": "If `True` no charset will be added to the `Content-Type` header",
             },
+            "pre_encoded_urls": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(BoolType),
+                "desc": "if `true` then all URI paths in URLs are assumed to be already "
+                    "[percent encoded](https://en.wikipedia.org/wiki/Percent-encoding); if this flag is set and "
+                    "any unencoded characters are sent in a URL with a new request, an exception is raised",
+                "default_value": False,
+            },
             "proxy": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "The proxy URL to use",
