@@ -75,5 +75,15 @@ public class HttpClientDataProviderTest inherits QUnit::Test {
         assertEq("patch", sinfo.name);
         assertEq(Type::String, sinfo.desc.type());
         assertEq("patch", prov.getName());
+
+        parent = new HttpClientDataProvider({
+            "url": "localhost",
+            "pre_encoded_urls": True,
+        });
+        prov = parent.getChildProviderEx("call");
+        sinfo = prov.getSummaryInfo();
+        assertEq("call", sinfo.name);
+        assertEq(Type::String, sinfo.desc.type());
+        assertEq("call", prov.getName());
     }
 }

@@ -29,7 +29,7 @@ public namespace ConnectionProvider {
 #! abstract base class for connections
 /** this class can be specialized to provide for user-defined connection types
 */
-public class AbstractConnectionWithInfo inherits Qore::Serializable, AbstractConnection {
+public class AbstractConnectionWithInfo inherits AbstractConnection {
     #! creates the AbstractConnection object
     /** @param name the name of the connection
         @param description connection description

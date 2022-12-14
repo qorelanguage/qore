@@ -40,6 +40,9 @@ public namespace ConnectionProvider {
         like any other response
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
+    - \c "pre_encoded_urls": If @ref True "True" then all URI paths in URLs are assumed to be already
+      <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
+      unencoded characters are sent in a URL with a new request, an exception is raised
     - \c "proxy": proxy URL to use
     - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
         processed
@@ -81,6 +84,12 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                 "max_redirects": <ConnectionOptionInfo>{
                     "type": "int",
                     "desc": "maximum redirects to support",
+                },
+                "pre_encoded_urls": <ConnectionOptionInfo>{
+                    "type": "bool",
+                    "desc": "if `true` then all URI paths in URLs are assumed to be already "
+                        "[percent encoded](https://en.wikipedia.org/wiki/Percent-encoding); if this flag is set and "
+                        "any unencoded characters are sent in a URL with a new request, an exception is raised",
                 },
                 "proxy": <ConnectionOptionInfo>{
                     "type": "string",

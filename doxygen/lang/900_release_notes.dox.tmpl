@@ -8,7 +8,22 @@
     Bugfix release; see below for more information
 
     @subsection qore_1_12_4_bug_fixes Bug Fixes in Qore
-    - fixed building on s390x and ppc64 architectures
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - added support for the \c pre_encoded_urls option in the \c HttpConnection class
+        (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+    - <a href="../../modules/HttpClientDataProvider/html/index.html">HttpClientDataProvider</a> module
+      - added support for the \c pre_encoded_urls option in the \c HttpConnection class
+        (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+    - <a href="../../modules/RestClientDataProvider/html/index.html">RestClientDataProvider</a> module
+      - added support for the \c pre_encoded_urls option in the \c HttpConnection class
+        (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+    - added the \c pre_encoded_urls option to the @ref Qore::HTTPClient "HTTPClient" class as well as the following
+      methods:
+      - @ref Qore::HTTPClient::setPreEncodedUrls() "HTTPClient::setPreEncodedUrls()"
+      - @ref Qore::HTTPClient::getPreEncodedUrls() "HTTPClient::getPreEncodedUrls()"
+      \n
+      (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+    - fixed building and stack guard on s390x and ppc64 architectures
       (<a href="https://github.com/qorelanguage/qore/issues/4655">issue 4655</a>)
 
     @section qore_1_12_3 Qore 1.12.3
