@@ -193,6 +193,10 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing
       message headers
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+    - \c pre_encoded_urls: If @ref True "True" then all URI paths in URLs are assumed to be already
+      <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
+      unencoded characters are sent in a URL with a new request, an exception is raised.  Characters that must require
+      percent encoding are: \c "{", \c "}", \c "|", \c "\\", \c "^", \c "~", \c "[", \c "]", and \c "`"
     - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer
       giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a
       boolean value to indicate that an SSL connection should be established
@@ -251,6 +255,8 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - %Qore 1.10 added the following options:
       - \c ssl_cert_data
       - \c ssl_key_data
+    - %Qore 1.13 added the following option:
+      - \c pre_encoded_urls
  */
 HTTPClient::constructor(hash<auto> opts) {
     ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
@@ -527,6 +533,8 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or
     Socket::connectSSL() for secure connections)
@@ -587,6 +595,8 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
@@ -648,6 +658,8 @@ hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Co
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note
     - The \c "Transfer-Encoding: chunked" header is automatically set with this method if no \c "Transfer-Encoding" header is already present
@@ -719,6 +731,8 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
@@ -791,6 +805,8 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
@@ -854,6 +870,8 @@ httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"applicati
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
@@ -933,6 +951,8 @@ httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-T
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
@@ -1007,6 +1027,8 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note
     - The \c "Transfer-Encoding: chunked" header is automatically set with this method if no \c "Transfer-Encoding" header is already present
@@ -2052,4 +2074,44 @@ string str = httpclient.getAssumedEncoding();
 */
 string HTTPClient::getAssumedEncoding() [flags=RET_VALUE_ONLY] {
     return client->getAssumedEncoding();
+}
+
+//! set the pre-encoded URL flag
+/** @par Example:
+    @code{.py}
+httpclient.setPreEncodedUrls();
+    @endcode
+
+    @param set if @ref True "True" then all URI paths in URLs are assumed to be already
+    <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
+    unencoded characters are sent in a URL with a new request, an exception is raised.
+
+    @return the old \c pre_encoded_urls value
+
+    If @ref True "True" then all URI paths in URLs are assumed to be already
+    <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
+    unencoded characters are sent in a URL with a new request, an exception is raised.
+
+    @since %Qore 1.13.0
+*/
+bool HTTPClient::setPreEncodedUrls(bool set = True) {
+    return client->setPreEncodedUrls(set);
+}
+
+//! get the pre-encoded URL flag
+/** @par Example:
+    @code{.py}
+bool b = httpclient.getPreEncodedUrls();
+    @endcode
+
+    @return the current \c pre_encoded_urls value
+
+    If @ref True "True" then all URI paths in URLs are assumed to be already
+    <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
+    unencoded characters are sent in a URL with a new request, an exception is raised.
+
+    @since %Qore 1.13.0
+*/
+bool HTTPClient::getPreEncodedUrls() [flags=CONSTANT] {
+    return client->getPreEncodedUrls();
 }

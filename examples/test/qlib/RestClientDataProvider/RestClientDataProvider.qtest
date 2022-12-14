@@ -198,5 +198,17 @@ public class RestClientDataProviderTest inherits QUnit::Test {
             assertEq(Type::String, sinfo.desc.type());
             assertEq("put", prov.getName());
         }
+
+        {
+            RestClientDataProvider parent({
+                "url": "http://localhost:" + port,
+                "pre_encoded_urls": True,
+            });
+            AbstractDataProvider prov = parent.getChildProviderEx("put");
+            hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
+            assertEq("put", sinfo.name);
+            assertEq(Type::String, sinfo.desc.type());
+            assertEq("put", prov.getName());
+        }
     }
 }

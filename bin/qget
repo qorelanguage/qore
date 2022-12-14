@@ -223,7 +223,7 @@ class QueueCallBack {
     # display a running total of the download
     update_total() {
         int now = clock_getmillis();
-        if (!exists stime) {
+        if (!stime) {
             stime = now;
             utime = now;
             units = "n/a";
@@ -242,8 +242,9 @@ class QueueCallBack {
                     } else if (bps > 1024) {
                         units = "KB/s";
                         bps /= 1024;
-                    } else
+                    } else {
                         units = "B/s";
+                    }
                 }
             }
         }

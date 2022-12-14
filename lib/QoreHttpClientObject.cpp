@@ -276,7 +276,9 @@ struct qore_httpclient_priv {
         // redirect messages will not be processed but rather passed to the caller
         redirect_passthru = false,
         // known content encodings are not decoded when set
-        encoding_passthru = false
+        encoding_passthru = false,
+        // if URLs are pre-encoded
+        pre_encoded_urls = false
         ;
 
     int default_port = HTTPCLIENT_DEFAULT_PORT,
@@ -289,6 +291,13 @@ struct qore_httpclient_priv {
     int connect_timeout_ms = -1;
 
     method_map_t additional_methods_map;
+
+    // characters that must be encoded when pre_encoded_urls is enabled
+    static constexpr const char* must_encode_chars = "{}|\\^~[]`";
+
+    // characters subject to percent encoding by Qore
+    typedef std::map<char, const char*> pct_encoding_map_t;
+    static pct_encoding_map_t pct_encoding_map;
 
     DLLLOCAL qore_httpclient_priv(my_socket_priv* ms) :
             msock(ms),
@@ -755,7 +764,8 @@ struct qore_httpclient_priv {
         int& code, bool& aborted, bool path_already_encoded, ExceptionSink* xsink);
 
     // called locked
-    DLLLOCAL const char* getMsgPath(const char* mpath, QoreString &pstr, bool already_encoded = false) {
+    DLLLOCAL const char* getMsgPath(ExceptionSink* xsink, const char* mpath, QoreString &pstr,
+            bool already_encoded = false) {
         pstr.clear();
 
         // use default path if no path is set
@@ -783,44 +793,24 @@ struct qore_httpclient_priv {
 
         if (already_encoded) {
             pstr.concat(mpath);
+        } else if (pre_encoded_urls) {
+            const char* p = strchrs(mpath, must_encode_chars);
+            if (p) {
+                xsink->raiseException("URL-ENCODING-ERROR", "URI path '%s' contains at least one unencoded character "
+                    "('%c'), when the 'pre_encoded_urls' option is set, URLs must be already encoded with percent "
+                    "encoding", mpath, *p);
+                return nullptr;
+            }
+            pstr.concat(mpath);
         } else {
             // concat mpath to pstr, performing minimal URL encoding until '?'
             const char* p = mpath;
             while (*p) {
-                // RFC-1738: encode space, <, >, ", #, %, {, }, |, \, ^, ~, [, ], `
-                if (*p == ' ') {
-                    pstr.concat("%20");
-                } else if (*p == '<') {
-                    pstr.concat("%3C");
-                } else if (*p == '>') {
-                    pstr.concat("%3E");
-                } else if (*p == '"') {
-                    pstr.concat("%22");
-                } else if (*p == '#') {
-                    pstr.concat("%23");
-                } else if (*p == '%') {
-                    pstr.concat("%25");
-                } else if (*p == '{') {
-                    pstr.concat("%7B");
-                } else if (*p == '}') {
-                    pstr.concat("%7D");
-                } else if (*p == '|') {
-                    pstr.concat("%7C");
-                } else if (*p == '\\') {
-                    pstr.concat("%5C");
-                } else if (*p == '^') {
-                    pstr.concat("%5E");
-                } else if (*p == '~') {
-                    pstr.concat("%7E");
-                } else if (*p == '[') {
-                    pstr.concat("%5B");
-                } else if (*p == ']') {
-                    pstr.concat("%5D");
-                } else if (*p == '`') {
-                    pstr.concat("%60");
-                } else {
-                    // according to RFC 3986 it's not necessary to encode non-ascii characters
+                pct_encoding_map_t::const_iterator i = pct_encoding_map.find(*p);
+                if (i == pct_encoding_map.end()) {
                     pstr.concat(*p);
+                } else {
+                    pstr.concat(i->second);
                 }
                 ++p;
             }
@@ -1170,6 +1160,25 @@ struct qore_httpclient_priv {
     }
 };
 
+// RFC-1738: encode space, <, >, ", #, %, {, }, |, \, ^, ~, [, ], `
+qore_httpclient_priv::pct_encoding_map_t qore_httpclient_priv::pct_encoding_map = {
+    {' ', "%20"},
+    {'<', "%3C"},
+    {'>', "%3E"},
+    {'"', "%22"},
+    {'#', "%23"},
+    {'%', "%25"},
+    {'{', "%7B"},
+    {'}', "%7D"},
+    {'|', "%7C"},
+    {'\\', "%5C"},
+    {'^', "%5E"},
+    {'~', "%7E"},
+    {'[', "%5B"},
+    {']', "%5D"},
+    {'`', "%60"},
+};
+
 constexpr int HS_NONE = 0;
 constexpr int HS_R = 1;
 constexpr int HS_RN = 2;
@@ -1191,10 +1200,11 @@ public:
         - < 0 = error (exception raised)
     */
     DLLLOCAL virtual int continuePoll(ExceptionSink* xsink) {
+#ifdef DEBUG
         qore_socket_private* spriv = http->msock->socket->priv;
         assert(http->msock->m.trylock());
-
         assert(spriv->isOpen());
+#endif
 
         return readHeaderIntern(xsink);
     }
@@ -1344,10 +1354,11 @@ public:
         - < 0 = error (exception raised)
     */
     DLLLOCAL virtual int continuePoll(ExceptionSink* xsink) {
+#ifdef DEBUG
         qore_socket_private* spriv = http->msock->socket->priv;
         assert(http->msock->m.trylock());
-
         assert(spriv->isOpen());
+#endif
 
         int rc;
         while (true) {
@@ -1624,9 +1635,9 @@ public:
                     continue;
                 }
                 if (errno == EAGAIN
-    #ifdef EWOULDBLOCK
+#ifdef EWOULDBLOCK
                     || errno == EWOULDBLOCK
-    #endif
+#endif
                 ) {
                     return SOCK_POLLIN;
                 }
@@ -2275,7 +2286,10 @@ int HttpClientConnectSendRecvPollOperation::startSend(ExceptionSink* xsink) {
             }
 
             QoreString pathstr(spriv->enc);
-            client->http_priv->getMsgPath(path.c_str(), pathstr, path_already_encoded);
+            client->http_priv->getMsgPath(xsink, path.c_str(), pathstr, path_already_encoded);
+            if (*xsink) {
+                return -1;
+            }
             QoreString hdr(spriv->enc);
             spriv->getSendHttpMessageHeaders(hdr, *info, method.c_str(),
                 pathstr.c_str(), client->http_priv->http11 ? "1.1" : "1.0", *request_headers, size,
@@ -2663,23 +2677,28 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
     }
 
     n = opts->getKeyValue("ssl_verify_cert");
-    if (!n.isNothing() && n.getAsBool()) {
+    if (n.getAsBool()) {
         priv->socket->setSslVerifyMode(SSL_VERIFY_PEER);
     }
 
     n = opts->getKeyValue("error_passthru");
-    if (!n.isNothing() && n.getAsBool()) {
+    if (n.getAsBool()) {
         http_priv->error_passthru = true;
     }
 
     n = opts->getKeyValue("redirect_passthru");
-    if (!n.isNothing() && n.getAsBool()) {
+    if (n.getAsBool()) {
         http_priv->redirect_passthru = true;
     }
 
     n = opts->getKeyValue("encoding_passthru");
-    if (!n.isNothing() && n.getAsBool()) {
+    if (n.getAsBool()) {
         http_priv->encoding_passthru = true;
+    }
+
+    n = opts->getKeyValue("pre_encoded_urls");
+    if (n.getAsBool()) {
+        http_priv->pre_encoded_urls = true;
     }
 
     // issue #3978: allow the output encoding to be set as an option
@@ -2737,11 +2756,11 @@ QoreStringNode* QoreHttpClientObject::getSafeURL() {
 int QoreHttpClientObject::setHTTPVersion(const char* version, ExceptionSink* xsink) {
     int rc = 0;
     SafeLocker sl(priv->m);
-    if (!strcmp(version, "1.0"))
+    if (!strcmp(version, "1.0")) {
         http_priv->http11 = false;
-    else if (!strcmp(version, "1.1"))
+    } else if (!strcmp(version, "1.1")) {
         http_priv->http11 = true;
-    else {
+    } else {
         xsink->raiseException("HTTP-VERSION-ERROR", "only '1.0' and '1.1' are valid (value passed: '%s')", version);
         rc = -1;
     }
@@ -2847,7 +2866,10 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     }
 
     QoreString pathstr(msock->socket->getEncoding());
-    const char* msgpath = with_connect ? mpath : getMsgPath(mpath, pathstr, path_already_encoded);
+    const char* msgpath = with_connect ? mpath : getMsgPath(xsink, mpath, pathstr, path_already_encoded);
+    if (*xsink) {
+        return nullptr;
+    }
 
     if (!msock->socket->isOpen()) {
         if (persistent) {
@@ -3698,4 +3720,18 @@ void QoreHttpClientObject::setAssumedEncoding(const char* enc) {
 QoreStringNode* QoreHttpClientObject::getAssumedEncoding() const {
     AutoLocker al(priv->m);
     return new QoreStringNode(qore_socket_private::get(*priv->socket)->getAssumedEncoding());
+}
+
+bool QoreHttpClientObject::setPreEncodedUrls(bool set) {
+    AutoLocker al(priv->m);
+    bool rv = http_priv->pre_encoded_urls;
+    if (rv != set) {
+        http_priv->pre_encoded_urls = set;
+    }
+    return rv;
+}
+
+bool QoreHttpClientObject::getPreEncodedUrls() const {
+    AutoLocker al(priv->m);
+    return http_priv->pre_encoded_urls;
 }

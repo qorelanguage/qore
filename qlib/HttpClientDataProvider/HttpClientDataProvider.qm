@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.10
+%requires qore >= 1.12.4
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -37,7 +37,7 @@
 %requires FileLocationHandler
 
 module HttpClientDataProvider {
-    version = "1.0";
+    version = "1.0.1";
     desc = "user module providing a data provider API for HTTP servers";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,10 @@ module HttpClientDataProvider {
     - @ref HttpClientDataProvider::HttpClientPutDataProvider "HttpClientPutDataProvider"
 
     @section httpclientdataprovider_relnotes Release Notes
+
+    @subsection httpclientdataprovider_v1_0_1 HttpClientDataProvider v1.0.1
+    - added support for the \c pre_encoded_urls option
+      (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
 
     @subsection httpclientdataprovider_v1_0 HttpClientDataProvider v1.0
     - initial release of the module

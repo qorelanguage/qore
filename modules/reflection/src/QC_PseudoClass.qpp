@@ -43,7 +43,7 @@ QoreObject* get_pseudo_class_object(qore_type_t t) {
 
     @since %Qore 0.9.0
 */
-//@{
+///@{
 //! the base (default) pseudo-class
 /**
 */
@@ -113,7 +113,7 @@ const ObjectPseudoClass = qore(get_pseudo_class_object(NT_OBJECT));
 /**
 */
 const StringPseudoClass = qore(get_pseudo_class_object(NT_STRING));
-//@}
+///@}
 
 //! This class provides information about %Qore pseudo classes
 /** Pseudo classes have pseudo methods and variants that operate on normal %Qore values.
