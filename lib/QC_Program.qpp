@@ -108,7 +108,7 @@ const DOM_PROCESS_CONTROL = QDOM_PROCESS;
 */
 const DOM_NETWORK = QDOM_NETWORK;
 
-//! provides external process control functionality (can affect) start) or stop external processes)
+//! provides external process control functionality (can affect, start, or stop external processes)
 /** @see
     - @ref Qore::PO_NO_EXTERNAL_PROCESS "PO_NO_EXTERNAL_PROCESS"
     - @ref no-external-process
