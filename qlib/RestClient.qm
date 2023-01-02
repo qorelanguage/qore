@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.9.1";
+    version = "1.9.2";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -126,6 +126,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_9_2 RestClient v1.9.2
+    - apply the \c swagger_base_path argument to all REST validators
+      (<a href="https://github.com/qorelanguage/qore/issues/4663">issue 4663</a>)
 
     @subsection restclientv1_9_1 RestClient v1.9.1
     - non-blocking polling fixes
@@ -470,6 +474,9 @@ RestClient rest({"url": "http://localhost:8001/rest"});
                 throw "RESTCLIENT-ERROR", sprintf("validator object expected to be an instance of "
                     "AbstractRestSchemaValidator; got %y instead", opts.validator.type());
             validator = opts.validator;
+            if (opts.swagger_base_path) {
+                validator.setBasePath(opts.swagger_base_path);
+            }
         } else {
             if (opts.swagger) {
                 # this will use FileLocationHandler::getTextFileFileLocation() that reads a file if there is no scheme
