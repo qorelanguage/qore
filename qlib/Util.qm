@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.8";
+    version = "1.9";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -87,6 +87,11 @@ module Util {
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
+
+    @subsection util_1_9 Util 1.9
+    - added a \c path_params element to the @ref Util::UriQueryInfo "UriQueryInfo" typed hash to allow for reporting
+      path arguments in calls supported by REST schemas
+      (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
 
     @subsection util_1_8_1 Util 1.8.1
     - fixed a bug in @ref Util::substitute_env_vars() "substitute_env_vars()" where an exception would be thrown if
@@ -196,6 +201,11 @@ public namespace Util {
 
         #! (only present if a "?" character is present in the input); the part of the path after the first \c "?" character; arguments should be separated by ";" characters (according to a w3c recommendation: http://www.w3.org/TR/1999/REC-html401-19991224/appendix/notes.html#h-B.2.2), however this function supports both \c ";" and \c "&" as argument separators; if the arguments are not key=value, then each element without a value is assigned @ref True "True"
         *hash<auto> params;
+
+        #! path params; only when matching a request with a REST schema
+        /** @Since Util 1.9
+        */
+        *hash<auto> path_params;
     }
 
     #! Returns a size in bytes from a string where "1M" = 1048576 and so forth
@@ -979,8 +989,9 @@ hash: (1 member)
     */
     public hash<UriQueryInfo> sub parse_uri_query(string path) {
         int i = path.find("?");
-        if (i == -1)
-            return new hash<UriQueryInfo>(("method": path));
+        if (i == -1) {
+            return <UriQueryInfo>{"method": path};
+        }
 
         # we use "params" rather than "args" because some RPC protocols require it (like XML-RPC and JSON-RPC)
         hash<UriQueryInfo> h({

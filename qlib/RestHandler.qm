@@ -1268,10 +1268,10 @@ public namespace RestHandler {
             }
 
             # get object and args
-            hash<auto> ah = path ? (
+            hash<auto> ah = path ? {
                 "method": req.path,
                 "params": req.query,
-            ) : {};
+            } : {};
             #path ? parse_uri_query(path) : {};
 
             *hash<auto> args;
@@ -1283,10 +1283,16 @@ public namespace RestHandler {
                 args = {} + ah.params;
             }
 
-            if (exists body)
+            # add path args, if any
+            if (req.path_args) {
+                map args{$1.key} = $1.value, req.path_args.pairIterator(), !exists args{$1.key};
+            }
+
+            if (exists body) {
                 body = req.body;
-            else
+            } else {
                 body = args;
+            }
 
             # reflect body in arguments if body is a hash
             if (body.typeCode() == NT_HASH)

@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.0.10";
+    version = "2.1";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_1 Swagger v2.1
+    - parse and report path arguments when processing REST requests on the server side
+      (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
 
     @subsection swagger_2_0_10 Swagger v2.0.10
     - REST handlers must throw a \c DESERIALIZATION-ERROR when deserialization errors occur, so that a
@@ -1456,6 +1460,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         return <RestRequestServerInfo>{
             "path": h.method,
             "query": h.params,
+            "path_args": h.path_params,
             "body": body,
         };
     }
@@ -2792,6 +2797,37 @@ public class OperationObject inherits ObjectBase {
             } else if (body) {
                 error("SCHEMA-VALIDATION-ERROR", "No message body is accepted; body keys passed: %y", keys body);
             }
+        }
+
+        # check path parameters
+        foreach string param in (path =~ x/{([^}]+)}/g) {
+            *OtherParameter po = parameters{param} ?? pio.parameters{param};
+            if (!po) {
+                error("SCHEMA-VALIDATION-ERROR", "No path parameter named %y defined for this path and method; "
+                    "known parameters: %y", param, keys (parameters + pio.parameters));
+            }
+
+            string pattern = replace(path, "{" + param + "}", "(.*)");
+            pattern =~ s/^\//\/?/;
+            auto val = regex_extract(h.method, pattern)[0];
+
+            # convert string to actual type
+            switch (po.type) {
+                case "integer":
+                    val = val.toInt();
+                    break;
+
+                case "number":
+                    val = val.toNumber();
+                    break;
+
+                case "boolean":
+                    val = parse_boolean(val);
+                    break;
+            }
+
+            po.check(False, True, path, method, param, \val);
+            h.path_params{param} = val;
         }
 
         # check for missing required parameters
