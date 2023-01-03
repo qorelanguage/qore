@@ -889,6 +889,13 @@ public class SwaggerLoader {
         @throws XML-MODULE-MISSING trying to parse an XML %Swagger specification with the xml module unavailable
     */
     static SwaggerSchema fromUrl(string url, *bool json) {
+        if (!exists json) {
+            if (url =~ /\.yaml$/i) {
+                json = False;
+            } else if (url =~ /\.json$/i) {
+                json = True;
+            }
+        }
         return SwaggerLoader::fromString(FileLocationHandler::getTextFileFromLocation(url), json);
     }
 
