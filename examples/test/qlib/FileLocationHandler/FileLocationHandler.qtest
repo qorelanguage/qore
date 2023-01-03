@@ -14,10 +14,50 @@
 %requires ../../../../qlib/HttpServerUtil.qm
 %requires ../../../../qlib/HttpServer.qm
 %requires ../../../../qlib/WebUtil.qm
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/RestHandler.qm
 
 %include  ../../qore/classes/FtpServer.qc
 
+%try-module xml >= 1.3
+%define NoXml
+%endtry
+
+%try-module json
+%define NoJson
+%endtry
+
+%try-module yaml
+%define NoYaml
+%endtry
+
 %exec-class FileLocationHandlerTest
+
+class TestRestClass inherits AbstractRestClass {
+    private {
+        data info = "hello";
+    }
+
+    string name() {
+        return "test";
+    }
+
+    hash<HttpHandlerResponseInfo> get(hash<auto> cx, *hash<auto> ah) {
+        return RestHandler::makeResponse(200, info);
+    }
+
+    hash<HttpHandlerResponseInfo> post(hash<auto> cx, *hash<auto> ah) {
+        on_error printf("%s: ah: %y\n", get_exception_string($1), ah);
+        info = cx.body;
+        return RestHandler::makeResponse(200, "OK");
+    }
+}
+
+class MyRestHandler inherits RestHandler {
+    constructor() {
+        addClass(new TestRestClass());
+    }
+}
 
 class RealTestHttpServer inherits HttpServer {
     private:internal {
@@ -81,6 +121,18 @@ class MyFileHandler inherits FileHandler {
 public class FileLocationHandlerTest inherits QUnit::Test {
     public {
         static int verbose = 0;
+
+        const RestMap = {
+%ifndef NoJson
+            "json": True,
+%endif
+%ifndef NoXml
+            "xml": True,
+%endif
+%ifndef NoYaml
+            "yaml": True,
+%endif
+        };
     }
 
     constructor() : Test("FileLocationHandlerTest", "1.0") {
@@ -91,6 +143,7 @@ public class FileLocationHandlerTest inherits QUnit::Test {
         addTestCase("file tests", \fileTests());
         addTestCase("ftp tests", \ftpTests());
         addTestCase("http tests", \httpTests());
+        addTestCase("rest tests", \restTests());
         addTestCase("sftp tests", \sftpTests());
 
         # Return for compatibility with test harness that checks return value
@@ -178,6 +231,22 @@ public class FileLocationHandlerTest inherits QUnit::Test {
         doTests(url);
     }
 
+    private restTests() {
+        if (!RestMap) {
+            testSkip("no data serialization modules are present");
+        }
+
+        RealTestHttpServer serv();
+        on_exit delete serv;
+
+        MyRestHandler mHandler();
+        serv.setHandler("rest-handler", "/test", MimeTypeHtml, mHandler, NOTHING, False);
+        int port = serv.getPort();
+
+        string url = "rest://127.0.0.1:" + port + "/test";
+        doTests(url, True);
+    }
+
     private sftpTests() {
         *string sftp_loc;
         if (!(sftp_loc = ENV.QORE_SFTP_LOCATION)) {
@@ -187,7 +256,7 @@ public class FileLocationHandlerTest inherits QUnit::Test {
         doTests(sftp_loc);
     }
 
-    private doTests(string url) {
+    private doTests(string url, *bool no_write_stream) {
         on_error printf("ERROR URL: %y\n", url);
 
         string random_content = get_random_string(512);
@@ -205,6 +274,9 @@ public class FileLocationHandlerTest inherits QUnit::Test {
         d0 = stream.read(d0.size() * 2);
         assertEq(random_content.toBinary(), d0);
 
+        if (no_write_stream) {
+            return;
+        }
         # write new file data
         random_content = get_random_string(512);
         OutputStreamWrapper os = FileLocationHandler::getOutputStreamForLocation(url);

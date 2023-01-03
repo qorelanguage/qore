@@ -8,6 +8,11 @@
     Bugfix release with minor new features; see below for more information
 
     @subsection qore_1_13_new_features New Features in Qore
+    - <a href="../../modules/FileLocationHandler/html/index.html">FileLocationHandler</a> module
+      - added support for \c rest:// and \c rests:// locations
+        (<a href="https://github.com/qorelanguage/qore/issues/4669">issue 4669</a>)
+      - added support for runtime extensibility from an environment variable (\c QORE_FILE_LOCATION_HANDLERS)
+        (<a href="https://github.com/qorelanguage/qore/issues/4667">issue 4667</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
       - apply the \c swagger_base_path argument to all REST validators
         (<a href="https://github.com/qorelanguage/qore/issues/4663">issue 4663</a>)
@@ -37,6 +42,9 @@
     - <a href="../../modules/RestClientDataProvider/html/index.html">RestClientDataProvider</a> module
       - added support for the \c pre_encoded_urls option in the \c HttpConnection class
         (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
+      - always set the \c socketobject request context property
+        (<a href="https://github.com/qorelanguage/qore/issues/4666">issue 4666</a>)
     - fixed a race condition in deadlock detection where a deadlock could occur due to the lack of atomic reads of a
       critical attribute
       (<a href="https://github.com/qorelanguage/qore/issues/4658">issue 4658</a>)

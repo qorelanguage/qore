@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file FileLocationHandlerHttp.qc module for returning file data from a URL-like location string
+#! @file FileLocationHandlerRest.qc module for returning file data from a URL-like location string
 
-/*  FileLocationHandlerHttp Copyright 2021 - 2022 Qore Technologies, s.r.o.
+/*  FileLocationHandlerRest Copyright 2021 - 2022 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,37 +25,47 @@
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
 #! The class for handling file locations
-class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
+class FileLocationHandlerRest inherits AbstractFileLocationHandler {
     public {
-        #! Valid HTTP location options
-        /** @see @ref Qore::HTTPClient::constructor() "HTTPClient::constructor()" for supported options
+        #! Valid REST location options
+        /** @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for supported options
         */
-        const HttpClientLocationOpts = {
+        const RestClientLocationOpts = {
             "connect_timeout": <FileHandlerOptionInfo>{
                 "type": "int",
-                "desc": "connection timeout in milliseconds",
+                "desc": "Connection timeout in milliseconds",
             },
-            "encoding": <FileHandlerOptionInfo>{
+            "content_encoding": <FileHandlerOptionInfo>{
                 "type": "string",
-                "desc": "the string encoding for any strings returned or sent",
+                "desc": "The content encoding (compression algorithm) for sending (if `send_encoding` is not set) "
+                    "and receiving",
             },
-            "encoding_passthru": <FileHandlerOptionInfo>{
-                "type": "bool",
-                "desc": "do not decode known content-encodings but rather pass the body through as-is",
+            "data": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "The data serialization option to use",
+                "default_value": "auto",
             },
             "error_passthru": <FileHandlerOptionInfo>{
                 "type": "bool",
-                "desc": "HTTP status codes indicating errors will not cause an `HTTP-CLIENT-RECEIVE-ERROR` exception "
-                    "to be raised",
+                "desc": "Error responses will be passed to the caller instead of causing an exception to be raised",
+            },
+            "headers": <FileHandlerOptionInfo>{
+                "type": "hash",
+                "desc": "An optional hash of headers to send with the request",
             },
             "http_version": <FileHandlerOptionInfo>{
                 "type": "string",
-                "desc": "Either `1.0` or `1.1` for the claimed HTTP protocol version compliancy in outgoing message "
-                    "headers",
+                "desc": "The HTTP version to use",
+                "default_value": "1.1",
+            },
+            "max_redirects": <FileHandlerOptionInfo>{
+                "type": "int",
+                "desc": "The maximum number of redirect responses to process",
+                "default_value": 5,
             },
             "method": <FileHandlerOptionInfo>{
                 "type": "string",
-                "desc": "the HTTP method to use; if not given then `GET` is used for reads, and `POST` is used for "
+                "desc": "The HTTP method to use; if not given then `GET` is used for reads, and `POST` is used for "
                     "writes",
             },
             "proxy": <FileHandlerOptionInfo>{
@@ -64,37 +74,50 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
             },
             "redirect_passthru": <FileHandlerOptionInfo>{
                 "type": "bool",
-                "desc": "redirect responses will be passed to the caller instead of followed",
+                "desc": "Redirect responses will be passed to the caller instead of followed",
+            },
+            "send_encoding": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "The content encoding (compression algorithm) to use when sending data",
             },
             "ssl_cert_data": <FileHandlerOptionInfo>{
                 "type": "data",
-                "desc": "the X.509 certificate data in PEM format (string) or in DER format (binary); if this "
+                "desc": "The X.509 certificate data in PEM format (string) or in DER format (binary); if this "
                     "option is set, then `ssl_cert_path` is ignored",
             },
             "ssl_cert_path": <FileHandlerOptionInfo>{
                 "type": "string",
-                "desc": "a path to an X.509 client certificate file in PEM format; if this option is used, then the "
+                "desc": "A path to an X.509 client certificate file in PEM format; if this option is used, then the "
                     "calling context must not be restricted with sandbox restriction `PO_NO_FILESYSTEM` which is "
                     "checked at runtime",
             },
             "ssl_key_data": <FileHandlerOptionInfo>{
                 "type": "data",
-                "desc": "the X.509 private key data in PEM format (string) or in DER format (binary); if this "
+                "desc": "The X.509 private key data in PEM format (string) or in DER format (binary); if this "
                     "option is set, then `ssl_key_path` is ignored",
             },
             "ssl_key_path": <FileHandlerOptionInfo>{
                 "type": "string",
-                "desc": "a path to a private key file in PEM format; if this option is used, then the "
+                "desc": "A path to a private key file in PEM format; if this option is used, then the "
                     "calling context must not be restricted with sandbox restriction `PO_NO_FILESYSTEM` which is "
                     "checked at runtime",
             },
             "ssl_key_password": <FileHandlerOptionInfo>{
                 "type": "string",
-                "desc": "the password to the private key given with `ssl_key_path`",
+                "desc": "The password to the private key given with `ssl_key_path`",
             },
             "ssl_verify_cert": <FileHandlerOptionInfo>{
                 "type": "bool",
-                "desc": "the server's certificate will only be accepted if it's verified",
+                "desc": "The server's certificate will only be accepted if it's verified",
+            },
+            "swagger": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "The location of a Swagger schema to use for message validation",
+            },
+            "swagger_base_path": <FileHandlerOptionInfo>{
+                "type": "string",
+                "desc": "In case a REST validator is used, the base path in the schema can be overridden "
+                    "with this option (applies to any REST validator; not just Swagger validators)",
             },
             "timeout": <FileHandlerOptionInfo>{
                 "type": "int",
@@ -118,8 +141,8 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
         if (!opts.headers.Accept) {
             opts.headers.Accept = "*/*";
         }
-        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
-        return hc.send(NOTHING, opts.method ? opts.method.upr() : "GET", path).body ?? "";
+        object hc = getRestClient(scheme, location, opts, \path);
+        return hc.doRequest(opts.method ? opts.method.upr() : "GET", path).body ?? "";
     }
 
     #! Retrieves a binary file from the given location
@@ -133,8 +156,8 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
     */
     private binary getBinaryFileImpl(string scheme, string location, *hash<auto> opts) {
         string path;
-        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
-        *string body = hc.send(NOTHING, opts.method ? opts.method.upr() : "GET", path).body;
+        object client = getRestClient(scheme, location, opts, \path);
+        *string body = client.doRequest(opts.method ? opts.method.upr() : "GET", path).body;
         return exists body ? body.toBinary() : binary();
     }
 
@@ -146,22 +169,7 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
         @return a stream reader for the file's contents, if it can be retrieved
     */
     private Qore::StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
-        string path;
-        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
-
-        StreamPipe pipe(False);
-
-        # run the I/O operation in the background
-        background sub () {
-            try {
-                OutputStream os = pipe.getOutputStream();
-                hc.send(os, NOTHING, opts.method ? opts.method.upr() : "GET", path);
-                os.close();
-            } catch (hash<ExceptionInfo> ex) {
-            }
-        }();
-
-        return new StreamReader(pipe.getInputStream(), opts.encoding);
+        return new StreamReader(getBinaryStreamImpl(scheme, location, opts));
     }
 
     #! Retrieves a binary file from the given location
@@ -172,22 +180,7 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
         @return an input stream of the file's contents, if it can be retrieved
     */
     private Qore::InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
-        string path;
-        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
-
-        StreamPipe pipe(False);
-
-        # run the I/O operation in the background
-        background sub () {
-            try {
-                OutputStream os = pipe.getOutputStream();
-                hc.send(os, NOTHING, opts.method ? opts.method.upr() : "GET", path);
-                os.close();
-            } catch (hash<ExceptionInfo> ex) {
-            }
-        }();
-
-        return pipe.getInputStream();
+        return new BinaryInputStream(getBinaryFileImpl(scheme, location, opts));
     }
 
     #! Writes data to a file at the given location
@@ -198,8 +191,8 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
     */
     private writeFileImpl(string scheme, string location, data contents, *hash<auto> opts) {
         string path;
-        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
-        hc.send(contents, opts.method ? opts.method.upr() : "POST", path);
+        object client = getRestClient(scheme, location, opts, \path);
+        client.doRequest(opts.method ? opts.method.upr() : "POST", path, contents);
     }
 
     #! Returns an output stream for writing data to the given location
@@ -216,59 +209,48 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
           been written to the target, call OutputStreamWrapper::waitForIo()
     */
     private OutputStreamWrapper getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
-        string path;
-        HTTPClient hc = getHttpClient(scheme, location, opts, \path);
-
-        StreamPipe pipe(False);
-
-        Counter io_counter(1);
-        OutputStreamWrapper rv(pipe.getOutputStream(), io_counter);
-
-        # run the I/O operation in the background
-        background sub () {
-            try {
-                on_exit io_counter.dec();
-
-                Qore::InputStream is = pipe.getInputStream();
-                hc.sendChunked(new BinaryOutputStream(), is, opts.method ? opts.method.upr() : "POST", NOTHING, path);
-                is.close();
-            } catch (hash<ExceptionInfo> ex) {
-            }
-        }();
-
-        return rv;
+        throw "STREAM-WRITE-ERROR", sprintf("rest:// locations do not support writing with an output stream; use "
+            "http(s):// locations instead");
     }
 
     #! Gets supported read options
     /** @return supported read options
     */
     private hash<string, hash<FileHandlerOptionInfo>> getReadOptionsImpl() {
-        return HttpClientLocationOpts;
+        return RestClientLocationOpts;
     }
 
     #! Gets supported write options
     /** @return supported write options
     */
     private hash<string, hash<FileHandlerOptionInfo>> getWriteOptionsImpl() {
-        return HttpClientLocationOpts;
+        return RestClientLocationOpts;
     }
 
-    #! Returns an HTTP client for the given location
-    private HTTPClient getHttpClient(string scheme, string location, *hash<auto> opts, reference<string> path) {
-        location = scheme + "://" + location;
+    #! Returns a RestClient object for the given location
+    private object getRestClient(string scheme, string location, *hash<auto> opts, reference<string> path) {
+        # dynamically load the module to avoid a circular module dependency
+        load_module("RestClient");
+
+        location = (scheme == "rests" ? "https" : "http") + "://" + location;
 
         hash<UrlInfo> url_info = parse_url(location);
         if (url_info.path) {
             path = url_info.path;
         }
         if (!exists path) {
-            throw "LOCATION-ERROR", sprintf("HTTP location %y missing URI path", location);
+            throw "LOCATION-ERROR", sprintf("REST location %y missing URI path", location);
         }
-        HTTPClient h({
-            "url": location,
-        } + opts);
-        h.connect();
-        return h;
+        location = sprintf("%s://%s", url_info.protocol, url_info.host);
+        if (url_info.port) {
+            location += ":" + url_info.port;
+        }
+        object client = create_object("RestClient", {
+                "url": location,
+            } + opts
+        );
+        client.connect();
+        return client;
     }
 }
 }

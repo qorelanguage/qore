@@ -218,6 +218,23 @@ public class FileLocationHandler {
 
         #! The location handler lock to ensure atomic operations
         static Mutex handler_lock();
+
+        #! Flag for dynamic initialization
+        static bool dynamic_init;
+    }
+
+    #! Initializes default handlers
+    static init() {
+        # register default handlers
+        FileLocationHandler::registerHandler("data", new FileLocationHandlerData());
+        FileLocationHandler::registerHandler("file", new FileLocationHandlerFile());
+        FileLocationHandler::registerHandler("ftp", new FileLocationHandlerFtp());
+        FileLocationHandler::registerHandler("ftps", new FileLocationHandlerFtp());
+        FileLocationHandler::registerHandler("http", new FileLocationHandlerHttp());
+        FileLocationHandler::registerHandler("https", new FileLocationHandlerHttp());
+        FileLocationHandler::registerHandler("rest", new FileLocationHandlerRest());
+        FileLocationHandler::registerHandler("rests", new FileLocationHandlerRest());
+        FileLocationHandler::registerHandler("sftp", new FileLocationHandlerSftp());
     }
 
     #! Register a new location handler
@@ -228,8 +245,13 @@ public class FileLocationHandler {
         @throw LOCATION-HANDLER-ERROR the given location handler scheme has already been registered
     */
     static registerHandler(string scheme, AbstractFileLocationHandler handler) {
-        handler_lock.lock();
-        on_exit handler_lock.unlock();
+        bool has_lock = handler_lock.lockOwner();
+        if (!has_lock) {
+            handler_lock.lock();
+        }
+        on_exit if (!has_lock) {
+            handler_lock.unlock();
+        }
 
         if (cache{scheme}) {
             throw "LOCATION-HANDLER-ERROR", sprintf("a location handler for scheme %y has already been registered",
@@ -239,10 +261,36 @@ public class FileLocationHandler {
         cache{scheme} = handler;
     }
 
+    #! Tries to register a new location handler; if the scheme is already registered, the method returns @ref False
+    /** @param scheme the scheme for the location
+        @param handler the handler for the location, must have the signature:
+
+        @return @ref True if the handler was registered, @ref False if not (scheme already has a handler)
+
+        @code{.py} data sub (string scheme, bool text, string location) {} @endcode
+    */
+    static bool tryRegisterHandler(string scheme, AbstractFileLocationHandler handler) {
+        bool has_lock = handler_lock.lockOwner();
+        if (!has_lock) {
+            handler_lock.lock();
+        }
+        on_exit if (!has_lock) {
+            handler_lock.unlock();
+        }
+
+        if (cache{scheme}) {
+            return False;
+        }
+
+        cache{scheme} = handler;
+        return True;
+    }
+
     #! Retuns a list of supported schemes
     /** @return a list of supported schemes
     */
     static list<string> getSupportedSchemes() {
+        FileLocationHandler::checkDynamicInit();
         return keys cache;
     }
 
@@ -252,6 +300,7 @@ public class FileLocationHandler {
         @return True if the scheme is supported
     */
     static bool isSchemeSupported(string scheme) {
+        FileLocationHandler::checkDynamicInit();
         return exists cache{scheme};
     }
 
@@ -351,6 +400,7 @@ public class FileLocationHandler {
         hash<LocationInfo> info = <LocationInfo>{
             "scheme": scheme ?? "file",
         };
+        FileLocationHandler::checkDynamicInit();
         *AbstractFileLocationHandler handler = cache{info.scheme};
         if (!handler) {
             throw "LOCATION-ERROR", sprintf("unknown location scheme %y in location %y; known location schemes: %y",
@@ -413,9 +463,38 @@ public class FileLocationHandler {
             if (!v.strp()) {
                 throw "LOCATION-ERROR", sprintf("option value in %y cannot be parsed", location);
             }
-            return {v: True};
+            v = {v: True};
         }
-        return v;
+        # strip types before returning
+        return {} + v;
+    }
+
+    #! Checks for dynamic initialization
+    private static checkDynamicInit() {
+        if (dynamic_init) {
+            return;
+        }
+
+        handler_lock.lock();
+        on_exit handler_lock.unlock();
+
+        # must check again inside the lock
+        if (dynamic_init) {
+            return;
+        }
+
+        dynamic_init = True;
+
+        # try to register handlers from the environment
+        if (*string handlers = ENV.QORE_FILE_LOCATION_HANDLERS) {
+            foreach string handler in (handlers.split(PathSep)) {
+                try {
+                    load_module(handler);
+                } catch (hash<ExceptionInfo> ex) {
+                    stderr.printf("error loading FileLocationHandler module %y: %s\n", handler, get_exception_string(ex));
+                }
+            }
+        }
     }
 }
 }
