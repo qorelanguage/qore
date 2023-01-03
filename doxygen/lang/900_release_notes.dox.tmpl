@@ -27,6 +27,11 @@
         calls supported by REST schemas
         (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
 
+    @subsection qore_1_13_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
+      - always set the \c socketobject request context property
+        (<a href="https://github.com/qorelanguage/qore/issues/4666">issue 4666</a>)
+
     @section qore_1_12_4 Qore 1.12.4
 
     @par Release Summary
@@ -42,9 +47,6 @@
     - <a href="../../modules/RestClientDataProvider/html/index.html">RestClientDataProvider</a> module
       - added support for the \c pre_encoded_urls option in the \c HttpConnection class
         (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
-    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
-      - always set the \c socketobject request context property
-        (<a href="https://github.com/qorelanguage/qore/issues/4666">issue 4666</a>)
     - fixed a race condition in deadlock detection where a deadlock could occur due to the lack of atomic reads of a
       critical attribute
       (<a href="https://github.com/qorelanguage/qore/issues/4658">issue 4658</a>)
