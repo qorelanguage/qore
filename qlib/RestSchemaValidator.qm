@@ -55,7 +55,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "2.1.3";
+    version = "2.2";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -75,6 +75,10 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_2_2 RestSchemaValidator v2.2
+    - parse and report path arguments when processing REST requests on the server side
+      (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
 
     @subsection restschemavalidator_2_1.3 RestSchemaValidator v2.1.3
     - REST handlers must throw a \c DESERIALIZATION-ERROR when deserialization errors occur, so that a
@@ -149,7 +153,9 @@ public namespace RestSchemaValidator {
         #! the URI path without query arguments
         string path;
         #! any query arguments
-        *hash query;
+        *hash<auto> query;
+        #! any path arguments
+        *hash<auto> path_args;
         #! the deserialized message body data
         auto body;
         #! miscellaneous free-form info about the parsed request

@@ -895,6 +895,60 @@ public class SwaggerTest inherits QUnit::Test {
                 assertThrows("INVALID-FIELD-VALUE", sub () { SwaggerSchema so("", soh); });
             }
         }
+
+        {
+            hash<auto> soh = ValidSwaggerSchema + (
+                "paths": (
+                    "/cust/{id}": (
+                        "get": (
+                            "operationId": "get-customer",
+                            "parameters": (
+                                {
+                                    "name": "id",
+                                    "in": "path",
+                                    "description": "customer ID",
+                                    "required": True,
+                                    "type": "integer",
+                                },
+                            ),
+                            "responses": (
+                                "200": (
+                                    "description": "test",
+                                    "schema": {
+                                        "type": "string"
+                                    }
+                                ),
+                                "400": (
+                                    "description": "test",
+                                ),
+                            ),
+                            "consumes": (
+                                MimeTypeJson,
+                                MimeTypeYaml,
+                            ),
+                            "produces": (
+                                MimeTypeJson,
+                                MimeTypeYaml,
+                            ),
+                        ),
+                    ),
+                ),
+            );
+
+            {
+                SwaggerSchema so("", soh);
+                string uri_path = "/cust/1";
+                hash<auto> hdr;
+                hash<RestRequestServerInfo> req = so.parseRequest("GET", uri_path, NOTHING, \hdr);
+                on_error printf("req: %y\n", req);
+                assertEq(1, req.path_args.id);
+
+                uri_path = "cust/1";
+                req = so.parseRequest("GET", uri_path, NOTHING, \hdr);
+                on_error printf("req: %y\n", req);
+                assertEq(1, req.path_args.id);
+            }
+        }
     }
 
     testInfoObject() {

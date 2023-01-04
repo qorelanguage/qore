@@ -117,19 +117,31 @@ struct con_info {
         return 0;
     }
 
-    DLLLOCAL QoreStringNode* get_url(bool suppress_password = false) const {
+    DLLLOCAL QoreStringNode* get_url(bool mask_password = false) const {
         QoreStringNode *pstr = new QoreStringNode("http");
         if (ssl) {
             pstr->concat("s://");
         } else {
             pstr->concat("://");
         }
+        bool has_username_or_password = false;
         if (!username.empty()) {
-            if (suppress_password) {
-                pstr->sprintf("%s@", username.c_str());
+            pstr->concat(username);
+            has_username_or_password = true;
+        }
+        if (!password.empty()) {
+            pstr->concat(':');
+            if (mask_password) {
+                pstr->concat("<masked>");
             } else {
-                pstr->sprintf("%s:%s@", username.c_str(), password.c_str());
+                pstr->concat(password);
             }
+            if (!has_username_or_password) {
+                has_username_or_password = true;
+            }
+        }
+        if (has_username_or_password) {
+            pstr->concat('@');
         }
 
         if (!port) {

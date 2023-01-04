@@ -283,7 +283,7 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Wed Dec 14 2022 David Nichols <david@qore.org> 1.13.0
+* Mon Jan 2 2023 David Nichols <david@qore.org> 1.13.0
 - updated version to 1.13.0
 - updated libqore version to 12.2.0
 

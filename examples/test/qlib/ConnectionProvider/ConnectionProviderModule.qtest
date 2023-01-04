@@ -43,7 +43,7 @@ public class ConnectionProviderModuleTest inherits QUnit::Test {
             p.parse("hash sub get_hash() { return get_connection_hash(); }", "");
             any obj = p.callFunction("get_obj", "X");
             assertEq(Type::Object, obj.type());
-            assertEq("test://user@x", obj.getInfo().url);
+            assertEq("test://user:<masked>@x", obj.getInfo().url);
             assertEq(NOTHING, obj.getInfo().url_hash.password);
             assertEq("test://user:pass@x", obj.getInfo(True).url);
             assertEq("pass", obj.getInfo(True).url_hash.password);

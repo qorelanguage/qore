@@ -257,7 +257,8 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         else {
             *hash conf = Protocols.(hurl.protocol.lwr());
             if (!exists conf) {
-                throw "POP3-URL-ERROR", sprintf("unknown scheme %y in %y; known schemes: %y", hurl.protocol, url, keys Protocols);
+                throw "POP3-URL-ERROR", sprintf("unknown scheme %y in %y; known schemes: %y", hurl.protocol,
+                    get_safe_url(url), keys Protocols);
             }
             tls = conf.tls;
             if (!hurl.port && hurl.host[0] != "/") {
@@ -266,7 +267,7 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         }
 
         if (!hurl.host.val())
-            throw "POP3-URL-ERROR", sprintf("no hostname was given in URL %y", url);
+            throw "POP3-URL-ERROR", sprintf("no hostname was given in URL %y", get_safe_url(url));
 
         # if the hostname is an integer, then assume the given port on localhost
         if (hurl.host.val()) {
@@ -285,7 +286,7 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         }
 
         if (!exists hurl.username) {
-            throw "POP3-URL-ERROR", sprintf("missing username in POP3 URL: %y", url);
+            throw "POP3-URL-ERROR", sprintf("missing username in POP3 URL: %y", get_safe_url(url));
         }
 
         if (!exists hurl.password) {
@@ -1043,7 +1044,7 @@ public class Pop3Connection inherits ConnectionProvider::AbstractConnectionWithI
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash attributes = {}, hash options = {})
-        : AbstractConnectionWithInfo(name, description, url, attributes, options) {
+            : AbstractConnectionWithInfo(name, description, url, attributes, options) {
     }
 
     #! returns \c "pop3"

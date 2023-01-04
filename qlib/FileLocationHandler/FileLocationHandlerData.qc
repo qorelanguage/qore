@@ -25,6 +25,8 @@
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
 #! The class for handling "data://" locations
+/** This location can be used for reading immediate data; data:// locations cannot be written to
+*/
 class FileLocationHandlerData inherits AbstractFileLocationHandler {
     public {
     }

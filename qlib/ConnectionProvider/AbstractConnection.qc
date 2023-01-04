@@ -217,12 +217,19 @@ public class AbstractConnection inherits Qore::Serializable {
     #! performs the ping by executing get(); returns a @ref PingInfo hash
     private hash<PingInfo> pingIntern(hash<PingInfo> rv) {
         date start = now_us();
-        get();
+        pingImpl();
         return rv += {
             "ok": True,
             "time": now_us() - start,
             "info": "OK",
         };
+    }
+
+    #! performs the internal ping
+    /** By default this creates a new connection only; override in child classes to implement additional ping logic
+    */
+    private pingImpl() {
+        get();
     }
 
     #! returns a @ref ConnectionInfo hash of information about the connection
@@ -427,7 +434,7 @@ public class AbstractConnection inherits Qore::Serializable {
 
         @since ConnectionProvider 1.7
     */
-    AbstractPollOperation startPollConnect() {
+    Qore::AbstractPollOperation startPollConnect() {
         throw "UNSUPPORTED", sprintf("connection %y (%s) does not support the polling API", name, safe_url);
     }
 
@@ -469,8 +476,20 @@ scheme://user:pass@hostname:port/path
     */
     private string getSafeUrl(hash<auto> urlh) {
         string url = urlh.protocol + "://";
-        if (urlh.username)
-            url += urlh.username + "@";
+        bool has_user_or_pass;
+        if (urlh.username) {
+            url += urlh.username;
+            has_user_or_pass = True;
+        }
+        if (urlh.password) {
+            url += ":<masked>";
+            if (!has_user_or_pass) {
+                has_user_or_pass = True;
+            }
+        }
+        if (has_user_or_pass) {
+            url += "@";
+        }
         url += urlh.host;
         if (urlh.port)
             url += ":" + urlh.port;
@@ -578,11 +597,11 @@ scheme://user:pass@hostname:port/path
 
         opts = validateOptions(options);
         orig_opts = opts;
-        setChildCapabilitiesImpl();
+        setChildCapabilities();
     }
 
     #! Override to set child data provider capabilities once per child class
-    private setChildCapabilitiesImpl() {
+    private setChildCapabilities() {
         # this method intentionally left empty
     }
 

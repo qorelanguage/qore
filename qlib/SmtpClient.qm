@@ -1346,7 +1346,7 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
 
         @since SmtpClient 2.0
     */
-    AbstractPollOperation startPollConnect() {
+    Qore::AbstractPollOperation startPollConnect() {
         return new SmtpPingPollOperation(getImpl(False));
     }
 

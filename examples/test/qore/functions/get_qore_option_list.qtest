@@ -1,0 +1,25 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class GetQoreOptionListTest
+
+public class GetQoreOptionListTest inherits QUnit::Test {
+    constructor() : Test("GetQoreOptionListTest", "1.0") {
+        addTestCase("get_qore_option_list() test", \getQoreOptionListTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    getQoreOptionListTest() {
+        list<auto> l = get_qore_option_list();
+        assertEq("list<hash<auto>>", l.fullType());
+    }
+}

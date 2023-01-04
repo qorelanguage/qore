@@ -2358,11 +2358,7 @@ protected:
                 return -1;
             }
 
-            // inject open group marker in block comment if necessary
-            if (!open_group && line.find("*/") != std::string::npos) {
-                str += "///@{\n";
-                open_group_injected = true;
-            } else if (open_group_injected && !line.compare(0, 5, "///@{")) {
+            if (open_group_injected && !line.compare(0, 5, "///@{")) {
                 break;
             }
 

@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.9.1";
+    version = "1.9.2";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -126,6 +126,12 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_9_2 RestClient v1.9.2
+    - support full ping operations, also with polling, using an authenticated request
+      (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
+    - apply the \c swagger_base_path argument to all REST validators
+      (<a href="https://github.com/qorelanguage/qore/issues/4663">issue 4663</a>)
 
     @subsection restclientv1_9_1 RestClient v1.9.1
     - non-blocking polling fixes
@@ -470,6 +476,9 @@ RestClient rest({"url": "http://localhost:8001/rest"});
                 throw "RESTCLIENT-ERROR", sprintf("validator object expected to be an instance of "
                     "AbstractRestSchemaValidator; got %y instead", opts.validator.type());
             validator = opts.validator;
+            if (opts.swagger_base_path) {
+                validator.setBasePath(opts.swagger_base_path);
+            }
         } else {
             if (opts.swagger) {
                 # this will use FileLocationHandler::getTextFileFileLocation() that reads a file if there is no scheme
@@ -1036,6 +1045,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         # prepare path
         preparePath(\path);
 
+        on_error rethrow $1.err, sprintf("%s (REST URL %y)", $1.desc, getSafeURL());
+
         return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
     }
 
@@ -1257,6 +1268,26 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                     "desc": "an optional hash of headers to send with every request, these can also be "
                         "overridden in request method calls",
                 },
+                "ping_method": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The HTTP method to use for an advanced ping; this and `ping_path` must be set to make an "
+                        "HTTP request as a part of the socket polling ping operation; must be a valid HTTP method name",
+                },
+                "ping_path": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The URI path to use for an advanced ping; this and `ping_method` must be made to make an "
+                        "HTTP request as a part of the socket polling ping operation",
+                },
+                "ping_headers": <ConnectionOptionInfo>{
+                    "type": "hash",
+                    "desc": "Any HTTP headers to send when performing an advanced ping operation; ignored if either "
+                        "one of `ping_method` and `ping_path` are not set",
+                },
+                "ping_body": <ConnectionOptionInfo>{
+                    "type": "auto",
+                    "desc": "Any message body to send when performing an advanced ping operation; ignored if either "
+                        "one of `ping_method` and `ping_path` are not set or if `ping_method` is `GET`",
+                },
                 "send_encoding": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "this sets the send encoding",
@@ -1286,7 +1317,6 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                     "type": "string",
                     "desc": "in case a REST validator is used, the base path in the schema can be overridden "
                         "with this option (applies to any REST validator; not just Swagger validators)",
-                    "subst_env_vars": True,
                 },
                 "validator": <ConnectionOptionInfo>{
                     "type": "any",
@@ -1324,8 +1354,6 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
         real_opts = {"url": real_url} + opts;
-        children_can_support_apis = True;
-        children_can_support_records = exists opts.validator || exists opts.swagger;
     }
 
     #! returns a @ref RestClient::RestClient "RestClient" object
@@ -1432,6 +1460,21 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         return True;
     }
 
+    #! Called to start a non-blocking polling ping operation on the remote REST server
+    /**
+        @return a socket poll operation object that will allow the connection goal to be reached with polling
+
+        @see supportsPollingApi()
+    */
+    Qore::AbstractPollOperation startPollConnect() {
+        if (!opts.ping_method || !exists opts.ping_path) {
+            return HttpBasedConnection::startPollConnect();
+        }
+
+        return new RestPingPollOperation(getPollImpl().startPollSendRecv(opts.ping_method, opts.ping_path ?* NOTHING,
+            opts.ping_method != "GET" ? opts.ping_body : NOTHING, opts.ping_headers));
+    }
+
     #! processes options for the constructor
     /** In particular it parses any string as a value of the \c "headers" option to return a hash
     */
@@ -1467,14 +1510,108 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         return rv;
     }
 
+    #! performs the internal ping
+    /** By default this creates a new connection only; override in child classes to implement additional ping logic
+    */
+    private pingImpl() {
+        RestClient client = get();
+        if (!opts.ping_method || !exists opts.ping_path) {
+            return;
+        }
+
+        hash<auto> info;
+        hash<auto> h = client.doRequest(opts.ping_method, opts.ping_path,
+            opts.ping_method != "GET" ? opts.ping_body : NOTHING, \info, NOTHING, opts.ping_headers);
+        if ((h.status_code / 100) != 2) {
+            throw "REST-PING-ERROR", sprintf("%y returned from %y", info."response-uri", info."request-uri");
+        }
+    }
+
     #! Sets child data provider capabilities
     private setChildCapabilities() {
         children_can_support_apis = True;
+        if (exists opts.validator || exists opts.swagger) {
+            children_can_support_records = True;
+        }
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object
     private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         return ConnectionScheme;
+    }
+}
+
+#! REST ping polling class
+/** Ensures a 200 response to the polling send/receive operation
+*/
+public class RestPingPollOperation inherits Qore::AbstractPollOperation {
+    private {
+        #! The polling object
+        AbstractPollOperation poller;
+
+        #! Goal reached flag
+        bool goal_reached = False;
+
+        #! Lock for atomicity
+        Mutex m();
+    }
+
+    #! Creates the object with the send/receive poller
+    constructor(AbstractPollOperation poller) {
+        self.poller = poller;
+    }
+
+    #! Returns the goal
+    /** @return the goal set in the constructor
+    */
+    string getGoal() {
+        return "ping";
+    }
+
+    #! Returns the current state
+    /** @return the current state
+    */
+    string getState() {
+        AutoLock al(m);
+        if (!poller) {
+            return goal_reached ? "complete" : "error";
+        }
+        return poller.getState();
+    }
+
+    #! Returns @ref True when the goal as been reached
+    /** @return @ref True when the goal as been reached
+    */
+    bool goalReached() {
+        return goal_reached;
+    }
+
+    #! Returns a hash to be used for I/O polling or @ref nothing in case the poll operation is complete
+    *hash<SocketPollInfo> continuePoll() {
+        AutoLock al(m);
+        if (!poller) {
+            return;
+        }
+
+        while (True) {
+            *hash<SocketPollInfo> pinfo = poller.continuePoll();
+            if (pinfo) {
+                return pinfo;
+            }
+
+            if (poller.goalReached()) {
+                hash<auto> resp = poller.getOutput();
+                if ((resp."code" / 100) == 2) {
+                    goal_reached = True;
+                } else {
+                    throw "REST-PING-ERROR", sprintf("%y returned from %y", resp.info."response-uri",
+                        resp.info."request-uri");
+                }
+            }
+
+            delete poller;
+            break;
+        }
     }
 }
 }

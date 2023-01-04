@@ -2,14 +2,51 @@
 
     @tableofcontents
 
-    @section qore_1_13_0 Qore 1.13.0
+    @section qore_1_13 Qore 1.13
 
     @par Release Summary
     Bugfix release with minor new features; see below for more information
 
-    @subsection qore_1_13_0_new_features New Features in Qore
+    @subsection qore_1_13_new_features New Features in Qore
+    - <a href="../../modules/FileLocationHandler/html/index.html">FileLocationHandler</a> module
+      - added support for \c rest:// and \c rests:// locations
+        (<a href="https://github.com/qorelanguage/qore/issues/4669">issue 4669</a>)
+      - added support for runtime extensibility from an environment variable (\c QORE_FILE_LOCATION_HANDLERS)
+        (<a href="https://github.com/qorelanguage/qore/issues/4667">issue 4667</a>)
+    - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module
+      - parse and report path arguments when processing REST requests on the server side
+        (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
+    - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
+      - parse and report path arguments when processing REST requests on the server side
+        (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
+    - <a href="../../modules/Util/html/index.html">Util</a> module
+      - added a \c path_params element to the \c UriQueryInfo typed hash to allow for reporting path arguments in
+        calls supported by REST schemas
+        (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
+    - added the @ref Qore::get_safe_url() "get_safe_url()" function to avoid exposing passwords in URLs
+      (<a href="https://github.com/qorelanguage/qore/issues/4671">issue 4671</a>)
     - implemented support for a REPL for %Qore
       (<a href="https://github.com/qorelanguage/qore/issues/4645">issue 4645</a>)
+
+    @subsection qore_1_13_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - support full ping operations, also with polling, using an authenticated request
+        (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
+      - fixed bugs handling child capability attributes in connections
+        (<a href="https://github.com/qorelanguage/qore/issues/4675">issue 4675</a>)
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
+      - support full ping operations, also with polling, using an authenticated request
+        (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
+      - apply the \c swagger_base_path argument to all REST validators
+        (<a href="https://github.com/qorelanguage/qore/issues/4663">issue 4663</a>)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
+      - always set the \c socketobject request context property
+        (<a href="https://github.com/qorelanguage/qore/issues/4666">issue 4666</a>)
+    - <a href="../../modules/ServiceNowRestClient/html/index.html">ServiceNowRestClient</a> module
+      - support full ping operations, also with polling, using an authenticated request
+        (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
+    - fixed a bug where @ref Qore::parse_url() "parse_url()" failed with passwords with / characters
+      (<a href="https://github.com/qorelanguage/qore/issues/4673">issue 4673</a>)
 
     @section qore_1_12_4 Qore 1.12.4
 
@@ -110,8 +147,11 @@
     @par Release Summary
 
     @section qore_1_12_1 Qore 1.12.1
-
     @par Release Summary
+    Bugfix release with minor new features; see below for more information
+
+    @subsection qore_1_12_1_new_features New Features in Qore
+
     Bugfix release with minor new features; see below for more information
 
     @subsection qore_1_12_1_new_features New Features in Qore

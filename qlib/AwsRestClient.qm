@@ -228,7 +228,8 @@ AwsRestClient rest({
         # AWS does not support basic authentication
         hash<UrlInfo> url_info = parse_url(opts.url);
         if (url_info{"username", "password"}) {
-            throw "AWSRESTCLIENT-ERROR", sprintf("AWS URL must not contain a username or password; URL: %y", opts.url);
+            throw "AWSRESTCLIENT-ERROR", sprintf("AWS URL must not contain a username or password; URL: %y",
+                get_safe_url(opts.url));
         }
 
         # set the region automatically from the URL if not provided in an option
@@ -269,7 +270,8 @@ AwsRestClient rest({
         }
     }
 
-    hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr, *reference<hash<auto>> info, *softbool decode_errors) {
+    hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr, *reference<hash<auto>> info,
+            *softbool decode_errors) {
         # get request time
         date gmtime = Qore::gmtime();
         # get credential scope
@@ -311,8 +313,8 @@ AwsRestClient rest({
         return sig;
     }
 
-    private string getRequestString(string http_method, string path, reference<hash<auto>> hdr, *data body, date gmtime,
-        string scope, reference<string> signed_headers) {
+    private string getRequestString(string http_method, string path, reference<hash<auto>> hdr, *data body,
+            date gmtime, string scope, reference<string> signed_headers) {
         # get AWS date value
         string aws_date = gmtime.format("YYYYMMDDTHHmmSS") + "Z";
         hdr."X-Amz-Date" = aws_date;
@@ -359,7 +361,8 @@ AwsRestClient rest({
             cstr += (
                 foldl $1 + "&" + $2, (
                     map
-                        sprintf("%s=%s", encode_url($1, True), uri_info.params{$1} === True ? "" : encode_url(uri_info.params{$1}, True)),
+                        sprintf("%s=%s", encode_url($1, True),
+                            uri_info.params{$1} === True ? "" : encode_url(uri_info.params{$1}, True)),
                         sort(keys uri_info.params)
                 )
             );
