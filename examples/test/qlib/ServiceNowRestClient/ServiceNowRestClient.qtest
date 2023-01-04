@@ -171,6 +171,11 @@ class ServiceNowTest inherits QUnit::Test {
             "password": "x",
         });
         assertEq(True, swsc instanceof ServiceNowRestConnection);
+        hash<auto> info = swsc.getInfo();
+        assertEq(False, info.children_can_support_apis);
+        assertEq(True, info.children_can_support_records);
+        assertEq(False, info.children_can_support_observers);
+        assertEq(False, info.children_can_support_messages);
 
         assertThrows("CONNECTION-ERROR", sub () {
             ServiceNowRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});

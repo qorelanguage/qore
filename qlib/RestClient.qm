@@ -1333,8 +1333,6 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
         real_opts = {"url": real_url} + opts;
-        children_can_support_apis = True;
-        children_can_support_records = exists opts.validator || exists opts.swagger;
     }
 
     #! returns a @ref RestClient::RestClient "RestClient" object
@@ -1479,6 +1477,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     #! Sets child data provider capabilities
     private setChildCapabilities() {
         children_can_support_apis = True;
+        if (exists opts.validator || exists opts.swagger) {
+            children_can_support_records = True;
+        }
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

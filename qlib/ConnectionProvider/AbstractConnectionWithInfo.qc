@@ -48,7 +48,7 @@ public class AbstractConnectionWithInfo inherits AbstractConnection {
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : AbstractConnection(name, description, url, attributes, options) {
+            : AbstractConnection(name, description, url, attributes, options) {
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

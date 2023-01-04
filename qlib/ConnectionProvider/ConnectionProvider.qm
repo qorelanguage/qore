@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore module
-%requires qore >= 1.12.4
+%requires qore >= 1.13
 
 %require-types
 %enable-all-warnings
@@ -35,7 +35,7 @@
 %requires(reexport) DataProvider
 
 module ConnectionProvider {
-    version = "1.7.2";
+    version = "1.7.3";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -112,6 +112,10 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section connectionproviderrelnotes Release Notes
+
+    @subsection connectionprovider_1_7_3 ConnectionProvider 1.7.3
+    - fixed bugs handling child capability attributes in connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
 
     @subsection connectionprovider_1_7_2 ConnectionProvider 1.7.2
     - removed unnecessary extraneous inheritance of @ref Qore::Serializable "Serializable" from the

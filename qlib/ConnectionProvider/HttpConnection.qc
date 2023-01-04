@@ -204,7 +204,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
 
         @since ConnectionProvider 1.7
     */
-    AbstractPollOperation startPollConnect() {
+    Qore::AbstractPollOperation startPollConnect() {
         return getPollImpl().startPollConnect();
     }
 

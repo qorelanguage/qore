@@ -114,7 +114,7 @@ public namespace ServiceNowRestClient {
     - \c username: the ServiceNow username
     - \c password: the ServiceNow password
 
-    To use OAuth2 loging, include the following options:
+    To use an OAuth2 login, include the following options:
    - \c client_id: the OAuth2 client ID
    - \c client_secret: the OAuth2 client secret
 */
@@ -412,7 +412,7 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : RestConnection(name, description, url, attributes, options) {
+            : RestConnection(name, description, url, attributes, options) {
         real_opts = {
             "url": real_url,
         } + urlh{"username", "password"} + self.opts;
@@ -444,7 +444,6 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
 
     #! Sets child data provider capabilities
     private setChildCapabilities() {
-        children_can_support_apis = False;
         children_can_support_records = True;
     }
 
