@@ -161,7 +161,7 @@ public class CdsRestDataProvider inherits DataProvider::AbstractDataProvider {
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
-            throw ex.err, ex.desc, ex.arg + ex_arg;
+            rethrow ex.err, ex.desc, ex.arg + ex_arg;
         }
         #printf("%N\n", resp.EntityType);
 

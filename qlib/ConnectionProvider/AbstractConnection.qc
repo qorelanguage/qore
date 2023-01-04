@@ -469,8 +469,20 @@ scheme://user:pass@hostname:port/path
     */
     private string getSafeUrl(hash<auto> urlh) {
         string url = urlh.protocol + "://";
-        if (urlh.username)
-            url += urlh.username + "@";
+        bool has_user_or_pass;
+        if (urlh.username) {
+            url += urlh.username;
+            has_user_or_pass = True;
+        }
+        if (urlh.password) {
+            url += ":<masked>";
+            if (!has_user_or_pass) {
+                has_user_or_pass = True;
+            }
+        }
+        if (has_user_or_pass) {
+            url += "@";
+        }
         url += urlh.host;
         if (urlh.port)
             url += ":" + urlh.port;

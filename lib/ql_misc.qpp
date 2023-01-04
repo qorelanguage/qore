@@ -1167,6 +1167,67 @@ hash<UrlInfo> parse_url(string url, *int options) {
     return qurl.isValid() ? qurl.getHash() : QoreValue();
 }
 
+//! Returns the URL string passed without any password information
+/** @param url the URL to process
+
+    @return the URL string passed without any password information
+
+    @since %Qore 1.13
+*/
+string get_safe_url(string url) {
+    QoreURL qurl(xsink, url, QURL_KEEP_BRACKETS);
+    if (!qurl.isValid()) {
+        assert(*xsink);
+        return QoreValue();
+    }
+    if (!qurl.getPassword()) {
+        url->ref();
+        return url;
+    }
+
+    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(QCS_UTF8));
+
+    const QoreString* str = qurl.getProtocol();
+    if (str && !str->empty()) {
+        rv->concat(str, xsink);
+        rv->concat("://");
+    }
+
+    str = qurl.getUserName();
+    bool has_user_or_pass = false;
+    if (str && !str->empty()) {
+        rv->concat(str, xsink);
+        has_user_or_pass = true;
+    }
+
+    str = qurl.getPassword();
+    if (str && !str->empty()) {
+        rv->concat(":<masked>");
+        if (!has_user_or_pass) {
+            has_user_or_pass = true;
+        }
+    }
+    if (has_user_or_pass) {
+        rv->concat('@');
+    }
+
+    str = qurl.getHost();
+    if (str && !str->empty()) {
+        rv->concat(str, xsink);
+    }
+
+    if (qurl.getPort()) {
+        rv->sprintf(":%d", qurl.getPort());
+    }
+
+    str = qurl.getPath();
+    if (str && !str->empty()) {
+        rv->concat(str, xsink);
+    }
+
+    return rv.release();
+}
+
 //! This function variant does nothing at all; it is only included for backwards-compatibility with qore prior to version 0.8.0 for functions that would ignore type errors in arguments
 /**
  */

@@ -1762,7 +1762,7 @@ check_ip_address(str, True);
     public data sub get_file_from_sftp(string url, string path, *hash<UrlRetrievalOptions> options) {
         string file = basename(path);
         if (!file) {
-            throw "GET-FILE-FROM-URL-ERROR", sprintf("missing file name in URL %y", url);
+            throw "GET-FILE-FROM-URL-ERROR", sprintf("missing file name in URL %y", get_safe_url(url));
         }
         # dynamically load the ssh2 module
         try {
@@ -1794,7 +1794,7 @@ check_ip_address(str, True);
     public data sub get_file_from_ftp(string url, string path, *hash<UrlRetrievalOptions> options) {
         string file = basename(path);
         if (!file) {
-            throw "GET-FILE-FROM-URL-ERROR", sprintf("missing file name in URL %y", url);
+            throw "GET-FILE-FROM-URL-ERROR", sprintf("missing file name in URL %y", get_safe_url(url));
         }
         FtpClient f(url);
         f.connect();
@@ -1864,21 +1864,21 @@ check_ip_address(str, True);
 
             case /^ftp(s)?$/: {
                 if (!url_info.path.val()) {
-                    throw "GET-FILE-FROM-URL-ERROR", sprintf("missing path in URL %y", url);
+                    throw "GET-FILE-FROM-URL-ERROR", sprintf("missing path in URL %y", get_safe_url(url));
                 }
                 return get_file_from_ftp(url, url_info.path, options);
             }
 
             case "sftp": {
                 if (!url_info.path.val()) {
-                    throw "GET-FILE-FROM-URL-ERROR", sprintf("missing path in URL %y", url);
+                    throw "GET-FILE-FROM-URL-ERROR", sprintf("missing path in URL %y", get_safe_url(url));
                 }
                 return get_file_from_sftp(url, url_info.path, options);
             }
 
             default:
                 throw "GET-FILE-FROM-URL-ERROR", sprintf("do not know how to retrieve data with scheme %y given in "
-                    "URL %y", url_info.protocol, url);
+                    "URL %y", url_info.protocol, get_safe_url(url));
         }
     }
 
