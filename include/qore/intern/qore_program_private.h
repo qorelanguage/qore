@@ -102,54 +102,6 @@ typedef QoreThreadLocalStorage<QoreHashNode> qpgm_thread_local_storage_t;
 #include "qore/intern/ThreadClosureVariableStack.h"
 
 struct ThreadLocalProgramData {
-private:
-    // not implemented
-    DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData& old) = delete;
-
-    // thread debug types, field is read/write only in thread being debugged, no locking is needed
-    DebugRunStateEnum runState = DBG_RS_DETACH;
-    // used to implement "to to statement" debugger command, reset it when program is interrupted
-    const AbstractStatement* runToStatement = nullptr;
-    // when stepover or until return we need calls function calls
-    int functionCallLevel = 0;
-
-    DLLLOCAL inline void setRunState(DebugRunStateEnum rs, const AbstractStatement* rts) {
-        assert(rs < DBG_RS_STOPPED); // DBG_RS_STOPPED is wrong value when program is running
-        if (rs == DBG_RS_UNTIL_RETURN) {
-            functionCallLevel = 1;  // function called only when runState is not DBG_RS_UNTIL_RETURN
-        }
-        printd(5, "ThreadLocalProgramData::setRunState(), this: %p, rs: %d->%d, rts: %p\n", this, runState, rs, rts);
-        runState = rs;
-        runToStatement = rts;
-    }
-    // set to true by any process do break running program asap
-    volatile bool breakFlag = false;
-    // called from running thread
-    DLLLOCAL inline void checkBreakFlag() {
-        if (breakFlag && runState != DBG_RS_DETACH) {
-            breakFlag = false;
-            if (runState != DBG_RS_STOPPED) {
-                runState = DBG_RS_STEP;
-            }
-            printd(5, "ThreadLocalProgramData::checkBreakFlag(), this: %p, rs: %d\n", this, runState);
-        }
-    }
-    // to call onAttach when debug is attached or detached, -1 .. detach, 1 .. attach
-    int attachFlag = 0;
-    DLLLOCAL inline void checkAttach(ExceptionSink* xsink) {
-        if (runState != DBG_RS_STOPPED) {
-            if (attachFlag > 0) {
-                dbgAttach(xsink);
-                //if (rs != DBG_RS_DETACH) {   // TODO: why this exception ?
-                attachFlag = 0;
-                //}
-            } else if (attachFlag < 0) {
-                dbgDetach(xsink);
-                attachFlag = 0;
-            }
-        }
-    }
-
 public:
     // local variable data slots
     ThreadLocalVariableData lvstack;
@@ -273,6 +225,54 @@ public:
     DLLLOCAL bool dbgIsAttached() {
         return /*runState != DBG_RS_STOPPED &&*/ runState != DBG_RS_DETACH;
     }
+
+private:
+    // not implemented
+    DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData& old) = delete;
+
+    // thread debug types, field is read/write only in thread being debugged, no locking is needed
+    DebugRunStateEnum runState = DBG_RS_DETACH;
+    // used to implement "to to statement" debugger command, reset it when program is interrupted
+    const AbstractStatement* runToStatement = nullptr;
+    // when stepover or until return we need calls function calls
+    int functionCallLevel = 0;
+
+    DLLLOCAL inline void setRunState(DebugRunStateEnum rs, const AbstractStatement* rts) {
+        assert(rs < DBG_RS_STOPPED); // DBG_RS_STOPPED is wrong value when program is running
+        if (rs == DBG_RS_UNTIL_RETURN) {
+            functionCallLevel = 1;  // function called only when runState is not DBG_RS_UNTIL_RETURN
+        }
+        printd(5, "ThreadLocalProgramData::setRunState(), this: %p, rs: %d->%d, rts: %p\n", this, runState, rs, rts);
+        runState = rs;
+        runToStatement = rts;
+    }
+    // set to true by any process do break running program asap
+    volatile bool breakFlag = false;
+    // called from running thread
+    DLLLOCAL inline void checkBreakFlag() {
+        if (breakFlag && runState != DBG_RS_DETACH) {
+            breakFlag = false;
+            if (runState != DBG_RS_STOPPED) {
+                runState = DBG_RS_STEP;
+            }
+            printd(5, "ThreadLocalProgramData::checkBreakFlag(), this: %p, rs: %d\n", this, runState);
+        }
+    }
+    // to call onAttach when debug is attached or detached, -1 .. detach, 1 .. attach
+    int attachFlag = 0;
+    DLLLOCAL inline void checkAttach(ExceptionSink* xsink) {
+        if (runState != DBG_RS_STOPPED) {
+            if (attachFlag > 0) {
+                dbgAttach(xsink);
+                //if (rs != DBG_RS_DETACH) {   // TODO: why this exception ?
+                attachFlag = 0;
+                //}
+            } else if (attachFlag < 0) {
+                dbgDetach(xsink);
+                attachFlag = 0;
+            }
+        }
+    }
 };
 
 // maps from thread handles to thread-local data
@@ -315,13 +315,6 @@ struct pgmloc_vec_t : public std::vector<QoreProgramLocation*> {
 
 class qore_program_private_base {
     friend class QoreProgramAccessHelper;
-
-protected:
-    DLLLOCAL void setDefines();
-
-    typedef vector_map_t<const char*, AbstractQoreProgramExternalData*> extmap_t;
-    //typedef std::map<const char*, AbstractQoreProgramExternalData*, ltstr> extmap_t;
-    extmap_t extmap;
 
 public:
     LocalVariableList local_var_list;
@@ -397,17 +390,17 @@ public:
 
     ParseWarnOptions pwo;
 
-    int64 dom,    // a mask of functional domains used in this Program
-        pend_dom;  // a mask of pending function domains used in this Program
+    int64 dom = 0,     // a mask of functional domains used in this Program
+        pend_dom = 0;  // a mask of pending function domains used in this Program
 
     std::string exec_class_name, script_dir, script_path, script_name, include_path;
 
     // thread-local data (could be inherited from another program)
-    qpgm_thread_local_storage_t* thread_local_storage;
+    qpgm_thread_local_storage_t* thread_local_storage = nullptr;
 
     mutable QoreThreadLock tlock;  // thread variable data lock, for accessing the thread variable data map and the thr_init variable
     mutable QoreCondition tcond;   // cond variable for tclear to become false, used only with tlock
-    mutable unsigned twaiting;     // threads waiting on tclear to become false
+    mutable unsigned twaiting = 0; // threads waiting on tclear to become false
 
     // thread-local variable storage - map from thread ID to thread-local storage
     pgm_data_map_t pgm_data_map;
@@ -422,13 +415,16 @@ public:
     ppo_t ppo;
 
     // thread initialization user code
-    ResolvedCallReferenceNode* thr_init;
+    ResolvedCallReferenceNode* thr_init = nullptr;
 
     // return value for use with %exec-class
     QoreValue exec_class_rv;
 
     // public object that owns this private implementation
     QoreProgram* pgm;
+
+    // create the program object from a stream
+    DLLLOCAL qore_program_private_base(QoreProgram* pgm, InputStream& stream, QoreProgram* parent_pgm);
 
     DLLLOCAL qore_program_private_base(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr)
             : plock(&ma_recursive),
@@ -444,9 +440,10 @@ public:
             ns_const(false),
             ns_vars(false),
             expression_mode(false),
-            pwo(n_parse_options), dom(0), pend_dom(0), thread_local_storage(nullptr), twaiting(0),
-            thr_init(nullptr), pgm(n_pgm) {
-        printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n", this, pgm, n_parse_options);
+            pwo(n_parse_options),
+            pgm(n_pgm) {
+        printd(QPP_DBG_LVL, "qore_program_private_base::qore_program_private_base() this: %p pgm: %p po: " QLLD "\n",
+            this, pgm, n_parse_options);
 
         // must set priv before calling setParent()
         pgm->priv = (qore_program_private*)this;
@@ -479,16 +476,24 @@ public:
     }
 #endif
 
+    DLLLOCAL int serialize(OutputStream& out);
+
     DLLLOCAL const QoreProgramLocation* getLocation(int sline, int eline);
     DLLLOCAL const QoreProgramLocation* getLocation(const QoreProgramLocation&, int sline, int eline);
 
     DLLLOCAL void startThread(ExceptionSink& xsink);
 
 protected:
+    typedef vector_map_t<const char*, AbstractQoreProgramExternalData*> extmap_t;
+    //typedef std::map<const char*, AbstractQoreProgramExternalData*, ltstr> extmap_t;
+    extmap_t extmap;
+
     DLLLOCAL void setParent(QoreProgram* p_pgm, int64 n_parse_options);
 
     // for independent programs (not inherited from another QoreProgram object)
     DLLLOCAL void newProgram();
+
+    DLLLOCAL void setDefines();
 };
 
 class PreParseHelper {
@@ -507,61 +512,47 @@ public:
     }
 
     DLLLOCAL ~PreParseHelper() {
-        if (swapped)
+        if (swapped) {
             p->parseSink = nullptr;
+        }
     }
 };
 
 class qore_debug_program_private;
 
 class AutoQoreCounterDec {
-private:
-    QoreCounter* cnt;
-    bool incFlag;
-    AutoQoreCounterDec() {}
 public:
-    AutoQoreCounterDec(QoreCounter* n_cnt, bool incNow = true): cnt(n_cnt), incFlag(false) {
+    DLLLOCAL AutoQoreCounterDec(QoreCounter* n_cnt, bool incNow = true): cnt(n_cnt), incFlag(false) {
         if (incNow) {
             inc();
         }
     }
-    ~AutoQoreCounterDec() {
-        if (incFlag)
+
+    DLLLOCAL ~AutoQoreCounterDec() {
+        if (incFlag) {
             cnt->dec();
+        }
     }
-    void inc() {
+
+    DLLLOCAL void inc() {
         cnt->inc();
         incFlag = true;
     }
+
+private:
+    QoreCounter* cnt;
+    bool incFlag;
+
+    DLLLOCAL AutoQoreCounterDec() {}
 };
 
 class QoreBreakpoint;
 
 class qore_program_private : public qore_program_private_base {
-private:
-    mutable QoreCounter debug_program_counter;  // number of thread calls to debug program instance.
-    DLLLOCAL void init(QoreProgram* n_pgm, int64 n_parse_options, const AbstractQoreZoneInfo* n_TZ = QTZM.getLocalZoneInfo()) {
-    }
-
-    // only called from parseSetTimeZone
-    DLLLOCAL void mergeParseException(ExceptionSink &xsink) {
-        if (parseSink)
-            parseSink->assimilate(xsink);
-        else {
-            if (!pendingParseSink)
-                pendingParseSink = new ExceptionSink;
-            pendingParseSink->assimilate(xsink);
-        }
-    }
-
-    qore_debug_program_private* dpgm;
-    QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
-    QoreBreakpointList_t breakpointList;
-
+public:
+    typedef std::map<const char*, int, ltstr> section_offset_map_t;
     // map for line to statement
     typedef std::map<int, AbstractStatement*> sline_statement_map_t;
-
-    typedef std::map<const char*, int, ltstr> section_offset_map_t;
 
     struct section_sline_statement_map {
         section_offset_map_t sectionMap;
@@ -569,63 +560,27 @@ private:
     };
 
     typedef section_sline_statement_map section_sline_statement_map_t;
-
     // map for filenames
     typedef vector_map_t<const char*, section_sline_statement_map_t*> name_section_sline_statement_map_t;
     //typedef std::map<const char*, section_sline_statement_map_t*, ltstr> name_section_sline_statement_map_t;
 
-    // index source filename/label -> line -> statement
-    name_section_sline_statement_map_t statementByFileIndex;
-    name_section_sline_statement_map_t statementByLabelIndex;
+    DLLLOCAL qore_program_private(QoreProgram* pgm, InputStream& stream, QoreProgram* parent_pgm = nullptr);
 
-    // statementId to AbstractStatement resolving
-    typedef std::vector<AbstractStatement*> StatementVector_t;
-    StatementVector_t statementIds;
-
-    // to get statementId
-    typedef std::map<AbstractStatement*, unsigned long> ReverseStatementIdMap_t;
-    ReverseStatementIdMap_t reverseStatementIds;
-
-    /**
-        * get safely debug program pointer. The debug program instance itself must exist. It's not a matter of locking as the flow goes to QoreDebugProgram
-        * instance and may stay a very long time.
-    */
-
-    DLLLOCAL qore_debug_program_private* getDebugProgram(AutoQoreCounterDec& ad) {
-        AutoLocker al(tlock);
-        //QoreAutoRWReadLocker al(&lck_debug_program);
-        qore_debug_program_private* ret = dpgm;
-        if (ret) {
-            // new debug call in progress
-            ad.inc();
-        }
-        return ret;
-    }
-
-    // lck_breakpoint lock should be aquired
-    DLLLOCAL bool isBreakpointRegistered(const QoreBreakpoint *bkpt) const {
-        return std::find(breakpointList.begin(), breakpointList.end(), bkpt) != breakpointList.end();
-    }
-    friend class QoreBreakpoint;
-
-    typedef std::map<QoreProgram*, QoreObject*> qore_program_to_object_map_t;
-    static qore_program_to_object_map_t qore_program_to_object_map;
-    static QoreRWLock lck_programMap; // to protect program list manipulation
-    static volatile unsigned programIdCounter;   // to generate programId
-    unsigned programId;
-
-public:
     DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr);
 
     DLLLOCAL ~qore_program_private();
 
+    DLLLOCAL void registerProgram();
+
     DLLLOCAL void depRef() {
-        printd(QPP_DBG_LVL, "qore_program_private::depRef() this: %p pgm: %p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() + 1);
+        printd(QPP_DBG_LVL, "qore_program_private::depRef() this: %p pgm: %p %d->%d\n", this, pgm,
+            dc.reference_count(), dc.reference_count() + 1);
         dc.ROreference();
     }
 
     DLLLOCAL void depDeref() {
-        printd(QPP_DBG_LVL, "qore_program_private::depDeref() this: %p pgm: %p %d->%d\n", this, pgm, dc.reference_count(), dc.reference_count() - 1);
+        printd(QPP_DBG_LVL, "qore_program_private::depDeref() this: %p pgm: %p %d->%d\n", this, pgm,
+            dc.reference_count(), dc.reference_count() - 1);
         if (dc.ROdereference())
             delete pgm;
     }
@@ -635,7 +590,8 @@ public:
         SafeDerefHelper sdh(xsink);
         {
             AutoLocker al(tlock);
-            // twaiting must be 0 here, as it can only be incremented while clearProgramThreadData() is in progress, which can only be executed once
+            // twaiting must be 0 here, as it can only be incremented while clearProgramThreadData() is in progress,
+            // which can only be executed once
             assert(!twaiting);
             assert(!tclear);
             // while tclear is set, no threads can attach to this program object - pgm_data_map cannot be modified
@@ -1010,8 +966,8 @@ public:
         return rc;
     }
 
-   // caller must have grabbed the lock and put the current program on the program stack
-   DLLLOCAL int internParseCommit(bool standard_parse = true);
+    // caller must have grabbed the lock and put the current program on the program stack
+    DLLLOCAL int internParseCommit(bool standard_parse = true);
 
     DLLLOCAL int parseCommit(ExceptionSink* xsink, ExceptionSink* wS, int wm) {
         ProgramRuntimeParseCommitContextHelper pch(xsink, pgm);
@@ -2299,13 +2255,13 @@ public:
         // satisfied in the destructor
     }
 
-    DLLLOCAL void onAttach(DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
-    DLLLOCAL void onDetach(DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
-    DLLLOCAL void onStep(const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
-    DLLLOCAL void onFunctionEnter(const StatementBlock *statement, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
-    DLLLOCAL void onFunctionExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
-    DLLLOCAL void onException(const AbstractStatement *statement, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
-    DLLLOCAL void onExit(const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink);
+    DLLLOCAL void onAttach(DebugRunStateEnum& rs, const AbstractStatement*& rts, ExceptionSink* xsink);
+    DLLLOCAL void onDetach(DebugRunStateEnum& rs, const AbstractStatement*& rts, ExceptionSink* xsink);
+    DLLLOCAL void onStep(const StatementBlock* blockStatement, const AbstractStatement* statement, unsigned bkptId, int& flow, DebugRunStateEnum& rs, const AbstractStatement*& rts, ExceptionSink* xsink);
+    DLLLOCAL void onFunctionEnter(const StatementBlock* statement, DebugRunStateEnum& rs, const AbstractStatement*& rts, ExceptionSink* xsink);
+    DLLLOCAL void onFunctionExit(const StatementBlock* statement, QoreValue& returnValue, DebugRunStateEnum& rs, const AbstractStatement*& rts, ExceptionSink* xsink);
+    DLLLOCAL void onException(const AbstractStatement* statement, DebugRunStateEnum& rs, const AbstractStatement*& rts, ExceptionSink* xsink);
+    DLLLOCAL void onExit(const StatementBlock* statement, QoreValue& returnValue, DebugRunStateEnum& rs, const AbstractStatement*& rts, ExceptionSink* xsink);
 
     DLLLOCAL int breakProgramThread(int tid) {
         printd(5, "qore_program_private::breakProgramThread(), this: %p, tid: %d\n", this, q_gettid());
@@ -2327,7 +2283,7 @@ public:
         }
     }
 
-    DLLLOCAL void assignBreakpoint(QoreBreakpoint *bkpt, ExceptionSink *xsink) {
+    DLLLOCAL void assignBreakpoint(QoreBreakpoint* bkpt, ExceptionSink *xsink) {
         if (!bkpt || this == bkpt->pgm) return;
         if (!checkAllowDebugging(xsink))
                 return;
@@ -2370,9 +2326,9 @@ public:
         }
     }
 
-    DLLLOCAL inline unsigned onCheckBreakpoint(const AbstractStatement *statement, ExceptionSink* xsink) {
+    DLLLOCAL inline unsigned onCheckBreakpoint(const AbstractStatement* statement, ExceptionSink* xsink) {
         QoreAutoRWReadLocker al(&lck_breakpoint);
-        const QoreBreakpoint *b = statement->getBreakpoint();
+        const QoreBreakpoint* b = statement->getBreakpoint();
         if (b != nullptr) {
             return b->getBreakpointId();
         } else {
@@ -2434,8 +2390,8 @@ public:
         }
     }
 
-    DLLLOCAL void addStatementToIndexIntern(name_section_sline_statement_map_t* statementIndex, const char* key, AbstractStatement *statement, int offs, const char* section, int sectionOffs);
-    DLLLOCAL static void registerStatement(QoreProgram *pgm, AbstractStatement *statement, bool addToIndex);
+    DLLLOCAL void addStatementToIndexIntern(name_section_sline_statement_map_t* statementIndex, const char* key, AbstractStatement* statement, int offs, const char* section, int sectionOffs);
+    DLLLOCAL static void registerStatement(QoreProgram* pgm, AbstractStatement* statement, bool addToIndex);
     DLLLOCAL QoreHashNode* getSourceIndicesIntern(name_section_sline_statement_map_t* statementIndex, ExceptionSink* xsink) const;
     DLLLOCAL QoreHashNode* getSourceLabels(ExceptionSink* xsink) {
         return getSourceIndicesIntern(&statementByLabelIndex, xsink);
@@ -2567,7 +2523,7 @@ public:
         }
     }
 
-    DLLLOCAL int serialize(OutputStream* out);
+    DLLLOCAL int serialize(OutputStream& out);
 
     DLLLOCAL static QoreObject* getQoreObject(QoreProgram* pgm) {
         QoreAutoRWWriteLocker al(&lck_programMap);
@@ -2603,6 +2559,68 @@ public:
         }
         return l.release();
     }
+
+private:
+    mutable QoreCounter debug_program_counter;  // number of thread calls to debug program instance.
+    DLLLOCAL void init(QoreProgram* n_pgm, int64 n_parse_options,
+            const AbstractQoreZoneInfo* n_TZ = QTZM.getLocalZoneInfo()) {
+    }
+
+    // only called from parseSetTimeZone
+    DLLLOCAL void mergeParseException(ExceptionSink &xsink) {
+        if (parseSink)
+            parseSink->assimilate(xsink);
+        else {
+            if (!pendingParseSink)
+                pendingParseSink = new ExceptionSink;
+            pendingParseSink->assimilate(xsink);
+        }
+    }
+
+    qore_debug_program_private* dpgm = nullptr;
+    QoreRWLock lck_breakpoint; // to protect breakpoint manipulation
+    QoreBreakpointList_t breakpointList;
+
+    // index source filename/label -> line -> statement
+    name_section_sline_statement_map_t statementByFileIndex;
+    name_section_sline_statement_map_t statementByLabelIndex;
+
+    // statementId to AbstractStatement resolving
+    typedef std::vector<AbstractStatement*> StatementVector_t;
+    StatementVector_t statementIds;
+
+    // to get statementId
+    typedef std::map<AbstractStatement*, unsigned long> ReverseStatementIdMap_t;
+    ReverseStatementIdMap_t reverseStatementIds;
+
+    /**
+        get safely debug program pointer. The debug program instance itself must exist. It's not a matter of
+        locking as the flow goes to QoreDebugProgram
+        instance and may stay a very long time.
+    */
+
+    DLLLOCAL qore_debug_program_private* getDebugProgram(AutoQoreCounterDec& ad) {
+        AutoLocker al(tlock);
+        //QoreAutoRWReadLocker al(&lck_debug_program);
+        qore_debug_program_private* ret = dpgm;
+        if (ret) {
+            // new debug call in progress
+            ad.inc();
+        }
+        return ret;
+    }
+
+    // lck_breakpoint lock should be aquired
+    DLLLOCAL bool isBreakpointRegistered(const QoreBreakpoint* bkpt) const {
+        return std::find(breakpointList.begin(), breakpointList.end(), bkpt) != breakpointList.end();
+    }
+    friend class QoreBreakpoint;
+
+    typedef std::map<QoreProgram*, QoreObject*> qore_program_to_object_map_t;
+    static qore_program_to_object_map_t qore_program_to_object_map;
+    static QoreRWLock lck_programMap; // to protect program list manipulation
+    static volatile unsigned programIdCounter;   // to generate programId
+    unsigned programId;
 };
 
 class ParseWarnHelper : public ParseWarnOptions {
@@ -2623,156 +2641,173 @@ typedef std::map<QoreProgram*, qore_program_private*> qore_program_map_t;
 class QoreDebugProgram;
 
 class qore_debug_program_private {
-private:
-   //mutable QoreThreadLock tlock;  // thread variable data lock, for accessing the program list variable
-   mutable QoreRWLock tlock;
-   QoreDebugProgram *dpgm;
-   qore_program_map_t qore_program_map;
-   mutable QoreCounter debug_program_counter;  // number of thread calls from program instance.
 public:
-   DLLLOCAL qore_debug_program_private(QoreDebugProgram *n_dpgm): dpgm(n_dpgm) {};
-   DLLLOCAL ~qore_debug_program_private() {
-      assert(qore_program_map.empty());
-   }
+    DLLLOCAL qore_debug_program_private(QoreDebugProgram* n_dpgm) : dpgm(n_dpgm) {}
 
-   DLLLOCAL void addProgram(QoreProgram *pgm, ExceptionSink *xsink) {
-      if (!pgm->priv->checkAllowDebugging(xsink))
-         return;
-      QoreAutoRWWriteLocker al(&tlock);
-      qore_program_map_t::iterator i = qore_program_map.find(pgm);
-      printd(5, "qore_debug_program_private::addProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i, qore_program_map.end());
-      if (i != qore_program_map.end())
-         return;  // already exists
-      qore_program_map.insert(qore_program_map_t::value_type(pgm, pgm->priv));
-      pgm->ref();
-      pgm->priv->attachDebug(this);
-   }
+    DLLLOCAL ~qore_debug_program_private() {
+        assert(qore_program_map.empty());
+    }
 
-   DLLLOCAL void removeProgram(QoreProgram *pgm) {
-      QoreAutoRWWriteLocker al(&tlock);
-      qore_program_map_t::iterator i = qore_program_map.find(pgm);
-      printd(5, "qore_debug_program_private::removeProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i, qore_program_map.end());
-      if (i == qore_program_map.end())
-         return;
-      pgm->priv->detachDebug(this);
-      qore_program_map.erase(i);
-      pgm->deref();
-      // onDetach will not be executed as program is removed
-   }
+    DLLLOCAL void addProgram(QoreProgram* pgm, ExceptionSink *xsink) {
+        if (!pgm->priv->checkAllowDebugging(xsink))
+            return;
+        QoreAutoRWWriteLocker al(&tlock);
+        qore_program_map_t::iterator i = qore_program_map.find(pgm);
+        printd(5, "qore_debug_program_private::addProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i,
+            qore_program_map.end());
+        if (i != qore_program_map.end())
+            return;  // already exists
+        qore_program_map.insert(qore_program_map_t::value_type(pgm, pgm->priv));
+        pgm->ref();
+        pgm->priv->attachDebug(this);
+    }
 
-   DLLLOCAL void removeAllPrograms() {
-      QoreAutoRWWriteLocker al(&tlock);
-      printd(5, "qore_debug_program_private::removeAllPrograms(), this: %p\n", this);
-      qore_program_map_t::iterator i;
-      while ((i = qore_program_map.begin()) != qore_program_map.end()) {
-         qore_program_private* qpp = i->second;
-         QoreProgram *p = i->first;
-         qore_program_map.erase(i);
-         qpp->detachDebug(this);
-         p->deref();
-      }
-   }
+    DLLLOCAL void removeProgram(QoreProgram* pgm) {
+        QoreAutoRWWriteLocker al(&tlock);
+        qore_program_map_t::iterator i = qore_program_map.find(pgm);
+        printd(5, "qore_debug_program_private::removeProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i,
+            qore_program_map.end());
+        if (i == qore_program_map.end())
+            return;
+        pgm->priv->detachDebug(this);
+        qore_program_map.erase(i);
+        pgm->deref();
+        // onDetach will not be executed as program is removed
+    }
 
-   DLLLOCAL QoreListNode* getAllProgramObjects() {
-      QoreAutoRWReadLocker al(&tlock);
-      printd(5, "qore_debug_program_private::getAllProgramObjects(), this: %p\n", this);
-      ReferenceHolder<QoreListNode> l(new QoreListNode(QC_PROGRAM->getTypeInfo()), nullptr);
-      qore_program_map_t::iterator i = qore_program_map.begin();
-      while (i != qore_program_map.end()) {
-         QoreObject* o = QoreProgram::getQoreObject(i->first);
-         if (o) {
-            (*l)->push(o, nullptr);
-         }
-         i++;
-      }
-      return l.release();
-   }
+    DLLLOCAL void removeAllPrograms() {
+        QoreAutoRWWriteLocker al(&tlock);
+        printd(5, "qore_debug_program_private::removeAllPrograms(), this: %p\n", this);
+        qore_program_map_t::iterator i;
+        while ((i = qore_program_map.begin()) != qore_program_map.end()) {
+            qore_program_private* qpp = i->second;
+            QoreProgram* p = i->first;
+            qore_program_map.erase(i);
+            qpp->detachDebug(this);
+            p->deref();
+        }
+    }
 
-   DLLLOCAL void onAttach(QoreProgram *pgm, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
-      AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onAttach(pgm, rs, rts, xsink);
-   }
-   DLLLOCAL void onDetach(QoreProgram *pgm, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
-      AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onDetach(pgm, rs, rts, xsink);
-   }
-   /**
-    * Executed on every step of StatementBlock.
-    * @param blockStatement
-    * @param statement current AbstractStatement of blockStatement being processed. Executed also when blockStatement is entered with value of NULL
-    * @param flow
+    DLLLOCAL QoreListNode* getAllProgramObjects() {
+        QoreAutoRWReadLocker al(&tlock);
+        printd(5, "qore_debug_program_private::getAllProgramObjects(), this: %p\n", this);
+        ReferenceHolder<QoreListNode> l(new QoreListNode(QC_PROGRAM->getTypeInfo()), nullptr);
+        qore_program_map_t::iterator i = qore_program_map.begin();
+        while (i != qore_program_map.end()) {
+            QoreObject* o = QoreProgram::getQoreObject(i->first);
+            if (o) {
+                (*l)->push(o, nullptr);
+            }
+            ++i;
+        }
+        return l.release();
+    }
+
+    DLLLOCAL void onAttach(QoreProgram* pgm, DebugRunStateEnum& rs, const AbstractStatement*& rts,
+            ExceptionSink* xsink) {
+        AutoQoreCounterDec ad(&debug_program_counter);
+        dpgm->onAttach(pgm, rs, rts, xsink);
+    }
+
+    DLLLOCAL void onDetach(QoreProgram* pgm, DebugRunStateEnum& rs, const AbstractStatement*& rts,
+            ExceptionSink* xsink) {
+        AutoQoreCounterDec ad(&debug_program_counter);
+        dpgm->onDetach(pgm, rs, rts, xsink);
+    }
+
+    /**
+        Executed on every step of StatementBlock.
+        @param blockStatement
+        @param statement current AbstractStatement of blockStatement being processed. Executed also when
+        blockStatement is entered with value of NULL
+        @param flow
     */
-   DLLLOCAL void onStep(QoreProgram *pgm, const StatementBlock *blockStatement, const AbstractStatement *statement, unsigned bkptId, int &flow, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
-      AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onStep(pgm, blockStatement, statement, bkptId, flow, rs, rts, xsink);
+    DLLLOCAL void onStep(QoreProgram* pgm, const StatementBlock* blockStatement, const AbstractStatement* statement,
+            unsigned bkptId, int& flow, DebugRunStateEnum& rs, const AbstractStatement*& rts, ExceptionSink* xsink) {
+        AutoQoreCounterDec ad(&debug_program_counter);
+        dpgm->onStep(pgm, blockStatement, statement, bkptId, flow, rs, rts, xsink);
+    }
 
-   }
-   DLLLOCAL void onFunctionEnter(QoreProgram *pgm, const StatementBlock *statement, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
-      AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onFunctionEnter(pgm, statement, rs, rts, xsink);
-   }
-   /**
-    * Executed when a function is exited.
+    DLLLOCAL void onFunctionEnter(QoreProgram* pgm, const StatementBlock* statement, DebugRunStateEnum& rs,
+            const AbstractStatement*& rts, ExceptionSink* xsink) {
+        AutoQoreCounterDec ad(&debug_program_counter);
+        dpgm->onFunctionEnter(pgm, statement, rs, rts, xsink);
+    }
+
+    /**
+        Executed when a function is exited.
     */
-   DLLLOCAL void onFunctionExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
-      AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onFunctionExit(pgm, statement, returnValue, rs, rts, xsink);
-   }
-   /**
-    * Executed when an exception is raised.
+    DLLLOCAL void onFunctionExit(QoreProgram* pgm, const StatementBlock* statement, QoreValue& returnValue,
+            DebugRunStateEnum& rs, const AbstractStatement*& rts, ExceptionSink* xsink) {
+        AutoQoreCounterDec ad(&debug_program_counter);
+        dpgm->onFunctionExit(pgm, statement, returnValue, rs, rts, xsink);
+    }
+    /**
+        Executed when an exception is raised.
     */
-   DLLLOCAL void onException(QoreProgram* pgm, const AbstractStatement* statement, DebugRunStateEnum& rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
-      AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onException(pgm, statement, rs, rts, xsink);
-   }
-   /**
-    * Executed when a thread/program is exited.
+    DLLLOCAL void onException(QoreProgram* pgm, const AbstractStatement* statement, DebugRunStateEnum& rs,
+            const AbstractStatement*& rts, ExceptionSink* xsink) {
+        AutoQoreCounterDec ad(&debug_program_counter);
+        dpgm->onException(pgm, statement, rs, rts, xsink);
+    }
+    /**
+        Executed when a thread/program is exited.
     */
-   DLLLOCAL void onExit(QoreProgram *pgm, const StatementBlock *statement, QoreValue& returnValue, DebugRunStateEnum &rs, const AbstractStatement *&rts, ExceptionSink* xsink) {
-      AutoQoreCounterDec ad(&debug_program_counter);
-      dpgm->onExit(pgm, statement, returnValue, rs, rts, xsink);
-   }
+    DLLLOCAL void onExit(QoreProgram* pgm, const StatementBlock* statement, QoreValue& returnValue,
+            DebugRunStateEnum& rs, const AbstractStatement*& rts, ExceptionSink* xsink) {
+        AutoQoreCounterDec ad(&debug_program_counter);
+        dpgm->onExit(pgm, statement, returnValue, rs, rts, xsink);
+    }
 
-   DLLLOCAL int breakProgramThread(QoreProgram* pgm, int tid) {
-      //printd(5, "breakProgramThread pgm: %p tid: %d po: %lld\n", pgm, tid, pgm->priv->pwo.parse_options);
-      // do not allow breaking if the Program does not support debugging
-      if (pgm->priv->pwo.parse_options & PO_NO_DEBUGGING)
-         return -1;
+    DLLLOCAL int breakProgramThread(QoreProgram* pgm, int tid) {
+        //printd(5, "breakProgramThread pgm: %p tid: %d po: %lld\n", pgm, tid, pgm->priv->pwo.parse_options);
+        // do not allow breaking if the Program does not support debugging
+        if (pgm->priv->pwo.parse_options & PO_NO_DEBUGGING)
+            return -1;
 
-      QoreAutoRWReadLocker al(&tlock);
-      qore_program_map_t::iterator i = qore_program_map.find(pgm);
-      printd(5, "qore_debug_program_private::breakProgramThread(), this: %p, pgm: %p, i: %p, end: %p, tid: %d\n", this, pgm, i, qore_program_map.end(), tid);
-      if (i == qore_program_map.end())
-         return -2;
-      if (i->second->breakProgramThread(tid))
-         return -3;
-      return 0;
-   }
+        QoreAutoRWReadLocker al(&tlock);
+        qore_program_map_t::iterator i = qore_program_map.find(pgm);
+        printd(5, "qore_debug_program_private::breakProgramThread(), this: %p, pgm: %p, i: %p, end: %p, tid: %d\n",
+            this, pgm, i, qore_program_map.end(), tid);
+        if (i == qore_program_map.end())
+            return -2;
+        if (i->second->breakProgramThread(tid))
+            return -3;
+        return 0;
+    }
 
-   DLLLOCAL int breakProgram(QoreProgram* pgm) {
-      //printd(5, "breakProgram pgm: %p po: %lld\n", pgm, pgm->priv->pwo.parse_options);
-      // do not allow breaking if the Program does not support debugging
-      if (pgm->priv->pwo.parse_options & PO_NO_DEBUGGING)
-         return -1;
+    DLLLOCAL int breakProgram(QoreProgram* pgm) {
+        //printd(5, "breakProgram pgm: %p po: %lld\n", pgm, pgm->priv->pwo.parse_options);
+        // do not allow breaking if the Program does not support debugging
+        if (pgm->priv->pwo.parse_options & PO_NO_DEBUGGING)
+            return -1;
 
-      QoreAutoRWReadLocker al(&tlock);
-      qore_program_map_t::iterator i = qore_program_map.find(pgm);
-      printd(5, "qore_debug_program_private::breakProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i, qore_program_map.end());
-      if (i == qore_program_map.end())
-         return -2;
-      i->second->breakProgram();
-      return 0;
-   }
+        QoreAutoRWReadLocker al(&tlock);
+        qore_program_map_t::iterator i = qore_program_map.find(pgm);
+        printd(5, "qore_debug_program_private::breakProgram(), this: %p, pgm: %p, i: %p, end: %p\n", this, pgm, i,
+            qore_program_map.end());
+        if (i == qore_program_map.end())
+            return -2;
+        i->second->breakProgram();
+        return 0;
+    }
 
-   DLLLOCAL void waitForTerminationAndClear(ExceptionSink* xsink) {
-      removeAllPrograms();
-      // wait till all debug calls finished, avoid deadlock as it might be handled in current thread
-      debug_program_counter.waitForZero();
-   }
+    DLLLOCAL void waitForTerminationAndClear(ExceptionSink* xsink) {
+        removeAllPrograms();
+        // wait till all debug calls finished, avoid deadlock as it might be handled in current thread
+        debug_program_counter.waitForZero();
+    }
 
-   DLLLOCAL int getInterruptedCount() {
-      return debug_program_counter.getCount();
-   }
+    DLLLOCAL int getInterruptedCount() {
+        return debug_program_counter.getCount();
+    }
+
+private:
+    // thread variable data lock, for accessing the program list variable
+    mutable QoreRWLock tlock;
+    QoreDebugProgram* dpgm;
+    qore_program_map_t qore_program_map;
+    mutable QoreCounter debug_program_counter;  // number of thread calls from program instance.
 };
 
 DLLLOCAL TypedHashDecl* init_hashdecl_SourceLocationInfo(QoreNamespace& ns);

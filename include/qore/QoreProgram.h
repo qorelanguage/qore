@@ -430,7 +430,7 @@ public:
 
         @since %Qore 1.12
     */
-    DLLEXPORT int parseToBinary(OutputStream* out, const QoreString* str, const QoreString* lstr,
+    DLLEXPORT int parseToBinary(OutputStream& out, const QoreString* str, const QoreString* lstr,
             ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset);
 
     //! Creates the program object from binary data created with parseToBinary
