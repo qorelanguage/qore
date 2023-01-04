@@ -44,6 +44,9 @@ extern QoreHashNode* ENV;
 #include "qore/intern/QC_Program.h"
 #include "qore/intern/QC_ProgramControl.h"
 #include "qore/intern/ReturnStatement.h"
+#include "qore/intern/StreamReader.h"
+#include "qore/intern/StreamWriter.h"
+
 #include "qore/QoreDebugProgram.h"
 #include "qore/QoreRWLock.h"
 #include "qore/vector_map"
@@ -424,7 +427,7 @@ public:
     QoreProgram* pgm;
 
     // create the program object from a stream
-    DLLLOCAL qore_program_private_base(QoreProgram* pgm, InputStream& stream, QoreProgram* parent_pgm);
+    DLLLOCAL qore_program_private_base(QoreProgram* pgm, StreamReader& sr, QoreProgram* parent_pgm);
 
     DLLLOCAL qore_program_private_base(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr)
             : plock(&ma_recursive),
@@ -476,7 +479,7 @@ public:
     }
 #endif
 
-    DLLLOCAL int serialize(OutputStream& out);
+    DLLLOCAL int serialize(StreamWriter& sw);
 
     DLLLOCAL const QoreProgramLocation* getLocation(int sline, int eline);
     DLLLOCAL const QoreProgramLocation* getLocation(const QoreProgramLocation&, int sline, int eline);
@@ -564,7 +567,8 @@ public:
     typedef vector_map_t<const char*, section_sline_statement_map_t*> name_section_sline_statement_map_t;
     //typedef std::map<const char*, section_sline_statement_map_t*, ltstr> name_section_sline_statement_map_t;
 
-    DLLLOCAL qore_program_private(QoreProgram* pgm, InputStream& stream, QoreProgram* parent_pgm = nullptr);
+    DLLLOCAL qore_program_private(ExceptionSink* xsink, QoreProgram* pgm, StreamReader& sr,
+            QoreProgram* parent_pgm = nullptr);
 
     DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr);
 
@@ -2523,7 +2527,7 @@ public:
         }
     }
 
-    DLLLOCAL int serialize(OutputStream& out);
+    DLLLOCAL int serialize(StreamWriter& sw);
 
     DLLLOCAL static QoreObject* getQoreObject(QoreProgram* pgm) {
         QoreAutoRWWriteLocker al(&lck_programMap);

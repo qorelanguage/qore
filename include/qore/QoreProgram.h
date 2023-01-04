@@ -108,6 +108,7 @@ class QoreRWLock;
 class QoreExternalFunction;
 class QoreExternalGlobalVar;
 class QoreExternalConstant;
+class StreamReader;
 
 typedef std::list<QoreBreakpoint*> bkp_list_t;
 
@@ -130,21 +131,6 @@ class QoreProgram : public AbstractPrivateData {
     friend class qore_program_private;
     friend class qore_debug_program_private;
     friend struct ThreadLocalProgramData;
-private:
-    //! private implementation
-    qore_program_private* priv;
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreProgram(const QoreProgram&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreProgram& operator=(const QoreProgram&);
-
-protected:
-    //! the destructor is private in order to prohibit the object from being allocated on the stack
-    /** the destructor is run when the reference count reaches 0
-        */
-    DLLLOCAL virtual ~QoreProgram();
 
 public:
     //! creates the object
@@ -417,7 +403,7 @@ public:
     //! Parses code from the given string and serializes the data to the given output stream
     /** Does not commit changes to the QoreProgram
 
-        @param out the output stream where the serialized data will be written
+        @param stream the output stream where the serialized data will be written
         @param str the code to parse
         @param lstr the label of the code being parsed to be used as a file name
         @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -428,20 +414,10 @@ public:
 
         @return -1 if an error occurs, a positive number for the number of bytes written to \a out
 
-        @since %Qore 1.12
+        @since %Qore 1.13
     */
-    DLLEXPORT int parseToBinary(OutputStream& out, const QoreString* str, const QoreString* lstr,
+    DLLEXPORT int parseToBinary(OutputStream& stream, const QoreString* str, const QoreString* lstr,
             ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset);
-
-    //! Creates the program object from binary data created with parseToBinary
-    /** @param in the input data
-        @param xsink if an error occurs, the Qore-language exception information will be added here
-
-        @return -1 if an error occurs, a positive number for the number of bytes read from \a in
-
-        @since %Qore 1.12
-     */
-    DLLEXPORT int parseFromBinary(InputStream* in, ExceptionSink* xsink);
 
     //! returns true if the given function exists as a user function, false if not
     DLLEXPORT bool existsFunction(const char* name);
@@ -926,6 +902,33 @@ public:
 
     //! check if program can provide debugging stuff
     DLLEXPORT bool checkAllowDebugging(ExceptionSink* xsink);
+
+    //! Creates a QoreProgram object from a stream
+    /** @param stream the input stream (serialized with parseToBinary())
+        @param xsink any errors raised while deserializing the stream are raised here
+
+        @return a QoreProgram pointer created from the stream or nullptr in case of errors
+     */
+    DLLEXPORT QoreProgram* deserialize(ExceptionSink* xsink, InputStream& stream);
+
+protected:
+    //! the destructor is private in order to prohibit the object from being allocated on the stack
+    /** the destructor is run when the reference count reaches 0
+    */
+    DLLLOCAL virtual ~QoreProgram();
+
+private:
+    //! private implementation
+    qore_program_private* priv;
+
+    //! private constructor
+    DLLLOCAL QoreProgram(ExceptionSink* xsink, StreamReader& stream);
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreProgram(const QoreProgram&);
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreProgram& operator=(const QoreProgram&);
 };
 
 //! safely manages QoreProgram objects; note the the destructor will block until all background threads in the qore library terminate and until the current QoreProgram terminates

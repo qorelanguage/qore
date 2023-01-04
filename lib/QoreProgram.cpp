@@ -265,7 +265,7 @@ qore_program_private::qore_program_to_object_map_t qore_program_private::qore_pr
 QoreRWLock qore_program_private::lck_programMap;
 volatile unsigned qore_program_private::programIdCounter = 1;
 
-qore_program_private_base::qore_program_private_base(QoreProgram* pgm, InputStream& stream, QoreProgram* parent_pgm)
+qore_program_private_base::qore_program_private_base(QoreProgram* pgm, StreamReader& sr, QoreProgram* parent_pgm)
         : plock(&ma_recursive),
         sb(this),
         only_first_except(false),
@@ -282,12 +282,12 @@ qore_program_private_base::qore_program_private_base(QoreProgram* pgm, InputStre
         pgm(pgm) {
 }
 
-int qore_program_private_base::serialize(OutputStream& out) {
+int qore_program_private_base::serialize(StreamWriter& sw) {
     return 0;
 }
 
-qore_program_private::qore_program_private(QoreProgram* pgm, InputStream& stream, QoreProgram* parent_pgm)
-        : qore_program_private_base(pgm, stream, parent_pgm) {
+qore_program_private::qore_program_private(ExceptionSink* xsink, QoreProgram* pgm, StreamReader& sr,
+        QoreProgram* parent_pgm) : qore_program_private_base(pgm, sr, parent_pgm) {
     registerProgram();
 }
 
@@ -1392,7 +1392,7 @@ QoreListNode* qore_program_private::runtimeFindCallVariants(const char* name, Ex
     return qore_root_ns_private::get(*RootNS)->runtimeFindCallVariants(name, xsink);
 }
 
-int qore_program_private::serialize(OutputStream& out) {
+int qore_program_private::serialize(StreamWriter& sw) {
     return 0;
 }
 
@@ -1553,11 +1553,24 @@ QoreProgram::QoreProgram() : priv(new qore_program_private(this, PO_DEFAULT)) {
 QoreProgram::QoreProgram(int64 po) : priv(new qore_program_private(this, po)) {
 }
 
-QoreProgram::QoreProgram(QoreProgram* pgm, int64 po, bool ec, const char* ecn) : priv(new qore_program_private(this, po, pgm)) {
-    printd(QPP_DBG_LVL, "QoreProgram::QoreProgram(), this: %p, pgm: %p, priv: %p, pgmid: %d\n", this, pgm, priv, priv->getProgramId());
+QoreProgram::QoreProgram(QoreProgram* pgm, int64 po, bool ec, const char* ecn)
+        : priv(new qore_program_private(this, po, pgm)) {
+    printd(QPP_DBG_LVL, "QoreProgram::QoreProgram(), this: %p, pgm: %p, priv: %p, pgmid: %d\n", this, pgm, priv,
+        priv->getProgramId());
     priv->exec_class = ec;
-    if (ecn)
+    if (ecn) {
         priv->exec_class_name = ecn;
+    }
+}
+
+QoreProgram::QoreProgram(ExceptionSink* xsink, StreamReader& sr)
+        : priv(new qore_program_private(xsink, this, sr)) {
+}
+
+QoreProgram* QoreProgram::deserialize(ExceptionSink* xsink, InputStream& stream) {
+    ReferenceHolder<StreamReader> sw(new StreamReader(xsink, &stream), xsink);
+    ReferenceHolder<QoreProgram> holder(new QoreProgram(), xsink);
+    return *xsink ? nullptr : holder.release();
 }
 
 QoreThreadLock* QoreProgram::getParseLock() {
@@ -1783,7 +1796,7 @@ void QoreProgram::parsePending(const char* code, const char* label, ExceptionSin
     priv->parsePending(code, label, xsink, wS, wm, source, offset);
 }
 
-int QoreProgram::parseToBinary(OutputStream& out, const QoreString* str, const QoreString* lstr,
+int QoreProgram::parseToBinary(OutputStream& stream, const QoreString* str, const QoreString* lstr,
         ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
     if (str && !str->empty()) {
         priv->parsePending(str, lstr, xsink, wS, wm, source, offset);
@@ -1791,11 +1804,8 @@ int QoreProgram::parseToBinary(OutputStream& out, const QoreString* str, const Q
             return -1;
         }
     }
-    return priv->serialize(out);
-}
-
-int QoreProgram::parseFromBinary(InputStream* in, ExceptionSink* xsink) {
-    return 0;
+    ReferenceHolder<StreamWriter> sw(new StreamWriter(xsink, &stream), xsink);
+    return priv->serialize(**sw);
 }
 
 QoreValue QoreProgram::runTopLevel(ExceptionSink* xsink) {
