@@ -444,6 +444,7 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
 
     #! Sets child data provider capabilities
     private setChildCapabilities() {
+        children_can_support_apis = False;
         children_can_support_records = True;
     }
 

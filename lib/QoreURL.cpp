@@ -137,7 +137,7 @@ private:
         // that remains to be processed
         std::string sbuf(buf);
 
-        // look for the protocol, move 'pos' after the protocol specification
+        // look for the scheme, move 'pos' after the scheme (protocol) specification
         size_t protocol_separator = sbuf.find("://");
         if (protocol_separator != std::string::npos) {
             protocol = new QoreStringNode(sbuf.c_str(), protocol_separator);
@@ -160,12 +160,16 @@ private:
         }
 
         // find end of hostname
-        size_t path_start = sbuf.find('/');
+        size_t path_start = sbuf.find_last_of(":@");
+        if (path_start == std::string::npos) {
+            path_start = 0;
+        }
+
+        path_start = sbuf.find('/', path_start);
         if (path_start == std::string::npos) {
             path_start = sbuf.find('?');
         }
         if (path_start != std::string::npos) {
-
             // issue #3457: make sure there are no ':' and '@' signs after this mark
             size_t char_pos = sbuf.find(':', path_start + 1);
             if (char_pos != std::string::npos) {
