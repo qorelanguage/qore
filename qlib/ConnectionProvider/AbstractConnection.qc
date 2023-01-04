@@ -427,7 +427,7 @@ public class AbstractConnection inherits Qore::Serializable {
 
         @since ConnectionProvider 1.7
     */
-    AbstractPollOperation startPollConnect() {
+    Qore::AbstractPollOperation startPollConnect() {
         throw "UNSUPPORTED", sprintf("connection %y (%s) does not support the polling API", name, safe_url);
     }
 
@@ -590,11 +590,11 @@ scheme://user:pass@hostname:port/path
 
         opts = validateOptions(options);
         orig_opts = opts;
-        setChildCapabilitiesImpl();
+        setChildCapabilities();
     }
 
     #! Override to set child data provider capabilities once per child class
-    private setChildCapabilitiesImpl() {
+    private setChildCapabilities() {
         # this method intentionally left empty
     }
 
