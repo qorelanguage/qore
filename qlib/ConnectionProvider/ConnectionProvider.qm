@@ -114,6 +114,8 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section connectionproviderrelnotes Release Notes
 
     @subsection connectionprovider_1_7_3 ConnectionProvider 1.7.3
+    - support full ping operations, also with polling, using an authenticated request
+      (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
     - fixed bugs handling child capability attributes in connections
       (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
 

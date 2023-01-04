@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.4
 
 module ServiceNowRestClient {
-    version = "1.1";
+    version = "1.1.1";
     desc = "user module for calling ServiceNow REST services";
     author = "David Nichols <david@qore.org>";
     url = "https://qore.org";
@@ -97,6 +97,10 @@ printf("%N\n", ans.body);
     @endcode
 
     @section ServiceNowrestclientrelnotes Release Notes
+
+    @subsection ServiceNowrestclientv1_1_1 ServiceNowRestClient v1.1.1
+    - support full ping operations, also with polling, using an authenticated request
+      (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
 
     @subsection ServiceNowrestclientv1_1 ServiceNowRestClient v1.1
     - updated to no longer require OAuth2 login params
@@ -370,7 +374,8 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("ServiceNowRestConnection"),
-            "options": RestConnection::ConnectionScheme.options + {
+            "options": RestConnection::ConnectionScheme.options - ("ping_method", "ping_path", "ping_headers",
+                "ping_body") + {
                 "api": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the API version for ServiceNow; if not set the latest version is used",
@@ -398,6 +403,17 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
             },
             "required_options": "username,password",
         };
+
+        #! Default ServiceNow ping method
+        const DefaultServiceNowPingMethod= "GET";
+
+        #! Default ServiceNow ping path (from the API root)
+        const DefaultServiceNowPingPath = "table/sys_dictionary?sysparm_query=name=incident";
+
+        #! Default ServiceNow ping headers
+        const DefaultServiceNowPingHeaders = {
+            "Accept": MimeTypeJson,
+        };
     }
 
     #! creates the ServiceNowRestConnection object
@@ -413,9 +429,14 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : RestConnection(name, description, url, attributes, options) {
+        opts += {
+            "ping_method": DefaultServiceNowPingMethod,
+            "ping_path": DefaultServiceNowPingPath,
+            "ping_headers": DefaultServiceNowPingHeaders,
+        };
         real_opts = {
             "url": real_url,
-        } + urlh{"username", "password"} + self.opts;
+        } + urlh{"username", "password"} + opts;
     }
 
     #! returns \c "snrest"
@@ -440,6 +461,18 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         # object dynamically
         load_module("ServiceNowRestDataProvider");
         return create_object("ServiceNowRestDataProvider", get());
+    }
+
+    #! Called to start a non-blocking polling ping operation on the ServiceNow REST server
+    /**
+        @return a socket poll operation object that will allow the connection goal to be reached with polling
+
+        @see supportsPollingApi()
+    */
+    Qore::AbstractPollOperation startPollConnect() {
+        # start the polling operation manually using the full request path
+        return new RestPingPollOperation(getPollImpl().startPollSendRecv(DefaultServiceNowPingMethod,
+            "/api/now/" + DefaultServiceNowPingPath, NOTHING, DefaultServiceNowPingHeaders));
     }
 
     #! Sets child data provider capabilities

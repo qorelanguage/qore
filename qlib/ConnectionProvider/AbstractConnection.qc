@@ -217,12 +217,19 @@ public class AbstractConnection inherits Qore::Serializable {
     #! performs the ping by executing get(); returns a @ref PingInfo hash
     private hash<PingInfo> pingIntern(hash<PingInfo> rv) {
         date start = now_us();
-        get();
+        pingImpl();
         return rv += {
             "ok": True,
             "time": now_us() - start,
             "info": "OK",
         };
+    }
+
+    #! performs the internal ping
+    /** By default this creates a new connection only; override in child classes to implement additional ping logic
+    */
+    private pingImpl() {
+        get();
     }
 
     #! returns a @ref ConnectionInfo hash of information about the connection
