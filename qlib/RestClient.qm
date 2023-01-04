@@ -1043,6 +1043,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         # prepare path
         preparePath(\path);
 
+        on_error rethrow $1.err, sprintf("%s (REST URL %y)", $1.desc, getSafeURL());
+
         return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
     }
 

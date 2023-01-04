@@ -939,7 +939,7 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : AbstractConnectionWithInfo(name, description, url, attributes, options) {
+            : AbstractConnectionWithInfo(name, description, url, attributes, options) {
     }
 
     #! returns \c "ws"

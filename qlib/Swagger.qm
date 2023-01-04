@@ -896,6 +896,9 @@ public class SwaggerLoader {
                 json = True;
             }
         }
+        on_error {
+            rethrow $1.err, sprintf("%s (from URL %y)", $1.desc, get_safe_url(url));
+        }
         return SwaggerLoader::fromString(FileLocationHandler::getTextFileFromLocation(url), json);
     }
 
@@ -930,7 +933,7 @@ public class SwaggerLoader {
 
     #! parses the source encoding from the given string
     static hash<auto> parseSchemaSource(string str, string ser) {
-        hash<auto> rv;
+        auto rv;
         switch (ser) {
             case "json": {
 %ifdef NoJson
@@ -956,6 +959,10 @@ public class SwaggerLoader {
                 break;
 %endif
             }
+        }
+        if (rv.typeCode() != NT_HASH) {
+            throw "SWAGGER-SCHEMA-ERROR", sprintf("data of type %y provided for OpenAPI / Swagger schema; expecting "
+                "\"string\"", rv.fullType());
         }
         return rv;
     }

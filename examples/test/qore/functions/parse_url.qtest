@@ -73,6 +73,23 @@ public class parseUrlTest inherits QUnit::Test {
             "port": 587,
         }, h);
 
+        h = parse_url("user:pass@site:1001/path");
+        assertEq({
+            "username": "user",
+            "password": "pass",
+            "host": "site",
+            "port": 1001,
+            "path": "/path",
+        }, h);
+
+        h = parse_url("user:pass@:1001/path");
+        assertEq({
+            "username": "user",
+            "password": "pass",
+            "port": 1001,
+            "path": "/path",
+        }, h);
+
         # "standard" test
         assertEq(("protocol": "http", "path": "/path", "username": "user", "password": "pass", "host": "host", "port": 80), parse_url("http://user:pass@host:80/path"));
 
