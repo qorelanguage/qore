@@ -24,7 +24,7 @@
 
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
-#! The class for handling file locations
+#! The class for handling "sftp://"" locations
 class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
     public {
         #! Valid SFTP location options
@@ -56,7 +56,7 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
 
         @return the string of the file's contents, if it can be retrieved
 
-        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+        @note This method can throw any exception related to making an SFTP transfer
     */
     private string getTextFileImpl(string scheme, string location, *hash<auto> opts) {
         string file;
@@ -75,7 +75,7 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
 
         @return the binary data of the file's contents, if it can be retrieved
 
-        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+        @note This method can throw any exception related to making an SFTP transfer
     */
     private binary getBinaryFileImpl(string scheme, string location, *hash<auto> opts) {
         string file;
@@ -89,6 +89,8 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
         @param opts read options
 
         @return a stream reader for the file's contents, if it can be retrieved
+
+        @note This method can throw any exception related to making an SFTP transfer
     */
     private Qore::StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
         string file;
@@ -115,6 +117,8 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
         @param opts read options
 
         @return an input stream of the file's contents, if it can be retrieved
+
+        @note This method can throw any exception related to making an SFTP transfer
     */
     private Qore::InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
         string file;
@@ -140,6 +144,8 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
         @param location the location string without the scheme
         @param contents the file's contents
         @param opts write options
+
+        @note This method can throw any exception related to making an SFTP transfer
     */
     private writeFileImpl(string scheme, string location, data contents, *hash<auto> opts) {
         # convert encoding if necessary
@@ -163,6 +169,7 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
           deadlock
         - The data written to the OutputStreamWrapper object is written in the background; to ensure that the data has
           been written to the target, call OutputStreamWrapper::waitForIo()
+        - This method can throw any exception related to making an SFTP transfer
     */
     private OutputStreamWrapper getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
         string file;
@@ -203,6 +210,9 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
     }
 
     #! Returns an SFTP client for the given location
+    /*
+        @note This method can throw any exception related to making an SFTP connection
+    */
     private object getSftpClient(string scheme, string location, *hash<auto> opts, reference<string> file) {
         location = scheme + "://" + location;
 

@@ -24,7 +24,9 @@
 
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
-#! The class for handling file locations
+#! The class for handling "rest(s)://"" locations
+/** @note This class does not support writing to output streams
+*/
 class FileLocationHandlerRest inherits AbstractFileLocationHandler {
     public {
         #! Valid REST location options
@@ -133,7 +135,9 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
 
         @return the string of the file's contents, if it can be retrieved
 
-        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+        @throw REST-DATA-ERROR The REST call returned a data type that cannot be converted to a string
+
+        @note This method can throw any exception related to making a REST call as well
     */
     private string getTextFileImpl(string scheme, string location, *hash<auto> opts) {
         string path;
@@ -142,7 +146,18 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
             opts.headers.Accept = "*/*";
         }
         object hc = getRestClient(scheme, location, opts, \path);
-        return hc.doRequest(opts.method ? opts.method.upr() : "GET", path).body ?? "";
+        auto val = hc.doRequest(opts.method ? opts.method.upr() : "GET", path).body;
+        if (!exists val) {
+            return "";
+        }
+        if (val.typeCode() == NT_STRING) {
+            return val;
+        }
+        if (!val.strp()) {
+            throw "REST-DATA-ERROR", sprintf("%s://%s returned data of type %y; expecting \"string\"",
+                val.fullType());
+        }
+        return val.toString();
     }
 
     #! Retrieves a binary file from the given location
@@ -150,15 +165,25 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         @param location the location string without the scheme
         @param opts read options
 
-        @return the binary data of the file's contents, if it can be retrieved
+        @throw REST-DATA-ERROR The REST call returned a data type that cannot be converted to a binary
 
-        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+        @note This method can throw any exception related to making a REST call as well
     */
     private binary getBinaryFileImpl(string scheme, string location, *hash<auto> opts) {
         string path;
         object client = getRestClient(scheme, location, opts, \path);
-        *string body = client.doRequest(opts.method ? opts.method.upr() : "GET", path).body;
-        return exists body ? body.toBinary() : binary();
+        auto val = client.doRequest(opts.method ? opts.method.upr() : "GET", path).body;
+        if (!exists val) {
+            return binary();
+        }
+        if (val.typeCode() == NT_BINARY) {
+            return val;
+        }
+        if (!val.strp()) {
+            throw "REST-DATA-ERROR", sprintf("%s://%s returned data of type %y; expecting \"binary\" or \"string\"",
+                val.fullType());
+        }
+        return val.toString().toBinary();
     }
 
     #! Returns a stream reader for the file's data at the given location
@@ -167,6 +192,10 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         @param opts read options
 
         @return a stream reader for the file's contents, if it can be retrieved
+
+        @throw REST-DATA-ERROR The REST call returned a data type that cannot be converted to a binary
+
+        @note This method can throw any exception related to making a REST call as well
     */
     private Qore::StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
         return new StreamReader(getBinaryStreamImpl(scheme, location, opts));
@@ -178,6 +207,10 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         @param opts read options
 
         @return an input stream of the file's contents, if it can be retrieved
+
+        @throw REST-DATA-ERROR The REST call returned a data type that cannot be converted to a binary
+
+        @note This method can throw any exception related to making a REST call as well
     */
     private Qore::InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
         return new BinaryInputStream(getBinaryFileImpl(scheme, location, opts));
@@ -188,6 +221,8 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         @param location the location string without the scheme
         @param contents the file's contents
         @param opts write options
+
+        @note This method can throw any exception related to making a REST call
     */
     private writeFileImpl(string scheme, string location, data contents, *hash<auto> opts) {
         string path;
@@ -195,22 +230,18 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         client.doRequest(opts.method ? opts.method.upr() : "POST", path, contents);
     }
 
-    #! Returns an output stream for writing data to the given location
+    #! This method only throws a \c STREAM-WRITE-ERROR exception
     /** @param scheme the scheme being used
         @param location the location string without the scheme
         @param opts write options
 
-        @return an output stream for writing to the file
+        @return always throws an exception
 
-        @note
-        - OutputStream::close() must be called to close the stream after writing terminates in order to avoid a
-          deadlock
-        - The data written to the OutputStreamWrapper object is written in the background; to ensure that the data has
-          been written to the target, call OutputStreamWrapper::waitForIo()
+        @throw STREAM-WRITE-ERROR rest(s):// locations do not support writing to output streams
     */
     private OutputStreamWrapper getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
-        throw "STREAM-WRITE-ERROR", sprintf("rest:// locations do not support writing with an output stream; use "
-            "http(s):// locations instead");
+        throw "STREAM-WRITE-ERROR", sprintf("%s:// locations do not support writing with an output stream; use "
+            "http(s):// locations instead", scheme);
     }
 
     #! Gets supported read options
@@ -228,6 +259,9 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
     }
 
     #! Returns a RestClient object for the given location
+    /**
+        @note This method can throw any exception related to making a REST connection
+    */
     private object getRestClient(string scheme, string location, *hash<auto> opts, reference<string> path) {
         # dynamically load the module to avoid a circular module dependency
         load_module("RestClient");
@@ -241,7 +275,11 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         if (!exists path) {
             throw "LOCATION-ERROR", sprintf("REST location %y missing URI path", location);
         }
-        location = sprintf("%s://%s", url_info.protocol, url_info.host);
+        location = url_info.protocol + "://";
+        if (url_info.username.val() && url_info.password.val()) {
+            location += sprintf("%s:%s@", url_info.username, url_info.password);
+        }
+        location += url_info.host;
         if (url_info.port) {
             location += ":" + url_info.port;
         }
