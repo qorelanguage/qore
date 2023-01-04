@@ -105,7 +105,7 @@ class ZeyosTest inherits QUnit::Test {
     globalSetUp() {
         Logger logger("test", LoggerLevel::getLevelInfo());
         if (m_options.verbose > 2) {
-            logger.addAppender(new TestAppender());
+            logger.addAppender(new StdoutAppender());
         }
         hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
             "logger": logger,
@@ -172,18 +172,4 @@ class ZeyosTest inherits QUnit::Test {
         assertEq(True, client instanceof ZeyosRestClient);
     }
 
-}
-
-class TestAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
-        open();
-    }
-
-    processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_LOG:
-                print(params);
-                break;
-        }
-    }
 }

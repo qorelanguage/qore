@@ -89,6 +89,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("RestClientTest", "1.0") {
+        addTestCase("poll test", \pollTest());
         addTestCase("issue 3472", \issue3472());
         addTestCase("connection tests", \connectionTests());
         addTestCase("OPTIONS tests", \methodOptionsTest());
@@ -104,7 +105,7 @@ public class Main inherits QUnit::Test {
     setUp() {
         Logger logger("test", LoggerLevel::getLevelInfo());
         if (m_options.verbose > 2) {
-            logger.addAppender(new TestAppender());
+            logger.addAppender(new StdoutAppender());
         }
         hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
             "logger": logger,
@@ -122,6 +123,38 @@ public class Main inherits QUnit::Test {
 
     tearDown() {
         delete m_http;
+    }
+
+    pollTest() {
+        RestClient rest({"url": "http://localhost:" + port});
+
+        {
+            SocketPollOperation spop = rest.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+        }
+
+        string url = "http://localhost:" + port;
+        RestConnection conn("test", "test", url);
+
+        assertTrue(conn.supportsPollingApi());
+        {
+            SocketPollOperation spop = conn.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+        }
     }
 
     issue3472() {
@@ -268,19 +301,5 @@ public class Main inherits QUnit::Test {
         assertThrows("REST-CONNECTION-ERROR", sub () {
             new RestConnection("test", "test", url, {"monitor": False}, {"headers": "1"});
         });
-    }
-} # class Main
-
-class TestAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
-        open();
-    }
-
-    processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_LOG:
-                print(params);
-                break;
-        }
     }
 }

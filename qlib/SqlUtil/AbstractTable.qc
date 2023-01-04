@@ -252,7 +252,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
 
             to specify the upsert strategy when synchronizing table data
         */
-        #@{
+        #/@{
         #! Upsert option: insert first, if the insert fails, then update
         /** with this option an insert is attempted, and if it fails due to a duplicate row, then an update is made unconditionally; with
             this upsert strategy, the following row result codes are possible:
@@ -322,12 +322,12 @@ public class AbstractTable inherits AbstractSqlUtilBase {
             "UpsertInsertOnly": UpsertInsertOnly,
             "UpsertUpdateOnly": UpsertUpdateOnly,
         };
-        #@}
+        #/@}
 
         /** @defgroup upsert_results Upsert Result Codes
             @see @ref UpsertResultMap and @ref UpsertResultDescriptionMap
             */
-        #@{
+        #/@{
         #! row was inserted
         const UR_Inserted = 1;
 
@@ -342,7 +342,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
 
         #! row was deleted (only possible with batch upsert methods such as @ref AbstractTable::upsertFromIterator() where @ref SqlUtil::AbstractTable::UpsertOptions "upsert option" \c delete_others is @ref True "True")
         const UR_Deleted = 5;
-        #@}
+        #/@}
 
         #! hash mapping upsert results to a description
         /** @see @ref UpsertResultDescriptionMap for a reverse mapping
@@ -4078,7 +4078,8 @@ AbstractSQLStatement i = table.getStatement();
         return getStatementIntern(sh, NOTHING, opt, True);
     }
 
-    private Qore::SQL::AbstractSQLStatement getStatementIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *bool no_exec, *reference<softlist<auto>> args) {
+    private Qore::SQL::AbstractSQLStatement getStatementIntern(*hash<auto> sh, *reference<string> sql,
+            *hash<auto> opt, *bool no_exec, *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
         sql = getSelectSqlIntern(sh, \args, opt);
@@ -7048,8 +7049,7 @@ string sql = table.getAlignSqlString(table2);
         @since SqlUtil 1.6
     */
     AbstractDataField getColumnDataField(AbstractColumn column, *hash<SqlUtilDataTypeOptionInfo> options, *string append_desc) {
-        AbstractDataProviderType type = getDbType(column.native_type, column.qore_type,
-            exists column.def_val ? True : column.nullable, column.size ? column.size : -1, options);
+        AbstractDataProviderType type = getDbType(column, options);
 
         string desc = column.getNativeTypeString();
         if (!column.nullable) {
@@ -7081,17 +7081,33 @@ string sql = table.getAlignSqlString(table2);
             throw "COLUMN-ERROR", sprintf("column %y is unknown; valid columns: %y", column_name, columns.keys());
         }
 
-        return getDbType(column.native_type, column.qore_type, column.nullable, column.size ? column.size : -1,
-            options);
+        return getDbType(column, options);
     }
 
     #! returns the DB type for the given column type
     /** @since SqlUtil 1.6
     */
-    AbstractDataProviderType getDbType(string native_type, *string qore_type, bool nullable, int max_size = -1, *hash<SqlUtilDataTypeOptionInfo> options) {
+    AbstractDataProviderType getDbType(AbstractColumn column, *hash<SqlUtilDataTypeOptionInfo> options) {
+        string name = column.native_type;
+        if (column.size) {
+            name += column.scale ? sprintf("(%d,%d)", column.size, column.scale) : sprintf("(%d)", column.size);
+        }
+
+        return getDbType(name, column.qore_type, exists column.def_val ? True : column.nullable,
+            column.size ? column.size : -1, options);
+    }
+
+    #! returns the DB type for the given column type
+    /** @since SqlUtil 1.6
+    */
+    AbstractDataProviderType getDbType(string native_type, *string qore_type, bool nullable, int max_size = -1,
+            *hash<SqlUtilDataTypeOptionInfo> options) {
         hash<auto> type_options;
         if (nullable && options.mandatory) {
             nullable = False;
+        }
+        if (nullable && native_type[0] != "*") {
+            native_type = "*" + native_type;
         }
         if (options.maxlen && (max_size < 0 || max_size > options.maxlen)) {
             type_options."string.max_size_chars" = options.maxlen;
@@ -7486,27 +7502,20 @@ on_exit printf("SQL> %s\n", sql);
     private execData(AbstractSQLStatement stmt, *hash<auto> opt, *list<auto> args) {
         if (opt.sqlarg_callback)
             opt.sqlarg_callback(stmt.getSQL(), args);
+        on_error rethrow $1.err, sprintf("%s (SQL: %s)", $1.desc, stmt.getSQL());
         stmt.execArgs(args);
     }
 
     static AbstractTable getTable(AbstractDatasource nds, string nname, *hash<auto> opts) {
-        string drv = nds.getDriverName();
-
-        # generate module and module namespace name
-        string mn = drv[0].upr() + drv.substr(1) + "SqlUtil";
-
-        # try to load module
-        try {
-            load_module(mn);
-        } catch (hash<ExceptionInfo> ex) {
-            rethrow "TABLE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
-        }
+        string drv;
+        string mn = AbstractDatabase::loadModule(nds, \drv);
 
         # try to get AbstractTable object
         try {
             return call_function(mn + "::" + "get_table", nds, nname, opts);
         } catch (hash<ExceptionInfo> ex) {
-            rethrow "TABLE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractTable object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
+            rethrow "TABLE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractTable object for driver %y: %s: %s",
+                get_ex_pos(ex), drv, ex.err, ex.desc);
         }
     }
 

@@ -6,6 +6,8 @@
 %require-types
 %strict-args
 
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/SmtpClient.qm
 %requires ../../../../qlib/QUnit.qm
@@ -13,13 +15,49 @@
 %exec-class SmtpClientTest
 
 public class SmtpClientTest inherits QUnit::Test {
-    constructor() : Test("SmtpClientTest", "1.0") {
-        addTestCase("SmtpClient tests", \smtpClientTests());
-        addTestCase("connection tests", \connectionTests());
+    private {
+        const ConnectionName = "test";
+
+        const MyOpts = {
+            "url": "u,url=s",
+        } + Opts;
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("SmtpClientTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("real connection test", \realConnectionTest());
+        addTestCase("SmtpClient test", \smtpClientTest());
+        addTestCase("connection test", \connectionTest());
         set_return_value(main());
     }
 
-    smtpClientTests() {
+   private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-u,--url=ARG", "the URL to use for connection tests", OptionColumn);
+    }
+
+    realConnectionTest() {
+        if (!m_options.url) {
+            testSkip("no url option set");
+        }
+
+        SmtpConnection conn(ConnectionName, "test", m_options.url);
+
+        Logger logger("test", m_options.verbose > 3 ? LoggerLevel::getLevelDebug() : LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new StdoutAppender());
+        }
+
+        TestPollingConnectionMonitor monitor(logger);
+        on_exit delete monitor;
+        monitor.add(conn);
+
+        hash<auto> info = monitor.waitForResult();
+        assertEq(info.name, ConnectionName);
+    }
+
+    smtpClientTest() {
         SmtpClient smtp("smtp://user:pass@host.com");
         assertEq("host.com:25", smtp.getTarget());
         smtp = new SmtpClient("user:pass@x:23");
@@ -34,7 +72,7 @@ public class SmtpClientTest inherits QUnit::Test {
         assertThrows("SMTPCLIENT-UNKNOWN-PROTOCOL", sub () { new SmtpClient("scheme://host");});
     }
 
-    connectionTests() {
+    connectionTest() {
         string url = "smtps://user:pass@localhost:8099";
         SmtpConnection conn("test", "test", url);
         SmtpClient client = conn.get(False);
@@ -47,5 +85,34 @@ public class SmtpClientTest inherits QUnit::Test {
         conn = new SmtpConnection("test", "test", url, {"monitor": False});
         client = conn.get(False);
         assertEq("localhost:8099", client.getTarget());
+    }
+}
+
+class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
+    private {
+        Queue msgq();
+    }
+
+    constructor(*Logger logger) : PollingConnectionMonitor(logger) {
+        ping_timeout = 5s;
+    }
+
+    hash<auto> waitForResult() {
+        return msgq.get();
+    }
+
+    private handlePingSuccess(string name, date delta, *bool oldok) {
+        PollingConnectionMonitor::handlePingSuccess(name, delta, oldok);
+        msgq.push({"name": name});
+    }
+
+    private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
+        PollingConnectionMonitor::handlePingFailed(name, delta, ex);
+        msgq.push({"name": name, "ex": ex});
+    }
+
+    private handlePingTimeout(string name, date delta) {
+        PollingConnectionMonitor::handlePingTimeout(name, delta);
+        msgq.push({"name": name});
     }
 }

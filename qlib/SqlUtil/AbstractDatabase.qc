@@ -62,7 +62,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
             - @ref ActionDescMap
             - @ref ActionLetterMap
             */
-        #@{
+        #/@{
         #! used when an existing object matches the template and no changes are made
         const AC_Unchanged = 0;
 
@@ -98,7 +98,7 @@ public class AbstractDatabase inherits AbstractSqlUtilBase {
 
         #! used when dropping object but the object is not present
         const AC_NotFound = 11;
-        #@}
+        #/@}
 
         #! maps from action codes to action descriptions
         const ActionMap = (
@@ -1312,7 +1312,7 @@ string sql = t.getSqlFromList(list);
     }
 
     private validateOptionsIntern(string err, hash<auto> ropt, reference<hash> opt) {
-        AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, ds.getDBName());
+        AbstractSqlUtilBase::validateOptionsIntern(err, ropt, \opt, ds.getDBName() ?? "");
     }
 
     private validateOptionsIntern(string err, hash<auto> ropt, reference<hash> opt, string tag) {
@@ -1320,27 +1320,48 @@ string sql = t.getSqlFromList(list);
     }
 
     static AbstractDatabase getDatabase(AbstractDatasource nds, *hash<auto> opts) {
-        string drv = nds.getDriverName();
+        string drv;
+        string mn = AbstractDatabase::loadModule(nds, \drv);
 
-        if (opts)
+        if (opts) {
             AbstractDatabase::checkDriverOptions(\opts, drv);
-
-        # generate module and module namespace name
-        string mn = drv[0].upr() + drv.substr(1) + "SqlUtil";
-
-        # try to load module
-        try {
-            load_module(mn);
-        } catch (hash<ExceptionInfo> ex) {
-            throw "DATABASE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
         }
 
         # try to get AbstractDatabase object
         try {
             return call_function(mn + "::" + "get_database", nds, opts);
         } catch (hash<ExceptionInfo> ex) {
-            throw "DATABASE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractDatabase object for driver %y: %s: %s", get_ex_pos(ex), drv, ex.err, ex.desc);
+            throw "DATABASE-DRIVER-ERROR", sprintf("%s: error retrieving AbstractDatabase object for driver %y: %s: "
+                "%s", get_ex_pos(ex), drv, ex.err, ex.desc);
         }
+    }
+
+    static string loadModule(AbstractDatasource nds, *reference<string> drv) {
+        drv = nds.getDriverName();
+        # generate module and module namespace name
+        string mn = (drv == "odbc")
+            ? AbstractDatabase::getOdbcDriverName(nds)
+            : drv[0].upr() + drv.substr(1) + "SqlUtil";
+
+        # try to load module
+        try {
+            load_module(mn);
+        } catch (hash<ExceptionInfo> ex) {
+            throw "DATABASE-DRIVER-ERROR", sprintf("%s: no support for driver %y yet: %s: %s", get_ex_pos(ex), drv,
+                ex.err, ex.desc);
+        }
+        return mn;
+    }
+
+    static string getOdbcDriverName(AbstractDatasource nds) {
+        # test for Firebird
+        try {
+            nds.select("select rdb$relation_name as name from rdb$relations where rdb$relation_name = 'x'");
+            return "OdbcFirebirdSqlUtil";
+        } catch (hash<ExceptionInfo> ex) {
+            # ignore exception
+        }
+        return "OdbcSqlUtil";
     }
 
     static AbstractDatabase getDatabase(string dsstr, *hash<auto> opts) {
@@ -1356,7 +1377,8 @@ string sql = t.getSqlFromList(list);
     static checkDriverOptions(reference<hash<auto>> h, string drv) {
         if (h.driver) {
             if (h.driver{drv}) {
-                h += h.driver{drv};
+                hash<auto> nh = h + h.driver{drv};
+                h = nh;
             }
             delete h.driver;
         }

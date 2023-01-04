@@ -33,7 +33,7 @@ public hashdecl QueryOperatorInfo {
 /** @defgroup query_ops Query Operators
     These are the operators that can be used in queries
 */
-#@{
+#/@{
 #! like/contains operator
 /** @see query_op_like()
 */
@@ -113,7 +113,7 @@ public const QUERY_OP_NOT = "NOT";
 /** @see query_wquery_op_or()
 */
 public const QUERY_OP_OR = "OR";
-#@}
+#/@}
 
 /** @defgroup query_op_funcs Query Operator Functions
     These are the operators that can be used in ServiceNow queries
@@ -132,7 +132,7 @@ public const QUERY_OP_OR = "OR";
     - query_op_not(): for negating other operators
     - query_wop_or(): for combining Query expressions with \c "or"
 */
-#@{
+#/@{
 #! returns an @ref QueryOperatorInfo hash
 public hash<QueryOperatorInfo> sub query_make_op(string op, auto arg) {
     return new hash<QueryOperatorInfo>({"op": op, "arg": arg});
@@ -373,5 +373,5 @@ public hash<string, hash<QueryOperatorInfo>> sub query_wop_or(hash<auto> h1, has
         sprintf("%d:_OR_", rand() % 10000000): query_make_op(QUERY_OP_OR, l)
     });
 }
-#@}
+#/@}
 }

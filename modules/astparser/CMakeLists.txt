@@ -77,7 +77,7 @@ set(MODULE_DOX_INPUT ${CMAKE_BINARY_DIR}/modules/astparser/mainpage.dox ${_dox_s
 qore_binary_module_qore(${astparser_module_name} "${VERSION}" "/${VERSION}")
 
 if (DOXYGEN_FOUND)
-    qore_wrap_dox(QORE_ASTPARSER_DOX_SRC ${QORE_DOX_ASTPARSER_TMPL_SRC})
+    qore_wrap_dox(QORE_DOX_ASTPARSER_SRC ${QORE_DOX_ASTPARSER_TMPL_SRC})
     add_custom_target(QORE_ASTPARSER_MOD_DOX_FILES DEPENDS ${QORE_DOX_ASTPARSER_SRC})
     add_dependencies(docs-astparser QORE_ASTPARSER_MOD_DOX_FILES)
 endif()

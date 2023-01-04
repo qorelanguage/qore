@@ -2,12 +2,184 @@
 
     @tableofcontents
 
+    @section qore_1_13 Qore 1.13
+
+    @par Release Summary
+    Bugfix release with minor new features; see below for more information
+
+    @subsection qore_1_13_new_features New Features in Qore
+    - <a href="../../modules/FileLocationHandler/html/index.html">FileLocationHandler</a> module
+      - added support for \c rest:// and \c rests:// locations
+        (<a href="https://github.com/qorelanguage/qore/issues/4669">issue 4669</a>)
+      - added support for runtime extensibility from an environment variable (\c QORE_FILE_LOCATION_HANDLERS)
+        (<a href="https://github.com/qorelanguage/qore/issues/4667">issue 4667</a>)
+    - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module
+      - parse and report path arguments when processing REST requests on the server side
+        (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
+    - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
+      - parse and report path arguments when processing REST requests on the server side
+        (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
+    - <a href="../../modules/Util/html/index.html">Util</a> module
+      - added a \c path_params element to the \c UriQueryInfo typed hash to allow for reporting path arguments in
+        calls supported by REST schemas
+        (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
+    - added the @ref Qore::get_safe_url() "get_safe_url()" function to avoid exposing passwords in URLs
+      (<a href="https://github.com/qorelanguage/qore/issues/4671">issue 4671</a>)
+
+    @subsection qore_1_13_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - support full ping operations, also with polling, using an authenticated request
+        (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
+      - fixed bugs handling child capability attributes in connections
+        (<a href="https://github.com/qorelanguage/qore/issues/4675">issue 4675</a>)
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
+      - support full ping operations, also with polling, using an authenticated request
+        (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
+      - apply the \c swagger_base_path argument to all REST validators
+        (<a href="https://github.com/qorelanguage/qore/issues/4663">issue 4663</a>)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
+      - always set the \c socketobject request context property
+        (<a href="https://github.com/qorelanguage/qore/issues/4666">issue 4666</a>)
+    - <a href="../../modules/ServiceNowRestClient/html/index.html">ServiceNowRestClient</a> module
+      - support full ping operations, also with polling, using an authenticated request
+        (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
+    - fixed a bug where @ref Qore::parse_url() "parse_url()" failed with passwords with / characters
+      (<a href="https://github.com/qorelanguage/qore/issues/4673">issue 4673</a>)
+
+    @section qore_1_12_4 Qore 1.12.4
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_12_4_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - added support for the \c pre_encoded_urls option in the \c HttpConnection class
+        (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+    - <a href="../../modules/HttpClientDataProvider/html/index.html">HttpClientDataProvider</a> module
+      - added support for the \c pre_encoded_urls option in the \c HttpConnection class
+        (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+    - <a href="../../modules/RestClientDataProvider/html/index.html">RestClientDataProvider</a> module
+      - added support for the \c pre_encoded_urls option in the \c HttpConnection class
+        (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+    - fixed a race condition in deadlock detection where a deadlock could occur due to the lack of atomic reads of a
+      critical attribute
+      (<a href="https://github.com/qorelanguage/qore/issues/4658">issue 4658</a>)
+    - added the \c pre_encoded_urls option to the @ref Qore::HTTPClient "HTTPClient" class as well as the following
+      methods:
+      - @ref Qore::HTTPClient::setPreEncodedUrls() "HTTPClient::setPreEncodedUrls()"
+      - @ref Qore::HTTPClient::getPreEncodedUrls() "HTTPClient::getPreEncodedUrls()"
+      \n
+      (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+    - fixed building and stack guard on s390x and ppc64 architectures
+      (<a href="https://github.com/qorelanguage/qore/issues/4655">issue 4655</a>)
+
+    @section qore_1_12_3 Qore 1.12.3
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_12_3_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/DebugUtil/html/index.html">DebugUtil</a> module
+      - fixed bugs in log handling
+        (<a href="https://github.com/qorelanguage/qore/issues/4635">issue 4635</a>)
+    - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
+      - implemented the @ref RestHandler::RestHandler::errorResponseHeaders() to allow subclasses to return custom
+        headers in error responses, such as when a request cannot be deserialized
+        (<a href="https://github.com/qorelanguage/qore/issues/4646">issue 4646</a>)
+    - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module
+      - REST handlers must throw a \c DESERIALIZATION-ERROR when deserialization errors occur, so that a
+        <tt>400 Bad Request</tt> response is returned
+        (<a href="https://github.com/qorelanguage/qore/issues/4647">issue 4647</a>)
+      - allow for the client's time zone locale to be set for data serialization / deserialization
+        (<a href="https://github.com/qorelanguage/qore/issues/4639">issue 4639</a>)
+    - <a href="../../modules/Schema/html/index.html">Schema</a> module
+      - allow the user to determine if a schema alignment operation was a first-time creation or an update
+        (<a href="https://github.com/qorelanguage/qore/issues/4637">issue 4637</a>)
+    - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
+      - REST handlers must throw a \c DESERIALIZATION-ERROR when deserialization errors occur, so that a
+        <tt>400 Bad Request</tt> response is returned
+        (<a href="https://github.com/qorelanguage/qore/issues/4647">issue 4647</a>)
+      - do not reserialize already deserialized data when processing responses
+        (<a href="https://github.com/qorelanguage/qore/issues/4640">issue 4640</a>)
+      - allow for the client's time zone locale to be set for data serialization / deserialization
+        (<a href="https://github.com/qorelanguage/qore/issues/4639">issue 4639</a>)
+    - <a href="../../modules/WebSocketHandler/html/index.html">WebSocketHandler</a> module
+      - fixed a bug in \c WebSocketHandler::sendOne()
+        (<a href="https://github.com/qorelanguage/qore/issues/4634">issue 4634</a>)
+    - fixed crashes in @ref Qore::set_signal_handler() "set_signal_handler()" and
+      @ref Qore::remove_signal_handler() "remove_signal_handler()" with negative signal values
+      (<a href="https://github.com/qorelanguage/qore/issues/4643">issue 4643</a>)
+
+    @section qore_1_12_2 Qore 1.12.2
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_12_2_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - added \c DataProvider::getFactoryObjectWithTemplate() and \c AbstractDataProviderFactory::createWithTemplate()
+        to allow data providers to be created from factories with template arguments
+        (<a href="https://github.com/qorelanguage/qore/issues/4624">issue 4624</a>)
+      - \c AbstractDataProvider::search*() fails with record-based data providers that do not provide a record
+        definition
+        (<a href="https://github.com/qorelanguage/qore/issues/4624">issue 4624</a>)
+      - \c AbstractDataProvider::search*() methods fail with an empty \c where hash argument
+        (<a href="https://github.com/qorelanguage/qore/issues/4622">issue 4622</a>)
+    - <a href="../../modules/FileLocationHandler/html/index.html">FileLocationHandler</a> module
+      - added support for immediate <tt>data://</tt> locations
+          (<a href="https://github.com/qorelanguage/qore/issues/4626">issue 4626</a>)
+    - <a href="../../modules/DbDataProvider/html/index.html">DbDataProvider</a> module
+      - fixed \c sequence and \c sequence_currval mapper options in \c DbTableDataProvider
+        (<a href="https://github.com/qorelanguage/qore/issues/4628">issue 4628</a>)
+    - <a href="../../modules/Mapper/html/index.html">Mapper</a> module
+      - fixed \c Mapper::mapAuto() to accept an iterator argument
+        (<a href="https://github.com/qorelanguage/qore/issues/4629">issue 4629</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
+      - fixed a bug serializing and deserializing \c Table objects using the \c odbc driver
+        (<a href="https://github.com/qorelanguage/qore/issues/4620">issue 4620</a>)
+    - <a href="../../modules/Util/html/index.html">Util</a> module
+      - fixed a bug in \c substitute_env_vars() where an exception would be thrown if
+        any referenced environment variable was not set
+        (<a href="https://github.com/qorelanguage/qore/issues/4632">issue 4632</a>)
+
+    @par Release Summary
+
+    @section qore_1_12_1 Qore 1.12.1
+    @par Release Summary
+    Bugfix release with minor new features; see below for more information
+
+    @subsection qore_1_12_1_new_features New Features in Qore
+
+    Bugfix release with minor new features; see below for more information
+
+    @subsection qore_1_12_1_new_features New Features in Qore
+    - <a href="../../modules/OdbcFirebirdSqlUtil/html/index.html">OdbcFirebirdSqlUtil</a> module
+      - added the \c OdbcFirebirdSqlUtil module to enable Firebird databases to be used with SqlUtil
+
+    @subsection qore_1_12_1_bug_fixes Bug Fixes in Qore
+    - fixed a bug in the @ref cast "cast<> operator" where class casts would not enforce the specified class at
+      runtime
+      (<a href="https://github.com/qorelanguage/qore/issues/4610">issue 4610</a>)
+    - fixed a bug in the @ref cast "cast<> operator" where it could not be used on lvalues
+      (<a href="https://github.com/qorelanguage/qore/issues/4609">issue 4609</a>)
+    - fixed a bug where the @ref unreferenced-variable warning was raised in situations where it was not warranted,
+      such as when a local variable is assigned a new object and the destructor performs resource cleanup when the
+      local variable goes out of scope
+      (<a href="https://github.com/qorelanguage/qore/issues/4607">issue 4607</a>)
+    - fixed a bug where @ref methodGate_methods "methodGate()" and @ref memberGate_methods "memberGate()" methods were
+      not respected in some cases when referring to undeclared members or methods of a class with the method in
+      question defined as an @ref abstract "abstract method"
+      (<a href="https://github.com/qorelanguage/qore/issues/4605">issue 4605</a>)
+
     @section qore_1_12_0 Qore 1.12.0
 
     @par Release Summary
-    Bugfix release with minor new features in user modules; see below for more information
+    Bugfix release with minor new features; see below for more information
 
     @subsection qore_1_12_0_new_features New Features in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - allow multiple connections to be polled from a single thread
+        (<a href="https://github.com/qorelanguage/qore/issues/4595">issue 4595</a>)
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
       - added child capability support to data provider summary info
         (<a href="https://github.com/qorelanguage/qore/issues/4576">issue 4576</a>)
@@ -21,17 +193,47 @@
       - added request arguments to the \c RestHandler::unknownSubClassError() and
         \c RestHandler::doGetPossibleSubClasses() methods
         (<a href="https://github.com/qorelanguage/qore/issues/4578">issue 4578</a>)
+    - new classes:
+      - @ref Qore::AbstractPollableIoObject "AbstractPollableIoObject"
+      - @ref Qore::AbstractPollableIoObjectBase "AbstractPollableIoObjectBase"
+      - @ref Qore::AbstractPollOperation "AbstractPollOperation"
+      - @ref Qore::SocketPollOperationBase "SocketPollOperationBase"
+      - @ref Qore::SocketPollOperation "SocketPollOperation"
+    - new I/O methods:
+      - @ref Qore::File::getPipe() "File::getPipe()"
+      - @ref Qore::HTTPClient::startPollConnect() "HTTPClient::startPollConnect()"
+      - @ref Qore::HTTPClient::startPollSendRecv() "HTTPClient::startPollSendRecv()"
+      - @ref Qore::Socket::startPollConnect() "Socket::startPollConnect()"
+      - @ref Qore::Socket::startPollConnectSsl() "Socket::startPollConnectSsl()"
+      - @ref Qore::Socket::startPollRecvBinary() "Socket::startPollRecvBinary()"
+      - @ref Qore::Socket::startPollRecvString() "Socket::startPollRecvString()"
+      - @ref Qore::Socket::startPollRecvUntilBytesBinary() "Socket::startPollRecvUntilBytesBinary()"
+      - @ref Qore::Socket::startPollRecvUntilBytesString() "Socket::startPollRecvUntilBytesString()"
+      - @ref Qore::Socket::startPollSend() "Socket::startPollSend()"
+      - @ref Qore::Socket::startPollUpgradeClientToSSL() "Socket::startPollUpgradeClientToSSL()"
 
     @subsection qore_1_12_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - fixed a bug acquiring a data provider object from connection objects
         (<a href="https://github.com/qorelanguage/qore/issues/4584">issue 4584</a>)
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - fixed a bug accepting the element type in \c SoftListDataType
+        (<a href="https://github.com/qorelanguage/qore/issues/4603">issue 4603</a>)
     - <a href="../../modules/Logger/html/index.html">Logger</a> module
       - fixed a race condition handling log file rotation with active logs
         (<a href="https://github.com/qorelanguage/qore/issues/4583">issue 4583</a>)
+    - <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> module
+      - fixed bugs handling table objects in schemas other than \c public
+        (<a href="https://github.com/qorelanguage/qore/issues/4602">issue 4602</a>)
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
+      - fixed a bug where HTTP method names were not accepted as wildcard values in URI paths
+        (<a href="https://github.com/qorelanguage/qore/issues/4598">issue 4598</a>)
       - fixed a bug setting the data provider name in Swagger schemas provided by files
         (<a href="https://github.com/qorelanguage/qore/issues/4587">issue 4587</a>)
+    - fixed bugs handling \c CONNECT messages to HTTP proxies for HTTPS connections to the target server
+      (<a href="https://github.com/qorelanguage/qore/issues/4601">issue 4601</a>)
+    - fixed a bug handling redirect messages with message bodies
+      (<a href="https://github.com/qorelanguage/qore/issues/4600">issue 4600</a>)
 
     @section qore_1_11_0 Qore 1.11.0
 
@@ -245,7 +447,7 @@
     Bugfix release; see below for more information
 
     @subsection qore_1_7_2_bug_fixes Bug Fixes in Qore
-    - Fixed @ref Qore::parse_datasource() "parse_datasource()" to parse datasource strings with a DB name as a path or
+    - Fixed @ref Qore::SQL::parse_datasource() "parse_datasource()" to parse datasource strings with a DB name as a path or
       with \c ':' chars in the DB or host name
       (<a href="https://github.com/qorelanguage/qore/issues/4505">issue 4505</a>)
 
@@ -386,8 +588,7 @@
 
     @subsection qore_1_4_0_new_features New Features in Qore
     - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
-      - added support for tags on data provider types (i.e.
-        @ref DataProvider::AbstractDataProviderType "AbstractDataProviderType")
+      - added support for tags on data provider types (i.e. \c DataProvider::AbstractDataProviderType)
         (<a href="https://github.com/qorelanguage/qore/issues/4442">issue 4442</a>)
       - fixed data provider factory info to provide info about the actual data provider factory instead of only
         provider info; note that the data provider factory abstract API has changed with this fix

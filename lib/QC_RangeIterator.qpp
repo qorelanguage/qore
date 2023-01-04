@@ -45,8 +45,9 @@
     @par Example: RangeIterator basic usage
     @code{.py}
 RangeIterator r(0, 2);
-foreach int i in (r)
+foreach int i in (r) {
     printf("i=%d\n", i);
+}
 # i=0
 # i=1
 # i=2
@@ -162,19 +163,20 @@ auto RangeIterator::getValue() [flags=RET_VALUE_ONLY] {
 RangeIterator r(0, 2);
 foreach int i in (r) {
     printf("i=%d\n", i);
-    if (i == 1)
+    if (i == 1) {
         break;
+    }
 }
 # i=0
 # i=1
 
 # show the reset feature; start iterating all over again
 r.reset();
-foreach int i in (r)
+foreach int i in (r) {
     printf("reused i=%d\n", i);
+}
 # reused i=0
 # reused i=1
-# reused i=2
    @endcode
 
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
@@ -190,8 +192,9 @@ RangeIterator::reset() {
 
     @par Example:
     @code{.py}
-if (i.valid())
+if (i.valid()) {
     printf("current value: %y\n", i.getValue());
+}
     @endcode
  */
 bool RangeIterator::valid() [flags=CONSTANT] {
@@ -204,28 +207,28 @@ bool RangeIterator::valid() [flags=CONSTANT] {
 
     @par Example
     @code{.py}
-foreach int i in(xrange(5))
+foreach int i in (xrange(5)) {
     printf("i=%d\n", i);
+}
 # resulting in:
 # i=0
 # i=1
 # i=2
 # i=3
 # i=4
-# i=5
 	@endcode
- */
-//@{
+*/
+///@{
 //! Returns a RangeIterator containing an arithmetic progression of integers.
 /**
     @par Example:
     @code{.py}
-xrange(2, 5); # 2, 3, 4, 5
-xrange(2, -2); # 2, 1, 0, -1, -2
+xrange(2, 5); # 2, 3, 4
+xrange(2, -2); # 2, 1, 0, -1
 xrange(1, 10, 5); # 1, 6
-xrange(0, 10, 5); # 0, 5, 10
-xrange(-10, 10, 5); # -10, -5, 0, 5, 10
-xrange(10, -10, 5); # 10, 5, 0, -5, -10
+xrange(0, 10, 5); # 0, 5
+xrange(-10, 10, 5); # -10, -5, 0, 5
+xrange(10, -10, 5); # 10, 5, 0, -5
     @endcode
 
     @param start the initial value
@@ -260,8 +263,8 @@ RangeIterator xrange(int start, int stop, int step = 1, auto val) [flags=RET_VAL
 
     @par Example:
     @code{.py}
-xrange(1); # 0, 1
-xrange(-3); # 0, -1, -2, -3
+xrange(1); # 0
+xrange(-3); # 0, -1, -2
     @endcode
 
     @param stop the final value
@@ -283,4 +286,4 @@ RangeIterator xrange(int stop) [flags=CONSTANT] {
 
     return new QoreObject(QC_RANGEITERATOR, 0, r.release());
 }
-//@}
+///@}

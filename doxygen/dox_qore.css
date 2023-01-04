@@ -1,0 +1,18 @@
+pre.fragment {
+    border: 1px solid #C4CFE5;
+    background-color: #000;
+    color: #9ff;
+    padding: 4px 6px;
+    margin: 4px 8px 4px 2px;
+    overflow: auto;
+    word-wrap: break-word;
+    line-height: 120%;
+    font-family: monospace, fixed;
+    font-size: 95%;
+}
+
+span.stringliteral {
+    color: #d9f
+}
+
+body {background-color:#1a1a1a;}

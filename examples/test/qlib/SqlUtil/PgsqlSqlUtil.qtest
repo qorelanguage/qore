@@ -112,6 +112,8 @@ class Bug2963Schema inherits SqlUtilTestSchema {
 
 class PgsqlTest inherits SqlTestBase {
     public {
+        hash<SchemaAlignmentInfo> schema_info;
+
         const CustomColumns = {
             "varchar": (
                 "value": "hello",
@@ -218,11 +220,12 @@ class PgsqlTest inherits SqlTestBase {
                 ds.exec("drop sequence pgsql_test_seq");
             } catch () {}
 
-            schema.align(False, m_options.verbose, m_options.verbose > 0);
+            schema_info = schema.alignWithInfo(False, m_options.verbose, m_options.verbose > 0);
 
             # get table object
             table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
 
+            addTestCase("create schema", \createSchema());
             addTestCase("sequence operators", \testSequenceOperators());
             addTestCase("analytic/window functions", \testAnalyticFunctions());
             addTestCase("default value", \testDefaultValue());
@@ -230,6 +233,12 @@ class PgsqlTest inherits SqlTestBase {
         }
 
         set_return_value(main());
+    }
+
+    createSchema() {
+        on_error printf("alignment: %y\n", map {AbstractDatabase::ActionMap{$1.key}: $1.value},
+            schema_info.change_map.pairIterator());
+        assertTrue(schema_info.created);
     }
 
     testSequenceOperators() {

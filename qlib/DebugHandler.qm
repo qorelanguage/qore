@@ -151,7 +151,6 @@ public namespace DebugHandler {
         }
 
         log2(int verbosity, string fmt, *list args) {
-
             if (logger) {
                 logger.log2(verbosity, fmt, args);
             }
@@ -176,7 +175,7 @@ public namespace DebugHandler {
 
         #! sends data to the given connection
         /**
-            Encode data and send using @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()" a message 
+            Encode data and send using @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()" a message
             to single connection given its connection ID. Intercept method when implementing a 3rd party protocol.
         */
         public sendData(hash cx, auto data) {

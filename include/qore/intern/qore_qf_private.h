@@ -50,7 +50,7 @@
 
 #if defined HAVE_POLL
 #include <poll.h>
-#elif defined HAVE_SELECT
+#elif defined HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 #define HAVE_SELECT 1
@@ -245,7 +245,9 @@ struct qore_qf_private {
         // select is inherently broken since it can only handle descriptors < FD_SETSIZE, which is 1024 on Linux for example
         if (fd >= FD_SETSIZE) {
             if (xsink)
-                xsink->raiseException("FILE-SELECT-ERROR", "fd is %d in call to File::%s() which is >= %d; contact the Qore developers to implement an alternative to select() on this platform", fd, mname, FD_SETSIZE);
+                xsink->raiseException("FILE-SELECT-ERROR", "fd is %d in call to File::%s() which is >= %d; contact "
+                    "the Qore developers to implement an alternative to select() on this platform", fd, mname,
+                    FD_SETSIZE);
             return -1;
         }
         struct timeval tv;
@@ -328,7 +330,8 @@ struct qore_qf_private {
         if (rc > 0)
             do_write_event_unlocked(rc, rc, len);
         else if (xsink && rc < 0)
-            xsink->raiseErrnoException("FILE-WRITE-ERROR", errno, "failed writing " QSD " byte%s to File", len, len == 1 ? "" : "s");
+            xsink->raiseErrnoException("FILE-WRITE-ERROR", errno, "failed writing " QSD " byte%s to File", len,
+                len == 1 ? "" : "s");
 
         return rc;
     }
@@ -344,22 +347,28 @@ struct qore_qf_private {
     // private function, unlocked
     DLLLOCAL int readUnicode(int* n_len = 0) const;
 
-    DLLLOCAL qore_offset_t readData(void* dest, size_t limit, int timeout_ms, const char* mname, ExceptionSink* xsink) {
+    DLLLOCAL qore_offset_t readData(void* dest, size_t limit, int timeout_ms, const char* mname,
+            ExceptionSink* xsink) {
         // wait for data
         if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
             if (!*xsink)
-                xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in ReadOnlyFile::%s()", timeout_ms, mname);
+                xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in "
+                    "ReadOnlyFile::%s()", timeout_ms, mname);
             return -1;
         }
 
         qore_offset_t rc;
         while (true) {
             rc = ::read(fd, dest, limit);
+            //printd(5, "qore_qf_private::readData(%p, %ld, %d, '%s') fd: %d rc: %d\n", dest, limit, timeout_ms,
+            //    mname, fd, rc);
             // try again if we were interrupted by a signal
-            if (rc >= 0)
+            if (rc >= 0) {
                 break;
+            }
             if (errno != EINTR) {
-                xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file in ReadOnlyFile::%s()", mname);
+                xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file in ReadOnlyFile::%s()",
+                    mname);
                 return -1;
             }
         }
@@ -368,7 +377,8 @@ struct qore_qf_private {
     }
 
     DLLLOCAL QoreStringNode* readString(qore_offset_t size, int timeout_ms, const char* mname, ExceptionSink* xsink) {
-        return q_read_string(xsink, size, charset, std::bind(&qore_qf_private::readData, this, _1, _2, timeout_ms, mname, _3));
+        return q_read_string(xsink, size, charset, std::bind(&qore_qf_private::readData, this, _1, _2, timeout_ms,
+            mname, _3));
     }
 
     DLLLOCAL char* readBlock(qore_offset_t &size, int timeout_ms, const char* mname, ExceptionSink* xsink) {
@@ -381,7 +391,8 @@ struct qore_qf_private {
             // wait for data
             if (timeout_ms >= 0 && !isDataAvailableIntern(timeout_ms, mname, xsink)) {
                 if (!*xsink)
-                    xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in ReadOnlyFile::%s()", timeout_ms, mname);
+                    xsink->raiseException("FILE-READ-TIMEOUT", "timeout limit exceeded (%d ms) reading file block in "
+                        "ReadOnlyFile::%s()", timeout_ms, mname);
                 br = 0;
                 break;
             }
@@ -393,7 +404,8 @@ struct qore_qf_private {
                 if (rc >= 0)
                     break;
                 if (errno != EINTR) {
-                    xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in File::%s()", br, mname);
+                    xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes "
+                        "read in File::%s()", br, mname);
                     break;
                 }
             }

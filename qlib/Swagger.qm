@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.0.9";
+    version = "2.1";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,19 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_1 Swagger v2.1
+    - parse and report path arguments when processing REST requests on the server side
+      (<a href="https://github.com/qorelanguage/qore/issues/4661">issue 4661</a>)
+
+    @subsection swagger_2_0_10 Swagger v2.0.10
+    - REST handlers must throw a \c DESERIALIZATION-ERROR when deserialization errors occur, so that a
+      <tt>400 Bad Request</tt> response is returned
+      (<a href="https://github.com/qorelanguage/qore/issues/4647">issue 4647</a>)
+    - do not reserialize already deserialized data when processing responses
+      (<a href="https://github.com/qorelanguage/qore/issues/4640">issue 4640</a>)
+    - allow for the client's time zone locale to be set for data serialization / deserialization
+      (<a href="https://github.com/qorelanguage/qore/issues/4639">issue 4639</a>)
 
     @subsection swagger_2_0_9 Swagger v2.0.9
     - fixed a bug where empty definitions could be ignored
@@ -876,6 +889,16 @@ public class SwaggerLoader {
         @throws XML-MODULE-MISSING trying to parse an XML %Swagger specification with the xml module unavailable
     */
     static SwaggerSchema fromUrl(string url, *bool json) {
+        if (!exists json) {
+            if (url =~ /\.yaml$/i) {
+                json = False;
+            } else if (url =~ /\.json$/i) {
+                json = True;
+            }
+        }
+        on_error {
+            rethrow $1.err, sprintf("%s (from URL %y)", $1.desc, get_safe_url(url));
+        }
         return SwaggerLoader::fromString(FileLocationHandler::getTextFileFromLocation(url), json);
     }
 
@@ -910,7 +933,7 @@ public class SwaggerLoader {
 
     #! parses the source encoding from the given string
     static hash<auto> parseSchemaSource(string str, string ser) {
-        hash<auto> rv;
+        auto rv;
         switch (ser) {
             case "json": {
 %ifdef NoJson
@@ -936,6 +959,10 @@ public class SwaggerLoader {
                 break;
 %endif
             }
+        }
+        if (rv.typeCode() != NT_HASH) {
+            throw "SWAGGER-SCHEMA-ERROR", sprintf("data of type %y provided for OpenAPI / Swagger schema; expecting "
+                "\"string\"", rv.fullType());
         }
         return rv;
     }
@@ -1415,13 +1442,18 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                     MultiPartFormDataMessage::parseMessage(headers."content-type", http_body.toString());
                 body = map {$1.key: $1.value.body}, h.pairIterator();
             } else {
-                *code ds = MimeDataTypes.(headers."content-type").deserialize;
+                *code ds = MimeDataTypes{headers."content-type"}.deserialize;
                 if (!ds) {
                     body = http_body;
                 } else {
-                    auto any_body = ds(http_body);
-                    if (exists any_body)
-                        body = any_body;
+                    try {
+                        auto any_body = ds(http_body);
+                        if (exists any_body) {
+                            body = any_body;
+                        }
+                    } catch (hash<ExceptionInfo> ex) {
+                        rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc);
+                    }
                 }
             }
         }
@@ -1442,6 +1474,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         return <RestRequestServerInfo>{
             "path": h.method,
             "query": h.params,
+            "path_args": h.path_params,
             "body": body,
         };
     }
@@ -1510,12 +1543,16 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 *code ds = MimeDataTypes{content}.deserialize;
                 # if the content-type is unknown, then assume it is a type that cannot be deserialized
                 # the validity of the type is checked below in any case
-                rv.body = ds ? ds(response_body) : response_body;
+                try {
+                    rv.body = ds ? ds(response_body) : response_body;
+                } catch (hash<ExceptionInfo> ex) {
+                    rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc);
+                }
             }
         }
 
         hash<string, bool> mime_types;
-        op.validateResponse(method, path, pio, code, \rv.body, \mime_types);
+        op.validateResponse(method, path, pio, code, \rv.body, \mime_types, False);
 
         if (content && !mime_types{content})
             throw "DESERIALIZATION-ERROR", sprintf("%s %s: content type %y is not accepted by this operation; "
@@ -1708,6 +1745,24 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         return create_object("SwaggerDataProvider", self, rest);
     }
 
+    #! Allows the time zone locale to be set for serialization / deserialization
+    /** @param tz the time zone locale to set
+
+        @since Swagger 2.0.10
+    */
+    private setTimeZoneLocaleImpl(*TimeZone tz) {
+        set_thread_tz(tz);
+    }
+
+    #! Returns the time zone locale used for serialization / deserialization
+    /** @return the time zone locale to set
+
+        @since Swagger 2.0.10
+    */
+    private *TimeZone getTimeZoneLocaleImpl() {
+        return get_thread_tz();
+    }
+
     #! processes a client-side REST request and returns a hash that can be used to make the outgoing client-side HTTP request
     /** @param method the HTTP method (case-insensitive)
         @param path the URI path with any query arguments
@@ -1822,12 +1877,14 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @param code the HTTP response code
         @param response_body the response body data (if any)
         @param headers HTTP headers to include in the response
-        @param content_types the desired MIME types for serialization in order of preference; if none are usable then an exception is thrown; if this argument is not present, then json is preferred over yaml
+        @param content_types the desired MIME types for serialization in order of preference; if none are usable then
+        an exception is thrown; if this argument is not present, then json is preferred over yaml
         @param compact_serialization allows the \a compact_serialization property to be overridden
 
         @return an HttpResponseInfo hash for the response
 
-        @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported type
+        @throw ACCEPT-ERROR the response body could not be serialized because the client does not accept a supported
+        type
         @throw SERIALIZATION-ERROR the response body could not be serialized due to an error
 
         @note <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html>RFC 2616 section 14</a>: If an Accept
@@ -1893,18 +1950,20 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 # check for multipart-form-data case
                 if (content == MimeTypeMultipartFormData) {
                     if (response_body.typeCode() != NT_HASH)
-                        throw "SERIALIZATION-ERROR", sprintf("response to %s %s: cannot serialize type %y to MIME type %y; expecing \"hash\"", method.upr(), path, response_body.type(), content);
-                    hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>((
-                        "name": $1.key,
-                        "filename": $1.key,
-                        "hdr": ("Content-Type": MimeTypeText),
-                        "body": $1.value,
-                    ))}, response_body.pairIterator());
+                        throw "SERIALIZATION-ERROR", sprintf("response to %s %s: cannot serialize type %y to MIME "
+                            "type %y; expecting \"hash\"", method.upr(), path, response_body.type(), content);
+                    hash<string, hash<FormDataMessageInfo>> parts = cast<hash<string, hash<FormDataMessageInfo>>>(map {
+                        $1.key: cast<hash<FormDataMessageInfo>>((
+                            "name": $1.key,
+                            "filename": $1.key,
+                            "hdr": ("Content-Type": MimeTypeText),
+                            "body": $1.value,
+                        ))}, response_body.pairIterator());
 
                     hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
                     return rv += (
                         "body": mh.body,
-                        "hdr": rv.hdr + ("Content-Type": mh.hdr."Content-Type"),
+                        "hdr": rv.hdr + {"Content-Type": mh.hdr."Content-Type"},
                     );
                 }
 
@@ -1914,13 +1973,15 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                     if (mt && mt.size()) {
                         string mimeType = mt[0];
                         return rv += (
-                            "body": compact_serialization ? MimeDataTypes{mimeType}.serialize(response_body) : MimeDataTypes{mimeType}.serialize_verbose(response_body),
+                            "body": compact_serialization ? MimeDataTypes{mimeType}.serialize(response_body) :
+                                MimeDataTypes{mimeType}.serialize_verbose(response_body),
                             "hdr": rv.hdr + ("Content-Type": mimeType),
                         );
                     }
                 } else if (MimeDataTypes{content}) {
                     return rv += (
-                        "body": compact_serialization ? MimeDataTypes{content}.serialize(response_body) : MimeDataTypes{content}.serialize_verbose(response_body),
+                        "body": compact_serialization ? MimeDataTypes{content}.serialize(response_body) :
+                            MimeDataTypes{content}.serialize_verbose(response_body),
                         "hdr": rv.hdr + ("Content-Type": content),
                     );
                 }
@@ -1933,9 +1994,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
 
             # none of the content types was ok
             if (content_types == MimeContentTypes)
-                throw "ACCEPT-ERROR", sprintf("response to %s %s: message body cannot be serialized; available MIME type(s) for this call: %y; available serialization modules: %y", method.upr(), path, mime_types, SerializationModules), ("types": mime_types);
+                throw "ACCEPT-ERROR", sprintf("response to %s %s: message body cannot be serialized; available MIME "
+                    "type(s) for this call: %y; available serialization modules: %y", method.upr(), path, mime_types,
+                    SerializationModules), ("types": mime_types);
             else
-                throw "ACCEPT-ERROR", sprintf("response to %s %s: message body cannot be serialized; requested MIME type(s): %y; available MIME types for this call: %y; available serialization modules: %y", method.upr(), path, content_types, mime_types, SerializationModules), ("types": mime_types);
+                throw "ACCEPT-ERROR", sprintf("response to %s %s: message body cannot be serialized; requested MIME "
+                    "type(s): %y; available MIME types for this call: %y; available serialization modules: %y",
+                    method.upr(), path, content_types, mime_types, SerializationModules), ("types": mime_types);
         }
 
         return rv;
@@ -2748,6 +2813,37 @@ public class OperationObject inherits ObjectBase {
             }
         }
 
+        # check path parameters
+        foreach string param in (path =~ x/{([^}]+)}/g) {
+            *OtherParameter po = parameters{param} ?? pio.parameters{param};
+            if (!po) {
+                error("SCHEMA-VALIDATION-ERROR", "No path parameter named %y defined for this path and method; "
+                    "known parameters: %y", param, keys (parameters + pio.parameters));
+            }
+
+            string pattern = replace(path, "{" + param + "}", "(.*)");
+            pattern =~ s/^\//\/?/;
+            auto val = regex_extract(h.method, pattern)[0];
+
+            # convert string to actual type
+            switch (po.type) {
+                case "integer":
+                    val = val.toInt();
+                    break;
+
+                case "number":
+                    val = val.toNumber();
+                    break;
+
+                case "boolean":
+                    val = parse_boolean(val);
+                    break;
+            }
+
+            po.check(False, True, path, method, param, \val);
+            h.path_params{param} = val;
+        }
+
         # check for missing required parameters
         checkMissingParams(h, headers, body, parameters);
         checkMissingParams(h, headers, body, pio.parameters, parameters);
@@ -2791,10 +2887,10 @@ public class OperationObject inherits ObjectBase {
 
     #! validates a response against the response definition, if any
     validateResponse(string method, string path, PathItemObject pio, int http_code, reference<auto> response_body,
-            reference<hash<string, bool>> mime_types) {
+            reference<hash<string, bool>> mime_types, bool deserialize = True) {
         *ResponseObject res = getResponse(http_code);
         if (res.schema) {
-            res.schema.check(True, False, path, method, "response body", \response_body);
+            res.schema.check(deserialize, False, path, method, "response body", \response_body);
         } else if (exists res && exists response_body) {
             error("SCHEMA-VALIDATION-ERROR", "Response code %y to %s %y should not have any body", http_code, method,
                 path);
@@ -3810,7 +3906,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string hash_str) : ObjectBase(oh), SchemaBase("Schema", oh) {
+    private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string hash_str)
+            : ObjectBase(oh), SchemaBase("Schema", oh) {
         self.name = name;
         # add static map reference
         swagger.cacheSchemaObject(name, hash_str ?? sprintf("%y", oh).toSHA1(), self);
@@ -3818,9 +3915,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
         if (optional_field(objType, oh, "type", NT_STRING, \type)) {
             if (!ReferenceTypes{type})
-                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; expected one of: %y", name, type, keys ReferenceTypes);
-            if (type == "array")
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; "
+                    "expected one of: %y", name, type, keys ReferenceTypes);
+            if (type == "array") {
                 items = newSchemaObject("items", oh.items, swagger);
+            }
 
             if (oh.hasKey("default")) {
                 defaultVal = oh."default";

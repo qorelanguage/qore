@@ -39,17 +39,30 @@ public namespace DataProvider {
 public class SoftListDataType inherits ListDataType {
     #! creates the object
     constructor(AbstractDataProviderType element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
-            : ListDataType(element_type, or_nothing, options, tags) {
+            : ListDataType(sprintf("%ssoftlist<%s>", or_nothing ? "*" : "", element_type.getName()),
+            SoftListDataType::getQoreType(element_type.getValueType(), or_nothing), element_type,
+            or_nothing, options, tags) {
     }
 
     #! creates the object
     constructor(Type element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
-            : ListDataType(element_type, or_nothing, options, tags) {
+            : ListDataType(sprintf("%ssoftlist<%s>", or_nothing ? "*" : "", element_type.getName()),
+            SoftListDataType::getQoreType(element_type, or_nothing), AbstractDataProviderType::get(element_type),
+            or_nothing, options, tags) {
     }
 
-    #! returns the base type for the type, if any
-    *Type getValueType() {
-        return accept_type_hash{Type::NothingType} ? SoftAutoListOrNothingType : SoftAutoListType;
+    #! creates the object
+    constructor(string name, AbstractDataProviderType element_type, bool or_nothing = False, *hash<auto> options,
+            *hash<auto> tags)
+            : ListDataType(name, SoftListDataType::getQoreType(element_type.getValueType(), or_nothing),
+            element_type, or_nothing, options, tags) {
+    }
+
+    #! creates the object
+    constructor(string name, Type element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
+            : ListDataType(name,
+            SoftListDataType::getQoreType(element_type, or_nothing), AbstractDataProviderType::get(element_type),
+            or_nothing, options, tags) {
     }
 
     #! returns the subtype (for lists or hashes) if there is only one
@@ -81,10 +94,8 @@ public class SoftListDataType inherits ListDataType {
     */
     auto acceptsValue(auto value) {
         string typename = value.type();
-        if (!accept_type_hash{typename} && !accept_type_hash."any") {
-            throw "RUNTIME-TYPE-ERROR", sprintf("type %y does not accept values of type %y", getName(),
-                value.fullType());
-        }
+        on_error rethrow $1.err, sprintf("%s (while accepting a value of type %y for type %y (%s)", $1.desc,
+            value.fullType(), name, type.getName());
 
         if (typename == Type::List) {
             return map element_type.acceptsValue($1), value;
@@ -112,6 +123,11 @@ public class SoftListDataType inherits ListDataType {
         if (accept_type_hash."any") {
             accept_type_hash = {"any": True};
         }
+    }
+
+    #! Returns the underlying %Qore type for this type
+    private Type getQoreType(Type element_type, bool or_nothing) {
+        return new Type(sprintf("%ssoftlist<%s>", or_nothing ? "*" : "", element_type.getName()));
     }
 }
 }

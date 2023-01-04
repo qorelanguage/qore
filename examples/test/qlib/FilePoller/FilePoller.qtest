@@ -77,7 +77,7 @@ public class FilePollerTest inherits QUnit::Test {
             }
             logger = new Logger("test", level);
         }
-        logger.addAppender(new TestAppender());
+        logger.addAppender(new StdoutAppender());
 
         TmpDir dir("FilePollerDataProvider-");
 
@@ -134,20 +134,6 @@ class MyObserver inherits Observer {
             if ((now_us() - start) > 5s) {
                 throw "ERROR", "no files in timeout";
             }
-        }
-    }
-}
-
-class TestAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
-        open();
-    }
-
-    processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_LOG:
-                print(params);
-                break;
         }
     }
 }

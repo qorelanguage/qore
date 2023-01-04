@@ -173,7 +173,7 @@ public hashdecl DataTypeInfo {
 /** @defgroup data_type_tags Data Type Tag Constants
     These constants provide predefined data type tags
 */
-#@{
+#/@{
 #! Tag indicating that a string value can be taken from a file
 public const DTT_FromFile = "from_file";
 
@@ -182,10 +182,10 @@ public const DTT_FromLocation = "from_location";
 
 #! Tag indicates that the value is only applicable in client contexts
 public const DTT_ClientOnly = "client_only";
-#@}
+#/@}
 
 #! describes a data type
-public class AbstractDataProviderType inherits Serializable {
+public class AbstractDataProviderType inherits Qore::Serializable {
     public {
         static Type nothingType = Reflection::NothingType;
         static Type anyType = Reflection::AutoType;
@@ -210,6 +210,7 @@ public class AbstractDataProviderType inherits Serializable {
 
     #! creates the type and sets options
     /** @param options a hash of options, if any options match supported options for this type, they are set
+        @param tags any user-defined tags to set on the type
 
         @throw TYPE-OPTION-ERROR option value has an invalid type
     */

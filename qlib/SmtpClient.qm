@@ -441,6 +441,24 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
         }
     }
 
+    #! Returns info about the connection
+    /** @return info about the connection with the following keys:
+        - \c target: the connection target (host:port)
+        - \c tls: the tls flag
+        - \c ssl: the ssl flag
+        - \c user: any username for the connection
+        - \c pass: any password for the connection
+    */
+    hash<auto> getInfo() {
+        return {
+            "target": connect,
+            "tls": tls,
+            "ssl": ssl,
+            "user": user,
+            "pass": pass,
+        };
+    }
+
     #! Set info log closure
     setInfoLogClosure(*code log) {
         self.log_info = log;
@@ -985,6 +1003,267 @@ smtp.setEventQueue();
     #! @endcond
 }
 
+#! Class for SMTP non-blocking / polling pings
+public class SmtpPingPollOperation inherits Qore::AbstractPollOperation {
+    public {
+        #! Connect state
+        const SPS_CONNECT = "connect";
+
+        #! Read hello state
+        const SPS_READ_HELLO = "read-hello";
+
+        #! Send hello state
+        const SPS_SEND_HELLO = "send-hello";
+
+        #! Read hello reply state
+        const SPS_READ_HELLO_REPLY = "read-hello-reply";
+
+        #! Send STARTTLS state
+        const SPS_STARTTLS = "starttls";
+
+        #! Read STARTTLS reply
+        const SPS_READ_STARTTLS_REPLY = "read-starttls-reply";
+
+        #! Upgrade socket connection to TLS
+        const SPS_UPGRADE_TO_TLS = "upgrade-tls";
+
+        #! Login state
+        const SPS_LOGIN = "login";
+
+        #! Read login reply
+        const SPS_READ_LOGIN_REPLY = "read-login-reply";
+
+        #! Complete state
+        const SPS_COMPLETE = "complete";
+    }
+
+    private {
+        #! Info about the SMTP client
+        hash<auto> info;
+
+        #! The Socket for communication with the server
+        Socket sock();
+
+        #! The current internal poll operation
+        AbstractPollOperation poller;
+
+        #! Lock for atomicity
+        Mutex m();
+
+        #! Current state
+        string state;
+
+        #! Goal reached flag
+        bool goal_reached = False;
+
+        #! ESMTP flag
+        bool esmtp = False;
+
+        #! Server's HELO / EHLO reply code
+        int hello_reply_code;
+
+        #! Server's HELO / EHLO reply
+        string hello_reply;
+
+        #! Server's STARTTLS code
+        int starttls_code;
+
+        #! Server's STARTTLS reply
+        string starttls_reply;
+
+        #! Server's login code
+        int login_code;
+
+        #! Server's login reply
+        string login_reply;
+    }
+
+    #! Creates the object based on the SmtpClient
+    constructor(SmtpClient smtp) {
+        info = smtp.getInfo();
+
+        state = SPS_CONNECT;
+        poller = info.ssl
+            ? sock.startPollConnectSsl(info.target)
+            : sock.startPollConnect(info.target);
+    }
+
+    #! Returns the goal
+    /** @return the goal set in the constructor
+    */
+    string getGoal() {
+        return "ping";
+    }
+
+    #! Returns the current state
+    /** @return the current state
+    */
+    string getState() {
+        AutoLock al(m);
+        if (!poller) {
+            return goal_reached ? "complete" : "error";
+        }
+        return state;
+    }
+
+    #! Returns @ref True when the goal as been reached
+    /** @return @ref True when the goal as been reached
+    */
+    bool goalReached() {
+        return state == SPS_COMPLETE;
+    }
+
+    #! Returns a hash to be used for I/O polling or @ref nothing in case the poll operation is complete
+    *hash<SocketPollInfo> continuePoll() {
+        AutoLock al(m);
+        if (!poller) {
+            return;
+        }
+        while (True) {
+            *hash<SocketPollInfo> pinfo = poller.continuePoll();
+            if (pinfo) {
+                return pinfo;
+            }
+
+            if (state == SPS_CONNECT) {
+                state = SPS_READ_HELLO;
+                poller = sock.startPollRecvUntilBytesString("\n");
+                continue;
+            }
+
+            if (state == SPS_READ_HELLO) {
+                state = SPS_SEND_HELLO;
+                string rep = trim(poller.getOutput());
+                esmtp = (rep =~ /ESMTP/);
+                poller = sock.startPollSend(sprintf("%s %s\r\n", esmtp ? "EHLO" : "HELO", gethostname()));
+                continue;
+            }
+
+            if (state == SPS_SEND_HELLO) {
+                state = SPS_READ_HELLO_REPLY;
+                poller = sock.startPollRecvUntilBytesString("\n");
+                continue;
+            }
+
+            if (state == SPS_READ_HELLO_REPLY) {
+                if (!getReply(\hello_reply_code, \hello_reply)) {
+                    # continue reading
+                    continue;
+                }
+
+                if (!info.tls && hello_reply =~ /STARTTLS/) {
+                    info.tls = True;
+                }
+
+                if (info.tls) {
+                    state = SPS_STARTTLS;
+                    poller = sock.startPollSend("STARTTLS\r\n");
+                    continue;
+                }
+
+                if (info.user && info.pass) {
+                    startLogin();
+                    continue;
+                }
+
+                delete poller;
+                state = SPS_COMPLETE;
+                break;
+            }
+
+            if (state == SPS_STARTTLS) {
+                state = SPS_READ_STARTTLS_REPLY;
+                poller = sock.startPollRecvUntilBytesString("\n");
+                continue;
+            }
+
+            if (state == SPS_READ_STARTTLS_REPLY) {
+                if (!getReply(\starttls_code, \starttls_reply)) {
+                    # continue reading
+                    continue;
+                }
+
+                state = SPS_UPGRADE_TO_TLS;
+                poller = sock.startPollUpgradeClientToSSL();
+                continue;
+            }
+
+            if (state == SPS_UPGRADE_TO_TLS) {
+                if (info.user && info.pass) {
+                    startLogin();
+                    continue;
+                }
+
+                delete poller;
+                state = SPS_COMPLETE;
+                break;
+            }
+
+            if (state == SPS_LOGIN) {
+                state = SPS_READ_LOGIN_REPLY;
+                poller = sock.startPollRecvUntilBytesString("\n");
+                continue;
+            }
+
+            if (state == SPS_READ_LOGIN_REPLY) {
+                if (!getReply(\login_code, \login_reply)) {
+                    # continue reading
+                    continue;
+                }
+
+                if (login_code != 235) {
+                    throw "SMTP-POLL-ERROR", sprintf("login failed: %s %s", login_code, login_reply);
+                }
+
+                delete poller;
+                state = SPS_COMPLETE;
+                break;
+            }
+        }
+    }
+
+    #! Starts the polling login state
+    private startLogin() {
+        state = SPS_LOGIN;
+        poller = sock.startPollSend(sprintf("AUTH PLAIN %s\r\n", make_base64_string(binary(info.user) + <00> +
+            binary(info.user) + <00> + binary(info.pass))));
+    }
+
+    #! Private reads a reply from the SMTP server
+    /** @return False to continue reading, True if done
+    */
+    private bool getReply(reference<int> rcode, reference<string> rmsg) {
+        string line = poller.getOutput();
+        if (line !~ /^[0-9]{3}[- ]/) {
+            throw "SMTP-POLL-ERROR", sprintf("server provided an invalid reply: %s", trim line);
+        }
+        int tcode = int(line);
+        if (!rcode) {
+            rcode = tcode;
+        } else if (tcode != rcode) {
+            throw "SMTP-POLL-ERROR", sprintf("server provided an inconsistent reply; expecting code %d; got "
+                "code %d", rcode, tcode);
+        }
+
+        bool cont = line[3] == "-";
+        if (rmsg) {
+            rmsg += "\n";
+        }
+        rmsg += extract line, 4;
+
+        # continue reading
+        if (cont) {
+            poller = sock.startPollRecvUntilBytesString("\n");
+            return False;
+        }
+
+        if (rcode >= 500) {
+            throw "SMTP-POLL-ERROR", sprintf("server replied with error code %d: %s", rcode, rmsg);
+        }
+        return True;
+    }
+}
+
 #! class for SMTP connections; returns an object of class @ref SmtpClient for sending emails
 /** supports the following runtime options in getImpl() for connection logging:
     - \c "log": a closure accepting a single string for logging
@@ -1050,6 +1329,27 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
         return True;
     }
 
+    #! returns @ref True, since this connection type supports the %Qore @ref Qore::Socket "Socket-based" polling API
+    /** @return @ref True
+
+        @since ConnectionProvider 1.7
+    */
+    bool supportsPollingApi() {
+        return True;
+    }
+
+    #! Called to start a non-blocking polling ping operation on the remote SMTP server
+    /**
+        @return a socket poll operation object that will allow the connection goal to be reached with polling
+
+        @see supportsPollingApi()
+
+        @since SmtpClient 2.0
+    */
+    Qore::AbstractPollOperation startPollConnect() {
+        return new SmtpPingPollOperation(getImpl(False));
+    }
+
     #! Sets child data provider capabilities
     private setChildCapabilities() {
         children_can_support_apis = True;
@@ -1065,8 +1365,9 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
     */
     private SmtpClient getImpl(bool connect = True, *hash<auto> rtopts) {
         SmtpClient sc(url, rtopts.log, rtopts.dbglog);
-        if (connect)
+        if (connect) {
             sc.connect();
+        }
         return sc;
     }
 

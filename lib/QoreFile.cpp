@@ -1,31 +1,31 @@
 /*
-  QoreFile.cpp
+    QoreFile.cpp
 
-  Qore Programming Language
+    Qore Programming Language
 
-  Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -643,183 +643,183 @@ int QoreFile::readu2(unsigned short *val, ExceptionSink *xsink) {
 }
 
 int QoreFile::readu4(unsigned int *val, ExceptionSink *xsink) {
-   AutoLocker al(priv->m);
+    AutoLocker al(priv->m);
 
-   if (priv->check_read_open(xsink))
-      return -1;
+    if (priv->check_read_open(xsink))
+        return -1;
 
-   int rc = priv->read(val, 4);
-   if (rc <= 0)
-      return -1;
+    int rc = priv->read(val, 4);
+    if (rc <= 0)
+        return -1;
 
-   *val = ntohl(*val);
-   return 0;
+    *val = ntohl(*val);
+    return 0;
 }
 
 int QoreFile::readu2LSB(unsigned short *val, ExceptionSink *xsink) {
-   AutoLocker al(priv->m);
+    AutoLocker al(priv->m);
 
-   if (priv->check_read_open(xsink))
-      return -1;
+    if (priv->check_read_open(xsink))
+        return -1;
 
-   int rc = priv->read(val, 2);
-   if (rc <= 0)
-      return -1;
+    int rc = priv->read(val, 2);
+    if (rc <= 0)
+        return -1;
 
-   *val = LSBi2(*val);
-   return 0;
+    *val = LSBi2(*val);
+    return 0;
 }
 
 int QoreFile::readu4LSB(unsigned int *val, ExceptionSink *xsink) {
-   AutoLocker al(priv->m);
+    AutoLocker al(priv->m);
 
-   if (priv->check_read_open(xsink))
-      return -1;
+    if (priv->check_read_open(xsink))
+        return -1;
 
-   int rc = priv->read(val, 4);
-   if (rc <= 0)
-      return -1;
+    int rc = priv->read(val, 4);
+    if (rc <= 0)
+        return -1;
 
-   *val = LSBi4(*val);
-   return 0;
+    *val = LSBi4(*val);
+    return 0;
 }
 
 int QoreFile::readi1(char *val, ExceptionSink *xsink) {
-   AutoLocker al(priv->m);
+    AutoLocker al(priv->m);
 
-   if (priv->check_read_open(xsink))
-      return -1;
+    if (priv->check_read_open(xsink))
+        return -1;
 
-   int rc = priv->read(val, 1);
-   if (rc <= 0)
-      return -1;
-   return 0;
+    int rc = priv->read(val, 1);
+    if (rc <= 0)
+        return -1;
+    return 0;
 }
 
 int QoreFile::readi2(short *val, ExceptionSink *xsink) {
-   AutoLocker al(priv->m);
+    AutoLocker al(priv->m);
 
-   if (priv->check_read_open(xsink))
-      return -1;
+    if (priv->check_read_open(xsink))
+        return -1;
 
-   int rc = priv->read(val, 2);
-   if (rc <= 0)
-      return -1;
+    int rc = priv->read(val, 2);
+    if (rc <= 0)
+        return -1;
 
-   *val = ntohs(*val);
-   return 0;
+    *val = ntohs(*val);
+    return 0;
 }
 
-int QoreFile::readi4(int *val, ExceptionSink *xsink)
-{
-   AutoLocker al(priv->m);
+int QoreFile::readi4(int *val, ExceptionSink *xsink) {
+    AutoLocker al(priv->m);
 
-   if (priv->check_read_open(xsink))
-      return -1;
+    if (priv->check_read_open(xsink))
+        return -1;
 
-   int rc = priv->read(val, 4);
-   if (rc <= 0)
-      return -1;
+    int rc = priv->read(val, 4);
+    if (rc <= 0)
+        return -1;
 
-   *val = ntohl(*val);
-   return 0;
+    *val = ntohl(*val);
+    return 0;
 }
 
-int QoreFile::readi8(int64 *val, ExceptionSink *xsink)
-{
-   AutoLocker al(priv->m);
+int QoreFile::readi8(int64 *val, ExceptionSink *xsink) {
+    AutoLocker al(priv->m);
 
-   if (priv->check_read_open(xsink))
-      return -1;
+    if (priv->check_read_open(xsink))
+        return -1;
 
-   int rc = priv->read(val, 8);
-   if (rc <= 0)
-      return -1;
+    int rc = priv->read(val, 8);
+    if (rc <= 0)
+        return -1;
 
-   *val = MSBi8(*val);
-   return 0;
+    *val = MSBi8(*val);
+    return 0;
 }
 
-int QoreFile::readi2LSB(short *val, ExceptionSink *xsink)
-{
-   AutoLocker al(priv->m);
+int QoreFile::readi2LSB(short *val, ExceptionSink *xsink) {
+    AutoLocker al(priv->m);
 
-   if (priv->check_read_open(xsink))
-      return -1;
+    if (priv->check_read_open(xsink))
+        return -1;
 
-   int rc = priv->read(val, 2);
-   if (rc <= 0)
-      return -1;
+    int rc = priv->read(val, 2);
+    if (rc <= 0)
+        return -1;
 
-   *val = LSBi2(*val);
-   return 0;
+    *val = LSBi2(*val);
+    return 0;
 }
 
-int QoreFile::readi4LSB(int *val, ExceptionSink *xsink)
-{
-   AutoLocker al(priv->m);
+int QoreFile::readi4LSB(int *val, ExceptionSink *xsink) {
+    AutoLocker al(priv->m);
 
-   if (priv->check_read_open(xsink))
-      return -1;
+    if (priv->check_read_open(xsink))
+        return -1;
 
-   int rc = priv->read(val, 4);
-   if (rc <= 0)
-      return -1;
+    int rc = priv->read(val, 4);
+    if (rc <= 0)
+        return -1;
 
-   *val = LSBi4(*val);
-   return 0;
+    *val = LSBi4(*val);
+    return 0;
 }
 
 int QoreFile::readi8LSB(int64 *val, ExceptionSink *xsink) {
-   AutoLocker al(priv->m);
+    AutoLocker al(priv->m);
 
-   if (priv->check_read_open(xsink))
-      return -1;
+    if (priv->check_read_open(xsink))
+        return -1;
 
-   int rc = priv->read(val, 8);
-   if (rc <= 0)
-      return -1;
+    int rc = priv->read(val, 8);
+    if (rc <= 0)
+        return -1;
 
-   *val = LSBi8(*val);
-   return 0;
+    *val = LSBi8(*val);
+    return 0;
 }
 
 bool QoreFile::isOpen() const {
-   return priv->isOpen();
+    return priv->isOpen();
 }
 
 bool QoreFile::isDataAvailable(int timeout_ms, ExceptionSink *xsink) const {
-   return priv->isDataAvailable(timeout_ms, xsink);
+    return priv->isDataAvailable(timeout_ms, xsink);
+}
+
+int QoreFile::getPollableDescriptor() const {
+    return priv->fd;
 }
 
 int QoreFile::getFD() const {
-   return priv->fd;
+    return priv->fd;
 }
 
 #ifdef HAVE_TERMIOS_H
 int QoreFile::setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink *xsink) const {
-   return priv->setTerminalAttributes(action, ios, xsink);
+    return priv->setTerminalAttributes(action, ios, xsink);
 }
 
 int QoreFile::getTerminalAttributes(QoreTermIOS *ios, ExceptionSink *xsink) const {
-   return priv->getTerminalAttributes(ios, xsink);
+    return priv->getTerminalAttributes(ios, xsink);
 }
 #endif
 
 void QoreFile::setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data) {
-   priv->setEventQueue(xsink, q, arg, with_data);
+    priv->setEventQueue(xsink, q, arg, with_data);
 }
 
 void QoreFile::cleanup(ExceptionSink *xsink) {
-   priv->cleanup(xsink);
+    priv->cleanup(xsink);
 }
 
 QoreListNode *QoreFile::stat(ExceptionSink *xsink) const {
-   return priv->stat(xsink);
+    return priv->stat(xsink);
 }
 
 QoreHashNode *QoreFile::hstat(ExceptionSink *xsink) const {
-   return priv->hstat(xsink);
+    return priv->hstat(xsink);
 }
 
 #ifdef Q_HAVE_STATVFS

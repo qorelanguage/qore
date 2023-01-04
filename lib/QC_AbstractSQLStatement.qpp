@@ -543,3 +543,10 @@ bool b = stmt.currentThreadInTransaction();
     @endcode
 */
 abstract bool AbstractSQLStatement::currentThreadInTransaction();
+
+//! Returns the value of the given column for the current row
+/** @param member the column name
+
+    @since %Qore 1.12.1
+*/
+abstract auto AbstractSQLStatement::memberGate(string member);

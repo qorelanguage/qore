@@ -121,7 +121,7 @@ TimeZone tz(3600);
     @endcode
  */
 TimeZone::constructor(softint seconds_east) {
-    const AbstractQoreZoneInfo *zone = QTZM.findCreateOffsetZone(seconds_east);
+    const AbstractQoreZoneInfo* zone = QTZM.findCreateOffsetZone(seconds_east);
     self->setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
 }
 

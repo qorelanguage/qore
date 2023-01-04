@@ -42,7 +42,7 @@
 
     @since %Qore 0.8.13
 */
-//@{
+///@{
 //! Detach program from debugging, it is not normally used from script
 const DebugDetach = DBG_RS_DETACH;
 
@@ -59,21 +59,21 @@ const DebugStepOver = DBG_RS_STEP_OVER;
 const DebugUntilReturn = DBG_RS_UNTIL_RETURN;
 
 //  const DebugStopped = DBG_RS_STOPPED = 5,    // not needed
-//@}
+///@}
 
 /** @defgroup debug_flow_options Debug Flow Constants
     These are the possible values that are passed back to program to change flow, i.e. exit loops or function from debugger
 
     @since %Qore 0.8.13
  */
-//@{
+///@{
 //! force @ref return command
 const DebugFlowReturn = RC_RETURN;
 //! force @ref break command
 const DebugFlowBreak = RC_BREAK;
 //! force @ref continue command
 const DebugFlowContinue = RC_CONTINUE;
-//@}
+///@}
 
 //! DebugProgram class supports %Qore @ref Qore::Program "Program" debugging via @ref Qore::ProgramControl "ProgramControl".
 /** One instance may be assigned to one or more @ref Qore::ProgramControl "ProgramControl" instances which may

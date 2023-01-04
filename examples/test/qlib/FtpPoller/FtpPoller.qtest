@@ -123,7 +123,7 @@ class FtpPollerTest inherits QUnit::Test {
             }
             logger = new Logger("test", level);
         }
-        logger.addAppender(new TestAppender());
+        logger.addAppender(new StdoutAppender());
 
         int port = getPort();
 
@@ -197,20 +197,6 @@ class MyObserver inherits Observer {
             if ((now_us() - start) > 5s) {
                 throw "ERROR", sprintf("%d/4 files received in timeout: %y", h.size(), keys h);
             }
-        }
-    }
-}
-
-class TestAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
-        open();
-    }
-
-    processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_LOG:
-                print(params);
-                break;
         }
     }
 }

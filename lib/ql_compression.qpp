@@ -458,7 +458,7 @@ BinaryNode* qore_gunzip_to_binary(const BinaryNode* bin, ExceptionSink* xsink) {
 
 /** @defgroup compression_constants Compression Constants
  */
-//@{
+///@{
 //! gives the default compression level for the compress() and gzip() functions, providing a trade-off between compression speed and compression size
 const Z_DEFAULT_COMPRESSION = Z_DEFAULT_COMPRESSION;
 
@@ -467,7 +467,7 @@ const BZ2_DEFAULT_COMPRESSION = BZ2_DEFAULT_COMPRESSION;
 
 //! Identifies the default compression level appropriate for given algorithm
 const COMPRESSION_LEVEL_DEFAULT = COMPRESSION_LEVEL_DEFAULT;
-//@}
+///@}
 
 /** @defgroup compression_transformations Compression Stream Transformations
 
@@ -483,7 +483,7 @@ Qore::TransformOutputStream ts(of, get_decompressor(Qore::COMPRESSION_ALG_BZIP2)
 
     @since %Qore 0.8.13
  */
-//@{
+///@{
 //! Identifies the ZLIB Compressed Data Format (<a href="http://www.ietf.org/rfc/rfc1950.txt">RFC 1950</a>)
 const COMPRESSION_ALG_ZLIB = str(CompressionTransforms::ALG_ZLIB);
 
@@ -492,12 +492,12 @@ const COMPRESSION_ALG_GZIP = str(CompressionTransforms::ALG_GZIP);
 
 //! Identifies the <a href="http://en.wikipedia.org/wiki/Bzip2">bzip2 algorithm</a>
 const COMPRESSION_ALG_BZIP2 = str(CompressionTransforms::ALG_BZIP2);
-//@}
+///@}
 
 /** @defgroup compresssion_functions Compression Functions
     These functions work with compression and decompression
  */
-//@{
+///@{
 //! Performs zlib-based "deflate" data compression (<a href="http://www.ietf.org/rfc/rfc1951.txt">RFC 1951</a>) and returns a binary object of the compressed data
 /** Note that strings are compressed without the trailing null character.
 
@@ -848,4 +848,4 @@ Transform get_decompressor(string alg) {
    }
    return new QoreObject(QC_TRANSFORM, getProgram(), t.release());
 }
-//@}
+///@}

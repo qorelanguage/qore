@@ -24,7 +24,7 @@
 
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
-#! The class for handling file locations
+#! The class for handling http(s):// locations
 class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
     public {
         #! Valid HTTP location options
@@ -33,7 +33,7 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
         const HttpClientLocationOpts = {
             "connect_timeout": <FileHandlerOptionInfo>{
                 "type": "int",
-                "desc": "connstion timeout in milliseconds",
+                "desc": "connection timeout in milliseconds",
             },
             "encoding": <FileHandlerOptionInfo>{
                 "type": "string",
@@ -64,7 +64,7 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
             },
             "redirect_passthru": <FileHandlerOptionInfo>{
                 "type": "bool",
-                "desc": "redirect responses will be passed to the caller instead of folllowed",
+                "desc": "redirect responses will be passed to the caller instead of followed",
             },
             "ssl_cert_data": <FileHandlerOptionInfo>{
                 "type": "data",
@@ -110,10 +110,14 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
 
         @return the string of the file's contents, if it can be retrieved
 
-        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+        @note This method can throw any exception related to making an HTTP call
     */
     private string getTextFileImpl(string scheme, string location, *hash<auto> opts) {
         string path;
+        # make sure we can accept any Content-Type
+        if (!opts.headers.Accept) {
+            opts.headers.Accept = "*/*";
+        }
         HTTPClient hc = getHttpClient(scheme, location, opts, \path);
         return hc.send(NOTHING, opts.method ? opts.method.upr() : "GET", path).body ?? "";
     }
@@ -125,7 +129,7 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
 
         @return the binary data of the file's contents, if it can be retrieved
 
-        @throw FILE-READ-ERROR an I/O or other error occurred when reading the file
+        @note This method can throw any exception related to making an HTTP call
     */
     private binary getBinaryFileImpl(string scheme, string location, *hash<auto> opts) {
         string path;
@@ -140,6 +144,8 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
         @param opts read options
 
         @return a stream reader for the file's contents, if it can be retrieved
+
+        @note This method can throw any exception related to making an HTTP call
     */
     private Qore::StreamReader getStreamReaderImpl(string scheme, string location, *hash<auto> opts) {
         string path;
@@ -166,6 +172,8 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
         @param opts read options
 
         @return an input stream of the file's contents, if it can be retrieved
+
+        @note This method can throw any exception related to making an HTTP call
     */
     private Qore::InputStream getBinaryStreamImpl(string scheme, string location, *hash<auto> opts) {
         string path;
@@ -191,6 +199,8 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
         @param location the location string without the scheme
         @param contents the file's contents
         @param opts write options
+
+        @note This method can throw any exception related to making an HTTP call
     */
     private writeFileImpl(string scheme, string location, data contents, *hash<auto> opts) {
         string path;
@@ -210,6 +220,7 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
           deadlock
         - The data written to the OutputStreamWrapper object is written in the background; to ensure that the data has
           been written to the target, call OutputStreamWrapper::waitForIo()
+        - This method can throw any exception related to making an HTTP call
     */
     private OutputStreamWrapper getOutputStreamImpl(string scheme, string location, *hash<auto> opts) {
         string path;
@@ -250,6 +261,9 @@ class FileLocationHandlerHttp inherits AbstractFileLocationHandler {
     }
 
     #! Returns an HTTP client for the given location
+    /**
+        @note This method can throw any exception related to making an HTTP connection
+    */
     private HTTPClient getHttpClient(string scheme, string location, *hash<auto> opts, reference<string> path) {
         location = scheme + "://" + location;
 

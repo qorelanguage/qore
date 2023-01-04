@@ -30,9 +30,19 @@
 #ifndef _QORE_CONFIG_MACHINE_MACROS_H
 #define _QORE_CONFIG_MACHINE_MACROS_H
 
-//#pragma message "using macros-ppc64.h"
-
 #define STACK_DIRECTION_DOWN 1
 
 #define QORE_STACK_GUARD (16 * 1024)
+
+#ifdef __GNUC__
+#define HAVE_CHECK_STACK_POS
+
+static inline size_t get_stack_pos() {
+    size_t addr;
+    __asm("mr %0, 1" : "=r" (addr) );
+    return addr;
+}
+#else
+#error need a way to get the stack pointer with this compiler
+#endif
 #endif

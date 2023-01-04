@@ -198,6 +198,19 @@ class Test inherits QUnit::Test {
         {
             FixedLengthReadDataProvider dp;
 
+            {
+                dp = DataProvider::getFactoryObjectWithTemplate("fixedlengthread", {
+                    "path": "$template:value",
+                }, {
+                    "spec": Specs,
+                } + GlobalOptions);
+                hash<DataProviderInfo> info = dp.getInfo();
+                assertEq(Type::String, info.name.type());
+                assertTrue(info.has_record);
+                assertTrue(info.supports_read);
+                assertEq(Type::String, info.desc.type());
+            }
+
             # the fixed-length data can only be iterated once and then the provide needs to be recreated
             code reset = sub (string strdata = StrData, hash<auto> specs = Specs) {
                 dp = new FixedLengthReadDataProvider(new StringInputStream(strdata), specs, GlobalOptions);

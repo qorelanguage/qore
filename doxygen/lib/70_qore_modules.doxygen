@@ -1,5 +1,7 @@
 /** @page qore_modules Developing Qore Modules
 
+    @note This section is out of date; needs to cover QoreModuleInfo based module initialization
+
     @section module_dev Qore Module development
 
     @subsection module_header Module Header Info
@@ -24,7 +26,7 @@
     @note All variables and all functions are required, even if the functions are empty.
 
     Here is an example:
-    @code
+    @code{.cpp}
     DLLEXPORT char qore_module_name[] = "ncurses";
     DLLEXPORT char qore_module_version[] = "0.1";
     DLLEXPORT char qore_module_description[] = "ncurses class module";
@@ -51,19 +53,18 @@
 
     Here are example functions from the ncurses module:
 
-    @code
+    @code{.cpp}
     // this is the reference namespace for the ncurses module
     static QoreNamespace NCNS("NCurses");
 
     // this function is called when the module is loaded
-    QoreStringNode *ncurses_module_init()
-    {
+    QoreStringNode *ncurses_module_init() {
        // the NCurses reference namespace is set up here
        NCNS.addSystemClass(initWindowClass());
        NCNS.addSystemClass(initPanelClass());
 
        init_constants(&NCNS); // here constants are added to the NCurses namespace
-    
+
        builtinFunctions.add("initscr",          f_initscr, QDOM_TERMINAL_IO);
        builtinFunctions.add("printw",           f_printw, QDOM_TERMINAL_IO);
        builtinFunctions.add("refresh",          f_refresh, QDOM_TERMINAL_IO);
@@ -72,19 +73,17 @@
        return 0;
     }
 
-    // this function is called when the Qore library needs to provision the NCurses namespace 
+    // this function is called when the Qore library needs to provision the NCurses namespace
     // to a new QoreProgram object (or to a QoreProgram object that existed before the module
     // was loaded by another QoreProgram object and then later requests the feature "ncurses")
-    void ncurses_module_ns_init(QoreNamespace *rns, QoreNamespace *qns)
-    {
+    void ncurses_module_ns_init(QoreNamespace *rns, QoreNamespace *qns) {
        // add the NCurses namespace as a subnamespace to the Qore namespace
        qns->addInitialNamespace(NCNS.copy());
     }
 
     // this function is called when the module is deleted (when the qore library is closed)
     // it should free all resources allocated in the module's initilization function
-    void ncurses_module_delete()
-    {
+    void ncurses_module_delete() {
        // calls endwin() if necessary
        q_nc_init.close();
     }

@@ -40,6 +40,7 @@
 #include <qore/Qore.h>
 #include <qore/InputStream.h>
 #include <qore/OutputStream.h>
+#include <qore/AbstractPollState.h>
 
 #include <cctype>
 #include <cstdlib>
@@ -120,7 +121,7 @@ public:
     This class does no implement any thread locking; thread locking must be performed at
     a higher level (for example, as with QoreHTTPClient and QoreFtpClient).
 
-    @note currently only supports IPv4, TCP sockets
+    @note currently only supports TCP sockets
     @see QoreEncoding
 */
 class QoreSocket {
@@ -128,21 +129,11 @@ class QoreSocket {
     friend struct qore_httpclient_priv;
     friend class QoreSocketObject;
     friend class QoreFtpClient;
-
-private:
-    //! private implementation of the class
-    struct qore_socket_private *priv;
-
-    //! private constructor, not exported in the library's public interface
-    DLLLOCAL QoreSocket(int n_sock, int n_sfamily, int n_stype, int s_prot, const QoreEncoding *csid);
-
-    DLLLOCAL static void convertHeaderToHash(QoreHashNode* h, char* p);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreSocket(const QoreSocket&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreSocket& operator=(const QoreSocket&);
+    friend class HttpClientRecvHeaderPollState;
+    friend class HttpClientRecvChunkedPollState;
+    friend class HttpClientRecvUntilClosePollState;
+    friend class HttpClientConnectSendRecvPollOperation;
+    friend class my_socket_priv;
 
 public:
     //! creates an empty, unconnected socket
@@ -151,9 +142,90 @@ public:
     //! disconnects if necessary, frees all data, and destroys the socket
     DLLEXPORT ~QoreSocket();
 
+    //! Starts a non-blocking connection to a socket and returns a status code
+    /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::startConnectINET() is called.
+        Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::startConnectUNIX() is called.
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param name the name of the socket (either hostname:port or file name)
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate connection
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT AbstractPollState* startConnect(ExceptionSink* xsink, const char* name);
+
+    //! Starts a non-blocking upgrade to an SSL connection on a connected client connection
+    /**
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate connection
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT AbstractPollState* startSslConnect(ExceptionSink* xsink, X509* cert = nullptr, EVP_PKEY* pkey = nullptr);
+
+    //! Starts a non-blocking send operation on a connected socket
+    /**
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param data the data to send, must stay valid for the lifetime of the AbstractPollState object returned
+        @param size the size of the data to send
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate send
+
+        @since %Qore 1.12
+     */
+    DLLEXPORT AbstractPollState* startSend(ExceptionSink* xsink, const char* data, size_t size);
+
+    //! Starts a non-blocking receive operation on a connected socket
+    /**
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param size the size of the data to read, must be > 0
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate receive
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT AbstractPollState* startRecv(ExceptionSink* xsink, size_t size);
+
+    //! Starts a non-blocking receive operation on a connected socket
+    /**
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param pattern the bytes to expect that indicate the end of the data, must stay valid for the lifetime of the
+        AbstractPollState object returned
+        @param size the size of pattern in bytes
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate receive
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT AbstractPollState* startRecvUntilBytes(ExceptionSink* xsink, const char* pattern, size_t size);
+
+#if 0
+    //! Starts a non-blocking accept operation on the socket
+    /**
+        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+
+        @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT AbstractPollState* startAccept(ExceptionSink* xsink);
+
+    //! Starts a non-blocking upgrade to an SSL connection on a connected server connection
+    /**
+        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+
+        @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT AbstractPollState* startSslAccept(ExceptionSink* xsink, X509* cert, EVP_PKEY* pkey);
+#endif
+
     //! connects to a socket and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::connectINET() is called.
-         Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIX() is called.
+        Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIX() is called.
         @param name the name of the socket (either hostname:port or file name)
         @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
         @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
@@ -163,11 +235,11 @@ public:
         @see QoreSocket::connectINETSSL()
         @see QoreSocket::connectUNIXSSL()
     */
-    DLLEXPORT int connect(const char* name, ExceptionSink* xsink = 0);
+    DLLEXPORT int connect(const char* name, ExceptionSink* xsink = nullptr);
 
     //! connects to a socket and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::connectINET() is called.
-         Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIX() is called.
+        Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIX() is called.
         @param name the name of the socket (either hostname:port or file name)
         @param timeout_ms the timeout period in milliseconds
         @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
@@ -178,11 +250,11 @@ public:
         @see QoreSocket::connectINETSSL()
         @see QoreSocket::connectUNIXSSL()
     */
-    DLLEXPORT int connect(const char* name, int timeout_ms, ExceptionSink* xsink = 0);
+    DLLEXPORT int connect(const char* name, int timeout_ms, ExceptionSink* xsink = nullptr);
 
     //! connects to an INET socket by hostname and port number and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** @param host the name or IP address of the host
-         @param prt the port number of the remote socket
+        @param prt the port number of the remote socket
         @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
         @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
         @see QoreSocket::connect()
@@ -191,11 +263,11 @@ public:
         @see QoreSocket::connectINETSSL()
         @see QoreSocket::connectUNIXSSL()
     */
-    DLLEXPORT int connectINET(const char* host, int prt, ExceptionSink* xsink = 0);
+    DLLEXPORT int connectINET(const char* host, int prt, ExceptionSink* xsink = nullptr);
 
     //! connects to an INET or INET6 socket by hostname and port number or service name and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** @param name the name or address of the host
-         @param service the port number or service name of the remote socket
+        @param service the port number or service name of the remote socket
         @param family should be either AF_INET (for ipv4) or AF_INET6 (for ipv6)
         @param sock_type the type of socket, normally SOCK_STREAM for tcp sockets or SOCK_DGRAM for udp sockets
         @param protocol the protocol number, use 0 for the default
@@ -208,11 +280,11 @@ public:
         @see QoreSocket::connectINETSSL()
         @see QoreSocket::connectUNIXSSL()
     */
-    DLLEXPORT int connectINET2(const char* name, const char* service, int family = Q_AF_UNSPEC, int sock_type = Q_SOCK_STREAM, int protocol = 0, int timeout_ms = -1, ExceptionSink* xsink = 0);
+    DLLEXPORT int connectINET2(const char* name, const char* service, int family = Q_AF_UNSPEC, int sock_type = Q_SOCK_STREAM, int protocol = 0, int timeout_ms = -1, ExceptionSink* xsink = nullptr);
 
     //! connects to an INET socket by hostname and port number and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** @param host the name or IP address of the host
-         @param prt the port number of the remote socket
+        @param prt the port number of the remote socket
         @param timeout_ms the timeout period in milliseconds
         @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
         @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
@@ -222,11 +294,11 @@ public:
         @see QoreSocket::connectINETSSL()
         @see QoreSocket::connectUNIXSSL()
     */
-    DLLEXPORT int connectINET(const char* host, int prt, int timeout_ms, ExceptionSink* xsink = 0);
+    DLLEXPORT int connectINET(const char* host, int prt, int timeout_ms, ExceptionSink* xsink = nullptr);
 
     //! connects to a UNIX domain socket and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** @param p the file name of the UNIX domain socket
-         @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
+        @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
         @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
         @see QoreSocket::connect()
         @see QoreSocket::connectINET()
@@ -234,11 +306,11 @@ public:
         @see QoreSocket::connectINETSSL()
         @see QoreSocket::connectUNIXSSL()
     */
-    DLLEXPORT int connectUNIX(const char* p, ExceptionSink* xsink = 0);
+    DLLEXPORT int connectUNIX(const char* p, ExceptionSink* xsink = nullptr);
 
     //! connects to a UNIX domain socket and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** @param p the file name of the UNIX domain socket
-         @param socktype the type of socket (SOCK_STREAM = tcp socket)
+        @param socktype the type of socket (SOCK_STREAM = tcp socket)
         @param protocol the protocol for the socket (use 0 for default)
         @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
         @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
@@ -248,11 +320,11 @@ public:
         @see QoreSocket::connectINETSSL()
         @see QoreSocket::connectUNIXSSL()
     */
-    DLLEXPORT int connectUNIX(const char* p, int socktype, int protocol = 0, ExceptionSink* xsink = 0);
+    DLLEXPORT int connectUNIX(const char* p, int socktype, int protocol = 0, ExceptionSink* xsink = nullptr);
 
     //! connects to a socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::connectINETSSL() is called.
-         Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIXSSL() is called.
+        Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIXSSL() is called.
         @param name the name of the socket (either hostname:port or file name)
         @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
         @param pkey the private key to use for the connection, may be 0 if no private key should be used
@@ -270,7 +342,7 @@ public:
 
     //! connects to a socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** If "name" has a ':' in it; it's assumed to be a hostname:port specification and QoreSocket::connectINETSSL() is called.
-         Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIXSSL() is called.
+        Otherwise "name" is assumed to be a file name for a UNIX domain socket and QoreSocket::connectUNIXSSL() is called.
         @param name the name of the socket (either hostname:port or file name)
         @param timeout_ms the timeout period in milliseconds
         @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
@@ -289,7 +361,7 @@ public:
 
     //! connects to an INET socket by hostname and port number, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** @param host the name or IP address of the host
-         @param prt the port number of the remote socket
+        @param prt the port number of the remote socket
         @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
         @param pkey the private key to use for the connection, may be 0 if no private key should be used
         @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -306,7 +378,7 @@ public:
 
     //! connects to an INET socket by hostname and port number, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** @param host the name or IP address of the host
-         @param prt the port number of the remote socket
+        @param prt the port number of the remote socket
         @param timeout_ms the timeout period in milliseconds
         @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
         @param pkey the private key to use for the connection, may be 0 if no private key should be used
@@ -324,7 +396,7 @@ public:
 
     //! connects to an INET or INET6 socket by hostname and port number or service name and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** @param name the name or address of the host
-         @param service the port number or service name of the remote socket
+        @param service the port number or service name of the remote socket
         @param family should be either AF_INET (for ipv4) or AF_INET6 (for ipv6)
         @param sock_type the type of socket, normally SOCK_STREAM for tcp sockets or SOCK_DGRAM for udp sockets
         @param protocol the protocol number, use 0 for the default
@@ -339,11 +411,11 @@ public:
         @see QoreSocket::connectINETSSL()
         @see QoreSocket::connectUNIXSSL()
     */
-    DLLEXPORT int connectINET2SSL(const char* name, const char* service, int family, int sock_type, int protocol, int timeout_ms, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink = 0);
+    DLLEXPORT int connectINET2SSL(const char* name, const char* service, int family, int sock_type, int protocol, int timeout_ms, X509* cert, EVP_PKEY* pkey, ExceptionSink* xsink = nullptr);
 
     //! connects to a UNIX domain socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** @param p the file name of the UNIX domain socket
-         @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
+        @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
         @param pkey the private key to use for the connection, may be 0 if no private key should be used
         @param xsink if not 0, if an error occurs, the Qore-language exception information will be added here
         @return 0 for OK, -1 means that an error occured and a Qore-language exception was raised
@@ -359,7 +431,7 @@ public:
 
     //! connects to a UNIX domain socket, negotiates an SSL connection, and returns a status code, Qore-language exceptions are raised in the case of any errors
     /** @param p the file name of the UNIX domain socket
-         @param socktype the type of socket (SOCK_STREAM = tcp socket)
+        @param socktype the type of socket (SOCK_STREAM = tcp socket)
         @param protocol the protocol for the socket (use 0 for default)
         @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
         @param pkey the private key to use for the connection, may be 0 if no private key should be used
@@ -377,7 +449,7 @@ public:
 
     //! binds to a UNIX domain socket or INET interface:port using TCP and returns a status code
     /** @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
-         @note the socket will be closed and reopened if necessary
+        @note the socket will be closed and reopened if necessary
         @param name address:port or filename to bind to; if the name has a ':' in it; it's assumed to be an address:port specification for binding to an INET socket, otherwise it is assumed to be a file name for a UNIX domain socket.  If there is more than 1 ':' in the name, then the address is assumed to be an ipv6 interface address, otherwise it is assumed to be an ipv4 address.
         @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
         @return 0 for OK, not 0 for error
@@ -386,7 +458,7 @@ public:
 
     //! binds to a TCP INET (ipv4 only) port on all interfaces and returns a status code
     /** @note the socket will be closed and reopened if necessary
-         @param prt the port to bind to
+        @param prt the port to bind to
         @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
         @return 0 for OK, not 0 for error
     */
@@ -403,7 +475,7 @@ public:
 
     //! binds an INET TCP socket to a specific socket address - do not use, deprecated, use bind(int family, const struct sockaddr *addr, int addr_size, int socktype, int protocol) instead
     /** this function will not set the port number; use bind(int family, const struct sockaddr *addr, int addr_size) instead
-         @note the socket will be closed and reopened if necessary
+        @note the socket will be closed and reopened if necessary
         @param addr the socket address to bind to
         @param addr_size the size of the addr argument
         @return 0 for OK, not 0 for error
@@ -413,29 +485,30 @@ public:
 
     //! binds an INET or INET6 TCP socket to a specific socket address
     /** @note the socket will be closed and reopened if necessary
-         @param family the address family (AF_INET or AF_INET6)
+        @param family the address family (AF_INET or AF_INET6)
         @param addr the socket address to bind to
         @param addr_size the size of the addr argument
         @param socktype the type of socket (SOCK_STREAM = tcp socket)
         @param protocol the protocol for the socket
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int bind(int family, const struct sockaddr *addr, int addr_size, int socktype = Q_SOCK_STREAM, int protocol = 0);
+    DLLEXPORT int bind(int family, const struct sockaddr *addr, int addr_size, int socktype = Q_SOCK_STREAM,
+            int protocol = 0);
 
     //! binds to a UNIX domain socket and returns a status code
     /** @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
-         @note the socket will be closed and reopened if necessary
+        @note the socket will be closed and reopened if necessary
 
         @param name UNIX filename to bind to
         @param xsink if not 0 and an error occurs, the Qore-language exception information will be added here
 
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int bindUNIX(const char* name, ExceptionSink* xsink = 0);
+    DLLEXPORT int bindUNIX(const char* name, ExceptionSink* xsink = nullptr);
 
     //! binds to a UNIX domain socket and returns a status code
     /** @note a socket file will be created on the filesystem if a UNIX domain socket is opened.
-         @note the socket will be closed and reopened if necessary
+        @note the socket will be closed and reopened if necessary
 
         @param name UNIX filename to bind to
         @param socktype the type of socket (SOCK_STREAM = tcp socket)
@@ -444,14 +517,15 @@ public:
 
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int bindUNIX(const char* name, int socktype, int protocol = 0, ExceptionSink* xsink = 0);
+    DLLEXPORT int bindUNIX(const char* name, int socktype, int protocol = 0, ExceptionSink* xsink = nullptr);
 
     //! binds an INET or INET6 TCP socket to a specific socket address
     /** @note the socket will be closed and reopened if necessary
 
         @param name the name or address of the interface, can be 0 meaning all interfaces
         @param service the service name or port number
-        @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even if the port is still in a TIME_WAIT state, for example
+        @param reuseaddr if true then setsockopt() will be called with SO_REUSEADDR, allowing the bind to succeed even
+        if the port is still in a TIME_WAIT state, for example
         @param family the address family (AF_INET, AF_INET6, or AF_UNSPEC)
         @param socktype the type of socket (SOCK_STREAM = tcp socket)
         @param protocol the protocol for the socket
@@ -459,7 +533,8 @@ public:
 
         @return 0 for OK, not 0 for error
     */
-    DLLEXPORT int bindINET(const char* name, const char* service, bool reuseaddr = true, int family = Q_AF_UNSPEC, int socktype = Q_SOCK_STREAM, int protocol = 0, ExceptionSink* xsink = 0);
+    DLLEXPORT int bindINET(const char* name, const char* service, bool reuseaddr = true, int family = Q_AF_UNSPEC,
+            int socktype = Q_SOCK_STREAM, int protocol = 0, ExceptionSink* xsink = nullptr);
 
     //! returns the TCP port number, also assigns the interal port number if it must be discovered
     DLLEXPORT int getPort();
@@ -528,7 +603,7 @@ public:
 
     //! accepts a new connection on a listening socket, negotiates an SSL connection, and returns a new QoreSocket object for the new connection with a timeout; if no connection is accepted within the timeout period 0 is returned
     /** the socket must be opened and in a listening state before making this call.
-         @param timeout_ms the timeout in milliseconds; if a timeout occurs then 0 is returned (no Qore-language excepton is raised)
+        @param timeout_ms the timeout in milliseconds; if a timeout occurs then 0 is returned (no Qore-language excepton is raised)
         @param cert the X509 certificate to use for the connection, may be 0 if no certificate should be used
         @param pkey the private key to use for the connection, may be 0 if no private key should be used
         @param xsink if an error occurs, the Qore-language exception information will be added here
@@ -543,7 +618,7 @@ public:
 
     //! accepts a new connection on a listening socket and replaces the current socket with the new connection with a timeout; if no connection is accepted within the timeout period, -3 (QSE_TIMEOUT) is returned
     /** the socket must be opened and in a listening state before making this call.
-         @param timeout_ms the timeout in milliseconds; if a timeout occurs then 0 is returned (no Qore-language excepton is raised)
+        @param timeout_ms the timeout in milliseconds; if a timeout occurs then 0 is returned (no Qore-language excepton is raised)
         @param xsink if an error occurs, the Qore-language exception information will be added here
 
         @return 0 for OK, -1 if an error occured, -3 (QSE_TIMEOUT) if a timeout occured
@@ -557,7 +632,7 @@ public:
 
     //! sets an open socket to the listening state
     /**
-         @return 0 for OK, not 0 if an error occured
+        @return 0 for OK, not 0 if an error occured
     */
     DLLEXPORT int listen();
 
@@ -572,7 +647,7 @@ public:
 
     //! sends binary data on a connected socket
     /**
-         @param buf the data to send
+        @param buf the data to send
         @param size the size of the data to send
 
         @return 0 for OK, not 0 if an error occured
@@ -581,7 +656,7 @@ public:
 
     //! sends binary data on a connected socket
     /**
-         @param buf the data to send
+        @param buf the data to send
         @param size the size of the data to send
         @param xsink if an error occurs in socket communication, the Qore-language exception information will be added here
 
@@ -591,7 +666,7 @@ public:
 
     //! sends binary data on a connected socket
     /**
-         @param buf the data to send
+        @param buf the data to send
         @param size the size of the data to send
         @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
         @param xsink if an error occurs in socket communication, the Qore-language exception information will be added here
@@ -602,7 +677,7 @@ public:
 
     //! sends string data on a connected socket, converts the string encoding to the socket's encoding if necessary
     /**
-         @param msg the string to send (must not be 0)
+        @param msg the string to send (must not be 0)
         @param xsink if an error occurs in converting the string's character encoding or in socket communication, the Qore-language exception information will be added here
 
         @return 0 for OK, not 0 if an error occured
@@ -633,7 +708,7 @@ public:
 
     //! sends binary data on a connected socket
     /**
-         @param msg the data to send
+        @param msg the data to send
 
         @return 0 for OK, not 0 if an error occured
     */
@@ -641,7 +716,7 @@ public:
 
     //! sends binary data on a connected socket
     /**
-         @param msg the data to send
+        @param msg the data to send
         @param xsink if an error occurs in socket communication, the Qore-language exception information will be added here
 
         @return 0 for OK, not 0 if an error occured
@@ -650,7 +725,7 @@ public:
 
     //! sends binary data on a connected socket
     /**
-         @param msg the data to send
+        @param msg the data to send
         @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
         @param xsink if an error occurs in socket communication, the Qore-language exception information will be added here
 
@@ -660,7 +735,7 @@ public:
 
     //! sends untranslated data from an open file descriptor
     /**
-         @param fd a file descriptor, open for reading
+        @param fd a file descriptor, open for reading
         @param size the number of bytes to send (-1 = send all until EOF)
 
         @return 0 for OK, not 0 if an error occured
@@ -669,7 +744,7 @@ public:
 
     //! sends untranslated data from an open file descriptor
     /**
-         @param fd a file descriptor, open for reading
+        @param fd a file descriptor, open for reading
         @param size the number of bytes to send (-1 = send all until EOF)
         @param timeout_ms a timeout in milliseconds for socket I/O operations
         @param xsink if an I/O error occurs, the Qore-language exception information will be added here
@@ -682,14 +757,14 @@ public:
 
     //! sends a 1-byte binary integer data to a connected socket
     /** The socket must be connected before this call is made.
-         @param i the 1-byte integer to send through the socket
+        @param i the 1-byte integer to send through the socket
         @return 0 for OK, not 0 if an error occured
     */
     DLLEXPORT int sendi1(char i);
 
     //! sends a 2-byte (16bit) binary integer in MSB (Most Significant Byte first, big endian, network) format through a connected socket
     /** The socket must be connected before this call is made.
-         @param i the integer to write to the file
+        @param i the integer to write to the file
         @return 0 for OK, not 0 if an error occured
         @see QoreSocket::sendi2LSB()
     */
@@ -697,7 +772,7 @@ public:
 
     //! sends a 4-byte (32bit) binary integer in MSB (Most Significant Byte first, big endian, network) format through a connected socket
     /** The socket must be connected before this call is made.
-         @param i the integer to write to the file
+        @param i the integer to write to the file
         @return 0 for OK, not 0 if an error occured
         @see QoreSocket::sendi4LSB()
     */
@@ -705,7 +780,7 @@ public:
 
     //! sends an 8-byte (64bit) binary integer in MSB (Most Significant Byte first, big endian, network) format through a connected socket
     /** The socket must be connected before this call is made.
-         @param i the integer to write to the file
+        @param i the integer to write to the file
         @return 0 for OK, not 0 if an error occured
         @see QoreSocket::sendi8LSB()
     */
@@ -713,7 +788,7 @@ public:
 
     //! sends a 2-byte (16bit) binary integer in LSB (Least Significant Byte first, little endian) format through a connected socket
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::sendi2() should be used
+        @note that this is not network byte order, normally QoreSocket::sendi2() should be used
         @param i the integer to write to the file
         @return 0 for OK, not 0 if an error occured
         @see QoreSocket::sendi2()
@@ -722,7 +797,7 @@ public:
 
     //! sends a 4-byte (32bit) binary integer in LSB (Least Significant Byte first, little endian) format through a connected socket
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::sendi4() should be used
+        @note that this is not network byte order, normally QoreSocket::sendi4() should be used
         @param i the integer to write to the file
         @return 0 for OK, not 0 if an error occured
         @see QoreSocket::sendi4()
@@ -731,7 +806,7 @@ public:
 
     //! sends an 8-byte (64bit) binary integer in LSB (Least Significant Byte first, little endian) format through a connected socket
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::sendi8() should be used
+        @note that this is not network byte order, normally QoreSocket::sendi8() should be used
         @param i the integer to write to the file
         @return 0 for OK, not 0 if an error occured
         @see QoreSocket::sendi8()
@@ -787,7 +862,7 @@ public:
 
     //! sends a 2-byte (16bit) binary integer in LSB (Least Significant Byte first, little endian) format through a connected socket
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::sendi2() should be used
+        @note that this is not network byte order, normally QoreSocket::sendi2() should be used
 
         @param i the integer to write to the file
         @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
@@ -800,7 +875,7 @@ public:
 
     //! sends a 4-byte (32bit) binary integer in LSB (Least Significant Byte first, little endian) format through a connected socket
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::sendi4() should be used
+        @note that this is not network byte order, normally QoreSocket::sendi4() should be used
 
         @param i the integer to write to the file
         @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
@@ -813,7 +888,7 @@ public:
 
     //! sends an 8-byte (64bit) binary integer in LSB (Least Significant Byte first, little endian) format through a connected socket
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::sendi8() should be used
+        @note that this is not network byte order, normally QoreSocket::sendi8() should be used
 
         @param i the integer to write to the file
         @param timeout_ms the maximum amount of time the socket can block on a single send as an integer in milliseconds
@@ -838,9 +913,11 @@ public:
 
     //! reads a 2-byte signed integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvi2LSB()
         @see QoreSocket::recvu2()
         @see QoreSocket::recvu2LSB()
@@ -849,9 +926,11 @@ public:
 
     //! reads a 4-byte signed integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvi4LSB()
         @see QoreSocket::recvu4()
         @see QoreSocket::recvu4LSB()
@@ -860,9 +939,11 @@ public:
 
     //! reads an 8-byte signed integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvi8LSB()
         @see QoreSocket::recvu8()
         @see QoreSocket::recvu8LSB()
@@ -871,10 +952,12 @@ public:
 
     //! reads a 2-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::recvi2() should be used instead
+        @note that this is not network byte order, normally QoreSocket::recvi2() should be used instead
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvi2()
         @see QoreSocket::recvu2()
         @see QoreSocket::recvu2LSB()
@@ -883,10 +966,12 @@ public:
 
     //! reads a 4-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::recvi4() should be used instead
+        @note that this is not network byte order, normally QoreSocket::recvi4() should be used instead
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvi4()
         @see QoreSocket::recvu4()
         @see QoreSocket::recvu4LSB()
@@ -895,28 +980,34 @@ public:
 
     //! reads an 8-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::recvi8() should be used instead
+        @note that this is not network byte order, normally QoreSocket::recvi8() should be used instead
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvi8()
     **/
     DLLEXPORT int recvi8LSB(int timeout_ms, int64 *val);
 
     //! reads a 1-byte unsigned integer from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvi1()
     **/
     DLLEXPORT int recvu1(int timeout_ms, unsigned char* val);
 
     //! reads a 2-byte unsigned integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvi2()
         @see QoreSocket::recvu2LSB()
         @see QoreSocket::recvi2LSB()
@@ -925,9 +1016,11 @@ public:
 
     //! reads a 4-byte unsigned integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvi4()
         @see QoreSocket::recvu4LSB()
         @see QoreSocket::recvi4LSB()
@@ -936,10 +1029,13 @@ public:
 
     //! reads a 2-byte unsigned integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::recvu2() should be used instead
+        @note that this is not network byte order, normally QoreSocket::recvu2() should be used instead
+
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvu2()
         @see QoreSocket::recvi2()
         @see QoreSocket::recvi2LSB()
@@ -948,10 +1044,13 @@ public:
 
     //! reads a 4-byte unsigned integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::recvu4() should be used instead
+        @note that this is not network byte order, normally QoreSocket::recvu4() should be used instead
+
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
+
         @return 0 for OK, not 0 for error
+
         @see QoreSocket::recvu4()
         @see QoreSocket::recvi4()
         @see QoreSocket::recvi4LSB()
@@ -973,7 +1072,7 @@ public:
 
     //! reads a 2-byte signed integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
         @param xsink if an error occurs in socket communication, the Qore-language exception information will be added here
 
@@ -1002,7 +1101,7 @@ public:
 
     //! reads an 8-byte signed integer in MSB (Most Significant Byte first, big endian, network) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
+        @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
         @param xsink if an error occurs in socket communication, the Qore-language exception information will be added here
 
@@ -1016,7 +1115,8 @@ public:
 
     //! reads a 2-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::recvi2() should be used instead
+        @note that this is not network byte order, normally QoreSocket::recvi2() should be used instead
+
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
         @param xsink if an error occurs in socket communication, the Qore-language exception information will be added here
@@ -1031,7 +1131,8 @@ public:
 
     //! reads a 4-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::recvi4() should be used instead
+        @note that this is not network byte order, normally QoreSocket::recvi4() should be used instead
+
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
         @param xsink if an error occurs in socket communication, the Qore-language exception information will be added here
@@ -1046,7 +1147,7 @@ public:
 
     //! reads an 8-byte signed integer in LSB (Most Significant Byte first, little endian) format from the socket with a timeout value and returns the value read as an output parameter
     /** The socket must be connected before this call is made.
-         @note that this is not network byte order, normally QoreSocket::recvi8() should be used instead
+        @note that this is not network byte order, normally QoreSocket::recvi8() should be used instead
 
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param val output parameter: the integer value read from the file
@@ -1137,84 +1238,98 @@ public:
 
     //! receive a certain number of bytes with a timeout value and return a QoreStringNode, caller owns the reference count returned
     /** The socket must be connected before this call is made.
-         @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
+        @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param prc output parameter: 0 for OK, not 0 for error
+
         @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
+
         @see QoreEncoding
     */
     DLLEXPORT QoreStringNode* recv(qore_offset_t bufsize, int timeout_ms, int* prc);
 
     //! receive a certain number of bytes with a timeout value and return a QoreStringNode, caller owns the reference count returned
     /** The socket must be connected before this call is made.
-         @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
+        @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
         @param timeout_ms in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
+
         @see QoreEncoding
     */
     DLLEXPORT QoreStringNode* recv(qore_offset_t bufsize, int timeout_ms, ExceptionSink* xsink);
 
     //! receive a certain number of bytes with a timeout value and return a BinaryNode, caller owns the reference count returned
     /** The socket must be connected before this call is made.
-         @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
+        @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param prc output parameter: 0 for OK, not 0 for error
+
         @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
     */
     DLLEXPORT BinaryNode* recvBinary(qore_offset_t bufsize, int timeout_ms, int* prc);
 
     //! receive a certain number of bytes with a timeout value and return a BinaryNode, caller owns the reference count returned
     /** The socket must be connected before this call is made.
-         @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
+        @param bufsize number of bytes to read from the socket; if <= 0, read all data available from the socket until the socket is closed from the other side
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
     */
     DLLEXPORT BinaryNode* recvBinary(qore_offset_t bufsize, int timeout_ms, ExceptionSink* xsink);
 
     //! receive with a timeout value and return a QoreStringNode, caller owns the reference count returned
     /** The socket must be connected before this call is made.
-         This call will read data, blocking according to the timeout value.  Then all data
+        This call will read data, blocking according to the timeout value.  Then all data
         available on the socket will be read and returned as a QoreStringNode.  As soon as the
         first timeout occurs, the data will be returned immediately without blocking.
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param prc output parameter: 0 for OK, not 0 for error
+
         @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
+
         @see QoreEncoding
     */
     DLLEXPORT QoreStringNode* recv(int timeout_ms, int* prc);
 
     //! receive with a timeout value and return a QoreStringNode, caller owns the reference count returned
     /** The socket must be connected before this call is made.
-         This call will read data, blocking according to the timeout value.  Then all data
+        This call will read data, blocking according to the timeout value.  Then all data
         available on the socket will be read and returned as a QoreStringNode.  As soon as the
         first timeout occurs, the data will be returned immediately without blocking.
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return the data read as a QoreStringNode tagged with the socket's QoreEncoding, caller owns the reference count returned (0 if an error occurs)
+
         @see QoreEncoding
     */
     DLLEXPORT QoreStringNode* recv(int timeout_ms, ExceptionSink* xsink);
 
     //! receive with a timeout value and return a BinaryNode, caller owns the reference count returned
     /** The socket must be connected before this call is made.
-         This call will read data, blocking according to the timeout value.  Then all data
+        This call will read data, blocking according to the timeout value.  Then all data
         available on the socket will be read and returned as a BinaryNode.  As soon as the
         first timeout occurs, the data will be returned immediately without blocking.
+
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param prc output parameter: 0 for OK, not 0 for error
+
         @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
     */
     DLLEXPORT BinaryNode* recvBinary(int timeout_ms, int* prc);
 
     //! receive with a timeout value and return a BinaryNode, caller owns the reference count returned
     /** The socket must be connected before this call is made.
-         This call will read data, blocking according to the timeout value.  Then all data
+        This call will read data, blocking according to the timeout value.  Then all data
         available on the socket will be read and returned as a BinaryNode.  As soon as the
         first timeout occurs, the data will be returned immediately without blocking.
+
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return the data read as a BinaryNode, caller owns the reference count returned (0 if an error occurs)
     */
     DLLEXPORT BinaryNode* recvBinary(int timeout_ms, ExceptionSink* xsink);
@@ -1250,20 +1365,6 @@ public:
 
     //! send an HTTP request message on the socket
     /** The socket must be connected before this call is made.
-         @param method the method string to use in the header - no validity checking is made on this string
-        @param path the path string to use in the header, if the path is empty then '/' is sent
-        @param http_version should be either "1.0" or "1.1"
-        @param headers a hash of headers to send (key: value)
-        @param data optional message body to send (may be 0)
-        @param size the length of the message body (may be 0)
-        @param source the event source code for socket events
-        @return 0 for OK, not 0 for error
-    */
-    DLLEXPORT int sendHTTPMessage(const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source = QORE_SOURCE_SOCKET);
-
-    //! send an HTTP request message on the socket
-    /** The socket must be connected before this call is made.
-         @param info if not null, the request-uri and response-uri will be written to this hash, neither of these keys should be set before this call
         @param method the method string to use in the header - no validity checking is made on this string
         @param path the path string to use in the header, if the path is empty then '/' is sent
         @param http_version should be either "1.0" or "1.1"
@@ -1271,6 +1372,22 @@ public:
         @param data optional message body to send (may be 0)
         @param size the length of the message body (may be 0)
         @param source the event source code for socket events
+
+        @return 0 for OK, not 0 for error
+    */
+    DLLEXPORT int sendHTTPMessage(const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source = QORE_SOURCE_SOCKET);
+
+    //! send an HTTP request message on the socket
+    /** The socket must be connected before this call is made.
+        @param info if not null, the request-uri and response-uri will be written to this hash, neither of these keys should be set before this call
+        @param method the method string to use in the header - no validity checking is made on this string
+        @param path the path string to use in the header, if the path is empty then '/' is sent
+        @param http_version should be either "1.0" or "1.1"
+        @param headers a hash of headers to send (key: value)
+        @param data optional message body to send (may be 0)
+        @param size the length of the message body (may be 0)
+        @param source the event source code for socket events
+
         @return 0 for OK, not 0 for error
     */
     DLLEXPORT int sendHTTPMessage(QoreHashNode* info, const char* method, const char* path, const char* http_version, const QoreHashNode* headers, const void* data, size_t size, int source = QORE_SOURCE_SOCKET);
@@ -1399,21 +1516,25 @@ public:
 
     //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
     /** The socket must be connected before this call is made.
-         @note does not read the message body; message body must be read manually
+        @note does not read the message body; message body must be read manually
+
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param prc output parameter: 0 or -2: remote end closed the connection, -1: receive error, -3: timeout
         @param source the event source code for socket events
+
         @return if 0 (and prc == 0), the socket was closed on the remote end without a response, if the type is NT_STRING, the response could not be parsed, if not 0, caller owns the reference count returned
     */
     DLLEXPORT AbstractQoreNode* readHTTPHeader(int timeout_ms, int* prc, int source = QORE_SOURCE_SOCKET);
 
     //! read and parse HTTP header, caller owns AbstractQoreNode reference count returned
     /** The socket must be connected before this call is made.
-         @note does not read the message body; message body must be read manually
+        @note does not read the message body; message body must be read manually
+
         @param info the request-uri or response-uri is written to this hash if non-null; neither of these keys should be present in the hash before the call
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param prc output parameter: 0 or -2: remote end closed the connection, -1: receive error, -3: timeout
         @param source the event source code for socket events
+
         @return if 0 (and prc == 0), the socket was closed on the remote end without a response, if the type is NT_STRING, the response could not be parsed, if not 0, caller owns the reference count returned
     */
     DLLEXPORT AbstractQoreNode* readHTTPHeader(QoreHashNode* info, int timeout_ms, int* prc, int source = QORE_SOURCE_SOCKET);
@@ -1447,20 +1568,24 @@ public:
 
     //! receive a binary message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
     /** The socket must be connected before this call is made.
-         The message body is returned as a BinaryNode in the "body" key, any footers read after the body
+        The message body is returned as a BinaryNode in the "body" key, any footers read after the body
         are returned as the other hash keys in the hash.
+
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @param source the event source code for socket events
+
         @return the message body as the value of the "body" key and any footers read after the body as other keys (0 if an error occurs)
+
         @see BinaryNode
     */
     DLLEXPORT QoreHashNode* readHTTPChunkedBodyBinary(int timeout_ms, ExceptionSink* xsink, int source = QORE_SOURCE_SOCKET);
 
     //! receive a string message in HTTP chunked transfer encoding, caller owns QoreHashNode reference count returned
     /** The socket must be connected before this call is made.
-         The message body is returned as a QoreStringNode in the "body" key, any footers read after the body
+        The message body is returned as a QoreStringNode in the "body" key, any footers read after the body
         are returned as the other hash keys in the hash.
+
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @param source the event source code for socket events
@@ -1516,7 +1641,7 @@ public:
 
     //! returns 1 if the event was satisfied in the timeout period, 0 if not (= timeout), or -1 in case of an error (see errno in this case)
     /** @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
-         @param read wait for data to be available for reading from the socket
+        @param read wait for data to be available for reading from the socket
         @param write wait for data to be written on the socket
 
         @see
@@ -1526,7 +1651,7 @@ public:
         @note This is a low-level socket function, if an SSL connection is in progress, then this function could return 1 for reading due to SSL protocol renegotiation for example.  The socket buffer is ignored for this call (unlike isDataAvaialble())
 
         @since Qore 0.8.12
-        */
+    */
     DLLEXPORT int asyncIoWait(int timeout_ms, bool read, bool write) const;
 
     //! closes the socket
@@ -1538,53 +1663,58 @@ public:
 
     //! calls shutdown on the socket
     /** shuts down the socket for reading and writing, after this call further sends and receives are
-         disallowed until the socket is reopened.
+        disallowed until the socket is reopened.
+
         @note QoreSocket::shutdown() should normally be called before calling this function.
+
         @return 0 if OK, not 0 on error
+
         @see QoreSocket::shutdown()
     */
     DLLEXPORT int shutdown();
 
     //! shuts down an active SSL connection
     /** called implicitly by QoreSocket::close()
-         @return 0 if OK, not 0 on error
+
+        @return 0 if OK, not 0 on error
+
         @see QoreSocket::close()
     */
     DLLEXPORT int shutdownSSL(ExceptionSink* xsink);
 
     //! returns the file descriptor associated with this socket
     /** @return the file descriptor associated with this socket
-        */
+    */
     DLLEXPORT int getSocket() const;
 
     //! returns the character encoding associated with this socket
     /** @return the character encoding associated with this socket
-        */
+    */
     DLLEXPORT const QoreEncoding *getEncoding() const;
 
     //! sets the character encoding for strings sent and received with this socket
     /** @param id the character encoding for strings sent and received with this socket
-        */
+    */
     DLLEXPORT void setEncoding(const QoreEncoding *id);
 
     //! returns true if the socket is open
     /** @return true if the socket is open
-        */
+    */
     DLLEXPORT bool isOpen() const;
 
     //! returns the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
     /** @return the name of the SSL Cipher for the currently-connected control connection, or 0 if there is none
-        */
+    */
     DLLEXPORT const char* getSSLCipherName() const;
 
     //! returns the version string of the SSL Cipher for the currently-connected control connection, or 0 if there is none
     /** @return the version string of the SSL Cipher for the currently-connected control connection, or 0 if there is none
-        */
+    */
     DLLEXPORT const char* getSSLCipherVersion() const;
 
     //! returns true if an SSL connection is active
     /** @return true if an SSL connection is active
-        */
+    */
     DLLEXPORT bool isSecure() const;
 
     //! returns the peer certificate verification code if an SSL connection is in progress
@@ -1638,7 +1768,7 @@ public:
 
     //! returns true if all write data has been written within the timeout period in milliseconds
     /** The socket must be connected before this call is made.
-         use a timeout of 0 to receive an answer immediately
+        use a timeout of 0 to receive an answer immediately
 
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
 
@@ -1650,7 +1780,8 @@ public:
 
     //! returns true if all write data has been written within the timeout period in milliseconds
     /** The socket must be connected before this call is made.
-         use a timeout of 0 to receive an answer immediately
+        use a timeout of 0 to receive an answer immediately
+
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @param timeout_ms timeout in milliseconds, -1=never timeout, 0=do not block, return immediately if there is no data waiting
 
@@ -1662,7 +1793,8 @@ public:
 
     //! returns peer information for a connected socket
     /** if the socket is not connected, a Qore-language exception is thrown
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @return a hash with the following keys:
         - \c hostname: the hostname of the remote end (if known or appropriate for the socket type)
         - \c hostname_desc: a descriptive string for the remote hostname (including the socket type - ie "ipv6[host]")
@@ -1676,7 +1808,8 @@ public:
 
     //! returns peer information for a connected socket
     /** if the socket is not connected, a Qore-language exception is thrown
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
 
         @return a hash with the following keys:
@@ -1692,7 +1825,8 @@ public:
 
     //! returns information for the current socket; the socket must be open
     /** if the socket is not open, a Qore-language exception is thrown
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
 
         @return a hash with the following keys:
         - \c hostname: the hostname of the remote end (if known or appropriate for the socket type, only performed if \a host_lookup is true)
@@ -1707,7 +1841,8 @@ public:
 
     //! returns information for the current socket; the socket must be open
     /** if the socket is not open, a Qore-language exception is thrown
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @param host_lookup do a host lookup (if this is false the \c "hostname" and \c "hostname_desc" are not present in the response hash)
 
         @return a hash with the following keys:
@@ -1805,6 +1940,18 @@ public:
 
     //! sets backwards-compatible members on accept in a new object - will be removed in a future version of qore
     DLLLOCAL void setAccept(QoreObject* o);
+
+private:
+    //! private implementation of the class
+    struct qore_socket_private *priv;
+
+    //! private constructor, not exported in the library's public interface
+    DLLLOCAL QoreSocket(int n_sock, int n_sfamily, int n_stype, int s_prot, const QoreEncoding* csid);
+
+    DLLLOCAL static void convertHeaderToHash(QoreHashNode* h, char* p);
+
+    DLLLOCAL QoreSocket(const QoreSocket&) = delete;
+    DLLLOCAL QoreSocket& operator=(const QoreSocket&) = delete;
 };
 
 class QoreSocketTimeoutHelper {

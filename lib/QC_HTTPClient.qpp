@@ -33,6 +33,7 @@
 #include <qore/QoreHttpClientObject.h>
 #include "qore/intern/QC_HTTPClient.h"
 #include "qore/intern/QC_Queue.h"
+#include "qore/intern/QC_SocketPollOperation.h"
 #include "qore/intern/ssl_constants.h"
 #include "qore/minitest.hpp"
 #include "qore/QoreSSLCertificate.h"
@@ -135,9 +136,10 @@ then the message-body SHOULD be ignored when handling the request.@endverbatim
 payload body on a GET request might cause some existing implementations to
 reject the request.@endverbatim
     .
-    Therefore we can conclude that \c GET methods do not include defined semantics, and therefore message bodies
-    included with \c GET requests \c SHOULD be ignored according to the HTTP 1.1 spec, therefore it's recommended not
-    to send a message body with a \c GET request if standards compliance and compatibility is a goal.
+    Therefore we can conclude that \c GET methods do not define any semantics for message bodies sent with the
+    request, therefore message bodies included with \c GET requests \c SHOULD be ignored according to the HTTP 1.1
+    spec, therefore it's recommended not to send a message body with a \c GET request if standards compliance and
+    compatibility are goals.
 
     @note
     - This class is not available with the @ref PO_NO_NETWORK parse option.
@@ -146,16 +148,16 @@ reject the request.@endverbatim
       path with URL-encoding as performed by @ref encode_url() "encode_url(string, True)"; for example:
       \c "http://socket=%2ftmp%socket-dir%2fsocket-file-1/url/path"; this allows a filesystem path to be used in the
       host portion of the URL and for the URL to include a URL path as well.
-    - HTTP headers should accept data in ISO-8859-1 (LATIN-1) encoding, but in practice for maximum compatibility
-      US-ASCII should be used with any non-ASCII characters encoded with MIME encoded-word format according to
-      <a href="https://tools.ietf.org/html/rfc2047">RFC 2047</a>.  This class currently only performs character
-      encoding conversion on strings used as the message body.
+    - HTTP headers should accept data in \c ISO-8859-1 (\c LATIN-1) encoding, but in practice for maximum
+      compatibility \c US-ASCII should be used with any non-ASCII characters encoded with MIME encoded-word format
+      according to <a href="https://tools.ietf.org/html/rfc2047">RFC 2047</a>.  This class currently only performs
+      character encoding conversion on strings used as the message body.
     - The default character encoding for this class is the same as the
       @ref default_encoding "default character encoding" for %Qore (normally \c UTF-8); this class does not include a
-      \c ";charset=" specification in the \c "Content-Type" header when sending binary message boundaries
+      \c ";charset=" specification in the \c "Content-Type" header when sending binary message bodies.
 
     @since %Qore 1.0 added code to add a \c ";charset=xxx" to HTTP messages with a non-ISO-8859-1 string message body
- */
+*/
 qclass HTTPClient [dom=NETWORK; arg=QoreHttpClientObject* client; vparent=Socket];
 
 //! Creates the HTTPClient object based on the option parameter passed
@@ -192,6 +194,10 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c http_version: Either \c "1.0" or \c "1.1" for the claimed HTTP protocol version compliancy in outgoing
       message headers
     - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+    - \c pre_encoded_urls: If @ref True "True" then all URI paths in URLs are assumed to be already
+      <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
+      unencoded characters are sent in a URL with a new request, an exception is raised.  Characters that must require
+      percent encoding are: <tt>{}|\\^~[]`</tt>
     - \c protocols: A hash describing new protocols, the key is the protocol name and the value is either an integer
       giving the default port number or a hash with \c "port" and \c "ssl" keys giving the default port number and a
       boolean value to indicate that an SSL connection should be established
@@ -250,6 +256,8 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - %Qore 1.10 added the following options:
       - \c ssl_cert_data
       - \c ssl_key_data
+    - %Qore 1.13 added the following option:
+      - \c pre_encoded_urls
  */
 HTTPClient::constructor(hash<auto> opts) {
     ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
@@ -289,6 +297,15 @@ HTTPClient::destructor() {
     // have to clear callbacks before destroying
     client->cleanup(xsink);
     client->deref(xsink);
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to make a non-blocking HTTP connection
+/** @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to make a non-blocking HTTP connection
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation HTTPClient::startPollConnect() {
+    return client->startPollConnect(xsink, self);
 }
 
 //! Sets the HTTP protocol version string for headers in outgoing messages, allowed values are \c "1.0" and \"1.1\".
@@ -347,9 +364,13 @@ bool HTTPClient::isSecure() [flags=CONSTANT] {
 }
 
 //! Connects to the remote socket; SSL/TLS negotiation is performed if required
-/** If the protocol indicates that a secure connection should be established (or HTTPClient::setSecure() was called previsouly), SSL/TLS negotiation will be attempted.
+/** If the protocol indicates that a secure connection should be established (or HTTPClient::setSecure() was called
+    previsouly), SSL/TLS negotiation will be attempted.
 
-    If the \c TCP_NODELAY flag has been set (see HTTPClient::setNoDelay()), then after a successful connection to the remote socket, this option will be set on the socket. If an error occurs setting the \c TCP_NODELAY option, the internal flag is set to false (use HTTPClient::getNoDelay() to check the flag's state) and the error code can be retrieved with errno().
+    If the \c TCP_NODELAY flag has been set (see HTTPClient::setNoDelay()), then after a successful connection to the
+    remote socket, this option will be set on the socket. If an error occurs setting the \c TCP_NODELAY option, the
+    internal flag is set to false (use HTTPClient::getNoDelay() to check the flag's state) and the error code can be
+    retrieved with errno().
 
     @par Example:
     @code{.py}
@@ -357,7 +378,8 @@ httpclient.connect();
     @endcode
 
     @par Events:
-    @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED, @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
+    @ref EVENT_CONNECTING, @ref EVENT_CONNECTED, @ref EVENT_HOSTNAME_LOOKUP, @ref EVENT_HOSTNAME_RESOLVED,
+    @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
     @note For possible exceptions, see the Socket::connect() method (or Socket::connectSSL() for secure connections).
  */
@@ -376,35 +398,124 @@ nothing HTTPClient::disconnect() {
     client->disconnect();
 }
 
-//! Sends an HTTP request with the specified method and optional message body and returns headers and any body received as a response in a hash format
-/** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before sending the message
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the response
+/**
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE",
+    \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a
+    \c additional_methods option.
+    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
+    @param body The message body to send; note that sending an HTTP message bosdy with a \c GET request is not
+    standards compliant; see @ref httpclient_get_with_body for more information
+    @param headers An optional hash of headers to include in the message; values are converted to strings; a list is
+    converted to a string of comma-separated values; headers that differ only in case will be overwritten by the last
+    header in the hash with a matching name with a case-insensitive search
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the
+    response; the @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" method returns
+    a hash with the following keys after a successful request and response:
+    - \c code: the HTTP response code returned
+    - \c info: a hash of information about the request with the following keys:
+      - \c request-uri: a string giving the request line (ex: <tt>PUT / HTTP/1.1</tt>)
+      - \c response-uri: a string giving the response line (ex: <tt>HTTP/1.1 200 OK</tt>)
+      - \c headers-raw: a hash of raw response headers received
+      - \c charset: the character encoding used in the response
+      - [\c body-content-type]: the Content-Type for the response body (if any)
+      - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+        each header in the response message, plus the following %Qore-provided keys:
+        - \c http_version: the HTTP version in the response URI
+        - \c status_code: the HTTP status code of the response
+        - \c status_message: the HTTP status message of the response
+    - \c request-headers: a hash of headers sent in the request
+    - [\c response-body]: a binary object of any response body
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation HTTPClient::startPollSendRecv(string method, *string path, string body, *hash<auto> headers) {
+    return client->startPollSendRecv(xsink, self, method, path, body, body->c_str(), body->size(), headers,
+        body->getEncoding());
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the response
+/**
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE",
+    \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a
+    \c additional_methods option.
+    @param path The path for the message (i.e. \c "/path/resource?method&param=value")
+    @param body The message body to send; note that sending an HTTP message bosdy with a \c GET request is not
+    standards compliant; see @ref httpclient_get_with_body for more information
+    @param headers An optional hash of headers to include in the message; values are converted to strings; a list is
+    converted to a string of comma-separated values; headers that differ only in case will be overwritten by the last
+    header in the hash with a matching name with a case-insensitive search
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send a message and receive the
+    response; the @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" method returns
+    a hash with the following keys after a successful request and response:
+    - \c code: the HTTP response code returned
+    - \c info: a hash of information about the request with the following keys:
+      - \c request-uri: a string giving the request line (ex: <tt>PUT / HTTP/1.1</tt>)
+      - \c response-uri: a string giving the response line (ex: <tt>HTTP/1.1 200 OK</tt>)
+      - \c headers-raw: a hash of raw response headers received
+      - \c charset: the character encoding used in the response
+      - [\c body-content-type]: the Content-Type for the response body (if any)
+      - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+        each header in the response message, plus the following %Qore-provided keys:
+        - \c http_version: the HTTP version in the response URI
+        - \c status_code: the HTTP status code of the response
+        - \c status_message: the HTTP status message of the response
+    - \c request-headers: a hash of headers sent in the request
+    - [\c response-body]: a binary object of any response body
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation HTTPClient::startPollSendRecv(string method, *string path, *binary body, *hash<auto> headers) {
+    return client->startPollSendRecv(xsink, self, method, path, body, body ? body->getPtr() : nullptr,
+        body ? body->size() : 0, headers);
+}
+
+//! Sends an HTTP request with the specified method and optional message body
+/** If a connection has not already been established, an internal call to HTTPClient::connect() will be made before
+    sending the message
 
     @par Example:
     @code{.py}
 hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
     @endcode
 
-    @param body The message body to send; note that sending an HTTP message bosdy with a \c GET request is not standards compliant; see @ref httpclient_get_with_body for more information
-    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE", \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a \c additional_methods option.
+    @param body The message body to send; note that sending an HTTP message bosdy with a \c GET request is not
+    standards compliant; see @ref httpclient_get_with_body for more information
+    @param method The name of the HTTP method (\c "GET", \c "POST", \c "HEAD", \c "OPTIONS", \c "PUT", \c "DELETE",
+    \c "TRACE", \c "CONNECT", or \c "PATCH"). Additional methods can be added in the constructor with the a
+    \c additional_methods option.
     @param path The path for the message (i.e. \c "/path/resource?method&param=value")
-    @param headers An optional hash of headers to include in the message; values are converted to strings; a list is converted to a string of comma-separated values; headers that differ only in case will be overwritten by the last header in the hash with a matching name with a case-insensitive search
-    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
-    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
-    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
-    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
+    @param headers An optional hash of headers to include in the message; values are converted to strings; a list is
+    converted to a string of comma-separated values; headers that differ only in case will be overwritten by the last
+    header in the hash with a matching name with a case-insensitive search
+    @param getbody If this argument is @ref True, then the object will try to receive a message body even if no
+    \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies
+    without a \c "Content-Length" header.
+    @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request
+    headers and other information about the HTTP request; this hash contains the following keys:
+    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of
+      \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to
+      the first requested character encoding in the list
+    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in
+      this key
     - \c body-content-type: the outgoing message body MIME \c Content-Type value
     - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
     - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
     - \c request-body: the raw message body in the request (before any content encoding)
     - \c response-body: the raw message body in the response (after any content decoding)
-    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+      each header in the response message, plus the following %Qore-provided keys:
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
     - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
     - \c response-uri: the HTTP response URI
 
-    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the \c "status_code" key.
+    @return The headers received from the HTTP server with all key names converted to lower-case. The message body (if
+    any) will be assigned to the value of the \c "body" key and the HTTP status will be assigned to the
+    \c "status_code" key.
 
     @throw HTTP-CLIENT-METHOD-ERROR invalid/unknown HTTP method passed
     @throw HTTP-CLIENT-REDIRECT-ERROR invalid redirect location given by remote
@@ -419,11 +530,15 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @throw SOCKET-SEND-ERROR There was an error sending the data
     @throw SOCKET-CLOSED The remote end closed the connection
     @throw SOCKET-RECV-ERROR There was an error receiving the data
-    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
+    @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout
+    period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
-    @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
+    @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or
+    Socket::connectSSL() for secure connections)
 
     @see @ref httpclient_get_with_body
 
@@ -481,6 +596,8 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
@@ -542,6 +659,8 @@ hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Co
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note
     - The \c "Transfer-Encoding: chunked" header is automatically set with this method if no \c "Transfer-Encoding" header is already present
@@ -613,6 +732,8 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
@@ -685,6 +806,8 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
@@ -748,6 +871,8 @@ httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"applicati
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
@@ -827,6 +952,8 @@ httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-T
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note For possible exceptions when implicitly establishing a connection, see the Socket::connect() method (or Socket::connectSSL() for secure connections)
 
@@ -901,6 +1028,8 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
     @throw SOCKET-TIMEOUT Data transmission or reception for a single send() or recv() action exceeded the timeout period
     @throw SOCKET-SSL-ERROR There was an SSL error while reading data from the socket
     @throw SOCKET-HTTP-ERROR Invalid HTTP data was received
+    @throw URL-ENCODING-ERROR Thrown if the \c pre_encoded_urls option is set, and the URL has at least one unencoded
+    character that requires URL percent encoding
 
     @note
     - The \c "Transfer-Encoding: chunked" header is automatically set with this method if no \c "Transfer-Encoding" header is already present
@@ -1308,7 +1437,7 @@ nothing HTTPClient::setProxyURL(string url) {
     @see getSafeProxyURL()
 */
 *string HTTPClient::getProxyURL() [flags=CONSTANT] {
-   return client->getProxyURL();
+    return client->getProxyURL();
 }
 
 //! Returns the current proxy URL without the password field
@@ -1327,7 +1456,6 @@ nothing HTTPClient::setProxyURL(string url) {
 *string HTTPClient::getSafeProxyURL() [flags=CONSTANT] {
     return client->getSafeProxyURL();
 }
-
 
 //! Clears the new proxy URL value for the next connection
 /**
@@ -1947,4 +2075,44 @@ string str = httpclient.getAssumedEncoding();
 */
 string HTTPClient::getAssumedEncoding() [flags=RET_VALUE_ONLY] {
     return client->getAssumedEncoding();
+}
+
+//! set the pre-encoded URL flag
+/** @par Example:
+    @code{.py}
+httpclient.setPreEncodedUrls();
+    @endcode
+
+    @param set if @ref True "True" then all URI paths in URLs are assumed to be already
+    <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
+    unencoded characters are sent in a URL with a new request, an exception is raised.
+
+    @return the old \c pre_encoded_urls value
+
+    If @ref True "True" then all URI paths in URLs are assumed to be already
+    <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
+    unencoded characters are sent in a URL with a new request, an exception is raised.
+
+    @since %Qore 1.13.0
+*/
+bool HTTPClient::setPreEncodedUrls(bool set = True) {
+    return client->setPreEncodedUrls(set);
+}
+
+//! get the pre-encoded URL flag
+/** @par Example:
+    @code{.py}
+bool b = httpclient.getPreEncodedUrls();
+    @endcode
+
+    @return the current \c pre_encoded_urls value
+
+    If @ref True "True" then all URI paths in URLs are assumed to be already
+    <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
+    unencoded characters are sent in a URL with a new request, an exception is raised.
+
+    @since %Qore 1.13.0
+*/
+bool HTTPClient::getPreEncodedUrls() [flags=CONSTANT] {
+    return client->getPreEncodedUrls();
 }

@@ -25,31 +25,51 @@
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! describes a data type based on a hash
-public class ListDataType inherits AbstractDataProviderType {
+public class ListDataType inherits QoreDataType {
     private {
         #! the name of the type
         string name;
 
         #! element type
         AbstractDataProviderType element_type;
+    }
 
-        #! hash of base types accepted by this type; keys are type names
-        *hash<string, bool> accept_type_hash;
-
-        #! hash of base types returned by this type; keys are type names
-        *hash<string, bool> return_type_hash;
+    #! creates the object
+    private constructor(string name, Type qelement_type, AbstractDataProviderType element_type, bool or_nothing,
+            *hash<auto> options, *hash<auto> tags)
+            : QoreDataType(qelement_type, options, tags) {
+        self.name = name;
+        self.element_type = element_type;
     }
 
     #! creates the object
     constructor(AbstractDataProviderType element_type, bool or_nothing = False, *hash<auto> options,
-            *hash<auto> tags) : AbstractDataProviderType(options, tags) {
-        init(element_type, or_nothing);
+            *hash<auto> tags)
+            : QoreDataType(ListDataType::getQoreType(element_type.getValueType(), or_nothing), options, tags) {
+        name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
+        self.element_type = element_type;
     }
 
     #! creates the object
     constructor(Type element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
-            : AbstractDataProviderType(options, tags) {
-        init(AbstractDataProviderType::get(element_type), or_nothing);
+            : QoreDataType(ListDataType::getQoreType(element_type, or_nothing), options, tags) {
+        name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
+        self.element_type = AbstractDataProviderType::get(element_type);
+    }
+
+    #! creates the object
+    constructor(string name, AbstractDataProviderType element_type, bool or_nothing = False, *hash<auto> options,
+            *hash<auto> tags)
+            : QoreDataType(ListDataType::getQoreType(element_type.getValueType(), or_nothing), options, tags) {
+        self.name = name;
+        self.element_type = element_type;
+    }
+
+    #! creates the object
+    constructor(string name, Type element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
+            : QoreDataType(ListDataType::getQoreType(element_type, or_nothing), options, tags) {
+        self.name = name;
+        self.element_type = AbstractDataProviderType::get(element_type);
     }
 
     #! returns the type name
@@ -65,7 +85,7 @@ public class ListDataType inherits AbstractDataProviderType {
 
     #! returns the base type for the type, if any
     *Type getValueType() {
-        return accept_type_hash{Type::NothingType} ? AutoListOrNothingType : AutoListType;
+        return type;
     }
 
     #! returns the subtype (for lists or hashes) if there is only one
@@ -88,35 +108,24 @@ public class ListDataType inherits AbstractDataProviderType {
         return return_type_hash;
     }
 
-    #! returns the value if the value can be assigned to the type
-    /** @param value the value to assign to the type
-
-        @return the value to be assigned; can be converted by the type
-
-        @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+    #! Returns an "or nothing" type equivalent to the current type
+    /** @return an "or nothing" type equivalent to the current type
     */
-    auto acceptsValue(auto value) {
-        string typename = value.type();
-        if (!accept_type_hash{typename}) {
-            throw "RUNTIME-TYPE-ERROR", sprintf("type %y does not accept values of type %y", getName(),
-                value.fullType());
+    AbstractDataProviderType getOrNothingType() {
+        if (or_nothing_type) {
+            return self;
         }
-        if (typename == Type::List) {
-            return map element_type.acceptsValue($1), value;
+        # recursively return "or nothing" typed fields in any case
+        ListDataType rv = QoreDataType::getOrNothingType();
+        if (name !~ /^\*/) {
+            rv.name = "*" + name;
         }
+        return rv;
     }
 
-    #! common constructor initialization
-    private init(AbstractDataProviderType element_type, bool or_nothing) {
-        name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
-        self.element_type = element_type;
-        accept_type_hash = return_type_hash = {
-            Type::List: True,
-        };
-        if (or_nothing) {
-            accept_type_hash{Type::NothingType} = True;
-            return_type_hash{Type::NothingType} = True;
-        }
+    #! Returns the underlying %Qore type for this type
+    private Type getQoreType(Type element_type, bool or_nothing) {
+        return new Type(sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName()));
     }
 }
 }

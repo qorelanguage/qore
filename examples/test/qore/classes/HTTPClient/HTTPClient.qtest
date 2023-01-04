@@ -74,13 +74,14 @@ class HttpTestServer {
 class TestStreamRequest inherits AbstractStreamRequest {
     private:internal {
         hash<auto> strhdr;
-        string data;
+        data data;
 
         list<auto> l = ();
     }
 
     # setup the object and the headers for the response
-    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash<auto> cx, hash<auto> hdr, auto body)
+    constructor(HttpListenerInterface listener, AbstractHttpRequestHandler handler, Socket s, hash<auto> cx,
+            hash<auto> hdr, auto body)
             : AbstractStreamRequest(listener, handler, s, cx, hdr, body) {
         strhdr."Content-Type" = hdr."content-type";
         if (hdr."transfer-encoding" == "chunked")
@@ -88,15 +89,22 @@ class TestStreamRequest inherits AbstractStreamRequest {
     }
 
     recvImpl(hash<auto> v) {
-        if (v.data)
+        if (v.data) {
             data += v.data;
-        else if (v.hdr)
+        } else if (v.hdr) {
             strhdr += v.hdr;
+        }
         l += v;
     }
 
-    hash<HttpResponseInfo> getResponseHeaderMessageImpl() {
-        #printf("l: %N\n", l);
+    private auto sendImpl() {
+        if (!data) {
+            return {};
+        }
+        return extract data, 0, 4096;
+    }
+
+    hash<HttpHandlerResponseInfo> getResponseHeaderMessageImpl() {
         hash<auto> hdr = strhdr + {
             "X-Got-Chunks": l.size() - 1,
         };
@@ -104,7 +112,19 @@ class TestStreamRequest inherits AbstractStreamRequest {
         if (self.hdr.method == "HEAD") {
             hdr."Transfer-Encoding" = "chunked";
         }
-        return AbstractHttpRequestHandler::makeResponse(hdr, 200, data ?? "OK");
+        if (!data) {
+            data = (self.hdr.path =~ x/\?(.*)/)[0] ?* "OK";
+        }
+        hash<HttpHandlerResponseInfo> rv = <HttpHandlerResponseInfo>{
+            "code": 200,
+            "hdr": hdr,
+        };
+        if (self.hdr."x-do-chunked-response") {
+            rv.hdr."Transfer-Encoding" = "chunked";
+        } else {
+            rv.body = data;
+        }
+        return rv;
     }
 }
 
@@ -139,7 +159,8 @@ class EchoHandler inherits AbstractHttpRequestHandler {
     }
 
     # return the stream request handler
-    AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash<auto> cx, hash<auto> hdr, *data body) {
+    AbstractStreamRequest getStreamRequestImpl(HttpListenerInterface listener, Socket s, hash<auto> cx,
+            hash<auto> hdr, *data body) {
         # test for #1824
         if (body.typeCode() == NT_STRING && (body.encoding() !~ /iso-8859-1/i) &&
                 !regex(hdr._qore_orig_content_type, body.encoding(), RE_Caseless)) {
@@ -180,7 +201,7 @@ class RealTestHttpServer inherits HttpServer {
     hash<HttpServerOptionInfo> getOptions() {
         Logger logger("test", LoggerLevel::getLevelInfo());
         if (Main::verbose > 2) {
-            logger.addAppender(new TestAppender());
+            logger.addAppender(new StdoutAppender());
         }
         return <HttpServerOptionInfo>{
             "logger": logger,
@@ -346,12 +367,21 @@ qibte1W+dyK5IZEpk3f081N6GegIv+ulzcdcedp4oRCtaOUBziqSlZqXXkoiFyQ4
 P1CvlJwL79QntIvjfC5nRMHwMy2wE6Eqt57sFlUnvD25CbbX/TNDSNqXhXQbYaCZ
 I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
 -----END CERTIFICATE-----";
+
+        const MyOpts = {
+            "proxy": "P,proxy=s",
+        } + Opts;
+
+        const OptionColumn = 22;
     }
 
-    constructor() : Test("HttpClientTest", "1.0") {
+    constructor() : Test("HttpClientTest", "1.0", \ARGV, MyOpts) {
         if (m_options.verbose) {
             verbose = m_options.verbose;
         }
+        addTestCase("pre-encoded-urls", \preEncodedUrlsTest());
+        addTestCase("poll proxy test", \pollProxyTest());
+        addTestCase("poll test", \pollTest());
         addTestCase("chunked HEAD test", \chunkedHeadTest());
         addTestCase("assume encoding", \assumedEncoding());
         addTestCase("chunked disconnect test", \chunkedDisconnectTest());
@@ -363,6 +393,315 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         addTestCase("SSL read test", \sslReadTest());
         addTestCase("issue 2610", \issue2610());
         set_return_value(main());
+    }
+
+   private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-P,--proxy=ARG", "the proxy to use for proxy tests", OptionColumn);
+    }
+
+    preEncodedUrlsTest() {
+        RealTestHttpServer serv();
+        on_exit delete serv;
+
+        HTTPClient hc({
+            "url": "http://localhost:" + serv.getPort(),
+            "pre_encoded_urls": True,
+        });
+        hc.connect();
+
+        assertTrue(hc.getPreEncodedUrls());
+
+        assertEq("hello[]", hc.send(NOTHING, "PUT", "?hello%5B%5D").body);
+
+        assertThrows("URL-ENCODING-ERROR", "\\?hello\\[\\]", \hc.send(), (NOTHING, "PUT", "?hello[]"));
+
+        assertTrue(hc.setPreEncodedUrls());
+        assertTrue(hc.setPreEncodedUrls(False));
+        assertFalse(hc.getPreEncodedUrls());
+
+        assertEq("hello[]", hc.send(NOTHING, "PUT", "?hello[]").body);
+        assertEq("hello%5B%5D", hc.send(NOTHING, "PUT", "?hello%5B%5D").body);
+    }
+
+    pollProxyTest() {
+        #m_options.proxy = "http://198.59.191.234:8080"; #"http://75.119.130.35:3128";
+        if (!m_options.proxy) {
+            testSkip("no proxy set");
+        }
+
+        {
+            HTTPClient hc({
+                "url": "http://hq.qoretechnologies.com",
+                "proxy": m_options.proxy,
+            });
+
+            SocketPollOperation spop = hc.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+            assertNothing(spop.getOutput());
+
+            hc.disconnect();
+            spop = hc.startPollSendRecv("GET", "/");
+            assertEq("received", spop.getGoal());
+            assertEq("connecting", spop.getState());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            hash<auto> h = spop.getOutput();
+            assertEq(200, h."code");
+
+            spop = hc.startPollSendRecv("GET", "/");
+            assertEq("received", spop.getGoal());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+        }
+
+        {
+            HTTPClient hc({
+                "url": "https://hq.qoretechnologies.com",
+                "proxy": m_options.proxy,
+            });
+
+            SocketPollOperation spop = hc.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+            hash<auto> h = spop.getOutput();
+            assertEq(200, h."code");
+
+            hc.disconnect();
+            spop = hc.startPollSendRecv("GET", "/");
+            assertEq("received", spop.getGoal());
+            assertEq("connecting", spop.getState());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+
+            spop = hc.startPollSendRecv("GET", "/");
+            assertEq("received", spop.getGoal());
+
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+        }
+    }
+
+    pollTest() {
+        {
+            RealTestHttpServer serv();
+            on_exit delete serv;
+
+            {
+                Socket tmp();
+                if (tmp.bind("localhost:0", True)) {
+                    throw "SOCKET-BIND-ERROR", strerror();
+                }
+                tmp.listen();
+                int port = tmp.getSocketInfo().port;
+                tmp.close();
+                tmp.shutdown();
+
+                HTTPClient hc({
+                    "url": "https://localhost:" + port,
+                });
+
+                SocketPollOperation spop = hc.startPollConnect();
+                assertEq("connect", spop.getGoal());
+                assertEq("connecting", spop.getState());
+                assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+            }
+
+            HTTPClient hc({
+                "url": "http://localhost:" + serv.getPort(),
+            });
+
+            SocketPollOperation spop = hc.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+            assertNothing(spop.getOutput());
+
+            hc.disconnect();
+
+            string msg = get_random_string(100);
+            assertEq(msg, hc.send(msg, "PUT").body);
+
+            spop = hc.startPollSendRecv("PUT", "/", msg);
+            assertEq("received", spop.getGoal());
+            assertEq("sending", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            hash<auto> h = spop.getOutput();
+            on_error printf("h: %N\n", h);
+            assertEq(200, h."code");
+
+            binary bigmsg = get_random_bytes(10 * 1024 * 1024);
+            assertEq(bigmsg, binary(hc.send(bigmsg, "PUT", "/", {"Content-Type": MimeTypeOctetStream}).body));
+
+            spop = hc.startPollSendRecv("PUT", "/", bigmsg, {"Content-Type": MimeTypeOctetStream});
+            assertEq("received", spop.getGoal());
+            assertEq("sending", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+            assertEq(bigmsg.size(), h."response-body".size());
+            assertEq(bigmsg, h."response-body");
+
+            spop = hc.startPollSendRecv("PUT", "/", bigmsg, {
+                "Content-Type": MimeTypeOctetStream,
+                "X-Do-Chunked-Response": "True",
+            });
+            assertEq("received", spop.getGoal());
+            assertEq("sending", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("send/recv info: %y (state: %y)\n", info, spop.getState());
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+            assertEq("chunked", h.info."response-headers"."transfer-encoding");
+            assertEq(bigmsg.size(), h."response-body".size());
+            assertEq(bigmsg, h."response-body");
+        }
+        {
+            TempFile cert("cert.pem", TestCert);
+
+            RealTestHttpServer serv(cert.getPath(), cert.getPath());
+            on_exit delete serv;
+
+            HTTPClient hc({
+                "url": "https://localhost:" + serv.getPort(),
+            });
+
+            SocketPollOperation spop = hc.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+            assertNothing(spop.getOutput());
+
+            hc.disconnect();
+
+            string msg = get_random_string(100);
+            assertEq(msg, hc.send(msg, "PUT").body);
+
+            spop = hc.startPollSendRecv("PUT", "/", msg);
+            assertEq("received", spop.getGoal());
+            assertEq("sending", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            hash<auto> h = spop.getOutput();
+            on_error printf("h: %N\n", h);
+            assertEq(200, h."code");
+            assertEq(msg, h."response-body".toString());
+
+            binary bigmsg = get_random_bytes(10 * 1024 * 1024);
+            assertEq(bigmsg, binary(hc.send(bigmsg, "PUT", "/", {"Content-Type": MimeTypeOctetStream}).body));
+
+            spop = hc.startPollSendRecv("PUT", "/", bigmsg, {"Content-Type": MimeTypeOctetStream});
+            assertEq("received", spop.getGoal());
+            assertEq("sending", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+            assertEq(bigmsg.size(), h."response-body".size());
+
+            spop = hc.startPollSendRecv("PUT", "/", bigmsg, {
+                "Content-Type": MimeTypeOctetStream,
+                "X-Do-Chunked-Response": "True",
+            });
+            assertEq("received", spop.getGoal());
+            assertEq("sending", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("send/recv info: %y (state: %y)\n", info, spop.getState());
+                Socket::poll((info,), 1s);
+            }
+            assertEq("received", spop.getState());
+            assertTrue(spop.goalReached());
+            h = spop.getOutput();
+            assertEq(200, h."code");
+            assertEq("chunked", h.info."response-headers"."transfer-encoding");
+            assertEq(bigmsg.size(), h."response-body".size());
+            assertEq(bigmsg, h."response-body");
+
+            spop = hc.startPollSendRecv("PUT", "/", msg);
+            assertEq("received", spop.getGoal());
+            assertEq("sending", spop.getState());
+            hc.disconnect();
+            assertThrows("SOCKET-NOT-OPEN", \spop.continuePoll());
+            delete spop;
+
+            spop = hc.startPollSendRecv("PUT", "/", msg);
+            assertEq("received", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            delete hc;
+            assertThrows("OBJECT-ALREADY-DELETED", \spop.continuePoll());
+        }
     }
 
     assumedEncoding() {
@@ -878,19 +1217,5 @@ class TempFile {
 
     string getPath() {
         return path;
-    }
-}
-
-class TestAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
-        open();
-    }
-
-    processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_LOG:
-                print(params);
-                break;
-        }
     }
 }

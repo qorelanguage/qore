@@ -11,7 +11,7 @@ dummy:
 	echo "Build started!"
 
 EXTRA_INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_builddir)/lib
-libqore_la_LDFLAGS = -version-info 12:3:0 -no-undefined ${QORE_LIB_LDFLAGS}
+libqore_la_LDFLAGS = -version-info 14:0:2 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = $(EXTRA_INCLUDES) ${QORE_LIB_CPPFLAGS}
 AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
 AM_YFLAGS = -d
@@ -65,7 +65,8 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_TreeMap.cpp \
 	QC_AbstractDatasource.cpp \
 	QC_AbstractSQLStatement.cpp \
-	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp QC_ProgramControl.cpp QC_Program.cpp QC_DebugProgram.cpp QC_Breakpoint.cpp \
+	QC_Datasource.cpp QC_DatasourcePool.cpp QC_SQLStatement.cpp QC_Dir.cpp \
+    QC_ProgramControl.cpp QC_Program.cpp QC_DebugProgram.cpp QC_Breakpoint.cpp \
 	QC_Expression.cpp \
 	QC_GetOpt.cpp QC_TermIOS.cpp QC_TimeZone.cpp QC_SSLCertificate.cpp QC_SSLPrivateKey.cpp \
 	QC_AbstractThreadResource.cpp \
@@ -80,6 +81,11 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
 	QC_Transform.cpp QC_TransformInputStream.cpp QC_TransformOutputStream.cpp \
 	QC_StdoutOutputStream.cpp QC_StderrOutputStream.cpp \
 	QC_Serializable.cpp \
+    QC_AbstractPollableIoObject.cpp \
+    QC_AbstractPollableIoObjectBase.cpp \
+    QC_AbstractPollOperation.cpp \
+    QC_SocketPollOperationBase.cpp \
+    QC_SocketPollOperation.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_pwd.cpp ql_object.cpp \
 	ql_dbi.cpp ql_context.cpp ql_env.cpp ql_type.cpp \

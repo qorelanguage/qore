@@ -1,0 +1,29 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class getSafeUrlTest
+
+public class getSafeUrlTest inherits QUnit::Test {
+    constructor() : Test("get_safe_url test", "1.0") {
+        addTestCase("main test", \mainTest());
+
+        # Return for compatibility with test harnesses that check the return value
+        set_return_value(main());
+    }
+
+    mainTest() {
+        assertEq("https://user:<masked>@site:8001/path", get_safe_url("https://user:password@site:8001/path"));
+        assertEq("https://user:<masked>@site:8001", get_safe_url("https://user:password@site:8001"));
+
+        assertEq("user:<masked>@site:8001/path", get_safe_url("user:password@site:8001/path"));
+        assertEq("user:<masked>@:8001/path", get_safe_url("user:pass@:8001/path"));
+        assertEq(":<masked>@:8001/path", get_safe_url(":pass@:8001/path"));
+    }
+}

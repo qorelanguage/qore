@@ -49,19 +49,8 @@ class Queue;
 /** thread-safe, uses QoreSocket for socket communication
  */
 class QoreHttpClientObject : public QoreSocketObject {
-private:
-    //! private implementation of the class
-    struct qore_httpclient_priv* http_priv;
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreHttpClientObject(const QoreHttpClientObject&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreHttpClientObject& operator=(const QoreHttpClientObject&);
-
-protected:
-    DLLEXPORT void lock();
-    DLLEXPORT void unlock();
+    friend struct qore_httpclient_priv;
+    friend class HttpClientConnectSendRecvPollOperation;
 
 public:
     //! creates the QoreHttpClientObject object
@@ -70,11 +59,24 @@ public:
     //! destroys the object and frees all associated memory
     DLLEXPORT virtual ~QoreHttpClientObject();
 
+    //! Starts a socket connect poll operation
+    /** @since %Qore 1.12
+    */
+    DLLEXPORT QoreObject* startPollConnect(ExceptionSink* xsink, QoreObject* self);
+
+    //! Starts a non-blocking, polling HTTP send/receive operation
+    /** @since %QOre 1.12
+    */
+    DLLEXPORT QoreObject* startPollSendRecv(ExceptionSink* xsink, QoreObject* self, const QoreString* method,
+            const QoreString* path, const AbstractQoreNode* data_save, const void* data, size_t size,
+            const QoreHashNode* headers, const QoreEncoding* enc = nullptr);
+
     //! set options with a hash, returns -1 if an exception was thrown, 0 for OK
     /** options are:
-        - protocols: a hash where each key is a protocol name and the value must be set to a integer giving a port number or a hash having the following keys:
-        - port: giving the port number
-        - ssl: giving a boolean true or false value
+        - protocols: a hash where each key is a protocol name and the value must be set to a integer giving a port
+          number or a hash having the following keys:
+          - port: giving the port number
+          - ssl: giving a boolean true or false value
         - max_redirects: sets the max_redirects option
         - default_port: sets the default port number
         - proxy: sets the proxy URL
@@ -83,9 +85,12 @@ public:
         - timeout: sets the connection or response packet timeout value in milliseconds
         - http_version: either "1.0" or "1.1" to set the default HTTP version to use
         - connect_timeout: an integer giving the timeout value for new socket connections in milliseconds
+
         @note this function is unlocked and designed only to be called with the constructor
+
         @param opts the options to set for the object
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return -1 if an exception was thrown, 0 for OK
     */
     DLLEXPORT int setOptions(const QoreHashNode* opts, ExceptionSink* xsink);
@@ -162,13 +167,13 @@ public:
     */
     DLLEXPORT int setURL(const char* url, ExceptionSink* xsink);
 
-    //! returns the connection parameters as a URL, caller owns the reference count returned
+    //! returns the connection parameters as a URL
     /**
         @return the connection parameters as a URL, caller owns the reference count returned
     */
     DLLEXPORT QoreStringNode* getURL();
 
-    //! returns the connection parameters as a URL without any password, caller owns the reference count returned
+    //! returns the connection parameters as a URL without any password
     /**
         @return the connection parameters as a URL without any password, caller owns the reference count returned
 
@@ -193,13 +198,13 @@ public:
     */
     DLLEXPORT int setProxyURL(const char* proxy, ExceptionSink* xsink);
 
-    //! returns the proxy connection parameters as a URL (or 0 if there is none), caller owns the reference count returned
+    //! returns the proxy connection parameters as a URL (or 0 if there is none)
     /**
         @return the proxy connection parameters as a URL, caller owns the reference count returned
     */
     DLLEXPORT QoreStringNode* getProxyURL();
 
-    //! returns the proxy connection parameters as a URL without any password (or 0 if there is none), caller owns the reference count returned
+    //! returns the proxy connection parameters as a URL without any password (or 0 if there is none)
     /**
         @return the proxy connection parameters as a URL without any password, caller owns the reference count returned
 
@@ -212,8 +217,9 @@ public:
 
     //! sets the username and password for the proxy connection
     /** @param user the username to set
-         @param pass the password to set
-        @note these settings will only take effect if a proxy URL is set, so it only makes sense to call this function after setProxyURL(); also setProxyURL() will overwrite any settings here.
+        @param pass the password to set
+        @note these settings will only take effect if a proxy URL is set, so it only makes sense to call this function
+        after setProxyURL(); also setProxyURL() will overwrite any settings here.
     */
     DLLEXPORT void setProxyUserPassword(const char* user, const char* pass);
 
@@ -240,103 +246,118 @@ public:
 
     //! opens a connection and returns a code giving the result
     /** @return -1 if an exception was thrown, 0 for OK
-        */
+    */
     DLLEXPORT int connect(ExceptionSink* xsink);
 
     //! disconnects from the remote server
     DLLEXPORT void disconnect();
 
-    //! sends a message to the remote server and returns the entire response as a hash, caller owns the QoreHashNode reference returned
+    //! sends a message to the remote server and returns the entire response as a hash
     /** possible errors: method not recognized, redirection errors, socket communication errors, timeout errors
+
         @param meth the HTTP method name to send
         @param path the path string to send in the header
         @param headers a hash of headers to add to the message
         @param data optional data to send (may be 0)
         @param size the byte length of the data to send (if this is 0 then no data is sent)
         @param getbody if true then a body will be read even if there is no "Content-Length:" header
-        @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
+        @param info if not 0 then additional information about the HTTP communication will be added to the hash
+        (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted
+        with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
         @param xsink if an error occurs, the Qore-language exception information will be added here
+
         @return the entire response as a hash, caller owns the QoreHashNode reference returned (0 if there was an error)
     */
     DLLEXPORT QoreHashNode* send(const char* meth, const char* path, const QoreHashNode* headers, const void* data,
-        unsigned size, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
+            unsigned size, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
 
     DLLEXPORT QoreHashNode* send(const char* meth, const char* path, const QoreHashNode* headers,
-        const QoreStringNode& body, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
+            const QoreStringNode& body, bool getbody, QoreHashNode* info, ExceptionSink* xsink);
 
     DLLEXPORT QoreHashNode* sendWithSendCallback(const char* meth, const char* mpath, const QoreHashNode* headers,
-        const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms,
-        ExceptionSink* xsink);
+            const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms,
+            ExceptionSink* xsink);
 
     DLLEXPORT void sendWithRecvCallback(const char* meth, const char* mpath, const QoreHashNode* headers,
-        const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms,
-        const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
+            const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms,
+            const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
 
     DLLEXPORT void sendWithRecvCallback(const char* meth, const char* mpath, const QoreHashNode* headers,
-        const QoreStringNode& body, bool getbody, QoreHashNode* info, int timeout_ms,
-        const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
+            const QoreStringNode& body, bool getbody, QoreHashNode* info, int timeout_ms,
+            const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
 
     DLLEXPORT void sendWithCallbacks(const char* meth, const char* mpath, const QoreHashNode* headers,
-        const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms,
-        const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
+            const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info, int timeout_ms,
+            const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, ExceptionSink* xsink);
 
     //! make an HTTP request and receive the response to an OutputStream
     /** @since %Qore 0.8.13
     */
     DLLEXPORT void sendWithOutputStream(const char* meth, const char* mpath, const QoreHashNode* headers,
-        const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms,
-        const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, ExceptionSink* xsink);
+            const void* data, unsigned size, bool getbody, QoreHashNode* info, int timeout_ms,
+            const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, ExceptionSink* xsink);
 
     //! make an HTTP request and receive the response to an OutputStream
     /** @since %Qore 0.9.4
     */
     DLLEXPORT void sendWithOutputStream(const char* meth, const char* mpath, const QoreHashNode* headers,
-        const QoreStringNode& body, bool getbody, QoreHashNode* info, int timeout_ms,
-        const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, ExceptionSink* xsink);
+            const QoreStringNode& body, bool getbody, QoreHashNode* info, int timeout_ms,
+            const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os, ExceptionSink* xsink);
 
     //! send a chunked HTTP message through an InputStream and receive the response to an OutputStream
     /** @since %Qore 0.8.13
     */
     DLLEXPORT void sendChunked(const char* meth, const char* mpath, const QoreHashNode* headers, bool getbody,
-        QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj,
-        OutputStream *os, InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback,
-        ExceptionSink* xsink);
+            QoreHashNode* info, int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj,
+            OutputStream *os, InputStream* is, size_t max_chunk_size,
+            const ResolvedCallReferenceNode* trailer_callback, ExceptionSink* xsink);
 
-    //! sends an HTTP "GET" method and returns the value of the message body returned, the caller owns the AbstractQoreNode reference returned
+    //! sends an HTTP "GET" method and returns the value of the message body returned
     /** if you need to get all the headers received, then use QoreHttpClientObject::send() instead
         @param path the path string to send in the header
         @param headers a hash of headers to add to the message
-        @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
+        @param info if not 0 then additional information about the HTTP communication will be added to the hash
+        (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted
+        with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
         @param xsink if an error occurs, the Qore-language exception information will be added here
 
-        @return the body of the response message, caller owns the QoreHashNode reference returned (0 if there was an error or no body returned)
+        @return the body of the response message, caller owns the QoreHashNode reference returned (0 if there was an
+        error or no body returned)
     */
-    DLLEXPORT AbstractQoreNode* get(const char* path, const QoreHashNode* headers, QoreHashNode* info, ExceptionSink* xsink);
+    DLLEXPORT AbstractQoreNode* get(const char* path, const QoreHashNode* headers, QoreHashNode* info,
+            ExceptionSink* xsink);
 
     //! sends an HTTP "HEAD" method and returns the headers returned, the caller owns the QoreHashNode reference returned
     /** @param path the path string to send in the header
         @param headers a hash of headers to add to the message
-        @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
+        @param info if not 0 then additional information about the HTTP communication will be added to the hash
+        (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted
+        with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
         @param xsink if an error occurs, the Qore-language exception information will be added here
 
         @return the entire response as a hash, caller owns the QoreHashNode reference returned (0 if there was an error)
     */
-    DLLEXPORT QoreHashNode* head(const char* path, const QoreHashNode* headers, QoreHashNode* info, ExceptionSink* xsink);
+    DLLEXPORT QoreHashNode* head(const char* path, const QoreHashNode* headers, QoreHashNode* info,
+            ExceptionSink* xsink);
 
-    //! sends an HTTP "POST" message to the remote server and returns the message body of the response, caller owns the AbstractQoreNode reference returned
+    //! sends an HTTP "POST" message to the remote server and returns the message body of the response
     /** possible errors: method not recognized, redirection errors, socket communication errors, timeout errors
         @param path the path string to send in the header
         @param headers a hash of headers to add to the message
         @param data optional data to send (should not be 0 for a POST)
         @param size the byte length of the data to send (if this is 0 then no data is sent)
-        @param info if not 0 then additional information about the HTTP communication will be added to the hash (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
+        @param info if not 0 then additional information about the HTTP communication will be added to the hash
+        (key-value pairs), keys "headers", and optionally "redirect-#", "redirect-message-#" (where # is substituted
+        with the redirect sequence number), and "chunked" (boolean, present only if the response was chunked)
         @param xsink if an error occurs, the Qore-language exception information will be added here
 
-        @return the body of the response message, caller owns the QoreHashNode reference returned (0 if there was an error or no body returned)
+        @return the body of the response message, caller owns the QoreHashNode reference returned (0 if there was an
+        error or no body returned)
     */
-    DLLEXPORT AbstractQoreNode* post(const char* path, const QoreHashNode* headers, const void* data, unsigned size, QoreHashNode* info, ExceptionSink* xsink);
+    DLLEXPORT AbstractQoreNode* post(const char* path, const QoreHashNode* headers, const void* data, unsigned size,
+            QoreHashNode* info, ExceptionSink* xsink);
 
-    //! sends an HTTP "POST" message to the remote server and returns the message body of the response, caller owns the AbstractQoreNode reference returned
+    //! sends an HTTP "POST" message to the remote server and returns the message body of the response
     /** possible errors: method not recognized, redirection errors, socket communication errors, timeout errors
         @param path the path string to send in the header
         @param headers a hash of headers to add to the message
@@ -350,7 +371,7 @@ public:
         error or no body returned)
     */
     DLLEXPORT AbstractQoreNode* post(const char* path, const QoreHashNode* headers, const QoreStringNode& body,
-        QoreHashNode* info, ExceptionSink* xsink);
+            QoreHashNode* info, ExceptionSink* xsink);
 
     //! sets the value of a default header to send with every outgoing message
     /**
@@ -420,7 +441,8 @@ public:
     DLLEXPORT void setPersistent(ExceptionSink* xsink);
 
     DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
-    DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg, int64 min_ms = 1000);
+    DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg,
+            int64 min_ms = 1000);
     DLLEXPORT QoreHashNode* getUsageInfo() const;
     DLLEXPORT void clearStats();
 
@@ -469,9 +491,33 @@ public:
     */
     DLLEXPORT QoreStringNode* getAssumedEncoding() const;
 
+    //! sets the new and returns the old pre_encoded_urls flag
+    /** @since %Qore 1.13.0
+     */
+    DLLEXPORT bool setPreEncodedUrls(bool set);
+
+    //! returns the current pre_encoded_urls flag
+    /** @since %Qore 1.13.0
+     */
+    DLLEXPORT bool getPreEncodedUrls() const;
+
     DLLLOCAL static void static_init();
 
     DLLLOCAL void cleanup(ExceptionSink* xsink);
+
+protected:
+    DLLEXPORT void lock();
+    DLLEXPORT void unlock();
+
+private:
+    //! private implementation of the class
+    struct qore_httpclient_priv* http_priv;
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreHttpClientObject(const QoreHttpClientObject&);
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreHttpClientObject& operator=(const QoreHttpClientObject&);
 };
 
 #endif

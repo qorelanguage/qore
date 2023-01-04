@@ -393,7 +393,7 @@ Qore::TransformOutputStream ts(of, get_decryptor(Qore::CRYPTO_ALG_BLOWFISH));
 
     @since %Qore 0.8.13
  */
-//@{
+///@{
 //! Identifies the <a href="http://www.counterpane.com/blowfish.html">blowfish cryptographic algorithm</a> in <a href="http://en.wikipedia.org/wiki/Cipher_block_chaining#Cipher-block_chaining_.28CBC.29">Cipher Block Chaining (CBC)</a> mode with a variable-length key
 /** This algorithm supports a variable-length key and does not support a <a href="https://en.wikipedia.org/wiki/Message_authentication_code">Message Authentication Code (MAC)</a> or Additional Authenticated Data (AAD).
  */
@@ -578,7 +578,7 @@ const CRYPTO_ALG_AES_192 = "aes192";
     - This algorithm also supports Additional Authenticated Data for encryption and decryption
  */
 const CRYPTO_ALG_AES_256 = "aes256";
-//@}
+///@}
 
 //! @qppinit: SimpleRefHolder<BinaryNode> DefaultIV(new BinaryNode); DefaultIV->append(def_iv, 8);
 //! @qppval: Qore::DefaultIV=DefaultIV->refSelf()
@@ -588,10 +588,10 @@ const CRYPTO_ALG_AES_256 = "aes256";
 
     @see @ref crypto_transformations for constants related to cryptographic algorithms
  */
-//@{
+///@{
 //! The default initialization vector is simply a 8-byte string of nulls
 const DefaultIV = <0000000000000000>;
-//@}
+///@}
 
 /** @defgroup digest_algorithms Crytographic Digest Algorithms
 
@@ -610,7 +610,7 @@ Qore::TransformOutputStream ts(of, get_decryptor(Qore::CRYPTO_ALG_BLOWFISH));
 
     @since %Qore 0.9.3
  */
-//@{
+///@{
 //! specifies the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a>
 /**
 */
@@ -692,7 +692,7 @@ const DigestMap = qore(init_digest_map_hash());
     @since %Qore 1.4
 */
 const CipherMap = qore(init_cipher_map_hash());
-//@}
+///@}
 
 /** @defgroup cryptographic_functions Cryptographic Functions
     %Qore's cryptography support is provided by the OpenSSL library. Each of the encryption and decryption functions in this section accept an optional initialization vector, which is data used as initial input for the first block in chained encryption algorithms. Subsequent blocks take input from the last block encrypted/decrypted. If an initialization vector is not supplied, a default value of 8 zero bytes will be used (see @ref Qore::DefaultIV).
@@ -727,7 +727,7 @@ binary sub get_key(int size) {
     - @ref Qore::get_decryptor()
     - @ref Qore::get_encryptor()
  */
-//@{
+///@{
 
 //! Returns a binary value of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
 /** @return a binary value of a random key for the <a href="http://www.itl.nist.gov/fipspubs/fip46-2.htm">DES algorithm</a>
@@ -1792,7 +1792,7 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
     return missing_openssl_feature("RC5", xsink);
 #endif
 }
-//@}
+///@}
 
 /** @defgroup digest_functions Digest (Hash) Functions
     %Qore's cryptography support is provided by the OpenSSL library.
@@ -1812,7 +1812,7 @@ string rc5_decrypt_cbc_to_string(binary[doc] data, data[doc] key, data[doc] iv =
         - @ref cryptographic_constants
 
  */
-//@{
+///@{
 
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2 message digest</a> of the supplied argument as a hex string
 /**
@@ -2624,7 +2624,7 @@ binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
     return dh.getBinary();
 }
 
-//@}
+///@}
 
 /** @defgroup hmac_functions HMAC Functions
     %Qore's cryptography support is provided by the OpenSSL library.
@@ -2647,7 +2647,7 @@ binary RIPEMD160_binary(data[doc] data) [flags=RET_VALUE_ONLY] {
         - @ref digest_functions
         - @ref cryptographic_constants
  */
-//@{
+///@{
 //! Returns the <a href="http://en.wikipedia.org/wiki/MD2_(cryptography)">MD2</a> based HMAC of the supplied argument as a hex string
 /**
     @par Platform Availability:
@@ -3632,4 +3632,4 @@ binary get_random_bytes(int size) [flags=RET_VALUE_ONLY] {
     }
     return rv.release();
 }
-//@}
+///@}

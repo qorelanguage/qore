@@ -22,12 +22,14 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
+#! The ConnectionProvider namespace
+/** All public declarations in the %ConnectionProvider module are defined in this namespace
+*/
 public namespace ConnectionProvider {
 #! abstract base class for connections
 /** this class can be specialized to provide for user-defined connection types
 */
-public class AbstractConnectionWithInfo inherits Serializable, AbstractConnection {
+public class AbstractConnectionWithInfo inherits AbstractConnection {
     #! creates the AbstractConnection object
     /** @param name the name of the connection
         @param description connection description
@@ -36,18 +38,17 @@ public class AbstractConnectionWithInfo inherits Serializable, AbstractConnectio
         @param options connection options
 
         @par Attributes
-        Attributes are special flags for given connection - stored as public
-        attributes of the object instance.
+        Attributes are special flags for given connection - stored as public attributes of the object instance.
         For now there are:
-            - \c enabled (bool), default \c True
-            - \c monitor (bool), default \c True
-            - \c locked (bool), default \c False
-            - \c tags (hash), no default value
+        - \c enabled (bool), default \c True
+        - \c monitor (bool), default \c True
+        - \c locked (bool), default \c False
+        - \c tags (hash), no default value
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : AbstractConnection(name, description, url, attributes, options) {
+            : AbstractConnection(name, description, url, attributes, options) {
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

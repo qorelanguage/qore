@@ -22,7 +22,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.0
+%requires qore >= 1.13
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -35,19 +35,14 @@
 %requires Util
 
 module FileLocationHandler {
-    version = "2.0";
+    version = "2.2";
     desc = "user module for reading and writing file data based on URL-like location strings";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
-        # register default handlers
-        FileLocationHandler::registerHandler("file", new FileLocationHandlerFile());
-        FileLocationHandler::registerHandler("ftp", new FileLocationHandlerFtp());
-        FileLocationHandler::registerHandler("ftps", new FileLocationHandlerFtp());
-        FileLocationHandler::registerHandler("http", new FileLocationHandlerHttp());
-        FileLocationHandler::registerHandler("https", new FileLocationHandlerHttp());
-        FileLocationHandler::registerHandler("sftp", new FileLocationHandlerSftp());
+        # setup default handlers
+        FileLocationHandler::init();
     };
 }
 
@@ -69,24 +64,50 @@ module FileLocationHandler {
     - @ref FileLocationHandler::FileLocationHandler::writeFileToLocation() "FileLocationHandler::writeFileToLocation()"
     - @ref FileLocationHandler::FileLocationHandler::getOutputStreamForLocation() "FileLocationHandler::getOutputStreamForLocation()"
 
-    To register a location handler based on a scheme, call:
+    To register a location handler based on a scheme, call one of:
     - @ref FileLocationHandler::FileLocationHandler::registerHandler() "FileLocationHandler::registerHandler()"
+    - @ref FileLocationHandler::FileLocationHandler::tryRegisterHandler() "FileLocationHandler::tryRegisterHandler()"
 
     This module provides the following classes:
     - @ref FileLocationHandler::AbstractFileLocationHandler "AbstractFileLocationHandler": the abstract API class
     - @ref FileLocationHandler::FileLocationHandler "FileLocationHandler": the main API class
+    - @ref FileLocationHandler::FileLocationHandlerData "FileLocationHandlerData": class handling \c "data://"
+      locations (immedidate data in the location URL)
     - @ref FileLocationHandler::FileLocationHandlerFile "FileLocationHandlerFile": class handling \c "file://"
       locations (the default if no scheme is present in the location string)
     - @ref FileLocationHandler::FileLocationHandlerFtp "FileLocationHandlerFtp": class handling \c "ftp://" and
       \c "ftps://" locations
     - @ref FileLocationHandler::FileLocationHandlerHttp "FileLocationHandlerHttp": class handling \c "http://" and
       \c "https://" locations
-    - @ref FileLocationHandler::FileLocationHandlerFtp "FileLocationHandlerSftp": class handling \c "sftp://"
+    - @ref FileLocationHandler::FileLocationHandlerRest "FileLocationHandlerRest": class handling \c "rest://" and
+      \c "rests://" locations
+    - @ref FileLocationHandler::FileLocationHandlerSftp "FileLocationHandlerSftp": class handling \c "sftp://"
       locations
     - @ref FileLocationHandler::OutputStreamWrapper "OutputStreamWrapper": output stream wrapper class for handling
       background I/O operations
 
+    @section filelocationhandler_env FileLocationHandler Environment variable
+
+    The \c QORE_FILE_LOCATION_HANDLERS environment variable will be read to initialize modules that provide support
+    for custom URL schemes; multiple modules can be separated by the OS-specific path separator (\c : on Linux / UNIX,
+    \c ; on Windows).
+
+    Each module listed in this environment variable should call either
+    @ref FileLocationHandler::FileLocationHandler::registerHandler() "FileLocationHandler::registerHandler()" or
+    @ref FileLocationHandler::FileLocationHandler::tryRegisterHandler() "FileLocationHandler::tryRegisterHandler()" in
+    its \c init code to register a handler for a new scheme.
+
     @section filelocationhandler_relnotes Release Notes
+
+    @subsection filelocationhandler_v2_2 FileLocationHandler v2.2
+    - added support for \c rest:// and \c rests:// locations
+      (<a href="https://github.com/qorelanguage/qore/issues/4669">issue 4669</a>)
+    - added support for runtime extensibility from environment variables
+      (<a href="https://github.com/qorelanguage/qore/issues/4667">issue 4667</a>)
+
+    @subsection filelocationhandler_v2_1 FileLocationHandler v2.1
+    - added support for immediate <tt>data://</tt> locations
+      (<a href="https://github.com/qorelanguage/qore/issues/4626">issue 4626</a>)
 
     @subsection filelocationhandler_v2_0 FileLocationHandler v2.0
     - updated for read/write operations and added streaming APIs

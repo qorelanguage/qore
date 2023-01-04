@@ -1799,7 +1799,7 @@ protected:
                 continue;
             }
 
-            // do not precess complex types in arg handling
+            // do not process complex types in arg handling
             std::string ptype;
             {
                 size_t i = p.type.find('<');
@@ -1918,7 +1918,8 @@ protected:
                 continue;
             }
             if (ptype == "*data") {
-                fprintf(fp, "    const AbstractQoreNode* %s = get_param_value(args, %d).get<const AbstractQoreNode>();\n", p.name.c_str(), i);
+                fprintf(fp, "    const AbstractQoreNode* %s = "
+                    "get_param_value(args, %d).get<const AbstractQoreNode>();\n", p.name.c_str(), i);
                 continue;
             }
             // skip "..." arg which is just for documentation
@@ -2357,17 +2358,13 @@ protected:
                 return -1;
             }
 
-            // inject open group marker in block comment if necessary
-            if (!open_group && line.find("*/") != std::string::npos) {
-                str += "//@{\n";
-                open_group_injected = true;
-            } else if (open_group_injected && !line.compare(0, 4, "//@{")) {
+            if (open_group_injected && !line.compare(0, 5, "///@{")) {
                 break;
             }
 
             str += line;
 
-            if (!line.compare(0, 4, "//@{")) {
+            if (!line.compare(0, 5, "///@{")) {
                 break;
             } else if (line.find("@{") != std::string::npos) {
                 open_group = true;
@@ -2449,7 +2446,8 @@ protected:
     }
 
 public:
-    Group(std::string& buf, FILE* fp, const char* fn, unsigned& ln) : valid(true), fileName(fn), startLineNumber(ln), lineNumber(ln) {
+    Group(std::string& buf, FILE* fp, const char* fn, unsigned& ln)
+            : valid(true), fileName(fn), startLineNumber(ln), lineNumber(ln) {
         doc = buf;
         if (readUntilOpenGroup(fileName, lineNumber, doc, fp)) {
             error("%s:%d: could not find start of group\n", fileName, lineNumber);
@@ -2461,7 +2459,7 @@ public:
         while (true) {
             std::string line;
             if (read_line(lineNumber, line, fp)) {
-                error("%s:%d: premature EOF reading group\n", fileName, lineNumber);
+                error("%s:%d: a premature EOF reading group\n", fileName, lineNumber);
                 valid = false;
                 return;
             }
@@ -2678,7 +2676,7 @@ public:
                 return -1;
 
         // serialize group trailer
-        fputs("//@}\n", fp);
+        fputs("///@}\n", fp);
 
         outputNamespaceEnd(fp);
 
@@ -2705,7 +2703,7 @@ public:
                 return -1;
 
         // serialize group trailer
-        fputs("/** @} */\n", fp);
+        fputs("///@}\n", fp);
 
         if (needs_prefix) {
             outputNamespaceEnd(fp);
@@ -2967,7 +2965,8 @@ public:
             ++p1;
 
         if (*p1) {
-            error("%s:%d: invalid character '%c' in hashdecl declaration; only whitespace is acceptable after the '{' char\n", fileName, lineNumber, *p1);
+            error("%s:%d: invalid character '%c' in hashdecl declaration; only whitespace is acceptable after the '{' "
+                "char\n", fileName, lineNumber, *p1);
             valid = false;
             return;
         }
@@ -2993,11 +2992,14 @@ public:
                     valid = false;
                     return;
                 }
-                if (!line.compare(0, 3, "/**")) {
+                size_t t = line.find("/**", 3);
+                if (t != std::string::npos) {
                     if (get_dox_comment(fileName, lineNumber, line, fp, true)) {
                         valid = false;
                         return;
                     }
+                    trim_end(line);
+                    cdoc += "\n";
                     cdoc += line;
                     line.clear();
 

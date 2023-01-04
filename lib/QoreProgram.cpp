@@ -486,7 +486,10 @@ void qore_program_private_base::newProgram() {
 }
 
 void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_options) {
-    printd(5, "qore_program_private_base::setParent() this: %p parent: %p (parent lvl: %p) this: %p (this pgm: %p) parent po: %lld new po: %lld parent no_child_po_restrictions: %d\n", this, p_pgm, p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options, p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
+    printd(5, "qore_program_private_base::setParent() this: %p parent: %p (parent lvl: %p) this: %p (this pgm: %p) "
+        "parent po: %lld new po: %lld parent no_child_po_restrictions: %d\n", this, p_pgm,
+        p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options,
+        p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
 
     TZ = p_pgm->currentTZ();
 
@@ -575,15 +578,19 @@ void qore_program_private::internParseRollback(ExceptionSink* xsink) {
 void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
     // detach itself from debug
     if (dpgm) {
-        // if the object is being destroyed when thread is terminating via a deref then we send sync detach event to this thread
-        // the thread can be stopped.
+        // if the object is being destroyed when thread is terminating via a deref then we send sync detach event to
+        // this thread the thread can be stopped.
         ThreadLocalProgramData *tlpd = get_thread_local_program_data();
         if (tlpd) {
             tlpd->dbgDetach(xsink);
         }
         dpgm->removeProgram(pgm);
     }
-    debug_program_counter.waitForZero(xsink, 0);  // it is probably obsolete as the next waiting for thread termination will wait for the same threads as well
+
+    // this is probably not necessary, as the next waiting for thread
+    // termination will wait for the same threads as well
+    debug_program_counter.waitForZero(xsink, 0);
+
     // we only clear the internal data structures once
     bool clr = false;
     {
@@ -596,7 +603,8 @@ void qore_program_private::waitForTerminationAndClear(ExceptionSink* xsink) {
                 if (!ns_const) {
                     l = new QoreListNode(autoTypeInfo);
                     qore_root_ns_private::clearConstants(*RootNS, **l);
-                    //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p cleared constants\n", this);
+                    //printd(5, "qore_program_private::waitForTerminationAndClear() this: %p cleared constants\n",
+                    //    this);
                     ns_const = true;
                 }
                 // mark the program so that only code from this thread can run during data destruction
@@ -783,11 +791,13 @@ void qore_program_private::addStatement(AbstractStatement* s) {
         return;
     }
 
-    sb.addStatement(s);
-
     // see if top level statements are allowed
-    if (pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration())
+    if (pwo.parse_options & PO_NO_TOP_LEVEL_STATEMENTS && !s->isDeclaration()) {
         parse_error(*s->loc, "illegal top-level statement (conflicts with parse option NO_TOP_LEVEL_STATEMENTS)");
+        delete s;
+    } else {
+        sb.addStatement(s);
+    }
 }
 
 void qore_program_private::runtimeImportSystemClassesIntern(const qore_program_private& spgm, ExceptionSink* xsink) {

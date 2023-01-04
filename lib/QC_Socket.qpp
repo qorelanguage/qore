@@ -33,8 +33,9 @@
 
 #include "qore/Qore.h"
 #include "qore/intern/QC_Socket.h"
-#include "qore/intern/ssl_constants.h"
+#include "qore/intern/QC_SocketPollOperation.h"
 #include "qore/intern/QC_Queue.h"
+#include "qore/intern/ssl_constants.h"
 #include "qore/intern/qore_socket_private.h"
 #include "qore/QoreSSLCertificate.h"
 #include "qore/QoreSSLPrivateKey.h"
@@ -79,19 +80,22 @@ static int check_response_code(int status_code, ExceptionSink* xsink) {
     return 0;
 }
 
-//! Socket poll info hash
+//! Socket or other pollable object poll info hash
 /** for use with @ref Qore::Socket::poll() "Socket::poll()""
 */
 hashdecl Qore::SocketPollInfo {
-    //! Socket poll type; see @ref socket_poll_constants for possible values to be combined with binary or; on input, these are the events to check, on output, this value gives the events found in the timeout period
+    //! The poll type; see @ref socket_poll_constants for possible values to be combined with binary or
+    /** On input, these are the events to check, on output, this value gives the events found in the timeout period
+    */
     int events;
-    //! the socket to monitor
-    Socket socket;
+
+    //! the pollable object to monitor
+    Qore::AbstractPollableIoObject socket;
 }
 
 /** @defgroup socket_poll_constants Socket Poll Constants
 */
-//@{
+///@{
 //! (input and output) for polling for read events
 const SOCK_POLLIN = SOCK_POLLIN;
 
@@ -100,13 +104,13 @@ const SOCK_POLLOUT = SOCK_POLLOUT;
 
 //! (output only) indicates that the socket or connection is closed
 const SOCK_POLLERR = SOCK_POLLERR;
-//@}
+///@}
 
 /** @defgroup ssl_mode_constants SSL Verification Mode Constants
     These are integer contants to be used with @ref Qore::Socket::setSslVerifyMode() "Socket::setSslVerifyMode()"
     and are returned by @ref Qore::Socket::getSslVerifyMode() "Socket::getSslVerifyMode()"
 */
-//@{
+///@{
 //! Do not verify the peer's certificate
 /** @par Server Mode
     The server will not send a client certificate request to the client, so the client will not send a certificate
@@ -160,7 +164,7 @@ const SSL_VERIFY_FAIL_IF_NO_PEER_CERT = SSL_VERIFY_FAIL_IF_NO_PEER_CERT;
     @note must be used with @ref Qore::SSL_VERIFY_PEER (combined with binary or)
 */
 const SSL_VERIFY_CLIENT_ONCE = SSL_VERIFY_CLIENT_ONCE;
-//@}
+///@}
 
 /** @defgroup x509_verification_constants X.509 Verification Constants
     These are string contants for values returned by the following methods:
@@ -168,7 +172,7 @@ const SSL_VERIFY_CLIENT_ONCE = SSL_VERIFY_CLIENT_ONCE;
     - HTTPClient::verifyPeerCertificate()
     - Socket::verifyPeerCertificate()
 */
-//@{
+///@{
 //! Verification OK
 const X509_V_OK = "X509_V_OK";
 
@@ -304,12 +308,12 @@ const X509_VerificationReasons = (
     "X509_V_ERR_KEYUSAGE_NO_CERTSIGN": "The keyUsage extension does not permit certificate signing",
     "X509_V_ERR_APPLICATION_VERIFICATION": "Verification failure",
 );
-//@}
+///@}
 
 /** @defgroup network_address_family_constants Network Address Family Constants
     These are the possible network address family constants
 */
-//@{
+///@{
 //! IPv4 address family
 const AF_INET = AF_INET;
 
@@ -341,13 +345,13 @@ const AFStrMap = (
     "AF_UNSPEC": AF_UNSPEC,
 );
 
-//@}
+///@}
 
 /** @defgroup network_address_information_constants Network Address Information Constants
     These are the possible network address information constants for the getaddrinfo() function;
     if any of these constants are not defined on the current platform, they will be assigned to 0 in %Qore
 */
-//@{
+///@{
 #ifndef AI_ADDRCONFIG
 #define AI_ADDRCONFIG 0
 #endif
@@ -383,41 +387,46 @@ const AI_CANONNAME = AI_CANONNAME;
 const AI_NUMERICHOST = AI_NUMERICHOST;
 
 //! If this bit is set, then the service is assumed to be a numeric port string, and no service lookup will be performed
-/** If the AI_NUMERICSERV bit is set, then any service name string supplied will be treated as a numeric port string. Otherwise, a \c QOREADDRINFO-GETINFO-ERROR exception will be thrown due to the \c EAI_NONAME error raised internally. This bit prevents any type of name resolution service (for example, NIS+) from being invoked (this constant is operating system dependent; it is not available on all operating systems; for example, it is not available on Solaris 8).
-
+/** If the AI_NUMERICSERV bit is set, then any service name string supplied will be treated as a numeric port string.
+    Otherwise, a \c QOREADDRINFO-GETINFO-ERROR exception will be thrown due to the \c EAI_NONAME error raised
+    internally. This bit prevents any type of name resolution service (for example, NIS+) from being invoked (this
+    constant is operating system dependent; it is not available on all operating systems).
 */
 const AI_NUMERICSERV = AI_NUMERICSERV;
 
 //! If this bit is set, then the returned information should be usable for a call to Socket::bind()
-/** In this case, if the hostname is not given, then the return value will be usable for binding on all addresses for the given family.
+/** In this case, if the hostname is not given, then the return value will be usable for binding on all addresses for
+    the given family.
 
-    If the AI_PASSIVE bit is not set, the returned socket address structure will be ready for use in a call to Socket::connect().
+    If the AI_PASSIVE bit is not set, the returned socket address structure will be ready for use in a call to
+    Socket::connect().
 
-    The IP address portion of the socket address structure will be set to the loopback address if hostname is @ref nothing and AI_PASSIVE is not set.
+    The IP address portion of the socket address structure will be set to the loopback address if hostname is
+    @ref nothing and AI_PASSIVE is not set.
 */
 const AI_PASSIVE = AI_PASSIVE;
 
-//! If this bit is set, getaddrinfo() will return IPv4-mapped IPv6 addresses on finding no matching IPv6 addresses/
+//! If this bit is set, getaddrinfo() will return IPv4-mapped IPv6 addresses on finding no matching IPv6 addresses
 /** The AI_V4MAPPED flag is ignored unless family is AF_INET6
 */
 const AI_V4MAPPED = AI_V4MAPPED;
-//@}
+///@}
 
 /** @defgroup protocol_constants Network Protocol Constants
     These are the possible network protocol constants
 */
-//@{
+///@{
 //! for the UDP protocol
 const IPPROTO_UDP = IPPROTO_UDP;
 
 //! for the TCP protocol
 const IPPROTO_TCP = IPPROTO_TCP;
-//@}
+///@}
 
 /** @defgroup socket_type_constants Socket Type Constants
     These are the possible socket type constants
 */
-//@{
+///@{
 //! for sequenced, reliable, two-way connection-based byte streams (the default)
 const SOCK_STREAM = SOCK_STREAM;
 
@@ -426,7 +435,7 @@ const SOCK_DGRAM = SOCK_DGRAM;
 
 //! raw socket interface, only available to the superuser, untested
 const SOCK_RAW = SOCK_RAW;
-//@}
+///@}
 
 //! The Socket class allows %Qore programs safe access to network sockets
 /** @note This class is not available with the @ref PO_NO_NETWORK parse option.
@@ -493,7 +502,7 @@ const SOCK_RAW = SOCK_RAW;
     |\c family|The network address family (see @ref network_address_family_constants)
     |\c familystr|A string describing the network address family (ex: \c "ipv4")
 */
-qclass Socket [public_members=*string source,*string source_host; flags=unsetPublicMemberFlag; arg=QoreSocketObject* s; dom=NETWORK];
+qclass Socket [public_members=*string source,*string source_host; flags=unsetPublicMemberFlag; arg=QoreSocketObject* s; dom=NETWORK; vparent=AbstractPollableIoObjectBase];
 
 //! Creates the socket object
 /** @par Example:
@@ -511,7 +520,233 @@ Socket::copy() {
     self->setPrivate(CID_SOCKET, new QoreSocketObject);
 }
 
-//! Connects to a remote port (if the string has a format "host:port") or UNIX domain socket file with an optional timeout value with a millisecond resolution
+//! Deletes the object
+/**
+*/
+Socket::destructor() {
+    s->invalidate(xsink);
+    s->deref(xsink);
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the socket for a standard connection
+/** @param target the URL target
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the socket for a standard
+    connection
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollConnect(string target) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketConnectPollOperation(xsink, false, target->c_str(), s),
+        xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("connect"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the socket for an SSL connection
+/** @param target the URL target
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to poll the socket for an SSL
+    connection
+
+    The poll operation returned will perform the connection and an immediate upgrade to an SSL/TLS connection
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollConnectSsl(string target) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketConnectPollOperation(xsink, true, target->c_str(), s),
+        xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("connect-ssl"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send data in non-blocking mode
+/** @param data the data to send
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send data in non-blocking mode
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollSend(string data) {
+    SimpleRefHolder<QoreStringNode> tmp;
+    if (data->getEncoding() != s->getEncoding()) {
+        tmp = data->convertEncoding(s->getEncoding(), xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+    }
+
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketSendPollOperation(xsink,
+        tmp ? tmp.release() : data->stringRefSelf(), s), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("send"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send data in non-blocking mode
+/** @param data the data to send
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to send data in non-blocking mode
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollSend(binary data) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketSendPollOperation(xsink, data->binRefSelf(), s), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("send"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+/** @param size the size of the string to receive
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+
+    The @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" call will return a string
+    after a successful poll for inbound socket data
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollRecvString(int size) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvPollOperation(xsink, size, s, true), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("send"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+/** @param size the size of the string to receive
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+
+    The @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" call will return a binary
+    object after a successful poll for inbound socket data
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollRecvBinary(int size) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvPollOperation(xsink, size, s, false), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("received"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+/** @param pattern the pattern to use to signify the end of the socket data to read
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+
+    The @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" call will return a string
+    after a successful poll for inbound socket data
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollRecvUntilBytesString(string pattern) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvUntilBytesPollOperation(xsink, pattern, s, true), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("received"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+/** @param pattern the pattern to use to signify the end of the socket data to read
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
+
+    The @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" call will return a binary
+    object after a successful poll for inbound socket data
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollRecvUntilBytesBinary(string pattern) {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvUntilBytesPollOperation(xsink, pattern, s, false), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("received"), xsink);
+    }
+    return rv.release();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to upgrade a connected client socket to SSL
+/** @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to upgrade a connected client socket to
+    SSL
+
+    The poll operation returned will upgrade a client connection to an SSL/TLS connection using any certificate and
+    private key set for the socket.
+
+    @since %Qore 1.12
+*/
+AbstractPollOperation Socket::startPollUpgradeClientToSSL() {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketUpgradeClientSslPollOperation(xsink, s), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("upgrade-client-ssl"), xsink);
+    }
+    return rv.release();
+}
+
+//! Connects to a remote port (if the string has a format "host:port") or UNIX domain socket file
 /** Connects the socket to a remote (or local) port or UNIX domain socket file, for network (ipv4 and ipv6)
     connections, accepts an optional timeout value in milliseconds (@ref relative_dates "relative date/time values"
     can be given instead of an integer in milliseconds to make the source more readable; ex: \c 20s). If any errors
@@ -551,7 +786,7 @@ sock.connect("/tmp/socket");@endcode
     Socket::connectUNIXSSL()
 */
 nothing Socket::connect(string target, timeout timeout_ms = -1) {
-    s->connect(target->getBuffer(), timeout_ms, xsink);
+    s->connect(target->c_str(), timeout_ms, xsink);
 }
 
 //! Connects to the given host and port with an optional timeout value with a millisecond resolution
@@ -580,7 +815,7 @@ sock.connectINET("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s);@endcode
     @see Socket::connect(), Socket::connectUNIX(), Socket::connectSSL(), Socket::connectINETSSL(), and Socket::connectUNIXSSL()
 */
 nothing Socket::connectINET(string host, softstring service, timeout timeout_ms = -1, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
-    s->connectINET2(host->getBuffer(), service->getBuffer(), family, socktype, protocol, timeout_ms, xsink);
+    s->connectINET2(host->c_str(), service->c_str(), family, socktype, protocol, timeout_ms, xsink);
 }
 
 //! Connects to a UNIX domain socket file
@@ -604,7 +839,7 @@ sock.connectUNIX("/tmp/socket"); @endcode
     @note UNIX domain sockets are not available on native Windows ports
 */
 nothing Socket::connectUNIX(string path, softint socktype = SOCK_STREAM, softint protocol = 0) {
-    s->connectUNIX(path->getBuffer(), socktype, protocol, xsink);
+    s->connectUNIX(path->c_str(), socktype, protocol, xsink);
 }
 
 //! Connects to a remote socket and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution
@@ -637,7 +872,7 @@ sock.connectSSL("/tmp/socket"); @endcode
     @see Socket::connect(), Socket::connectUNIX(), Socket::connectUNIXSSL(), Socket::connectINETSSL(), and Socket::connectINET()
 */
 nothing Socket::connectSSL(string target, timeout timeout_ms = -1) {
-    s->connectSSL(target->getBuffer(), timeout_ms, xsink);
+    s->connectSSL(target->c_str(), timeout_ms, xsink);
 }
 
 //! Connects to the given host and port and attempts to establish a TLS/SSL connection; accepts an optional timeout value with a millisecond resolution
@@ -667,7 +902,7 @@ sock.connectINETSSL("2001:0db8:85a3:0000:0000:8a2e:0370:7334", 80, 20s); @endcod
     @see Socket::connect(), Socket::connectUNIX(), Socket::connectSSL(), Socket::connectINET(), and Socket::connectUNIXSSL()
 */
 nothing Socket::connectINETSSL(string host, softstring service, timeout timeout_ms = -1, softint family = AF_UNSPEC, softint socktype = SOCK_STREAM, softint protocol = 0) {
-    s->connectINET2SSL(host->getBuffer(), service->getBuffer(), family, socktype, protocol, timeout_ms, xsink);
+    s->connectINET2SSL(host->c_str(), service->c_str(), family, socktype, protocol, timeout_ms, xsink);
 }
 
 //! Connects to the given UNIX domain socket file and attempts to establish a TLS/SSL connection
@@ -692,7 +927,7 @@ sock.connectUNIXSSL("/tmp/socket"); @endcode
     @note UNIX domain sockets are not available on native Windows ports
 */
 nothing Socket::connectUNIXSSL(string path, softint socktype = SOCK_STREAM, softint protocol = 0) {
-    s->connectUNIXSSL(path->getBuffer(), socktype, protocol, xsink);
+    s->connectUNIXSSL(path->c_str(), socktype, protocol, xsink);
 }
 
 //! Opens and binds the socket to a port, interface and port (if the bind_to string has a format "host:port"), or UNIX domain socket file.
@@ -717,7 +952,7 @@ if (sock.bind("/tmp/my-socket", True))
     @note UNIX domain sockets are not available on native Windows ports
 */
 int Socket::bind(string str, softbool reuseaddr = False) {
-    return s->bind(str->getBuffer(), reuseaddr);
+    return s->bind(str->c_str(), reuseaddr);
 }
 
 //! Opens and binds the socket to an INET port on all interfaces
@@ -757,7 +992,7 @@ sock.bindUNIX("/tmp/socket"); @endcode
     @note UNIX domain sockets are not available on native Windows ports
 */
 nothing Socket::bindUNIX(string path, softint socktype = SOCK_STREAM, softint protocol = 0) {
-    s->bindUNIX(path->getBuffer(), socktype, protocol, xsink);
+    s->bindUNIX(path->c_str(), socktype, protocol, xsink);
 }
 
 //! Opens and binds the socket to the given IPv4 or IPv6 interface (or if no interface is given, then to all interfaces on the local system) and port (the port number will be derived from the service name if a numeric port number is not given)
@@ -797,7 +1032,7 @@ nothing Socket::bindINET(*string iface, *softstring service, softbool reuseaddr 
             "parameter) were either not present or empty strings; at least one of the first 2 parameters must be "
             "present for a successful call to Socket::bindINET()");
 
-    s->bindINET(iface ? iface->getBuffer() : nullptr, service ? service->getBuffer() : nullptr, reuseaddr, family,
+    s->bindINET(iface ? iface->c_str() : nullptr, service ? service->c_str() : nullptr, reuseaddr, family,
         socktype, protocol, xsink);
 }
 
@@ -1162,7 +1397,7 @@ sock.sendBinary2(str);
     @since %Qore 0.8.4
 */
 nothing Socket::sendBinary2(string str, timeout timeout_ms = -1) {
-    s->send(str->getBuffer(), str->strlen(), timeout_ms, xsink);
+    s->send(str->c_str(), str->strlen(), timeout_ms, xsink);
 }
 
 //! Sends binary data over the socket; if any errors occur, an exception is thrown
@@ -2708,7 +2943,9 @@ if (sock.setRecvTimeout(20s))
     printf("error setting timeout on socket: %s\n", strerror(errno()));
     @endcode
 
-    @param timeout_ms the receive timeout to set with a resolution of milliseconds; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+    @param timeout_ms the receive timeout to set with a resolution of milliseconds; Note that like all %Qore functions
+    and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units
+    clear (i.e. \c 2m = two minutes, etc.)
 
     @return 0 for success, -1 for error (check errno() for the actual error in this case)
 */
@@ -2771,14 +3008,18 @@ nothing Socket::setCharset(string encoding) {
 }
 
 //! Returns @ref True or @ref False depending on whether there is data to be read on the socket
-/** With a timeout of zero this method returns immediately and can be used for non-blocking polling the socket for data (can also be used to poll for new connections before Socket::accept()).
+/** With a timeout of zero this method returns immediately and can be used for non-blocking polling the socket for
+    data (can also be used to poll for new connections before Socket::accept()).
 
     @par Example:
     @code{.py}
 bool b = sock.isDataAvailable();
     @endcode
 
-    @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+    @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns
+    immediately; Note that like all %Qore functions and methods taking timeout values, a
+    @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes,
+    etc.)
 
     @return @ref True if data is available on the Socket within the timeout period, @ref False if not
 
@@ -2797,7 +3038,10 @@ bool Socket::isDataAvailable(timeout timeout_ms = 0) {
 bool b = sock.isWriteFinished();
     @endcode
 
-    @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns immediately; Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes, etc.)
+    @param timeout_ms an optional timeout in milliseconds (1/1000 second); if no timeout is given, the method returns
+    immediately; Note that like all %Qore functions and methods taking timeout values, a
+    @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 2m = two minutes,
+    etc.)
 
     @return @ref True if the send action completes within the timeout period, @ref False if not
 
@@ -2826,7 +3070,8 @@ bool Socket::isOpen() [flags=CONSTANT] {
 *string str = sock.getSSLCipherName();
     @endcode
 
-    @return the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
+    @return the name of the cipher for an encrypted connection or @ref nothing if a secure connection has not been
+    established
 */
 *string Socket::getSSLCipherName() [flags=CONSTANT] {
     const char *str = s->getSSLCipherName();
@@ -2839,7 +3084,8 @@ bool Socket::isOpen() [flags=CONSTANT] {
 *string str = sock.getSSLCipherVersion();
     @endcode
 
-    @return the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has not been established
+    @return the version string of the cipher for an encrypted connection or @ref nothing if a secure connection has
+    not been established
 */
 *string Socket::getSSLCipherVersion() [flags=CONSTANT] {
     const char *str = s->getSSLCipherVersion();
@@ -2941,7 +3187,7 @@ sock.setPrivateKey(key_pem, password);
     @param pass the password for the private key, if needed
 */
 nothing Socket::setPrivateKey(string key_pem, *string pass) {
-    SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(key_pem, pass ? pass->getBuffer() : 0, xsink));
+    SimpleRefHolder<QoreSSLPrivateKey> key(new QoreSSLPrivateKey(key_pem, pass ? pass->c_str() : 0, xsink));
     if (*xsink)
         return QoreValue();
 
@@ -3391,7 +3637,7 @@ list<hash<SocketPollInfo>> l(
 l = Socket::poll(l, 2s);
     @endcode
 
-    @param items list of @ref SocketPollInfo hashes of sockets with events in the timeoutt period
+    @param items list of @ref SocketPollInfo hashes of sockets with events in the timeout period
     @param timeout_ms the poll timeout period; -1 = never timeout
 
     @return a list of sockets with events in the timeout period

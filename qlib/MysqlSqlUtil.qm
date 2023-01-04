@@ -288,23 +288,21 @@ public namespace MysqlSqlUtil {
         #! returns a list of sql strings that can be used to add the column to an existing table
         /** @par Example:
             @code{.py}
-list l = col.getAddColumnSql(t);
+list<auto> l = col.getAddColumnSql(t);
             @endcode
 
             @param t the AbstractTable object to modify
          */
-        softlist getAddColumnSql(AbstractTable t) {
-            string sql = sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
-            if (comment)
-                sql += " comment " + t.getSqlValue(comment);
-            return sql;
+        softlist<string> getAddColumnSql(AbstractTable t) {
+            return sprintf("alter table %s add %s", t.getSqlName(), getCreateSql(t));
         }
 
         #! returns an sql string that can be used to add the column to a table
         string getCreateSql(AbstractTable t) {
             string sql = AbstractColumn::getCreateSql(t);
-            if (comment)
+            if (comment) {
                 sql += " comment " + t.getSqlValue(comment);
+            }
             return sql;
         }
 
@@ -313,7 +311,7 @@ list l = col.getAddColumnSql(t);
 
             @par Example:
             @code{.py}
-list l = col.getModifySql(t, newcol);
+list<auto> l = col.getModifySql(t, newcol);
             @endcode
 
             The column names are assumed to be equal.
@@ -325,20 +323,18 @@ list l = col.getModifySql(t, newcol);
             @return a list of sql strings that can be used to modify the column to the new definition; if the column
             definitions are identical then an empty list is returned
          */
-        softlist getModifySqlImpl(AbstractTable t, AbstractColumn col, *hash opt) {
+        softlist<string> getModifySqlImpl(AbstractTable t, AbstractColumn col, *hash opt) {
             MysqlColumn c = col;
 
             string ntd = c.getCreateSql(t);
-            if (ntd == getCreateSql(t))
+            if (ntd == getCreateSql(t)) {
                 return;
+            }
 
-            #printf("%y (%d) <=> %y (%d): L: %s\nL: comment: %y\nXXXXXXXXXX\nR: %s\nR: comment: %y\n",
-            # self.className(), size, c.className(), c.size, getCreateSql(t), comment, ntd, c.comment);
+            #printf("%y (%d) <=> %y (%d): L: %s\nXXXXXXXXXX\nR: %s\n",
+            #    self.className(), size, c.className(), c.size, getCreateSql(t), ntd);
 
-            string sql = sprintf("alter table %s modify %s", t.getSqlName(), ntd);
-            if (c.comment)
-                sql += " comment " + t.getSqlValue(c.comment);
-            return sql;
+            return sprintf("alter table %s modify %s", t.getSqlName(), ntd);
         }
 
         #! returns a string that can be used to rename the column
@@ -368,7 +364,7 @@ string str = col.getRenameSql(t, "new_name");
 
         #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         private bool equalImpl(AbstractColumn c) {
-            return True;
+            return byte_size == cast<MysqlColumn>(c).byte_size;
         }
     }
 
@@ -1817,9 +1813,14 @@ end";
                 }
 
                 if (row.numeric_precision || unsigned || ai) {
-                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, 0, row.numeric_scale, unsigned, ai, row.column_key == "PRI");
-                } else
-                    c = new MysqlColumn(row.column_name, row.column_type, th.qore, exists size ? size : 0, row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, row.character_octet_length);
+                    c = new MysqlNumericColumn(row.column_name, row.column_type, th.qore, row.numeric_precision,
+                        row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING, 0,
+                        row.numeric_scale, unsigned, ai, row.column_key == "PRI");
+                } else {
+                    c = new MysqlColumn(row.column_name, row.column_type, th.qore, exists size ? size : 0,
+                        row.is_nullable == "YES", defval, row.column_comment ? row.column_comment : NOTHING,
+                        row.character_octet_length);
+                }
 
                 rv.(row.column_name) = c;
             }

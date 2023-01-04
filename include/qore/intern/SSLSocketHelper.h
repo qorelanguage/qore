@@ -33,6 +33,8 @@
 
 #define _QORE_SSLSOCKETHELPER_H
 
+#include <openssl/ssl.h>
+
 #ifdef NEED_SSL_CTX_NEW_CONST
 #define SSL_METHOD_CONST const
 #else
@@ -80,6 +82,16 @@ public:
     DLLLOCAL int doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int num, int timeout_ms,
             SslAction action, bool do_timeout = true);
 
+    // do nonblocking I/O for polling
+    /** returns:
+        - SOCK_POLLIN = wait for read and call this again
+        - SOCK_POLLOUT = wait for write and call this again
+        - 0 = done
+        - < 0 = error (exception raised)
+    */
+    DLLLOCAL int doNonBlockingIo(ExceptionSink* xsink, const char* mname, void* buf, size_t size, SslAction action,
+            size_t& real_io);
+
     DLLLOCAL int setClient(const char* mname, const char* sni_target_host, int sd, X509* cert, EVP_PKEY* pk,
             ExceptionSink* xsink);
     DLLLOCAL int setServer(const char* mname, int sd, X509* cert, EVP_PKEY* pk, ExceptionSink* xsink);
@@ -95,6 +107,13 @@ public:
     DLLLOCAL int read(const char* mname, char* buf, int size, int timeout_ms, ExceptionSink* xsink);
     // returns 0 for success
     DLLLOCAL int write(const char* mname, const void* buf, int size, int timeout_ms, ExceptionSink* xsink);
+
+    //! Starts an SSL negotiation for a client in nonblocking mode
+    DLLLOCAL int startConnect(ExceptionSink* xsink);
+
+    //! Starts an SSL negotiation for a server in nonblocking mode
+    DLLLOCAL int startAccept(ExceptionSink* xsink);
+
     DLLLOCAL const char* getCipherName() const;
     DLLLOCAL const char* getCipherVersion() const;
     DLLLOCAL X509* getPeerCertificate() const;
@@ -122,6 +141,9 @@ private:
 
     // must be called with refs > 1
     DLLLOCAL bool sslError(ExceptionSink* xsink, const char* meth, const char* msg, bool always_error = true);
+
+    // must be called with refs > 1
+    DLLLOCAL int sysCallError(ExceptionSink* xsink, int rc, const char* mname, const char* ssl_func);
 
     DLLLOCAL void handleErrorIntern(ExceptionSink* xsink, int e, const char* mname, const char* func,
             bool always_error);

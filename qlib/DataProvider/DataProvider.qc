@@ -45,6 +45,7 @@ public class DataProvider {
             "httpclient": "HttpClientDataProvider",
             "restclient": "RestClientDataProvider",
             "salesforcerest": "SalesforceRestDataProvider",
+            "sax": "SaxDataProvider",
             "servicenowrest": "ServiceNowRestDataProvider",
             "smtpclient": "SmtpClient",
 
@@ -149,6 +150,66 @@ public class DataProvider {
                 name, keys factory_cache);
         }
         return factory;
+    }
+
+    #! Returns a data provider object from the given factory, created with the given constructor options
+    /** @param path the \c "/"-separated path to the target data provider; the first element is the factory name
+        @param template_options options with templated values; only the keys in this hash are relevant, as they
+        indicate options that will be present at a later time when their values can be derived; the values provided in
+        this call are assumed to be in an implementation-dependent templated format and should be ignored
+        @param options factory creation options
+
+        @throw PROVIDER-ERROR the given provider factory or child provider is unknown
+
+        @since DataProvider 2.7.1
+    */
+    static AbstractDataProvider getFactoryObjectWithTemplate(string path, *hash<auto> template_options,
+            *hash<auto> options) {
+        AbstractDataProvider provider;
+        {
+            list<string> path_list = path.split("/");
+            provider = DataProvider::getFactoryEx(shift path_list).createWithTemplate(template_options, options);
+            map provider = provider.getChildProviderEx($1), path_list;
+        }
+        return provider;
+    }
+
+    #! Returns a data provider object from the given factory, created with the given options and example data
+    /** @param path the \c "/"-separated path to the target data provider; the first element is the factory name
+        @param example example data to process
+        @param options factory creation options
+
+        @throw PROVIDER-ERROR the given provider factory or child provider is unknown
+
+        @since DataProvider 2.7.1
+    */
+    static AbstractDataProvider getFactoryObjectFromExample(string path, data example, *hash<auto> options) {
+        AbstractDataProvider provider;
+        {
+            list<string> path_list = path.split("/");
+            provider = DataProvider::getFactoryEx(shift path_list).getProviderFromExample(example, options);
+            map provider = provider.getChildProviderEx($1), path_list;
+        }
+        return provider;
+    }
+
+    #! Returns a data provider object from the given factory, created with the given options and example data
+    /** @param path the \c "/"-separated path to the target data provider; the first element is the factory name
+        @param example example data to process
+        @param options factory creation options
+
+        @throw PROVIDER-ERROR the given provider factory or child provider is unknown
+
+        @since DataProvider 2.7.1
+    */
+    static AbstractDataProvider getFactoryObjectFromExample(string path, InputStream example, *hash<auto> options) {
+        AbstractDataProvider provider;
+        {
+            list<string> path_list = path.split("/");
+            provider = DataProvider::getFactoryEx(shift path_list).getProviderFromExample(example, options);
+            map provider = provider.getChildProviderEx($1), path_list;
+        }
+        return provider;
     }
 
     #! Returns a data provider object from the given factory, created with the given constructor options

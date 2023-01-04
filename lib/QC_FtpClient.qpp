@@ -121,7 +121,7 @@ FtpClient::constructor(string url) {
     if (*xsink) {
         return;
     }
-    const char* url_path = qore_ftp_private::get(**f)->url_path;
+    const char* url_path = f->getUrlPath();
     if (url_path) {
         ValueHolder val(new QoreStringNode(url_path), xsink);
         if (self->setMemberValue("path", QC_FTPCLIENT, *val, xsink)) {
@@ -674,7 +674,7 @@ ftp.setURL("ftps://user:pass@example.com:2021");
 nothing FtpClient::setURL(string url) {
     f->setURL(url, xsink);
 
-    const char* url_path = qore_ftp_private::get(*f)->url_path;
+    const char* url_path = f->getUrlPath();
     if (url_path) {
         ValueHolder val(new QoreStringNode(url_path), xsink);
         if (self->setMemberValue("path", QC_FTPCLIENT, *val, xsink)) {

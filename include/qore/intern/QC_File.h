@@ -33,7 +33,11 @@
 
 #define _QORE_CLASS_FILE_H
 
-DLLLOCAL QoreClass *initFileClass(QoreNamespace &qorens);
+DLLLOCAL QoreClass* initFileClass(QoreNamespace& qorens);
+DLLLOCAL TypedHashDecl* init_hashdecl_PipeInfo(QoreNamespace& ns);
+
+extern void preinitReadOnlyFileClass();
+extern void preinitFileClass();
 
 #include <qore/QoreFile.h>
 

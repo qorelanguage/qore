@@ -423,7 +423,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
             - HttpServer::setListenerLogOptions()
             - HttpServer::setListenerLogOptionsID()
          */
-        #@{
+        #/@{
         #! listener log option: log recv headers
         const LLO_RECV_HEADERS = (1 << 0);
 
@@ -435,7 +435,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
 
         #! listener log option: log sent message body
         const LLO_SEND_BODY = (1 << 3);
-        #@}
+        #/@}
     }
 
     #! @cond nodoc
@@ -1775,7 +1775,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             sendHttpError(listener, cx, s, rv.code, rv.body, rv.hasKey("chunked_body") ? rv.chunked_body : NOTHING,
                 rv.hdr, cx."response-encoding", head);
         } else {
-            #printf("\n**** RESPONSE: %d ct: %s encoding: %y: %N\n", rv.code, rv.hdr."Content-Type", cx.encoding, rv.body);
+            #printf("**** RESPONSE: %d ct: %s (te: %y) encoding: %y: %N\n", rv.code, rv.hdr."Content-Type",
+            #    rv.hdr."Transfer-Encoding", cx.encoding, rv.body);
 
             # compress body if eligible for compression
             if (rv.body && !rv.hdr."Content-Encoding" && rv.body.size() > CompressionThreshold) {
@@ -1790,6 +1791,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     rv.body = bzip2(rv.body);
                 }
             }
+
             doResponse(listener, s, cx, rv);
         }
 
@@ -1837,18 +1839,29 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         }
     }
 
-    private:internal doResponse(HttpListener listener, Socket s, hash<auto> cx, hash<auto> rv) {
-        if (rv.body || !rv.hasKeyValue("chunked_body")) {
-            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr ?? {}, rv.body);
+    # rv is "hash" to strip types
+    private:internal doResponse(HttpListener listener, Socket s, hash<auto> cx, hash rv) {
+        if ((rv.body || !rv.hasKeyValue("chunked_body"))
+            && !rv.hdr."Transfer-Encoding"
+            && !(rv.body instanceof InputStream)) {
+
+            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes{rv."code"}, "1.1", rv.hdr ?? {}, rv.body);
         } else {
-            if (rv.chunked_body instanceof StringInputStream) {
-                StringInputStream input_stream = cast<StringInputStream>(rv.chunked_body);
-                if ((string stream_encoding = input_stream.getEncoding()) != s.getEncoding()) {
-                    rv.chunked_body = new EncodingConversionInputStream(input_stream, stream_encoding, s.getEncoding());
-                }
+            if (exists rv.chunked_body) {
+                rv.body = rv.chunked_body;
             }
-            rv.hdr."Transfer-Encoding" = "chunked";
-            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes.(rv.code), "1.1", rv.hdr, rv.chunked_body);
+            if (rv.body instanceof StringInputStream) {
+                StringInputStream input_stream = cast<StringInputStream>(rv.body);
+                if ((string stream_encoding = input_stream.getEncoding()) != s.getEncoding()) {
+                    rv.body = new EncodingConversionInputStream(input_stream, stream_encoding, s.getEncoding());
+                }
+            } else if ((rv.body instanceof string) || (rv.body instanceof binary)) {
+                rv.body = new BinaryInputStream(rv.body);
+            }
+            if (rv.body instanceof InputStream) {
+                rv.hdr."Transfer-Encoding" = "chunked";
+            }
+            s.sendHTTPResponse(rv.code, HttpServer::HttpCodes{rv."code"}, "1.1", rv.hdr, rv.body);
         }
         listener.logResponse(cx, rv);
     }

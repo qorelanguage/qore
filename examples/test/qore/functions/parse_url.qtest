@@ -73,6 +73,41 @@ public class parseUrlTest inherits QUnit::Test {
             "port": 587,
         }, h);
 
+        h = parse_url("user:pass@site:1001/path");
+        assertEq({
+            "username": "user",
+            "password": "pass",
+            "host": "site",
+            "port": 1001,
+            "path": "/path",
+        }, h);
+
+        h = parse_url("user:pass@:1001/path");
+        assertEq({
+            "username": "user",
+            "password": "pass",
+            "port": 1001,
+            "path": "/path",
+        }, h);
+
+        # issue #4673: pase_url() fails with passwords with a / char in the name
+        h = parse_url("https://user:pass//X@host");
+        assertEq({
+            "protocol": "https",
+            "username": "user",
+            "password": "pass//X",
+            "host": "host",
+        }, h);
+
+        h = parse_url("https://user:pass//X@host/path");
+        assertEq({
+            "protocol": "https",
+            "username": "user",
+            "password": "pass//X",
+            "host": "host",
+            "path": "/path",
+        }, h);
+
         # "standard" test
         assertEq(("protocol": "http", "path": "/path", "username": "user", "password": "pass", "host": "host", "port": 80), parse_url("http://user:pass@host:80/path"));
 

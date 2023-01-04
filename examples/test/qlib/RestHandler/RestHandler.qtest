@@ -146,6 +146,12 @@ class MyRestHandler inherits RestHandler {
     hash<HttpHandlerResponseInfo> getAction(hash<auto> cx, *hash<auto> ah) {
         return RestHandler::makeResponse(200, exists ah.action);
     }
+
+    private *hash<auto> errorResponseHeaders(hash<auto> cx) {
+        return {
+            "Error": "True",
+        };
+    }
 }
 
 class SwaggerRestHandler inherits RestHandler {
@@ -318,6 +324,8 @@ public class RestHandlerTest inherits QUnit::Test {
     }
 
     constructor() : Test("RestHandlerTest", "1.0") {
+        addTestCase("pre-encoded-URLs test", \preEncodedUrlsTest());
+        addTestCase("test bad request", \badRequestTest());
         addTestCase("Test direct interface", \directTest());
         addTestCase("Test external serialization", \serializationTest());
         addTestCase("Test xml", \xmlTest());
@@ -342,7 +350,7 @@ public class RestHandlerTest inherits QUnit::Test {
     globalSetUp() {
         Logger logger("test", LoggerLevel::getLevelInfo());
         if (m_options.verbose > 2) {
-            logger.addAppender(new TestAppender());
+            logger.addAppender(new StdoutAppender());
         }
         hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
             "logger": logger,
@@ -362,6 +370,79 @@ public class RestHandlerTest inherits QUnit::Test {
     globalTearDown() {
         mServer.stop();
         delete mServer;
+    }
+
+    preEncodedUrlsTest() {
+        {
+            RestClient rest({
+                "url": mClient.getURL(),
+                "pre_encoded_urls": True,
+            });
+
+            assertEq({"arg": "hello"}, rest.put("/test/echo?arg=hello").body);
+            assertEq({"arg": "[hello]"}, rest.put("/test/echo?arg=%5Bhello%5D").body);
+            assertEq({"arg": "{hello}"}, rest.put("/test/echo?arg=%7Bhello%7D").body);
+            assertEq({"arg": "hello|0"}, rest.put("/test/echo?arg=hello%7C0").body);
+            assertEq({"arg": "hello\\0"}, rest.put("/test/echo?arg=hello%5C0").body);
+            assertEq({"arg": "hello~0"}, rest.put("/test/echo?arg=hello%7E0").body);
+            assertEq({"arg": "hello`0"}, rest.put("/test/echo?arg=hello%600").body);
+            assertEq({"arg": "hello^0"}, rest.put("/test/echo?arg=hello%5E0").body);
+
+            assertThrows("URL-ENCODING-ERROR", "path\\[0\\]", \rest.get(), "path[0]");
+            assertThrows("URL-ENCODING-ERROR", \rest.get(), "path{0}");
+            assertThrows("URL-ENCODING-ERROR", \rest.get(), "path|0");
+            assertThrows("URL-ENCODING-ERROR", \rest.get(), "path\\0");
+            assertThrows("URL-ENCODING-ERROR", \rest.get(), "path~0");
+            assertThrows("URL-ENCODING-ERROR", \rest.get(), "path`0");
+            assertThrows("URL-ENCODING-ERROR", \rest.get(), "path^0");
+        }
+
+        {
+            RestClient rest({
+                "url": mClient.getURL(),
+            });
+
+            assertEq({"arg": "hello"}, rest.put("/test/echo?arg=hello").body);
+            assertEq({"arg": "%5Bhello%5D"}, rest.put("/test/echo?arg=%5Bhello%5D").body);
+            assertEq({"arg": "%7Bhello%7D"}, rest.put("/test/echo?arg=%7Bhello%7D").body);
+            assertEq({"arg": "hello%7C0"}, rest.put("/test/echo?arg=hello%7C0").body);
+            assertEq({"arg": "hello%5C0"}, rest.put("/test/echo?arg=hello%5C0").body);
+            assertEq({"arg": "hello%7E0"}, rest.put("/test/echo?arg=hello%7E0").body);
+            assertEq({"arg": "hello%600"}, rest.put("/test/echo?arg=hello%600").body);
+            assertEq({"arg": "hello%5E0"}, rest.put("/test/echo?arg=hello%5E0").body);
+
+            assertEq("path[0]", rest.get("test/echo?arg=path[0]").body.arg);
+            assertEq("path{0}", rest.get("test/echo?arg=path{0}").body.arg);
+            assertEq("path|0", rest.get("test/echo?arg=path|0").body.arg);
+            assertEq("path\\0", rest.get("test/echo?arg=path\\0").body.arg);
+            assertEq("path~0", rest.get("test/echo?arg=path~0").body.arg);
+            assertEq("path`0", rest.get("test/echo?arg=path`0").body.arg);
+            assertEq("path^0", rest.get("test/echo?arg=path^0").body.arg);
+        }
+    }
+
+    badRequestTest() {
+        HTTPClient client({"url": mClient.getURL()});
+
+        hash<auto> info;
+        on_error printf("info: %N\n", info);
+
+        string body = make_yaml(LargerHashValue);
+        hash<auto> hdr = {
+            "Content-Type": MimeTypeYaml,
+            "Accept": MimeTypeYaml,
+        };
+        hash<auto> h = client.send(body, "PUT", "test?action=echo", hdr, False, \info);
+        assertEq(body, h.body);
+
+        hdr = {
+            "Content-Type": MimeTypeJson,
+            "Accept": MimeTypeJson,
+        };
+        assertThrows("HTTP-CLIENT-RECEIVE-ERROR", \client.send(),
+            ("[x x]", "PUT", "test?action=echo", hdr, False, \info));
+        assertEq(400, info."response-headers".status_code);
+        assertEq("True", info."response-headers".error);
     }
 
     directTest() {
@@ -734,19 +815,5 @@ class NullOutputProvider inherits AbstractDataProvider {
     }
 
     private *AbstractDataProviderType getRequestTypeImpl() {
-    }
-}
-
-class TestAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
-        open();
-    }
-
-    processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_LOG:
-                print(params);
-                break;
-        }
     }
 }

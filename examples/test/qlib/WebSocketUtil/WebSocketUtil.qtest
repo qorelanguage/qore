@@ -24,7 +24,7 @@ public class WebSocketUtilTest inherits QUnit::Test {
 
     webSocketUtilTests() {
         srand(clock_getmicros());
-        int port = 20000 + (rand() % 30000);
+        int port = 0;
 
         # test to ensure that close messages are encoded properly
         binary msg = WSCC_NoStatusRcvd.encodeMsb(2) + binary(Msg);
@@ -34,6 +34,7 @@ public class WebSocketUtilTest inherits QUnit::Test {
         Socket s();
         # bind to a random port
         s.bind(port);
+        port = s.getSocketInfo().port;
         s.listen();
 
         background doSend(WsMsg, port);

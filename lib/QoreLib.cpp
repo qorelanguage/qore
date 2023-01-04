@@ -1328,11 +1328,12 @@ char* q_dirname(const char* path) {
    return x;
 }
 
-void *q_realloc(void* ptr, size_t size) {
-   void *p = realloc(ptr, size);
-   if (!p)
-      free(ptr);
-   return p;
+void* q_realloc(void* ptr, size_t size) {
+    void* p = realloc(ptr, size);
+    if (!p) {
+        free(ptr);
+    }
+    return p;
 }
 
 static inline void assign_hv(QoreHashNode* h, const char* key, char* val) {
@@ -1660,43 +1661,48 @@ int check_lvalue(QoreValue n, bool assignment) {
 
 // returns 0 for OK, -1 for error
 int check_lvalue(AbstractQoreNode* node, bool assignment) {
-   qore_type_t ntype = node->getType();
-   //printd(5, "type: %s\n", node->getTypeName());
-   if (ntype == NT_VARREF) {
-      if (assignment)
-         reinterpret_cast<VarRefNode*>(node)->parseAssigned();
-      return 0;
-   }
+    qore_type_t ntype = node->getType();
+    //printd(5, "type: %s\n", node->getTypeName());
+    if (ntype == NT_VARREF) {
+        if (assignment)
+            reinterpret_cast<VarRefNode*>(node)->parseAssigned();
+        return 0;
+    }
 
-   if (ntype == NT_SELF_VARREF)
-      return 0;
+    if (ntype == NT_SELF_VARREF)
+        return 0;
 
-   if (ntype == NT_CLASS_VARREF)
-      return 0;
+    if (ntype == NT_CLASS_VARREF)
+        return 0;
 
-   if (ntype == NT_OPERATOR) {
-      {
-         QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
-         if (op) {
-            return check_lvalue(op->getLeft(), assignment);
-         }
-      }
-      {
-         QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<QoreSquareBracketsRangeOperatorNode*>(node);
-         if (op) {
-            return check_lvalue(op->get(0), assignment);
-         }
-      }
-      {
-         QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
-         if (op) {
-            return check_lvalue(op->getLeft(), assignment);
-         }
-         return -1;
-      }
-   }
+    if (ntype == NT_OPERATOR) {
+        {
+            QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(node);
+            if (op) {
+                return check_lvalue(op->getLeft(), assignment);
+            }
+        }
+        {
+            QoreSquareBracketsRangeOperatorNode* op = dynamic_cast<QoreSquareBracketsRangeOperatorNode*>(node);
+            if (op) {
+                return check_lvalue(op->get(0), assignment);
+            }
+        }
+        {
+            QoreHashObjectDereferenceOperatorNode* op = dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(node);
+            if (op) {
+                return check_lvalue(op->getLeft(), assignment);
+            }
+        }
+        {
+            QoreCastOperatorNode* op = dynamic_cast<QoreCastOperatorNode*>(node);
+            if (op) {
+                return check_lvalue(op->getExp(), assignment);
+            }
+        }
+    }
 
-   return -1;
+    return -1;
 }
 
 static void stat_get_blocks(const struct stat &sbuf, int64& blksize, int64& blocks) {
@@ -2668,12 +2674,15 @@ QoreStringNode* q_read_string(ExceptionSink* xsink, int64 size, const QoreEncodi
             const char* p = str->c_str() + last_char;
             int cc = enc->getCharLen(p, e - p);
             if (!cc) {
-                xsink->raiseException("STREAM-ENCODING-ERROR", "invalid multi-byte character received in byte offset " QSD " according to the input encoding: '%s'", last_char, enc->getCode());
+                xsink->raiseException("STREAM-ENCODING-ERROR", "invalid multi-byte character received in byte offset "
+                    QSD " according to the input encoding: '%s'", last_char, enc->getCode());
 
                 return 0;
             }
 
-            //printd(5, "StreamReader::readString() orig: " QLLD " size: " QLLD " char_len: " QLLD " rc: %d last_char: " QSD " c: %d (offset: " QLLD ") cc: %d '%s'\n", orig_size, size, char_len, rc, last_char, *p, p - str->c_str(), cc, enc->getCode());
+            //printd(5, "StreamReader::readString() orig: " QLLD " size: " QLLD " char_len: " QLLD " rc: %d "
+            //    last_char: " QSD " c: %d (offset: " QLLD ") cc: %d '%s'\n", orig_size, size, char_len, rc,
+            //    last_char, *p, p - str->c_str(), cc, enc->getCode());
 
             if (cc > 0) {
                 // increment character count

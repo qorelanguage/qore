@@ -146,7 +146,7 @@ int QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& p
             } else {
                 assert(exp);
                 ReferenceHolder<> holder(this, nullptr);
-                val = new QoreClassCastOperatorNode(loc, nullptr, takeExp(), or_nothing);
+                val = new QoreClassCastOperatorNode(loc, qc, takeExp(), or_nothing);
             }
             return err;
         }
@@ -246,23 +246,20 @@ int QoreParseCastOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& p
     return -1;
 }
 
-QoreValue QoreClassCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder rv(exp, xsink);
-    if (*xsink)
-        return QoreValue();
-
+// checks if the value matches the expected type
+int QoreClassCastOperatorNode::checkValue(ExceptionSink* xsink, const QoreValue& val, bool lvalue) const {
     // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
-    if (rv->isNothing() && or_nothing) {
-        return QoreValue();
+    if (val.isNothing() && or_nothing) {
+        return 0;
     }
 
-    if (rv->getType() != NT_OBJECT) {
-        xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to %s'%s'", rv->getTypeName(),
+    if (val.getType() != NT_OBJECT) {
+        xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to %s'%s'", val.getTypeName(),
             qc ? "class " : "", qc ? qc->getName() : "object");
-        return QoreValue();
+        return -1;
     }
 
-    const QoreObject* obj = rv->get<const QoreObject>();
+    const QoreObject* obj = val.get<const QoreObject>();
     if (qc) {
         const QoreClass* oc = obj->getClass();
         bool priv;
@@ -270,40 +267,80 @@ QoreValue QoreClassCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* 
         if (!tc) {
             xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to class '%s'",
                 obj->getClassName(), qc->getName());
-            return QoreValue();
+            return -1;
         }
         //printd(5, "QoreCastOperatorNode::evalImpl() %s -> %s priv: %d\n", oc->getName(), tc->getName(), priv);
         if (priv && !qore_class_private::runtimeCheckPrivateClassAccess(*tc)) {
             xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from class '%s' to privately-accessible " \
                 "class '%s' in this context", obj->getClassName(), qc->getName());
-            return QoreValue();
+            return -1;
         }
+    }
+
+    return 0;
+}
+
+QoreValue QoreClassCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    ValueEvalRefHolder rv(exp, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+
+    if (QoreClassCastOperatorNode::checkValue(xsink, *rv, false)) {
+        return QoreValue();
     }
 
     return rv.takeValue(needs_deref);
 }
 
+// checks if the value matches the expected type
+int QoreHashDeclCastOperatorNode::checkValue(ExceptionSink* xsink, const QoreValue& val, bool lvalue) const {
+    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+    if (val.isNothing() && or_nothing) {
+        return 0;
+    }
+
+    if (val.getType() != NT_HASH) {
+        if (hd) {
+            xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to hashdecl '%s'",
+                val.getTypeName(), hd->getName());
+        } else {
+            xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to 'hash'", val.getTypeName());
+        }
+        return -1;
+    }
+
+    if (lvalue) {
+        const QoreHashNode* h = val.get<const QoreHashNode>();
+        const TypedHashDecl* vhd = h->getHashDecl();
+
+        if ((!hd && (vhd || h->getValueTypeInfo()))
+            || (hd && (!vhd || !typed_hash_decl_private::get(*vhd)->equal(*typed_hash_decl_private::get(*hd))))) {
+            xsink->raiseException("RUNTIME-CAST-ERROR", "cannot modify lvalue type in assignment with the cast<> "
+                "operator");
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 QoreValue QoreHashDeclCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder rv(exp, xsink);
-    if (*xsink)
-        return QoreValue();
-
-    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
-    if (rv->isNothing() && or_nothing) {
+    if (*xsink) {
         return QoreValue();
     }
 
-    if (rv->getType() != NT_HASH) {
-        if (hd)
-            xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to hashdecl '%s'",
-                rv->getTypeName(), hd->getName());
-        else
-            xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to 'hash'", rv->getTypeName());
+    if (QoreHashDeclCastOperatorNode::checkValue(xsink, *rv, false)) {
+        return -1;
+    }
+
+    if (rv->isNothing()) {
+        assert(or_nothing);
         return QoreValue();
     }
 
     const QoreHashNode* h = rv->get<const QoreHashNode>();
-
     const TypedHashDecl* vhd = h->getHashDecl();
 
     if (!hd) {
@@ -321,43 +358,113 @@ QoreValue QoreHashDeclCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSin
     return typed_hash_decl_private::get(*hd)->newHash(h, true, xsink);
 }
 
+// checks if the value matches the expected type
+int QoreComplexHashCastOperatorNode::checkValue(ExceptionSink* xsink, const QoreValue& val, bool lvalue) const {
+    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+    if (val.isNothing() && or_nothing) {
+        return 0;
+    }
+
+    if (val.getType() != NT_HASH) {
+        xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to '%s'", val.getTypeName(),
+            QoreTypeInfo::getName(typeInfo));
+        return -1;
+    }
+
+    if (lvalue && (typeInfo != val.getFullTypeInfo())) {
+        xsink->raiseException("RUNTIME-CAST-ERROR", "cannot modify lvalue type from '%s' in assignment with the "
+            "cast<> operator to type '%s'", val.getFullTypeName(), QoreTypeInfo::getName(typeInfo));
+        return -1;
+    }
+
+    return 0;
+}
+
 QoreValue QoreComplexHashCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(needs_deref);
     ValueEvalRefHolder rv(exp, xsink);
-    if (*xsink)
-        return QoreValue();
-
-    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
-    if (rv->isNothing() && or_nothing) {
+    if (*xsink) {
         return QoreValue();
     }
 
-    if (rv->getType() != NT_HASH) {
-        xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to '%s'", rv->getTypeName(),
-            QoreTypeInfo::getName(typeInfo));
+    if (QoreComplexHashCastOperatorNode::checkValue(xsink, *rv, false)) {
         return QoreValue();
+    }
+
+    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+    if (rv->isNothing()) {
+        assert(or_nothing);
+        return QoreValue();
+    }
+
+    assert(rv->getType() == NT_HASH);
+
+    // if we already have the expected cast, then there's nothing to do
+    if (typeInfo == rv->getFullTypeInfo()) {
+        return rv.takeValue(needs_deref);
     }
 
     // do the runtime cast
     return qore_hash_private::newComplexHashFromHash(typeInfo, rv.takeReferencedNode<QoreHashNode>(), xsink);
 }
 
-QoreValue QoreComplexListCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    assert(needs_deref);
-    ValueEvalRefHolder rv(exp, xsink);
-    if (*xsink)
-        return QoreValue();
-
+// checks if the value matches the expected type
+int QoreComplexListCastOperatorNode::checkValue(ExceptionSink* xsink, const QoreValue& val, bool lvalue) const {
     // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
-    if (rv->isNothing() && or_nothing) {
-        return QoreValue();
+    if (val.isNothing() && or_nothing) {
+        return 0;
     }
 
     // check the value
-    if ((!typeInfo || !QoreTypeInfo::getUniqueReturnComplexSoftList(typeInfo)) && (rv->getType() != NT_LIST)) {
-        xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to '%s'", rv->getTypeName(),
+    if ((!typeInfo || !QoreTypeInfo::getUniqueReturnComplexSoftList(typeInfo)) && (val.getType() != NT_LIST)) {
+        xsink->raiseException("RUNTIME-CAST-ERROR", "cannot cast from type '%s' to '%s'", val.getFullTypeName(),
             typeInfo ? QoreTypeInfo::getName(typeInfo) : "list");
+        return -1;
+    }
+
+    if (lvalue) {
+        if (!typeInfo) {
+            if (listTypeInfo != val.getFullTypeInfo()) {
+                xsink->raiseException("RUNTIME-CAST-ERROR", "cannot modify lvalue type from '%s' in assignment with the "
+                    "cast<> operator to type 'list'", val.getFullTypeName());
+                return -1;
+            }
+        } else {
+            if (typeInfo != val.getFullTypeInfo()) {
+                xsink->raiseException("RUNTIME-CAST-ERROR", "cannot modify lvalue type from '%s' in assignment with the "
+                    "cast<> operator to type '%s'", val.getFullTypeName(), QoreTypeInfo::getName(typeInfo));
+                return -1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+QoreValue QoreComplexListCastOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+    assert(needs_deref);
+    ValueEvalRefHolder rv(exp, xsink);
+    if (*xsink) {
         return QoreValue();
+    }
+
+    if (checkValue(xsink, *rv, false)) {
+        return QoreValue();
+    }
+
+    // issue #3331: ignore nothing if it's an "or nothing" cast, or if broken-cast is in effect
+    if (rv->isNothing()) {
+        assert(or_nothing);
+        return QoreValue();
+    }
+
+    assert(rv->getType() == NT_LIST);
+
+    // check if types are equal
+    const QoreTypeInfo* ti = rv->getFullTypeInfo();
+    if ((!typeInfo && (ti == listTypeInfo))
+        || (typeInfo && ti == typeInfo)) {
+        return rv.takeValue(needs_deref);
     }
 
     // do the runtime cast

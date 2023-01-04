@@ -350,7 +350,9 @@ static inline qore_type_t get_node_type(const AbstractQoreNode* n) {
    return n ? n->getType() : NT_NOTHING;
 }
 
-typedef QoreStringNode* (*qore_uncompress_to_string_t)(const BinaryNode* b, const QoreEncoding* enc, ExceptionSink* xsink);
+typedef QoreStringNode* (*qore_uncompress_to_string_t)(const BinaryNode* b, const QoreEncoding* enc,
+    ExceptionSink* xsink);
+typedef BinaryNode* (*qore_uncompress_to_binary_t)(const BinaryNode* b, ExceptionSink* xsink);
 
 //! compresses data with the DEFLATE algorithm
 DLLEXPORT BinaryNode* qore_deflate(void* ptr, unsigned long len, int level, ExceptionSink* xsink);
@@ -367,7 +369,8 @@ DLLEXPORT BinaryNode* qore_gunzip_to_binary(const BinaryNode* bin, ExceptionSink
 //! compresses data with bzip2
 DLLEXPORT BinaryNode* qore_bzip2(void* ptr, unsigned long len, int level, ExceptionSink* xsink);
 //! decompresses bzip2 data to a string
-DLLEXPORT QoreStringNode* qore_bunzip2_to_string(const BinaryNode* bin, const QoreEncoding* enc, ExceptionSink* xsink);
+DLLEXPORT QoreStringNode* qore_bunzip2_to_string(const BinaryNode* bin, const QoreEncoding* enc,
+    ExceptionSink* xsink);
 //! decompresses bzip2 data to a binary
 DLLEXPORT BinaryNode* qore_bunzip2_to_binary(const BinaryNode* bin, ExceptionSink* xsink);
 

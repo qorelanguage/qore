@@ -41,7 +41,7 @@
 class BinaryNode : public SimpleValueQoreNode {
 private:
     //! pointer to memory owned by the object
-    void *ptr;
+    void* ptr;
     //! size of the memory block owned by the object
     size_t len;
 
@@ -61,7 +61,7 @@ public:
     /** @param p a pointer to the memory, the BinaryNode object takes over ownership of this pointer
         @param size the byte length of the memory
     */
-    DLLEXPORT BinaryNode(void *p = 0, size_t size = 0);
+    DLLEXPORT BinaryNode(void* p = 0, size_t size = 0);
 
     //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
     /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
@@ -87,21 +87,21 @@ public:
     */
     DLLEXPORT virtual QoreString *getAsString(bool &del, int foff, class ExceptionSink *xsink) const;
 
-    DLLEXPORT virtual class AbstractQoreNode *realCopy() const;
+    DLLEXPORT virtual class AbstractQoreNode* realCopy() const;
 
     //! tests for equality
     /** this function does not throw a Qore-language exception with the BinaryNode class
         @param v the value to compare
         @param xsink is not used in this implementation of the function
     */
-    DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+    DLLEXPORT virtual bool is_equal_soft(const AbstractQoreNode* v, ExceptionSink *xsink) const;
 
     //! tests for equality
     /** this function does not throw a Qore-language exception with the BinaryNode class
         @param v the value to compare
         @param xsink is not used in this implementation of the function
     */
-    DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode *v, ExceptionSink *xsink) const;
+    DLLEXPORT virtual bool is_equal_hard(const AbstractQoreNode* v, ExceptionSink *xsink) const;
 
     //! returns the type name as a c string
     DLLEXPORT virtual const char *getTypeName() const;
@@ -110,7 +110,7 @@ public:
     DLLLOCAL virtual int parseInit(QoreValue& val, QoreParseContext& parse_context);
 
     //! returns 0 = equal, 1 = not equal
-    DLLEXPORT int compare(const BinaryNode *obj) const;
+    DLLEXPORT int compare(const BinaryNode* obj) const;
 
     //! returns the number of bytes in the object
     DLLEXPORT size_t size() const;
@@ -122,22 +122,35 @@ public:
     /**
         @return a copy of the current object
     */
-    DLLEXPORT BinaryNode *copy() const;
+    DLLEXPORT BinaryNode* copy() const;
 
     //! returns the pointer to the data
-    DLLEXPORT const void *getPtr() const;
+    DLLEXPORT const void* getPtr() const;
 
     //! resizes the object and appends a copy of the data passed to the object
-    DLLEXPORT void append(const void *nptr, size_t size);
+    DLLEXPORT void append(const void* nptr, size_t size);
 
     //! resizes the object and appends a copy of the data passed to the object
-    DLLEXPORT void append(const BinaryNode *b);
+    DLLEXPORT void append(const BinaryNode* b);
 
     //! resizes the object and appends a copy of the data passed to the object
     DLLEXPORT void append(const BinaryNode &b);
 
+    //! writes the given data to the given location in the object
+    /** resizes the object if necessary
+
+        @param pos the byte position where to start writing
+        @param nptr the data to copy to the object
+        @param size the number of bytes to copy to the object
+
+        @return -1 if the resize failed (out of memory), 0 if OK
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT int writeTo(size_t pos, const void* nptr, size_t size);
+
     //! resizes the object and prepends a copy of the data passed to the beginning of the object
-    DLLEXPORT void prepend(const void *nptr, size_t size);
+    DLLEXPORT void prepend(const void* nptr, size_t size);
 
     //! returns the data being managed and leaves this object empty
     /**
@@ -145,7 +158,7 @@ public:
         @note it would be a grevious error to call this function on an object
         with a reference_count > 1 (i.e. is_unique() is false)
     */
-    DLLEXPORT void *giveBuffer();
+    DLLEXPORT void* giveBuffer();
 
     //! pre-allocates a buffer of a certain size
     /** This function can be used to write data directly to a new BinaryNode object.

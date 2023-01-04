@@ -95,6 +95,21 @@ public class ConnectionProviderTest inherits QUnit::Test {
         assertNothing(hc.getTag("invalid"));
         assertThrows("TAG-ERROR", \hc.getTagEx(), "invalid");
 
+        assertTrue(hc.supportsPollingApi());
+        {
+            SocketPollOperation spop = hc.startPollConnect();
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+            assertNothing(spop.getOutput());
+            assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
+        }
+
         HTTPClient client = hc.get();
         assertEq("X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT", server.wait());
 

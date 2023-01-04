@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.6";
+    version = "1.6.1";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -299,11 +299,20 @@ Mapper m(mapv, opts);        # runtime options are active now
 m.mapData(input1);           # output record hash date_begin = start_date = timestamp of the opts creation and group = 0
     @endcode
 
-    The runtime options are basically the same as setting constants in the mapper before providing runtime data to the mapper. As such, the runtime options can be changed only before the first input hash is processed by a @ref Mapper::Mapper "Mapper".
+    The runtime options are basically the same as setting constants in the mapper before providing runtime data to the
+    mapper. As such, the runtime options can be changed only before the first input hash is processed by a
+    @ref Mapper::Mapper "Mapper".
 
-    Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since runtime options duplicate existing functionality and are confusing and error-prone to use.
+    Note that the @ref Mapper::Mapper::setRuntime() "Mapper::setRuntime()" and
+    @ref Mapper::Mapper::replaceRuntime() "Mapper::replaceRuntime()" methods are deprecated - please use
+    @ref Mapper::Mapper "Mapper" construction options to set runtime values instead. The methods are deprecated since
+    runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_6_1 Mapper v1.6.1
+    - fixed @ref Mapper::Mapper::mapAuto() "Mapper::mapAuto()" to accept an iterator argument
+      (<a href="https://github.com/qorelanguage/qore/issues/4629">issue 4629</a>)
 
     @subsection mapperv1_6 Mapper v1.6
     - implemented options supporting suppressing data provider calls on input and output
@@ -808,7 +817,9 @@ const DataMap = (
 Mapper mapv(DataMap);
         @endcode
 
-        @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is either @ref True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the mapping; see @ref mapperkeys for detailed documentation for this option
+        @param mapv a hash providing field mappings; each hash key is the name of the output field; each value is
+        either @ref True "True" (meaning no translations are done; the data is copied 1:1) or a hash describing the
+        mapping; see @ref mapperkeys for detailed documentation for this option
         @param opts an optional hash of options for the mapper; see @ref mapperoptions for a description of valid mapper options
 
         @throw MAP-ERROR the map hash has a logical error (ex: \c "trunc" key given without \c "maxlen", invalid map key)
@@ -826,10 +837,6 @@ Mapper mapv(DataMap);
 
     static hash<string, AbstractDataField> getInputFromHash(hash<auto> input) {
         if (recordType.isAssignableFrom(input)) {
-            # XXX DEBUG DELETEME
-            on_error
-                rethrow $1.err, sprintf("input: %s %y can be assigned from %s: %d: %s", input.fullType(), input,
-                    recordType.getName(), recordType.isAssignableFrom(input), $1.desc);
             return cast<hash<string, AbstractDataField>>(input);
         }
         return Mapper::getInputFromHashIntern(input);
@@ -843,7 +850,7 @@ Mapper mapv(DataMap);
     }
 
     #! Submits the data for processing by the mapper
-    /** @param enqueue s closure taking a single arugment that enqueues the processed data for the next step in the
+    /** @param enqueue s closure taking a single argument that enqueues the processed data for the next step in the
         pipeline; if no data should be processed onwards, do not call enqueue; if only one record should be processed
         onwards, then \a enqueue should be called only once; if multiple records are generated from the input data,
         then call it once for each generated record; prototype: @code{.py} code enqueue = sub (auto qdata) {} @endcode
@@ -2178,6 +2185,20 @@ Mapper mapv(DataMap);
         return map mapData($1), recs.contextIterator();
     }
 
+    #! maps all input records and returns the mapped data as a list of output records
+    /** this method applies the @ref mapData() method to all input records and returns the resulting list
+        @param recs an interator that returns hashes of input records on each iteration
+
+        @return the mapped data as a list of output records
+
+        @throw MISSING-INPUT a field marked mandatory is missing
+        @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
+        @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
+    */
+    list<hash<auto>> mapAll(AbstractIterator recs) {
+        return map mapData($1), recs;
+    }
+
     #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
     /** @param rec the record to translate
 
@@ -2224,6 +2245,14 @@ Mapper mapv(DataMap);
                 }
                 # only one record (simple hash)
                 return mapData(recs);
+
+            case NT_OBJECT: {
+                if (recs instanceof AbstractIterator) {
+                    return mapAll(recs);
+                }
+                # otherwise throw an exception
+                break;
+            }
 
             case NT_NOTHING:
                 # do nothing in case no input was received

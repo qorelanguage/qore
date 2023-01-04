@@ -295,13 +295,13 @@ public const HttpCodes = {
 
 /** @defgroup HttpServerLoggingOptions HttpServer Logging Options
 */
-#@{
+#/@{
 #! bit for logging argument
 public const LP_LOGPARAMS = 1 << 16;
 
 #! mask for the log level
 public const LP_LEVELMASK = LP_LOGPARAMS - 1;
-#@}
+#/@}
 
 #! the return value of HTTP handler methods where any message body has been serialized for sending over the HTTP socket
 public hashdecl HttpResponseInfo {
@@ -1663,6 +1663,23 @@ public class AbstractHttpRequestHandler {
         return <HttpResponseInfo>{
             "code": code,
             "body": vsprintf(fmt, argv),
+            "hdr": hdr,
+        };
+    }
+
+    #! creates a hash for an HTTP response with the response code and the response message body as binary data
+    static hash<HttpResponseInfo> makeResponse(int code, binary body) {
+        return <HttpResponseInfo>{
+            "code": code,
+            "body": body,
+        };
+    }
+
+    #! creates a hash for an HTTP response with the response code and the response message body as binary data
+    static hash<HttpResponseInfo> makeResponse(hash<auto> hdr, int code, binary body) {
+        return <HttpResponseInfo>{
+            "code": code,
+            "body": body,
             "hdr": hdr,
         };
     }

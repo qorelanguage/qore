@@ -65,6 +65,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/SchemaReverse.qm \
 	qlib/SmtpClient.qm \
     qlib/Sqlite3SqlUtil.qm \
+    qlib/OdbcFirebirdSqlUtil.qm \
 	qlib/Mapper.qm \
 	qlib/TableMapper.qm \
 	qlib/TelnetClient.qm \
@@ -158,92 +159,97 @@ QDX_DEP = $(QDX_SRC) qore
 endif
 
 LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
+	lib/QC_AbstractBidirectionalIterator.qpp \
+	lib/QC_AbstractDatasource.qpp \
+	lib/QC_AbstractIterator.qpp \
+	lib/QC_AbstractLineIterator.qpp \
+	lib/QC_AbstractPollableIoObject.qpp \
+	lib/QC_AbstractPollableIoObjectBase.qpp \
+	lib/QC_AbstractPollOperation.qpp \
+	lib/QC_AbstractQuantifiedIterator.qpp \
+	lib/QC_AbstractQuantifiedBidirectionalIterator.qpp \
+	lib/QC_AbstractSQLStatement.qpp \
+	lib/QC_AbstractThreadResource.qpp \
 	lib/QC_AutoGate.qpp \
 	lib/QC_AutoLock.qpp \
 	lib/QC_AutoReadLock.qpp \
 	lib/QC_AutoWriteLock.qpp \
+	lib/QC_BinaryInputStream.qpp \
+	lib/QC_BinaryOutputStream.qpp \
+	lib/QC_BufferedStreamReader.qpp \
+	lib/QC_Breakpoint.qpp \
 	lib/QC_Condition.qpp \
 	lib/QC_Counter.qpp \
-	lib/QC_AbstractIterator.qpp \
-	lib/QC_AbstractQuantifiedIterator.qpp \
-	lib/QC_AbstractBidirectionalIterator.qpp \
-	lib/QC_AbstractQuantifiedBidirectionalIterator.qpp \
-	lib/QC_ListIterator.qpp \
-	lib/QC_ListReverseIterator.qpp \
+	lib/QC_DataLineIterator.qpp \
+	lib/QC_Datasource.qpp \
+	lib/QC_DatasourcePool.qpp \
+	lib/QC_DebugProgram.qpp \
+	lib/QC_Dir.qpp \
+	lib/QC_EncodingConversionInputStream.qpp \
+	lib/QC_EncodingConversionOutputStream.qpp \
+	lib/QC_Expression.qpp \
+	lib/QC_File.qpp \
+	lib/QC_FileInputStream.qpp \
+	lib/QC_FileOutputStream.qpp \
+	lib/QC_FileLineIterator.qpp \
+	lib/QC_FtpClient.qpp \
+	lib/QC_Gate.qpp \
+	lib/QC_GetOpt.qpp \
 	lib/QC_HashIterator.qpp \
-	lib/QC_HashReverseIterator.qpp \
+	lib/QC_HashListIterator.qpp \
+	lib/QC_HashListReverseIterator.qpp \
 	lib/QC_HashKeyIterator.qpp \
 	lib/QC_HashKeyReverseIterator.qpp \
 	lib/QC_HashPairIterator.qpp \
 	lib/QC_HashPairReverseIterator.qpp \
+	lib/QC_HashReverseIterator.qpp \
+	lib/QC_HTTPClient.qpp \
+	lib/QC_InputStream.qpp \
+	lib/QC_InputStreamLineIterator.qpp \
+	lib/QC_ListHashIterator.qpp \
+	lib/QC_ListHashReverseIterator.qpp \
+	lib/QC_ListIterator.qpp \
+	lib/QC_ListReverseIterator.qpp \
+	lib/QC_Mutex.qpp \
 	lib/QC_ObjectIterator.qpp \
 	lib/QC_ObjectReverseIterator.qpp \
 	lib/QC_ObjectKeyIterator.qpp \
 	lib/QC_ObjectKeyReverseIterator.qpp \
 	lib/QC_ObjectPairIterator.qpp \
 	lib/QC_ObjectPairReverseIterator.qpp \
-	lib/QC_HashListIterator.qpp \
-	lib/QC_HashListReverseIterator.qpp \
-	lib/QC_ListHashIterator.qpp \
-	lib/QC_ListHashReverseIterator.qpp \
-	lib/QC_AbstractLineIterator.qpp \
-	lib/QC_DataLineIterator.qpp \
-	lib/QC_FileLineIterator.qpp \
-	lib/QC_InputStreamLineIterator.qpp \
-	lib/QC_SingleValueIterator.qpp \
-	lib/QC_AbstractDatasource.qpp \
-	lib/QC_AbstractSQLStatement.qpp \
-	lib/QC_RangeIterator.qpp \
-	lib/QC_Datasource.qpp \
-	lib/QC_DatasourcePool.qpp \
-	lib/QC_Dir.qpp \
-	lib/QC_ReadOnlyFile.qpp \
-	lib/QC_File.qpp \
-	lib/QC_FtpClient.qpp \
-	lib/QC_Gate.qpp \
-	lib/QC_GetOpt.qpp \
-	lib/QC_HTTPClient.qpp \
-	lib/QC_Mutex.qpp \
-	lib/QC_Program.qpp \
-	lib/QC_ProgramControl.qpp \
-	lib/QC_DebugProgram.qpp \
-	lib/QC_Breakpoint.qpp \
-	lib/QC_Expression.qpp \
-	lib/QC_Queue.qpp \
-	lib/QC_RWLock.qpp \
-	lib/QC_SQLStatement.qpp \
-	lib/QC_Sequence.qpp \
-	lib/QC_Socket.qpp \
-	lib/QC_TermIOS.qpp \
-	lib/QC_TimeZone.qpp \
-	lib/QC_SSLCertificate.qpp \
-	lib/QC_SSLPrivateKey.qpp \
-	lib/QC_ThreadPool.qpp \
-	lib/QC_TreeMap.qpp \
-	lib/QC_AbstractThreadResource.qpp \
-	lib/QC_StreamBase.qpp \
-	lib/QC_InputStream.qpp \
-	lib/QC_BinaryInputStream.qpp \
-	lib/QC_StringInputStream.qpp \
-	lib/QC_FileInputStream.qpp \
-	lib/QC_EncodingConversionInputStream.qpp \
 	lib/QC_OutputStream.qpp \
-	lib/QC_BinaryOutputStream.qpp \
-	lib/QC_StringOutputStream.qpp \
-	lib/QC_FileOutputStream.qpp \
-	lib/QC_EncodingConversionOutputStream.qpp \
-	lib/QC_StreamPipe.qpp \
 	lib/QC_PipeInputStream.qpp \
 	lib/QC_PipeOutputStream.qpp \
-	lib/QC_StreamWriter.qpp \
+	lib/QC_Program.qpp \
+	lib/QC_ProgramControl.qpp \
+	lib/QC_Queue.qpp \
+	lib/QC_RangeIterator.qpp \
+	lib/QC_ReadOnlyFile.qpp \
+	lib/QC_RWLock.qpp \
+	lib/QC_Serializable.qpp \
+	lib/QC_Sequence.qpp \
+	lib/QC_SingleValueIterator.qpp \
+	lib/QC_Socket.qpp \
+    lib/QC_SocketPollOperation.qpp \
+    lib/QC_SocketPollOperationBase.qpp \
+	lib/QC_SSLCertificate.qpp \
+	lib/QC_SSLPrivateKey.qpp \
+	lib/QC_StdoutOutputStream.qpp \
+	lib/QC_StderrOutputStream.qpp \
+	lib/QC_StreamBase.qpp \
+	lib/QC_StreamPipe.qpp \
 	lib/QC_StreamReader.qpp \
-	lib/QC_BufferedStreamReader.qpp \
+	lib/QC_StreamWriter.qpp \
+	lib/QC_StringInputStream.qpp \
+	lib/QC_StringOutputStream.qpp \
+	lib/QC_SQLStatement.qpp \
+	lib/QC_TermIOS.qpp \
+	lib/QC_ThreadPool.qpp \
+	lib/QC_TimeZone.qpp \
+	lib/QC_TreeMap.qpp \
 	lib/QC_Transform.qpp \
 	lib/QC_TransformInputStream.qpp \
 	lib/QC_TransformOutputStream.qpp \
-	lib/QC_StdoutOutputStream.qpp \
-	lib/QC_StderrOutputStream.qpp \
-	lib/QC_Serializable.qpp \
 	lib/Pseudo_QC_All.qpp \
 	lib/Pseudo_QC_Nothing.qpp \
 	lib/Pseudo_QC_Date.qpp \
@@ -412,7 +418,7 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/reflection/src/QC_AbstractMember.qpp \
 	modules/reflection/src/QC_AbstractMethod.qpp \
 	modules/reflection/src/QC_DestructorMethodVariant.h \
-	modules/reflection/src/QC_PseudoMethod.qpp \
+    modules/reflection/src/QC_PseudoMethod.qpp \
 	modules/reflection/src/QC_Namespace.qpp \
 	modules/reflection/src/QC_ConstructorMethod.qpp \
 	modules/reflection/src/QC_TypedHash.h \
@@ -511,6 +517,7 @@ include_HEADERS = \
 	include/qore/macros-parisc.h \
 	include/qore/macros-arm.h \
 	include/qore/macros-aarch64.h \
+	include/qore/macros-s390x.h \
 	include/qore/QoreSocket.h \
 	include/qore/QoreSocketObject.h \
 	include/qore/QoreNet.h \
@@ -552,7 +559,9 @@ include_HEADERS = \
 	include/qore/AbstractException.h \
 	include/qore/QoreStandardException.h \
 	include/qore/QoreXSinkException.h \
-	include/qore/UnicodeCharacterIterator.h
+	include/qore/UnicodeCharacterIterator.h \
+    include/qore/AbstractPollState.h \
+    include/qore/AbstractPollableIoObjectBase.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
@@ -853,6 +862,9 @@ noinst_HEADERS = \
 	include/qore/intern/QC_TreeMap.h \
 	include/qore/intern/QC_AbstractThreadResource.h \
 	include/qore/intern/QC_Serializable.h \
+    include/qore/intern/QC_AbstractPollableIoObjectBase.h \
+	include/qore/intern/QC_SocketPollOperationBase.h \
+	include/qore/intern/QC_SocketPollOperation.h \
 	lib/getopt_long.h \
 	command-line.h
 
@@ -967,7 +979,9 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
     doxygen/lang/mainpage.dox.tmpl \
 	doxygen/lang/Doxyfile.in \
 	doxygen/qlib/Doxyfile.in \
+    doxygen/qlib/Doxyfile.cmake.tmpl \
 	doxygen/modules/Doxyfile.in \
+    doxygen/modules/Doxyfile.cmake.in \
 	doxygen/lib/Doxyfile.in \
 	$(LIB_DOXYFILES_SRC) \
 	$(LANG_DOXYFILES_SRC) \
@@ -977,13 +991,25 @@ EXTRA_DIST = next_build.sh run_tests.sh ABOUT RELEASE-NOTES \
 dist_modver_DATA = $(USER_MODULES)
 
 dist_qoredata_DATA = doxygen/Doxyfile.in \
-	doxygen/qore-logo-55x200.png
+	doxygen/qore-logo-55x200.png \
+    doxygen/qore-logo-55x151-white.png \
+    doxygen/dox_qore.css \
+    doxygen/DataProvider-Full.svg \
+    doxygen/SqlUtil-Full.svg \
+    doxygen/Qore-Q.ico \
+    doxygen/header_template.html \
+    doxygen/footer_template.html
 
 include $(srcdir)/qoretests.mk
 
 # all tests
-TESTS = $(qore_tests)
-#TESTS = `find ./examples/test/ -name "*.qtest"`
+TESTS = examples/test/qore/threads/background.qtest \
+    examples/test/qore/threads/deadlock.qtest \
+    examples/test/qore/threads/max-threads-count.qtest \
+    examples/test/qore/threads/set_thread_init.qtest \
+    examples/test/qore/threads/thread-object.qtest \
+    examples/test/qore/threads/thread-resources.qtest \
+    examples/test/qore/threads/tld.qtest
 
 AM_TESTS_ENVIRONMENT = QORE_MODULE_DIR='$(srcdir)/qlib'; export QORE_MODULE_DIR;
 
@@ -1041,7 +1067,7 @@ doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm $< $@
 
 doxygen/qlib/Doxyfile.DataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/DataProvider:doxygen/qlib/DataProvider.qm $< $@
+	$(QDX) -M=qlib/DataProvider:doxygen/qlib/DataProvider.qm -X=doxygen/ -E=DataProvider-Full.svg $< $@
 
 doxygen/qlib/Doxyfile.FileLocationHandler: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/FileLocationHandler:doxygen/qlib/FileLocationHandler.qm -tUtil.tag=../../Util/html $< $@
@@ -1056,7 +1082,7 @@ doxygen/qlib/Doxyfile.MailMessage: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/MailMessage.qm:doxygen/qlib/MailMessage.qm -tMime.tag=../../Mime/html $< $@
 
 doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/SqlUtil:doxygen/qlib/SqlUtil.qm -tUtil.tag=../../Util/html -tDataProvider.tag=../../DataProvider/html $< $@
+	$(QDX) -M=qlib/SqlUtil:doxygen/qlib/SqlUtil.qm -tUtil.tag=../../Util/html -tDataProvider.tag=../../DataProvider/html -X=doxygen/ -E=SqlUtil-Full.svg $< $@
 
 doxygen/qlib/Doxyfile.DbDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/DbDataProvider:doxygen/qlib/DbDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tSqlUtil.tag=../../SqlUtil/html $< $@
@@ -1106,6 +1132,7 @@ doxygen/qlib/Doxyfile.FsUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/astparser/ \
         -e "s/@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@/${PACKAGE_VERSION}/" \
+        -e 's/@_dox_input@/modules\/astparser\/src modules\/astparser\/docs\/mainpage.dox/' \
         -e 's/@_dox_output@/docs\/modules\/astparser\//' \
         -e 's/@_dox_src@/modules\/astparser\/docs/' \
         -e 's/@CMAKE_CURRENT_BINARY_DIR@/modules\/astparser\/src/' \
@@ -1115,6 +1142,7 @@ doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 doxygen/modules/Doxyfile.reflection: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/reflection/ \
         -e "s/@VERSION_MAJOR@.@VERSION_MINOR@.@VERSION_SUB@/${PACKAGE_VERSION}/" \
+        -e 's/@_dox_input@/modules\/reflection\/src modules\/reflection\/docs\/mainpage.dox/' \
         -e 's/@_dox_output@/docs\/modules\/reflection\//' \
         -e 's/@_dox_src@/modules\/reflection\/docs/' \
         -e 's/@CMAKE_CURRENT_BINARY_DIR@/modules\/reflection\/src/' \
@@ -1157,7 +1185,10 @@ $(TMP_MOD_HTML_TARG): docs/modules/%/html: doxygen/qlib/%.qm doxygen/qlib/Doxyfi
 	$(DOXYGEN_CMD) doxygen/qlib/Doxyfile.$*
 	$(top_srcdir)/doxygen/pdox $@ $@/search
 
-docs/modules/astparser/html: doxygen/modules/Doxyfile.astparser
+modules/astparser/docs/mainpage.dox: modules/astparser/docs/mainpage.dox.tmpl $(QPP) modules/astparser
+	$(QPP) -t $< -o $@
+
+docs/modules/astparser/html: doxygen/modules/Doxyfile.astparser modules/astparser/docs/mainpage.dox
 	${MAKE} -C modules/astparser
 	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/modules/Doxyfile.astparser
@@ -1166,7 +1197,7 @@ docs/modules/astparser/html: doxygen/modules/Doxyfile.astparser
 modules/reflection/docs/mainpage.dox: modules/reflection/docs/mainpage.dox.tmpl $(QPP) modules/reflection
 	$(QPP) -t $< -o $@
 
-docs/modules/reflection/html: modules/reflection doxygen/modules/Doxyfile.reflection
+docs/modules/reflection/html: modules/reflection doxygen/modules/Doxyfile.reflection modules/reflection/docs/mainpage.dox
 	${MAKE} -C modules/reflection
 	$(MKDIR_P) $@
 	$(DOXYGEN_CMD) doxygen/modules/Doxyfile.reflection

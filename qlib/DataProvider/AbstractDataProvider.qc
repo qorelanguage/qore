@@ -29,7 +29,7 @@ public namespace DataProvider {
 /** @defgroup db_provider_upsert_results DB Provider Upsert Result Codes
     These are the results codes returned with single-record upsert actions
 */
-#@{
+#/@{
 #! Indicates that the record was inserted
 public const UpsertResultInserted = "inserted";
 
@@ -44,7 +44,7 @@ public const UpsertResultUnchanged = "unchanged";
 
 #! Indicates that the record was deleted
 public const UpsertResultDeleted = "deleted";
-#@}
+#/@}
 
 #! Allowed value hash
 public hashdecl AllowedValueInfo {
@@ -193,7 +193,7 @@ public hashdecl DataProviderMessageInfo {
 
     @since DataProvider 2.5
 */
-#@{
+#/@{
 #! No output type
 /** The data provider does not support output messages
 */
@@ -210,13 +210,13 @@ public const MSG_Sync = "SYNC";
 /** Input (i.e. observed events) may not be related or supported
 */
 public const MSG_Async = "ASYNC";
-#@}
+#/@}
 
 /** @defgroup signature_type_codes Signature Type Codes
 
     @since DataProvider 2.3
 */
-#@{
+#/@{
 #! Indicates any valid expression that returns the given type (default)
 public const ST_Any = 1;
 
@@ -228,7 +228,7 @@ public const ST_Value = 2;
     referring to the fact that the final type reflects the field's type, which can be of any supported type
 */
 public const ST_Field = 3;
-#@}
+#/@}
 
 #! Maps signature type codes to descriptions
 public const SignatureTypeCodeMap = {
@@ -244,7 +244,7 @@ public const SignatureTypeDescMap = map {$1.value: $1.key.toInt()}, SignatureTyp
 
     @since DataProvider 2.3
 */
-#@{
+#/@{
 #! Indicates an expression that can be used in a search operation
 public const ER_Search = (1 << 0);
 
@@ -253,7 +253,7 @@ public const ER_Field = (1 << 1);
 
 #! Indicates an expression that can be used in all contexts
 public const ER_All = ER_Search | ER_Field;
-#@}
+#/@}
 
 #! Role map from codes to descriptions
 public const RoleCodeMap = {
@@ -267,7 +267,7 @@ public const RoleDescMap = map {$1.value: $1.key.toInt()}, RoleCodeMap.pairItera
 
     @since DataProvider 2.3
 */
-#@{
+#/@{
 #! Indicates that boolean expressions can be combined with AND logic
 public const LC_And = (1 << 0);
 
@@ -276,7 +276,7 @@ public const LC_Or = (1 << 1);
 
 #! Indicates that all logic capabilities are supported
 public const LC_All = (LC_And | LC_Or);
-#@}
+#/@}
 
 #! Logic map from codes to descriptions
 public const LogicCodeMap = {
@@ -366,13 +366,13 @@ public const DataProviderSignatureDateType = <DataProviderSignatureTypeInfo>{
 
     @since DataProvider 2.3
 */
-#@{
+#/@{
 #! Indicates an operator expression
 public const DET_Operator = 1;
 
 #! Indicates a function expression
 public const DET_Function = 2;
-#@}
+#/@}
 
 #! Maps DataProvider expression type codes to descriptions
 public const ExpressionTypeCodeMap = {
@@ -1629,7 +1629,7 @@ public class AbstractDataProvider {
     }
 
     #! Returns the description of an observable event, if any
-    /** @string event_id the event ID of the event
+    /** @param event_id the event ID of the event
 
         @return the observable event type for this provider
 
@@ -1656,7 +1656,7 @@ public class AbstractDataProvider {
     }
 
     #! Returns the description of an outbound message, if any
-    /** @string message_id the ID of the message
+    /** @param message_id the ID of the message
 
         @return the message type for this provider
 
@@ -2013,7 +2013,7 @@ public class AbstractDataProvider {
             return processSearchParameters(where_cond, search_options);
         }
         if (!where_cond) {
-            return;
+            return where_cond;
         }
         if (!supportsSearchExpressions()) {
             return processFieldValues(where_cond, search_options);
@@ -2445,7 +2445,7 @@ public class AbstractDataProvider {
         foreach hash<auto> i in (h.pairIterator()) {
             if (!rec{i.key}) {
                 list<string> f = map regex_subst($1, "\\\\.", ".", RE_Global), i.key.splitRegex("(?<!\\\\)\\.");
-                if (!rec{f[0]}) {
+                if (rec && !rec{f[0]}) {
                     error("INVALID-FIELD", "field %y is not a defined field; valid fields: %y", f[0], keys rec);
                 }
                 rv{i.key} = i.value;
@@ -2456,7 +2456,9 @@ public class AbstractDataProvider {
                 rv{i.key} = i.value;
                 continue;
             }
-            rv{i.key} = rec{i.key}.acceptsValue(i.value);
+            rv{i.key} = rec
+                ? rec{i.key}.acceptsValue(i.value)
+                : i.value;
         }
         return rv;
     }
@@ -3049,7 +3051,7 @@ public class AbstractDataProvider {
     }
 
     #! Returns the type of an observable event, if any
-    /** @string event_id the event ID of the event
+    /** @param event_id the event ID of the event
 
         @return the observable event type for this provider
 
@@ -3080,7 +3082,7 @@ public class AbstractDataProvider {
     }
 
     #! Returns the type of an outbound message, if any
-    /** @string message_id the ID of the message
+    /** @param message_id the ID of the message
 
         @return the message type for this provider
 

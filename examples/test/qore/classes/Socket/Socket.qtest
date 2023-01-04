@@ -183,6 +183,238 @@ class SocketTest inherits QUnit::Test {
 
         list<hash<SocketPollInfo>> new_list;
 
+        {
+            if (s0.bind("localhost:0", True)) {
+                throw "SOCKET-BIND-ERROR", strerror();
+            }
+            s0.listen();
+            int port = s0.getSocketInfo().port;
+
+            Socket s2();
+
+            {
+                SocketPollOperation spop = s2.startPollConnect("-1");
+                assertThrows("SOCKET-NON-BLOCK-ERROR", \s2.startPollConnect(), "x");
+                assertThrows("SOCKET-NON-BLOCK-ERROR", \s2.connect(), "x");
+                assertThrows("SOCKET-NON-BLOCK-ERROR", \s2.startPollSend(), "x");
+                assertThrows("SOCKET-NON-BLOCK-ERROR", \s2.startPollRecvString(), 1234);
+                assertThrows("SOCKET-NON-BLOCK-ERROR", \s2.startPollRecvBinary(), 1234);
+                assertEq("connecting", spop.getState());
+                assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+            }
+            {
+                SocketPollOperation spop = s2.startPollConnect("65536");
+                assertEq("connecting", spop.getState());
+                assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+            }
+            assertThrows("SOCKET-NOT-OPEN", \s2.startPollSend(), <abcd>);
+            assertThrows("SOCKET-NOT-OPEN", \s2.startPollRecvString(), 1234);
+            assertThrows("SOCKET-NOT-OPEN", \s2.startPollRecvBinary(), 1234);
+
+            string target = "localhost:" + port;
+            SocketPollOperation spop = s2.startPollConnect(target);
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("info: %y\n", info);
+                new_list = Socket::poll((info,), 1s);
+            }
+            assertEq("connected", spop.getState());
+            assertTrue(spop.goalReached());
+
+            Socket s3 = s0.accept();
+            string test_msg = get_random_string();
+            s3.send(test_msg);
+
+            string msg = s2.recv(-1);
+            assertEq(test_msg, msg);
+
+            spop = s3.startPollSend(test_msg);
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("send info: %y\n", info);
+                new_list = Socket::poll((info,), 1s);
+            }
+
+            msg = s2.recv(test_msg.size());
+            assertEq(test_msg, msg);
+
+            spop = s3.startPollSend(test_msg);
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("recv info: %y\n", info);
+                new_list = Socket::poll((info,), 1s);
+            }
+
+            spop = s2.startPollRecvString(test_msg.size());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("recv info: %y\n", info);
+                new_list = Socket::poll((info,), 1s);
+            }
+            assertEq(test_msg, spop.getOutput());
+
+            s3.send(test_msg);
+            spop = s2.startPollRecvBinary(test_msg.size());
+            while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                #printf("recv info: %y\n", info);
+                new_list = Socket::poll((info,), 1s);
+            }
+            assertEq(binary(test_msg), spop.getOutput());
+
+            binary bigmsg = get_random_bytes(10 * 1024 * 1024);
+            {
+                SocketPollOperation spop_send = s3.startPollSend(bigmsg);
+                SocketPollOperation spop_recv = s2.startPollRecvBinary(bigmsg.size());
+                while (True) {
+                    poll_list = ();
+                    *hash<SocketPollInfo> info_send = spop_send.continuePoll();
+                    if (info_send) {
+                        #printf("send info: %y\n", info_send);
+                        poll_list += info_send;
+                    }
+                    *hash<SocketPollInfo> info_recv = spop_recv.continuePoll();
+                    if (info_recv) {
+                        #printf("recv info: %y\n", info_recv);
+                        poll_list += info_recv;
+                    }
+                    if (!poll_list) {
+                        break;
+                    }
+                    new_list = Socket::poll(poll_list, 1s);
+                }
+                assertEq(bigmsg, spop_recv.getOutput());
+            }
+
+            Socket s4();
+            if (s4.bind("localhost:0", True)) {
+                throw "SOCKET-BIND-ERROR", strerror();
+            }
+            s4.listen();
+            int port2 = s4.getSocketInfo().port;
+            s4.close();
+            s4.shutdown();
+            target = "localhost:" + port2;
+            spop = s2.startPollConnect(target);
+            assertEq("connect", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+
+            spop = s2.startPollConnectSsl(target);
+            assertEq("connect-ssl", spop.getGoal());
+            assertEq("connecting", spop.getState());
+            assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+
+            {
+                msg = get_random_string();
+
+                Queue q();
+                background sub () {
+                    Socket ssl();
+                    # bind on a random free port
+                    ssl.bind(0);
+                    ssl.listen();
+
+                    q.push(ssl.getSocketInfo().port);
+
+                    ssl.setCertificate(TestCert);
+                    ssl.setPrivateKey(TestCert);
+
+                    Socket ns = ssl.acceptSSL();
+                    SocketPollOperation spop0 = ns.startPollSend(msg);
+                    while (*hash<SocketPollInfo> info = spop0.continuePoll()) {
+                        #printf("send info: %y\n", info);
+                        Socket::poll((info,), 1s);
+                    }
+
+                    spop0 = ns.startPollSend(msg);
+                    while (*hash<SocketPollInfo> info = spop0.continuePoll()) {
+                        #printf("send info: %y\n", info);
+                        Socket::poll((info,), 1s);
+                    }
+
+                    spop0 = ns.startPollSend(msg);
+                    while (*hash<SocketPollInfo> info = spop0.continuePoll()) {
+                        #printf("send info: %y\n", info);
+                        Socket::poll((info,), 1s);
+                    }
+
+                    spop0 = ns.startPollSend(bigmsg);
+                    while (*hash<SocketPollInfo> info = spop0.continuePoll()) {
+                        #printf("send info: %y\n", info);
+                        Socket::poll((info,), 1s);
+                    }
+                }();
+
+                int port3 = q.get();
+
+                target = "localhost:" + port3;
+                spop = s2.startPollConnectSsl(target);
+                assertEq("connect-ssl", spop.getGoal());
+                assertEq("connecting", spop.getState());
+                while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                    #printf("recv info: %y\n", info);
+                    new_list = Socket::poll((info,), 1s);
+                }
+                assertEq("connected", spop.getState());
+                assertTrue(spop.goalReached());
+                assertNothing(spop.getOutput());
+                assertEq(msg, s2.recv(msg.size()));
+
+                spop = s2.startPollRecvString(msg.size());
+                while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                    #printf("recv info: %y\n", info);
+                    new_list = Socket::poll((info,), 1s);
+                }
+                assertEq(msg, spop.getOutput());
+
+                spop = s2.startPollRecvBinary(msg.size());
+                while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                    #printf("recv info: %y\n", info);
+                    new_list = Socket::poll((info,), 1s);
+                }
+                assertEq(binary(msg), spop.getOutput());
+
+                spop = s2.startPollRecvBinary(bigmsg.size());
+                while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                    #printf("recv info: %y\n", info);
+                    new_list = Socket::poll((info,), 1s);
+                }
+                assertEq(bigmsg, spop.getOutput());
+            }
+
+            {
+                Queue q();
+                background sub () {
+                    Socket ssl();
+                    # bind on a random free port
+                    ssl.bind(0);
+                    ssl.listen();
+
+                    q.push(ssl.getSocketInfo().port);
+
+                    ssl.accept();
+                }();
+
+                int port3 = q.get();
+
+                target = "localhost:" + port3;
+                spop = s2.startPollConnectSsl(target);
+                assertEq("connect-ssl", spop.getGoal());
+                assertEq("connecting", spop.getState());
+                on_error printf("goal reached: %y state: %y output: %y\n", spop.goalReached(), spop.getState(), spop.getOutput());
+                assertThrows("SOCKET-SSL-ERROR", sub () {
+                    *hash<SocketPollInfo> info;
+                    do {
+                        info = spop.continuePoll();
+                        if (info) {
+                            Socket::poll((info,), 250ms);
+                        }
+                    } while (info);
+                });
+                assertFalse(spop.goalReached());
+                assertNothing(spop.getOutput());
+            }
+        }
+
+        # bind and listen again
         if (s0.bind("localhost:0", True)) {
             throw "SOCKET-BIND-ERROR", strerror();
         }
@@ -241,7 +473,7 @@ class SocketTest inherits QUnit::Test {
         assertEq(s2, new_list[1].socket);
 
         s1.close();
-        assertThrows("SOCKET-NOT-OPEN", \Socket::poll(), (poll_list, 0s));
+        assertThrows("DESCRIPTOR-NOT-OPEN", \Socket::poll(), (poll_list, 0s));
 
         new_list = poll_list;
         remove new_list[0].socket;

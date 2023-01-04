@@ -2082,11 +2082,11 @@ public:
     DLLLOCAL void parseImportMembers(qore_class_private& qc, ClassAccess access);
 
     DLLLOCAL bool parseHasMemberGate() const {
-        return memberGate || hm.find("memberGate") != hm.end();
+        return memberGate || hm.find("memberGate") != hm.end() || ahm.find("memberGate") != ahm.end();
     }
 
     DLLLOCAL bool parseHasMethodGate() const {
-        return methodGate || hm.find("methodGate") != hm.end();
+        return methodGate || hm.find("methodGate") != hm.end() || ahm.find("methodGate") != ahm.end();
     }
 
     // checks for all special methods except constructor & destructor
@@ -2200,7 +2200,7 @@ public:
 
         // only raise a parse error for illegal access to private members if there is not memberGate function
         if ((access > Public) && !parseHasMemberGate() && !parseCheckPrivateClassAccess()) {
-            memberTypeInfo = 0;
+            memberTypeInfo = nullptr;
             parse_error(*loc, "illegal access to private member '%s' of class '%s'", mem, name.c_str());
             return -1;
         }
@@ -3052,16 +3052,19 @@ public:
         return getClassIntern(qc, n_access, true);
     }
 
-    DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access, bool toplevel) const {
-        if (equal(qc))
+    DLLLOCAL const QoreClass* getClassIntern(const qore_class_private& qc, ClassAccess& n_access,
+            bool toplevel) const {
+        if (equal(qc)) {
             return cls;
+        }
 
 #ifdef DEBUG_1
         if (qc.name == name) {
             QoreString lh, rh;
             hash.toString(lh);
             qc.hash.toString(rh);
-            printd(0, "qore_class_private::getClassIntern() this: %p '%s' != '%s' scl: %p (hash: %s qc.hash: %s)\n", this, name.c_str(), qc.name.c_str(), scl, lh.getBuffer(), rh.getBuffer());
+            printd(5, "qore_class_private::getClassIntern() this: %p '%s' != '%s' scl: %p (hash: %s qc.hash: %s)\n",
+                this, name.c_str(), qc.name.c_str(), scl, lh.getBuffer(), rh.getBuffer());
         }
 #endif
 

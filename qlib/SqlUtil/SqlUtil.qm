@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.8";
+    version = "1.8.1";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -56,6 +56,12 @@ module SqlUtil {
 
     @section sqlutilintro Introduction to the SqlUtil Module
 
+    @htmlonly
+    <div class="image">
+      <img src="SqlUtil-Full.svg" alt="SqlUtil Logo" style="width:25%;">
+    </div>
+    @endhtmlonly
+
     The %SqlUtil module provides a high level database-independent API for working with database objects and SQL.
 
     To use this module, use \c "%requires SqlUtil" in your code.
@@ -63,23 +69,29 @@ module SqlUtil {
     All the public symbols in the module are defined in the SqlUtil namespace
 
     Major sections of this documentation:
-    - @subpage sql_operations "SQL Operations": working with database data (finding, updating, inserting, deleting, merging data, etc)
-    - @subpage schema_management "Schema Management": working schema definitions (creating, modifying, aligning tables, functions, types, triggers, etc)
+    - @subpage sql_operations "SQL Operations": working with database data (finding, updating, inserting, deleting,
+      merging data, etc)
+    - @subpage schema_management "Schema Management": working schema definitions (creating, modifying, aligning
+      tables, functions, types, triggers, etc)
     - @subpage dba_management "DBA Management": special database administrator tools
 
-    The %SqlUtil module provides generic functionality and a framework for SQL operations and schema management, and in order
-    to use the %SqlUtil module with a particular database, a driver-specific module has to be available as well.
+    The %SqlUtil module provides generic functionality and a framework for SQL operations and schema management, and
+    in order to use the %SqlUtil module with a particular database, a driver-specific module has to be available as
+    well.
 
     Currently the following driver-specific modules are available:
-    - <a href="../../FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a>: for working with MS SQL Server and Sybase databases through the <a href="https://github.com/qorelanguage/module-sybase">freetds DBI driver</a>
+    - <a href="../../FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a>: for working with MS SQL Server and Sybase
+      databases through the <a href="https://github.com/qorelanguage/module-sybase">freetds driver</a>
     - <a href="../../MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>: for working with MySQL databases
     - <a href="../../OracleSqlUtil/html/index.html">OracleSqlUtil</a>: for working with Oracle databases
     - <a href="../../PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>: for working with PostgreSQL databases
     - <a href="../../Sqlite3SqlUtil/html/index.html">Sqlite3SqlUtil</a>: for working with SQLite3 databases
+    - <a href="../../OdbcFirebirdSqlUtil/html/index.html">OdbcFirebirdSqlUtil</a>: for working with Firebird databases
+      through the <a href="https://github.com/qorelanguage/module-odbc">odbc driver</a>
 
     The underlying driver-specific module is automatically loaded and used when required; the classes provided in
-    the %SqlUtil module provide a generic API that uses the driver-specific implementations for the underlying driver-specific
-    implementation.
+    the %SqlUtil module provide a generic API that uses the driver-specific implementations for the underlying
+    driver-specific implementation.
 
     @section sqlutil_overview Overview of Functionality
 
@@ -103,6 +115,10 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_8_1 SqlUtil v1.8.1
+    - fixed a bug serializing and deserializing \c Table objects using the \c odbc driver
+      (<a href="https://github.com/qorelanguage/qore/issues/4620">issue 4620</a>)
 
     @subsection sqlutilv1_8 SqlUtil v1.8
     - implemented support for generating queries based on generic expressions using the DataProvider module's generic
@@ -2228,7 +2244,7 @@ public namespace SqlUtil {
     /** @defgroup DBFeaturesConstants DB Features Constants
         These constants can be used as a lookup values in AbstractDatabase::features() method.
     */
-    #@{
+    #/@{
     #! Features constants
 
     #! Feature: functions
@@ -2249,12 +2265,12 @@ public namespace SqlUtil {
     public const DB_VIEWS = "views";
     #! Feature: synonyms
     public const DB_SYNONYMS = "synonyms";
-    #@}
+    #/@}
 
     /* @defgroup SqlTypeConstants SQL Type Constants
         These constants can be used for the \c "qore_type" values when creating columns to specify additional SQL column types
     */
-    #@{
+    #/@{
     #! specifies a \c VARCHAR column (equivalent to @ref Qore::Type::String)
     public const VARCHAR = "string";
 
@@ -2269,12 +2285,12 @@ public namespace SqlUtil {
 
     #! specifies a large variable-length character column (ie \c CLOB or \c TEXT, etc)
     public const CLOB = "clob";
-    #@}
+    #/@}
 
     /** @defgroup ColumnSizeOptions Column Size Options
         These constants represent the possible values for column size options
      */
-    #@{
+    #/@{
     #! the data type does not take a size parameter
     public const SZ_NONE = 0;
 
@@ -2286,12 +2302,12 @@ public namespace SqlUtil {
 
     #! the data type is numeric so takes an optional precision and scale
     public const SZ_NUM = 3;
-    #@}
+    #/@}
 
     /** @defgroup sql_cops SQL Column Operators
         These are the operators that can be used in the \c "columns" argument for select statements
      */
-    #@{
+    #/@{
     #! to rename a column on output
     /** @see cop_as()
     */
@@ -2730,7 +2746,7 @@ public namespace SqlUtil {
             },
         ),
     );
-    #@}
+    #/@}
 
     /** @defgroup sql_cop_funcs SQL Column Operator Functions
         These are functions that can be used in the \c "columns" argument for select statements:
@@ -2772,7 +2788,7 @@ public namespace SqlUtil {
 *list<auto> rows = t.selectRows(("columns": cop_as(cop_lower("permission_type"), "perm"), "where": ("permission_type": "USER"), "limit": 100, "offset": 200));
         @endcode
      */
-    #@{
+    #/@{
     #! returns a @ref ColumnOperatorInfo hash
     /** @param cop the column operator (one of @ref sql_cops)
         @param column the column name
@@ -3559,7 +3575,7 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
         return make_cop(COP_ROW_NUMBER, "");
     }
 
-    #@}
+    #/@}
 
     /** @defgroup sql_cop_trunc_date_enum cop_trunc_date formats
         These are formatting constant which can be used in @ref cop_trunc_date() formatting argument.
@@ -3579,7 +3595,7 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
               with this operator.
 
      */
-    #@{
+    #/@{
     #! Format unit: year
     public const DT_YEAR = "Y";
 
@@ -3600,12 +3616,12 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
 
     # let's simulate and enum here'
     const DT_ALL_VALUES = ( DT_YEAR, DT_MONTH, DT_DAY, DT_HOUR, DT_MINUTE, DT_SECOND );
-    #@}
+    #/@}
 
     /** @defgroup sql_uops SQL Update Operators
         These are the operators that can be used in update statements to process column values automatically
      */
-    #@{
+    #/@{
     #! a hash of valid update operators
     public const DefaultUopMap = (
         COP_PREPEND: True,
@@ -3656,7 +3672,7 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
             }
         ),
         );
-    #@}
+    #/@}
 
     /** @defgroup sql_uop_funcs SQL Update Operator Functions
         These are functions that can be used as the values of update keys in select statements:
@@ -3678,7 +3694,7 @@ select row_number() over (partition by row_type order by id) as "row_number" fro
 int rows_updated = t.update(("permission_type": uop_append("-migrated", uop_lower())));
         @endcode
      */
-    #@{
+    #/@{
     #! returns an @ref UpdateOperatorInfo hash
     /** @param uop the update operator (one of @ref sql_uops)
         @param arg the argument to the operator
@@ -3853,14 +3869,14 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     public hash<UpdateOperatorInfo> sub uop_seq_currval(string seq) {
         return make_uop(COP_SEQ_CURRVAL, seq);
     }
-    #@}
+    #/@}
 
     /** @defgroup sql_jops SQL Join Operators
         These are the operators that can be used in the @ref select_option_join "join" argument in a @ref select_option_hash "select option hash"
 
         @note these operators are normally not used directly, but rather are used by the @ref sql_jop_funcs
     */
-    #@{
+    #/@{
     #! for standard inner joins
     /** @see join_inner()
     */
@@ -3882,7 +3898,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         JOP_LEFT: "left outer",
         JOP_RIGHT: "right outer",
     };
-    #@}
+    #/@}
 
     /** @defgroup sql_jop_funcs SQL Join Operator Functions
         These are functions that can be used in the @ref select_option_join "join" argument in a @ref select_option_hash "select option hash":
@@ -3892,7 +3908,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
 
         @note for join functions, explicit join columns do not need to be specified in the case that a foreign key in one table exists to the primary key of the other table; in this case this information is assumed for the join automatically
      */
-    #@{
+    #/@{
     #! returns hash keyed with the table name assigned to a @ref JoinOperatorInfo hash
     /**
         @note this function is normally not used directly, but rather is called by the other @ref sql_jop_funcs
@@ -4364,12 +4380,12 @@ int rows_updated = t.update(("counter": uop_divide(2)));
     public hash<string, hash<JoinOperatorInfo>> sub join_right_alias(string ta, string table_name, *string alias, *hash jcols, *hash cond, *hash<auto> opt) {
         return make_jop(JOP_RIGHT, table_name, alias, jcols, cond, ta, opt);
     }
-    #@}
+    #/@}
 
     /** @defgroup sql_ops SQL Operators
         These are the operators that can be used in where clauses; see @ref where_clauses for more information
      */
-    #@{
+    #/@{
     #! the SQL "like" operator for use in @ref where_clauses
     /** @see op_like()
     */
@@ -5337,7 +5353,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
             },
         ),
     };
-    #@}
+    #/@}
 
     /** @defgroup sql_op_funcs SQL Operator Functions
         These are the operators that can be used in where clauses; see @ref where_clauses for more information:
@@ -5361,7 +5377,7 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         - op_ceq(): for the \c "=" operator when comparing the values of two columns
         - wop_or(): for combining SQL expressions with \c "or"
      */
-    #@{
+    #/@{
     #! returns an @ref OperatorInfo hash
     public hash<OperatorInfo> sub make_op(string op, auto arg) {
         return new hash<OperatorInfo>({"op": op, "arg": arg});
@@ -5743,14 +5759,14 @@ select * from schema.table where name = other_name and ((type = %v and validatio
             l += argv;
         return new hash<string, hash<OperatorInfo>>((sprintf("%d:_OR_", rand() % 10000000): make_op(OP_OR, l)));
     }
-    #@}
+    #/@}
 
     /** @defgroup sql_iops SQL Insert Operators
         These are operators that can be used for special value functions as the values of inserted columns.
 
         @note these operators are normally not used directly, but rather are used by the @ref sql_iop_funcs
     */
-    #@{
+    #/@{
     #! for using the value of a sequence
     /** @see iop_seq()
     */
@@ -5763,13 +5779,13 @@ select * from schema.table where name = other_name and ((type = %v and validatio
 
     #! a hash of default insert operator descriptions (currently empty, all operators are driver-dependent)
     public const DefaultIopMap = {};
-    #@}
+    #/@}
 
     /** @defgroup sql_iop_funcs SQL Insert Operator Functions
         These are functions that can be used to give special values in insert queries
         - @ref iop_seq(): insert the value of a sequence into the column
     */
-    #@{
+    #/@{
     #! returns an @ref InsertOperatorInfo hash
     /** @param iop the value operator (one of @ref sql_iops)
         @param arg the argument to the operator
@@ -5809,7 +5825,7 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
     public hash<InsertOperatorInfo> sub iop_seq_currval(string arg) {
         return make_iop(IOP_SEQ_CURRVAL, arg);
     }
-    #@}
+    #/@}
 
     #! known drivers
     public const SqlUtilDrivers = (
@@ -5865,7 +5881,7 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
     }
 
     #! abstract container class that throws an exception if an unknown key is accessed
-    public class AbstractHashContainer inherits Serializable {
+    public class AbstractHashContainer inherits Qore::Serializable {
         public {}
 
         private {
@@ -6205,7 +6221,7 @@ bool b = h.hasKeyValue(key);
     }
 
     #! abstract container class that throws an exception if an unknown key is accessed
-    public class AbstractListContainer inherits Serializable {
+    public class AbstractListContainer inherits Qore::Serializable {
         public {}
 
         private {
@@ -6760,7 +6776,7 @@ AbstractColumn c = cols.id;
     }
 
     #! the base class for named objects
-    public class AbstractDdlObject inherits Serializable {
+    public class AbstractDdlObject inherits Qore::Serializable {
         public {
             #! the name of the object
             string name;
@@ -7030,7 +7046,7 @@ AbstractIndex ix = indexes.pk_jobs;
     }
 
     #! the abstract base class for index information
-    public class AbstractIndex inherits Serializable {
+    public class AbstractIndex inherits Qore::Serializable {
         public {
             #! the name of the index
             string name;
@@ -7222,7 +7238,7 @@ AbstractConstraint ix = constraints.uk_jobs;
     }
 
     #! abstract base class for constraints
-    public class AbstractConstraint inherits Serializable {
+    public class AbstractConstraint inherits Qore::Serializable {
         public {}
 
         private {
@@ -7555,7 +7571,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! a class describing a foreign constraint target
-    public class ForeignConstraintTarget inherits Serializable {
+    public class ForeignConstraintTarget inherits Qore::Serializable {
         public {
             #! the name of the target table
             string table;
@@ -7597,7 +7613,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for sequences
-    public class AbstractSequence inherits Serializable {
+    public class AbstractSequence inherits Qore::Serializable {
         public {
             #! the name of the sequence
             string name;
@@ -7646,7 +7662,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for views
-    public class AbstractView inherits Serializable {
+    public class AbstractView inherits Qore::Serializable {
         public {
             # ! potential object schema
             *string schema;
@@ -7685,7 +7701,7 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
     }
 
     #! base class for function or objects with code
-    public class AbstractFunctionBase inherits Serializable {
+    public class AbstractFunctionBase inherits Qore::Serializable {
         public {
             #! the name of the object
             string name;
@@ -7732,7 +7748,6 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             src2 =~ s/\n/ /g;
 
             if (src1 != src2) {
-                # XXX DEBUG
                 #printf("%s\nXXXXXXXXXXXXXXX\n%s\n", src1, src2);
                 return False;
             }

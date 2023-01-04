@@ -68,9 +68,11 @@ const Cstr = "*************************************************";
 const Bstr = "-------------------------------------------------";
 
 const Opts = {
-    "verbose"  : "v,verbose:i+",
+    "fullex"   : "e,full-exceptions",
+    "help"     : "h,help",
     "output"   : "o,output-file=s",
-    "help"     : "h,help"
+    "proxy"    : "P,proxy=s",
+    "verbose"  : "v,verbose:i+",
 };
 
 # run the "main" function
@@ -221,7 +223,7 @@ class QueueCallBack {
     # display a running total of the download
     update_total() {
         int now = clock_getmillis();
-        if (!exists stime) {
+        if (!stime) {
             stime = now;
             utime = now;
             units = "n/a";
@@ -240,8 +242,9 @@ class QueueCallBack {
                     } else if (bps > 1024) {
                         units = "KB/s";
                         bps /= 1024;
-                    } else
+                    } else {
                         units = "B/s";
+                    }
                 }
             }
         }
@@ -262,7 +265,9 @@ class QueueCallBack {
 sub usage(*bool long) {
     printf("usage: %s [-vh] URL\n", get_script_name());
     if (long) {
+        printf(" -e,--full-exceptions    show full exception info\n");
         printf(" -o,--output-file=ARG    save the output to the given file name\n");
+        printf(" -P,--proxy=ARG          any HTTP proxy to use for HTTP requests\n");
     	printf(" -v,--verbose            show socket events\n");
     	printf(" -h,--help               this help text\n");
     }
@@ -303,7 +308,12 @@ sub main() {
             case NOTHING:
             case "https":
             case "http": {
-                HTTPClient hc(("url" : url));
+                hash<auto> opts = {"url": url};
+                if (o.proxy) {
+                    opts.proxy = o.proxy;
+                }
+                HTTPClient hc(opts);
+
                 cb = new QueueCallBack(hc, url);
 
                 x = hc.get(exists u.path ? u.path : "/", {"Accept": "*/*"});
@@ -332,19 +342,23 @@ sub main() {
             }
         }
     } catch (hash<ExceptionInfo> ex) {
-        printf("%s: %s\n", ex.err, ex.desc);
+        if (o.fullex) {
+            printf("%s\n", get_exception_string(ex));
+        } else {
+            printf("%s: %s\n", ex.err, ex.desc);
+        }
         thread_exit;
     }
 
     # get the filename to save
-    string fn = o.output ?? basename(u.path ?? u.host);
+    string fn = o.output ?? basename(u.path && u.path != "/" ? u.path : u.host);
 
     # wait for the event monitoring thread to complete
     cb.wait();
 
     if (!o.verbose)
 	    print("\n");
-    myprintf("done, saving %s (%d bytes)\n", fn, type(x) == Type::String ? strlen(x) : elements x);
+    myprintf("done, saving %y (%d bytes)\n", fn, type(x) == Type::String ? strlen(x) : elements x);
 
     # save the file read
     File f();

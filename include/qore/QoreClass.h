@@ -67,6 +67,11 @@ DLLEXPORT extern qore_classid_t CID_INPUTSTREAMBASE;
 DLLEXPORT extern qore_classid_t CID_OUTPUTSTREAMBASE;
 DLLEXPORT extern qore_classid_t CID_PROGRAM;
 DLLEXPORT extern qore_classid_t CID_SERIALIZABLE;
+DLLEXPORT extern qore_classid_t CID_ABSTRACTPOLLABLEIOOBJECT;
+DLLEXPORT extern qore_classid_t CID_ABSTRACTPOLLABLEIOOBJECTBASE;
+DLLEXPORT extern qore_classid_t CID_ABSTRACTPOLLOPERATION;
+DLLEXPORT extern qore_classid_t CID_SOCKETPOLLOPERATIONBASE;
+DLLEXPORT extern qore_classid_t CID_SOCKETPOLLOPERATION;
 
 DLLEXPORT extern QoreClass* QC_QUEUE;
 DLLEXPORT extern QoreClass* QC_HTTPCLIENT;
@@ -74,6 +79,11 @@ DLLEXPORT extern QoreClass* QC_SSLCERTIFICATE;
 DLLEXPORT extern QoreClass* QC_SSLPRIVATEKEY;
 DLLEXPORT extern QoreClass* QC_PROGRAM;
 DLLEXPORT extern QoreClass* QC_SERIALIZABLE;
+DLLEXPORT extern QoreClass* QC_ABSTRACTPOLLABLEIOOBJECT;
+DLLEXPORT extern QoreClass* QC_ABSTRACTPOLLABLEIOOBJECTBASE;
+DLLEXPORT extern QoreClass* QC_ABSTRACTPOLLOPERATION;
+DLLEXPORT extern QoreClass* QC_SOCKETPOLLOPERATIONBASE;
+DLLEXPORT extern QoreClass* QC_SOCKETPOLLOPERATION;
 
 class BCList;
 class BCSMList;
@@ -767,9 +777,8 @@ public:
     DLLEXPORT void addBuiltinBaseClass(QoreClass* qc);
 
     //! make a builtin class a child of another builtin class and ensures that the given class's private data will be used in all class methods
-    /** In the case this function is used, this objects of class cannot have
+    /** In the case this function is used, objects of this class cannot have
         private data saved against the class ID.
-        The xargs argument must not be used; before qore supported function overloading, base class arguments could be given here
         @param qc the base class to add
     */
     DLLEXPORT void addDefaultBuiltinBaseClass(QoreClass* qc);

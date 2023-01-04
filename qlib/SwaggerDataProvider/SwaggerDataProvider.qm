@@ -76,6 +76,8 @@ module SwaggerDataProvider {
     @section swaggerdataprovider_relnotes Release Notes
 
     @subsection swaggerdataprovider_v1_2_3 SwaggerDataProvider v1.2.3
+    - fixed a bug where HTTP method names were not accepted as wildcard values in URI paths
+      (<a href="https://github.com/qorelanguage/qore/issues/4598">issue 4598</a>)
     - fixed a bug setting the datas provider name in Swagger schemas provided by files
       (<a href="https://github.com/qorelanguage/qore/issues/4587">issue 4587</a>)
 

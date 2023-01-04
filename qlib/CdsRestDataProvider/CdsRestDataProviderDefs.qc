@@ -34,7 +34,7 @@ public hashdecl QueryOperatorInfo {
 /** @defgroup query_ops Query Operators
     These are the operators that can be used in queries
 */
-#@{
+#/@{
 #! like/contains operator
 const QUERY_OP_CONTAINS = "contains";
 
@@ -83,7 +83,7 @@ public const QUERY_OP_NOT = "not";
 /** @see query_wquery_op_or()
 */
 public const QUERY_OP_OR = "or";
-#@}
+#/@}
 
 /** @defgroup query_op_funcs Query Operator Functions
     These are the operators that can be used in CDS queries
@@ -97,7 +97,7 @@ public const QUERY_OP_OR = "or";
     - query_op_not(): for negating other operators
     - query_wop_or(): for combining Query expressions with \c "or"
 */
-#@{
+#/@{
 #! returns an @ref QueryOperatorInfo hash
 public hash<QueryOperatorInfo> sub query_make_op(string op, auto arg) {
     return new hash<QueryOperatorInfo>({"op": op, "arg": arg});
@@ -248,7 +248,7 @@ public hash<string, hash<QueryOperatorInfo>> sub query_wop_or(hash<auto> h1, has
         l += argv;
     return new hash<string, hash<QueryOperatorInfo>>((sprintf("%d:_OR_", rand() % 10000000): query_make_op(QUERY_OP_OR, l)));
 }
-#@}
+#/@}
 
 #! a hash of valid operators for use in queries
 public const DefaultQueryOpMap = {
@@ -309,5 +309,5 @@ public const DefaultQueryOpMap = {
         },
     ),
 };
-#@}
+#/@}
 }

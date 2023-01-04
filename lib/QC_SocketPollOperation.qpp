@@ -1,0 +1,126 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/*
+    QC_SocketPollOperation.qpp
+
+    SocketPollOperation class definition
+
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore/Qore.h"
+#include "qore/intern/QC_SocketPollOperation.h"
+#include "qore/intern/QC_Socket.h"
+
+static SocketConnectPollOperation* get_connect_poll_operation(ExceptionSink* xsink, bool ssl,
+        const QoreHashNode* opts, ReferenceHolder<QoreSocketObject>& holder) {
+    QoreValue url = opts ? opts->getKeyValue("url", xsink) : QoreValue();
+    if (*xsink) {
+        return nullptr;
+    }
+    if (!url) {
+        xsink->raiseException("MISSING-URL", "goal 'connect%s' requires option 'url' giving the target for the "
+            "connection (ex: 'www.example.com:%d', '/tmp/socket-file', etc)", ssl ? "-ssl" : "", ssl ? 443 : 80);
+        return nullptr;
+    }
+    if (url.getType() != NT_STRING) {
+        xsink->raiseException("INVALID-URL", "expecting type 'string' for option 'url'; got type '%s' instead",
+            url.getFullTypeName());
+        return nullptr;
+    }
+    return new SocketConnectPollOperation(xsink, ssl, url.get<QoreStringNode>()->c_str(), holder.release());
+}
+
+//! Socket poll operation object returned by Socket polling methods
+/** This class implements the polling logic for Sockets and the state machine behind it
+
+    private members:
+    - @ref Qore::Socket "Socket" sock: the Socket being polled
+    - @ref string_type "string" goal: the goal of the poll operation
+
+    @since %Qore 1.12
+*/
+qclass SocketPollOperation [private_members=string goal; arg=SocketPollOperationBase* op; vparent=SocketPollOperationBase];
+
+//! Creates the object with the given goal
+/** @param socket the Socket object to poll
+    @param goal the type of goal; currently one of:
+    - \c connect
+    - \c connect-ssl
+    @param opts required keys depend on \a goal
+    - for \a goal_type \c connect and \c connect-ssl:
+      - \c url (string): the URL to connect to
+
+    @throw INVALID-GOAL thrown if the goal is invalid
+*/
+SocketPollOperation::constructor(Socket[QoreSocketObject] socket, string goal, *hash<auto> opts) {
+    ReferenceHolder<QoreSocketObject> holder(socket, xsink);
+    ReferenceHolder<SocketPollOperationBase> poller(xsink);
+    if (*goal == "connect") {
+        poller = get_connect_poll_operation(xsink, false, opts, holder);
+    } else if (*goal == "connect-ssl") {
+        poller = get_connect_poll_operation(xsink, false, opts, holder);
+    } else {
+        xsink->raiseException("INVALID-GOAL", "goal '%s' not recognized; expecting one of: 'connect', 'connect-ssl'",
+            goal->c_str());
+        return;
+    }
+    if (*xsink) {
+        return;
+    }
+
+    poller->setSelf(self);
+    self->setPrivate(CID_SOCKETPOLLOPERATION, poller.release());
+    if (!*xsink) {
+        self->setValue("sock", obj_socket->objectRefSelf(), xsink);
+        self->setValue("goal", goal->stringRefSelf(), xsink);
+    }
+}
+
+//! Destroys the object
+/** Destroys the object
+ */
+SocketPollOperation::destructor() {
+    op->deref(xsink);
+}
+
+//! Throws an exception; objects of this class cannot be copied
+/**
+    @throw SOCKETPOLLOPERATION-COPY-ERROR objects of this class cannot be copied
+ */
+SocketPollOperation::copy() {
+    xsink->raiseException("SOCKETPOLLOPERATION-COPY-ERROR", "objects of this class cannot be copied");
+}
+
+//! Returns a socket poll hash if polling should continue or @ref nothing if complete
+/** @return @ref NOTHING if there is no more to poll and the poll operation was successful (i.e. the goal was
+    reached), otherwise this method must return a new socket poll hash to continue the polling operation with another
+    operation, after which this method will be called again if a matching event is received for the socket.  If a
+    socket poll hash is returned, then the internal state is also updated.
+*/
+*hash<SocketPollInfo> SocketPollOperation::continuePoll() {
+    return op->continuePoll(xsink);
+}

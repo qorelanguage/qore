@@ -2,7 +2,7 @@
 %global user_module_dir %{_datadir}/qore-modules/
 
 Name: qore
-Version: 1.12.0
+Version: 1.13.0
 Release: 1%{?dist}
 Summary: Multithreaded Programming Language
 
@@ -43,7 +43,7 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.12.0.3
+%{_libdir}/libqore.so.12.2.0
 %{_libdir}/libqore.so.12
 %license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 %doc README.md README-MODULES RELEASE-NOTES AUTHORS ABOUT
@@ -105,8 +105,8 @@ Qore library.
 %dir %{_libdir}/cmake
 %{_libdir}/cmake/Qore/
 %{_includedir}/qore/
-%{_datarootdir}/qore/Doxyfile.in
-%{_datarootdir}/qore/qore-logo-55x200.png
+%{_datarootdir}/qore/
+
 %license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 
 %package devel-doc
@@ -162,7 +162,14 @@ mkdir -p $RPM_BUILD_ROOT%{module_dir}
 rm $RPM_BUILD_ROOT%{_libdir}/libqore.la
 
 %check
-make check
+export QORE_MODULE_DIR=qlib
+./qore examples/test/qore/threads/background.qtest
+./qore examples/test/qore/threads/deadlock.qtest
+./qore examples/test/qore/threads/max-threads-count.qtest
+./qore examples/test/qore/threads/set_thread_init.qtest
+./qore examples/test/qore/threads/thread-object.qtest
+./qore examples/test/qore/threads/thread-resources.qtest
+./qore examples/test/qore/threads/tld.qtest
 
 %files
 %{_bindir}/qore
@@ -173,8 +180,26 @@ make check
 %{_mandir}/man1/qore.1.*
 
 %changelog
+* Mon Jan 2 2023 David Nichols <david@qore.org> 1.13.0-1
+- updated version to 1.13.0-1
+- updated libqore version to 12.2.0
+
+* Mon Dec 12 2022 David Nichols <david@qore.org> 1.12.4-1
+- updated version to 1.12.4-1
+
+* Mon Nov 14 2022 David Nichols <david@qore.org> 1.12.3-1
+- updated version to 1.12.3-1
+
+* Tue Nov 1 2022 David Nichols <david@qore.org> 1.12.2-1
+- updated version to 1.12.2-1
+
+* Mon Sep 19 2022 David Nichols <david@qore.org> 1.12.1-1
+- updated version to 1.12.1-1
+- updated libqore version to 12.1.1
+
 * Tue Sep 13 2022 David Nichols <david@qore.org> 1.12.0-1
 - updated version to 1.12.0-1
+- updated libqore version to 12.1.0
 
 * Fri Sep 2 2022 David Nichols <david@qore.org> 1.11.0-1
 - updated version to 1.11.0-1

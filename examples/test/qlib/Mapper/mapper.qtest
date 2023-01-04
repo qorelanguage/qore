@@ -563,8 +563,12 @@ public class MapperTest inherits QUnit::Test {
             "in1": ("a", "b",),
             "in2": ("x", "y",),
         };
+        hash<auto> expected_output = {"out1": ("a", "b"), "out2": ("str-ctx", "str-ctx",)};
         hash<auto> output = mapper.mapAuto(input);
-        assertEq({"out1": ("a", "b"), "out2": ("str-ctx", "str-ctx",)}, output);
+        assertEq(expected_output, output);
+
+        list<hash<auto>> output2 = mapper.mapAuto(new ListIterator(map $1, input.contextIterator()));
+        assertEq((map $1, expected_output.contextIterator()), output2);
     }
 
     structTest() {

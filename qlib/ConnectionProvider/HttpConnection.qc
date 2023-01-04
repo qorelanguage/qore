@@ -27,10 +27,12 @@
 %new-style
 %strict-args
 
-#! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
+#! The ConnectionProvider namespace
+/** All public declarations in the %ConnectionProvider module are defined in this namespace
+*/
 public namespace ConnectionProvider {
 #! class for HTTP connections; returns @ref Qore::HTTPClient objects
-/** supports the following options:
+/** Supports the following options:
     - \c "assume_encoding": assumes the given encoding if the server does not send a charset value
     - \c "connect_timeout": connection timeout to use in milliseconds (default: 45 seconds)
     - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
@@ -38,6 +40,9 @@ public namespace ConnectionProvider {
         like any other response
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
+    - \c "pre_encoded_urls": If @ref True "True" then all URI paths in URLs are assumed to be already
+      <a href="https://en.wikipedia.org/wiki/Percent-encoding">percent encoded</a>; if this flag is set and any
+      unencoded characters are sent in a URL with a new request, an exception is raised
     - \c "proxy": proxy URL to use
     - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
         processed
@@ -79,6 +84,12 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                 "max_redirects": <ConnectionOptionInfo>{
                     "type": "int",
                     "desc": "maximum redirects to support",
+                },
+                "pre_encoded_urls": <ConnectionOptionInfo>{
+                    "type": "bool",
+                    "desc": "if `true` then all URI paths in URLs are assumed to be already "
+                        "[percent encoded](https://en.wikipedia.org/wiki/Percent-encoding); if this flag is set and "
+                        "any unencoded characters are sent in a URL with a new request, an exception is raised",
                 },
                 "proxy": <ConnectionOptionInfo>{
                     "type": "string",
@@ -135,7 +146,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
             exists $1.value.default_value;
     }
 
-    #! creates the HttpConnection object
+    #! Creates the HttpConnection object
     /** @param name the name of the connection
         @param desc connection description
         @param url connection URL (potentially with password info)
@@ -150,12 +161,12 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
             : AbstractConnectionWithInfo(name, desc, url, attributes, options) {
     }
 
-    #! returns \c "http"
+    #! Returns \c "http"
     string getType() {
         return "http";
     }
 
-    #! returns an HttpDataProvider object for this connection
+    #! Returns an HttpDataProvider object for this connection
     /** @return an HttpDataProvider object for this connection
 
         @see hasDataProvider()
@@ -167,13 +178,34 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
         return create_object("HttpDataProvider", get());
     }
 
-    #! returns @ref True, as the connection returns a data provider with the @ref getDataProvider() method
+    #! Returns @ref True, as the connection returns a data provider with the @ref getDataProvider() method
     /** @return @ref True, as the connection returns a data provider with the @ref getDataProvider() method
 
         @see @ref getDataProvider()
     */
     bool hasDataProvider() {
         return True;
+    }
+
+    #! returns @ref True, since this connection type supports the %Qore @ref Qore::Socket "Socket-based" polling API
+    /** @return @ref True
+
+        @since ConnectionProvider 1.7
+    */
+    bool supportsPollingApi() {
+        return True;
+    }
+
+    #! Called to start the connection if the connection supports the polling API
+    /**
+        @return a socket poll operation object that will allow the connection goal to be reached with polling
+
+        @see supportsPollingApi()
+
+        @since ConnectionProvider 1.7
+    */
+    Qore::AbstractPollOperation startPollConnect() {
+        return getPollImpl().startPollConnect();
     }
 
     #! Sets child data provider capabilities

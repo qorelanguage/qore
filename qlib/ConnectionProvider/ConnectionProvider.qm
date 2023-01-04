@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore module
-%requires qore >= 1.0
+%requires qore >= 1.13
 
 %require-types
 %enable-all-warnings
@@ -31,10 +31,11 @@
 %strict-args
 
 %requires Util
+%requires Logger
 %requires(reexport) DataProvider
 
 module ConnectionProvider {
-    version = "1.6.1";
+    version = "1.7.3";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -48,19 +49,29 @@ module ConnectionProvider {
     @section connectionproviderintro ConnectionProvider Module Introduction
 
     The %ConnectionProvider module provides an API for providing pluggable network connections objects
-    to Qore.   This module can also be used to provide URL strings from identifiers from registered
-    connection providers as well.
+    to Qore.  This module can also be used to provide connection objects and URL strings from identifiers from
+    registered connection providers as well.
 
     To use this module, use \c "%requires ConnectionProvider" in your code.
 
     All the public symbols in the module are defined in the ConnectionProvider namespace.
 
-    Class:
+    Classes:
     - @ref ConnectionProvider::AbstractConnection "AbstractConnection"
+    - @ref ConnectionProvider::AbstractConnectionWithInfo "AbstractConnectionWithInfo"
+    - @ref ConnectionProvider::ConnectionSchemeCache "ConnectionSchemeCache"
+    - @ref ConnectionProvider::FilesystemConnection "FilesystemConnection"
+    - @ref ConnectionProvider::FtpConnection "FtpConnection"
+    - @ref ConnectionProvider::HttpConnection "HttpConnection"
+    - @ref ConnectionProvider::HttpBasedConnection "HttpBasedConnection"
+    - @ref ConnectionProvider::InvalidConnection "InvalidConnection"
+    - @ref ConnectionProvider::PollingConnectionMonitor "PollingConnectionMonitor"
 
     Hashdecls:
     - @ref ConnectionProvider::ConfigInfo "ConfigInfo"
     - @ref ConnectionProvider::ConnectionInfo "ConnectionInfo"
+    - @ref ConnectionProvider::ConnectionOptionInfo "ConnectionOptionInfo"
+    - @ref ConnectionProvider::ConnectionSchemeInfo "ConnectionSchemeInfo"
     - @ref ConnectionProvider::PingInfo "PingInfo"
 
     Functions:
@@ -102,7 +113,30 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section connectionproviderrelnotes Release Notes
 
-    @subsection connectionprovider_1_6_1 ConnectionProvider 1.6.1
+    @subsection connectionprovider_1_7_3 ConnectionProvider 1.7.3
+    - support full ping operations, also with polling, using an authenticated request
+      (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
+    - fixed bugs handling child capability attributes in connections
+      (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+
+    @subsection connectionprovider_1_7_2 ConnectionProvider 1.7.2
+    - removed unnecessary extraneous inheritance of @ref Qore::Serializable "Serializable" from the
+      @ref ConnectionProvider::AbstractConnectionWithInfo "AbstractConnectionWithInfo" class
+    - added support for the \c pre_encoded_urls option in the @ref ConnectionProvider::HttpConnection "HttpConnection"
+      class
+      (<a href="https://github.com/qorelanguage/qore/issues/4656">issue 4656</a>)
+
+    @subsection connectionprovider_1_7_1 ConnectionProvider 1.7.1
+    - non-blocking polling fixes
+      (<a href="https://github.com/qorelanguage/qore/issues/4595">issue 4595</a>)
+
+    @subsection connectionprovider_1_7 ConnectionProvider 1.7
+    - allow multiple connections to be polled from a single thread; added:
+      - @ref ConnectionProvider::PollingConnectionMonitor "PollingConnectionMonitor"
+      - @ref ConnectionProvider::AbstractConnection::supportsPollingApi() "AbstractConnection::supportsPollingApi()"
+      - @ref ConnectionProvider::AbstractConnection::startPollConnect() "AbstractConnection::startPollConnect()"
+      \n
+      (<a href="https://github.com/qorelanguage/qore/issues/4595">issue 4595</a>)
     - fixed a bug acquiring a data provider object from connection objects
       (<a href="https://github.com/qorelanguage/qore/issues/4584">issue 4584</a>)
 
@@ -157,7 +191,9 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     - the initial version of the ConnectionProvider module
 */
 
-#! the ConnectionProvider namespace contains all the objects in the ConnectionProvider module
+#! The ConnectionProvider namespace
+/** All public declarations in the %ConnectionProvider module are defined in this namespace
+*/
 public namespace ConnectionProvider {
 #! information that can be used to dynamically construct a connection object
 /** as returned by AbstractConnection::getConstructorInfo()

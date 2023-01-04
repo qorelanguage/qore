@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.12)
 
 # NOTE: Qore should always use semantic versioning: https://semver.org/
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 12)
+set(VERSION_MINOR 13)
 set(VERSION_SUB 0)
 #set(VERSION_PATCH 0)
 
@@ -52,6 +52,10 @@ else ()
 endif ()
 
 find_package(Java)
+
+if (DEFINED ENV{DOXYGEN_EXECUTABLE})
+    set(DOXYGEN_EXECUTABLE $ENV{DOXYGEN_EXECUTABLE})
+endif()
 
 # simulate QoreConfig
 set(QORE_QDX_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qdx")
@@ -184,6 +188,11 @@ set(LIBQORE_QPP_SRC
     lib/QC_StdoutOutputStream.qpp
     lib/QC_StderrOutputStream.qpp
     lib/QC_Serializable.qpp
+    lib/QC_AbstractPollableIoObject.qpp
+    lib/QC_AbstractPollableIoObjectBase.qpp
+    lib/QC_AbstractPollOperation.qpp
+    lib/QC_SocketPollOperationBase.qpp
+    lib/QC_SocketPollOperation.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp
     lib/ql_thread.qpp
@@ -692,7 +701,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 12.0.3)
+    set_target_properties(libqore PROPERTIES VERSION 12.2.0)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
 endif (APPLE)
 
@@ -751,7 +760,16 @@ install(FILES ${CMAKE_BINARY_DIR}/include/qore/qore-version.h
         DESTINATION ${CMAKE_INSTALL_FULL_INCLUDEDIR}/qore)
 install(FILES qore.1
         DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1)
-install(FILES doxygen/Doxyfile.in doxygen/qore-logo-55x200.png
+install(FILES
+            doxygen/Doxyfile.in
+            doxygen/qore-logo-55x200.png
+            doxygen/qore-logo-55x151-white.png
+            doxygen/dox_qore.css
+            doxygen/DataProvider-Full.svg
+            doxygen/SqlUtil-Full.svg
+            doxygen/Qore-Q.ico
+            doxygen/header_template.html
+            doxygen/footer_template.html
         DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/qore)
 
 # prepare documentation targets
@@ -839,7 +857,7 @@ qore_user_module("qlib/MapperUtil.qm" "")
 
 # base 2 modules
 qore_user_module("qlib/FileLocationHandler" "Util")
-qore_user_module("qlib/DataProvider" "MapperUtil")
+qore_user_module("qlib/DataProvider" "MapperUtil" "DataProvider-Full.svg")
 qore_user_module("qlib/Diff.qm" "Util")
 qore_user_module("qlib/Logger.qm" "Util")
 qore_user_module("qlib/Mime.qm" "Util")
@@ -851,7 +869,7 @@ qore_user_module("qlib/FilePoller.qm" "Util;DataProvider")
 qore_user_module("qlib/FileDataProvider" "FsUtil;DataProvider")
 qore_user_module("qlib/FtpClientDataProvider" "DataProvider")
 qore_user_module("qlib/HttpClientDataProvider" "DataProvider;FileLocationHandler")
-qore_user_module("qlib/SqlUtil" "Util;DataProvider")
+qore_user_module("qlib/SqlUtil" "Util;DataProvider" "SqlUtil-Full.svg")
 qore_user_module("qlib/ConnectionProvider" "Util;DataProvider")
 qore_user_module("qlib/CsvUtil" "Util;DataProvider")
 qore_user_module("qlib/FixedLengthUtil" "Util;DataProvider")
@@ -868,6 +886,7 @@ qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util;DataProvider")
 qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/Sqlite3SqlUtil.qm" "SqlUtil;DataProvider")
+qore_user_module("qlib/OdbcFirebirdSqlUtil.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
 qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
 qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;DataProvider")

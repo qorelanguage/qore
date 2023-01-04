@@ -181,7 +181,7 @@ QoreObject* find_variant(const QoreReflectionClass* c, const QoreStringNode* nam
 
     @since %Qore 0.9
 */
-//@{
+///@{
 //! describes public access
 /** Equivalent to @ref Qore::Reflection::MC_PUBLIC
 */
@@ -196,14 +196,14 @@ const AC_PRIVATE = MC_PRIVATE;
 /** Equivalent to @ref Qore::Reflection::MC_PRIVATEINTERNAL
 */
 const AC_PRIVATEINTERNAL = MC_PRIVATEINTERNAL;
-//@}
+///@}
 
 /** @defgroup modifier_constants Modifier Constants
     Constants giving modifier information; each constant is a unique element of a bitfield
 
     @since %Qore 0.9
 */
-//@{
+///@{
 //! describes public access
 /** Equivalent to @ref Qore::Reflection::AC_PUBLIC
 */
@@ -236,14 +236,14 @@ const MC_FINAL = MC_FINAL;
 
 //! describes the @ref transient "transient" flag
 const MC_TRANSIENT = MC_TRANSIENT;
-//@}
+///@}
 
 /** @defgroup code_flag_constants Code Flag Constants
     Constants providing information about code variants
 
     @since %Qore 0.9
 */
-//@{
+///@{
 //! Set on variants that are present for backwards-compatibility that always return a constant value (normally @ref nothing) due to argument errors
 /** Variants with this flag set are not accessible at parse time when @ref strict-args or @ref require-types are set and
     therefore should be considered deprecated
@@ -274,7 +274,7 @@ const CF_RET_VALUE_ONLY = QCF_RET_VALUE_ONLY;
 /** as with @ref Qore::Reflection::CF_NOOP "CF_NOOP", variants with this flag set should be considered deprecated
 */
 const CF_RUNTIME_NOOP = QCF_RUNTIME_NOOP;
-//@}
+///@}
 
 //! class and inheritance access information
 /**

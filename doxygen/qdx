@@ -12,16 +12,18 @@
 
 %exec-class qdx
 
-const opts = {
-    "moddx": "M,module-dx=s",
-    "post": "p,post",
-    "tag": "t,tag=s@",
-    "tex": "x,posttex=s@",          # use TeX syntax for "post" processing
-    "dox": "d,dox",
-    "nmp": "N,no-mainpage",
+const Opts = {
+    "dox":        "d,dox",
+    "extra_pfx":  "X,extra-prefix=s",
+    "extra":      "E,extra-files=s@",
+    "help":       "h,help",
     "keepdollar": "k,keep-dollar",
-    "src_root": "T,top-srcdir=s",
-    "help": "h,help"
+    "moddx":      "M,module-dx=s",
+    "nmp":        "N,no-mainpage",
+    "post":       "p,post",
+    "src_root":   "T,top-srcdir=s",
+    "tag":        "t,tag=s@",
+    "tex":        "x,posttex=s@",          # use TeX syntax for "post" processing
 };
 
 class qdx {
@@ -38,6 +40,8 @@ class qdx {
 
         const EC_SEMICOLON = ";";
         const EC_BRACKET = "}";
+
+        const DefaultExtraPrefix = "../doxygen/";
     }
 
     public {
@@ -45,8 +49,10 @@ class qdx {
     }
 
     constructor() {
-        GetOpt g(opts);
-        o = g.parse3(\ARGV);
+        GetOpt g(Opts);
+        o = {
+            "extra_pfx": DefaultExtraPrefix,
+        } + g.parse3(\ARGV);
 
         if (o.help || ARGV.empty())
             usage();
@@ -160,6 +166,12 @@ class qdx {
                 line = replace(line, "{qore_version}", QoreVer);
             else if (line =~ /{qore_src_dir}/) {
                 line = replace(line, "{qore_src_dir}", o.src_root);
+            } else if (line =~ /{extra_files}/) {
+                string extra;
+                if (o.extra) {
+                    extra = (map sprintf("%s%s", o.extra_pfx, $1), o.extra).join(" ");
+                }
+                line = replace(line, "{extra_files}", extra ?? "");
             }
 
             w.write(line);

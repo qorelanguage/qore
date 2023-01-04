@@ -63,39 +63,7 @@ class QoreObject : public AbstractQoreNode {
     friend class ObjectRSet;
     friend class qore_object_dereference_helper;
 
-private:
-    //! the private implementation of the class
-    class qore_object_private* priv;
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreObject(const QoreObject&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreObject& operator=(const QoreObject&);
-
-protected:
-    //! runs the destructor if necessary and dereferences all members
-    /** Note that other objects could be deleted as well if they
-        are members of this object, any exceptions thrown there will also be added to "xsink"
-        @param xsink if an error occurs, the Qore-language exception information will be added here
-    */
-    DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
-
-    //! should never be called, does nothing
-    /** in debugging builds calls to this function will abort
-    */
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    //! custom reference handler
-    DLLLOCAL virtual void customRef() const;
-
-    //! custom dereference handler - with delete
-    DLLLOCAL virtual void customDeref(ExceptionSink* xsink);
-
-    //! destructor
-    DLLLOCAL virtual ~QoreObject();
-
-    public:
+public:
     //! creates an object as belonging to the given class, the QoreProgram object is referenced for the life of the object as well
     /**
         @param oc the class of the object being created
@@ -302,6 +270,19 @@ protected:
     */
     DLLEXPORT AbstractPrivateData* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
 
+    //! returns the private data corresponding to the class ID passed with an incremented reference count, caller owns the reference
+    /**
+        @param key the class ID of the class to get the private data for
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+        @since %Qore 1.12
+    */
+    template <class T>
+    DLLLOCAL T* getReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const {
+        AbstractPrivateData* rv = getReferencedPrivateData(key, xsink);
+        assert(!rv || dynamic_cast<T*>(rv));
+        return reinterpret_cast<T*>(rv);
+    }
+
     //! returns the private data corresponding to the class ID passed with an incremented reference count if it exists, caller owns the reference
     /**
         @param key the class ID of the class to get the private data for
@@ -310,6 +291,20 @@ protected:
         @since %Qore 0.8.13
     */
     DLLEXPORT AbstractPrivateData* tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
+
+    //! returns the private data corresponding to the class ID passed with an incremented reference count if it exists, caller owns the reference
+    /**
+        @param key the class ID of the class to get the private data for
+        @param xsink if an error occurs (the object has already been deleted), the Qore-language exception information will be added here
+
+        @since %Qore 1.12
+    */
+    template <class T>
+    DLLLOCAL T* tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const {
+        AbstractPrivateData* rv = tryGetReferencedPrivateData(key, xsink);
+        assert(!rv || dynamic_cast<T*>(rv));
+        return reinterpret_cast<T*>(rv);
+    }
 
     //! evaluates the given method with the arguments passed and returns the return value, caller owns any reference returned
     /**
@@ -545,6 +540,14 @@ protected:
     */
     DLLEXPORT QoreValue evalMember(const char* member, ExceptionSink* xsink);
 
+    //! Returns the object with the reference count increased
+    /** @since %Qore 1.12
+    */
+    DLLLOCAL QoreObject* objectRefSelf() const {
+        ref();
+        return const_cast<QoreObject*>(this);
+    }
+
     DLLLOCAL int getStatus() const;
 
     DLLLOCAL class KeyNode* getReferencedPrivateDataNode(qore_classid_t key);
@@ -563,10 +566,12 @@ protected:
         @param args the arguments for the method
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
-    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
+    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method,
+            const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, ExceptionSink* xsink);
 
     //! called on the old object (this) to acquire private data, copy method called with pointer to "self" (new copy)
-    DLLLOCAL void evalCopyMethodWithPrivateData(const QoreClass &thisclass, const BuiltinCopyVariantBase* meth, QoreObject* self, ExceptionSink* xsink);
+    DLLLOCAL void evalCopyMethodWithPrivateData(const QoreClass &thisclass, const BuiltinCopyVariantBase* meth,
+            QoreObject* self, ExceptionSink* xsink);
 
     //! concatenates info about private data to a string
     /**
@@ -599,6 +604,105 @@ protected:
 
     //! executes the member notification on the object the given member
     DLLLOCAL void execMemberNotification(const char* member, ExceptionSink* xsink);
+
+protected:
+    //! runs the destructor if necessary and dereferences all members
+    /** Note that other objects could be deleted as well if they
+        are members of this object, any exceptions thrown there will also be added to "xsink"
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+    */
+    DLLEXPORT virtual bool derefImpl(ExceptionSink* xsink);
+
+    //! should never be called, does nothing
+    /** in debugging builds calls to this function will abort
+    */
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    //! custom reference handler
+    DLLLOCAL virtual void customRef() const;
+
+    //! custom dereference handler - with delete
+    DLLLOCAL virtual void customDeref(ExceptionSink* xsink);
+
+    //! destructor
+    DLLLOCAL virtual ~QoreObject();
+
+private:
+    //! the private implementation of the class
+    class qore_object_private* priv;
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreObject(const QoreObject&);
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreObject& operator=(const QoreObject&);
+};
+
+//! Convenience class for holding temporary / weak references to objects
+/** @since %Qore 1.12
+*/
+class QoreObjectWeakRefHolder {
+public:
+    DLLLOCAL QoreObjectWeakRefHolder() {
+    }
+
+    DLLLOCAL QoreObjectWeakRefHolder(QoreObject* obj) : obj(obj) {
+        if (obj) {
+            obj->tRef();
+        }
+    }
+
+    DLLLOCAL ~QoreObjectWeakRefHolder() {
+        discard();
+    }
+
+    DLLLOCAL QoreObject* release() {
+        QoreObject* rv = obj;
+        obj = nullptr;
+        return rv;
+    }
+
+    DLLLOCAL void reset(QoreObject* obj = nullptr) {
+        discard();
+        this->obj = obj;
+    }
+
+    DLLLOCAL QoreObject* operator*() {
+        return obj;
+    }
+
+    DLLLOCAL const QoreObject* operator*() const {
+        return obj;
+    }
+
+    DLLLOCAL QoreObject* operator->() {
+        return obj;
+    }
+
+    DLLLOCAL const QoreObject* operator->() const {
+        return obj;
+    }
+
+    DLLLOCAL operator bool() {
+        return (bool)obj;
+    }
+
+    DLLLOCAL operator bool() const {
+        return (bool)obj;
+    }
+
+private:
+    QoreObject* obj = nullptr;
+
+    DLLLOCAL void discard() {
+        if (obj) {
+            obj->tDeref();
+        }
+    }
+
+    void* operator new(size_t) = delete;
+    QoreObjectWeakRefHolder(const QoreObjectWeakRefHolder& old) = delete;
+    QoreObjectWeakRefHolder& operator=(QoreObjectWeakRefHolder& orig) = delete;
 };
 
 //! convenience class for holding AbstractPrivateData references

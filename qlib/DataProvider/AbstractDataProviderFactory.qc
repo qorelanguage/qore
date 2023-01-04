@@ -27,7 +27,7 @@ public namespace DataProvider {
 /** @defgroup data_provider_api_profiles DataProvider API Profiles
     These constants define supported server profiles for data provider factories that provide API management services
 */
-#@{
+#/@{
 #! Data provider HTTP server profile
 /** This profile indicates that the given data provider factory supports serving APIs with REST and a REST schema
 */
@@ -36,7 +36,7 @@ public const DPSP_REST = "rest";
 /** This profile indicates that the given data provider factory supports serving APIs with SOAP and a WSDL schema
 */
 public const DPSP_SOAP = "soap";
-#@}
+#/@}
 
 #! Data provider factory info
 public hashdecl DataProviderFactoryInfo {
@@ -73,6 +73,23 @@ public class AbstractDataProviderFactory {
             error("DATA-PROVIDER-ERROR", "data provider does not support a constructor from an option hash");
         }
         return con.call(options);
+    }
+
+    #! Creates an object from the given constructor options
+    AbstractDataProvider createWithTemplate(*hash<auto> template_options, *hash<auto> options) {
+        ConstructorMethodVariant con;
+        try {
+            con = getClass().getConstructorVariant(AutoHashType, AutoHashOrNothingType);
+        } catch (hash<ExceptionInfo> ex) {
+            try {
+                con = getClass().getConstructorVariant(AutoHashOrNothingType);
+            } catch (hash<ExceptionInfo> ex) {
+                error("DATA-PROVIDER-ERROR", "data provider does not support a constructor from a template option "
+                    "hash and an option hash nor a constructor from an option hash");
+            }
+            return con.call(options);
+        }
+        return con.call(template_options, options);
     }
 
     #! Returns the name of the data provider factory

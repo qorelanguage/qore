@@ -106,7 +106,7 @@ static QoreObject* create_object_intern(const QoreStringNode* class_name, unsign
 /** @defgroup object_functions Object Functions
     Object functions
 */
-//@{
+///@{
 
 //! Returns a list of strings of the names of the methods of the class of the object passed as a parameter
 /**
@@ -432,4 +432,4 @@ object obj = create_object_args(class_name, arg_list);
 object create_object_args(string class_name, *softlist<auto> argv) {
     return create_object_intern(class_name, 0, argv, xsink);
 }
-//@}
+///@}

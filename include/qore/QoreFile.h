@@ -35,7 +35,7 @@
 
 #define _QORE_QOREFILE_H
 
-#include <qore/AbstractPrivateData.h>
+#include <qore/AbstractPollableIoObjectBase.h>
 
 #include <fcntl.h>
 #include <string>
@@ -64,22 +64,19 @@ class Queue;
     @see QoreEncoding
  */
 class QoreFile {
-protected:
-    //! private implementation
-    struct qore_qf_private *priv;
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreFile(const QoreFile&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreFile& operator=(const QoreFile&);
-
 public:
     //! creates the object and sets the default encoding
     DLLEXPORT QoreFile(const QoreEncoding *cs = QCS_DEFAULT);
 
     //! closes the file and frees all memory allocated to the object
     DLLEXPORT ~QoreFile();
+
+    //! Returns the underlying file descriptor; -1 if not open
+    /** @return the underlying file descriptor; -1 if not open
+
+        @since %Qore 1.12
+    */
+    DLLEXPORT int getPollableDescriptor() const;
 
     //! opens the file and returns 0 for success, non-zero for error
     /**
@@ -564,10 +561,10 @@ public:
     **/
     DLLEXPORT QoreHashNode *statvfs(ExceptionSink *xsink) const;
 
-        //! redirects the current file (this) to the argument
-        /** @since %Qore 0.9
-        */
-        DLLEXPORT int redirect(QoreFile& file, ExceptionSink* xsink);
+    //! redirects the current file (this) to the argument
+    /** @since %Qore 0.9
+    */
+    DLLEXPORT int redirect(QoreFile& file, ExceptionSink* xsink);
 
     //! get file descriptor
     /**
@@ -604,28 +601,47 @@ public:
 
     //! internal API, must be called before deleting the object if an event queue is set
     DLLLOCAL void cleanup(ExceptionSink *xsink);
+
+protected:
+    //! private implementation
+    struct qore_qf_private *priv;
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreFile(const QoreFile&);
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreFile& operator=(const QoreFile&);
 };
 
 DLLEXPORT extern qore_classid_t CID_FILE;
 DLLEXPORT extern QoreClass* QC_FILE;
 DLLEXPORT extern QoreClass* QC_READONLYFILE;
 
-class File : public AbstractPrivateData, public QoreFile {
+class File : public AbstractPollableIoObjectBase, public QoreFile {
 protected:
-   DLLLOCAL virtual ~File();
+    DLLLOCAL virtual ~File();
 
 public:
-   DLLLOCAL File(const QoreEncoding *cs);
-   DLLLOCAL virtual void deref(ExceptionSink *xsink);
-   DLLLOCAL virtual void deref();
+    DLLLOCAL File(const QoreEncoding* cs);
+    DLLLOCAL virtual void deref(ExceptionSink* xsink);
+    DLLLOCAL virtual void deref();
+
+    //! Returns the underlying file descriptor; -1 if not open
+    /** @return the underlying file descriptor; -1 if not open
+
+        @since %Qore 1.12
+    */
+    DLLLOCAL int getPollableDescriptor() const {
+        return QoreFile::getPollableDescriptor();
+    }
 };
 
 class QoreFileHelper : QorePrivateObjectAccessHelper {
 public:
-   DLLEXPORT QoreFileHelper(QoreObject* obj, ExceptionSink* xsink);
-   DLLEXPORT ~QoreFileHelper();
-   DLLEXPORT QoreFile* operator*() const;
-   DLLEXPORT QoreFile* operator->() const;
+    DLLEXPORT QoreFileHelper(QoreObject* obj, ExceptionSink* xsink);
+    DLLEXPORT ~QoreFileHelper();
+    DLLEXPORT QoreFile* operator*() const;
+    DLLEXPORT QoreFile* operator->() const;
 };
 
 #endif  // _QORE_QOREFILE_H

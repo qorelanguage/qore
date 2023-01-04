@@ -45,7 +45,7 @@ public hashdecl DataFieldInfo {
 }
 
 #! describes a data type based on a hashdecl
-public class AbstractDataField inherits Serializable {
+public class AbstractDataField inherits Qore::Serializable {
     private {
         #! the default value for the field, if any
         auto default_value;

@@ -2,7 +2,7 @@
 
 # AC_PREREQ(2.59)
 # NOTE: Qore should always use semantic versioning: https://semver.org/
-AC_INIT([qore], [1.12.0],
+AC_INIT([qore], [1.13.0],
         [David Nichols <david@qore.org>],
         [qore])
 AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
@@ -159,9 +159,10 @@ case "${host_os}" in
 		# set LIB_PREFIX if not already set
 		if test -z "$LIB_PREFIX"; then
             AC_MSG_CHECKING([for mingw32 library prefix])
-            cc_loc=`which $CXX|head -1`
+            cxx=`echo $CXX|cut -f1 -d\ `
+            cc_loc=`which $cxx|head -1`
             mingw_base=`dirname $cc_loc|sed 's/\/@<:@^/@:>@*$//'`
-            cc_targ=`echo $CXX|sed s/-g++$//`
+            cc_targ=`echo $cxx|sed s/-g++$//`
             if test -d $mingw_base/$cc_targ; then
                 LIB_PREFIX=$mingw_base/$cc_targ
                 AC_MSG_RESULT([$LIB_PREFIX])
@@ -1212,6 +1213,15 @@ else
        [AC_MSG_RESULT([ok])
         AC_DEFINE([HAVE_EVP_MAC_CTX_NEW], 1, [Define if EVP_MAC_CTX_new() is present])],
        [AC_MSG_RESULT([no EVP_MAC_CTX_new() present])])
+
+    # check for SSL_read_ex()
+    AC_MSG_CHECKING([SSL_read_ex() in openssl])
+    AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <openssl/ssl.h>]],
+    [[size_t num; SSL_read_ex(nullptr, nullptr, 0, &num);]])],
+       [AC_MSG_RESULT([ok])
+        AC_DEFINE([HAVE_SSL_READ_EX], 1, [Define if SSL_read_ex() is present])],
+       [AC_MSG_RESULT([no HAVE_SSL_READ_EX() present])])
 
     CPPFLAGS="$SAVE_CPPFLAGS"
     LIBS="$SAVE_LIBS"

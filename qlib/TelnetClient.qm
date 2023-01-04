@@ -111,7 +111,7 @@ module TelnetClient {
 public namespace TelnetClient {
 /** @defgroup TelnetDefaults Default Values
 */
-#@{
+#/@{
 # default telnet port
 public const DefaultTelnetPort = 23;
 
@@ -126,11 +126,11 @@ const DefaultTerminalType = "xterm";
 
 # default terminal speed
 const DefaultTerminalSpeed = 38400;
-#@}
+#/@}
 
 /** @defgroup TelnetCommandCodes Telnet Protocol Command Codes
 */
-#@{
+#/@{
 public const IAC  = 255; #!< IAC
 public const DONT = 254; #!< DONT
 public const DO   = 253; #!< DO
@@ -167,13 +167,13 @@ public const CmdMap = (
     GA : "GoAhead",
     SB : "SubnegotiationBegin",
     );
-#@}|
+#/@}|
 
 public const SUPDUP_OPT = 21; # SUPDUP_OPT display protocol
 
 /** @defgroup TelnetOptionCodes Telnet Command Option Codes
 */
-#@{
+#/@{
 public const TOPT_BIN = 0;         #!< BinaryTransmission
 public const TOPT_ECHO = 1;        #!< Echo|Is|Send
 public const TOPT_RECN = 2;        #!< Reconnection
@@ -276,7 +276,7 @@ public const OptMap = (
     TOPT_SEND_URL : "Send-URL",
     TOPT_EXTOP : "Extended-Options-List",
     );
-#@}
+#/@}
 
 #! The TelnetClient class allows communication with a telnet server; it can be used directly or subclassed with overridden methods to customize its behavior
 /** This class uses a Mutex lock in each TelnetClient object to ensure thread serialization to the underlying socket and its internal configuration,

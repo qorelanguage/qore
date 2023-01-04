@@ -44,7 +44,7 @@ class BinaryNode;
 //! @defgroup StringConcatEncoding String Concatenation Encoding Codes
 /**
 */
-//@{
+///@{
 //! code for encoding HTML entities
 #define CE_HTML (1 << 0)
 //! code for encoding XML entities
@@ -55,12 +55,12 @@ class BinaryNode;
 #define CE_XHTML (CE_HTML | CE_XML)
 //! code for encoding everything
 #define CE_ALL (CE_XHTML | CE_NONASCII)
-//@}
+///@}
 
 //! @defgroup StringConcatDecoding String Concatenation Decoding Codes
 /**
 */
-//@{
+///@{
 //! code for decoding HTML entities
 #define CD_HTML (1 << 0)
 //! code for decoding XML entities
@@ -71,19 +71,19 @@ class BinaryNode;
 #define CD_XHTML (CD_HTML | CD_XML)
 //! code for decoding everything
 #define CD_ALL (CD_XHTML | CD_NUM_REF)
-//@}
+///@}
 
 //! @defgroup StringRegexOpts String Regular Expression Options
 /**
 */
-//@{
+///@{
 //! global substitutions
 #define QS_RE_GLOBAL    (1 << 0)
 #define QS_RE_CASELESS  (1 << 1)
 #define QS_RE_DOTALL    (1 << 2)
 #define QS_RE_EXTENDED  (1 << 3)
 #define QS_RE_MULTILINE (1 << 4)
-//@}
+///@}
 
 //! Qore's string type supported by the QoreEncoding class
 /** A QoreString is implemented by a char pointer, a byte length, and a QoreEncoding pointer.

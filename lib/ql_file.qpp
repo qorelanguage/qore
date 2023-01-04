@@ -207,7 +207,7 @@ hashdecl FilesystemInfo {
     |\c 11|@ref int_type|block size; may be zero if the platform's internal %stat() (2) function does not provide this info
     |\c 12|@ref int_type|blocks allocated for the file; may be zero if the platform's internal %stat() (2) function does not provide this info
 */
-//@{
+///@{
 //! Returns @ref True if the string passed identifies a regular file on the filesystem, @ref False if not
 /**
     @param path the path to check
@@ -1087,4 +1087,4 @@ string realpath(string path) [dom=FILESYSTEM] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(path->getEncoding()));
    return q_realpath(*path, **rv, xsink) ? 0 : rv.release();
 }
-//@}
+///@}

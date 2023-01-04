@@ -22,14 +22,16 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! the ConnectionProvider namespace. All classes used in the ConnectionProvider module should be inside this namespace
+#! The ConnectionProvider namespace
+/** All public declarations in the %ConnectionProvider module are defined in this namespace
+*/
 public namespace ConnectionProvider {
 #! abstract base class for connections
 /** this class can be specialized to provide for user-defined connection types
 
     @deprecated use AbstractConnectionWithInfo instead
 */
-public class AbstractConnection inherits Serializable {
+public class AbstractConnection inherits Qore::Serializable {
     public {
         #! connection name
         string name;
@@ -151,6 +153,42 @@ public class AbstractConnection inherits Serializable {
         constructorInit(name, description, url, attributes, options);
     }
 
+    #! Returns the connection name
+    /** @return the connection name
+
+        @since %ConnectionProvider 1.7
+    */
+    string getName() {
+        return name;
+    }
+
+    #! Returns the connection description
+    /** @return the connection description
+
+        @since %ConnectionProvider 1.7
+    */
+    string getDescription() {
+        return desc;
+    }
+
+    #! Returns the connection URL
+    /** @return the connection URL
+
+        @since %ConnectionProvider 1.7
+    */
+    string getUrl() {
+        return url;
+    }
+
+    #! Returns the connection safe URL (without password info)
+    /** @return the connection safe URL (without password info)
+
+        @since %ConnectionProvider 1.7
+    */
+    string getSafeUrl() {
+        return safe_url;
+    }
+
     #! returns a hash with the results of the ping operation
     /** @param throw_exception throw an exception if a connection error occurs
 
@@ -179,12 +217,19 @@ public class AbstractConnection inherits Serializable {
     #! performs the ping by executing get(); returns a @ref PingInfo hash
     private hash<PingInfo> pingIntern(hash<PingInfo> rv) {
         date start = now_us();
-        get();
+        pingImpl();
         return rv += {
             "ok": True,
             "time": now_us() - start,
             "info": "OK",
         };
+    }
+
+    #! performs the internal ping
+    /** By default this creates a new connection only; override in child classes to implement additional ping logic
+    */
+    private pingImpl() {
+        get();
     }
 
     #! returns a @ref ConnectionInfo hash of information about the connection
@@ -364,6 +409,44 @@ public class AbstractConnection inherits Serializable {
         return False;
     }
 
+    #! returns @ref True if the connection supports the %Qore @ref Qore::Socket "Socket-based" polling API
+    /** @return @ref True if the connection supports the polling API where multiple connections can be polled from a
+        single thread
+
+        This base class method returns @ref False; to support the new polling API, override this method in child
+        classes
+
+        @see
+        - @ref startConnectPoll()
+
+        @since ConnectionProvider 1.7
+    */
+    bool supportsPollingApi() {
+        return False;
+    }
+
+    #! Called to start the connection polling operation
+    /** Only called if the connection supports the polling API
+
+        @return a socket poll operation object that will allow the connection goal to be reached with polling
+
+        @see supportsPollingApi()
+
+        @since ConnectionProvider 1.7
+    */
+    Qore::AbstractPollOperation startPollConnect() {
+        throw "UNSUPPORTED", sprintf("connection %y (%s) does not support the polling API", name, safe_url);
+    }
+
+    #! Returns an unconnected object for a non-blocking poll operation
+    /** @return an unconnected object for a non-blocking poll operation
+
+        @since ConnectionProvider 1.7.1
+    */
+    object getPollImpl() {
+        return getImpl(False);
+    }
+
     #! Parse the URL to a hash
     /** @param url a string with url
         @return hash untyped, depends on the parsing method
@@ -384,17 +467,29 @@ public class AbstractConnection inherits Serializable {
         This base/default implementation expects the \c urlh
         as returned by @ref Qore::parse_url())
 
-        Public attribute \c safe_url is created from the \c url calling
+        The public attribute \c safe_url is created from the \c url calling
         AbstractConnection::getSafeUrl(). Reimplement this method if your
-        connection does not follow standard URL in form:
+        connection does not follow the standard URL format like:
         @code
 scheme://user:pass@hostname:port/path
         @endcode
     */
     private string getSafeUrl(hash<auto> urlh) {
         string url = urlh.protocol + "://";
-        if (urlh.username)
-            url += urlh.username + "@";
+        bool has_user_or_pass;
+        if (urlh.username) {
+            url += urlh.username;
+            has_user_or_pass = True;
+        }
+        if (urlh.password) {
+            url += ":<masked>";
+            if (!has_user_or_pass) {
+                has_user_or_pass = True;
+            }
+        }
+        if (has_user_or_pass) {
+            url += "@";
+        }
         url += urlh.host;
         if (urlh.port)
             url += ":" + urlh.port;
@@ -502,11 +597,11 @@ scheme://user:pass@hostname:port/path
 
         opts = validateOptions(options);
         orig_opts = opts;
-        setChildCapabilitiesImpl();
+        setChildCapabilities();
     }
 
     #! Override to set child data provider capabilities once per child class
-    private setChildCapabilitiesImpl() {
+    private setChildCapabilities() {
         # this method intentionally left empty
     }
 

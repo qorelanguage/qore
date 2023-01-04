@@ -43,6 +43,6 @@ static inline size_t get_stack_pos() {
     return addr;
 }
 #else
-#pragma message "warning: not using a GNU compiler"
+#error need a way to get the stack pointer with this compiler
 #endif
 #endif

@@ -28,7 +28,7 @@
 #! Contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! Data provider type cache class
-public class DataProviderTypeCache inherits Serializable {
+public class DataProviderTypeCache inherits Qore::Serializable {
     private {
         #! Data provider data type cache
         DataProviderTypeEntry root();

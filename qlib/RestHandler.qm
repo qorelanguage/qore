@@ -42,7 +42,7 @@
 %requires reflection
 
 module RestHandler {
-    version = "1.6";
+    version = "1.6.2";
     desc = "user module for implementing REST services with the Qore HTTP server";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -374,8 +374,18 @@ Content-Length: 16
 
     @section resthandler_relnotes RestHandler Release Notes
 
+    @subsection rh_1_6_2 RestHandler v1.6.2
+    - always set the \c socketobject request context property
+      (<a href="https://github.com/qorelanguage/qore/issues/4666">issue 4666</a>)
+
+    @subsection rh_1_6_1 RestHandler v1.6.1
+    - implemented the @ref RestHandler::RestHandler::errorResponseHeaders() to allow subclasses to return custom
+      headers in error responses, such as when a request cannot be deserialized
+      (<a href="https://github.com/qorelanguage/qore/issues/4646">issue 4646</a>)
+
     @subsection rh_1_6 RestHandler v1.6
-    - added request arguments to the @ref RestHandler::RestHandler::unknownSubClassError() "RestHandler::unknownSubClassError()"
+    - added request arguments to the
+      @ref RestHandler::RestHandler::unknownSubClassError() "RestHandler::unknownSubClassError()"
       and @ref RestHandler::RestHandler::doGetPossibleSubClasses() "RestHandler::doGetPossibleSubClasses()" methods
       (<a href="https://github.com/qorelanguage/qore/issues/4578">issue 4578</a>)
 
@@ -530,14 +540,23 @@ public namespace RestHandler {
 
         #! this method provides the callback method for receiving chunked data by calling recvImpl()
         /**
-            @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is called once for each chunk; when the message has been received, then this method is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
-            - \c "data": the string or binary data, or, in the case of a non-chunked request, the already decoded and deserialized request body, in which case the \c "deserialized" key will be @ref True
+            @param v the first time this method is called with a hash of the message headers in the \c "hdr" key, and
+            then with any message body in the \c "data"; if a chunked HTTP message is received, then this method is
+            called once for each chunk; when the message has been received, then this method is called with a hash
+            representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a
+            normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback
+            is always a hash; data calls have the following keys:
+            - \c "data": the string or binary data, or, in the case of a non-chunked request, the already decoded and
+              deserialized request body, in which case the \c "deserialized" key will be @ref True
             - \c "chunked": @ref True if the data was received with chunked transfer encoding, @ref False if not
-            - \c "deserialized": present and set to @ref True if a non-chunked request was received, and the body has already been deserialized
+            - \c "deserialized": present and set to @ref True if a non-chunked request was received, and the body has
+              already been deserialized
             .
             Header or trailer data is placed in a hash with the following keys:
-            - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or no trailers were included in a chunked message
-            - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such as, for example, socket character encoding)
+            - \c "hdr": this can be assigned to @ref nothing for the trailer hash if the data was not sent chunked or
+              no trailers were included in a chunked message
+            - \c "obj": this is the owning object (so socket parameters can be changed based on headers received, such
+              as, for example, socket character encoding)
         */
         nothing recv(hash<auto> v) {
             try {
@@ -550,7 +569,9 @@ public namespace RestHandler {
 
         #! this method provides the callback method for sending chunked data by calling sendImpl()
         /**
-            @return The chunked HTTP data to send; this method must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be returned or simply @ref nothing which will close the chunked message
+            @return The chunked HTTP data to send; this method must return either a string or a binary value each time
+            it is called to give the chunked data to send; when all data has been sent, then a hash of message
+            trailers can be returned or simply @ref nothing which will close the chunked message
         */
         auto send() {
             try {
@@ -630,7 +651,7 @@ public namespace RestHandler {
                 HttpServer::HttpListenerInterface listener, HttpServer::AbstractHttpRequestHandler handler, Socket s,
                 hash<auto> cx, hash<auto> hdr, auto body)
                 : HttpServer::AbstractStreamRequest(listener, handler, s,
-                    cx + (exists body ? ("deserialized": True) : NOTHING), hdr, body) {
+                    cx + (exists body ? {"deserialized": True} : NOTHING), hdr, body) {
             stream = n_stream;
             if (!handler.isPersistent()) {
                 *code c = stream.getPersistentClosedNotification();
@@ -787,11 +808,13 @@ public namespace RestHandler {
             if (!args && cx.body.typeCode() == NT_HASH) {
                 args = cx.body - "action";
             }
+            cx.socketobject = s;
             if (cl) {
                 string cname = shift cl;
                 *AbstractRestClass cls = subClass(cname, cx, args);
                 if (!cls) {
-                    # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
+                    # issue #2994: if we are on the last class and there is no "action" argument; see if we can find
+                    # an action method instead
                     if (!cl && !args.action) {
                         string mname = sprintf("%s%s%s", mn, cname[0].upr(), cname[1..]);
                         if (self.hasCallableMethod(mname)) {
@@ -799,11 +822,13 @@ public namespace RestHandler {
                         }
                     }
 
-                    rh.logDebug("REST DBG: class %y: unknown subclass %y: method %y args: %y", name(), cname, mn, args);
+                    rh.logDebug("REST DBG: class %y: unknown subclass %y: method %y args: %y", name(), cname, mn,
+                        args);
                     return unknownSubClassError(cname, cx, args);
                 }
 
-                rh.logDebug("REST DBG: class %y: dispatching to subclass %y: method %y args: %y", name(), cname, mn, args);
+                rh.logDebug("REST DBG: class %y: dispatching to subclass %y: method %y args: %y", name(), cname, mn,
+                    args);
                 return cls.handleRequest(listener, rh, s, cl, mn, cx, args);
             }
 
@@ -819,7 +844,6 @@ public namespace RestHandler {
             string sn = "stream" + mn[0].upr() + mn.substr(1);
             AbstractRestStreamRequestHandler rsh;
             try {
-                cx.socketobject = s;
                 rsh = call_object_method_args(self, sn, (cx, ah));
             } catch (hash<ExceptionInfo> ex) {
                 if (ex.err == "METHOD-DOES-NOT-EXIST" && ex.desc.find(sn) != -1) {
@@ -1250,20 +1274,22 @@ public namespace RestHandler {
                     || ex.err == "ENCODING-CONVERSION-ERROR"
                     || ex.err == "DESERIALIZATION-ERROR"
                     || ex.err == "SCHEMA-VALIDATION-ERROR")
-                    return AbstractHttpRequestHandler::make400("%s: %s", ex.err, ex.desc);
+                    return AbstractHttpRequestHandler::makeResponse(400, sprintf("%s: %s", ex.err, ex.desc),
+                        errorResponseHeaders(cx));
                 if (ex.err == "INVALID-METHOD") {
                     string ml = (foldl $1 + "," + $2, ex.arg) ?? "";
                     return AbstractHttpRequestHandler::makeResponse(405, sprintf("HTTP method %y is not supported "
-                        "with URI path %y; supported methods: %s", hdr.method, path, ml ?* "<none>"), ("Allow": ml));
+                        "with URI path %y; supported methods: %s", hdr.method, path, ml ?* "<none>"),
+                        errorResponseHeaders(cx) + {"Allow": ml});
                 }
                 rethrow;
             }
 
             # get object and args
-            hash<auto> ah = path ? (
+            hash<auto> ah = path ? {
                 "method": req.path,
                 "params": req.query,
-            ) : {};
+            } : {};
             #path ? parse_uri_query(path) : {};
 
             *hash<auto> args;
@@ -1275,14 +1301,21 @@ public namespace RestHandler {
                 args = {} + ah.params;
             }
 
-            if (exists body)
+            # add path args, if any
+            if (req.path_args) {
+                map args{$1.key} = $1.value, req.path_args.pairIterator(), !exists args{$1.key};
+            }
+
+            if (exists body) {
                 body = req.body;
-            else
+            } else {
                 body = args;
+            }
 
             # reflect body in arguments if body is a hash
-            if (body.typeCode() == NT_HASH)
+            if (body.typeCode() == NT_HASH) {
                 map args.$1 = body.$1, keys body, !exists args.$1;
+            }
 
             if (!Methods.(hdr.method))
                 return AbstractHttpRequestHandler::make400("unsupported HTTP method %y given in REST call %y",
@@ -1368,7 +1401,7 @@ public namespace RestHandler {
                 hash<HttpResponseInfo> res;
 
                 try {
-                    res = validator.processResponse(hdr.method, req.path, rv.code, rv.body, rv.hdr,
+                    res = validator.processResponse(hdr.method, req.path, rv."code", rv.body, rv.hdr,
                         aih."*/*" ? NOTHING : keys aih);
                 } catch (hash<ExceptionInfo> ex) {
                     logDebug("REST DBG: %s", get_exception_string(ex));
@@ -1404,6 +1437,12 @@ public namespace RestHandler {
             #logDebug("REST DBG: rv: %N", rv);
 
             return cast<hash<HttpResponseInfo>>(rv);
+        }
+
+        #! Retrieves headers for an error response
+        /** @return the base method returns @ref NOTHING; override to return additional headers for an error response
+        */
+        private *hash<auto> errorResponseHeaders(hash<auto> cx) {
         }
 
         #! Dispatches the request and returns the response

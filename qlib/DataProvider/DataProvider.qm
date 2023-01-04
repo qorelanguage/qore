@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "2.7";
+    version = "2.7.1";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -56,6 +56,12 @@ module DataProvider {
     @tableofcontents
 
     @section dataproviderintro Introduction to the DataProvider Module
+
+    @htmlonly
+    <div class="image">
+      <img src="DataProvider-Full.svg" alt="DataProvider Logo" style="width:40%;">
+    </div>
+    @endhtmlonly
 
     The %DataProvider module provides APIs for hierarchical data structures from arbitrary sources to be described,
     queried, introspected, and updated.  It supports data providers supporting record-based APIs as well as
@@ -203,7 +209,22 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section dataprovider_relnotes Release Notes
 
+    @subsection dataprovider_v2_7_1 DataProvider v2.7.1
+    - added
+      @ref DataProvider::DataProvider::getFactoryObjectWithTemplate() "DataProvider::getFactoryObjectWithTemplate()"
+      and
+      @ref DataProvider::AbstractDataProviderFactory::createWithTemplate() "AbstractDataProviderFactory::createWithTemplate()"
+      to allow data providers to be created from factories with template arguments
+      (<a href="https://github.com/qorelanguage/qore/issues/4624">issue 4624</a>)
+    - \c AbstractDataProvider::search*() fails with record-based data providers that do not provide a record
+      definition
+      (<a href="https://github.com/qorelanguage/qore/issues/4624">issue 4624</a>)
+    - \c AbstractDataProvider::search*() methods fail with an empty \c where hash argument
+      (<a href="https://github.com/qorelanguage/qore/issues/4622">issue 4622</a>)
+
     @subsection dataprovider_v2_7 DataProvider v2.7
+    - fixed a bug accepting the element type in @ref DataProvider::SoftListDataType "SoftListDataType"
+      (<a href="https://github.com/qorelanguage/qore/issues/4603">issue 4603</a>)
     - added child capability support to data provider summary info
       (<a href="https://github.com/qorelanguage/qore/issues/4576">issue 4576</a>)
 
