@@ -108,6 +108,20 @@ public class parseUrlTest inherits QUnit::Test {
             "path": "/path",
         }, h);
 
+        # windows paths according to https://learn.microsoft.com/en-us/archive/blogs/ie/file-uris-in-windows
+        h = parse_url("file:///c:/dir1/dir2");
+        assertEq({
+            "protocol": "file",
+            "path": "c:/dir1/dir2",
+        }, h);
+
+        # alternate format with backslashes
+        h = parse_url("file:///c:\\dir1\\dir2");
+        assertEq({
+            "protocol": "file",
+            "path": "c:\\dir1\\dir2",
+        }, h);
+
         # "standard" test
         assertEq(("protocol": "http", "path": "/path", "username": "user", "password": "pass", "host": "host", "port": 80), parse_url("http://user:pass@host:80/path"));
 
@@ -157,6 +171,21 @@ public class parseUrlTest inherits QUnit::Test {
 
         # corner case: two leading backslashes are returned as a UNC path
         assertEq(("path": "\\\\hostname"), parse_url("\\\\hostname"));
+
+        # corner case: two leading forward slashes are returned as a UNC path
+        assertEq(("path": "//hostname"), parse_url("//hostname"));
+
+        # corner case: file:// with two leading backslashes are returned as a UNC path
+        assertEq({
+            "protocol": "file",
+            "path": "\\\\hostname",
+        }, parse_url("file://\\\\hostname"));
+
+        # corner case: file:// with two leading forward slashes are returned as a UNC path
+        assertEq({
+            "protocol": "file",
+            "path": "//hostname",
+        }, parse_url("file:////hostname"));
 
         # issue #3287: single character hostname
         assertEq("a", parse_url("http://a").host);

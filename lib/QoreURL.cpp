@@ -145,13 +145,31 @@ private:
             protocol->tolwr();
             //printd(5, "QoreURL::parse_intern protocol: %s\n", protocol->c_str());
             sbuf = sbuf.substr(protocol_separator + 3);
+
+            // check for special cases with Windows paths
+            if (*protocol == "file") {
+                // Windows paths should also be parsed like: file:///c:/dir...
+                // https://blogs.msdn.microsoft.com/ie/2006/12/06/file-uris-in-windows/
+                // https://en.wikipedia.org/wiki/File_URI_scheme#Windows
+                if (sbuf.size() >= 3 &&
+                    ((sbuf[0] == '/' || sbuf[0] == '\\') && (isalpha(sbuf[1]) && sbuf[2] == ':' && !isdigit(sbuf[3])))
+                    && sbuf.find('@') == std::string::npos) {
+                    path = new QoreStringNode(sbuf.c_str() + 1);
+                    if (options & QURL_DECODE_ANY) {
+                        decodeStrings(options, xsink);
+                    }
+                    return;
+                }
+            }
         }
 
-        // see if the rest of the URL is a windows path
-        if (sbuf.size() >= 2 &&
-            ((isalpha(sbuf[0]) && sbuf[1] == ':' && !isdigit(sbuf[2]))
-            || (sbuf[0] == '\\' && sbuf[1] == '\\'))
-            && sbuf.find('@') == std::string::npos) {
+        // if there is no scheme or the scheme is file://, see if the rest of the URL is a Windows UNC path
+        if ((!protocol || *protocol == "file")
+            && (sbuf.size() >= 2
+            && ((isalpha(sbuf[0]) && sbuf[1] == ':' && !isdigit(sbuf[2]))
+                || (sbuf[0] == '\\' && sbuf[1] == '\\')
+                || (sbuf[0] == '/' && sbuf[1] == '/'))
+            && sbuf.find('@') == std::string::npos)) {
             path = new QoreStringNode(sbuf.c_str());
             if (options & QURL_DECODE_ANY) {
                 decodeStrings(options, xsink);
@@ -243,7 +261,8 @@ private:
                     if (!isdigit(sbuf[i])) {
                         if (xsink)
                             xsink->raiseException("PARSE-URL-ERROR", "URL '%s' has an invalid non-numeric character "
-                                "in the port specification (char: '%c' ue: %lld sbuf: '%s')", buf, sbuf[i], username_end, sbuf.c_str());
+                                "in the port specification (char: '%c' ue: %lld sbuf: '%s')", buf, sbuf[i],
+                                username_end, sbuf.c_str());
                         invalidate();
                         return;
                     }
