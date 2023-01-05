@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8.12)
 
 # NOTE: Qore should always use semantic versioning: https://semver.org/
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 13)
-set(VERSION_SUB 0)
+set(VERSION_MINOR 12)
+set(VERSION_SUB 4)
 #set(VERSION_PATCH 0)
 
 # support <pkg>_ROOT in find_package
@@ -397,7 +397,7 @@ if(NOT DEFINED NO_SIGNAL_HANDLING)
 endif()
 
 # prepare scanner and parser targets
-bison_target(qoreparser lib/parser.ypp ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp COMPILE_FLAGS -Wnone)
+bison_target(qoreparser lib/parser.ypp ${CMAKE_CURRENT_BINARY_DIR}/parser.cpp)
 flex_target(qorescanner lib/scanner.lpp ${CMAKE_CURRENT_BINARY_DIR}/scanner.cpp COMPILE_FLAGS --nowarn)
 add_flex_bison_dependency(qorescanner qoreparser)
 
@@ -701,7 +701,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 12.2.0)
+    set_target_properties(libqore PROPERTIES VERSION 12.1.2)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
 endif (APPLE)
 
