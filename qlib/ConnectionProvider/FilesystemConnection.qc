@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore FilesystemConnection class definition
 
-/*  FilesystemConnection.qc Copyright 2016 - 2022 Qore Technologies, s.r.o.
+/*  FilesystemConnection.qc Copyright 2016 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

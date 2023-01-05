@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore QoreNumberDataTypeBase class definition
 
-/** QoreNumberDataTypeBase.qc Copyright 2022 Qore Technologies, s.r.o.
+/** QoreNumberDataTypeBase.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

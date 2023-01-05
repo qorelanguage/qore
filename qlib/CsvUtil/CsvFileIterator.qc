@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore CsvFileIterator class definition
 
-/*  CsvFileIterator.qc Copyright 2012 - 2022 Qore Technologies, s.r.o.
+/*  CsvFileIterator.qc Copyright 2012 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

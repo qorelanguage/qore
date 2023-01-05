@@ -239,6 +239,9 @@ else
     flexver=`$LEX --version`
 	AC_MSG_RESULT([yes ($flexver)])
 fi
+# turn off warnings in LEX
+LEX="$LEX --nowarn"
+AC_SUBST(YACC)
 
 AC_PROG_YACC
 
@@ -252,6 +255,9 @@ elif test -z "`$YACC --version | head -n 1 | grep -e ' [[2-9]]\.' -e ' 1\.8[[5-9
 else
 	AC_MSG_RESULT([yes])
 fi
+# turn off warnings in YACC
+YACC="$YACC -Wnone"
+AC_SUBST(YACC)
 
 if test "$no_sig_handling" != "yes"; then
     AC_DEFINE(HAVE_SIGNAL_HANDLING, 1, [if signal handling is supported])

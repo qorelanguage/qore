@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DbTableRecordIterator class definition
 
-/** DbTableRecordIterator.qc Copyright 2019 - 2022 Qore Technologies, s.r.o.
+/** DbTableRecordIterator.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

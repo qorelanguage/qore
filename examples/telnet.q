@@ -3,7 +3,7 @@
 
 # @file telnet.q example program using the TelnetClient module
 
-/*  telnet.q Copyright 2012 - 2022 Qore Technologies, s.r.o.
+/*  telnet.q Copyright 2012 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
