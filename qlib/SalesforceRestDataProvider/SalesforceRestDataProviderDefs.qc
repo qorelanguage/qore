@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore SalesforceRestDataProviderDefs definitions
 
-/** SalesforceRestDataProviderDefs.qc Copyright 2019 - 2022 Qore Technologies, s.r.o.
+/** SalesforceRestDataProviderDefs.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

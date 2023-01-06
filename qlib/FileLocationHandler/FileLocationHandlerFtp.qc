@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FileLocationHandlerFtp.qc module for returning file data from a URL-like location string
 
-/*  FileLocationHandlerFtp Copyright 2021 - 2022 Qore Technologies, s.r.o.
+/*  FileLocationHandlerFtp Copyright 2021 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

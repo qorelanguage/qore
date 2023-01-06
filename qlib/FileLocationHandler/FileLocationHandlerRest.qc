@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FileLocationHandlerRest.qc module for returning file data from a URL-like location string
 
-/*  FileLocationHandlerRest Copyright 2021 - 2022 Qore Technologies, s.r.o.
+/*  FileLocationHandlerRest Copyright 2021 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -155,7 +155,7 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         }
         if (!val.strp()) {
             throw "REST-DATA-ERROR", sprintf("%s://%s returned data of type %y; expecting \"string\"",
-                val.fullType());
+                scheme, location, val.fullType());
         }
         return val.toString();
     }
@@ -181,7 +181,7 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         }
         if (!val.strp()) {
             throw "REST-DATA-ERROR", sprintf("%s://%s returned data of type %y; expecting \"binary\" or \"string\"",
-                val.fullType());
+                scheme, location, val.fullType());
         }
         return val.toString().toBinary();
     }

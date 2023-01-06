@@ -3,7 +3,7 @@
 
 # @file restserver.q example program using the RestHandler and HttpServer modules
 
-/*  restserver.q Copyright (C) 2013 - 2022 David Nichols
+/*  restserver.q Copyright (C) 2013 - 2023 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

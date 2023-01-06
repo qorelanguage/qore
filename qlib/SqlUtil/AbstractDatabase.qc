@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore AbstractDatabase class definition
 
-/** AbstractDatabase.qc Copyright 2019 - 2022 Qore Technologies, s.r.o.
+/** AbstractDatabase.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1359,9 +1359,12 @@ string sql = t.getSqlFromList(list);
             nds.select("select rdb$relation_name as name from rdb$relations where rdb$relation_name = 'x'");
             return "OdbcFirebirdSqlUtil";
         } catch (hash<ExceptionInfo> ex) {
-            # ignore exception
+            # it is a Firebird DB if the connection works but is denied due to incorrect authentication info
+            if (ex.err == "ODBC-CONNECTION-ERROR" && ex.desc =~ /user name and password are not defined/) {
+                return "OdbcFirebirdSqlUtil";
+            }
         }
-        return "OdbcSqlUtil";
+        throw "ODBC-DRIVER-ERROR", sprintf("cannot determine DB type from ODBC connection %y", nds.getConfigString());
     }
 
     static AbstractDatabase getDatabase(string dsstr, *hash<auto> opts) {

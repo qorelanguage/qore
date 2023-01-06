@@ -3,7 +3,7 @@
 
 # @file httpserver.q example program using the HttpServer module
 
-/*  httpserver.q Copyright 2012 - 2022 David Nichols
+/*  httpserver.q Copyright 2012 - 2023 David Nichols
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

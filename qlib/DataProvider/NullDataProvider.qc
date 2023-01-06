@@ -4,7 +4,7 @@
 /*
   Qorus Integration Engine
 
-  Copyright (C) 2019 - 2022 Qore Technologies, s.r.o., all rights reserved
+  Copyright (C) 2019 - 2023 Qore Technologies, s.r.o., all rights reserved
 
   **** NOTICE ****
     All information contained herein is, and remains the property of Qore

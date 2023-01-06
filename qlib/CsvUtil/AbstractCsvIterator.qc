@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # Qore AbstractCsvIterator class definition
 
-/*  AbstractCsvIterator.qc Copyright 2012 - 2022 Qore Technologies, s.r.o.
+/*  AbstractCsvIterator.qc Copyright 2012 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

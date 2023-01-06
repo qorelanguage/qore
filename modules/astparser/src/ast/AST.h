@@ -4,7 +4,7 @@
 
   Qore AST Parser
 
-  Copyright (C) 2022 Qore Technologies, sro
+  Copyright (C) 2023 Qore Technologies, sro
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),

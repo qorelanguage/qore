@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file AbstractDataProviderFactory.qc provides the abstract definition for a data provider factory
 
-/** AbstractDataProviderFactory.qc Copyright 2019 - 2022 Qore Technologies, s.r.o.
+/** AbstractDataProviderFactory.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
