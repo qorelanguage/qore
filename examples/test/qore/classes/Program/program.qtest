@@ -200,6 +200,7 @@ class ProgramTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
+        addTestCase("serialization", \serialization());
         addTestCase("call static method", \callStaticMethodTest());
         addTestCase("expression test", \expressionTest());
         addTestCase("call ref", \callRefTest());
@@ -221,6 +222,21 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("Program info test", \programInfoTest());
 	    addTestCase("Find runtime function test", \findRuntimeTest());
     	set_return_value(main());
+    }
+
+    serialization() {
+        assertThrows("PROGRAM-DESERIALIZATION-ERROR", \Program::deserialize(), new BinaryInputStream(<abcd>));
+        assertThrows("PROGRAM-DESERIALIZATION-ERROR", \Program::deserialize(), new StringInputStream("QOREPROG"));
+
+        BinaryOutputStream out();
+        {
+            Program::parseToBinary(out, "sub test(int i) { return i + 1; }", "test", PO_NEW_STYLE);
+            binary d = out.getData();
+            assertGt(1, d.size());
+
+            Program p = Program::deserialize(new BinaryInputStream(d));
+            assertEq(2, p.callFunction("test", 1));
+        }
     }
 
     callStaticMethodTest() {

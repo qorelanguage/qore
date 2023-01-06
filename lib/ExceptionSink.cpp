@@ -161,6 +161,30 @@ int ExceptionSink::appendLastDescription(const char* fmt, ...) {
     return 0;
 }
 
+int ExceptionSink::renamePrependLastException(const char* err, const char* desc_fmt, ...) {
+    if (!priv->head || priv->head->desc.getType() != NT_STRING || priv->head->err.getType() != NT_STRING) {
+        return -1;
+    }
+
+    SimpleRefHolder<QoreStringNode> new_desc(new QoreStringNode);
+    va_list args;
+    while (true) {
+        va_start(args, desc_fmt);
+        int rc = new_desc->vsprintf(desc_fmt, args);
+        va_end(args);
+        if (!rc) {
+            break;
+        }
+    }
+
+    QoreStringNode* old_desc = priv->head->desc.get<QoreStringNode>();
+    old_desc->prepend(new_desc->c_str(), new_desc->size());
+
+    priv->head->err.discard(nullptr);
+    priv->head->err = new QoreStringNode(err);
+    return 0;
+}
+
 AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...) {
     QoreStringNode *desc = new QoreStringNode;
 

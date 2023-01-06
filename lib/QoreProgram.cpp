@@ -172,6 +172,17 @@ ParseOptionMaps::ParseOptionMaps() {
     doMap(PO_NO_INHERIT_PROGRAM_DATA, "PO_NO_INHERIT_PROGRAM_DATA");
 }
 
+// program serialization magic
+DLLLOCAL std::string ps_magic = "QOREPROG";
+
+// program serialization constants
+typedef unsigned char ps_code_t;
+constexpr ps_code_t PSC_VERSION = 1;
+
+// program serialization values
+typedef unsigned char ps_char_t;
+constexpr ps_char_t PSV_VERSION = 0;
+
 QoreHashNode* ParseOptionMaps::getCodeToStringMap() const {
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(stringTypeInfo), nullptr);
 
@@ -265,30 +276,50 @@ qore_program_private::qore_program_to_object_map_t qore_program_private::qore_pr
 QoreRWLock qore_program_private::lck_programMap;
 volatile unsigned qore_program_private::programIdCounter = 1;
 
-qore_program_private_base::qore_program_private_base(QoreProgram* pgm, StreamReader& sr, QoreProgram* parent_pgm)
-        : plock(&ma_recursive),
-        sb(this),
-        only_first_except(false),
-        po_locked(false),
-        po_allow_restrict(true),
-        exec_class(false),
-        base_object(false),
-        requires_exception(false),
-        parsing_done(false),
-        parsing_in_progress(false),
-        ns_const(false),
-        ns_vars(false),
-        expression_mode(false),
-        pgm(pgm) {
-}
-
-int qore_program_private_base::serialize(StreamWriter& sw) {
+static int ps_write_data(StreamWriter& sw, ps_code_t code, ps_char_t val, ExceptionSink* xsink) {
+    // first write serialization / field code
+    if (sw.writeu1(code, xsink)) {
+        return -1;
+    }
+    // write data
+    if (sw.writeu1(val, xsink)) {
+        return -1;
+    }
     return 0;
 }
 
-qore_program_private::qore_program_private(ExceptionSink* xsink, QoreProgram* pgm, StreamReader& sr,
-        QoreProgram* parent_pgm) : qore_program_private_base(pgm, sr, parent_pgm) {
-    registerProgram();
+int qore_program_private_base::serialize(ExceptionSink* xsink, StreamWriter& sw) {
+    // write magic
+    if (sw.write(ps_magic.c_str(), ps_magic.size(), xsink)) {
+        return -1;
+    }
+    // write version
+    if (ps_write_data(sw, PSC_VERSION, PSV_VERSION, xsink)) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int qore_program_private_base::deserialize(ExceptionSink* xsink, StreamReader& sr) {
+    // read magic
+    SimpleRefHolder<QoreStringNode> magic(sr.readExactString(ps_magic.size(), xsink));
+    if (!magic || **magic != ps_magic) {
+        assert(*xsink);
+
+        xsink->renamePrependLastException("PROGRAM-DESERIALIZATION-ERROR", "input stream is not a serialized Program "
+            "object; the initial magic bytes do not match: ");
+        return -1;
+    }
+    // check version
+    ps_char_t v = sr.readu1(xsink);
+    if (*xsink) {
+        xsink->renamePrependLastException("PROGRAM-DESERIALIZATION-ERROR", "input stream is not a serialized Program "
+            "object; could not read stream version: ");
+        return -1;
+    }
+
+    return 0;
 }
 
 qore_program_private::qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm)
@@ -1392,7 +1423,17 @@ QoreListNode* qore_program_private::runtimeFindCallVariants(const char* name, Ex
     return qore_root_ns_private::get(*RootNS)->runtimeFindCallVariants(name, xsink);
 }
 
-int qore_program_private::serialize(StreamWriter& sw) {
+int qore_program_private::serialize(ExceptionSink* xsink, StreamWriter& sw) {
+    if (qore_program_private_base::serialize(xsink, sw)) {
+        return -1;
+    }
+    return 0;
+}
+
+int qore_program_private::deserialize(ExceptionSink* xsink, StreamReader& sr) {
+    if (qore_program_private_base::deserialize(xsink, sr)) {
+        return -1;
+    }
     return 0;
 }
 
@@ -1563,14 +1604,17 @@ QoreProgram::QoreProgram(QoreProgram* pgm, int64 po, bool ec, const char* ecn)
     }
 }
 
-QoreProgram::QoreProgram(ExceptionSink* xsink, StreamReader& sr)
-        : priv(new qore_program_private(xsink, this, sr)) {
-}
-
 QoreProgram* QoreProgram::deserialize(ExceptionSink* xsink, InputStream& stream) {
-    ReferenceHolder<StreamReader> sw(new StreamReader(xsink, &stream), xsink);
-    ReferenceHolder<QoreProgram> holder(new QoreProgram(), xsink);
-    return *xsink ? nullptr : holder.release();
+    stream.ref();
+    ReferenceHolder<StreamReader> sr(new StreamReader(xsink, &stream), xsink);
+    ReferenceHolder<QoreProgram> holder(new QoreProgram(getProgram(), 0), xsink);
+
+    if (holder->priv->deserialize(xsink, **sr)) {
+        assert(*xsink);
+        return nullptr;
+    }
+
+    return holder.release();
 }
 
 QoreThreadLock* QoreProgram::getParseLock() {
@@ -1796,16 +1840,17 @@ void QoreProgram::parsePending(const char* code, const char* label, ExceptionSin
     priv->parsePending(code, label, xsink, wS, wm, source, offset);
 }
 
-int QoreProgram::parseToBinary(OutputStream& stream, const QoreString* str, const QoreString* lstr,
-        ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
+int QoreProgram::parseToBinary(ExceptionSink* xsink, OutputStream& stream, const QoreString* str,
+        const QoreString* lstr, ExceptionSink* wS, int wm, const QoreString* source, int offset) {
     if (str && !str->empty()) {
         priv->parsePending(str, lstr, xsink, wS, wm, source, offset);
         if (*xsink) {
             return -1;
         }
     }
+    stream.ref();
     ReferenceHolder<StreamWriter> sw(new StreamWriter(xsink, &stream), xsink);
-    return priv->serialize(**sw);
+    return priv->serialize(xsink, **sw);
 }
 
 QoreValue QoreProgram::runTopLevel(ExceptionSink* xsink) {

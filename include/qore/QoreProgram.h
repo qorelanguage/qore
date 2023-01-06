@@ -108,7 +108,6 @@ class QoreRWLock;
 class QoreExternalFunction;
 class QoreExternalGlobalVar;
 class QoreExternalConstant;
-class StreamReader;
 
 typedef std::list<QoreBreakpoint*> bkp_list_t;
 
@@ -416,8 +415,8 @@ public:
 
         @since %Qore 1.13
     */
-    DLLEXPORT int parseToBinary(OutputStream& stream, const QoreString* str, const QoreString* lstr,
-            ExceptionSink* xsink, ExceptionSink* wS, int wm, const QoreString* source, int offset);
+    DLLEXPORT int parseToBinary(ExceptionSink* xsink, OutputStream& stream, const QoreString* str,
+            const QoreString* lstr, ExceptionSink* wS, int wm, const QoreString* source, int offset);
 
     //! returns true if the given function exists as a user function, false if not
     DLLEXPORT bool existsFunction(const char* name);
@@ -909,7 +908,7 @@ public:
 
         @return a QoreProgram pointer created from the stream or nullptr in case of errors
      */
-    DLLEXPORT QoreProgram* deserialize(ExceptionSink* xsink, InputStream& stream);
+    DLLEXPORT static QoreProgram* deserialize(ExceptionSink* xsink, InputStream& stream);
 
 protected:
     //! the destructor is private in order to prohibit the object from being allocated on the stack
@@ -920,9 +919,6 @@ protected:
 private:
     //! private implementation
     qore_program_private* priv;
-
-    //! private constructor
-    DLLLOCAL QoreProgram(ExceptionSink* xsink, StreamReader& stream);
 
     //! this function is not implemented; it is here as a private function in order to prohibit it from being used
     DLLLOCAL QoreProgram(const QoreProgram&);

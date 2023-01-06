@@ -981,19 +981,28 @@ Program::destructor() {
 }
 
 //! Parses the string argument and adds the code to the Program object
-/** This method causes both stages of parsing to be executed; if this method is successful, then the code parsed is committed to the Program object.
+/** This method causes both stages of parsing to be executed; if this method is successful, then the code parsed is
+    committed to the Program object.
     This method is equivalent to calling Program::parsePending() and Program::parseCommit() in one atomic call.
 
-    If an exception occurs in this method, all pending code is backed out, not just code parsed by this method (for example, in case uncommitted code added by Program::parsePending() also exists in the Program object before calling this method).
+    If an exception occurs in this method, all pending code is backed out, not just code parsed by this method (for
+    example, in case uncommitted code added by Program::parsePending() also exists in the Program object before
+    calling this method).
 
     @param code The code to parse into the Program object
-    @param label The label for the code; this label will be given if any parse or run-time errors are raised for the code given
-    @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if this argument is 0 or not given then no warnings will be checked or issued and the return value will always be @ref nothing
-    @param source An optional source file name for the code being parsed; this is useful if sections of a file are parsed
-    @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
+    @param label The label for the code; this label will be given if any parse or run-time errors are raised for the
+    code given
+    @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if
+    this argument is 0 or not given then no warnings will be checked or issued and the return value will always be
+    @ref nothing
+    @param source An optional source file name for the code being parsed; this is useful if sections of a file are
+    parsed
+    @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file
+    to the code being parsed
     @param format_label obsolete / ignored since %Qore 0.9
 
-    @return If warning included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
+    @return if warnings included in the warning mask are raised during parsing, this method will return an
+    @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
 
     @par Example:
     @code{.py}
@@ -1004,18 +1013,20 @@ while (wh) {
 }
     @endcode
 
-    @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in an appropriate exception.
+    @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in
+    an appropriate exception.
 
     @see
     - Qore::Program::parsePending()
     - Qore::Program::parseCommit()
     - Qore::parse()
 
-    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has
+    running threads
 
-    @note A complete parse action (Program::parse() or Program::parseCommit()) can only be performed once; subsequent attempts to parse
-    code into the same %Program object will fail with an exception.  If parsing fails due to a parse exception, the Program
-    object is generally no longer usable and must be recreated to be used.
+    @note A complete parse action (Program::parse() or Program::parseCommit()) can only be performed once; subsequent
+    attempts to parse code into the same %Program object will fail with an exception.  If parsing fails due to a parse
+    exception, the Program object is generally no longer usable and must be recreated to be used.
 
     @since
     - %Qore 0.8.7 the \a source, \a offset, and \a format_label arguments were added
@@ -1050,7 +1061,7 @@ while (wh) {
     @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file to the code being parsed
     @param format_label obsolete / ignored since %Qore 0.9
 
-    @return If warning included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
+    @return if warnings included in the warning mask are raised during parsing, this method will return an @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
 
     @par Example:
     @code{.py}
@@ -1082,17 +1093,17 @@ pgm.parseCommit();
     - %Qore 0.9 the \a format_label is obsolete / ignored
  */
 *hash<ExceptionInfo> Program::parsePending(string code, string label, *softint warning_mask, *string source, *softint offset, softbool[doc] format_label = True) [dom=EMBEDDED_LOGIC] {
-   if (warning_mask) {
-      ExceptionSink wsink;
-      p->parsePending(code, label, xsink, &wsink, warning_mask, source, offset);
-      if (!wsink.isException())
-         return QoreValue();
+    if (warning_mask) {
+        ExceptionSink wsink;
+        p->parsePending(code, label, xsink, &wsink, warning_mask, source, offset);
+        if (!wsink.isException())
+            return QoreValue();
 
-      QoreException *e = wsink.catchException();
-      return e->makeExceptionObjectAndDelete(xsink);
-   }
+        QoreException *e = wsink.catchException();
+        return e->makeExceptionObjectAndDelete(xsink);
+    }
 
-   p->parsePending(code, label, xsink, 0, 0, source, offset);
+    p->parsePending(code, label, xsink, 0, 0, source, offset);
 }
 
 //! Commits and pending code processed with Program::parsePending() to the Program object after resolving all outstanding references in the pending code
@@ -1103,7 +1114,8 @@ pgm.parseCommit();
 pgm.parseCommit();
     @endcode
 
-    @note This method could throw many parse exceptions related to resolving references which are not enumerated here; any parse errors will result in an appropriate exception.
+    @note This method could throw many parse exceptions related to resolving references which are not enumerated here;
+    any parse errors will result in an appropriate exception.
 
     @see
     - Qore::Program::parse()
@@ -1111,11 +1123,12 @@ pgm.parseCommit();
     - Qore::Program::parseRollback()
     - Qore::parse()
 
-    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has running threads
+    @throw PROGRAM-PARSE-ERROR this exception is thrown if any parse actions are started while the Program object has
+    running threads
 
-    @note A complete parse action (Program::parse() or Program::parseCommit()) can only be performed once; subsequent attempts to parse
-    code into the same %Program object will fail with an exception.  If parsing fails due to a parse exception, the Program
-    object is generally no longer usable and must be recreated to be used.
+    @note A complete parse action (Program::parse() or Program::parseCommit()) can only be performed once; subsequent
+    attempts to parse code into the same %Program object will fail with an exception.  If parsing fails due to a parse
+    exception, the Program object is generally no longer usable and must be recreated to be used.
 
     @since %Qore 0.9 parsing can only be executed once per %Program object
  */
@@ -2468,4 +2481,75 @@ Expression Program::getExpression(string source, string label) {
 */
 list<string> Program::getFeatureList() [flags=RET_VALUE_ONLY] {
    return p->getFeatureList();
+}
+
+//! Parses the text passed to a binary stream that can be deserialized
+/** Does not resolve all references or commit the code to the Program object
+
+    If an exception occurs in this method, all pending code is backed out, not just code parsed by this method.
+
+    @param out The output stream where the serialized Program output will be written
+    @param code The code to parse into the Program object
+    @param label The label for the code; this label will be given if any parse or run-time errors are raised for the
+    code given
+    @param parse_options A binary OR'ed product of @ref parse_options "parse options" for the new Program object
+    @param warning_mask An optional warning mask; see @ref warning_constants for values to combine by binary-or; if
+    this argument is 0 or not given then no warnings will be checked or issued and the return value will always be
+    @ref nothing
+    @param source An optional source file name for the code being parsed; this is useful if sections of a file are
+    parsed
+    @param offset An optional line offset for use with the \a source parameter; this gives the line offset in the file
+    to the code being parsed
+    @param format_label obsolete / ignored since %Qore 0.9
+
+    @return If warnings included in the warning mask are raised during parsing, this method will return an
+    @ref Qore::ExceptionInfo "ExceptionInfo" hash with warning information, otherwise @ref nothing is returned
+
+    @par Example:
+    @code{.py}
+*hash<ExceptionInfo> wh = Program::parseToBinary(stream, code, "label", NOTHING, WARN_DEFAULT);
+while (wh) {
+    printf("warning: %s:%d: %s: %s\n", wh.file, wh.line, wh.err, wh.desc);
+    wh = wh.next;
+}
+    @endcode
+
+    @note This method could throw many parse exceptions which are not enumerated here; any parse errors will result in
+    an appropriate exception.
+
+    @see
+    - Qore::Program::deserialize()
+
+    @since %Qore 1.13
+*/
+static *hash<ExceptionInfo> Program::parseToBinary(Qore::OutputStream[OutputStream] out, string code, string label, softint parse_options = PO_DEFAULT, *softint warning_mask, *string source, *softint offset) [dom=EMBEDDED_LOGIC] {
+    ReferenceHolder<OutputStream> holder(out, xsink);
+    ReferenceHolder<QoreProgram> pgm(new QoreProgram(getProgram(), parse_options), xsink);
+
+    ExceptionSink wsink;
+    if (pgm->parseToBinary(xsink, *out, code, label, warning_mask ? &wsink : nullptr, warning_mask, source, offset)) {
+        assert(*xsink);
+        return QoreValue();
+    }
+
+    if (wsink.isException()) {
+        QoreException* e = wsink.catchException();
+        return e->makeExceptionObjectAndDelete(xsink);
+    }
+}
+
+//! Returns a Program object after deserializing from an input stream
+/** @param in An input stream of a Program object serialized with @ref parseToBinary
+
+    @return a Program object after deserializing from an input stream
+
+    @since %Qore 1.13
+*/
+static Program Program::deserialize(Qore::InputStream[InputStream] in) [dom=EMBEDDED_LOGIC] {
+    ReferenceHolder<InputStream> holder(in, xsink);
+    ReferenceHolder<QoreProgram> pgm(QoreProgram::deserialize(xsink, *in), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    return new QoreObject(QC_PROGRAM, getProgram(), pgm.release());
 }

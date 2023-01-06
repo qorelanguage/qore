@@ -43,8 +43,8 @@
 class StreamWriter : public AbstractPrivateData {
 public:
     DLLLOCAL StreamWriter(ExceptionSink* xsink, OutputStream* os, const QoreEncoding* enc = QCS_DEFAULT) :
-        out(os, xsink),
-        encoding(enc) {
+            out(os, xsink),
+            encoding(enc) {
     }
 
     DLLLOCAL const QoreEncoding* getEncoding() const {
@@ -133,6 +133,18 @@ public:
         i = i8LSB(i);
         write(&i, 8, xsink);
         return *xsink ? -1 : 0;
+    }
+
+    DLLLOCAL int writeu1(unsigned char i, ExceptionSink* xsink) {
+        return writei1((signed char)i, xsink);
+    }
+
+    DLLLOCAL int writeu2(uint16_t i, ExceptionSink* xsink) {
+        return writei2((signed char)i, xsink);
+    }
+
+    DLLLOCAL int writeu4(uint32_t i, ExceptionSink* xsink) {
+        return writei4((signed char)i, xsink);
     }
 
     DLLLOCAL virtual const char* getName() const { return "StreamWriter"; }

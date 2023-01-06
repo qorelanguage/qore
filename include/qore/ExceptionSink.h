@@ -250,6 +250,13 @@ public:
     */
     DLLEXPORT int appendLastDescription(const char* fmt, ...);
 
+    // Renames the "err" key of the top exception and prepends a string description to any desc value
+    /** @return -1 for error, not added, or 0 = OK
+
+        @since %Qore 1.13
+    */
+    DLLEXPORT int renamePrependLastException(const char* err, const char* desc_fmt, ...);
+
     DLLLOCAL void raiseException(QoreException* e);
     DLLLOCAL void raiseException(const QoreListNode* n);
     DLLLOCAL QoreException* catchException();

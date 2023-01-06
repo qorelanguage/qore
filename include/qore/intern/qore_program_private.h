@@ -426,9 +426,6 @@ public:
     // public object that owns this private implementation
     QoreProgram* pgm;
 
-    // create the program object from a stream
-    DLLLOCAL qore_program_private_base(QoreProgram* pgm, StreamReader& sr, QoreProgram* parent_pgm);
-
     DLLLOCAL qore_program_private_base(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr)
             : plock(&ma_recursive),
             sb(this),
@@ -479,7 +476,8 @@ public:
     }
 #endif
 
-    DLLLOCAL int serialize(StreamWriter& sw);
+    DLLLOCAL int serialize(ExceptionSink* xsink, StreamWriter& sw);
+    DLLLOCAL int deserialize(ExceptionSink* xsink, StreamReader& sr);
 
     DLLLOCAL const QoreProgramLocation* getLocation(int sline, int eline);
     DLLLOCAL const QoreProgramLocation* getLocation(const QoreProgramLocation&, int sline, int eline);
@@ -566,9 +564,6 @@ public:
     // map for filenames
     typedef vector_map_t<const char*, section_sline_statement_map_t*> name_section_sline_statement_map_t;
     //typedef std::map<const char*, section_sline_statement_map_t*, ltstr> name_section_sline_statement_map_t;
-
-    DLLLOCAL qore_program_private(ExceptionSink* xsink, QoreProgram* pgm, StreamReader& sr,
-            QoreProgram* parent_pgm = nullptr);
 
     DLLLOCAL qore_program_private(QoreProgram* n_pgm, int64 n_parse_options, QoreProgram* p_pgm = nullptr);
 
@@ -2527,7 +2522,8 @@ public:
         }
     }
 
-    DLLLOCAL int serialize(StreamWriter& sw);
+    DLLLOCAL int serialize(ExceptionSink* xsink, StreamWriter& sw);
+    DLLLOCAL int deserialize(ExceptionSink* xsink, StreamReader& sr);
 
     DLLLOCAL static QoreObject* getQoreObject(QoreProgram* pgm) {
         QoreAutoRWWriteLocker al(&lck_programMap);
