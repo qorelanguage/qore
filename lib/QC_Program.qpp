@@ -2480,7 +2480,7 @@ Expression Program::getExpression(string source, string label) {
     @since %Qore 1.0
 */
 list<string> Program::getFeatureList() [flags=RET_VALUE_ONLY] {
-   return p->getFeatureList();
+    return p->getFeatureList();
 }
 
 //! Parses the text passed to a binary stream that can be deserialized

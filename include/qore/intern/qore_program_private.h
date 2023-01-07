@@ -351,6 +351,9 @@ public:
     // user features present in this Program object
     strset_t userFeatureList;
 
+    // modules loadded with parse commands
+    strset_t parse_modules;
+
     // parse lock, making parsing actions atomic and thread-safe, also for runtime thread attachment
     mutable QoreThreadLock plock;
 
@@ -483,6 +486,32 @@ public:
     DLLLOCAL const QoreProgramLocation* getLocation(const QoreProgramLocation&, int sline, int eline);
 
     DLLLOCAL void startThread(ExceptionSink& xsink);
+
+    // returns significant parse options to drop
+    DLLLOCAL int64 checkDeserializeParseOptions(int64 po) {
+        if (pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS) {
+            return 0;
+        }
+        return pwo.parse_options & ~po & ~PO_FREE_STYLE_OPTIONS;
+    }
+
+    DLLLOCAL void replaceParseOptionsIntern(int64 po) {
+        pwo.parse_options = po;
+    }
+
+    DLLLOCAL bool checkSetParseOptions(int64 po) {
+        // only return an error if parse options are locked and the option is not a "free option"
+        // also check if options may be made more restrictive and the option also does so
+        return (((po & PO_FREE_OPTIONS) != po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS)));
+    }
+
+    DLLLOCAL void setParseOptionsIntern(int64 po) {
+        pwo.parse_options |= po;
+    }
+
+    DLLLOCAL void addParseModule(const char* mod) {
+        parse_modules.insert(mod);
+    }
 
 protected:
     typedef vector_map_t<const char*, AbstractQoreProgramExternalData*> extmap_t;
@@ -856,6 +885,9 @@ public:
         QoreListNode* l = new QoreListNode(stringTypeInfo);
 
         for (auto& i : featureList) {
+            l->push(new QoreStringNode(i), nullptr);
+        }
+        for (auto& i : userFeatureList) {
             l->push(new QoreStringNode(i), nullptr);
         }
 
@@ -1477,23 +1509,13 @@ public:
         return *parseSink;
     }
 
-    DLLLOCAL void setParseOptionsIntern(int64 po) {
-        pwo.parse_options |= po;
-    }
-
     DLLLOCAL void disableParseOptionsIntern(int64 po) {
         pwo.parse_options &= ~po;
     }
 
-    DLLLOCAL void replaceParseOptionsIntern(int64 po) {
-        pwo.parse_options = po;
-    }
-
     DLLLOCAL int setParseOptions(int64 po, ExceptionSink* xsink) {
         assert(xsink);
-        // only raise the exception if parse options are locked and the option is not a "free option"
-        // also check if options may be made more restrictive and the option also does so
-        if (((po & PO_FREE_OPTIONS) != po) && po_locked && (!po_allow_restrict || (po & PO_POSITIVE_OPTIONS))) {
+        if (checkSetParseOptions(po)) {
             xsink->raiseException("OPTIONS-LOCKED", "parse options have been locked on this program object");
             return -1;
         }

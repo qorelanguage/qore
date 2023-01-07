@@ -177,7 +177,9 @@ DLLLOCAL std::string ps_magic = "QOREPROG";
 
 // program serialization constants
 typedef unsigned char ps_code_t;
-constexpr ps_code_t PSC_VERSION = 1;
+constexpr ps_code_t PSC_VERSION         = 1;
+constexpr ps_code_t PSC_PARSE_WARN_OPTS = 2;
+constexpr ps_code_t PSC_PARSE_MODULES   = 3;
 
 // program serialization values
 typedef unsigned char ps_char_t;
@@ -297,28 +299,129 @@ int qore_program_private_base::serialize(ExceptionSink* xsink, StreamWriter& sw)
     if (ps_write_data(sw, PSC_VERSION, PSV_VERSION, xsink)) {
         return -1;
     }
+    // write parse/warn options
+    if (sw.writeu1(PSC_PARSE_WARN_OPTS, xsink)
+        || sw.writei8(pwo.parse_options, xsink)
+        || sw.writei4(pwo.warn_mask, xsink)) {
+        return -1;
+    }
+    // write modules
+    size_t len = parse_modules.size();
+    if (len > 255) {
+        xsink->raiseException("PROGRAM-SERIALIZATION-ERROR", "cannot serialize a program with more than 255 "
+            "modules required at parse time (total required: %d)", (int)len);
+        return -1;
+    }
+    if (sw.writeu1(PSC_PARSE_MODULES, xsink)
+        || sw.writeu1((ps_char_t)len, xsink)) {
+        return -1;
+    }
+    for (auto& i : parse_modules) {
+        if (sw.write(i.c_str(), i.size() + 1, xsink)) {
+            return -1;
+        }
+    }
 
     return 0;
+}
+
+static int rewrite_deserialization_error(ExceptionSink* xsink, const char* msg) {
+    assert(*xsink);
+    QoreStringMaker desc("input stream cannot be deserialized to a Program object; %s: ", msg);
+    xsink->renamePrependLastException("PROGRAM-DESERIALIZATION-ERROR", desc.c_str());
+    return -1;
 }
 
 int qore_program_private_base::deserialize(ExceptionSink* xsink, StreamReader& sr) {
     // read magic
     SimpleRefHolder<QoreStringNode> magic(sr.readExactString(ps_magic.size(), xsink));
     if (!magic || **magic != ps_magic) {
-        assert(*xsink);
-
-        xsink->renamePrependLastException("PROGRAM-DESERIALIZATION-ERROR", "input stream is not a serialized Program "
-            "object; the initial magic bytes do not match: ");
-        return -1;
+        return rewrite_deserialization_error(xsink, "initial magic bytes do not match");
     }
     // check version
     ps_char_t v = sr.readu1(xsink);
     if (*xsink) {
-        xsink->renamePrependLastException("PROGRAM-DESERIALIZATION-ERROR", "input stream is not a serialized Program "
-            "object; could not read stream version: ");
+        return rewrite_deserialization_error(xsink, "could not read stream version tag");
+    }
+    if (v != PSC_VERSION) {
+        xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", "Unexpected data received reading stream version");
         return -1;
     }
+    v = sr.readu1(xsink);
+    if (*xsink) {
+        return rewrite_deserialization_error(xsink, "could not read stream version");
+    }
+    if (v != PSV_VERSION) {
+        xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", "Cannot deserialize Qore program stream data version "
+            "%d; expecting %d", (int)v, (int)PSV_VERSION);
+        return -1;
+    }
+    // read in parse/warn options
+    v = sr.readu1(xsink);
+    if (*xsink) {
+        return rewrite_deserialization_error(xsink, "could not read program header");
+    }
+    if (v != PSC_PARSE_WARN_OPTS) {
+        xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", "Unexpected data received reading program parse warn "
+            "options from the input stream");
+        return -1;
+    }
+    int64 po = sr.readi8(xsink);
+    if (*xsink) {
+        return rewrite_deserialization_error(xsink, "could not read parse options in program header");
+    }
+    // read and set parse options
+    {
+        int64 to_drop = checkDeserializeParseOptions(po);
+        if (to_drop) {
+            SimpleRefHolder<QoreStringNode> desc(new QoreStringNode("The program cannot be deserialized due to "
+                "incompatible parse options"));
+            ReferenceHolder<QoreListNode> l(parse_option_bitfield_to_string_list(to_drop, xsink), xsink);
+            if (*xsink) {
+                return rewrite_deserialization_error(xsink, "invalid parse options");
+            }
+            QoreNodeAsStringHelper str(*l, FMT_NONE, xsink);
+            desc->sprintf("; conflicting parse options: %s", str->c_str());
+            xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", desc.release());
+            return -1;
+        }
+    }
+    //printd(5, "current po: " QLLD " new po: " QLLD "\n", pwo.parse_options, po);
+    replaceParseOptionsIntern(po);
+    // read and set warning options
+    int wo = sr.readi4(xsink);
+    if (*xsink) {
+        return rewrite_deserialization_error(xsink, "could not read warn options in program header");
+    }
+    pwo.warn_mask = wo;
 
+    // read in parse modules
+    v = sr.readu1(xsink);
+    if (*xsink) {
+        return rewrite_deserialization_error(xsink, "could not read parse modules in program header");
+    }
+    if (v != PSC_PARSE_MODULES) {
+        xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", "Unexpected data received reading program parse "
+            "modules from the input stream");
+        return -1;
+    }
+    v = sr.readu1(xsink);
+    if (*xsink) {
+        return rewrite_deserialization_error(xsink, "could not read the number of parse modules in program header");
+    }
+    if (v) {
+        ProgramRuntimeParseContextHelper pch(xsink, pgm);
+        for (int i = 0; i < v; ++i) {
+            QoreStringNodeHolder mod(sr.readNullTerminatedString(xsink));
+            if (*xsink) {
+                return -1;
+            }
+            QMM.parseLoadModule(*xsink, *xsink, mod->c_str(), pgm, false);
+            if (*xsink) {
+                return -1;
+            }
+        }
+    }
     return 0;
 }
 
@@ -548,10 +651,10 @@ void qore_program_private_base::newProgram() {
 }
 
 void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_options) {
-    printd(5, "qore_program_private_base::setParent() this: %p parent: %p (parent lvl: %p) this: %p (this pgm: %p) "
-        "parent po: %lld new po: %lld parent no_child_po_restrictions: %d\n", this, p_pgm,
-        p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options,
-        p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
+    //printd(5, "qore_program_private_base::setParent() this: %p parent: %p (parent lvl: %p) this: %p (this pgm: %p) "
+    //    "parent po: %lld new po: %lld parent no_child_po_restrictions: %d\n", this, p_pgm,
+    //    p_pgm->priv->sb.getLVList(), this, pgm, p_pgm->priv->pwo.parse_options, n_parse_options,
+    //    p_pgm->priv->pwo.parse_options & PO_NO_CHILD_PO_RESTRICTIONS);
 
     TZ = p_pgm->currentTZ();
 
@@ -584,8 +687,13 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
         assert(featureList.find(i) == featureList.end());
         featureList.insert(i);
     }
+    for (auto& i : p_pgm->priv->userFeatureList) {
+        assert(userFeatureList.find(i) == userFeatureList.end());
+        userFeatureList.insert(i);
+    }
 
-    // copy top-level local variables in case any are referenced in static methods in the parent program (static methods are executed in the child's space)
+    // copy top-level local variables in case any are referenced in static methods in the parent program (static
+    // methods are executed in the child's space)
     const LVList* lvl = p_pgm->priv->sb.getLVList();
     if (lvl)
         sb.assignLocalVars(lvl);
@@ -1321,7 +1429,8 @@ void qore_program_private::registerStatement(QoreProgram *pgm, AbstractStatement
     }
 }
 
-QoreHashNode* qore_program_private::getSourceIndicesIntern(name_section_sline_statement_map_t* statementIndex, ExceptionSink* xsink) const {
+QoreHashNode* qore_program_private::getSourceIndicesIntern(name_section_sline_statement_map_t* statementIndex,
+        ExceptionSink* xsink) const {
     const QoreTypeInfo* subType = qore_get_complex_hash_type(bigIntTypeInfo);
 
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(subType), xsink);
@@ -1607,7 +1716,8 @@ QoreProgram::QoreProgram(QoreProgram* pgm, int64 po, bool ec, const char* ecn)
 QoreProgram* QoreProgram::deserialize(ExceptionSink* xsink, InputStream& stream) {
     stream.ref();
     ReferenceHolder<StreamReader> sr(new StreamReader(xsink, &stream), xsink);
-    ReferenceHolder<QoreProgram> holder(new QoreProgram(getProgram(), 0), xsink);
+    QoreProgram* parent = getProgram();
+    ReferenceHolder<QoreProgram> holder(new QoreProgram(parent, parent->getParseOptions64()), xsink);
 
     if (holder->priv->deserialize(xsink, **sr)) {
         assert(*xsink);

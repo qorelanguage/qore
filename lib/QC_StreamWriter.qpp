@@ -85,7 +85,7 @@ string StreamWriter::getEncoding() [flags=CONSTANT] {
     @since 0.9.0
  */
 OutputStream StreamWriter::getOutputStream() {
-	return self->getReferencedMemberNoMethod("os", xsink);
+    return self->getReferencedMemberNoMethod("os", xsink);
 }
 
 //! Writes string data to an output stream; string data is converted to the StreamWriter's @ref character_encoding "character encoding" if necessary before writing.

@@ -55,7 +55,7 @@ public:
         return *out;
     }
 
-    DLLLOCAL int write(const void *ptr, int64 count, ExceptionSink *xsink) {
+    DLLLOCAL int write(const void* ptr, int64 count, ExceptionSink* xsink) {
         // OutputStream uses assertion but we need rather raise exception not to coredump
         if (!out->check(xsink)) {
             return -1;
