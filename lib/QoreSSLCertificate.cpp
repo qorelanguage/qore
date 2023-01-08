@@ -35,85 +35,85 @@
 #include <openssl/err.h>
 
 struct qore_sslcert_private {
-   X509* cert;
+    X509* cert;
 
-   DLLLOCAL qore_sslcert_private(X509* c) : cert(c) {
-   }
+    DLLLOCAL qore_sslcert_private(X509* c) : cert(c) {
+    }
 
-   DLLLOCAL ~qore_sslcert_private() {
-      if (cert)
-         X509_free(cert);
-   }
+    DLLLOCAL ~qore_sslcert_private() {
+        if (cert)
+            X509_free(cert);
+    }
 
-   DLLLOCAL ASN1_OBJECT* getAlgorithm() {
+    DLLLOCAL ASN1_OBJECT* getAlgorithm() {
 #ifdef HAVE_X509_GET_SIGNATURE_NID
-      return OBJ_nid2obj(X509_get_signature_nid(cert));
+        return OBJ_nid2obj(X509_get_signature_nid(cert));
 #else
-      return cert->sig_alg->algorithm;
+        return cert->sig_alg->algorithm;
 #endif
-   }
+    }
 
-   DLLLOCAL BinaryNode* getBinary() {
+    DLLLOCAL BinaryNode* getBinary() {
 #ifdef HAVE_X509_GET_SIGNATURE_NID
-      OPENSSL_X509_GET0_SIGNATURE_CONST ASN1_BIT_STRING* sig;
-      OPENSSL_X509_GET0_SIGNATURE_CONST X509_ALGOR* alg;
-      X509_get0_signature(&sig, &alg, cert);
-      BinaryNode* rv = new BinaryNode;
-      rv->append(sig->data, sig->length);
-      return rv;
+        OPENSSL_X509_GET0_SIGNATURE_CONST ASN1_BIT_STRING* sig;
+        OPENSSL_X509_GET0_SIGNATURE_CONST X509_ALGOR* alg;
+        X509_get0_signature(&sig, &alg, cert);
+        BinaryNode* rv = new BinaryNode;
+        rv->append(sig->data, sig->length);
+        return rv;
 #else
-      int len = cert->signature->length;
-      char* buf = (char*)malloc(len);
-      // FIXME: should throw an out of memory exception here
-      if (!buf)
-         return new BinaryNode;
+        int len = cert->signature->length;
+        char* buf = (char*)malloc(len);
+        // FIXME: should throw an out of memory exception here
+        if (!buf)
+            return new BinaryNode;
 
-      memcpy(buf, cert->signature->data, len);
-      return new BinaryNode(buf, len);
+        memcpy(buf, cert->signature->data, len);
+        return new BinaryNode(buf, len);
 #endif
-   }
+    }
 
-   DLLLOCAL EVP_PKEY* getPublicKey() {
+    DLLLOCAL EVP_PKEY* getPublicKey() {
 #ifdef HAVE_X509_GET_SIGNATURE_NID
 #ifdef HAVE_X509_GET0_PUBKEY
-      return X509_get0_pubkey(cert);
+        return X509_get0_pubkey(cert);
 #else
-      return X509_get_pubkey(cert);
+        return X509_get_pubkey(cert);
 #endif
 #else
-      return X509_PUBKEY_get(cert->cert_info->key);
+        return X509_PUBKEY_get(cert->cert_info->key);
 #endif
-   }
+    }
 
-   DLLLOCAL QoreStringNode* getPublicKeyAlgorithm() {
+    DLLLOCAL QoreStringNode* getPublicKeyAlgorithm() {
 #ifdef HAVE_X509_GET_SIGNATURE_NID
-      EVP_PKEY* pkey = getPublicKey();
-      int nid;
-      if (EVP_PKEY_get_default_digest_nid(pkey, &nid) <= 0)
-         return new QoreStringNode("unknown");
-      return QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(OBJ_nid2obj(nid));
+        EVP_PKEY* pkey = getPublicKey();
+        int nid;
+        if (EVP_PKEY_get_default_digest_nid(pkey, &nid) <= 0)
+            return new QoreStringNode("unknown");
+        return QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(OBJ_nid2obj(nid));
 #else
-      return QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(cert->cert_info->key->algor->algorithm);
+        return QoreSSLBase::ASN1_OBJECT_to_QoreStringNode(cert->cert_info->key->algor->algorithm);
 #endif
-   }
+    }
 };
 
 QoreSSLCertificate::~QoreSSLCertificate() {
-   delete priv;
+    delete priv;
 }
 
 QoreSSLCertificate::QoreSSLCertificate(X509* c) : priv(new qore_sslcert_private(c)) {
 }
 
 QoreSSLCertificate::QoreSSLCertificate(const BinaryNode* bin, ExceptionSink* xsink) : priv(new qore_sslcert_private(0)) {
-   OPENSSL_CONST unsigned char* p = (OPENSSL_CONST unsigned char*)bin->getPtr();
-   priv->cert = d2i_X509(0, &p, (int)bin->size());
-   if (!priv->cert) {
-      long e = ERR_get_error();
-      char buf[121];
-      ERR_error_string(e, buf);
-      xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", buf);
-   }
+        OPENSSL_CONST unsigned char* p = (OPENSSL_CONST unsigned char*)bin->getPtr();
+    priv->cert = d2i_X509(0, &p, (int)bin->size());
+    if (!priv->cert) {
+        long e = ERR_get_error();
+        char buf[121];
+        ERR_error_string(e, buf);
+        xsink->raiseException("SSLCERTIFICATE-CONSTRUCTOR-ERROR", buf);
+    }
 }
 
 // DEPRECATED constructor

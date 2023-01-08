@@ -1280,7 +1280,7 @@ protected:
                 if (!rc) {
                     if (!spriv->buflen) {
                         xsink->raiseException("SOCKET-HTTP-ERROR", "remote end closed connection while reading "
-                            "header (read " QLLD " byte%s; '%s')", hdr->size(), hdr->size() == 1 ? "" : "s", hdr->c_str());
+                            "header (read %zu byte%s; '%s')", hdr->size(), hdr->size() == 1 ? "" : "s", hdr->c_str());
                         return -1;
                     }
                     continue;
@@ -1324,7 +1324,7 @@ protected:
             }
             hdr->concat(c);
             if (hdr->size() >= QORE_MAX_HEADER_SIZE) {
-                xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed " QLLD " bytes", hdr->size());
+                xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed %zu bytes", hdr->size());
                 return -1;
             }
         }
