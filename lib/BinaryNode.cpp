@@ -188,7 +188,7 @@ const char *BinaryNode::getTypeName() const {
 }
 
 int BinaryNode::preallocate(size_t size) {
-    //printd(5, "BinaryNode::preallocate(" QLLD ") this: %p ptr: %p len: " QLLD "\n", size, this, ptr, len);
+    //printd(5, "BinaryNode::preallocate(%zu) this: %p ptr: %p len: %zu\n", size, this, ptr, len);
     ptr = q_realloc(ptr, size);
     if (ptr) {
         len = size;
