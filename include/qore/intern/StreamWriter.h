@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -43,19 +43,23 @@
 class StreamWriter : public AbstractPrivateData {
 public:
     DLLLOCAL StreamWriter(ExceptionSink* xsink, OutputStream* os, const QoreEncoding* enc = QCS_DEFAULT) :
-        out(os, xsink),
-        encoding(enc) {
+            out(os, xsink),
+            encoding(enc) {
     }
 
     DLLLOCAL const QoreEncoding* getEncoding() const {
         return encoding;
     }
 
+    DLLLOCAL OutputStream* getOutputStream() {
+        return *out;
+    }
+
     DLLLOCAL const OutputStream* getOutputStream() const {
         return *out;
     }
 
-    DLLLOCAL int write(const void *ptr, int64 count, ExceptionSink *xsink) {
+    DLLLOCAL int write(const void* ptr, int64 count, ExceptionSink* xsink) {
         // OutputStream uses assertion but we need rather raise exception not to coredump
         if (!out->check(xsink)) {
             return -1;
@@ -133,6 +137,18 @@ public:
         i = i8LSB(i);
         write(&i, 8, xsink);
         return *xsink ? -1 : 0;
+    }
+
+    DLLLOCAL int writeu1(unsigned char i, ExceptionSink* xsink) {
+        return writei1((signed char)i, xsink);
+    }
+
+    DLLLOCAL int writeu2(uint16_t i, ExceptionSink* xsink) {
+        return writei2((signed char)i, xsink);
+    }
+
+    DLLLOCAL int writeu4(uint32_t i, ExceptionSink* xsink) {
+        return writei4((signed char)i, xsink);
     }
 
     DLLLOCAL virtual const char* getName() const { return "StreamWriter"; }

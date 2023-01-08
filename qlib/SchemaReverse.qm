@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file SchemaReverse.qm Qore user module for reverse engineering of database SQL schemas
 
-/*  SchemaReverse.qm Copyright 2016 - 2022 Qore Technologies, s.r.o.
+/*  SchemaReverse.qm Copyright 2016 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

@@ -239,6 +239,9 @@ else
     flexver=`$LEX --version`
 	AC_MSG_RESULT([yes ($flexver)])
 fi
+# turn off warnings in LEX
+LEX="$LEX --nowarn"
+AC_SUBST(YACC)
 
 AC_PROG_YACC
 

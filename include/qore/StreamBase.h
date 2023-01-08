@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -33,6 +33,10 @@
 #define _QORE_STREAMBASE_H
 
 #include "qore/AbstractPrivateData.h"
+#include "qore/qore_thread.h"
+#include "qore/QoreString.h"
+#include "qore/ExceptionSink.h"
+#include "qore/BinaryNode.h"
 
 #include <atomic>
 

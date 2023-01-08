@@ -2,7 +2,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 # @file qget example program showing I/O event monitoring
 
-/*  qget Copyright 2011 - 2022 Qore Technologies, s.r.o.
+/*  qget Copyright 2011 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

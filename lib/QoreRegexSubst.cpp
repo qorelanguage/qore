@@ -5,7 +5,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -108,7 +108,7 @@ int QoreRegexSubst::concat(ExceptionSink& xsink, QoreString* cstr, int* ovector,
     while (*ptr) {
         if (*ptr == '\\') {
             ++ptr;
-                if (isoctaldigit(*ptr) && isoctaldigit(*(ptr + 1)) && isoctaldigit(*(ptr + 2))) {
+            if (isoctaldigit(*ptr) && isoctaldigit(*(ptr + 1)) && isoctaldigit(*(ptr + 2))) {
                 int val = (*ptr - 48) * 64 + (*(ptr + 1) - 48) * 8 + (*(ptr + 2) - 48);
                 if (val > 255) {
                     xsink.raiseException("REGEX-OCTAL-ERROR", "octal constant \\%c%c%c is too large "

@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -92,7 +92,8 @@ DLLLOCAL void qore_socket_error_intern(int rc, ExceptionSink* xsink, const char*
 DLLLOCAL void se_in_op(const char* cname, const char* meth, ExceptionSink* xsink);
 DLLLOCAL void se_in_op_thread(const char* cname, const char* meth, ExceptionSink* xsink);
 DLLLOCAL void se_not_open(const char* cname, const char* meth, ExceptionSink* xsink, const char* extra = nullptr);
-DLLLOCAL void se_timeout(const char* cname, const char* meth, int timeout_ms, ExceptionSink* xsink);
+DLLLOCAL void se_timeout(const char* cname, const char* meth, int timeout_ms, ExceptionSink* xsink,
+    const char* extra = nullptr);
 DLLLOCAL void se_closed(const char* cname, const char* mname, ExceptionSink* xsink);
 
 #ifdef _Q_WINDOWS
@@ -192,31 +193,33 @@ public:
 };
 
 class PrivateQoreSocketTimeoutBase {
-protected:
-    struct qore_socket_private* sock;
-    int64 start;
-
 public:
     DLLLOCAL PrivateQoreSocketTimeoutBase(qore_socket_private* s) : sock(s), start(sock ? q_clock_getmicros() : 0) {
     }
+
+protected:
+    struct qore_socket_private* sock;
+    int64 start;
 };
 
 class PrivateQoreSocketTimeoutHelper : public PrivateQoreSocketTimeoutBase {
-protected:
-    const char* op;
 public:
     DLLLOCAL PrivateQoreSocketTimeoutHelper(qore_socket_private* s, const char* op);
     DLLLOCAL ~PrivateQoreSocketTimeoutHelper();
+
+protected:
+    const char* op;
 };
 
 class PrivateQoreSocketThroughputHelper : public PrivateQoreSocketTimeoutBase {
-protected:
-    bool send;
 public:
     DLLLOCAL PrivateQoreSocketThroughputHelper(qore_socket_private* s, bool snd);
     DLLLOCAL ~PrivateQoreSocketThroughputHelper();
 
     DLLLOCAL void finalize(int64 bytes);
+
+protected:
+    bool send;
 };
 
 struct qore_socket_private;
@@ -702,8 +705,8 @@ struct qore_socket_private {
         }
         // add data and content-length header if necessary
         if (size || addsize) {
-            hdr.sprintf("Content-Length: " QLLD "\r\n", size);
-            //printd(5, "qore_socket_private::do_headers() added Content-Length: " QLLD "\n", size);
+            hdr.sprintf("Content-Length: %zu\r\n", size);
+            //printd(5, "qore_socket_private::do_headers() added Content-Length: %zu\n", size);
         }
 
         hdr.concat("\r\n");
@@ -1856,10 +1859,10 @@ struct qore_socket_private {
         qore_offset_t rc;
         if (!ssl) {
             if (timeout != -1 && !isDataAvailable(timeout, meth, xsink)) {
-                if (*xsink)
-                return -1;
+                if (*xsink) {
+                    return -1;
+                }
                 se_timeout("Socket", meth, timeout, xsink);
-
                 return QSE_TIMEOUT;
             }
 
@@ -1941,7 +1944,7 @@ struct qore_socket_private {
         while (true) {
             char* buf;
             rc = brecv(xsink, meth, buf, 1, 0, timeout, false);
-            //printd(5, "qore_socket_private::readHTTPData() this: %p Socket::%s(): rc: " QLLD " read char: %c (%03d) (old state: %d)\n", this, meth, rc, rc > 0 && buf[0] > 31 ? buf[0] : '?', rc > 0 ? buf[0] : 0, state);
+            //printd(5, "qore_socket_private::readHTTPData() this: %p Socket::%s(): rc: %zd read char: %c (%03d) (old state: %d)\n", this, meth, rc, rc > 0 && buf[0] > 31 ? buf[0] : '?', rc > 0 ? buf[0] : 0, state);
             if (rc <= 0) {
                 //printd(5, "qore_socket_private::readHTTPData(timeout: %d) hdr='%s' (len: %d), rc=" QSD ", errno: %d: '%s'\n", timeout, hdr->getBuffer(), hdr->strlen(), rc, errno, strerror(errno));
 
@@ -2036,7 +2039,12 @@ struct qore_socket_private {
             rc = brecv(xsink, "recv", buf, bs, 0, timeout, false);
 
             if (rc <= 0) {
-                printd(5, "qore_socket_private::recv(" QSD ", %d) bs=" QSD ", br=" QSD ", rc=" QSD ", errno: %d (%s)\n", bufsize, timeout, bs, str->size(), rc, errno, strerror(errno));
+                if (*xsink) {
+                    xsink->appendLastDescription(" (%zd bytes requested; %zu bytes received)", bufsize,
+                        str->size());
+                }
+                printd(5, "qore_socket_private::recv(" QSD ", %d) bs=" QSD ", br=" QSD ", rc=" QSD ", errno: %d "
+                    "(%s)\n", bufsize, timeout, bs, str->size(), rc, errno, strerror(errno));
                 break;
             }
 
@@ -2729,7 +2737,7 @@ struct qore_socket_private {
             } else {
                 while (true) {
                     rc = ::send(sock, buf + bs, size - bs, 0);
-                    //printd(5, "qore_socket_private::send() this: %p Socket::%s() buf: %p size: " QLLD " timeout_ms: %d ssl: %p nb: %d bs: " QLLD " rc: " QLLD "\n", this, mname, buf, size, timeout_ms, ssl, nb, bs, rc);
+                    //printd(5, "qore_socket_private::send() this: %p Socket::%s() buf: %p size: %zu timeout_ms: %d ssl: %p nb: %d bs: %zu" rc: %zd\n", this, mname, buf, size, timeout_ms, ssl, nb, bs, rc);
                     // try again if we were interrupted by a signal
                     if (rc >= 0)
                         break;
@@ -3767,11 +3775,14 @@ struct qore_socket_private {
         }
     }
 
-    DLLLOCAL void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg, int64 min_ms = 1000) {
+    DLLLOCAL void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg,
+            int64 min_ms = 1000) {
         ReferenceHolder<Queue> qholder(wq, xsink);
         ValueHolder holder(arg, xsink);
         if (warning_ms <= 0 && warning_bs <= 0) {
-            xsink->raiseException("SOCKET-SETWARNINGQUEUE-ERROR", "Socket::setWarningQueue() at least one of warning ms argument: " QLLD " and warning B/s argument: " QLLD " must be greater than zero; to clear, call Socket::clearWarningQueue() with no arguments", warning_ms, warning_bs);
+            xsink->raiseException("SOCKET-SETWARNINGQUEUE-ERROR", "Socket::setWarningQueue() at least one of warning "
+                "ms argument: " QLLD " and warning B/s argument: " QLLD " must be greater than zero; to clear, call "\
+                "Socket::clearWarningQueue() with no arguments", warning_ms, warning_bs);
             return;
         }
 

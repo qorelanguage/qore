@@ -47,6 +47,8 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
     - fixed a bug where @ref Qore::parse_url() "parse_url()" failed with passwords with / characters
       (<a href="https://github.com/qorelanguage/qore/issues/4673">issue 4673</a>)
+    - fixed errors in HTTP communications in3 32-bit builds of %Qore
+      (<a href="https://github.com/qorelanguage/qore/issues/4660">issue 4660</a>)
 
     @section qore_1_12_4 Qore 1.12.4
 
@@ -85,7 +87,7 @@
       - fixed bugs in log handling
         (<a href="https://github.com/qorelanguage/qore/issues/4635">issue 4635</a>)
     - <a href="../../modules/RestHandler/html/index.html">RestHandler</a> module
-      - implemented the @ref RestHandler::RestHandler::errorResponseHeaders() to allow subclasses to return custom
+      - implemented \c "RestHandler::errorResponseHeaders()" to allow subclasses to return custom
         headers in error responses, such as when a request cannot be deserialized
         (<a href="https://github.com/qorelanguage/qore/issues/4646">issue 4646</a>)
     - <a href="../../modules/RestSchemaValidator/html/index.html">RestSchemaValidator</a> module
@@ -147,11 +149,8 @@
     @par Release Summary
 
     @section qore_1_12_1 Qore 1.12.1
+
     @par Release Summary
-    Bugfix release with minor new features; see below for more information
-
-    @subsection qore_1_12_1_new_features New Features in Qore
-
     Bugfix release with minor new features; see below for more information
 
     @subsection qore_1_12_1_new_features New Features in Qore

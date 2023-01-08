@@ -4,7 +4,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -120,7 +120,7 @@ extern char* strcasestr(const char* s1, const char* s2);
 #include <map>
 #include <vector>
 
-static bool isoctaldigit(const char x) {
+static inline bool isoctaldigit(const char x) {
     return x >= '0' && x <= '7';
 }
 

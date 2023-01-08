@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -42,78 +42,75 @@
  * Contains the state (buffer, pointers and synchronization objects) shared by the PipeInputStream and PipeOutputStream.
  */
 class StreamPipe : public AbstractPrivateData {
-
 public:
-   DLLLOCAL StreamPipe(bool syncClose, int64 timeout, int64 bufferSize, ExceptionSink *xsink);
-   DLLLOCAL void reportError(const QoreHashNode* ex);
-   DLLLOCAL void rethrow(ExceptionSink *xsink);
+    DLLLOCAL StreamPipe(bool syncClose, int64 timeout, int64 bufferSize, ExceptionSink *xsink);
+    DLLLOCAL void reportError(const QoreHashNode* ex);
+    DLLLOCAL void rethrow(ExceptionSink *xsink);
 
 private:
-   QoreThreadLock mutex;
-   QoreCondition readCondVar;
-   QoreCondition writeCondVar;
-   std::vector<unsigned char> buffer;
-   bool broken;
-   bool outputClosed;
-   bool closeFinished;
-   int64 size;
-   int64 count;
-   int64 readPtr;
-   int64 timeout;
-   ReferenceHolder<QoreHashNode> exception;
+    QoreThreadLock mutex;
+    QoreCondition readCondVar;
+    QoreCondition writeCondVar;
+    std::vector<unsigned char> buffer;
+    bool broken;
+    bool outputClosed;
+    bool closeFinished;
+    int64 size;
+    int64 count;
+    int64 readPtr;
+    int64 timeout;
+    ReferenceHolder<QoreHashNode> exception;
 
-   friend class PipeInputStream;
-   friend class PipeOutputStream;
+    friend class PipeInputStream;
+    friend class PipeOutputStream;
 };
 
 /**
  * @brief Private data for the Qore::PipeInputStream class.
  */
 class PipeInputStream : public InputStream {
-
 public:
-   DLLLOCAL PipeInputStream(StreamPipe *pipe) : pipe(pipe) {
-   }
+    DLLLOCAL PipeInputStream(StreamPipe *pipe) : pipe(pipe) {
+    }
 
-   DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override;
-   DLLLOCAL int64 peek(ExceptionSink *xsink) override;
-   DLLLOCAL void finishClose();
-   DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
-   DLLLOCAL virtual const char *getName() override {
-      return "PipeInputStream";
-   }
+    DLLLOCAL int64 read(void *ptr, int64 limit, ExceptionSink *xsink) override;
+    DLLLOCAL int64 peek(ExceptionSink *xsink) override;
+    DLLLOCAL void finishClose();
+    DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
+    DLLLOCAL virtual const char *getName() override {
+        return "PipeInputStream";
+    }
 
 protected:
-   ~PipeInputStream();
+    ~PipeInputStream();
 
 private:
-   SimpleRefHolder<StreamPipe> pipe;
+    SimpleRefHolder<StreamPipe> pipe;
 };
 
 /**
  * @brief Private data for the Qore::PipeOutputStream class.
  */
 class PipeOutputStream : public OutputStream {
-
 public:
-   DLLLOCAL PipeOutputStream(StreamPipe *pipe) : pipe(pipe) {
-   }
+    DLLLOCAL PipeOutputStream(StreamPipe *pipe) : pipe(pipe) {
+    }
 
-   DLLLOCAL void close(ExceptionSink* xsink) override;
-   DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override;
-   DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
-   DLLLOCAL bool isClosed() override {
-      return false;
-   }
-   DLLLOCAL virtual const char *getName() override {
-      return "PipeInputStream";
-   }
+    DLLLOCAL void close(ExceptionSink* xsink) override;
+    DLLLOCAL void write(const void *ptr, int64 count, ExceptionSink *xsink) override;
+    DLLLOCAL void reportError(const QoreHashNode* ex) { pipe->reportError(ex); }
+    DLLLOCAL bool isClosed() override {
+        return false;
+    }
+    DLLLOCAL virtual const char *getName() override {
+        return "PipeInputStream";
+    }
 
 protected:
-   ~PipeOutputStream();
+    ~PipeOutputStream();
 
 private:
-   SimpleRefHolder<StreamPipe> pipe;
+    SimpleRefHolder<StreamPipe> pipe;
 };
 
 #endif // _QORE_STREAMPIPE_H

@@ -4,7 +4,7 @@
 
     Qore Programming Language ExceptionSink class definition
 
-    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -40,9 +40,11 @@
 
 // forward references
 class QoreException;
+class ExceptionSink;
 class QoreXSinkException;
 struct QoreProgramLocation;
 struct QoreCallStack;
+class AbstractStatement;
 
 //! container for holding Qore-language exception information and also for registering a "thread_exit" call
 class ExceptionSink {
@@ -247,6 +249,13 @@ public:
         @since %Qore 0.9
     */
     DLLEXPORT int appendLastDescription(const char* fmt, ...);
+
+    // Renames the "err" key of the top exception and prepends a string description to any desc value
+    /** @return -1 for error, not added, or 0 = OK
+
+        @since %Qore 1.13
+    */
+    DLLEXPORT int renamePrependLastException(const char* err, const char* desc_fmt, ...);
 
     DLLLOCAL void raiseException(QoreException* e);
     DLLLOCAL void raiseException(const QoreListNode* n);

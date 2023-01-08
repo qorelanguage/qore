@@ -4,7 +4,7 @@
 
   Qore Programming Language
 
-  Copyright (C) 2016 - 2022 Qore Technologies, s.r.o.
+  Copyright (C) 2016 - 2023 Qore Technologies, s.r.o.
 
   Permission is hereby granted, free of charge, to any person obtaining a
   copy of this software and associated documentation files (the "Software"),
@@ -81,7 +81,7 @@ public:
       * @param data the data to write
       * @param xsink the exception sink
       */
-    DLLLOCAL void writeHelper(const BinaryNode *data, ExceptionSink *xsink) {
+    DLLLOCAL void writeHelper(const BinaryNode* data, ExceptionSink* xsink) {
         if (!check(xsink)) {
             return;
         }

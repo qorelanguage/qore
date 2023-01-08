@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FixedLengthDataIterator.qc Qore user module for working with files with fixed lines length
 
-/*  FixedLengthDataIterator Copyright 2015 - 2022 Qore Technologies, s.r.o.
+/*  FixedLengthDataIterator Copyright 2015 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

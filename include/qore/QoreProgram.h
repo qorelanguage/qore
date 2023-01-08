@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,7 +37,8 @@
 
 #include <qore/AbstractPrivateData.h>
 #include <qore/Restrictions.h>
-//#include <qore/intern/qore_program_private.h>
+#include <qore/OutputStream.h>
+#include <qore/InputStream.h>
 
 // warnings - must correspond with the string order in QoreProgram.cpp
 // new warnings must also be added as constants
@@ -129,21 +130,6 @@ class QoreProgram : public AbstractPrivateData {
     friend class qore_program_private;
     friend class qore_debug_program_private;
     friend struct ThreadLocalProgramData;
-private:
-    //! private implementation
-    qore_program_private* priv;
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreProgram(const QoreProgram&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreProgram& operator=(const QoreProgram&);
-
-protected:
-    //! the destructor is private in order to prohibit the object from being allocated on the stack
-    /** the destructor is run when the reference count reaches 0
-        */
-    DLLLOCAL virtual ~QoreProgram();
 
 public:
     //! creates the object
@@ -896,6 +882,22 @@ public:
 
     //! check if program can provide debugging stuff
     DLLEXPORT bool checkAllowDebugging(ExceptionSink* xsink);
+
+protected:
+    //! the destructor is private in order to prohibit the object from being allocated on the stack
+    /** the destructor is run when the reference count reaches 0
+    */
+    DLLLOCAL virtual ~QoreProgram();
+
+private:
+    //! private implementation
+    qore_program_private* priv;
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreProgram(const QoreProgram&);
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreProgram& operator=(const QoreProgram&);
 };
 
 //! safely manages QoreProgram objects; note the the destructor will block until all background threads in the qore library terminate and until the current QoreProgram terminates

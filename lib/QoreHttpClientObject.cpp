@@ -3,7 +3,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2006 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2006 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -1280,7 +1280,7 @@ protected:
                 if (!rc) {
                     if (!spriv->buflen) {
                         xsink->raiseException("SOCKET-HTTP-ERROR", "remote end closed connection while reading "
-                            "header (read " QLLD " byte%s; '%s')", hdr->size(), hdr->size() == 1 ? "" : "s", hdr->c_str());
+                            "header (read %zu byte%s; '%s')", hdr->size(), hdr->size() == 1 ? "" : "s", hdr->c_str());
                         return -1;
                     }
                     continue;
@@ -1324,7 +1324,7 @@ protected:
             }
             hdr->concat(c);
             if (hdr->size() >= QORE_MAX_HEADER_SIZE) {
-                xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed " QLLD " bytes", hdr->size());
+                xsink->raiseException("SOCKET-HTTP-ERROR", "header size cannot exceed %zu bytes", hdr->size());
                 return -1;
             }
         }

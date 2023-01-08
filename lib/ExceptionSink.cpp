@@ -3,7 +3,7 @@
 
     Qore programming language exception handling support
 
-    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -158,6 +158,30 @@ int ExceptionSink::appendLastDescription(const char* fmt, ...) {
 
     QoreStringNode* old_desc = priv->head->desc.get<QoreStringNode>();
     old_desc->concat(new_desc->c_str(), new_desc->size());
+    return 0;
+}
+
+int ExceptionSink::renamePrependLastException(const char* err, const char* desc_fmt, ...) {
+    if (!priv->head || priv->head->desc.getType() != NT_STRING || priv->head->err.getType() != NT_STRING) {
+        return -1;
+    }
+
+    SimpleRefHolder<QoreStringNode> new_desc(new QoreStringNode);
+    va_list args;
+    while (true) {
+        va_start(args, desc_fmt);
+        int rc = new_desc->vsprintf(desc_fmt, args);
+        va_end(args);
+        if (!rc) {
+            break;
+        }
+    }
+
+    QoreStringNode* old_desc = priv->head->desc.get<QoreStringNode>();
+    old_desc->prepend(new_desc->c_str(), new_desc->size());
+
+    priv->head->err.discard(nullptr);
+    priv->head->err = new QoreStringNode(err);
     return 0;
 }
 

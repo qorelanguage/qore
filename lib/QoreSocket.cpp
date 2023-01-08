@@ -6,7 +6,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -64,10 +64,14 @@ void se_not_open(const char* cname, const char* meth, ExceptionSink* xsink, cons
     xsink->raiseException("SOCKET-NOT-OPEN", desc);
 }
 
-void se_timeout(const char* cname, const char* meth, int timeout_ms, ExceptionSink* xsink) {
+void se_timeout(const char* cname, const char* meth, int timeout_ms, ExceptionSink* xsink, const char* extra) {
     assert(xsink);
-    xsink->raiseException("SOCKET-TIMEOUT", "timed out after %d millisecond%s in %s::%s() call", timeout_ms,
-        timeout_ms == 1 ? "" : "s", cname, meth);
+    QoreStringNodeHolder desc(new QoreStringNodeMaker("timed out after %d millisecond%s in %s::%s() call", timeout_ms,
+        timeout_ms == 1 ? "" : "s", cname, meth));
+    if (extra) {
+        desc->sprintf(" (%s)", extra);
+    }
+    xsink->raiseException("SOCKET-TIMEOUT", desc.release());
 }
 
 void se_closed(const char* cname, const char* mname, ExceptionSink* xsink) {
@@ -1225,7 +1229,7 @@ SocketRecvPollState::SocketRecvPollState(ExceptionSink* xsink, qore_socket_priva
             sock->buflen -= size;
             sock->bufoffset += size;
         }
-        //printd(5, "SocketRecvPollState::SocketRecvPollState(size: " QLLD ") wrote %d bytes of memory from buffer to "
+        //printd(5, "SocketRecvPollState::SocketRecvPollState(size: %zu) wrote %d bytes of memory from buffer to "
         //    "bin (remaining %d bytes in buffer)\n", size, received, sock->buflen);
     }
 }
@@ -1576,7 +1580,7 @@ QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeo
             QoreValue v = h->getKeyValue("socket");
             if (v.getType() != NT_OBJECT) {
                 assert(v.isNothing());
-                xsink->raiseException("SOCKET-POLL-ERROR", "element " QLLD "/" QLLD " (starting from 1) is missing "
+                xsink->raiseException("SOCKET-POLL-ERROR", "element %zu/%zu (starting from 1) is missing "
                     "the 'socket' value", li.index() + 1, poll_list->size());
                 return nullptr;
             }
@@ -1599,7 +1603,7 @@ QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeo
             }
         }
         if (fd < 0) {
-            xsink->raiseException("DESCRIPTOR-NOT-OPEN", "element " QLLD "/" QLLD " (starting from 1) references a " \
+            xsink->raiseException("DESCRIPTOR-NOT-OPEN", "element %zu/%zu (starting from 1) references a " \
                 "pollable object that is not open", li.index() + 1, poll_list->size());
             return nullptr;
         }
@@ -1614,7 +1618,7 @@ QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeo
         }
 
         if (!arg) {
-            xsink->raiseException("SOCKET-POLL-ERROR", "element " QLLD "/" QLLD " (starting from 1) has an invalid " \
+            xsink->raiseException("SOCKET-POLL-ERROR", "element %zu/%zu (starting from 1) has an invalid " \
                 "'events' value; neither SOCK_POLLIN nor SOCK_POLLOUT is set", li.index() + 1, poll_list->size());
             return nullptr;
         }

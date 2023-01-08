@@ -5,7 +5,7 @@
 
     Qore Programming Language
 
-    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -40,148 +40,149 @@
 #define QORE_NET_ADDR_BUF_LEN 80
 
 int q_get_af(int type) {
-   if (type >= 0)
-      return type;
+    if (type >= 0)
+        return type;
 
-   switch (type) {
-      case Q_AF_UNSPEC:
-         return AF_UNSPEC;
-      case Q_AF_INET6:
-         return AF_INET6;
-   }
+    switch (type) {
+        case Q_AF_UNSPEC:
+            return AF_UNSPEC;
+        case Q_AF_INET6:
+            return AF_INET6;
+    }
 
-   return AF_INET;
+    return AF_INET;
 }
 
 int q_get_raf(int type) {
-   if (type < 0)
-      return type;
+    if (type < 0)
+        return type;
 
-   switch (type) {
-      case AF_UNSPEC:
-         return Q_AF_UNSPEC;
-      case AF_INET6:
-         return Q_AF_INET6;
-   }
+    switch (type) {
+        case AF_UNSPEC:
+            return Q_AF_UNSPEC;
+        case AF_INET6:
+            return Q_AF_INET6;
+    }
 
-   return Q_AF_INET;
+    return Q_AF_INET;
 }
 
 int q_get_sock_type(int t) {
-   if (t >= 0)
-      return t;
+    if (t >= 0)
+        return t;
 
-   return SOCK_STREAM;
+    return SOCK_STREAM;
 }
 
 int q_addr_to_string(int family, const char* addr, QoreString& str) {
-   family = q_get_af(family);
+    family = q_get_af(family);
 
-   char buf[QORE_NET_ADDR_BUF_LEN];
-   if (!inet_ntop(family, addr, buf, QORE_NET_ADDR_BUF_LEN))
-      return -1;
-   str.concat(buf);
-   return 0;
+    char buf[QORE_NET_ADDR_BUF_LEN];
+    if (!inet_ntop(family, addr, buf, QORE_NET_ADDR_BUF_LEN))
+        return -1;
+    str.concat(buf);
+    return 0;
 }
 
 QoreStringNode* q_addr_to_string(int family, const char* addr) {
-   family = q_get_af(family);
+    family = q_get_af(family);
 
-   char buf[QORE_NET_ADDR_BUF_LEN];
-   return inet_ntop(family, addr, buf, QORE_NET_ADDR_BUF_LEN) ? new QoreStringNode(buf) : 0;
+    char buf[QORE_NET_ADDR_BUF_LEN];
+    return inet_ntop(family, addr, buf, QORE_NET_ADDR_BUF_LEN) ? new QoreStringNode(buf) : 0;
 }
 
 int q_addr_to_string2(const struct sockaddr* ai_addr, QoreString& str) {
-   size_t slen = str.strlen();
+    size_t slen = str.strlen();
 
-   const void* addr;
-   if (ai_addr->sa_family == AF_INET) {
-      struct sockaddr_in* ipv4 = (struct sockaddr_in*)ai_addr;
-      addr = &(ipv4->sin_addr);
-      str.reserve(slen + INET_ADDRSTRLEN + 1);
-   } else if (ai_addr->sa_family == AF_INET6) {
-      struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)ai_addr;
-      addr = &(ipv6->sin6_addr);
-      str.reserve(slen + INET6_ADDRSTRLEN + 1);
-   }
+    const void* addr;
+    if (ai_addr->sa_family == AF_INET) {
+        struct sockaddr_in* ipv4 = (struct sockaddr_in*)ai_addr;
+        addr = &(ipv4->sin_addr);
+        str.reserve(slen + INET_ADDRSTRLEN + 1);
+    } else if (ai_addr->sa_family == AF_INET6) {
+        struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)ai_addr;
+        addr = &(ipv6->sin6_addr);
+        str.reserve(slen + INET6_ADDRSTRLEN + 1);
+    }
 #ifdef HAVE_SYS_UN_H
-   // windows does not support UNIX sockets, for example
-   else if (ai_addr->sa_family == AF_UNIX) {
-      struct sockaddr_un* un = (struct sockaddr_un*)ai_addr;
-      str.concat(un->sun_path);
-      return 0;
-   }
+    // windows does not support UNIX sockets, for example
+    else if (ai_addr->sa_family == AF_UNIX) {
+        struct sockaddr_un* un = (struct sockaddr_un*)ai_addr;
+        str.concat(un->sun_path);
+        return 0;
+    }
 #endif
-   else
-      return -1;
+    else
+        return -1;
 
-   if (!inet_ntop(ai_addr->sa_family, addr, (char*)(str.getBuffer() + slen), str.capacity() - slen))
-      return -1;
+    if (!inet_ntop(ai_addr->sa_family, addr, (char*)(str.getBuffer() + slen), str.capacity() - slen))
+        return -1;
 
-   str.terminate(slen + strlen(str.getBuffer() + slen));
-   return 0;
+    str.terminate(slen + strlen(str.getBuffer() + slen));
+    return 0;
 }
 
 
 QoreStringNode* q_addr_to_string2(const struct sockaddr* ai_addr) {
-   SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
+    SimpleRefHolder<QoreStringNode> str(new QoreStringNode);
 
-   return q_addr_to_string2(ai_addr, **str) ? 0 : str.release();
+    return q_addr_to_string2(ai_addr, **str) ? 0 : str.release();
 }
 
 int q_get_port_from_addr(const struct sockaddr* ai_addr) {
-   if (ai_addr->sa_family == AF_INET) {
-      const struct sockaddr_in* ipv4 = (struct sockaddr_in*)ai_addr;
-      return ntohs(ipv4->sin_port);
-   } else if (ai_addr->sa_family == AF_INET6) {
-      const struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)ai_addr;
-      return ntohs(ipv6->sin6_port);
-   }
+    if (ai_addr->sa_family == AF_INET) {
+        const struct sockaddr_in* ipv4 = (struct sockaddr_in*)ai_addr;
+        return ntohs(ipv4->sin_port);
+    } else if (ai_addr->sa_family == AF_INET6) {
+        const struct sockaddr_in6* ipv6 = (struct sockaddr_in6*)ai_addr;
+        return ntohs(ipv6->sin6_port);
+    }
 
-   return -1;
+    return -1;
 }
 
 //! Get host's IP address (struct in_addr*) from name.
 int q_gethostbyname(const char* host, struct in_addr* sin_addr) {
-   QORE_TRACE("q_gethostbyname()");
+    QORE_TRACE("q_gethostbyname()");
 
-   ExceptionSink xsink;
-   QoreAddrInfo qai;
-   qai.getInfo(&xsink, host, NULL);
-   if (xsink) {
-      xsink.clear();
-      return -1;
-   }
+    ExceptionSink xsink;
+    QoreAddrInfo qai;
+    qai.getInfo(&xsink, host, NULL);
+    if (xsink) {
+        xsink.clear();
+        return -1;
+    }
 
-   struct addrinfo* addrInfo = qai.getAddrInfo();
-   while (addrInfo) {
-      if (addrInfo->ai_addr->sa_family == AF_INET) {
-         memcpy(sin_addr, &(reinterpret_cast<struct sockaddr_in*>(addrInfo->ai_addr)->sin_addr), sizeof(struct in_addr));
-         return 0;
-      }
-      addrInfo = addrInfo->ai_next;
-   }
-   return -1;
+    struct addrinfo* addrInfo = qai.getAddrInfo();
+    while (addrInfo) {
+        if (addrInfo->ai_addr->sa_family == AF_INET) {
+            memcpy(sin_addr, &(reinterpret_cast<struct sockaddr_in*>(addrInfo->ai_addr)->sin_addr),
+                sizeof(struct in_addr));
+            return 0;
+        }
+        addrInfo = addrInfo->ai_next;
+    }
+    return -1;
 }
 
 static const char* q_af_to_str(int af) {
-   switch (af) {
-      case AF_INET:
-         return "ipv4";
-      case AF_INET6:
-         return "ipv6";
-      case AF_UNIX:
-         return "unix";
+    switch (af) {
+        case AF_INET:
+            return "ipv4";
+        case AF_INET6:
+            return "ipv6";
+        case AF_UNIX:
+            return "unix";
 #ifdef AF_PACKET
-      case AF_PACKET:
-         return "mac";
+        case AF_PACKET:
+            return "mac";
 #endif
 #ifdef AF_LINK
-      case AF_LINK:
-         return "mac";
+        case AF_LINK:
+            return "mac";
 #endif
-   }
-   return "unknown";
+    }
+    return "unknown";
 }
 
 void q_af_to_hash(int af, QoreHashNode& h, ExceptionSink* xsink) {
@@ -223,8 +224,9 @@ static QoreHashNode* he_to_hash(struct hostent& he) {
         QoreListNode* l = new QoreListNode(stringTypeInfo);
         char** a = he.h_addr_list;
         while (*a) {
-            if (inet_ntop(he.h_addrtype, *(a++), buf, QORE_NET_ADDR_BUF_LEN))
+            if (inet_ntop(he.h_addrtype, *(a++), buf, QORE_NET_ADDR_BUF_LEN)) {
                 l->push(new QoreStringNode(buf), nullptr);
+            }
         }
         hh->setKeyValueIntern("addresses", l);
     }
