@@ -45,8 +45,7 @@ DLLLOCAL extern QoreClass* QC_STREAMREADER;
 class StreamReader : public AbstractPrivateData {
 public:
     DLLLOCAL StreamReader(ExceptionSink* xsink, InputStream* is, const QoreEncoding* encoding = QCS_DEFAULT) :
-        in(is, xsink),
-        enc(encoding) {
+            in(is, xsink), enc(encoding) {
     }
 
     virtual DLLLOCAL ~StreamReader() {
@@ -54,6 +53,10 @@ public:
 
     DLLLOCAL const QoreEncoding* getEncoding() const {
         return enc;
+    }
+
+    DLLLOCAL InputStream* getInputStream() {
+        return *in;
     }
 
     DLLLOCAL const InputStream* getInputStream() const {

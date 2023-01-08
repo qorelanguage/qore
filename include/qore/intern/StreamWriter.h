@@ -51,6 +51,10 @@ public:
         return encoding;
     }
 
+    DLLLOCAL OutputStream* getOutputStream() {
+        return *out;
+    }
+
     DLLLOCAL const OutputStream* getOutputStream() const {
         return *out;
     }

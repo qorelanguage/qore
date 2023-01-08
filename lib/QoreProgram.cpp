@@ -42,6 +42,7 @@
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/QC_Breakpoint.h"
 #include "qore/intern/ModuleInfo.h"
+#include "qore/intern/QoreSerializable.h"
 
 #include <string>
 #include <set>
@@ -177,9 +178,11 @@ DLLLOCAL std::string ps_magic = "QOREPROG";
 
 // program serialization constants
 typedef unsigned char ps_code_t;
-constexpr ps_code_t PSC_VERSION         = 1;
-constexpr ps_code_t PSC_PARSE_WARN_OPTS = 2;
-constexpr ps_code_t PSC_PARSE_MODULES   = 3;
+constexpr ps_code_t PSC_VERSION           = 1;
+constexpr ps_code_t PSC_PARSE_WARN_OPTS   = 2;
+constexpr ps_code_t PSC_PARSE_MODULES     = 3;
+constexpr ps_code_t PSC_PGM_EXEC_STRINGS  = 4;
+constexpr ps_code_t PSC_DEFINE_MAP        = 5;
 
 // program serialization values
 typedef unsigned char ps_char_t;
@@ -241,7 +244,8 @@ QoreListNode* parse_option_bitfield_to_string_list(int64 i, ExceptionSink* xsink
         if (v) {
             ParseOptionMaps::pomap_t::const_iterator pi = pomaps.pomap.find(v);
             if (pi == pomaps.pomap.end()) {
-                xsink->raiseException("PARSE-OPTION-ERROR", "bit position %d (value: " QLLD ") is set in the value but is not a valid parse option bit", p, v);
+                xsink->raiseException("PARSE-OPTION-ERROR", "bit position %d (value: " QLLD ") is set in the value "
+                    "but is not a valid parse option bit", p, v);
                 return nullptr;
             }
 
@@ -260,7 +264,8 @@ QoreListNode* domain_bitfield_to_string_list(int64 i, ExceptionSink* xsink) {
         if (v) {
             ParseOptionMaps::pomap_t::const_iterator pi = pomaps.dommap.find(v);
             if (pi == pomaps.dommap.end()) {
-                xsink->raiseException("DOMAIN-ERROR", "bit position %d (value: " QLLD ") is set in the value but is not a valid domain bit", p, v);
+                xsink->raiseException("DOMAIN-ERROR", "bit position %d (value: " QLLD ") is set in the value but is "
+                    "not a valid domain bit", p, v);
                 return nullptr;
             }
 
@@ -308,8 +313,8 @@ int qore_program_private_base::serialize(ExceptionSink* xsink, StreamWriter& sw)
     // write modules
     size_t len = parse_modules.size();
     if (len > 255) {
-        xsink->raiseException("PROGRAM-SERIALIZATION-ERROR", "cannot serialize a program with more than 255 "
-            "modules required at parse time (total required: %d)", (int)len);
+        xsink->raiseException("PROGRAM-SERIALIZATION-ERROR", "cannot serialize a program with more than 255 modules "
+            "required at parse time (total required: %d)", (int)len);
         return -1;
     }
     if (sw.writeu1(PSC_PARSE_MODULES, xsink)
@@ -321,7 +326,34 @@ int qore_program_private_base::serialize(ExceptionSink* xsink, StreamWriter& sw)
             return -1;
         }
     }
-
+    // write program strings
+    if (sw.writeu1(PSC_PGM_EXEC_STRINGS, xsink)
+        || sw.write(exec_class_name.c_str(), exec_class_name.size() + 1, xsink)
+        || sw.write(script_dir.c_str(), script_dir.size() + 1, xsink)
+        || sw.write(script_path.c_str(), script_path.size() + 1, xsink)
+        || sw.write(script_name.c_str(), script_name.size() + 1, xsink)
+        || sw.write(include_path.c_str(), include_path.size() + 1, xsink)) {
+        return -1;
+    }
+    // write define map
+    len = dmap.size();
+    if (len > 255) {
+        xsink->raiseException("PROGRAM-SERIALIZATION-ERROR", "cannot serialize a program with more than 255 defines "
+            " (total defines: %d)", (int)len);
+        return -1;
+    }
+    if (sw.writeu1(PSC_DEFINE_MAP, xsink)
+        || sw.writeu1((ps_char_t)len, xsink)) {
+        return -1;
+    }
+    for (auto& i : dmap) {
+        if (sw.write(i.first.c_str(), i.first.size() + 1, xsink)) {
+            return -1;
+        }
+        if (QoreSerializable::serializeValueToStream(i.second, sw, xsink)) {
+            return -1;
+        }
+    }
     return 0;
 }
 
@@ -332,6 +364,30 @@ static int rewrite_deserialization_error(ExceptionSink* xsink, const char* msg) 
     return -1;
 }
 
+static int ps_read_compare_char(ExceptionSink* xsink, StreamReader& sr, ps_char_t code, const char* what) {
+    // read in parse/warn options
+    ps_char_t v = sr.readu1(xsink);
+    if (*xsink) {
+        QoreStringMaker desc("could not read %s in the program input stream", what);
+        return rewrite_deserialization_error(xsink, desc.c_str());
+    }
+    if (v != code) {
+        xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", "Unexpected data received reading %s from the input "
+            "stream; expected %d; got %d", what, (int)code, (int)v);
+        return -1;
+    }
+    return 0;
+}
+
+static int read_string(StreamReader& sr, std::string& str, ExceptionSink* xsink) {
+    QoreStringNodeHolder mod(sr.readNullTerminatedString(xsink));
+    if (*xsink) {
+        return -1;
+    }
+    str = mod->c_str();
+    return 0;
+}
+
 int qore_program_private_base::deserialize(ExceptionSink* xsink, StreamReader& sr) {
     // read magic
     SimpleRefHolder<QoreStringNode> magic(sr.readExactString(ps_magic.size(), xsink));
@@ -339,36 +395,19 @@ int qore_program_private_base::deserialize(ExceptionSink* xsink, StreamReader& s
         return rewrite_deserialization_error(xsink, "initial magic bytes do not match");
     }
     // check version
-    ps_char_t v = sr.readu1(xsink);
-    if (*xsink) {
-        return rewrite_deserialization_error(xsink, "could not read stream version tag");
-    }
-    if (v != PSC_VERSION) {
-        xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", "Unexpected data received reading stream version");
+    if (ps_read_compare_char(xsink, sr, PSC_VERSION, "serialization version code")) {
         return -1;
     }
-    v = sr.readu1(xsink);
-    if (*xsink) {
-        return rewrite_deserialization_error(xsink, "could not read stream version");
-    }
-    if (v != PSV_VERSION) {
-        xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", "Cannot deserialize Qore program stream data version "
-            "%d; expecting %d", (int)v, (int)PSV_VERSION);
+    if (ps_read_compare_char(xsink, sr, PSV_VERSION, "serialization version")) {
         return -1;
     }
     // read in parse/warn options
-    v = sr.readu1(xsink);
-    if (*xsink) {
-        return rewrite_deserialization_error(xsink, "could not read program header");
-    }
-    if (v != PSC_PARSE_WARN_OPTS) {
-        xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", "Unexpected data received reading program parse warn "
-            "options from the input stream");
+    if (ps_read_compare_char(xsink, sr, PSC_PARSE_WARN_OPTS, "parse/warn option code")) {
         return -1;
     }
     int64 po = sr.readi8(xsink);
     if (*xsink) {
-        return rewrite_deserialization_error(xsink, "could not read parse options in program header");
+        return rewrite_deserialization_error(xsink, "could not read parse options");
     }
     // read and set parse options
     {
@@ -391,36 +430,74 @@ int qore_program_private_base::deserialize(ExceptionSink* xsink, StreamReader& s
     // read and set warning options
     int wo = sr.readi4(xsink);
     if (*xsink) {
-        return rewrite_deserialization_error(xsink, "could not read warn options in program header");
+        return rewrite_deserialization_error(xsink, "could not read warn options");
     }
     pwo.warn_mask = wo;
 
     // read in parse modules
-    v = sr.readu1(xsink);
-    if (*xsink) {
-        return rewrite_deserialization_error(xsink, "could not read parse modules in program header");
-    }
-    if (v != PSC_PARSE_MODULES) {
-        xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", "Unexpected data received reading program parse "
-            "modules from the input stream");
+    if (ps_read_compare_char(xsink, sr, PSC_PARSE_MODULES, "parse module option code")) {
         return -1;
     }
-    v = sr.readu1(xsink);
+    ps_char_t v = sr.readu1(xsink);
     if (*xsink) {
-        return rewrite_deserialization_error(xsink, "could not read the number of parse modules in program header");
+        return rewrite_deserialization_error(xsink, "could not read the number of parse modules");
     }
     if (v) {
         ProgramRuntimeParseContextHelper pch(xsink, pgm);
-        for (int i = 0; i < v; ++i) {
+        for (unsigned i = 0; i < v; ++i) {
             QoreStringNodeHolder mod(sr.readNullTerminatedString(xsink));
             if (*xsink) {
-                return -1;
+                return rewrite_deserialization_error(xsink, "could not read parse module value");
             }
             QMM.parseLoadModule(*xsink, *xsink, mod->c_str(), pgm, false);
             if (*xsink) {
                 return -1;
             }
         }
+    }
+    // read in program execution strings
+    if (ps_read_compare_char(xsink, sr, PSC_PGM_EXEC_STRINGS, "program execution string option code")) {
+        return -1;
+    }
+    if (read_string(sr, exec_class_name, xsink)
+        || read_string(sr, script_dir, xsink)
+        || read_string(sr, script_path, xsink)
+        || read_string(sr, script_name, xsink)
+        || read_string(sr, include_path, xsink)) {
+        return rewrite_deserialization_error(xsink, "could not read program execution string");
+    }
+    // read in program define map
+    if (ps_read_compare_char(xsink, sr, PSC_DEFINE_MAP, "program define map option code")) {
+        return -1;
+    }
+    v = sr.readu1(xsink);
+    if (*xsink) {
+        return rewrite_deserialization_error(xsink, "could not read the define map size");
+    }
+    for (unsigned j = 0; j < v; ++j) {
+        QoreStringNodeHolder mod(sr.readNullTerminatedString(xsink));
+        if (*xsink) {
+            return rewrite_deserialization_error(xsink, "could not read define string");
+        }
+        ValueHolder val(QoreSerializable::deserializeValueFromStream(sr, xsink), xsink);
+        if (*xsink) {
+            return rewrite_deserialization_error(xsink, "could not read define value");
+        }
+        dmap_t::iterator i = dmap.find(mod->c_str());
+        if (i != dmap.end()) {
+            if (i->first.rfind("Qore", 0)
+                && i->first.rfind("HAVE_", 0)
+                && i->first.rfind("PO_", 0)
+                && i->first != "Unix"
+                && i->first != "Windows") {
+                xsink->raiseException("PROGRAM-DESERIALIZATION-ERROR", "define '%s' repeated in input stream",
+                    mod->c_str());
+                return -1;
+            }
+            // ignore Qore*, HAVE_*, PO_*, "Unix", and "Windows" defines
+            continue;
+        }
+        dmap.insert(i, dmap_t::value_type(mod->c_str(), val.release()));
     }
     return 0;
 }
