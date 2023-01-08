@@ -691,7 +691,7 @@ static size_t UTF16LE_getLength(const char* p, const char* end, bool& invalid) {
     size_t i = 0;
     while (p < end) {
         qore_offset_t l = q_UTF16LE_get_char_len(p, end - p);
-        //printd(5, "UTF16_getLength() p: %p end: %p len: %p l: " QLLD "\n", p, end, end - p, l);
+        //printd(5, "UTF16_getLength() p: %p end: %p len: %p l: %zd\n", p, end, end - p, l);
         if (l <= 0) {
             invalid = true;
             return i;
@@ -759,7 +759,7 @@ static size_t UTF16BE_getLength(const char* p, const char* end, bool& invalid) {
     size_t i = 0;
     while (p < end) {
         qore_offset_t l = q_UTF16BE_get_char_len(p, end - p);
-        //printd(5, "UTF16_getLength() p: %p end: %p len: %p l: " QLLD "\n", p, end, end - p, l);
+        //printd(5, "UTF16_getLength() p: %p end: %p len: %p l: %zd\n", p, end, end - p, l);
         if (l <= 0) {
             invalid = true;
             return i;
