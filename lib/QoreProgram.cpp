@@ -545,10 +545,6 @@ void qore_program_private_base::setParent(QoreProgram* p_pgm, int64 n_parse_opti
         assert(featureList.find(i) == featureList.end());
         featureList.insert(i);
     }
-    for (auto& i : p_pgm->priv->userFeatureList) {
-        assert(userFeatureList.find(i) == userFeatureList.end());
-        userFeatureList.insert(i);
-    }
 
     // copy top-level local variables in case any are referenced in static methods in the parent program (static
     // methods are executed in the child's space)

@@ -1425,7 +1425,7 @@ QoreAbstractModule* QoreModuleManager::loadUserModuleFromPath(ExceptionSink& xsi
     }
 
     if (module_load_check(td)) {
-        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; recursive module dependency " \
+        xsink.raiseException("LOAD-MODULE-ERROR", "cannot load user module '%s'; recursive module dependency "
             "detected", td);
         return nullptr;
     }
