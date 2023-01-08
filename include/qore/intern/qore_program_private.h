@@ -479,9 +479,6 @@ public:
     }
 #endif
 
-    DLLLOCAL int serialize(ExceptionSink* xsink, StreamWriter& sw);
-    DLLLOCAL int deserialize(ExceptionSink* xsink, StreamReader& sr);
-
     DLLLOCAL const QoreProgramLocation* getLocation(int sline, int eline);
     DLLLOCAL const QoreProgramLocation* getLocation(const QoreProgramLocation&, int sline, int eline);
 
