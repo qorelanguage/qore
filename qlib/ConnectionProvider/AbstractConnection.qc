@@ -195,7 +195,7 @@ public class AbstractConnection inherits Qore::Serializable {
         @return a @ref PingInfo hash
     */
     hash<PingInfo> ping(bool throw_exception = False) {
-        hash<PingInfo> rv(hash(self).("name", "desc", "opts"));
+        hash<PingInfo> rv(self{"name", "desc", "opts"});
         rv.url = safe_url;
 
         last_check = now_us();
@@ -206,8 +206,11 @@ public class AbstractConnection inherits Qore::Serializable {
         try {
             return pingIntern(rv);
         } catch (hash<ExceptionInfo> ex) {
+            date delta = now_us() - last_check;
+            handlePingFailed(delta, ex);
             return rv += {
                 "ok": False,
+                "time": delta,
                 "info": sprintf("%s: %s", ex.err, ex.desc),
                 "ex": ex,
             };
@@ -218,18 +221,13 @@ public class AbstractConnection inherits Qore::Serializable {
     private hash<PingInfo> pingIntern(hash<PingInfo> rv) {
         date start = now_us();
         pingImpl();
+        date delta = now_us() - start;
+        handlePingSuccess(delta);
         return rv += {
             "ok": True,
-            "time": now_us() - start,
+            "time": delta,
             "info": "OK",
         };
-    }
-
-    #! performs the internal ping
-    /** By default this creates a new connection only; override in child classes to implement additional ping logic
-    */
-    private pingImpl() {
-        get();
     }
 
     #! returns a @ref ConnectionInfo hash of information about the connection
@@ -445,6 +443,31 @@ public class AbstractConnection inherits Qore::Serializable {
     */
     object getPollImpl() {
         return getImpl(False);
+    }
+
+    #! Handles a successful ping operation on the connection
+    handlePingSuccess(date delta) {
+        up = True;
+        status = "OK";
+    }
+
+    #! Handles a failed ping operation on the connection
+    handlePingFailed(date delta, hash<ExceptionInfo> ex) {
+        up = False;
+        status = sprintf("%s: %s", ex.err, ex.desc);
+    }
+
+    #! Handles a failed ping operation on the connection
+    handlePingFailed(date delta, string err) {
+        up = False;
+        status = err;
+    }
+
+    #! performs the internal ping
+    /** By default this creates a new connection only; override in child classes to implement additional ping logic
+    */
+    private pingImpl() {
+        get();
     }
 
     #! Parse the URL to a hash
