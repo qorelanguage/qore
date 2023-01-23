@@ -369,6 +369,7 @@ public class PollingConnectionMonitor {
     private handlePingSuccess(string name, date delta, *bool oldok) {
         log(LoggerLevel::INFO, "%y (poll state %y): successful ping (duration: %y)", name,
             cache{name}.spop.getState(), delta);
+        cache{name}.conn.handlePingSuccess(delta);
         restartPing(name);
     }
 
@@ -376,7 +377,7 @@ public class PollingConnectionMonitor {
     private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
         log(LoggerLevel::ERROR, "%y (poll state %y): error in ping (duration: %y): %s", name,
             cache{name}.spop.getState(), delta, get_exception_string(ex));
-
+        cache{name}.conn.handlePingFailed(delta, ex);
         restartPing(name);
     }
 
@@ -390,8 +391,10 @@ public class PollingConnectionMonitor {
 
     #! Handles a ping timeout
     private handlePingTimeoutIntern(string name, date delta) {
-        log(LoggerLevel::ERROR, "%y (poll state %y): %s connection ping timed out after: %y; restarting poll", name,
-            cache{name}.spop.getState(), cache{name}.conn.getType(), delta);
+        string err = sprintf("(poll state %s): %s connection ping timed out after: %y", cache{name}.spop.getState(),
+            cache{name}.conn.getType(), delta);
+        cache{name}.conn.handlePingFailed(delta, err);
+        log(LoggerLevel::ERROR, "%y %s; restarting poll", name, err);
     }
 
     #! Restarts a ping operation
