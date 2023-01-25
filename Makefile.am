@@ -518,6 +518,7 @@ include_HEADERS = \
 	include/qore/macros-arm.h \
 	include/qore/macros-aarch64.h \
 	include/qore/macros-s390x.h \
+	include/qore/macros-riscv.h \
 	include/qore/QoreSocket.h \
 	include/qore/QoreSocketObject.h \
 	include/qore/QoreNet.h \
