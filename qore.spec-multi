@@ -112,7 +112,7 @@ functionality.
 
 %files -n %{libname}
 %defattr(-,root,root,-)
-%{_libdir}/libqore.so.12.2.0
+%{_libdir}/libqore.so.12.3.0
 %{_libdir}/libqore.so.12
 %doc COPYING.LGPL COPYING.GPL COPYING.MIT README.md README-LICENSE README-MODULES RELEASE-NOTES AUTHORS ABOUT
 
@@ -285,6 +285,7 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Mon Jan 23 2023 David Nichols <david@qore.org> 1.13.1
 - updated version to 1.13.1
+- updated libqore version to 12.3.0
 
 * Mon Jan 2 2023 David Nichols <david@qore.org> 1.13.0
 - updated version to 1.13.0

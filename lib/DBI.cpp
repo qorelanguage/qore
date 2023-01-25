@@ -498,7 +498,7 @@ struct qore_dbi_dlist_private {
     }
 
     DLLLOCAL DBIDriver* find_intern(const char* name) const {
-        for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++) {
+        for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); ++i) {
             if (!strcmp(name, (*i)->getName())) {
                 return *i;
             }
@@ -514,7 +514,7 @@ struct qore_dbi_dlist_private {
 
         QoreListNode* lst = new QoreListNode(stringTypeInfo);
 
-        for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++) {
+        for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); ++i) {
             lst->push(new QoreStringNode((*i)->getName()), nullptr);
         }
 
@@ -534,27 +534,24 @@ DBIDriver* DBIDriverList::find_intern(const char* name) const {
 }
 
 DBIDriver* DBIDriverList::find(const char* name) const {
-    DBIDriver* d = priv->find_intern(name);
-    if (d)
-        return d;
-
-    // to to load the driver if it doesn't exist
+    // try to load the driver if it doesn't exist
     // ignore any exceptions
     ExceptionSink xs;
-    MM.runTimeLoadModule(name, &xs);
+    DBIDriver* d = find(name, &xs);
     xs.clear();
-
-    return priv->find_intern(name);
+    return d;
 }
 
 DBIDriver* DBIDriverList::find(const char* name, ExceptionSink* xsink) const {
     DBIDriver* d = priv->find_intern(name);
-    if (d)
+    if (d) {
         return d;
+    }
 
     // to to load the driver if it doesn't exist
-    if (MM.runTimeLoadModule(name, xsink))
+    if (MM.runTimeLoadModule(name, xsink)) {
         return nullptr;
+    }
 
     return priv->find_intern(name);
 }
@@ -595,12 +592,14 @@ void DBI_concat_numeric(QoreString* str, QoreValue v) {
 
 int DBI_concat_string(QoreString* str, QoreValue v, ExceptionSink* xsink) {
     assert(xsink);
-    if (v.isNullOrNothing())
+    if (v.isNullOrNothing()) {
         return 0;
+    }
 
     QoreStringValueHelper tstr(v, str->getEncoding(), xsink);
-    if (*xsink)
+    if (*xsink) {
         return -1;
+    }
 
     str->concat(*tstr, xsink);
     return *xsink;
