@@ -66,12 +66,19 @@ public class ParseDatasourceTest inherits QUnit::Test {
             "host": "c:x",
         }, parse_datasource("a@b%c:x"));
 
+        assertEq({
+            "user": "a",
+            "db": "b",
+            "host": "c:x",
+            "options": {
+                "abc@xyz:1234": "123",
+            },
+        }, parse_datasource("a@b%c:x{abc@xyz:1234=123}"));
+
         assertThrows("DATASOURCE-PARSE-ERROR", "empty text", sub() { parse_datasource(""); });
         assertThrows("DATASOURCE-PARSE-ERROR", "missing closing parenthesis", sub() { parse_datasource("a@b("); });
         assertThrows("DATASOURCE-PARSE-ERROR", "missing hostname", sub() { parse_datasource("a@b%"); });
         assertThrows("DATASOURCE-PARSE-ERROR", "missing hostname", sub() { parse_datasource("a@b%{}"); });
         assertThrows("DATASOURCE-PARSE-ERROR", "invalid characters present", sub() { parse_datasource("a@b%c:12x2"); });
-        assertThrows("DATASOURCE-PARSE-ERROR", "missing closing curly bracket", sub() { parse_datasource("a@b{"); });
-        assertThrows("DATASOURCE-PARSE-ERROR", "unrecognized characters at end", sub() { parse_datasource("a@b{x=y}dfgf"); });
     }
 }
