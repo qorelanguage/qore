@@ -820,7 +820,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
             assert(port);
             h->setKeyValue("port", port, nullptr);
 
-            const char* pstr = str;
+            char* pstr = str;
             while (isdigit(*pstr)) {
                 ++pstr;
             }
@@ -830,6 +830,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                     ds);
                 return nullptr;
             }
+            str = pstr;
         }
 
         if (*str) {
