@@ -39,6 +39,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <map>
+
+typedef std::map<std::string, std::string> strstrmap_t;
+strstrmap_t driver_mod_map = {
+    {"jdbc", "jni"},
+};
 
 typedef safe_dslist<DBIDriver* > dbi_list_t;
 
@@ -548,7 +554,12 @@ DBIDriver* DBIDriverList::find(const char* name, ExceptionSink* xsink) const {
         return d;
     }
 
-    // to to load the driver if it doesn't exist
+    // try to load the driver if it doesn't exist
+    // see if the module name differs from the DBI driver name
+    strstrmap_t::iterator i = driver_mod_map.find(name);
+    if (i != driver_mod_map.end()) {
+        name = i->second.c_str();
+    }
     if (MM.runTimeLoadModule(name, xsink)) {
         return nullptr;
     }
