@@ -565,6 +565,7 @@ DBIDriver* DBIDriverList::find(const char* name, ExceptionSink* xsink) const {
         return d;
     }
 
+    const char* dbi_name = name;
     // try to load the driver if it doesn't exist
     // see if the module name differs from the DBI driver name
     strstrmap_t::iterator i = driver_mod_map.find(name);
@@ -575,7 +576,7 @@ DBIDriver* DBIDriverList::find(const char* name, ExceptionSink* xsink) const {
         return nullptr;
     }
 
-    return priv->find_intern(name);
+    return priv->find_intern(dbi_name);
 }
 
 DBIDriver* DBIDriverList::registerDriver(const char* name, const qore_dbi_method_list& methods, int caps) {

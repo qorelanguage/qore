@@ -10,13 +10,9 @@
 %requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/PgsqlSqlUtilBase.qm
-%requires ../../../../qlib/PgsqlSqlUtil.qm
+%requires ../../../../qlib/JdbcPostgresqlSqlUtil.qm
 
 %requires ./SqlUtilTestBase.qm
-
-%try-module pgsql
-%define NoPgsql
-%endtry
 
 %exec-class PgsqlTest
 
@@ -148,7 +144,6 @@ class PgsqlTest inherits SqlTestBase {
             "oid": 1234, # should not be used
 
             "date": 2016-01-11,
-            "interval": 6M + 3D + 2h + 45m + 15s,
             "time": 09:26:52,
             "time with time zone": 09:27:03-06,
             "timetz": 09:27:03-06,
@@ -156,14 +151,6 @@ class PgsqlTest inherits SqlTestBase {
             "timestamp with time zone": 2016-02-11T09:28:12.384629+03,
             "timestamptz": 2016-02-11T09:28:12.384629+03,
 
-            /*
-            "money": (
-                "value": 400.56,
-%ifndef NoPgsql
-                "bind": pgsql_bind(PG_TYPE_CASH, "400.56"),
-%endif
-            ),
-            */
             "text": "test",
             "character": "c",
             "character varying": "character varying",
@@ -172,18 +159,6 @@ class PgsqlTest inherits SqlTestBase {
             "boolean": False,
 
             "bytea": <bead>,
-%ifndef NoPgsql
-            "bit": ("bind": pgsql_bind(PG_TYPE_BIT, "10011001"), "size": 8, "expect": <99>),
-            "varbit": ("bind": pgsql_bind(PG_TYPE_VARBIT, "xBEAF"), "expect": <BEAF>),
-
-            "macaddr": ("bind": pgsql_bind(PG_TYPE_MACADDR, "0a:1e:df:e4:4f:da")),
-            "inet": ("bind": pgsql_bind(PG_TYPE_INET, "192.168.11.1"), "expect": "192.168.11.1/32"),
-            "cidr": ("bind": pgsql_bind(PG_TYPE_CIDR, "192.168"), "expect": "192.168.0.0/24"),
-
-            "json": {"bind": pgsql_bind(PG_TYPE_JSON, "{\"a\": 1}")},
-            "jsonb": {"bind": pgsql_bind(PG_TYPE_JSON, "{\"a\": 1}")},
-            "xml": {"bind": pgsql_bind(PG_TYPE_XML, "<a>1</a>")},
-%endif
         };
     }
 
@@ -239,6 +214,7 @@ class PgsqlTest inherits SqlTestBase {
     createSchema() {
         on_error printf("alignment: %y\n", map {AbstractDatabase::ActionMap{$1.key}: $1.value},
             schema_info.change_map.pairIterator());
+        on_error printf("info: %y\n", schema_info);
         assertTrue(schema_info.created);
     }
 
@@ -310,10 +286,11 @@ class PgsqlTest inherits SqlTestBase {
 
     Datasource getDatasource() {
         if (!m_options.connstr)
-            m_options.connstr = ENV.QORE_DB_CONNSTR_PGSQL;
+            m_options.connstr = ENV.QORE_DB_CONNSTR_JDBC_PGSQL;
         Datasource ds(m_options.connstr);
-        if (ds.getDriverName() != "pgsql")
-            throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y", ds.getDriverName());
+        if (ds.getDriverRealName() != "PostgreSQL")
+            throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y",
+                ds.getDriverRealName());
         ds.open();
         return ds;
     }

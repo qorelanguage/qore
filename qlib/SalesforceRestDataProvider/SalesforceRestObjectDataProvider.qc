@@ -218,7 +218,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                 ex.err = "DUPLICATE-RECORD";
                 ex_arg.id = id;
             }
-            throw ex.err, ex.desc, ex_arg;
+            rethrow ex.err, ex.desc, ex_arg;
         }
         if (!resp.body.success) {
             throw "UPSERT-ERROR", sprintf("error creating record: %y", resp.errors);

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file OdbcFirebirdSqlUtil.qm Qore user module for working with OdbcFirebird SQL data
+#! @file XdbcFirebirdSqlUtilBase.qm Qore user module for working with Firebird SQL data
 
-/*  OdbcFirebirdSqlUtil.qm Copyright 2013 - 2023 Qore Technologies, s.r.o.
+/*  XdbcFirebirdSqlUtilBase.qm Copyright 2013 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -37,73 +37,74 @@
 # enable all warnings
 %enable-all-warnings
 
-module OdbcFirebirdSqlUtil {
+module XdbcFirebirdSqlUtilBase {
     version = "0.1";
-    desc = "user module for working with Firebird DBs using the odbc driver";
+    desc = "user module for working with Firebird DBs using xDBC drivers";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
 
-/** @mainpage OdbcFirebirdSqlUtil Module
+/** @mainpage XdbcFirebirdSqlUtilBase Module
 
     @tableofcontents
 
-    @section odbcfirebirdsqlutilintro OdbcFirebirdSqlUtil Module Introduction
+    @section xdbcfirebirdsqlutilbaseintro XdbcFirebirdSqlUtilBase Module Introduction
 
-    The %OdbcFirebirdSqlUtil module provides a high level API for working with Firebird database objects through the
-    odbc driver.
+    The %XdbcFirebirdSqlUtilBase module provides a high level API for working with Firebird database objects through
+    \c xdbc and \c jdbc drivers in %Qore.
 
     Usually this module is loaded on demand from the SqlUtil module, however to use this module
-    directly, use \c "%requires OdbcFirebirdSqlUtil" in your code.
+    directly, use \c "%requires XdbcFirebirdSqlUtilBase" in your code.
 
-    All the public symbols in the module are defined in the OdbcFirebirdSqlUtil namespace
+    All the public symbols in the module are defined in the XdbcFirebirdSqlUtilBase namespace
 
     @note
-    - This module requires the <a href="https://github.com/qorelanguage/module-odbc">odbc</a> binary module
-      for communication with Firebird databases plus the Firebird client library and the Firebird ODBC driver
-    - This module does not yet support schema management for Firebird DBs and only has basic functionality for DML
-      as well; it is experimental; do not use for anything but testing and evaluation
+    - This module requires the <a href="https://github.com/qorelanguage/module-xdbc">xdbc</a> or
+      <a href="https://github.com/qorelanguage/module-jni">jni</a> binary modules
+      for communication with Firebird databases plus the Firebird client library and the Firebird XDBC driver or the
+      Firebird JDBC drivers
+    - This module supports basic DDL / schema management for Firebird DBs and basic functionality for DML as well
 
     @section firebird_schema_management Schema Management on Firebird
 
-    @subsection odbcfirebird_type_mapping Type Mapping
+    @subsection xdbcfirebird_type_mapping Type Mapping
 
     Column types are mapped from %Qore types as follows:
 
-    <b>OdbcFirebird Column Type Mappings</b>
+    <b>XdbcFirebird Column Type Mappings</b>
     |!%Qore Type Name|!Firebird Type Used
     |\c int|\c bigint
     |\c float|<tt>double precision</tt>
     |\c number|\c varchar
     |\c string|\c varchar
     |\c date|<tt>timestamp</tt>
-    |\c binary|\c varbinary
+    |\c binary|<tt>blob sub_type text</tt>
     |\c bool|\c boolean
     |@ref SqlUtil::BLOB|\c blob
     |@ref SqlUtil::CHAR|\c char
     |@ref SqlUtil::CLOB|<tt>blob sub_type text</tt>
 
-    @section odbcfirebird_relnotes Release Notes
+    @section xdbcfirebird_relnotes Release Notes
 
-    @subsection odbcfirebirdsqlutilv_0_1 OdbcFirebirdSqlUtil Module v0.1
+    @subsection xdbcfirebirdsqlutilbasev_0_1 XdbcFirebirdSqlUtilBase Module v0.1
     - initial release
 */
 
-#! the OdbcFirebirdSqlUtil namespace contains all the objects in the OdbcFirebirdSqlUtil module
-public namespace OdbcFirebirdSqlUtil {
-    #! returns a OdbcFirebirdTable object corresponding to the arguments
-    public OdbcFirebirdTable sub get_table(AbstractDatasource nds, string nname, *hash<auto> opts) {
-        return new OdbcFirebirdTable(nds, nname, opts);
+#! the XdbcFirebirdSqlUtilBase namespace contains all the objects in the XdbcFirebirdSqlUtilBase module
+public namespace XdbcFirebirdSqlUtilBase {
+    #! returns a XdbcFirebirdTable object corresponding to the arguments
+    public XdbcFirebirdTable sub get_table(AbstractDatasource nds, string nname, *hash<auto> opts) {
+        return new XdbcFirebirdTable(nds, nname, opts);
     }
 
-    #! returns a OdbcFirebirdDatabase object corresponding to the arguments
-    public OdbcFirebirdDatabase sub get_database(AbstractDatasource nds, *hash<auto> opts) {
-        return new OdbcFirebirdDatabase(nds, opts);
+    #! returns a XdbcFirebirdDatabase object corresponding to the arguments
+    public XdbcFirebirdDatabase sub get_database(AbstractDatasource nds, *hash<auto> opts) {
+        return new XdbcFirebirdDatabase(nds, opts);
     }
 
-    #! OdbcFirebird savepoint helper
-    public class OdbcFirebirdSavepointHelper inherits AbstractSavepointHelper {
+    #! XdbcFirebird savepoint helper
+    public class XdbcFirebirdSavepointHelper inherits AbstractSavepointHelper {
         #! Creates the object
         constructor(AbstractDatasource ds, *string savepoint) : AbstractSavepointHelper(ds, savepoint) {
         }
@@ -125,7 +126,7 @@ public namespace OdbcFirebirdSqlUtil {
     }
 
     #! represents a Firebird-specific index
-    public class OdbcFirebirdIndex inherits SqlUtil::AbstractIndex {
+    public class XdbcFirebirdIndex inherits SqlUtil::AbstractIndex {
         #! creates the object from the arguments
         constructor(string name, bool unique, hash<auto> cols) : AbstractIndex(name, unique, cols) {
         }
@@ -142,7 +143,7 @@ public namespace OdbcFirebirdSqlUtil {
         }
 
         #! returns a string that can be used to rename the index in the database
-        /** however odbcfirebird does not support renaming indexes, so the index is dropped and recreated
+        /** however xdbcfirebird does not support renaming indexes, so the index is dropped and recreated
         */
         string getRenameSql(string table_name, string new_name) {
             return sprintf("drop index %s; create %sindex %s on %s (%s)", name, unique ? "unique " : "", new_name,
@@ -156,7 +157,7 @@ public namespace OdbcFirebirdSqlUtil {
     }
 
     #! represents a Firebird-specific foreign constraint
-    public class OdbcFirebirdForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
+    public class XdbcFirebirdForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
         constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
         }
 
@@ -164,7 +165,7 @@ public namespace OdbcFirebirdSqlUtil {
             return getCreateSql(name, table_name, opt);
         }
 
-        #! returns a string that drops the constraint and re-adds it, since OdbcFirebird does not support renaming constraints
+        #! returns a string that drops the constraint and re-adds it, since XdbcFirebird does not support renaming constraints
         softlist getRenameSql(string table_name, string new_name) {
             return getDropSql(table_name) + ", " + getAddSql(new_name, table_name);
         }
@@ -184,8 +185,8 @@ public namespace OdbcFirebirdSqlUtil {
         }
     }
 
-    #! represents a OdbcFirebird-specific column
-    public class OdbcFirebirdColumn inherits SqlUtil::AbstractColumn {
+    #! represents a XdbcFirebird-specific column
+    public class XdbcFirebirdColumn inherits SqlUtil::AbstractColumn {
         #! empty constructor for subclasses
         private constructor() {
         }
@@ -212,7 +213,7 @@ list<string> l = col.getAddColumnSql(t);
         /** if the column definitions are identical then an empty list is returned
 
             @code{.py}
-list l = col.getModifySql(t, newcol);
+list<string> l = col.getModifySql(t, newcol);
             @endcode
 
             The column names are assumed to be equal.
@@ -259,7 +260,7 @@ string str = col.getRenameSql(t, "new_name");
         /** the name returned here will be used when executing DDL
         */
         string getDdlName(string name) {
-            return OdbcFirebirdDatabase::OdbcFirebirdReservedWords{name.lwr()} ? ("\"" + name + "\"") : name;
+            return XdbcFirebirdDatabase::XdbcFirebirdReservedWords{name.lwr()} ? ("\"" + name + "\"") : name;
         }
 
         #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
@@ -268,11 +269,11 @@ string str = col.getRenameSql(t, "new_name");
         }
     }
 
-    public class OdbcFirebirdUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint {
+    public class XdbcFirebirdUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint {
         constructor(string name, hash<auto> cols) : AbstractUniqueConstraint(name, cols) {
         }
 
-        #! returns the OdbcFirebirdColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        #! returns the XdbcFirebirdColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
         /** @par Example:
             @code{.py}
 auto v = c.name;
@@ -289,7 +290,7 @@ auto v = c.name;
 
             @see @ref memberGate_methods
         */
-        OdbcFirebirdColumn memberGate(string k) {
+        XdbcFirebirdColumn memberGate(string k) {
             if (!h.hasKey(k)) {
                 throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k,
                     h.keys());
@@ -317,7 +318,7 @@ auto v = c.name;
     }
 
     #! represents a Firebird-specific primary key constraint
-    public class OdbcFirebirdPrimaryKey inherits SqlUtil::AbstractPrimaryKey {
+    public class XdbcFirebirdPrimaryKey inherits SqlUtil::AbstractPrimaryKey {
         constructor() {
         }
 
@@ -341,9 +342,10 @@ auto v = c.name;
 
             @see @ref memberGate_methods
         */
-        OdbcFirebirdColumn memberGate(string k) {
+        XdbcFirebirdColumn memberGate(string k) {
             if (!h.hasKey(k)) {
-                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k, h.keys());
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k,
+                    h.keys());
             }
             return h{k};
         }
@@ -364,7 +366,7 @@ auto v = c.name;
     }
 
     #! represents a Firebird-specific trigger
-    public class OdbcFirebirdTrigger inherits SqlUtil::AbstractTrigger {
+    public class XdbcFirebirdTrigger inherits SqlUtil::AbstractTrigger {
         #! creates the object and sets its name and the trigger source
         constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
         }
@@ -390,8 +392,8 @@ auto v = c.name;
         }
     }
 
-    #! class for ODBC Firebird sequences
-    public class OdbcFirebirdSequence inherits SqlUtil::AbstractSequence {
+    #! class for XDBC Firebird sequences
+    public class XdbcFirebirdSequence inherits SqlUtil::AbstractSequence {
         #! creates the object from the arguments
         constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end)
                 : AbstractSequence(n_name, n_start, n_increment, n_end) {
@@ -413,7 +415,7 @@ auto v = c.name;
     }
 
     #! represents a Firebird view
-    public class OdbcFirebirdView inherits SqlUtil::AbstractView {
+    public class XdbcFirebirdView inherits SqlUtil::AbstractView {
         #! creates the object from the arguments
         constructor(string name, string src) : AbstractView(name, src) {
         }
@@ -434,10 +436,10 @@ auto v = c.name;
     }
 
     #! provides the Firebird-specific implementation of the AbstractDatabase interface
-    public class OdbcFirebirdDatabase inherits SqlUtil::AbstractDatabase {
+    public class XdbcFirebirdDatabase inherits SqlUtil::AbstractDatabase {
         public {
             #! hash of reserved words
-            const OdbcFirebirdReservedWords = {
+            const XdbcFirebirdReservedWords = {
                 "add": True,
                 "admin": True,
                 "all": True,
@@ -664,7 +666,7 @@ auto v = c.name;
         #! Returns @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
         /** @return @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
 
-            @since %OdbcFirebirdSqlUtil 1.4.3
+            @since %XdbcFirebirdSqlUtilBase 1.4.3
         */
         bool requiresScale() {
             return False;
@@ -673,7 +675,7 @@ auto v = c.name;
         #! Returns the maximum precision for numeric or decimal columns
         /** @return -1 means, no maximum
 
-            @since %OdbcFirebirdSqlUtil 1.4.3
+            @since %XdbcFirebirdSqlUtilBase 1.4.3
         */
         int getMaximumPrecision() {
             return 0;
@@ -689,13 +691,13 @@ auto v = c.name;
 
         private AbstractSequence makeSequenceImpl(string name, number start = 1, number increment = 1,
                 *softnumber end, *hash<auto> opts) {
-            return new OdbcFirebirdSequence(name, start, increment, end);
+            return new XdbcFirebirdSequence(name, start, increment, end);
         }
 
         private *AbstractSequence getSequenceImpl(string name) {
             *hash<auto> row = ds.selectRow("select rdb$generator_name as sequence from rdb$generators where "
                 "rdb$system_flag = 0 and rdb$generator_name = %v", name.upr());
-            return new OdbcFirebirdSequence(row.sequence.lwr());
+            return new XdbcFirebirdSequence(row.sequence.lwr());
         }
 
         private *AbstractView getViewImpl(string name) {
@@ -704,7 +706,7 @@ auto v = c.name;
                 return;
             }
 
-            return new OdbcFirebirdView(name, row.sql);
+            return new XdbcFirebirdView(name, row.sql);
         }
 
         private AbstractFunction makeFunctionImpl(string name, string src, *hash<auto> opts) {
@@ -763,7 +765,7 @@ auto v = c.name;
         }
 
         private string getCreateSqlImpl(list<auto> l) {
-            return OdbcFirebirdDatabase::getCreateSql(l);
+            return XdbcFirebirdDatabase::getCreateSql(l);
         }
 
         static string getCreateSql(list<auto> l) {
@@ -780,7 +782,7 @@ auto v = c.name;
             return ds.selectRow("select gen_id(%s, 0) as currentval from rdb$database", name).currentval;
         }
 
-        #! returns @ref True "True" since we have a workaround implementation for sequences in OdbcFirebird
+        #! returns @ref True "True" since we have a workaround implementation for sequences in XdbcFirebird
         private bool supportsSequencesImpl() {
             return True;
         }
@@ -814,11 +816,11 @@ auto v = c.name;
         }
     }
 
-    #! provides the OdbcFirebird-specific implementation of the AbstractTable interface
-    public class OdbcFirebirdTable inherits SqlUtil::AbstractTable {
+    #! provides the XdbcFirebird-specific implementation of the AbstractTable interface
+    public class XdbcFirebirdTable inherits SqlUtil::AbstractTable {
         public {
-            #! maps odbcfirebird type names to type configurations
-            const OdbcFirebirdTypeMap = {
+            #! maps xdbcfirebird type names to type configurations
+            const XdbcFirebirdTypeMap = {
                 "bigint": {
                     "qore": Type::Int,
                 },
@@ -917,7 +919,7 @@ auto v = c.name;
                 },
             };
 
-            #! maps qore type names to OdbcFirebird type names
+            #! maps qore type names to XdbcFirebird type names
             const QoreTypeMap = (
                 "integer": "bigint",
                 "float": "double precision",
@@ -931,8 +933,8 @@ auto v = c.name;
                 SqlUtil::BLOB: "blob",
             );
 
-            #! column operator specializations for OdbcFirebird
-            const OdbcFirebirdCopMap = (
+            #! column operator specializations for XdbcFirebird
+            const XdbcFirebirdCopMap = (
                 COP_CAST: (
                     "code": string sub (string cve, list<auto> args) {
                         return sprintf("cast(%s as %s)", cve, QoreTypeMap{args[0]} ?? args[0]);
@@ -965,7 +967,7 @@ auto v = c.name;
 
         #! returns the column operator map for this object
         private hash getColumnOperatorMapImpl() {
-            return OdbcFirebirdCopMap;
+            return XdbcFirebirdCopMap;
         }
 
         private bool checkExistenceImpl() {
@@ -1061,7 +1063,7 @@ auto v = c.name;
                 auto defval = exists row.default_value && row.default_value !== NULL && row.default_value != "NULL"
                     ? row.default_value
                     : NOTHING;
-                *hash<auto> th = OdbcFirebirdTypeMap{typename};
+                *hash<auto> th = XdbcFirebirdTypeMap{typename};
                 if (exists defval) {
                     # process default value according to column type
                     switch (th.qore) {
@@ -1091,7 +1093,7 @@ auto v = c.name;
                     defval = getSqlValue(defval);
                 }
 
-                OdbcFirebirdColumn c(row.name, typename, th.qore, row.length ?? 0, !row.null_flag, defval, row.comment,
+                XdbcFirebirdColumn c(row.name, typename, th.qore, row.length ?? 0, !row.null_flag, defval, row.comment,
                     row.scale);
                 rv{row.name} = c;
             }
@@ -1099,7 +1101,7 @@ auto v = c.name;
             return new Columns(rv);
         }
 
-        private OdbcFirebirdPrimaryKey getPrimaryKeyImpl() {
+        private XdbcFirebirdPrimaryKey getPrimaryKeyImpl() {
             # get primary key description
             *hash<auto> qh = ds.select("select
     ix.rdb$index_name as index_name,
@@ -1119,8 +1121,8 @@ where
             }
 
             return rv
-                ? new OdbcFirebirdPrimaryKey(rv)
-                : new OdbcFirebirdPrimaryKey();
+                ? new XdbcFirebirdPrimaryKey(rv)
+                : new XdbcFirebirdPrimaryKey();
         }
 
         private Indexes getIndexesImpl() {
@@ -1150,7 +1152,7 @@ where
                 }
             }
             foreach hash<auto> i in (ih.pairIterator()) {
-                rv{i.key} = new OdbcFirebirdIndex(i.key, boolean(i.value.unique), i.value.columns);
+                rv{i.key} = new XdbcFirebirdIndex(i.key, boolean(i.value.unique), i.value.columns);
             }
 
             return new Indexes(rv);
@@ -1169,9 +1171,9 @@ where
             *hash qh = ds.select("");
             delete rv;
             foreach hash<auto> row in (qh.contextIterator()) {
-                reference<OdbcFirebirdUniqueConstraint> ch = \rv.(row.constraint_name);
+                reference<XdbcFirebirdUniqueConstraint> ch = \rv.(row.constraint_name);
                 if (!ch)
-                    ch = new OdbcFirebirdUniqueConstraint(row.constraint_name, {});
+                    ch = new XdbcFirebirdUniqueConstraint(row.constraint_name, {});
                 ch.add(row.column_name, columns{row.column_name});
             }
 
@@ -1190,7 +1192,7 @@ where
             foreach hash<auto> row in (qh.contextIterator()) {
                 string src = sprintf("%s %s on %s for each %s %s", row.action_timing.lwr(),
                     row.event_manipulation.lwr(), name, row.action_orientation.lwr(), row.action_statement);
-                rv{row.trigger_name} = new OdbcFirebirdTrigger(row.trigger_name, src);
+                rv{row.trigger_name} = new XdbcFirebirdTrigger(row.trigger_name, src);
             }
             */
             return new Triggers(rv);
@@ -1203,7 +1205,7 @@ where
             return sql;
         }
 
-        #! returns @ref False "False" because the odbcfirebird driver does not support array binds / bulk DML
+        #! returns @ref False "False" because the xdbcfirebird driver does not support array binds / bulk DML
         bool hasArrayBind() {
             return False;
         }
@@ -1215,7 +1217,7 @@ where
         }
 
         private string getCreateSqlImpl(list l) {
-            return OdbcFirebirdDatabase::getCreateSql(l);
+            return XdbcFirebirdDatabase::getCreateSql(l);
         }
 
         private string getRenameSqlImpl(string new_name) {
@@ -1223,22 +1225,22 @@ where
         }
 
         private AbstractColumn addColumnImpl(string cname, hash<auto> opt, bool nullable = True) {
-            return new OdbcFirebirdColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value,
+            return new XdbcFirebirdColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value,
                 opt.comment, 0);
         }
 
         private AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash<auto> ch, *hash<auto> opt) {
-            return new OdbcFirebirdPrimaryKey(ch);
+            return new XdbcFirebirdPrimaryKey(ch);
         }
 
         private AbstractIndex addIndexImpl(string iname, bool enabled, hash<auto> ch, *hash<auto> opt) {
-            return new OdbcFirebirdIndex(iname, enabled, ch);
+            return new XdbcFirebirdIndex(iname, enabled, ch);
         }
 
         private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash<auto> ch, string table,
                 hash<auto> tch, *hash<auto> opt) {
             ForeignConstraintTarget fct(table, new Columns(tch));
-            return new OdbcFirebirdForeignConstraint(cname, new Columns(ch), fct);
+            return new XdbcFirebirdForeignConstraint(cname, new Columns(ch), fct);
         }
 
         private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash<auto> opt) {
@@ -1246,11 +1248,11 @@ where
         }
 
         private AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash<auto> ch, *hash<auto> opt) {
-            return new OdbcFirebirdUniqueConstraint(cname, ch);
+            return new XdbcFirebirdUniqueConstraint(cname, ch);
         }
 
         private AbstractTrigger addTriggerImpl(string tname, string src, *hash<auto> opt) {
-            return new OdbcFirebirdTrigger(tname, src);
+            return new XdbcFirebirdTrigger(tname, src);
         }
 
         private bool tryInsertImpl(string sql, hash<auto> row) {
@@ -1266,7 +1268,7 @@ where
         }
 
         #! Returns True if the exception was raised because of a duplicate row / key error
-        /** @since OdbcFirebirdSqlUtil 1.4.2
+        /** @since XdbcFirebirdSqlUtilBase 1.4.2
         */
         private bool isDuplicateRowErrorImpl(hash<ExceptionInfo> ex) {
             return (ex.desc =~ /attempt to store duplicate value/);
@@ -1277,14 +1279,14 @@ where
         }
 
         private hash<auto> getTypeMapImpl() {
-            return OdbcFirebirdTypeMap;
+            return XdbcFirebirdTypeMap;
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
         /** returns NOTHING if the type cannot be converted to an SQL string
         */
         private *string getSqlValueImpl(auto v) {
-            return OdbcFirebirdTable::getSqlValueIntern(v);
+            return XdbcFirebirdTable::getSqlValueIntern(v);
         }
 
         #! returns a string for use in SQL queries representing the DB-specific value of the argument
@@ -1306,7 +1308,7 @@ where
                 case NT_BOOLEAN: return v ? "true" : "false";
 
                 case NT_DATE: {
-                    # OdbcFirebird does not allow us to specify the UTC offset in the timestamp literal :(
+                    # XdbcFirebird does not allow us to specify the UTC offset in the timestamp literal :(
                     TimeZone tz = TimeZone::get();
                     v = tz.date(v);
                     return "timestamp " + v.format("'YYYY-MM-DDTHH:mm:SS.us'");
@@ -1320,7 +1322,7 @@ where
             Firebird requires column names to be enclosed in double quotes
         */
         string getColumnSqlName(string col) {
-            return OdbcFirebirdDatabase::OdbcFirebirdReservedWords{col.lwr()} ? ("\"" + col + "\"") : col;
+            return XdbcFirebirdDatabase::XdbcFirebirdReservedWords{col.lwr()} ? ("\"" + col + "\"") : col;
         }
 
         #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
@@ -1341,9 +1343,10 @@ string str = table.getSqlValue(date);
             @throw VALUE-ERROR the given value cannot be converted to an SQL string (missing rules for value)
          */
         static *string getSqlValue(auto v) {
-           *string str = OdbcFirebirdTable::getSqlValueIntern(v);
+           *string str = XdbcFirebirdTable::getSqlValueIntern(v);
             if (!exists str)
-                throw "VALUE-ERROR", sprintf("class OdbcFirebirdTable cannot convert type %y to an SQL string (value: %y)", v.type(), v);
+                throw "VALUE-ERROR", sprintf("class XdbcFirebirdTable cannot convert type %y to an SQL string "
+                    "(value: %y)", v.type(), v);
             return str;
         }
 
@@ -1352,7 +1355,8 @@ string str = table.getSqlValue(date);
         }
 
         private preSetupTableImpl(reference<hash> desc, *hash<auto> opt) {
-            # see if there is an auto-increment column and set the primary key flag if it matches the primary key declaraion
+            # see if there is an auto-increment column and set the primary key flag if it matches the primary key
+            # declaraion
             foreach string k in (desc.columns.keyIterator()) {
                 if (desc.columns{k}.auto_increment) {
                     if (!desc.columns{k}.pk) {
@@ -1378,7 +1382,7 @@ string str = table.getSqlValue(date);
             return True;
         }
 
-        #! returns @ref True "True" if the database automatically creates a unique constraint when a unique index is created (ex: odbcfirebird)
+        #! returns @ref True "True" if the database automatically creates a unique constraint when a unique index is created (ex: xdbcfirebird)
         private bool uniqueIndexCreatesConstraintImpl() {
             return True;
         }
@@ -1473,7 +1477,7 @@ string str = table.getSqlValue(date);
             @since SqlUtil 1.6
         */
         private AbstractSavepointHelper getSavepointHelperImpl(*string savepoint) {
-            return new OdbcFirebirdSavepointHelper(ds, savepoint);
+            return new XdbcFirebirdSavepointHelper(ds, savepoint);
         }
     }
 }

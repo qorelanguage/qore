@@ -8,9 +8,15 @@
     Bugfix release with minor new features; see below for more information
 
     @subsection qore_1_14_new_features New Features in Qore
+    - New user modules:
+      - <a href="../../modules/JdbcFirebirdSqlUtil/html/index.html">JdbcFirebirdSqlUtil</a>
+        (<a href="https://github.com/qorelanguage/qore/issues/4684">issue 4684</a>)
+      - <a href="../../modules/XdbcFirebirdSqlUtilBase/html/index.html">XdbcFirebirdSqlUtilBase</a>
+        (<a href="https://github.com/qorelanguage/qore/issues/4684">issue 4684</a>)
     - Added a DBI method to determine the actual DB driver name for wrapper drivers like ODBC and JDBC
       (<a href="https://github.com/qorelanguage/qore/issues/4690">issue 4690</a>)
-    - Added new methods to allow the actual DB driver name to be determined:
+    - Added new methods to allow the actual DB driver name to be determined when using the \c odbc and \c jdbc DBI
+      drivers:
       - @ref Qore::SQL::AbstractDatasource::getDriverRealName() "AbstractDatasource::getDriverRealName()"
       - @ref Qore::SQL::Datasource::getDriverRealName() "Datasource::getDriverRealName()"
       - @ref Qore::SQL::DatasourcePool::getDriverRealName() "DatasourcePool::getDriverRealName()"
