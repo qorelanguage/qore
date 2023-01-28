@@ -322,7 +322,8 @@ QoreHashNode* Datasource::selectRow(const QoreString* query_str, const QoreListN
     return rv;
 }
 
-QoreValue Datasource::exec_internal(bool doBind, const QoreString* query_str, const QoreListNode* args, ExceptionSink* xsink) {
+QoreValue Datasource::exec_internal(bool doBind, const QoreString* query_str, const QoreListNode* args,
+        ExceptionSink* xsink) {
     assert(xsink);
     if (!priv->autocommit && !priv->in_transaction && beginImplicitTransaction(xsink))
         return QoreValue();
@@ -331,7 +332,8 @@ QoreValue Datasource::exec_internal(bool doBind, const QoreString* query_str, co
 
     QoreValue rv = doBind ? qore_dbi_private::get(*priv->dsl)->execSQL(this, query_str, args, xsink)
         : qore_dbi_private::get(*priv->dsl)->execRawSQL(this, query_str, xsink);;
-    //printd(5, "Datasource::exec_internal() this=%p, autocommit=%d, in_transaction=%d, xsink=%d\n", this, priv->autocommit, priv->in_transaction, xsink->isException());
+    //printd(5, "Datasource::exec_internal() this=%p, autocommit=%d, in_transaction=%d, xsink=%d\n", this,
+    //    priv->autocommit, priv->in_transaction, xsink->isException());
 
     if (priv->connection_aborted) {
         assert(*xsink);
@@ -339,10 +341,11 @@ QoreValue Datasource::exec_internal(bool doBind, const QoreString* query_str, co
         return QoreValue();
     }
 
-    if (priv->autocommit)
+    if (priv->autocommit) {
         qore_dbi_private::get(*priv->dsl)->autoCommit(this, xsink);
-    else
+    } else {
         priv->statementExecuted(*xsink);
+    }
 
     return rv;
 }
@@ -383,7 +386,8 @@ QoreHashNode* Datasource::describe(const QoreString* query_str, const QoreListNo
 int Datasource::beginImplicitTransaction(ExceptionSink* xsink) {
     //printd(5, "Datasource::beginImplicitTransaction() autocommit=%s\n", autocommit ? "true" : "false");
     if (priv->autocommit) {
-        xsink->raiseException("AUTOCOMMIT-ERROR", "%s:%s@%s: transaction management is not available because autocommit is enabled for this Datasource", getDriverName(), priv->username.c_str(), priv->dbname.c_str());
+        xsink->raiseException("AUTOCOMMIT-ERROR", "%s:%s@%s: transaction management is not available because "
+            "autocommit is enabled for this Datasource", getDriverName(), priv->username.c_str(), priv->dbname.c_str());
         return -1;
     }
     return qore_dbi_private::get(*priv->dsl)->beginTransaction(this, xsink);
@@ -612,6 +616,10 @@ QoreValue Datasource::getServerVersion(ExceptionSink* xsink) {
 
 QoreValue Datasource::getClientVersion(ExceptionSink* xsink) const {
     return qore_dbi_private::get(*priv->dsl)->getClientVersion(this, xsink);
+}
+
+QoreStringNode* Datasource::getDriverRealName(ExceptionSink* xsink) {
+    return qore_dbi_private::get(*priv->dsl)->getDriverRealName(this, xsink);
 }
 
 QoreHashNode* Datasource::getOptionHash() const {

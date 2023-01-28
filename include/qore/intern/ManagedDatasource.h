@@ -132,6 +132,7 @@ public:
     DLLLOCAL ManagedDatasource* copy();
     DLLLOCAL QoreValue getServerVersion(ExceptionSink* xsink);
     DLLLOCAL QoreValue getClientVersion(ExceptionSink* xsink) const;
+    DLLLOCAL QoreStringNode* getDriverRealName(ExceptionSink* xisnk);
 
     DLLLOCAL QoreHashNode* getConfigHash(ExceptionSink* xsink);
     DLLLOCAL QoreStringNode* getConfigString(ExceptionSink* xsink);

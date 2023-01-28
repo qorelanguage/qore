@@ -1248,6 +1248,8 @@ int Datasource::getTransactionLockTimeout() [flags=CONSTANT] {
     @code{.py}
 string driver = db.getDriverName();
     @endcode
+
+    @see getDriverRealName()
 */
 string Datasource::getDriverName() [flags=CONSTANT] {
     return new QoreStringNode(ds->getDriver()->getName());
@@ -1267,6 +1269,25 @@ auto ver = db.getServerVersion();
 */
 auto Datasource::getServerVersion() {
     return ds->getServerVersion(xsink);
+}
+
+//! Returns the real DB driver name if supported by the driver, otherwise the %Qore driver name
+/** @return the real DB driver name if supported by the driver, otherwise the %Qore driver name
+
+    @par Example:
+    @code{.py}
+string driver = db.getDriverRealName();
+    @endcode
+
+    The return value will differ from getDriverName() in the case of "wrapper" drivers such as \c odbc or \c jdbc,
+    where the generic %Qore driver name is insufficient to identify the database server type.
+
+    In other cases, this method will return the same value as getDriverName()
+
+    @since %Qore 1.14
+*/
+string Datasource::getDriverRealName() [flags=CONSTANT] {
+    return ds->ManagedDatasource::getDriverRealName(xsink);
 }
 
 //! Retrieves the driver-specific client library version information; this method may not be implemented for all drivers

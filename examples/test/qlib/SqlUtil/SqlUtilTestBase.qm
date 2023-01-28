@@ -102,6 +102,7 @@ public class SqlTestBase inherits QUnit::Test {
         }
         logger.addAppender(new TestAppender());
 
+        addTestCase("driver name", \driverNameTest());
         addTestCase("db provider", \dbProviderTest());
         addTestCase("db table provider", \dbTableProviderTest());
         addTestCase("Insert", \insertTest());
@@ -131,6 +132,10 @@ public class SqlTestBase inherits QUnit::Test {
         if (schema) {
             schema.drop(True, m_options.verbose);
         }
+    }
+
+    driverNameTest() {
+        assertEq(getExpectedDriverName(), table.getDatasource().getDriverRealName());
     }
 
     serializationTest() {
@@ -1700,6 +1705,10 @@ public class SqlTestBase inherits QUnit::Test {
         };
         auto res2227 = t.select(sh2227, \sql);
         assertEq(True, res2227.firstValue().size() > 0, "bug 2227 test must return some data");
+    }
+
+    string getExpectedDriverName() {
+        return table.getDatasource().getDriverRealName();
     }
 
     test2358SqlutilSchema() {

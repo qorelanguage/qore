@@ -153,6 +153,13 @@ void qore_dbi_method_list::add(int code, q_dbi_get_client_version_t method) {
     priv->l[code] = (void*)method;
 }
 
+// covers get_driver_real_name
+void qore_dbi_method_list::add(int code, q_dbi_get_driver_real_name_t method) {
+    assert(code == QDBI_METHOD_GET_DRIVER_REAL_NAME);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
+}
+
 // covers stmt prepare
 void qore_dbi_method_list::add(int code, q_dbi_stmt_prepare_t method) {
     assert(code == QDBI_METHOD_STMT_PREPARE);
@@ -330,6 +337,10 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
             case QDBI_METHOD_GET_CLIENT_VERSION:
                 assert(!f.get_client_version);
                 f.get_client_version = (q_dbi_get_client_version_t)(*i).second;
+                break;
+            case QDBI_METHOD_GET_DRIVER_REAL_NAME:
+                assert(!f.get_driver_real_name);
+                f.get_driver_real_name = (q_dbi_get_driver_real_name_t)(*i).second;
                 break;
 
             case QDBI_METHOD_STMT_PREPARE:

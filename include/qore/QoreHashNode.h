@@ -511,7 +511,7 @@ public:
         If the value cannoe be assigned because the iterator is invalid or there is a conflict with the type, the
         value will be dereferenced in the call.
 
-        @since %Qore 1.13.1
+        @since %Qore 1.14
     */
     DLLEXPORT int assign(QoreValue val, ExceptionSink* xsink);
 
@@ -789,7 +789,7 @@ public:
     //! Returns the current key
     /** @return the current key if the iterator is valid, nullptr if not
 
-        @since %Qore 1.13.1
+        @since %Qore 1.14
     */
     DLLEXPORT const char* getKey() const;
 

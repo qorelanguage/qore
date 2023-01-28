@@ -565,10 +565,20 @@ int DatasourcePool::rollback(ExceptionSink* xsink) {
 
 QoreValue DatasourcePool::getServerVersion(ExceptionSink* xsink) {
     DatasourcePoolActionHelper dpah(*this, xsink);
-    if (!dpah)
+    if (!dpah) {
         return QoreValue();
+    }
 
     return dpah->getServerVersion(xsink);
+}
+
+QoreStringNode* DatasourcePool::getDriverRealName(ExceptionSink* xsink) {
+    DatasourcePoolActionHelper dpah(*this, xsink);
+    if (!dpah) {
+        return nullptr;
+    }
+
+    return dpah->getDriverRealName(xsink);
 }
 
 QoreStringNode* DatasourcePool::toString() {
