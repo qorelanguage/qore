@@ -94,6 +94,7 @@ struct DBIDriverFunctions {
     q_dbi_begin_transaction_t begin_transaction = nullptr; // for DBI drivers that require explicit transaction starts
     q_dbi_get_server_version_t get_server_version = nullptr;
     q_dbi_get_client_version_t get_client_version = nullptr;
+    q_dbi_get_driver_real_name_t get_driver_real_name = nullptr;
 
     dbi_driver_stmt stmt;
     dbi_driver_opt opt;
@@ -264,6 +265,13 @@ struct qore_dbi_private {
         if (f.get_client_version)
             return f.get_client_version(ds, xsink);
         return QoreValue();
+    }
+
+    DLLLOCAL QoreStringNode* getDriverRealName(Datasource* ds, ExceptionSink* xsink) const {
+        if (f.get_driver_real_name) {
+            return f.get_driver_real_name(ds, xsink);
+        }
+        return new QoreStringNode(ds->getDriverName());
     }
 
     DLLLOCAL int getCaps() const {

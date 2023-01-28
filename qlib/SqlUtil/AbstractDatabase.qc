@@ -1337,11 +1337,24 @@ string sql = t.getSqlFromList(list);
     }
 
     static string loadModule(AbstractDatasource nds, *reference<string> drv) {
-        drv = nds.getDriverName();
+        # get Qore driver name
+        string qname = nds.getDriverName();
+        try {
+            drv = nds.getDriverRealName();
+        } catch (hash<ExceptionInfo> ex) {
+            rethrow "DATABASE-DRIVER-ERROR", sprintf("cannot determine real driver name through the %y driver: %s: "
+                "%s", qname, ex.err, ex.desc);
+        }
+
         # generate module and module namespace name
-        string mn = (drv == "odbc")
-            ? AbstractDatabase::getOdbcDriverName(nds)
-            : drv[0].upr() + drv.substr(1) + "SqlUtil";
+        string mn = qname[0].upr() + qname.substr(1);
+        if (drv != qname) {
+            # convert to lower case and remove everything but the first word
+            drv =~ tr/A-Z/a-z/;
+            drv =~ s/ .*//;
+            mn += drv[0].upr() + drv.substr(1);
+        }
+        mn += "SqlUtil";
 
         # try to load module
         try {
@@ -1351,20 +1364,6 @@ string sql = t.getSqlFromList(list);
                 ex.err, ex.desc);
         }
         return mn;
-    }
-
-    static string getOdbcDriverName(AbstractDatasource nds) {
-        # test for Firebird
-        try {
-            nds.select("select rdb$relation_name as name from rdb$relations where rdb$relation_name = 'x'");
-            return "OdbcFirebirdSqlUtil";
-        } catch (hash<ExceptionInfo> ex) {
-            # it is a Firebird DB if the connection works but is denied due to incorrect authentication info
-            if (ex.err == "ODBC-CONNECTION-ERROR" && ex.desc =~ /user name and password are not defined/) {
-                return "OdbcFirebirdSqlUtil";
-            }
-        }
-        throw "ODBC-DRIVER-ERROR", sprintf("cannot determine DB type from ODBC connection %y", nds.getConfigString());
     }
 
     static AbstractDatabase getDatabase(string dsstr, *hash<auto> opts) {

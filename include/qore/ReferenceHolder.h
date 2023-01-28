@@ -86,6 +86,15 @@ public:
         return rv;
     }
 
+    //! swaps the current value for a new one
+    /** @since %Qore 1.14
+    */
+    DLLLOCAL T* swap(T* val) {
+        T* rv = p;
+        p = val;
+        return rv;
+    }
+
     //! returns true if a non-0 pointer is being managed
     DLLLOCAL operator bool() const { return p != nullptr; }
 
@@ -143,6 +152,16 @@ public:
         p = nullptr;
         return rv;
     }
+
+    //! swaps the current value for a new one
+    /** @since %Qore 1.14
+    */
+    DLLLOCAL T* swap(T* val) {
+        T* rv = p;
+        p = val;
+        return rv;
+    }
+
     DLLLOCAL operator bool() const { return p != 0; }
 
 protected:

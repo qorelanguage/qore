@@ -291,7 +291,7 @@ abstract *string AbstractDatasource::getPassword();
     @code{.py}
 *string db = db.getDBName();
     @endcode
- */
+*/
 abstract *string AbstractDatasource::getDBName();
 
 //! Retrieves the database-specific charset set encoding for the object
@@ -343,6 +343,8 @@ abstract *int AbstractDatasource::getPort();
     @code{.py}
 string driver = db.getDriverName();
     @endcode
+
+    @see getDriverRealName()
  */
 abstract string AbstractDatasource::getDriverName();
 
@@ -426,7 +428,8 @@ bool AbstractDatasource::currentThreadInTransaction() {
     @since Qore 0.9.0
 */
 AbstractSQLStatement AbstractDatasource::getSQLStatement() {
-    xsink->raiseException("ABSTRACT-DATASOURCE-ERROR", "This method must be re-implemented in subclasses to provide the desired functionality; it is implemented in Datasource and DatasourcePool for example");
+    xsink->raiseException("ABSTRACT-DATASOURCE-ERROR", "This method must be re-implemented in subclasses to provide "
+        "the desired functionality; it is implemented in Datasource and DatasourcePool for example");
     return QoreValue();
 }
 
@@ -453,9 +456,25 @@ hash<auto> AbstractDatasource::getOptionHash() [flags=RET_VALUE_ONLY] {
     @since %Qore 0.9.4
 */
 auto AbstractDatasource::getOption(string[doc] opt) [flags=RET_VALUE_ONLY] {
-    xsink->raiseException("DBI-OPTION-ERROR", "This method must be re-implemented in subclasses to provide the " \
+    xsink->raiseException("DBI-OPTION-ERROR", "This method must be re-implemented in subclasses to provide the "
         "desired functionality; it is implemented in Datasource and DatasourcePool for example");
     return QoreValue();
 }
 
+//! Returns the real DB driver name if supported by the driver, otherwise the %Qore driver name
+/** @return the real DB driver name if supported by the driver, otherwise the %Qore driver name
 
+    @par Example:
+    @code{.py}
+*string db = db.getDriverRealName();
+    @endcode
+
+    By default this base class method returns @ref getDriverName(); override in subclasses to modify this behavior
+
+    @see getDriverName()
+
+    @since %Qore 1.14
+*/
+string AbstractDatasource::getDriverRealName() {
+    return self->evalMethod("getDriverName", nullptr, xsink);
+}

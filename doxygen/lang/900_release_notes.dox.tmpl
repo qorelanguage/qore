@@ -2,12 +2,20 @@
 
     @tableofcontents
 
-    @section qore_1_13_1 Qore 1.13.1
+    @section qore_1_14 Qore 1.14
 
     @par Release Summary
-    Bugfix release; see below for more information
+    Bugfix release with minor new features; see below for more information
 
-    @subsection qore_1_13_1_bug_fixes Bug Fixes in Qore
+    @subsection qore_1_14_new_features New Features in Qore
+    - Added a DBI method to determine the actual DB driver name for wrapper drivers like ODBC and JDBC
+      (<a href="https://github.com/qorelanguage/qore/issues/4690">issue 4690</a>)
+    - Added new methods to allow the actual DB driver name to be determined:
+      - @ref Qore::SQL::AbstractDatasource::getDriverRealName() "AbstractDatasource::getDriverRealName()"
+      - @ref Qore::SQL::Datasource::getDriverRealName() "Datasource::getDriverRealName()"
+      - @ref Qore::SQL::DatasourcePool::getDriverRealName() "DatasourcePool::getDriverRealName()"
+
+    @subsection qore_1_14_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - set connection status to \c OK after a successful manual ping operation
         (<a href="https://github.com/qorelanguage/qore/issues/4685">issue 4685</a>)
