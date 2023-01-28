@@ -135,7 +135,7 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     driverNameTest() {
-        assertEq(getExpectedDriverName(), table.getDatasource().getDriverRealName());
+        assertEq(getExpectedDriverName(), table ? table.getDatasource().getDriverRealName() : "");
     }
 
     serializationTest() {
@@ -1708,7 +1708,7 @@ public class SqlTestBase inherits QUnit::Test {
     }
 
     string getExpectedDriverName() {
-        return table.getDatasource().getDriverRealName();
+        return table ? table.getDatasource().getDriverRealName() : "";
     }
 
     test2358SqlutilSchema() {
