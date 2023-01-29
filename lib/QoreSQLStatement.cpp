@@ -137,14 +137,16 @@ QoreSQLStatement::~QoreSQLStatement() {
 }
 
 int QoreSQLStatement::checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int stat, const char* action) {
-    //printd(5, "QoreSQLStatement::checkStatus() this: %p stat: %d status: %d action: '%s' ssize: %d\n", this, stat, status, action, ssize);
+    //printd(5, "QoreSQLStatement::checkStatus() this: %p stat: %d status: %d action: '%s' ssize: %d\n", this, stat,
+    //    status, action, ssize);
 
     if (stat != status) {
         if (stat == STMT_IDLE)
             return closeIntern(xsink);
 
         // issue #2773: execute "exec define" if possible
-        if (stat == STMT_DEFINED && status < STMT_EXECED && qore_dbi_private::get(*priv->ds->getDriver())->hasExecDefine() && !strcmp(action, "describe")) {
+        if (stat == STMT_DEFINED && status < STMT_EXECED
+            && qore_dbi_private::get(*priv->ds->getDriver())->hasExecDefine() && !strcmp(action, "describe")) {
             if (status == STMT_IDLE && str.strlen()) {
                 if (prepareIntern(xsink))
                     return -1;
@@ -188,7 +190,8 @@ int QoreSQLStatement::checkStatus(ExceptionSink* xsink, DBActionHelper& dba, int
         if (stat == STMT_DEFINED && status == STMT_EXECED)
             return defineIntern(xsink);
 
-        xsink->raiseException("SQLSTATEMENT-ERROR", "SQLStatement::%s() called expecting status '%s', but statement has status '%s'", action, stmt_statuses[stat], stmt_statuses[status]);
+        xsink->raiseException("SQLSTATEMENT-ERROR", "SQLStatement::%s() called expecting status '%s', but statement "
+            "has status '%s'", action, stmt_statuses[stat], stmt_statuses[status]);
         return -1;
     }
 
@@ -321,34 +324,37 @@ int QoreSQLStatement::bindPlaceholders(const QoreListNode& l, ExceptionSink* xsi
 }
 
 int QoreSQLStatement::bindValues(const QoreListNode& l, ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return -1;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return -1;
 
-   if (checkStatus(xsink, dba, STMT_PREPARED, "bindValues"))
-      return -1;
+    if (checkStatus(xsink, dba, STMT_PREPARED, "bindValues"))
+        return -1;
 
-   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind_values(this, l, xsink);
+    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind_values(this, l, xsink);
 }
 
 int QoreSQLStatement::exec(const QoreListNode* args, ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return -1;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba) {
+        return -1;
+    }
 
-   // statements from output buffers have no SQL
-   if (str.empty()) {
-       xsink->raiseException("SQLSTATEMENT-ERROR", "the current statement has no SQL to execute");
-       return -1;
-   }
+    // statements from output buffers have no SQL
+    if (str.empty()) {
+        xsink->raiseException("SQLSTATEMENT-ERROR", "the current statement has no SQL to execute");
+        return -1;
+    }
 
-   if (checkStatus(xsink, dba, STMT_PREPARED, "exec"))
-      return -1;
+    if (checkStatus(xsink, dba, STMT_PREPARED, "exec")) {
+        return -1;
+    }
 
-   if (args && args->size() && qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind(this, *args, xsink))
-      return -1;
+    if (args && args->size() && qore_dbi_private::get(*priv->ds->getDriver())->stmt_bind(this, *args, xsink)) {
+        return -1;
+    }
 
-   return execIntern(dba, xsink);
+    return execIntern(dba, xsink);
 }
 
 int QoreSQLStatement::execIntern(DBActionHelper& dba, ExceptionSink* xsink) {
@@ -374,102 +380,102 @@ int QoreSQLStatement::execDescribeIntern(DBActionHelper& dba, ExceptionSink* xsi
 }
 
 int QoreSQLStatement::affectedRows(ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return -1;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return -1;
 
-   if (checkStatus(xsink, dba, STMT_EXECED, "affectedRows"))
-      return -1;
+    if (checkStatus(xsink, dba, STMT_EXECED, "affectedRows"))
+        return -1;
 
-   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_affected_rows(this, xsink);
+    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_affected_rows(this, xsink);
 }
 
 QoreHashNode* QoreSQLStatement::getOutput(ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return nullptr;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return nullptr;
 
-   if (checkStatus(xsink, dba, STMT_EXECED, "getOutput"))
-      return nullptr;
+    if (checkStatus(xsink, dba, STMT_EXECED, "getOutput"))
+        return nullptr;
 
-   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_get_output(this, xsink);
+    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_get_output(this, xsink);
 }
 
 QoreHashNode* QoreSQLStatement::getOutputRows(ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return nullptr;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return nullptr;
 
-   if (checkStatus(xsink, dba, STMT_EXECED, "getOutputRows"))
-      return nullptr;
+    if (checkStatus(xsink, dba, STMT_EXECED, "getOutputRows"))
+        return nullptr;
 
-   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_get_output_rows(this, xsink);
+    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_get_output_rows(this, xsink);
 }
 
 bool QoreSQLStatement::next(ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return (validp = false);
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return (validp = false);
 
-   if (checkStatus(xsink, dba, STMT_DEFINED, "next"))
-      return (validp = false);
+    if (checkStatus(xsink, dba, STMT_DEFINED, "next"))
+        return (validp = false);
 
-   return (validp = qore_dbi_private::get(*priv->ds->getDriver())->stmt_next(this, xsink));
+    return (validp = qore_dbi_private::get(*priv->ds->getDriver())->stmt_next(this, xsink));
 }
 
 bool QoreSQLStatement::valid() {
-   return validp;
+    return validp;
 }
 
 int QoreSQLStatement::define(ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return false;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return false;
 
-   if (checkStatus(xsink, dba, STMT_EXECED, "define"))
-      return false;
+    if (checkStatus(xsink, dba, STMT_EXECED, "define"))
+        return false;
 
-   return defineIntern(xsink);
+    return defineIntern(xsink);
 }
 
 int QoreSQLStatement::defineIntern(ExceptionSink* xsink) {
-   int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_define(this, xsink);
-   if (!rc)
-      status = STMT_DEFINED;
-   return rc;
+    int rc = qore_dbi_private::get(*priv->ds->getDriver())->stmt_define(this, xsink);
+    if (!rc)
+        status = STMT_DEFINED;
+    return rc;
 }
 
 QoreHashNode* QoreSQLStatement::fetchRow(ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return nullptr;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return nullptr;
 
-   if (checkStatus(xsink, dba, STMT_DEFINED, "fetchRow"))
-      return nullptr;
+    if (checkStatus(xsink, dba, STMT_DEFINED, "fetchRow"))
+        return nullptr;
 
-   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_row(this, xsink);
+    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_row(this, xsink);
 }
 
 QoreListNode* QoreSQLStatement::fetchRows(int rows, ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return nullptr;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return nullptr;
 
-   if (checkStatus(xsink, dba, STMT_DEFINED, "fetchRows"))
-      return nullptr;
+    if (checkStatus(xsink, dba, STMT_DEFINED, "fetchRows"))
+        return nullptr;
 
-   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_rows(this, rows, xsink);
+    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_rows(this, rows, xsink);
 }
 
 QoreHashNode* QoreSQLStatement::fetchColumns(int rows, ExceptionSink* xsink) {
-   DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
-   if (!dba)
-      return nullptr;
+    DBActionHelper dba(*this, xsink, DAH_ACQUIRE);
+    if (!dba)
+        return nullptr;
 
-   if (checkStatus(xsink, dba, STMT_DEFINED, "fetchColumns"))
-      return nullptr;
+    if (checkStatus(xsink, dba, STMT_DEFINED, "fetchColumns"))
+        return nullptr;
 
-   return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_columns(this, rows, xsink);
+    return qore_dbi_private::get(*priv->ds->getDriver())->stmt_fetch_columns(this, rows, xsink);
 }
 
 QoreHashNode* QoreSQLStatement::describe(ExceptionSink* xsink) {
