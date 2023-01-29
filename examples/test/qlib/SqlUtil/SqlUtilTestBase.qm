@@ -958,7 +958,7 @@ public class SqlTestBase inherits QUnit::Test {
             "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
         );
 
-        *hash row = table.selectRow (soh, \sql);
+        *hash row = table.selectRow(soh, \sql);
 
         hash expect = (
             "cop_cast": "2",
@@ -1335,7 +1335,7 @@ public class SqlTestBase inherits QUnit::Test {
                 assertSkip (t.value.skip_for + " might fail this test");
                 continue;
             }
-            *list rows = table.selectRows (t.value.in, \sql);
+            *list<auto> rows = table.selectRows(t.value."in", \sql);
             hash out = t.value.out;
             assertEq(out.count, rows.size(), "checking where operator " + t.key);
 
@@ -1741,11 +1741,19 @@ public class SqlTestBase inherits QUnit::Test {
         }
 
         Database db(table.getDatasource());
-        auto ret = db.getPhysicalSize();
-        if (m_options.verbose > 2) {
-            printf("    DB size: %n\n", ret);
+        try {
+            auto ret = db.getPhysicalSize();
+            if (m_options.verbose > 2) {
+                printf("    DB size: %n\n", ret);
+            }
+            assertEq(NT_INT, ret.typeCode(), "result must be int");
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "UNSUPPORTED") {
+                testSkip("unsupported API");
+            } else {
+                rethrow;
+            }
         }
-        assertEq(NT_INT, ret.typeCode(), "result must be int");
     }
 }
 

@@ -23,10 +23,10 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.8
+%requires qore >= 1.14
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.7.5
+%requires SqlUtil >= 1.9
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -254,6 +254,11 @@ string str = col.getRenameSql(t, "new_name");
         */
         string getRenameSql(AbstractTable t, string new_name) {
             return sprintf("alter table %s alter %s to %s", t.getSqlName(), ddl_name, getDdlName(new_name));
+        }
+
+        #! returns a string that can be used to drop the column from the table
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop %s", table_name, ddl_name);
         }
 
         #! returns the column name with quoting in case the column name is a reserved word
@@ -695,9 +700,9 @@ auto v = c.name;
         }
 
         private *AbstractSequence getSequenceImpl(string name) {
-            *hash<auto> row = ds.selectRow("select rdb$generator_name as sequence from rdb$generators where "
+            *hash<auto> row = ds.selectRow("select rdb$generator_name as \"sequence\" from rdb$generators where "
                 "rdb$system_flag = 0 and rdb$generator_name = %v", name.upr());
-            return new XdbcFirebirdSequence(row.sequence.lwr());
+            return row.sequence ? new XdbcFirebirdSequence(row.sequence.lwr()) : NOTHING;
         }
 
         private *AbstractView getViewImpl(string name) {
@@ -733,7 +738,7 @@ auto v = c.name;
 
         #! returns a list of string table names in the database
         private softlist<string> listTablesImpl() {
-            return ds.select("select lower(a.rdb$relation_name) as name from rdb$relations a "
+            return ds.select("select lower(a.rdb$relation_name) as \"name\" from rdb$relations a "
                 "where coalesce(rdb$system_flag, 0) = 0 and rdb$relation_type = 0").name;
         }
 
@@ -760,7 +765,7 @@ auto v = c.name;
         }
 
         private list<string> listViewsImpl() {
-            return ds.select("select rdb$relation_name as name from rdb$relations where rdb$view_blr is not null "
+            return ds.select("select rdb$relation_name as \"name\" from rdb$relations where rdb$view_blr is not null "
                 "and (rdb$system_flag is null or rdb$system_flag = 0)").name;
         }
 
@@ -774,12 +779,12 @@ auto v = c.name;
 
         #! returns the next value in the given sequence
         private softint getNextSequenceValueImpl(string name) {
-            return ds.selectRow("select next value for %s as nextval from rdb$database", name).nextval;
+            return ds.selectRow("select next value for %s as \"nextval\" from rdb$database", name).nextval;
         }
 
         #! returns the last value issued for the given sequence in the current session
         private softint getCurrentSequenceValueImpl(string name) {
-            return ds.selectRow("select gen_id(%s, 0) as currentval from rdb$database", name).currentval;
+            return ds.selectRow("select gen_id(%s, 0) as \"currentval\" from rdb$database", name).currentval;
         }
 
         #! returns @ref True "True" since we have a workaround implementation for sequences in XdbcFirebird
@@ -935,11 +940,47 @@ auto v = c.name;
 
             #! column operator specializations for XdbcFirebird
             const XdbcFirebirdCopMap = (
+                COP_AS: {
+                    "arg": Type::String,
+                    "withalias": True,
+                    "code": string sub (string cve, string arg, reference<hash<auto>> aliases) {
+                        # issue #2163: make sure the unquoted alias is inserted in the map
+                        if (arg =~ /^(".*"|`.*`)$/) {
+                            arg = arg.substr(1, -1);
+                        }
+                        aliases{arg} = cve;
+                        return sprintf("%s as \"%s\"", cve, arg);
+                    },
+                },
                 COP_CAST: (
                     "code": string sub (string cve, list<auto> args) {
-                        return sprintf("cast(%s as %s)", cve, QoreTypeMap{args[0]} ?? args[0]);
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        *hash<auto> desc = XdbcFirebirdTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range) {
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s",
+                                            name);
+                                    }
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                } else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += args[1] == "*" ? "(*" : sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                } else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
                     },
                 ),
+                COP_LENGTH: {
+                    "code": string sub (string cve, auto arg) {
+                        return sprintf("char_length(%s)", cve);
+                    },
+                },
                 COP_PREPEND: (
                     "arg": Type::String,
                     "sqlvalue": True,
@@ -953,8 +994,142 @@ auto v = c.name;
                     "code": string sub (string cve, string arg) {
                         return sprintf("%s || %s", cve, arg);
                     },
-                ),
+                )
             );
+
+            #! Firebird operator map
+            const FirebirdOpMap = DefaultOpMap + {
+                OP_IN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN} + (
+                    "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
+                        # firebird accepts max 1500 args in "IN" lists
+                        list<string> argl;
+                        softlist<auto> args = arg;
+                        while (args) {
+                            list<auto> arg_slice = extract args, 0, 1500;
+                            *string ins = (foldl $1 + "," + $2, (map info.table.getSqlValue($1), arg_slice));
+                            if (ins) {
+                                argl += ins;
+                            }
+                        }
+                        if (!argl) {
+                            return "1 != 1";
+                        }
+                        return "(" + (foldl $1 + " or " + $2, map sprintf("%s in (%s)", cn, $1), argl) + ")";
+                    },
+                ),
+            };
+
+            #! Firebird Expression map
+            const FirebirdExpressionMap = DefaultExpressionMap + {
+                COP_AS: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": "as",
+                        "name": "as",
+                        "desc": "aliases a result; args: expression or value, string label",
+                        "symbol": "as",
+                        "role": ER_Field,
+                        "args": (
+                            DataProviderSignatureAnyType,
+                            DataProviderSignatureStringValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."any",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."any");
+                        string arg = args[1];
+                        info.pseudo_column_map{arg} = exp;
+                        return sprintf("%s as \"%s\"", exp, arg);
+                    },
+                },
+                COP_CAST: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_CAST,
+                        "name": "cast",
+                        "desc": "cast operator",
+                        "symbol": "cast",
+                        "args": (
+                            DataProviderSignatureAnyType,
+                            DataProviderSignatureStringValueType,
+                            DataProviderSignatureOptionalIntValueType,
+                            DataProviderSignatureOptionalIntValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."any",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."any");
+                        string name = QoreTypeMap{args[1]} ?? args[1];
+                        *hash<auto> desc = XdbcFirebirdTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", exp0, name);
+                        if (desc.size == SZ_MAND) {
+                            if (!exists args[1] && !exists desc.size_range)
+                                throw "OPERATOR-ERROR", sprintf ("cast operator missing size for type %s",
+                                    name);
+                            sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                        } else if (desc.size == SZ_NUM && exists args[1]) {
+                            sql += sprintf("(%d", args[1]);
+                            sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                        } else if (desc.size == SZ_OPT && exists args[1]) {
+                            sql += sprintf("(%d)", args[1]);
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                },
+                COP_LENGTH: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_LENGTH,
+                        "name": COP_LENGTH,
+                        "desc": "Returns the length of the argument",
+                        "symbol": COP_LENGTH,
+                        "args": (
+                            DataProviderSignatureAnyType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."int",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        return sprintf("char_length(%s)", info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."any"));
+                    },
+                },
+                OP_IN: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": OP_IN,
+                        "name": OP_IN,
+                        "desc": "returns True if the first value is in the list of following values",
+                        "symbol": OP_IN,
+                        "args": (
+                            DataProviderSignatureAnyType,
+                            DataProviderSignatureAnyType,
+                        ),
+                        "varargs": True,
+                        "return_type": AbstractDataProviderTypeMap."bool",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        # firebird accepts max 1500 args in "IN" lists
+                        list<string> argl;
+                        string exp0 = info.table.getExpressionArg(\info, role, shift args,
+                            AbstractDataProviderTypeMap."any");
+                        while (args) {
+                            list<auto> arg_slice = extract args, 0, 1500;
+                            *string ins = (foldl $1 + "," + $2, (map info.table.getExpressionArg(\info, role, $1,
+                                AbstractDataProviderTypeMap."any"), arg_slice));
+                            if (ins) {
+                                argl += ins;
+                            }
+                        }
+                        if (!argl) {
+                            return "1 != 1";
+                        }
+                        return "(" + (foldl $1 + " or " + $2, map sprintf("%s in (%s)", exp0, $1), argl) + ")";
+                    },
+                },
+            };
         }
 
         constructor(AbstractDatasource ds, string name, *hash<auto> opts) : AbstractTable(ds, name, opts) {
@@ -970,8 +1145,18 @@ auto v = c.name;
             return XdbcFirebirdCopMap;
         }
 
+        #! returns the "where" operator map for Firebird
+        hash<auto> getWhereOperatorMap() {
+            return FirebirdOpMap;
+        }
+
+        #! Returns the expression map for Firebird
+        hash<auto> getExpressionMap() {
+            return FirebirdExpressionMap;
+        }
+
         private bool checkExistenceImpl() {
-            *hash<auto> row = ds.selectRow("select a.rdb$relation_name as name from rdb$relations a "
+            *hash<auto> row = ds.selectRow("select a.rdb$relation_name as \"name\" from rdb$relations a "
                 "where coalesce(rdb$system_flag, 0) = 0 and rdb$relation_type = 0 and a.rdb$relation_name = %v",
                 name.upr());
             if (row) {
@@ -1104,8 +1289,8 @@ auto v = c.name;
         private XdbcFirebirdPrimaryKey getPrimaryKeyImpl() {
             # get primary key description
             *hash<auto> qh = ds.select("select
-    ix.rdb$index_name as index_name,
-    lower(sg.rdb$field_name) as column_name
+    ix.rdb$index_name as \"index_name\",
+    lower(sg.rdb$field_name) as \"column_name\"
 from
     rdb$indices ix
     left join rdb$index_segments sg on ix.rdb$index_name = sg.rdb$index_name
@@ -1130,7 +1315,7 @@ where
 
             # get index descriptions
             *hash<auto> qh = ds.select("select "
-                "   lower(ix.rdb$index_name) as name, rdb$unique_flag as \"unique\" "
+                "   lower(ix.rdb$index_name) as \"name\", rdb$unique_flag as \"unique\" "
                 "from "
                 "   rdb$indices ix, rdb$relation_constraints rc "
                 "where "
@@ -1139,7 +1324,7 @@ where
             hash<auto> ih;
             foreach hash<auto> row in (qh.contextIterator()) {
                 ih{row.name}.unique = row.unique;
-                *hash<auto> ch = ds.select("select lower(rdb$field_name) as cname from rdb$index_segments "
+                *hash<auto> ch = ds.select("select lower(rdb$field_name) as \"cname\" from rdb$index_segments "
                     "where rdb$index_name = %v order by rdb$field_position", row.name.upr());
 
                 foreach string col in (ch.cname) {
@@ -1255,6 +1440,10 @@ where
             return new XdbcFirebirdTrigger(tname, src);
         }
 
+        private string getTruncateSqlImpl() {
+            return sprintf("delete from %s", getSqlName());
+        }
+
         private bool tryInsertImpl(string sql, hash<auto> row) {
             try {
                 ds.vexec(sql, row.values());
@@ -1271,7 +1460,7 @@ where
         /** @since XdbcFirebirdSqlUtilBase 1.4.2
         */
         private bool isDuplicateRowErrorImpl(hash<ExceptionInfo> ex) {
-            return (ex.desc =~ /attempt to store duplicate value/);
+            return (ex.desc =~ /(attempt to store duplicate value|violation of PRIMARY or UNIQUE KEY constraint)/);
         }
 
         private hash<auto> getQoreTypeMapImpl() {

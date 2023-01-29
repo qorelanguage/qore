@@ -10,15 +10,15 @@
 %requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/XdbcFirebirdSqlUtilBase.qm
-%requires ../../../../qlib/OdbcFirebirdSqlUtil.qm
+%requires ../../../../qlib/JdbcFirebirdSqlUtil.qm
 
 %requires ./SqlUtilTestBase.qm
 
-%exec-class OdbcFirebirdTest
+%exec-class JdbcFirebirdTest
 
-class OdbcFirebirdTestSchema inherits SqlUtilTestSchema {
+class JdbcFirebirdTestSchema inherits SqlUtilTestSchema {
     public {
-        const SchemaName = "OdbcFirebirdTestSchema";
+        const SchemaName = "JdbcFirebirdTestSchema";
         const SchemaVersion = "1.0";
     }
 
@@ -59,7 +59,7 @@ class OdbcFirebirdTestSchema inherits SqlUtilTestSchema {
     }
 
     private *hash<auto> getTablesImpl() {
-        return doTables(Tables, OdbcFirebirdTest::CustomColumns);
+        return doTables(Tables, JdbcFirebirdTest::CustomColumns);
     }
 
     private *hash getIndexOptionsImpl() {
@@ -75,7 +75,7 @@ class OdbcFirebirdTestSchema inherits SqlUtilTestSchema {
     }
 }
 
-class OdbcFirebirdTest inherits SqlTestBase {
+class JdbcFirebirdTest inherits SqlTestBase {
     public {
         const CustomColumns = (
             "varchar": (
@@ -94,11 +94,14 @@ class OdbcFirebirdTest inherits SqlTestBase {
 
             "timestamp with time zone": 2023-01-28T16:48:30.500123,
 
-            "varbinary": <bead>,
+            "varbinary": {
+                "size": 10,
+                "value": <bead>,
+            },
         );
     }
 
-    constructor() : SqlTestBase("OdbcFirebirdTest", "1.0", \ARGV, MyOpts) {
+    constructor() : SqlTestBase("JdbcFirebirdTest", "1.0", \ARGV, MyOpts) {
         Datasource ds;
         try {
             ds = getDatasource();
@@ -118,7 +121,7 @@ class OdbcFirebirdTest inherits SqlTestBase {
             }
 
             # create the test schema
-            schema = new OdbcFirebirdTestSchema(ds);
+            schema = new JdbcFirebirdTestSchema(ds);
 
             schema.align(False, m_options.verbose, m_options.verbose > 0);
 
@@ -138,16 +141,16 @@ class OdbcFirebirdTest inherits SqlTestBase {
 
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
-        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"odbcfirebird:user/pass@db\")", OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"jdbcfirebird:user/pass@db\")", OptionColumn);
     }
 
     Datasource getDatasource() {
         if (!m_options.connstr) {
-            m_options.connstr = ENV.QORE_DB_CONNSTR_ODBC_FIREBIRD;
+            m_options.connstr = ENV.QORE_DB_CONNSTR_JDBC_FIREBIRD;
         }
         Datasource ds(m_options.connstr);
         if (ds.getDriverRealName() !~ /^firebird/i)
-            throw "ODBCFIREBIRD-ERROR", sprintf("cannot execute the ODBC Firebird tests on a connection using driver "
+            throw "JDBCFIREBIRD-ERROR", sprintf("cannot execute the JDBC Firebird tests on a connection using driver "
                 "%y", ds.getDriverRealName());
         ds.open();
         return ds;

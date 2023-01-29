@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file JdbcFirebirdSqlUtil.qm Qore user module for working with Firebird JDBC SQL data
+#! @file JdbcFirebirdSqlUtil.qm Qore user module for working with JdbcFirebird SQL data
 
 /*  JdbcFirebirdSqlUtil.qm Copyright 2013 - 2023 Qore Technologies, s.r.o.
 
@@ -23,13 +23,10 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.14.0
+%requires qore >= 1.14
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.7.5
-
-# the actual implmentation is in the XdbcFirebirdSqlUtilBase module
-%requires XdbcFirebirdSqlUtilBase
+%requires SqlUtil >= 1.9
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
@@ -39,6 +36,9 @@
 
 # enable all warnings
 %enable-all-warnings
+
+# the implementation is in XdbcFirebirdSqlUtilBase
+%requires XdbcFirebirdSqlUtilBase
 
 module JdbcFirebirdSqlUtil {
     version = "0.1";
@@ -63,21 +63,25 @@ module JdbcFirebirdSqlUtil {
     All the public symbols in the module are defined in the JdbcFirebirdSqlUtil namespace
 
     @note
-    - This module requires the <a href="https://github.com/qorelanguage/module-jni">jni</a> binary module
-      providing the \c jdbc driver for communication with Firebird databases plus the Firebird JDBC driver in the
-      Java classpath
+    - This module requires the <a href="https://github.com/qorelanguage/module-jdbc">jdbc</a> binary module
+      for communication with Firebird databases plus the Firebird client library and the Firebird JDBC driver
 
-    @see @ref xdbcfirebirdsqlutilbaseintro for implementation details
+    @see @ref xdbcfirebirdsqlutilbaseintro for implementation information
+
+    @section jdbcfirebird_relnotes Release Notes
+
+    @subsection jdbcfirebirdsqlutilv_0_1 JdbcFirebirdSqlUtil Module v0.1
+    - initial release
 */
 
 #! the JdbcFirebirdSqlUtil namespace contains all the objects in the JdbcFirebirdSqlUtil module
 public namespace JdbcFirebirdSqlUtil {
-    #! returns a JdbcFirebirdTable object corresponding to the arguments
+    #! returns a XdbcFirebirdTable object corresponding to the arguments
     public XdbcFirebirdTable sub get_table(AbstractDatasource nds, string nname, *hash<auto> opts) {
         return new XdbcFirebirdTable(nds, nname, opts);
     }
 
-    #! returns a JdbcFirebirdDatabase object corresponding to the arguments
+    #! returns a XdbcFirebirdDatabase object corresponding to the arguments
     public XdbcFirebirdDatabase sub get_database(AbstractDatasource nds, *hash<auto> opts) {
         return new XdbcFirebirdDatabase(nds, opts);
     }

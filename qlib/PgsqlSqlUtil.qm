@@ -26,7 +26,7 @@
 %requires qore >= 1.14
 
 # requires the SqlUtil module
-%requires SqlUtil >= 1.5
+%requires SqlUtil >= 1.9
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style
