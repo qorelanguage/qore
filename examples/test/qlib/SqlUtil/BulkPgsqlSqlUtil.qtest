@@ -10,6 +10,7 @@
 %requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/BulkSqlUtil
+%requires ../../../../qlib/PgsqlSqlUtilBase.qm
 %requires ../../../../qlib/PgsqlSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 
