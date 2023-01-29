@@ -1,0 +1,155 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/SqlUtil
+%requires ../../../../qlib/XdbcFirebirdSqlUtilBase.qm
+%requires ../../../../qlib/OdbcFirebirdSqlUtil.qm
+
+%requires ./SqlUtilTestBase.qm
+
+%exec-class OdbcFirebirdTest
+
+class OdbcFirebirdTestSchema inherits SqlUtilTestSchema {
+    public {
+        const SchemaName = "OdbcFirebirdTestSchema";
+        const SchemaVersion = "1.0";
+    }
+
+    private {
+        const GenericOptions = (
+            "replace": True,
+        );
+
+        const IndexOptions = {};
+
+        const ColumnOptions = {};
+
+        const T_SqlUtilTest = (
+            "columns": (
+                "id": c_number(14, True, "an example comment with 'quotes'"),
+                "id_": c_number(14, True),
+                "null_f": c_varchar(69),
+                "blob_f": c_blob(True),
+                "clob_f": c_clob(True),
+            ),
+            "primary_key": ("name": "pk_sqlutil_test", "columns": ("id")),
+        );
+
+        const Tables = (
+            "sqlutil_test": T_SqlUtilTest,
+        );
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
+    }
+
+    private string getNameImpl() {
+        return SchemaName;
+    }
+
+    private string getVersionImpl() {
+        return SchemaVersion;
+    }
+
+    private *hash<auto> getTablesImpl() {
+        return doTables(Tables, OdbcFirebirdTest::CustomColumns);
+    }
+
+    private *hash getIndexOptionsImpl() {
+        return IndexOptions;
+    }
+
+    private *hash getGenericOptionsImpl() {
+        return GenericOptions;
+    }
+
+    private *hash getColumnOptionsImpl() {
+        return ColumnOptions;
+    }
+}
+
+class OdbcFirebirdTest inherits SqlTestBase {
+    public {
+        const CustomColumns = (
+            "varchar": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "char": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "numeric": (
+                "size": 15,
+                "scale": 2,
+                "value": 400.95n,
+            ),
+
+            "timestamp with time zone": 2023-01-28T16:48:30.500123,
+
+            "varbinary": <bead>,
+        );
+    }
+
+    constructor() : SqlTestBase("OdbcFirebirdTest", "1.0", \ARGV, MyOpts) {
+        Datasource ds;
+        try {
+            ds = getDatasource();
+        } catch (hash<ExceptionInfo> ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+            # skip tests if we can't create the datasource
+        }
+
+        if (ds) {
+            initTestData(CustomColumns);
+
+            { # Make sure the DB is clear before doing the tests.
+                XdbcFirebirdTable t = new XdbcFirebirdTable(ds, "sqlutil_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
+
+            # create the test schema
+            schema = new OdbcFirebirdTestSchema(ds);
+
+            schema.align(False, m_options.verbose, m_options.verbose > 0);
+
+            # get table object
+            table = (new Table(schema.getDatasource(), "sqlutil_test")).getTable();
+
+            addTestCase("analytic/window functions", \testAnalyticFunctions());
+        }
+
+        set_return_value(main());
+    }
+
+    private string getResultSetSql() {
+        testSkip("does not support result set output binds");
+        return "";
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"odbcfirebird:user/pass@db\")", OptionColumn);
+    }
+
+    Datasource getDatasource() {
+        if (!m_options.connstr) {
+            m_options.connstr = ENV.QORE_DB_CONNSTR_ODBC_FIREBIRD;
+        }
+        Datasource ds(m_options.connstr);
+        if (ds.getDriverRealName() !~ /^firebird/i)
+            throw "ODBCFIREBIRD-ERROR", sprintf("cannot execute the ODBC Firebird tests on a connection using driver "
+                "%y", ds.getDriverRealName());
+        ds.open();
+        return ds;
+    }
+}

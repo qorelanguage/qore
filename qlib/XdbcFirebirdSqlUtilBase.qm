@@ -1,0 +1,1672 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file XdbcFirebirdSqlUtilBase.qm Qore user module for working with Firebird SQL data
+
+/*  XdbcFirebirdSqlUtilBase.qm Copyright 2013 - 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:bool n_auto_increment = False, bool n_pk = False
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 1.14
+
+# requires the SqlUtil module
+%requires SqlUtil >= 1.9
+
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+module XdbcFirebirdSqlUtilBase {
+    version = "0.1";
+    desc = "user module for working with Firebird DBs using xDBC drivers";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage XdbcFirebirdSqlUtilBase Module
+
+    @tableofcontents
+
+    @section xdbcfirebirdsqlutilbaseintro XdbcFirebirdSqlUtilBase Module Introduction
+
+    The %XdbcFirebirdSqlUtilBase module provides a high level API for working with Firebird database objects through
+    \c xdbc and \c jdbc drivers in %Qore.
+
+    Usually this module is loaded on demand from the SqlUtil module, however to use this module
+    directly, use \c "%requires XdbcFirebirdSqlUtilBase" in your code.
+
+    All the public symbols in the module are defined in the XdbcFirebirdSqlUtilBase namespace
+
+    @note
+    - This module requires the <a href="https://github.com/qorelanguage/module-xdbc">xdbc</a> or
+      <a href="https://github.com/qorelanguage/module-jni">jni</a> binary modules
+      for communication with Firebird databases plus the Firebird client library and the Firebird XDBC driver or the
+      Firebird JDBC drivers
+    - This module supports basic DDL / schema management for Firebird DBs and basic functionality for DML as well
+
+    @section firebird_schema_management Schema Management on Firebird
+
+    @subsection xdbcfirebird_type_mapping Type Mapping
+
+    Column types are mapped from %Qore types as follows:
+
+    <b>XdbcFirebird Column Type Mappings</b>
+    |!%Qore Type Name|!Firebird Type Used
+    |\c int|\c bigint
+    |\c float|<tt>double precision</tt>
+    |\c number|\c varchar
+    |\c string|\c varchar
+    |\c date|<tt>timestamp</tt>
+    |\c binary|<tt>blob sub_type text</tt>
+    |\c bool|\c boolean
+    |@ref SqlUtil::BLOB|\c blob
+    |@ref SqlUtil::CHAR|\c char
+    |@ref SqlUtil::CLOB|<tt>blob sub_type text</tt>
+
+    @section xdbcfirebird_relnotes Release Notes
+
+    @subsection xdbcfirebirdsqlutilbasev_0_1 XdbcFirebirdSqlUtilBase Module v0.1
+    - initial release
+*/
+
+#! the XdbcFirebirdSqlUtilBase namespace contains all the objects in the XdbcFirebirdSqlUtilBase module
+public namespace XdbcFirebirdSqlUtilBase {
+    #! returns a XdbcFirebirdTable object corresponding to the arguments
+    public XdbcFirebirdTable sub get_table(AbstractDatasource nds, string nname, *hash<auto> opts) {
+        return new XdbcFirebirdTable(nds, nname, opts);
+    }
+
+    #! returns a XdbcFirebirdDatabase object corresponding to the arguments
+    public XdbcFirebirdDatabase sub get_database(AbstractDatasource nds, *hash<auto> opts) {
+        return new XdbcFirebirdDatabase(nds, opts);
+    }
+
+    #! XdbcFirebird savepoint helper
+    public class XdbcFirebirdSavepointHelper inherits AbstractSavepointHelper {
+        #! Creates the object
+        constructor(AbstractDatasource ds, *string savepoint) : AbstractSavepointHelper(ds, savepoint) {
+        }
+
+        #! Creates the savepoint
+        private createSavepointImpl() {
+            ds.exec("savepoint " + savepoint);
+        }
+
+        #! Rolls back to the savepoint
+        private rollbackImpl() {
+            ds.exec("rollback to " + savepoint);
+        }
+
+        #! Deletes the savepoint
+        private deleteSavepointImpl() {
+            ds.exec("release savepoint " + savepoint);
+        }
+    }
+
+    #! represents a Firebird-specific index
+    public class XdbcFirebirdIndex inherits SqlUtil::AbstractIndex {
+        #! creates the object from the arguments
+        constructor(string name, bool unique, hash<auto> cols) : AbstractIndex(name, unique, cols) {
+        }
+
+        #! returns a string that can be used to create the index in the database
+        string getCreateSql(string table_name, *hash<auto> opt) {
+            return sprintf("create %sindex %s on %s (%s)", unique ? "unique " : "", name, table_name,
+                (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
+        }
+
+        #! returns @ref True "True" if the argument is equal to the current index, @ref False "False" if not
+        private bool equalImpl(AbstractIndex ix) {
+            return True;
+        }
+
+        #! returns a string that can be used to rename the index in the database
+        /** however xdbcfirebird does not support renaming indexes, so the index is dropped and recreated
+        */
+        string getRenameSql(string table_name, string new_name) {
+            return sprintf("drop index %s; create %sindex %s on %s (%s)", name, unique ? "unique " : "", new_name,
+                table_name, (foldl $1 + ", " + $2, columns.getSqlColumnNameIterator()));
+        }
+
+        #! returns a string that can be used to drop the index from the table
+        string getDropSql(string table_name) {
+            return sprintf("drop index %s", name);
+        }
+    }
+
+    #! represents a Firebird-specific foreign constraint
+    public class XdbcFirebirdForeignConstraint inherits SqlUtil::AbstractForeignConstraint {
+        constructor(string n, Columns c, ForeignConstraintTarget t) : AbstractForeignConstraint(n, c, t) {
+        }
+
+        string getCreateSql(string table_name, *hash<auto> opt) {
+            return getCreateSql(name, table_name, opt);
+        }
+
+        #! returns a string that drops the constraint and re-adds it, since XdbcFirebird does not support renaming constraints
+        softlist getRenameSql(string table_name, string new_name) {
+            return getDropSql(table_name) + ", " + getAddSql(new_name, table_name);
+        }
+
+        string getCreateSql(string name, string table_name, *hash<auto> opt) {
+            return sprintf("alter table %s ", table_name) + getAddSql(name, table_name, opt);
+        }
+
+        string getAddSql(string name, string table_name, *hash<auto> opt) {
+            return sprintf("add constraint %s foreign key (%s) references %s (%s)", name,
+                (foldl $1 + ", " + $2, h.keys()), target.table, (foldl $1 + ", " + $2, target.columns.keys()));
+        }
+
+        #! returns a string that can be used to drop the foreign constraint from the database
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop constraint %s", table_name, name);
+        }
+    }
+
+    #! represents a XdbcFirebird-specific column
+    public class XdbcFirebirdColumn inherits SqlUtil::AbstractColumn {
+        #! empty constructor for subclasses
+        private constructor() {
+        }
+
+        #! Creates the column
+        constructor(string name, string native_type, *string qore_type, int size, bool nullable,
+                *string default_value, *string comment, *int scale)
+                : AbstractColumn(name, native_type, qore_type, size, nullable, default_value, comment, scale) {
+        }
+
+        #! returns a list of sql strings that can be used to add the column to an existing table
+        /** @par Example:
+            @code{.py}
+list<string> l = col.getAddColumnSql(t);
+            @endcode
+
+            @param t the AbstractTable object to modify
+         */
+        softlist<string> getAddColumnSql(AbstractTable t) {
+            return sprintf("alter table %s add %s", t.getSqlName(), AbstractColumn::getCreateSql(t));
+        }
+
+        #! returns a list of sql strings that can be used to modify the column to the new definition
+        /** if the column definitions are identical then an empty list is returned
+
+            @code{.py}
+list<string> l = col.getModifySql(t, newcol);
+            @endcode
+
+            The column names are assumed to be equal.
+
+            @param t the AbstractTable object to modify
+            @param col the new column definition
+            @param opt column modification options (none are supported in this class)
+
+            @return a list of sql strings that can be used to modify the column to the new definition; if the column
+            definitions are identical then an empty list is returned
+         */
+        softlist<string> getModifySqlImpl(AbstractTable t, AbstractColumn col, *hash<auto> opt) {
+            list<string> l = ();
+            if (nullable != col.nullable) {
+                l += sprintf("alter table %s alter %s set %snull", t.getSqlName(), ddl_name,
+                    col.nullable ? "" : "not ");
+            }
+            if (native_type != col.native_type || size != col.size || scale != col.scale) {
+                l += sprintf("alter table %s alter %s type %s", t.getSqlName(), ddl_name, getNativeTypeString());
+            }
+            if (def_val != col.def_val) {
+                l += sprintf("alter table %s alter %s %s", t.getSqlName(), ddl_name,
+                    col.def_val ? ("set default " + col.def_val) : "drop default");
+            }
+            return l;
+        }
+
+        #! returns a string that can be used to rename the column
+        /** @par Example:
+            @code{.py}
+string str = col.getRenameSql(t, "new_name");
+            @endcode
+
+            @param t the AbstractTable object to modify
+            @param new_name the new name for the column
+
+            @return a string that can be used to rename the column
+        */
+        string getRenameSql(AbstractTable t, string new_name) {
+            return sprintf("alter table %s alter %s to %s", t.getSqlName(), ddl_name, getDdlName(new_name));
+        }
+
+        #! returns a string that can be used to drop the column from the table
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop %s", table_name, ddl_name);
+        }
+
+        #! returns the column name with quoting in case the column name is a reserved word
+        /** the name returned here will be used when executing DDL
+        */
+        string getDdlName(string name) {
+            return XdbcFirebirdDatabase::XdbcFirebirdReservedWords{name.lwr()} ? ("\"" + name + "\"") : name;
+        }
+
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
+        private bool equalImpl(AbstractColumn c) {
+            return True;
+        }
+    }
+
+    public class XdbcFirebirdUniqueConstraint inherits SqlUtil::AbstractUniqueConstraint {
+        constructor(string name, hash<auto> cols) : AbstractUniqueConstraint(name, cols) {
+        }
+
+        #! returns the XdbcFirebirdColumn value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code{.py}
+auto v = c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from
+            outside the class
+
+            @see @ref memberGate_methods
+        */
+        XdbcFirebirdColumn memberGate(string k) {
+            if (!h.hasKey(k)) {
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k,
+                    h.keys());
+            }
+            return h{k};
+        }
+
+        string getCreateSql(string table_name, *hash<auto> opts) {
+            return getCreateSql(name, table_name, opts);
+        }
+
+        list<string> getRenameSql(string table_name, string new_name) {
+        }
+
+        #! returns a string that can be used to create the constraint in the database
+        string getCreateSql(string name, string table_name, *hash opt) {
+            return sprintf("alter table %s add constraint %s unique (%s)", table_name, name,
+                (foldl $1 + ", " + $2, h.keys()));
+        }
+
+        #! returns a string that can be used to drop the constraint from the database
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop constraint %s", table_name, name);
+        }
+    }
+
+    #! represents a Firebird-specific primary key constraint
+    public class XdbcFirebirdPrimaryKey inherits SqlUtil::AbstractPrimaryKey {
+        constructor() {
+        }
+
+        constructor(hash<auto> c) : AbstractPrimaryKey("PRIMARY", c) {
+        }
+
+        #! returns the column value of the given key if it exists, otherwise throws a \c KEY-ERROR exception
+        /** @par Example:
+            @code{.py}
+auto v = c.name;
+            @endcode
+
+            @param k the name of the key to access
+
+            @return the value of the given key in the contained hash if it exists
+
+            @throw KEY-ERROR the given key does not exist in the contained hash
+
+            @note this method is called automatically when an unknown or inaccessible member name is accessed from
+            outside the class
+
+            @see @ref memberGate_methods
+        */
+        XdbcFirebirdColumn memberGate(string k) {
+            if (!h.hasKey(k)) {
+                throw "KEY-ERROR", sprintf("cannot access unknown %s %y; expecting one of: %y", getElementName(), k,
+                    h.keys());
+            }
+            return h{k};
+        }
+
+        string getCreateSql(string table_name, *hash<auto> opts) {
+            return sprintf("alter table %s add primary key (%s)", table_name,
+                (foldl $1 + ", " + $2, getSqlColumnNameIterator()));
+        }
+
+        list<string> getRenameSql(string table_name, string new_name) {
+            throw "UNSUPPORTED";
+        }
+
+        #! returns @ref False "False" since primary key constraints in Firebird have no name
+        bool supportsName() {
+            return False;
+        }
+    }
+
+    #! represents a Firebird-specific trigger
+    public class XdbcFirebirdTrigger inherits SqlUtil::AbstractTrigger {
+        #! creates the object and sets its name and the trigger source
+        constructor(string n, string n_src) : AbstractTrigger(n, n_src) {
+        }
+
+        #! returns a string that can be used to create the trigger in the database
+        softlist getCreateSql(string table_name, *hash<auto> opt) {
+            return sprintf("create trigger %s %s", name, src);
+        }
+
+        #! returns a string that can be used to drop the trigger from the database
+        softlist getDropSql(string table_name) {
+            return sprintf("drop trigger %s", name);
+        }
+
+        #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
+        private bool equalImpl(AbstractFunctionBase t) {
+            return True;
+        }
+
+        #! returns a string that can be used to rename the trigger in the database
+        softlist getRenameSql(string table_name, string new_name) {
+            throw "UNSUPPORTED";
+        }
+    }
+
+    #! class for XDBC Firebird sequences
+    public class XdbcFirebirdSequence inherits SqlUtil::AbstractSequence {
+        #! creates the object from the arguments
+        constructor(string n_name, number n_start = 1, number n_increment = 1, *softnumber n_end)
+                : AbstractSequence(n_name, n_start, n_increment, n_end) {
+        }
+
+        #! returns a string that can be used to create the sequence in the database
+        string getCreateSql(*hash opt) {
+            return sprintf("create sequence %s", name);
+        }
+
+        #! returns a string that can be used to rename the sequence in the database
+        /** The object is renamed in place with this call
+            @param new_name the new name of the object
+            @param opt this option is ignored
+         */
+        softlist getRenameSql(string new_name, *hash opt) {
+            throw "UNSUPPORTED";
+        }
+    }
+
+    #! represents a Firebird view
+    public class XdbcFirebirdView inherits SqlUtil::AbstractView {
+        #! creates the object from the arguments
+        constructor(string name, string src) : AbstractView(name, src) {
+        }
+
+        #! returns a string that can be used to create the view in the database
+        string getCreateSql(*hash<auto> opt) {
+            # TODO/FIXME: check options
+            return sprintf("create view %s as %s", name, src);
+        }
+
+        #! returns a string that can be used to rename the view in the database
+        /** @param new_name the new name of the object
+            @param opt this argument is ignored
+         */
+        softlist getRenameSql(string new_name, *hash<auto> opt) {
+            throw "UNSUPPORTED";
+        }
+    }
+
+    #! provides the Firebird-specific implementation of the AbstractDatabase interface
+    public class XdbcFirebirdDatabase inherits SqlUtil::AbstractDatabase {
+        public {
+            #! hash of reserved words
+            const XdbcFirebirdReservedWords = {
+                "add": True,
+                "admin": True,
+                "all": True,
+                "alter": True,
+                "and": True,
+                "any": True,
+                "as": True,
+                "at": True,
+                "avg": True,
+                "begin": True,
+                "between": True,
+                "bigint": True,
+                "binary": True,
+                "bit_length": True,
+                "blob": True,
+                "boolean": True,
+                "both": True,
+                "by": True,
+                "case": True,
+                "cast": True,
+                "char": True,
+                "character": True,
+                "character_length": True,
+                "char_length": True,
+                "check": True,
+                "close": True,
+                "collate": True,
+                "column": True,
+                "comment": True,
+                "commit": True,
+                "connect": True,
+                "constraint": True,
+                "corr": True,
+                "count": True,
+                "covar_pop": True,
+                "covar_samp": True,
+                "create": True,
+                "cross": True,
+                "current": True,
+                "current_connection": True,
+                "current_date": True,
+                "current_role": True,
+                "current_time": True,
+                "current_timestamp": True,
+                "current_transaction": True,
+                "current_user": True,
+                "cursor": True,
+                "date": True,
+                "day": True,
+                "dec": True,
+                "decfloat": True,
+                "decimal": True,
+                "declare": True,
+                "default": True,
+                "delete": True,
+                "deleting": True,
+                "deterministic": True,
+                "disconnect": True,
+                "distinct": True,
+                "double": True,
+                "drop": True,
+                "else": True,
+                "end": True,
+                "escape": True,
+                "execute": True,
+                "exists": True,
+                "external": True,
+                "extract": True,
+                "false": True,
+                "fetch": True,
+                "filter": True,
+                "float": True,
+                "for": True,
+                "foreign": True,
+                "from": True,
+                "full": True,
+                "function": True,
+                "gdscode": True,
+                "global": True,
+                "grant": True,
+                "group": True,
+                "having": True,
+                "hour": True,
+                "in": True,
+                "index": True,
+                "inner": True,
+                "insensitive": True,
+                "insert": True,
+                "inserting": True,
+                "int": True,
+                "int128": True,
+                "integer": True,
+                "into": True,
+                "is": True,
+                "join": True,
+                "lateral": True,
+                "leading": True,
+                "left": True,
+                "like": True,
+                "local": True,
+                "localtime": True,
+                "localtimestamp": True,
+                "long": True,
+                "lower": True,
+                "max": True,
+                "merge": True,
+                "min": True,
+                "minute": True,
+                "month": True,
+                "national": True,
+                "natural": True,
+                "nchar": True,
+                "no": True,
+                "not": True,
+                "null": True,
+                "numeric": True,
+                "octet_length": True,
+                "of": True,
+                "offset": True,
+                "on": True,
+                "only": True,
+                "open": True,
+                "or": True,
+                "order": True,
+                "outer": True,
+                "over": True,
+                "parameter": True,
+                "plan": True,
+                "position": True,
+                "post_event": True,
+                "precision": True,
+                "primary": True,
+                "procedure": True,
+                "publication": True,
+                "rdb$db_key": True,
+                "rdb$error": True,
+                "rdb$get_context": True,
+                "rdb$get_transaction_cn": True,
+                "rdb$record_version": True,
+                "rdb$role_in_use": True,
+                "rdb$set_context": True,
+                "rdb$system_privilege": True,
+                "real": True,
+                "record_version": True,
+                "recreate": True,
+                "recursive": True,
+                "references": True,
+                "regr_avgx": True,
+                "regr_avgy": True,
+                "regr_count": True,
+                "regr_intercept": True,
+                "regr_r2": True,
+                "regr_slope": True,
+                "regr_sxx": True,
+                "regr_sxy": True,
+                "regr_syy": True,
+                "release": True,
+                "resetting": True,
+                "return": True,
+                "returning_values": True,
+                "returns": True,
+                "revoke": True,
+                "right": True,
+                "rollback": True,
+                "row": True,
+                "rows": True,
+                "row_count": True,
+                "savepoint": True,
+                "scroll": True,
+                "second": True,
+                "select": True,
+                "sensitive": True,
+                "set": True,
+                "similar": True,
+                "smallint": True,
+                "some": True,
+                "sqlcode": True,
+                "sqlstate": True,
+                "start": True,
+                "stddev_pop": True,
+                "stddev_samp": True,
+                "sum": True,
+                "table": True,
+                "then": True,
+                "time": True,
+                "timestamp": True,
+                "timezone_hour": True,
+                "timezone_minute": True,
+                "to": True,
+                "trailing": True,
+                "trigger": True,
+                "trim": True,
+                "true": True,
+                "unbounded": True,
+                "union": True,
+                "unique": True,
+                "unknown": True,
+                "update": True,
+                "updating": True,
+                "upper": True,
+                "user": True,
+                "using": True,
+                "value": True,
+                "values": True,
+                "varbinary": True,
+                "varchar": True,
+                "variable": True,
+                "varying": True,
+                "var_pop": True,
+                "var_samp": True,
+                "view": True,
+                "when": True,
+                "where": True,
+                "while": True,
+                "window": True,
+                "with": True,
+                "without": True,
+            };
+        }
+
+        constructor(AbstractDatasource ds, *hash<auto> opts) : AbstractDatabase(ds, opts) {
+        }
+
+        #! Returns @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
+        /** @return @ref True if the driver requires a scale to support decimal values in numeric or decimal columns
+
+            @since %XdbcFirebirdSqlUtilBase 1.4.3
+        */
+        bool requiresScale() {
+            return False;
+        }
+
+        #! Returns the maximum precision for numeric or decimal columns
+        /** @return -1 means, no maximum
+
+            @since %XdbcFirebirdSqlUtilBase 1.4.3
+        */
+        int getMaximumPrecision() {
+            return 0;
+        }
+
+        private list<string> featuresImpl() {
+            return (DB_TABLES, DB_VIEWS, DB_SEQUENCES);
+        }
+
+        string getSchemaName() {
+            return ds.getDBName();
+        }
+
+        private AbstractSequence makeSequenceImpl(string name, number start = 1, number increment = 1,
+                *softnumber end, *hash<auto> opts) {
+            return new XdbcFirebirdSequence(name, start, increment, end);
+        }
+
+        private *AbstractSequence getSequenceImpl(string name) {
+            *hash<auto> row = ds.selectRow("select rdb$generator_name as \"sequence\" from rdb$generators where "
+                "rdb$system_flag = 0 and rdb$generator_name = %v", name.upr());
+            return row.sequence ? new XdbcFirebirdSequence(row.sequence.lwr()) : NOTHING;
+        }
+
+        private *AbstractView getViewImpl(string name) {
+            *hash<auto> row;
+            if (!row) {
+                return;
+            }
+
+            return new XdbcFirebirdView(name, row.sql);
+        }
+
+        private AbstractFunction makeFunctionImpl(string name, string src, *hash<auto> opts) {
+            throw "UNSUPPORTED";
+        }
+
+        private AbstractFunction makeProcedureImpl(string name, string src, *hash<auto> opts) {
+            throw "UNSUPPORTED";
+        }
+
+        private *AbstractFunction getFunctionImpl(string name) {
+        }
+
+        private *AbstractFunction getProcedureImpl(string name) {
+        }
+
+        private list<string> getDropSchemaSqlImpl(hash<auto> schema_hash, *hash<auto> opt) {
+            return ();
+        }
+
+        private list<string> getAlignSqlImpl(hash schema_hash, *hash<auto> opt) {
+            return ();
+        }
+
+        #! returns a list of string table names in the database
+        private softlist<string> listTablesImpl() {
+            return ds.select("select lower(a.rdb$relation_name) as \"name\" from rdb$relations a "
+                "where coalesce(rdb$system_flag, 0) = 0 and rdb$relation_type = 0").name;
+        }
+
+        #! returns a list of string function names in the database
+        /** The function names will include arguments in parentheses after the names
+
+            @return a list of string function names in the database
+        */
+        private list<string> listFunctionsImpl() {
+            return ();
+        }
+
+        #! returns a list of string procedure names in the database
+        /** The procedure names will include arguments in parentheses after the names
+
+            @return a list of string procedure names in the database
+        */
+        private list<string> listProceduresImpl() {
+            return ();
+        }
+
+        private list<string> listSequencesImpl() {
+            return ();
+        }
+
+        private list<string> listViewsImpl() {
+            return ds.select("select rdb$relation_name as \"name\" from rdb$relations where rdb$view_blr is not null "
+                "and (rdb$system_flag is null or rdb$system_flag = 0)").name;
+        }
+
+        private string getCreateSqlImpl(list<auto> l) {
+            return XdbcFirebirdDatabase::getCreateSql(l);
+        }
+
+        static string getCreateSql(list<auto> l) {
+            return !l ? "" : foldl $1 + "\n" + $2, (map sprintf("%s%s", $1, $1 =~ /(;|\$)$/ ? "" : ";"), l);
+        }
+
+        #! returns the next value in the given sequence
+        private softint getNextSequenceValueImpl(string name) {
+            return ds.selectRow("select next value for %s as \"nextval\" from rdb$database", name).nextval;
+        }
+
+        #! returns the last value issued for the given sequence in the current session
+        private softint getCurrentSequenceValueImpl(string name) {
+            return ds.selectRow("select gen_id(%s, 0) as \"currentval\" from rdb$database", name).currentval;
+        }
+
+        #! returns @ref True "True" since we have a workaround implementation for sequences in XdbcFirebird
+        private bool supportsSequencesImpl() {
+            return True;
+        }
+
+        #! returns @ref True "True" if the database supports named types
+        private bool supportsTypesImpl() {
+            return False;
+        }
+
+        #! returns @ref True "True" if the database supports packages
+        private bool supportsPackagesImpl() {
+            return False;
+        }
+
+        #! rebuild index implementation. See @ref SqlUtil::AbstractDatabase::rebuildIndex()
+        private bool rebuildIndexImpl(string name, *hash<auto> options) {
+            throw "REBUILD-INDEX-ERROR", "Firebird does not support index rebuilding";
+        }
+
+        #! compute statistics implementation. See @ref SqlUtil::AbstractDatabase::computeStatistics()
+        private computeStatisticsImpl(*hash<auto> options) {
+        }
+
+        #! reclaim space implementation. See @ref SqlUtil::AbstractDatabase::reclaimSpace()
+        private reclaimSpaceImpl(*hash<auto> options) {
+        }
+
+        #! @ref SqlUtil::AbstractDatabase.getPhysicalSize()
+        private int getPhysicalSizeImpl() {
+            throw "UNSUPPORTED";
+        }
+    }
+
+    #! provides the XdbcFirebird-specific implementation of the AbstractTable interface
+    public class XdbcFirebirdTable inherits SqlUtil::AbstractTable {
+        public {
+            #! maps xdbcfirebird type names to type configurations
+            const XdbcFirebirdTypeMap = {
+                "bigint": {
+                    "qore": Type::Int,
+                },
+                "binary": {
+                    "qore": Type::Binary,
+                    "size": SZ_MAND,
+                    "size_range": (1, 32767),
+                    "default_size": 1,
+                },
+                "blob": {
+                    "qore": Type::Binary,
+                },
+                "blob sub_type text": {
+                    "qore": Type::String,
+                },
+                "boolean": {
+                    "qore": Type::Boolean,
+                },
+                "char": {
+                    "qore": Type::String,
+                    "size": SZ_MAND,
+                    "size_range": (1, 32767),
+                    "is_char": True,
+                    "default_size": 1,
+                },
+                "date": {
+                    "qore": Type::Date,
+                },
+                "decimal": {
+                    "qore": Type::Number,
+                    "size": SZ_NUM,
+                    "size_range": (1, 38),
+                    "scale_range": (0, 38)
+                },
+                "double": {
+                    "qore": Type::Float,
+                    "size": SZ_NUM,
+                },
+                "double precision": {
+                    "qore": Type::Float,
+                    "size": SZ_NUM,
+                },
+                "float": {
+                    "qore": Type::Float,
+                    "size": SZ_NUM,
+                },
+                "int128": {
+                    "qore": Type::String,
+                },
+                "integer": {
+                    "qore": Type::Int,
+                },
+                "numeric(18,18)": {
+                    "qore": Type::Number,
+                    "size": SZ_NUM,
+                    "size_range": (1, 18),
+                    "scale_range": (0, 18)
+                },
+                "numeric": {
+                    "qore": Type::Number,
+                    "size": SZ_NUM,
+                    "size_range": (1, 18),
+                    "scale_range": (0, 18)
+                },
+                "real": {
+                    "qore": Type::Float,
+                    "size": SZ_NUM,
+                },
+                "smallint": {
+                    "qore": Type::Int,
+                },
+                "time": {
+                    "qore": Type::Date,
+                },
+                "time with time zone": {
+                    "qore": Type::Date,
+                },
+                "timestamp": {
+                    "qore": Type::Date,
+                },
+                "timestamp with time zone": {
+                    "qore": Type::Date,
+                },
+                "varbinary": {
+                    "qore": Type::Binary,
+                    "size": SZ_MAND,
+                    "size_range": (1, 32765),
+                    "default_size": 1,
+                },
+                "varchar": {
+                    "qore": Type::String,
+                    "size": SZ_MAND,
+                    "size_range": (1, 32765),
+                    "is_char": True,
+                    "default_size": 1,
+                },
+            };
+
+            #! maps qore type names to XdbcFirebird type names
+            const QoreTypeMap = (
+                "integer": "bigint",
+                "float": "double precision",
+                "number": "numeric(18,18)",
+                "string": "varchar",
+                "date": "timestamp",
+                "binary": "blob",
+                "bool": "boolean",
+                SqlUtil::CHAR: "char",
+                SqlUtil::CLOB: "blob sub_type text",
+                SqlUtil::BLOB: "blob",
+            );
+
+            #! column operator specializations for XdbcFirebird
+            const XdbcFirebirdCopMap = (
+                COP_AS: {
+                    "arg": Type::String,
+                    "withalias": True,
+                    "code": string sub (string cve, string arg, reference<hash<auto>> aliases) {
+                        # issue #2163: make sure the unquoted alias is inserted in the map
+                        if (arg =~ /^(".*"|`.*`)$/) {
+                            arg = arg.substr(1, -1);
+                        }
+                        aliases{arg} = cve;
+                        return sprintf("%s as \"%s\"", cve, arg);
+                    },
+                },
+                COP_CAST: (
+                    "code": string sub (string cve, list<auto> args) {
+                        string name = QoreTypeMap{args[0]} ?? args[0];
+                        *hash<auto> desc = XdbcFirebirdTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", cve, name);
+                        switch (name) {
+                            default:
+                                if (desc.size == SZ_MAND) {
+                                    if (!exists args[1] && !exists desc.size_range) {
+                                        throw "OPERATOR-ERROR", sprintf ("op_cast operator missing size for type %s",
+                                            name);
+                                    }
+                                    sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                                } else if (desc.size == SZ_NUM && exists args[1]) {
+                                    sql += args[1] == "*" ? "(*" : sprintf("(%d", args[1]);
+                                    sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                                } else if (desc.size == SZ_OPT && exists args[1]) {
+                                    sql += sprintf("(%d)", args[1]);
+                                }
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                ),
+                COP_LENGTH: {
+                    "code": string sub (string cve, auto arg) {
+                        return sprintf("char_length(%s)", cve);
+                    },
+                },
+                COP_PREPEND: (
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("%s || %s", arg, cve);
+                    },
+                ),
+                COP_APPEND: (
+                    "arg": Type::String,
+                    "sqlvalue": True,
+                    "code": string sub (string cve, string arg) {
+                        return sprintf("%s || %s", cve, arg);
+                    },
+                )
+            );
+
+            #! Firebird operator map
+            const FirebirdOpMap = DefaultOpMap + {
+                OP_IN: AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN} + (
+                    "code": string sub (reference<hash<QueryInfo>> info, string cn, auto arg) {
+                        # firebird accepts max 1500 args in "IN" lists
+                        list<string> argl;
+                        softlist<auto> args = arg;
+                        while (args) {
+                            list<auto> arg_slice = extract args, 0, 1500;
+                            *string ins = (foldl $1 + "," + $2, (map info.table.getSqlValue($1), arg_slice));
+                            if (ins) {
+                                argl += ins;
+                            }
+                        }
+                        if (!argl) {
+                            return "1 != 1";
+                        }
+                        return "(" + (foldl $1 + " or " + $2, map sprintf("%s in (%s)", cn, $1), argl) + ")";
+                    },
+                ),
+            };
+
+            #! Firebird Expression map
+            const FirebirdExpressionMap = DefaultExpressionMap + {
+                COP_AS: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": "as",
+                        "name": "as",
+                        "desc": "aliases a result; args: expression or value, string label",
+                        "symbol": "as",
+                        "role": ER_Field,
+                        "args": (
+                            DataProviderSignatureAnyType,
+                            DataProviderSignatureStringValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."any",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."any");
+                        string arg = args[1];
+                        info.pseudo_column_map{arg} = exp;
+                        return sprintf("%s as \"%s\"", exp, arg);
+                    },
+                },
+                COP_CAST: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_CAST,
+                        "name": "cast",
+                        "desc": "cast operator",
+                        "symbol": "cast",
+                        "args": (
+                            DataProviderSignatureAnyType,
+                            DataProviderSignatureStringValueType,
+                            DataProviderSignatureOptionalIntValueType,
+                            DataProviderSignatureOptionalIntValueType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."any",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."any");
+                        string name = QoreTypeMap{args[1]} ?? args[1];
+                        *hash<auto> desc = XdbcFirebirdTypeMap{name};
+                        string sql = sprintf ("cast (%s as %s", exp0, name);
+                        if (desc.size == SZ_MAND) {
+                            if (!exists args[1] && !exists desc.size_range)
+                                throw "OPERATOR-ERROR", sprintf ("cast operator missing size for type %s",
+                                    name);
+                            sql += sprintf("(%d)", args[1] ?? desc.size_range[1]);
+                        } else if (desc.size == SZ_NUM && exists args[1]) {
+                            sql += sprintf("(%d", args[1]);
+                            sql += exists args[2] ? sprintf(",%d)", args[2]) : ")";
+                        } else if (desc.size == SZ_OPT && exists args[1]) {
+                            sql += sprintf("(%d)", args[1]);
+                        }
+                        sql += ")";
+                        return sql;
+                    },
+                },
+                COP_LENGTH: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": COP_LENGTH,
+                        "name": COP_LENGTH,
+                        "desc": "Returns the length of the argument",
+                        "symbol": COP_LENGTH,
+                        "args": (
+                            DataProviderSignatureAnyType,
+                        ),
+                        "return_type": AbstractDataProviderTypeMap."int",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        return sprintf("char_length(%s)", info.table.getExpressionArg(\info, role, args[0],
+                            AbstractDataProviderTypeMap."any"));
+                    },
+                },
+                OP_IN: {
+                    "exp": <DataProviderExpressionInfo>{
+                        "type": DET_Operator,
+                        "label": OP_IN,
+                        "name": OP_IN,
+                        "desc": "returns True if the first value is in the list of following values",
+                        "symbol": OP_IN,
+                        "args": (
+                            DataProviderSignatureAnyType,
+                            DataProviderSignatureAnyType,
+                        ),
+                        "varargs": True,
+                        "return_type": AbstractDataProviderTypeMap."bool",
+                    },
+                    "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
+                        # firebird accepts max 1500 args in "IN" lists
+                        list<string> argl;
+                        string exp0 = info.table.getExpressionArg(\info, role, shift args,
+                            AbstractDataProviderTypeMap."any");
+                        while (args) {
+                            list<auto> arg_slice = extract args, 0, 1500;
+                            *string ins = (foldl $1 + "," + $2, (map info.table.getExpressionArg(\info, role, $1,
+                                AbstractDataProviderTypeMap."any"), arg_slice));
+                            if (ins) {
+                                argl += ins;
+                            }
+                        }
+                        if (!argl) {
+                            return "1 != 1";
+                        }
+                        return "(" + (foldl $1 + " or " + $2, map sprintf("%s in (%s)", exp0, $1), argl) + ")";
+                    },
+                },
+            };
+        }
+
+        constructor(AbstractDatasource ds, string name, *hash<auto> opts) : AbstractTable(ds, name, opts) {
+        }
+
+        #! returns the name of the table to be used in SQL (with a possible qualifiers for schema, etc)
+        string getSqlName() {
+            return name;
+        }
+
+        #! returns the column operator map for this object
+        private hash getColumnOperatorMapImpl() {
+            return XdbcFirebirdCopMap;
+        }
+
+        #! returns the "where" operator map for Firebird
+        hash<auto> getWhereOperatorMap() {
+            return FirebirdOpMap;
+        }
+
+        #! Returns the expression map for Firebird
+        hash<auto> getExpressionMap() {
+            return FirebirdExpressionMap;
+        }
+
+        private bool checkExistenceImpl() {
+            *hash<auto> row = ds.selectRow("select a.rdb$relation_name as \"name\" from rdb$relations a "
+                "where coalesce(rdb$system_flag, 0) = 0 and rdb$relation_type = 0 and a.rdb$relation_name = %v",
+                name.upr());
+            if (row) {
+                return inDb = True;
+            }
+            return False;
+        }
+
+        private Columns describeImpl() {
+            # get column descriptions
+            *hash<auto> qh = ds.select("select "
+                "   lower(rf.rdb$field_name) as \"name\", "
+                "   f.rdb$field_length as \"length\", "
+                "   f.rdb$field_scale as \"scale\", "
+                "   f.rdb$field_type as \"type\", "
+                "   f.rdb$field_sub_type as \"subtype\", "
+                "   rf.rdb$null_flag as \"null_flag\", "
+                "   f.rdb$default_value as \"default_value\", "
+                "   rf.rdb$description as \"comment\" "
+                "from "
+                "   rdb$relations r, rdb$relation_fields rf, rdb$fields f "
+                "where "
+                "   r.rdb$relation_name = %v and r.rdb$relation_name = rf.rdb$relation_name and "
+                "   (r.rdb$system_flag is null or r.rdb$system_flag = 0) and r.rdb$view_blr is null "
+                "   and f.rdb$field_name = rf.rdb$field_source "
+                "order by "
+                "   rf.rdb$field_position", name.upr());
+            if (!qh.name) {
+                throw "TABLE-ERROR", sprintf("cannot retrieve table information for table %y in %y", name, dsdesc);
+            }
+
+            hash<string, AbstractColumn> rv;
+            foreach hash<auto> row in (qh.contextIterator()) {
+                string typename;
+                switch (row.type) {
+                    case 7: {
+                        switch (row.subtype) {
+                            case 0: typename = "smallint"; remove row.length; break;
+                            case 1: typename = "numeric"; break;
+                            case 2: typename = "decimal"; break;
+                        }
+                        break;
+                    }
+                    case 8: {
+                        switch (row.subtype) {
+                            case 0: typename = "integer"; remove row.length; break;
+                            case 1: typename = "numeric"; break;
+                            case 2: typename = "decimal"; break;
+                        }
+                        break;
+                    }
+                    case 9: typename = "quad"; break;
+                    case 10: typename = "float"; remove row.length; break;
+                    case 12: typename = "date"; remove row.length; break;
+                    case 13: typename = "time"; remove row.length; break;
+                    case 14: typename = row.subtype == 1 ? "binary" : "char"; break;
+                    case 16: {
+                        switch (row.subtype) {
+                            case 0: typename = "bigint"; remove row.length; break;
+                            case 1: typename = "numeric"; break;
+                            case 2: typename = "decimal"; break;
+                        }
+                        break;
+                    }
+                    case 23: typename = "boolean"; remove row.length; break;
+                    case 27: typename = "double"; remove row.length; break;
+                    case 29: typename = "timestamp with time zone"; remove row.length; break;
+                    case 35: typename = "timestamp"; remove row.length; break;
+                    case 37: typename = typename = row.subtype == 1 ? "varbinary" : "varchar"; break;
+                    case 40: typename = "cstring"; break;
+                    case 45: typename = "blob_id"; break;
+                    case 261: {
+                        typename = "blob";
+                        if (row.subtype == 1) {
+                            typename += " sub_type text";
+                        }
+                        remove row.length;
+                        break;
+                    }
+                }
+                if (!typename) {
+                    throw "FIREBIRD-ERROR", sprintf("column %s.%s: unknown column type %d", getSqlName(), row.name,
+                        row.type);
+                }
+                if (row.scale < 0) {
+                    row.scale = -row.scale;
+                }
+
+                auto defval = exists row.default_value && row.default_value !== NULL && row.default_value != "NULL"
+                    ? row.default_value
+                    : NOTHING;
+                *hash<auto> th = XdbcFirebirdTypeMap{typename};
+                if (exists defval) {
+                    # process default value according to column type
+                    switch (th.qore) {
+                        case Type::Int: defval = defval.toInt(); break;
+                        case Type::Float: defval = defval.toFloat(); break;
+                        case Type::Number: defval = defval.toNumber(); break;
+                        case Type::Date: {
+                            try {
+                                defval = date(defval);
+                            } catch (hash<ExceptionInfo> ex) {
+                                # ignore INVALID-DATE; keep text (ex: "CURRENT_TIMESTAMP")
+                                if (ex.err != "INVALID-DATE") {
+                                    rethrow;
+                                }
+                            }
+                        }
+                        case Type::String: {
+                            if (defval =~ /^'.*'$/) {
+                                defval = defval[1..(defval.size() - 2)];
+                                defval =~ s/''/'/g;
+                            }
+                            break;
+                        }
+                        # don't know what to do with Type::Binary ???
+                        default: break;
+                    }
+                    defval = getSqlValue(defval);
+                }
+
+                XdbcFirebirdColumn c(row.name, typename, th.qore, row.length ?? 0, !row.null_flag, defval, row.comment,
+                    row.scale);
+                rv{row.name} = c;
+            }
+
+            return new Columns(rv);
+        }
+
+        private XdbcFirebirdPrimaryKey getPrimaryKeyImpl() {
+            # get primary key description
+            *hash<auto> qh = ds.select("select
+    ix.rdb$index_name as \"index_name\",
+    lower(sg.rdb$field_name) as \"column_name\"
+from
+    rdb$indices ix
+    left join rdb$index_segments sg on ix.rdb$index_name = sg.rdb$index_name
+    left join rdb$relation_constraints rc on rc.rdb$index_name = ix.rdb$index_name
+where
+    rc.rdb$constraint_type = 'PRIMARY KEY' and rc.rdb$relation_name = %v", name.upr());
+
+            hash<auto> rv;
+            foreach string col in (qh.column_name) {
+                # issue #4348: strip quotes from columns using reserved words
+                col =~ s/^"(.*)"$/$1/g;
+                rv{col} = columns{col};
+            }
+
+            return rv
+                ? new XdbcFirebirdPrimaryKey(rv)
+                : new XdbcFirebirdPrimaryKey();
+        }
+
+        private Indexes getIndexesImpl() {
+            hash<auto> rv;
+
+            # get index descriptions
+            *hash<auto> qh = ds.select("select "
+                "   lower(ix.rdb$index_name) as \"name\", rdb$unique_flag as \"unique\" "
+                "from "
+                "   rdb$indices ix, rdb$relation_constraints rc "
+                "where "
+                "   rdb$system_flag = 0 and rc.rdb$index_name = ix.rdb$index_name "
+                "   and rc.rdb$constraint_type != 'PRIMARY KEY' and ix.rdb$relation_name = %v", name.upr());
+            hash<auto> ih;
+            foreach hash<auto> row in (qh.contextIterator()) {
+                ih{row.name}.unique = row.unique;
+                *hash<auto> ch = ds.select("select lower(rdb$field_name) as \"cname\" from rdb$index_segments "
+                    "where rdb$index_name = %v order by rdb$field_position", row.name.upr());
+
+                foreach string col in (ch.cname) {
+                    on_error rethrow $1, sprintf("%s (index %y column %y)", $1.desc, row.name, col);
+                    ih{row.name}.columns{col} = columns{col};
+                }
+
+                if (!ih{row.name}.columns) {
+                    throw "INDEX-ERROR", sprintf("index %y on table %y has no columns", row.name, getSqlName());
+                }
+            }
+            foreach hash<auto> i in (ih.pairIterator()) {
+                rv{i.key} = new XdbcFirebirdIndex(i.key, boolean(i.value.unique), i.value.columns);
+            }
+
+            return new Indexes(rv);
+        }
+
+        private ForeignConstraints getForeignConstraintsImpl(*hash<auto> opts) {
+            return new ForeignConstraints();
+        }
+
+        private Constraints getConstraintsImpl() {
+            hash<auto> rv;
+
+            Constraints c = new Constraints(rv);
+            /*
+            # get unique constraints
+            *hash qh = ds.select("");
+            delete rv;
+            foreach hash<auto> row in (qh.contextIterator()) {
+                reference<XdbcFirebirdUniqueConstraint> ch = \rv.(row.constraint_name);
+                if (!ch)
+                    ch = new XdbcFirebirdUniqueConstraint(row.constraint_name, {});
+                ch.add(row.column_name, columns{row.column_name});
+            }
+
+            # add unique constraints to constraint hash
+            map c.add($1.key, $1.value), rv.pairIterator();
+            */
+            return c;
+        }
+
+        private Triggers getTriggersImpl() {
+            hash rv;
+            /*
+            # get trigger description
+            *hash qh = ds.select("");
+
+            foreach hash<auto> row in (qh.contextIterator()) {
+                string src = sprintf("%s %s on %s for each %s %s", row.action_timing.lwr(),
+                    row.event_manipulation.lwr(), name, row.action_orientation.lwr(), row.action_statement);
+                rv{row.trigger_name} = new XdbcFirebirdTrigger(row.trigger_name, src);
+            }
+            */
+            return new Triggers(rv);
+        }
+
+        string getCreateTableSqlImpl(*hash<auto> opt) {
+            string sql = sprintf("create table %s (\n", name);
+            sql += foldl $1 + ",\n" + $2, (map "  " + $1.getCreateSql(self), columns.iterator());
+            sql += "\n)";
+            return sql;
+        }
+
+        #! returns @ref False "False" because the xdbcfirebird driver does not support array binds / bulk DML
+        bool hasArrayBind() {
+            return False;
+        }
+
+        private *list getCreateMiscSqlImpl(*hash<auto> opt, bool cache) {
+        }
+
+        private *list getAlignSqlImpl(AbstractTable table, *hash<auto> opt) {
+        }
+
+        private string getCreateSqlImpl(list l) {
+            return XdbcFirebirdDatabase::getCreateSql(l);
+        }
+
+        private string getRenameSqlImpl(string new_name) {
+            throw "UNSUPPORTED", "Firebird does not support renaming tables";
+        }
+
+        private AbstractColumn addColumnImpl(string cname, hash<auto> opt, bool nullable = True) {
+            return new XdbcFirebirdColumn(cname, opt.native_type, opt.qore_type, opt.size, nullable, opt.default_value,
+                opt.comment, 0);
+        }
+
+        private AbstractPrimaryKey addPrimaryKeyImpl(string cname, hash<auto> ch, *hash<auto> opt) {
+            return new XdbcFirebirdPrimaryKey(ch);
+        }
+
+        private AbstractIndex addIndexImpl(string iname, bool enabled, hash<auto> ch, *hash<auto> opt) {
+            return new XdbcFirebirdIndex(iname, enabled, ch);
+        }
+
+        private AbstractForeignConstraint addForeignConstraintImpl(string cname, hash<auto> ch, string table,
+                hash<auto> tch, *hash<auto> opt) {
+            ForeignConstraintTarget fct(table, new Columns(tch));
+            return new XdbcFirebirdForeignConstraint(cname, new Columns(ch), fct);
+        }
+
+        private AbstractCheckConstraint addCheckConstraintImpl(string cname, string src, *hash<auto> opt) {
+            throw "FIREBIRD-CHECK-CONSTRAINT-ERROR", sprintf("not yet implemented");
+        }
+
+        private AbstractUniqueConstraint addUniqueConstraintImpl(string cname, hash<auto> ch, *hash<auto> opt) {
+            return new XdbcFirebirdUniqueConstraint(cname, ch);
+        }
+
+        private AbstractTrigger addTriggerImpl(string tname, string src, *hash<auto> opt) {
+            return new XdbcFirebirdTrigger(tname, src);
+        }
+
+        private string getTruncateSqlImpl() {
+            return sprintf("delete from %s", getSqlName());
+        }
+
+        private bool tryInsertImpl(string sql, hash<auto> row) {
+            try {
+                ds.vexec(sql, row.values());
+            } catch (hash<ExceptionInfo> ex) {
+                if (isDuplicateRowError(ex)) {
+                    return False;
+                }
+                rethrow;
+            }
+            return True;
+        }
+
+        #! Returns True if the exception was raised because of a duplicate row / key error
+        /** @since XdbcFirebirdSqlUtilBase 1.4.2
+        */
+        private bool isDuplicateRowErrorImpl(hash<ExceptionInfo> ex) {
+            return (ex.desc =~ /(attempt to store duplicate value|violation of PRIMARY or UNIQUE KEY constraint)/);
+        }
+
+        private hash<auto> getQoreTypeMapImpl() {
+            return QoreTypeMap;
+        }
+
+        private hash<auto> getTypeMapImpl() {
+            return XdbcFirebirdTypeMap;
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument
+        /** returns NOTHING if the type cannot be converted to an SQL string
+        */
+        private *string getSqlValueImpl(auto v) {
+            return XdbcFirebirdTable::getSqlValueIntern(v);
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument
+        /** returns NOTHING if the type cannot be converted to an SQL string
+        */
+        private static *string getSqlValueIntern(auto v) {
+            switch (v.typeCode()) {
+                case NT_FLOAT:
+                case NT_INT: return v.toString();
+
+                case NT_NUMBER: return string(v);
+
+                # double any single quotes in strings
+                case NT_STRING: v =~ s/'/''/g; return "'" + v + "'";
+
+                case NT_NULL:
+                case NT_NOTHING: return "null";
+
+                case NT_BOOLEAN: return v ? "true" : "false";
+
+                case NT_DATE: {
+                    # XdbcFirebird does not allow us to specify the UTC offset in the timestamp literal :(
+                    TimeZone tz = TimeZone::get();
+                    v = tz.date(v);
+                    return "timestamp " + v.format("'YYYY-MM-DDTHH:mm:SS.us'");
+                }
+            }
+        }
+
+        #! Returns the column name for use in SQL strings
+        /** Subclasses can return a special string in case the column name is a reserved word
+
+            Firebird requires column names to be enclosed in double quotes
+        */
+        string getColumnSqlName(string col) {
+            return XdbcFirebirdDatabase::XdbcFirebirdReservedWords{col.lwr()} ? ("\"" + col + "\"") : col;
+        }
+
+        #! returns a list of column names for use in SQL strings; subclasses can process the argument list in case a column name is a reserved word
+        list<string> getColumnSqlNames(softlist<auto> cols) {
+            return map getColumnSqlName($1), cols;
+        }
+
+        #! returns a string for use in SQL queries representing the DB-specific value of the argument
+        /** @par Example:
+            @code{.py}
+string str = table.getSqlValue(date);
+            @endcode
+
+            @param v the value to convert to an SQL value
+
+            @return a string representing the value usable in SQL strings for the given database driver
+
+            @throw VALUE-ERROR the given value cannot be converted to an SQL string (missing rules for value)
+         */
+        static *string getSqlValue(auto v) {
+           *string str = XdbcFirebirdTable::getSqlValueIntern(v);
+            if (!exists str)
+                throw "VALUE-ERROR", sprintf("class XdbcFirebirdTable cannot convert type %y to an SQL string "
+                    "(value: %y)", v.type(), v);
+            return str;
+        }
+
+        private bool emptyImpl() {
+            return True;
+        }
+
+        private preSetupTableImpl(reference<hash> desc, *hash<auto> opt) {
+            # see if there is an auto-increment column and set the primary key flag if it matches the primary key
+            # declaraion
+            foreach string k in (desc.columns.keyIterator()) {
+                if (desc.columns{k}.auto_increment) {
+                    if (!desc.columns{k}.pk) {
+                        if (desc.primary_key.columns.lsize() == 1) {
+                            softlist cl = desc.primary_key.columns;
+                            if (cl[0] == k) {
+                                desc.columns{k}.pk = True;
+                                # delete the primary key description; it will be added again when the column is added
+                                delete desc.primary_key;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        private setupTableImpl(hash<auto> desc, *hash<auto> opt) {
+        }
+
+        #! returns @ref True "True" if the database links constraints to indexes (ie dropping the constraint drops the index, etc)
+        private bool constraintsLinkedToIndexesImpl() {
+            return True;
+        }
+
+        #! returns @ref True "True" if the database automatically creates a unique constraint when a unique index is created (ex: xdbcfirebird)
+        private bool uniqueIndexCreatesConstraintImpl() {
+            return True;
+        }
+
+        #! returns @ref True "True" if the database support tablespaces
+        private bool supportsTablespacesImpl() {
+            return False;
+        }
+
+        #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
+        private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
+            if (!info.query_hash.limit) {
+                return;
+            }
+
+            # this rule is broken here with reason:
+            # In a SELECT statement, always use an ORDER BY clause with the FIRST clause.
+            # This is the only way to predictably indicate which rows are affected by FIRST
+            sql = regex_subst(sql, "^select ", sprintf("select first %d ", info.query_hash.limit));
+        }
+
+        #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
+        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+                list<auto> coll) {
+            doSelectOrderBySqlUnlocked(info, \sql, coll);
+
+            # NOTE: we do not bind the variables by value here, because it doesn't work
+            sql += sprintf(" offset %d rows", info.query_hash.offset.toInt());
+
+            if (info.query_hash.limit) {
+                sql += sprintf(" fetch next %d rows only", info.query_hash.limit.toInt());
+            }
+        }
+
+        #! returns @ref True if the database requires a wildcard \c "*" to be prefixed with the table name when it appears with other column arguments in a select statement
+        private bool asteriskRequiresPrefix() {
+            return True;
+        }
+
+        private *hash<auto> doReturningImpl(hash<auto> opt, reference<string> sql, list<auto> args) {
+            throw "RETURNING-ERROR", sprintf("table %s: returning not yet implemented for Firebird", getSqlName());
+        }
+
+        private list<auto> getGroupOrderByListUnlocked(hash<QueryInfo> info, string key, list<auto> coll) {
+            list<auto> ce = ();
+            foreach auto cv in (info.query_hash{key}) {
+                switch (cv.typeCode()) {
+                    case NT_STRING: {
+                        if (cv.toInt() == cv) {
+                            ce += cv;
+                        } else {
+                            ce += getColumnNameIntern(info, cv);
+                        }
+                        break;
+                    }
+
+                    case NT_HASH: {
+                        ce += doColumnOperatorIntern(\info, cv);
+                        break;
+                    }
+
+                    case NT_INT: {
+                        ce += cv.toString();
+                        break;
+                    }
+
+                    default:
+                        throw "SELECT-ERROR", sprintf("%s: don't know how to parse argument type %y (value: %y) in "
+                            "%s list, expecting \"string\" or \"hash\"", getDesc(), cv.type(), cv, key);
+                }
+            }
+            return ce;
+        }
+
+        #! returns @ref True "True" if the current database driver supports the \c "returning" clause in insert statements, @ref False "False" if not
+        bool hasReturningImpl() {
+            return False;
+        }
+
+        #! db-specific copy actions
+        private copyImpl(AbstractTable old) {
+        }
+
+        #! returns the type for number / numeric columns for the database so that data conversions can be handled
+        private AbstractDataProviderType getNumericTypeImpl(string native_type, bool nullable, *hash<auto> options) {
+            return AbstractDataProviderType::get(FloatType);
+        }
+
+        #! get DB-specific savepoint helper
+        /** @param savepoint the savepoint string, if not given a unique savepoint string will be generated
+
+            @since SqlUtil 1.6
+        */
+        private AbstractSavepointHelper getSavepointHelperImpl(*string savepoint) {
+            return new XdbcFirebirdSavepointHelper(ds, savepoint);
+        }
+    }
+}

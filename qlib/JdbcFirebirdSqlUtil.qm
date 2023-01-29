@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file OdbcFirebirdSqlUtil.qm Qore user module for working with OdbcFirebird SQL data
+#! @file JdbcFirebirdSqlUtil.qm Qore user module for working with JdbcFirebird SQL data
 
-/*  OdbcFirebirdSqlUtil.qm Copyright 2013 - 2023 Qore Technologies, s.r.o.
+/*  JdbcFirebirdSqlUtil.qm Copyright 2013 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -40,44 +40,42 @@
 # the implementation is in XdbcFirebirdSqlUtilBase
 %requires XdbcFirebirdSqlUtilBase
 
-module OdbcFirebirdSqlUtil {
+module JdbcFirebirdSqlUtil {
     version = "0.1";
-    desc = "user module for working with Firebird DBs using the odbc driver";
+    desc = "user module for working with Firebird DBs using the jdbc driver";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
 }
 
-/** @mainpage OdbcFirebirdSqlUtil Module
+/** @mainpage JdbcFirebirdSqlUtil Module
 
     @tableofcontents
 
-    @section odbcfirebirdsqlutilintro OdbcFirebirdSqlUtil Module Introduction
+    @section jdbcfirebirdsqlutilintro JdbcFirebirdSqlUtil Module Introduction
 
-    The %OdbcFirebirdSqlUtil module provides a high level API for working with Firebird database objects through the
-    %Qore \c odbc DBI driver.
+    The %JdbcFirebirdSqlUtil module provides a high level API for working with Firebird database objects through the
+    jdbc driver.
 
     Usually this module is loaded on demand from the SqlUtil module, however to use this module
-    directly, use \c "%requires OdbcFirebirdSqlUtil" in your code.
+    directly, use \c "%requires JdbcFirebirdSqlUtil" in your code.
 
-    All the public symbols in the module are defined in the OdbcFirebirdSqlUtil namespace
+    All the public symbols in the module are defined in the JdbcFirebirdSqlUtil namespace
 
     @note
-    - This module requires the <a href="https://github.com/qorelanguage/module-odbc">odbc</a> binary module
-      for communication with Firebird databases plus the Firebird client library and the Firebird ODBC driver
-    - The Firebird \c ODBC driver is less capable and has more bugs than the equivalent \c JDBC driver.  Please use
-      the Firebird \c JDBC driver if possible
+    - This module requires the <a href="https://github.com/qorelanguage/module-jdbc">jdbc</a> binary module
+      for communication with Firebird databases plus the Firebird client library and the Firebird JDBC driver
 
     @see @ref xdbcfirebirdsqlutilbaseintro for implementation information
 
-    @section odbcfirebird_relnotes Release Notes
+    @section jdbcfirebird_relnotes Release Notes
 
-    @subsection odbcfirebirdsqlutilv_1_0 OdbcFirebirdSqlUtil Module v1.0
+    @subsection jdbcfirebirdsqlutilv_0_1 JdbcFirebirdSqlUtil Module v0.1
     - initial release
 */
 
-#! the OdbcFirebirdSqlUtil namespace contains all the objects in the OdbcFirebirdSqlUtil module
-public namespace OdbcFirebirdSqlUtil {
+#! the JdbcFirebirdSqlUtil namespace contains all the objects in the JdbcFirebirdSqlUtil module
+public namespace JdbcFirebirdSqlUtil {
     #! returns a XdbcFirebirdTable object corresponding to the arguments
     public XdbcFirebirdTable sub get_table(AbstractDatasource nds, string nname, *hash<auto> opts) {
         return new XdbcFirebirdTable(nds, nname, opts);

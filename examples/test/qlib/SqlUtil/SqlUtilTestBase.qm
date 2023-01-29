@@ -734,7 +734,7 @@ public class SqlTestBase inherits QUnit::Test {
                 on_error printf("v: %y (%d %s) r: %y (%d %s)\n", e.value, e.value.size(), e.value.encoding(),
                     rows[0]{e.key}, rows[0]{e.key}.size(), rows[0]{e.key}.encoding());
                 if (softmap{e.key}) {
-                    assertEqSoft(e.value, rows[0]{e.key}, "checking data in column " + e.key);
+                    assertEq(e.value, rows[0]{e.key}, "checking data in column " + e.key);
                 } else {
                     assertEq(e.value, rows[0]{e.key}, "checking data in column " + e.key);
                 }
@@ -958,7 +958,7 @@ public class SqlTestBase inherits QUnit::Test {
             "where": ("id": 2, "cop_lower": cop_lower("cop_upper")),
         );
 
-        *hash row = table.selectRow (soh, \sql);
+        *hash row = table.selectRow(soh, \sql);
 
         hash expect = (
             "cop_cast": "2",
@@ -1010,7 +1010,7 @@ public class SqlTestBase inherits QUnit::Test {
         );
 
         foreach hash e in (expect.pairIterator())
-            assertEq (e.value, row{e.key}, "checking column operator " + e.key);
+            assertEq(e.value, row{e.key}, "checking column operator " + e.key);
 
         # feature #2032: sqlutil: new operator to allow transparent datetime truncation across various DBMS
         # negative args first
@@ -1100,14 +1100,14 @@ public class SqlTestBase inherits QUnit::Test {
                 ),
         );
 
-        hash cond = ("id": 1);
+        hash<auto> cond = ("id": 1);
 
-        foreach hash t in (test_set.pairIterator()) {
-            table.update (t.value.set, cond, \sql);
+        foreach hash<auto> t in (test_set.pairIterator()) {
+            table.update(t.value.set, cond, \sql);
             hash row = table.selectRow (("where": cond), \sql);
 
             foreach hash d in (t.value.out.pairIterator())
-                assertEq (d.value, row{d.key}, sprintf ("checking update operator %s column %s", t.key, d.key));
+                assertEq(d.value, row{d.key}, sprintf ("checking update operator %s column %s", t.key, d.key));
         }
 
         # reset the row to what it was before this test
@@ -1331,18 +1331,19 @@ public class SqlTestBase inherits QUnit::Test {
         );
 
         foreach hash t in (test_set.pairIterator()) {
-            if (inlist (self.className(), t.value.skip_for)) {
+            if (inlist(self.className(), t.value.skip_for)) {
                 assertSkip (t.value.skip_for + " might fail this test");
                 continue;
             }
-            *list rows = table.selectRows (t.value.in, \sql);
+            *list<auto> rows = table.selectRows(t.value."in", \sql);
             hash out = t.value.out;
-            assertEq (out.count, rows.size(), "checking where operator " + t.key);
+            assertEq(out.count, rows.size(), "checking where operator " + t.key);
 
             foreach hash row in (rows) {
                 int rn = $#;
                 foreach hash d in (out.data[rn].pairIterator())
-                    assertEq (d.value, row{d.key}, sprintf ("checking where operator %s row %s column %s", t.key, rn, d.key));
+                    assertEq(d.value, row{d.key}, sprintf("checking where operator %s row %s column %s", t.key,
+                        rn, d.key));
             }
         }
     }
@@ -1355,21 +1356,23 @@ public class SqlTestBase inherits QUnit::Test {
 
         string sql; on_error printf ("SQL: %s\n", sql);
 
-        hash soh = ("columns": (
+        hash soh = (
+            "columns": (
                 cop_as ("char_f", "pivo"),
                 cop_as (cop_count(), "cop_count"),
-                ),
-                "groupby": (1)
-                );
+            ),
+            "groupby": (1),
+        );
         *hash row = table.selectRow (soh, \sql);
         assertEq (2, row.cop_count, "checking group by 1");
 
-        soh = ("columns": (
+        soh = (
+            "columns": (
                 cop_as ("char_f", "pivo"),
                 cop_as (cop_count(), "cop_count"),
-                ),
-                "groupby": ("pivo")
-                );
+            ),
+            "groupby": ("pivo")
+        );
         row = table.selectRow (soh, \sql);
         assertEq (2, row.cop_count, "checking group by alias");
     }
@@ -1384,15 +1387,15 @@ public class SqlTestBase inherits QUnit::Test {
 
         hash soh = ("columns": ("id",), "orderby": (1,));
         *list rows = table.selectRows (soh, \sql);
-        assertEq ((("id": 1), ("id": 2)), rows, "checking order by 1");
+        assertEq((("id": 1), ("id": 2)), rows, "checking order by 1");
 
         soh = ("columns": ("id",), "orderby": ("-id",));
         rows = table.selectRows (soh, \sql);
-        assertEq ((("id": 2), ("id": 1)), rows, "checking order by id desc");
+        assertEq((("id": 2), ("id": 1)), rows, "checking order by id desc");
 
         soh = ("columns": (cop_as ("id", "alias"),), "orderby": ("alias",));
         rows = table.selectRows (soh, \sql);
-        assertEq ((("alias": 1), ("alias": 2)), rows, "checking order by alias");
+        assertEq((("alias": 1), ("alias": 2)), rows, "checking order by alias");
     }
 
     offsetLimitTest() {
@@ -1738,11 +1741,19 @@ public class SqlTestBase inherits QUnit::Test {
         }
 
         Database db(table.getDatasource());
-        auto ret = db.getPhysicalSize();
-        if (m_options.verbose > 2) {
-            printf("    DB size: %n\n", ret);
+        try {
+            auto ret = db.getPhysicalSize();
+            if (m_options.verbose > 2) {
+                printf("    DB size: %n\n", ret);
+            }
+            assertEq(NT_INT, ret.typeCode(), "result must be int");
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "UNSUPPORTED") {
+                testSkip("unsupported API");
+            } else {
+                rethrow;
+            }
         }
-        assertEq(NT_INT, ret.typeCode(), "result must be int");
     }
 }
 

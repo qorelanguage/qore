@@ -100,6 +100,18 @@ ModuleName/
         and request handler APIs; provides the infrastructure for server-side HTTP services
     |user|<a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>|Provides base definitions for \
         handler classes integrating with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+    |user|<a href="../../modules/JdbcFirebirdSqlUtil/html/index.html">JdbcFirebirdSqlUtil</a>|Provides a high-level \
+        DB-independent API for working with Firebird database objects using \
+        <a href="../../modules/XdbcFirebirdSqlUtilBase/html/index.html">XdbcFirebirdSqlUtilBase</a> and the binary \
+        <a href="https://github.com/qorelanguage/module-jni">jni</a> module providing the \c jdbc DBI driver; loaded \
+        automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with \
+        Firebird databases for automated schema management, programmatic DB access, schema and data synchronization, \
+        and more
+    |user|<a href="../../modules/JdbcPostgresqlSqlUtil/html/index.html">JdbcPostgresqlSqlUtil</a>|Provides a \
+        high-level DB-independent API for working with PostgreSQL database objects; loaded automatically by the \
+        <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with PostgreSQL databases \
+        with the \c jdbc driver for automated schema management, programmatic DB access, schema and data \
+        synchronization, and more
     |user|<a href="../../modules/Logger/html/index.html">Logger</a>|Provides a flexible logging API (aka "log4q")
     |user|<a href="../../modules/MailMessage/html/index.html">MailMessage</a>|Provides supporting classes for the \
         <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> and \
@@ -115,7 +127,8 @@ ModuleName/
         <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with MySQL databases for \
         automated schema management, programmatic DB access, schema and data synchronization, and more
     |user|<a href="../../modules/OdbcFirebirdSqlUtil/html/index.html">OdbcFirebirdSqlUtil</a>|Provides a high-level \
-        DB-independent API for working with Firebird database objects using the binary \
+        DB-independent API for working with Firebird database objects using \
+        <a href="../../modules/XdbcFirebirdSqlUtilBase/html/index.html">XdbcFirebirdSqlUtilBase</a> and the binary \
         <a href="https://github.com/qorelanguage/module-odbc">odbc</a> module; loaded automatically by the \
         <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with Firebird databases \
         for automated schema management, programmatic DB access, schema and data synchronization, and more
@@ -125,6 +138,13 @@ ModuleName/
         automated schema management, programmatic DB access, schema and data synchronization, and more
     |user|<a href="../../modules/Pop3Client/html/index.html">Pop3Client</a>|Provides POP3 client functionality; \
         provides an API to retrieve email messages from a POP3 server
+    |user|<a href="../../modules/PgsqlSqlUtilBase/html/index.html">PgsqlSqlUtilBase</a>|Provides a \
+        high-level DB-independent API for working with PostgreSQL database objects; this module supports \
+        <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> and \
+        <a href="../../modules/JdbcPostgresqlSqlUtil/html/index.html">JdbcPostgresqlSqlUtil</a>; loaded \
+        automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with \
+        PostgreSQL databases for automated schema management, programmatic DB access, schema and data \
+        synchronization, and more
     |user|<a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>|Provides a high-level DB-independent \
         API for working with PostgreSQL database objects; loaded automatically by the \
         <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with PostgreSQL databases \
@@ -197,6 +217,12 @@ ModuleName/
     |user|<a href="../../modules/WebUtil/html/index.html">WebUtil</a>|Provides higher-level classes for implementing \
         more complex web services in %Qore; works with the \
         <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+    |user|<a href="../../modules/XdbcFirebirdSqlUtilBase/html/index.html">XdbcFirebirdSqlUtilBase</a>|Provides a \
+        high-level DB-independent API for working with Firebird database objects; this module supports \
+        <a href="../../modules/JdbcFirebirdSqlUtil/html/index.html">JdbcFirebirdSqlUtil</a> and \
+        <a href="../../modules/OdbcFirebirdSqlUtil/html/index.html">OdbcFirebirdSqlUtil</a>; loaded automatically by \
+        the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with Firebird databases \
+        for automated schema management, programmatic DB access, schema and data synchronization, and more
     |user|<a href="../../modules/ZeyosRestClient/html/index.html">ZeyosRestClient</a>|providing APIs for \
         communicating with <a href="http://www.zeyos.com">Zeyos.com</a>'s REST API
 
