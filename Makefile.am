@@ -31,7 +31,8 @@ DOX_SRC_MODULES = qlib/Mime.qm \
 	qlib/FsUtil.qm \
     qlib/PgsqlSqlUtilBase.qm \
 	qlib/WebSocketClient.qm \
-    qlib/XdbcFirebirdSqlUtilBase.qm
+    qlib/XdbcFirebirdSqlUtilBase.qm \
+    qlib/OracleSqlUtilBase.qm
 
 DOX_SRC_SPLIT_MODULES = \
     qlib/ConnectionProvider \
@@ -51,7 +52,10 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/FilePoller.qm \
 	qlib/FreetdsSqlUtil.qm \
 	qlib/FtpPoller.qm \
+    qlib/JdbcFirebirdSqlUtil.qm \
+	qlib/JdbcOracleSqlUtil.qm \
 	qlib/JdbcPostgresqlSqlUtil.qm \
+    qlib/OdbcFirebirdSqlUtil.qm \
 	qlib/OracleSqlUtil.qm \
 	qlib/PgsqlSqlUtil.qm \
 	qlib/Pop3Client.qm \
@@ -68,8 +72,6 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/SchemaReverse.qm \
 	qlib/SmtpClient.qm \
     qlib/Sqlite3SqlUtil.qm \
-    qlib/JdbcFirebirdSqlUtil.qm \
-    qlib/OdbcFirebirdSqlUtil.qm \
 	qlib/Mapper.qm \
 	qlib/TableMapper.qm \
 	qlib/TelnetClient.qm \
@@ -1122,20 +1124,23 @@ doxygen/qlib/Doxyfile.DebugUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 doxygen/qlib/Doxyfile.DebugProgramControl: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/DebugProgramControl.qm:doxygen/qlib/DebugProgramControl.qm -tDebugUtil.tag=../../DebugUtil/html $< $@
 
+doxygen/qlib/Doxyfile.FtpPollerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/FtpPollerUtil.qm:doxygen/qlib/FtpPollerUtil.qm -tDataProvider.tag=../../DataProvider/html $< $@
+
+doxygen/qlib/Doxyfile.OracleSqlUtilBase: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/OracleSqlUtilBase.qm:doxygen/qlib/OracleSqlUtilBase.qm -tSqlUtil.tag=../../SqlUtil/html $< $@
+
 doxygen/qlib/Doxyfile.PgsqlSqlUtilBase: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/PgsqlSqlUtilBase.qm:doxygen/qlib/PgsqlSqlUtilBase.qm -tSqlUtil.tag=../../SqlUtil/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm -tUtil.tag=../../Util/html -tConnectionProvider.tag=../../ConnectionProvider/html -tWebSocketUtil.tag=../../WebSocketUtil/html -tDataProvider.tag=../../DataProvider/html $< $@
 
-doxygen/qlib/Doxyfile.XdbcFirebirdSqlUtilBase: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/XdbcFirebirdSqlUtilBase.qm:doxygen/qlib/XdbcFirebirdSqlUtilBase.qm -tSqlUtil.tag=../../SqlUtil/html $< $@
-
 doxygen/qlib/Doxyfile.WebSocketHandler: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketHandler.qm:doxygen/qlib/WebSocketHandler.qm -tHttpServerUtil.tag=../../HttpServerUtil/html -tWebSocketUtil.tag=../../WebSocketUtil/html $< $@
 
-doxygen/qlib/Doxyfile.FtpPollerUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/FtpPollerUtil.qm:doxygen/qlib/FtpPollerUtil.qm -tDataProvider.tag=../../DataProvider/html $< $@
+doxygen/qlib/Doxyfile.XdbcFirebirdSqlUtilBase: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/XdbcFirebirdSqlUtilBase.qm:doxygen/qlib/XdbcFirebirdSqlUtilBase.qm -tSqlUtil.tag=../../SqlUtil/html $< $@
 
 doxygen/qlib/Doxyfile.FsUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/FsUtil.qm:doxygen/qlib/FsUtil.qm $< $@

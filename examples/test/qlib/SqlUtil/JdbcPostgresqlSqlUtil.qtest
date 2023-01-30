@@ -281,16 +281,19 @@ class PgsqlTest inherits SqlTestBase {
 
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
-        printOption("-c,--conn=ARG", "set DB connection argument (ex: \"pgsql:user/pass@db\")", OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: "
+            "\"jdbc:user/pass@postgresql:db{classpath=/usr/share/java/postgresql.jar}\")", OptionColumn);
     }
 
     Datasource getDatasource() {
-        if (!m_options.connstr)
+        if (!m_options.connstr) {
             m_options.connstr = ENV.QORE_DB_CONNSTR_JDBC_PGSQL;
+        }
         Datasource ds(m_options.connstr);
-        if (ds.getDriverRealName() != "PostgreSQL")
+        if (ds.getDriverRealName() != "PostgreSQL") {
             throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y",
                 ds.getDriverRealName());
+        }
         ds.open();
         return ds;
     }

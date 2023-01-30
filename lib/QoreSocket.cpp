@@ -237,8 +237,9 @@ void qore_socket_error_intern(int rc, ExceptionSink* xsink, const char* err, con
     assert(xsink);
 
     QoreStringNode* desc = new QoreStringNode;
-    if (mname)
+    if (mname) {
         desc->sprintf("error while executing Socket::%s(): ", mname);
+    }
 
     desc->concat(cdesc);
 
@@ -266,18 +267,21 @@ void qore_socket_error(ExceptionSink* xsink, const char* err, const char* cdesc,
 #endif
 
 int do_read_error(qore_offset_t rc, const char* method_name, int timeout_ms, ExceptionSink* xsink) {
-    if (rc > 0)
+    if (rc > 0) {
         return 0;
-    if (!*xsink)
+    }
+    if (!*xsink) {
         QoreSocket::doException(rc, method_name, timeout_ms, xsink);
+    }
     return -1;
 }
 
 void concat_target(QoreString& str, const struct sockaddr *addr, const char* type) {
     QoreString host;
     q_addr_to_string2(addr, host);
-    if (!host.empty())
+    if (!host.empty()) {
         str.sprintf(" (%s: %s:%d)", type, host.c_str(), q_get_port_from_addr(addr));
+    }
 }
 
 qore_socket_op_helper::qore_socket_op_helper(qore_socket_private* sock) : s(sock) {
@@ -1426,9 +1430,9 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
     while (true) {
         // calculate bytes needed
         size_t bn;
-        if (size < 0)
+        if (size < 0) {
             bn = DEFAULT_SOCKET_BUFSIZE;
-        else {
+        } else {
             bn = size - bs;
             if (bn > DEFAULT_SOCKET_BUFSIZE)
                 bn = DEFAULT_SOCKET_BUFSIZE;
@@ -1781,9 +1785,9 @@ int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, vo
             break;
         } else if (err == SSL_ERROR_ZERO_RETURN) {
             // here we allow the remote side to disconnect and return 0 the first time just like regular recv()
-            if (action != WRITE)
+            if (action != WRITE) {
                 rc = 0;
-            else {
+            } else {
                 if (!sslError(xsink, mname, "SSL_write"))
                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the socket was closed by the "
                         "remote host while calling SSL_write()", mname);
@@ -1905,9 +1909,9 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
             }
         } else if (err == SSL_ERROR_ZERO_RETURN) {
             // here we allow the remote side to disconnect and return 0 the first time just like regular recv()
-            if (action != WRITE)
+            if (action != WRITE) {
                 rc = 0;
-            else {
+            } else {
                 if (!sslError(xsink, mname, "SSL_write"))
                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the socket was closed by the remote host while calling SSL_write()", mname);
                 rc = QSE_SSL_ERR;
@@ -2148,19 +2152,22 @@ int QoreSocket::close() {
 
 int QoreSocket::shutdown() {
     int rc;
-    if (priv->sock != QORE_INVALID_SOCKET)
+    if (priv->sock != QORE_INVALID_SOCKET) {
         rc = ::shutdown(priv->sock, SHUTDOWN_ARG);
-    else
+    } else {
         rc = 0;
+    }
 
     return rc;
 }
 
 int QoreSocket::shutdownSSL(ExceptionSink* xsink) {
-    if (priv->sock == QORE_INVALID_SOCKET)
+    if (priv->sock == QORE_INVALID_SOCKET) {
         return 0;
-    if (!priv->ssl)
+    }
+    if (!priv->ssl) {
         return 0;
+    }
     return priv->ssl->shutdown(xsink);
 }
 
@@ -2181,14 +2188,16 @@ bool QoreSocket::isOpen() const {
 }
 
 const char* QoreSocket::getSSLCipherName() const {
-    if (!priv->ssl)
-        return 0;
+    if (!priv->ssl) {
+        return nullptr;
+    }
     return priv->ssl->getCipherName();
 }
 
 const char* QoreSocket::getSSLCipherVersion() const {
-    if (!priv->ssl)
-        return 0;
+    if (!priv->ssl) {
+        return nullptr;
+    }
     return priv->ssl->getCipherVersion();
 }
 
@@ -2197,8 +2206,9 @@ bool QoreSocket::isSecure() const {
 }
 
 long QoreSocket::verifyPeerCertificate() const {
-    if (!priv->ssl)
+    if (!priv->ssl) {
         return -1;
+    }
     return priv->ssl->verifyPeerCertificate();
 }
 
@@ -2769,9 +2779,9 @@ int QoreSocket::send(int fd, qore_offset_t size) {
     while (true) {
         // calculate bytes needed
         size_t bn;
-        if (size < 0)
+        if (size < 0) {
             bn = DEFAULT_SOCKET_BUFSIZE;
-        else {
+        } else {
             bn = size - bs;
             if (bn > DEFAULT_SOCKET_BUFSIZE)
                 bn = DEFAULT_SOCKET_BUFSIZE;
@@ -2903,9 +2913,9 @@ int QoreSocket::recv(int fd, qore_offset_t size, int timeout) {
     while (true) {
         // calculate bytes needed
         int bn;
-        if (size == -1)
+        if (size == -1) {
             bn = DEFAULT_SOCKET_BUFSIZE;
-        else {
+        } else {
             bn = size - br;
             if (bn > DEFAULT_SOCKET_BUFSIZE)
                 bn = DEFAULT_SOCKET_BUFSIZE;

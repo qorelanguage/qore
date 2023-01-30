@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file OracleSqlUtil.qm Qore user module for working with Oracle SQL data
+#! @file OracleSqlUtilBase.qm Qore user module for working with Oracle SQL data
 
-/*  OracleSqlUtil.qm Copyright 2013 - 2023 Qore Technologies, s.r.o.
+/*  OracleSqlUtilBase.qm Copyright 2013 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -45,7 +45,7 @@
 # enable all warnings
 %enable-all-warnings
 
-module OracleSqlUtil {
+module OracleSqlUtilBase {
     version = "1.6";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
@@ -56,47 +56,246 @@ module OracleSqlUtil {
 /*  Version History: see docs below
 */
 
-/** @mainpage OracleSqlUtil Module
+/** @mainpage OracleSqlUtilBase Module
 
     @tableofcontents
 
-    @section oraclesqlutilintro OracleSqlUtil Module Introduction
+    @section oraclesqlutilbaseintro OracleSqlUtilBase Module Introduction
 
-    The %OracleSqlUtil module provides a high level API for working with Oracle database objects.
+    The %OracleSqlUtilBase module provides a high level API for working with Oracle database objects.
 
     Usually this module is loaded on demand from the SqlUtil module, however to use this module
-    directly, use \c "%requires OracleSqlUtil" in your code.
+    directly, use \c "%requires OracleSqlUtilBase" in your code.
 
-    All the public symbols in the module are defined in the OracleSqlUtil namespace
+    All the public symbols in the module are defined in the OracleSqlUtilBase namespace
 
     @note This module requires the <a href="https://github.com/qorelanguage/module-oracle">oracle</a> binary module
     for communication with Oracle databases
 
-    @see @ref pgsqlsqlutilbaseintro for implementation information about this module
+    @section ora_sql_operations SQL Operations on Oracle
+
+    @subsection ora_paging Select With Paging on Oracle
+
+    Select with paging on Oracle is more complicated than on some databases due to the lack of direct \c limit and
+    \c offset support (applies to Oracle pre 12c).
+
+    For example, for the following select:
+    @code{.py}
+*list<auto> rows = $table.selectRows({"where": {"type": "user"}, "limit": 100, "offset": 200});
+    @endcode
+    the following SQL is generated for Oracle with a pre 12c server:
+    @code{.py}
+ds.vselectRows("select * from (select /*+ first_rows(100) *<!--%%-->/ a.*, rownum rnum from
+    (select * from schema.table where type = %v order by type) a
+        where rownum <= %v) where rnum > %v", ("user", 300, 200));
+    @endcode
+    note that the following simpler SQL is generated for Oracle 12c+ servers:
+    @code{.py}
+ds.vselectRows("select * from schema.table where type = %v order by type offset %v rows
+    fetch next %v rows only", ("user", 200, 100));
+    @endcode
+
+    @subsection ora_in_operator IN Operator on Oracle
+
+    In order to avoid dynamic SQL and better manage the server's shared pool (in particular, the number of parsed
+    statements), the %OracleSqlUtilBase module uses bind by value with the SQL \c IN operator.
+
+    For example, the following query:
+    @code{.py}
+*hash<auto> q = table.select({"where": {"col1": op_in(1, 2, 3, 4)}});
+    @endcode
+
+    Results in the equivalent of the following SQL:
+    @code{.py}
+*hash<auto> q = ds.select("select * from schema.table where col1 in (select column_value from table(%v))",
+    bindOracleCollection("SYS.ODCIVARCHAR2LIST", (1,2,3,4)));
+    @endcode
+
+    |!Qore Type|!Oracle Collection
+    |Date|\c SYS.ODCIDATELIST
+    |Float|\c SYS.ODCINUMBERLIST
+    |Integer|\c SYS.ODCINUMBERLIST
+    |Number|\c SYS.ODCINUMBERLIST
+    |String|\c SYS.ODCIVARCHAR2LIST
+
+    There universal collections are limited to 32767 elements. And \c SYS.ODCIVARCHAR2LIST element size is
+    \c VARCHAR2(4000).
+
+    @subsection ora_partitioning_select Partition Support in Selects
+
+    It's possible to select from a particular partition of a table with %OracleSqlUtilBase;
+    @ref OracleSqlUtilBase::OracleTable::OracleSelectOptions "OracleSelectOptions" defines the \c "partition" key which
+    can be added to a @ref select_option_hash "select option hash" to specify the partition to select from as in the
+    following example:
+    @code{.py}
+*list<auto> rows = $table.selectRows(("created": op_gt(2012-05-01), "partition": "p1"));
+    @endcode
+    Which generates an SQL command like the following:
+    @code{.py}
+*list<auto> rows = ds.vselectRows("select * from schema.table partition(p1) where created > %v", (2012-05-01));
+    @endcode
+
+    @subsection ora_partitioning_join Partition Support in Joins
+
+    It's possible to perform a join on a particular partition of a table with %OracleSqlUtilBase; the join option
+    \c "partition" is supported to specify the partition to join on as in the following example:
+    @code{.py}
+*list<auto> $rows = table.selectRows({"join": join_inner($table2, "t2", ("id": "altid"), NOTHING,
+    {"partition": "p2"})});
+    @endcode
+    Which generates an SQL command like the following:
+    @code{.py}
+*list<auto> $rows = ds.vselectRows("select * from schema.table inner join schema.table2 partition(p2) t2 on
+    (schema.table.id = t2.altid)");
+    @endcode
+
+    @section ora_schema_management Schema Management on Oracle
+
+    Note that when getting an object description from an Oracle database, if the object cannot be found in the
+    connection schema, then if a synonym of the same type exists and the target object is accessible, then the target
+    object is read  automatically and the owning schema name is also set to the actual owner of the object.
+
+    @subsection ora_type_mapping Type Mapping
+
+    Column types are mapped from %Qore types as follows:
+
+    <b>Oracle Column Type Mappings</b>
+    |!Generic Type Name|!Oracle Type Used
+    |\c float|\c number
+    |\c integer|\c number
+    |\c number|\c number
+    |\c string|\c varchar2
+    |\c date|\c timestamp(6)
+    |\c binary|\c blob
+    |@ref SqlUtil::BLOB|\c blob
+    |@ref SqlUtil::CHAR|\c char
+    |@ref SqlUtil::CLOB|\c clob
+    |@ref SqlUtil::NUMERIC|\c number
+    |@ref SqlUtil::VARCHAR|\c varchar2
+
+    To use other types, use the \c "native_type"
+    @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the native Oracle type name
+    instead (under the \c "driver" and \c "oracle" keys for schemas supporting multiple databases).
+
+    @subsection ora_other_objects Additional Object Types Supported
+
+    The following additional schema objects can be managed with %OracleSqlUtilBase:
+    - @ref ora_materialized_views "materialized views"
+    - @ref ora_packages "packages"
+    - @ref ora_types "types"
+
+    @subsection ora_materialized_views Materialized Views
+
+    The @ref schema_desc_hash takes an optional key, \c "materialized_views" that allows materialized views in Oracle
+    schemas to be managed along with other objects.
+
+    The \c "materialized_views" should be assigned to a hash, each key name is the name of the materialized view, and
+    the values are hashes with the
+    following keys:
+    - \c "logging": (@ref bool_type "bool") if the materialized view should be logged
+    - \c "use_index": (@ref bool_type "bool") if the materialized view should be indexed
+    - \c "src": (@ref bool_type "bool") the source of the materialized view
+
+    The \c "materialized_views" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or,
+    for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following
+    example:
+
+    @code{.py}
+hash schema = (
+    "driver": (
+        "oracle": (
+            "materialized_views": (
+                "example_mv": (
+                    "logging": False,
+                    "use_index": False,
+                    "src": "select type, count(1) total_count from table group by type",
+                ),
+            ),
+        ),
+    ),
+);
+    @endcode
+
+    @subsection ora_packages Packages
+
+    The @ref schema_desc_hash takes an optional key, \c "packages" that allows packages in Oracle schemas to be
+    managed along with other objects.
+
+    The \c "packages" should be assigned to a hash, each key name is the name of the package, and the values are
+    hashes with the following key:
+    - \c "src": (@ref bool_type "bool") the source of the package
+
+    The \c "packages" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for
+    schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
+
+    @code{.py}
+hash schema = (
+    "driver": (
+        "oracle": (
+            "packages": (
+                "example_pkg": (
+                    "src": "types as
+type cursorType is ref cursor;
+MYSTATCOMPLETE constant order_status.orderstatus%type := 'C';
+MYSTATERROR constant order_status.orderstatus%type := 'E';
+",
+                ),
+            ),
+        ),
+    ),
+);
+    @endcode
+
+    @subsection ora_types Types
+
+    The @ref schema_desc_hash takes an optional key, \c "types" that allows types in Oracle schemas to be managed
+    along with other objects.
+
+    The \c "types" should be assigned to a hash, each key name is the name of the type, and the values are strings
+    giving the type definition.
+
+    The \c "types" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas
+    targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
+
+    @code{.py}
+hash schema = (
+    "driver": (
+        "oracle": (
+            "types": (
+                "num_array": "table of number",
+                "str_array": "table of varchar2(240)",
+            ),
+        ),
+    ),
+);
+    @endcode
+
+    @see OracleSqlUtilBase::OracleDatabase::OracleSchemaDescriptionOptions for a list of Oracle-specific schema
+    description hash keys.
 
     @section ora_relnotes Release Notes
 
-    @subsection oracle16 OracleSqlUtil v1.6
-    - updated to use the @ref oraclesqlutilbaseintro module for the base implementation
+    @subsection oracle16 OracleSqlUtilBase v1.6
+    - reintroduced as the base module for all Oracle SqlUtil modules
 
-    @subsection oracle15 OracleSqlUtil v1.5
+    @subsection oracle15 OracleSqlUtilBase v1.5
     - implemented support for generating queries based on generic expressions using the DataProvider module's generic
       expression support
       (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
 
-    @subsection oracle144 OracleSqlUtil v1.4.4
+    @subsection oracle144 OracleSqlUtilBase v1.4.4
     - allow a \c VARCHAR column to be created without a size, assume a default size
       (<a href="https://github.com/qorelanguage/qore/issues/4399">issue 4399</a>)
 
-    @subsection oraclev143 OracleSqlUtil v1.4.3
+    @subsection oraclev143 OracleSqlUtilBase v1.4.3
     - added APIs to enable duplicate record creation errors to be detected
       (<a href="https://github.com/qorelanguage/qore/issues/4308">issue 4308</a>)
 
-    @subsection v142 OracleSqlUtil v1.4.2
+    @subsection v142 OracleSqlUtilBase v1.4.2
     - fixed a bug where keywords were not properly quoted in merge / upsert statements
       (<a href="https://github.com/qorelanguage/qore/issues/4297">issue 4297</a>)
 
-    @subsection v141 OracleSqlUtil v1.4.1
+    @subsection v141 OracleSqlUtilBase v1.4.1
     - fixed a bug where pseudocolumn references were used ambiguously in joins
       (<a href="https://github.com/qorelanguage/qore/issues/4214">issue 4214</a>)
     - fixed a bug where pseudocolumn names were quoted in queries leading to errors
@@ -104,25 +303,25 @@ module OracleSqlUtil {
     - fixed a bug generating queries with \c limit and \c forupdate
       (<a href="https://github.com/qorelanguage/qore/issues/4206">issue 4206</a>)
 
-    @subsection v14 OracleSqlUtil v1.4
+    @subsection v14 OracleSqlUtilBase v1.4
     - added support for the DataProvider module
       (<a href="https://github.com/qorelanguage/qore/issues/3545">issue 3545</a>)
 
-    @subsection v131 OracleSqlUtil v1.3.1
+    @subsection v131 OracleSqlUtilBase v1.3.1
     - fixed quoting of reserved words in column names in table alignment
       (<a href="https://github.com/qorelanguage/qore/issues/3400">issue 3400</a>)
 
-    @subsection v13 OracleSqlUtil v1.3
+    @subsection v13 OracleSqlUtilBase v1.3
     - added support for serializing and deserializing @ref SqlUtil::AbstractTable "AbstractTable" objects
       (<a href="https://github.com/qorelanguage/qore/issues/2663">issue 2663</a>)
 
-    @subsection v125 OracleSqlUtil v1.2.5
+    @subsection v125 OracleSqlUtilBase v1.2.5
     - worked around an Oracle bug in materialized view creation where when the schema user is missing the
       <tt>CREATE MATERIALIZED VIEW</tt> grant the table backing the view is created but the materialized view itself
       is not created causing future creation actions to fail
       (<a href="https://github.com/qorelanguage/qore/issues/2643">issue 2643</a>)
 
-    @subsection v124 OracleSqlUtil v1.2.4
+    @subsection v124 OracleSqlUtilBase v1.2.4
     - implemented support for custom column operators
       (<a href="https://github.com/qorelanguage/qore/issues/2314">issue 2314</a>)
     - implemented support for chained synonyms
@@ -130,50 +329,50 @@ module OracleSqlUtil {
     - allow to use DBA_* views instead of ALL_* if possible
       (<a href="https://github.com/qorelanguage/qore/issues/2418">issue 2418</a>)
 
-    @subsection v123 OracleSqlUtil v1.2.3
+    @subsection v123 OracleSqlUtilBase v1.2.3
     - fixed a bug in \c character_semantics for standalone column
       (<a href="https://github.com/qorelanguage/qore/issues/1688">issue 1688</a>)
     - implemented @ref cop_trunc_date() operator
       (<a href="https://github.com/qorelanguage/qore/issues/2032">issue 2032</a>)
 
-    @subsection v122 OracleSqlUtil v1.2.2
+    @subsection v122 OracleSqlUtilBase v1.2.2
     - fixed a bug in the \a force option (i.e. cascade) for dropping types
       (<a href="https://github.com/qorelanguage/qore/issues/1683">issue 1683</a>)
 
-    @subsection v121 OracleSqlUtil v1.2.1
+    @subsection v121 OracleSqlUtilBase v1.2.1
     - implemented the \a force option (i.e. cascade) for dropping code objects
       (<a href="https://github.com/qorelanguage/qore/issues/1314">issue 1314</a>)
     - worked around ORA-22165 from op_in() caused by Oracle's limit on number of collection elements
       (<a href="https://github.com/qorelanguage/qore/issues/1660">issue 1660</a>)
 
-    @subsection v12 OracleSqlUtil v1.2
+    @subsection v12 OracleSqlUtilBase v1.2
     - implemented support for the \c "returning" clause as an insert option
-    - implemented support for views for DML in the @ref OracleSqlUtil::OracleTable class
-    - implemented @ref OracleSqlUtil::OracleTable::getBaseType()
+    - implemented support for views for DML in the @ref OracleSqlUtilBase::OracleTable class
+    - implemented @ref OracleSqlUtilBase::OracleTable::getBaseType()
     - implemented support for Oracle pseudocolumns in queries
     - implemented support for @ref SqlUtil::cop_cast() operator
     - fixed bugs in @ref SqlUtil::cop_seq() and @ref SqlUtil::cop_seq_currval()
       (<a href="https://github.com/qorelanguage/qore/issues/624">issue 624</a>)
     - return lists from Oracle's data dictionary ordered
-    - implemented @ref OracleSqlUtil::OracleTable::bindEmptyStringsAsNull()
+    - implemented @ref OracleSqlUtilBase::OracleTable::bindEmptyStringsAsNull()
     - implemented high-performance "upsert" (merge) support also supporting bulk DML
     - implemented @ref SqlUtil::cop_substr() and @ref SqlUtil::uop_substr() operators
       (<a href="https://github.com/qorelanguage/qore/issues/801">issue 801</a>)
     - implemented @ref SqlUtil::op_substr() where operator
       (<a href="https://github.com/qorelanguage/qore/issues/883">issue 883</a>)
 
-    @subsection v11 OracleSqlUtil v1.1
+    @subsection v11 OracleSqlUtilBase v1.1
     - fixed selects with "limit" but no "offset"
     - convert date/time values to timestamps with microseconds resolution instead of dates with second resolution when
       dynamically inserting values as strings in SQL (binding by value not affected)
     - fixed schema information classes when the "string-numbers" driver option is enabled
 
-    @subsection v10 OracleSqlUtil v1.0
+    @subsection v10 OracleSqlUtilBase v1.0
     - initial release
 */
 
-#! the OracleSqlUtil namespace contains all the objects in the OracleSqlUtil module
-public namespace OracleSqlUtil {
+#! the OracleSqlUtilBase namespace contains all the objects in the OracleSqlUtilBase module
+public namespace OracleSqlUtilBase {
     #! returns an OracleTable object corresponding to the arguments
     public OracleTable sub get_table(AbstractDatasource nds, string nname, *hash opts) {
         return new OracleTable(nds, nname, opts);
@@ -932,7 +1131,7 @@ auto v = c.name;
                 ;
 
             #! oracle-specific schema description keys
-            /** This constant extends @ref SqlUtil::AbstractDatabase::SchemaDescriptionOptions as returned by @ref OracleSqlUtil::OracleDatabase::getSchemaDescriptionOptions with the following Oracle-specific keys:
+            /** This constant extends @ref SqlUtil::AbstractDatabase::SchemaDescriptionOptions as returned by @ref OracleSqlUtilBase::OracleDatabase::getSchemaDescriptionOptions with the following Oracle-specific keys:
                 - \c types: for Oracle type definitions
                 - \c type_map: to automatically renaming Oracle types during schema alignment
                 - \c packages: for Oracle package descriptions
@@ -1119,7 +1318,7 @@ auto v = c.name;
         #! Returns the maximum precision for numeric or decimal columns
         /** @return -1 means, no maximum
 
-            @since %OracleSqlUtil 1.4.3
+            @since %OracleSqlUtilBase 1.4.3
         */
         int getMaximumPrecision() {
             return OracleMaxPrecision;
@@ -1779,19 +1978,19 @@ auto v = c.name;
             };
 
             #! Oracle-specific column options
-            /** this constant extends @ref SqlUtil::AbstractTable::ColumnOptions as returned by \c OracleSqlUtil::OracleTable::getColumnOptions() with the following keys:
+            /** this constant extends @ref SqlUtil::AbstractTable::ColumnOptions as returned by \c OracleSqlUtilBase::OracleTable::getColumnOptions() with the following keys:
                 - \c character_semantics: adds "char" to the column type name for applicable character columns to use character semantics for the column
             */
             const OraColumnOptions = AbstractTable::ColumnOptions + OraColumnOpts;
 
             #! Oracle-specific column options
-            /** this constant extends @ref SqlUtil::AbstractTable::ColumnDescOptions as returned by \c OracleSqlUtil::OracleTable::getColumnDescOptions() with the following keys:
+            /** this constant extends @ref SqlUtil::AbstractTable::ColumnDescOptions as returned by \c OracleSqlUtilBase::OracleTable::getColumnDescOptions() with the following keys:
                 - \c character_semantics: to specify that applicable character columns use character semantics in the column definition
             */
             const OraColumnDescOptions = AbstractTable::ColumnDescOptions + OraColumnOpts;
 
             #! Oracle-specific index options
-            /** this constant extends @ref SqlUtil::AbstractTable::IndexOptions as returned by \c OracleSqlUtil::OracleTable::getIndexOptions() with the following keys:
+            /** this constant extends @ref SqlUtil::AbstractTable::IndexOptions as returned by \c OracleSqlUtilBase::OracleTable::getIndexOptions() with the following keys:
                 - \c compute_statistics: adds "compute statistics" to index creation strings
             */
             const OracleIndexOptions = AbstractTable::IndexOptions + {
@@ -1799,7 +1998,7 @@ auto v = c.name;
             };
 
             #! Oracle-specific constraint options
-            /** this constant extends @ref OracleIndexOptions as returned by \c OracleSqlUtil::OracleTable::getConstraintOptions() with the following keys:
+            /** this constant extends @ref OracleIndexOptions as returned by \c OracleSqlUtilBase::OracleTable::getConstraintOptions() with the following keys:
                 - \c index: adds "using index <indexname>" to the constraint creation string
             */
             const OracleConstraintOptions = OracleIndexOptions + {
@@ -1816,7 +2015,7 @@ auto v = c.name;
 
             #! Oracle select options
             /** This constant extends @ref SqlUtil::AbstractTable::SelectOptions with the following options as returned by
-                @ref OracleSqlUtil::OracleTable::getSelectOptions():
+                @ref OracleSqlUtilBase::OracleTable::getSelectOptions():
                 - \c partition: the partition name to use in a query (see @ref ora_partitioning_select)
             */
             const OracleSelectOptions = AbstractTable::SelectOptions + {
@@ -2343,7 +2542,7 @@ auto v = c.name;
             # helper flag to indicate if is the OracleTable real table or a view
             bool m_isView = False;
 
-            # oraclesqlutil: allow to use DBA_* views instead of ALL_* if possible #2418
+            # oraclesqlutilbase: allow to use DBA_* views instead of ALL_* if possible #2418
             # An internal cache to find the highest priority available
             # system dictionary object. Priority: DBA > ALL
             hash<string, string> m_sys_views = {
@@ -2373,35 +2572,42 @@ auto v = c.name;
                 splice nname, nname.size() - (dbl.size() + 1);
                 name = nname;
                 setDblinkSchema();
-            }
-            else {
+            } else {
                 # see if there is a schema in the name
                 *string sstr = (nname =~ x/^(\w+)\.\w+/)[0];
                 if (sstr) {
                     schema = sstr;
                     splice nname, 0, schema.size() + 1;
                     name = nname;
-                }
-                else
+                } else {
                     schema = ds.getUserName();
+                }
             }
 
             # the oracle driver >= 3.0 supports selecting from LONG columns
-            if (compare_version("3.0", get_module_hash().oracle.version) > 0)
-                throw "ORACLE-DRIVER-ERROR", sprintf("OracleSqlUtil requires oracle module 3.0+ to query system catalogs since LONG support was added in oracle module version 3.0; current module version: %s; upgrade your oracle module to at least 3.0 to use OracleSqlUtil", get_module_hash().oracle.version);
+            if (compare_version("3.0", get_module_hash().oracle.version) > 0) {
+                throw "ORACLE-DRIVER-ERROR", sprintf("OracleSqlUtilBase requires oracle module 3.0+ to query system "
+                    "catalogs since LONG support was added in oracle module version 3.0; current module version: %s; "
+                    "upgrade your oracle module to at least 3.0 to use OracleSqlUtilBase",
+                    get_module_hash().oracle.version);
+            }
 
             ora_major = (nds.getServerVersion() =~ x/([0-9]+)/)[0].toInt();
 
+            introspectSystemViews();
+        }
+
+        private introspectSystemViews() {
 %ifndef NO_ORACLE
             # validate presence of DBA_* views for this connection/user
             hash dba_in = bindOracleCollection("SYS.ODCIVARCHAR2LIST", map $1.upr(), m_sys_views.keys());
-            hash dba_sys = nds.select("select /* OracleSqlUtil::OracleTable::constructor */
-                                            object_name
-                                        from all_objects
-                                        where owner = %v
-                                            and object_name in (select column_value from table(%v))
-                                            and object_type = %v",
-                                      "SYS", dba_in, "VIEW");
+            hash dba_sys = ds.select("select /* OracleSqlUtilBase::OracleTable::constructor */
+                    object_name
+                from all_objects
+                where owner = %v
+                    and object_name in (select column_value from table(%v))
+                    and object_type = %v",
+                "SYS", dba_in, "VIEW");
             context (dba_sys) {
                 string n = %object_name.lwr();
                 m_sys_views{n} = n;
@@ -2425,10 +2631,10 @@ auto v = c.name;
         private bool checkExistenceImpl() {
             try {
                 setTableInfoIntern();
-            }
-            catch (hash<ExceptionInfo> ex) {
-                if (ex.err == "TABLE-ERROR")
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err == "TABLE-ERROR") {
                     return False;
+                }
                 rethrow;
             }
             return True;
@@ -2477,7 +2683,7 @@ auto v = c.name;
         }
 
         private setDblinkSchema() {
-            *hash dblr = ds.selectRow("select * from " + systemView("dba_db_links") + " where owner in "
+            *hash<auto> dblr = ds.selectRow("select * from " + systemView("dba_db_links") + " where owner in "
                 "('PUBLIC', %v) and db_link = %v and rownum = 1", ds.getUserName().upr(), dblink);
             if (!dblr)
                 throw "TABLE-ERROR", sprintf("dblink %y is unknown", dblink);
@@ -2497,31 +2703,31 @@ auto v = c.name;
             # select(), no exec(), is used here for reason:
             # we don't want to grab the transaction lock here.
             try {
-                hash plsql = ds.select("declare
-                                        o_owner varchar2(30);
-                                        o_table varchar2(30);
-                                        o_db_link varchar2(30);
-                                        o_tmp1 varchar2(30);
-                                        o_tmp2 number;
-                                        o_tmp3 number;
-                                    begin
-                                    dbms_utility.name_resolve(%v, 0, o_owner, o_table, o_db_link, o_tmp1, o_tmp2, o_tmp3);
-                                    :owner := o_owner;
-                                    :table := o_table;
-                                    :link := o_db_link;
-                                    end;",
-                                    sprintf("%s.%s", s_owner.upr(), s_name.upr()),
-                                    Type::String, Type::String, Type::String
-                            );
+                hash<auto> plsql = ds.select("declare
+                        o_owner varchar2(30);
+                        o_table varchar2(30);
+                        o_db_link varchar2(30);
+                        o_tmp1 varchar2(30);
+                        o_tmp2 number;
+                        o_tmp3 number;
+                    begin
+                    dbms_utility.name_resolve(%v, 0, o_owner, o_table, o_db_link, o_tmp1, o_tmp2, o_tmp3);
+                    :owner := o_owner;
+                    :table := o_table;
+                    :link := o_db_link;
+                    end;",
+                    sprintf("%s.%s", s_owner.upr(), s_name.upr()),
+                    Type::String, Type::String, Type::String
+                );
                 # simulate resultset from all_synonyms output
-                return ("owner" : s_owner,
-                        "synonym_name" : s_name,
-                        "table_owner" : plsql.owner,
-                        "table_name" : plsql.table,
-                        "db_link" : plsql.link,
-                    );
-            }
-            catch (hash ex) {
+                return {
+                    "owner": s_owner,
+                    "synonym_name" : s_name,
+                    "table_owner" : plsql.owner,
+                    "table_name" : plsql.table,
+                    "db_link" : plsql.link,
+                };
+            } catch (hash<ExceptionInfo> ex) {
                 # exceptions are silently ignored - session can miss
                 # dbms_utility grants, requested object can be missing etc.
                 #printf("resolveSynonym dbms_utility.name_resolve error: %s\n", get_exception_string(ex));
@@ -2577,8 +2783,10 @@ auto v = c.name;
             if (!row) {
                 # see if there is a public synonym with this name
                 row = resolveSynonym("PUBLIC", name);
-                if (!row)
-                    throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this user (%s)", name, name, getDBString());
+                if (!row) {
+                    throw "TABLE-ERROR", sprintf("table %y or synonym %y does not exist or is not accessible to this "
+                        "user (%s)", name, name, getDBString());
+                }
                 pub = True;
             }
 
@@ -2606,17 +2814,21 @@ auto v = c.name;
             }
 
             # get the table information if possible
-            row = ds.selectRow("select * from " + systemView("dba_tables") + (dblink ? "@" + dblink : "") + " where owner = %v and table_name = %v", schema.upr(), name.upr());
-            if (row)
+            row = ds.selectRow("select * from " + systemView("dba_tables") + (dblink ? "@" + dblink : "") +
+                " where owner = %v and table_name = %v", schema.upr(), name.upr());
+            if (row) {
                 return row;
+            }
 
-            row = ds.selectRow("select * from " + systemView("dba_views") + (dblink ? "@" + dblink : "") + " where owner = %v and view_name = %v", schema.upr(), name.upr());
+            row = ds.selectRow("select * from " + systemView("dba_views") + (dblink ? "@" + dblink : "") +
+                " where owner = %v and view_name = %v", schema.upr(), name.upr());
             if (row) {
                 m_isView = True;
                 return row;
             }
 
-            throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which does not exist or is not accessible to this user (%s)", orig_name, pub ? "public " : "", schema, name, getDBString());
+            throw "TABLE-ERROR", sprintf("%y is a %ssynonym pointing to table %y.%y which does not exist or is not "
+                "accessible to this user (%s)", orig_name, pub ? "public " : "", schema, name, getDBString());
         }
 
         private string getUserSchema() {
@@ -3104,7 +3316,7 @@ auto v = c.name;
         }
 
         #! Returns True if the exception was raised because of a duplicate row / key error
-        /** @since OracleSqlUtil 1.4.3
+        /** @since OracleSqlUtilBase 1.4.3
         */
         private bool isDuplicateRowErrorImpl(hash<ExceptionInfo> ex) {
             return ex.desc =~ /ORA-00001/;
@@ -3188,7 +3400,7 @@ auto v = c.name;
 
         #! returns the base type of the underlying object (either \"table\" or \c "view")
         /**
-            @since OracleSqlUtil 1.2
+            @since OracleSqlUtilBase 1.2
         */
         string getBaseType() {
             return m_isView ? "view" : "table";
@@ -3303,7 +3515,7 @@ auto v = c.name;
         }
 
         #! returns @ref True because Oracle treats empty strings like @ref NULL on insert
-        /** @since OracleSqlUtil 1.2
+        /** @since OracleSqlUtilBase 1.2
         */
         bool bindEmptyStringsAsNull() {
             return True;

@@ -195,12 +195,26 @@ public class parseUrlTest inherits QUnit::Test {
     }
 
     private portTest() {
+        # test URL with a port and a path with a colon
+        assertEq(<UrlInfo>{
+            "protocol": "https",
+            "host": "host",
+            "port": 8080,
+            "path": "/something:other",
+        }, parse_url("https://host:8080/something:other"));
+
+        assertEq(<UrlInfo>{
+            "protocol": "https",
+            "host": "host",
+            "port": 8080,
+            "path": "/something:1234",
+        }, parse_url("https://host:8080/something:1234"));
+
         # non num chars in port
         try {
             parse_url("http://localhost:abc");
             fail("it must throw an exception");
-        }
-        catch (hash ex) {
+        } catch (hash<ExceptionInfo> ex) {
             assertEq("PARSE-URL-ERROR", ex.err);
             assertEq(True, ex.desc =~ /has an invalid non-numeric character in the port specification/, ex.desc);
         }
