@@ -64,7 +64,7 @@ public:
     /** @since %Qore 1.14
     */
     template<typename T>
-    DLLEXPORT T* takePrivateData() {
+    DLLLOCAL T* takePrivateData() {
         return reinterpret_cast<T*>(takePrivateData());
     }
 
