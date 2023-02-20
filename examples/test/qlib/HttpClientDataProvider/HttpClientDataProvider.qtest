@@ -26,7 +26,7 @@ public class HttpClientDataProviderTest inherits QUnit::Test {
     }
 
     httpClientDataProviderTest() {
-        HttpClientDataProvider parent({"url": "localhost"});
+        HttpClientDataProvider parent({"url": "localhost", "headers": {"Test": "x"}});
 
         AbstractDataProvider prov = parent.getChildProviderEx("call");
         hash<DataProviderSummaryInfo> sinfo = prov.getSummaryInfo();
