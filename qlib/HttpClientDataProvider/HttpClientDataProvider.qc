@@ -55,6 +55,10 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
                     "passed through to the caller like any other response",
                 "default_value": False,
             },
+            "headers": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderTypeMap."hash",
+                "desc": "headers to add in each outgoing request",
+            },
             "http_version": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",

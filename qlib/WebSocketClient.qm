@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.10
+%requires qore >= 1.14.1
 
 # require type definitions everywhere
 %require-types
@@ -48,7 +48,7 @@
 %endtry
 
 module WebSocketClient {
-    version = "2.0";
+    version = "2.1";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -114,6 +114,10 @@ c.waitForZero();
     @endcode
 
     @section websocketclient_relnotes WebSocketClient Module Release History
+
+    @subsection wsc_v2_1 v2.1
+    - added the \c headers option to allow auth headers to be set in WebSocket client connections and data providers
+      (<a href="https://github.com/qorelanguage/qore/issues/4694">issue 4694</a>)
 
     @subsection wsc_v2_0 v2.0
     - added support for events and messages from the DataProvider API
@@ -1043,24 +1047,28 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         #! Constructor options
         const ConstructorOptions = {
             "connect_timeout": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
+                "type": AbstractDataProviderTypeMap."int",
                 "desc": "connection timeout to use in milliseconds",
             },
+            "headers": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderTypeMap."hash",
+                "desc": "headers to add in each outgoing request",
+            },
             "http_version": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
                 "default_value": "1.1",
             },
             "max_redirects": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "maximum redirects to support",
             },
             "proxy": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "proxy URL to use",
             },
             "data": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "data serialization to use:\n"
 %ifndef NoJson
                     " - `json`: JSON serialization (default)\n"
@@ -1078,11 +1086,11 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                     ,
             },
             "timeout": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
+                "type": AbstractDataProviderTypeMap."int",
                 "desc": "transfer timeout to use in milliseconds",
             },
             "url": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "A URL for an WebSocket connection",
                 "required": True,
             },
