@@ -36,8 +36,9 @@ public namespace ConnectionProvider {
     - \c "assume_encoding": assumes the given encoding if the server does not send a charset value
     - \c "connect_timeout": connection timeout to use in milliseconds (default: 45 seconds)
     - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
-        \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
-        like any other response
+        \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the
+        caller like any other response
+    - \c "headers": headers to add in each outgoing request
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
     - \c "pre_encoded_urls": If @ref True "True" then all URI paths in URLs are assumed to be already
@@ -52,7 +53,8 @@ public namespace ConnectionProvider {
     - \c "ssl_verify_cert": if @ref True "True" then the server's certificate will only be accepted if it's verified
     - \c "timeout": transfer timeout to use in milliseconds (default: 45 seconds)
 
-    @see @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient::constructor(hash<auto> opts)" for more information on the above options
+    @see @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient::constructor(hash<auto> opts)" for more
+    information on the above options
 */
 public class HttpConnection inherits AbstractConnectionWithInfo {
     public {
@@ -75,6 +77,10 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                         "`HTTP-CLIENT-RECEIVE-ERROR` exception to be raised, rather such responses will be "
                         "passed through to the caller like any other response",
                     "default_value": False,
+                },
+                "headers": <ConnectionOptionInfo>{
+                    "type": "hash",
+                    "desc": "headers to add in each outgoing request",
                 },
                 "http_version": <ConnectionOptionInfo>{
                     "type": "string",

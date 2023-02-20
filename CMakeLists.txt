@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.12)
 # NOTE: Qore should always use semantic versioning: https://semver.org/
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 14)
-set(VERSION_SUB 0)
+set(VERSION_SUB 1)
 #set(VERSION_PATCH 0)
 
 # support <pkg>_ROOT in find_package
