@@ -417,6 +417,11 @@ WebSocketClient ws(\event(), {
         return url;
     }
 
+    #! Returns a "safe" URL, without any password info
+    string getSafeUrl() {
+        return hc.getSafeURL();
+    }
+
     #! returns the unique connection ID
     int getConnectionId() {
         return cid;
@@ -1188,7 +1193,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 "type": new WebSocketClientEventDataType(),
             },
             EVENT_WS_CLOSED: <DataProviderMessageInfo>{
-                "desc": "",
+                "desc": "The event signaling that the channel was closed",
                 "type": new HashDataType(),
             },
         };
@@ -1373,7 +1378,11 @@ public class WebSocketClientDataProvider inherits WebSocketClientDataProviderBas
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {
-        return ProviderInfo;
+        hash<DataProviderInfo> rv = ProviderInfo;
+        string safe_url = client.getSafeUrl();
+        safe_url =~ s/^http/ws/;
+        rv.desc = sprintf("WebSocket client to URL %y", safe_url);
+        return rv;
     }
 }
 
@@ -1406,7 +1415,11 @@ public class WebSocketClientDelayedDataProvider inherits WebSocketClientDataProv
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {
-        return ProviderInfo;
+        hash<DataProviderInfo> rv = ProviderInfo;
+        string safe_url = client.getSafeUrl();
+        safe_url =~ s/^http/ws/;
+        rv.desc = sprintf("WebSocket client to URL %y", safe_url);
+        return rv;
     }
 }
 
