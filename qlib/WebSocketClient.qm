@@ -1207,7 +1207,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
     private hash<string, hash<DataProviderMessageInfo>> getMessageTypesImpl() {
         return {
             MESSAGE_WS_DATA: <DataProviderMessageInfo>{
-                "desc": "An outgoing WebSocket message that will be serialzed according to the serialization option",
+                "desc": "An outgoing WebSocket message that will be serialized according to the serialization option",
                 "type": serialization == "none"
                     ? AbstractDataProviderTypeMap."data"
                     : AbstractDataProviderTypeMap."any",
