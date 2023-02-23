@@ -116,6 +116,8 @@ c.waitForZero();
     @section websocketclient_relnotes WebSocketClient Module Release History
 
     @subsection wsc_v2_1 v2.1
+    - fixed a deadlock deleting the client object when it goes out of scope in the event thread
+      (<a href="https://github.com/qorelanguage/qore/issues/4697">issue 4697</a>)
     - added the \c headers option to allow auth headers to be set in WebSocket client connections and data providers
       (<a href="https://github.com/qorelanguage/qore/issues/4694">issue 4694</a>)
 
@@ -282,6 +284,8 @@ public class WebSocketClient {
         *code errlog;
         *code debuglog;
         timeout timeout_ms = DefaultTimeout;
+        #! TID of the event thread
+        int tid;
         #! unique websocket connection ID; -1 when not connected
         int cid = -1;
         #! callable object to yield the current thread's execution
@@ -492,8 +496,11 @@ ws.connect();
 
         hash<auto> h = connectUnlocked(opts.hdr, \info);
         c.inc();
-        on_error c.dec();
-        background eventLoop(callback);
+        on_error {
+            remove tid;
+            c.dec();
+        }
+        tid = background eventLoop(callback);
         return h;
     }
 
@@ -510,8 +517,9 @@ ws.connect();
         m.lock();
         on_exit m.unlock();
 
-        if (hc.isOpen())
+        if (hc.isOpen()) {
             disconnectUnlocked(cmd);
+        }
     }
 
     #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
@@ -636,19 +644,31 @@ ws.setEventQueue();
     }
 
     private disconnectUnlocked(int cmd = WSCC_GoingAway) {
-        stop = cmd;
-        c.waitForZero();
-        cid = -1;
+        # disconnect only if possible; in case this method is called from the destructor from the event thread, we
+        # cannot wait for the event thread to terminate, as there would be a deadlock
+        if (tid != gettid()) {
+            stop = cmd;
+            c.waitForZero();
+            cid = -1;
+            remove tid;
+        }
     }
 
     private eventLoop(code callback) {
         on_exit {
-            c.dec();
+            # issue #4697: went out of scope in event loop
+            if (self) {
+                c.dec();
+            }
         }
 
         # data buffer for fragmented frames
         data buf;
         while (True) {
+            # issue #4697: went out of scope in event loop
+            if (!self) {
+                break;
+            }
             if (stop) {
                 sendClose(stop);
                 logDebug("event loop stopping on user request");
