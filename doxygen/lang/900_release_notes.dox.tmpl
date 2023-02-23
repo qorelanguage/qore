@@ -15,6 +15,8 @@
       - added the \c headers option to allow auth headers to be set in the data provider
         (<a href="https://github.com/qorelanguage/qore/issues/4695">issue 4695</a>)
     - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module
+      - fixed a deadlock deleting the client object when it goes out of scope in the event thread
+        (<a href="https://github.com/qorelanguage/qore/issues/4697">issue 4697</a>)
       - added the \c headers option to allow auth headers to be set in WebSocket client connections and data providers
         (<a href="https://github.com/qorelanguage/qore/issues/4694">issue 4694</a>)
 
