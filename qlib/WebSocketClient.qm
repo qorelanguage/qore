@@ -1116,7 +1116,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
             },
             "url": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "A URL for an WebSocket connection",
+                "desc": "A URL for a WebSocket connection",
                 "required": True,
             },
         };
