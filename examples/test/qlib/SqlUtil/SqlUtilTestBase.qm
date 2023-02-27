@@ -156,6 +156,8 @@ public class SqlTestBase inherits QUnit::Test {
         db.setLogger(logger);
         assertTrue(db.supportsCreateChild());
         assertTrue(db.supportsDeleteChild());
+        assertTrue(db.requiresTransactionManagement());
+        assertTrue(db.getInfo().children_can_support_transactions);
 
         string name = "test_table_" + get_random_string();
         hash<string, QoreDataField> fields = {

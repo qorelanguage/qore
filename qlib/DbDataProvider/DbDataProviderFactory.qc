@@ -35,6 +35,7 @@ public class DbDataProviderFactory inherits AbstractDataProviderFactory {
             "name": "db",
             "desc": "Database data provider factory",
             "children_can_support_records": True,
+            "children_can_support_transaction_management": True,
         };
     }
 

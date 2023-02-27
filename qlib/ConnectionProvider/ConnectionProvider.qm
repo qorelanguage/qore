@@ -319,6 +319,9 @@ public hashdecl ConnectionInfo {
 
     #! if the data provider or any of its children support messages
     bool children_can_support_messages = False;
+
+    #! if the data provider or any of its children support transaction management
+    bool children_can_support_transactions = False;
 }
 
 #! config informaton
