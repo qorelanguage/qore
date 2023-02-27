@@ -173,6 +173,11 @@ public hashdecl DataProviderSummaryInfo {
     /** @since DataProvider 2.7
     */
     bool children_can_support_messages = False;
+
+    #! Can any child data providers support transaction management?
+    /** @since DataProvider 2.8
+    */
+    bool children_can_support_transactions = False;
 }
 
 #! Data provider message and event info
@@ -611,6 +616,11 @@ public hashdecl DataProviderInfo {
     /** @since DataProvider 2.7
     */
     bool children_can_support_messages = False;
+
+    #! Can any child data providers support transaction management?
+    /** @since DataProvider 2.8
+    */
+    bool children_can_support_transactions = False;
 
     #! Returns the schema type supported by this data provider
     /**
@@ -1747,16 +1757,16 @@ public class AbstractDataProvider {
         return provider;
     }
 
-    #! Returns @ref True if the data provider supports transaction management
-    /** @return @ref True if the data provider supports transaction management, in which case commit() or rollback()
+    #! Returns @ref True if the data provider requires transaction management
+    /** @return @ref True if the data provider requires transaction management, in which case commit() or rollback()
         must be called to flush or discard data written to the data provider
     */
     bool requiresTransactionManagement() {
-        return False;
+        return getStaticInfoImpl().transaction_management;
     }
 
     #! Begins a transaction with a data provider
-    /** Has no effect if the data provider does not support transaction management
+    /** Has no effect if the data provider does not require transaction management
 
         @see:
         - commit()

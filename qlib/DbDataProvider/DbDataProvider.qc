@@ -45,7 +45,7 @@ public class DbDataProvider inherits AbstractDataProvider {
             "supports_child_delete": True,
             "children_can_support_apis": False,
             "children_can_support_records": True,
-            "children_can_support_observers": False,
+            "children_can_support_transactions": True,
         };
 
         #! Constructor options
