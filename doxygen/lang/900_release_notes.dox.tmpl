@@ -2,12 +2,28 @@
 
     @tableofcontents
 
+    @section qore_1_14_2 Qore 1.14.2
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_14_2_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module
+      - the data provider factory uses the delayed observable class instead
+        (<a href="https://github.com/qorelanguage/qore/issues/4701">issue 4701</a>)
+    - <a href="../../modules/FileDataProvider/html/index.html">FileDataProvider</a> module
+      - the data provider factory uses the delayed observable class instead
+        (<a href="https://github.com/qorelanguage/qore/issues/4701">issue 4701</a>)
+    - <a href="../../modules/Schema/html/index.html">Schema</a> module
+      - fixed reporting changes with negative verbose options
+        (<a href="https://github.com/qorelanguage/qore/issues/4702">issue 4702</a>)
+
     @section qore_1_14_1 Qore 1.14.1
 
     @par Release Summary
     Bugfix release; see below for more information
 
-    @subsection qore_1_14_bug_fixes Bug Fixes in Qore
+    @subsection qore_1_14_1_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - added the \c headers option to HTTP connections (@ref ConnectionProvider::HttpConnection "HttpConnection")
         (<a href="https://github.com/qorelanguage/qore/issues/4695">issue 4695</a>)

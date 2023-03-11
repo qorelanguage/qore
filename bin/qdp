@@ -381,6 +381,10 @@ class QdpCmd {
             "help\n", provider.getName());
         observable.registerObserver(observer);
 
+        if (observable instanceof DataProvider::DelayedObservable) {
+            cast<DataProvider::DelayedObservable>(observable).observersReady();
+        }
+
         InputHelper input_helper(provider);
         while (True) {
             string input = input_helper.get();
@@ -432,6 +436,11 @@ class QdpCmd {
             Term t();
 
             observable.registerObserver(observer);
+
+            if (observable instanceof DataProvider::DelayedObservable) {
+                cast<DataProvider::DelayedObservable>(observable).observersReady();
+            }
+
             while (True) {
                 if (stdin.isDataAvailable()) {
                     stdin.readBinary(1);
