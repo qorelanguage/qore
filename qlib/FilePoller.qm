@@ -25,7 +25,7 @@
 %requires qore >= 1.9
 
 module FilePoller {
-    version = "1.0";
+    version = "1.0.1";
     desc = "Filesystem polling solution";
     author = "Petr Vanek <petr@yarpen.cz>";
     url = "http://qore.org";
@@ -72,6 +72,10 @@ module FilePoller {
       @ref FilePoller::FilePoller::constructor() "FilePoller::constructor()"
 
     @section file_poller_relnotes FilePoller Release Notes
+
+    @subsection file_poller_1_0_1 FilePoller v1.0.1
+    - the data provider factory uses the delayed observable class instead
+      (<a href="https://github.com/qorelanguage/qore/issues/4701">issue 4701</a>)
 
     @subsection file_poller_1_0 FilePoller v1.0
     - added support for the event-based DataProvider API
@@ -883,7 +887,7 @@ public class FilePollerFileEventInfoDataType inherits HashDataType {
 public class FilePollerDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         #! Data provider type info
-        static Class cls = new Class("FilePollerDataProvider");
+        static Class cls = new Class("FileDelayedPollerDataProvider");
 
         #! Factory info
         const FactoryInfo = <DataProviderFactoryInfo>{
