@@ -15,6 +15,12 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4705">issue 4705</a>)
 
     @subsection qore_1_15_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - ensure that exception attributes from ping errors are serializable
+        (<a href="https://github.com/qorelanguage/qore/issues/4708">issue 4708</a>)
+    - <a href="../../modules/Util/html/index.html">Util</a>
+      - added the \c check_exception_serializable() method
+        (<a href="https://github.com/qorelanguage/qore/issues/4708">issue 4708</a>)
 
     - fixed a bug where @ref Qore::SQL::Datasource "Datasource" objects would fail to deserialize if the connection
       string was missing the dbname
