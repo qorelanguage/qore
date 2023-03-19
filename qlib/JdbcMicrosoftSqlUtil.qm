@@ -1,0 +1,90 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file JdbcMicrosoftSqlUtil.qm Qore user module for working with Microsoft SQL Server databases with the jdbc driver
+
+/*  JdbcMicrosoftSqlUtil.qm Copyright (C) 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 1.0
+
+# requires the SqlUtil module
+%requires SqlUtil >= 1.5
+
+# requires the Util module
+%requires Util >= 1.0
+
+# the implementation is in MssqlSqlUtilBase
+%requires MssqlSqlUtilBase
+
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+module JdbcMicrosoftSqlUtil {
+    version = "1.0";
+    desc = "user module for working with MS SQL Server databases with the jdbc";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage JdbcMicrosoftSqlUtil Module
+
+    @tableofcontents
+
+    @section JdbcMicrosoftSqlUtilintro JdbcMicrosoftSqlUtil Module Introduction
+
+    The %JdbcMicrosoftSqlUtil module provides a high level API for working with MS SQL Server database objects using
+    the \c jdbc driver.
+
+    Usually this module is loaded on demand from the SqlUtil module, however to use this module directly, use
+    \c "%requires JdbcMicrosoftSqlUtil" in your code.
+
+    All the public symbols in the module are defined in the JdbcMicrosoftSqlUtil namespace
+
+    @note This module requires the <a href="https://github.com/qorelanguage/module-jni">jni</a> binary module and the
+    MS SQL Server JDBC driver for communication with MS SQL Server databases
+
+    @see @ref mssqlsqlutilbaseintro for implementation information about this module
+
+    @section ora_relnotes Release Notes
+
+    @subsection Microsoft15 JdbcMicrosoftSqlUtil v1.0
+    - initial release
+*/
+
+#! the JdbcMicrosoftSqlUtil namespace contains all the objects in the JdbcMicrosoftSqlUtil module
+public namespace JdbcMicrosoftSqlUtil {
+#! returns a MssqlTable object corresponding to the arguments
+public MssqlTable sub get_table(AbstractDatasource nds, string nname, *hash<auto> opts) {
+    return new MssqlTable(nds, nname, opts);
+}
+
+#! returns a MssqlDatabase object corresponding to the arguments
+public MssqlDatabase sub get_database(AbstractDatasource nds, *hash<auto> opts) {
+    return new MssqlDatabase(nds, opts);
+}
+}

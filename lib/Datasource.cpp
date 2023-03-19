@@ -151,8 +151,10 @@ QoreStringNode* qore_ds_private::getConfigString() const {
         if (!password.empty()) {
             str->sprintf("/%s", password.c_str());
         }
+        // the '@' symbol must be present even if the database name is empty
+        str->concat('@');
         if (!dbname.empty()) {
-            str->sprintf("@%s", dbname.c_str());
+            str->concat(dbname);
         }
         if (!db_encoding.empty()) {
             str->sprintf("(%s)", db_encoding.c_str());

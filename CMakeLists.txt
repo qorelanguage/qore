@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8.12)
 
 # NOTE: Qore should always use semantic versioning: https://semver.org/
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 14)
-set(VERSION_SUB 2)
+set(VERSION_MINOR 15)
+set(VERSION_SUB 0)
 #set(VERSION_PATCH 0)
 
 # support <pkg>_ROOT in find_package
@@ -701,7 +701,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 12.3.0)
+    set_target_properties(libqore PROPERTIES VERSION 12.3.1)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
 endif (APPLE)
 
@@ -881,7 +881,7 @@ qore_user_module("qlib/FtpPollerUtil.qm" "DataProvider")
 
 # base 4 modules
 qore_user_module("qlib/BulkSqlUtil" "SqlUtil")
-qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil;DataProvider")
+qore_user_module("qlib/MssqlSqlUtilBase.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/OracleSqlUtilBase.qm" "SqlUtil;Util;DataProvider")
 qore_user_module("qlib/PgsqlSqlUtilBase.qm" "SqlUtil;DataProvider")
@@ -903,6 +903,8 @@ qore_user_module("qlib/DbDataProvider" "DataProvider;SqlUtil;BulkSqlUtil")
 qore_user_module("qlib/FtpPoller.qm" "FtpPollerUtil;Util;DataProvider")
 
 # base 5 modules
+qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil;DataProvider;MssqlSqlUtilBase")
+qore_user_module("qlib/JdbcMicrosoftSqlUtil.qm" "SqlUtil;DataProvider;MssqlSqlUtilBase")
 qore_user_module("qlib/OracleSqlUtil.qm" "OracleSqlUtil;SqlUtil;Util;DataProvider")
 qore_user_module("qlib/JdbcOracleSqlUtil.qm" "OracleSqlUtil;SqlUtil;Util;DataProvider")
 qore_user_module("qlib/PgsqlSqlUtil.qm" "PgsqlSqlUtilBase;SqlUtil;DataProvider")

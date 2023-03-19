@@ -32,7 +32,8 @@ DOX_SRC_MODULES = qlib/Mime.qm \
     qlib/PgsqlSqlUtilBase.qm \
 	qlib/WebSocketClient.qm \
     qlib/XdbcFirebirdSqlUtilBase.qm \
-    qlib/OracleSqlUtilBase.qm
+    qlib/OracleSqlUtilBase.qm \
+    qlib/MssqlSqlUtilBase.qm
 
 DOX_SRC_SPLIT_MODULES = \
     qlib/ConnectionProvider \
@@ -53,6 +54,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/FreetdsSqlUtil.qm \
 	qlib/FtpPoller.qm \
     qlib/JdbcFirebirdSqlUtil.qm \
+	qlib/JdbcMssqlSqlUtil.qm \
 	qlib/JdbcOracleSqlUtil.qm \
 	qlib/JdbcPostgresqlSqlUtil.qm \
     qlib/OdbcFirebirdSqlUtil.qm \
@@ -1132,6 +1134,9 @@ doxygen/qlib/Doxyfile.OracleSqlUtilBase: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.PgsqlSqlUtilBase: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/PgsqlSqlUtilBase.qm:doxygen/qlib/PgsqlSqlUtilBase.qm -tSqlUtil.tag=../../SqlUtil/html $< $@
+
+doxygen/qlib/Doxyfile.MssqlSqlUtilBase: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/PgsqlSqlUtilBase.qm:doxygen/qlib/MssqlSqlUtilBase.qm -tSqlUtil.tag=../../SqlUtil/html $< $@
 
 doxygen/qlib/Doxyfile.WebSocketClient: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketClient.qm:doxygen/qlib/WebSocketClient.qm -tUtil.tag=../../Util/html -tConnectionProvider.tag=../../ConnectionProvider/html -tWebSocketUtil.tag=../../WebSocketUtil/html -tDataProvider.tag=../../DataProvider/html $< $@
