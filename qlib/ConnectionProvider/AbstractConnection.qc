@@ -212,7 +212,7 @@ public class AbstractConnection inherits Qore::Serializable {
                 "ok": False,
                 "time": delta,
                 "info": sprintf("%s: %s", ex.err, ex.desc),
-                "ex": ex,
+                "ex": check_exception_serializable(ex),
             };
         }
     }

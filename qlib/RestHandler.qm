@@ -1495,27 +1495,7 @@ public namespace RestHandler {
 
         #! Recursively ensure that exception arguments are serializable
         private checkExceptionSerializable(reference<hash<ExceptionInfo>> ex) {
-            try {
-                if (ex.arg.typeCode() == NT_OBJECT && !(ex.arg instanceof Serializable)) {
-                    string new_arg;
-                    if (ex.arg.hasCallableMethod("toString")) {
-                        try {
-                            new_arg = sprintf("unserializable arg.toString(): %s", ex.arg.toString());
-                        } catch (hash<ExceptionInfo> ex1) {
-                        }
-                    }
-                    if (!exists new_arg) {
-                        new_arg = sprintf("unserializable arg: %y", ex.arg);
-                    }
-                    ex.arg = new_arg;
-                } else {
-                    if (ex.arg.ex instanceof hash<ExceptionInfo>) {
-                        checkExceptionSerializable(\ex.arg.ex);
-                    }
-                }
-            } catch (hash<ExceptionInfo> ex) {
-                ex.arg = sprintf("unserializable arg: %y", ex.arg);
-            }
+            ex = check_exception_serializable(ex);
         }
 
         #! default get handler for the base handler class
