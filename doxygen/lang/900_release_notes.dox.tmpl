@@ -2,6 +2,24 @@
 
     @tableofcontents
 
+    @section qore_1_15 Qore 1.15
+
+    @par Release Summary
+    Bugfix release with minor new features; see below for more information
+
+    @subsection qore_1_15_new_features New Features in Qore
+    - New user modules:
+      - <a href="../../modules/JdbcMicrosoftSqlUtil/html/index.html">JdbcMicrosoftSqlUtil</a>
+        (<a href="https://github.com/qorelanguage/qore/issues/4705">issue 4705</a>)
+      - <a href="../../modules/JdbcOracleSqlUtil/html/index.html">MssqlSqlUtilBase</a>
+        (<a href="https://github.com/qorelanguage/qore/issues/4705">issue 4705</a>)
+
+    @subsection qore_1_15_bug_fixes Bug Fixes in Qore
+
+    - fixed a bug where @ref Qore::SQL::Datasource "Datasource" objects would fail to deserialize if the connection
+      string was missing the dbname
+      (<a href="https://github.com/qorelanguage/qore/issues/4706">issue 4706</a>)
+
     @section qore_1_14_2 Qore 1.14.2
 
     @par Release Summary

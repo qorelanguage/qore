@@ -5870,7 +5870,8 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
             case "Datasource":
                 return new Datasource(config);
             default:
-                throw "DATASOURCE-DESERIALIZATION-ERROR", sprintf("cannot deserialize datasource of unknown type %y with config %y", type, config);
+                throw "DATASOURCE-DESERIALIZATION-ERROR", sprintf("cannot deserialize datasource of unknown type %y "
+                    "with config %y", type, config);
         }
     }
 
