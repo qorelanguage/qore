@@ -181,7 +181,7 @@ export QORE_MODULE_DIR=qlib
 %{_mandir}/man1/qore.1.*
 
 %changelog
-* Sun Mar 18 2023 David Nichols <david@qore.org> 1.15.0-1
+* Sun Mar 19 2023 David Nichols <david@qore.org> 1.15.0-1
 - updated version to 1.15.0-1
 - updated libqore version to 12.3.1
 
