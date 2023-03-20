@@ -54,7 +54,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/FreetdsSqlUtil.qm \
 	qlib/FtpPoller.qm \
     qlib/JdbcFirebirdSqlUtil.qm \
-	qlib/JdbcMssqlSqlUtil.qm \
+	qlib/JdbcMicrosoftSqlUtil.qm \
 	qlib/JdbcOracleSqlUtil.qm \
 	qlib/JdbcPostgresqlSqlUtil.qm \
     qlib/OdbcFirebirdSqlUtil.qm \
