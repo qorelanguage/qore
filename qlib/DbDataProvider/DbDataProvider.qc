@@ -25,6 +25,9 @@
 #! contains all public definitions in the DbDataProvider module
 public namespace DbDataProvider {
 #! The database data provider class, provides tables as children
+/** Generic post-SQL search is provided just for completeness sake, but record filtering should be done in the \c sql
+    search option and not in the generic post-SQL generic data provider search for performance reasons.
+*/
 public class DbDataProvider inherits AbstractDataProvider {
     public {
         #! Provider info
@@ -38,6 +41,8 @@ public class DbDataProvider inherits AbstractDataProvider {
             "create_options": NOTHING,
             "upsert_options": NOTHING,
             "child_create_options": ChildCreateOptions,
+            "supports_search_expressions": True,
+            "expressions": AbstractDataProvider::GenericExpressions,
             "transaction_management": True,
             "has_record": True,
             "record_requires_search_options": True,
@@ -46,6 +51,28 @@ public class DbDataProvider inherits AbstractDataProvider {
             "children_can_support_apis": False,
             "children_can_support_records": True,
             "children_can_support_transactions": True,
+        };
+
+        #! Mapper runtime key info; see details below
+        /** The DbDataProvider class supports the following create option:
+            - \c sequence: names the DB sequence that will be used to populate the field
+            - \c sequence_currval: names the DB sequence that will be used to populate the field; the current value of
+              the sequence is used; will not increment the sequence
+        */
+        const MapperKeyInfo = Mapper::MapperKeyInfo + {
+            "sequence": <MapperRuntimeKeyInfo>{
+                "desc": "names the DB sequence that will be used to populate the field",
+                "value_type": "string",
+                "unique_roles": "*",
+                "returns_type": "int",
+            },
+            "sequence_currval": <MapperRuntimeKeyInfo>{
+                "desc": "names the DB sequence that will be used to populate the field; the current value of the "
+                    "sequence is used; will not increment the sequence",
+                "value_type": "string",
+                "unique_roles": "*",
+                "returns_type": "int",
+            },
         };
 
         #! Constructor options
@@ -170,6 +197,28 @@ public class DbDataProvider inherits AbstractDataProvider {
     */
     rollback() {
         db.rollback();
+    }
+
+    #! Returns custom data mapper runtime keys
+    /** @return custom data mapper runtime keys
+    */
+    *hash<string, hash<MapperRuntimeKeyInfo>> getMapperRuntimeKeys() {
+        hash<string, hash<MapperRuntimeKeyInfo>> rv(MapperKeyInfo);
+        rv.sequence.handler = \doSequenceKey();
+        rv.sequence_currval.handler = \doSequenceCurrvalKey();
+        return rv;
+    }
+
+    #! Processes the \c sequence runtime key in mappers as a mapper key handler
+    int doSequenceKey(string sequence_name, hash<auto> ctx, *reference<bool> missing_input) {
+        on_error rethrow $1.err, sprintf("%s (mapper 'sequence' error; sequence: %y)", $1.desc, sequence_name);
+        return db.getNextSequenceValue(sequence_name);
+    }
+
+    #! Processes the \c sequence_currval runtime key in mappers as a mapper key handler
+    int doSequenceCurrvalKey(string sequence_name, hash<auto> ctx, *reference<bool> missing_input) {
+        on_error rethrow $1.err, sprintf("%s (mapper 'sequence_currval' error; sequence: %y)", $1.desc, sequence_name);
+        return db.getCurrentSequenceValue(sequence_name);
     }
 
     #! Returns the record type description from a describe hash
