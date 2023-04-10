@@ -2,15 +2,23 @@
 
     @tableofcontents
 
-    @section qore_1_15_1 Qore 1.15.1
+    @section qore_1_16_0 Qore 1.16.0
 
     @par Release Summary
     Bugfix release with minor new features; see below for more information
 
-    @subsection qore_1_15_1_bug_fixes Bug Fixes in Qore
+    @subsection qore_1_16_0_new_features New Features in Qore
+    - <a href="../../modules/WebSocketClient/html/index.html">WebSocketClient</a> module
+      - new API data provider child to allow WebSocket messages to be received from a WebSocketClient data provider
+        (<a href="https://github.com/qorelanguage/qore/issues/4716">issue 4716</a>)
+
+    @subsection qore_1_16_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/DbDataProvider/html/index.html">DbDataProvider</a> module
       - \c DbDataProvider was missing search options
         (<a href="https://github.com/qorelanguage/qore/issues/4713">issue 4713</a>)
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - fixed bugs handling null hash assignments with fields with default values in \c HashDataType
+        (<a href="https://github.com/qorelanguage/qore/issues/4715">issue 4715</a>)
 
     @section qore_1_15 Qore 1.15
 

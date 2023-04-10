@@ -31,7 +31,7 @@
 
 Summary: Multithreaded Programming Language
 Name: qore
-Version: 1.15.1
+Version: 1.16.0
 Release: 1%{dist}
 %if 0%{?suse_version}
 License: LGPL-2.0+ or GPL-2.0+ or MIT
@@ -284,8 +284,8 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Tue Apr 4 2023 David Nichols <david@qore.org> 1.15.1
-- updated version to 1.15.1
+* Tue Apr 4 2023 David Nichols <david@qore.org> 1.16.0
+- updated version to 1.16.0
 
 * Sun Mar 19 2023 David Nichols <david@qore.org> 1.15.0
 - updated version to 1.15.0

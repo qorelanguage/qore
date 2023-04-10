@@ -2366,7 +2366,9 @@ public class AbstractDataProvider {
 
     #! verifies options according to the option
     private *hash<auto> checkOptions(string err, *hash<string, hash<DataProviderOptionInfo>> option_desc,
-            *hash<auto> options) {
+            *hash<auto> uoptions) {
+        # to ensure that the return value has type "hash<auto>"
+        hash<auto> options += uoptions;
         if (!option_desc && options) {
             error(err, "invalid options: %y; no options are supported",
                 keys options);
@@ -2374,28 +2376,22 @@ public class AbstractDataProvider {
         if (*list<string> invalid_keys = keys (options - (keys option_desc))) {
             error(err, "invalid options: %y; supported options: %y", invalid_keys, keys option_desc);
         }
-        bool updated;
         # check types and required keys
         foreach hash<auto> i in (option_desc.pairIterator()) {
             bool present = options.hasKey(i.key);
-            if (i.value.required && !present) {
+            if (!present) {
                 if (exists i.value.default_value) {
                     options{i.key} = i.value.default_value;
                     continue;
+                } else if (i.value.required) {
+                    error(err, "missing required option %y%s", i.key,
+                        i.value.desc ? sprintf(" (%s)", i.value.desc) : "");
                 }
-                error(err, "missing required option %y%s", i.key, i.value.desc ? sprintf(" (%s)", i.value.desc) : "");
-            }
-            if (!present) {
                 continue;
             }
             # process value
             bool ok;
             string err;
-            # issue #4062: ensure "options" remains "hash<auto>"
-            if (!updated) {
-                options = {} + options;
-                updated = True;
-            }
             foreach AbstractDataProviderType type in (i.value.type) {
                 try {
                     options{i.key} = type.acceptsValue(options{i.key});

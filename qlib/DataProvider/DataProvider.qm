@@ -209,6 +209,11 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section dataprovider_relnotes Release Notes
 
+    @subsection dataprovider_v2_7_2 DataProvider v2.7.2
+    - fixed bugs handling null hash assignments with fields with default values in
+      @ref DataProvider::HashDataType "HashDataType"
+      (<a href="https://github.com/qorelanguage/qore/issues/4715">issue 4715</a>)
+
     @subsection dataprovider_v2_7_1 DataProvider v2.7.1
     - added
       @ref DataProvider::DataProvider::getFactoryObjectWithTemplate() "DataProvider::getFactoryObjectWithTemplate()"
