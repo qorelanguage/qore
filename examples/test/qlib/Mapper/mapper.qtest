@@ -67,7 +67,8 @@ class TestInputProvider inherits AbstractDataProvider {
 
     private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond, *hash<auto> search_options) {
         last_search_options = search_options;
-        return new DefaultRecordIterator(new HashListIterator({"sub-a": ("a-0", "a-1",), "sub-b": ("b-0", "b-1",)}), where_cond, search_options, getRecordTypeImpl());
+        return new DefaultRecordIterator(new HashListIterator({"sub-a": ("a-0", "a-1",), "sub-b": ("b-0", "b-1",)}),
+            where_cond, search_options, getRecordTypeImpl());
     }
 }
 
@@ -659,7 +660,7 @@ public class MapperTest inherits QUnit::Test {
                 )}, m.mapData({"a": "a-1"}));
 
                 assertEq({"sub-a": "a-1"}, input_provider.getLastWhereCond());
-                assertNothing(input_provider.getLastSearchOptions());
+                assertEq({}, input_provider.getLastSearchOptions());
             }
         }
         {
