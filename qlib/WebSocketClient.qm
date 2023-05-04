@@ -116,6 +116,8 @@ c.waitForZero();
     @section websocketclient_relnotes WebSocketClient Module Release History
 
     @subsection wsc_v2_2 v2.2
+    - fixed creating example WebSocket client data providers from factories with templated option values
+      (<a href="https://github.com/qorelanguage/qore/issues/4716">issue 4716</a>)
     - added a "wait for message" API data provider to the WebSocket client data providers
       (<a href="https://github.com/qorelanguage/qore/issues/4716">issue 4716</a>)
 
@@ -1459,6 +1461,16 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         }
     }
 
+    #! Returns options from a template
+    static hash<auto> getOptionsFromTemplate(hash<auto> template_options, *hash<auto> options) {
+        if (exists options && template_options.url) {
+            # overwrite the URL with a sample value to ensure that the data provider can be created for configuration
+            # information only
+            template_options.url = "ws://localhost";
+        }
+        return template_options + options;
+    }
+
     #! Throws an UNSUPPORTED-SERIALIZATION error
     private unsupportedSerialization() {
         throw "UNSUPPORTED-SERIALIZATION", sprintf("unsupported data serialization value %y; known serialization "
@@ -1487,6 +1499,12 @@ public class WebSocketClientDataProvider inherits WebSocketClientDataProviderBas
         start();
     }
 
+    #! Creates the object from constructor + template options
+    constructor(hash<auto> template_options, *hash<auto> options)
+            : WebSocketClientDataProviderBase(WebSocketClientDataProviderBase::getOptionsFromTemplate(template_options, options)) {
+        start();
+    }
+
     private hash<DataProviderInfo> getStaticInfoImpl() {
         hash<DataProviderInfo> rv = ProviderInfo;
         string safe_url = client.getSafeUrl();
@@ -1512,6 +1530,11 @@ public class WebSocketClientDelayedDataProvider inherits WebSocketClientDataProv
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) : WebSocketClientDataProviderBase(options) {
+    }
+
+    #! Creates the object from constructor + template options
+    constructor(hash<auto> template_options, *hash<auto> options)
+            : WebSocketClientDataProviderBase(WebSocketClientDataProviderBase::getOptionsFromTemplate(template_options, options)) {
     }
 
     #! Called when all observers have been added to the object
