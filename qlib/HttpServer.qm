@@ -32,7 +32,7 @@
 %new-style
 
 module HttpServer {
-    version = "1.1";
+    version = "1.1.1";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -104,7 +104,9 @@ class MyHandler inherits AbstractHttpRequestHandler {
 }
 
 sub log(string str) {
-    printf("%y: %s\n", now_us(), vsprintf(str, argv));
+    printf("%y: %s\n", now_us(), vsprintf(str, argv));    - fixed a bug reloading X.509 certificates on running listeners
+      (<a href="https://github.com/qorelanguage/qore/issues/4720">issue 4720</a>)
+
 }
 
 const MyHttpPort = 19001;
@@ -122,13 +124,17 @@ hs.setHandler("my-handler", "/", MimeTypeHtml, myHandler);
 hs.setDefaultHandler("my-handler", myHandler);
 
 # start a listener
-hash lh = hs.addListener(MyHttpPort);
+hash<auto> lh = hs.addListener(MyHttpPort);
 
 # output a log message
 log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http1_1_1 HttpServer 1.1.1
+    - fixed a bug reloading X.509 certificates on running listeners
+      (<a href="https://github.com/qorelanguage/qore/issues/4720">issue 4720</a>)
 
     @subsection http1_1 HttpServer 1.1
     - implemented support for reloading X.509 certificate information without manually restarting listeners
@@ -2095,7 +2101,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
 
         on_error rethrow "REFRESH-CERTIFICATE-ERROR", sprintf("%s: %s", $1.err, $1.desc);
         hash<HttpCertInfo> info = http_get_ssl_objects(opts.cert_loc, opts.key_loc, opts.key_password);
-        setCertificateAndPrivateKey(opts.cert, opts.key);
+        setCertificateAndPrivateKey(info.cert, info.key);
     }
 
     #! add handlers to the listener
