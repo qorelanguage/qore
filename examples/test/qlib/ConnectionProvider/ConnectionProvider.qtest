@@ -56,6 +56,8 @@ public class ConnectionProviderTest inherits QUnit::Test {
         assertEq(True, fc.enabled, "connection is enabled by default");
         assertEq(True, fc.monitor, "connection is monitored by default");
         assertEq(False, fc.locked, "connection is unlocked by default");
+        assertEq(True, fc.children_can_support_apis);
+        assertEq(False, fc.children_can_support_transactions);
 
         AbstractDataProvider prov = fc.getDataProvider();
         assertEq("ftp", prov.getName());
@@ -85,6 +87,8 @@ public class ConnectionProviderTest inherits QUnit::Test {
         HttpConnection hc("name", "desc", url, attributes, opts);
         assertEq(True, hc.enabled, "connection is enabled by default");
         assertEq(False, hc.locked, "connection is unlocked by default");
+        assertEq(True, hc.children_can_support_apis);
+        assertEq(False, hc.children_can_support_transactions);
 
         # issue #3696: test connection serialization
         HttpConnection conn2 = Serializable::deserialize(hc.serialize());
