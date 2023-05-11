@@ -99,6 +99,9 @@ public class AbstractConnection inherits Qore::Serializable {
         #! if the data provider or any of its children support messages
         bool children_can_support_messages = False;
 
+        #! if the data provider or any of its children support transaction management
+        bool children_can_support_transactions = False;
+
         #! internal tags
         hash<auto> internal_info;
     }
@@ -253,7 +256,7 @@ public class AbstractConnection inherits Qore::Serializable {
         hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self{
             "name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled",
             "locked", "debug_data", "tags", "children_can_support_apis", "children_can_support_records",
-            "children_can_support_observers", "children_can_support_messages",
+            "children_can_support_observers", "children_can_support_messages", "children_can_support_transactions",
         } + {
             "type": getType(),
             "url_hash": urlh,
