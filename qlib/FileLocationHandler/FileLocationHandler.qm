@@ -35,7 +35,7 @@
 %requires Util
 
 module FileLocationHandler {
-    version = "2.2";
+    version = "2.2.1";
     desc = "user module for reading and writing file data based on URL-like location strings";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -98,6 +98,10 @@ module FileLocationHandler {
     its \c init code to register a handler for a new scheme.
 
     @section filelocationhandler_relnotes Release Notes
+
+    @subsection filelocationhandler_v2_2_1 FileLocationHandler v2.2.1
+    - allow handler information to be returned
+      (<a href="https://github.com/qorelanguage/qore/issues/4726">issue 4726</a>)
 
     @subsection filelocationhandler_v2_2 FileLocationHandler v2.2
     - added support for \c rest:// and \c rests:// locations

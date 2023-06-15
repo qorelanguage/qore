@@ -54,6 +54,9 @@ public hashdecl ConnectionOptionInfo {
 
     #! Do environment variable substitution on the value?
     bool subst_env_vars = False;
+
+    #! Modifier for the "file-as-string" type; can a freeform location option be returned?
+    bool freeform = False;
 }
 
 #! Connection provider information

@@ -39,6 +39,16 @@ public hashdecl FileHandlerOptionInfo {
     auto default_value;
 }
 
+#! File handler info
+public hashdecl FileHandlerInfo {
+    #! The schema handled
+    string scheme;
+    #! Read options, if any
+    *hash<string, hash<FileHandlerOptionInfo>> read_options;
+    #! Write options, if any
+    *hash<string, hash<FileHandlerOptionInfo>> write_options;
+}
+
 #! The abstract file location handler class
 public class AbstractFileLocationHandler {
     #! Retrieves a text file from the given location
@@ -312,7 +322,7 @@ public class FileLocationHandler {
         @throw LOCATION-ERROR the location string cannotbe parsed; unknown location scheme; invalid location option
     */
     static string getTextFileFromLocation(string location) {
-        hash<LocationInfo> info = FileLocationHandler::getInfo(location, True);
+        hash<InternallLocationInfo> info = FileLocationHandler::getInfo(location, True);
         return info.handler.getTextFile(info.scheme, info.location, info.opts);
     }
 
@@ -324,7 +334,7 @@ public class FileLocationHandler {
         @throw LOCATION-ERROR the location string cannotbe parsed; unknown location scheme; invalid location option
     */
     static binary getBinaryFileFromLocation(string location) {
-        hash<LocationInfo> info = FileLocationHandler::getInfo(location, True);
+        hash<InternallLocationInfo> info = FileLocationHandler::getInfo(location, True);
         return info.handler.getBinaryFile(info.scheme, info.location, info.opts);
     }
 
@@ -346,7 +356,7 @@ public class FileLocationHandler {
         @return a stream reader for the file's data
     */
     static Qore::StreamReader getStreamReaderFromLocation(string location) {
-        hash<LocationInfo> info = FileLocationHandler::getInfo(location, True);
+        hash<InternallLocationInfo> info = FileLocationHandler::getInfo(location, True);
         return info.handler.getStreamReader(info.scheme, info.location, info.opts);
     }
 
@@ -356,7 +366,7 @@ public class FileLocationHandler {
         @return an input stream for the file's data
     */
     static Qore::InputStream getBinaryStreamFromLocation(string location) {
-        hash<LocationInfo> info = FileLocationHandler::getInfo(location, True);
+        hash<InternallLocationInfo> info = FileLocationHandler::getInfo(location, True);
         return info.handler.getBinaryStream(info.scheme, info.location, info.opts);
     }
 
@@ -365,7 +375,7 @@ public class FileLocationHandler {
         @param contents the file contents to write to the location
     */
     static writeFileToLocation(string location, data contents) {
-        hash<LocationInfo> info = FileLocationHandler::getInfo(location, False);
+        hash<InternallLocationInfo> info = FileLocationHandler::getInfo(location, False);
         info.handler.writeFile(info.scheme, info.location, contents, info.opts);
     }
 
@@ -373,16 +383,62 @@ public class FileLocationHandler {
     /** @param location the location of the file data
 
         @return an output stream for writing to the file
-
-        @note
+getHandlerNames
         - OutputStreamWrapper::close() must be called to close the stream after writing terminates in order to avoid a
           deadlock
         - The data written to the OutputStreamWrapper object may be written in the background; to ensure that the data has
           been written to the target, call OutputStreamWrapper::waitForIo()
     */
     static OutputStreamWrapper getOutputStreamForLocation(string location) {
-        hash<LocationInfo> info = FileLocationHandler::getInfo(location, False);
+        hash<InternallLocationInfo> info = FileLocationHandler::getInfo(location, False);
         return info.handler.getOutputStream(info.scheme, info.location, info.opts);
+    }
+
+    #! Returns a list of all handler names
+    /** @return a list of all handler names
+
+        @since v2.2.1
+    */
+    static list<string> getHandlerNames() {
+        return keys cache;
+    }
+
+    #! Returns info about all cached handlers
+    /** @param write if information for write handler options should be returned (default: return read handler
+        options)
+
+        @return a hash keyed by scheme with handler information for each scheme
+
+        @since v2.2.1
+    */
+    static hash<string, hash<FileHandlerInfo>> getHandlers(*bool write) {
+        return map {
+            $1.key: <FileHandlerInfo>{
+                "scheme": $1.key,
+                "read_options": $1.value.getReadOptions(),
+                "write_options": $1.value.getWriteOptions(),
+            }
+        }, cache.pairIterator();
+    }
+
+    #! Returns info about the location handler for he given scheme
+    /** @param scheme the scheme to provide info for
+
+        @throw SCHEME-ERROR unsupported or invalid scheme
+
+        @since v2.2.1
+    */
+    static hash<FileHandlerInfo> getHandlerInfo(string scheme) {
+        *AbstractFileLocationHandler handler = cache{scheme};
+        if (!handler) {
+            throw "SCHEME-ERROR", sprintf("unknown location scheme %y; known location schemes: %y", scheme,
+                keys cache);
+        }
+        return <FileHandlerInfo>{
+            "scheme": scheme,
+            "read_options": handler.getReadOptions(),
+            "write_options": handler.getWriteOptions(),
+        };
     }
 
     #! Returns info about the requested location
@@ -391,13 +447,13 @@ public class FileLocationHandler {
 
         @throw LOCATION-ERROR unsupported or invalid location
     */
-    static hash<LocationInfo> getInfo(string location, bool read) {
+    private static hash<InternallLocationInfo> getInfo(string location, bool read) {
         if (!location.val()) {
             throw "LOCATION-ERROR", "invalid empty location string";
         }
 
         *string scheme = (location =~ x/^(\w+):\/\//)[0];
-        hash<LocationInfo> info = <LocationInfo>{
+        hash<InternallLocationInfo> info = <InternallLocationInfo>{
             "scheme": scheme ?? "file",
         };
         FileLocationHandler::checkDynamicInit();
@@ -500,7 +556,7 @@ public class FileLocationHandler {
 }
 
 namespace Priv {
-hashdecl LocationInfo {
+hashdecl InternallLocationInfo {
     string scheme;
     string location;
     *hash<auto> opts;

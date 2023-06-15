@@ -113,6 +113,10 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section connectionproviderrelnotes Release Notes
 
+    @subsection connectionprovider_1_9_2 ConnectionProvider 1.9.2
+    - allow connection options designating files to be selected as files
+      (<a href="https://github.com/qorelanguage/qore/issues/4725">issue 4725</a>)
+
     @subsection connectionprovider_1_9_1 ConnectionProvider 1.9.1
     - added a transaction capability flag for data providers to the connection info hash
       (<a href="https://github.com/qorelanguage/qore/issues/4722">issue 4722</a>)
