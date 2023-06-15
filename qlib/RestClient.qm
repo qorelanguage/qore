@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.9.2";
+    version = "1.9.3";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -126,6 +126,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_9_3 RestClient v1.9.3
+    - allow connection options designating files to be selected as files
+      (<a href="https://github.com/qorelanguage/qore/issues/4725">issue 4725</a>)
 
     @subsection restclientv1_9_2 RestClient v1.9.2
     - support full ping operations, also with polling, using an authenticated request
@@ -1308,10 +1312,11 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                     ),
                 },
                 "swagger": <ConnectionOptionInfo>{
-                    "type": "string",
+                    "type": "file-as-string",
                     "desc": "the location of a Swagger schema to use for message validation; processed with "
                         "`FileLocationHandler::getTextFileFromLocation()` "
                         "(ex: `file:///path/to/swagger-schema.json`); conflicts with `validator`",
+                    "freeform": True,
                 },
                 "swagger_base_path": <ConnectionOptionInfo>{
                     "type": "string",

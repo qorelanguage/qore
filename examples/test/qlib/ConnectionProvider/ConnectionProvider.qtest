@@ -90,6 +90,9 @@ public class ConnectionProviderTest inherits QUnit::Test {
         assertEq(True, hc.children_can_support_apis);
         assertEq(False, hc.children_can_support_transactions);
 
+        hash<ConnectionSchemeInfo> scheme_info = hc.getConnectionSchemeInfo();
+        assertFalse(scheme_info.options.firstValue().freeform);
+
         # issue #3696: test connection serialization
         HttpConnection conn2 = Serializable::deserialize(hc.serialize());
         assertEq(hc.url, conn2.url);
