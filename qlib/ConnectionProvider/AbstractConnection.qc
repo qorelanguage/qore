@@ -550,6 +550,8 @@ scheme://user:pass@hostname:port/path
                 string type = scheme_info.options{i.key}.type;
                 if (type == "int") {
                     type = Type::Int;
+                } else if (type == "file-as-string") {
+                    type = Type::String;
                 }
                 string vtype = i.value.type();
                 if (type != "any" && vtype != type) {
