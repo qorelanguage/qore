@@ -2999,7 +2999,7 @@ QoreHashNode* QoreThreadList::getCallStackHash(const QoreStackLocation& stack_lo
         if (statement) {
             unsigned long sid = pgm->getStatementId(statement);
             if (sid) {
-                ph->setKeyValueIntern("statementid", sid);
+                ph->setKeyValueIntern("statementid", (int64)sid);
             }
         }
     }

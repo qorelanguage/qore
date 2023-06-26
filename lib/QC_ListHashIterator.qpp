@@ -223,7 +223,7 @@ while (i.next()) {
     @endcode
 */
 int ListHashIterator::index() [flags=CONSTANT] {
-    return i->index();
+    return (int64)i->index();
 }
 
 //! returns the number of elements in the list
@@ -237,7 +237,7 @@ while (i.next()) {
     @endcode
 */
 int ListHashIterator::max() [flags=CONSTANT] {
-    return i->max();
+    return (int64)i->max();
 }
 
 //! sets the new position in the result list; if the position is invalid then the method returns @ref False, meaning the iterator is not valid, otherwise it returns @ref True

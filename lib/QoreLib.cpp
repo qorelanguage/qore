@@ -1723,7 +1723,7 @@ QoreListNode* stat_to_list(const struct stat& sbuf) {
 
     // note that dev_t on Linux is an unsigned 64-bit integer, so we could lose precision here
     l->push(((int64)sbuf.st_dev), nullptr);
-    l->push(sbuf.st_ino, nullptr);
+    l->push((int64)sbuf.st_ino, nullptr);
     l->push(sbuf.st_mode, nullptr);
     l->push(sbuf.st_nlink, nullptr);
     l->push(sbuf.st_uid, nullptr);
@@ -1789,11 +1789,11 @@ QoreHashNode* statvfs_to_hash(const struct statvfs& vfs) {
     QoreHashNode* h = new QoreHashNode(hashdeclFilesystemInfo, nullptr);
     qore_hash_private* ph = qore_hash_private::get(*h);
 
-    ph->setKeyValueIntern("namemax", vfs.f_namemax);
-    ph->setKeyValueIntern("fsid", vfs.f_fsid);
-    ph->setKeyValueIntern("frsize", vfs.f_frsize);
-    ph->setKeyValueIntern("bsize", vfs.f_bsize);
-    ph->setKeyValueIntern("flag", vfs.f_flag);
+    ph->setKeyValueIntern("namemax", (int64)vfs.f_namemax);
+    ph->setKeyValueIntern("fsid", (int64)vfs.f_fsid);
+    ph->setKeyValueIntern("frsize", (int64)vfs.f_frsize);
+    ph->setKeyValueIntern("bsize", (int64)vfs.f_bsize);
+    ph->setKeyValueIntern("flag", (int64)vfs.f_flag);
     ph->setKeyValueIntern("blocks", vfs.f_blocks);
     ph->setKeyValueIntern("bfree", vfs.f_bfree);
     ph->setKeyValueIntern("bavail", vfs.f_bavail);

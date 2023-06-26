@@ -961,10 +961,10 @@ struct qore_socket_private {
         if (event_queue) {
             QoreHashNode* h = getEvent(event, source);
             if (event == QORE_EVENT_HTTP_CHUNKED_DATA_RECEIVED)
-                h->setKeyValue("read", bytes, nullptr);
+                h->setKeyValue("read", (int64)bytes, nullptr);
             else
-                h->setKeyValue("size", bytes, nullptr);
-            h->setKeyValue("total_read", total_read, nullptr);
+                h->setKeyValue("size", (int64)bytes, nullptr);
+            h->setKeyValue("total_read", (int64)total_read, nullptr);
             event_queue->pushAndTakeRef(h);
         }
     }
@@ -997,11 +997,11 @@ struct qore_socket_private {
         // post bytes read on event queue, if any
         if (event_queue) {
             QoreHashNode* h = getEvent(QORE_EVENT_PACKET_READ, source);
-            h->setKeyValue("read", bytes_read, nullptr);
-            h->setKeyValue("total_read", total_read, nullptr);
+            h->setKeyValue("read", (int64)bytes_read, nullptr);
+            h->setKeyValue("total_read", (int64)total_read, nullptr);
             // set total bytes to read and remaining bytes if bufsize > 0
             if (bufsize > 0)
-                h->setKeyValue("total_to_read", bufsize, nullptr);
+                h->setKeyValue("total_to_read", (int64)bufsize, nullptr);
             event_queue->pushAndTakeRef(h);
         }
     }

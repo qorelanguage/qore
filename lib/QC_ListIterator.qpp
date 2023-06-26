@@ -69,7 +69,7 @@ ListIterator li(l);
     @note the constructor's argument is @ref softlist_type "softlist" so that it can also accept @ref nothing
  */
 ListIterator::constructor(softlist<auto> l) {
-   self->setPrivate(CID_LISTITERATOR, new QoreListIterator(l));
+    self->setPrivate(CID_LISTITERATOR, new QoreListIterator(l));
 }
 
 //! Creates a copy of the ListIterator object, iterating the same object as the original and in the same position
@@ -79,7 +79,7 @@ ListIterator ni = i.copy();
     @endcode
  */
 ListIterator::copy() {
-   self->setPrivate(CID_LISTITERATOR, new QoreListIterator(*i));
+    self->setPrivate(CID_LISTITERATOR, new QoreListIterator(*i));
 }
 
 //! Moves the current position to the next element in the list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the first element in the list if the list is not empty
@@ -98,9 +98,9 @@ while (i.next()) {
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 bool ListIterator::next() {
-   if (i->check(xsink))
-      return false;
-   return i->next();
+    if (i->check(xsink))
+        return false;
+    return i->next();
 }
 
 //! Moves the current position to the previous element in the list; returns @ref False if there are no more elements; if the iterator is not pointing at a valid element before this call, the iterator will be positioned on the last element in the list if the list is not empty
@@ -119,9 +119,9 @@ while (i.prev()) {
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 bool ListIterator::prev() {
-   if (i->check(xsink))
-      return false;
-   return i->prev();
+    if (i->check(xsink))
+        return false;
+    return i->prev();
 }
 
 //! returns @ref True if the list is empty; @ref False if not
@@ -134,7 +134,7 @@ if (i.empty())
     @endcode
  */
 bool ListIterator::empty() [flags=CONSTANT] {
-   return i->empty();
+    return i->empty();
 }
 
 //! returns @ref True if on the first element of the list
@@ -149,7 +149,7 @@ while (i.next()) {
     @endcode
  */
 bool ListIterator::first() [flags=CONSTANT] {
-   return i->first();
+    return i->first();
 }
 
 //! returns @ref True if on the last element of the list
@@ -164,7 +164,7 @@ while (i.next()) {
     @endcode
  */
 bool ListIterator::last() [flags=CONSTANT] {
-   return i->last();
+    return i->last();
 }
 
 //! returns the current value or throws an \c INVALID-ITERATOR exception if the iterator is invalid
@@ -197,7 +197,7 @@ while (i.next()) {
     @endcode
  */
 int ListIterator::index() [flags=CONSTANT] {
-   return i->index();
+    return (int64)i->index();
 }
 
 //! returns the number of elements in the list
@@ -211,7 +211,7 @@ while (i.next()) {
     @endcode
  */
 int ListIterator::max() [flags=CONSTANT] {
-   return i->max();
+    return (int64)i->max();
 }
 
 //! sets the new position in the list; if the position is invalid then the method returns @ref False, meaning the iterator is not valid, otherwise it returns @ref True
@@ -228,9 +228,9 @@ if (!i.set(pos))
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 bool ListIterator::set(int pos) {
-   if (i->check(xsink))
-      return QoreValue();
-   return !i->set(pos);
+    if (i->check(xsink))
+        return QoreValue();
+    return !i->set(pos);
 }
 
 //! returns @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
@@ -243,7 +243,7 @@ if (i.valid())
     @endcode
  */
 bool ListIterator::valid() [flags=CONSTANT] {
-   return i->valid();
+    return i->valid();
 }
 
 //! Reset the iterator instance to its initial state
@@ -257,7 +257,7 @@ i.reset();
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 ListIterator::reset() {
-   if (i->check(xsink))
-       return QoreValue();
-   i->reset();
+    if (i->check(xsink))
+        return QoreValue();
+    i->reset();
 }

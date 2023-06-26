@@ -226,7 +226,7 @@ void do_content_length_event(Queue* event_queue, qore_socket_private* priv, size
     if (event_queue) {
         QoreHashNode* h = priv->getEvent(QORE_EVENT_HTTP_CONTENT_LENGTH, QORE_SOURCE_HTTPCLIENT);
         qore_hash_private* hh = qore_hash_private::get(*h);
-        hh->setKeyValueIntern("len", len);
+        hh->setKeyValueIntern("len", (int64)len);
         event_queue->pushAndTakeRef(h);
     }
 }

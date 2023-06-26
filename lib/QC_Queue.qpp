@@ -245,7 +245,7 @@ nothing Queue::clear() {
     @see Queue::max()
  */
 int Queue::size() [flags=CONSTANT] {
-    return q->size();
+    return (int64)q->size();
 }
 
 //! Returns @ref True "True" if the Queue is empty, @ref False "False" if not
@@ -271,7 +271,7 @@ bool Queue::empty() [flags=CONSTANT] {
     @see Queue::size()
  */
 int Queue::max() [flags=CONSTANT] {
-    return q->getMax();
+    return (int64)q->getMax();
 }
 
 //! Returns the number of threads currently blocked on this queue for reading
@@ -285,7 +285,7 @@ int Queue::max() [flags=CONSTANT] {
     @see Queue::getWriteWaiting()
  */
 int Queue::getWaiting() [flags=CONSTANT] {
-    return q->getReadWaiting();
+    return (int64)q->getReadWaiting();
 }
 
 //! Returns the number of threads currently blocked on this queue for reading
@@ -301,7 +301,7 @@ int Queue::getWaiting() [flags=CONSTANT] {
     @since %Qore 0.8.4
  */
 int Queue::getReadWaiting() [flags=CONSTANT] {
-    return q->getReadWaiting();
+    return (int64)q->getReadWaiting();
 }
 
 //! Returns the number of threads currently blocked on this queue for writing
@@ -315,7 +315,7 @@ int Queue::getReadWaiting() [flags=CONSTANT] {
     @since %Qore 0.8.4
  */
 int Queue::getWriteWaiting() [flags=CONSTANT] {
-    return q->getWriteWaiting();
+    return (int64)q->getWriteWaiting();
 }
 
 //! sets an error status on the Queue and clears the Queue; while a Queue object has an error status, any write operations to the queue will fail and cause an exception to be raised with the information provided to this method

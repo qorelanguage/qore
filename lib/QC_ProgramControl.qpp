@@ -347,7 +347,7 @@ int ProgramControl::findStatementId(string file, int line) {
     if (!s) {
         return xsink->raiseException("PROGRAM-STATEMENT-ERROR", "cannot find statement for \"%s:%d\"", file->c_str(), line);
     }
-    return p->getStatementId(s);
+    return (int64)p->getStatementId(s);
 }
 
 //! Find the first statement for function entry point
@@ -368,7 +368,7 @@ int ProgramControl::findFunctionStatementId(string function, *list params) {
         }
         return QoreValue();
     }
-    return p->getStatementId(s);
+    return (int64)p->getStatementId(s);
 }
 
 //! finds all variants of a function or class method and returns a list of the results

@@ -754,7 +754,7 @@ int ReadOnlyFile::setPos(int pos = 0) {
     if (check_terminal_io(self, "ReadOnlyFile::setPos", xsink))
         return QoreValue();
 
-    return f->setPos(pos);
+    return (int64)f->setPos(pos);
 }
 
 //! Returns the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
@@ -773,7 +773,7 @@ int ReadOnlyFile::getPos() [flags=RET_VALUE_ONLY] {
     if (check_terminal_io(self, "ReadOnlyFile::getPos", xsink))
         return QoreValue();
 
-    return f->getPos();
+    return (int64)f->getPos();
 }
 
 //! Reads one character from the file and returns it as a string; returns @ref nothing if no data can be read from the file

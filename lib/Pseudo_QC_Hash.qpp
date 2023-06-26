@@ -265,7 +265,7 @@ int num = h.size();
     @see <hash>::sizep()
  */
 int <hash>::size() [flags=CONSTANT] {
-   return h->size();
+    return (int64)h->size();
 }
 
 //! Returns @ref False if the hash has no keys, @ref True if it does

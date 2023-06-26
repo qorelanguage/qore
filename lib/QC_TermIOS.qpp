@@ -620,7 +620,7 @@ int flag = termios.getLFlag();
  */
 int TermIOS::getLFlag() {
 #ifdef HAVE_TERMIOS_H
-   return s->get_lflag();
+   return (int64)s->get_lflag();
 #else
    return missing_method_error("TermIOS::getLFlag", "TERMIOS", xsink);
 #endif
@@ -639,7 +639,7 @@ int flag = termios.getCFlag();
  */
 int TermIOS::getCFlag() {
 #ifdef HAVE_TERMIOS_H
-   return s->get_cflag();
+   return (int64)s->get_cflag();
 #else
    return missing_method_error("TermIOS::getCFlag", "TERMIOS", xsink);
 #endif
@@ -658,7 +658,7 @@ int flag = termios.getOFlag();
  */
 int TermIOS::getOFlag() {
 #ifdef HAVE_TERMIOS_H
-   return s->get_oflag();
+   return (int64)s->get_oflag();
 #else
    return missing_method_error("TermIOS::getOFlag", "TERMIOS", xsink);
 #endif
@@ -677,7 +677,7 @@ int flag = termios.getIFlag();
  */
 int TermIOS::getIFlag() {
 #ifdef HAVE_TERMIOS_H
-   return s->get_iflag();
+   return (int64)s->get_iflag();
 #else
    return missing_method_error("TermIOS::getIFlag", "TERMIOS", xsink);
 #endif
@@ -799,7 +799,7 @@ int vtime = t.getCC(VTIME);
  */
 int TermIOS::getCC(softint cc) {
 #ifdef HAVE_TERMIOS_H
-   return s->get_cc(cc, xsink);
+   return (int64)s->get_cc(cc, xsink);
 #else
    return missing_method_error("TermIOS::getCC", "TERMIOS", xsink);
 #endif

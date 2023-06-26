@@ -34,6 +34,7 @@
 
 const char* qoreBoolTypeName = "bool";
 const char* qoreIntTypeName = "integer";
+const char* qoreCharTypeName = "char";
 const char* qoreFloatTypeName = "float";
 
 void QoreSimpleValue::set(QoreSimpleValue val) {
@@ -43,6 +44,7 @@ void QoreSimpleValue::set(QoreSimpleValue val) {
         case QV_Float: v.f = val.v.f; break;
         case QV_Int: v.i = val.v.i; break;
         case QV_Node: v.n = val.v.n; break;
+        case QV_Char: v.c = val.v.c; break;
         default: assert(false);
     }
 }
@@ -91,6 +93,7 @@ bool QoreSimpleValue::getAsBool() const {
         case QV_Int: return (bool)v.i;
         case QV_Float: return (bool)v.f;
         case QV_Node: return v.n ? v.n->getAsBool() : false;
+        case QV_Char: return (bool)v.c;
         default: assert(false);
             // no break
     }
@@ -103,6 +106,20 @@ int64 QoreSimpleValue::getAsBigInt() const {
         case QV_Int: return v.i;
         case QV_Float: return (int64)v.f;
         case QV_Node: return v.n ? v.n->getAsBigInt() : 0;
+        case QV_Char: return (int64)v.c;
+        default: assert(false);
+            // no break
+    }
+    return 0;
+}
+
+QoreUnicodeChar QoreSimpleValue::getAsUnicodeChar() const {
+    switch (type) {
+        case QV_Bool: return (uint32_t)v.b;
+        case QV_Int: return (uint32_t)v.i;
+        case QV_Float: return (uint32_t)v.f;
+        case QV_Node: return v.n ? (uint32_t)v.n->getAsBigInt() : 0;
+        case QV_Char: return v.c;
         default: assert(false);
             // no break
     }
@@ -115,6 +132,7 @@ double QoreSimpleValue::getAsFloat() const {
         case QV_Int: return (double)v.i;
         case QV_Float: return v.f;
         case QV_Node: return v.n ? v.n->getAsFloat() : 0.0;
+        case QV_Char: return (double)v.c;
         default: assert(false);
             // no break
     }
@@ -127,6 +145,7 @@ qore_type_t QoreSimpleValue::getType() const {
         case QV_Int: return NT_INT;
         case QV_Float: return NT_FLOAT;
         case QV_Node: return v.n ? v.n->getType() : NT_NOTHING;
+        case QV_Char: return NT_CHAR;
         default: assert(false);
             // no break
     }
@@ -140,6 +159,7 @@ const char* QoreSimpleValue::getTypeName() const {
         case QV_Int: return qoreIntTypeName;
         case QV_Float: return qoreFloatTypeName;
         case QV_Node: return get_type_name(v.n);
+        case QV_Char: return qoreCharTypeName;
         default: assert(false);
             // no break
     }
@@ -207,10 +227,6 @@ QoreValue::QoreValue(int64 i) {
     set(i);
 }
 
-QoreValue::QoreValue(unsigned long long i) {
-    set((int64)i);
-}
-
 QoreValue::QoreValue(int i) {
     set((int64)i);
 }
@@ -225,6 +241,14 @@ QoreValue::QoreValue(long i) {
 
 QoreValue::QoreValue(unsigned long i) {
     set((int64)i);
+}
+
+QoreValue::QoreValue(unsigned long long i) {
+    set((int64)i);
+}
+
+QoreValue::QoreValue(QoreUnicodeChar c) {
+    set(c);
 }
 
 QoreValue::QoreValue(double f) {
@@ -247,6 +271,7 @@ QoreValue::QoreValue(const QoreSimpleValue& n) {
         case QV_Int: v.i = n.v.i; break;
         case QV_Float: v.f = n.v.f; break;
         case QV_Node: v.n = n.v.n; break;
+        case QV_Char: v.c = n.v.c; break;
         default:
             assert(false);
             // no break
@@ -333,6 +358,13 @@ AbstractQoreNode* QoreValue::assign(int64 n) {
     AbstractQoreNode* rv = takeIfNode();
     type = QV_Int;
     v.i = n;
+    return rv;
+}
+
+AbstractQoreNode* QoreValue::assign(QoreUnicodeChar n) {
+    AbstractQoreNode* rv = takeIfNode();
+    type = QV_Char;
+    v.c = n.c;
     return rv;
 }
 

@@ -60,7 +60,7 @@ QoreValue QoreChompOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsin
     assert(!*xsink);
 
     if (vtype == NT_STRING)
-        return val.getValue().get<QoreStringNode>()->chomp();
+        return (int64)val.getValue().get<QoreStringNode>()->chomp();
 
     int64 count = 0;
 

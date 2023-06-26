@@ -89,7 +89,7 @@ int len = l.size();
     @see <list>::sizep()
 */
 int <list>::size() [flags=CONSTANT] {
-   return l->size();
+    return (int64)l->size();
 }
 
 //! Returns @ref True if the list is empty (size = 0), @ref False if not
@@ -192,7 +192,7 @@ foreach auto element in (val) {
     @endcode
 */
 int <list>::lsize() [flags=CONSTANT] {
-   return l->size();
+    return (int64)l->size();
 }
 
 //! Returns @ref True if the list contains arg, @ref False if it does not.

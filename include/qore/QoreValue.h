@@ -45,6 +45,7 @@ typedef unsigned char valtype_t;
 #define QV_Float (valtype_t)2  //!< for floating-point values
 #define QV_Node  (valtype_t)3  //!< for heap-allocated values
 #define QV_Ref   (valtype_t)4  //!< for references (when used with lvalues)
+#define QV_Char  (valtype_t)5  //!< for unicode characters
 ///@}
 
 // forward references
@@ -52,9 +53,18 @@ class AbstractQoreNode;
 class QoreString;
 struct QoreValue;
 
+//! Unicode character type
+struct QoreUnicodeChar {
+    uint32_t c;           //!< for Unicode characters
+
+    DLLLOCAL QoreUnicodeChar(uint32_t c) : c(c) {
+    }
+};
+
 //! this is the union that stores values in QoreValue
 union qore_value_u {
     bool b;               //!< for boolean values
+    uint32_t c;           //!< for Unicode characters
     int64 i;              //!< for integer values
     double f;             //!< for double values
     AbstractQoreNode* n;  //!< for all heap-allocated values
@@ -107,6 +117,17 @@ namespace detail {
             return qv->getAsBigInt();
         }
     };
+
+    //! used in QoreValue::get()
+    template<>
+    struct QoreValueCastHelper<QoreUnicodeChar> {
+        typedef QoreUnicodeChar Result;
+
+        template<typename QV>
+        static QoreUnicodeChar cast(QV *qv, valtype_t type) {
+            return qv->getAsUnicodeChar();
+        }
+    };
 } // namespace detail
 
 //! Base value class; parent of QoreValue; designed to be passed by value
@@ -121,6 +142,12 @@ public:
     DLLLOCAL void set(int64 i) {
         type = QV_Int;
         v.i = i;
+    }
+
+    //! assigns a Unicode character value to the object; any current value is overwritten
+    DLLLOCAL void set(QoreUnicodeChar c) {
+        type = QV_Char;
+        v.c = c.c;
     }
 
     //! assigns a floating-point value to the object; any current value is overwritten
@@ -150,6 +177,12 @@ public:
     //! assigns a new value to the object and returns a reference to the object; any current value is overwritten
     DLLLOCAL QoreSimpleValue& assign(int64 i) {
         set(i);
+        return *this;
+    }
+
+    //! assigns a new value to the object and returns a reference to the object; any current value is overwritten
+    DLLLOCAL QoreSimpleValue& assign(QoreUnicodeChar c) {
+        set(c);
         return *this;
     }
 
@@ -208,7 +241,8 @@ public:
 
     //! returns the value as the given type
     /** @note that if a pointer type is given and the object does not contain a node (i.e. type != QV_Node), then
-        this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in which case type conversions are performed
+        this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in
+        which case type conversions are performed
     */
     template<typename T>
     DLLLOCAL typename detail::QoreValueCastHelper<T>::Result get() {
@@ -217,7 +251,8 @@ public:
 
     //! returns the value as the given type
     /** @note that if a pointer type is given and the object does not contain a node (i.e. type != QV_Node), then
-        this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in which case type conversions are performed
+        this call will cause a segfault, however it is always legal to cast to simple types (int64, bool, float), in
+        which case type conversions are performed
     */
     template<typename T>
     DLLLOCAL typename detail::QoreValueCastHelper<const T>::Result get() const {
@@ -229,6 +264,9 @@ public:
 
     //! returns the value as an int
     DLLEXPORT int64 getAsBigInt() const;
+
+    //! returns the value as a Unicode character
+    DLLEXPORT QoreUnicodeChar getAsUnicodeChar() const;
 
     //! returns the value as a float
     DLLEXPORT double getAsFloat() const;
@@ -286,6 +324,9 @@ public:
     DLLEXPORT QoreValue(bool b);
 
     //! creates as an int
+    DLLEXPORT QoreValue(int64 i);
+
+    //! creates as an int
     DLLEXPORT QoreValue(int i);
 
     //! creates as an int
@@ -300,8 +341,8 @@ public:
     //! creates as an int
     DLLEXPORT QoreValue(unsigned long long i);
 
-    //! creates as an int
-    DLLEXPORT QoreValue(int64 i);
+    //! creates as a Unicode character
+    DLLEXPORT QoreValue(QoreUnicodeChar c);
 
     //! creates as a double
     DLLEXPORT QoreValue(double f);
@@ -350,6 +391,12 @@ public:
          @return any node value held before; if type != QV_Node before the assignment, returns NULL
     */
     DLLEXPORT AbstractQoreNode* assign(int64 n);
+
+    //! sets the value of the object and returns any node value held previously
+    /** @param n the new value of the object; sets type to QV_Int
+        @return any node value held before; if type != QV_Node before the assignment, returns NULL
+    */
+    DLLEXPORT AbstractQoreNode* assign(QoreUnicodeChar n);
 
     //! sets the value of the object and returns any node value held previously
     /** @param n the new value of the object; sets type to QV_Float

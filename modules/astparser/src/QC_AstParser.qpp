@@ -82,7 +82,7 @@ AstParser::constructor() {
     @return error count
  */
 int AstParser::getErrorCount() {
-    return aph->getErrorCount();
+    return (int64)aph->getErrorCount();
 }
 
 //! Get diagnostics.

@@ -41,58 +41,59 @@
 // value types must come first to support the operator matrix optimization
 const qore_type_t NT_NOTHING                = 0;  //!< type value for QoreNothingNode
 const qore_type_t NT_INT                    = 1;  //!< type value for integers (QoreValue only)
-const qore_type_t NT_FLOAT                  = 2;  //!< type value for floating-point values (QoreValue only)
-const qore_type_t NT_STRING                 = 3;  //!< type value for QoreStringNode
-const qore_type_t NT_DATE                   = 4;  //!< type value for DateTimeNode
-const qore_type_t NT_BOOLEAN                = 5;  //!< type value for bools (QoreValue only)
-const qore_type_t NT_NULL                   = 6;  //!< type value for QoreNullNode
-const qore_type_t NT_BINARY                 = 7;  //!< type value for BinaryNode
-const qore_type_t NT_LIST                   = 8;  //!< type value for QoreListNode
-const qore_type_t NT_HASH                   = 9;  //!< type value for QoreHashNode
-const qore_type_t NT_OBJECT                 = 10; //!< type value for QoreObject
-const qore_type_t NT_NUMBER                 = 11; //!< type value for QoreNumberNode
-const qore_type_t NT_CONTEXTREF             = 12; //!< type value for ContextrefNode
-const qore_type_t NT_COMPLEXCONTEXTREF      = 13; //!< type value for ComplexContextrefNode
-const qore_type_t NT_VARREF                 = 14; //!< type value for VarRefNode
-const qore_type_t NT_TREE                   = 15; //!< type value for QoreTreeNode
-const qore_type_t NT_FIND                   = 16; //!< type value for FindNode
-const qore_type_t NT_FUNCTION_CALL          = 17; //!< type value for FunctionCallNode
-const qore_type_t NT_SELF_VARREF            = 18; //!< type value for SelfVarrefNode
-const qore_type_t NT_SCOPE_REF              = 19; //!< type value for ScopedObjectCallNode
-const qore_type_t NT_CONSTANT               = 20; //!< type value for ScopedRefNode (private class)
-const qore_type_t NT_BAREWORD               = 21; //!< type value for BarewordNode
-const qore_type_t NT_REFERENCE              = 22; //!< type value for ReferenceNode
-const qore_type_t NT_CONTEXT_ROW            = 23; //!< type value for ContextRowNode
-const qore_type_t NT_CLASSREF               = 24; //!< type value for ClassRefNode
-const qore_type_t NT_OBJMETHREF             = 25; //!< type value for AbstractParseObjectMethodReferenceNode
-const qore_type_t NT_FUNCREF                = 26; //!< type value for AbstractCallReferenceNode
-const qore_type_t NT_FUNCREFCALL            = 27; //!< type value for CallReferenceCallNode
-const qore_type_t NT_CLOSURE                = 28; //!< type value for QoreClosureParseNode (private class)
-const qore_type_t NT_RUNTIME_CLOSURE        = 29; //!< type value for ResolvedCallReferenceNode (QoreClosureNode, QoreObjectClosureNode)
-const qore_type_t NT_IMPLICIT_ARG           = 30; //!< type value for QoreImplicitArgumentNode (private class)
-const qore_type_t NT_METHOD_CALL            = 31; //!< type value for MethodCallNode (private class)
-const qore_type_t NT_STATIC_METHOD_CALL     = 32; //!< type value for StaticMethodCallNode (private class)
-const qore_type_t NT_SELF_CALL              = 33; //!< type value for SelfFunctionCallNode (private class)
-const qore_type_t NT_OPERATOR               = 34; //!< type value for QoreOperatorNode (private class)
-const qore_type_t NT_IMPLICIT_ELEMENT       = 35; //!< type value for QoreImplicitElementNode (private clas)
-const qore_type_t NT_CLASS_VARREF           = 36; //!< type value for StaticClassVarRefNode (private class)
-const qore_type_t NT_PROGRAM_FUNC_CALL      = 37; //!< type value for ProgramFunctionCallNode (private class)
-const qore_type_t NT_PARSEREFERENCE         = 38; //!< type value for ParseReferenceNode (private class)
-const qore_type_t NT_BACKQUOTE              = 39; //!< type value for BackquoteNode
-const qore_type_t NT_RTCONSTREF             = 40; //!< type value for RuntimeConstantRefNode
-const qore_type_t NT_PARSE_HASH             = 41; //!< type value for QoreParseHashNode
-const qore_type_t NT_PARSE_LIST             = 42; //!< type value for QoreParseListNode
-const qore_type_t NT_PARSE_NEW_COMPLEX_TYPE = 43; //!< type value for ParseNewComplexTypeNode
-const qore_type_t NT_NEW_HASHDECL           = 44; //!< type value for NewHashDeclNode
-const qore_type_t NT_WEAKREF                = 45; //!< type value for WeakReferenceNode
+const qore_type_t NT_CHAR                   = 2;  //~< type value for chars (QoreValue only)
+const qore_type_t NT_FLOAT                  = 3;  //!< type value for floating-point values (QoreValue only)
+const qore_type_t NT_STRING                 = 4;  //!< type value for QoreStringNode
+const qore_type_t NT_DATE                   = 5;  //!< type value for DateTimeNode
+const qore_type_t NT_BOOLEAN                = 6;  //!< type value for bools (QoreValue only)
+const qore_type_t NT_NULL                   = 7;  //!< type value for QoreNullNode
+const qore_type_t NT_BINARY                 = 8;  //!< type value for BinaryNode
+const qore_type_t NT_LIST                   = 9;  //!< type value for QoreListNode
+const qore_type_t NT_HASH                   = 10;  //!< type value for QoreHashNode
+const qore_type_t NT_OBJECT                 = 11; //!< type value for QoreObject
+const qore_type_t NT_NUMBER                 = 12; //!< type value for QoreNumberNode
+const qore_type_t NT_CONTEXTREF             = 13; //!< type value for ContextrefNode
+const qore_type_t NT_COMPLEXCONTEXTREF      = 14; //!< type value for ComplexContextrefNode
+const qore_type_t NT_VARREF                 = 15; //!< type value for VarRefNode
+const qore_type_t NT_TREE                   = 16; //!< type value for QoreTreeNode
+const qore_type_t NT_FIND                   = 17; //!< type value for FindNode
+const qore_type_t NT_FUNCTION_CALL          = 18; //!< type value for FunctionCallNode
+const qore_type_t NT_SELF_VARREF            = 19; //!< type value for SelfVarrefNode
+const qore_type_t NT_SCOPE_REF              = 20; //!< type value for ScopedObjectCallNode
+const qore_type_t NT_CONSTANT               = 21; //!< type value for ScopedRefNode (private class)
+const qore_type_t NT_BAREWORD               = 22; //!< type value for BarewordNode
+const qore_type_t NT_REFERENCE              = 23; //!< type value for ReferenceNode
+const qore_type_t NT_CONTEXT_ROW            = 24; //!< type value for ContextRowNode
+const qore_type_t NT_CLASSREF               = 25; //!< type value for ClassRefNode
+const qore_type_t NT_OBJMETHREF             = 26; //!< type value for AbstractParseObjectMethodReferenceNode
+const qore_type_t NT_FUNCREF                = 27; //!< type value for AbstractCallReferenceNode
+const qore_type_t NT_FUNCREFCALL            = 28; //!< type value for CallReferenceCallNode
+const qore_type_t NT_CLOSURE                = 29; //!< type value for QoreClosureParseNode (private class)
+const qore_type_t NT_RUNTIME_CLOSURE        = 30; //!< type value for ResolvedCallReferenceNode (QoreClosureNode, QoreObjectClosureNode)
+const qore_type_t NT_IMPLICIT_ARG           = 31; //!< type value for QoreImplicitArgumentNode (private class)
+const qore_type_t NT_METHOD_CALL            = 32; //!< type value for MethodCallNode (private class)
+const qore_type_t NT_STATIC_METHOD_CALL     = 33; //!< type value for StaticMethodCallNode (private class)
+const qore_type_t NT_SELF_CALL              = 34; //!< type value for SelfFunctionCallNode (private class)
+const qore_type_t NT_OPERATOR               = 35; //!< type value for QoreOperatorNode (private class)
+const qore_type_t NT_IMPLICIT_ELEMENT       = 36; //!< type value for QoreImplicitElementNode (private clas)
+const qore_type_t NT_CLASS_VARREF           = 37; //!< type value for StaticClassVarRefNode (private class)
+const qore_type_t NT_PROGRAM_FUNC_CALL      = 38; //!< type value for ProgramFunctionCallNode (private class)
+const qore_type_t NT_PARSEREFERENCE         = 39; //!< type value for ParseReferenceNode (private class)
+const qore_type_t NT_BACKQUOTE              = 40; //!< type value for BackquoteNode
+const qore_type_t NT_RTCONSTREF             = 41; //!< type value for RuntimeConstantRefNode
+const qore_type_t NT_PARSE_HASH             = 42; //!< type value for QoreParseHashNode
+const qore_type_t NT_PARSE_LIST             = 43; //!< type value for QoreParseListNode
+const qore_type_t NT_PARSE_NEW_COMPLEX_TYPE = 44; //!< type value for ParseNewComplexTypeNode
+const qore_type_t NT_NEW_HASHDECL           = 45; //!< type value for NewHashDeclNode
+const qore_type_t NT_WEAKREF                = 46; //!< type value for WeakReferenceNode
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 45
+#define QORE_NUM_TYPES 46
 
 //! number of simple value types (not containers)
-#define NUM_SIMPLE_TYPES 8
+#define NUM_SIMPLE_TYPES 9
 
 //! number of potential value types (including container types)
-#define NUM_VALUE_TYPES 12
+#define NUM_VALUE_TYPES 13
 
 #endif

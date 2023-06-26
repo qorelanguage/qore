@@ -2496,7 +2496,7 @@ QoreListNode* QoreBreakpoint::getStatementIds(ExceptionSink* xsink) {
     QoreAutoRWReadLocker al(pgm ? &pgm->lck_breakpoint : nullptr);
     ReferenceHolder<QoreListNode> l(new QoreListNode(bigIntTypeInfo), xsink);
     for (AbstractStatementList_t::iterator it = statementList.begin(); it != statementList.end(); ++it) {
-        (*l)->push(pgm->getStatementId(*it), nullptr);
+        (*l)->push((int64)pgm->getStatementId(*it), nullptr);
     }
     return l.release();
 }

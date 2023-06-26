@@ -76,7 +76,7 @@ int len = str.strlen();
     - <string>::width()
 */
 int <string>::strlen() [flags=CONSTANT] {
-   return str->strlen();
+   return (int64)str->strlen();
 }
 
 //! Returns the number of bytes in the string (not including the terminating null character (\c '\0')
@@ -98,7 +98,7 @@ int len = str.size();
     - <string>::width()
 */
 int <string>::size() [flags=CONSTANT] {
-    return str->size();
+    return (int64)str->size();
 }
 
 //! Returns the number of characters in the string; may not be equal to the byte length (returned by <string>::strlen() and <string>::size()) for @ref character_encoding "multi-byte character encodings"
@@ -120,7 +120,7 @@ int len = str.length();
     - <string>::width()
 */
 int <string>::length() [flags=CONSTANT] {
-    return str->length();
+    return (int64)str->length();
 }
 
 //! Returns the width of characters in the string; some unicode characters take up multiple spaces on output
@@ -146,7 +146,7 @@ int width = str.width();
     @since %Qore 0.9.4
 */
 int <string>::width() [flags=RET_VALUE_ONLY] {
-    return str->getCharWidth(xsink);
+    return (int64)str->getCharWidth(xsink);
 }
 
 //! Returns @ref True if the string is empty, @ref False if not
@@ -263,7 +263,7 @@ if (i == -1)
     - brindex(softstring, softstring, softint)
  */
 int <string>::find(softstring substr, softint pos = 0) [flags=RET_VALUE_ONLY] {
-   return str->index(*substr, pos, xsink);
+    return (int64)str->index(*substr, pos, xsink);
 }
 
 //! Retrieves the character position of a substring within a string, starting the search from the end of the string
@@ -293,7 +293,7 @@ if (i == -1)
     - brindex(softstring, softstring, softint)
  */
 int <string>::rfind(softstring substr, softint pos = -1) [flags=RET_VALUE_ONLY] {
-   return str->rindex(*substr, (qore_offset_t)pos, xsink);
+    return (int64)str->rindex(*substr, (qore_offset_t)pos, xsink);
 }
 
 //! Returns @ref False if the string is empty, @ref True if not

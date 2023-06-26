@@ -228,9 +228,9 @@ while (i.next()) {
     @throw HASHLISTITERATOR-ERROR the one of the hash keys has a value that is a list with a size that does not match the expected list size
  */
 hash<auto> HashListIterator::getRow() [flags=RET_VALUE_ONLY] {
-   if (i->check(xsink))
-      return QoreValue();
-   return i->getRow(xsink);
+    if (i->check(xsink))
+        return QoreValue();
+    return i->getRow(xsink);
 }
 
 //! returns the current iterator position in the list or -1 if not pointing at a valid element
@@ -244,7 +244,7 @@ while (i.next()) {
     @endcode
  */
 int HashListIterator::index() [flags=CONSTANT] {
-   return i->index();
+    return (int64)i->index();
 }
 
 //! returns the number of elements in the list
@@ -258,7 +258,7 @@ while (i.next()) {
     @endcode
  */
 int HashListIterator::max() [flags=CONSTANT] {
-   return i->max();
+    return (int64)i->max();
 }
 
 //! sets the new position in the result list; if the position is invalid then the method returns @ref False, meaning the iterator is not valid, otherwise it returns @ref True
@@ -275,9 +275,9 @@ if (!i.set(pos))
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 bool HashListIterator::set(int pos) {
-   if (i->check(xsink))
-      return false;
-   return !i->set(pos);
+    if (i->check(xsink))
+        return false;
+    return !i->set(pos);
 }
 
 //! This method allows the iterator to be dereferenced directly as a hash for the current row being iterated, as memberGate methods are called implicitly when an unknown member is accessed from outside the class.
@@ -299,10 +299,10 @@ while (i.next()) {
     @note equivalent to HashListIterator::getKeyValue() when called explicitly
  */
 auto HashListIterator::memberGate(string key) [flags=RET_VALUE_ONLY] {
-   if (i->check(xsink))
-      return QoreValue();
+    if (i->check(xsink))
+        return QoreValue();
 
-   return i->getReferencedKeyValue(key->getBuffer(), xsink);
+    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }
 
 //! Returns the current value for the column given as an argument
@@ -324,10 +324,10 @@ while (i.next()) {
     @note HashListIterator::memberGate() allows for the iterator to act as if it is a hash with members equal to the current row being iterated
  */
 auto HashListIterator::getKeyValue(string key) [flags=RET_VALUE_ONLY] {
-   if (i->check(xsink))
-      return QoreValue();
+    if (i->check(xsink))
+        return QoreValue();
 
-   return i->getReferencedKeyValue(key->getBuffer(), xsink);
+    return i->getReferencedKeyValue(key->getBuffer(), xsink);
 }
 
 //! returns @ref True "True" if the iterator is currently pointing at a valid element, @ref False "False" if not
@@ -340,7 +340,7 @@ if (i.valid())
     @endcode
  */
 bool HashListIterator::valid() [flags=CONSTANT] {
-   return i->valid();
+    return i->valid();
 }
 
 //! Reset the iterator instance to its initial state
@@ -354,7 +354,7 @@ i.reset();
     @throw ITERATOR-THREAD-ERROR this exception is thrown if this method is called from any thread other than the thread that created the object
  */
 HashListIterator::reset() {
-   if (i->check(xsink))
-       return QoreValue();
-   i->reset();
+    if (i->check(xsink))
+        return QoreValue();
+    i->reset();
 }

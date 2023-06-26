@@ -762,7 +762,7 @@ int size = get_default_thread_stack_size();
  */
 int get_default_thread_stack_size() [dom=THREAD_INFO;flags=CONSTANT] {
 #ifdef QORE_MANAGE_STACK
-    return q_thread_get_stack_size();
+    return (int64)q_thread_get_stack_size();
 #else
     return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without "
         "support for stack management; check Qore::Option::HAVE_MANAGE_STACK before calling");
@@ -788,7 +788,7 @@ int size = set_default_thread_stack_size(size);
 */
 int set_default_thread_stack_size(int size) [dom=THREAD_CONTROL] {
 #ifdef QORE_MANAGE_STACK
-    return q_thread_set_stack_size((size_t)size, xsink);
+    return (int64)q_thread_set_stack_size((size_t)size, xsink);
 #else
     return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without "
         "support for stack management; check Qore::Option::HAVE_MANAGE_STACK before calling");
@@ -815,7 +815,7 @@ int size = get_stack_size();
  */
 int get_stack_size() [dom=THREAD_INFO;flags=CONSTANT] {
 #ifdef QORE_HAVE_GET_STACK_SIZE
-    return q_thread_get_this_stack_size();
+    return (int64)q_thread_get_this_stack_size();
 #else
     return xsink->raiseException("MISSING-FEATURE-ERROR", "this version of the Qore library was built without "
         "support for stack management; check Qore::Option::HAVE_GET_STACK_SIZE before calling");

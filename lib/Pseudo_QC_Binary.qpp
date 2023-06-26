@@ -65,7 +65,7 @@ int len = b.size();
     @see <binary>::sizep()
 */
 int <binary>::size() [flags=CONSTANT] {
-   return b->size();
+    return (int64)b->size();
 }
 
 //! Retrieves the byte position of a sequence of bytes within a binary object
