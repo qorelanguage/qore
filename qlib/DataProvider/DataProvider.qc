@@ -36,6 +36,7 @@ public class DataProvider {
             "csvread": "CsvUtil",
             "csvwrite": "CsvUtil",
             "db": "DbDataProvider",
+            "elasticsearch": "ElasticSearchDataProvider",
             "file": "FileDataProvider",
             "filepoller": "FilePoller",
             "fixedlengthread": "FixedLengthUtil",

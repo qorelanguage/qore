@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.8.12)
 
 # NOTE: Qore should always use semantic versioning: https://semver.org/
 set(VERSION_MAJOR 1)
-set(VERSION_MINOR 16)
-set(VERSION_SUB 1)
+set(VERSION_MINOR 17)
+set(VERSION_SUB 0)
 #set(VERSION_PATCH 0)
 
 # support <pkg>_ROOT in find_package
@@ -934,6 +934,7 @@ qore_user_module("qlib/SwaggerDataProvider" "Swagger;RestClient;RestSchemaValida
 qore_user_module("qlib/CdsRestDataProvider" "RestClient;CdsRestClient;RestSchemaValidator;DataProvider")
 qore_user_module("qlib/ServiceNowRestDataProvider" "RestClient;ServiceNowRestClient;RestSchemaValidator;DataProvider")
 qore_user_module("qlib/RestClientDataProvider" "RestClient;DataProvider")
+qore_user_module("qlib/ElasticSearchDataProvider" "RestClient;DataProvider")
 
 # base 8 modules
 qore_user_module("qlib/SalesforceRestDataProvider" "RestClient;SalesforceRestClient;DataProvider")
