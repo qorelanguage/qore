@@ -1,0 +1,72 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! Qore ElasticSearchDataProvider module definition
+
+/*  ElasticSearchDataProvider.qm Copyright 2019 - 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 1.16
+# assume local scope for variables, do not use "$" signs
+%new-style
+# require type definitions everywhere
+%require-types
+# strict argument handling
+%strict-args
+# enable all warnings
+%enable-all-warnings
+
+%requires(reexport) DataProvider
+%requires(reexport) RestClient
+
+module ElasticSearchDataProvider {
+    version = "1.0";
+    desc = "user module providing a data provider API for ElasticSearch instances";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::registerFactory(new ElasticSearchDataProviderFactory());
+    };
+}
+
+/** @mainpage ElasticSearchDataProvider Module
+
+    @tableofcontents
+
+    @section elasticsearchdataproviderintro Introduction to the ElasticSearchDataProvider Module
+
+    The %ElasticSearchDataProvider module provides a @ref dataproviderintro "data provider" API for ElasticSearch
+    instances.
+
+    The following classes are provided by this module:
+    - @ref ElasticSearchDataProvider::ElasticSearchDataProvider "ElasticSearchDataProvider"
+    - @ref ElasticSearchDataProvider::ElasticSearchDataProviderFactory "ElasticSearchDataProviderFactory"
+
+    @section elasticsearchdataprovider_relnotes Release Notes
+
+    @subsection elasticsearchdataprovider_v1_0 ElasticSearchDataProvider v1.0
+    - initial release of the module
+*/
+
+#! Contains all public definitions in the ElasticSearchDataProvider module
+public namespace ElasticSearchDataProvider {
+}
