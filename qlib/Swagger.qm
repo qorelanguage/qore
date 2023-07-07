@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.1";
+    version = "2.1.1";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,12 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_1_1 Swagger v2.1.1
+    - do not require \c items for arrays not describing a body parameter
+      (<a href="https://github.com/qorelanguage/qore/issues/4730">issue 4730</a>)
+    - ensure that URI paths are created without duplicated slashes by handling the base path consistently
+      (<a href="https://github.com/qorelanguage/qore/issues/4728">issue 4728</a>)
 
     @subsection swagger_2_1 Swagger v2.1
     - parse and report path arguments when processing REST requests on the server side
@@ -1237,6 +1243,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         if (optional_field(objType, oh, "basePath", NT_STRING, \basePath)) {
             if (exists basePath && basePath[0] != "/")
                 throw "INVALID-FIELD-FORMAT", "Swagger Object: basePath does not begin with a slash: " + basePath;
+            # make sure basePath never ends in a slash
+            if (basePath =~ /\/$/) {
+                splice basePath, -1;
+            }
         }
 
         if (oh.schemes) {
@@ -1462,7 +1472,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         if (path !~ /^\//)
             path = "/" + path;
 
-        # remove basePath if present; note that "basePath" must always have a leading /
+        # remove basePath if present; note that "basePath" must always have a leading / if set
         fixPath(\path);
 
         hash<UriQueryInfo> h = parse_uri_query(path);
@@ -1568,7 +1578,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             path = "/" + path;
         }
         # issue #4087: remove the base path if it matches the prefix of the path
-        if (basePath.val()) {
+        if (basePath) {
             if (!path.comparePartial(basePath)) {
                 splice path, 0, basePath.length();
             }
@@ -1604,7 +1614,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             }
             self.basePath = basePath;
         } else {
-            remove basePath;
+            remove self.basePath;
         }
     }
 
@@ -3271,7 +3281,7 @@ public class BodyParameter inherits AbstractParameterObject {
     public constructor(hash<auto> oh, SwaggerSchema swagger) : AbstractParameterObject(oh) {
         hash schemaObj;
         required_field("Body Parameter", oh, "schema", NT_HASH, \schemaObj);
-        schema = SchemaObject::newSchemaObject("body", schemaObj, swagger);
+        schema = SchemaObject::newSchemaObject("body", schemaObj, swagger, True);
     }
 
     #! verifies the parameter in an actual REST API call
@@ -3375,7 +3385,9 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
             throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid parameter type value passed: %y, "
                 "expecting one of: %y", name, type, keys ParameterTypes);
         if (type == "array") {
-            items = ParameterItemsSchemaObject::newSchemaObject("items", oh.items, swagger);
+            if (oh.items) {
+                items = ParameterItemsSchemaObject::newSchemaObject("items", oh.items, swagger);
+            }
             if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
                 if (!ParameterCollectionFormats{collectionFormat})
                     throw "INVALID-FIELD-VALUE",
@@ -3899,6 +3911,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @param name the name of the object
         @param oh deserialized hash from the source schema description describing an object in the schema
         @param swagger the REST schema for resolving references
+        @param hash_str the unique hash for the value being parsed
+        @param require_items require items for arrays
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -3906,7 +3920,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string hash_str)
+    private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string hash_str, *bool require_items)
             : ObjectBase(oh), SchemaBase("Schema", oh) {
         self.name = name;
         # add static map reference
@@ -3917,7 +3931,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             if (!ReferenceTypes{type})
                 throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; "
                     "expected one of: %y", name, type, keys ReferenceTypes);
-            if (type == "array") {
+            if (type == "array" && (require_items || oh.items)) {
                 items = newSchemaObject("items", oh.items, swagger);
             }
 
@@ -4185,7 +4199,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    static SchemaObject newSchemaObject(string name, hash<auto> oh, SwaggerSchema swagger) {
+    static SchemaObject newSchemaObject(string name, hash<auto> oh, SwaggerSchema swagger, *bool require_items) {
         string refstr;
         if (optional_field("Schema", oh, "$ref", NT_STRING, \refstr))
             return swagger.resolveSchemaObject(name, refstr, oh);
@@ -4195,7 +4209,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         if (rv) {
             return rv;
         }
-        return new SchemaObject(name, oh, swagger, hash_str);
+        return new SchemaObject(name, oh, swagger, hash_str, require_items);
     }
 
     #! throws an \c "INVALID-FIELD-TYPE" exception

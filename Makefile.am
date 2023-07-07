@@ -95,7 +95,8 @@ DOX_SPLIT_MODULES = \
     qlib/FileDataProvider \
     qlib/FtpClientDataProvider \
     qlib/HttpClientDataProvider \
-    qlib/AwsRestClientDataProvider
+    qlib/AwsRestClientDataProvider \
+    qlib/ElasticSearchDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -114,6 +115,7 @@ AwsRestClientDataProvider_modverdir = $(modverdir)/AwsRestClientDataProvider
 FileDataProvider_modverdir = $(modverdir)/FileDataProvider
 FtpClientDataProvider_modverdir = $(modverdir)/FtpClientDataProvider
 HttpClientDataProvider_modverdir = $(modverdir)/HttpClientDataProvider
+ElasticSearchDataProvider_modverdir = $(modverdir)/ElasticSearchDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
@@ -132,6 +134,7 @@ dist_AwsRestClientDataProvider_modver_DATA = $(wildcard qlib/AwsRestClientDataPr
 dist_FileDataProvider_modver_DATA = $(wildcard qlib/FileDataProvider/*.q[cm])
 dist_FtpClientDataProvider_modver_DATA = $(wildcard qlib/FtpClientDataProvider/*.q[cm])
 dist_HttpClientDataProvider_modver_DATA = $(wildcard qlib/HttpClientDataProvider/*.q[cm])
+dist_ElasticSearchDataProvider_modver_DATA = $(wildcard qlib/ElasticSearchDataProvider/*.q[cm])
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)

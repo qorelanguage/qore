@@ -1,0 +1,157 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/ElasticSearchDataProvider
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
+%exec-class ElasticSearchDataProviderTest
+
+public class ElasticSearchDataProviderTest inherits QUnit::Test {
+    private {
+        RestClient rest;
+
+        # command-line options
+        const MyOpts = Opts + {
+            "url": "u,url=s",
+        };
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("ElasticSearchDataProvider Test", "1.0") {
+        addTestCase("mainTest", \mainTest());
+
+        setupConnection();
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    private mainTest() {
+        if (!rest) {
+            testSkip("no connection to server");
+        }
+
+        string pipeline = get_random_string();
+        AbstractDataProvider prov = new ElasticSearchPipelineCreateDataProvider(rest);
+        hash<auto> p = {
+            "name": pipeline,
+            "description": "my pipeline",
+            "processors": ({
+                "html_strip": {
+                    "field": "content",
+                }
+            },),
+        };
+        hash<auto> h = prov.doRequest(p);
+        assertTrue(h.acknowledged);
+
+        ElasticSearchPipelineDeleteDataProvider delpipe(rest);
+        on_exit {
+            h = delpipe.doRequest({
+                "name": pipeline,
+            });
+            assertTrue(h.acknowledged);
+        }
+
+        prov = new ElasticSearchPipelineReadDataProvider(rest);
+        h = prov.doRequest({
+            "name": pipeline,
+        });
+        assertTrue(h.hasKey(pipeline));
+        assertEq(p - "name", h{pipeline});
+
+        prov = new ElasticSearchPipelineReadAllDataProvider(rest);
+        h = prov.doRequest();
+        assertTrue(h.hasKey(pipeline));
+        assertEq(p - "name", h{pipeline});
+
+        string index = get_random_string();
+        index =~ tr/A-Z/a-z/;
+        prov = new ElasticSearchIndexCreateDataProvider(rest);
+        h = prov.doRequest({
+            "name": index,
+            "mappings": {
+                "properties": {
+                    "content": {
+                        "type": "text",
+                    },
+                },
+            },
+        });
+        assertTrue(h.acknowledged);
+
+        ElasticSearchIndexDeleteDataProvider delindex(rest);
+        on_exit {
+            h = delindex.doRequest({
+                "name": index,
+            });
+            assertTrue(h.acknowledged);
+        }
+
+        prov = new ElasticSearchIndexReadDataProvider(rest);
+        h = prov.doRequest({
+            "name": index,
+        });
+        assertTrue(h.hasKey(index));
+
+        prov = new ElasticSearchDocumentCreateDataProvider(rest);
+        h = prov.doRequest({
+            "index": index,
+            "pipeline": pipeline,
+            "content": "<h2>test</h2>",
+        });
+        assertEq("created", h.result);
+        string docid = h."_id";
+
+        ElasticSearchDocumentDeleteDataProvider deldoc(rest);
+        on_exit {
+            h = deldoc.doRequest({
+                "index": index,
+                "id": docid,
+            });
+            assertEq("deleted", h.result);
+        }
+
+        prov = new ElasticSearchDocumentReadDataProvider(rest);
+        h = prov.doRequest({
+            "index": index,
+            "id": docid,
+        });
+        assertEq("\ntest\n", h._source.content);
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-u,--url=ARG", "URL for the ElasticSearch server instance", OptionColumn);
+    }
+
+    private setupConnection() {
+        *string url = m_options.url ?? ENV.ELASTICSEARCH_URL;
+        if (!url) {
+            stderr.print("missing --url option or ELASTICSEARCH_URL environment variable\n");
+        }
+
+        try {
+            rest = new RestClient({"url": url});
+        } catch (hash<ExceptionInfo> ex) {
+            if (m_options.verbose) {
+                stderr.printf("%s: %s\n", ex.err, ex.desc);
+            }
+        }
+    }
+}
