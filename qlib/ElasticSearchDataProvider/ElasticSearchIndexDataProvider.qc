@@ -51,6 +51,8 @@ public class ElasticSearchIndexDataProvider inherits AbstractDataProvider {
             "create": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexCreateDataProvider"),
             "read": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexReadDataProvider"),
             "delete": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexDeleteDataProvider"),
+
+            "search": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexSearchDataProvider"),
         };
     }
 

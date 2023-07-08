@@ -114,6 +114,8 @@ public class ElasticSearchDataProviderTest inherits QUnit::Test {
             "index": index,
             "pipeline": pipeline,
             "content": "<h2>test</h2>",
+            # NOTE: without "refresh=true", the document will not be found in the search below
+            "refresh": "true",
         });
         assertEq("created", h.result);
         string docid = h."_id";
@@ -133,6 +135,13 @@ public class ElasticSearchDataProviderTest inherits QUnit::Test {
             "id": docid,
         });
         assertEq("\ntest\n", h._source.content);
+
+        prov = new ElasticSearchIndexSearchDataProvider(rest);
+        h = prov.doRequest({
+            "name": index,
+        });
+        on_error printf("%N\n", h);
+        assertEq(1, h.hits.total.value);
     }
 
     private usageIntern() {
