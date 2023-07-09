@@ -174,7 +174,7 @@ class ElasticSearchDocumentReadRequestDataType inherits HashDataType {
                 "desc": "A comma-separated list of source fields to include in the response.\n\n"
                     "If this parameter is specified, only these source fields are returned. You can exclude fields "
                     "from this subset using the `_source_excludes` query parameter.\n\n"
-                    "If the `_source` parameter is false, this parameter is ignored",
+                    "If the `_source` parameter is `false`, this parameter is ignored",
             },
             "version": {
                 "type": IntOrNothingType,
