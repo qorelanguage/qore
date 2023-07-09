@@ -225,6 +225,7 @@ set(PSEUDO_QPP_SRC
     lib/Pseudo_QC_List.qpp
     lib/Pseudo_QC_Bool.qpp
     lib/Pseudo_QC_Int.qpp
+    lib/Pseudo_QC_Char.qpp
     lib/Pseudo_QC_Float.qpp
     lib/Pseudo_QC_Number.qpp
     lib/Pseudo_QC_Closure.qpp
