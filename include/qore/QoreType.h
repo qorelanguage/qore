@@ -51,6 +51,7 @@ DLLEXPORT extern QoreString NothingTypeString, NullTypeString, TrueString,
 DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *autoTypeInfo,
    *bigIntTypeInfo,
+   *unicodeCharTypeInfo,
    *floatTypeInfo,
    *boolTypeInfo,
    *stringTypeInfo,
@@ -74,6 +75,7 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *base64BinaryTypeInfo,
    *softBinaryTypeInfo,           // converts to binary from string and null
    *softBigIntTypeInfo,           // converts to int from float, string, bool, number, and null
+   *softUnicodeCharTypeInfo,      // converts to char from int, float, string, bool, number, and null
    *softFloatTypeInfo,            // converts to float from int, string, bool, number, and null
    *softNumberTypeInfo,           // converts to number from int, string, bool, float, and null
    *softBoolTypeInfo,             // converts to bool from int, float, string, number, and null
@@ -88,6 +90,7 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *floatOrNumberTypeInfo,        // accepts float or number and returns the same
 
    *bigIntOrNothingTypeInfo,
+   *unicodeCharOrNothingTypeInfo,
    *floatOrNothingTypeInfo,
    *numberOrNothingTypeInfo,
    *stringOrNothingTypeInfo,
@@ -108,6 +111,7 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *base64BinaryOrNothingTypeInfo,
    *softBinaryOrNothingTypeInfo,
    *softBigIntOrNothingTypeInfo,
+   *softUnicodeCharOrNothingTypeInfo,
    *softFloatOrNothingTypeInfo,
    *softNumberOrNothingTypeInfo,
    *softBoolOrNothingTypeInfo,

@@ -64,6 +64,9 @@ const NT_NOTHING = NT_NOTHING;
 //! type code for @ref integer "integer values"
 const NT_INT = NT_INT;
 
+//! type code for @ref char "char values"
+const NT_CHAR = NT_CHAR;
+
 //! type code for @ref float "float values"
 const NT_FLOAT = NT_FLOAT;
 
@@ -110,18 +113,19 @@ const NT_CALLREF = NT_FUNCREF;
 const TypeCodeMap = (
     "0": "nothing",
     "1": "integer",
-    "2": "float",
-    "3": "string",
-    "4": "date",
-    "5": "bool",
-    "6": "NULL",
-    "7": "binary",
-    "8": "list",
-    "9": "hash",
-    "10": "object",
-    "11": "number",
-    "29": "call reference",
-    "32": "closure",
+    "2": "char",
+    "3": "float",
+    "4": "string",
+    "5": "date",
+    "6": "bool",
+    "7": "NULL",
+    "8": "binary",
+    "9": "list",
+    "10": "hash",
+    "11": "object",
+    "12": "number",
+    "27": "call reference",
+    "30": "closure",
 );
 
 //! type name map, looks up type codes from type names

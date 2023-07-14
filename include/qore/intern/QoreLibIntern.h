@@ -129,19 +129,20 @@ static inline bool isoctaldigit(const char x) {
 #define NT_ALL              -2
 #define NT_CODE             -3
 #define NT_SOFTINT          -4
-#define NT_SOFTFLOAT        -5
-#define NT_SOFTNUMBER       -6
-#define NT_SOFTBOOLEAN      -7
-#define NT_SOFTSTRING       -8
-#define NT_SOFTDATE         -9
-#define NT_SOFTLIST         -10
-#define NT_TIMEOUT          -11
-#define NT_INTORFLOAT       -12
-#define NT_INTFLOATORNUMBER -13
-#define NT_FLOATORNUMBER    -14
-#define NT_SOFTBINARY       -15
-#define NT_HEXBINARY        -16
-#define NT_BASE64BINARY     -17
+#define NT_SOFTCHAR         -5
+#define NT_SOFTFLOAT        -6
+#define NT_SOFTNUMBER       -7
+#define NT_SOFTBOOLEAN      -8
+#define NT_SOFTSTRING       -9
+#define NT_SOFTDATE         -10
+#define NT_SOFTLIST         -11
+#define NT_TIMEOUT          -12
+#define NT_INTORFLOAT       -13
+#define NT_INTFLOATORNUMBER -14
+#define NT_FLOATORNUMBER    -15
+#define NT_SOFTBINARY       -16
+#define NT_HEXBINARY        -17
+#define NT_BASE64BINARY     -18
 
 #define NT_SOMETHING    -101 // i.e. "not NOTHING"
 #define NT_DATA         -102 // either QoreStringNode or BinaryNode

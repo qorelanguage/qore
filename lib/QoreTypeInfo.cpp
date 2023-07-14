@@ -45,6 +45,9 @@ const QoreAutoTypeInfo staticAutoTypeInfo;
 const QoreBigIntTypeInfo staticBigIntTypeInfo;
 const QoreBigIntOrNothingTypeInfo staticBigIntOrNothingTypeInfo;
 
+const QoreUnicodeCharTypeInfo staticUnicodeCharTypeInfo;
+const QoreUnicodeCharOrNothingTypeInfo staticUnicodeCharOrNothingTypeInfo;
+
 const QoreStringTypeInfo staticStringTypeInfo;
 const QoreStringOrNothingTypeInfo staticStringOrNothingTypeInfo;
 
@@ -114,6 +117,9 @@ const QoreDataOrNothingTypeInfo staticDataOrNothingTypeInfo;
 const QoreSoftBigIntTypeInfo staticSoftBigIntTypeInfo;
 const QoreSoftBigIntOrNothingTypeInfo staticSoftBigIntOrNothingTypeInfo;
 
+const QoreSoftUnicodeCharTypeInfo staticSoftUnicodeCharTypeInfo;
+const QoreSoftUnicodeCharOrNothingTypeInfo staticSoftUnicodeCharOrNothingTypeInfo;
+
 const QoreSoftFloatTypeInfo staticSoftFloatTypeInfo;
 const QoreSoftFloatOrNothingTypeInfo staticSoftFloatOrNothingTypeInfo;
 
@@ -147,6 +153,7 @@ const QoreFloatOrNumberTypeInfo staticFloatOrNumberTypeInfo;
 const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *autoTypeInfo = &staticAutoTypeInfo,
    *bigIntTypeInfo = &staticBigIntTypeInfo,
+   *unicodeCharTypeInfo = &staticUnicodeCharTypeInfo,
    *floatTypeInfo = &staticFloatTypeInfo,
    *boolTypeInfo = &staticBoolTypeInfo,
    *stringTypeInfo = &staticStringTypeInfo,
@@ -170,6 +177,7 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *base64BinaryTypeInfo = &staticBase64BinaryTypeInfo,
    *softBinaryTypeInfo = &staticSoftBinaryTypeInfo,
    *softBigIntTypeInfo = &staticSoftBigIntTypeInfo,
+   *softUnicodeCharTypeInfo = &staticSoftUnicodeCharTypeInfo,
    *softFloatTypeInfo = &staticSoftFloatTypeInfo,
    *softNumberTypeInfo = &staticSoftNumberTypeInfo,
    *softBoolTypeInfo = &staticSoftBoolTypeInfo,
@@ -184,6 +192,7 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *floatOrNumberTypeInfo = &staticFloatOrNumberTypeInfo,
 
    *bigIntOrNothingTypeInfo = &staticBigIntOrNothingTypeInfo,
+   *unicodeCharOrNothingTypeInfo = &staticUnicodeCharOrNothingTypeInfo,
    *floatOrNothingTypeInfo = &staticFloatOrNothingTypeInfo,
    *numberOrNothingTypeInfo = &staticNumberOrNothingTypeInfo,
    *stringOrNothingTypeInfo = &staticStringOrNothingTypeInfo,
@@ -204,6 +213,7 @@ const QoreTypeInfo* anyTypeInfo = &staticAnyTypeInfo,
    *base64BinaryOrNothingTypeInfo = &staticBase64BinaryOrNothingTypeInfo,
    *softBinaryOrNothingTypeInfo = &staticSoftBinaryOrNothingTypeInfo,
    *softBigIntOrNothingTypeInfo = &staticSoftBigIntOrNothingTypeInfo,
+   *softUnicodeCharOrNothingTypeInfo = &staticSoftUnicodeCharOrNothingTypeInfo,
    *softFloatOrNothingTypeInfo = &staticSoftFloatOrNothingTypeInfo,
    *softNumberOrNothingTypeInfo = &staticSoftNumberOrNothingTypeInfo,
    *softBoolOrNothingTypeInfo = &staticSoftBoolOrNothingTypeInfo,
@@ -281,6 +291,7 @@ void init_qore_types() {
    emptyHash      = new QoreHashNode;
 
    do_maps(NT_INT,          "int", bigIntTypeInfo, bigIntOrNothingTypeInfo);
+   do_maps(NT_CHAR,         "char", unicodeCharTypeInfo, unicodeCharOrNothingTypeInfo);
    do_maps(NT_STRING,       "string", stringTypeInfo, stringOrNothingTypeInfo);
    do_maps(NT_BOOLEAN,      "bool", boolTypeInfo, boolOrNothingTypeInfo);
    do_maps(NT_FLOAT,        "float", floatTypeInfo, floatOrNothingTypeInfo);
@@ -299,6 +310,7 @@ void init_qore_types() {
    do_maps(NT_NOTHING,      "nothing", nothingTypeInfo, nothingTypeInfo);
 
    do_maps(NT_SOFTINT,      "softint", softBigIntTypeInfo, softBigIntOrNothingTypeInfo);
+   do_maps(NT_SOFTCHAR,     "softchar", softUnicodeCharTypeInfo, softUnicodeCharOrNothingTypeInfo);
    do_maps(NT_SOFTFLOAT,    "softfloat", softFloatTypeInfo, softFloatOrNothingTypeInfo);
    do_maps(NT_SOFTNUMBER,   "softnumber", softNumberTypeInfo, softNumberOrNothingTypeInfo);
    do_maps(NT_SOFTBOOLEAN,  "softbool", softBoolTypeInfo, softBoolOrNothingTypeInfo);

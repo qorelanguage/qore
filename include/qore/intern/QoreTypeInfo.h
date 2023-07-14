@@ -2267,6 +2267,77 @@ protected:
     }
 };
 
+class QoreUnicodeCharTypeInfo : public QoreBaseTypeInfo {
+public:
+    DLLLOCAL QoreUnicodeCharTypeInfo() : QoreBaseTypeInfo("char", q_accept_vec_t {
+            {NT_CHAR, nullptr, true},
+            {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+                    discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+                }
+            },
+            {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+                    const QoreStringNode* str = n.get<const QoreStringNode>();
+                    uint32_t i = str->empty() ? 0 : str->getUnicodePoint(0, xsink);
+                    discard(n.assign(QoreUnicodeChar(i)), xsink);
+                }
+            },
+        }, q_return_vec_t {{NT_CHAR, true}}) {
+    }
+
+protected:
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return true;
+    }
+
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return QoreUnicodeChar(0);
+    }
+};
+
+class QoreUnicodeCharOrNothingTypeInfo : public QoreBaseTypeInfo {
+public:
+    DLLLOCAL QoreUnicodeCharOrNothingTypeInfo() : QoreBaseTypeInfo("*char", q_accept_vec_t {
+            {NT_CHAR, nullptr},
+            {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+                    discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+                }
+            },
+            {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+                    const QoreStringNode* str = n.get<const QoreStringNode>();
+                    uint32_t i = str->empty() ? 0 : str->getUnicodePoint(0, xsink);
+                    discard(n.assign(QoreUnicodeChar(i)), xsink);
+                }
+            },
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+                    n.assignNothing();
+                }
+            },
+        }, q_return_vec_t {{NT_CHAR}, {NT_NOTHING}}) {
+    }
+
+protected:
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return true;
+    }
+
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
+};
+
 class QoreStringTypeInfo : public QoreBaseConvertTypeInfo {
 public:
     DLLLOCAL QoreStringTypeInfo() : QoreBaseConvertTypeInfo("string", NT_STRING) {
@@ -3012,6 +3083,117 @@ protected:
    DLLLOCAL virtual bool needsScanImpl() const {
       return false;
    }
+};
+
+class QoreSoftUnicodeCharTypeInfo : public QoreTypeInfo {
+public:
+    DLLLOCAL QoreSoftUnicodeCharTypeInfo() : QoreTypeInfo("softchar", q_accept_vec_t {
+        {NT_CHAR, nullptr, true},
+        {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+                discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+            }
+        },
+        {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+                discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+            }
+        },
+        {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+                const QoreStringNode* str = n.get<const QoreStringNode>();
+                uint32_t i = str->empty() ? 0 : str->getUnicodePoint(0, xsink);
+                discard(n.assign(QoreUnicodeChar(i)), xsink);
+            }
+        },
+        {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+                discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+            }
+        },
+        {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+                discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+            }
+        },
+        {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+                discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+            }
+        },
+        {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+                discard(n.assign(QoreUnicodeChar(0ll)), xsink);
+            }
+        },
+    }, q_return_vec_t {{NT_CHAR, true}}) {
+}
+
+protected:
+   // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+   DLLLOCAL virtual bool canConvertToScalarImpl() const {
+      return true;
+   }
+
+   // returns true if this type could contain an object or a closure
+   DLLLOCAL virtual bool needsScanImpl() const {
+      return false;
+   }
+
+   DLLLOCAL virtual bool hasDefaultValueImpl() const {
+      return true;
+   }
+
+   DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+      return QoreUnicodeChar(0);
+   }
+};
+
+class QoreSoftUnicodeCharOrNothingTypeInfo : public QoreTypeInfo {
+public:
+    DLLLOCAL QoreSoftUnicodeCharOrNothingTypeInfo() : QoreTypeInfo("*softint", q_accept_vec_t {
+        {NT_CHAR, nullptr, true},
+        {NT_INT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+            }
+        },
+        {NT_FLOAT, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+            }
+        },
+        {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+                const QoreStringNode* str = n.get<const QoreStringNode>();
+                uint32_t i = str->empty() ? 0 : str->getUnicodePoint(0, xsink);
+                discard(n.assign(QoreUnicodeChar(i)), xsink);
+            }
+        },
+        {NT_DATE, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+            }
+        },
+        {NT_BOOLEAN, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+            }
+        },
+        {NT_NUMBER, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(QoreUnicodeChar(n.getAsBigInt())), xsink);
+            }
+        },
+        {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+               discard(n.assign(QoreUnicodeChar(0ll)), xsink);
+            }
+        },
+        {NT_NOTHING, nullptr},
+        {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) {
+                n.assignNothing();
+            }
+        },
+    }, q_return_vec_t {{NT_INT}, {NT_NOTHING}}) {
+    }
+
+protected:
+    // returns true if there is no type or if the type can be converted to a scalar value, false if otherwise
+    DLLLOCAL virtual bool canConvertToScalarImpl() const {
+        return true;
+    }
+
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
 };
 
 class QoreSoftFloatTypeInfo : public QoreTypeInfo {

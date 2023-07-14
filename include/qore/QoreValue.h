@@ -78,7 +78,7 @@ namespace detail {
         typedef Type * Result;
 
         template<typename QV>
-        static Result cast(QV *qv, valtype_t type) {
+        static Result cast(QV* qv, valtype_t type) {
             assert(type == QV_Node);
             assert(!qv->v.n || dynamic_cast<Result>(qv->v.n));
             return reinterpret_cast<Result>(qv->v.n);
@@ -91,7 +91,7 @@ namespace detail {
         typedef bool Result;
 
         template<typename QV>
-        static bool cast(QV *qv, valtype_t type) {
+        static bool cast(QV* qv, valtype_t type) {
             return qv->getAsBool();
         }
     };
@@ -102,7 +102,7 @@ namespace detail {
         typedef double Result;
 
         template<typename QV>
-        static double cast(QV *qv, valtype_t type) {
+        static double cast(QV* qv, valtype_t type) {
             return qv->getAsFloat();
         }
     };
@@ -113,7 +113,7 @@ namespace detail {
         typedef int64 Result;
 
         template<typename QV>
-        static int64 cast(QV *qv, valtype_t type) {
+        static int64 cast(QV* qv, valtype_t type) {
             return qv->getAsBigInt();
         }
     };
@@ -124,7 +124,7 @@ namespace detail {
         typedef QoreUnicodeChar Result;
 
         template<typename QV>
-        static QoreUnicodeChar cast(QV *qv, valtype_t type) {
+        static QoreUnicodeChar cast(QV* qv, valtype_t type) {
             return qv->getAsUnicodeChar();
         }
     };
@@ -235,7 +235,7 @@ public:
         assert(type == QV_Node);
         assert(dynamic_cast<T*>(v.n));
         T* rv = reinterpret_cast<T*>(v.n);
-        v.n = 0;
+        v.n = nullptr;
         return rv;
     }
 
