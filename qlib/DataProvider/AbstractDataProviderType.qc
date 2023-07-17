@@ -98,6 +98,8 @@ public const DataTypeMap = {
     Type::Date: DateType,
     Type::NullType: Reflection::NullType,
     Type::NothingType: AbstractDataProviderType::nothingType,
+    "base64binary": Base64BinaryType,
+    "hexbinary": HexBinaryType,
     "data": DataType,
     "all": AbstractDataProviderType::anyType,
     "any": AbstractDataProviderType::anyType,
@@ -116,6 +118,7 @@ public const DataTypeMap = {
     "*object": ObjectOrNothingType,
     "*date": DateOrNothingType,
     "*data": DataOrNothingType,
+    "*hexbinary": HexBinaryOrNothingType,
 };
 
 #! Maps Qore type name constant values to AbstractDataProviderType values

@@ -2848,7 +2848,7 @@ public class AbstractDataProvider {
 
         @see requestSearchRecordsImpl()
     */
-    private AbstractDataProviderRecordIterator searchRecordsImpl(hash<auto> where_cond,
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond,
             *hash<auto> search_options) {
         throwUnimplementedException();
     }

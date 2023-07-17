@@ -55,7 +55,7 @@ public class ElasticSearchDataProvider inherits AbstractDataProvider {
             "transaction_management": False,
             "supports_schema": False,
             "children_can_support_apis": True,
-            "children_can_support_records": False,
+            "children_can_support_records": True,
             "children_can_support_observers": False,
         };
 
@@ -82,6 +82,7 @@ public class ElasticSearchDataProvider inherits AbstractDataProvider {
             "document": Class::forName("ElasticSearchDataProvider::ElasticSearchDocumentDataProvider"),
             "index": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexDataProvider"),
             "pipeline": Class::forName("ElasticSearchDataProvider::ElasticSearchPipelineDataProvider"),
+            "indexes": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexesDataProvider"),
         };
     }
 

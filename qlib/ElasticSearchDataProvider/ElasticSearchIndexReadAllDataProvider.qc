@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore ElasticSearchDataProvider module definition
 
-/** ElasticSearchIndexReadDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** ElasticSearchIndexReadAllDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,16 +25,16 @@
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
 #! The ElasticSearch update data provider API
-public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
+public class ElasticSearchIndexReadAllDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection
         RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "read",
-            "desc": "ElasticSearch index read API data provider",
-            "type": "ElasticSearchIndexReadDataProvider",
+            "name": "read-all",
+            "desc": "ElasticSearch index read-all API data provider",
+            "type": "ElasticSearchIndexReadAllDataProvider",
             "constructor_options": ElasticSearchDataProvider::ConstructorOptions,
             "supports_request": True,
         };
@@ -45,14 +45,13 @@ public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
         });
 
         #! Request type
-        const RequestType = new ElasticSearchIndexReadRequestDataType();
+        const RequestType = new ElasticSearchIndexReadAllRequestDataType();
 
         #! Response type
         const ResponseType = new ElasticSearchIndexReadResponseDataType();
 
         #! Query args
-        const QueryArgs = ("allow_no_indices", "expand_wildcards", "features", "flat_settings", "include_defaults",
-            "ignore_unavailable", "local", "master_timeout");
+        const QueryArgs = ElasticSearchIndexReadDataProvider::QueryArgs;
     }
 
     #! Creates the object from constructor options
@@ -83,8 +82,8 @@ public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string uri_path = remove req.name;
         bool q;
+        string uri_path = "*";
         foreach string arg in (QueryArgs) {
             if (!exists req{arg}) {
                 continue;
@@ -120,80 +119,17 @@ public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
     }
 }
 
-#! ElasticSearch index read API request
-class ElasticSearchIndexReadRequestDataType inherits HashDataType {
-    public {
+#! ElasticSearch index read-all API request
+class ElasticSearchIndexReadAllRequestDataType inherits HashDataType {
+    private {
         #! Field descriptions
-        const Fields = {
-            # query parameters
-            "name": {
-                "type": StringType,
-                "desc": "The name of the index to read",
-            },
-            "allow_no_indices": {
-                "type": SoftBoolStringType,
-                "desc": "f `false`, the request returns an error if any wildcard expression, index alias, or `_all` "
-                    "value targets only missing or closed indices. This behavior applies even if the request targets "
-                    "other open indices. For example, a request targeting `foo*,bar*` returns an error if an index "
-                    "starts with `foo` but no index starts with `bar`",
-                "default_value": True,
-            },
-            "expand_wildcards": {
-                "type": StringType,
-                "desc": "Type of index that wildcard patterns can match. If the request can target data streams, "
-                    "this argument determines whether wildcard expressions match hidden data streams. Supports "
-                    "comma-separated values, such as open,hidden. Valid values are:\n"
-                    "- `all`: Match any data stream or index, including hidden ones\n"
-                    "- `open`: Match open, non-hidden indices. Also matches any non-hidden data stream.\n"
-                    "- `closed`: Match closed, non-hidden indices. Also matches any non-hidden data stream. Data "
-                        "streams cannot be closed\n"
-                    "- `hidden`: Match hidden data streams and hidden indices. Must be combined with `open`, "
-                        "`closed`, or both\n"
-                    "- `none`: Wildcard patterns are not accepted",
-                "default_value": "open",
-            },
-            "features": {
-                "type": StringType,
-                "desc": "Return information about specific index features. Supports comma-separated values. Valid "
-                    "values are: `aliases`, `mappings`, and `settings`.",
-                "default_value": "aliases,mappings,settings",
-            },
-            "flat_settings": {
-                "type": SoftBoolStringType,
-                "desc": "If `true`, returns settings in flat format",
-                "default_value": False,
-            },
-            "include_defaults": {
-                "type": SoftBoolStringType,
-                "desc": "If `true`, return all default settings in the response",
-                "default_value": False,
-            },
-            "ignore_unavailable": {
-                "type": SoftBoolStringType,
-                "desc": "If `false`, the request returns an error if it targets a missing or closed index",
-                "default_value": False,
-            },
-            "master_timeout": {
-                "type": StringOrNothingType,
-                "desc": "Period to wait for a connection to the master node. If no response is received before the "
-                    "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
-            },
-        };
+        const Fields = ElasticSearchIndexReadRequestDataType::Fields - "name";
     }
 
     #! Creates the object
     constructor() {
         map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
             Fields.pairIterator();
-    }
-}
-
-#! ElasticSearch index read API response
-class ElasticSearchIndexReadResponseDataType inherits HashDataType {
-    #! Creates the object
-    constructor() {
-        setDefaultOtherFieldType(new ElasticSearchIndexDataTypeBase());
     }
 }
 }

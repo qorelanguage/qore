@@ -108,6 +108,7 @@ public class ElasticSearchDataProviderTest inherits QUnit::Test {
             "name": index,
         });
         assertTrue(h.hasKey(index));
+        hash<auto> index_hash = h{index};
 
         prov = new ElasticSearchDocumentCreateDataProvider(rest);
         h = prov.doRequest({
@@ -140,8 +141,16 @@ public class ElasticSearchDataProviderTest inherits QUnit::Test {
         h = prov.doRequest({
             "name": index,
         });
-        on_error printf("%N\n", h);
         assertEq(1, h.hits.total.value);
+
+        prov = new ElasticSearchIndexTableDataProvider(rest, index, index_hash);
+        auto res = map $1, prov.searchRecords();
+        assertEq(Type::List, res.type());
+        assertEq(1, res.size());
+        assertEq(Type::Hash, res[0].type());
+        assertEq(3, res[0].size());
+        assertEq(1.0, res[0]._score);
+        assertEq("\ntest\n", res[0].content);
     }
 
     private usageIntern() {
