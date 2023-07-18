@@ -159,6 +159,9 @@ public class ElasticSearchDataProvider inherits AbstractDataProvider {
 #! Boolean string type for query parameters
 public const SoftBoolStringType = new SoftBoolStringType();
 
+#! Boolean data provider string type for query parameters
+public const SoftBoolDataProviderStringType = AbstractDataProviderType::get(SoftBoolStringType);
+
 #! Boolean string type
 public class SoftBoolStringType inherits Type {
     #! Creates the object

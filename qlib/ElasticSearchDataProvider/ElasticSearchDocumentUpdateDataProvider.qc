@@ -132,7 +132,7 @@ public class ElasticSearchDocumentUpdateRequestDataType inherits HashDataType {
             },
             "id": {
                 "type": StringType,
-                "desc": "The ID of the document to delete",
+                "desc": "The ID of the document to update",
             },
             "if_seq_no": {
                 "type": IntOrNothingType,

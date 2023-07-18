@@ -44,6 +44,9 @@ public class ElasticSearchRecordIterator inherits AbstractDataProviderRecordIter
 
         #! record iterator
         Qore::ListHashIterator i;
+
+        #! Query match options
+        const MatchOptions = ("operator",);
     }
 
     #! creates the iterator
@@ -62,6 +65,11 @@ public class ElasticSearchRecordIterator inherits AbstractDataProviderRecordIter
         self.record_type = record_type;
 
         string uri = sprintf("%s/_search", name);
+
+        if (search_options) {
+            uri = ElasticSearchIndexTableDataProvider::getQueryOptions(uri, search_options,
+                ElasticSearchIndexTableDataProvider::SearchQueryOptions);
+        }
 
         # make query
         *hash<auto> query_body = makeQuery(where_cond, search_options);
@@ -131,8 +139,24 @@ public class ElasticSearchRecordIterator inherits AbstractDataProviderRecordIter
     }
 
     #! Returns the query body
+    *hash<auto> makeQuery(*hash<auto> where_cond, *hash<auto> search_options) {
+        if (!where_cond) {
+            return;
+        }
+        return {
+            "query": {
+                "match": map {$1.key: {
+                    "query": $1.value
+                } + search_options{MatchOptions}}, where_cond.pairIterator(),
+            },
+        };
+    }
+
+    /*
+    #! Returns the query body
     *hash<auto> makeQuery(*hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
     }
+    */
 
     #! Returns the record description, if available
     /** @return the record type of the iterator

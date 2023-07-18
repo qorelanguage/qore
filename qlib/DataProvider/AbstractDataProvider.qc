@@ -2412,6 +2412,20 @@ public class AbstractDataProvider {
                 }
                 error("RUNTIME-TYPE-ERROR", "no type information available for option %y", i.key);
             }
+            # check allowed values
+            if (i.value.allowed_values) {
+                bool ok = False;
+                foreach auto v in (i.value.allowed_values) {
+                    if (options{i.key} === v.value) {
+                        ok = True;
+                        break;
+                    }
+                }
+                if (!ok) {
+                    error("OPTION-VALUE-ERROR", sprintf("option %y does not accept value %y; possible values: %y",
+                        i.key, options{i.key}, (map $1.value, i.value.allowed_values)));
+                }
+            }
         }
         return options;
     }

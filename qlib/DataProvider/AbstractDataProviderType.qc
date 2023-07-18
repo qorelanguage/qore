@@ -101,9 +101,25 @@ public const DataTypeMap = {
     "base64binary": Base64BinaryType,
     "hexbinary": HexBinaryType,
     "data": DataType,
+
+    "softint": SoftIntType,
+    "softstring": SoftStringType,
+    "softbool": SoftBoolType,
+    "softfloat": SoftFloatType,
+    "softnumber": SoftNumberType,
+    "softdate": SoftDateType,
+
+    "*softint": SoftIntOrNothingType,
+    "*softstring": SoftStringOrNothingType,
+    "*softbool": SoftBoolOrNothingType,
+    "*softfloat": SoftFloatOrNothingType,
+    "*softnumber": SoftNumberOrNothingType,
+    "*softdate": SoftDateOrNothingType,
+
     "all": AbstractDataProviderType::anyType,
     "any": AbstractDataProviderType::anyType,
     "auto": AbstractDataProviderType::anyType,
+
     "*int": IntOrNothingType,
     "*integer": IntOrNothingType,
     "*string": StringOrNothingType,

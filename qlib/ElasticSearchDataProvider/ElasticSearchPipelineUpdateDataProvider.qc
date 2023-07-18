@@ -60,20 +60,6 @@ public class ElasticSearchPipelineUpdateDataProvider inherits ElasticSearchPipel
         return sprintf("ElasticSearch data pipeline %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
     }
 
-    #! Returns the description of a successful request message, if any
-    /** @return the request type for this provider
-    */
-    private *AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
-    }
-
-    #! Returns the description of a response message, if this object represents a response message
-    /** @return the response type for this response message
-    */
-    private *AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
-    }
-
     #! Returns data provider static info
     hash<DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;

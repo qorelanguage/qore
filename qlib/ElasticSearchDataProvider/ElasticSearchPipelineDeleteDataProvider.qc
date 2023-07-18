@@ -82,7 +82,7 @@ public class ElasticSearchPipelineDeleteDataProvider inherits AbstractDataProvid
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string uri_path = sprintf("_ingest/pipeline/%s", remove req.name);
+        string uri_path = sprintf("_ingest/pipeline/%s", remove req.pipeline);
         bool q;
         foreach string arg in (QueryArgs) {
             if (!exists req{arg}) {
@@ -125,7 +125,7 @@ class ElasticSearchPipelineDeleteRequestDataType inherits HashDataType {
         #! Field descriptions
         const Fields = {
             # query parameters
-            "name": {
+            "pipeline": {
                 "type": StringType,
                 "desc": "The name of the pipeline to delete",
             },

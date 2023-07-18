@@ -57,6 +57,12 @@ module ElasticSearchDataProvider {
     The %ElasticSearchDataProvider module provides a @ref dataproviderintro "data provider" API for ElasticSearch
     instances.
 
+    This data provider provides API access to:
+    - documents: path <tt>document/{create,read,update,delete}</tt>
+    - indexes: path <tt>index/{create,read,read-all,delete,search}</tt>
+    - pipelines: path <tt>pipeline/{create,read,read-all,update,delete}</tt>
+
+
     The following classes are provided by this module:
     - @ref ElasticSearchDataProvider::ElasticSearchDataProvider "ElasticSearchDataProvider"
     - @ref ElasticSearchDataProvider::ElasticSearchDataProviderFactory "ElasticSearchDataProviderFactory"

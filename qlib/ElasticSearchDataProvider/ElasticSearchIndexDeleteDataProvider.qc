@@ -82,7 +82,7 @@ public class ElasticSearchIndexDeleteDataProvider inherits AbstractDataProvider 
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string uri_path = sprintf("%s", remove req.name);
+        string uri_path = sprintf("%s", remove req.index);
         bool q;
         foreach string arg in (QueryArgs) {
             if (!exists req{arg}) {
@@ -125,7 +125,7 @@ class ElasticSearchIndexDeleteRequestDataType inherits HashDataType {
         #! Field descriptions
         const Fields = {
             # query parameters
-            "name": {
+            "index": {
                 "type": StringType,
                 "desc": "The name of the index to delete",
             },

@@ -82,7 +82,7 @@ public class ElasticSearchIndexCreateDataProvider inherits AbstractDataProvider 
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string uri_path = remove req.name;
+        string uri_path = remove req.index;
         bool q;
         foreach string arg in (QueryArgs) {
             if (!exists req{arg}) {
@@ -132,7 +132,7 @@ public class ElasticSearchIndexCreateRequestDataType inherits ElasticSearchIndex
         #! Field descriptions
         const Fields = {
             # query parameters
-            "name": {
+            "index": {
                 "type": StringType,
                 "desc": "The name of the index to create",
             },
