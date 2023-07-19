@@ -24,7 +24,9 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
+#! The ElasticSearch pipeline delete API data provider
+/** This API allows the caller to delete an ElasticSearch pipeline
+*/
 public class ElasticSearchPipelineDeleteDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection

@@ -24,7 +24,9 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The REST client GET data provider class
+#! The ElasticSearch pipeline API root data provider
+/** This data provider provides children that are API data providers for actions on ElasticSearch pipelines
+*/
 public class ElasticSearchPipelineDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection

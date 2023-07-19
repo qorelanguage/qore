@@ -24,7 +24,11 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
+#! The ElasticSearch document create API data provider
+/** This API allows the caller to create an ElasticSearch document
+
+    @note A pipeline can be specified as an argument as well to perform transformations on the ingested document data
+*/
 public class ElasticSearchDocumentCreateDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection

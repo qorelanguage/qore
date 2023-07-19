@@ -152,27 +152,11 @@ public class ElasticSearchRecordIterator inherits AbstractDataProviderRecordIter
         };
     }
 
-    /*
-    #! Returns the query body
-    *hash<auto> makeQuery(*hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
-    }
-    */
-
     #! Returns the record description, if available
     /** @return the record type of the iterator
     */
     *hash<string, DataProvider::AbstractDataField> getRecordType() {
         return record_type;
     }
-
-    /*
-    private bool checkColumnName(string col) {
-        if (!record_type{col}) {
-            throw "COLUMN-ERROR", sprintf("column %y is unknown; known columns: %y", col,
-                keys record_type);
-        }
-        return True;
-    }
-    */
 }
 }

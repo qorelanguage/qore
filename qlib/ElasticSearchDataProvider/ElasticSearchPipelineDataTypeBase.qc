@@ -24,7 +24,7 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! Base data type for processor types
+#! Base data type for pipeline types
 public class ElasticSearchPipelineDataTypeBase inherits HashDataType {
     private {
         #! Field descriptions

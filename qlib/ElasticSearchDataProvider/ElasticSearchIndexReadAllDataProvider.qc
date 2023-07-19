@@ -24,7 +24,9 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
+#! The ElasticSearch read all indices API data provider
+/** This class implements an API that return the descriptions of all known indices in the ElasticSearch server.
+*/
 public class ElasticSearchIndexReadAllDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection

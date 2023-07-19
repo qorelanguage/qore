@@ -24,7 +24,9 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
+#! The ElasticSearch document update API data provider
+/** This API allows the caller to update an ElasticSearch document
+*/
 public class ElasticSearchDocumentUpdateDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection

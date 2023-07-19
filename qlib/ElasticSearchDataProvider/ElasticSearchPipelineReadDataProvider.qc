@@ -24,7 +24,12 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
+#! The ElasticSearch pipeline read API data provider
+/** This class implements an API that reads pipeline data given the pipeline name as an argument; the response is the
+    description of the pipeline as returned by the ElasticSearch server.
+
+    Note that wildcards can be used, in which case multiple pipelines can be returned in the return value.
+*/
 public class ElasticSearchPipelineReadDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection
@@ -51,7 +56,7 @@ public class ElasticSearchPipelineReadDataProvider inherits AbstractDataProvider
         const ResponseType = new ElasticSearchAcknowledgedDataType();
 
         #! Query args
-        const QueryArgs = ("master_timeout");
+        const QueryArgs = ("master_timeout",);
     }
 
     #! Creates the object from constructor options

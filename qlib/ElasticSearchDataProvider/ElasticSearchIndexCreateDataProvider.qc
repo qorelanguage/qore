@@ -24,7 +24,9 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
+#! The ElasticSearch index create API data provider
+/** This API allows the caller to create a new ElasticSearch index from the arguments describing the new index.
+*/
 public class ElasticSearchIndexCreateDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection

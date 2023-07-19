@@ -24,7 +24,9 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch read pipeline all data provider API
+#! The ElasticSearch read all pipelines API data provider
+/** This class implements an API that return the descriptions of all known pipelines in the ElasticSearch server.
+*/
 public class ElasticSearchPipelineReadAllDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection

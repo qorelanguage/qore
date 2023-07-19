@@ -24,7 +24,12 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
+#! The ElasticSearch index read API data provider
+/** This class implements an API that reads index data given the index name as an argument; the response is the
+    description of the index as returned by the ElasticSearch server.
+
+    Note that wildcards can be used, in which case multiple indices can be returned in the return value.
+*/
 public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection

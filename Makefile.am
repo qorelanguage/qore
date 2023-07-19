@@ -41,7 +41,8 @@ DOX_SRC_SPLIT_MODULES = \
     qlib/DataProvider \
     qlib/DbDataProvider \
     qlib/FileLocationHandler \
-    qlib/RestClientDataProvider
+    qlib/RestClientDataProvider \
+    qlib/ElasticSearchDataProvider
 
 DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
@@ -95,8 +96,7 @@ DOX_SPLIT_MODULES = \
     qlib/FileDataProvider \
     qlib/FtpClientDataProvider \
     qlib/HttpClientDataProvider \
-    qlib/AwsRestClientDataProvider \
-    qlib/ElasticSearchDataProvider
+    qlib/AwsRestClientDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -1007,6 +1007,7 @@ dist_qoredata_DATA = doxygen/Doxyfile.in \
     doxygen/qore-logo-55x151-white.png \
     doxygen/dox_qore.css \
     doxygen/DataProvider-Full.svg \
+    doxygen/elastic-logo.svg \
     doxygen/SqlUtil-Full.svg \
     doxygen/Qore-Q.ico \
     doxygen/header_template.html \
@@ -1152,6 +1153,10 @@ doxygen/qlib/Doxyfile.XdbcFirebirdSqlUtilBase: doxygen/qlib/Doxyfile.tmpl $(QDX_
 
 doxygen/qlib/Doxyfile.FsUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/FsUtil.qm:doxygen/qlib/FsUtil.qm $< $@
+
+# to provide the graphic file
+doxygen/qlib/Doxyfile.ElasticSearchDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/ElasticSearchDataProvider:doxygen/qlib/ElasticSearchDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html -X=doxygen/ -E=elastic-logo.svg $< $@
 
 doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/astparser/ \

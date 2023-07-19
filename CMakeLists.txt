@@ -766,6 +766,7 @@ install(FILES
             doxygen/qore-logo-55x151-white.png
             doxygen/dox_qore.css
             doxygen/DataProvider-Full.svg
+            doxygen/elastic-logo.svg
             doxygen/SqlUtil-Full.svg
             doxygen/Qore-Q.ico
             doxygen/header_template.html
@@ -934,7 +935,7 @@ qore_user_module("qlib/SwaggerDataProvider" "Swagger;RestClient;RestSchemaValida
 qore_user_module("qlib/CdsRestDataProvider" "RestClient;CdsRestClient;RestSchemaValidator;DataProvider")
 qore_user_module("qlib/ServiceNowRestDataProvider" "RestClient;ServiceNowRestClient;RestSchemaValidator;DataProvider")
 qore_user_module("qlib/RestClientDataProvider" "RestClient;DataProvider")
-qore_user_module("qlib/ElasticSearchDataProvider" "RestClient;DataProvider")
+qore_user_module("qlib/ElasticSearchDataProvider" "RestClient;DataProvider" "elastic-logo.svg")
 
 # base 8 modules
 qore_user_module("qlib/SalesforceRestDataProvider" "RestClient;SalesforceRestClient;DataProvider")

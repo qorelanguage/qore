@@ -24,7 +24,17 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The REST client GET data provider class
+#! This class exposes ElasticSearch indices as record-based data providers
+/** The record type is made up of the document attributes plus the following read-only fields:
+    - \c _id: the document ID which functions as the data provider record ID
+    - \c _score: the score returned from searches
+
+    Note that "where hashes" for updates and deletes accept a single field, \c _id, to identify the single document
+    (data provider record) to be updated or deleted.
+
+    Searches are performed with \c match logic; for more flexible searching, use the index search API data provider
+    found at \c index/search
+*/
 public class ElasticSearchIndexTableDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection
@@ -42,7 +52,9 @@ public class ElasticSearchIndexTableDataProvider inherits AbstractDataProvider {
                 "fields returned in searches are document properties, plus the special `_id` (document ID) and "
                 "`_score` (query match score) values, which are read-only.\n\n"
                 "Updating and deleting can be performed, but the 'where clause hash` must contain only a single "
-                "`_id` key to identify the document by its ID.",
+                "`_id` key to identify the document by its ID.\n\n"
+                "Searches are performed with `match`; for more flexible searching, use the index search API data "
+                "provider, `index/search`",
             "type": "ElasticSearchIndexTableDataProvider",
             "constructor_options": ElasticSearchDataProvider::ConstructorOptions,
             "has_record": True,

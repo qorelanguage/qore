@@ -24,7 +24,7 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch data provider factory
+#! The ElasticSearch data provider factory: \c elasticsearch
 public class ElasticSearchDataProviderFactory inherits AbstractDataProviderFactory {
     private {
         #! Data provider type info

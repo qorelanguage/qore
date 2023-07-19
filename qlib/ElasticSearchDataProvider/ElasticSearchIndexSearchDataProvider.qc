@@ -24,7 +24,11 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
+#! The ElasticSearch index search API data provider
+/** This class implements an API to search an index using ElasticSearch's index search API
+
+    The `query` API argument takes a data structure that corresponds to ElasticSearch's JSON Query DSL, for example.
+*/
 public class ElasticSearchIndexSearchDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection
@@ -543,7 +547,7 @@ class ElasticSearchIndexSearchRequestDataType inherits HashDataType {
             },
             "query": {
                 "type": AutoHashOrNothingType,
-                "desc": "Defines the search definition using the Query DSL",
+                "desc": "Specifies the search using the Query DSL",
             },
             "rank": {
                 "type": AutoHashOrNothingType,
