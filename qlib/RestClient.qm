@@ -455,9 +455,8 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - %RestClient 1.2 the \a send_encoding option was added
         - %RestClient 1.4 the \a validator and \a swagger options were added
     */
-    constructor(*hash<auto> opts, *softbool do_not_connect) : HTTPClient(opts + ((opts.url || !opts.validator)
-            ? NOTHING
-            : {"url": opts.validator.getTargetUrl()})) {
+    constructor(*hash<auto> opts, *softbool do_not_connect)
+            : HTTPClient(opts + ((opts.url || !opts.validator) ? NOTHING : {"url": opts.validator.getTargetUrl()})) {
         setSerialization(opts.data);
         if (opts.send_encoding)
             setSendEncoding(opts.send_encoding);
