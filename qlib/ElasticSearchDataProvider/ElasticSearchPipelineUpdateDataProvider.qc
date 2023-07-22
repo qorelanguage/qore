@@ -39,7 +39,7 @@ public class ElasticSearchPipelineUpdateDataProvider inherits ElasticSearchPipel
         };
 
         #! Provider summary info
-        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+        const ProviderSummaryInfo = cast<hash<DataProvider::DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
     }
@@ -49,7 +49,7 @@ public class ElasticSearchPipelineUpdateDataProvider inherits ElasticSearchPipel
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) : ElasticSearchPipelineCreateDataProvider(rest) {
+    constructor(RestClient::RestClient rest) : ElasticSearchPipelineCreateDataProvider(rest) {
     }
 
     #! Returns the data provider name
@@ -63,7 +63,7 @@ public class ElasticSearchPipelineUpdateDataProvider inherits ElasticSearchPipel
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }

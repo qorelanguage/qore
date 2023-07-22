@@ -27,10 +27,10 @@ public namespace ElasticSearchDataProvider {
 #! The ElasticSearch document update API data provider
 /** This API allows the caller to update an ElasticSearch document
 */
-public class ElasticSearchDocumentUpdateDataProvider inherits AbstractDataProvider {
+public class ElasticSearchDocumentUpdateDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -64,7 +64,7 @@ public class ElasticSearchDocumentUpdateDataProvider inherits AbstractDataProvid
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -105,25 +105,25 @@ public class ElasticSearchDocumentUpdateDataProvider inherits AbstractDataProvid
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! Update document request data type
-public class ElasticSearchDocumentUpdateRequestDataType inherits HashDataType {
+public class ElasticSearchDocumentUpdateRequestDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
@@ -240,7 +240,7 @@ public class ElasticSearchDocumentUpdateRequestDataType inherits HashDataType {
 }
 
 #! Document update API response
-public class ElasticSearchDocumentUpdateResponseDataType inherits HashDataType {
+public class ElasticSearchDocumentUpdateResponseDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {

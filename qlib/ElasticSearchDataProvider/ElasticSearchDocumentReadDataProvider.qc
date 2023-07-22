@@ -27,10 +27,10 @@ public namespace ElasticSearchDataProvider {
 #! The ElasticSearch document read API data provider
 /** This API allows the caller to read an ElasticSearch document
 */
-public class ElasticSearchDocumentReadDataProvider inherits AbstractDataProvider {
+public class ElasticSearchDocumentReadDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -64,7 +64,7 @@ public class ElasticSearchDocumentReadDataProvider inherits AbstractDataProvider
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -105,25 +105,25 @@ public class ElasticSearchDocumentReadDataProvider inherits AbstractDataProvider
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! Document read API request data type
-class ElasticSearchDocumentReadRequestDataType inherits HashDataType {
+class ElasticSearchDocumentReadRequestDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
@@ -198,7 +198,7 @@ class ElasticSearchDocumentReadRequestDataType inherits HashDataType {
 }
 
 #! Document read API response
-public class ElasticSearchDocumentReadResponseDataType inherits HashDataType {
+public class ElasticSearchDocumentReadResponseDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {

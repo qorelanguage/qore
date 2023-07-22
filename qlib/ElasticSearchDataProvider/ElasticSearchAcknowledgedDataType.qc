@@ -25,7 +25,7 @@
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
 #! The acknowledged response type
-public class ElasticSearchAcknowledgedDataType inherits HashDataType {
+public class ElasticSearchAcknowledgedDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {

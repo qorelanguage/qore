@@ -25,7 +25,7 @@
 #! contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
 #! Defines the record iterator class for Table-based iterators
-public class ElasticSearchRecordIterator inherits AbstractDataProviderRecordIterator {
+public class ElasticSearchRecordIterator inherits DataProvider::AbstractDataProviderRecordIterator {
     public {
     }
 
@@ -40,7 +40,7 @@ public class ElasticSearchRecordIterator inherits AbstractDataProviderRecordIter
         hash<auto> index;
 
         #! The record type for the object
-        hash<string, AbstractDataField> record_type;
+        hash<string, DataProvider::AbstractDataField> record_type;
 
         #! record iterator
         Qore::ListHashIterator i;
@@ -58,7 +58,8 @@ public class ElasticSearchRecordIterator inherits AbstractDataProviderRecordIter
         @param search_options search options; assumed to have already been processed for validity before this call
     */
     constructor(RestClient::RestClient rest, string name, hash<auto> index,
-            hash<string, AbstractDataField> record_type, *hash<auto> where_cond, *hash<auto> search_options) {
+            hash<string, DataProvider::AbstractDataField> record_type, *hash<auto> where_cond,
+            *hash<auto> search_options) {
         self.rest = rest;
         self.name = name;
         self.index = index;

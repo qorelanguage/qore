@@ -35,10 +35,10 @@ public namespace ElasticSearchDataProvider {
     Searches are performed with \c match logic; for more flexible searching, use the index search API data provider
     found at \c index/search
 */
-public class ElasticSearchIndexTableDataProvider inherits AbstractDataProvider {
+public class ElasticSearchIndexTableDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Current index name
         string name;
@@ -270,7 +270,7 @@ public class ElasticSearchIndexTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest, string name, hash<auto> index) {
+    constructor(RestClient::RestClient rest, string name, hash<auto> index) {
         self.rest = rest;
         self.name = name;
         self.index = index;
@@ -352,7 +352,7 @@ public class ElasticSearchIndexTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 

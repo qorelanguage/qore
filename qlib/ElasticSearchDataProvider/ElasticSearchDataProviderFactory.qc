@@ -25,7 +25,7 @@
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
 #! The ElasticSearch data provider factory: \c elasticsearch
-public class ElasticSearchDataProviderFactory inherits AbstractDataProviderFactory {
+public class ElasticSearchDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {
     private {
         #! Data provider type info
         static Class cls = new Class("ElasticSearchDataProvider");
@@ -41,19 +41,19 @@ public class ElasticSearchDataProviderFactory inherits AbstractDataProviderFacto
     #! Returns static factory information without \a provider_info
     /** @return static factory information without \a provider_info which is provided by @ref getProviderInfo()
     */
-    private hash<DataProviderFactoryInfo> getInfoImpl() {
+    private hash<DataProvider::DataProviderFactoryInfo> getInfoImpl() {
         return FactoryInfo;
     }
 
     #! Returns static provider information
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
-    private hash<DataProviderInfo> getProviderInfoImpl() {
+    private hash<DataProvider::DataProviderInfo> getProviderInfoImpl() {
         return ElasticSearchDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object
-    private Class getClassImpl() {
+    private Qore::Reflection::Class getClassImpl() {
         return cls;
     }
 }

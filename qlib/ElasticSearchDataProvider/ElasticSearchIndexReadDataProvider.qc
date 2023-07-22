@@ -33,7 +33,7 @@ public namespace ElasticSearchDataProvider {
 public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -67,7 +67,7 @@ public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -108,25 +108,25 @@ public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! ElasticSearch index read API request
-class ElasticSearchIndexReadRequestDataType inherits HashDataType {
+class ElasticSearchIndexReadRequestDataType inherits DataProvider::HashDataType {
     public {
         #! Field descriptions
         const Fields = {
@@ -141,7 +141,6 @@ class ElasticSearchIndexReadRequestDataType inherits HashDataType {
                     "value targets only missing or closed indices. This behavior applies even if the request targets "
                     "other open indices. For example, a request targeting `foo*,bar*` returns an error if an index "
                     "starts with `foo` but no index starts with `bar`",
-                "default_value": True,
             },
             "expand_wildcards": {
                 "type": StringType,
@@ -158,31 +157,26 @@ class ElasticSearchIndexReadRequestDataType inherits HashDataType {
                 "default_value": "open",
             },
             "features": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Return information about specific index features. Supports comma-separated values. Valid "
                     "values are: `aliases`, `mappings`, and `settings`.",
-                "default_value": "aliases,mappings,settings",
             },
             "flat_settings": {
                 "type": SoftBoolStringType,
                 "desc": "If `true`, returns settings in flat format",
-                "default_value": False,
             },
             "include_defaults": {
                 "type": SoftBoolStringType,
                 "desc": "If `true`, return all default settings in the response",
-                "default_value": False,
             },
             "ignore_unavailable": {
                 "type": SoftBoolStringType,
                 "desc": "If `false`, the request returns an error if it targets a missing or closed index",
-                "default_value": False,
             },
             "master_timeout": {
                 "type": StringOrNothingType,
                 "desc": "Period to wait for a connection to the master node. If no response is received before the "
                     "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
             },
         };
     }

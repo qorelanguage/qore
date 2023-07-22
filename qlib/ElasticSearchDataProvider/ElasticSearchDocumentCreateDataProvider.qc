@@ -29,10 +29,10 @@ public namespace ElasticSearchDataProvider {
 
     @note A pipeline can be specified as an argument as well to perform transformations on the ingested document data
 */
-public class ElasticSearchDocumentCreateDataProvider inherits AbstractDataProvider {
+public class ElasticSearchDocumentCreateDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -66,7 +66,7 @@ public class ElasticSearchDocumentCreateDataProvider inherits AbstractDataProvid
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -107,25 +107,25 @@ public class ElasticSearchDocumentCreateDataProvider inherits AbstractDataProvid
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! Create document request data type
-public class ElasticSearchDocumentCreateRequestDataType inherits HashDataType {
+public class ElasticSearchDocumentCreateRequestDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
@@ -207,7 +207,7 @@ public class ElasticSearchDocumentCreateRequestDataType inherits HashDataType {
 }
 
 #! Shard data type
-public class ElasticSearchDocumentCreateShardsDataType inherits HashDataType {
+public class ElasticSearchDocumentCreateShardsDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
@@ -240,7 +240,7 @@ public class ElasticSearchDocumentCreateShardsDataType inherits HashDataType {
 }
 
 #! Document create API response
-public class ElasticSearchDocumentCreateResponseDataType inherits HashDataType {
+public class ElasticSearchDocumentCreateResponseDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {

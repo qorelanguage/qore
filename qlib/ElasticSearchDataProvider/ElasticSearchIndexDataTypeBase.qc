@@ -25,7 +25,7 @@
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
 #! Base data type for search request types
-public class ElasticSearchIndexDataTypeBase inherits HashDataType {
+public class ElasticSearchIndexDataTypeBase inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {

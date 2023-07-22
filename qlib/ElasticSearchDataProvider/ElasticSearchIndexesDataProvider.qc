@@ -25,10 +25,10 @@
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
 #! The REST client GET data provider class
-public class ElasticSearchIndexesDataProvider inherits AbstractDataProvider {
+public class ElasticSearchIndexesDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -53,7 +53,7 @@ public class ElasticSearchIndexesDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -68,7 +68,7 @@ public class ElasticSearchIndexesDataProvider inherits AbstractDataProvider {
     }
 
     #! Return data provider summary info
-    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
+    *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         return map <DataProviderSummaryInfo>{
             "name": $1,
             "desc": sprintf("ElasticSearch index %y", $1),
@@ -102,7 +102,7 @@ public class ElasticSearchIndexesDataProvider inherits AbstractDataProvider {
 
         @see getChildProviderEx()
     */
-    private *AbstractDataProvider getChildProviderImpl(string name) {
+    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
         *hash<auto> index = getIndex(name);
         if (index) {
             return new ElasticSearchIndexTableDataProvider(rest, name, index);
@@ -110,7 +110,7 @@ public class ElasticSearchIndexesDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 
