@@ -142,13 +142,12 @@ class ElasticSearchDocumentReadRequestDataType inherits DataProvider::HashDataTy
             },
             "realtime": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, the request is real-time as opposed to near-real-time",
-                "default_value": True,
+                "desc": "If `true` (the default), the request is real-time as opposed to near-real-time",
             },
             "refresh": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, the request refreshes the relevant shard before retrieving the document",
-                "default_value": False
+                "desc": "If `true` (default `false`), the request refreshes the relevant shard before retrieving the "
+                    "document",
             },
             "routing": {
                 "type": StringOrNothingType,
@@ -156,9 +155,8 @@ class ElasticSearchDocumentReadRequestDataType inherits DataProvider::HashDataTy
             },
             "stored_fields": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, retrieves the document fields stored in the index rather than the document "
-                    "`_source`",
-                "default_value": False,
+                "desc": "If `true` (default `false`), retrieves the document fields stored in the index rather than "
+                    "the document `_source`",
             },
             "_source": {
                 "type": StringOrNothingType,

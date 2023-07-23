@@ -145,11 +145,10 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
             },
             "allow_no_indices": {
                 "type": SoftBoolStringType,
-                "desc": "f `false`, the request returns an error if any wildcard expression, index alias, or `_all` "
-                    "value targets only missing or closed indices. This behavior applies even if the request targets "
-                    "other open indices. For example, a request targeting `foo*,bar*` returns an error if an index "
-                    "starts with `foo` but no index starts with `bar`",
-                "default_value": True,
+                "desc": "If `false` (default `true`), the request returns an error if any wildcard expression, index "
+                    "alias, or `_all` value targets only missing or closed indices. This behavior applies even if "
+                    "the request targets other open indices. For example, a request targeting `foo*,bar*` returns an "
+                    "error if an index starts with `foo` but no index starts with `bar`",
             },
             "allow_partial_search_results": {
                 "type": SoftBoolStringType,
@@ -165,22 +164,19 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
             },
             "analyze_wildcard": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, wildcard and prefix queries are analyzed.\n\n"
+                "desc": "If `true` (default `false`), wildcard and prefix queries are analyzed.\n\n"
                     "This parameter can only be used when the `q` query string parameter is specified",
-                "default_value": False,
             },
             "batched_reduce_size": {
-                "type": IntType,
-                "desc": "The number of shard results that should be reduced at once on the coordinating node. This "
-                    "value should be used as a protection mechanism to reduce the memory overhead per search request "
-                    "if the potential number of shards in the request can be large",
-                "default_value": 512,
+                "type": IntOrNothingType,
+                "desc": "The number of shard results (default `512`) that should be reduced at once on the "
+                    "coordinating node. This value should be used as a protection mechanism to reduce the memory "
+                    "overhead per search request if the potential number of shards in the request can be large",
             },
             "ccs_minimize_roundtrips": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, network round-trips between the coordinating node and the remote clusters are "
-                    "minimized when executing cross-cluster search (CCS) requests",
-                "default_value": True,
+                "desc": "If `true` (the detaul), network round-trips between the coordinating node and the remote "
+                    "clusters are minimized when executing cross-cluster search (CCS) requests",
             },
             "default_operator": {
                 "type": StringOrNothingType,
@@ -198,23 +194,22 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
                     "each hit",
             },
             "expand_wildcards": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Type of index that wildcard patterns can match. If the request can target data streams, "
                     "this argument determines whether wildcard expressions match hidden data streams. Supports "
                     "comma-separated values, such as open,hidden. Valid values are:\n"
                     "- `all`: Match any data stream or index, including hidden ones\n"
-                    "- `open`: Match open, non-hidden indices. Also matches any non-hidden data stream\n"
+                    "- `open`: (default) Match open, non-hidden indices. Also matches any non-hidden data stream\n"
                     "- `closed`: Match closed, non-hidden indices. Also matches any non-hidden data stream. Data "
                         "streams cannot be closed\n"
                     "- `hidden`: Match hidden data streams and hidden indices. Must be combined with `open`, "
                         "`closed`, or both\n"
                     "- `none`: Wildcard patterns are not accepted",
-                "default_value": "open"
             },
             "explain_query": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, returns detailed information about score computation as part of a hit",
-                "default_value": "false",
+                "desc": "If `true` (default `false`), returns detailed information about score computation as part "
+                    "of a hit",
             },
             "from_query": {
                 "type": IntOrNothingType,
@@ -224,27 +219,24 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
             },
             "ignore_throttled": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, concrete, expanded or aliased indices will be ignored when frozen",
-                "default_value": True,
+                "desc": "If `true` (the default), concrete, expanded or aliased indices will be ignored when frozen",
             },
             "ignore_unavailable": {
                 "type": SoftBoolStringType,
-                "desc": "If `false`, the request returns an error if it targets a missing or closed index",
-                "default_value": False,
+                "desc": "If `false` (the default), the request returns an error if it targets a missing or closed "
+                    "index",
             },
             "lenient": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, format-based query failures (such as providing text to a numeric field) in the "
-                    "query string will be ignored.\n\n"
+                "desc": "If `true` (default `false`), format-based query failures (such as providing text to a "
+                    "numeric field) in the query string will be ignored.\n\n"
                     "This parameter can only be used when the `q` query string parameter is specified",
-                "default_value": False,
             },
             "max_concurrent_shard_requests": {
-                "type": IntType,
-                "desc": "Defines the number of concurrent shard requests per node this search executes concurrently. "
-                    "This value should be used to limit the impact of the search on the cluster in order to limit "
-                    "the number of concurrent shard requests",
-                "default_value": 5,
+                "type": IntOrNothingType,
+                "desc": "Defines the number of concurrent shard requests per node this search executes concurrently "
+                    "(default `5`). This value should be used to limit the impact of the search on the cluster in "
+                    "order to limit the number of concurrent shard requests",
             },
             "pre_filter_shard_size": {
                 "type": IntOrNothingType,
@@ -294,8 +286,7 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
             "rest_total_hits_as_int": {
                 "type": SoftBoolStringType,
                 "desc": "Indicates whether `hits.total` should be rendered as an integer or an object in the rest "
-                    "search response",
-                "default_value": False,
+                    "search response (default `false`)",
             },
             "routing": {
                 "type": StringOrNothingType,
@@ -410,22 +401,19 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
             },
             "track_scores": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, calculate and return document scores, even if the scores are not used for "
-                    "sorting",
-                "default_value": False,
+                "desc": "If `true` (default `false`), calculate and return document scores, even if the scores are "
+                    "not used for sorting",
             },
             "track_total_hits": {
-                "type": StringType,
-                "desc": "Number of hits matching the query to count accurately.\n\n"
+                "type": StringOrNothingType,
+                "desc": "Number of hits matching the query to count accurately (default `\"10000\"`).\n\n"
                     "If `true`, the exact number of hits is returned at the cost of some performance. If `false`, "
                     "the response does not include the total number of hits matching the query",
-                "default_value": "10000",
             },
             "typed_keys": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, aggregation and suggester names are be prefixed by their respective types in the "
-                    "response",
-                "default_value": True,
+                "desc": "If `true` (the default), aggregation and suggester names are be prefixed by their "
+                    "respective types in the response",
             },
             "version_query": {
                 "type": SoftBoolStringType,
@@ -481,15 +469,14 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
             },
             "explain": {
                 "type": BoolOrNothingType,
-                "desc": "If `true`, returns detailed information about score computation as part of a hit",
-                "default_value": False,
+                "desc": "If `true` (default `false`), returns detailed information about score computation as part "
+                    "of a hit",
             },
             "from": {
-                "type": IntType,
-                "desc": "Starting document offset. Needs to be non-negative and defaults to `0`.\n\n"
+                "type": IntOrNothingType,
+                "desc": "Starting document offset (default `0`). Needs to be non-negative and defaults to `0`.\n\n"
                     "By default, you cannot page through more than 10,000 hits using the from and size parameters. "
                     "To page through more hits, use the `search_after` parameter",
-                "default_value": 0,
             },
             "indices_boost": {
                 "type": SoftAutoListOrNothingType,
@@ -586,18 +573,17 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
                 "desc": "If `true`, returns sequence number and primary term of the last modification of each hit",
             },
             "size": {
-                "type": IntType,
-                "desc": "The number of hits to return. Needs to be non-negative and defaults to 10.\n\n"
+                "type": IntOrNothingType,
+                "desc": "The number of hits to return. Needs to be non-negative and defaults to `10`.\n\n"
                     "By default, you cannot page through more than 10,000 hits using the `from` and `size` "
                     "parameters. To page through more hits, use the `search_after` parameter",
-                "default_value": 10,
             },
             "_source": {
                 "type": AutoType,
                 "desc": "Indicates which source fields are returned for matching documents. These fields are "
                     "returned in the `hits._source` property of the search response.\n\n"
                     "Valid values for `_source`:\n"
-                    "- `true`: (Boolean) The entire document source is returned\n"
+                    "- `true`: (Boolean - the default) The entire document source is returned\n"
                     "- `false`: (Boolean) The document source is not returned\n"
                     "- `<wildcard_pattern>`: (string or array of strings) Wildcard (*) pattern or array of patterns "
                         "containing source fields to return\n"
@@ -611,7 +597,6 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
                         "containing source fields to return\n\n"
                     "    If this property is specified, only these source fields are returned. You can exclude "
                         "fields from this subset using the `excludes` property",
-                "default_value": True,
             },
             "stats": {
                 "type": new Type("*softlist<string>"),
@@ -619,15 +604,15 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
                     "for its associated searches",
             },
             "terminate_after": {
-                "type": IntType,
-                "desc": "Maximum number of documents to collect for each shard. If a query reaches this limit, "
-                    "Elasticsearch terminates the query early. Elasticsearch collects documents before sorting.\n\n"
+                "type": IntOrNothingType,
+                "desc": "Maximum number of documents to collect for each shard. If a query reaches "
+                    "this limit, Elasticsearch terminates the query early. Elasticsearch collects documents before "
+                    "sorting.\n\n"
                     "Use with caution. Elasticsearch applies this parameter to each shard handling the request. When "
                     "possible, let Elasticsearch perform early termination automatically. Avoid specifying this "
                     "parameter for requests that target data streams with backing indices across multiple data "
                     "tiers.\n\n"
                     "Defaults to `0`, which does not terminate query execution early",
-                "default_value": 0,
             },
             "timeout": {
                 "type": StringOrNothingType,
@@ -637,8 +622,7 @@ class ElasticSearchIndexSearchRequestDataType inherits DataProvider::HashDataTyp
             },
             "version": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, returns document version as part of a hit",
-                "default_value": False,
+                "desc": "If `true` (default `false`), returns document version as part of a hit",
             },
         };
     }

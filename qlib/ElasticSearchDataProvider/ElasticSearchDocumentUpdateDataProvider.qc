@@ -146,35 +146,30 @@ public class ElasticSearchDocumentUpdateRequestDataType inherits DataProvider::H
             },
             "lang": {
                 "type": StringOrNothingType,
-                "desc": "The script language",
-                "default_value": "painless",
+                "desc": "The script language (default `painless`)",
             },
             "require_alias": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, the destination must be an index alias",
-                "default_value": False,
+                "desc": "If `true` (default `false`), the destination must be an index alias",
             },
             "refresh": {
-                "type": StringType,
-                "desc": "If `true`, Elasticsearch refreshes the affected shards to make this operation visible to "
-                    "search, if `wait_for` then wait for a refresh to make this operation visible to search, if "
-                    "`false` do nothing with refreshes. Valid values: `true`, `false`, `wait_for`",
-                "default_value": "false",
+                "type": StringOrNothingType,
+                "desc": "If `true` (default `false`), Elasticsearch refreshes the affected shards to make this "
+                    "operation visible to search, if `wait_for` then wait for a refresh to make this operation "
+                    "visible to search, if `false` do nothing with refreshes. Valid values: `true`, `false`, `wait_for`",
             },
             "retry_on_conflict": {
-                "type": IntType,
-                "desc": "Specify how many times should the operation be retried when a conflict occurs",
-                "default_value": 0,
+                "type": IntOrNothingType,
+                "desc": "Specify how many times should the operation be retried when a conflict occurs (default `0`)",
             },
             "routing": {
                 "type": StringOrNothingType,
                 "desc": "Custom value used to route operations to a specific shard",
             },
             "_source": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Set to `false` to disable source retrieval (default: `true`). You can also specify a "
                     "comma-separated list of the fields you want to retrieve",
-                "default_value": "true",
             },
             "_source_excludes": {
                 "type": StringOrNothingType,
@@ -185,19 +180,18 @@ public class ElasticSearchDocumentUpdateRequestDataType inherits DataProvider::H
                 "desc": "Specify the source fields you want to exclude",
             },
             "timeout": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Period to wait for the following operations:\n"
                     "- Dynamic mapping updates\n"
                     "- Waiting for active shards\n\n"
                     "This guarantees Elasticsearch waits for at least the timeout before failing. The actual wait "
-                    "time could be longer, particularly when multiple waits occur",
-                "default_value": "1m",
+                    "time could be longer, particularly when multiple waits occur (default `1m)",
             },
             "wait_for_active_shards": {
-                "type": StringType,
-                "desc": "The number of shard copies that must be active before proceeding with the operation. Set to "
-                    "`all` or any positive integer up to the total number of shards in the index (number_of_replicas+1)",
-                "default_value": "1",
+                "type": StringOrNothingType,
+                "desc": "The number of shard copies that must be active before proceeding with the operation "
+                    "(default `1`). Set to `all` or any positive integer up to the total number of shards in the "
+                    "index (number_of_replicas+1)",
             },
 
             # body parameters

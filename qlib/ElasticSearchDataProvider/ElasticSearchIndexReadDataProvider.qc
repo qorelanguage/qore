@@ -143,18 +143,17 @@ class ElasticSearchIndexReadRequestDataType inherits DataProvider::HashDataType 
                     "starts with `foo` but no index starts with `bar`",
             },
             "expand_wildcards": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Type of index that wildcard patterns can match. If the request can target data streams, "
                     "this argument determines whether wildcard expressions match hidden data streams. Supports "
                     "comma-separated values, such as open,hidden. Valid values are:\n"
                     "- `all`: Match any data stream or index, including hidden ones\n"
-                    "- `open`: Match open, non-hidden indices. Also matches any non-hidden data stream.\n"
+                    "- `open`: (default) Match open, non-hidden indices. Also matches any non-hidden data stream.\n"
                     "- `closed`: Match closed, non-hidden indices. Also matches any non-hidden data stream. Data "
                         "streams cannot be closed\n"
                     "- `hidden`: Match hidden data streams and hidden indices. Must be combined with `open`, "
                         "`closed`, or both\n"
                     "- `none`: Wildcard patterns are not accepted",
-                "default_value": "open",
             },
             "features": {
                 "type": StringOrNothingType,

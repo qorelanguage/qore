@@ -145,21 +145,20 @@ class ElasticSearchDocumentDeleteRequestDataType inherits DataProvider::HashData
                 "desc": "Only perform the operation if the document has this primary term",
             },
             "refresh": {
-                "type": StringType,
-                "desc": "If `true`, Elasticsearch refreshes the affected shards to make this operation visible to "
-                    "search, if `wait_for` then wait for a refresh to make this operation visible to search, if "
-                    "`false` do nothing with refreshes. Valid values: `true`, `false`, `wait_for`",
-                "default_value": "false",
+                "type": StringOrNothingType,
+                "desc": "If `true` (default `false`), Elasticsearch refreshes the affected shards to make this "
+                    "operation visible to search, if `wait_for` then wait for a refresh to make this operation "
+                    "visible to search, if `false` do nothing with refreshes. Valid values: `true`, `false`, "
+                    "`wait_for`",
             },
             "routing": {
                 "type": StringOrNothingType,
                 "desc": "Custom value used to route operations to a specific shard",
             },
             "timeout": {
-                "type": StringType,
-                "desc": "Period to wait for a response. If no response is received before the "
+                "type": StringOrNothingType,
+                "desc": "Period to wait for a response (default `1m`). If no response is received before the "
                     "timeout expires, the request fails and returns an error",
-                "default_value": "1m",
             },
             "version": {
                 "type": IntOrNothingType,
@@ -171,10 +170,10 @@ class ElasticSearchDocumentDeleteRequestDataType inherits DataProvider::HashData
                 "desc": "Specific version type: `external`, `external_gte`",
             },
             "wait_for_active_shards": {
-                "type": StringType,
-                "desc": "The number of shard copies that must be active before proceeding with the operation. Set to "
-                    "`all` or any positive integer up to the total number of shards in the index (number_of_replicas+1)",
-                "default_value": "1",
+                "type": StringOrNothingType,
+                "desc": "The number of shard copies that must be active before proceeding with the operation "
+                    "(default `1`). Set to `all` or any positive integer up to the total number of shards in the "
+                    "index (number_of_replicas+1)",
             },
         };
     }

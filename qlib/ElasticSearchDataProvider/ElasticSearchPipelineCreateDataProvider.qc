@@ -138,15 +138,13 @@ public class ElasticSearchPipelineCreateRequestDataType inherits ElasticSearchPi
             },
             "master_timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a connection to the master node. If no response is received before the "
-                    "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
+                "desc": "Period to wait for a connection to the master node (default: `30s`). If no response is "
+                    "received before the timeout expires, the request fails and returns an error",
             },
             "timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a response. If no response is received before the "
+                "desc": "Period to wait for a response (default: `30s`). If no response is received before the "
                     "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
             },
         };
     }

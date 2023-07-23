@@ -140,22 +140,19 @@ public class ElasticSearchIndexCreateRequestDataType inherits ElasticSearchIndex
             },
             "wait_for_active_shards": {
                 "type": SoftStringOrNothingType,
-                "desc": "The number of shard copies that must be active before proceeding with the operation. Set to "
-                    "all or any positive integer up to the total number of shards in the index "
-                    "(number_of_replicas+1). Default: 1, the primary shard.",
-                "default_value": "1",
+                "desc": "The number of shard copies that must be active before proceeding with the operation. "
+                    "Set to `all` or any positive integer up to the total number of shards in the "
+                    "index (number_of_replicas+1). Default: `1`, the primary shard.",
             },
             "master_timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a connection to the master node. If no response is received before the "
-                    "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
+                "desc": "Period to wait for a connection to the master node (default `30s`). If no response is "
+                    "received before the timeout expires, the request fails and returns an error",
             },
             "timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a response. If no response is received before the "
+                "desc": "Period to wait for a response (default `30s`). If no response is received before the "
                     "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
             },
 
             # body parameters

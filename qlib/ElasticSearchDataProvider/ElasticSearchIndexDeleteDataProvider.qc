@@ -133,17 +133,16 @@ class ElasticSearchIndexDeleteRequestDataType inherits DataProvider::HashDataTyp
             },
             "allow_no_indices": {
                 "type": SoftBoolStringType,
-                "desc": "If `false`, the request returns an error if any wildcard expression, index alias, or `_all` "
-                    "value targets only missing or closed indices. This behavior applies even if the request targets "
-                    "other open indices. For example, a request targeting `foo*,bar*` returns an error if an index "
-                    "starts with `foo` but no index starts with `bar`",
-                "default_value": True,
+                "desc": "If `false` (default `true`), the request returns an error if any wildcard expression, index "
+                    "alias, or `_all` value targets only missing or closed indices. This behavior applies even if "
+                    "the request targets other open indices. For example, a request targeting `foo*,bar*` returns an "
+                    "error if an index starts with `foo` but no index starts with `bar`",
             },
             "expand_wildcards": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Type of index that wildcard patterns can match. If the request can target data streams, "
                     "this argument determines whether wildcard expressions match hidden data streams. Supports "
-                    "comma-separated values, such as open,hidden. Valid values are:\n"
+                    "comma-separated values, such as `open,hidden` (default `open,closed`). Valid values are:\n"
                     "- `all`: Match any data stream or index, including hidden ones\n"
                     "- `open`: Match open, non-hidden indices. Also matches any non-hidden data stream.\n"
                     "- `closed`: Match closed, non-hidden indices. Also matches any non-hidden data stream. Data "
@@ -151,25 +150,21 @@ class ElasticSearchIndexDeleteRequestDataType inherits DataProvider::HashDataTyp
                     "- `hidden`: Match hidden data streams and hidden indices. Must be combined with `open`, "
                         "`closed`, or both\n"
                     "- `none`: Wildcard patterns are not accepted",
-                "default_value": "open,closed",
             },
             "ignore_unavailable": {
                 "type": SoftBoolStringType,
-                "desc": "If `false`, the request returns an error if it targets a missing or closed index. Defaults "
-                    "to `false`",
-                "default_value": False,
+                "desc": "If `false, the request returns an error if it targets a missing or closed "
+                    "index. Defaults to `false`",
             },
             "master_timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a connection to the master node. If no response is received before the "
-                    "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
+                "desc": "Period to wait for a connection to the master node (default `30s`). If no response is "
+                    "received before the timeout expires, the request fails and returns an error",
             },
             "timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a response. If no response is received before the "
+                "desc": "Period to wait for a response (default `30s`). If no response is received before the "
                     "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
             },
         };
     }

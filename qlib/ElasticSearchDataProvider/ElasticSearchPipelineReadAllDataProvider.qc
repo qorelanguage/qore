@@ -129,15 +129,14 @@ class ElasticSearchPipelineReadAllRequestDataType inherits DataProvider::HashDat
             # query parameters
             "master_timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a connection to the master node. If no response is received before the "
-                    "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
+                "desc": "Period to wait for a connection to the master node (default: `30s`). If no response is "
+                    "received before the timeout expires, the request fails and returns an error",
             },
         };
     }
 
     #! Creates the object
-    constructor() {
+    constructor() : HashDataType(AutoHashOrNothingType) {
         map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
             Fields.pairIterator();
     }
