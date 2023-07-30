@@ -19,6 +19,9 @@
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
       - ensure that URI paths are created without duplicated slashes by handling the base path consistently
         (<a href="https://github.com/qorelanguage/qore/issues/4728">issue 4728</a>)
+    - fixed a bug where TIDs would be reassigned immediately to other threads once all TIDs in the thread list had
+      been assigned; now TIDs are assigned in a cyclic order based on which TIDs are free in all cases
+      (<a href="https://github.com/qorelanguage/qore/issues/4735">issue 4735</a>)
 
     @section qore_1_16_1 Qore 1.16.1
 

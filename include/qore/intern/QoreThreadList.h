@@ -110,25 +110,37 @@ public:
         AutoLocker al(lck);
 
         if (current_tid == MAX_QORE_THREADS) {
-            int i;
-            // scan thread_list for free entry
-            for (i = 1; i < MAX_QORE_THREADS; i++) {
+            int i = last_tid + 1;
+            while (true) {
+                // never try to assign TID 0
+                if (i == MAX_QORE_THREADS) {
+                    if (!last_tid) {
+                        break;
+                    }
+                    i = 1;
+                }
+                assert(i && i < MAX_QORE_THREADS);
                 if (entry[i].available()) {
-                    tid = i;
-                    goto finish;
+                    tid = last_tid = i;
+                    break;
+                }
+                ++i;
+                if (i == last_tid) {
+                    break;
                 }
             }
-            if (i == MAX_QORE_THREADS) {
+            if (tid == -1) {
                 return -1;
             }
         } else if (reuse_last && current_tid && entry[current_tid - 1].available()) {
+            printd(0, "QoreThreadList::get() reusing TID %d\n", current_tid - 1);
             // re-assign the last assigned TID
             tid = current_tid - 1;
         } else {
             tid = current_tid++;
         }
+        assert(entry[tid].available());
 
-finish:
         entry[tid].allocate(new tid_node(tid), status);
         ++num_threads;
         //printf("t%d cs=0\n", tid);
@@ -211,6 +223,9 @@ protected:
 
     // current TID to be issued next
     int current_tid = 1;
+
+    // last TID issued to avoid reusing the same TID over and over again
+    int last_tid = 0;
 
     bool exiting = false;
 
