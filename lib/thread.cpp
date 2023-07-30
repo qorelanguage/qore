@@ -577,9 +577,7 @@ void ThreadEntry::cleanup() {
     // delete tidnode from tid_list
     delete tidnode;
 
-#ifdef DEBUG
     assert(!thread_data);
-#endif
 
     if (status != QTS_NA && status != QTS_RESERVED && !joined && ptid) {
         pthread_detach(ptid);
@@ -2526,7 +2524,7 @@ namespace {
     }
 
     extern "C" void* op_background_thread(void* x) {
-        BGThreadParams* btp = (BGThreadParams*) x;
+        BGThreadParams* btp = (BGThreadParams*)x;
         // register thread
         register_thread(btp->tid, pthread_self(), btp->pgm);
         printd(5, "op_background_thread() btp: %p TID %d started\n", btp, btp->tid);

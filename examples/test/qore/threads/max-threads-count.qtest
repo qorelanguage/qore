@@ -6,6 +6,7 @@
 %require-types
 %strict-args
 
+%requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class MaxThreadCountTest
@@ -13,8 +14,15 @@
 our Queue q;
 
 public class MaxThreadCountTest inherits QUnit::Test {
+    private {
+        int limit = 0;
+    }
+
     constructor() : Test("Max thread count test", "1.0") {
-        addTestCase("Test max thread count", \testMaxThreadCount(), NOTHING);
+        addTestCase("max thread count", \testMaxThreadCount());
+        addTestCase("TID assignments", \testTidAssignments());
+        # run the TID assignment test twice
+        addTestCase("TID assignments", \testTidAssignments());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -24,9 +32,9 @@ public class MaxThreadCountTest inherits QUnit::Test {
         q = new Queue();
     }
 
-    t(Counter c) {
-        q.get();
-        q.push(1);
+    t(Counter c, Counter c0) {
+        c.waitForZero();
+        c0.dec();
     }
 
     testMaxThreadCount() {
@@ -34,26 +42,60 @@ public class MaxThreadCountTest inherits QUnit::Test {
             testSkip("skipping max thread test due to environment variable");
         }
 
-        int limit = 0;
-
-        Counter c();
+        Counter c(1);
+        Counter c0();
         try {
             while (True) {
-                c.inc();
-                on_error c.dec();
-                background t(c);
+                c0.inc();
+                on_error {
+                    c.dec();
+                    c0.dec();
+                }
+                background t(c, c0);
             }
         } catch (hash<ExceptionInfo> ex) {
-            assertEq("THREAD-CREATION-FAILURE", ex.err, "found threads count limit");
+            assertEq("THREAD-CREATION-FAILURE", ex.err, "found thread count limit");
             limit = num_threads();
-            q.push(1);
         }
 
         if (m_options.verbose > 2) {
-            printf("max thread limit detected: %d\n", limit);
+            printf("max threads: %d\n", limit);
         }
 
-        assertGt(1, limit);
-        assertEq(c.getCount() + 1, limit);
+        assertGt(100, limit);
+
+        c0.waitForZero(1s);
+    }
+
+    testTidAssignments() {
+        list<int> l;
+        Counter c(1);
+
+        code t = sub (Counter c0) {
+            l += gettid();
+            c0.dec();
+            c.waitForZero();
+        };
+
+        try {
+            while (True) {
+                Counter c0(1);
+                background t(c0);
+                c0.waitForZero();
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            printf("%s\n", get_exception_string(ex));
+            assertEq("THREAD-CREATION-FAILURE", ex.err, "thread limit for assignment test");
+            c.dec();
+        }
+
+        assertGt(100, l.size());
+
+        # check TIDs for order
+        int last = 0;
+        foreach int tid in (l) {
+            assertTrue(tid > last);
+            last = tid;
+        }
     }
 }
