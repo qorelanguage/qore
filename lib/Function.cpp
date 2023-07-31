@@ -1524,7 +1524,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
             }
 
             // does the variant accept extra arguments?
-            bool uses_extra_args = vflags & QCF_USES_EXTRA_ARGS;
+            bool uses_extra_args = (*i)->hasVarargs();
 
             ++cnt;
 
@@ -1761,7 +1761,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
         }
 
         AbstractFunctionSignature* sig = variant->getSignature();
-        if (!(flags & QCF_USES_EXTRA_ARGS) && num_args > sig->numParams()) {
+        if (!variant->hasVarargs() && num_args > sig->numParams()) {
             if (warn_excess_args(loc, this, argTypeInfo, sig) && !err) {
                 err = -1;
             }

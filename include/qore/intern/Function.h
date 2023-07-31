@@ -550,6 +550,10 @@ public:
     DLLLOCAL virtual void parseCommit() {
     }
 
+    DLLLOCAL virtual bool hasVarargs() const {
+        return flags & QCF_USES_EXTRA_ARGS;
+    }
+
 protected:
     // code flags
     int64 flags;
@@ -637,7 +641,9 @@ public:
    DLLLOCAL virtual AbstractFunctionSignature* getSignature() const { return const_cast<UserSignature*>(&signature); } \
    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo(int& err) const { return signature.parseGetReturnTypeInfo(err); } \
    DLLLOCAL virtual void setRecheck() { recheck = true; } \
-   DLLLOCAL virtual void parseCommit() { UserVariantBase::parseCommit(); }
+   DLLLOCAL virtual void parseCommit() { UserVariantBase::parseCommit(); } \
+   DLLLOCAL virtual bool hasVarargs() const { if (signature.hasVarargs()) return true; return AbstractQoreFunctionVariant::hasVarargs(); }
+
 
 // this class ensures that instantiated variables in user code are uninstantiated, even if an exception occurs
 class UserVariantExecHelper : ProgramThreadCountContextHelper, ThreadFrameBoundaryHelper {
