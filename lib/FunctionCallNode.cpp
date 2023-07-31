@@ -161,8 +161,8 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, QoreParse
     }
     parse_context.typeInfo = nullptr;
 
-    //printd(5, "FunctionCallBase::parseArgsVariant() this: %p args: %p '%s'\n", this, args,
-    //    args ? get_full_type_name(args) : "n/a");
+    printd(5, "FunctionCallBase::parseArgsVariant() this: %p args: %p '%s' func: %p\n", this, args,
+        args ? get_full_type_name(args) : "n/a", func);
 
     // resolves pending signatures unconditionally
     if (func) {
@@ -187,9 +187,12 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, QoreParse
         // find variant
         variant = func->parseFindVariant(loc, argTypeInfo, class_ctx, err);
 
-        //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p variant: %p rt: %s\n",
-        //  this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func,
-        //  variant, QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
+        /*
+        printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p variant: %p rt: %s\n",
+            this, func->className() ? func->className() : "", func->getName(),
+            parse_context.pflag & PF_RETURN_VALUE_IGNORED, func, variant,
+            QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
+        */
 
         if (variant) {
             printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) " \

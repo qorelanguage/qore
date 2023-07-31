@@ -753,6 +753,13 @@ const PO_STRICT_TYPES = PO_STRICT_TYPES;
 /** @since %Qore 1.0
 */
 const PO_NO_INHERIT_PROGRAM_DATA = PO_NO_INHERIT_PROGRAM_DATA;
+
+//! allows for old pre-%Qore 1.17 handling of varargs
+/** @see @ref broken-varargs "%broken-varargs"
+
+    @since %Qore 1.17
+*/
+const PO_BROKEN_VARARGS = PO_BROKEN_VARARGS;
 ///@}
 
 /** @defgroup warning_constants Warning Constants

@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  ASTLiteralExpression.h
+    ASTLiteralExpression.h
 
-  Qore AST Parser
+    Qore AST Parser
 
-  Copyright (C) 2017 - 2023 Qore Technologies, s.r.o.
+    Copyright (C) 2017 - 2023 Qore Technologies, s.r.o.
 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #ifndef _QLS_AST_EXPRESSIONS_ASTLITERALEXPRESSION_H
@@ -36,6 +36,8 @@
 #include <string>
 
 #include "ast/ASTExpression.h"
+
+#include "../../../include/qore/common.h"
 
 enum ALEKind {
     ALEK_Binary,
@@ -47,6 +49,7 @@ enum ALEKind {
     ALEK_Nothing,
     ALEK_Null,
     ALEK_Bool,
+    ALEK_Ellipses,
 };
 
 class ASTLiteralExpression : public ASTExpression {
@@ -67,66 +70,65 @@ public:
     ALEData value;
 
 public:
-    ASTLiteralExpression(ALEKind k, int64_t val) :
+    DLLLOCAL ASTLiteralExpression(ALEKind k, int64_t val) :
         ASTExpression(),
         kind(k)
     {
         value.i = val;
     }
 
-    ASTLiteralExpression(ALEKind k, double val) :
+    DLLLOCAL ASTLiteralExpression(ALEKind k, double val) :
         ASTExpression(),
         kind(k)
     {
         value.d = val;
     }
 
-    ASTLiteralExpression(ALEKind k, char* val) :
+    DLLLOCAL ASTLiteralExpression(ALEKind k, char* val) :
         ASTExpression(),
         kind(k)
     {
         value.str = val;
     }
 
-    ASTLiteralExpression(ALEKind k, std::string* val) :
+    DLLLOCAL ASTLiteralExpression(ALEKind k, std::string* val) :
         ASTExpression(),
         kind(k)
     {
         value.stdstr = val;
     }
 
-    ASTLiteralExpression(bool b) :
+    DLLLOCAL ASTLiteralExpression(bool b) :
         ASTExpression(),
         kind(ALEK_Bool)
     {
         value.b = b;
     }
 
-    virtual ~ASTLiteralExpression() {
+    DLLLOCAL ASTLiteralExpression(ALEKind k) : kind(k) {
+    }
+
+    DLLLOCAL virtual ~ASTLiteralExpression() {
         if (kind == ALEK_Binary || kind == ALEK_Date || kind == ALEK_Number)
             free(value.str);
         if (kind == ALEK_String)
             delete value.stdstr;
     }
 
-    virtual ASTExpressionKind getKind() const override {
+    DLLLOCAL virtual ASTExpressionKind getKind() const override {
         return ASTExpressionKind::AEK_Literal;
-    }
-
-protected:
-    ASTLiteralExpression(ALEKind k) : kind(k) {
     }
 };
 
 class ASTNothing : public ASTLiteralExpression {
 public:
-    ASTNothing() : ASTLiteralExpression(ALEK_Nothing) {
+    DLLLOCAL ASTNothing() : ASTLiteralExpression(ALEK_Nothing) {
     }
 };
 
 class ASTNull : public ASTLiteralExpression {
 public:
-    ASTNull() : ASTLiteralExpression(ALEK_Null) {
+    DLLLOCAL ASTNull() : ASTLiteralExpression(ALEK_Null) {
     }
 };
 

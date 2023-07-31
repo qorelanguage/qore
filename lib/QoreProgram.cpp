@@ -171,6 +171,8 @@ ParseOptionMaps::ParseOptionMaps() {
     doMap(PO_BROKEN_RANGE, "PO_BROKEN_RANGE");
     // 60
     doMap(PO_NO_INHERIT_PROGRAM_DATA, "PO_NO_INHERIT_PROGRAM_DATA");
+    // 61
+    doMap(PO_BROKEN_VARARGS, "PO_BROKEN_ELLIPSES");
 }
 
 // program serialization magic
