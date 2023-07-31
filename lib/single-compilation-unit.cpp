@@ -248,6 +248,7 @@
 #include "Transform.cpp"
 #include "QoreSerializable.cpp"
 #include "UnicodeCharacterIterator.cpp"
+#include "QoreEllipsesNode.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"

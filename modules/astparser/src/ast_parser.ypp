@@ -242,6 +242,7 @@ void yyerror(YYLTYPE *loc, yyscan_t scanner, AstParseErrorLog* errorLog, ASTTree
 %token VALUE_COALESCING "?* operator"
 %token WEAK_ASSIGNMENT ":= operator"
 %token RANGE ".. operator"
+%token ELLIPSES "... marker"
 
 // other
 %token PARSE_OPTION_BEGIN "parse option beginning"
@@ -2852,6 +2853,7 @@ scalar:
         | TOK_NULL    { $$ = new ASTNull; $$->loc = @1; }
         | TOK_TRUE    { $$ = new ASTLiteralExpression(true); $$->loc = @1; }
         | TOK_FALSE   { $$ = new ASTLiteralExpression(false); $$->loc = @1; }
+        | ELLIPSES    { $$ = new ASTLiteralExpression(ALEKind::ALEK_Ellipses); $$->loc = @1; }
         ;
 
 %%

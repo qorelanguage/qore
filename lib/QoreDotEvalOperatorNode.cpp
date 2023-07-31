@@ -143,8 +143,14 @@ int QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
     // method access is already checked here
     meth = qore_class_private::get(*qc)->parseFindAnyMethod(mname, class_ctx);
 
-    // issue #3070: do not save the method object if the method is abstract; allow it to be resolved at
-    // runtime
+    /*
+    printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) (abstract: %s) class_ctx: %p (%s)\n",
+        qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a",
+        meth && qore_method_private::get(*meth)->isAbstract() ? "true": "false",
+        class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
+    */
+
+    // issue #3070: do not save the method object if the method is abstract; allow it to be resolved at runtime
     bool is_abstract;
     if (meth && qore_method_private::get(*meth)->isAbstract()) {
         meth = nullptr;
@@ -152,10 +158,6 @@ int QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
     } else {
         is_abstract = false;
     }
-
-    //printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) class_ctx: %p (%s)\n",
-    //  qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", class_ctx,
-    //  class_ctx ? class_ctx->name.c_str() : "n/a");
 
     const QoreListNode* args = m->getArgs();
     if (!strcmp(mname, "copy")) {
@@ -192,6 +194,9 @@ int QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
 
         // allow the method to be resolved at runtime
         if (!meth) {
+            // set the class in the parse context
+            QoreParseContextClassHelper pch(parse_context, qc);
+
             QoreValue tmp = m;
             if (m->parseInit(tmp, parse_context) && !err) {
                 err = -1;

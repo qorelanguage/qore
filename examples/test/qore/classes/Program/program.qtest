@@ -200,6 +200,7 @@ class ProgramTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("ProgramTest", "1.0", \ARGV) {
+        addTestCase("ellipses", \ellipsesTest());
         addTestCase("call static method", \callStaticMethodTest());
         addTestCase("expression test", \expressionTest());
         addTestCase("call ref", \callRefTest());
@@ -221,6 +222,40 @@ class ProgramTest inherits QUnit::Test {
         addTestCase("Program info test", \programInfoTest());
 	    addTestCase("Find runtime function test", \findRuntimeTest());
     	set_return_value(main());
+    }
+
+    ellipsesTest() {
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("ILLEGAL-ELLIPSES", \p.parse(), ("const T = (1, 2, ...);", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
+            p.parse("auto sub t(...) { return argv[0]; }", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
+            p.parse("class T { abstract auto t(...); } class C inherits T { auto t(...) { return argv[0]; }}"
+                "auto sub t(auto x) { C c(); T t = c; return t.t(x); }", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
+            assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), ("class T { abstract auto t(); } "
+                "class C inherits T { auto t(...) { return argv[0]; }} "
+                "auto sub t(auto x) { C c(); T t = c; return t.t(x); }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_BROKEN_VARARGS | PO_STRICT_ARGS);
+            assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), ("class T { abstract auto t(); } "
+                "class C inherits T { auto t(...) { return argv[0]; }} "
+                "auto sub t(auto x) { C c(); T t = c; return t.t(x); }", ""));
+        }
     }
 
     callStaticMethodTest() {

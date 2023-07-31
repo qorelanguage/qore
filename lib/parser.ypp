@@ -458,22 +458,23 @@ struct GVarListDecl : public GVarDecl {
     }
 };
 
-static int check_method(const QoreProgramLocation* loc, const char* name, BCAList* bcal, RetTypeInfo* returnTypeInfo) {
-   bool con = !strcmp(name, "constructor");
-   bool dst = !con && !strcmp(name, "destructor");
+static int check_method(const QoreProgramLocation* loc, const char* name, BCAList* bcal,
+        RetTypeInfo* returnTypeInfo) {
+    bool con = !strcmp(name, "constructor");
+    bool dst = !con && !strcmp(name, "destructor");
 
-   // see if a return type is given for special methods
-   if (returnTypeInfo && (con || dst)) {
-      parse_error(*loc, "%s methods may not declare a return type", name);
-      return -1;
-   }
+    // see if a return type is given for special methods
+    if (returnTypeInfo && (con || dst)) {
+        parse_error(*loc, "%s methods may not declare a return type", name);
+        return -1;
+    }
 
-   if (bcal && !con) {
-      parse_error(*loc, "base class constructor lists are only legal when defining constructor() methods");
-      return -1;
-   }
+    if (bcal && !con) {
+        parse_error(*loc, "base class constructor lists are only legal when defining constructor() methods");
+        return -1;
+    }
 
-   return 0;
+    return 0;
 }
 
 #define OFM_PUBLIC     (1 << 0)
@@ -500,8 +501,7 @@ static inline MethodVariantBase* new_method_variant(const QoreProgramLocation* l
         if (mod & OFM_PUBLIC)
             parse_error(*loc, "%s() methods cannot be both public and private", name);
         access = Private;
-    }
-    else if (mod & OFM_INTERNAL) {
+    } else if (mod & OFM_INTERNAL) {
         if (mod & OFM_PUBLIC)
             parse_error(*loc, "%s() methods cannot be both public and private", name);
         access = Internal;
@@ -781,7 +781,8 @@ struct NSNodeList : public nsnode_list_t {
     }
 };
 
-static QoreParseListNode* splice_expressions(QoreValue a1, QoreValue a2, const QoreProgramLocation* loc1, const QoreProgramLocation* loc2) {
+static QoreParseListNode* splice_expressions(QoreValue a1, QoreValue a2, const QoreProgramLocation* loc1,
+        const QoreProgramLocation* loc2) {
     //tracein("splice_expressions()");
     if (a1.getType() == NT_PARSE_LIST) {
         QoreParseListNode* l = a1.get<QoreParseListNode>();
@@ -791,7 +792,8 @@ static QoreParseListNode* splice_expressions(QoreValue a1, QoreValue a2, const Q
             return l;
         }
     }
-    QoreParseListNode* l = new QoreParseListNode(qore_program_private::get(*getProgram())->getLocation(*loc1, loc2->start_line, loc2->end_line));
+    QoreParseListNode* l = new QoreParseListNode(qore_program_private::get(*getProgram())->getLocation(*loc1,
+        loc2->start_line, loc2->end_line));
     l->add(a1, loc1);
     l->add(a2, loc2);
     return l;
@@ -1589,7 +1591,6 @@ static void check_operator_bin_xor(const QoreProgramLocation* loc, QoreValue n, 
 }
 
 %{
-
 #define LEX_PARAMETERS YYSTYPE *lvalp, YYLTYPE *loc, yyscan_t scanner
 
 DLLLOCAL int yylex(LEX_PARAMETERS);
@@ -1599,7 +1600,6 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
     const QoreProgramLocation* qloc = qore_program_private::get(*getProgram())->getLocation(loc->first_line, loc->last_line);
     parse_error(*qloc, "%s", str);
 }
-
 %}
 
 // define string aliases for token names for more user-friendly error reporting
@@ -1715,6 +1715,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %token VALUE_COALESCING "?* operator"
 %token WEAK_ASSIGNMENT ":= operator"
 %token RANGE ".. operator"
+%token ELLIPSES "... marker"
 
  // tokens returning data
 %token <integer> INTEGER "integer value"
@@ -1755,7 +1756,7 @@ DLLLOCAL void yyerror(YYLTYPE* loc, yyscan_t scanner, const char* str) {
 %left ','
 %right PLUS_EQUALS MINUS_EQUALS AND_EQUALS OR_EQUALS MODULA_EQUALS MULTIPLY_EQUALS DIVIDE_EQUALS XOR_EQUALS SHIFT_LEFT_EQUALS SHIFT_RIGHT_EQUALS '=' WEAK_ASSIGNMENT
 %right '?' ':'
-%nonassoc RANGE
+%nonassoc RANGE ELLIPSES
 %right NULL_COALESCING VALUE_COALESCING
 %left LOGICAL_OR
 %left LOGICAL_AND BROKEN_LOGICAL_OR
@@ -2230,7 +2231,7 @@ statement:
             if (!ok) {
                 if (!value_has_effect_as_root($1) && (t != NT_VARREF || !$1.get<VarRefNode>()->parseIsDecl())) {
                     if (!parse_check_parse_option(PO_ALLOW_STATEMENT_NO_EFFECT)) {
-                        parse_error(*loc, "expression has no effect as top-level statement (%s)", $1.getTypeName());
+                        parse_error(*loc, "expression has no effect as a statement (%s)", $1.getTypeName());
                     }
                 } else if (!$1.hasEffect() && (t != NT_VARREF || !$1.get<VarRefNode>()->parseIsDecl())) {
                     parse_error(*loc, "statement has no effect (%s)", $1.getTypeName());
@@ -3353,8 +3354,7 @@ list:
                     nl->add(l, loc);
                     l = nl;
                 }
-            }
-            else {
+            } else {
                 l = new QoreParseListNode(loc);
                 l->add($1, loc);
             }
@@ -4201,6 +4201,11 @@ scalar:
         | TOK_NULL    { $$.set(&Null); }
         | TOK_TRUE    { $$.set(true); }
         | TOK_FALSE   { $$.set(false); }
+        | ELLIPSES    {
+            $$.set(new QoreEllipsesNode(
+                qore_program_private::get(*getProgram())->getLocation(@1.first_line, @1.last_line))
+            );
+        }
         ;
 
 %%

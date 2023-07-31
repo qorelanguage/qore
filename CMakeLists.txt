@@ -647,6 +647,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreSquareBracketsRangeOperatorNode.cpp
     lib/QoreSerializable.cpp
     lib/UnicodeCharacterIterator.cpp
+    lib/QoreEllipsesNode.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)
@@ -701,7 +702,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 12.3.1)
+    set_target_properties(libqore PROPERTIES VERSION 12.4.0)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
 endif (APPLE)
 

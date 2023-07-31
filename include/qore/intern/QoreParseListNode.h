@@ -85,6 +85,17 @@ public:
         return rv;
     }
 
+    DLLLOCAL QoreValue pop() {
+        if (!values.size()) {
+            return QoreValue();
+        }
+        assert(vtypes.empty());
+        QoreValue rv = values.back();
+        values.pop_back();
+        lvec.pop_back();
+        return rv;
+    }
+
     DLLLOCAL QoreValue get(size_t i) {
         assert(i < values.size());
         return values[i];

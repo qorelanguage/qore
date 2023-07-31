@@ -44,7 +44,7 @@ This package provides the qore library required for all clients using qore
 functionality.
 
 %files -n libqore
-%{_libdir}/libqore.so.12.3.1
+%{_libdir}/libqore.so.12.4.0
 %{_libdir}/libqore.so.12
 %license COPYING.LGPL COPYING.GPL COPYING.MIT README-LICENSE
 %doc README.md README-MODULES RELEASE-NOTES AUTHORS ABOUT
@@ -183,6 +183,7 @@ export QORE_MODULE_DIR=qlib
 %changelog
 * Fri Jul 7 2023 David Nichols <david@qore.org> 1.17.0-1
 - updated version to 1.17.0-1
+- updated libqore version to 12.4.0
 
 * Thu Jun 15 2023 David Nichols <david@qore.org> 1.16.1-1
 - updated version to 1.16.1-1

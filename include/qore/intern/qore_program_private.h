@@ -1598,7 +1598,7 @@ public:
         }
     }
 
-    DLLLOCAL void parseException(QoreProgramLocation& loc, const char* fmt, ...) {
+    DLLLOCAL void parseException(const QoreProgramLocation& loc, const char* fmt, ...) {
         //printd(5, "qore_program_private::parseException(\"%s\", ...) called\n", fmt);
 
         // ignore if a "requires" exception has been raised

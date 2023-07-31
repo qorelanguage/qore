@@ -67,6 +67,7 @@ public:
                 str.append(", ");
         }
         if (extra_args) {
+            varargs = true;
             if (!typeList.empty())
                 str.append(", ");
             str.append("...");
