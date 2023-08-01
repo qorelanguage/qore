@@ -198,7 +198,7 @@ public namespace VscDebugAdapter {
         }
 
         #! push event from debug server in queue
-        public nothing pushEvent(any event) {
+        public nothing pushEvent(auto event) {
             if (event.type != "vsc_output") {
                 log(DUV_DEBUG, "Event: %y", event);
             }
@@ -206,7 +206,7 @@ public namespace VscDebugAdapter {
         }
 
         #! implement printing to console
-        public printfImpl(string fmt) {
+        public printfImpl(string fmt, ...) {
             pushEvent((
                 "type": "vsc_output",
                 "category": "console",  # it goes to Debug Console regardless category.
@@ -288,7 +288,7 @@ public namespace VscDebugAdapter {
                         }
                     }
                     while (m_queue.size() > 0) {
-                        any msg = m_queue.get();
+                        auto msg = m_queue.get();
                         try {
                             # event from debug server
                             if (msg.type == "event" ) {
@@ -473,7 +473,7 @@ public namespace VscDebugAdapter {
 
         #! parse request from VSC frontend
         private:internal hash parseVscRequest(string msg) {
-            any req = parse_json(msg);
+            auto req = parse_json(msg);
             log(DUV_DEBUG, "receiveVsc: %y", req);
             if (req.typeCode() != NT_HASH) {
                 throw "VDA-ERROR", "Invalid message datatype";
@@ -496,7 +496,7 @@ public namespace VscDebugAdapter {
         }
 
         #! send event for VSC frontend
-        private:internal sendVscEvent(string event, any payload) {
+        private:internal sendVscEvent(string event, auto payload) {
             hash h;
             h.type = "event";
             h.event = event;

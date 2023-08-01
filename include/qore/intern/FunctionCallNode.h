@@ -379,12 +379,6 @@ protected:
     // note that the class and method are set in QoreDotEvalOperatorNode::parseInitImpl()
     DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
         parse_context.typeInfo = nullptr;
-
-        if (parse_context.cls) {
-            assert(!qc || qc == parse_context.cls);
-            qc = parse_context.cls;
-        }
-
         return parseArgs(parse_context, nullptr, nullptr);
     }
 };

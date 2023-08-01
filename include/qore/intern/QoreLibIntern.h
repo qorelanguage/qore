@@ -164,7 +164,6 @@ struct QoreParseContext {
     int pflag = 0;
     int lvids = 0;
     const QoreTypeInfo* typeInfo = nullptr;
-    QoreClass* cls = nullptr;
 
     DLLLOCAL QoreParseContext(QoreProgram* pgm = getProgram()) : pgm(pgm) {
     }
@@ -223,22 +222,6 @@ private:
     QoreParseContext& parse_context;
     LVList*& lvars;
     int lvids;
-};
-
-class QoreParseContextClassHelper {
-public:
-    DLLLOCAL QoreParseContextClassHelper(QoreParseContext& parse_context, QoreClass* ncls)
-            : parse_context(parse_context), cls(parse_context.cls) {
-        parse_context.cls = ncls;
-    }
-
-    DLLLOCAL ~QoreParseContextClassHelper() {
-        parse_context.cls = cls;
-    }
-
-private:
-    QoreParseContext& parse_context;
-    QoreClass* cls;
 };
 
 //! returns -1 = error, 0 = OK

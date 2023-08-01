@@ -289,8 +289,13 @@ int SelfFunctionCallNode::parseInitCall(QoreValue& val, QoreParseContext& parse_
         method = static_cast<const MethodVariantBase*>(variant)->method();
     }
     if (method) {
-        printd(5, "SelfFunctionCallNode::parseInitCall() this: %p resolved '%s' to %p\n", this, method->getName(),
-            method);
+        printd(5, "SelfFunctionCallNode::parseInitCall() this: %p resolved '%s' to %p (abstract: %d)\n", this,
+            method->getName(), method, qore_method_private::get(*method)->isAbstract());
+        // issue #3070: make sure that abstract method calls are resolved at runtime
+        if (qore_method_private::get(*method)->isAbstract()) {
+            assert(!variant);
+            method = nullptr;
+        }
     }
     return err;
 }
@@ -346,11 +351,6 @@ int SelfFunctionCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
                 // parse exception raised already
                 return -1;
             }
-        }
-
-        // issue #3070: make sure that abstract method calls are resolved at runtime
-        if (method && qore_method_private::get(*method)->isAbstract()) {
-            method = nullptr;
         }
     }
 

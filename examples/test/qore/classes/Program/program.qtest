@@ -245,8 +245,15 @@ class ProgramTest inherits QUnit::Test {
 
         {
             Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
-            assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), ("class T { abstract auto t(); } "
+            assertThrows("CALL-WITH-TYPE-ERRORS", \p.parse(), ("class T { abstract auto t(); } "
                 "class C inherits T { auto t(...) { return argv[0]; }} "
+                "auto sub t(auto x) { C c(); T t = c; return t.t(x); }", ""));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
+            assertThrows("ABSTRACT-CLASS-ERROR", \p.parse(), ("class T { abstract auto t(...); } "
+                "class C inherits T { auto t() { return argv[0]; }} "
                 "auto sub t(auto x) { C c(); T t = c; return t.t(x); }", ""));
         }
 
@@ -269,6 +276,14 @@ class ProgramTest inherits QUnit::Test {
             p.parse("class T { constructor() { t(1); } abstract auto t(...); } "
                 "class C inherits T { auto t(...) { return argv[0]; }} "
                 "auto sub t(auto x) { C c(); T t = c; return t.t(x); }", "");
+            assertEq(1, p.callFunction("t", 1));
+        }
+
+        {
+            Program p(PO_NEW_STYLE | PO_STRICT_ARGS);
+            p.parse("class T { constructor() { t(1); } abstract auto t(int i, ...); } "
+                "class C inherits T { auto t(int i, ...) { return argv[0]; }} "
+                "auto sub t(auto x) { C c(); T t = c; return t.t(1, x); }", "");
             assertEq(1, p.callFunction("t", 1));
         }
     }
