@@ -273,6 +273,11 @@ QoreValue SelfFunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
         return exec(self, ns.ostr, class_ctx ? class_ctx : runtime_get_class(), xsink);
     }
 
+    if (is_abstract) {
+        return qore_class_private::get(*self->getClass())->evalMethod(self, ns.ostr, args,
+            class_ctx ? class_ctx : runtime_get_class(), xsink);
+    }
+
     assert(method);
 
     return tmp_args
@@ -294,7 +299,7 @@ int SelfFunctionCallNode::parseInitCall(QoreValue& val, QoreParseContext& parse_
         // issue #3070: make sure that abstract method calls are resolved at runtime
         if (qore_method_private::get(*method)->isAbstract()) {
             assert(!variant);
-            method = nullptr;
+            is_abstract = true;
         }
     }
     return err;

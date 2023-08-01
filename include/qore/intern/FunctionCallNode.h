@@ -384,13 +384,6 @@ protected:
 };
 
 class SelfFunctionCallNode : public AbstractMethodCallNode {
-protected:
-    NamedScope ns;
-    const qore_class_private* class_ctx = nullptr;
-    bool is_copy;
-
-    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
-
 public:
     DLLLOCAL SelfFunctionCallNode(const QoreProgramLocation* loc, char* n, QoreParseListNode* n_args)
             : AbstractMethodCallNode(loc, NT_SELF_CALL, n_args, parse_get_class()), ns(n), is_copy(false) {
@@ -434,6 +427,14 @@ public:
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
     DLLLOCAL AbstractQoreNode* makeReferenceNodeAndDeref();
+
+protected:
+    NamedScope ns;
+    const qore_class_private* class_ctx = nullptr;
+    bool is_copy;
+    bool is_abstract = false;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 };
 
 //! Used in arguments background expressions to ensure that the object context is set for the call

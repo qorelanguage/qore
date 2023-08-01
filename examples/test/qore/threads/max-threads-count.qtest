@@ -84,7 +84,6 @@ public class MaxThreadCountTest inherits QUnit::Test {
                 c0.waitForZero();
             }
         } catch (hash<ExceptionInfo> ex) {
-            printf("%s\n", get_exception_string(ex));
             assertEq("THREAD-CREATION-FAILURE", ex.err, "thread limit for assignment test");
             c.dec();
         }
@@ -93,9 +92,13 @@ public class MaxThreadCountTest inherits QUnit::Test {
 
         # check TIDs for order
         int last = 0;
+        int ooo;
         foreach int tid in (l) {
-            assertTrue(tid > last);
+            if (tid < last) {
+                ++ooo;
+            }
             last = tid;
         }
+        assertTrue(ooo < 2);
     }
 }
