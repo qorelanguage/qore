@@ -259,9 +259,9 @@ class DebugWrapper {
             "  -t,--timeout=<ms>       the timeout\n"
             "  -c,--conn-timeout=<ms>  the timeout for establishing a new socket connection\n"
             "  -w,--resp-timeout=<ms>  the timeout to wait for websocket response, default: %d\n"
-            "  -y, --history=file      load command line history from file, default: %s in home directory\n"
+            "  -y,--history=file       load command line history from file, default: %s in home directory\n"
             "                          When \".\" name is provided then history is not loaded/saved\n"
-            "  -s, --session=file      load session from file\n"
+            "  -s,--session=file       load session from file\n"
 
             "\n"
             "Example:\n"
