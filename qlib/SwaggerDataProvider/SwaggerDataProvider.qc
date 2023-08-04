@@ -65,6 +65,24 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
 
         #! Constructor options
         const ConstructorOptions = {
+            "lax_parsing": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderTypeMap."bool",
+                "desc": "If `True` then common errors in Swagger schemas will be ignored; some Swagger schemas with "
+                    "errors will be able to be used",
+            },
+            "restclient": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(new Type("RestClient"), NOTHING, {
+                    DTT_ClientOnly: True,
+                }),
+                "desc": "the RestClient object",
+            },
+            "restclient_options": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(AutoHashType, NOTHING, {
+                    DTT_ClientOnly: True,
+                }),
+                "desc": "options to the RestClient constructor; only used if a RestClient object is created for a "
+                    "call",
+            },
             "schema": <DataProviderOptionInfo>{
                 "type": (
                     AbstractDataProviderType::get(StringType, NOTHING, {
@@ -76,25 +94,12 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
                 "desc": "the Swagger schema object or source URL",
                 "required": True,
             },
-            "restclient": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(new Type("RestClient"), NOTHING, {
-                    DTT_ClientOnly: True,
-                }),
-                "desc": "the RestClient object",
-            },
             "url": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(StringType, NOTHING, {
                     DTT_ClientOnly: True,
                 }),
                 "desc": "the URL to the REST server; overrides any URL in the schema or in any RestClient object "
                     "passed as an option",
-            },
-            "restclient_options": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(AutoHashType, NOTHING, {
-                    DTT_ClientOnly: True,
-                }),
-                "desc": "options to the RestClient constructor; only used if a RestClient object is created for a "
-                    "call",
             },
         };
 
@@ -136,14 +141,17 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+        if (copts.lax_parsing) {
+            copts.lax_parsing = LM_ALL;
+        }
         switch (copts.schema.typeCode()) {
             case NT_STRING:
                 # determine if the string is a file or a location
                 if (copts.schema.size() > 1024 || copts.schema =~ /^swagger:/ || copts.schema =~ /^{/
                     || copts.schema =~ /^swagger":/) {
-                    setSchema(SwaggerLoader::fromString(copts.schema));
+                    setSchema(SwaggerLoader::fromString(copts.schema, NOTHING, {"parse_flags": copts.lax_parsing}));
                 } else {
-                    setSchema(SwaggerLoader::fromUrl(copts.schema));
+                    setSchema(SwaggerLoader::fromUrl(copts.schema, NOTHING, {"parse_flags": copts.lax_parsing}));
                 }
                 break;
             case NT_OBJECT:

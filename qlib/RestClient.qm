@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.9.3";
+    version = "1.10";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -126,6 +126,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_10 RestClient v1.10
+    - implemented the \c swagger_lax_parsing option to try to parse invalid Swagger schemas
+      (<a href="https://github.com/qorelanguage/qore/issues/4741">issue 4741</a>)
 
     @subsection restclientv1_9_3 RestClient v1.9.3
     - allow connection options designating files to be selected as files
@@ -485,7 +489,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         } else {
             if (opts.swagger) {
                 # this will use FileLocationHandler::getTextFileFileLocation() that reads a file if there is no scheme
-                validator = SwaggerLoader::fromUrl(opts.swagger);
+                validator = SwaggerLoader::fromUrl(opts.swagger, NOTHING, opts.swagger_lax_parsing);
                 if (opts.swagger_base_path) {
                     validator.setBasePath(opts.swagger_base_path);
                 }
@@ -1191,6 +1195,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
     - \c "swagger_base_path": in case a REST validator is used, the base path in the schema can be overridden
       with this option (applies to any REST validator; not just Swagger validators)
+    - \c "swagger_lax_parsing": try to parse invalid Swagger schemas
     - \c "timeout": transfer timeout to use in milliseconds
     - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
         object to validate request and response messages; conflicts with \a swagger
@@ -1322,6 +1327,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                     "desc": "in case a REST validator is used, the base path in the schema can be overridden "
                         "with this option (applies to any REST validator; not just Swagger validators)",
                 },
+                "swagger_lax_parsing": <ConnectionOptionInfo>{
+                    "type": "bool",
+                    "desc": "try to parse invalid Swagger schemas",
+                },
                 "validator": <ConnectionOptionInfo>{
                     "type": "any",
                     "desc": "an `AbstractRestSchemaValidator` object for REST message validation; conflicts with "
@@ -1409,6 +1418,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
             message bodies
         - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API
             validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
+        - \c "swagger_lax_parsing": try to parse invalid Swagger schemas
         - \c "timeout": transfer timeout to use in milliseconds
         - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
             object to validate request and response messages; conflicts with \a swagger
