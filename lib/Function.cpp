@@ -77,6 +77,12 @@ QoreFunction* IList::getFunction(const qore_class_private* class_ctx, const qore
 }
 
 bool AbstractFunctionSignature::compare(const AbstractFunctionSignature& sig, bool relaxed_match) const {
+    // check varargs flags first
+    if (varargs != sig.varargs) {
+        //printd(5, "AbstractFunctionSignature::compare() varargs: %d sig.varargs: %d\n", varargs, sig.varargs);
+        return false;
+    }
+
     if (num_param_types != sig.num_param_types || min_param_types != sig.min_param_types) {
         //printd(5, "AbstractFunctionSignature::compare() pt: %d != %d || mpt %d != %d\n", num_param_types,
         //    sig.num_param_types, min_param_types, sig.min_param_types);
@@ -441,6 +447,12 @@ UserSignature::UserSignature(int first_line, int last_line, QoreValue params, Re
         return;
     }
 
+    if (params.getType() == NT_ELLIPSES) {
+        assert(!varargs);
+        varargs = true;
+        return;
+    }
+
     if (params.getType() != NT_PARSE_LIST) {
         param_error();
         err = -1;
@@ -448,6 +460,17 @@ UserSignature::UserSignature(int first_line, int last_line, QoreValue params, Re
     }
 
     QoreParseListNode* l = params.get<QoreParseListNode>();
+
+    // first check for ellipses
+    if (l->size() && l->get(l->size() - 1).getType() == NT_ELLIPSES) {
+        assert(!varargs);
+        varargs = true;
+
+        l->pop().discard(nullptr);
+        if (l->empty()) {
+            return;
+        }
+    }
 
     parseTypeList.reserve(l->size());
     typeList.reserve(l->size());
@@ -1501,7 +1524,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
             }
 
             // does the variant accept extra arguments?
-            bool uses_extra_args = vflags & QCF_USES_EXTRA_ARGS;
+            bool uses_extra_args = (*i)->hasVarargs();
 
             ++cnt;
 
@@ -1738,7 +1761,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
         }
 
         AbstractFunctionSignature* sig = variant->getSignature();
-        if (!(flags & QCF_USES_EXTRA_ARGS) && num_args > sig->numParams()) {
+        if (!variant->hasVarargs() && num_args > sig->numParams()) {
             if (warn_excess_args(loc, this, argTypeInfo, sig) && !err) {
                 err = -1;
             }
@@ -1762,10 +1785,11 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
     }
     */
 
-    printd(5, "QoreFunction::parseFindVariant() this: %p %s%s%s() returning %p %s(%s) flags: %lld num_args: %d " \
-        "(line: %d)\n",
+    printd(5, "QoreFunction::parseFindVariant() this: %p %s%s%s() returning %p %s(%s) flags: %lld (varargs: %s) "
+        "num_args: %d (line: %d)\n",
         this, className() ? className() : "", className() ? "::" : "", getName(), variant, getName(),
         variant ? variant->getSignature()->getSignatureText() : "n/a", variant ? variant->getFlags() : 0ll,
+        (variant ? variant->getFlags() : 0ll) & QCF_USES_EXTRA_ARGS ? "true" : "false",
         num_args, loc ? loc->start_line : -1);
 
     return variant;
@@ -2339,6 +2363,11 @@ QoreValue UserClosureFunction::evalClosure(const QoreClosureBase& closure_base, 
 
 int UserFunctionVariant::parseInit(QoreFunction* f) {
     signature.resolve();
+
+    // set the varargs flag on the variant if the signature has ellipses at the end
+    if (!(flags & QCF_USES_EXTRA_ARGS) && signature.hasVarargs()) {
+        flags ^= QCF_USES_EXTRA_ARGS;
+    }
 
     // resolve and push current return type on stack
     ParseCodeInfoHelper rtih(f->getName(), signature.getReturnTypeInfo());

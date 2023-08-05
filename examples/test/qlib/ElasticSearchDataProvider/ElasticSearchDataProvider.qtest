@@ -49,7 +49,7 @@ public class ElasticSearchDataProviderTest inherits QUnit::Test {
         string pipeline = get_random_string();
         AbstractDataProvider prov = new ElasticSearchPipelineCreateDataProvider(rest);
         hash<auto> p = {
-            "name": pipeline,
+            "pipeline": pipeline,
             "description": "my pipeline",
             "processors": ({
                 "html_strip": {
@@ -63,28 +63,28 @@ public class ElasticSearchDataProviderTest inherits QUnit::Test {
         ElasticSearchPipelineDeleteDataProvider delpipe(rest);
         on_exit {
             h = delpipe.doRequest({
-                "name": pipeline,
+                "pipeline": pipeline,
             });
             assertTrue(h.acknowledged);
         }
 
         prov = new ElasticSearchPipelineReadDataProvider(rest);
         h = prov.doRequest({
-            "name": pipeline,
+            "pipeline": pipeline,
         });
         assertTrue(h.hasKey(pipeline));
-        assertEq(p - "name", h{pipeline});
+        assertEq(p - "pipeline", h{pipeline});
 
         prov = new ElasticSearchPipelineReadAllDataProvider(rest);
         h = prov.doRequest();
         assertTrue(h.hasKey(pipeline));
-        assertEq(p - "name", h{pipeline});
+        assertEq(p - "pipeline", h{pipeline});
 
         string index = get_random_string();
         index =~ tr/A-Z/a-z/;
         prov = new ElasticSearchIndexCreateDataProvider(rest);
         h = prov.doRequest({
-            "name": index,
+            "index": index,
             "mappings": {
                 "properties": {
                     "content": {
@@ -98,16 +98,17 @@ public class ElasticSearchDataProviderTest inherits QUnit::Test {
         ElasticSearchIndexDeleteDataProvider delindex(rest);
         on_exit {
             h = delindex.doRequest({
-                "name": index,
+                "index": index,
             });
             assertTrue(h.acknowledged);
         }
 
         prov = new ElasticSearchIndexReadDataProvider(rest);
         h = prov.doRequest({
-            "name": index,
+            "index": index,
         });
         assertTrue(h.hasKey(index));
+        hash<auto> index_hash = h{index};
 
         prov = new ElasticSearchDocumentCreateDataProvider(rest);
         h = prov.doRequest({
@@ -118,7 +119,7 @@ public class ElasticSearchDataProviderTest inherits QUnit::Test {
             "refresh": "true",
         });
         assertEq("created", h.result);
-        string docid = h."_id";
+        string docid = h._id;
 
         ElasticSearchDocumentDeleteDataProvider deldoc(rest);
         on_exit {
@@ -138,10 +139,38 @@ public class ElasticSearchDataProviderTest inherits QUnit::Test {
 
         prov = new ElasticSearchIndexSearchDataProvider(rest);
         h = prov.doRequest({
-            "name": index,
+            "index": index,
         });
-        on_error printf("%N\n", h);
         assertEq(1, h.hits.total.value);
+
+        prov = new ElasticSearchIndexTableDataProvider(rest, index, index_hash);
+        auto res = map $1, prov.searchRecords();
+        assertEq(Type::List, res.type());
+        assertEq(1, res.size());
+        assertEq(Type::Hash, res[0].type());
+        assertEq(3, res[0].size());
+        assertEq(1.0, res[0]._score);
+        assertEq("\ntest\n", res[0].content);
+
+        # NOTE: without "refresh=true", the document will not be found in the search below
+        assertEq(1, prov.updateRecords({"content": "test2"}, {"_id": docid}, {"refresh": "true"}));
+        res = prov.searchSingleRecord({"_id": docid});
+        assertEq(Type::Hash, res.type());
+        assertEq(3, res.size());
+        assertEq(1.0, res._score);
+        assertEq("test2", res.content);
+
+        # NOTE: without "refresh=true", the document will not be found in the search below
+        string newid = prov.createRecord({"content": "new data"}, {"refresh": "true"})._id;
+        res = prov.searchSingleRecord({"_id": newid});
+        assertEq(Type::Hash, res.type());
+        assertEq(3, res.size());
+        assertEq(1.0, res._score);
+        assertEq("new data", res.content);
+
+        assertEq(1, prov.deleteRecords({"_id": newid}, {"refresh": "true"}));
+        res = prov.searchSingleRecord({"_id": newid});
+        assertNothing(res);
     }
 
     private usageIntern() {

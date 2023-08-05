@@ -214,9 +214,15 @@ protected:
     std::string asig;                       // abstract signature, only set for abstract method variants
 
 public:
-    // add QCF_USES_EXTRA_ARGS to abstract methods by default as derived methods could use extra arguments
-    DLLLOCAL MethodVariantBase(ClassAccess n_access, bool n_final, int64 n_flags, bool n_is_user = false, bool n_is_abstract = false) :
-        AbstractQoreFunctionVariant(n_flags | (n_is_abstract ? QCF_USES_EXTRA_ARGS : 0), n_is_user), access(n_access), final(n_final), abstract(n_is_abstract) {
+    // if %broken-varargs is set, add QCF_USES_EXTRA_ARGS to abstract methods by default as derived methods could use
+    // extra arguments
+    DLLLOCAL MethodVariantBase(ClassAccess n_access, bool n_final, int64 n_flags, bool n_is_user = false,
+            bool n_is_abstract = false) :
+            AbstractQoreFunctionVariant(n_flags |
+                (n_is_abstract && (getProgram()->getParseOptions64() & PO_BROKEN_VARARGS)
+                    ? QCF_USES_EXTRA_ARGS
+                    : 0
+                ), n_is_user), access(n_access), final(n_final), abstract(n_is_abstract) {
     }
 
     DLLLOCAL bool isAbstract() const {

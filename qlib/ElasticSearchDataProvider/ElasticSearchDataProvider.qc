@@ -25,10 +25,10 @@
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
 #! The ElasticSearch data provider class
-public class ElasticSearchDataProvider inherits AbstractDataProvider {
+public class ElasticSearchDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! The REST client object for API calls
-        *RestClient rest;
+        *RestClient::RestClient rest;
 
         #! current URI path
         string uri_path = "/";
@@ -55,7 +55,7 @@ public class ElasticSearchDataProvider inherits AbstractDataProvider {
             "transaction_management": False,
             "supports_schema": False,
             "children_can_support_apis": True,
-            "children_can_support_records": False,
+            "children_can_support_records": True,
             "children_can_support_observers": False,
         };
 
@@ -82,6 +82,7 @@ public class ElasticSearchDataProvider inherits AbstractDataProvider {
             "document": Class::forName("ElasticSearchDataProvider::ElasticSearchDocumentDataProvider"),
             "index": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexDataProvider"),
             "pipeline": Class::forName("ElasticSearchDataProvider::ElasticSearchPipelineDataProvider"),
+            "indexes": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexesDataProvider"),
         };
     }
 
@@ -91,7 +92,7 @@ public class ElasticSearchDataProvider inherits AbstractDataProvider {
         rest = ElasticSearchDataProvider::getRestConnection(options);
     }
 
-    static RestClient getRestConnection(*hash<auto> options) {
+    static RestClient::RestClient getRestConnection(*hash<auto> options) {
         RestClient rest;
         if (options.restclient) {
             rest = options.restclient;
@@ -125,7 +126,7 @@ public class ElasticSearchDataProvider inherits AbstractDataProvider {
     }
 
     #! Return data provider summary info
-    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
+    *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
     }
 
@@ -141,7 +142,7 @@ public class ElasticSearchDataProvider inherits AbstractDataProvider {
 
         @see getChildProviderEx()
     */
-    private *AbstractDataProvider getChildProviderImpl(string name) {
+    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
         *Class cls = ChildMap{name};
         if (!cls) {
             return;
@@ -150,7 +151,7 @@ public class ElasticSearchDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns data provider static info
-    private hash<DataProviderInfo> getStaticInfoImpl() {
+    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
@@ -158,8 +159,11 @@ public class ElasticSearchDataProvider inherits AbstractDataProvider {
 #! Boolean string type for query parameters
 public const SoftBoolStringType = new SoftBoolStringType();
 
+#! Boolean data provider string type for query parameters
+public const SoftBoolDataProviderStringType = AbstractDataProviderType::get(SoftBoolStringType);
+
 #! Boolean string type
-public class SoftBoolStringType inherits Type {
+public class SoftBoolStringType inherits Qore::Reflection::Type {
     #! Creates the object
     constructor() : Type("*softstring") {
     }

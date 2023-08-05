@@ -161,8 +161,8 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, QoreParse
     }
     parse_context.typeInfo = nullptr;
 
-    //printd(5, "FunctionCallBase::parseArgsVariant() this: %p args: %p '%s'\n", this, args,
-    //    args ? get_full_type_name(args) : "n/a");
+    printd(5, "FunctionCallBase::parseArgsVariant() this: %p args: %p '%s' func: %p\n", this, args,
+        args ? get_full_type_name(args) : "n/a", func);
 
     // resolves pending signatures unconditionally
     if (func) {
@@ -187,9 +187,12 @@ int FunctionCallBase::parseArgsVariant(const QoreProgramLocation* loc, QoreParse
         // find variant
         variant = func->parseFindVariant(loc, argTypeInfo, class_ctx, err);
 
-        //printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p variant: %p rt: %s\n",
-        //  this, func->className() ? func->className() : "", func->getName(), pflag & PF_RETURN_VALUE_IGNORED, func,
-        //  variant, QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
+        /*
+        printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s ign: %d func: %p variant: %p rt: %s\n",
+            this, func->className() ? func->className() : "", func->getName(),
+            parse_context.pflag & PF_RETURN_VALUE_IGNORED, func, variant,
+            QoreTypeInfo::getName(func->parseGetUniqueReturnTypeInfo()));
+        */
 
         if (variant) {
             printd(5, "FunctionCallBase::parseArgsVariant() this: %p (%s::)%s variant: %p f: %lld (%lld) (%lld) " \
@@ -270,6 +273,11 @@ QoreValue SelfFunctionCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
         return exec(self, ns.ostr, class_ctx ? class_ctx : runtime_get_class(), xsink);
     }
 
+    if (is_abstract) {
+        return qore_class_private::get(*self->getClass())->evalMethod(self, ns.ostr, args,
+            class_ctx ? class_ctx : runtime_get_class(), xsink);
+    }
+
     assert(method);
 
     return tmp_args
@@ -286,8 +294,13 @@ int SelfFunctionCallNode::parseInitCall(QoreValue& val, QoreParseContext& parse_
         method = static_cast<const MethodVariantBase*>(variant)->method();
     }
     if (method) {
-        printd(5, "SelfFunctionCallNode::parseInitCall() this: %p resolved '%s' to %p\n", this, method->getName(),
-            method);
+        printd(5, "SelfFunctionCallNode::parseInitCall() this: %p resolved '%s' to %p (abstract: %d)\n", this,
+            method->getName(), method, qore_method_private::get(*method)->isAbstract());
+        // issue #3070: make sure that abstract method calls are resolved at runtime
+        if (qore_method_private::get(*method)->isAbstract()) {
+            assert(!variant);
+            is_abstract = true;
+        }
     }
     return err;
 }
@@ -343,11 +356,6 @@ int SelfFunctionCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
                 // parse exception raised already
                 return -1;
             }
-        }
-
-        // issue #3070: make sure that abstract method calls are resolved at runtime
-        if (method && qore_method_private::get(*method)->isAbstract()) {
-            method = nullptr;
         }
     }
 

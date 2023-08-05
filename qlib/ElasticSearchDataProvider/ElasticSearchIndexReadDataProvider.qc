@@ -24,11 +24,16 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
+#! The ElasticSearch index read API data provider
+/** This class implements an API that reads index data given the index name as an argument; the response is the
+    description of the index as returned by the ElasticSearch server.
+
+    Note that wildcards can be used, in which case multiple indices can be returned in the return value.
+*/
 public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -48,7 +53,7 @@ public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
         const RequestType = new ElasticSearchIndexReadRequestDataType();
 
         #! Response type
-        const ResponseType = new ElasticSearchAcknowledgedDataType();
+        const ResponseType = new ElasticSearchIndexReadResponseDataType();
 
         #! Query args
         const QueryArgs = ("allow_no_indices", "expand_wildcards", "features", "flat_settings", "include_defaults",
@@ -62,7 +67,7 @@ public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -83,7 +88,7 @@ public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string uri_path = remove req.name;
+        string uri_path = remove req.index;
         bool q;
         foreach string arg in (QueryArgs) {
             if (!exists req{arg}) {
@@ -103,30 +108,30 @@ public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! ElasticSearch index read API request
-class ElasticSearchIndexReadRequestDataType inherits HashDataType {
-    private {
+class ElasticSearchIndexReadRequestDataType inherits DataProvider::HashDataType {
+    public {
         #! Field descriptions
         const Fields = {
             # query parameters
-            "name": {
+            "index": {
                 "type": StringType,
                 "desc": "The name of the index to read",
             },
@@ -136,48 +141,41 @@ class ElasticSearchIndexReadRequestDataType inherits HashDataType {
                     "value targets only missing or closed indices. This behavior applies even if the request targets "
                     "other open indices. For example, a request targeting `foo*,bar*` returns an error if an index "
                     "starts with `foo` but no index starts with `bar`",
-                "default_value": True,
             },
             "expand_wildcards": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Type of index that wildcard patterns can match. If the request can target data streams, "
                     "this argument determines whether wildcard expressions match hidden data streams. Supports "
                     "comma-separated values, such as open,hidden. Valid values are:\n"
                     "- `all`: Match any data stream or index, including hidden ones\n"
-                    "- `open`: Match open, non-hidden indices. Also matches any non-hidden data stream.\n"
+                    "- `open`: (default) Match open, non-hidden indices. Also matches any non-hidden data stream.\n"
                     "- `closed`: Match closed, non-hidden indices. Also matches any non-hidden data stream. Data "
                         "streams cannot be closed\n"
                     "- `hidden`: Match hidden data streams and hidden indices. Must be combined with `open`, "
                         "`closed`, or both\n"
                     "- `none`: Wildcard patterns are not accepted",
-                "default_value": "open",
             },
             "features": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Return information about specific index features. Supports comma-separated values. Valid "
                     "values are: `aliases`, `mappings`, and `settings`.",
-                "default_value": "aliases,mappings,settings",
             },
             "flat_settings": {
                 "type": SoftBoolStringType,
                 "desc": "If `true`, returns settings in flat format",
-                "default_value": False,
             },
             "include_defaults": {
                 "type": SoftBoolStringType,
                 "desc": "If `true`, return all default settings in the response",
-                "default_value": False,
             },
             "ignore_unavailable": {
                 "type": SoftBoolStringType,
                 "desc": "If `false`, the request returns an error if it targets a missing or closed index",
-                "default_value": False,
             },
             "master_timeout": {
                 "type": StringOrNothingType,
                 "desc": "Period to wait for a connection to the master node. If no response is received before the "
                     "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
             },
         };
     }

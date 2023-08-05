@@ -24,11 +24,13 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
-public class ElasticSearchIndexDeleteDataProvider inherits AbstractDataProvider {
+#! The ElasticSearch index delete API data provider
+/** This API allows the caller to delete an ElasticSearch index
+*/
+public class ElasticSearchIndexDeleteDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -61,7 +63,7 @@ public class ElasticSearchIndexDeleteDataProvider inherits AbstractDataProvider 
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -82,7 +84,7 @@ public class ElasticSearchIndexDeleteDataProvider inherits AbstractDataProvider 
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string uri_path = sprintf("%s", remove req.name);
+        string uri_path = sprintf("%s", remove req.index);
         bool q;
         foreach string arg in (QueryArgs) {
             if (!exists req{arg}) {
@@ -102,46 +104,45 @@ public class ElasticSearchIndexDeleteDataProvider inherits AbstractDataProvider 
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! Index delete API request data type
-class ElasticSearchIndexDeleteRequestDataType inherits HashDataType {
+class ElasticSearchIndexDeleteRequestDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
             # query parameters
-            "name": {
+            "index": {
                 "type": StringType,
                 "desc": "The name of the index to delete",
             },
             "allow_no_indices": {
                 "type": SoftBoolStringType,
-                "desc": "If `false`, the request returns an error if any wildcard expression, index alias, or `_all` "
-                    "value targets only missing or closed indices. This behavior applies even if the request targets "
-                    "other open indices. For example, a request targeting `foo*,bar*` returns an error if an index "
-                    "starts with `foo` but no index starts with `bar`",
-                "default_value": True,
+                "desc": "If `false` (default `true`), the request returns an error if any wildcard expression, index "
+                    "alias, or `_all` value targets only missing or closed indices. This behavior applies even if "
+                    "the request targets other open indices. For example, a request targeting `foo*,bar*` returns an "
+                    "error if an index starts with `foo` but no index starts with `bar`",
             },
             "expand_wildcards": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Type of index that wildcard patterns can match. If the request can target data streams, "
                     "this argument determines whether wildcard expressions match hidden data streams. Supports "
-                    "comma-separated values, such as open,hidden. Valid values are:\n"
+                    "comma-separated values, such as `open,hidden` (default `open,closed`). Valid values are:\n"
                     "- `all`: Match any data stream or index, including hidden ones\n"
                     "- `open`: Match open, non-hidden indices. Also matches any non-hidden data stream.\n"
                     "- `closed`: Match closed, non-hidden indices. Also matches any non-hidden data stream. Data "
@@ -149,25 +150,21 @@ class ElasticSearchIndexDeleteRequestDataType inherits HashDataType {
                     "- `hidden`: Match hidden data streams and hidden indices. Must be combined with `open`, "
                         "`closed`, or both\n"
                     "- `none`: Wildcard patterns are not accepted",
-                "default_value": "open,closed",
             },
             "ignore_unavailable": {
                 "type": SoftBoolStringType,
-                "desc": "If `false`, the request returns an error if it targets a missing or closed index. Defaults "
-                    "to `false`",
-                "default_value": False,
+                "desc": "If `false, the request returns an error if it targets a missing or closed "
+                    "index. Defaults to `false`",
             },
             "master_timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a connection to the master node. If no response is received before the "
-                    "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
+                "desc": "Period to wait for a connection to the master node (default `30s`). If no response is "
+                    "received before the timeout expires, the request fails and returns an error",
             },
             "timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a response. If no response is received before the "
+                "desc": "Period to wait for a response (default `30s`). If no response is received before the "
                     "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
             },
         };
     }

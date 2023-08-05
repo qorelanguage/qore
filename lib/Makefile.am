@@ -11,7 +11,7 @@ dummy:
 	echo "Build started!"
 
 EXTRA_INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_builddir)/lib
-libqore_la_LDFLAGS = -version-info 15:1:3 -no-undefined ${QORE_LIB_LDFLAGS}
+libqore_la_LDFLAGS = -version-info 16:0:4 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = $(EXTRA_INCLUDES) ${QORE_LIB_CPPFLAGS}
 AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
 AM_YFLAGS = -d
@@ -343,7 +343,8 @@ libqore_la_SOURCES = \
 	FunctionalOperatorInterface.cpp \
 	FunctionalOperator.cpp \
 	QoreSerializable.cpp \
-    UnicodeCharacterIterator.cpp
+    UnicodeCharacterIterator.cpp \
+    QoreEllipsesNode.cpp
 
 if COND_SIGNAL_HANDLING
 libqore_la_SOURCES += QoreSignal.cpp

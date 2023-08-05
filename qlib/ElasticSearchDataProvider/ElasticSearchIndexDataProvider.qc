@@ -24,11 +24,13 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The REST client GET data provider class
-public class ElasticSearchIndexDataProvider inherits AbstractDataProvider {
+#! The ElasticSearch index API root data provider
+/** This data provider provides children that are API data providers for actions on ElasticSearch indices
+*/
+public class ElasticSearchIndexDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -52,6 +54,7 @@ public class ElasticSearchIndexDataProvider inherits AbstractDataProvider {
             "read": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexReadDataProvider"),
             "delete": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexDeleteDataProvider"),
 
+            "read-all": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexReadAllDataProvider"),
             "search": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexSearchDataProvider"),
         };
     }
@@ -63,7 +66,7 @@ public class ElasticSearchIndexDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -78,7 +81,7 @@ public class ElasticSearchIndexDataProvider inherits AbstractDataProvider {
     }
 
     #! Return data provider summary info
-    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
+    *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
     }
 
@@ -94,7 +97,7 @@ public class ElasticSearchIndexDataProvider inherits AbstractDataProvider {
 
         @see getChildProviderEx()
     */
-    private *AbstractDataProvider getChildProviderImpl(string name) {
+    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
         *Class cls = ChildMap{name};
         if (!cls) {
             return;
@@ -103,7 +106,7 @@ public class ElasticSearchIndexDataProvider inherits AbstractDataProvider {
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }

@@ -24,11 +24,15 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
-public class ElasticSearchDocumentCreateDataProvider inherits AbstractDataProvider {
+#! The ElasticSearch document create API data provider
+/** This API allows the caller to create an ElasticSearch document
+
+    @note A pipeline can be specified as an argument as well to perform transformations on the ingested document data
+*/
+public class ElasticSearchDocumentCreateDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -62,7 +66,7 @@ public class ElasticSearchDocumentCreateDataProvider inherits AbstractDataProvid
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -103,25 +107,25 @@ public class ElasticSearchDocumentCreateDataProvider inherits AbstractDataProvid
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! Create document request data type
-public class ElasticSearchDocumentCreateRequestDataType inherits HashDataType {
+public class ElasticSearchDocumentCreateRequestDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
@@ -153,21 +157,19 @@ public class ElasticSearchDocumentCreateRequestDataType inherits HashDataType {
                     "of this parameter",
             },
             "refresh": {
-                "type": StringType,
-                "desc": "If `true`, Elasticsearch refreshes the affected shards to make this operation visible to "
+                "type": StringOrNothingType,
+                "desc": "If `true` (default: `false`), Elasticsearch refreshes the affected shards to make this operation visible to "
                     "search, if `wait_for` then wait for a refresh to make this operation visible to search, if "
                     "`false` do nothing with refreshes. Valid values: `true`, `false`, `wait_for`",
-                "default_value": "false",
             },
             "routing": {
                 "type": StringOrNothingType,
                 "desc": "Custom value used to route operations to a specific shard",
             },
             "timeout": {
-                "type": StringType,
-                "desc": "Period to wait for a response. If no response is received before the "
+                "type": StringOrNothingType,
+                "desc": "Period to wait for a response (default: `1m`). If no response is received before the "
                     "timeout expires, the request fails and returns an error",
-                "default_value": "1m",
             },
             "version": {
                 "type": IntOrNothingType,
@@ -179,15 +181,14 @@ public class ElasticSearchDocumentCreateRequestDataType inherits HashDataType {
                 "desc": "Specific version type: `external`, `external_gte`",
             },
             "wait_for_active_shards": {
-                "type": StringType,
-                "desc": "The number of shard copies that must be active before proceeding with the operation. Set to "
-                    "`all` or any positive integer up to the total number of shards in the index (number_of_replicas+1)",
-                "default_value": "1",
+                "type": StringOrNothingType,
+                "desc": "The number of shard copies that must be active before proceeding with the operation "
+                    "(default `1`). Set to `all` or any positive integer up to the total number of shards in the "
+                    "index (number_of_replicas+1)",
             },
             "require_alias": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, the destination must be an index alias",
-                "default_value": False,
+                "desc": "If `true` (default `false`), the destination must be an index alias",
             },
         };
     }
@@ -203,7 +204,7 @@ public class ElasticSearchDocumentCreateRequestDataType inherits HashDataType {
 }
 
 #! Shard data type
-public class ElasticSearchDocumentCreateShardsDataType inherits HashDataType {
+public class ElasticSearchDocumentCreateShardsDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
@@ -236,7 +237,7 @@ public class ElasticSearchDocumentCreateShardsDataType inherits HashDataType {
 }
 
 #! Document create API response
-public class ElasticSearchDocumentCreateResponseDataType inherits HashDataType {
+public class ElasticSearchDocumentCreateResponseDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {

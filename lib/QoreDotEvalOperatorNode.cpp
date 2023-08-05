@@ -143,19 +143,12 @@ int QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
     // method access is already checked here
     meth = qore_class_private::get(*qc)->parseFindAnyMethod(mname, class_ctx);
 
-    // issue #3070: do not save the method object if the method is abstract; allow it to be resolved at
-    // runtime
-    bool is_abstract;
-    if (meth && qore_method_private::get(*meth)->isAbstract()) {
-        meth = nullptr;
-        is_abstract = true;
-    } else {
-        is_abstract = false;
-    }
-
-    //printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) class_ctx: %p (%s)\n",
-    //  qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a", class_ctx,
-    //  class_ctx ? class_ctx->name.c_str() : "n/a");
+    /*
+    printd(5, "QoreDotEvalOperatorNode::parseInitImpl() %s::%s() method: %p (%s) (abstract: %s) class_ctx: %p (%s)\n",
+        qc->getName(), mname, meth, meth ? meth->getClassName() : "n/a",
+        meth && qore_method_private::get(*meth)->isAbstract() ? "true": "false",
+        class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a");
+    */
 
     const QoreListNode* args = m->getArgs();
     if (!strcmp(mname, "copy")) {
@@ -180,7 +173,7 @@ int QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
 
     if (!meth) {
         // if there is no method, then check for a methodGate() method or a pseudo-method
-        if (!is_abstract && !qore_class_private::get(*qc)->parseHasMethodGate()) {
+        if (!qore_class_private::get(*qc)->parseHasMethodGate()) {
             // check if it could be a pseudo-method call
             meth = pseudo_classes_find_method(NT_OBJECT, mname, qc);
             if (meth) {
@@ -200,9 +193,12 @@ int QoreDotEvalOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
             return err;
         }
     }
+    assert(meth);
 
-    // save method for optimizing calls later
-    m->parseSetClassAndMethod(qc, meth);
+    if (!qore_method_private::get(*meth)->isAbstract()) {
+        // save method for optimizing calls later
+        m->parseSetClassAndMethod(qc, meth);
+    }
 
     // check parameters, if any
     if (m->parseArgs(parse_context, qore_method_private::get(*meth)->getFunction(), nullptr) && !err) {

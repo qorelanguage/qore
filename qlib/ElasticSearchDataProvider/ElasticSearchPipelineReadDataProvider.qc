@@ -24,11 +24,16 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
-public class ElasticSearchPipelineReadDataProvider inherits AbstractDataProvider {
+#! The ElasticSearch pipeline read API data provider
+/** This class implements an API that reads pipeline data given the pipeline name as an argument; the response is the
+    description of the pipeline as returned by the ElasticSearch server.
+
+    Note that wildcards can be used, in which case multiple pipelines can be returned in the return value.
+*/
+public class ElasticSearchPipelineReadDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -51,7 +56,7 @@ public class ElasticSearchPipelineReadDataProvider inherits AbstractDataProvider
         const ResponseType = new ElasticSearchAcknowledgedDataType();
 
         #! Query args
-        const QueryArgs = ("master_timeout");
+        const QueryArgs = ("master_timeout",);
     }
 
     #! Creates the object from constructor options
@@ -61,7 +66,7 @@ public class ElasticSearchPipelineReadDataProvider inherits AbstractDataProvider
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -82,7 +87,7 @@ public class ElasticSearchPipelineReadDataProvider inherits AbstractDataProvider
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string uri_path = sprintf("_ingest/pipeline/%s", remove req.name);
+        string uri_path = sprintf("_ingest/pipeline/%s", remove req.pipeline);
         bool q;
         foreach string arg in (QueryArgs) {
             if (!exists req{arg}) {
@@ -102,38 +107,37 @@ public class ElasticSearchPipelineReadDataProvider inherits AbstractDataProvider
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! ElasticSearch pipeline read API request
-class ElasticSearchPipelineReadRequestDataType inherits HashDataType {
+class ElasticSearchPipelineReadRequestDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
             # query parameters
-            "name": {
+            "pipeline": {
                 "type": StringType,
                 "desc": "The name of the pipeline to read",
             },
             "master_timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a connection to the master node. If no response is received before the "
-                    "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
+                "desc": "Period to wait for a connection to the master node (default: `30s`). If no response is "
+                    "received before the timeout expires, the request fails and returns an error",
             },
         };
     }
@@ -146,7 +150,7 @@ class ElasticSearchPipelineReadRequestDataType inherits HashDataType {
 }
 
 #! ElasticSearch pipeline read API response
-class ElasticSearchPipelineReadResponseDataType inherits HashDataType {
+class ElasticSearchPipelineReadResponseDataType inherits DataProvider::HashDataType {
     #! Creates the object
     constructor() {
         setDefaultOtherFieldType(new ElasticSearchPipelineDataTypeBase());

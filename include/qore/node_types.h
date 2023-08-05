@@ -86,9 +86,10 @@ const qore_type_t NT_PARSE_LIST             = 43; //!< type value for QoreParseL
 const qore_type_t NT_PARSE_NEW_COMPLEX_TYPE = 44; //!< type value for ParseNewComplexTypeNode
 const qore_type_t NT_NEW_HASHDECL           = 45; //!< type value for NewHashDeclNode
 const qore_type_t NT_WEAKREF                = 46; //!< type value for WeakReferenceNode
+const qore_type_t NT_ELLIPSES               = 47; //!< type value for QoreEllipsesNode
 
 //! number of types implemented in the Qore library
-#define QORE_NUM_TYPES 46
+#define QORE_NUM_TYPES 47
 
 //! number of simple value types (not containers)
 #define NUM_SIMPLE_TYPES 9

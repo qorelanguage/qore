@@ -2,20 +2,56 @@
 
     @tableofcontents
 
+    @section qore_1_18_0 Qore 1.18.0
+
+    @par Release Summary
+    Bugfix release with minor new features; see below for more information
+
+    @subsection qore_1_18_0_new_features New Features in Qore
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
+      - implemented the \c swagger_lax_parsing option to try to parse invalid Swagger schemas
+        (<a href="https://github.com/qorelanguage/qore/issues/4741">issue 4741</a>)
+    - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
+      - implemented lax mode parsing for Swagger schemas with common errors to work
+        (<a href="https://github.com/qorelanguage/qore/issues/4741">issue 4741</a>)
+    - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
+      - implemented the \c lax_parsing option to try to parse invalid Swagger schemas
+        (<a href="https://github.com/qorelanguage/qore/issues/4741">issue 4741</a>)
+
     @section qore_1_17_0 Qore 1.17.0
 
     @par Release Summary
     Bugfix release with minor new features; see below for more information
 
     @subsection qore_1_17_0_new_features New Features in Qore
+    - implemented support for explicitly declaring variable argument support with
+      @ref function_param_varargs "ellipses"; this resolves a serious issue importing %Qore abstract functions and
+      methods in Java where @ref abstract "abstract methods" could not explicitly declare their support for variable
+      arguments. In case of compatibility issues; use the @ref broken-varargs "%broken-varargs" parse option or the
+      @ref Qore::PO_BROKEN_VARARGS "PO_BROKEN_VARARGS" constant when setting up a @ref Qore::Program "Program" object
+      (<a href="https://github.com/qorelanguage/qore/issues/4738">issue 4738</a>)
+      - implemented the following parse options:
+        - @ref broken-varargs "%broken-varargs"
+        - @ref correct-varargs "%correct-varargs"
+      - implemented the following new constant:
+        - @ref Qore::PO_BROKEN_VARARGS "PO_BROKEN_VARARGS"
     - <a href="../../modules/ElasticSearchDataProvider/html/index.html">ElasticSearchDataProvider</a> module
       - Added a DataProvider API for ElasticSearch servers
         (<a href="https://github.com/qorelanguage/qore/issues/4729">issue 4729</a>)
 
     @subsection qore_1_17_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - added missing \c base64binary and \c hexbinary type support
+        (<a href="https://github.com/qorelanguage/qore/issues/4732">issue 4732</a>)
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
       - ensure that URI paths are created without duplicated slashes by handling the base path consistently
         (<a href="https://github.com/qorelanguage/qore/issues/4728">issue 4728</a>)
+    - fixed a bug where TIDs would be reassigned immediately to other threads once all TIDs in the thread list had
+      been assigned; now TIDs are assigned in a cyclic order based on which TIDs are free in all cases
+      (<a href="https://github.com/qorelanguage/qore/issues/4735">issue 4735</a>)
+    - fixed a bug where it was not possible to declare methods as accepting varargs with ellipses; this caused
+      problems with importing abstract Qore methods into Java, for example
+      (<a href="https://github.com/qorelanguage/qore/issues/4738">issue 4738</a>)
 
     @section qore_1_16_1 Qore 1.16.1
 

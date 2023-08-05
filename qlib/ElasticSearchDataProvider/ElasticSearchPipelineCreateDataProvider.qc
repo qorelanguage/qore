@@ -24,11 +24,13 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
-public class ElasticSearchPipelineCreateDataProvider inherits AbstractDataProvider {
+#! The ElasticSearch pipeline create API data provider
+/** This API allows the caller to create a new ElasticSearch pipeline from the arguments describing the pipeline
+*/
+public class ElasticSearchPipelineCreateDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -61,7 +63,7 @@ public class ElasticSearchPipelineCreateDataProvider inherits AbstractDataProvid
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -82,7 +84,7 @@ public class ElasticSearchPipelineCreateDataProvider inherits AbstractDataProvid
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string uri_path = sprintf("_ingest/pipeline/%s", remove req.name);
+        string uri_path = sprintf("_ingest/pipeline/%s", remove req.pipeline);
         bool q;
         foreach string arg in (QueryArgs) {
             if (!exists req{arg}) {
@@ -102,19 +104,19 @@ public class ElasticSearchPipelineCreateDataProvider inherits AbstractDataProvid
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
@@ -125,7 +127,7 @@ public class ElasticSearchPipelineCreateRequestDataType inherits ElasticSearchPi
         #! Field descriptions
         const Fields = {
             # query parameters
-            "name": {
+            "pipeline": {
                 "type": StringType,
                 "desc": "The name of the pipeline to create",
             },
@@ -136,15 +138,13 @@ public class ElasticSearchPipelineCreateRequestDataType inherits ElasticSearchPi
             },
             "master_timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a connection to the master node. If no response is received before the "
-                    "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
+                "desc": "Period to wait for a connection to the master node (default: `30s`). If no response is "
+                    "received before the timeout expires, the request fails and returns an error",
             },
             "timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a response. If no response is received before the "
+                "desc": "Period to wait for a response (default: `30s`). If no response is received before the "
                     "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
             },
         };
     }

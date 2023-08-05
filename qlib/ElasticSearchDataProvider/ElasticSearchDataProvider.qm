@@ -54,12 +54,108 @@ module ElasticSearchDataProvider {
 
     @section elasticsearchdataproviderintro Introduction to the ElasticSearchDataProvider Module
 
-    The %ElasticSearchDataProvider module provides a @ref dataproviderintro "data provider" API for ElasticSearch
-    instances.
+    @htmlonly
+    <div class="image">
+      <img src="elastic-logo.svg" alt="ElasticSearch Logo" style="width:40%;">
+    </div>
+    @endhtmlonly
 
-    The following classes are provided by this module:
-    - @ref ElasticSearchDataProvider::ElasticSearchDataProvider "ElasticSearchDataProvider"
-    - @ref ElasticSearchDataProvider::ElasticSearchDataProviderFactory "ElasticSearchDataProviderFactory"
+    The %ElasticSearchDataProvider module provides a @ref dataproviderintro "data provider" API for ElasticSearch
+    instances and data.  It provides introspection into the configuration and document attributes as well as APIs and
+    a record-based data provider to use ElasticSearch indices as DB table-like objects as well.
+
+    This data provider provides ElasticSearch API access to:
+    - documents: <b><tt>document/{@ref ElasticSearchDataProvider::ElasticSearchDocumentCreateDataProvider "create",
+      @ref ElasticSearchDataProvider::ElasticSearchDocumentReadDataProvider "read",
+      @ref ElasticSearchDataProvider::ElasticSearchDocumentUpdateDataProvider "update",
+      @ref ElasticSearchDataProvider::ElasticSearchDocumentDeleteDataProvider "delete"}</tt></b>
+    - indexes: <b><tt>index/{@ref ElasticSearchDataProvider::ElasticSearchIndexCreateDataProvider "create",
+      @ref ElasticSearchDataProvider::ElasticSearchIndexReadDataProvider "read",
+      @ref ElasticSearchDataProvider::ElasticSearchIndexReadAllDataProvider "read-all",
+      @ref ElasticSearchDataProvider::ElasticSearchIndexDeleteDataProvider "delete",
+      @ref ElasticSearchDataProvider::ElasticSearchIndexSearchDataProvider "search"}</tt></b>
+    - pipelines: <b><tt>pipeline/{@ref ElasticSearchDataProvider::ElasticSearchPipelineCreateDataProvider "create",
+      @ref ElasticSearchDataProvider::ElasticSearchPipelineReadDataProvider "read",
+      @ref ElasticSearchDataProvider::ElasticSearchPipelineReadAllDataProvider "read-all",
+      @ref ElasticSearchDataProvider::ElasticSearchPipelineUpdateDataProvider "update",
+      @ref ElasticSearchDataProvider::ElasticSearchPipelineDeleteDataProvider "delete"}</tt></b>
+
+    Furthermore it provides a record interface to ElasticSearch indexes supporting record creating, searching,
+    updating, and deleting documents (where an ElasticSearch document is treated as a record) through the following
+    path:
+    - <b><tt>indexes/</tt><i>@ref ElasticSearchDataProvider::ElasticSearchIndexTableDataProvider "index_name"</i></b>
+
+    These data provides represent a single index with a record-like interface; each document (record) will be returned
+    with read-only \c _id and \c _score fields as well.  Searches are performed with \c match; for flexible search
+    criteria, use the API-driven search
+    (@ref ElasticSearchDataProvider::ElasticSearchIndexSearchDataProvider "ElasticSearchIndexSearchDataProvider")
+
+    In this way ElasticSearch can be used for easy data integration and searches as well as for the manipulation of
+    document content and pipelines from the Data Provider API.
+
+    @section elasticsearchdataprovider_factory ElasticSearch Data Provider Factory
+
+    The name of the ElastiSearch data provider factory is <b><tt>elasticsearch</tt></b>.
+
+    @section elasticsearchdataprovider_examples ElasticSearch Data Provider Examples
+
+    These examples are with \c qdp, the command-line interface to the Data Provider API.
+
+    @par API Example: List All Pipelines
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/pipeline/read-all'
+    @endverbatim
+
+    @par API Example: Create a Pipeline
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/pipeline/create' \
+      pipeline=my-pipeline,description="my pipeline",processors='{html_strip={field=content}}'
+    @endverbatim
+
+    @par API Example: Delete a Pipeline
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/pipeline/delete' pipeline=my-pipeline
+    @endverbatim
+
+    @par API Example: List All Indices
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/index/read-all'
+    @endverbatim
+
+    @par API Example: Create an Index
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/index/create' \
+      index=my-index,mappings={properties={content={type=text}}}'
+    @endverbatim
+
+    @par API Example: Delete an Index
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/index/delete' index=my-index
+    @endverbatim
+
+    @par API Example: Search an Index
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/index/search' \
+      index=my-index,'query={match={content=target-string}}'
+    @endverbatim
+
+    @par API Example: Create a Document / Ingest Content
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/document/create' \
+      index=my-index,pipeline=my-pipeline,content="<h2>my HTML content</h2>",refresh=true
+    @endverbatim
+
+    @par API Example: Delete a Document
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/document/delete' \
+      index=my-index,id=oE1jYokB_lAyoyNWRDP9
+    @endverbatim
+
+    @par Record-Based Example: Search an Index
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/indexes/my-index' \
+      content=target-string
+    @endverbatim
+
+    @par Record-Based Example: Create a Document / Ingest Content
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/indexes/my-index' create \
+      content="<h2>my HTML content</h2>" pipeline=my-pipeline,refresh=true
+    @endverbatim
+
+    @par Record-Based Example: Delete a Document
+    @verbatim qdp 'elasticsearch{url=https://elastic:password@my-server.local:9200}/indexes/my-index' delete \
+      _id=oE1jYokB_lAyoyNWRDP9
+    @endverbatim
 
     @section elasticsearchdataprovider_relnotes Release Notes
 

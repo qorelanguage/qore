@@ -174,7 +174,7 @@ public namespace DebugLinenoiseCmdLine {
         }
 
         #! Outputs data to a linenoise-configured terminal
-        public printfImpl(string fmt) {
+        public printfImpl(string fmt, ...) {
             string outs = vsprintf(fmt, argv);
             # linenoise terminal has somehow redefined CRLF so force \r (TODO: what is Qore line delimiter on Windows ?)
             outs = replace(outs, "\n", "\r\n");

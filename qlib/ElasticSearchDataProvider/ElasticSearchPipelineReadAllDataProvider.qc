@@ -24,11 +24,13 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch read pipeline all data provider API
-public class ElasticSearchPipelineReadAllDataProvider inherits AbstractDataProvider {
+#! The ElasticSearch read all pipelines API data provider
+/** This class implements an API that return the descriptions of all known pipelines in the ElasticSearch server.
+*/
+public class ElasticSearchPipelineReadAllDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -61,7 +63,7 @@ public class ElasticSearchPipelineReadAllDataProvider inherits AbstractDataProvi
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -102,40 +104,39 @@ public class ElasticSearchPipelineReadAllDataProvider inherits AbstractDataProvi
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! ElasticSearch pipeline read API request
-class ElasticSearchPipelineReadAllRequestDataType inherits HashDataType {
+class ElasticSearchPipelineReadAllRequestDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
             # query parameters
             "master_timeout": {
                 "type": StringOrNothingType,
-                "desc": "Period to wait for a connection to the master node. If no response is received before the "
-                    "timeout expires, the request fails and returns an error",
-                "default_value": "30s",
+                "desc": "Period to wait for a connection to the master node (default: `30s`). If no response is "
+                    "received before the timeout expires, the request fails and returns an error",
             },
         };
     }
 
     #! Creates the object
-    constructor() {
+    constructor() : HashDataType(AutoHashOrNothingType) {
         map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
             Fields.pairIterator();
     }

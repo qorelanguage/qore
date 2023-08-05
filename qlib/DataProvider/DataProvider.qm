@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "2.7.1";
+    version = "2.7.3";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -98,6 +98,8 @@ module DataProvider {
     - @ref DataProvider::ListDataType "ListDataType"
     - @ref DataProvider::NullDataProvider "NullDataProvider"
     - @ref DataProvider::NullDataProviderFactory "NullDataProviderFactory"
+    - @ref DataProvider::QoreBase64BinaryDataType "QoreBase64BinaryDataType"
+    - @ref DataProvider::QoreBase64BinaryOrNothingDataType "QoreBase64BinaryOrNothingDataType"
     - @ref DataProvider::QoreBinaryDataType "QoreBinaryDataType"
     - @ref DataProvider::QoreBinaryDataTypeBase "QoreBinaryDataTypeBase"
     - @ref DataProvider::QoreBinaryOrNothingDataType "QoreBinaryOrNothingDataType"
@@ -112,6 +114,8 @@ module DataProvider {
     - @ref DataProvider::QoreFloatDataTypeBase "QoreFloatDataTypeBase"
     - @ref DataProvider::QoreFloatOrNothingDataType "QoreFloatOrNothingDataType"
     - @ref DataProvider::QoreHashDataType "QoreHashDataType"
+    - @ref DataProvider::QoreHexBinaryDataType "QoreHexBinaryDataType"
+    - @ref DataProvider::QoreHexBinaryOrNothingDataType "QoreHexBinaryOrNothingDataType"
     - @ref DataProvider::QoreIntDataType "QoreIntDataType"
     - @ref DataProvider::QoreIntDataTypeBase "QoreIntDataTypeBase"
     - @ref DataProvider::QoreIntOrNothingDataType "QoreIntOrNothingDataType"
@@ -208,6 +212,10 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v2_7_3 DataProvider v2.7.3
+    - added missing \c base64binary and \c hexbinary type support
+      (<a href="https://github.com/qorelanguage/qore/issues/4732">issue 4732</a>)
 
     @subsection dataprovider_v2_7_2 DataProvider v2.7.2
     - fixed bugs handling null hash assignments with fields with default values in

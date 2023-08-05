@@ -3723,11 +3723,13 @@ QoreObject* QoreClass::execConstructor(const QoreListNode* args, ExceptionSink* 
     return priv->execConstructor(xsink, nullptr, args);
 }
 
-QoreObject* QoreClass::execConstructor(const QoreClass& obj_cls, const QoreListNode* args, bool allow_abstract, ExceptionSink* xsink) const {
+QoreObject* QoreClass::execConstructor(const QoreClass& obj_cls, const QoreListNode* args, bool allow_abstract,
+        ExceptionSink* xsink) const {
     return priv->execConstructor(xsink, nullptr, args, &obj_cls, allow_abstract);
 }
 
-QoreObject* QoreClass::execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *args, ExceptionSink* xsink) const {
+QoreObject* QoreClass::execConstructorVariant(const QoreExternalMethodVariant* mv, const QoreListNode *args,
+        ExceptionSink* xsink) const {
     return priv->execConstructor(xsink, reinterpret_cast<const ConstructorMethodVariant*>(mv), args);
 }
 

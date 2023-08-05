@@ -24,8 +24,8 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! Base data type for processor types
-public class ElasticSearchIndexDataTypeBase inherits HashDataType {
+#! Base data type for search request types
+public class ElasticSearchIndexDataTypeBase inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
@@ -43,12 +43,10 @@ public class ElasticSearchIndexDataTypeBase inherits HashDataType {
                 "type": SoftBoolStringType,
                 "desc": "If `true`, the alias is hidden. Defaults to `false`. All indices for the alias must have the "
                     "same `is_hidden` value",
-                "default_value": False,
             },
             "is_write_index": {
                 "type": SoftBoolStringType,
                 "desc": "If `true`, the index is the write index for the alias. Defaults to `false`",
-                "default_value": False,
             },
             "routing": {
                 "type": StringOrNothingType,

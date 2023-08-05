@@ -24,11 +24,13 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
-public class ElasticSearchDocumentReadDataProvider inherits AbstractDataProvider {
+#! The ElasticSearch document read API data provider
+/** This API allows the caller to read an ElasticSearch document
+*/
+public class ElasticSearchDocumentReadDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -62,7 +64,7 @@ public class ElasticSearchDocumentReadDataProvider inherits AbstractDataProvider
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -103,25 +105,25 @@ public class ElasticSearchDocumentReadDataProvider inherits AbstractDataProvider
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! Document read API request data type
-class ElasticSearchDocumentReadRequestDataType inherits HashDataType {
+class ElasticSearchDocumentReadRequestDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
@@ -140,13 +142,12 @@ class ElasticSearchDocumentReadRequestDataType inherits HashDataType {
             },
             "realtime": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, the request is real-time as opposed to near-real-time",
-                "default_value": True,
+                "desc": "If `true` (the default), the request is real-time as opposed to near-real-time",
             },
             "refresh": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, the request refreshes the relevant shard before retrieving the document",
-                "default_value": False
+                "desc": "If `true` (default `false`), the request refreshes the relevant shard before retrieving the "
+                    "document",
             },
             "routing": {
                 "type": StringOrNothingType,
@@ -154,9 +155,8 @@ class ElasticSearchDocumentReadRequestDataType inherits HashDataType {
             },
             "stored_fields": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, retrieves the document fields stored in the index rather than the document "
-                    "`_source`",
-                "default_value": False,
+                "desc": "If `true` (default `false`), retrieves the document fields stored in the index rather than "
+                    "the document `_source`",
             },
             "_source": {
                 "type": StringOrNothingType,
@@ -196,7 +196,7 @@ class ElasticSearchDocumentReadRequestDataType inherits HashDataType {
 }
 
 #! Document read API response
-public class ElasticSearchDocumentReadResponseDataType inherits HashDataType {
+public class ElasticSearchDocumentReadResponseDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {

@@ -58,18 +58,6 @@ typedef std::vector<QoreParseTypeInfo*> ptype_vec_t;
 typedef std::vector<LocalVar*> lvar_vec_t;
 
 class AbstractFunctionSignature {
-protected:
-    unsigned short num_param_types = 0,    // number of parameters that have type information
-        min_param_types = 0;                // minimum number of parameters with type info (without default args)
-
-    const QoreTypeInfo* returnTypeInfo;
-    type_vec_t typeList;
-    arg_vec_t defaultArgList;
-    name_vec_t names;
-
-    // parameter signature string
-    std::string str;
-
 public:
     DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo = nullptr)
             : returnTypeInfo(n_returnTypeInfo) {
@@ -170,6 +158,30 @@ public:
     }
 
     DLLLOCAL bool compare(const AbstractFunctionSignature& sig, bool relaxed_match = false) const;
+
+    DLLLOCAL bool hasVarargs() const {
+        return varargs;
+    }
+
+    DLLLOCAL void setVarargs() {
+        assert(!varargs);
+        varargs = true;
+    }
+
+protected:
+    unsigned short num_param_types = 0,    // number of parameters that have type information
+        min_param_types = 0;                // minimum number of parameters with type info (without default args)
+
+    const QoreTypeInfo* returnTypeInfo;
+    type_vec_t typeList;
+    arg_vec_t defaultArgList;
+    name_vec_t names;
+
+    // parameter signature string
+    std::string str;
+
+    // varargs flag
+    bool varargs = false;
 };
 
 // used to store return type info during parsing for user code
@@ -178,7 +190,8 @@ class RetTypeInfo {
     const QoreTypeInfo* typeInfo;
 
 public:
-    DLLLOCAL RetTypeInfo(QoreParseTypeInfo* n_parseTypeInfo, const QoreTypeInfo* n_typeInfo) : parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
+    DLLLOCAL RetTypeInfo(QoreParseTypeInfo* n_parseTypeInfo, const QoreTypeInfo* n_typeInfo)
+            : parseTypeInfo(n_parseTypeInfo), typeInfo(n_typeInfo) {
     }
     DLLLOCAL ~RetTypeInfo() {
         delete parseTypeInfo;
@@ -426,18 +439,6 @@ class UserVariantBase;
 
 // describes the details of the function variant
 class AbstractQoreFunctionVariant : protected QoreReferenceCounter {
-private:
-    // not implemented
-    DLLLOCAL AbstractQoreFunctionVariant(const AbstractQoreFunctionVariant& old) = delete;
-    DLLLOCAL AbstractQoreFunctionVariant& operator=(AbstractQoreFunctionVariant& orig) = delete;
-
-protected:
-    // code flags
-    int64 flags;
-    bool is_user;
-
-    DLLLOCAL virtual ~AbstractQoreFunctionVariant() {}
-
 public:
     DLLLOCAL AbstractQoreFunctionVariant(int64 n_flags, bool n_is_user = false) : flags(n_flags), is_user(n_is_user) {
     }
@@ -548,6 +549,22 @@ public:
     // the default implementation of this function does nothing
     DLLLOCAL virtual void parseCommit() {
     }
+
+    DLLLOCAL virtual bool hasVarargs() const {
+        return flags & QCF_USES_EXTRA_ARGS;
+    }
+
+protected:
+    // code flags
+    int64 flags;
+    bool is_user;
+
+    DLLLOCAL virtual ~AbstractQoreFunctionVariant() {}
+
+private:
+    // not implemented
+    DLLLOCAL AbstractQoreFunctionVariant(const AbstractQoreFunctionVariant& old) = delete;
+    DLLLOCAL AbstractQoreFunctionVariant& operator=(AbstractQoreFunctionVariant& orig) = delete;
 };
 
 class VRMutex;
@@ -624,7 +641,9 @@ public:
    DLLLOCAL virtual AbstractFunctionSignature* getSignature() const { return const_cast<UserSignature*>(&signature); } \
    DLLLOCAL virtual const QoreTypeInfo* parseGetReturnTypeInfo(int& err) const { return signature.parseGetReturnTypeInfo(err); } \
    DLLLOCAL virtual void setRecheck() { recheck = true; } \
-   DLLLOCAL virtual void parseCommit() { UserVariantBase::parseCommit(); }
+   DLLLOCAL virtual void parseCommit() { UserVariantBase::parseCommit(); } \
+   DLLLOCAL virtual bool hasVarargs() const { if (signature.hasVarargs()) return true; return AbstractQoreFunctionVariant::hasVarargs(); }
+
 
 // this class ensures that instantiated variables in user code are uninstantiated, even if an exception occurs
 class UserVariantExecHelper : ProgramThreadCountContextHelper, ThreadFrameBoundaryHelper {
@@ -662,8 +681,10 @@ protected:
     }
 
 public:
-    DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags = QCF_NO_FLAGS) :
-        AbstractQoreFunctionVariant(n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
+    DLLLOCAL UserFunctionVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params,
+            RetTypeInfo* rv, bool synced, int64 n_flags = QCF_NO_FLAGS) :
+            AbstractQoreFunctionVariant(n_flags, true),
+            UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
     }
 
     // the following defines the virtual functions that are common to all user variants

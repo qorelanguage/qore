@@ -1,7 +1,9 @@
-# -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore ElasticSearchDataProvider module definition
+/*
+    QoreEllipsesNode.cpp
 
-/** ElasticSearchAcknowledgedDataType.qc Copyright 2023 Qore Technologies, s.r.o.
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2023 Qore Technologies, s.r.o,
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -20,26 +22,24 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
-#! Contains all public definitions in the ElasticSearchDataProvider module
-public namespace ElasticSearchDataProvider {
-#! The acknowledged response type
-public class ElasticSearchAcknowledgedDataType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "acknowledged": {
-                "type": BoolType,
-                "desc": "The request has been acknowledged by the server",
-            },
-        };
-    }
+#include <qore/Qore.h>
 
-    #! Creates the object
-    constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
-    }
+QoreString QoreEllipsesNode::staticEllipses("...");
+
+QoreEllipsesNode::QoreEllipsesNode(const QoreProgramLocation* loc) : ParseNoEvalNode(loc, NT_ELLIPSES) {
 }
+
+QoreEllipsesNode::~QoreEllipsesNode() {
+}
+
+int QoreEllipsesNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+    qore_program_private::get(*getProgram())->makeParseException(*loc, "ILLEGAL-ELLIPSES",
+        new QoreStringNode("ellipses can only be used as the final or only element in a parameter list"));
+    return -1;
 }

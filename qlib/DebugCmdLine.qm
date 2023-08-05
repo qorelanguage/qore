@@ -773,7 +773,9 @@ public namespace DebugCmdLine {
                                 ),
                             ),
                             'create': (
-                                'desc': 'create breakpoint and get breakpointId. Optionally assign to particular statement, i.e. code line, or do it later using "statement assign". args: [function([args, ...])] | [file] lineno | #statementId',
+                                'desc': 'create breakpoint and get breakpointId. Optionally assign to a particular "
+                                    "statement, i.e. code line, or do it later using "statement assign". "
+                                    "args: [function([args, ...])] | [file] lineno | #statementId',
                                 'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
                                     hash data.cmd = 'program/'+dcl.checkProgramId()+'/breakpoint//create';
                                     if (args) {
@@ -1190,9 +1192,11 @@ public namespace DebugCmdLine {
         }
 
         # to implement print to terminal
-        abstract public printfImpl(string fmt);
+        abstract public printfImpl(string fmt, ...);
 
-        #! To be implemented to execute remote (via websocket) or local command (via @ref DebugProgramControl::DebugProgramControl "DebugProgramControl")
+        #! To be implemented to execute remote (via websocket) or local command
+        /** (via @ref DebugProgramControl::DebugProgramControl "DebugProgramControl")
+        */
         abstract public *hash doCommandImpl(hash data);
 
         public *hash doCommand(hash data, bool print) {
@@ -1210,7 +1214,7 @@ public namespace DebugCmdLine {
             return ret;
         }
 
-        public showFileNames(*hash fn) {
+        public showFileNames(*hash<auto> fn) {
             foreach string k in (keys fn) {
                 printfImpl("%s", k);
                 if (fn{k}) {
@@ -1225,7 +1229,7 @@ public namespace DebugCmdLine {
         public showPrograms(hash ph, bool show_interrupted) {
             # get max name width
             int max = 1;
-            foreach hash h in (ph.pairIterator()) {
+            foreach hash<auto> h in (ph.pairIterator()) {
                 if (!h.value.scriptName.val()) {
                     #printfImpl("MISSING: %y = %y\n", h.key, h.value);
                     delete ph{h.key};
@@ -1243,16 +1247,19 @@ public namespace DebugCmdLine {
             auto pgmId = getContextValue('programId');
             foreach string id in (sort(keys ph, int sub (string l, string r) { return l.toInt() <=> r.toInt(); })) {
                 printfImpl(fmt,
-                    (show_interrupted && ph{id}.interrupted) ? 'S':' ', id, id == pgmId ? "*" : " ", ph{id}.scriptName, ph{id}.threads.size(), ph{id}.debugging, ph{id}.debugged);
+                    (show_interrupted && ph{id}.interrupted) ? 'S':' ', id, id == pgmId ? "*" : " ",
+                    ph{id}.scriptName, ph{id}.threads.size(), ph{id}.debugging, ph{id}.debugged);
             }
         }
 
         public string formatBreakpoint(hash b) {
-            return sprintf(" id: %-4d  pgmId: %-4d enabled: %-5s policy: %-6s threads: %y\n", b.id, b.programId, b.enabled, b.policy, b.threads);
+            return sprintf(" id: %-4d  pgmId: %-4d enabled: %-5s policy: %-6s threads: %y\n", b.id, b.programId,
+                b.enabled, b.policy, b.threads);
         }
 
         public string formatStatement(hash stmt) {
-            string res = sprintf(" @ %-5d %s:%d-%d", stmt.id, stmt.file, stmt.start_line + stmt.offset, stmt.end_line + stmt.offset);
+            string res = sprintf(" @ %-5d %s:%d-%d", stmt.id, stmt.file, stmt.start_line + stmt.offset,
+                stmt.end_line + stmt.offset);
             if (stmt.source) {
                 res += sprintf(" (%s:%d-%d)", stmt.source, stmt.start_line, stmt.end_line);
             }

@@ -24,11 +24,13 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
-public class ElasticSearchDocumentDeleteDataProvider inherits AbstractDataProvider {
+#! The ElasticSearch document delete API data provider
+/** This API allows the caller to delete an ElasticSearch document
+*/
+public class ElasticSearchDocumentDeleteDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -62,7 +64,7 @@ public class ElasticSearchDocumentDeleteDataProvider inherits AbstractDataProvid
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -103,25 +105,25 @@ public class ElasticSearchDocumentDeleteDataProvider inherits AbstractDataProvid
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! Document delete API request data type
-class ElasticSearchDocumentDeleteRequestDataType inherits HashDataType {
+class ElasticSearchDocumentDeleteRequestDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
@@ -143,21 +145,20 @@ class ElasticSearchDocumentDeleteRequestDataType inherits HashDataType {
                 "desc": "Only perform the operation if the document has this primary term",
             },
             "refresh": {
-                "type": StringType,
-                "desc": "If `true`, Elasticsearch refreshes the affected shards to make this operation visible to "
-                    "search, if `wait_for` then wait for a refresh to make this operation visible to search, if "
-                    "`false` do nothing with refreshes. Valid values: `true`, `false`, `wait_for`",
-                "default_value": "false",
+                "type": StringOrNothingType,
+                "desc": "If `true` (default `false`), Elasticsearch refreshes the affected shards to make this "
+                    "operation visible to search, if `wait_for` then wait for a refresh to make this operation "
+                    "visible to search, if `false` do nothing with refreshes. Valid values: `true`, `false`, "
+                    "`wait_for`",
             },
             "routing": {
                 "type": StringOrNothingType,
                 "desc": "Custom value used to route operations to a specific shard",
             },
             "timeout": {
-                "type": StringType,
-                "desc": "Period to wait for a response. If no response is received before the "
+                "type": StringOrNothingType,
+                "desc": "Period to wait for a response (default `1m`). If no response is received before the "
                     "timeout expires, the request fails and returns an error",
-                "default_value": "1m",
             },
             "version": {
                 "type": IntOrNothingType,
@@ -169,10 +170,10 @@ class ElasticSearchDocumentDeleteRequestDataType inherits HashDataType {
                 "desc": "Specific version type: `external`, `external_gte`",
             },
             "wait_for_active_shards": {
-                "type": StringType,
-                "desc": "The number of shard copies that must be active before proceeding with the operation. Set to "
-                    "`all` or any positive integer up to the total number of shards in the index (number_of_replicas+1)",
-                "default_value": "1",
+                "type": StringOrNothingType,
+                "desc": "The number of shard copies that must be active before proceeding with the operation "
+                    "(default `1`). Set to `all` or any positive integer up to the total number of shards in the "
+                    "index (number_of_replicas+1)",
             },
         };
     }
@@ -185,7 +186,7 @@ class ElasticSearchDocumentDeleteRequestDataType inherits HashDataType {
 }
 
 #! Document delete API response
-public class ElasticSearchDocumentDeleteResponseDataType inherits HashDataType {
+public class ElasticSearchDocumentDeleteResponseDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {

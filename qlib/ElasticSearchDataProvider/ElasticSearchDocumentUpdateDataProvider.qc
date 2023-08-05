@@ -24,11 +24,13 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The ElasticSearch update data provider API
-public class ElasticSearchDocumentUpdateDataProvider inherits AbstractDataProvider {
+#! The ElasticSearch document update API data provider
+/** This API allows the caller to update an ElasticSearch document
+*/
+public class ElasticSearchDocumentUpdateDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        RestClient rest;
+        RestClient::RestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -62,7 +64,7 @@ public class ElasticSearchDocumentUpdateDataProvider inherits AbstractDataProvid
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
+    constructor(RestClient::RestClient rest) {
         self.rest = rest;
     }
 
@@ -103,25 +105,25 @@ public class ElasticSearchDocumentUpdateDataProvider inherits AbstractDataProvid
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
-    private *AbstractDataProviderType getRequestTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
         return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
-    private *AbstractDataProviderType getResponseTypeImpl() {
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
         return ResponseType;
     }
 
     #! Returns data provider static info
-    hash<DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }
 
 #! Update document request data type
-public class ElasticSearchDocumentUpdateRequestDataType inherits HashDataType {
+public class ElasticSearchDocumentUpdateRequestDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {
@@ -132,7 +134,7 @@ public class ElasticSearchDocumentUpdateRequestDataType inherits HashDataType {
             },
             "id": {
                 "type": StringType,
-                "desc": "The ID of the document to delete",
+                "desc": "The ID of the document to update",
             },
             "if_seq_no": {
                 "type": IntOrNothingType,
@@ -144,35 +146,30 @@ public class ElasticSearchDocumentUpdateRequestDataType inherits HashDataType {
             },
             "lang": {
                 "type": StringOrNothingType,
-                "desc": "The script language",
-                "default_value": "painless",
+                "desc": "The script language (default `painless`)",
             },
             "require_alias": {
                 "type": SoftBoolStringType,
-                "desc": "If `true`, the destination must be an index alias",
-                "default_value": False,
+                "desc": "If `true` (default `false`), the destination must be an index alias",
             },
             "refresh": {
-                "type": StringType,
-                "desc": "If `true`, Elasticsearch refreshes the affected shards to make this operation visible to "
-                    "search, if `wait_for` then wait for a refresh to make this operation visible to search, if "
-                    "`false` do nothing with refreshes. Valid values: `true`, `false`, `wait_for`",
-                "default_value": "false",
+                "type": StringOrNothingType,
+                "desc": "If `true` (default `false`), Elasticsearch refreshes the affected shards to make this "
+                    "operation visible to search, if `wait_for` then wait for a refresh to make this operation "
+                    "visible to search, if `false` do nothing with refreshes. Valid values: `true`, `false`, `wait_for`",
             },
             "retry_on_conflict": {
-                "type": IntType,
-                "desc": "Specify how many times should the operation be retried when a conflict occurs",
-                "default_value": 0,
+                "type": IntOrNothingType,
+                "desc": "Specify how many times should the operation be retried when a conflict occurs (default `0`)",
             },
             "routing": {
                 "type": StringOrNothingType,
                 "desc": "Custom value used to route operations to a specific shard",
             },
             "_source": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Set to `false` to disable source retrieval (default: `true`). You can also specify a "
                     "comma-separated list of the fields you want to retrieve",
-                "default_value": "true",
             },
             "_source_excludes": {
                 "type": StringOrNothingType,
@@ -183,19 +180,18 @@ public class ElasticSearchDocumentUpdateRequestDataType inherits HashDataType {
                 "desc": "Specify the source fields you want to exclude",
             },
             "timeout": {
-                "type": StringType,
+                "type": StringOrNothingType,
                 "desc": "Period to wait for the following operations:\n"
                     "- Dynamic mapping updates\n"
                     "- Waiting for active shards\n\n"
                     "This guarantees Elasticsearch waits for at least the timeout before failing. The actual wait "
-                    "time could be longer, particularly when multiple waits occur",
-                "default_value": "1m",
+                    "time could be longer, particularly when multiple waits occur (default `1m)",
             },
             "wait_for_active_shards": {
-                "type": StringType,
-                "desc": "The number of shard copies that must be active before proceeding with the operation. Set to "
-                    "`all` or any positive integer up to the total number of shards in the index (number_of_replicas+1)",
-                "default_value": "1",
+                "type": StringOrNothingType,
+                "desc": "The number of shard copies that must be active before proceeding with the operation "
+                    "(default `1`). Set to `all` or any positive integer up to the total number of shards in the "
+                    "index (number_of_replicas+1)",
             },
 
             # body parameters
@@ -238,7 +234,7 @@ public class ElasticSearchDocumentUpdateRequestDataType inherits HashDataType {
 }
 
 #! Document update API response
-public class ElasticSearchDocumentUpdateResponseDataType inherits HashDataType {
+public class ElasticSearchDocumentUpdateResponseDataType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
         const Fields = {

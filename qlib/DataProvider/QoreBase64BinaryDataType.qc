@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore ElasticSearchDataProvider module definition
+#! Qore QoreBase64BinaryDataType class definition
 
-/** ElasticSearchAcknowledgedDataType.qc Copyright 2023 Qore Technologies, s.r.o.
+/** QoreBase64BinaryDataType.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,24 +22,12 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the ElasticSearchDataProvider module
-public namespace ElasticSearchDataProvider {
-#! The acknowledged response type
-public class ElasticSearchAcknowledgedDataType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "acknowledged": {
-                "type": BoolType,
-                "desc": "The request has been acknowledged by the server",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+#! contains all public definitions in the DataProvider module
+public namespace DataProvider {
+#! describes a data type based on binary
+public class QoreBase64BinaryDataType inherits QoreBinaryDataTypeBase {
+    #! creates the object
+    constructor(*hash<auto> options, *hash<auto> tags) : QoreBinaryDataTypeBase(Base64BinaryType, options, tags) {
     }
 }
 }
