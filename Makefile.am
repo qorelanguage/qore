@@ -42,7 +42,8 @@ DOX_SRC_SPLIT_MODULES = \
     qlib/DbDataProvider \
     qlib/FileLocationHandler \
     qlib/RestClientDataProvider \
-    qlib/ElasticSearchDataProvider
+    qlib/ElasticSearchDataProvider \
+    qlib/EmpathicBuildingDataProvider
 
 DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
@@ -116,6 +117,7 @@ FileDataProvider_modverdir = $(modverdir)/FileDataProvider
 FtpClientDataProvider_modverdir = $(modverdir)/FtpClientDataProvider
 HttpClientDataProvider_modverdir = $(modverdir)/HttpClientDataProvider
 ElasticSearchDataProvider_modverdir = $(modverdir)/ElasticSearchDataProvider
+EmpathicBuildingDataProvider_modverdir = $(modverdir)/EmpathicBuildingDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
@@ -135,6 +137,7 @@ dist_FileDataProvider_modver_DATA = $(wildcard qlib/FileDataProvider/*.q[cm])
 dist_FtpClientDataProvider_modver_DATA = $(wildcard qlib/FtpClientDataProvider/*.q[cm])
 dist_HttpClientDataProvider_modver_DATA = $(wildcard qlib/HttpClientDataProvider/*.q[cm])
 dist_ElasticSearchDataProvider_modver_DATA = $(wildcard qlib/ElasticSearchDataProvider/*.q[cm])
+dist_EmpathicBuildingDataProvider_modver_DATA = $(wildcard qlib/EmpathicBuildingDataProvider/*.q[cm])
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
@@ -1158,6 +1161,10 @@ doxygen/qlib/Doxyfile.FsUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 # to provide the graphic file
 doxygen/qlib/Doxyfile.ElasticSearchDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/ElasticSearchDataProvider:doxygen/qlib/ElasticSearchDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html -X=doxygen/ -E=elastic-logo.svg $< $@
+
+# to provide the graphic file
+doxygen/qlib/Doxyfile.EmpathicBuildingDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/EmpathicBuildingDataProvider:doxygen/qlib/EmpathicBuildingDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html -X=doxygen/ -E=Haltian-EmpathicBuilding.svg $< $@
 
 doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/astparser/ \

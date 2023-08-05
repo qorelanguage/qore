@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore ElasticSearchDataProviderFactory class definition
+#! Qore EmpathicBuildingDataProviderFactory class definition
 
-/** ElasticSearchDataProviderFactory.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
+/** EmpathicBuildingDataProviderFactory.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,20 +22,19 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the ElasticSearchDataProvider module
-public namespace ElasticSearchDataProvider {
-#! The ElasticSearch data provider factory: \c elasticsearch
-public class ElasticSearchDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {
+#! Contains all public definitions in the EmpathicBuildingDataProvider module
+public namespace EmpathicBuildingDataProvider {
+#! The Empathi cBuilding data provider factory: \c empathicbuilding
+public class EmpathicBuildingDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {
     private {
         #! Data provider type info
-        static Class cls = new Class("ElasticSearchDataProvider");
+        static Class cls = new Class("EmpathicBuildingDataProvider");
 
         #! Factory info
         const FactoryInfo = <DataProviderFactoryInfo>{
-            "name": "elasticsearch",
-            "desc": "ElasticSearch API data provider factory",
+            "name": "empathicbuilding",
+            "desc": "Empathic Building API data provider factory",
             "children_can_support_apis": True,
-            "children_can_support_records": True,
         };
     }
 
@@ -50,7 +49,7 @@ public class ElasticSearchDataProviderFactory inherits DataProvider::AbstractDat
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
     private hash<DataProvider::DataProviderInfo> getProviderInfoImpl() {
-        return ElasticSearchDataProvider::ProviderInfo;
+        return EmpathicBuildingDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object

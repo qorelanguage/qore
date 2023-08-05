@@ -612,7 +612,13 @@ class QdpCmd {
         if (fields) {
             QdpCmd::showRecord(fields, offset);
         } else {
-            printf("%s%s%s (%s)\n", offset, type.getName());
+            if (type.getBaseTypeCode() == NT_LIST && (*AbstractDataProviderType element_type = type.getElementType())
+                && (*hash<string, AbstractDataField> element_rec = element_type.getFields())) {
+                printf("%s%s elements ->\n", type.getName(), offset);
+                QdpCmd::showRecord(element_rec, offset + "  ");
+            } else {
+                printf("%s%s%s (%s)\n", offset, type.getName());
+            }
         }
     }
 

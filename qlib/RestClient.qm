@@ -489,7 +489,8 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         } else {
             if (opts.swagger) {
                 # this will use FileLocationHandler::getTextFileFileLocation() that reads a file if there is no scheme
-                validator = SwaggerLoader::fromUrl(opts.swagger, NOTHING, opts.swagger_lax_parsing);
+                validator = SwaggerLoader::fromUrl(opts.swagger, NOTHING,
+                    opts.swagger_lax_parsing ? {"parse_flags": -1} : NOTHING);
                 if (opts.swagger_base_path) {
                     validator.setBasePath(opts.swagger_base_path);
                 }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore ElasticSearchDataProvider module definition
+#! Qore EmpathicBuildingDataProvider module definition
 
-/** ElasticSearchDataProvider.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
+/** EmpathicBuildingDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,10 +22,10 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the ElasticSearchDataProvider module
-public namespace ElasticSearchDataProvider {
-#! The ElasticSearch data provider class
-public class ElasticSearchDataProvider inherits DataProvider::AbstractDataProvider {
+#! Contains all public definitions in the EmpathicBuildingDataProvider module
+public namespace EmpathicBuildingDataProvider {
+#! The EmpathicBuilding data provider class
+public class EmpathicBuildingDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! The REST client object for API calls
         *RestClient::RestClient rest;
@@ -38,58 +38,46 @@ public class ElasticSearchDataProvider inherits DataProvider::AbstractDataProvid
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "ElasticSearchDataProvider",
-            "supports_read": False,
-            "supports_create": False,
-            "supports_update": False,
-            "supports_upsert": False,
-            "supports_delete": False,
-            "supports_native_search": False,
-            "supports_bulk_create": False,
-            "supports_bulk_upsert": False,
+            "type": "EmpathicBuildingDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
-            "search_options": NOTHING,
-            "create_options": NOTHING,
-            "upsert_options": NOTHING,
-            "transaction_management": False,
-            "supports_schema": False,
             "children_can_support_apis": True,
-            "children_can_support_records": True,
-            "children_can_support_observers": False,
         };
 
         #! Constructor options
         const ConstructorOptions = {
             "restclient": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(new Type("RestClient")),
-                "desc": "the RestClient object",
+                "desc": "The RestClient object",
             },
             "url": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "the URL to the REST server; overrides any URL in any RestClient object passed as an option",
+                "desc": "The URL to the REST server; overrides any URL in any RestClient object passed as an option",
+                "default_value": "https://eu-api.empathicbuilding.com",
             },
             "restclient_options": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderTypeMap."*hash",
-                "desc": "options to the RestClient constructor; only used if a RestClient object is created for a "
+                "desc": "Options to the RestClient constructor; only used if a RestClient object is created for a "
                     "call",
+            },
+            "token": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "A gateway token to use for authentication to the server",
+                "sensitive": True,
             },
         };
     }
 
     private {
         const ChildMap = {
-            "document": Class::forName("ElasticSearchDataProvider::ElasticSearchDocumentDataProvider"),
-            "index": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexDataProvider"),
-            "pipeline": Class::forName("ElasticSearchDataProvider::ElasticSearchPipelineDataProvider"),
-            "indexes": Class::forName("ElasticSearchDataProvider::ElasticSearchIndexesDataProvider"),
+            "measurements": Class::forName("EmpathicBuildingDataProvider::EmpathicBuildingMeasurementsDataProvider"),
         };
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
-        rest = ElasticSearchDataProvider::getRestConnection(copts);
+        rest = EmpathicBuildingDataProvider::getRestConnection(copts);
     }
 
     static RestClient::RestClient getRestConnection(*hash<auto> options) {
@@ -102,7 +90,11 @@ public class ElasticSearchDataProvider inherits DataProvider::AbstractDataProvid
         } else {
             if (!options.url && !options.restclient_options) {
                 throw "CONSTRUCTOR-ERROR", "no 'restclient', 'url', or 'restclient_options' option passed; "
-                    "cannot create REST client to ElasticSearch instance without a URL";
+                    "cannot create REST client to EmpathicBuilding instance without a URL";
+            }
+            if (!options.token) {
+                throw "CONSTRUCTOR-ERROR", "no 'token' option passed; "
+                    "cannot create REST client to EmpathicBuilding instance without an authorzation token";
             }
 
             hash<auto> opts;
@@ -112,17 +104,21 @@ public class ElasticSearchDataProvider inherits DataProvider::AbstractDataProvid
             }
             rest = new RestClient(opts);
         }
+        # add the gateway token
+        if (options.token) {
+            rest.addDefaultHeaders({"Authorization": "Bearer " + options.token});
+        }
         return rest;
     }
 
     #! Returns the data provider name
     string getName() {
-        return "elasticsearch";
+        return "empathicbuilding";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("ElasticSearch data provider for `%s`", rest.getSafeURL());
+        return sprintf("EmpathicBuilding data provider for `%s`", rest.getSafeURL());
     }
 
     #! Return data provider summary info
