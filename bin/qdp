@@ -133,7 +133,8 @@ class QdpCmd {
         if (opts.listconnections) {
             listConnections();
         }
-        if (opts.listfactories) {            listFactories();
+        if (opts.listfactories) {
+            listFactories();
         }
         if (opts.listtypes) {
             listTypes();
