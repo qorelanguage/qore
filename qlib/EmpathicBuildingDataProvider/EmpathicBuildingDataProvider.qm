@@ -1,0 +1,91 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! Qore EmpathicBuildingDataProvider module definition
+
+/*  EmpathicBuildingDataProvider.qm Copyright 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 1.18
+# assume local scope for variables, do not use "$" signs
+%new-style
+# require type definitions everywhere
+%require-types
+# strict argument handling
+%strict-args
+# enable all warnings
+%enable-all-warnings
+
+%requires(reexport) DataProvider
+%requires(reexport) RestClient
+
+module EmpathicBuildingDataProvider {
+    version = "1.0";
+    desc = "user module providing a data provider API for Haltian EmpathicBuilding services";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::registerFactory(new EmpathicBuildingDataProviderFactory());
+    };
+}
+
+/** @mainpage EmpathicBuildingDataProvider Module
+
+    @tableofcontents
+
+    @section empathicbuildingdataproviderintro Introduction to the EmpathicBuildingDataProvider Module
+
+    @htmlonly
+    <div class="image">
+      <img src="Haltian-EmpathicBuilding.svg" alt="Haltian Empathic Building Logo" style="width:40%;">
+    </div>
+    @endhtmlonly
+
+    The %EmpathicBuildingDataProvider module provides a @ref dataproviderintro "data provider" API for Haltian
+    Empathic Building servers.
+
+    This data provider provides EmpathicBuilding API access to:
+    - measurements: <b><tt>measurements/{@ref EmpathicBuildingDataProvider::EmpathicBuildingMeasurementsCreateDataProvider "create"}</tt></b>
+
+    In this way EmpathicBuilding can be used for easy data integration from the Data Provider API.
+
+    @section empathicbuildingdataprovider_factory Empathic Building Data Provider Factory
+
+    The name of the Empathic Building data provider factory is <b><tt>empathicbuilding</tt></b>.
+
+    @section empathicbuildingdataprovider_examples Empathic Building Data Provider Examples
+
+    These examples are with \c qdp, the command-line interface to the Data Provider API.
+
+    @par API Example: Post A Measurement
+    @verbatim qdp 'empathicbuilding{url=https://eu-api.haltian.com,token=xxxx}'/measurements/create dor type=reservation,vendor_id=Qorus-Dev,name="Conference room 1 reservation calendar",events='{start=2023-08-30T10:00:00,end=2023-08-30T11:00:00,subject="weekly meeting"}'
+    @endverbatim
+
+    @section empathicbuildingdataprovider_relnotes Release Notes
+
+    @subsection empathicbuildingdataprovider_v1_0 EmpathicBuildingDataProvider v1.0
+    - initial release of the module
+*/
+
+#! Contains all public definitions in the EmpathicBuildingDataProvider module
+public namespace EmpathicBuildingDataProvider {
+}

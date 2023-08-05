@@ -768,6 +768,7 @@ install(FILES
             doxygen/dox_qore.css
             doxygen/DataProvider-Full.svg
             doxygen/elastic-logo.svg
+            doxygen/Haltian-EmpathicBuilding.svg
             doxygen/SqlUtil-Full.svg
             doxygen/Qore-Q.ico
             doxygen/header_template.html
@@ -937,6 +938,7 @@ qore_user_module("qlib/CdsRestDataProvider" "RestClient;CdsRestClient;RestSchema
 qore_user_module("qlib/ServiceNowRestDataProvider" "RestClient;ServiceNowRestClient;RestSchemaValidator;DataProvider")
 qore_user_module("qlib/RestClientDataProvider" "RestClient;DataProvider")
 qore_user_module("qlib/ElasticSearchDataProvider" "RestClient;DataProvider" "elastic-logo.svg")
+qore_user_module("qlib/EmpathicBuildingDataProvider" "RestClient;DataProvider" "Haltian-EmpathicBuilding.svg")
 
 # base 8 modules
 qore_user_module("qlib/SalesforceRestDataProvider" "RestClient;SalesforceRestClient;DataProvider")

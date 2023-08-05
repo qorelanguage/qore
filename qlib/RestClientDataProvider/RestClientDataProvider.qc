@@ -255,8 +255,8 @@ public class RestClientDataProvider inherits AbstractDataProvider {
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
-        rest = getRestConnection(options);
+        *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+        rest = getRestConnection(copts);
     }
 
     #! Creates the object from a REST connection

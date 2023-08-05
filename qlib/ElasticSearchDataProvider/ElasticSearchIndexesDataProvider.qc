@@ -24,7 +24,7 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The REST client GET data provider class
+#! The ElasticSearch indexes root for providing record-based data providers for each index
 public class ElasticSearchIndexesDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
