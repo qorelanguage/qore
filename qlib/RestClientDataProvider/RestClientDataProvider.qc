@@ -216,6 +216,10 @@ public class RestClientDataProvider inherits AbstractDataProvider {
                 }),
                 "desc": "A Swagger 2.0 schema location or file data for the REST connection",
             },
+            "swagger_lax_parsing": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderTypeMap."bool",
+                "desc": "try to parse invalid Swagger schemas",
+            },
             "timeout": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderType::get(IntType),
                 "desc": "Transfer timeout to use in milliseconds (default: 45 seconds)",
