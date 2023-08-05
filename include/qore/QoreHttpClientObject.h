@@ -39,7 +39,7 @@
 #define HTTPCLIENT_DEFAULT_PORT 80                 //!< the default port number to use
 #define HTTPCLIENT_DEFAULT_HOST "localhost"        //!< the default host name to use
 
-#define HTTPCLIENT_DEFAULT_TIMEOUT 300000          //!< the default connection and response packet timeout to use (300,000 ms = 5m)
+#define HTTPCLIENT_DEFAULT_TIMEOUT 60000          //!< the default connection and response packet timeout to use (60,000 ms = 1m)
 
 #define HTTPCLIENT_DEFAULT_MAX_REDIRECTS 5         //!< maximum number of HTTP redirects allowed
 
