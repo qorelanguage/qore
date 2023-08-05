@@ -288,7 +288,7 @@ struct qore_httpclient_priv {
     int timeout = HTTPCLIENT_DEFAULT_TIMEOUT;
     std::string socketpath;
     header_map_t default_headers;
-    int connect_timeout_ms = HTTPCLIENT_DEFAULT_TIMEOUT;
+    int connect_timeout_ms = HTTPCLIENT_DEFAULT_CONNECT_TIMEOUT;
 
     method_map_t additional_methods_map;
 

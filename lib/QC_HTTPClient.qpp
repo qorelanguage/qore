@@ -72,9 +72,9 @@ extern QoreClass* QC_SOCKET;
     This class understands and automatically decodes \c "deflate", \c "gzip", and \c "bzip2" content encodings as
     well.
 
-    The default connect and I/O timeout value is 60,000 milliseconds (60 seconds). Note that the timeout value applies
-    to individual internal send() or recv() operations; for this reason for large transfers the overall I/O time could
-    exceed the timeout value.
+    The default connect timeout value is 60,000 milliseconds (60 seconds), and the default I/O timeout is 300,000
+    milliseconds (5 minutes). Note that the timeout value applies to individual internal send() or recv() operations;
+    for this reason for large transfers the overall I/O time could exceed the timeout value.
 
     When an exception is thrown (for example, a response code of < \c 100 or >= \c 400 is received from the server),
     any message body returned will be in the \c "arg" key of the exception hash.

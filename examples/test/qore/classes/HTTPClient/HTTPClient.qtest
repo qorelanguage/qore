@@ -403,7 +403,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
 
     timeoutTest() {
         HTTPClient hc({"url": "http://localhost"});
-        assertEq(60000, hc.getTimeout());
+        assertEq(300000, hc.getTimeout());
         assertEq(60000, hc.getConnectTimeout());
     }
 
