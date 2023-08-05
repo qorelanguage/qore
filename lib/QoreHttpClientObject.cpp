@@ -2519,7 +2519,10 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         }
     }
 
-    http_priv->connect_timeout_ms = (int)get_ms_zero(opts->getKeyValue("connect_timeout"));
+    n = opts->getKeyValue("connect_timeout");
+    if (!n.isNothing()) {
+        http_priv->connect_timeout_ms = (int)get_ms_zero(n);
+    }
 
     if (http_priv->connection.path.empty())
         http_priv->connection.path = http_priv->default_path.empty() ? "/" : http_priv->default_path;
