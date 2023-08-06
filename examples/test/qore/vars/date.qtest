@@ -17,12 +17,18 @@ class DateTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("DateTest", "1.0") {
+        addTestCase("subtraction", \subtractionTests());
         addTestCase("DateTests", \dateTests());
         addTestCase("TimeZoneTests", \timeZoneTests());
         addTestCase("WindowsTimeZoneTests", \windowsTimeZoneTests());
         addTestCase("issue 2546", \issue2546());
 
         set_return_value(main());
+    }
+
+    subtractionTests() {
+        assertEq(1s, 1970-01-01T00:00:01+01:00 - 1970-01-01+01:00);
+        assertEq(1s, 1970-01-01T00:00:01Z - 1970-01-01Z);
     }
 
     dateTests() {
