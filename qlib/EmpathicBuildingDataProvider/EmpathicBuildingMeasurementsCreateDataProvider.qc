@@ -89,6 +89,7 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits DataProvide
             if (!event.time) {
                 event.time = clock_getmillis();
             } else {
+                # convert to milliseconds since the epoch
                 event.time = req.event.getEpochSeconds() * 1000 + req.event.milliseconds();
             }
             foreach hash<auto> e in (\event.events) {
@@ -97,8 +98,14 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits DataProvide
             }
         }
         hash<auto> info;
-        #on_error printf("info: %N\n", info);
-        return rest.post("v2/measurements", req0, \info).body;
+        try {
+            rest.post("v2/measurements", req0, \info);
+            return "OK";
+        } catch (hash<ExceptionInfo> ex) {
+            # ensure that any error response body is included in the exception
+            hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
+            rethrow ex.err, ex.desc, ex.arg + ex_arg;
+        }
     }
 
     #! Returns the description of a successful request message, if any
