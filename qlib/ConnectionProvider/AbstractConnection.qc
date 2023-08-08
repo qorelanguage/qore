@@ -290,6 +290,11 @@ public class AbstractConnection inherits Qore::Serializable {
 
     #! Returns a default ConnectionSchemeInfo hash
     hash<ConnectionSchemeInfo> getConnectionSchemeInfo() {
+        return getConnectionSchemeInfoImpl();
+    }
+
+    #! Override in subclasses to return a native ConnectionSchemeInfo hash
+    hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         hash<string, hash<ConnectionOptionInfo>> options;
         *hash<auto> opt = getOptions();
         if (opt) {
@@ -534,6 +539,7 @@ scheme://user:pass@hostname:port/path
     */
     private hash<auto> validateOptions(hash<auto> options) {
         hash<ConnectionSchemeInfo> scheme_info = getConnectionSchemeInfo();
+
         options = getDefaultOptions() + options;
         if (options) {
             # check for unknown options
@@ -544,10 +550,14 @@ scheme://user:pass@hostname:port/path
                     keys scheme_info.options);
             }
             foreach hash<auto> i in (options.pairIterator()) {
+                hash<ConnectionOptionInfo> info = scheme_info.options{i.key};
                 if (!exists i.value) {
+                    if (exists info.default_value) {
+                        options{i.key} = info.default_value;
+                    }
                     continue;
                 }
-                string type = scheme_info.options{i.key}.type;
+                string type = info.type;
                 if (type == "int") {
                     type = Type::Int;
                 } else if (type == "file-as-string") {
@@ -567,8 +577,24 @@ scheme://user:pass@hostname:port/path
                         sprintf("connection %y (type %y url %y) option %y was passed with type %s (%y); expecting %y",
                             name, urlh.protocol, url, i.key, i.value.type(), i.value, type);
                 }
-                if (scheme_info.options{i.key}.subst_env_vars) {
+                if (info.subst_env_vars) {
                     options{i.key} = substitute_env_vars(i.value);
+                }
+                # verify against allowed values
+                if (info.allowed_values) {
+                    bool ok;
+                    foreach hash<AllowedValueInfo> v in (info.allowed_values) {
+                        if (v.value == options{i.key}) {
+                            ok = True;
+                            break;
+                        }
+                    }
+                    if (!ok) {
+                        throw "CONNECTION-OPTION-ERROR",
+                            sprintf("connection %y (type %y url %y) option %y was passed with value %y, but allowed "
+                                "values are: %y", name, urlh.protocol, url, i.key, i.value, (map $1.value,
+                                info.allowed_values));
+                    }
                 }
             }
         }

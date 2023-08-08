@@ -146,10 +146,6 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
 
         #! HttpConnection object connection options
         const Options = map {$1: True}, keys ConnectionScheme.options;
-
-        #! HttpConnection default options
-        const DefaultOptions = map {$1.key: $1.value.default_value}, ConnectionScheme.options.pairIterator(),
-            exists $1.value.default_value;
     }
 
     #! Creates the HttpConnection object
