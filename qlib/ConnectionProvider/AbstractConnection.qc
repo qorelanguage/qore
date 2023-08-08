@@ -547,7 +547,8 @@ scheme://user:pass@hostname:port/path
                 if (!exists i.value) {
                     continue;
                 }
-                string type = scheme_info.options{i.key}.type;
+                hash<ConnectionOptionInfo> info = scheme_info.options{i.key};
+                string type = info.type;
                 if (type == "int") {
                     type = Type::Int;
                 } else if (type == "file-as-string") {
@@ -567,8 +568,24 @@ scheme://user:pass@hostname:port/path
                         sprintf("connection %y (type %y url %y) option %y was passed with type %s (%y); expecting %y",
                             name, urlh.protocol, url, i.key, i.value.type(), i.value, type);
                 }
-                if (scheme_info.options{i.key}.subst_env_vars) {
+                if (info.subst_env_vars) {
                     options{i.key} = substitute_env_vars(i.value);
+                }
+                # verify against allowed values
+                if (info.allowed_values) {
+                    bool ok;
+                    foreach hash<AllowedValueInfo> v in (info.allowed_values) {
+                        if (v.value == options{i.key}) {
+                            ok = True;
+                            break;
+                        }
+                    }
+                    if (!ok) {
+                        throw "CONNECTION-OPTION-ERROR",
+                            sprintf("connection %y (type %y url %y) option %y was passed with value %y, but allowed "
+                                "values are: %y", name, urlh.protocol, url, i.key, i.value, (map $1.value,
+                                info.allowed_values));
+                    }
                 }
             }
         }

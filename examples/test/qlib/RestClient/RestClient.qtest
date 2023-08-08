@@ -89,6 +89,7 @@ public class Main inherits QUnit::Test {
     }
 
     constructor() : Test("RestClientTest", "1.0") {
+        addTestCase("invalid connection option", \invalidConnectionOptionTest());
         addTestCase("poll test", \pollTest());
         addTestCase("issue 3472", \issue3472());
         addTestCase("connection tests", \connectionTests());
@@ -123,6 +124,12 @@ public class Main inherits QUnit::Test {
 
     tearDown() {
         delete m_http;
+    }
+
+    invalidConnectionOptionTest() {
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
+            new RestConnection("test", "test", "rests://localhost", NOTHING, {"data": "invalid"});
+        });
     }
 
     pollTest() {
