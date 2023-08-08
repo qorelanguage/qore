@@ -290,6 +290,11 @@ public class AbstractConnection inherits Qore::Serializable {
 
     #! Returns a default ConnectionSchemeInfo hash
     hash<ConnectionSchemeInfo> getConnectionSchemeInfo() {
+        return getConnectionSchemeInfoImpl();
+    }
+
+    #! Override in subclasses to return a native ConnectionSchemeInfo hash
+    hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         hash<string, hash<ConnectionOptionInfo>> options;
         *hash<auto> opt = getOptions();
         if (opt) {
@@ -534,6 +539,7 @@ scheme://user:pass@hostname:port/path
     */
     private hash<auto> validateOptions(hash<auto> options) {
         hash<ConnectionSchemeInfo> scheme_info = getConnectionSchemeInfo();
+
         options = getDefaultOptions() + options;
         if (options) {
             # check for unknown options
@@ -544,10 +550,13 @@ scheme://user:pass@hostname:port/path
                     keys scheme_info.options);
             }
             foreach hash<auto> i in (options.pairIterator()) {
+                hash<ConnectionOptionInfo> info = scheme_info.options{i.key};
                 if (!exists i.value) {
+                    if (exists info.default_value) {
+                        options{i.key} = info.default_value;
+                    }
                     continue;
                 }
-                hash<ConnectionOptionInfo> info = scheme_info.options{i.key};
                 string type = info.type;
                 if (type == "int") {
                     type = Type::Int;

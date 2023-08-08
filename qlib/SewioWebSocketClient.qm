@@ -253,10 +253,6 @@ public class SewioWebSocketConnection inherits WebSocketClient::WebSocketConnect
 
         #! object connection options
         const Options = map {$1: True}, keys ConnectionScheme.options;
-
-        #! default options
-        const DefaultOptions = map {$1.key: $1.value.default_value}, ConnectionScheme.options.pairIterator(),
-            exists $1.value.default_value;
     }
 
     #! creates the SewioWebSocketConnection connection object

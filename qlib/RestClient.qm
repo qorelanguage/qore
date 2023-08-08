@@ -1343,10 +1343,6 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         #! object connection options
         const Options = map {$1: True}, keys ConnectionScheme.options;
 
-        #! default options
-        const DefaultOptions = map {$1.key: $1.value.default_value}, ConnectionScheme.options.pairIterator(),
-            exists $1.value.default_value;
-
         #! object connection option list
         const OptionList = keys ConnectionScheme.options;
     }
@@ -1429,11 +1425,6 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     */
     hash<auto> getOptions() {
         return Options;
-    }
-
-    #! returns default options
-    *hash<auto> getDefaultOptions() {
-        return DefaultOptions;
     }
 
     #! returns \c "rest"
