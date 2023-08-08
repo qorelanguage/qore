@@ -133,7 +133,7 @@ public:
                 return -1;
             }
         } else if (reuse_last && current_tid && entry[current_tid - 1].available()) {
-            printd(0, "QoreThreadList::get() reusing TID %d\n", current_tid - 1);
+            printd(5, "QoreThreadList::get() reusing TID %d\n", current_tid - 1);
             // re-assign the last assigned TID
             tid = current_tid - 1;
         } else {
