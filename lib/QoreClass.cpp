@@ -3007,7 +3007,8 @@ const QoreMethod* qore_class_private::parseFindStaticMethodIntern(const char* mn
     return nullptr;
 }
 
-const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const QoreProgramLocation* loc, const char* nme, const qore_class_private* class_ctx) {
+const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const QoreProgramLocation* loc, const char* nme,
+        const qore_class_private* class_ctx) {
     const QoreMethod* m = parseFindLocalMethod(nme);
     if (m && doMethodAccess(m, qore_method_private::getAccess(*m), class_ctx))
         return m;
@@ -3022,7 +3023,8 @@ const QoreMethod* qore_class_private::parseResolveSelfMethodIntern(const QorePro
     return nullptr;
 }
 
-int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& b_mi, const QoreMemberInfo& l_mi) const {
+int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const QoreMemberInfo& b_mi,
+        const QoreMemberInfo& l_mi) const {
     // if both classes are system classes, then ignore
     if (sys && l_mi.getClass()->sys) {
         return 0;
@@ -3030,7 +3032,10 @@ int qore_class_private::parseCheckClassHierarchyMembers(const char* mname, const
     if (l_mi.access != b_mi.access || l_mi.parseHasTypeInfo() || b_mi.parseHasTypeInfo()) {
         // raise an exception only if parse exceptions are enabled
         if (getProgram()->getParseExceptionSink()) {
-            qore_program_private::makeParseException(getProgram(), *l_mi.loc, "PARSE-ERROR", new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because member '%s' is accessible from class '%s' from more than one declaration in the hierarchy", l_mi.getClass()->name.c_str(), b_mi.getClass()->name.c_str(), mname, name.c_str()));
+            qore_program_private::makeParseException(getProgram(), *l_mi.loc, "PARSE-ERROR",
+                new QoreStringNodeMaker("class '%s' cannot be combined with class '%s' in the same hierarchy because "
+                    "member '%s' is accessible from class '%s' from more than one declaration in the hierarchy",
+                    l_mi.getClass()->name.c_str(), b_mi.getClass()->name.c_str(), mname, name.c_str()));
         }
         return -1;
     }
@@ -4575,16 +4580,27 @@ qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_cl
     return QTI_NOT_EQUAL;
 }
 
+DLLLOCAL void breakit() {}
+
 qore_type_result_e qore_class_private::runtimeCheckCompatibleClassIntern(const qore_class_private& oc) const {
-    if (equal(oc))
+    if (equal(oc)) {
         return QTI_IDENT;
+    }
 
     ClassAccess access = Public;
-    if (!oc.scl || !oc.scl->getClass(*this, access, true))
-        return QTI_NOT_EQUAL;
+    if (!oc.scl || !oc.scl->getClass(*this, access, true)) {
 
-    if (access == Public)
+        // XXX DEBUG
+        if (name == "AbstractDatasource" && oc.name == "QdspClient") {
+            breakit();
+        }
+
+        return QTI_NOT_EQUAL;
+    }
+
+    if (access == Public) {
         return QTI_AMBIGUOUS;
+    }
 
     return runtimeCheckPrivateClassAccess() ? QTI_AMBIGUOUS : QTI_NOT_EQUAL;
 }
@@ -5013,11 +5029,13 @@ QoreValue UserMethodVariant::evalMethod(QoreObject* self, CodeEvaluationHelper &
         ) : nullptr, xsink);
     if (*xsink)
         return QoreValue();
-    //printd(5, "UserMethodVariant::evalMethod() this: %p %s::%s()\n", this, getClassPriv()->name.c_str(), qmethod->getName());
+    //printd(5, "UserMethodVariant::evalMethod() this: %p %s::%s()\n", this, getClassPriv()->name.c_str(),
+    //    qmethod->getName());
     return eval(qmethod->getName(), &ceh, self, xsink, getClassPriv());
 }
 
-void BuiltinConstructorValueVariant::evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+void BuiltinConstructorValueVariant::evalConstructor(const QoreClass& thisclass, QoreObject* self,
+        CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
     CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, qore_class_private::get(thisclass));
 
     if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
@@ -5026,7 +5044,8 @@ void BuiltinConstructorValueVariant::evalConstructor(const QoreClass& thisclass,
     constructor(self, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
 }
 
-void BuiltinExternalConstructorValueVariant::evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+void BuiltinExternalConstructorValueVariant::evalConstructor(const QoreClass& thisclass, QoreObject* self,
+        CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
     CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, qore_class_private::get(thisclass));
 
     if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))
@@ -5035,7 +5054,8 @@ void BuiltinExternalConstructorValueVariant::evalConstructor(const QoreClass& th
     constructor(*qmethod, ptr, self, ceh.getArgs(), ceh.getRuntimeFlags(), xsink);
 }
 
-int ConstructorMethodVariant::constructorPrelude(const QoreClass& thisclass, CodeEvaluationHelper& ceh, QoreObject* self, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+int ConstructorMethodVariant::constructorPrelude(const QoreClass& thisclass, CodeEvaluationHelper& ceh,
+        QoreObject* self, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
     if (bcl) {
         const BCAList* bcal = getBaseClassArgumentList();
         if (bcal) {
@@ -5057,14 +5077,16 @@ UserConstructorVariant::~UserConstructorVariant() {
     delete bcal;
 }
 
-void UserConstructorVariant::evalConstructor(const QoreClass &thisclass, QoreObject* self, CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+void UserConstructorVariant::evalConstructor(const QoreClass &thisclass, QoreObject* self,
+        CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
     UserVariantExecHelper uveh(this, &ceh, xsink);
     if (!uveh)
         return;
 
     CodeContextHelper cch(xsink, CT_USER, "constructor", self, qore_class_private::get(thisclass), false);
 
-    // instantiate "self" before executing base class constructors in case base class constructor arguments reference "self"
+    // instantiate "self" before executing base class constructors in case base class constructor arguments reference
+    // "self"
     assert(signature.selfid);
     signature.selfid->instantiateSelf(self);
 
@@ -5107,7 +5129,8 @@ int UserConstructorVariant::parseInit(QoreFunction* f) {
         err = -1;
     }
 
-    //printd(5, "UserConstructorVariant::parseInitConstructor() this: %p %s::constructor() params: %d\n", this, parent_class.getName(), signature.numParams());
+    //printd(5, "UserConstructorVariant::parseInitConstructor() this: %p %s::constructor() params: %d\n", this,
+    //    parent_class.getName(), signature.numParams());
     // must be called even if statements is NULL
     if (statements->parseInitConstructor(parent_class.getTypeInfo(), this, bcal, parent_class) && !err) {
         err = -1;
@@ -5121,27 +5144,32 @@ int UserConstructorVariant::parseInit(QoreFunction* f) {
     return err;
 }
 
-void BuiltinDestructorVariant::evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const {
+void BuiltinDestructorVariant::evalDestructor(const QoreClass &thisclass, QoreObject* self,
+        ExceptionSink* xsink) const {
     CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
 
     AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
-    //printd(5, "BuiltinDestructorVariant::evalDestructor() o: %p, v: %d, classid: %d, private: %p\n", self, self->isValid(), thisclass.getID(), private_data);
+    //printd(5, "BuiltinDestructorVariant::evalDestructor() o: %p, v: %d, classid: %d, private: %p\n", self,
+    //    self->isValid(), thisclass.getID(), private_data);
     if (!private_data)
         return;
     destructor(self, private_data, xsink);
 }
 
-void BuiltinExternalDestructorVariant::evalDestructor(const QoreClass &thisclass, QoreObject* self, ExceptionSink* xsink) const {
+void BuiltinExternalDestructorVariant::evalDestructor(const QoreClass &thisclass, QoreObject* self,
+        ExceptionSink* xsink) const {
     CodeContextHelper cch(xsink, CT_BUILTIN, "destructor", self, qore_class_private::get(thisclass));
 
     AbstractPrivateData* private_data = self->getAndClearPrivateData(thisclass.getID(), xsink);
-    //printd(5, "BuiltinExternalDestructorVariant::evalDestructor() o: %p, v: %d, private: %p\n", self, self->isValid(), private_data);
+    //printd(5, "BuiltinExternalDestructorVariant::evalDestructor() o: %p, v: %d, private: %p\n", self,
+    //    self->isValid(), private_data);
     if (!private_data)
         return;
     destructor(thisclass, ptr, self, private_data, xsink);
 }
 
-void UserCopyVariant::evalCopy(const QoreClass& thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const {
+void UserCopyVariant::evalCopy(const QoreClass& thisclass, QoreObject* self, QoreObject* old,
+        CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const {
     // there can only be max 1 param
     assert(signature.numParams() <= 1);
 

@@ -333,6 +333,8 @@ static inline const char* get_type_name(const AbstractQoreNode* n) {
 //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
 /** differs from the return value of get_type_name() for complex types (ex: \c "hash<string, int>")
 
+    @param n the value to process
+
     @since %Qore 0.8.13
 */
 DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n);
@@ -340,11 +342,24 @@ DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n);
 //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
 /** differs from the return value of get_type_name() for complex types (ex: \c "hash<string, int>")
 
+    @param n the value to process
+
     @param with_namespaces if true then class and hashdecl names are given with full namespace paths
 
     @since %Qore 1.0
 */
 DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces);
+
+//! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
+/** will return NOTHING (delete object of class ...) for invalid objects
+
+    @param n the value to process
+    @param with_namespaces if true then class and hashdecl names are given with full namespace paths
+    @param scratch scratch space for creating formatting string return values
+
+    @since %Qore 1.18
+*/
+DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces, QoreString& scratch);
 
 static inline qore_type_t get_node_type(const AbstractQoreNode* n) {
    return n ? n->getType() : NT_NOTHING;

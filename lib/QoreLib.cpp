@@ -2791,11 +2791,7 @@ int q_get_data(const QoreValue& data, const char*& ptr, size_t& len) {
     return -1;
 }
 
-const char* get_full_type_name(const AbstractQoreNode* n) {
-    return get_full_type_name(n, false);
-}
-
-const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces) {
+static const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces, QoreString* scratch) {
     switch (get_node_type(n)) {
         case NT_HASH: {
             const qore_hash_private* h = qore_hash_private::get(*static_cast<const QoreHashNode*>(n));
@@ -2820,14 +2816,35 @@ const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces) 
             }
             break;
         }
-        case NT_OBJECT:
-            return with_namespaces
+        case NT_OBJECT: {
+            const char* clsname = with_namespaces
                 ? QoreTypeInfo::getPath(static_cast<const QoreObject*>(n)->getClass()->getTypeInfo())
                 : QoreTypeInfo::getName(static_cast<const QoreObject*>(n)->getClass()->getTypeInfo());
+            if (!((QoreObject*)n)->isValid()) {
+                if (scratch) {
+                    scratch->sprintf("NOTHING (deleted object of class %s)", clsname);
+                    return scratch->c_str();
+                }
+                return "NOTHING (deleted object)";
+            }
+            return clsname;
+        }
         default:
             break;
     }
     return get_type_name(n);
+}
+
+const char* get_full_type_name(const AbstractQoreNode* n) {
+    return get_full_type_name(n, false);
+}
+
+const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces) {
+    return get_full_type_name(n, with_namespaces, nullptr);
+}
+
+const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces, QoreString& scratch) {
+    return get_full_type_name(n, with_namespaces, &scratch);
 }
 
 void QorePossibleListNodeParseInitHelper::parseInit(QoreParseContext& parse_context) {

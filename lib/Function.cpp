@@ -166,7 +166,8 @@ static void add_args(QoreStringNode &desc, const QoreListNode* args) {
 
     for (unsigned i = 0; i < args->size(); ++i) {
         const QoreValue n = args->retrieveEntry(i);
-        desc.concat(n.getFullTypeName(true));
+        QoreString scratch;
+        desc.concat(n.getFullTypeName(true, scratch));
         if (i != (args->size() - 1))
             desc.concat(", ");
     }
@@ -947,6 +948,9 @@ QoreListNode* QoreFunction::runtimeGetCallVariants() const {
     return rv->empty() ? nullptr : rv.release();
 }
 
+// XXX DEBUG
+DLLLOCAL void breakit();
+
 // finds a variant at runtime
 const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSink* xsink, const QoreListNode* args,
         bool only_user, const qore_class_private* class_ctx) const {
@@ -1122,6 +1126,12 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
         desc->sprintf("%s(", getName());
         add_args(*desc, args);
         desc->concat(")' can be found; ");
+
+        // XXX DEBUG
+        if (desc->find("QdspClient") >= 0) {
+            breakit();
+        }
+
         if (!cnt) {
             desc->concat("no variants were accessible in this execution context");
         } else {
