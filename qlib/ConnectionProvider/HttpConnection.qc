@@ -60,7 +60,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
-            "cls": Class::forName("FilesystemConnection"),
+            "cls": Class::forName("HttpConnection"),
             "options": {
                 "assume_encoding": <ConnectionOptionInfo>{
                     "type": "string",
