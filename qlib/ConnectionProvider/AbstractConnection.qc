@@ -72,7 +72,9 @@ public class AbstractConnection inherits Qore::Serializable {
         #! set to @ref True "True" for loopback connections
         bool loopback = False;
 
-        #! optional code for default post-processing of objects created by getImpl(); must take the connection object and the object created as arguments
+        #! optional code for default post-processing of objects created by getImpl()
+        /** must take the connection object and the object created as arguments
+        */
         static *code post_processing;
 
         #! enabled/disabled indicator flag
@@ -102,8 +104,11 @@ public class AbstractConnection inherits Qore::Serializable {
         #! if the data provider or any of its children support transaction management
         bool children_can_support_transactions = False;
 
-        #! internal tags
+        #! internal tags (serializable)
         hash<auto> internal_info;
+
+        #! internal transient tags (non-serializable)
+        transient hash<auto> transient_info;
     }
 
     #! creates the AbstractConnection object
@@ -113,7 +118,8 @@ public class AbstractConnection inherits Qore::Serializable {
         @param monitor monitoring flag
         @param opts connection options
         @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
-        @param safe_url "safe" URL (password information removed); if not set this will be set automatically by calling @ref getSafeUrl()
+        @param safe_url "safe" URL (password information removed); if not set this will be set automatically by
+        calling @ref getSafeUrl()
         @param enabled enabled/disabled flag
     */
     deprecated
@@ -359,7 +365,8 @@ public class AbstractConnection inherits Qore::Serializable {
     }
 
     #! this method is called when parsing connection file definitions from text files when loading into the database
-    /** reimplement this method in subclasses to parse the option hash as set from a text file if needed (for special option formats, etc)
+    /** reimplement this method in subclasses to parse the option hash as set from a text file if needed (for special
+        option formats, etc)
     */
     parseTextOptions() {
     }
@@ -632,7 +639,8 @@ scheme://user:pass@hostname:port/path
     /**
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    private:internal constructorInit(string name, string description, string url, hash<auto> attributes, hash<auto> options) {
+    private:internal constructorInit(string name, string description, string url, hash<auto> attributes,
+            hash<auto> options) {
         # metadata
         self.name = name;
         desc = description;
