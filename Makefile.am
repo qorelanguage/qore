@@ -881,7 +881,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_SocketPollOperationBase.h \
 	include/qore/intern/QC_SocketPollOperation.h \
 	include/qore/intern/QoreEllipsesNode.h \
-	lib/getopt_long.h \
+	include/qore/intern/getopt_long.h \
 	command-line.h
 
 LIB_DOXYFILES_FIXED = \
