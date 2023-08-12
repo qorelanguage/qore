@@ -121,6 +121,7 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
         set(_dox_src ${CMAKE_SOURCE_DIR}/modules/${_module_name}/src)
         set(_dox_output ${CMAKE_BINARY_DIR}/docs/modules/${_module_name})
         set(QORE_MOD_NAME ${_module_name})
+	include_directories(${CMAKE_SOURCE_DIR}/include/)
 
         if ("${QORE_USERMODULE_DOXYGEN_TEMPLATE}" STREQUAL "")
             set(QORE_USERMODULE_DOXYGEN_TEMPLATE ${CMAKE_SOURCE_DIR}/doxygen/modules/Doxyfile.cmake.in)
@@ -219,8 +220,10 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
         message(WARNING "Module ${_module_name} uninstall script: no file: ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in")
     endif()
 
-    # docs
-    FIND_PACKAGE(Doxygen)
+    # docs: do not try to find doxygen again when building Qore
+    if (NOT "${_mod_suffix}" STREQUAL "1")
+        FIND_PACKAGE(Doxygen)
+    endif()
     if (DOXYGEN_FOUND)
         if (EXISTS "${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
             set(CURRENT_MODULE_NAME ${_module_name})

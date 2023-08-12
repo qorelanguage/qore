@@ -58,7 +58,7 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #else
-#include "getopt_long.h"
+#include "qore/intern/getopt_long.h"
 #endif
 
 const char usage_str[] = "usage: %s [options] <input file(s)...>\n"
