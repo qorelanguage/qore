@@ -45,6 +45,7 @@ public class DataProvider {
             "ftpclient": "FtpClientDataProvider",
             "ftppoller": "FtpPoller",
             "httpclient": "HttpClientDataProvider",
+            "mqtt": "MqttDataProvider",
             "restclient": "RestClientDataProvider",
             "salesforcerest": "SalesforceRestDataProvider",
             "sax": "SaxDataProvider",
