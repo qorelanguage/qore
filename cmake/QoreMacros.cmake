@@ -401,8 +401,10 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
     get_filename_component(f ${_module_file} NAME_WE)
     if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
         file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc")
+        file(GLOB _mod_jar_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/jar/*.jar")
         set(qm_install_subdir "${f}") # install files into a subdir
         #message(STATUS "_mod_targets ${_mod_targets}")
+        message(STATUS "_mod_jar_targets ${_mod_jar_targets}")
     else()
         set(_mod_targets ${_module_file})
         set(qm_install_subdir "") # common qm file
@@ -468,8 +470,12 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
         endforeach(i)
     endif (DOXYGEN_FOUND)
 
-    # install qm file
+    # install user module files
     install(FILES ${_mod_targets} DESTINATION ${QORE_USER_MODULES_DIR}/${qm_install_subdir})
+    if (DEFINED _mod_jar_targets)
+        install(FILES ${_mod_jar_targets} DESTINATION ${QORE_USER_MODULES_DIR}/${qm_install_subdir}/jar)
+        message(STATUS "called install for ${_mod_jar_targets} -> ${QORE_USER_MODULES_DIR}/${qm_install_subdir}/jar")
+    endif()
 ENDMACRO (QORE_EXTERNAL_USER_MODULE)
 
 # Install qore native/user modules (qm files) into the proper location.
