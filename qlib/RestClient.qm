@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.10";
+    version = "1.10.1";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -126,6 +126,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_10_1 RestClient v1.10.1
+    - fixed URI path reporting in REST error messages
+      (<a href="https://github.com/qorelanguage/qore/issues/4760">issue 4760</a>)
 
     @subsection restclientv1_10 RestClient v1.10
     - implemented the \c swagger_lax_parsing option to try to parse invalid Swagger schemas
@@ -1053,7 +1057,15 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         # prepare path
         preparePath(\path);
 
-        on_error rethrow $1.err, sprintf("%s (REST URL %y)", $1.desc, getSafeURL());
+        on_error {
+            string url = getSafeURL();
+            if (path =~ /^\//) {
+                url += path[1..];
+            } else {
+                url += path;
+            }
+            rethrow $1.err, sprintf("%s (REST URL %y)", $1.desc, url);
+        }
 
         return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
     }

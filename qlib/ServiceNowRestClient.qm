@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.4
 
 module ServiceNowRestClient {
-    version = "1.1.1";
+    version = "1.1.2";
     desc = "user module for calling ServiceNow REST services";
     author = "David Nichols <david@qore.org>";
     url = "https://qore.org";
@@ -98,6 +98,10 @@ printf("%N\n", ans.body);
 
     @section ServiceNowrestclientrelnotes Release Notes
 
+    @subsection ServiceNowrestclientv1_1_2 ServiceNowRestClient v1.1.2
+    - fixed to create URI request paths properly; restored functionality with recent versions of ServiceNow
+      (<a href="https://github.com/qorelanguage/qore/issues/4758">issue 4758</a>)
+
     @subsection ServiceNowrestclientv1_1_1 ServiceNowRestClient v1.1.1
     - support full ping operations, also with polling, using an authenticated request
       (<a href="https://github.com/qorelanguage/qore/issues/4677">issue 4677</a>)
@@ -131,7 +135,7 @@ public class ServiceNowRestClient inherits RestClient::RestClient {
         const DefaultApiVersion = "now";
 
         #! Request URI path prefix
-        const RequestUriPathPrefix = "/api/now";
+        const RequestUriPathPrefix = "/api/";
     }
 
     private:internal {
@@ -228,10 +232,10 @@ ServiceNowRestClient rest({
 
         if (opts.api.val()) {
             api = getString(opts, "api");
-            uri_path_pfx = RequestUriPathPrefix + "/" + api;
+            uri_path_pfx = RequestUriPathPrefix + api;
         } else {
             # default: use latest API
-            uri_path_pfx = RequestUriPathPrefix;
+            uri_path_pfx = RequestUriPathPrefix + DefaultApiVersion;
         }
         setConnectionPath(uri_path_pfx);
 
@@ -241,11 +245,10 @@ ServiceNowRestClient rest({
     }
 
     #! returns the ServiceNow REST API version currently in use
-    /** @return the ServiceNow REST API version currently in use; if @ref nothing is returned, then the latest API is
-        used
+    /** @return the ServiceNow REST API version currently in use
     */
-    *string getApi() {
-        return api;
+    string getApi() {
+        return api ?? DefaultApiVersion;
     }
 
     #! returns the access token, if any
@@ -472,7 +475,8 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
     Qore::AbstractPollOperation startPollConnect() {
         # start the polling operation manually using the full request path
         return new RestPingPollOperation(getPollImpl().startPollSendRecv(DefaultServiceNowPingMethod,
-            "/api/now/" + DefaultServiceNowPingPath, NOTHING, DefaultServiceNowPingHeaders));
+            ServiceNowRestClient::RequestUriPathPrefix + opts.api + "/" + DefaultServiceNowPingPath, NOTHING,
+            DefaultServiceNowPingHeaders));
     }
 
     #! Sets child data provider capabilities

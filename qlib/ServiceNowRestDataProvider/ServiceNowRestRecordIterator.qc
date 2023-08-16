@@ -237,7 +237,7 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
 
     private string doWhereExpression(hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         list<string> clauses;
-        if (where_cond.exp.label == DP_OP_AND) {
+        if (where_cond.exp == DP_OP_AND) {
             map clauses += doWhereExpressionIntern($1), where_cond.args;
         } else {
             clauses += doWhereExpressionIntern(where_cond);
@@ -246,14 +246,14 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
     }
 
     private string doWhereExpressionIntern(hash<DataProviderExpression> arg) {
-        *hash<auto> expinfo = ServiceNowTableDataProvider::Expressions{arg.exp.label};
+        *hash<auto> expinfo = ServiceNowTableDataProvider::Expressions{arg.exp};
         if (!expinfo) {
             throw "WHERE-ERROR", sprintf("expression references unknown operator %y; known operators: %y",
-                arg.exp.label, keys ServiceNowTableDataProvider::Expressions);
+                arg.exp, keys ServiceNowTableDataProvider::Expressions);
         }
         if (!(arg.args[0] instanceof hash<DataProviderFieldReference>)) {
             throw "WHERE-ERROR", sprintf("the first argument to expression %y must be a field reference",
-                arg.exp.label);
+                arg.exp);
         }
         string column = (shift arg.args).field;
         list<auto> args = (column,);

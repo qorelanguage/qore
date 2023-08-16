@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.0
+%requires qore >= 1.18.1
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -37,7 +37,7 @@
 %requires(reexport) ServiceNowRestClient
 
 module ServiceNowRestDataProvider {
-    version = "1.2";
+    version = "1.2.1";
     desc = "user module providing a data provider API for ServiceNow instances through the REST API";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -74,6 +74,10 @@ module ServiceNowRestDataProvider {
     - @ref ServiceNowRestDataProvider::ServiceNowTablesDataProvider "ServiceNowTablesDataProvider"
     - @ref ServiceNowRestDataProvider::ServiceNowTableDataProvider "ServiceNowTableDataProvider"
     - @ref ServiceNowRestDataProvider::ServiceNowRestRecordIterator "ServiceNowRestRecordIterator"
+
+    @subsection servicenowrestdataprovider_v1_2 ServiceNowRestDataProvider v1.2.1
+    - fixed operator handling in searches
+      (<a href="https://github.com/qorelanguage/qore/issues/4759">issue 4759</a>)
 
     @subsection servicenowrestdataprovider_v1_2 ServiceNowRestDataProvider v1.2
     - updated to use new generic expression support for searches
