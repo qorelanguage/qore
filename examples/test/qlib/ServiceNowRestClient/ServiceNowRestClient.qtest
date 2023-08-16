@@ -150,16 +150,48 @@ class ServiceNowTest inherits QUnit::Test {
     ServiceNowRestTests() {
         if (!rc) testSkip("no ServiceNow connection");
 
-        assertEq(Type::NothingType, rc.getApi().type());
+        assertEq("now", rc.getApi());
 
         if (rc.usingOAuth2()) {
             assertEq(Type::String, rc.getToken().type());
         }
 
-        hash<auto> info;
-        hash<auto> h = rc.get("table/incident?sysparm_limit=1", NOTHING, \info);
-        on_error printf("%N\n", h);
-        assertEq(Type::Hash, h.body.response.result.type());
+        {
+            hash<auto> info;
+            hash<auto> h = rc.get("table/incident?sysparm_limit=1", NOTHING, \info);
+            on_error printf("%N\n", h);
+            assertEq(Type::Hash, h.body.response.result.type());
+        }
+
+%ifdef NoJson
+        testSkip("no json module present");
+%endif
+
+        hash<auto> info = parse_url(rc.getURL());
+        string url = info.protocol + "://" + info.host;
+        if ((info.protocol != "https" || info.port != 443)
+            && (info.protocol != "http" || info.port != 80)) {
+            url += ":" + info.port;
+        }
+
+        # setup valid connection and test polling
+        ServiceNowRestConnection snrc("test", "test", url, {"monitor": True}, {
+            "username": info.username,
+            "password": info.password,
+        });
+
+        Logger logger("test", m_options.verbose > 3 ? LoggerLevel::getLevelDebug() : LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new StdoutAppender());
+        }
+
+        TestPollingConnectionMonitor monitor(logger);
+        on_exit delete monitor;
+        monitor.add(snrc);
+
+        info = monitor.waitForResult();
+        assertEq(info.name, "test");
+        assertEq("OK", info.result);
     }
 
     connectionTest() {
@@ -189,5 +221,34 @@ class ServiceNowTest inherits QUnit::Test {
         # issue #3321: check default timeouts
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
+    }
+}
+
+class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
+    private {
+        Queue msgq();
+    }
+
+    constructor(*Logger logger) : PollingConnectionMonitor(logger) {
+        ping_timeout = 5s;
+    }
+
+    hash<auto> waitForResult() {
+        return msgq.get();
+    }
+
+    private handlePingSuccess(string name, date delta, *bool oldok) {
+        PollingConnectionMonitor::handlePingSuccess(name, delta, oldok);
+        msgq.push({"name": name, "result": "OK"});
+    }
+
+    private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
+        PollingConnectionMonitor::handlePingFailed(name, delta, ex);
+        msgq.push({"name": name, "result": "error", "ex": ex});
+    }
+
+    private handlePingTimeout(string name, date delta) {
+        PollingConnectionMonitor::handlePingTimeout(name, delta);
+        msgq.push({"name": name, "result": "timeout"});
     }
 }
