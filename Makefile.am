@@ -1012,6 +1012,7 @@ dist_qoredata_DATA = doxygen/Doxyfile.in \
     doxygen/dox_qore.css \
     doxygen/DataProvider-Full.svg \
     doxygen/elastic-logo.svg \
+    doxygen/Haltian-EmpathicBuilding.svg \
     doxygen/SqlUtil-Full.svg \
     doxygen/Qore-Q.ico \
     doxygen/header_template.html \
