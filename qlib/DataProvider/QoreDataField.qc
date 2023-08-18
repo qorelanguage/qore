@@ -107,6 +107,7 @@ public class QoreDataField inherits AbstractDataField {
             "name": name,
             "desc": desc,
             "default_value": default_value,
+            "allowed_values": allowed_values,
             "type": type.getInfo(),
         };
     }
