@@ -5,7 +5,7 @@
 AC_INIT([qore], [1.18.1],
         [David Nichols <david@qore.org>],
         [qore])
-AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
+AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-pax subdir-objects])
 AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
 AC_CONFIG_HEADER(modules/astparser/config.h)
 

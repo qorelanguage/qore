@@ -1012,6 +1012,7 @@ dist_qoredata_DATA = doxygen/Doxyfile.in \
     doxygen/dox_qore.css \
     doxygen/DataProvider-Full.svg \
     doxygen/elastic-logo.svg \
+    doxygen/Haltian-EmpathicBuilding.svg \
     doxygen/SqlUtil-Full.svg \
     doxygen/Qore-Q.ico \
     doxygen/header_template.html \
@@ -1321,7 +1322,7 @@ TAR_NAME := arch/qore-v$(PACKAGE_VERSION)-$(BUILD)-$(shell date +%Y%m%d).tar
 
 tar: clean
 	find $(top_srcdir) -name \*~ -exec rm {} \;
-	cd ..; tar cvf $(TAR_NAME) src && gzip $(TAR_NAME)
+	cd ..; tar --posix -cvf $(TAR_NAME) src && gzip $(TAR_NAME)
 
 tests:
 	./run_tests.sh
