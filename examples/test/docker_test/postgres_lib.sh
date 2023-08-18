@@ -57,6 +57,7 @@ grant create, connect, temp on database ${OMQ_DB_NAME} to ${OMQ_DB_USER};
 grant create on tablespace omq_data to ${OMQ_DB_USER};
 grant create on tablespace omq_index to ${OMQ_DB_USER};
 grant select on all tables in schema pg_catalog to ${OMQ_DB_USER};
+grant all on schema public to ${OMQ_DB_USER};
 EOF
     echo created pgsql user ${OMQ_DB_USER} and db ${OMQ_DB_NAME}
 
