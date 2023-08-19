@@ -1693,8 +1693,10 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
                         if (resp."response-body") {
                             resp."response-body" = resp."response-body".toString(resp.info.charset ?? "ISO-8859-1");
                         }
+                        on_error rethrow $1.err, sprintf("%s: info: %y", $1.desc, resp.info{"request-uri",
+                            "response-uri"});
                         validator.parseResponse(method, path, resp."code", resp."response-body",
-                            resp.info."response-headers");
+                            resp.info."response-headers" + {"content-type": resp.info."body-content-type"});
                     }
                     goal_reached = True;
                 } else {
