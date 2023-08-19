@@ -54,7 +54,7 @@
 %endtry
 
 module RestClient {
-    version = "1.10.1";
+    version = "1.10.2";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -126,6 +126,11 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv1_10_2 RestClient v1.10.2
+    - fixed handling polling pings of REST connections to respect the connection parameters and behave like the
+      non-polling ping
+      (<a href="https://github.com/qorelanguage/qore/issues/47xx">issue 47xx</a>)
 
     @subsection restclientv1_10_1 RestClient v1.10.1
     - fixed URI path reporting in REST error messages
@@ -435,6 +440,14 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing
             message headers
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+        - \c ping_method: the HTTP method to use for an advanced ping; this and \c ping_path must be set to make an
+          HTTP request as a part of the socket polling ping operation; must be a valid HTTP method name
+        - \c ping_path: the URI path to use for an advanced ping; this and \c ping_method must be made to make an
+          HTTP request as a part of the socket polling ping operation
+        - \c ping_headers: any HTTP headers to send when performing an advanced ping operation; ignored if either
+          \c ping_method or \c ping_path is not set
+        - \c ping_body: any ping body to send with a ping operation; ignored if either \c ping_method or \c ping_path
+          is not set or if \c ping_method is \g "GET"
         - \c proxy: The proxy URL for connecting through a proxy
         - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead
             of processed
@@ -1059,6 +1072,9 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
         on_error {
             string url = getSafeURL();
+            if (url !~ /\/$/) {
+                url += "/";
+            }
             if (path =~ /^\//) {
                 url += path[1..];
             } else {
@@ -1068,6 +1084,19 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
+    }
+
+    #! Prepares and processes message parameters for sending without sending the message
+    /** @param method the HTTP method to use
+        @path a reference to the URI path
+        @path body a reference to any message body
+        @path hdr a reference to any headers to send
+
+        @since %RestClient 1.10.2
+    */
+    prepareToSend(string method, reference<string> path, reference<auto> body, *reference<hash<auto>> hdr) {
+        prepareMsg(method, path, \body, \hdr);
+        preparePath(\path);
     }
 
     #! The same as doRequest() except no schema validation is performed on the request
@@ -1185,38 +1214,46 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 /** supports the following options:
     - \c "connect_timeout": connection timeout to use in milliseconds
     - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
-        requested response encoding; for possible values, see
-        @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+      requested response encoding; for possible values, see
+      @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
     - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the
-        null REST schema validator; the default is \c "auto"
+      null REST schema validator; the default is \c "auto"
     - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
-        \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-        like any other response
+      \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
+      like any other response
     - \c "headers": an optional hash of headers to send with every request, these can also be overridden in
-        request method calls; also a string giving headers can be given in the format:
-        <tt>header1=value, header2=value</tt>; the value will be parsed with
-        @ref Util::parse_to_qore_value() "parse_to_qore_value()"
+      request method calls; also a string giving headers can be given in the format:
+      <tt>header1=value, header2=value</tt>; the value will be parsed with
+      @ref Util::parse_to_qore_value() "parse_to_qore_value()"
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
+    - \c "ping_method": the HTTP method to use for an advanced ping; this and \c ping_path must be set to make an
+      HTTP request as a part of the socket polling ping operation; must be a valid HTTP method name
+    - \c "ping_path": the URI path to use for an advanced ping; this and \c ping_method must be made to make an
+      HTTP request as a part of the socket polling ping operation
+    - \c "ping_headers": any HTTP headers to send when performing an advanced ping operation; ignored if either
+      \c ping_method or \c ping_path is not set
+    - \c "ping_body": any ping body to send with a ping operation; ignored if either \c ping_method or \c ping_path
+      is not set or if \c ping_method is \g "GET"
     - \c "proxy": proxy URL to use
     - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
-        processed
+      processed
     - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
-        \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
-        message bodies
+      \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
+      message bodies
     - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API
-        validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
+      validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
     - \c "swagger_base_path": in case a REST validator is used, the base path in the schema can be overridden
       with this option (applies to any REST validator; not just Swagger validators)
     - \c "swagger_lax_parsing": try to parse invalid Swagger schemas
     - \c "timeout": transfer timeout to use in milliseconds
     - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
-        object to validate request and response messages; conflicts with \a swagger
+      object to validate request and response messages; conflicts with \a swagger
 
     @note additionally supports the following runtime option in getImpl():
     - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
-        object for REST message validation (if present, overrides any REST schema validation option provided as a
-        connection option)
+      object for REST message validation (if present, overrides any REST schema validation option provided as a
+      connection option)
 
     @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above
     options
@@ -1291,13 +1328,14 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 },
                 "ping_method": <ConnectionOptionInfo>{
                     "type": "string",
-                    "desc": "The HTTP method to use for an advanced ping; this and `ping_path` must be set to make an "
-                        "HTTP request as a part of the socket polling ping operation; must be a valid HTTP method name",
+                    "desc": "The HTTP method to use for an advanced ping; this and `ping_path` must be set to make "
+                        "an HTTP request as a part of the socket polling ping operation; must be a valid HTTP method "
+                        "name",
                 },
                 "ping_path": <ConnectionOptionInfo>{
                     "type": "string",
-                    "desc": "The URI path to use for an advanced ping; this and `ping_method` must be made to make an "
-                        "HTTP request as a part of the socket polling ping operation",
+                    "desc": "The URI path to use for an advanced ping; this and `ping_method` must be made to make "
+                        "an HTTP request as a part of the socket polling ping operation",
                 },
                 "ping_headers": <ConnectionOptionInfo>{
                     "type": "hash",
@@ -1419,6 +1457,14 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
             @ref Util::parse_to_qore_value() "parse_to_qore_value()"
         - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
         - \c "max_redirects": maximum redirects to support
+        - \c "ping_method": the HTTP method to use for an advanced ping; this and \c ping_path must be set to make an
+          HTTP request as a part of the socket polling ping operation; must be a valid HTTP method name
+        - \c "ping_path": the URI path to use for an advanced ping; this and \c ping_method must be made to make an
+          HTTP request as a part of the socket polling ping operation
+        - \c "ping_headers": any HTTP headers to send when performing an advanced ping operation; ignored if either
+          \c ping_method or \c ping_path is not set
+        - \c "ping_body": any ping body to send with a ping operation; ignored if either \c ping_method or \c ping_path
+          is not set or if \c ping_method is \g "GET"
         - \c "proxy": proxy URL to use
         - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
             processed
@@ -1455,12 +1501,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         if (opts.validator || opts.swagger) {
             # get a REST client object without connecting
             RestClient rest = get(False);
-            # get any validator
-            *AbstractRestSchemaValidator validator = rest.getValidator();
-            if (validator) {
-                # if there's a validator, return the provider
-                return validator.getDataProvider(rest);
-            }
+            # get the validator and return the provider
+            return rest.getValidator().getDataProvider(rest);
         }
 
         # to avoid circular dependencies, this object loads the RestClientDataProvider and creates the data provider
@@ -1489,8 +1531,21 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
             return HttpBasedConnection::startPollConnect();
         }
 
-        return new RestPingPollOperation(getPollImpl().startPollSendRecv(opts.ping_method, opts.ping_path ?* NOTHING,
-            opts.ping_method != "GET" ? opts.ping_body : NOTHING, opts.ping_headers));
+        RestClient rc = get(False);
+
+        *AbstractRestSchemaValidator validator;
+        if (opts.ping_path) {
+            # get any validator
+            validator = rc.getValidator() ;
+        }
+
+        string ping_path = opts.ping_path ?? "/";
+        *hash<auto> ping_headers = opts.ping_headers ?? {};
+        auto ping_body = opts.ping_method != "GET" ? opts.ping_body : NOTHING;
+        rc.prepareToSend(opts.ping_method, \ping_path, \ping_body, \ping_headers);
+
+        return new RestPingPollOperation(getPollImpl().startPollSendRecv(opts.ping_method, ping_path, ping_body,
+            ping_headers), validator, opts.ping_method, ping_path);
     }
 
     #! processes options for the constructor
@@ -1570,13 +1625,27 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
         #! Goal reached flag
         bool goal_reached = False;
 
+        #! Validateor for response
+        *AbstractRestSchemaValidator validator;
+
+        #! The HTTP method used
+        string method;
+
+        #! The URI path used
+        string path;
+
         #! Lock for atomicity
         Mutex m();
     }
 
     #! Creates the object with the send/receive poller
-    constructor(AbstractPollOperation poller) {
+    constructor(AbstractPollOperation poller, *AbstractRestSchemaValidator validator, *string method, *string path) {
         self.poller = poller;
+        if (validator) {
+            self.validator = validator;
+            self.method = method;
+            self.path = path;
+        }
     }
 
     #! Returns the goal
@@ -1620,6 +1689,13 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
             if (poller.goalReached()) {
                 hash<auto> resp = poller.getOutput();
                 if ((resp."code" / 100) == 2) {
+                    if (validator) {
+                        if (resp."response-body") {
+                            resp."response-body" = resp."response-body".toString(resp.info.charset ?? "ISO-8859-1");
+                        }
+                        validator.parseResponse(method, path, resp."code", resp."response-body",
+                            resp.info."response-headers");
+                    }
                     goal_reached = True;
                 } else {
                     throw "REST-PING-ERROR", sprintf("%y returned from %y", resp.info."response-uri",

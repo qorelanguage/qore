@@ -175,8 +175,8 @@ public class PollingConnectionMonitor {
     add(AbstractConnection conn, *hash<auto> other) {
         string name = conn.getName();
         if (!conn.supportsPollingApi()) {
-            throw "MONITOR-CONNECTION-ERROR", sprintf("connection %y does not support the polling API and cannot be added to "
-                "the polling connection monitor", name);
+            throw "MONITOR-CONNECTION-ERROR", sprintf("connection %y does not support the polling API and cannot be "
+                "added to the polling connection monitor", name);
         }
         AutoLock al(m);
         if (*hash<PollInfo> info = cache{name}) {
@@ -185,9 +185,9 @@ public class PollingConnectionMonitor {
                 return;
             }
             # otherwise throw an exception
-            throw "MONITOR-ADD-ERROR", sprintf("connection %y with URL %y cannot be added, as connection %y with URL %y "
-                "is already being monitored; update the connection if this definition should replace the existing "
-                "one", name, conn.getSafeUrl(), name, info.conn.getSafeUrl());
+            throw "MONITOR-ADD-ERROR", sprintf("connection %y with URL %y cannot be added, as connection %y with "
+                "URL %y is already being monitored; update the connection if this definition should replace the "
+                "existing one", name, conn.getSafeUrl(), name, info.conn.getSafeUrl());
         }
         cache{name} = <PollInfo>{
             "conn": conn,
@@ -209,8 +209,8 @@ public class PollingConnectionMonitor {
     addOrUpdate(AbstractConnection conn, *hash<auto> other) {
         string name = conn.getName();
         if (!conn.supportsPollingApi()) {
-            throw "MONITOR-CONNECTION-ERROR", sprintf("connection %y does not support the polling API and cannot be added to "
-                "the polling connection monitor", name);
+            throw "MONITOR-CONNECTION-ERROR", sprintf("connection %y does not support the polling API and cannot be "
+                "added to the polling connection monitor", name);
         }
         string cmd;
         AutoLock al(m);
