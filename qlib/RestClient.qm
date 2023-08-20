@@ -440,14 +440,6 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing
             message headers
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
-        - \c ping_method: the HTTP method to use for an advanced ping; this and \c ping_path must be set to make an
-          HTTP request as a part of the socket polling ping operation; must be a valid HTTP method name
-        - \c ping_path: the URI path to use for an advanced ping; this and \c ping_method must be made to make an
-          HTTP request as a part of the socket polling ping operation
-        - \c ping_headers: any HTTP headers to send when performing an advanced ping operation; ignored if either
-          \c ping_method or \c ping_path is not set
-        - \c ping_body: any ping body to send with a ping operation; ignored if either \c ping_method or \c ping_path
-          is not set or if \c ping_method is \g "GET"
         - \c proxy: The proxy URL for connecting through a proxy
         - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead
             of processed
@@ -1227,14 +1219,6 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
       @ref Util::parse_to_qore_value() "parse_to_qore_value()"
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
-    - \c "ping_method": the HTTP method to use for an advanced ping; this and \c ping_path must be set to make an
-      HTTP request as a part of the socket polling ping operation; must be a valid HTTP method name
-    - \c "ping_path": the URI path to use for an advanced ping; this and \c ping_method must be made to make an
-      HTTP request as a part of the socket polling ping operation
-    - \c "ping_headers": any HTTP headers to send when performing an advanced ping operation; ignored if either
-      \c ping_method or \c ping_path is not set
-    - \c "ping_body": any ping body to send with a ping operation; ignored if either \c ping_method or \c ping_path
-      is not set or if \c ping_method is \g "GET"
     - \c "proxy": proxy URL to use
     - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
       processed
