@@ -227,6 +227,34 @@ public:
     //! clears the username and password for the proxy connection
     DLLEXPORT void clearProxyUserPassword();
 
+    //! Returns the username for the connection, if any
+    /** @return the username for the connection, if any
+
+        @since %Qore 1.18.2
+    */
+    DLLEXPORT QoreStringNode* getUsername() const;
+
+    //! Returns the password for the connection, if any
+    /** @return the password for the connection, if any
+
+        @since %Qore 1.18.2
+    */
+    DLLEXPORT QoreStringNode* getPassword() const;
+
+    //! Returns the username for the proxy connection, if any
+    /** @return the username for the proxy connection, if any
+
+        @since %Qore 1.18.2
+    */
+    DLLEXPORT QoreStringNode* getProxyUsername() const;
+
+    //! Returns the password for the proxy connection, if any
+    /** @return the password for the proxy connection, if any
+
+        @since %Qore 1.18.2
+    */
+    DLLEXPORT QoreStringNode* getProxyPassword() const;
+
     //! sets the SSL flag for use in the next connection
     DLLEXPORT void setSecure(bool is_secure);
 

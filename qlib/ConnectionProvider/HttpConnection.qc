@@ -86,6 +86,16 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                     "type": "string",
                     "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
                     "default_value": "1.1",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "1.0",
+                            "desc": "For HTTP 1.0",
+                        },
+                        <AllowedValueInfo>{
+                            "value": "1.1",
+                            "desc": "For HTTP 1.1",
+                        },
+                    ),
                 },
                 "max_redirects": <ConnectionOptionInfo>{
                     "type": "int",

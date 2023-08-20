@@ -2822,6 +2822,38 @@ void QoreHttpClientObject::clearProxyURL() {
     http_priv->setSocketPath();
 }
 
+QoreStringNode* QoreHttpClientObject::getUsername() const {
+    SafeLocker sl(priv->m);
+    if (!http_priv->connection.username.empty()) {
+        return new QoreStringNode(http_priv->connection.username);
+    }
+    return nullptr;
+}
+
+QoreStringNode* QoreHttpClientObject::getPassword() const {
+    SafeLocker sl(priv->m);
+    if (!http_priv->connection.password.empty()) {
+        return new QoreStringNode(http_priv->connection.password);
+    }
+    return nullptr;
+}
+
+QoreStringNode* QoreHttpClientObject::getProxyUsername() const {
+    SafeLocker sl(priv->m);
+    if (!http_priv->proxy_connection.username.empty()) {
+        return new QoreStringNode(http_priv->proxy_connection.username);
+    }
+    return nullptr;
+}
+
+QoreStringNode* QoreHttpClientObject::getProxyPassword() const {
+    SafeLocker sl(priv->m);
+    if (!http_priv->proxy_connection.password.empty()) {
+        return new QoreStringNode(http_priv->proxy_connection.password);
+    }
+    return nullptr;
+}
+
 void QoreHttpClientObject::setSecure(bool is_secure) {
     lock();
     http_priv->connection.ssl = is_secure;

@@ -389,6 +389,28 @@ public class RestClient inherits Qore::HTTPClient {
 
         #! default threadhold for data compressions; transfers smaller than this size will not be compressed
         const CompressionThreshold = 1024;
+
+        #! Option requirements per OAuth2 grant type
+        const OAuth2GrantOptions = {
+            "password": (
+                "oauth2_client_id",
+                "oauth2_client_secret",
+                "oauth2_token_url",
+            ),
+            "client_credentials": (
+                "oauth2_client_id",
+                "oauth2_client_secret",
+                "oauth2_token_url",
+            ),
+        };
+
+        #! All OAuth2 options
+        const OAuth2Options = {
+            "oauth2_client_id": True,
+            "oauth2_client_secret": True,
+            "oauth2_token_url": True,
+            "oauth2_scope": True,
+        };
     }
 
     private {
@@ -404,6 +426,18 @@ public class RestClient inherits Qore::HTTPClient {
         RestSchemaValidator::AbstractRestSchemaValidator validator;
         # no_charset option
         *bool noCharset;
+        #! OAuth2 grant type
+        string oauth2_grant_type;
+        #! OAuth2 client ID
+        string oauth2_client_id;
+        #! OAuth2 client secret
+        string oauth2_client_secret;
+        #! OAuth2 scope
+        string oauth2_scope;
+        #! OAuth2 token URL
+        string oauth2_token_url;
+        #! Any token set for the connection; will be passed as a bearer token (Authorization: Bearer ...)
+        string token;
     }
 
     #! calls the base class HTTPClient constructor and optionally connects to the REST server
@@ -440,6 +474,14 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing
             message headers
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+        - \c oauth2_client_id: The OAuth2 client ID
+        - \c oauth2_client_secret: the OAuth2 client secret
+        - \c oauth2_grant_type: the OAuth2 grant type; possible values:
+          - \c client_credentials
+          - \c password: requires a username, password, \c oauth2_client_id, \c oauth2_client_secret, as well as
+            \c oauth2_token_url
+        - \c oauth2_scope: Space-separated string of OAuth2 scopes to request
+        - \c oauth2_token_url: The OAuth2 token URL for the `client_credentials` and `password` grant types
         - \c proxy: The proxy URL for connecting through a proxy
         - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead
             of processed
@@ -453,6 +495,8 @@ RestClient rest({"url": "http://localhost:8001/rest"});
           with this option (applies to any REST validator; not just Swagger validators)
         - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
             \c 30s)
+        - \c token: Any bearer token to use for the connection; will be passed as <tt>Authorization: Bearer ...</tt>
+          in request headers
         - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any
             \c validator option, if given by calling
             @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
@@ -513,8 +557,21 @@ RestClient rest({"url": "http://localhost:8001/rest"});
             clearConnectionPath();
         }
 
-        if (!do_not_connect)
-            connect();
+        # set any token
+        if (opts.token) {
+            setToken("Bearer", opts.token);
+        }
+
+        # check any OAuth2 options
+        checkOAuth2Options(opts);
+
+        if (!do_not_connect) {
+            if (oauth2_grant_type) {
+                loginIntern();
+            } else {
+                connect();
+            }
+        }
 
         headers = DefaultHeaders + opts.headers;
         noCharset = opts.no_charset;
@@ -934,6 +991,102 @@ hash<auto> ans = rest.del("/orders/1");
         return validator;
     }
 
+    #! Validates and sets any OAuth2 options
+    checkOAuth2Options(hash<auto> opts) {
+        *string grant_type = opts.oauth2_grant_type;
+        if (!exists grant_type) {
+            return;
+        }
+        *list<string> req_opts = OAuth2GrantOptions{grant_type};
+        if (!req_opts) {
+            throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y is unknown; known grant types: "
+                "\"client_credentials\", \"password\"", grant_type);
+        }
+        oauth2_grant_type = grant_type;
+        foreach string req_opt in (req_opts) {
+            if (!exists opts{req_opt}) {
+                throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y is requires option %y, but this option is not "
+                    "set; options provided: %y", grant_type, keys opts);
+            }
+            if (opts{req_opt}.typeCode() != NT_STRING) {
+                throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y is requires option %y to be set with a string; "
+                    "type provided: %y (value: %y)", grant_type, req_opt, opts{req_opt}.fullType(), opts{req_opt});
+            }
+            self{req_opt} = opts{req_opt};
+        }
+        if (grant_type == "password") {
+            # requires username and password
+            if (!exists getUsername()) {
+                throw "OAUTH2-ERROR", "the 'password' OAuth2 grant type requires a username and password; no "
+                    "username is set for the current connection";
+            }
+            if (!exists getPassword()) {
+                throw "OAUTH2-ERROR", "the 'password' OAuth2 grant type requires a passusername and password; no "
+                    "password is set for the current connection";
+            }
+        }
+    }
+
+    #! Authenticates with OAuth2 if configured
+    private loginIntern(*reference<hash<auto>> info) {
+        if (oauth2_grant_type == "password") {
+            oauth2AuthPasswordClientCredentials(\info, True);
+        } else if (oauth2_grant_type == "client_credentials") {
+            oauth2AuthPasswordClientCredentials(\info);
+        }
+    }
+
+    #! Perform OAuth2 password authentication
+    private oauth2AuthPasswordClientCredentials(*reference<hash<auto>> info, *bool password) {
+        # clear connection path for login call
+        *string path = getConnectionPath();
+        on_exit setConnectionPath(path);
+        setConnectionPath();
+
+        hash<auto> login = {
+            "client_id": oauth2_client_id,
+            "client_secret": oauth2_client_secret,
+            "scope": oauth2_scope,
+            "grant_type": "password",
+        };
+        if (password) {
+            login += {
+                "username": getUsername(),
+                "password": getPassword(),
+            };
+        }
+
+        # restore the old serialization option on exit
+        string old_ds = ds;
+        on_exit
+            setSerialization(old_ds);
+
+        # save URL in case the token URL is on a completely different server
+        string orig_url = getURL();
+        on_success setURL(orig_url);
+
+        if (oauth2_token_url =~ /^http/) {
+            setURL(oauth2_token_url);
+        }
+
+        # use URL form encoding for the message body
+        setSerialization("url");
+
+        # make the authorization call
+        hash<auto> h = RestClient::doRequest("POST", oauth2_token_url, login, \info).body;
+        #printf("DEBUG: h: %N\n", h);
+
+        # set the token
+        setToken(h.token_type, h.access_token);
+        #printf("DEBUG: logged in with %y = %y\n", h.token_type, h.access_token);
+    }
+
+    #! Sets the bearer token for authentication
+    private setToken(string token_type, string token) {
+        self.token = token;
+        addDefaultHeaders({"Authorization": sprintf("%s %s", token_type, token)});
+    }
+
     #! sets up the Content-Type header and encodes any body for sending
     private nothing prepareMsg(string method, string path, reference<auto> body, reference<hash<auto>> hdr,
             string ct = "Content-Type") {
@@ -1050,6 +1203,10 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     */
     hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True,
             *hash<auto> hdr) {
+        if (oauth2_grant_type && !token) {
+            loginIntern(\info);
+        }
+
         prepareMsg(m, path, \body, \hdr);
 
         on_exit if (exists body) {
@@ -1219,8 +1376,16 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
       @ref Util::parse_to_qore_value() "parse_to_qore_value()"
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
+    - \c "oauth2_client_id": The OAuth2 client ID
+    - \c "oauth2_client_secret": the OAuth2 client secret
+    - \c "oauth2_grant_type": the OAuth2 grant type; possible values:
+      - \c "client_credentials"
+      - \c "password": requires a username, password, \c oauth2_client_id, \c oauth2_client_secret, as well as
+        \c oauth2_token_url
+    - \c "oauth2_scope": Space-separated string of OAuth2 scopes to request
+    - \c "oauth2_token_url": The OAuth2 token URL for the `client_credentials` and `password` grant types
     - \c "proxy": proxy URL to use
-    - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
+    - \c "redirect_passthru": if @ref True "True" then redirect responses wil0l be passed to the caller instead of
       processed
     - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
       \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
@@ -1231,6 +1396,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
       with this option (applies to any REST validator; not just Swagger validators)
     - \c "swagger_lax_parsing": try to parse invalid Swagger schemas
     - \c "timeout": transfer timeout to use in milliseconds
+    - \c "token": Any bearer token to use for the connection; will be passed as <tt>Authorization: Bearer ...</tt>
+      in request headers
     - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
       object to validate request and response messages; conflicts with \a swagger
 
@@ -1310,6 +1477,39 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                     "desc": "an optional hash of headers to send with every request, these can also be "
                         "overridden in request method calls",
                 },
+                "oauth2_client_id": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The OAuth2 client ID",
+                },
+                "oauth2_client_secret": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the OAuth2 client secret",
+                },
+                "oauth2_grant_type": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The OAuth2 grant type",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "client_credentials",
+                            "desc": "OAuth2 2.0 client credentials grant "
+                                "([RFC 6749 client credentials grant]"
+                                "(https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4))",
+                        }, <AllowedValueInfo>{
+                            "value": "password",
+                            "desc": "OAuth2 2.0 legacy password grant "
+                                "([RFC 6749 password grant]"
+                                "(https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3))",
+                        },
+                    ),
+                },
+                "oauth2_scope": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "Space-separated string of OAuth2 scopes to request",
+                },
+                "oauth2_token_url": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The OAuth2 token URL for the `client_credentials` and `password` grant types",
+                },
                 "ping_method": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "The HTTP method to use for an advanced ping; this and `ping_path` must be set to make "
@@ -1365,6 +1565,12 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 "swagger_lax_parsing": <ConnectionOptionInfo>{
                     "type": "bool",
                     "desc": "try to parse invalid Swagger schemas",
+                },
+                "token": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "Any bearer token to use for the connection; will be passed as "
+                        "`Authorization: Bearer ...` in request headers",
+                    "sensitive": True,
                 },
                 "validator": <ConnectionOptionInfo>{
                     "type": "any",

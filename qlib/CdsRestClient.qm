@@ -240,7 +240,8 @@ CdsRestClient rest({
         return token;
     }
 
-    hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True, *hash<auto> hdr) {
+    hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True,
+            *hash<auto> hdr) {
         if (client_id && !token) {
             loginIntern(\info);
         }
