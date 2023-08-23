@@ -158,7 +158,7 @@ struct con_info {
         } else {
             pstr->concat(host.c_str());
         }
-        if (port && port != 80) {
+        if (port && ((!ssl && port != 80) || (ssl && port != 443))) {
             pstr->sprintf(":%d", port);
         }
         if (!path.empty()) {

@@ -25,6 +25,8 @@
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
 #! The class for handling "sftp://"" locations
+/** Does not currently support non-blocking I/O operations
+*/
 class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
     public {
         #! Valid SFTP location options
@@ -81,6 +83,18 @@ class FileLocationHandlerSftp inherits AbstractFileLocationHandler {
         string file;
         object sftp = getSftpClient(scheme, location, opts, \file);
         return sftp.getFile(file);
+    }
+
+    #! Retrieves an I/O poller to retrieve a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an I/O poller to retrieve the file's data
+    */
+    private Qore::AbstractPollOperation getIoPollerForLocationImpl(string scheme, string location,
+            *hash<auto> opts) {
+        throw "UNIMPLEMENTED", "retrieving SFTP file data with non-blocking operations is not yet supported";
     }
 
     #! Returns a stream reader for the file's data at the given location

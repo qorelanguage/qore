@@ -1031,7 +1031,7 @@ public class SwaggerLoader {
             if (line.size()) {
                 if (line =~ /^<\?xml/) {
                     return "xml";
-                } else if (line =~ /^([^{])+:/ || line =~ /^(---|%YAML)/) {
+                } else if (line =~ /^([^{])+:/ || line =~ /^(---|%YAML)/ || line =~ /^\{[a-z0-9_]+:/) {
                     return "yaml";
                 }
                 return "json";

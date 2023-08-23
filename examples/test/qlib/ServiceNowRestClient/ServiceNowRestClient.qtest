@@ -60,8 +60,11 @@ class ServiceNowTest inherits QUnit::Test {
         try {
             setupConnection();
         } catch (hash<ExceptionInfo> ex) {
-            if (m_options.verbose)
+            if (m_options.verbose > 2) {
+                printf("%s\n", get_exception_string(ex));
+            } else if (m_options.verbose) {
                 printf("%s: %s\n", ex.err, ex.desc);
+            }
         }
 
         set_return_value(main());
@@ -107,6 +110,8 @@ class ServiceNowTest inherits QUnit::Test {
 
     ServiceNowDataProviderTests() {
         if (!rc) testSkip("no ServiceNow connection");
+
+        assertEq(snopts.username, rc.getUsername());
 
         AbstractDataProvider dp = new ServiceNowRestDataProvider(rc);
         dp = dp.getChildProvider("tables");
@@ -169,29 +174,70 @@ class ServiceNowTest inherits QUnit::Test {
 
         hash<auto> info = parse_url(rc.getURL());
         string url = info.protocol + "://" + info.host;
-        if ((info.protocol != "https" || info.port != 443)
-            && (info.protocol != "http" || info.port != 80)) {
+        if (info.port) {
             url += ":" + info.port;
         }
 
-        # setup valid connection and test polling
-        ServiceNowRestConnection snrc("test", "test", url, {"monitor": True}, {
-            "username": info.username,
-            "password": info.password,
-        });
-
-        Logger logger("test", m_options.verbose > 3 ? LoggerLevel::getLevelDebug() : LoggerLevel::getLevelInfo());
+        Logger logger("test", (m_options.verbose > 3 ? LoggerLevel::getLevelDebug() : LoggerLevel::getLevelInfo()));
         if (m_options.verbose > 2) {
             logger.addAppender(new StdoutAppender());
         }
 
-        TestPollingConnectionMonitor monitor(logger);
-        on_exit delete monitor;
-        monitor.add(snrc);
+        {
+            # setup valid connection and test polling
+            ServiceNowRestConnection snrc("test", "test", url, {"monitor": True}, {
+                "username": snopts.username,
+                "password": snopts.password,
+            });
 
-        info = monitor.waitForResult();
-        assertEq(info.name, "test");
-        assertEq("OK", info.result);
+            # first test a standard ping
+            hash<PingInfo> ping = snrc.ping(True);
+            assertEq("test", ping.name);
+            assertTrue(ping.ok);
+            assertEq("OK", ping.info);
+
+            TestPollingConnectionMonitor monitor(logger);
+            on_exit delete monitor;
+
+            monitor.add(snrc);
+
+            info = monitor.waitForResult();
+            assertEq(info.name, "test");
+            on_error if (info.ex) {
+                printf("%s\n", get_exception_string(info.ex));
+            }
+            assertEq("OK", info.result);
+        }
+
+        if (snopts.client_id && snopts.client_secret) {
+            hash<auto> auth = {
+                "username": snopts.username,
+                "password": snopts.password,
+                "client_id": snopts.client_id,
+                "client_secret": snopts.client_secret,
+            };
+
+            # setup valid connection and test polling
+            ServiceNowRestConnection snrc("test", "test", url, {"monitor": True}, auth);
+
+            # first test a standard ping
+            hash<PingInfo> ping = snrc.ping(True);
+            assertEq("test", ping.name);
+            assertTrue(ping.ok);
+            assertEq("OK", ping.info);
+
+            TestPollingConnectionMonitor monitor(logger);
+            on_exit delete monitor;
+
+            monitor.add(snrc);
+
+            info = monitor.waitForResult();
+            assertEq(info.name, "test");
+            on_error if (info.ex) {
+                printf("%s\n", get_exception_string(info.ex));
+            }
+            assertEq("OK", info.result);
+        }
     }
 
     connectionTest() {
@@ -208,6 +254,12 @@ class ServiceNowTest inherits QUnit::Test {
         assertEq(True, info.children_can_support_records);
         assertEq(False, info.children_can_support_observers);
         assertEq(False, info.children_can_support_messages);
+
+        # ping negative test
+        hash<PingInfo> ping = swsc.ping();
+        assertEq("test", ping.name);
+        assertFalse(ping.ok);
+        assertEq("SOCKET-CONNECT-ERROR", ping.ex.err);
 
         assertThrows("CONNECTION-ERROR", sub () {
             ServiceNowRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});

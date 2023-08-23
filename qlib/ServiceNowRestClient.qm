@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.4
 
 module ServiceNowRestClient {
-    version = "1.1.2";
+    version = "1.2";
     desc = "user module for calling ServiceNow REST services";
     author = "David Nichols <david@qore.org>";
     url = "https://qore.org";
@@ -98,6 +98,10 @@ printf("%N\n", ans.body);
 
     @section ServiceNowrestclientrelnotes Release Notes
 
+    @subsection ServiceNowrestclientv1_2 ServiceNowRestClient v1.2
+    - use RestClient functionality for OAuth2 authorization
+      (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
+
     @subsection ServiceNowrestclientv1_1_2 ServiceNowRestClient v1.1.2
     - fixed to create URI request paths properly; restored functionality with recent versions of ServiceNow
       (<a href="https://github.com/qorelanguage/qore/issues/4758">issue 4758</a>)
@@ -140,13 +144,10 @@ public class ServiceNowRestClient inherits RestClient::RestClient {
 
     private:internal {
         # for OAuth2-based access
-        string username;
-        string password;
         string client_id;
         string client_secret;
         *string api;
         string scope;
-        string token;
         string uri_path_pfx;
     }
 
@@ -207,29 +208,8 @@ ServiceNowRestClient rest({
         @throw ServiceNowRESTCLIENT-ERROR missing or invalid required option for REST
         authentication or communication
     */
-    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(ServiceNowRestClient::getOptions(opts), do_not_connect) {
-        # check for either the apikey or client id/secret options
-        if (opts.client_id && opts.client_secret) {
-            client_id = getString(opts, "client_id");
-            client_secret = getString(opts, "client_secret");
-        }
-
-        if (!opts.username || !opts.password) {
-            hash<UrlInfo> url_info = parse_url(opts.url);
-            if (!opts.username && url_info.username) {
-                opts.username = url_info.username;
-            }
-            if (!opts.password && url_info.password) {
-                opts.password = url_info.password;
-            }
-        }
-        username = getString(opts, "username");
-        password = getString(opts, "password");
-        # issue #4295: set the HTTP username and password for HTTP basic auth if no OAuth2 params are used
-        if (!client_id) {
-            setUserPassword(username, password);
-        }
-
+    constructor(hash<auto> opts, *softbool do_not_connect)
+            : RestClient(ServiceNowRestClient::getOptions(opts), True) {
         if (opts.api.val()) {
             api = getString(opts, "api");
             uri_path_pfx = RequestUriPathPrefix + api;
@@ -239,8 +219,12 @@ ServiceNowRestClient rest({
         }
         setConnectionPath(uri_path_pfx);
 
-        if (client_id && !do_not_connect) {
-            loginIntern();
+        if (!do_not_connect) {
+            if (client_id) {
+                loginIntern();
+            } else {
+                connect();
+            }
         }
     }
 
@@ -251,64 +235,17 @@ ServiceNowRestClient rest({
         return api ?? DefaultApiVersion;
     }
 
-    #! returns the access token, if any
-    *string getToken() {
-        return token;
-    }
-
-    #! Returns True if the client is using OAuth2 authentication
-    /** @since %ServiceNowRestClient 1.1
-    */
-    bool usingOAuth2() {
-        return exists client_id;
-    }
-
-    hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True,
-            *hash<auto> hdr) {
-        if (client_id && !token) {
-            loginIntern(\info);
-        }
-        return RestClient::doRequest(m, path, body, \info, decode_errors, hdr);
-    }
-
-    #! performs authentication and authorization with SAP using the OAuth2 authorization URL
-    private loginIntern(*reference<hash<auto>> info) {
-        # clear connection path for login call
-        *string path = getConnectionPath();
-        on_exit setConnectionPath(path);
-        setConnectionPath();
-
-        hash<auto> login = self{"username", "password", "client_id", "client_secret",} + {
-            "grant_type": "password",
-        };
-
-        # restore the old serialization option on exit
-        string old_ds = ds;
-        on_exit
-            setSerialization(old_ds);
-
-        # use URL form encoding for the message body
-        setSerialization("url");
-
-        # make the authorization call
-        hash<auto> h = RestClient::doRequest("POST", OAuth2TokenUriPathSuffix, login, \info).body;
-        #printf("DEBUG: h: %N\n", h);
-
-        # set the token
-        token = h.access_token;
-        addDefaultHeaders({"Authorization": sprintf("%s %s", h.token_type, h.access_token)});
-        #printf("DEBUG: logged in with %y = %y\n", h.token_type, h.access_token);
-    }
-
     #! sends the outgoing HTTP message and recodes the response to data
-    private hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr, *reference<hash<auto>> info, *softbool decode_errors) {
+    private hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr,
+            *reference<hash<auto>> info, *softbool decode_errors) {
         try {
             return RestClient::sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
         } catch (hash<ExceptionInfo> ex) {
             # throw an exception for the error
             if (info."response-body".response.error.message.typeCode() == NT_STRING) {
                 hash<auto> error = info."response-body".response.error;
-                throw "SERVICENOW-REST-RESPONSE-ERROR", remove error.message, error + ex.arg + {"decoded_body": info."response-body"};
+                throw "SERVICENOW-REST-RESPONSE-ERROR", remove error.message, error + ex.arg
+                    + {"decoded_body": info."response-body"};
             }
             if (info."response-body".error_description.typeCode() == NT_STRING
                 && info."response-body".error.typeCode() == NT_STRING) {
@@ -328,7 +265,8 @@ ServiceNowRestClient rest({
             ServiceNowRestClient::error("missing required option %y in option argument", key);
         }
         if (v.typeCode() != NT_STRING) {
-            ServiceNowRestClient::error("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+            ServiceNowRestClient::error("required option %y was passed as a %s (%y); expecting \"string\"", key,
+                v.type(), v);
         }
         return v;
     }
@@ -342,7 +280,15 @@ ServiceNowRestClient rest({
     static hash<auto> getOptions(hash<auto> opts) {
         return opts + {
             "data": "json",
-        };
+        } + ((opts.client_id && opts.client_secret)
+            ? {
+                "oauth2_token_url": OAuth2TokenUriPathSuffix,
+                "oauth2_grant_type": "password",
+                "oauth2_client_id": opts.client_id,
+                "oauth2_client_secret": opts.client_secret,
+            }
+            : NOTHING
+        );
     }
 }
 
@@ -377,8 +323,8 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("ServiceNowRestConnection"),
-            "options": RestConnection::ConnectionScheme.options - ("ping_method", "ping_path", "ping_headers",
-                "ping_body") + {
+            "options": RestConnection::ConnectionScheme.options
+                    - ("ping_method", "ping_path", "ping_headers", "ping_body") + {
                 "api": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the API version for ServiceNow; if not set the latest version is used",
@@ -401,7 +347,6 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
                 "username": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the ServiceNow username",
-                    "sensitive": False,
                 },
             },
             "required_options": "username,password",
@@ -474,9 +419,7 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
     */
     Qore::AbstractPollOperation startPollConnect() {
         # start the polling operation manually using the full request path
-        return new RestPingPollOperation(getPollImpl().startPollSendRecv(DefaultServiceNowPingMethod,
-            ServiceNowRestClient::RequestUriPathPrefix + opts.api + "/" + DefaultServiceNowPingPath, NOTHING,
-            DefaultServiceNowPingHeaders));
+        return new RestPingPollOperation(getPollImpl(), real_opts);
     }
 
     #! Sets child data provider capabilities

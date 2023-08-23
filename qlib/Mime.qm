@@ -876,9 +876,10 @@ public namespace Mime {
      */
     public string sub mime_get_form_urlencoded_string(hash h) {
         string str;
-        foreach hash kh in (h.pairIterator()) {
+        foreach hash<auto> kh in (h.pairIterator()) {
             if (str)
                 str += "&";
+            on_error rethrow $1.err, sprintf("%s (while URL encoding key %y, value %y)", $1.desc, kh.key, kh.value);
             str += mime_get_urlencoded_string(kh.key) + "=" + mime_get_urlencoded_string(kh.value);
         }
 

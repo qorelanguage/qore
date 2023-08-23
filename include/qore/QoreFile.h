@@ -101,7 +101,7 @@ public:
         @note for a version that does not raise a Qore exception when errors occur, see QoreFile::open2()
         @see QoreFile::open()
     */
-    DLLEXPORT int open2(ExceptionSink *xsink, const char *fn, int flags = O_RDONLY, int mode = 0777, const QoreEncoding *cs = QCS_DEFAULT);
+    DLLEXPORT int open2(ExceptionSink* xsink, const char *fn, int flags = O_RDONLY, int mode = 0777, const QoreEncoding *cs = QCS_DEFAULT);
 
     //! closes the file
     /**
@@ -109,14 +109,26 @@ public:
     */
     DLLEXPORT int close();
 
+    //! closes the file
+    /**
+        @return 0 for success, non-zero for error
+    */
+    DLLEXPORT int close(ExceptionSink* xsink);
+
     //! sets the encoding for the file
-    DLLEXPORT void setEncoding(const QoreEncoding *cs);
+    DLLEXPORT void setEncoding(const QoreEncoding* cs);
+
+    //! sets the encoding for the file
+    DLLEXPORT int setEncoding(const QoreEncoding* cs, ExceptionSink* xsink);
 
     //! returns the encoding used for the file
     DLLEXPORT const QoreEncoding *getEncoding() const;
 
     //! flushes the write buffer to disk
     DLLEXPORT int sync();
+
+    //! flushes the write buffer to disk
+    DLLEXPORT int sync(ExceptionSink* xsink);
 
     //! reads string data from the file up to and including the terminating EOL characters (can be \c "\n", \c "\r" or \c "\r\n") and returns the string read with the EOL characters
     /** if an error occurs (file is not open), a Qore-language exception is raised
@@ -207,7 +219,7 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return returns the number of bytes written (-1 if an exception was thrown)
     */
-    DLLEXPORT int write(const QoreString *str, ExceptionSink *xsink);
+    DLLEXPORT int write(const QoreString *str, ExceptionSink* xsink);
 
     //! writes binary data to the file and returns the number of bytes written
     /** Qore-language exceptions can be thrown if the file is not opened
@@ -215,7 +227,7 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return returns the number of bytes written (-1 if an exception was thrown)
     */
-    DLLEXPORT int write(const BinaryNode *b, ExceptionSink *xsink);
+    DLLEXPORT int write(const BinaryNode* b, ExceptionSink* xsink);
 
     //! writes binary data to the file and returns the number of bytes written
     /** Qore-language exceptions can be thrown if the file is not opened
@@ -224,7 +236,7 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return returns the number of bytes written (-1 if an exception was thrown)
     */
-    DLLEXPORT int write(const void *data, size_t len, ExceptionSink *xsink);
+    DLLEXPORT int write(const void* data, size_t len, ExceptionSink* xsink);
 
     //! writes 1-byte binary integer data to the file and returns the number of bytes written (normally 1)
     /** Qore-language exceptions can be thrown if the file is not opened
@@ -232,7 +244,7 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return returns the number of bytes written (-1 if an exception was thrown)
     */
-    DLLEXPORT int writei1(char i, ExceptionSink *xsink);
+    DLLEXPORT int writei1(char i, ExceptionSink* xsink);
 
     //! writes 2-byte (16bit) binary integer data in MSB (Most Significant Byte first, big endian) format to the file and returns the number of bytes written (normally 2)
     /** Qore-language exceptions can be thrown if the file is not opened
@@ -241,7 +253,7 @@ public:
         @return returns the number of bytes written (-1 if an exception was thrown)
         @see Qorefile::writei2LSB()
     */
-    DLLEXPORT int writei2(short i, ExceptionSink *xsink);
+    DLLEXPORT int writei2(short i, ExceptionSink* xsink);
 
     //! writes 4-byte (32bit) binary integer data in MSB (Most Significant Byte first, big endian) format to the file and returns the number of bytes written (normally 4)
     /** Qore-language exceptions can be thrown if the file is not opened
@@ -250,7 +262,7 @@ public:
         @return returns the number of bytes written (-1 if an exception was thrown)
         @see Qorefile::writei4LSB()
     */
-    DLLEXPORT int writei4(int i, ExceptionSink *xsink);
+    DLLEXPORT int writei4(int i, ExceptionSink* xsink);
 
     //! writes 8-byte (64bit) binary integer data in MSB (Most Significant Byte first, big endian) format to the file and returns the number of bytes written (normally 8)
     /** Qore-language exceptions can be thrown if the file is not opened
@@ -259,7 +271,7 @@ public:
         @return returns the number of bytes written (-1 if an exception was thrown)
         @see Qorefile::writei4LSB()
     */
-    DLLEXPORT int writei8(int64 i, ExceptionSink *xsink);
+    DLLEXPORT int writei8(int64 i, ExceptionSink* xsink);
 
     //! writes 2-byte (16bit) binary integer data in LSB (Least Significant Byte first, little endian) format to the file and returns the number of bytes written (normally 2)
     /** Qore-language exceptions can be thrown if the file is not opened
@@ -268,7 +280,7 @@ public:
         @return returns the number of bytes written (-1 if an exception was thrown)
         @see Qorefile::writei2()
     */
-    DLLEXPORT int writei2LSB(short i, ExceptionSink *xsink);
+    DLLEXPORT int writei2LSB(short i, ExceptionSink* xsink);
 
     //! writes 4-byte (32bit) binary integer data in LSB (Least Significant Byte first, little endian)format to the file and returns the number of bytes written (normally 4)
     /** Qore-language exceptions can be thrown if the file is not opened
@@ -277,7 +289,7 @@ public:
         @return returns the number of bytes written (-1 if an exception was thrown)
         @see Qorefile::writei4()
     */
-    DLLEXPORT int writei4LSB(int i, ExceptionSink *xsink);
+    DLLEXPORT int writei4LSB(int i, ExceptionSink* xsink);
 
     //! writes 8-byte (64bit) binary integer data in LSB (Least Significant Byte first, little endian) format to the file and returns the number of bytes written (normally 8)
     /** Qore-language exceptions can be thrown if the file is not opened
@@ -286,7 +298,7 @@ public:
         @return returns the number of bytes written (-1 if an exception was thrown)
         @see Qorefile::writei4()
     */
-    DLLEXPORT int writei8LSB(int64 i, ExceptionSink *xsink);
+    DLLEXPORT int writei8LSB(int64 i, ExceptionSink* xsink);
 
     //! reads a 1-byte unsigned integer from the file and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -295,7 +307,7 @@ public:
         @return 0 for OK, -1 for error
         @see QoreFile::readi1()
     **/
-    DLLEXPORT int readu1(unsigned char *val, ExceptionSink *xsink);
+    DLLEXPORT int readu1(unsigned char *val, ExceptionSink* xsink);
 
     //! reads a 2-byte unsigned integer from the file in MSB (Most Significant Byte first, big endian) format and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -306,7 +318,7 @@ public:
         @see QoreFile::readi2()
         @see QoreFile::readi2LSB()
     **/
-    DLLEXPORT int readu2(unsigned short *val, ExceptionSink *xsink);
+    DLLEXPORT int readu2(unsigned short *val, ExceptionSink* xsink);
 
     //! reads a 4-byte unsigned integer from the file in MSB (Most Significant Byte first, big endian) format and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -317,7 +329,7 @@ public:
         @see QoreFile::readi4LSB()
         @see QoreFile::readi4()
     **/
-    DLLEXPORT int readu4(unsigned int *val, ExceptionSink *xsink);
+    DLLEXPORT int readu4(unsigned int *val, ExceptionSink* xsink);
 
     //! reads a 2-byte unsigned integer from the file in LSB (Least Significant Byte first, big endian) format and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -328,7 +340,7 @@ public:
         @see QoreFile::readi2()
         @see QoreFile::readi2LSB()
     **/
-    DLLEXPORT int readu2LSB(unsigned short *val, ExceptionSink *xsink);
+    DLLEXPORT int readu2LSB(unsigned short *val, ExceptionSink* xsink);
 
     //! reads a 4-byte unsigned integer from the file in LSB (Least Significant Byte first, big endian) format and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -339,7 +351,7 @@ public:
         @see QoreFile::readi4LSB()
         @see QoreFile::readi4()
     **/
-    DLLEXPORT int readu4LSB(unsigned int *val, ExceptionSink *xsink);
+    DLLEXPORT int readu4LSB(unsigned int *val, ExceptionSink* xsink);
 
     //! reads a 1-byte signed integer from the file and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -348,7 +360,7 @@ public:
         @return 0 for OK, -1 for error
         @see QoreFile::readi1()
     **/
-    DLLEXPORT int readi1(char *val, ExceptionSink *xsink);
+    DLLEXPORT int readi1(char *val, ExceptionSink* xsink);
 
     //! reads a 2-byte signed integer from the file in MSB (Most Significant Byte first, big endian) format and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -359,7 +371,7 @@ public:
         @see QoreFile::readu2()
         @see QoreFile::readu2LSB()
     **/
-    DLLEXPORT int readi2(short *val, ExceptionSink *xsink);
+    DLLEXPORT int readi2(short *val, ExceptionSink* xsink);
 
     //! reads a 4-byte signed integer from the file in MSB (Most Significant Byte first, big endian) format and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -370,7 +382,7 @@ public:
         @see QoreFile::readu4LSB()
         @see QoreFile::readu4()
     **/
-    DLLEXPORT int readi4(int *val, ExceptionSink *xsink);
+    DLLEXPORT int readi4(int *val, ExceptionSink* xsink);
 
     //! reads an 8-byte signed integer from the file in MSB (Most Significant Byte first, big endian) format and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -379,7 +391,7 @@ public:
         @return 0 for OK, -1 for error
         @see QoreFile::readi8LSB()
     **/
-    DLLEXPORT int readi8(int64 *val, ExceptionSink *xsink);
+    DLLEXPORT int readi8(int64 *val, ExceptionSink* xsink);
 
     //! reads a 2-byte signed integer from the file in LSB (Least Significant Byte first, big endian) format and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -390,7 +402,7 @@ public:
         @see QoreFile::readu2()
         @see QoreFile::readu2LSB()
     **/
-    DLLEXPORT int readi2LSB(short *val, ExceptionSink *xsink);
+    DLLEXPORT int readi2LSB(short *val, ExceptionSink* xsink);
 
     //! reads a 4-byte signed integer from the file in LSB (Least Significant Byte first, big endian) format and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -401,7 +413,7 @@ public:
         @see QoreFile::readu4LSB()
         @see QoreFile::readu4()
     **/
-    DLLEXPORT int readi4LSB(int *val, ExceptionSink *xsink);
+    DLLEXPORT int readi4LSB(int *val, ExceptionSink* xsink);
 
     //! reads an 8-byte signed integer from the file in LSB (Least Significant Byte first, big endian) format and returns the value read as an output parameter
     /** A Qore-language exception can be thrown if the file is not opened
@@ -410,7 +422,7 @@ public:
         @return 0 for OK, -1 for error
         @see QoreFile::readi8()
     **/
-    DLLEXPORT int readi8LSB(int64 *val, ExceptionSink *xsink);
+    DLLEXPORT int readi8LSB(int64 *val, ExceptionSink* xsink);
 
     //! reads string data from the file and returns the string read (caller owns the reference count returned)
     /** A Qore-language exception can be thrown if the file is not opened
@@ -423,7 +435,7 @@ public:
 
         @since %Qore 0.8.13 this function uses character semantics instead of byte sementics
     */
-    DLLEXPORT QoreStringNode *read(qore_offset_t size, ExceptionSink *xsink);
+    DLLEXPORT QoreStringNode* read(qore_offset_t size, ExceptionSink* xsink);
 
     //! reads string data from the file and returns the string read (caller owns the reference count returned)
     /** A Qore-language exception can be thrown if the file is not opened
@@ -437,7 +449,7 @@ public:
 
         @since %Qore 0.8.13 this function uses character semantics instead of byte sementics
     */
-    DLLEXPORT QoreStringNode* read(qore_offset_t size, int timeout_ms, ExceptionSink *xsink);
+    DLLEXPORT QoreStringNode* read(qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
 
     //! reads string data from the file into a QoreString object (or subclass, such as QoreStringNode) and returns 0 for OK or non-zero for error
     /** A Qore-language exception can be thrown if the file is not opened
@@ -447,7 +459,7 @@ public:
         @return 0 for OK or non-zero for error
         @note the string will be tagged with the file's default encoding
     */
-    DLLEXPORT int read(QoreString &str, qore_offset_t size, ExceptionSink *xsink);
+    DLLEXPORT int read(QoreString &str, qore_offset_t size, ExceptionSink* xsink);
 
     //! reads binary data from the file and returns the data read (caller owns the reference count returned)
     /** A Qore-language exception can be thrown if the file is not opened
@@ -456,7 +468,7 @@ public:
 
         @return the binary data read (caller owns the reference count returned) or 0 if an error occured or the file is empty
     */
-    DLLEXPORT BinaryNode *readBinary(qore_offset_t size, ExceptionSink *xsink);
+    DLLEXPORT BinaryNode* readBinary(qore_offset_t size, ExceptionSink* xsink);
 
     //! reads binary data from the file into a BinaryNode object and returns 0 for OK or non-zero for error
     /** A Qore-language exception can be thrown if the file is not opened
@@ -465,7 +477,7 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return 0 for OK or non-zero for error
     */
-    DLLEXPORT int readBinary(BinaryNode &b, qore_offset_t size, ExceptionSink *xsink);
+    DLLEXPORT int readBinary(BinaryNode& b, qore_offset_t size, ExceptionSink* xsink);
 
     //! reads binary data from the file and returns the data read (caller owns the reference count returned)
     /** A Qore-language exception can be thrown if the file is not opened
@@ -474,7 +486,7 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return the binary data read (caller owns the reference count returned) or 0 if an error occured
     */
-    DLLEXPORT BinaryNode *readBinary(qore_offset_t size, int timeout_ms, ExceptionSink *xsink);
+    DLLEXPORT BinaryNode* readBinary(qore_offset_t size, int timeout_ms, ExceptionSink* xsink);
 
     //! reads data from the file
     /** A Qore-language exception can be thrown if the file is not opened
@@ -484,29 +496,35 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return the number of bytes read, 0 means EOF
     */
-    DLLEXPORT size_t read(void *ptr, size_t limit, int timeout_ms, ExceptionSink *xsink);
+    DLLEXPORT size_t read(void* ptr, size_t limit, int timeout_ms, ExceptionSink* xsink);
 
     //! sets the absolute file position to "pos"
     /** @param pos the file position in bytes to set (starting with byte position 0)
-        */
+    */
     DLLEXPORT size_t setPos(size_t pos);
+
+    //! sets the absolute file position to "pos"
+    /** @param pos the file position in bytes to set (starting with byte position 0)
+        @param xsink if an error occurs, the Qore-language exception info will be added here
+    */
+    DLLEXPORT size_t setPos(size_t pos, ExceptionSink* xsink);
 
     //! returns the absolute byte position in the file
     /** @return the absolute byte position in the file
-        * @deprecated: only the const variant will remain in the future
-        */
+        @deprecated: only the const variant will remain in the future
+    */
     DLLEXPORT size_t getPos();
 
     //! returns the absolute byte position in the file
     /** @return the absolute byte position in the file
-        */
+    */
     DLLEXPORT size_t getPos() const;
 
     //! reads a single byte from the file and returns it as a new string, caller owns the reference count returned
     /** note that this function is not guaranteed to read a character if the File's encoding is a multi-byte character encoding
         @return a new string consisting of the single character read from the file; can return 0 if an error occurs
     */
-    DLLEXPORT QoreStringNode *getchar();
+    DLLEXPORT QoreStringNode* getchar();
 
     //! reads a single character from the file and returns it as a new string, caller owns the reference count returned
     /** This function will return a single character in the File's encoding even for multi-byte character encodings.
@@ -514,7 +532,7 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return a new string consisting of the single character read from the file
     */
-    DLLEXPORT QoreStringNode *getchar(ExceptionSink *xsink);
+    DLLEXPORT QoreStringNode* getchar(ExceptionSink* xsink);
 
     //! returns the filename of the file being read as a std::string (the string is empty if no file name is set)
     DLLEXPORT std::string getFileNameStr() const;
@@ -524,16 +542,16 @@ public:
 
 #ifndef _Q_WINDOWS
     //! changes ownership of the file (if possible)
-    DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink *xsink);
+    DLLEXPORT int chown(uid_t owner, gid_t group, ExceptionSink* xsink);
 
     //! perform a file lock operation
-    DLLEXPORT int lockBlocking(struct flock &fl, ExceptionSink *xsink);
+    DLLEXPORT int lockBlocking(struct flock &fl, ExceptionSink* xsink);
 
     //! perform a file lock operation, does not block
-    DLLEXPORT int lock(const struct flock &fl, ExceptionSink *xsink);
+    DLLEXPORT int lock(const struct flock &fl, ExceptionSink* xsink);
 
     //! get lock info operation, does not block
-    DLLEXPORT int getLockInfo(struct flock &fl, ExceptionSink *xsink);
+    DLLEXPORT int getLockInfo(struct flock &fl, ExceptionSink* xsink);
 #endif
 
     //! returns true if data is available for the file descriptor
@@ -541,25 +559,25 @@ public:
         @param xsink if an error occurs, the Qore-language exception info will be added here
         @return true if data is available in the timeout period, false if not
     **/
-    DLLEXPORT bool isDataAvailable(int timeout_ms, ExceptionSink *xsink) const;
+    DLLEXPORT bool isDataAvailable(int timeout_ms, ExceptionSink* xsink) const;
 
     //! returns a QoreListNode with file status information
     /** @param xsink if an error occurs, the Qore-language exception info will be added here
         @return a QoreListNode with file status information
     **/
-    DLLEXPORT QoreListNode *stat(ExceptionSink *xsink) const;
+    DLLEXPORT QoreListNode* stat(ExceptionSink* xsink) const;
 
     //! returns a QoreHashNode with file status information
     /** @param xsink if an error occurs, the Qore-language exception info will be added here
         @return a QoreHashNode with file status information
     **/
-    DLLEXPORT QoreHashNode *hstat(ExceptionSink *xsink) const;
+    DLLEXPORT QoreHashNode* hstat(ExceptionSink* xsink) const;
 
     //! returns a QoreHashNode with filesystem status information
     /** @param xsink if an error occurs, the Qore-language exception info will be added here
         @return a QoreHashNode with filesystem status information
     **/
-    DLLEXPORT QoreHashNode *statvfs(ExceptionSink *xsink) const;
+    DLLEXPORT QoreHashNode* statvfs(ExceptionSink* xsink) const;
 
     //! redirects the current file (this) to the argument
     /** @since %Qore 0.9
@@ -588,10 +606,10 @@ public:
     DLLEXPORT int detachFd();
 
     //! sets terminal attributes
-    DLLLOCAL int setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink *xsink) const;
+    DLLLOCAL int setTerminalAttributes(int action, QoreTermIOS *ios, ExceptionSink* xsink) const;
 
     //! gets terminal attributes
-    DLLLOCAL int getTerminalAttributes(QoreTermIOS *ios, ExceptionSink *xsink) const;
+    DLLLOCAL int getTerminalAttributes(QoreTermIOS *ios, ExceptionSink* xsink) const;
 
     // NOTE: QoreFile::makeSpecial() can only be called right after the constructor (private API)
     DLLLOCAL void makeSpecial(int sfd);
@@ -600,7 +618,7 @@ public:
     DLLLOCAL void setEventQueue(ExceptionSink* xsink, Queue* q, QoreValue arg, bool with_data);
 
     //! internal API, must be called before deleting the object if an event queue is set
-    DLLLOCAL void cleanup(ExceptionSink *xsink);
+    DLLLOCAL void cleanup(ExceptionSink* xsink);
 
 protected:
     //! private implementation
@@ -614,13 +632,13 @@ protected:
 };
 
 DLLEXPORT extern qore_classid_t CID_FILE;
+DLLEXPORT extern qore_classid_t CID_READONLYFILE;
 DLLEXPORT extern QoreClass* QC_FILE;
 DLLEXPORT extern QoreClass* QC_READONLYFILE;
 
 class File : public AbstractPollableIoObjectBase, public QoreFile {
-protected:
-    DLLLOCAL virtual ~File();
-
+friend class FileReadPollOperationBase;
+friend class FileReadPollOperation;
 public:
     DLLLOCAL File(const QoreEncoding* cs);
     DLLLOCAL virtual void deref(ExceptionSink* xsink);
@@ -634,6 +652,15 @@ public:
     DLLLOCAL int getPollableDescriptor() const {
         return QoreFile::getPollableDescriptor();
     }
+
+    //! Returns a socket polling object to poll for reading file data
+    /** @since %Qore 1.19
+    */
+    DLLLOCAL QoreObject* startPollRead(ExceptionSink* xsink, QoreObject* self, const char* path, int64 to_read,
+            bool to_string);
+
+protected:
+    DLLLOCAL virtual ~File();
 };
 
 class QoreFileHelper : QorePrivateObjectAccessHelper {

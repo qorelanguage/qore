@@ -2,15 +2,27 @@
 
     @tableofcontents
 
-    @section qore_1_18_2 Qore 1.18.2
+    @section qore_1_19_0 Qore 1.19.0
 
     @par Release Summary
     Bugfix release; see below for more information
 
-    @subsection qore_1_18_2_bug_fixes Bug Fixes in Qore
+    @subsection qore_1_19_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/FileLocationHandler/html/index.html">FileLocationHandler</a> module
+      - implemented support for non-blocking I/O from file handlers
+        (<a href="https://github.com/qorelanguage/qore/issues/4764">issue 4764</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
+      - implemented consistent support for OAuth2 authorization flows including for OAuth2 with non-blocking I/O and
+        non-blocking retrieval of Swagger schemas for REST clients
+        (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
       - fixed a bug where polling pings did not respect connection options or the validator
         (<a href="https://github.com/qorelanguage/qore/issues/4764">issue 4764</a>)
+    - added the following class and new methods to support OAuth2 and non-blocking polling functionality:
+      - @ref Qore::FilePollOperation "FilePollOperation" class
+      - @ref Qore::ReadOnlyFile::startPollRead() "ReadOnlyFile::startPollRead()"
+      - @ref Qore::HTTPClient::getUsername() "HTTPClient::getUsername()"
+      - @ref Qore::HTTPClient::getPassword() "HTTPClient::getPassword()"
+      (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
 
     @section qore_1_18_1 Qore 1.18.1
 

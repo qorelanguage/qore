@@ -123,14 +123,9 @@ public class ZeyosRestClient inherits RestClient::RestClient {
     }
 
     private:internal {
-        string username;
-        string password;
         string identifier;
         string appsecret;
         string instance;
-
-        # the token acquired in the login call
-        string token;
     }
 
     #! creates the object with the given options
@@ -260,8 +255,7 @@ ZeyosRestClient zeyos(
             "identifier": identifier ?? self.uniqueHash(),
             "appsecret": appsecret,
         }), \info, True, {"Content-Type": MimeTypeJson});
-        token = result.body.token;
-        headers{"Authorization"} = "Bearer " + token;
+        setToken("Bearer", result.body.token);
     }
 }
 

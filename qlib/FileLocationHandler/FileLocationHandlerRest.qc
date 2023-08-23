@@ -186,6 +186,20 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         return val.toString().toBinary();
     }
 
+    #! Retrieves an I/O poller to retrieve a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an I/O poller to retrieve the file's data
+    */
+    private Qore::AbstractPollOperation getIoPollerForLocationImpl(string scheme, string location,
+            *hash<auto> opts) {
+        string path;
+        object client = getRestClient(scheme, location, opts, \path, False);
+        return new HttpPollWrapper(client.startPollSendRecv(opts.method ? opts.method.upr() : "GET", path));
+    }
+
     #! Returns a stream reader for the file's data at the given location
     /** @param scheme the scheme being used
         @param location the location string without the scheme
@@ -262,7 +276,8 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
     /**
         @note This method can throw any exception related to making a REST connection
     */
-    private object getRestClient(string scheme, string location, *hash<auto> opts, reference<string> path) {
+    private object getRestClient(string scheme, string location, *hash<auto> opts, reference<string> path,
+            bool do_connect = True) {
         # dynamically load the module to avoid a circular module dependency
         load_module("RestClient");
 
@@ -287,8 +302,42 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
                 "url": location,
             } + opts
         );
-        client.connect();
+        if (do_connect) {
+            client.connect();
+        }
         return client;
+    }
+}
+}
+
+namespace Priv {
+class HttpPollWrapper inherits AbstractPollOperation {
+    private {
+        AbstractPollOperation op;
+    }
+
+    constructor(AbstractPollOperation op) {
+        self.op = op;
+    }
+
+    string getGoal() {
+        return op.getGoal();
+    }
+
+    string getState() {
+        return op.getState();
+    }
+
+    bool goalReached() {
+        return op.goalReached();
+    }
+
+    *hash<SocketPollInfo> continuePoll() {
+        return op.continuePoll();
+    }
+
+    auto getOutput() {
+        return op.getOutput()."response-body";
     }
 }
 }

@@ -25,6 +25,8 @@
 #! Contains all public definitions in the FileLocationHandler module
 public namespace FileLocationHandler {
 #! The class for handling "ftp(s)://"" locations
+/** Does not currently support non-blocking I/O operations
+*/
 class FileLocationHandlerFtp inherits AbstractFileLocationHandler {
     public {
         #! Valid common file location options
@@ -66,6 +68,18 @@ class FileLocationHandlerFtp inherits AbstractFileLocationHandler {
         string file;
         FtpClient f = getFtpClient(scheme, location, opts, \file);
         return f.getAsBinary(file);
+    }
+
+    #! Retrieves an I/O poller to retrieve a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an I/O poller to retrieve the file's data
+    */
+    private Qore::AbstractPollOperation getIoPollerForLocationImpl(string scheme, string location,
+            *hash<auto> opts) {
+        throw "UNIMPLEMENTED", "retrieving FTP file data with non-blocking operations is not yet supported";
     }
 
     #! Returns a stream reader for the file's data at the given location

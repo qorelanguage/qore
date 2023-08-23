@@ -137,7 +137,6 @@ public class CdsRestClient inherits RestClient::RestClient {
         string api;
         string tenant;
         string scope;
-        string token;
         string uri_path_pfx;
     }
 

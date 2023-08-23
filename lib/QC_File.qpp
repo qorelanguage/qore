@@ -370,10 +370,10 @@ if (f.sync())
     @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 int File::sync() {
-   if (check_terminal_io(self, "File::sync", xsink))
-      return QoreValue();
+    if (check_terminal_io(self, "File::sync", xsink))
+        return QoreValue();
 
-   return f->sync();
+    return f->sync(xsink);
 }
 
 //! Writes binary data to a file

@@ -359,20 +359,11 @@ public class SalesforceRestClient inherits RestClient::RestClient {
         #! Mutex for token acquisition
         Mutex m();
 
-        #! Salesforce.com token
-        string token;
-
         #! Salesforce.com "consumer key"
         string client_id;
 
         #! Salesforce.com "consumer secret"
         string client_secret;
-
-        #! Salesforce.com username
-        string username;
-
-        #! Salesforce.com password
-        string password;
 
         #! Salesforce.com REST API version to be used (\c "auto" = latest version)
         string api;
@@ -947,7 +938,7 @@ sfrest.logout();
         setSerialization("url");
 
         # create message body hash
-        hash lh.token = token;
+        hash<auto> lh.token = token;
 
         # make the revoke call
         RestClient::doRequest("POST", "", lh, \info);
