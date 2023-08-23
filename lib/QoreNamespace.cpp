@@ -64,6 +64,7 @@
 #include "qore/intern/QC_AbstractPollableIoObjectBase.h"
 #include "qore/intern/QC_SocketPollOperationBase.h"
 #include "qore/intern/QC_SocketPollOperation.h"
+#include "qore/intern/QC_FilePollOperation.h"
 
 #include "qore/intern/QC_Datasource.h"
 #include "qore/intern/QC_DatasourcePool.h"
@@ -1097,6 +1098,7 @@ StaticSystemNamespace::StaticSystemNamespace() : RootQoreNamespace(new qore_root
     qns.addSystemClass(initSocketPollOperationBaseClass(qns));
     preinitSocketClass();
     qns.addSystemClass(initSocketPollOperationClass(qns));
+    qns.addSystemClass(initFilePollOperationClass(qns));
     qns.addSystemClass(initAbstractPollableIoObjectClass(qns));
     qns.addSystemClass(initAbstractPollableIoObjectBaseClass(qns));
 

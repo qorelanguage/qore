@@ -121,7 +121,6 @@ public class Sap4HanaRestClient inherits RestClient::RestClient {
         # for OAuth2-based access
         string client_id;
         string client_secret;
-        string token;
     }
 
     #! creates the object with the given options (which include the mandatory \c apikey option for <a href="https://sap.com">SAP S/4Hana</a> server authentication)

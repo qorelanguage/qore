@@ -204,8 +204,9 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_Expression.qpp \
 	lib/QC_File.qpp \
 	lib/QC_FileInputStream.qpp \
-	lib/QC_FileOutputStream.qpp \
 	lib/QC_FileLineIterator.qpp \
+	lib/QC_FileOutputStream.qpp \
+    lib/QC_FilePollOperation.qpp \
 	lib/QC_FtpClient.qpp \
 	lib/QC_Gate.qpp \
 	lib/QC_GetOpt.qpp \
@@ -880,6 +881,7 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AbstractPollableIoObjectBase.h \
 	include/qore/intern/QC_SocketPollOperationBase.h \
 	include/qore/intern/QC_SocketPollOperation.h \
+	include/qore/intern/QC_FilePollOperation.h \
 	include/qore/intern/QoreEllipsesNode.h \
 	include/qore/intern/getopt_long.h \
 	command-line.h
@@ -1322,7 +1324,7 @@ TAR_NAME := arch/qore-v$(PACKAGE_VERSION)-$(BUILD)-$(shell date +%Y%m%d).tar
 
 tar: clean
 	find $(top_srcdir) -name \*~ -exec rm {} \;
-	cd ..; tar cvf $(TAR_NAME) src && gzip $(TAR_NAME)
+	cd ..; tar --posix -cvf $(TAR_NAME) src && gzip $(TAR_NAME)
 
 tests:
 	./run_tests.sh

@@ -73,6 +73,17 @@ public class AbstractFileLocationHandler {
         return getBinaryFileImpl(scheme, location, opts);
     }
 
+    #! Retrieves an I/O poller to retrieve a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an I/O poller to retrieve the file's data
+    */
+    Qore::AbstractPollOperation getIoPollerForLocation(string scheme, string location, *hash<auto> opts) {
+        return getIoPollerForLocationImpl(scheme, location, opts);
+    }
+
     #! Returns a string stream for the file's data at the given location
     /** @param scheme the scheme being used
         @param location the location string without the scheme
@@ -165,6 +176,16 @@ public class AbstractFileLocationHandler {
         @return the binary data of the file's contents, if it can be retrieved
     */
     private abstract binary getBinaryFileImpl(string scheme, string location, *hash<auto> opts);
+
+    #! Retrieves an I/O poller to retrieve a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an I/O poller to retrieve the file's data
+    */
+    private abstract Qore::AbstractPollOperation getIoPollerForLocationImpl(string scheme, string location,
+            *hash<auto> opts);
 
     #! Returns a string stream for the file's data at the given location
     /** @param scheme the scheme being used
@@ -348,6 +369,16 @@ public class FileLocationHandler {
         return text
             ? FileLocationHandler::getTextFileFromLocation(location)
             : FileLocationHandler::getBinaryFileFromLocation(location);
+    }
+
+    #! Returns a non-blocking I/O poller object to retrieve a binary file from the given location
+    /** @param location the location string
+
+        @throw LOCATION-ERROR invalid location or empty location string
+    */
+    static Qore::AbstractPollOperation getIoPollerForLocation(string location) {
+        hash<InternallLocationInfo> info = FileLocationHandler::getInfo(location, True);
+        return info.handler.getIoPollerForLocation(info.scheme, info.location, info.opts);
     }
 
     #! Returns a string stream for the file's data at the given location

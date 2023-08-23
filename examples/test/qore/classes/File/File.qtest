@@ -7,6 +7,7 @@
 %strict-args
 
 %requires ../../../../../qlib/Util.qm
+%requires ../../../../../qlib/FsUtil.qm
 %requires ../../../../../qlib/QUnit.qm
 
 %exec-class FileTest
@@ -19,10 +20,34 @@ class FileTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("File", "1.0") {
+        addTestCase("non-blocking I/O", \testNonBlockingIo());
         addTestCase("FileTest", \fileTest());
         addTestCase("issue 3061", \issue3061());
         addTestCase("redirect test", \redirectTest());
         set_return_value(main());
+    }
+
+    testNonBlockingIo() {
+        string content = get_random_string(512);
+
+        TmpFile tmp("qore-File-");
+        tmp.file.write(content);
+        tmp.file.close();
+
+        File f();
+        FilePollOperation fpop = f.startPollRead(tmp.path);
+        assertEq("read-done", fpop.getGoal());
+        assertEq("reading", fpop.getState());
+
+        list<hash<SocketPollInfo>> new_list;
+        while (*hash<SocketPollInfo> info = fpop.continuePoll()) {
+            #printf("info: %y\n", info);
+            new_list = Socket::poll((info,), 1s);
+        }
+        assertEq("read-done", fpop.getState());
+        assertTrue(fpop.goalReached());
+
+        assertEq(content, fpop.getOutput());
     }
 
     fileTest() {

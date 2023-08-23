@@ -11,7 +11,7 @@ dummy:
 	echo "Build started!"
 
 EXTRA_INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)/include -I$(top_builddir)/lib
-libqore_la_LDFLAGS = -version-info 16:0:4 -no-undefined ${QORE_LIB_LDFLAGS}
+libqore_la_LDFLAGS = -version-info 16:1:4 -no-undefined ${QORE_LIB_LDFLAGS}
 AM_CPPFLAGS = $(EXTRA_INCLUDES) ${QORE_LIB_CPPFLAGS}
 AM_CXXFLAGS = ${QORE_LIB_CXXFLAGS}
 AM_YFLAGS = -d
@@ -86,6 +86,7 @@ QORE_QPP_TARGETS = QC_Queue.cpp QC_Socket.cpp QC_ReadOnlyFile.cpp QC_File.cpp QC
     QC_AbstractPollOperation.cpp \
     QC_SocketPollOperationBase.cpp \
     QC_SocketPollOperation.cpp \
+    QC_FilePollOperation.cpp \
 	ql_misc.cpp ql_compression.cpp ql_thread.cpp ql_crypto.cpp ql_lib.cpp ql_file.cpp \
 	ql_string.cpp ql_time.cpp ql_math.cpp ql_list.cpp ql_pwd.cpp ql_object.cpp \
 	ql_dbi.cpp ql_context.cpp ql_env.cpp ql_type.cpp \

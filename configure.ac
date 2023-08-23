@@ -2,10 +2,10 @@
 
 # AC_PREREQ(2.59)
 # NOTE: Qore should always use semantic versioning: https://semver.org/
-AC_INIT([qore], [1.18.2],
+AC_INIT([qore], [1.19.0],
         [David Nichols <david@qore.org>],
         [qore])
-AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
+AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-pax subdir-objects])
 AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
 AC_CONFIG_HEADER(modules/astparser/config.h)
 

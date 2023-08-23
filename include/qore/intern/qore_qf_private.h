@@ -38,6 +38,7 @@
 #endif
 
 #include "qore/intern/StringReaderHelper.h"
+#include "qore/AbstractPollState.h"
 
 #include <cerrno>
 #include <cstdio>
@@ -74,6 +75,7 @@ struct qore_qf_private {
     QoreValue event_arg;
     //! if data should be included in file events
     bool event_data = false;
+    bool in_non_block = false;
 
     DLLLOCAL qore_qf_private(const QoreEncoding* cs) : charset(cs) {
     }
@@ -111,7 +113,14 @@ struct qore_qf_private {
 
         // lock both files
         AutoLocker al(m);
+        if (checkNonBlock(xsink)) {
+            return -1;
+        }
+
         AutoLocker al2(file.m);
+        if (file.checkNonBlock(xsink)) {
+            return -1;
+        }
 
         // dup2() will close this file descriptor
         int rc = dup2(file.fd, fd);
@@ -160,27 +169,30 @@ struct qore_qf_private {
     }
 
     // returns -1 for exception
-    DLLLOCAL int check_read_open(ExceptionSink* xsink) const {
-        if (is_open)
+    DLLLOCAL int checkReadOpen(ExceptionSink* xsink) const {
+        if (is_open) {
             return 0;
+        }
 
         xsink->raiseException("FILE-READ-ERROR", "file has not been opened");
         return -1;
     }
 
     // returns -1 for exception
-    DLLLOCAL int check_write_open(ExceptionSink* xsink) const {
-        if (is_open)
+    DLLLOCAL int checkWriteOpen(ExceptionSink* xsink) const {
+        if (is_open) {
             return 0;
+        }
 
         xsink->raiseException("FILE-WRITE-ERROR", "file has not been opened");
         return -1;
     }
 
     // returns -1 for exception
-    DLLLOCAL int check_open(ExceptionSink* xsink) const {
-        if (is_open)
+    DLLLOCAL int checkOpen(ExceptionSink* xsink) const {
+        if (is_open) {
             return 0;
+        }
 
         xsink->raiseException("FILE-OPERATION-ERROR", "file has not been opened");
         return -1;
@@ -192,8 +204,11 @@ struct qore_qf_private {
 
     DLLLOCAL bool isDataAvailable(int timeout_ms, ExceptionSink *xsink) const {
         AutoLocker al(m);
+        if (checkNonBlock(xsink)) {
+            return false;
+        }
 
-        if (check_read_open(xsink))
+        if (checkReadOpen(xsink))
             return false;
 
         return isDataAvailableIntern(timeout_ms, "isDataAvailable", xsink);
@@ -207,7 +222,7 @@ struct qore_qf_private {
         */
     DLLLOCAL int select(int timeout_ms, bool read, const char* mname, ExceptionSink* xsink) const {
         //printd(5, "select() to: %d read: %d mname: '%s'\n", timeout_ms, read, mname);
-        if (check_open(xsink))
+        if (checkOpen(xsink))
             return -1;
 
 #if defined HAVE_POLL
@@ -284,8 +299,11 @@ struct qore_qf_private {
 #ifdef HAVE_TERMIOS_H
     DLLLOCAL int setTerminalAttributes(int action, QoreTermIOS* ios, ExceptionSink* xsink) const {
         AutoLocker al(m);
+        if (checkNonBlock(xsink)) {
+            return -1;
+        }
 
-        if (check_open(xsink))
+        if (checkOpen(xsink))
             return -1;
 
         return ios->set(fd, action, xsink);
@@ -293,8 +311,11 @@ struct qore_qf_private {
 
     DLLLOCAL int getTerminalAttributes(QoreTermIOS* ios, ExceptionSink* xsink) const {
         AutoLocker al(m);
+        if (checkNonBlock(xsink)) {
+            return -1;
+        }
 
-        if (check_open(xsink))
+        if (checkOpen(xsink))
             return -1;
 
         return ios->get(fd, xsink);
@@ -302,8 +323,24 @@ struct qore_qf_private {
 #endif
 
     // unlocked, assumes file is open
-    DLLLOCAL size_t read(void *buf, size_t bs) const {
-        qore_offset_t rc;
+    DLLLOCAL ssize_t readCheck(ExceptionSink* xsink, void* buf, size_t bs) const {
+        if (checkNonBlock(xsink)) {
+            return 0;
+        }
+
+        if (checkReadOpen(xsink)) {
+            return 0;
+        }
+
+        return read(buf, bs);
+    }
+
+    // unlocked, assumes file is open
+    DLLLOCAL ssize_t read(void* buf, size_t bs) const {
+        // must be called with the lock held
+        assert(m.trylock());
+
+        ssize_t rc;
         while (true) {
             rc = ::read(fd, buf, bs);
             // try again if we were interrupted by a signal
@@ -318,8 +355,24 @@ struct qore_qf_private {
     }
 
     // unlocked, assumes file is open
-    DLLLOCAL size_t write(const void* buf, size_t len, ExceptionSink* xsink = 0) const {
-        qore_offset_t rc;
+    DLLLOCAL ssize_t writeCheck(const void* buf, size_t len, ExceptionSink* xsink) const {
+        if (checkNonBlock(xsink)) {
+            return 0;
+        }
+
+        if (checkWriteOpen(xsink)) {
+            return 0;
+        }
+
+        return write(buf, len, xsink);
+    }
+
+    // unlocked, assumes file is open
+    DLLLOCAL ssize_t write(const void* buf, size_t len, ExceptionSink* xsink = 0) const {
+        // must be called with the lock held
+        assert(m.trylock());
+
+        ssize_t rc;
         while (true) {
             rc = ::write(fd, buf, len);
             // try again if we are interrupted by a signal
@@ -327,11 +380,12 @@ struct qore_qf_private {
                 break;
         }
 
-        if (rc > 0)
+        if (rc > 0) {
             do_write_event_unlocked(rc, rc, len);
-        else if (xsink && rc < 0)
+        } else if (xsink && rc < 0) {
             xsink->raiseErrnoException("FILE-WRITE-ERROR", errno, "failed writing " QSD " byte%s to File", len,
                 len == 1 ? "" : "s");
+        }
 
         return rc;
     }
@@ -455,6 +509,7 @@ struct qore_qf_private {
         str.clear();
 
         AutoLocker al(m);
+        assert(!in_non_block);
 
         if (!is_open)
             return -2;
@@ -501,6 +556,7 @@ struct qore_qf_private {
         str.clear();
 
         AutoLocker al(m);
+        assert(!in_non_block);
 
         if (!is_open)
             return -2;
@@ -539,6 +595,7 @@ struct qore_qf_private {
         str.clear();
 
         AutoLocker al(m);
+        assert(!in_non_block);
 
         if (!is_open)
             return -2;
@@ -598,6 +655,7 @@ struct qore_qf_private {
         str.clear();
 
         AutoLocker al(m);
+        assert(!in_non_block);
 
         if (!is_open)
             return -2;
@@ -630,6 +688,7 @@ struct qore_qf_private {
         str.clear();
 
         AutoLocker al(m);
+        assert(!in_non_block);
 
         if (!is_open)
             return -2;
@@ -693,6 +752,7 @@ struct qore_qf_private {
         str.clear();
 
         AutoLocker al(m);
+        assert(!in_non_block);
 
         if (!is_open)
             return -2;
@@ -742,6 +802,7 @@ struct qore_qf_private {
 
     DLLLOCAL bool isTty() const {
         AutoLocker al(m);
+        assert(!in_non_block);
 
         if (!is_open)
             return false;
@@ -751,6 +812,7 @@ struct qore_qf_private {
 
     DLLLOCAL int detachFd() {
         AutoLocker al(m);
+        assert(!in_non_block);
 
         if (!is_open) {
             return -1;
@@ -766,6 +828,7 @@ struct qore_qf_private {
 
     DLLLOCAL size_t getPos() const {
         AutoLocker al(m);
+        assert(!in_non_block);
 
         if (!is_open)
             return -1;
@@ -872,8 +935,11 @@ struct qore_qf_private {
 
     DLLLOCAL QoreListNode* stat(ExceptionSink* xsink) const {
         AutoLocker al(m);
+        if (checkNonBlock(xsink)) {
+            return nullptr;
+        }
 
-        if (check_read_open(xsink))
+        if (checkReadOpen(xsink))
             return nullptr;
 
         struct stat sbuf;
@@ -887,8 +953,11 @@ struct qore_qf_private {
 
     DLLLOCAL QoreHashNode* hstat(ExceptionSink* xsink) const {
         AutoLocker al(m);
+        if (checkNonBlock(xsink)) {
+            return nullptr;
+        }
 
-        if (check_read_open(xsink))
+        if (checkReadOpen(xsink))
             return nullptr;
 
         struct stat sbuf;
@@ -903,8 +972,11 @@ struct qore_qf_private {
 #ifdef Q_HAVE_STATVFS
     DLLLOCAL QoreHashNode* statvfs(ExceptionSink* xsink) const {
         AutoLocker al(m);
+        if (checkNonBlock(xsink)) {
+            return nullptr;
+        }
 
-        if (check_read_open(xsink))
+        if (checkReadOpen(xsink))
             return nullptr;
 
         struct statvfs vfs;
@@ -923,6 +995,49 @@ struct qore_qf_private {
         return statvfs_to_hash(vfs);
     }
 #endif
+
+    DLLLOCAL AbstractPollState* startRead(ExceptionSink* xsink, ssize_t bytes);
+
+    //! Sets non-blocking I/O on the file descriptor
+    DLLLOCAL int setNonBlockingIo(bool non_blocking, ExceptionSink* xsink);
+
+    //! Throws an exception if the in_non_block flag is set or is not valid
+    DLLLOCAL int checkNonBlock(ExceptionSink* xsink) const {
+        // must be called with the lock held
+        assert(m.trylock());
+
+        if (in_non_block) {
+            xsink->raiseException("FILE-NON-BLOCK-ERROR", "a non-blocking operation is currently in progress");
+            return -1;
+        }
+
+        return 0;
+    }
+
+    //! Sets the in_non_block flag
+    DLLLOCAL int setNonBlock(ExceptionSink* xsink, bool do_io = true) {
+        // must be called with the lock held
+        assert(m.trylock());
+
+        if (!checkNonBlock(xsink) && (!do_io || !setNonBlockingIo(true, xsink))) {
+            in_non_block = true;
+            return 0;
+        }
+        return -1;
+    }
+
+    //! Clears the in_non_block flag
+    DLLLOCAL void clearNonBlock(ExceptionSink* xsink) {
+        // must be called with the lock held
+        assert(m.trylock());
+
+        if (in_non_block) {
+            setNonBlockingIo(false, xsink);
+            in_non_block = false;
+        }
+    }
+
+    DLLLOCAL QoreObject* startPollRead(ExceptionSink* xsink, QoreObject* self, const char* path, int64 to_read);
 };
 
 #endif

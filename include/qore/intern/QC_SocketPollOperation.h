@@ -149,7 +149,6 @@ private:
     bool sent = false;
 };
 
-
 class SocketRecvPollOperationBase : public SocketPollOperationBase {
 public:
     DLLLOCAL SocketRecvPollOperationBase(QoreSocketObject* sock, bool to_string) : sock(sock),

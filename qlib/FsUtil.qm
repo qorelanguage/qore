@@ -413,7 +413,7 @@ public namespace FsUtil {
         int flags = O_CREAT | O_EXCL | O_RDWR;
         hash<TmpFileHash> tmp_file();
 
-        for (int i = 0; i < TMP_MAX_ATTEMPTS; i++) {
+        for (int i = 0; i < TMP_MAX_ATTEMPTS; ++i) {
             string tmp_fn = prefix + get_random_string() + suffix;
             tmp_file.path = join_paths(path, tmp_fn);
 

@@ -53,6 +53,18 @@ class FileLocationHandlerData inherits AbstractFileLocationHandler {
         return location.toBinary();
     }
 
+    #! Retrieves an I/O poller to retrieve a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an I/O poller to retrieve the file's data
+    */
+    private Qore::AbstractPollOperation getIoPollerForLocationImpl(string scheme, string location,
+            *hash<auto> opts) {
+        return new ImmediateDataPollOperation(binary(location));
+    }
+
     #! Returns a stream reader for the file's data at the given location
     /** @param scheme the scheme being used
         @param location the location string without the scheme
@@ -110,6 +122,37 @@ class FileLocationHandlerData inherits AbstractFileLocationHandler {
     */
     private hash<string, hash<FileHandlerOptionInfo>> getWriteOptionsImpl() {
         return {};
+    }
+}
+}
+
+namespace Priv {
+class ImmediateDataPollOperation inherits AbstractPollOperation {
+    private {
+        auto value;
+    }
+
+    constructor(auto value) {
+        self.value = value;
+    }
+
+    string getGoal() {
+        return "done";
+    }
+
+    string getState() {
+        return "done";
+    }
+
+    bool goalReached() {
+        return True;
+    }
+
+    *hash<SocketPollInfo> continuePoll() {
+    }
+
+    auto getOutput() {
+        return value;
     }
 }
 }

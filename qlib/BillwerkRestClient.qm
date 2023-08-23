@@ -126,8 +126,6 @@ public class BillwerkRestClient inherits RestClient::RestClient {
     }
 
     private:internal {
-        string username;
-        string password;
         string client_id;
         string client_secret;
     }
