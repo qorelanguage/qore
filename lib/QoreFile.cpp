@@ -612,17 +612,14 @@ QoreStringNode* QoreFile::getchar(ExceptionSink* xsink) {
     int c;
     {
         AutoLocker al(priv->m);
-        if (priv->checkNonBlock(xsink)) {
-            return nullptr;
-        }
-
-        if (priv->checkReadOpen(xsink)) {
+        if (priv->checkNonBlock(xsink) || priv->checkReadOpen(xsink)) {
             return nullptr;
         }
 
         c = priv->readChar();
-        if (c < 0)
+        if (c < 0) {
             return nullptr;
+        }
 
         str->concat((char)c);
         if (!priv->charset->isMultiByte()) {
@@ -681,30 +678,26 @@ QoreStringNode* QoreFile::getchar() {
 
 int QoreFile::write(const void* data, size_t len, ExceptionSink* xsink) {
     AutoLocker al(priv->m);
-    if (priv->checkNonBlock(xsink)) {
+    if (priv->checkNonBlock(xsink) || priv->checkWriteOpen(xsink)) {
         return -1;
     }
 
-    if (priv->checkWriteOpen(xsink))
-        return -1;
-
-    if (!len)
+    if (!len) {
         return 0;
+    }
 
     return priv->write(data, len, xsink);
 }
 
 int QoreFile::write(const QoreString *str, ExceptionSink* xsink) {
     AutoLocker al(priv->m);
-    if (priv->checkNonBlock(xsink)) {
+    if (priv->checkNonBlock(xsink) || priv->checkWriteOpen(xsink)) {
         return -1;
     }
 
-    if (priv->checkWriteOpen(xsink))
-        return -1;
-
-    if (!str)
+    if (!str) {
         return 0;
+    }
 
     TempEncodingHelper wstr(str, priv->charset, xsink);
     if (*xsink)
@@ -717,15 +710,13 @@ int QoreFile::write(const QoreString *str, ExceptionSink* xsink) {
 
 int QoreFile::write(const BinaryNode* b, ExceptionSink* xsink) {
     AutoLocker al(priv->m);
-    if (priv->checkNonBlock(xsink)) {
+    if (priv->checkNonBlock(xsink) || priv->checkWriteOpen(xsink)) {
         return -1;
     }
 
-    if (priv->checkWriteOpen(xsink))
-        return -1;
-
-    if (!b)
+    if (!b) {
         return 0;
+    }
 
     return priv->write(b->getPtr(), b->size(), xsink);
 }
@@ -733,23 +724,22 @@ int QoreFile::write(const BinaryNode* b, ExceptionSink* xsink) {
 int QoreFile::read(QoreString &str, qore_offset_t size, ExceptionSink* xsink) {
     str.clear();
 
-    if (!size)
+    if (!size) {
         return 0;
+    }
 
     char *buf;
     {
         AutoLocker al(priv->m);
-        if (priv->checkNonBlock(xsink)) {
+        if (priv->checkNonBlock(xsink) || priv->checkReadOpen(xsink)) {
             return -1;
         }
 
-        if (priv->checkReadOpen(xsink))
-        return -1;
-
         buf = priv->readBlock(size, -1, "read", xsink);
     }
-    if (!buf)
+    if (!buf) {
         return -1;
+    }
 
     str.takeAndTerminate(buf, size, priv->charset);
     return 0;
@@ -772,12 +762,9 @@ int QoreFile::readBinary(BinaryNode& b, qore_offset_t size, ExceptionSink* xsink
     char *buf;
     {
         AutoLocker al(priv->m);
-        if (priv->checkNonBlock(xsink)) {
+        if (priv->checkNonBlock(xsink) || priv->checkReadOpen(xsink)) {
             return -1;
         }
-
-        if (priv->checkReadOpen(xsink))
-            return -1;
 
         buf = priv->readBlock(size, -1, "readBinary", xsink);
     }
@@ -797,12 +784,9 @@ BinaryNode* QoreFile::readBinary(qore_offset_t size, ExceptionSink* xsink) {
     char *buf;
     {
         AutoLocker al(priv->m);
-        if (priv->checkNonBlock(xsink)) {
+        if (priv->checkNonBlock(xsink) || priv->checkReadOpen(xsink)) {
             return nullptr;
         }
-
-        if (priv->checkReadOpen(xsink))
-            return nullptr;
 
         buf = priv->readBlock(size, -1, "readBinary", xsink);
     }
@@ -819,12 +803,9 @@ BinaryNode* QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSi
     char *buf;
     {
         AutoLocker al(priv->m);
-        if (priv->checkNonBlock(xsink)) {
+        if (priv->checkNonBlock(xsink) || priv->checkReadOpen(xsink)) {
             return nullptr;
         }
-
-        if (priv->checkReadOpen(xsink))
-            return nullptr;
 
         buf = priv->readBlock(size, timeout_ms, "readBinary", xsink);
     }
@@ -836,17 +817,14 @@ BinaryNode* QoreFile::readBinary(qore_offset_t size, int timeout_ms, ExceptionSi
 
 size_t QoreFile::read(void* ptr, size_t limit, int timeout_ms, ExceptionSink* xsink) {
     AutoLocker al(priv->m);
-    if (priv->checkNonBlock(xsink)) {
-        return 0;
-    }
-    if (priv->checkReadOpen(xsink)) {
+    if (priv->checkNonBlock(xsink) || priv->checkReadOpen(xsink)) {
         return 0;
     }
     if (timeout_ms >= 0 && !priv->isDataAvailableIntern(timeout_ms, "read", xsink)) {
         xsink->raiseException("FILE-READ-TIMEOUT-ERROR", "timeout limit exceeded (%d ms) reading file", timeout_ms);
         return 0;
     }
-    ssize_t rc = priv->readCheck(xsink, ptr, limit);
+    ssize_t rc = priv->read(ptr, limit);
     if (rc < 0) {
         xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file");
         return 0;
