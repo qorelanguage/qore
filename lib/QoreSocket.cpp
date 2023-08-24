@@ -1165,6 +1165,9 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
         return -1;
     }
 
+    // do not allow more than 10 loops at a time
+    unsigned loop = 0;
+
     while (true) {
         ssize_t rc;
         if (sock->ssl) {
@@ -1178,6 +1181,10 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
                 sent += real_io;
                 if (sent == size) {
                     break;
+                }
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLOUT;
                 }
                 // do another send
                 continue;
@@ -1195,11 +1202,19 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
                 if (sent == size) {
                     break;
                 }
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLOUT;
+                }
                 // do another send
                 continue;
             }
             sock_get_error();
             if (errno == EINTR) {
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLOUT;
+                }
                 continue;
             }
             if (errno == EAGAIN
@@ -1258,6 +1273,8 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
         return -1;
     }
 
+    unsigned loop = 0;
+
     while (true) {
         ssize_t rc;
         if (sock->ssl) {
@@ -1274,7 +1291,10 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
                     bin->setSize(size);
                     break;
                 }
-                // do another send
+                if (++loop >= 10) {
+                    return SOCK_POLLIN;
+                }
+                // do another read
                 continue;
             }
             return rc;
@@ -1297,11 +1317,19 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
                     bin->setSize(size);
                     break;
                 }
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLIN;
+                }
                 // do another recv
                 continue;
             }
             sock_get_error();
             if (errno == EINTR) {
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLIN;
+                }
                 continue;
             }
             if (errno == EAGAIN
@@ -1372,6 +1400,8 @@ int SocketRecvUntilBytesPollState::doRecv(ExceptionSink* xsink) {
         return -1;
     }
 
+    unsigned loop = 0;
+
     while (true) {
         ssize_t rc;
         if (sock->ssl) {
@@ -1399,6 +1429,10 @@ int SocketRecvUntilBytesPollState::doRecv(ExceptionSink* xsink) {
             }
             sock_get_error();
             if (errno == EINTR) {
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLIN;
+                }
                 continue;
             }
             if (errno == EAGAIN
@@ -1443,10 +1477,12 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
         }
         while (true) {
             rc = ::read(fd, buf, bn);
-            if (rc >= 0)
+            if (rc >= 0) {
                 break;
+            }
             if (errno != EINTR) {
-                xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in Socket::send()", bs);
+                xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in "
+                    "Socket::send()", bs);
                 break;
             }
         }

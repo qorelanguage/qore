@@ -39,7 +39,6 @@
 
 #include <memory>
 
-
 // states: none -> opened -> reading -> read-done
 constexpr int FPS_NONE = 0;
 constexpr int FPS_READING = 1;
@@ -53,6 +52,7 @@ public:
     DLLLOCAL virtual void deref(ExceptionSink* xsink) {
         if (ROdereference()) {
             if (set_non_block) {
+                AutoLocker al(file->priv->m);
                 file->priv->clearNonBlock(xsink);
             }
             file->deref(xsink);

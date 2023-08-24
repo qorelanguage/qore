@@ -28,26 +28,36 @@ class FileTest inherits QUnit::Test {
     }
 
     testNonBlockingIo() {
-        string content = get_random_string(512);
+        data content = get_random_string(512);
+        testNonBlockingIoIntern(content);
 
+        content = get_random_bytes(512);
+        testNonBlockingIoIntern(content);
+
+        content = get_random_bytes(10 * 1024 * 1024);
+        testNonBlockingIoIntern(content);
+    }
+
+    testNonBlockingIoIntern(data content) {
         TmpFile tmp("qore-File-");
         tmp.file.write(content);
         tmp.file.close();
 
         File f();
-        FilePollOperation fpop = f.startPollRead(tmp.path);
-        assertEq("read-done", fpop.getGoal());
-        assertEq("reading", fpop.getState());
+        FilePollOperation fpop = f.startPollRead(tmp.path, content.typeCode() == NT_STRING);
+        string label = sprintf("%d byte %s file: ", content.size(), content.type());
+        assertEq("read-done", fpop.getGoal(), label + "goal: read-done");
+        assertEq("reading", fpop.getState(), label + "reading");
 
         list<hash<SocketPollInfo>> new_list;
         while (*hash<SocketPollInfo> info = fpop.continuePoll()) {
             #printf("info: %y\n", info);
             new_list = Socket::poll((info,), 1s);
         }
-        assertEq("read-done", fpop.getState());
-        assertTrue(fpop.goalReached());
+        assertEq("read-done", fpop.getState(), label + "state: read-done");
+        assertTrue(fpop.goalReached(), label + "goal reached");
 
-        assertEq(content, fpop.getOutput());
+        assertEq(content, fpop.getOutput(), label + "content matches");
     }
 
     fileTest() {

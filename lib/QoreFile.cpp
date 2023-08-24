@@ -64,6 +64,9 @@ public:
             to_read = size - received;
         }
 
+        // do not allow more than 10 loops at a time
+        unsigned loop = 0;
+
         while (true) {
             // ensure buffer space for read
             {
@@ -77,16 +80,25 @@ public:
             ssize_t rc = ::read(file->fd,
                 reinterpret_cast<void*>(const_cast<char*>(reinterpret_cast<const char*>(bin->getPtr()) + received)),
                 to_read);
+
             if (rc >= 0) {
                 received += rc;
                 if (received == size || !rc) {
                     bin->setSize(received);
                     break;
                 }
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLIN;
+                }
                 // do another read
                 continue;
             }
             if (errno == EINTR) {
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLIN;
+                }
                 continue;
             }
             if (errno == EAGAIN
@@ -1058,7 +1070,7 @@ QoreObject* File::startPollRead(ExceptionSink* xsink, QoreObject* self, const ch
     ReferenceHolder<QoreObject> rv(new QoreObject(QC_FILEPOLLOPERATION, getProgram(), poller.release()), xsink);
     if (!*xsink) {
         p->setSelf(*rv);
-        rv->setValue("file", self->objectRefSelf(), xsink);
+        rv->setValue("sock", self->objectRefSelf(), xsink);
         rv->setValue("goal", new QoreStringNode("read-done"), xsink);
     }
     return rv.release();
