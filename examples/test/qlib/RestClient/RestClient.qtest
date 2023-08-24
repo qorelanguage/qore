@@ -90,8 +90,6 @@ public class Main inherits QUnit::Test {
 
         Logger logger;
 
-#     "output": {"foo": {"bar": 1, "other": 2017-01-01Z}},
-
         const TestSchema = {
             "swagger": "2.0",
             "info": {

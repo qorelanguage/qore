@@ -55,21 +55,24 @@ class RestCmd {
     public {
         #! program options
         const Opts = {
+            "cert":      "C,cert=s",
+            "conn":      "c,connection=s",
+            "fullex":    "E,full-exception",
             "sendenc":   "e,send-encoding:s",
             "header":    "H,header=s@",
-            "proxy":     "P,proxy-url=s",
-            "to":        "t,timeout=i",
-            "lit":       "l,literal:i+",
-            "list":      "L,list",
-            "reformat":  "R,reformat",
-            "fullex":    "E,full-exception",
-            "data":      "S,serialization=s",
-            "swagger":   "s,swagger=s",
-            "example":   "x,example:s",
-            "cert":      "C,cert=s",
+            "ignoreerr": "i,ignore-errors",
             "key":       "k,key=s",
             "keypass":   "K,keypass=s",
-            "conn":      "c,connection=s",
+            "lit":       "l,literal:i+",
+            "list":      "L,list",
+            "proxy":     "P,proxy-url=s",
+            "basepath":  "p,base-path=s",
+            "reformat":  "R,reformat",
+            "data":      "S,serialization=s",
+            "swagger":   "s,swagger=s",
+            "to":        "t,timeout=i",
+            "lax":       "X,lax-parsing",
+            "example":   "x,example:s",
 
             "help":      "h,help",
         };
@@ -91,10 +94,18 @@ class RestCmd {
         if (opt.help || (!ARGV[0] && !opt.list))
             usage();
 
-        hash opts;
+        hash<auto> opts;
+
+        hash<auto> swagger_opts;
+        if (opt.lax) {
+            swagger_opts = {"parse_flags": LM_ALL};
+        }
 
         if (opt.swagger) {
-            opts.validator = SwaggerLoader::fromFile(opt.swagger);
+            opts.validator = SwaggerLoader::fromFile(opt.swagger, swagger_opts);
+            if (opt.basepath.val()) {
+                opts.validator.setBasePath(opt.basepath);
+            }
         } else if (opt.example) {
             error("option -x|--example requires -s|--swagger to provide the schema for generating the example");
         } else if (opt."list") {
@@ -107,6 +118,10 @@ class RestCmd {
                 map printf("%s /%s\n", $1.upr(), h.key), h.value;
             }
             thread_exit;
+        }
+
+        if (opt.ignoreerr) {
+            opts.error_passthru = True;
         }
 
         *string meth = shift ARGV;
@@ -225,7 +240,18 @@ class RestCmd {
                 exit(1);
             }
         } else {
-            opts.url = url;
+            request_path = url_info.path;
+
+            opts.url = sprintf("%s://", url_info.protocol);
+            if (url_info.username && url_info.password) {
+                opts.url += sprintf("%s:%s@", url_info.username, url_info.password);
+            }
+            opts.url += url_info.host;
+            if ((url_info.port != 80 && url_info.protocol == "http")
+                || (url_info.port != 443 && url_info.protocol == "https")) {
+                opts.url += sprintf(":%d", url_info.port);
+            }
+            opts.url += "/";
 
             if (opt.proxy)
                 opts.proxy = opt.proxy;
@@ -282,12 +308,13 @@ class RestCmd {
         hash<auto> info;
         #printf("body: %y\n", body);
         try {
-            hash h;
-            on_exit if (opt.lit) {
+            hash<auto> h;
+            on_exit if (opt.lit && info) {
                 showRestRequest(info, body, opt);
                 showRestResponse(info, h.body, opt);
             }
 
+            on_error rethrow $1.err, sprintf("%s (using url: %y request path: %y)", $1.desc, url, request_path ?? "");
             h = rest.doRequest(meth, request_path ?? "", body, \info);
             if (!opt.lit) {
                 printf("%N\n", h.body);
@@ -411,21 +438,24 @@ class RestCmd {
 
     static usage() {
         printf("usage: %s [options] get|put|post|delete URL ['qore msg body']
+ -c,--cert=ARG             client X.509 certificate to use
+ -E,--full-exception       show full exception output
  -e,--send-encoding[=ARG]  set compression in outgoing request
                            [ARG=gzip,deflate,bzip2,identity]
- -E,--full-exception       show full exception output
- -c,--cert=ARG             client X.509 certificate to use
  -H,--header=ARG           send header with request
- -l,--literal              show literal API calls (more l's, more info)
+ -i,--ignore-errors        ignore HTTP errors and show the literal response in all cases
  -K,--keypass=ARG          password to use for key for client certificate
  -k,--key=ARG              key to use for client certificate
  -L,--list                 list URI paths and methods supported by the schema
+ -l,--literal              show literal API calls (more l's, more info)
  -P,--proxy-url=ARG        set the proxy URL (ex: http://proxy:port)
+ -p.--base-path=ARG        override the base path for Swagger schemas
  -R,--reformat             reformat data with -l+ for better readability
  -S,--serialization=ARG    set REST data serialization type:
                            auto, json, yaml, xml, rawxml, url
  -s,--swagger=ARG          use the given Swagger 2.0 schema for validation
  -t,--timeout=ARG          set HTTP timeout in seconds
+ -X,--lax-parsing          lax parsing of Swagger schemas
  -x,--example[=ARG]        generate an example message; ARG=
                              q: generate Qore example (default data)
                              r<code>: generate response (default request)

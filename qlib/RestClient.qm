@@ -2271,6 +2271,9 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
     private doStartPing() {
         # first prepare message for ping from any validator
         rc.prepareToSend(method, \path, \body, \headers);
+
+        printf("ping method: %y path: %y\n", method, path);
+
         state = SPS_REST_PING;
         poller = rc.startPollSendRecv(method, path, body, headers);
     }

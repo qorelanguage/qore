@@ -279,9 +279,12 @@ public const LM_IGNORE_INVALID_REQUIRED    = (1 << 2);
 #! parse option: reconstruct invalid body parameters
 public const LM_ACCEPT_INVALID_BODY_PARAMS = (1 << 3);
 
+#! parse option: add consumes application/x-www-form-urlencoded to API endpoint if formData is used in params
+public const LM_AUTO_FORM_DATA             = (1 << 4);
+
 #! parse options: all options
 public const LM_ALL = (LM_IGNORE_MISSING_REQUIRED | LM_LAX_COLLECTIONFORMAT | LM_IGNORE_INVALID_REQUIRED
-    | LM_ACCEPT_INVALID_BODY_PARAMS);
+    | LM_ACCEPT_INVALID_BODY_PARAMS | LM_AUTO_FORM_DATA);
 #/@}
 
 #! Valid integer type formats
@@ -1278,6 +1281,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 if (item.value.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid parameter datatype: " + item.value.type();
                 parameters{item.key} = AbstractParameterObject::newParameter(item.key, item.value, self);
+                if (opt_flags & LM_AUTO_FORM_DATA && parameters{item.key}.inLoc.formData
+                    && !consumes{MimeTypeFormUrlEncoded}) {
+                    consumes{MimeTypeFormUrlEncoded} = True;
+                }
             }
 
             delete obj;
@@ -1622,7 +1629,9 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 try {
                     rv.body = ds ? ds(response_body) : response_body;
                 } catch (hash<ExceptionInfo> ex) {
-                    rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc);
+                    rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc), ex.arg + {
+                        "response-body": response_body,
+                    };
                 }
             }
         }
@@ -2774,6 +2783,9 @@ public class OperationObject inherits ObjectBase {
                     body = param;
                 } else if (param.inLoc == "formData") {
                     formData{param.name} = param;
+                    if (opt_flags & LM_AUTO_FORM_DATA && !consumes{MimeTypeFormUrlEncoded}) {
+                        consumes{MimeTypeFormUrlEncoded} = True;
+                    }
                 } else {
                     parameters{param.name} = param;
                 }
