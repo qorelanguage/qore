@@ -377,7 +377,7 @@ public class SalesforceRestClient inherits RestClient::RestClient {
         string api_used;
 
         #! hash of APIs retrieved from GET /services/data; keyed by API version string; values: \c "label", \c "url"
-        hash<auto> api_hash;
+        hash<string, hash<auto>> api_hash;
     }
 
     #! creates the object with the given options
@@ -979,8 +979,13 @@ sfrest.logout();
     }
 
     #! returns the Salesforce.com REST API version currently in use
-    string getApi() {
+    *string getApi() {
         return api_used;
+    }
+
+    #! Return available APIs as a hash
+    *hash<string, hash<auto>> getApis() {
+        return api_hash;
     }
 
     #! verifies that the options passed match the configured options
@@ -1031,7 +1036,7 @@ sfrest.logout();
     }
 
     #! performs authentication and authorization with Salesforce.com using the OAuth2 authorization URL
-    private loginIntern(*reference<hash> info) {
+    private hash<auto> loginIntern(*reference<hash> info) {
         # ensure that if json serialization is set, that we do not claim to understand XML responses
         # (which Salesforce.com will prefer otherwise, and then no type information will be transmitted)
         if (ds == "json") {
@@ -1047,23 +1052,33 @@ sfrest.logout();
         # restore the encoding on exit
         on_exit seh = old_seh;
 
-        hash<auto> h = RestClient::loginIntern(\info);
-
+        hash<auto> h = gotOAuth2LoginInfo(RestClient::loginIntern(\info));
         # set the URL to the Salesforce.com URL for REST API calls
         setURL(h.instance_url);
+        processApis(RestClient::doRequest("GET", "services/data").body);
+        setVerifyApi(h);
+        return h;
+    }
 
+    #! Process the API response from Salesforce and set / verify the client's API level
+    processApis(*list<auto> apis) {
         # get as hash of supported APIs
-        api_hash = map {$1.version: $1 - "version"}, RestClient::doRequest("GET", "services/data").body;
+        on_error printf("APIs: %y\n", apis);
+        api_hash = cast<hash<string, hash<auto>>>(map {$1.version: $1 - "version"}, apis);
+    }
 
+    #! Sets / verifies the api level and sets the application URL accordingly
+    setVerifyApi(hash<auto> h) {
         hash<auto> ah;
         if (api == "auto") {
             api = api_used = api_hash.lastKey();
             ah = api_hash.lastValue();
         } else {
             *hash<auto> aah = api_hash{api};
-            if (!aah)
+            if (!aah) {
                 throw "SALESFORCE-API-ERROR", sprintf("Salesforce.com REST API %y was requested but is not "
                     "supported; supported Salesforce.com APIs: %y", api, keys api_hash);
+            }
             api_used = api;
             ah = aah;
         }
@@ -1131,6 +1146,12 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
                     "type": "string",
                     "desc": "the Salesforce.com password (will override any password in the URL)",
                     "sensitive": True,
+                },
+                "ping_method": RestConnection::ConnectionScheme.options."ping_method" + <ConnectionOptionInfo>{
+                    "default_value": "GET",
+                },
+                "ping_path": RestConnection::ConnectionScheme.options."ping_path" + <ConnectionOptionInfo>{
+                    "default_value": "/services/data",
                 },
                 "username": <ConnectionOptionInfo>{
                     "type": "string",
@@ -1201,6 +1222,87 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
     #! Returns the ConnectionSchemeInfo hash for this object
     private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         return ConnectionScheme;
+    }
+
+    #! Called to start a non-blocking polling ping operation on the remote REST server
+    /**
+        @return a socket poll operation object that will allow the connection goal to be reached with polling
+
+        @see supportsPollingApi()
+    */
+    Qore::AbstractPollOperation startPollConnect() {
+        if (!opts.ping_method || !exists opts.ping_path) {
+            return HttpBasedConnection::startPollConnect();
+        }
+
+        # returns a RestClient option without connecting and without retrieving any external schemas with I/O
+        return new SalesforceRestPingPollOperation(getPollImpl(), real_opts);
+    }
+}
+
+#! REST ping polling I/O class with OAuth2 authentication
+/** Ensures a 200 response to the polling send/receive operation
+*/
+public class SalesforceRestPingPollOperation inherits RestClient::RestPingPollOperation {
+    private {
+        #! Get available APIs
+        const SPS_GET_APIS = "get-apis";
+    }
+
+    constructor(RestClient rc, hash<auto> real_opts) : RestPingPollOperation(rc, real_opts) {
+    }
+
+    private checkOtherStates() {
+        if (state == SPS_GET_APIS) {
+            hash<auto> resp = poller.getOutput();
+            if ((resp."code" / 100) == 2) {
+                AbstractRestSchemaValidator validator = rc.getValidator();
+                on_error rethrow $1.err, sprintf("%s: info: %y", $1.desc, resp.info{"request-uri",
+                    "response-uri"});
+                string body = resp."response-body"
+                    ? resp."response-body".toString(resp.info.charset ?? "ISO-8859-1")
+                    : "";
+                hash<RestResponseClientInfo> info = validator.parseResponse(method, path, resp."code", body,
+                    resp.info."response-headers" + {"content-type": resp.info."body-content-type"});
+                cast<SalesforceRestClient>(rc).processApis(info.body);
+                doStartPing();
+                return;
+            }
+
+            throw "REST-PING-ERROR", sprintf("failed to retrieve Salesforce APIs: %y returned from %y; response "
+                "body: %y", resp.info."response-uri", resp.info."request-uri", body);
+        }
+
+        RestPingPollOperation::checkOtherStates();
+    }
+
+    private gotOAuth2LoginInfo(hash<auto> h) {
+        SalesforceRestClient src = cast<SalesforceRestClient>(rc);
+        src.gotOAuth2LoginInfo(h);
+        # set the URL to the Salesforce.com URL for REST API calls
+        src.setURL(h.instance_url);
+        # get APIs if necessary
+        if (!src.getApis()) {
+            doStartGetApis();
+        } else {
+            # verify API
+            src.setVerifyApi(h);
+            # start ping
+            doStartPing();
+        }
+    }
+
+    private doStartGetApis() {
+        string path = "/services/data";
+        auto body;
+        hash<auto> headers = {
+            "Accept": MimeTypeJson,
+        };
+        # first prepare message for ping from any validator
+        rc.prepareToSend("GET", \path, \body, \headers);
+
+        state = SPS_GET_APIS;
+        poller = rc.startPollSendRecv("GET", path, NOTHING, headers);
     }
 }
 }

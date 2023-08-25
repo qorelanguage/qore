@@ -1280,6 +1280,43 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
     }
 
+    #! Process the raw REST response received
+    /** @param resp the return value from HTTPClient::send()
+        @param method the HTTP method used
+        @param path the URI path used
+        @param info an optional info hash reference for information about the call
+
+        @return \a resp with additional or processed information
+    */
+    hash<auto> processRestResponse(hash<auto> resp, string method, string path, *reference<hash<auto>> info) {
+        hash<RestResponseClientInfo> sh = validator.parseResponse(method, path, resp.status_code, resp.body, resp);
+        if (exists resp.body) {
+            resp.body = sh.body;
+            info += {
+                "response-serialization": sh.info."code"
+                    ?? NullRestSchemaValidator::DataDeserializationSupport{resp."content-type"}."code"
+                    ?? "unknown",
+                "response-body": resp.body,
+            };
+        }
+
+        return resp;
+    }
+
+    #! Called when OAuth2 login information has been received
+    /** @since %RestClient 2.0
+    */
+    hash<auto> gotOAuth2LoginInfo(hash<auto> h) {
+        if (h.token_type.typeCode() != NT_STRING || h.access_token.typeCode() != NT_STRING) {
+            throw "REST-LOGIN-ERROR", sprintf("OAuth2 response for grant type %y is invalid, needs both "
+                "token_type (%y) and access_token (%y)", oauth2_grant_type, h.token_type, h.access_token);
+        }
+        # set the token
+        setToken(h.token_type, h.access_token, h.refresh_token);
+        #printf("OAUth2 auth %y: -> %y\n", login, h);
+        return h;
+    }
+
     #! Sets up authentication info
     /** @since %RestClient 2.0
     */
@@ -1430,17 +1467,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         setSerialization("url");
 
         # make the authorization call
-        hash<auto> h = RestClient::doRequestIntern("POST", set_url ? "/" : oauth2_token_url, login, \info).body;
-        if (h.token_type.typeCode() != NT_STRING || h.access_token.typeCode() != NT_STRING) {
-            throw "REST-LOGIN-ERROR", sprintf("OAuth2 response for grant type %y is invalid, needs both "
-                "token_type (%y) and access_token (%y)", oauth2_grant_type, h.token_type, h.access_token);
-        }
-
-        # set the token
-        setToken(h.token_type, h.access_token, h.refresh_token);
-        #printf("OAUth2 auth %y: -> %y\n", login, h);
-
-        return h;
+        return gotOAuth2LoginInfo(RestClient::doRequestIntern("POST", set_url ? "/" : oauth2_token_url, login, \info).body);
     }
 
     #! Returns an OAuth2 login hash
@@ -1566,29 +1593,6 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         return processRestResponse(h, m, path, \info);
-    }
-
-    #! Process the raw REST response received
-    /** @param resp the return value from HTTPClient::send()
-        @param method the HTTP method used
-        @param path the URI path used
-        @param info an optional info hash reference for information about the call
-
-        @return \a resp with additional or processed information
-    */
-    private hash<auto> processRestResponse(hash<auto> resp, string method, string path, *reference<hash<auto>> info) {
-        hash<RestResponseClientInfo> sh = validator.parseResponse(method, path, resp.status_code, resp.body, resp);
-        if (exists resp.body) {
-            resp.body = sh.body;
-            info += {
-                "response-serialization": sh.info."code"
-                    ?? NullRestSchemaValidator::DataDeserializationSupport{resp."content-type"}."code"
-                    ?? "unknown",
-                "response-body": resp.body,
-            };
-        }
-
-        return resp;
     }
 
     #! decode any REST errors returned if possible
@@ -1811,7 +1815,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 "ping_path": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "The URI path to use for an advanced ping; this and `ping_method` must be made to make "
-                        "an HTTP request as a part of the socket polling ping operation",
+                        "an HTTP request as a part of the socket polling ping operation.  If the value for this "
+                        "option begins with a `/` character, then it replaces any connection path for the REST "
+                        "client, otherwise the value is appended to the connection path for the REST client.",
                 },
                 "ping_headers": <ConnectionOptionInfo>{
                     "type": "hash",
@@ -1948,7 +1954,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         - \c "ping_method": the HTTP method to use for an advanced ping; this and \c ping_path must be set to make an
           HTTP request as a part of the socket polling ping operation; must be a valid HTTP method name
         - \c "ping_path": the URI path to use for an advanced ping; this and \c ping_method must be made to make an
-          HTTP request as a part of the socket polling ping operation
+          HTTP request as a part of the socket polling ping operation.  If the value for this option begins with a
+          \c / character, then it replaces any connection path for the REST client, otherwise the value is appended to
+          the connection path for the REST client
         - \c "ping_headers": any HTTP headers to send when performing an advanced ping operation; ignored if either
           \c ping_method or \c ping_path is not set
         - \c "ping_body": any ping body to send with a ping operation; ignored if either \c ping_method or \c ping_path
@@ -2025,7 +2033,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
 
         # returns a RestClient option without connecting and without retrieving any external schemas with I/O
         return new RestPingPollOperation(getPollImpl(), real_opts);
-   }
+    }
 
     #! processes options for the constructor
     /** In particular it parses any string as a value of the \c "headers" option to return a hash
@@ -2082,6 +2090,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         RestClient client = get();
         if (!opts.ping_method || !exists opts.ping_path) {
             return;
+        }
+
+        if (opts.ping_path[0] == "/") {
+            client.clearConnectionPath();
         }
 
         hash<auto> info;
@@ -2170,6 +2182,11 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
         body = method != "GET" ? real_opts.ping_body : NOTHING;
         headers = real_opts.ping_headers;
 
+        # if the ping path is an absolute path, then replace the connection path
+        if (real_opts.ping_path[0] == "/") {
+            rc.setConnectionPath();
+        }
+
         if (real_opts.swagger) {
             state = SPS_GET_SWAGGER;
             poller = FileLocationHandler::getIoPollerForLocation(real_opts.swagger);
@@ -2233,9 +2250,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
                     : "";
 %ifndef NoJson
                 if ((resp."code" / 100) == 2) {
-                    hash<auto> h = parse_json(body);
-                    rc.setToken(h.token_type, h.access_token, h.refresh_token);
-                    doStartPing();
+                    gotOAuth2LoginInfo(parse_json(body));
                     continue;
                 }
 %endif
@@ -2261,6 +2276,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
                     AbstractRestSchemaValidator validator = rc.getValidator();
                     on_error rethrow $1.err, sprintf("%s: info: %y", $1.desc, resp.info{"request-uri",
                         "response-uri"});
+                    #hash<RestResponseClientInfo> info =
                     validator.parseResponse(method, path, resp."code", body,
                         resp.info."response-headers" + {"content-type": resp.info."body-content-type"});
                     goal_reached = True;
@@ -2269,10 +2285,21 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
                     break;
                 }
 
-                throw "REST-PING-ERROR", sprintf("%y returned from %y'; response body: %y", resp.info."response-uri",
+                throw "REST-PING-ERROR", sprintf("%y returned from %y; response body: %y", resp.info."response-uri",
                     resp.info."request-uri", body);
             }
+
+            checkOtherStates();
         }
+    }
+
+    private checkOtherStates() {
+        throw "INVALID-STATE", sprintf("invalid state %y; aborting", state);
+    }
+
+    private gotOAuth2LoginInfo(hash<auto> h) {
+        rc.gotOAuth2LoginInfo(h);
+        doStartPing();
     }
 
     private doStartGetToken() {
@@ -2297,9 +2324,6 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
     private doStartPing() {
         # first prepare message for ping from any validator
         rc.prepareToSend(method, \path, \body, \headers);
-
-        printf("ping method: %y path: %y\n", method, path);
-
         state = SPS_REST_PING;
         poller = rc.startPollSendRecv(method, path, body, headers);
     }

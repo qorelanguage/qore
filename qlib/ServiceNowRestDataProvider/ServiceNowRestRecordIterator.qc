@@ -57,13 +57,14 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
         self.record_info = record_info;
 
         # make query
-        *string query = makeQuery(where_cond, search_options);
+        *string query = makeQuery(cast<*hash<DataProviderExpression>>(where_cond), search_options);
         hash<auto> info;
         try {
             string uri = "table/" + name;
             if (query) {
                 uri += sprintf("?%s", query);
             }
+
             i = new ListHashIterator(rest.get(uri, NOTHING, \info).body.response.result);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
@@ -97,7 +98,8 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
     /** @throw INVALID-ITERATOR the iterator is not pointing at a valid element
     */
     hash<auto> getValue() {
-        hash<auto> rv = i.getValue();
+        # value may be NOTHING in case referenced columns do not exist
+        hash<auto> rv = i.getValue() ?? {};
         # convert JSON strings to native Qore date/time values
         map rv{$1} = date(rv{$1}), keys record_info.date_time_fields, rv{$1}.val();
         # convert JSON strings to native boolean values
@@ -136,7 +138,7 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
     *string makeQuery(*hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         string filter = "sysparm_exclude_reference_link=true&sysparm_suppress_pagination_header=true";
         if (search_options.columns) {
-            filter = "sysparm_fields=" + getColumnNames(search_options.columns);
+            filter += "&sysparm_fields=" + getColumnNames(search_options.columns);
         }
         if (where_cond) {
             if (filter) {

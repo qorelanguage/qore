@@ -304,8 +304,7 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("ServiceNowRestConnection"),
-            "options": RestConnection::ConnectionScheme.options
-                    - ("ping_method", "ping_path", "ping_headers", "ping_body") + {
+            "options": RestConnection::ConnectionScheme.options + {
                 "api": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the API version for ServiceNow; if not set the latest version is used",
@@ -325,6 +324,15 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
                     "desc": "the ServiceNow password",
                     "sensitive": True,
                 },
+                "ping_headers": RestConnection::ConnectionScheme.options."ping_headers" + <ConnectionOptionInfo>{
+                    "default_value": DefaultServiceNowPingHeaders,
+                },
+                "ping_method": RestConnection::ConnectionScheme.options."ping_method" + <ConnectionOptionInfo>{
+                    "default_value": DefaultServiceNowPingMethod,
+                },
+                "ping_path": RestConnection::ConnectionScheme.options."ping_path" + <ConnectionOptionInfo>{
+                    "default_value": DefaultServiceNowPingPath,
+                },
                 "username": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the ServiceNow username",
@@ -337,7 +345,9 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         const DefaultServiceNowPingMethod= "GET";
 
         #! Default ServiceNow ping path (from the API root)
-        const DefaultServiceNowPingPath = "table/sys_dictionary?sysparm_query=name=incident";
+        const DefaultServiceNowPingPath = "table/sys_properties?sysparm_exclude_reference_link=true"
+                        "&sysparm_suppress_pagination_header=true&sysparm_fields=value"
+                        "&sysparm_query=name=mid.version";
 
         #! Default ServiceNow ping headers
         const DefaultServiceNowPingHeaders = {
@@ -358,11 +368,6 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : RestConnection(name, description, url, attributes, options) {
-        opts += {
-            "ping_method": DefaultServiceNowPingMethod,
-            "ping_path": DefaultServiceNowPingPath,
-            "ping_headers": DefaultServiceNowPingHeaders,
-        };
         real_opts = {
             "url": real_url,
         } + urlh{"username", "password"} + opts;
