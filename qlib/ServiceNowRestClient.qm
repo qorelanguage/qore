@@ -85,8 +85,6 @@ module ServiceNowRestClient {
 
 hash<auto> opts = {
     "url": "https://dev493922.service-now.com/",
-    "client_id": "b73a867187eb18f62d89820395417684",
-    "client_secret": "M09tfOc&NoEP(XCEKkT:T&V<lKR%+=h9hw",
     "username": "admin",
     "password": "mypassword",
 };
@@ -157,8 +155,8 @@ public class ServiceNowRestClient inherits RestClient::RestClient {
         @code{.py}
 ServiceNowRestClient rest({
     "url": "https://dev493922.service-now.com",
-    "client_id": client_id,
-    "client_secret": client_secret,
+    "username": "admin",
+    "password": "mypassword",
 });
         @endcode
 
@@ -292,29 +290,12 @@ ServiceNowRestClient rest({
     }
 }
 
-#! class for ServiceNow REST connections; returns @ref ServiceNowRestClient objects
-/** supports the following options:
+#! Class for ServiceNow REST connections; returns @ref ServiceNowRestClient objects
+/** In addition to all options supported by @ref RestClient::RestClientConnection "RestClientConnection", this
+    connection class supports the following options:
     - \c "api": the API version for ServiceNow
-    - \c "client_id": (optional) the ServiceNow OAuth2 client ID
-    - \c "client_secret": (optional) the ServiceNow OAuth2 client secret
-    - \c "connect_timeout": connection timeout to use in milliseconds
-    - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
-      requested response encoding; for possible values, see
-      @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-    - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
-      values; the default is \c "json"
-    - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
-      \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-      like any other response
-    - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-    - \c "max_redirects": maximum redirects to support
-    - \c "proxy": proxy URL to use
-    - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
-        processed
-    - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
-      \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message
-      bodies
-    - \c "timeout": transfer timeout to use in milliseconds
+    - \c "client_id": (optional) the ServiceNow OAuth2 client ID (mapped to the \c oauth2_client_id option)
+    - \c "client_secret": (optional) the ServiceNow OAuth2 client secret (mapped to the \c oauth2_client_secret option)
 
     @see @ref ServiceNowRestClient::ServiceNowRestClient::constructor() for more information on the above options
 */

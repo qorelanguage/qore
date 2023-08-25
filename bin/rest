@@ -233,8 +233,17 @@ class RestCmd {
                     exit(1);
                 }
                 rest = conn.get();
+                if (!exists body) {
+                    stderr.printf("ERROR: missing request path\n");
+                    exit(1);
+                }
                 request_path = body;
                 body = shift ARGV;
+
+                # if the path is absolute, then override the connection path
+                if (request_path[0] == "/") {
+                    rest.setConnectionPath();
+                }
             } catch (hash<ExceptionInfo> ex) {
                 stderr.printf("connection %y: %s: %s: %s\n", opt.conn, get_ex_pos(ex), ex.err, ex.desc);
                 exit(1);
@@ -314,7 +323,7 @@ class RestCmd {
                 showRestResponse(info, h.body, opt);
             }
 
-            on_error rethrow $1.err, sprintf("%s (using url: %y request path: %y)", $1.desc, url, request_path ?? "");
+            on_error rethrow $1.err, sprintf("%s (using url: %y request path: %y)", $1.desc, rest.getURL(), request_path ?? "");
             h = rest.doRequest(meth, request_path ?? "", body, \info);
             if (!opt.lit) {
                 printf("%N\n", h.body);

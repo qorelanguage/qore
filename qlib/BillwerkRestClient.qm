@@ -173,42 +173,35 @@ BillwerkRestClient billwerk(
         @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
         @throw BILLWERKRESTCLIENT-ERROR missing or invalid required option for <a href="http://www.billwerk.com">Billwerk.com</a> REST authentication or communication
     */
-    constructor(hash<auto> options, *softbool do_not_connect) : RestClient(BillwerkRestClient::getOptions(options), do_not_connect) {
+    constructor(hash<auto> options, *softbool do_not_connect) : RestClient(BillwerkRestClient::getOptions(options), True) {
         # the Billwerk server does not return a charset=UTF-8 with its JSON responses, but they are in UTF-8 encoding
         setAssumedEncoding("UTF-8");
 
         if (options.token) {
-            headers{"Authorization"} = "Bearer " + options.token;
-            return;
-        }
-
-        # check required options
-        foreach string key in (RequiredOptions) {
-            auto value = options{key};
-            if (!value.val()) {
-                throw "BILLWERKRESTCLIENT-ERROR", sprintf("missing required option %y", key);
-            }
-            if (value.typeCode() != NT_STRING) {
-                throw "BILLWERKRESTCLIENT-ERROR",
-                        sprintf("required option %y was passed as a %s (%y); expecting \"string\"",
-                                key, value.type(), value);
-            }
-            self{key} = value;
-        }
-
-        # set username and password, if present
-        if (options.url) {
-            self += parse_url(options.url){"username", "password"};
-        }
-
-        # see if we have the client_secret
-        if (options.client_secret) {
-            client_secret = options.client_secret;
+            setToken("Bearer", options.token);
         } else {
-            # if no token is set, then the URL must have a username & password
-            if (!exists username || !exists password) {
-                throw "BILLWERKRESTCLIENT-ERROR", sprintf("missing username and password; cannot login "
-                    "without both a username and password or the client_secret");
+            # check required options
+            foreach string key in (RequiredOptions) {
+                auto value = options{key};
+                if (!value.val()) {
+                    throw "BILLWERKRESTCLIENT-ERROR", sprintf("missing required option %y", key);
+                }
+                if (value.typeCode() != NT_STRING) {
+                    throw "BILLWERKRESTCLIENT-ERROR",
+                            sprintf("required option %y was passed as a %s (%y); expecting \"string\"",
+                                    key, value.type(), value);
+                }
+                self{key} = value;
+            }
+            # see if we have the client_secret
+            if (options.client_secret) {
+                client_secret = options.client_secret;
+            } else {
+                # if no token is set, then the URL must have a username & password
+                if (!exists username || !exists password) {
+                    throw "BILLWERKRESTCLIENT-ERROR", sprintf("missing username and password; cannot login "
+                        "without both a username and password or the client_secret");
+                }
             }
         }
 
@@ -217,7 +210,13 @@ BillwerkRestClient billwerk(
             headers."Accept-Charset" = "utf-8";
         }
 
-        getToken();
+        if (!do_not_connect) {
+            if (!token) {
+                loginIntern();
+            } else {
+                connect();
+            }
+        }
     }
 
     #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
@@ -239,63 +238,28 @@ BillwerkRestClient billwerk(
         if (!exists options.no_charset) {
             new_options.no_charset = True;
         }
+        new_options.oauth2_token_url = AuthPath;
+        if (options.client_id && options.client_secret) {
+            if ((url_info.username && url_info.password)
+                || (options.username && options.password)) {
+                    new_options.oauth2_grant_type = "password";
+            } else {
+                new_options.oauth2_grant_type = "client_credentials";
+            }
+            new_options += {
+                "oauth2_client_id": options.client_id,
+                "oauth2_client_secret": options.client_secret,
+            };
+        }
         return new_options;
-    }
-
-    #! logs in an sets the token for further communication
-    private getToken() {
-        # temporarily remove the schema for the OAuth2 call
-        AbstractRestSchemaValidator v;
-        if (!(validator instanceof NullRestSchemaValidator)) {
-            v = remove self.validator;
-            validator = new NullRestSchemaValidator();
-        }
-        on_exit if (v) {
-            validator = v;
-        }
-
-        # temporarily set url serialization for the OAuth call
-        string old_ds = getSerialization();
-        setSerialization("url");
-        on_exit setSerialization(old_ds);
-
-        hash<auto> result;
-        if (client_secret) {
-            setUserPassword(client_id, client_secret);
-            on_exit setUserPassword();
-            result = RestClient::post(AuthPath, {
-                "grant_type": "client_credentials",
-            });
-
-        } else {
-            result = RestClient::post(AuthPath, {
-                "grant_type": "password",
-                "username": username,
-                "password": password,
-                "client_id": client_id,
-            });
-        }
-        #printf("result.body: %y\n", result.body);
-        headers{"Authorization"} = "Bearer " + result.body.access_token;
     }
 }
 
 #! class for <a href="http://www.billwerk.com">Billwerk.com</a> REST connections; returns @ref BillwerkRestClient::BillwerkRestClient objects
-/** supports the following options:
+/** In addition to all options supported by @ref RestClient::RestClientConnection "RestClientConnection", this
+    connection class supports the following options:
     - \c "client_id" (optional): the <a href="http://www.billwerk.com">billwerk.com</a> client_id
     - \c "client_secret" (mandatory): the <a href="http://www.billwerk.com">billwerk.com</a> client_secret
-    - \c "connect_timeout": connection timeout to use in milliseconds
-    - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-    - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the null REST schema validator; the default is \c "auto"
-    - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause an
-        \c HTTP-CLIENT-RECEIVE-ERROR exception to be raised, rather such responses will be passed through to the caller
-        like any other response
-    - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-    - \c "max_redirects": maximum redirects to support
-    - \c "proxy": proxy URL to use
-    - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
-    - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API validation (see the @ref swaggerintro "Swagger" module)
-    - \c "timeout": transfer timeout to use in milliseconds
 
     @note additionally supports the following runtime option in getImpl():
     - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator" object for REST message validation (if present, overrides any REST schema validation option provided as a connection option)

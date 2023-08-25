@@ -663,9 +663,10 @@ rest.setSendEncoding("gzip");
         if (enc == "auto") {
             seh = EncodingSupport.firstValue();
         } else {
-            if (!EncodingSupport{enc})
+            if (!EncodingSupport{enc}) {
                 throw "RESTCLIENT-ERROR", sprintf("send content encoding option %y is unknown; valid options: %y",
-                    enc, EncodingSupport.keys());
+                    enc, keys EncodingSupport);
+            }
             seh = EncodingSupport{enc};
         }
     }
@@ -689,10 +690,11 @@ rest.setContentEncoding("gzip");
         @since %RestClient 1.3
     */
     setContentEncoding(string enc = "auto") {
-        if (enc == "auto")
+        if (enc == "auto") {
             seh = EncodingSupport.firstValue();
-        else
+        } else {
             setSendEncoding(enc);
+        }
 
         headers."Accept-Encoding" = seh.ce ? seh.ce : "identity";
     }
@@ -1228,13 +1230,18 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
         on_error {
             string url = getSafeURL();
-            if (url !~ /\/$/) {
-                url += "/";
-            }
-            if (path =~ /^\//) {
-                url += path[1..];
-            } else {
-                url += path;
+
+            printf("url: %y path: %y (u: %y)\n", url, path, url[(url.length() - path.length())..]);
+
+            if (url.size() < path.size() || (url[(url.length() - path.length())..] != path)) {
+                if (url !~ /\/$/) {
+                    url += "/";
+                }
+                if (path =~ /^\//) {
+                    url += path[1..];
+                } else {
+                    url += path;
+                }
             }
             rethrow $1.err, sprintf("%s (REST URL %y)", $1.desc, url);
         }
@@ -1357,8 +1364,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     #! Authenticates with OAuth2 if configured
     /** @since %RestClient 2.0
     */
-    private loginIntern(*reference<hash<auto>> info) {
-        oauth2Auth(getOAuth2LoginInfo(oauth2_grant_type), \info);
+    private hash<auto> loginIntern(*reference<hash<auto>> info) {
+        return oauth2Auth(getOAuth2LoginInfo(oauth2_grant_type), \info);
     }
 
     #! Starts a non-blocking I/O operation to authenticate with an OAuth2 server and acquire an auth token
@@ -1381,7 +1388,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     #! Perform OAuth2 password authentication
     /** @since %RestClient 2.0
     */
-    private oauth2Auth(hash<auto> login, *reference<hash<auto>> info) {
+    private hash<auto> oauth2Auth(hash<auto> login, *reference<hash<auto>> info) {
         # clear connection path for login call
         *string path = getConnectionPath();
         on_exit setConnectionPath(path);
@@ -1394,15 +1401,25 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             setUserPassword(username, self.password);
         }
 
+        # temporarily remove any schema for the OAuth2 call
+        AbstractRestSchemaValidator v;
+        if (!(validator instanceof NullRestSchemaValidator)) {
+            v = remove self.validator;
+            validator = new NullRestSchemaValidator();
+        }
+        on_exit if (v) {
+            validator = v;
+        }
+
         # save URL in case the token URL is on a completely different server
         string orig_url = getURL();
-
+        bool set_url = oauth2_token_url =~ /^http/;
         # set the full URL if the token URL is possibly on another server
-        if (oauth2_token_url =~ /^http/) {
+        if (set_url) {
             setURL(oauth2_token_url);
         }
         # restore the URL on exit if necessary
-        on_exit if (oauth2_token_url =~ /^http/) {
+        on_exit if (set_url) {
             setURL(orig_url);
         }
 
@@ -1413,10 +1430,17 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         setSerialization("url");
 
         # make the authorization call
-        hash<auto> h = RestClient::doRequestIntern("POST", oauth2_token_url, login, \info).body;
+        hash<auto> h = RestClient::doRequestIntern("POST", set_url ? "/" : oauth2_token_url, login, \info).body;
+        if (h.token_type.typeCode() != NT_STRING || h.access_token.typeCode() != NT_STRING) {
+            throw "REST-LOGIN-ERROR", sprintf("OAuth2 response for grant type %y is invalid, needs both "
+                "token_type (%y) and access_token (%y)", oauth2_grant_type, h.token_type, h.access_token);
+        }
+
         # set the token
         setToken(h.token_type, h.access_token, h.refresh_token);
         #printf("OAUth2 auth %y: -> %y\n", login, h);
+
+        return h;
     }
 
     #! Returns an OAuth2 login hash
@@ -1461,17 +1485,19 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         hdr = {} + headers + hdr;
 
         # must get the path from the HTTPClient object if not given in the request
-        if (!path.val() && (*string p = getConnectionPath()))
+        if (!path.val() && (*string p = getConnectionPath())) {
             path = p;
+        }
 
         hash<RestRequestClientInfo> req = validator.processRequest(method, path, body, hdr, sct);
-
         if (exists body) {
             body = req.body;
-            if (!hdr{ct})
+            if (!hdr{ct}) {
                 hdr{ct} = req.content;
-            if (!noCharset && body.typeCode() == NT_STRING && hdr{ct} !~ /;charset=/)
+            }
+            if (!noCharset && body.typeCode() == NT_STRING && hdr{ct} !~ /;charset=/) {
                 hdr{ct} += ";charset=" + body.encoding();
+            }
             if (seh.ce && body.size() > CompressionThreshold) {
                 hdr."Content-Encoding" = seh.ce;
                 body = seh.func(body);

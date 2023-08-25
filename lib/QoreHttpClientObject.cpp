@@ -527,7 +527,7 @@ struct qore_httpclient_priv {
             return -1;
         }
 
-        const QoreString *tmp = url.getProtocol();
+        const QoreString* tmp = url.getProtocol();
         if (tmp) {
             prot_map_t::const_iterator i = prot_map.find(tmp->c_str());
             if (i == prot_map.end()) {
