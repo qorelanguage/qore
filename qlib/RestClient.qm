@@ -1231,8 +1231,6 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         on_error {
             string url = getSafeURL();
 
-            printf("url: %y path: %y (u: %y)\n", url, path, url[(url.length() - path.length())..]);
-
             if (url.size() < path.size() || (url[(url.length() - path.length())..] != path)) {
                 if (url !~ /\/$/) {
                     url += "/";
