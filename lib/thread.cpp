@@ -431,9 +431,9 @@ public:
 #ifdef HAVE_GETRLIMIT
             // use rlimit to determine the main thread\s stack size
             rlimit rl;
-            if (!getrlimit(RLIMIT_STACK, &rl)) {
-                stack_size = rl.rlim_cur * 1024;
-                printd(5, "rlimit: stack size: %lldK\n", rl.rlim_cur);
+            if (!getrlimit(RLIMIT_STACK, &rl) && rl.rlim_cur) {
+                stack_size = rl.rlim_cur;
+                printd(5, "rlimit: stack size: %lld bytes\n", rl.rlim_cur);
             } else
 #endif
             {
@@ -968,10 +968,10 @@ int check_stack(ExceptionSink* xsink) {
     size_t pos = get_stack_pos();
 
 #ifdef STACK_DIRECTION_DOWN
-    //printd(5, "check_stack() current: %p limit: %p start: %p size: %llx: depth: %lld\n", get_stack_pos(), td->stack_limit,
+    //printd(5, "check_stack() current: %p limit: %p start: %p size: 0x%llx: depth: %lld\n", get_stack_pos(), td->stack_limit,
     //    td->stack_start, td->stack_size, td->stack_start - pos);
 #else
-    //printd(5, "check_stack() current: %p limit: %p start: %p size: %llx: depth: %lld\n", get_stack_pos(), td->stack_limit,
+    //printd(5, "check_stack() current: %p limit: %p start: %p size: 0x%llx: depth: %lld\n", get_stack_pos(), td->stack_limit,
     //    td->stack_start, td->stack_size, pos - td->stack_start);
 #endif
 
