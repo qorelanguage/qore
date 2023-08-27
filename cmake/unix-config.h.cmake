@@ -64,6 +64,7 @@
 #cmakedefine HAVE_GETPPID
 #cmakedefine HAVE_GETPWNAM_R
 #cmakedefine HAVE_GETPWUID_R
+#cmakedefine HAVE_GETRLIMIT
 #cmakedefine HAVE_GETSOCKOPT
 #cmakedefine HAVE_GETTIMEOFDAY
 #cmakedefine HAVE_GETUID

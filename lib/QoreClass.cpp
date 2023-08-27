@@ -4580,8 +4580,6 @@ qore_type_result_e qore_class_private::runtimeCheckCompatibleClass(const qore_cl
     return QTI_NOT_EQUAL;
 }
 
-DLLLOCAL void breakit() {}
-
 qore_type_result_e qore_class_private::runtimeCheckCompatibleClassIntern(const qore_class_private& oc) const {
     if (equal(oc)) {
         return QTI_IDENT;
@@ -4589,12 +4587,6 @@ qore_type_result_e qore_class_private::runtimeCheckCompatibleClassIntern(const q
 
     ClassAccess access = Public;
     if (!oc.scl || !oc.scl->getClass(*this, access, true)) {
-
-        // XXX DEBUG
-        if (name == "AbstractDatasource" && oc.name == "QdspClient") {
-            breakit();
-        }
-
         return QTI_NOT_EQUAL;
     }
 
@@ -5022,6 +5014,7 @@ MethodVariantBase* MethodFunctionBase::parseHasVariantWithSignature(MethodVarian
 }
 
 QoreValue UserMethodVariant::evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+    //QORE_TRACE("UserMethodVariant::evalMethod()");
     VRMutexOptionalLockHelper vrmolh(synchronized ? (
         self
             ? qore_object_private::get(*self)->getGate()
@@ -5305,10 +5298,10 @@ void DestructorMethodFunction::evalDestructor(const QoreClass& thisclass, QoreOb
 // if the variant was identified at parse time, then variant will not be NULL, otherwise if NULL then it is identified at run time
 QoreValue NormalMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
         QoreObject* self, const QoreListNode* args, const qore_class_private* cctx) const {
+    //QORE_TRACE("NormalMethodFunction::evalMethod()");
     const char* cname = getClassName();
     const char* mname = getName();
     //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
-
     CodeEvaluationHelper ceh(xsink, this, variant, mname, args, self, qore_class_private::get(*qc), CT_UNUSED, false,
         cctx);
     if (*xsink)
@@ -5333,6 +5326,7 @@ QoreValue NormalMethodFunction::evalMethod(ExceptionSink* xsink, const AbstractQ
 // at run time
 QoreValue NormalMethodFunction::evalMethodTmpArgs(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
         QoreObject* self, QoreListNode* args, const qore_class_private* cctx) const {
+    //QORE_TRACE("NormalMethodFunction::evalMethodTmpArgs()");
     const char* cname = getClassName();
     const char* mname = getName();
     //printd(5, "NormalMethodFunction::evalMethod() %s::%s() v: %d\n", cname, mname, self->isValid());
@@ -5360,8 +5354,10 @@ QoreValue NormalMethodFunction::evalMethodTmpArgs(ExceptionSink* xsink, const Ab
 // at run time
 QoreValue NormalMethodFunction::evalPseudoMethod(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
         const QoreValue n, const QoreListNode* args, const qore_class_private* cctx) const {
+    //QORE_TRACE("NormalMethodFunction::evalPseudoMethod()");
     const char* mname = getName();
-    //printd(5, "NormalMethodFunction::evalPseudoMethod() '%s' cctx: '%s'\n", mname, cctx ? cctx->name.c_str() : "n/a");
+    //printd(5, "NormalMethodFunction::evalPseudoMethod() '%s' cctx: '%s'\n", mname,
+    //    cctx ? cctx->name.c_str() : "n/a");
     CodeEvaluationHelper ceh(xsink, this, variant, mname, args, nullptr, qore_class_private::get(*qc), CT_UNUSED,
         false, cctx);
     if (*xsink)

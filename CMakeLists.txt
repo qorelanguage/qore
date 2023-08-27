@@ -356,11 +356,13 @@ set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} ${CMAKE_THREAD
 qore_check_funcs(
     access alarm atoll bzero chown clock_gettime doprnt exp2 floor fork fsync getaddrinfo getegid geteuid
     getgid getgrgid_r getgrnam_r getgroups gethostbyaddr gethostbyname gethostname getifaddrs getnameinfo getppid
-    getpwnam_r getpwuid_r getsockopt gettimeofday getuid glob gmtime_r inet_ntop inet_pton isblank kill lchown
-    localtime_r lstat memmem memmove memset mkfifo mkfifo nanosleep poll pthread_attr_getstacksize
+    getpwnam_r getpwuid_r getrlimit getsockopt gettimeofday getuid glob gmtime_r inet_ntop inet_pton isblank kill lchown
+    localtime_r lstat memmem memmove memset mkfifo mkfifo nanosleep poll
+    pthread_attr_getstacksize
     pthread_get_name_np pthread_get_stacksize_np pthread_getname_np putenv random
-    readlink realloc realpath regcomp round select setegid setegid setenv seteuid seteuid setgid setgroups setsid
-    setsockopt setuid setuid sleep socket strcasecmp strcasestr strchr strdup strerror strncasecmp strspn strstr
+    readlink realloc realpath regcomp round select setegid setegid setenv
+    seteuid seteuid setgid setgroups setsid setsockopt setuid setuid sleep socket
+    strcasecmp strcasestr strchr strdup strerror strncasecmp strspn strstr
     strtoll strtol symlink system tbbmalloc timegm unsetenv usleep vfork vprintf
 )
 qore_func_strerror_r()

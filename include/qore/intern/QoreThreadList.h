@@ -94,6 +94,7 @@ public:
 
 class QoreThreadList {
 friend class QoreThreadListIterator;
+friend class QoreThreadDataHelper;
 friend class tid_node;
 public:
     // lock for reading / writing call stacks externally
@@ -103,6 +104,12 @@ public:
     mutable QoreRWLock stack_lck;
 
     DLLLOCAL QoreThreadList() {
+    }
+
+    DLLLOCAL ThreadData* getThreadData(int tid) {
+        return entry[tid].active()
+            ? entry[tid].thread_data
+            : nullptr;
     }
 
     DLLLOCAL int get(int status = QTS_NA, bool reuse_last = false) {
@@ -244,7 +251,7 @@ DLLLOCAL extern QoreThreadList thread_list;
 class QoreThreadListIterator : public AutoLocker {
 public:
     DLLLOCAL QoreThreadListIterator(bool access_stack = false) : AutoLocker(thread_list.lck),
-        access_stack(access_stack) {
+            access_stack(access_stack) {
         if (access_stack) {
             // grab the call stack write lock to get exclusive access to all thread stacks
             thread_list.stack_lck.wrlock();
@@ -276,4 +283,19 @@ protected:
     bool access_stack;
 };
 
+class QoreThreadDataHelper : public AutoLocker {
+public:
+    DLLLOCAL QoreThreadDataHelper(int tid) : AutoLocker(thread_list.lck), tid(tid) {
+    }
+
+    DLLLOCAL ThreadData* get() {
+        if (tid >= 0 && tid < MAX_QORE_THREADS) {
+            return thread_list.getThreadData(tid);
+        }
+        return nullptr;
+    }
+
+private:
+    int tid;
+};
 #endif
