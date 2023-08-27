@@ -126,6 +126,9 @@ typedef std::vector<int> sig_vec_t;
 //! defined because this version of Qore has the DateTime::addSecondsTo() API
 #define _QORE_HAS_DATETIME_ADD_SECONDS_TO 1
 
+//! defined for q_enforce_thread_size_on_primary_thread()
+#define _QORE_HAS_ENFORCE_THREAD_SIZE_ON_PRIMARY_THREAD 1
+
 // qore code flags
 #define QCF_NO_FLAGS                     0   //! no flag
 #define QCF_NOOP                   (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
@@ -776,5 +779,10 @@ DLLEXPORT size_t q_thread_stack_remaining();
 /** @since %Qore 0.9.5
 */
 DLLEXPORT size_t q_thread_stack_used();
+
+//! Sets the thread stack limit on the primary thread
+/** @since %Qore 1.19
+*/
+DLLEXPORT void q_enforce_thread_size_on_primary_thread();
 
 #endif // _QORE_QORELIB_H

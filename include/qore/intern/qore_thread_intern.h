@@ -1061,4 +1061,7 @@ DLLLOCAL void q_set_thread_name(const char* name);
 DLLLOCAL void q_get_thread_name(QoreString& str);
 #endif
 
+//! checkpoints stack usage for debugging purposes
+DLLLOCAL void checkpoint_stack_pos(const char*);
+
 #endif

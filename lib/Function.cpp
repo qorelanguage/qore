@@ -948,9 +948,6 @@ QoreListNode* QoreFunction::runtimeGetCallVariants() const {
     return rv->empty() ? nullptr : rv.release();
 }
 
-// XXX DEBUG
-DLLLOCAL void breakit();
-
 // finds a variant at runtime
 const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSink* xsink, const QoreListNode* args,
         bool only_user, const qore_class_private* class_ctx) const {
@@ -1126,11 +1123,6 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
         desc->sprintf("%s(", getName());
         add_args(*desc, args);
         desc->concat(")' can be found; ");
-
-        // XXX DEBUG
-        if (desc->find("QdspClient") >= 0) {
-            breakit();
-        }
 
         if (!cnt) {
             desc->concat("no variants were accessible in this execution context");
@@ -1980,6 +1972,7 @@ int UserVariantBase::setupCall(CodeEvaluationHelper *ceh, ReferenceHolder<QoreLi
 }
 
 QoreValue UserVariantBase::evalIntern(ReferenceHolder<QoreListNode>& argv, QoreObject* self, ExceptionSink* xsink) const {
+    //QORE_TRACE("UserVariantBase::evalIntern()");
     QoreValue val;
     if (statements) {
         // self might be 0 if instantiated by a constructor call

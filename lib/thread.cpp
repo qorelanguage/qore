@@ -59,6 +59,12 @@
 #include "qore/intern/QC_AbstractSmartLock.h"
 #include "qore/intern/QC_AbstractThreadResource.h"
 
+#include <string.h>
+
+#ifdef HAVE_GETRLIMIT
+#include <sys/resource.h>
+#endif
+
 #include <cassert>
 #include <map>
 #include <pthread.h>
@@ -343,6 +349,10 @@ public:
     size_t stack_limit;
     // this thread's stack size for error reporting
     size_t stack_size;
+
+#ifdef QORE_CHECKPOINT_STACK
+    size_t last_stack_pos = 0;
+#endif
 #ifdef IA64_64
     size_t rse_limit;
 #endif
@@ -418,10 +428,22 @@ public:
             // windows uses a 1MB stack size for the main thread
             stack_size = 1024 * 1024;
 #else
-            // all other knows OSes use an 8MB stack for the main thread
-            // Linux extends the main stack automatically, but the default is 8MB
-            // on Alpine Linux get_stack_size() will report a 128K stack size, so we hardcode it here in any case
-            stack_size = 8 * 1024 * 1024;
+#ifdef HAVE_GETRLIMIT
+            // use rlimit to determine the main thread\s stack size
+            rlimit rl;
+            if (!getrlimit(RLIMIT_STACK, &rl)) {
+                stack_size = rl.rlim_cur * 1024;
+                printd(5, "rlimit: stack size: %lldK\n", rl.rlim_cur);
+            } else
+#endif
+            {
+                // all other knows OSes use an 8MB stack for the main thread
+                // Linux extends the main stack automatically, but the default is MB
+                // on Alpine Linux get_stack_size() will report a 128K stack size, so we hardcode it here
+                // in case it's too small
+                stack_size = 8 * 1024 * 1024;
+                printd(5, "stack size: %lld (%lld)\n", stack_size, get_stack_size());
+            }
 #endif
             // issue #4392: add 64K of additional stack in the primary thread
             stack_guard += 64 * 1024;
@@ -545,6 +567,20 @@ public:
         current_ns = ns;
         return rv;
     }
+
+#ifdef QORE_MANAGE_STACK
+    DLLLOCAL void setStackSize(size_t new_stack_size) {
+        if (stack_size != new_stack_size) {
+            stack_size = new_stack_size;
+#ifdef STACK_DIRECTION_DOWN
+            stack_limit = stack_start - new_stack_size + QORE_STACK_GUARD;
+#else
+            stack_limit = stack_start + new_stack_size - QORE_STACK_GUARD;
+#endif
+            printd(5, "ThreadData::setStackSize() set stack size to: %lld\n", new_stack_size);
+        }
+    }
+#endif
 };
 
 static QoreThreadLocalStorage<ThreadData> thread_data;
@@ -879,9 +915,48 @@ void ThreadCleanupList::pop(bool exec) {
 }
 
 #ifdef QORE_MANAGE_STACK
+#ifdef QORE_CHECKPOINT_STACK
+void checkpoint_stack_pos(const char* where) {
+    ThreadData* td = thread_data.get();
+    size_t p = get_stack_pos();
+    printd(5, "checkpoint '%s': last: %p - p: %p = %d\n", where, td->last_stack_pos, p, td->last_stack_pos - p);
+    td->last_stack_pos = p;
+}
+#endif
+
+#if defined(__linux__)
+size_t linux_get_stack_start_pos() {
+    QoreFile f;
+    if (!f.open("/proc/self/stat")) {
+        QoreString ln;
+        f.readLine(ln);
+
+        // find last ')' char
+        ssize_t off = ln.rfind(')');
+        if (off > 0) {
+            bool ok = true;
+            for (unsigned i = 0; i < 26; ++i) {
+                ssize_t next = ln.find(' ', off);
+                if (next < 0) {
+                    ok = false;
+                    break;
+                }
+                off = next + 1;
+            }
+            if (ok) {
+                size_t npos = strtoll(ln.c_str() + off, 0, 10);
+                printd(5, "linux_get_stack_start_pos() stack start: %llx\n", npos);
+                return npos;
+            }
+        }
+    }
+
+    return 0;
+}
+#endif
+
 int check_stack(ExceptionSink* xsink) {
     ThreadData* td = thread_data.get();
-    //printd(5, "check_stack() current: %p limit: %p\n", get_stack_pos(), td->stack_limit);
 #ifdef IA64_64
     //printd(5, "check_stack() bsp current: %p limit: %p\n", get_rse_bsp(), td->rse_limit);
     if (td->rse_limit < get_rse_bsp()) {
@@ -889,13 +964,21 @@ int check_stack(ExceptionSink* xsink) {
             "Stack Engine) stack size limit (%ld bytes)", td->stack_size - QORE_STACK_GUARD);
         return -1;
     }
+#endif
+    size_t pos = get_stack_pos();
 
+#ifdef STACK_DIRECTION_DOWN
+    //printd(5, "check_stack() current: %p limit: %p start: %p size: %llx: depth: %lld\n", get_stack_pos(), td->stack_limit,
+    //    td->stack_start, td->stack_size, td->stack_start - pos);
+#else
+    //printd(5, "check_stack() current: %p limit: %p start: %p size: %llx: depth: %lld\n", get_stack_pos(), td->stack_limit,
+    //    td->stack_start, td->stack_size, pos - td->stack_start);
 #endif
 
 #ifdef STACK_DIRECTION_DOWN
-    if (td->stack_limit > get_stack_pos()) {
+    if (td->stack_limit > pos) {
 #else
-    if (td->stack_limit < get_stack_pos()) {
+    if (td->stack_limit < pos) {
 #endif
         xsink->raiseException("STACK-LIMIT-EXCEEDED", "this thread's stack has exceeded the stack size limit " \
             "(%lu bytes)", td->stack_size - QORE_STACK_GUARD);
@@ -2715,13 +2798,29 @@ size_t q_thread_set_stack_size(size_t size, ExceptionSink* xsink) {
 
     int rc = ta_default.setstacksize(size);
     if (rc) {
-        xsink->raiseErrnoException("SET-DEFAULT-THREAD-STACK-SIZE-ERROR", rc, "an error occurred setting the default thread stack size to %ld", size);
+        xsink->raiseErrnoException("SET-DEFAULT-THREAD-STACK-SIZE-ERROR", rc, "an error occurred setting the default "
+            "thread stack size to %ld", size);
         return 0;
     }
     // make sure we check what was actually set
     qore_thread_stack_size = ta_default.getstacksize();
 
     return qore_thread_stack_size;
+}
+
+void q_enforce_thread_size_on_primary_thread() {
+#ifdef QORE_MANAGE_STACK
+    if (initial_thread == -1) {
+        return;
+    }
+    QoreThreadDataHelper qtdh(initial_thread);
+    ThreadData* td = qtdh.get();
+    if (td) {
+        // make sure accesses to stack info are made locked
+        AutoLocker al(stack_lck);
+        td->setStackSize(qore_thread_stack_size);
+    }
+#endif
 }
 
 //! Returns the number of bytes left in the current thread stack
@@ -2795,7 +2894,7 @@ void q_get_thread_name(QoreString& str) {
 #endif
 
 void init_qore_threads() {
-    QORE_TRACE("qore_init_threads()");
+    QORE_TRACE("init_qore_threads()");
 
 #ifdef QORE_MANAGE_STACK
     // get default stack size
@@ -2868,8 +2967,9 @@ void delete_qore_threads() {
 
     pthread_mutexattr_destroy(&ma_recursive);
 
-    assert(initial_thread);
+    assert(initial_thread > 0);
     thread_list.deleteDataRelease(initial_thread);
+    initial_thread = -1;
 
 #ifdef HAVE_MPFR_BUILDOPT_TLS_T
     // only call mpfr_free_cache if MPFR uses TLS

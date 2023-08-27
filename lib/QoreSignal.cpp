@@ -52,11 +52,13 @@ void QoreSignalHandler::runHandler(int sig, ExceptionSink *xsink) {
     funcref->execValue(*args, xsink).discard(xsink);
 }
 
-QoreSignalManager::QoreSignalManager() : is_enabled(false), tid(-1), block(false), waiting(0), num_handlers(0), thread_running(false), cmd(C_None) {
+QoreSignalManager::QoreSignalManager() : is_enabled(false), tid(-1), block(false), waiting(0), num_handlers(0),
+        thread_running(false), cmd(C_None) {
     //printd(5, "QoreSignalManager::QoreSignalManager() QORE_SIGNAL_MAX: %d\n", QORE_SIGNAL_MAX);
     // initilize handlers
-    for (int i = 0; i < QORE_SIGNAL_MAX; ++i)
+    for (int i = 0; i < QORE_SIGNAL_MAX; ++i) {
         handlers[i].init();
+    }
 }
 
 void QoreSignalManager::setMask(sigset_t& mask) {
@@ -65,16 +67,19 @@ void QoreSignalManager::setMask(sigset_t& mask) {
 #ifdef PROFILE
     // do not block SIGPROF if profiling is enabled
     sigdelset(&mask, SIGPROF);
-    if (!is_enabled)
+    if (!is_enabled) {
         fmap[SIGPROF] = "QORE (system profiling)";
+    }
 #endif
     // do not block SIGALRM or SIGCHLD on UNIX platforms (any platform that supports signals)
     sigdelset(&mask, SIGALRM);
     sigdelset(&mask, SIGCHLD);
+    sigdelset(&mask, SIGSEGV);
     if (!is_enabled) {
         fmap[QORE_STATUS_SIGNAL] = "QORE (SIGSYS for internal use)";
         fmap[SIGALRM] = "QORE (SIGALRM for sleep()/usleep())";
         fmap[SIGCHLD] = "QORE (SIGCHLD for system())";
+        fmap[SIGSEGV] = "QORE (SIGSEGV for stack guard)";
     }
 }
 
@@ -96,10 +101,11 @@ void QoreSignalManager::init(bool disable_signal_mask) {
         // set up default handler mask
         sigemptyset(&mask);
         sigaddset(&mask, QORE_STATUS_SIGNAL);
+        sigaddset(&mask, SIGSEGV);
 
         ExceptionSink xsink;
         if (start_signal_thread(&xsink)) {
-              xsink.handleExceptions();
+            xsink.handleExceptions();
             _Exit(1);
         }
     }
@@ -118,7 +124,7 @@ void QoreSignalManager::del() {
 
     // remove all signal handlers to ensure that all Programs are dereferenced
     for (int i = 0; i < QORE_SIGNAL_MAX; ++i) {
-        if (i != QORE_STATUS_SIGNAL || !handlers[i].isSet())
+        if (i != QORE_STATUS_SIGNAL|| !handlers[i].isSet())
             continue;
         sigdelset(&mask, i);
         changed = true;
@@ -170,7 +176,8 @@ void QoreSignalManager::reload() {
 void QoreSignalManager::stop_signal_thread_unlocked() {
     QORE_TRACE("QoreSignalManager::stop_signal_thread_unlocked()");
 
-    printd(5, "QoreSignalManager::stop_signal_thread_unlocked() pid: %d, thread_running: %d\n", getpid(), thread_running);
+    printd(5, "QoreSignalManager::stop_signal_thread_unlocked() pid: %d, thread_running: %d\n", getpid(),
+        thread_running);
 
     cmd = C_Exit;
     if (thread_running) {
@@ -179,8 +186,9 @@ void QoreSignalManager::stop_signal_thread_unlocked() {
 #endif
             pthread_kill(ptid, QORE_STATUS_SIGNAL);
 #ifdef DEBUG
-        if (rc)
+        if (rc) {
             printd(0, "pthread_kill() returned %d: %s\n", rc, strerror(rc));
+        }
         assert(!rc);
 #endif
     }
@@ -236,7 +244,8 @@ void QoreSignalManager::postFork(bool new_process, ExceptionSink *xsink) {
         return;
     }
 
-    printd(5, "QoreSignalManager::postFork() pid: %d, new_process: %d, starting signal thread\n", getpid(), new_process);
+    printd(5, "QoreSignalManager::postFork() pid: %d, new_process: %d, starting signal thread\n", getpid(),
+        new_process);
 
     AutoLocker al(mutex);
     start_signal_thread(xsink);
@@ -245,7 +254,8 @@ void QoreSignalManager::postFork(bool new_process, ExceptionSink *xsink) {
 void QoreSignalManager::signal_handler_thread() {
     register_thread(tid, ptid, 0);
 
-    printd(5, "QoreSignalManager::signal_handler_thread() pid: %d, signal handler thread started (TID %d) &ptid: %p\n", getpid(), tid, &ptid);
+    printd(5, "QoreSignalManager::signal_handler_thread() pid: %d, signal handler thread started (TID %d) "
+        "&ptid: %p\n", getpid(), tid, &ptid);
 
     sigset_t c_mask;
     int sig;
@@ -312,8 +322,9 @@ void QoreSignalManager::signal_handler_thread() {
             sl.lock();
 
             //printd(5, "sigwait() sig: %d (cmd: %d) set: %d\n", sig, cmd, handlers[sig].isSet());
-            if (sig == QORE_STATUS_SIGNAL && cmd != C_None)
+            if (sig == QORE_STATUS_SIGNAL && cmd != C_None) {
                 continue;
+            }
 
             //printd(5, "signal %d received (handler: %d)\n", sig, handlers[sig].isSet());
             if (!handlers[sig].isSet())
@@ -385,7 +396,8 @@ void QoreSignalManager::signal_handler_thread() {
 
     tcount.dec();
 
-    //fprintf(stderr, "signal handler thread stopped (count: %d) &ptid: %p\n", tcount.getCount(), &ptid);fflush(stderr);
+    //fprintf(stderr, "signal handler thread stopped (count: %d) &ptid: %p\n", tcount.getCount(), &ptid);
+    //fflush(stderr);
     pthread_exit(0);
 }
 
@@ -434,7 +446,8 @@ int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, 
 
         sig_map_t::iterator i = fmap.find(sig);
         if (i != fmap.end()) {
-            xsink->raiseException("SIGNAL-HANDLER-ERROR", "cannot install a handler for signal %d because management for the signal has been reassigned to module '%s'", sig, i->second.c_str());
+            xsink->raiseException("SIGNAL-HANDLER-ERROR", "cannot install a handler for signal %d because management "
+                "for the signal has been reassigned to module '%s'", sig, i->second.c_str());
             return -1;
         }
 
@@ -451,8 +464,7 @@ int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, 
             qore_program_private::addSignal(*pgm, sig);
             handlers[sig].set(fr, pgm);
             ++num_handlers;
-        }
-        else {
+        } else {
             old = handlers[sig].replace(fr, pgm);
             // handle different Programs here inside the lock
             if (old.pgm != pgm) {
@@ -502,9 +514,9 @@ int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink) {
         //printd(5, "removing handler for signal %d\n", sig);
 
         // ensure handler is not in progress, if so mark for deletion
-        if (handlers[sig].status == QoreSignalHandler::SH_InProgress)
+        if (handlers[sig].status == QoreSignalHandler::SH_InProgress) {
             handlers[sig].status = QoreSignalHandler::SH_Delete;
-        else {
+        } else {
             // must be called in the signal lock
             old = handlers[sig].take();
             qore_program_private::delSignal(*old.pgm, sig);
@@ -532,14 +544,16 @@ QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name) {
     }
 
     if (handlers[sig].isSet()) {
-        QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d because a handler has already been installed", sig);
+        QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d because a handler "
+            "has already been installed", sig);
         //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
         return err;
     }
 
     sig_map_t::iterator i = fmap.find(sig);
     if (i != fmap.end()) {
-        QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' because it is already managed by module '%s'", sig, name, i->second.c_str());
+        QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' "
+            "because it is already managed by module '%s'", sig, name, i->second.c_str());
         //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
         return err;
     }
@@ -566,14 +580,16 @@ QoreStringNode* QoreSignalManager::reassignSignals(const sig_vec_t& sig_vec, con
     for (auto& sig : sig_vec) {
         assert(sig > 0);
         if (handlers[sig].isSet()) {
-            QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d because a handler has already been installed", sig);
+            QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d because a "
+                "handler has already been installed", sig);
             //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
             return err;
         }
 
         sig_map_t::iterator i = fmap.find(sig);
         if (i != fmap.end()) {
-            QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' because it is already managed by module '%s'", sig, name, i->second.c_str());
+            QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' "
+                "because it is already managed by module '%s'", sig, name, i->second.c_str());
             //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
             return err;
         }
