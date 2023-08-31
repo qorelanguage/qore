@@ -38,7 +38,7 @@
 
 %requires DatasourceProvider
 
-const opts = (
+const Opts = {
     "align_all":         "A,align-all=s",
     "align_data":        "D,align-data=s",
     "align_data_strict": "s,align-data-strict",
@@ -58,15 +58,15 @@ const opts = (
     "target_ds":         "T,target-ds=s",
     "verbose":           "v,verbose:i+",
     "help":              "h,help",
-    );
+};
 
 # list of options that require a target datasource
-const RequiresTarget = (
+const RequiresTarget = {
     "align_table": True,
-    );
+};
 
 # map of the keyword : Database feature name
-const MAP_OBJECT_FEATURE = (
+const MAP_OBJECT_FEATURE = {
     "tables"        : SqlUtil::DB_TABLES,
     "views"         : SqlUtil::DB_VIEWS,
     "mviews"        : SqlUtil::DB_MVIEWS,
@@ -76,10 +76,10 @@ const MAP_OBJECT_FEATURE = (
     "packages"      : SqlUtil::DB_PACKAGES,
     "types"         : SqlUtil::DB_TYPES,
     "synonyms"      : SqlUtil::DB_SYNONYMS,
-    );
+};
 
 # map of the keyword : Database iterator method name
-const LIST_OBJECTS = (
+const LIST_OBJECTS = {
     "tables"        : "tableIterator",
     "views"         : "viewIterator",
     "mviews"        : "materializedViewIterator",
@@ -89,16 +89,16 @@ const LIST_OBJECTS = (
     "packages"      : "packageIterator",
     "types"         : "typeIterator",
     "synonyms"      : "synonymIterator",
-    );
+};
 
 # 'meta' keys for list objects listings
-const META_LIST_OBJECTS = (
+const META_LIST_OBJECTS = {
     "all"           : LIST_OBJECTS.keys(),
     "selectable"    : ( "tables", "views", "mviews", ),
     "code"          : ( "packages", "functions", "procedures", "types", ),
-    );
+};
 
-const DUMP_OBJECTS = (
+const DUMP_OBJECTS = {
     "tables"        : ( "getobj" : "getTable", "sql" : "getCreateSqlString"),
     "views"         : ( "getobj" : "getView", "sql" : "getCreateSql"),
     "mviews"        : ( "getobj" : "getMaterializedView", "sql" : "getCreateSql"),
@@ -108,7 +108,7 @@ const DUMP_OBJECTS = (
     "packages"      : ( "getobj" : "getPackage", "sql" : "getCreateSql"),
     "types"         : ( "getobj" : "getType", "sql" : "getCreateSql"),
     "synonyms"      : ( "getobj" : "getSynonym", "sql" : "getCreateSql"),
-    );
+};
 
 main();
 
@@ -193,13 +193,11 @@ sub list_objects(SqlUtil::Database db, softlist types) {
                 map printf("%-30s %s\n", $1, i), call_object_method(db, LIST_OBJECTS{i});
             else
                 printf("Unsupported object type/key: %s\n", i);
-        }
-        else if (exists META_LIST_OBJECTS{i}) {
+        } else if (exists META_LIST_OBJECTS{i}) {
             foreach string j in (META_LIST_OBJECTS{i})
                 if (is_object_supported (db, j))
                     map printf("%-30s %s\n", $1, j), call_object_method(db, LIST_OBJECTS{j});
-        }
-        else {
+        } else {
             printf("Unknown object type/key: %s\n", i);
         }
     }
@@ -236,12 +234,10 @@ class DumpObjects {
                     if (is_object_supported (m_db, i))
                         doObjects(sprintf("%s:all", i));
                 continue;
-            }
-            else if (!DUMP_OBJECTS{type}) {
+            } else if (!DUMP_OBJECTS{type}) {
                 printf("Unable to dump object of type: %n\n", type);
                 continue;
-            }
-            else if (!is_object_supported (m_db, type)) {
+            } else if (!is_object_supported (m_db, type)) {
                 printf("Unable to dump object of type: %n\n", type);
                 continue;
             }
@@ -286,7 +282,7 @@ class DumpObjects {
 
 
 sub main() {
-    GetOpt g(opts);
+    GetOpt g(Opts);
     hash opt = g.parse3(\ARGV);
 
     if (opt.help || !ARGV[0])
@@ -315,7 +311,8 @@ sub main() {
     # info callback closure and embedded variables
     int change_count = 0;
     int dot_count = 0;
-    code info_callback = sub (string str, int ac, string type, string name, *string table, *string new_name, *string info) {
+    code info_callback = sub (string str, int ac, string type, string name, *string table, *string new_name,
+            *string info) {
         # verbosity threshold
         int t = 0;
         if (ac != AbstractDatabase::AC_Unchanged)
@@ -328,8 +325,7 @@ sub main() {
                 dot_count = 0;
             }
             printf("%s %s\n", t ? "+++" : "***", str);
-        }
-        else {
+        } else {
             ++dot_count;
             print(AbstractDatabase::ActionLetterMap{ac});
             flush();
@@ -349,9 +345,9 @@ sub main() {
                 print("\n");
                 dot_count = 0;
             }
-            printf("%s reference data %s: %y: %s\n", t ? "+++" : "***", table_name, row, AbstractTable::UpsertResultMap{result});
-        }
-        else {
+            printf("%s reference data %s: %y: %s\n", t ? "+++" : "***", table_name, row,
+                AbstractTable::UpsertResultMap{result});
+        } else {
             ++dot_count;
             print(AbstractTable::UpsertResultLetterMap{result});
             flush();
@@ -374,8 +370,7 @@ sub main() {
         if (change_count) {
             printf("%d change%s made\n", change_count, change_count == 1 ? "" : "s");
             change_count = 0;
-        }
-        else
+        } else
             print("no changes made\n");
     };
 
@@ -431,7 +426,8 @@ sub main() {
         if (opt.select) {
             auto v = parse_to_qore_value(opt.select);
             if (exists v && v.typeCode() != NT_HASH)
-                throw "SELECT-ERROR", sprintf("the --select argument must be assigned to a value that parses to a hash; %y => type %y", opt.select, v.type());
+                throw "SELECT-ERROR", sprintf("the --select argument must be assigned to a value that parses to a "
+                    "hash; %y => type %y", opt.select, v.type());
             if (v)
                 sh = v;
         }
@@ -465,16 +461,16 @@ sub main() {
         done = True;
         Table table(source, arg[0]);
 
-        hash bulk_opts = (
+        hash bulk_opts = {
                 "block_size" : 5000,
-            );
+        };
 
         BulkSqlUtil::BulkInsertOperation bulk(table, bulk_opts);
         on_success {
-            if (opts.verbose) {
+            if (opt.verbose) {
                 printf("%n: import %s: cache: %d; count: %d\n",
-                       now(), arg[0], bulk.size(), bulk.getRowCount()
-                      );
+                    now(), arg[0], bulk.size(), bulk.getRowCount()
+                );
             }
             bulk.flush();
         }
@@ -489,8 +485,8 @@ sub main() {
             if (it.index() % bulk_opts.block_size == 0) {
                 if (opt.verbose) {
                     printf("%n: import %s: cache: %d; count: %d\n",
-                           now(), arg[0], bulk.size(), bulk.getRowCount()
-                          );
+                        now(), arg[0], bulk.size(), bulk.getRowCount()
+                    );
                 }
                 bulk.commit();
             }
@@ -501,14 +497,27 @@ sub main() {
     code align_table = sub (AbstractTable source_table) {
         done = True;
         Table target_table(target, source_table.getName());
+        on_error target_table.rollback();
+        on_success target_table.commit();
         target_table.getAlignSql(source_table, aopt);
     };
 
     code align_data = sub (AbstractTable source_table) {
         done = True;
         Table target_table(target, source_table.getName());
+        on_error {
+            target_table.rollback();
+            source_table.rollback();
+        }
+        on_success {
+            target_table.commit();
+            source_table.commit();
+        }
         int us = opt.verbose ? AbstractTable::UpsertSelectFirst : AbstractTable::UpsertAuto;
-        target_table.upsertFromSelect(source_table, NOTHING, us, ("delete_others": opt.align_data_strict, "info_callback": upsert_callback));
+        target_table.upsertFromSelect(source_table, NOTHING, us, {
+            "delete_others": opt.align_data_strict,
+            "info_callback": upsert_callback,
+        });
     };
 
     if (opt.align_table) {
@@ -526,8 +535,7 @@ sub main() {
                 printf("%s table structure: ", t.getName());
                 align_table(t);
             }
-        }
-        else {
+        } else {
             Table table(source, opt.align_table);
             align_table(table.getTable());
         }
@@ -546,8 +554,7 @@ sub main() {
                 printf("%s table data: ", t.getName());
                 align_data(t);
             }
-        }
-        else {
+        } else {
             Table table(source, opt.align_data);
             align_data(table.getTable());
         }
