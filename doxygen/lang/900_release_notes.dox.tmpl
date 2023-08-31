@@ -23,7 +23,10 @@
       - @ref Qore::HTTPClient::getUsername() "HTTPClient::getUsername()"
       - @ref Qore::HTTPClient::getPassword() "HTTPClient::getPassword()"
       (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
-    - fixed a bug where the stack guard was not properly enforced when the JVM assumed enforcement responsibility
+    - fixed a bug where the stack guard was not properly enforced when the JVM assumed enforcement responsibility; in
+      addition, due to the fact that thread stacks are allocated from overcommitted memory, reducing the thread stack
+      size to 512KB had no effect on the memory size of %Qore programs but did affect %Qore, Java, and Python
+      programs, therefore the stack limit was reset to 8MB as of this release
       (<a href="https://github.com/qorelanguage/qore/issues/4768">issue 4768</a>)
 
     @section qore_1_18_1 Qore 1.18.1
