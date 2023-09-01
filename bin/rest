@@ -70,9 +70,11 @@ class RestCmd {
             "reformat":  "R,reformat",
             "data":      "S,serialization=s",
             "swagger":   "s,swagger=s",
-            "to":        "t,timeout=i",
+            "to":        "T,timeout=i",
+            "token":     "t,token=s",
             "lax":       "X,lax-parsing",
             "example":   "x,example:s",
+            "tokentype": "y,token-type=s",
 
             "help":      "h,help",
         };
@@ -281,6 +283,10 @@ class RestCmd {
             rest = new RestClient(opts);
         }
 
+        if (opt.token) {
+            rest.setToken(opt.tokentype ?? "Bearer", opt.token);
+        }
+
         foreach string h in (opt.header) {
             (*string k, *string v) = (h =~ x/([^:]+):(.+)$/); #/);
             trim k;
@@ -463,11 +469,13 @@ class RestCmd {
  -S,--serialization=ARG    set REST data serialization type:
                            auto, json, yaml, xml, rawxml, url
  -s,--swagger=ARG          use the given Swagger 2.0 schema for validation
- -t,--timeout=ARG          set HTTP timeout in seconds
+ -T,--timeout=ARG          set HTTP timeout in seconds
+ -t,--token=ARG            an authorization token to use
  -X,--lax-parsing          lax parsing of Swagger schemas
  -x,--example[=ARG]        generate an example message; ARG=
                              q: generate Qore example (default data)
                              r<code>: generate response (default request)
+ -y,--token-type=ARG       the type of token (default: Bearer)
  -h,--help                 this help text
 ", get_script_name());
         exit(1);
