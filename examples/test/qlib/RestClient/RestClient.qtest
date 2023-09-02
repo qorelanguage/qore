@@ -358,6 +358,8 @@ public class Main inherits QUnit::Test {
         assertEq(False, conn.monitor);
         assertEq(True, conn.enabled);
 
+        assertThrows("OAUTH2-ERROR", \conn.getAuthorizationCodeRequest());
+
         conn = new RestConnection("test", "test", url, {"monitor": False}, {"headers": "X-Test=" + val});
         client = conn.get(False);
         assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
@@ -458,6 +460,41 @@ public class Main inherits QUnit::Test {
             assertEq("OK", info.result);
         }
 %endif
+
+        {
+            string auth_uri = "https://example.com/auth";
+            RestConnection rc("test", "test", "http://localhost:" + port, {}, {
+                "data": "yaml",
+                "oauth2_grant_type": "authorization_code",
+                "oauth2_auth_url": auth_uri,
+                "oauth2_client_id": get_random_string(),
+                "oauth2_redirect_url": "https://other.app.com",
+            });
+
+            string uri = rc.getAuthorizationCodeRequest();
+            assertTrue(uri.equalPartialPath(auth_uri));
+        }
+
+        {
+            string auth_uri = "https://example.com/auth";
+            RestConnection rc("test", "test", "http://localhost:" + port, {}, {
+                "data": "yaml",
+                "oauth2_grant_type": "authorization_code",
+                "oauth2_auth_url": auth_uri,
+                "oauth2_client_id": get_random_string(),
+                "oauth2_redirect_url": "https://other.app.com",
+                "oauth2_auth_args": {
+                    "access_type": "offline",
+                    "include_granted_scopes": True,
+                },
+            });
+
+            assertEq("yaml", rc.getRealOptions()."data");
+            string uri = rc.getAuthorizationCodeRequest();
+            assertTrue(uri.equalPartialPath(auth_uri));
+            assertRegex("&access_type=offline", uri);
+            assertRegex("&include_granted_scopes=true", uri);
+        }
     }
 
     static *string getSwaggerSchema() {

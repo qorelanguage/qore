@@ -208,7 +208,8 @@ printf("%N\n", ans.body);
       call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection restclientv1_4_2 RestClient v1.4.2
-    - fixed a bug handling default options including timeouts in REST connections in @ref RestClient::RestConnection "RestConnection"
+    - fixed a bug handling default options including timeouts in REST connections in
+      @ref RestClient::RestConnection "RestConnection"
       (<a href="https://github.com/qorelanguage/qore/issues/3321">issue 3321</a>)
 
     @subsection restclientv1_4_1 RestClient v1.4.1
@@ -217,15 +218,21 @@ printf("%N\n", ans.body);
 
     @subsection restclientv1_4 RestClient v1.4
     - added support for the \c text/plain Content-Type
-    - added the @ref RestClient::RestConnection "RestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - added the @ref RestClient::RestConnection "RestConnection" class to support the
+      <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - updated for complex types
-    - added support for REST API validation with a REST schema through the @ref restschemavalidatorintro "RestSchemaValidator" module and the @ref swaggerintro "Swagger" module
+    - added support for REST API validation with a REST schema through the
+      @ref restschemavalidatorintro "RestSchemaValidator" module and the @ref swaggerintro "Swagger" module
     - added default support for the HTTP \c "PATCH" method
 
     @subsection restclientv1_3_1 RestClient v1.3.1
-    - added support for the \c "url" encoding for URL form encoded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
-    - added support for the \c "rawxml" data type; when parsing XML responses, if the XML cannot be parsed as XML-RPC data, then it's attempted to be parsed as untyped XML data (<a href="https://github.com/qorelanguage/qore/issues/1437">issue 1437</a>)
-    - fixed a bug where an empty chunked response would cause a spurious exception to be thrown (<a href="https://github.com/qorelanguage/qore/issues/1448">issue 1448</a>)
+    - added support for the \c "url" encoding for URL form encoded message bodies
+      (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
+    - added support for the \c "rawxml" data type; when parsing XML responses, if the XML cannot be parsed as XML-RPC
+      data, then it's attempted to be parsed as untyped XML data
+      (<a href="https://github.com/qorelanguage/qore/issues/1437">issue 1437</a>)
+    - fixed a bug where an empty chunked response would cause a spurious exception to be thrown
+      (<a href="https://github.com/qorelanguage/qore/issues/1448">issue 1448</a>)
 
     @subsection restclientv1_3 RestClient v1.3
     - added:
@@ -235,8 +242,10 @@ printf("%N\n", ans.body);
       - @ref RestClient::RestClient::setContentEncoding() "RestClient::setContentEncoding()"
     - implemented the \c "content_encoding" option for the RestClient constructor
     - made \c "gzip" the default content encoding
-    - added a compression threshold giving a minimum size for for applying content encoding on message bodies; small messages will be sent uncompressed
-    - when possible, REST bodies are decoded and stored in the \a info output argument when the HTTP server returns a status code < 100 or >= 300 to allow for error-handling in the client
+    - added a compression threshold giving a minimum size for for applying content encoding on message bodies; small
+      messages will be sent uncompressed
+    - when possible, REST bodies are decoded and stored in the \a info output argument when the HTTP server returns a
+      status code < 100 or >= 300 to allow for error-handling in the client
     - fixed issues where multiple leading \c "/" chars were sometimes present in the request URI path
     - doc updates
     @subsection restclientv1_2 RestClient v1.2
@@ -393,10 +402,14 @@ public class RestClient inherits Qore::HTTPClient {
         const CompressionThreshold = 1024;
 
         #! Option requirements per OAuth2 grant type
+        /** @note the \c authorization_code grant type cannot be handled automatically
+        */
         const OAuth2GrantOptions = {
-            "password": (
+            "authorization_code": (
+                "oauth2_auth_url",
                 "oauth2_client_id",
                 "oauth2_client_secret",
+                "oauth2_redirect_url",
                 "oauth2_token_url",
             ),
             "client_credentials": (
@@ -404,14 +417,11 @@ public class RestClient inherits Qore::HTTPClient {
                 "oauth2_client_secret",
                 "oauth2_token_url",
             ),
-        };
-
-        #! All OAuth2 options
-        const OAuth2Options = {
-            "oauth2_client_id": True,
-            "oauth2_client_secret": True,
-            "oauth2_token_url": True,
-            "oauth2_scope": True,
+            "password": (
+                "oauth2_client_id",
+                "oauth2_client_secret",
+                "oauth2_token_url",
+            ),
         };
     }
 
@@ -442,6 +452,12 @@ public class RestClient inherits Qore::HTTPClient {
         string oauth2_client_secret;
         #! OAuth2 scope
         string oauth2_scope;
+        #! OAuth2 extra args
+        *hash<auto> oauth2_auth_args;
+        #! OAuth2 auth URL
+        string oauth2_auth_url;
+        #! OAuth2 redirect URL
+        string oauth2_redirect_url;
         #! OAuth2 token URL
         string oauth2_token_url;
         #! The token type, if any
@@ -462,71 +478,84 @@ RestClient rest({"url": "http://localhost:8001/rest"});
 
         @param opts valid options are:
         - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to
-            create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value
-            is a boolean @ref True "True" or @ref False "False": indicating if the method can accept a message body
-            as well. Example:
-            @code{.py}
+          create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value
+          is a boolean @ref True "True" or @ref False "False": indicating if the method can accept a message body
+          as well. Example:
+          @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
-            @endcode
+          @endcode
         - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can
-            be a relative date-time value for clarity, ex: \c 20s)
+          be a relative date-time value for clarity, ex: \c 20s)
         - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the
-            \c "send_encoding" option is not set) and the requested response encoding (note that the
-            @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
-            @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+          \c "send_encoding" option is not set) and the requested response encoding (note that the
+          @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
+          @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
         - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to
-            \c "auto"
+          \c "auto"
         - \c default_path: The default path to use for new connections if a path is not otherwise specified in the
-            connection URL
+          connection URL
         - \c default_port: The default port number to connect to if none is given in the URL
         - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause a
-            \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the
-            caller like any other response
+          \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the
+          caller like any other response
         - \c headers: an optional hash of headers to send with every request, these can also be overridden in
-            request method calls
+          request method calls
         - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing
-            message headers
+          message headers
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
         - \c oauth2_auto_refresh: If OAuth2 tokens should be automatically refreshed
           (default \c True)
+        - \c oauth2_auth_args: Extra arguments for OAuth2 authentication requests to \c oauth2_auth_url for the
+          \c authentication_code grant type.  Note that the \c authorization_code grant type requires external user
+          authorization to acquire an access token
+        - \c oauth2_auth_url: The OAuth2 authorization URL for the \c authorization_code grant type; ignored if the
+          \c token option is set.  Note that the \c authorization_code grant type requires external user authorization
+          to acquire an access token
         - \c oauth2_client_id: The OAuth2 client ID; ignored if the \c token option is set
         - \c oauth2_client_secret: the OAuth2 client secret; ignored if the \c token option is set
         - \c oauth2_grant_type: the OAuth2 grant type; ignored if the \c token option is set; possible values:
-          - \c client_credentials
+          - \c authorization_code: requires \c oauth2_client_id, \c oauth2_client_secret, \c oauth2_auth_url, as well
+            as \c oauth2_token_url; note that this grant type cannot be handled automatically but rather must be
+            handled by external code that redirects the user to the authentication server and then updates the
+            connection with token information retrieved
+          - \c client_credentials: requires \c oauth2_client_id, \c oauth2_client_secret, as well as
+            \c oauth2_token_url
           - \c password: requires a username, password, \c oauth2_client_id, \c oauth2_client_secret, as well as
             \c oauth2_token_url
+        - \c oauth2_redirect_url: The OAuth2 redirect URL for the \c authorization_code grant type; ignored if the
+          \c token option is set.  Note that the \c authorization_code grant type requires external user authorization
+          to acquire an access token
         - \c oauth2_refresh_token: An OAuth2 refresh token (complements option \c token)
         - \c oauth2_scope: Space-separated string of OAuth2 scopes to request; ignored if the \c token option is set
-        - \c oauth2_token_url: The OAuth2 token URL for the `client_credentials` and `password` grant types; ignored
-          if the \c token option is set
+        - \c oauth2_token_url: The token URL OAuth2 flows; ignored if the \c token option is set
         - \c password: The password for authentication; only used if no username or password is set in the URL and if
           the \c username option is also used
         - \c proxy: The proxy URL for connecting through a proxy
         - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead
-            of processed
+          of processed
         - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means
-            to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note
-            that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
-            @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+          to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note
+          that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
+          @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
         - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API
-            validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
+          validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
         - \c swagger_base_path: in case a REST validator is used, the base path in the schema can be overridden
           with this option (applies to any REST validator; not just Swagger validators)
         - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
-            \c 30s)
+          \c 30s)
         - \c token: Any bearer token to use for the connection; will be passed as <tt>Authorization: Bearer ...</tt>
           in request headers; conflicts with username and password options or authentication credentials in the URL;
           if this option is set then any OAuth2 options are ignored
         - \c token_type: The type of token to use for the \c Authentication header; ignored if no \c token option is
           set
         - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any
-            \c validator option, if given by calling
-            @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
+          \c validator option, if given by calling
+          @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
         - \c "username": The username for authentication; only used if no username or password is set in the URL and
           if the \c password option is also used
         - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
-            object to validate request and response messages; overrides \a swagger
+          object to validate request and response messages; overrides \a swagger
         - \c no_charset: if True no charset will be added to the Content-Type header
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server
@@ -588,6 +617,13 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         }
         if (exists opts.oauth2_auto_refresh) {
             oauth2_auto_refresh = parse_boolean(opts.oauth2_auto_refresh);
+        }
+        if (opts.oauth2_auth_args) {
+            if (opts.oauth2_auth_args.typeCode() != NT_HASH) {
+                throw "RESTCLIENT-ERROR", sprintf("option \"oauth2_auth_args\" expects a hash when set; got type %y "
+                    "instead", opts.oauth2_auth_args.fullType());
+            }
+            oauth2_auth_args = opts.oauth2_auth_args;
         }
 
         # setup headers before setupAuth()
@@ -1476,6 +1512,10 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     /** @since %RestClient 2.0
     */
     private hash<auto> getOAuth2LoginInfo(string grant_type) {
+        if (grant_type == "authorization_code") {
+            throw "OAUTH2-ERROR", sprintf("the 'authorization_code' grant type can only be handled externally; "
+                "it requires user authorization with the authorization server");
+        }
         hash<auto> login = {
             "client_id": oauth2_client_id,
             "client_secret": oauth2_client_secret,
@@ -1656,16 +1696,29 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
       @ref Util::parse_to_qore_value() "parse_to_qore_value()"
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
+    - \c "oauth2_auth_args": Extra arguments for OAuth2 authentication requests to \c oauth2_auth_url for the
+      \c authentication_code grant type.  Note that the \c authorization_code grant type requires external user
+      authorization to acquire an access token
+    - \c "oauth2_auth_url": The OAuth2 authorization URL for the \c authorization_code grant type; ignored if the
+      \c token option is set.  Note that the \c authorization_code grant type requires external user authorization to
+      acquire an access token
     - \c "oauth2_client_id": The OAuth2 client ID; ignored if the \c token option is set
     - \c "oauth2_client_secret": the OAuth2 client secret; ignored if the \c token option is set
     - \c "oauth2_grant_type": the OAuth2 grant type; ; ignored if the \c token option is set; possible values:
-      - \c "client_credentials"
+      - \c "authorization_code": requires \c oauth2_client_id, \c oauth2_client_secret, \c oauth2_auth_url, as well as
+        \c oauth2_token_url; note that this grant type cannot be handled automatically but rather must be handled by
+        external code that redirects the user to the authentication server and then updates the connection with token
+        information retrieved
+      - \c "client_credentials": requires \c oauth2_client_id, \c oauth2_client_secret, as well as
+        \c oauth2_token_url
       - \c "password": requires a username, password, \c oauth2_client_id, \c oauth2_client_secret, as well as
         \c oauth2_token_url
+    - \c "oauth2_redirect_url": The OAuth2 redirect URL for the \c authorization_code grant type; ignored if the
+      \c token option is set.  Note that the \c authorization_code grant type requires external user authorization to
+      acquire an access token
     - \c "oauth2_refresh_token": An OAuth2 refresh token (complements option \c "token")
     - \c "oauth2_scope": Space-separated string of OAuth2 scopes to request; ignored if the \c token option is set
-    - \c "oauth2_token_url": The OAuth2 token URL for the `client_credentials` and `password` grant types; ignored if
-      the \c token option is set
+    - \c "oauth2_token_url": The token URL for OAuth2 flows; ignored if the \c token option is set
     - \c "password": The password for authentication; only used if no username or password is set in the URL and if
       the \c username option is also used
     - \c "proxy": proxy URL to use
@@ -1764,6 +1817,18 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                     "desc": "an optional hash of headers to send with every request, these can also be "
                         "overridden in request method calls",
                 },
+                "oauth2_auth_args": <ConnectionOptionInfo>{
+                    "type": "hash",
+                    "desc": "Optional arguments for authentication requests for the `authorization_code` grant type; "
+                        "ignored if the `token` option is set.  Note that the `authorization_code` grant type "
+                        "requires external user authorization to acquire an access token",
+                },
+                "oauth2_auth_url": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The OAuth2 authorization URL for the `authorization_code` grant type; ignored "
+                        "if the `token` option is set.  Note that the `authorization_code` grant type requires "
+                        "external user authorization to acquire an access token",
+                },
                 "oauth2_auto_refresh": <ConnectionOptionInfo>{
                     "type": "bool",
                     "desc": "If OAuth2 tokens should be automatically refreshed",
@@ -1776,12 +1841,21 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 "oauth2_client_secret": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the OAuth2 client secret; ignored if the `token` option is set",
+                    "sensitive": True,
                 },
                 "oauth2_grant_type": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "The OAuth2 grant type; ignored if the `token` option is set",
                     "allowed_values": (
                         <AllowedValueInfo>{
+                            "value": "authorization_code",
+                            "desc": "OAuth2 2.0 authorization code grant "
+                                "([RFC 6749 authorization code grant]"
+                                "(https://datatracker.ietf.org/doc/html/rfc6749#section-4.1)); this grant type "
+                                "requires external user authorization to acquire an access token; the "
+                                "`oauth2_auth_url` must be set to inform external code where to request "
+                                "authorization from the external authorization server",
+                        }, <AllowedValueInfo>{
                             "value": "client_credentials",
                             "desc": "OAuth2 2.0 client credentials grant "
                                 "([RFC 6749 client credentials grant]"
@@ -1794,6 +1868,12 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                         },
                     ),
                 },
+                "oauth2_redirect_url": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The OAuth2 redirect URL for the `authorization_code` grant type; ignored "
+                        "if the `token` option is set.  Note that the `authorization_code` grant type requires "
+                        "external user authorization to acquire an access token",
+                },
                 "oauth2_refresh_token": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the OAuth2 refresh token, if any (complements option `token`)",
@@ -1804,8 +1884,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 },
                 "oauth2_token_url": <ConnectionOptionInfo>{
                     "type": "string",
-                    "desc": "The OAuth2 token URL for the `client_credentials` and `password` grant types; ignored "
-                        "if the `token` option is set",
+                    "desc": "The token URL for OAuth2 flows; ignored if the `token` option is set",
                 },
                 "password": <ConnectionOptionInfo>{
                     "type": "string",
@@ -1903,6 +1982,13 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
 
         #! object connection option list
         const OptionList = keys ConnectionScheme.options;
+
+        #! Options required for an OAuth2 authorization request
+        const OAuth2AuthRequestOptions = (
+            "oauth2_auth_url",
+            "oauth2_client_id",
+            "oauth2_redirect_url",
+        );
     }
 
     #! creates the RestConnection connection object
@@ -1910,7 +1996,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         @param description connection description
         @param url connection URL (potentially with password info)
         @param attributes various attributes. See below
-        @param options connection options
+        @param options connection options; see class documentation for information on supported options
 
         See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
 
@@ -1942,51 +2028,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     }
 
     #! gets options
-    /** @return returns a hash with the following supported options:
-        - \c "connect_timeout": connection timeout to use in milliseconds
-        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
-            requested response encoding; for possible values, see
-            @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the
-            null REST schema validator; the default is \c "auto"
-        - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
-            \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-            like any other response
-        - \c "headers": an optional hash of headers to send with every request, these can also be overridden in
-            request method calls; also a string giving headers can be given in the format:
-            <tt>header1=value, header2=value</tt>; the value will be parsed with
-            @ref Util::parse_to_qore_value() "parse_to_qore_value()"
-        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-        - \c "max_redirects": maximum redirects to support
-        - \c "ping_method": the HTTP method to use for an advanced ping; this and \c ping_path must be set to make an
-          HTTP request as a part of the socket polling ping operation; must be a valid HTTP method name
-        - \c "ping_path": the URI path to use for an advanced ping; this and \c ping_method must be made to make an
-          HTTP request as a part of the socket polling ping operation.  If the value for this option begins with a
-          \c / character, then it replaces any connection path for the REST client, otherwise the value is appended to
-          the connection path for the REST client
-        - \c "ping_headers": any HTTP headers to send when performing an advanced ping operation; ignored if either
-          \c ping_method or \c ping_path is not set
-        - \c "ping_body": any ping body to send with a ping operation; ignored if either \c ping_method or \c ping_path
-          is not set or if \c ping_method is \g "GET"
-        - \c "proxy": proxy URL to use
-        - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
-            processed
-        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
-            \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
-            message bodies
-        - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API
-            validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
-        - \c "swagger_lax_parsing": try to parse invalid Swagger schemas
-        - \c "timeout": transfer timeout to use in milliseconds
-        - \c "token": Any bearer token to use for the connection; will be passed as <tt>Authorization: Bearer ...</tt>
-          in request headers; this option cannot be used with username and password options or authentication
-          information in the URL; if this option is set then OAuth2 options are ignored
-        - \c "token_type": the type of \c token (ex: \c "Bearer")
-        - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
-            object to validate request and response messages; conflicts with \a swagger
+    /** @return returns a hash with supported options
 
-        @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above
-        options
+        @see class documentation for information on supported options
     */
     hash<auto> getOptions() {
         return Options;
@@ -2075,6 +2119,63 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 "AbstractRestSchemaValidator object", opts.validator.fullType());
         }
         return rv;
+    }
+
+    #! Returns a URI for an authorization code request
+    /** The \c oauth2_grant_type must be \c authorization_code, and \c oauth2_client_id, \c oauth2_auth_url,
+        \c oauth2_redirect_url must set
+
+        @param response_type the response type to request (\c code or \c token)
+        @param scopes one or more scopes to request
+        @param state any value for the \c state parameter
+
+        @since %RestClient 2.0
+    */
+    string getAuthorizationCodeRequest(string response_type = "code", *list<string> scopes, *string state) {
+        if (opts.oauth2_grant_type != "authorization_code") {
+            throw "OAUTH2-ERROR", sprintf("oauth2_grant_type is %y; must be \"authorization_code\" to get an "
+                "authorization code request URI", opts.oauth2_grant_type);
+        }
+        foreach string key in (OAuth2AuthRequestOptions) {
+            if (!opts{key}.val()) {
+                throw "OAUTH2-ERROR", sprintf("option %y is not set; this option must be set to retrieve an "
+                    "authorization code request URI", key);
+            }
+        }
+        return getAuthorizationCodeRequestIntern(response_type, scopes ? (foldl $1 + " " + $2, scopes) : NOTHING,
+            state);
+    }
+
+    #! Returns a URI for an authorization code request
+    /** The \c oauth2_grant_type must be \c authorization_code, and \c oauth2_client_id, \c oauth2_auth_url,
+        \c oauth2_redirect_url must set
+
+        @param response_type the response type to request (\c code or \c token)
+        @param scope one or more scopes to request
+        @param state any value for the \c state parameter
+
+        @since %RestClient 2.0
+    */
+    private string getAuthorizationCodeRequestIntern(string response_type, *string scope, *string state) {
+        string uri = sprintf("%s?scope=%s&redirect_uri=%s&client_id=%s&response_type=%s", opts.oauth2_auth_url,
+            scope, opts.oauth2_redirect_url, opts.oauth2_client_id, response_type);
+        # add any optional auth args
+        map uri += sprintf("&%s=%s", $1.key, getUriValue($1.value)), opts.oauth2_auth_args.pairIterator();
+        if (state) {
+            uri += sprintf("&state=%s", state);
+        }
+        return uri;
+    }
+
+    #! Returns a value for use as a URI parameter
+    /*
+        @since %RestClient 2.0
+    */
+    private static softstring getUriValue(auto v) {
+        if (v.typeCode() == NT_BOOLEAN) {
+            return v ? "true" : "false";
+        }
+        return v;
     }
 
     #! returns a @ref RestClient::RestClient "RestClient" object
