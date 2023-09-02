@@ -124,33 +124,39 @@ class FileLocationHandlerData inherits AbstractFileLocationHandler {
         return {};
     }
 }
-}
 
-namespace Priv {
-class ImmediateDataPollOperation inherits AbstractPollOperation {
+#! This class allows immediate data to be returned for a polling operation
+public class ImmediateDataPollOperation inherits AbstractPollOperation {
     private {
+        #! The value to return
         auto value;
     }
 
+    #! Creates the object with the value to be returned
     constructor(auto value) {
         self.value = value;
     }
 
+    #! The goal is always \c "done"
     string getGoal() {
         return "done";
     }
 
+    #! The state is always \c "done"
     string getState() {
         return "done";
     }
 
+    #! Always returns @ref True
     bool goalReached() {
         return True;
     }
 
+    #! Always returns @ref nothing
     *hash<SocketPollInfo> continuePoll() {
     }
 
+    #! Returns the value
     auto getOutput() {
         return value;
     }

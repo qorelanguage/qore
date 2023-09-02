@@ -308,34 +308,40 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         return client;
     }
 }
-}
 
-namespace Priv {
-class HttpPollWrapper inherits AbstractPollOperation {
+#! Wraps an HTTP poller so that the response body is always returned as the output
+public class HttpPollWrapper inherits AbstractPollOperation {
     private {
+        #! The HTTP poller to execute
         AbstractPollOperation op;
     }
 
+    #! Creates the object wrapping the HTTP poller passed as an argument
     constructor(AbstractPollOperation op) {
         self.op = op;
     }
 
+    #! Calls the corresponding method in the wrapped poller and returns the return value
     string getGoal() {
         return op.getGoal();
     }
 
+    #! Calls the corresponding method in the wrapped poller and returns the return value
     string getState() {
         return op.getState();
     }
 
+    #! Calls the corresponding method in the wrapped poller and returns the return value
     bool goalReached() {
         return op.goalReached();
     }
 
+    #! Calls the corresponding method in the wrapped poller and returns the return value
     *hash<SocketPollInfo> continuePoll() {
         return op.continuePoll();
     }
 
+    #! Returns the value of the \c "response-body" key in the wrapped HTTP poller's output data
     auto getOutput() {
         return op.getOutput()."response-body";
     }
