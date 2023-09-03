@@ -267,6 +267,7 @@ public class AbstractConnection inherits Qore::Serializable {
             "type": getType(),
             "url_hash": urlh,
             "has_provider": hasDataProvider(),
+            "features": getFeatures(),
         });
         if (!opts.with_passwords) {
             h.url = safe_url;
@@ -274,6 +275,13 @@ public class AbstractConnection inherits Qore::Serializable {
         }
         h.opts = orig_opts;
         return h;
+    }
+
+    #! Returns a list of connection-defined features
+    /** @since ConnectionProvider 1.10
+    */
+    *list<string> getFeatures() {
+        return getFeaturesImpl();
     }
 
     #! Returns connection info plus any extended information returned by the connection
@@ -660,6 +668,14 @@ scheme://user:pass@hostname:port/path
         opts = validateOptions(options);
         orig_opts = opts;
         setChildCapabilities();
+    }
+
+    #! Returns a list of connection-defined features
+    /** This method returns no value; override in child classes to return features
+
+        @since ConnectionProvider 1.10
+    */
+    private *list<string> getFeaturesImpl() {
     }
 
     #! Override to set child data provider capabilities once per child class
