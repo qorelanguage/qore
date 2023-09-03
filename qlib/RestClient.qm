@@ -1989,6 +1989,12 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
             "oauth2_client_id",
             "oauth2_redirect_url",
         );
+
+        #! RestClient feature: OAuth2 Auth Code support
+        /** Returned as a connection feature if the connection is configured for the oauth2 authorization_code grant
+            flow
+        */
+        const RCF_OAUTH2_AUTH_CODE = "oauth2-auth-code";
     }
 
     #! creates the RestConnection connection object
@@ -2209,6 +2215,16 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
             opts.ping_method != "GET" ? opts.ping_body : NOTHING, \info, NOTHING, opts.ping_headers);
         if ((h.status_code / 100) != 2) {
             throw "REST-PING-ERROR", sprintf("%y returned from %y", info."response-uri", info."request-uri");
+        }
+    }
+
+    #! Returns a list of connection-defined features
+    /** @since RestClient 2.0
+    */
+    private *softlist<string> getFeaturesImpl() {
+        if (opts.oauth2_grant_type == "authorization_code"
+            && (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size())) {
+            return RCF_OAUTH2_AUTH_CODE;
         }
     }
 

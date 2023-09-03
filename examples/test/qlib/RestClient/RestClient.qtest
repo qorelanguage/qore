@@ -441,6 +441,9 @@ public class Main inherits QUnit::Test {
                 "swagger": "file://" + tmp.path,
             });
 
+            hash<ConnectionInfo> cinfo = rc.getInfo();
+            assertNothing(cinfo.features);
+
             # first test a standard ping
             hash<PingInfo> ping = rc.ping(True);
             assertEq("test", ping.name);
@@ -473,6 +476,8 @@ public class Main inherits QUnit::Test {
 
             string uri = rc.getAuthorizationCodeRequest();
             assertTrue(uri.equalPartialPath(auth_uri));
+            hash<ConnectionInfo> cinfo = rc.getInfo();
+            assertEq((RestConnection::RCF_OAUTH2_AUTH_CODE,), cinfo.features);
         }
 
         {
@@ -494,6 +499,8 @@ public class Main inherits QUnit::Test {
             assertTrue(uri.equalPartialPath(auth_uri));
             assertRegex("&access_type=offline", uri);
             assertRegex("&include_granted_scopes=true", uri);
+            hash<ConnectionInfo> cinfo = rc.getInfo();
+            assertEq((RestConnection::RCF_OAUTH2_AUTH_CODE,), cinfo.features);
         }
     }
 
