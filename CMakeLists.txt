@@ -938,6 +938,7 @@ qore_user_module("qlib/ZeyosRestClient.qm" "ConnectionProvider;RestClient;Swagge
 qore_user_module("qlib/BillwerkRestClient.qm" "ConnectionProvider;RestClient")
 qore_user_module("qlib/Sap4HanaRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/CdsRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/GoogleRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/ServiceNowRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/AwsRestClient.qm" "ConnectionProvider;RestClient;RestSchemaValidator")
 qore_user_module("qlib/SwaggerDataProvider" "Swagger;RestClient;RestSchemaValidator;DataProvider")

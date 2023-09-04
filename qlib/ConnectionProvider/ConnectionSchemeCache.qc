@@ -81,25 +81,45 @@ public class ConnectionSchemeCache {
     public {
         #! Map of known connection schemes to modules
         const SchemeMap = {
-            "rest": "RestClient",
-            "rests": "RestClient",
+            "awsrests": "AwsRestClient",
 
             "billwerkrest": "BillwerkRestClient",
             "billwerkrests": "BillwerkRestClient",
+
+            "cdsrests": "CdsRestClient",
+
+            "grests": "GoogleRestClient",
+
+            "jsonrpc": "JsonRpcClient",
+            "jsonrpcs": "JsonRpcClient",
+
+            "pop3": "Pop3Client",
+            "pop3s": "Pop3Client",
+
+            "rest": "RestClient",
+            "rests": "RestClient",
 
             "sewiorest": "SewioRestClient",
             "sewiorests": "SewioRestClient",
 
             "sfrests": "SalesforceRestClient",
 
+            "sfsoap": "SalesforceSoapClient",
+            "sfsoaps": "SalesforceSoapClient",
+
             "sap4hanarests": "Sap4HanaRestClient",
 
-            "awsrests": "AwsRestClient",
+            "snrests": "ServiceNowRestClient",
 
-            "cdsrests": "CdsRestClient",
+            "sewiows": "SewioWebSocketClient",
+            "sewiowss": "SewioWebSocketClient",
 
-            "zeyosrest": "ZeyosRestClient",
-            "zeyosrests": "ZeyosRestClient",
+            "soap": "SoapClient",
+            "soaps": "SoapClient",
+
+            "sftp": "Ssh2Connections",
+
+            "ssh": "Ssh2Connections",
 
             "smtp": "SmtpClient",
             "smtps": "SmtpClient",
@@ -108,37 +128,19 @@ public class ConnectionSchemeCache {
             "esmtps": "SmtpClient",
             "esmtptls": "SmtpClient",
 
-            "pop3": "Pop3Client",
-            "pop3s": "Pop3Client",
-
             "telnet": "TelnetClient",
 
             "ws": "WebSocketClient",
             "wss": "WebSocketClient",
-
-            "sewiows": "SewioWebSocketClient",
-            "sewiowss": "SewioWebSocketClient",
-
-            "soap": "SoapClient",
-            "soaps": "SoapClient",
-
-            "sfsoap": "SalesforceSoapClient",
-            "sfsoaps": "SalesforceSoapClient",
-
-            "sftp": "Ssh2Connections",
-
-            "snrests": "ServiceNowRestClient",
-
-            "ssh": "Ssh2Connections",
-
-            "jsonrpc": "JsonRpcClient",
-            "jsonrpcs": "JsonRpcClient",
 
             "xmlrpc": "XmlRpcClient",
             "xmlrpcs": "XmlRpcClient",
 
             "yamlrpc": "YamlRpcClient",
             "yamlrpcs": "YamlRpcClient",
+
+            "zeyosrest": "ZeyosRestClient",
+            "zeyosrests": "ZeyosRestClient",
         };
     }
 
