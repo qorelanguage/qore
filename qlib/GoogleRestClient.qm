@@ -1,0 +1,310 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file GoogleRestClient.qm Qore user module for calling Google REST services
+
+/*  GoogleRestClient.qm Copyright (C) 2020 - 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum qore version
+%requires qore >= 1.19
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# don't use "$" for vars, members, and methods, assume local variable scope
+%new-style
+
+# do not ignore argument errors
+%strict-args
+
+%requires(reexport) Mime >= 1.3
+%requires(reexport) RestClient >= 1.3.1
+%requires(reexport) ConnectionProvider >= 1.4
+
+module GoogleRestClient {
+    version = "1.0";
+    desc = "user module for calling Google REST API services";
+    author = "David Nichols <david@qore.org>";
+    url = "https://qore.org";
+    license = "MIT";
+    init = sub () {
+        ConnectionSchemeCache::registerScheme("grests", GoogleRestConnection::ConnectionScheme);
+    };
+}
+
+/** @mainpage GoogleRestClient Module
+
+    @tableofcontents
+
+    @section googlerestclientintro GoogleRestClient Introduction
+
+    The %GoogleRestClient module provides an API for calling Google REST API services.
+
+    To use this module, use \c "%requires GoogleRestClient" in your code.
+
+    All the public symbols in the module are defined in the GoogleRestClient namespace.
+
+    The main classes are:
+    - @ref GoogleRestClient::GoogleRestClient "GoogleRestClient":
+      this class provides the REST client API for communuication with the Google REST
+      API; it also automates authentication and authorization to the target
+    - @ref GoogleRestClient::GoogleRestConnection "GoogleRestConnection":
+      provides a REST connection object to Google cloud services (based on the
+      @ref connectionproviderintro "ConnectionProvider" module)
+
+    @par Example:
+    @code{.py}
+#!/usr/bin/env qore
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%requires GoogleRestClient
+
+hash<auto> opts = {
+    "username": "me@gmail.com",
+    "password": "mypassword",
+};
+
+GoogleRestClient rest(opts);
+hash<auto> ans = rest.get("/calendar/users/me/calendarList");
+printf("%N\n", ans.body);
+    @endcode
+
+    @section Googlerestclientrelnotes Release Notes
+
+    @subsection Googlerestclientv1_0 GoogleRestClient v1.0
+    - the initial version of the %GoogleRestClient module
+*/
+
+#! the GoogleRestClient namespace contains all the objects in the GoogleRestClient module
+public namespace GoogleRestClient {
+#! this class provides the REST client API for communication with Google servers
+/** This class requires the following options for Google authentication and
+    authorization to the target server:
+    - \c username: the Google username
+    - \c password: the Google password
+
+    You can use an OAuth2 token by setting the \c token option, otherwise the following options need to be set:
+    - \c oauth2_client_id: the OAuth2 client ID
+    - \c oauth2_client_secret: the OAuth2 client secret
+
+    Then an external program has to guide the user through using the authorization_grant flow to get a token to use;
+    this module does not implement that flow.
+*/
+public class GoogleRestClient inherits RestClient::RestClient {
+    public {
+        #! Default Google REST API URL
+        const DefaultUrl = "https://www.googleapis.com";
+
+        #! Default addition auth request arguments
+        const DefaultAuthArgs = {"access_type": "offline"};
+
+        #! Default authorization request URL
+        const DefaultAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth";
+
+        #! Default OAuth2 grant type
+        const DefaultGrantType = "authorization_code";
+
+        #! Default token request URL
+        const DefaultTokenUrl = "https://oauth2.googleapis.com/token";
+
+        #! Default constructor options
+        const DefaultOptions = {
+            "url": DefaultUrl,
+            "oauth2_auth_args": DefaultAuthArgs,
+            "oauth2_auth_url": DefaultAuthUrl,
+            "oauth2_grant_type": DefaultGrantType,
+            "oauth2_token_url": DefaultTokenUrl,
+        };
+    }
+
+    #! creates the object with the given options
+    /**
+        @par Example:
+        @code{.py}
+GoogleRestClient rest({
+    "url": "https://dev493922.service-now.com",
+    "username": "admin",
+    "password": "mypassword",
+});
+        @endcode
+
+        @param opts valid options are all the options for the @ref RestClient::RestClient "RestClient" class; note
+        that the URL is set by default if not provided (see @ref DefaultUrl)
+        @param do_not_connect if \c False (the default), then a connection will be immediately established to the
+        remote server
+
+        @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
+    */
+    constructor(hash<auto> opts, *softbool do_not_connect)
+            : RestClient(GoogleRestClient::getOptions(opts), True) {
+    }
+
+    #! returns options for @ref GoogleRestClient::GoogleRestClient::constructor()
+    static hash<auto> getOptions(hash<auto> opts) {
+        return DefaultOptions + opts;
+    }
+}
+
+#! Class for Google REST connections; returns @ref GoogleRestClient objects
+/** This class implements all options of @ref RestClient::RestClientConnection "RestClientConnection";  in addition,
+    this class provides the following default values for the following options:
+    - \c oauth2_auth_args: <tt>access_type: offline</tt>
+    - \c oauth2_auth_url: \c https://accounts.google.com/o/oauth2/v2/auth
+    - \c oauth2_grant_type: \c authorization_code
+    - \c oauth2_token_url: \c https://oauth2.googleapis.com/token
+
+    @see @ref GoogleRestClient::GoogleRestClient::constructor() for more information on the above options
+*/
+public class GoogleRestConnection inherits RestClient::RestConnection {
+    public {
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "cls": Class::forName("GoogleRestConnection"),
+            "options": RestConnection::ConnectionScheme.options + {
+                "oauth2_auth_args": RestConnection::ConnectionScheme.options.oauth2_auth_args
+                + <ConnectionOptionInfo>{
+                    "default_value": GoogleRestClient::DefaultAuthArgs,
+                },
+                "oauth2_auth_url": RestConnection::ConnectionScheme.options.oauth2_auth_url
+                + <ConnectionOptionInfo>{
+                    "default_value": GoogleRestClient::DefaultAuthUrl,
+                },
+                "oauth2_grant_type": RestConnection::ConnectionScheme.options.oauth2_grant_type
+                + <ConnectionOptionInfo>{
+                    "default_value": GoogleRestClient::DefaultGrantType,
+                },
+                "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url
+                + <ConnectionOptionInfo>{
+                    "default_value": GoogleRestClient::DefaultTokenUrl,
+                },
+                /*
+                "ping_headers": RestConnection::ConnectionScheme.options."ping_headers" + <ConnectionOptionInfo>{
+                    "default_value": DefaultGooglePingHeaders,
+                },
+                "ping_method": RestConnection::ConnectionScheme.options."ping_method" + <ConnectionOptionInfo>{
+                    "default_value": DefaultGooglePingMethod,
+                },
+                "ping_path": RestConnection::ConnectionScheme.options."ping_path" + <ConnectionOptionInfo>{
+                    "default_value": DefaultGooglePingPath,
+                },
+                */
+            },
+            "required_options": "token|oauth2_auth_args,oauth2_auth_url,oauth2_grant_type,oauth2_token_url,"
+                "oauth2_client_id,oauth2_client_secret",
+        };
+
+        /*
+        #! Default Google ping method
+        const DefaultGooglePingMethod= "GET";
+
+        #! Default Google ping path (from the API root)
+        const DefaultGooglePingPath = "table/sys_properties?sysparm_exclude_reference_link=true"
+                        "&sysparm_suppress_pagination_header=true&sysparm_fields=value"
+                        "&sysparm_query=name=mid.version";
+
+        #! Default Google ping headers
+        const DefaultGooglePingHeaders = {
+            "Accept": MimeTypeJson,
+        };
+        */
+    }
+
+    #! creates the GoogleRestConnection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url connection URL (potentially with password info)
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref ConnectionProvider::AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, string url = GoogleRestClient::DefaultUrl,
+            hash<auto> attributes = {}, hash<auto> options = {})
+            : RestConnection(name, description, url, attributes, options) {
+        real_opts = {
+            "url": real_url,
+        } + urlh{"username", "password"} + opts;
+    }
+
+    #! returns \c "grest"
+    string getType() {
+        return "grest";
+    }
+
+    #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
+    /** @return @ref True as this connection returns a data provider with the @ref getDataProvider() method
+
+        @see @ref getDataProvider()
+    */
+    bool hasDataProvider() {
+        return True;
+    }
+
+    #! returns a data provider object for this connection
+    /** @return a data provider object for this connection
+    */
+    DataProvider::AbstractDataProvider getDataProvider() {
+        # to avoid circular dependencies, this object loads the GoogleRestDataProvider and creates the data provider
+        # object dynamically
+        load_module("GoogleRestDataProvider");
+        return create_object("GoogleRestDataProvider", get());
+    }
+
+    #! Called to start a non-blocking polling ping operation on the Google REST server
+    /**
+        @return a socket poll operation object that will allow the connection goal to be reached with polling
+
+        @see supportsPollingApi()
+    */
+    Qore::AbstractPollOperation startPollConnect() {
+        # start the polling operation manually using the full request path
+        return new RestPingPollOperation(getPollImpl(), real_opts);
+    }
+
+    #! Sets child data provider capabilities
+    private setChildCapabilities() {
+        children_can_support_records = True;
+    }
+
+    #! returns a @ref GoogleRestClient object
+    /** @param connect if @ref True "True", then the connection is returned already connected
+        @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+
+        @return a @ref GoogleRestClient object
+    */
+    private GoogleRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        return new GoogleRestClient(real_opts, !connect);
+    }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
+}
+}

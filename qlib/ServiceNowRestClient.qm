@@ -56,7 +56,7 @@ module ServiceNowRestClient {
 
     @tableofcontents
 
-    @section ServiceNowrestclientintro ServiceNowRestClient Introduction
+    @section serviceNowrestclientintro ServiceNowRestClient Introduction
 
     The %ServiceNowRestClient module provides an API for calling ServiceNow REST services.
 

@@ -574,11 +574,12 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         }
 
         if (opts.content_encoding) {
-            if (!opts.send_encoding)
+            if (!opts.send_encoding) {
                 setSendEncoding(opts.content_encoding);
-            else if (!EncodingSupport.(opts.content_encoding))
+            } else if (!EncodingSupport.(opts.content_encoding)) {
                 throw "RESTCLIENT-ERROR", sprintf("content encoding option %y is unknown; valid options: %y",
-                    opts.content_encoding, EncodingSupport.keys());
+                    opts.content_encoding, keys EncodingSupport);
+            }
             opts.headers."Accept-Encoding" = opts.content_encoding;
         }
 
@@ -589,7 +590,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         if (opts.validator) {
             if (!(opts.validator instanceof AbstractRestSchemaValidator))
                 throw "RESTCLIENT-ERROR", sprintf("validator object expected to be an instance of "
-                    "AbstractRestSchemaValidator; got %y instead", opts.validator.type());
+                    "AbstractRestSchemaValidator; got %y instead", opts.validator.fullType());
             validator = opts.validator;
             if (opts.swagger_base_path) {
                 validator.setBasePath(opts.swagger_base_path);
@@ -1361,23 +1362,6 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     private setupAuth(hash<auto> opts) {
         # set any token
         if (opts.token) {
-            if (exists (*string u = getUsername())) {
-                throw "RESTCLIENT-ERROR", sprintf("option 'token' set as well as a username (%y) in the URL; use "
-                    "remove the authentication credentials from the URL or remove the 'token' option", u);
-            }
-            if (opts.username) {
-                throw "RESTCLIENT-ERROR", sprintf("option 'token' set as well as the 'username' (%y) option; use "
-                    "remove either the 'token' or 'username' option", opts.username);
-            }
-
-            if (exists getPassword()) {
-                throw "RESTCLIENT-ERROR", "option 'token' set as well as a password in the URL; use "
-                    "remove the authentication credentials from the URL or remove the 'token' option";
-            }
-            if (opts.password) {
-                throw "RESTCLIENT-ERROR", "option 'token' set as well as the 'password' option; remove either the "
-                    "'token' or 'password' option";
-            }
             setToken(opts.token_type ?? "Bearer", opts.token);
         } else {
             if (!exists getUsername() && !exists getPassword() && exists opts.username && exists opts.password) {
@@ -1505,7 +1489,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         setSerialization("url");
 
         # make the authorization call
-        return gotOAuth2LoginInfo(RestClient::doRequestIntern("POST", set_url ? "/" : oauth2_token_url, login, \info).body);
+        return gotOAuth2LoginInfo(RestClient::doRequestIntern("POST", set_url ? "/" : oauth2_token_url, login,
+            \info).body);
     }
 
     #! Returns an OAuth2 login hash
@@ -1514,7 +1499,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     private hash<auto> getOAuth2LoginInfo(string grant_type) {
         if (grant_type == "authorization_code") {
             throw "OAUTH2-ERROR", sprintf("the 'authorization_code' grant type can only be handled externally; "
-                "it requires user authorization with the authorization server");
+                "it requires user authorization with the authorization server (rt: %y)", refresh_token);
         }
         hash<auto> login = {
             "client_id": oauth2_client_id,
@@ -2389,7 +2374,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
                     ? resp."response-body".toString(resp.info.charset ?? "ISO-8859-1")
                     : "";
                 if (resp."code" == 401 && rc.getToken() && rc.usingOAuth2() && real_opts.oauth2_auto_refresh
-                    && !in_refresh) {
+                    && real_opts.oauth2_refresh_token && !in_refresh) {
                     doStartRefresh();
                     continue;
                 }

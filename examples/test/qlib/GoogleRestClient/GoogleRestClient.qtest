@@ -1,0 +1,63 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/HttpServerUtil.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/GoogleRestClient.qm
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
+%exec-class Main
+
+public class Main inherits QUnit::Test {
+    constructor() : Test("GoogleRestClientTest", "1.0") {
+        addTestCase("connection tests", \connectionTest());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    setUp() {
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new StdoutAppender());
+        }
+    }
+
+    tearDown() {
+    }
+
+    checkModule() {
+%ifdef NoJson
+        testSkip("no json module");
+%endif
+    }
+
+    connectionTest() {
+        checkModule();
+        hash<auto> fake_opts = {
+            "oauth2_client_id": "x",
+            "oauth2_client_secret": "x",
+            "oauth2_redirect_url": "https://localhost",
+        };
+        GoogleRestConnection grc("test", "test", NOTHING, NOTHING, fake_opts);
+        assertEq(True, grc instanceof GoogleRestConnection);
+
+        GoogleRestClient client = grc.get(False);
+        # issue #3321: check default timeouts
+        assertEq(45000, client.getTimeout());
+        assertEq(45000, client.getConnectTimeout());
+    }
+}

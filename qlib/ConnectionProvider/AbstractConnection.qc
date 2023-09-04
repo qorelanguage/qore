@@ -633,10 +633,10 @@ scheme://user:pass@hostname:port/path
             if (!ok) {
                 if (missing) {
                     throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
-                                                             missing, options);
+                        missing, options);
                 } else {
-                    throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
-                                                             req_list, options);
+                    throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %s; options provided: %y",
+                        (foldl $1 + " OR " + $2, (map sprintf("%y", $1), req_list)), options);
                 }
             }
         }
