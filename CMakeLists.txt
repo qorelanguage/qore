@@ -951,6 +951,7 @@ qore_user_module("qlib/EmpathicBuildingDataProvider" "RestClient;DataProvider" "
 # base 8 modules
 qore_user_module("qlib/SalesforceRestDataProvider" "RestClient;SalesforceRestClient;DataProvider")
 qore_user_module("qlib/AwsRestClientDataProvider" "RestClient;DataProvider;RestClientDataProvider")
+qore_user_module("qlib/GoogleDataProvider" "GoogleRestClient;RestClient;DataProvider")
 
 # print info
 message(STATUS "")

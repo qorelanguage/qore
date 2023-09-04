@@ -98,7 +98,8 @@ DOX_SPLIT_MODULES = \
     qlib/FileDataProvider \
     qlib/FtpClientDataProvider \
     qlib/HttpClientDataProvider \
-    qlib/AwsRestClientDataProvider
+    qlib/AwsRestClientDataProvider \
+    qlib/GoogleDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -116,6 +117,7 @@ RestClientDataProvider_modverdir = $(modverdir)/RestClientDataProvider
 AwsRestClientDataProvider_modverdir = $(modverdir)/AwsRestClientDataProvider
 FileDataProvider_modverdir = $(modverdir)/FileDataProvider
 FtpClientDataProvider_modverdir = $(modverdir)/FtpClientDataProvider
+GoogleDataProvider_modverdir = $(modverdir)/GoogleDataProvider
 HttpClientDataProvider_modverdir = $(modverdir)/HttpClientDataProvider
 ElasticSearchDataProvider_modverdir = $(modverdir)/ElasticSearchDataProvider
 EmpathicBuildingDataProvider_modverdir = $(modverdir)/EmpathicBuildingDataProvider
@@ -136,6 +138,7 @@ dist_RestClientDataProvider_modver_DATA = $(wildcard qlib/RestClientDataProvider
 dist_AwsRestClientDataProvider_modver_DATA = $(wildcard qlib/AwsRestClientDataProvider/*.q[cm])
 dist_FileDataProvider_modver_DATA = $(wildcard qlib/FileDataProvider/*.q[cm])
 dist_FtpClientDataProvider_modver_DATA = $(wildcard qlib/FtpClientDataProvider/*.q[cm])
+dist_GoogleDataProvider_modver_DATA = $(wildcard qlib/GoogleDataProvider/*.q[cm])
 dist_HttpClientDataProvider_modver_DATA = $(wildcard qlib/HttpClientDataProvider/*.q[cm])
 dist_ElasticSearchDataProvider_modver_DATA = $(wildcard qlib/ElasticSearchDataProvider/*.q[cm])
 dist_EmpathicBuildingDataProvider_modver_DATA = $(wildcard qlib/EmpathicBuildingDataProvider/*.q[cm])

@@ -323,8 +323,8 @@ public hashdecl ConnectionInfo {
     #! user-defined key-value pairs associated with the connection
     hash<auto> tags;
 
-    #! connection-defined feature list
-    *list<string> features;
+    #! connection-defined feature hash
+    *hash<string, bool> features;
 
     #! if the connection supports the data provider API
     bool has_provider = False;

@@ -468,6 +468,15 @@ public class RestClient inherits Qore::HTTPClient {
         string refresh_token;
         #! If OAuth2 tokens should be automatically refreshed
         bool oauth2_auto_refresh = True;
+
+        #! Closure or call reference to be called when an access token is automatically acquired
+        /** The closure or call reference must have the following signature:
+            <tt><update_token(*string token_type, string token, *string oauth2_refresh_token) /tt>
+
+            This closure will only be called when the token is automatically acquired in blocking I/O; it will not be
+            called when setToken() is called externally, for example
+        */
+        *code update_token;
     }
 
     #! calls the base class HTTPClient constructor and optionally connects to the REST server
@@ -1244,6 +1253,9 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
                 if (refresh_token) {
                     # get a new token with the refresh token
                     oauth2Auth(getOAuth2RefreshInfo(), \info);
+                    if (token && (*code update_token = self.update_token)) {
+                        update_token(token_type, token, refresh_token);
+                    }
                 } else {
                     # try to get a new token
                     loginIntern(\info);
@@ -1356,13 +1368,23 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         return h;
     }
 
+    #! Can be called to set or clear a closure or call reference to be called when the authentication token is updated
+    /** The closure or call reference must have the following signature:
+        <tt><update_token(*string token_type, string token, *string oauth2_refresh_token) /tt>
+
+        @since %RestClient 2.0
+    */
+    setUpdateTokenCode(*code update_token) {
+        self.update_token = update_token;
+    }
+
     #! Sets up authentication info
     /** @since %RestClient 2.0
     */
     private setupAuth(hash<auto> opts) {
         # set any token
         if (opts.token) {
-            setToken(opts.token_type ?? "Bearer", opts.token);
+            setToken(opts.token_type ?? "Bearer", opts.token, opts.oauth2_refresh_token);
         } else {
             if (!exists getUsername() && !exists getPassword() && exists opts.username && exists opts.password) {
                 setUserPassword(opts.username, opts.password);
@@ -1980,6 +2002,19 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
             flow
         */
         const RCF_OAUTH2_AUTH_CODE = "oauth2-auth-code";
+
+        #! RestClient feature: Update Token support
+        /** Returned as a connection feature indicating that this object supports setting a closure to update the
+            access token in external systems (in blocking I/O calls)
+
+            @see @ref RestClient::setUpdateTokenCode()
+        */
+        const RCF_UPDATE_TOKEN = "oauth2-update-token";
+    }
+
+    private {
+        #! Hash of supported features
+        hash<string, bool> features;
     }
 
     #! creates the RestConnection connection object
@@ -1999,6 +2034,15 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
         real_opts = {"url": real_url} + opts;
+
+        # setup feature list appropriately
+        if (opts.oauth2_grant_type) {
+            features{RCF_UPDATE_TOKEN} = True;
+        }
+        if (opts.oauth2_grant_type == "authorization_code"
+            && (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size())) {
+            features{RCF_OAUTH2_AUTH_CODE} = True;
+        }
     }
 
     #! Returns an unconnected object for a non-blocking poll operation
@@ -2206,11 +2250,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     #! Returns a list of connection-defined features
     /** @since RestClient 2.0
     */
-    private *softlist<string> getFeaturesImpl() {
-        if (opts.oauth2_grant_type == "authorization_code"
-            && (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size())) {
-            return RCF_OAUTH2_AUTH_CODE;
-        }
+    private *hash<string, bool> getFeaturesImpl() {
+        return features;
     }
 
     #! Sets child data provider capabilities
