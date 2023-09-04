@@ -270,10 +270,10 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
     /** @return a data provider object for this connection
     */
     DataProvider::AbstractDataProvider getDataProvider() {
-        # to avoid circular dependencies, this object loads the GoogleRestDataProvider and creates the data provider
+        # to avoid circular dependencies, this object loads the GoogleDataProvider and creates the data provider
         # object dynamically
-        load_module("GoogleRestDataProvider");
-        return create_object("GoogleRestDataProvider", get());
+        load_module("GoogleDataProvider");
+        return create_object("GoogleDataProvider", get());
     }
 
     #! Called to start a non-blocking polling ping operation on the Google REST server

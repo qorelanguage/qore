@@ -44,6 +44,7 @@ public class DataProvider {
             "fixedlengthwrite": "FixedLengthUtil",
             "ftpclient": "FtpClientDataProvider",
             "ftppoller": "FtpPoller",
+            "google": "GoogleDataProvider",
             "httpclient": "HttpClientDataProvider",
             "mqtt": "MqttDataProvider",
             "restclient": "RestClientDataProvider",
