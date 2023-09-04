@@ -477,7 +477,8 @@ public class Main inherits QUnit::Test {
             string uri = rc.getAuthorizationCodeRequest();
             assertTrue(uri.equalPartialPath(auth_uri));
             hash<ConnectionInfo> cinfo = rc.getInfo();
-            assertEq((RestConnection::RCF_UPDATE_TOKEN, RestConnection::RCF_OAUTH2_AUTH_CODE,), cinfo.features);
+            assertTrue(cinfo.features{RestConnection::RCF_UPDATE_TOKEN});
+            assertTrue(cinfo.features{RestConnection::RCF_OAUTH2_AUTH_CODE});
         }
 
         {
@@ -500,7 +501,8 @@ public class Main inherits QUnit::Test {
             assertRegex("&access_type=offline", uri);
             assertRegex("&include_granted_scopes=true", uri);
             hash<ConnectionInfo> cinfo = rc.getInfo();
-            assertEq((RestConnection::RCF_UPDATE_TOKEN, RestConnection::RCF_OAUTH2_AUTH_CODE,), cinfo.features);
+            assertTrue(cinfo.features{RestConnection::RCF_UPDATE_TOKEN});
+            assertTrue(cinfo.features{RestConnection::RCF_OAUTH2_AUTH_CODE});
         }
     }
 

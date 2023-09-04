@@ -280,7 +280,7 @@ public class AbstractConnection inherits Qore::Serializable {
     #! Returns a list of connection-defined features
     /** @since ConnectionProvider 1.10
     */
-    *list<string> getFeatures() {
+    *hash<string, bool> getFeatures() {
         return getFeaturesImpl();
     }
 
@@ -670,12 +670,12 @@ scheme://user:pass@hostname:port/path
         setChildCapabilities();
     }
 
-    #! Returns a list of connection-defined features
+    #! Returns a hash of connection-defined features
     /** This method returns no value; override in child classes to return features
 
         @since ConnectionProvider 1.10
     */
-    private *list<string> getFeaturesImpl() {
+    private *hash<string, bool> getFeaturesImpl() {
     }
 
     #! Override to set child data provider capabilities once per child class

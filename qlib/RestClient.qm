@@ -2013,8 +2013,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     }
 
     private {
-        #! List of supported features
-        list<string> feature_list;
+        #! Hash of supported features
+        hash<string, bool> features;
     }
 
     #! creates the RestConnection connection object
@@ -2037,11 +2037,11 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
 
         # setup feature list appropriately
         if (opts.oauth2_grant_type) {
-            feature_list += RCF_UPDATE_TOKEN;
+            features{RCF_UPDATE_TOKEN} = True;
         }
         if (opts.oauth2_grant_type == "authorization_code"
             && (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size())) {
-            feature_list += RCF_OAUTH2_AUTH_CODE;
+            features{RCF_OAUTH2_AUTH_CODE} = True;
         }
     }
 
@@ -2250,8 +2250,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     #! Returns a list of connection-defined features
     /** @since RestClient 2.0
     */
-    private *softlist<string> getFeaturesImpl() {
-        return feature_list;
+    private *hash<string, bool> getFeaturesImpl() {
+        return features;
     }
 
     #! Sets child data provider capabilities
