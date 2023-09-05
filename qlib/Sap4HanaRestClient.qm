@@ -165,7 +165,7 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
         } else if (opts.apikey) {
             apikey = getString(opts, "apikey");
         } else {
-            error("missing either the \"apikey\" or both \"client_id\" and \"client_secret\" options");
+            raiseError("missing either the \"apikey\" or both \"client_id\" and \"client_secret\" options");
         }
 
         # ensure that if json serialization is set, that we do not claim to understand XML responses (which SAP
@@ -189,16 +189,17 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
     static string getString(hash<auto> opts, string key) {
         auto v = opts{key};
         if (!exists v || v == "") {
-            Sap4HanaRestClient::error("missing required option %y in option argument", key);
+            Sap4HanaRestClient::raiseError("missing required option %y in option argument", key);
         }
         if (v.typeCode() != NT_STRING) {
-            Sap4HanaRestClient::error("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+            Sap4HanaRestClient::raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key,
+                v.type(), v);
         }
         return v;
     }
 
     #! throws an exception due to an error
-    static error(string fmt) {
+    static raiseError(string fmt) {
         throw "SAP4HANARESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 

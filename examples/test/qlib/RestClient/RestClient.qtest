@@ -442,7 +442,7 @@ public class Main inherits QUnit::Test {
             });
 
             hash<ConnectionInfo> cinfo = rc.getInfo();
-            assertNothing(cinfo.features);
+            assertTrue(cinfo.features{AbstractConnection::CF_LOGGER});
 
             # first test a standard ping
             hash<PingInfo> ping = rc.ping(True);

@@ -365,9 +365,7 @@ public class DbDataProvider inherits AbstractDataProvider {
         AbstractTable table = db.makeTable(name, table_desc);
         DbTableTransactionHelper th(table);
         th.create();
-        if (logger) {
-            logger.info("DbDataProvider %y DDL: %s", name, table.getCreateSqlString());
-        }
+        info("DbDataProvider %y DDL: %s", name, table.getCreateSqlString());
         return new DbTableDataProvider(table, logger);
     }
 
@@ -385,9 +383,7 @@ public class DbDataProvider inherits AbstractDataProvider {
             throw "NO-CHILD", sprintf("%s has no child %y", getName(), name);
         }
         DbTableTransactionHelper th(t);
-        if (logger) {
-            logger.info("DbDataProvider %y DDL: %s", name, (foldl $1 + "\n" + $2, t.getDropSql()));
-        }
+        info("DbDataProvider %y DDL: %s", name, (foldl $1 + "\n" + $2, t.getDropSql()));
         th.drop();
     }
 

@@ -31,7 +31,7 @@ public namespace ConnectionProvider {
 
     @deprecated use AbstractConnectionWithInfo instead
 */
-public class AbstractConnection inherits Qore::Serializable {
+public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapper {
     public {
         #! connection name
         string name;
@@ -109,6 +109,11 @@ public class AbstractConnection inherits Qore::Serializable {
 
         #! internal transient tags (non-serializable)
         transient hash<auto> transient_info;
+
+        #! Connection feature: Logger support
+        /** Indicates that connection objects supports setting / updating a logger interface object in the connection
+        */
+        const CF_LOGGER = "logger";
     }
 
     #! creates the AbstractConnection object
@@ -146,6 +151,7 @@ public class AbstractConnection inherits Qore::Serializable {
         @param url connection URL (potentially with password info)
         @param attributes various attributes; see below
         @param options connection options
+        @param logger any logger interface to use for the connection
 
         @par Attributes
         Attributes are special flags for given connection - stored as public
@@ -158,7 +164,8 @@ public class AbstractConnection inherits Qore::Serializable {
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {}) {
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {},
+            *LoggerInterface logger) : LoggerWrapper(logger) {
         constructorInit(name, description, url, attributes, options);
     }
 

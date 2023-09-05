@@ -260,17 +260,17 @@ ServiceNowRestClient rest({
     static string getString(hash<auto> opts, string key) {
         auto v = opts{key};
         if (!exists v || v == "") {
-            ServiceNowRestClient::error("missing required option %y in option argument", key);
+            ServiceNowRestClient::raiseError("missing required option %y in option argument", key);
         }
         if (v.typeCode() != NT_STRING) {
-            ServiceNowRestClient::error("required option %y was passed as a %s (%y); expecting \"string\"", key,
+            ServiceNowRestClient::raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key,
                 v.type(), v);
         }
         return v;
     }
 
     #! throws an exception due to an error
-    static error(string fmt) {
+    static raiseError(string fmt) {
         throw "SERVICENOWRESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 

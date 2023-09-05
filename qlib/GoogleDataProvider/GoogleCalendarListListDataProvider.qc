@@ -24,8 +24,8 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
-#! The Empathic Building measurements create API data provider
-/** This API allows the caller to create Empathic Building measurements
+#! The Google calendarList list API data provider
+/** This API allows the caller to list all calendars for the user
 */
 public class GoogleCalendarListListDataProvider inherits DataProvider::AbstractDataProvider {
     public {
@@ -178,108 +178,6 @@ public class GoogleCalendarListRequestType inherits DataProvider::HashDataType {
     }
 }
 
-#! Google calender list type
-public class GoogleCalendarElementType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "kind": {
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "Type of the resource (`calendar#calendarListEntry`)",
-            },
-            "etag": {
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "A hash that indicates a specific version of the object definition",
-            },
-            "id": {
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "Identifier of the calendar",
-            },
-            "summary": {
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "Title of the calendar",
-            },
-            "description": {
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Description of the calendar",
-            },
-            "timeZone": {
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The time zone of the calendar",
-            },
-            "summaryOverride": {
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The summary that the authenticated user has set for this calendar",
-            },
-            "colorId": {
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The color of the calendar. This is an ID referring to an entry in the calendar section of "
-                    "the colors definition (see the colors endpoint). This property is superseded by the "
-                    "`backgroundColor` and `foregroundColor` properties and can be ignored when using these "
-                    "properties",
-            },
-            "foregroundColor": {
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The foreground color of the calendar in the hexadecimal format `#ffffff`. This property "
-                    "supersedes the index-based colorId property. To set or change this property, you need to "
-                    "specify `colorRgbFormat=true` in the parameters of the insert, update and patch methods",
-            },
-            "backgroundColor": {
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The background color of the calendar in the hexadecimal format `#ffffff`. This property "
-                    "supersedes the index-based colorId property. To set or change this property, you need to "
-                    "specify `colorRgbFormat=true` in the parameters of the insert, update and patch methods",
-            },
-            "selected": {
-                "type": AbstractDataProviderTypeMap."*bool",
-                "desc": "Whether the calendar content shows up in the calendar UI",
-            },
-            "deleted": {
-                "type": AbstractDataProviderTypeMap."*bool",
-                "desc": "Whether this calendar list entry has been deleted from the calendar list",
-            },
-            "primary": {
-                "type": AbstractDataProviderTypeMap."*bool",
-                "desc": "Whether the calendar is the primary calendar of the authenticated user",
-            },
-            "accessRole": {
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The effective access role that the authenticated user has on the calendar. Read-only. "
-                    "Possible values are:\n"
-                    "- `freeBusyReader`: Provides read access to free/busy information\n"
-                    "- `reader`: Provides read access to the calendar. Private events will appear to users with "
-                        "reader access, but event details will be hidden\n"
-                    "- `writer`: Provides read and write access to the calendar. Private events will appear to users "
-                        "with writer access, and event details will be visible\n"
-                    "- `owner`: Provides ownership of the calendar. This role has all of the permissions of the "
-                        "writer role with the additional ability to see and manipulate ACLs",
-            },
-            "defaultReminders": {
-                "type": AbstractDataProviderTypeMap."*list",
-                "desc": "The default reminders that the authenticated user has for this calendar",
-            },
-            "conferenceProperties": {
-                "type": AbstractDataProviderTypeMap."*hash",
-                "desc": "The types of conference solutions that are supported for this calendar.\n"
-                    "The possible values are:\n"
-                    "- `eventHangout`\n"
-                    "- `eventNamedHangout`\n"
-                    "- `hangoutsMeet`",
-            },
-            "location": {
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Geographic location of the calendar as free-form text",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
-    }
-}
-
 #! Create measurements request data type
 public class GoogleCalendarListResponseType inherits DataProvider::HashDataType {
     private {
@@ -303,7 +201,7 @@ public class GoogleCalendarListResponseType inherits DataProvider::HashDataType 
                 "desc": "A synchronization token for the data",
             },
             "items": {
-                "type": new ListDataType("*GoogleCalendarElementType", new GoogleCalendarElementType(), True),
+                "type": new ListDataType("*GoogleCalendarType", new GoogleCalendarType(), True),
                 "desc": "response items",
             }
         };
