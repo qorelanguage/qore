@@ -452,7 +452,7 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper {
         #! OAuth2 client secret
         string oauth2_client_secret;
         #! OAuth2 scope
-        string oauth2_scope;
+        *softlist<string> oauth2_scopes;
         #! OAuth2 extra args
         *hash<auto> oauth2_auth_args;
         #! OAuth2 auth URL
@@ -537,7 +537,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
           \c token option is set.  Note that the \c authorization_code grant type requires external user authorization
           to acquire an access token
         - \c oauth2_refresh_token: An OAuth2 refresh token (complements option \c token)
-        - \c oauth2_scope: Space-separated string of OAuth2 scopes to request; ignored if the \c token option is set
+        - \c oauth2_scopes: A list of OAuth2 scopes to request; ignored if the \c token option is set
         - \c oauth2_token_url: The token URL OAuth2 flows; ignored if the \c token option is set
         - \c password: The password for authentication; only used if no username or password is set in the URL and if
           the \c username option is also used
@@ -637,6 +637,9 @@ RestClient rest({"url": "http://localhost:8001/rest"});
                     "instead", opts.oauth2_auth_args.fullType());
             }
             oauth2_auth_args = opts.oauth2_auth_args;
+        }
+        if (opts.oauth2_scopes) {
+            oauth2_scopes = opts.oauth2_scopes;
         }
 
         # setup headers before setupAuth()
@@ -1536,9 +1539,9 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             "client_secret": oauth2_client_secret,
             "grant_type": grant_type,
         };
-        if (oauth2_scope) {
+        if (oauth2_scopes) {
             login += {
-                "scope": oauth2_scope,
+                "scope": foldl $1 + " " + $2, oauth2_scopes,
             };
         }
         if (grant_type == "password") {
@@ -1732,7 +1735,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
       \c token option is set.  Note that the \c authorization_code grant type requires external user authorization to
       acquire an access token
     - \c "oauth2_refresh_token": An OAuth2 refresh token (complements option \c "token")
-    - \c "oauth2_scope": Space-separated string of OAuth2 scopes to request; ignored if the \c token option is set
+    - \c "oauth2_scopes": A list of OAuth2 scopes to request; ignored if the \c token option is set
     - \c "oauth2_token_url": The token URL for OAuth2 flows; ignored if the \c token option is set
     - \c "password": The password for authentication; only used if no username or password is set in the URL and if
       the \c username option is also used
@@ -1892,9 +1895,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                 "oauth2_refresh_token": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the OAuth2 refresh token, if any (complements option `token`)",
+                    "sensitive": True,
                 },
-                "oauth2_scope": <ConnectionOptionInfo>{
-                    "type": "string",
+                "oauth2_scopes": <ConnectionOptionInfo>{
+                    "type": "list",
                     "desc": "Space-separated string of OAuth2 scopes to request; ignored if the `token` option is set",
                 },
                 "oauth2_token_url": <ConnectionOptionInfo>{

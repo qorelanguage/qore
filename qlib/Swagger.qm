@@ -1021,7 +1021,7 @@ public class SwaggerLoader {
         }
         if (rv.typeCode() != NT_HASH) {
             throw "SWAGGER-SCHEMA-ERROR", sprintf("data of type %y provided for OpenAPI / Swagger schema; expecting "
-                "\"string\"", rv.fullType());
+                "\"hash\"", rv.fullType());
         }
         return rv;
     }
