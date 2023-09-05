@@ -740,7 +740,7 @@ public hashdecl DataProviderInfo {
 }
 
 #! The AbstractDataProvider class
-public class AbstractDataProvider {
+public class AbstractDataProvider inherits Logger::LoggerWrapper {
     public {
         #! Generic expression implementations for data providers without native search functionality
         const GenericExpressionImplementations = {
@@ -981,9 +981,6 @@ public class AbstractDataProvider {
     }
 
     private {
-        #! Logger for logging
-        *Logger logger;
-
         #! flag if callbacks are locked
         static bool callbacks_locked = False;
 
@@ -1020,12 +1017,7 @@ public class AbstractDataProvider {
     }
 
     #! Creates the data provider with the given Logger
-    constructor(Logger logger) {
-        self.logger = logger;
-    }
-
-    #! Sets or replaces the logger
-    setLogger(Logger logger) {
+    constructor(LoggerInterface logger) {
         self.logger = logger;
     }
 

@@ -40,6 +40,7 @@
 %requires(reexport) ConnectionProvider >= 1.4
 %requires(reexport) RestSchemaValidator >= 1.0
 %requires Swagger >= 2.0
+%requires(reexport) Logger
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -266,7 +267,7 @@ printf("%N\n", ans.body);
 #! the RestClient namespace contains all the objects in the RestClient module
 public namespace RestClient {
 #! this class provides the REST client API
-public class RestClient inherits Qore::HTTPClient {
+public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper {
     public {
         #! Data serialization support mapping codes to MIME types and de/serialization functions
         const DataSerializationSupport = {
@@ -1254,7 +1255,11 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
                     # get a new token with the refresh token
                     oauth2Auth(getOAuth2RefreshInfo(), \info);
                     if (token && (*code update_token = self.update_token)) {
-                        update_token(token_type, token, refresh_token);
+                        try {
+                            update_token(token_type, token, refresh_token);
+                        } catch (hash<ExceptionInfo> ex) {
+                            error("error updating token: %s", get_exception_string(ex));
+                        }
                     }
                 } else {
                     # try to get a new token
@@ -1267,7 +1272,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
     }
 
-    hash<auto> doRequestIntern(string m, string path, auto body, *reference<hash<auto>> info,
+    #! Makes a REST request and returns the result
+    private hash<auto> doRequestIntern(string m, string path, auto body, *reference<hash<auto>> info,
             softbool decode_errors = True, *hash<auto> hdr) {
         prepareMsg(m, path, \body, \hdr);
 
@@ -2014,7 +2020,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
 
     private {
         #! Hash of supported features
-        hash<string, bool> features;
+        hash<string, bool> features = {
+            CF_LOGGER: True,
+        };
     }
 
     #! creates the RestConnection connection object

@@ -7,6 +7,7 @@
 %strict-args
 
 %requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/XdbcFirebirdSqlUtilBase.qm
