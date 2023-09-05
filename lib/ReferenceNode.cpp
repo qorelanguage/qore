@@ -31,7 +31,9 @@
 #include <qore/Qore.h>
 #include "qore/intern/qore_program_private.h"
 
-IntermediateParseReferenceNode::IntermediateParseReferenceNode(const QoreProgramLocation* loc, QoreValue exp, const QoreTypeInfo* typeInfo, QoreObject* o, const void* lvid, const qore_class_private* n_cls) : ParseReferenceNode(loc, exp, typeInfo), self(o), lvalue_id(lvid), cls(n_cls) {
+IntermediateParseReferenceNode::IntermediateParseReferenceNode(const QoreProgramLocation* loc, QoreValue exp,
+        const QoreTypeInfo* typeInfo, QoreObject* o, const void* lvid, const qore_class_private* n_cls)
+        : ParseReferenceNode(loc, exp, typeInfo), self(o), lvalue_id(lvid), cls(n_cls) {
 }
 
 QoreValue ParseReferenceNode::doPartialEval(QoreValue n, QoreObject*& self, const void*& lvalue_id,
@@ -50,7 +52,8 @@ QoreValue ParseReferenceNode::doPartialEval(QoreValue n, QoreObject*& self, cons
 
     if (ntype == NT_VARREF) {
         VarRefNode* v = n.get<VarRefNode>();
-        //printd(5, "ParseReferenceNode::doPartialEval() this: %p v: '%s' type: %d\n", this, v->getName(), v->getType());
+        //printd(5, "ParseReferenceNode::doPartialEval() this: %p v: '%s' type: %d\n", this, v->getName(),
+        //    v->getType());
         if (v->getType() == VT_CLOSURE) {
             const char* name = v->ref.id->getName();
             ClosureVarValue* cvv = thread_get_runtime_closure_var(v->ref.id);
@@ -60,6 +63,9 @@ QoreValue ParseReferenceNode::doPartialEval(QoreValue n, QoreObject*& self, cons
 
         if (v->getType() == VT_LOCAL_TS) {
             const char* name = v->ref.id->getName();
+            if (v->ref.id->isSelf()) {
+                runtime_get_object_and_class(self, qc);
+            }
             ClosureVarValue* cvv = thread_find_closure_var(name);
             //assert(QoreTypeInfo::equal(cvv->typeInfo, v->ref.id->getTypeInfo()));
             return cvv->getReference(loc, name, lvalue_id);
@@ -114,7 +120,7 @@ ReferenceNode* ParseReferenceNode::evalToRef(ExceptionSink* xsink) const {
     //  lvalue_id);
     return nv
         ? new ReferenceNode(nv, QoreTypeInfo::getUniqueReturnComplexReference(typeInfo), self, lvalue_id, qc)
-        : 0;
+        : nullptr;
 }
 
 IntermediateParseReferenceNode* ParseReferenceNode::evalToIntermediate(ExceptionSink* xsink) const {

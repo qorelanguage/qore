@@ -2306,12 +2306,12 @@ qore_class_private* parse_get_class_priv() {
 }
 
 void thread_set_class_and_ns(const qore_class_private* new_cls, qore_ns_private* new_ns,
-    const qore_class_private*& old_cls, qore_ns_private*& old_ns) {
+        const qore_class_private*& old_cls, qore_ns_private*& old_ns) {
     ThreadData* td = thread_data.get();
     old_cls = td->current_class;
     old_ns = td->current_ns;
     td->current_class = new_cls;
-     td->current_ns = new_ns;
+    td->current_ns = new_ns;
 }
 
 void thread_set_class_and_ns(const qore_class_private* new_cls, qore_ns_private* new_ns) {

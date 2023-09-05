@@ -630,7 +630,8 @@ private:
     ExceptionSink* xsink;
 
 public:
-    DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c, ExceptionSink* xsink, bool ref_obj = true);
+    DLLLOCAL CodeContextHelperBase(const char* code, QoreObject* obj, const qore_class_private* c,
+            ExceptionSink* xsink, bool ref_obj = true);
     DLLLOCAL ~CodeContextHelperBase();
 };
 
@@ -772,7 +773,7 @@ protected:
 class RuntimeReferenceHelperBase {
 public:
     DLLLOCAL RuntimeReferenceHelperBase(const lvalue_ref& r, ExceptionSink* n_xsink)
-        : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls) {
+            : ref(&r), pch(n_xsink, r.pgm, true), osh(r.self, r.cls) {
         //printd(5, "RuntimeReferenceHelperBase::RuntimeReferenceHelperBase() this: %p vexp: %p %s %d\n", this,
         //  r.vexp, get_type_name(r.vexp), get_node_type(r.vexp));
         if (thread_ref_set(&r)) {
@@ -801,10 +802,11 @@ protected:
 class RuntimeReferenceHelper : public RuntimeReferenceHelperBase {
 public:
     DLLLOCAL RuntimeReferenceHelper(const ReferenceNode& r, ExceptionSink* n_xsink)
-        : RuntimeReferenceHelperBase(*lvalue_ref::get(&r), n_xsink) {
+            : RuntimeReferenceHelperBase(*lvalue_ref::get(&r), n_xsink) {
     }
 
-    DLLLOCAL RuntimeReferenceHelper(const lvalue_ref& r, ExceptionSink* n_xsink) : RuntimeReferenceHelperBase(r, n_xsink) {
+    DLLLOCAL RuntimeReferenceHelper(const lvalue_ref& r, ExceptionSink* n_xsink)
+            : RuntimeReferenceHelperBase(r, n_xsink) {
     }
 };
 

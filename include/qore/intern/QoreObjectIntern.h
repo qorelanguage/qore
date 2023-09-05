@@ -161,7 +161,8 @@ public:
 
     DLLLOCAL void insertVirtual(qore_classid_t key, AbstractPrivateData* pd) {
         assert(pd);
-        //printd(5, "KeyList::insertVirtual this: %p, key: %d, pd: %p, test: %d\n", this, key, pd, keymap.find(key) == keymap.end());
+        //printd(5, "KeyList::insertVirtual this: %p, key: %d, pd: %p, test: %d\n", this, key, pd,
+        //    keymap.find(key) == keymap.end());
         if (keymap.find(key) == keymap.end())
             keymap.insert(std::make_pair(key, std::make_pair(pd, true)));
     }
@@ -221,7 +222,8 @@ public:
 
     DLLLOCAL QoreHashNode* copyData(ExceptionSink* xsink) const;
 
-    DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink);
+    DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove,
+            ExceptionSink* xsink);
 
     DLLLOCAL QoreStringNode* firstKey(ExceptionSink* xsink) {
         // get the current class context
@@ -286,7 +288,8 @@ public:
 
     DLLLOCAL QoreHashNode* getSlice(const QoreListNode* l, ExceptionSink* xsink) const;
 
-    DLLLOCAL int checkMemberAccessIntern(const char* mem, bool has_public_members, const qore_class_private* class_ctx, const qore_class_private*& member_class_ctx) const {
+    DLLLOCAL int checkMemberAccessIntern(const char* mem, bool has_public_members,
+            const qore_class_private* class_ctx, const qore_class_private*& member_class_ctx) const {
         assert(!member_class_ctx);
 
         const qore_class_private* theclass_priv = qore_class_private::get(*theclass);
@@ -342,7 +345,8 @@ public:
 
     DLLLOCAL void setValue(const char* key, QoreValue val, ExceptionSink* xsink);
 
-    DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, QoreValue val, ExceptionSink* xsink);
+    DLLLOCAL void setValueIntern(const qore_class_private* class_ctx, const char* key, QoreValue val,
+            ExceptionSink* xsink);
 
     DLLLOCAL int checkMemberAccess(const char* mem, const qore_class_private* class_ctx,
             const qore_class_private*& member_class_ctx) const;
@@ -362,7 +366,9 @@ public:
         return -1;
     }
 
-    DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem, const qore_class_private* class_ctx, const qore_class_private*& member_class_ctx, const QoreTypeInfo*& typeInfo) const {
+    DLLLOCAL int checkMemberAccessGetTypeInfo(ExceptionSink* xsink, const char* mem,
+            const qore_class_private* class_ctx, const qore_class_private*& member_class_ctx,
+            const QoreTypeInfo*& typeInfo) const {
         assert(!member_class_ctx);
         const qore_class_private* theclass_priv = qore_class_private::get(*theclass);
         const QoreMemberInfo* mi = theclass_priv->runtimeGetMemberInfo(mem, class_ctx);
@@ -419,10 +425,12 @@ public:
 
     // this method is called when there is an exception in a constructor and the object should be deleted
     DLLLOCAL void obliterate(ExceptionSink* xsink) {
-        printd(5, "qore_object_private::obliterate() obj: %p class: %s %d->%d\n", obj, theclass->getName(), obj->references.load(), obj->references.load() - 1);
+        printd(5, "qore_object_private::obliterate() obj: %p class: %s %d->%d\n", obj, theclass->getName(),
+            obj->references.load(), obj->references.load() - 1);
 
 #ifdef QORE_DEBUG_OBJ_REFS
-        printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::obliterate() obj: %p class: %s: references %d->%d\n", obj, theclass->getName(), obj->references.load(), obj->references.load() - 1);
+        printd(QORE_DEBUG_OBJ_REFS, "qore_object_private::obliterate() obj: %p class: %s: references %d->%d\n", obj,
+            theclass->getName(), obj->references.load(), obj->references.load() - 1);
 #endif
 
         {
@@ -435,7 +443,8 @@ public:
             QoreSafeVarRWWriteLocker sl(rml);
 
             if (in_destructor || status != OS_OK) {
-                printd(5, "qore_object_private::obliterate() obj: %p data: %p in_destructor: %d status: %d\n", obj, data, in_destructor, status);
+                printd(5, "qore_object_private::obliterate() obj: %p data: %p in_destructor: %d status: %d\n", obj,
+                    data, in_destructor, status);
                 //printd(5, "Object lock %p unlocked (safe)\n", &rml);
                 sl.unlock();
                 tDeref();
@@ -469,7 +478,8 @@ public:
     }
 
     DLLLOCAL void doPublicException(const char* mem, ExceptionSink* xsink) const {
-        xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of class '%s'", mem, theclass->getName());
+        xsink->raiseException("INVALID-MEMBER", "'%s' is not a registered member of class '%s'", mem,
+            theclass->getName());
     }
 
     DLLLOCAL virtual const char* getName() const {
@@ -482,7 +492,8 @@ public:
 
     DLLLOCAL virtual bool isValidImpl() const {
         if (status != OS_OK || in_destructor) {
-            printd(QRO_LVL, "qore_object_intern::isValidImpl() this: %p cannot delete graph obj status: %d in_destructor: %d\n", this, status, in_destructor);
+            printd(QRO_LVL, "qore_object_intern::isValidImpl() this: %p cannot delete graph obj status: %d "
+                "in_destructor: %d\n", this, status, in_destructor);
             return false;
         }
         return true;
@@ -541,7 +552,8 @@ public:
         if (!privateData) {
             privateData = new KeyList;
         }
-        printd(5, "qore_object_private::setPrivate() this: %p 2:privateData: %p (%s) key: %d pd: %p\n", this, privateData, theclass->getName(), key, pd);
+        printd(5, "qore_object_private::setPrivate() this: %p 2:privateData: %p (%s) key: %d pd: %p\n", this,
+            privateData, theclass->getName(), key, pd);
         privateData->insert(key, pd);
         addVirtualPrivateData(key, pd);
     }
@@ -558,14 +570,17 @@ public:
 
     DLLLOCAL AbstractPrivateData* tryGetReferencedPrivateData(qore_classid_t key, ExceptionSink* xsink) const;
 
-    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink);
+    DLLLOCAL QoreValue evalBuiltinMethodWithPrivateData(const QoreMethod& method,
+            const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags,
+            ExceptionSink* xsink);
 
     // no locking necessary; if class_ctx is non-null, an internal member is being initialized
     DLLLOCAL QoreValue& getMemberValueRefForInitialization(const char* member, const qore_class_private* class_ctx);
 
-    //! retuns member data of the object (or 0 if there's an exception), private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
-    /**
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+    //! returns member data of the object (or 0 if there's an exception)
+    /** private members are excluded if called outside the class, caller owns the QoreHashNode reference returned
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @return member data of the object
     */
     DLLLOCAL QoreHashNode* getRuntimeMemberHash(ExceptionSink* xsink) const;
@@ -573,7 +588,8 @@ public:
     DLLLOCAL void incScanCount(int dt) {
         assert(dt);
         assert(obj_count || dt > 0);
-        //printd(5, "qore_object_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count + dt);
+        //printd(5, "qore_object_private::incScanCount() this: %p dt: %d: %d -> %d\n", this, dt, obj_count, obj_count
+        //    + dt);
         obj_count += dt;
     }
 
@@ -590,7 +606,8 @@ public:
         if (!obj.priv->data)
             return false;
         const AbstractQoreNode* n = obj.priv->data->getKeyValue("name");
-        if (n && n->getType() == NT_STRING && strstr(reinterpret_cast<const QoreStringNode*>(n)->getBuffer(), "http-test"))
+        if (n && n->getType() == NT_STRING && strstr(reinterpret_cast<const QoreStringNode*>(n)->getBuffer(),
+            "http-test"))
             return true;
         return false;
     }
@@ -622,7 +639,9 @@ public:
         return theclass->getName();
     }
 
-    DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method, const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags, ExceptionSink* xsink) {
+    DLLLOCAL static QoreValue evalBuiltinMethodWithPrivateData(QoreObject& obj, const QoreMethod& method,
+            const BuiltinNormalMethodVariantBase* meth, const QoreListNode* args, q_rt_flags_t rtflags,
+                ExceptionSink* xsink) {
         return obj.priv->evalBuiltinMethodWithPrivateData(method, meth, args, rtflags, xsink);
     }
 
@@ -634,7 +653,8 @@ public:
         return obj.priv;
     }
 
-    DLLLOCAL static QoreValue takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem, bool check_access = true) {
+    DLLLOCAL static QoreValue takeMember(QoreObject& obj, ExceptionSink* xsink, const char* mem,
+            bool check_access = true) {
         return obj.priv->takeMember(xsink, mem, check_access);
     }
 
@@ -646,7 +666,8 @@ public:
         o.priv->takeMembers(rv, lvh, l);
     }
 
-    DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink) {
+    DLLLOCAL static int getLValue(const QoreObject& obj, const char* key, LValueHelper& lvh,
+            const qore_class_private* class_ctx, bool for_remove, ExceptionSink* xsink) {
         return obj.priv->getLValue(key, lvh, class_ctx, for_remove, xsink);
     }
 

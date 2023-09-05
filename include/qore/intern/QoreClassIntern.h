@@ -3259,7 +3259,7 @@ public:
     }
 
     DLLLOCAL static QoreObject* execConstructor(const QoreClass& qc, const AbstractQoreFunctionVariant* variant,
-        const QoreListNode* args, ExceptionSink* xsink) {
+            const QoreListNode* args, ExceptionSink* xsink) {
         return qc.priv->execConstructor(xsink, variant, args);
     }
 
