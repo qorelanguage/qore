@@ -569,6 +569,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - \c no_charset: if True no charset will be added to the Content-Type header
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server
+        @param logger Any logger interface to use for internal logging
 
         @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
 
@@ -576,8 +577,9 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - %RestClient 1.2 the \a send_encoding option was added
         - %RestClient 1.4 the \a validator and \a swagger options were added
     */
-    constructor(*hash<auto> opts, *softbool do_not_connect)
+    constructor(*hash<auto> opts, *softbool do_not_connect, *LoggerInterface logger)
             : HTTPClient(opts + ((opts.url || !opts.validator) ? NOTHING : {"url": opts.validator.getTargetUrl()})) {
+        self.logger = logger;
         setSerialization(opts."data");
         if (opts.send_encoding) {
             setSendEncoding(opts.send_encoding);
@@ -2231,7 +2233,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         @return a @ref RestClient::RestClient "RestClient" object
     */
     private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new RestClient(real_opts + (rtopts.validator ? {"validator": rtopts.validator} : NOTHING), !connect);
+        return new RestClient(real_opts + (rtopts.validator ? {"validator": rtopts.validator} : NOTHING), !connect,
+            logger);
     }
 
     #! performs the internal ping

@@ -228,11 +228,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object
-    constructor(AbstractTable table, *Logger logger) {
+    constructor(AbstractTable table, *LoggerInterface logger) : AbstractDataProvider(logger) {
         self.table = table;
-        if (logger) {
-            self.logger = logger;
-        }
     }
 
     #! Creates the object from constructor options

@@ -1089,7 +1089,8 @@ public namespace RestHandler {
         In order to match REST requests under a root path, reimplement the following method in a subclass:
         - @ref RestHandler::RestHandler::removeRootPath()
     */
-    public class RestHandler inherits HttpServer::AbstractHttpRequestHandler, AbstractRestClass {
+    public class RestHandler inherits HttpServer::AbstractHttpRequestHandler, AbstractRestClass,
+            Logger::LoggerWrapper {
         public {
             #! a hash for a 501 Unimplemented error message
             const Err501 = new hash<HttpResponseInfo>({
@@ -1109,9 +1110,6 @@ public namespace RestHandler {
         }
 
         private {
-            #! logger
-            Logger::Logger logger;
-
             #! REST schema validator
             RestSchemaValidator::AbstractRestSchemaValidator validator;
         }
@@ -1130,18 +1128,18 @@ public namespace RestHandler {
         }
 
         #! create the object optionally with the given Logger and authenticator
-        /** @param logger the logger to use for the handler
+        /** @param logger the logger interface to use for the handler
             @param auth the authentication object to use to authenticate connections (see
             HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by
             default no authentication will be required
             @param validator a REST API schema validator object; if none is present, then the default REST
             de/serialization support is provided as documented in @ref RestSchemaValidator::NullRestSchemaValidator
         */
-        constructor(Logger::Logger logger, *HttpServer::AbstractAuthenticator auth,
+        constructor(Logger::LoggerInterface logger, *HttpServer::AbstractAuthenticator auth,
                 RestSchemaValidator::AbstractRestSchemaValidator validator = new NullRestSchemaValidator(logger))
-                : HttpServer::AbstractHttpRequestHandler(auth, True) {
-            self.logger = logger;
+                : HttpServer::AbstractHttpRequestHandler(auth, True), LoggerWrapper(logger) {
             self.validator = validator;
+            validator.setLogger(logger);
         }
 
         #! returns the name of the root REST class
@@ -1150,8 +1148,8 @@ public namespace RestHandler {
         }
 
         #! Sets a new logger
-        setLogger(Logger::Logger logger) {
-            self.logger = logger;
+        setLogger(*Logger::LoggerInterface logger) {
+            LoggerWrapper::setLogger(logger);
             validator.setLogger(logger);
         }
 
@@ -1605,27 +1603,21 @@ public namespace RestHandler {
         /** reimplement in subclasses to provide for logging
         */
         logInfo(string fmt) {
-            if (logger) {
-                logger.logArgs(LoggerLevel::INFO, fmt, argv);
-            }
+            logArgs(LoggerLevel::INFO, fmt, argv);
         }
 
         #! This method is called with error log messages
         /** reimplement in subclasses to provide for logging
         */
         logError(string fmt) {
-            if (logger) {
-                logger.logArgs(LoggerLevel::ERROR, fmt, argv);
-            }
+            logArgs(LoggerLevel::ERROR, fmt, argv);
         }
 
         #! This method is called with debug log messages
         /** reimplement in subclasses to provide for logging
         */
         logDebug(string fmt) {
-            if (logger) {
-                logger.logArgs(LoggerLevel::DEBUG, fmt, argv);
-            }
+            logArgs(LoggerLevel::DEBUG, fmt, argv);
         }
 
         #! creates a hash for an HTTP 200 OK error response with the response message body as a string

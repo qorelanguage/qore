@@ -1232,8 +1232,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws SECURITY-ERROR inconsistent security information in schema
     */
-    public constructor(Logger logger, string schema_source, hash<auto> oh, *hash<auto> opts) : ObjectBase(oh),
-            AbstractRestSchemaValidator(logger)  {
+    public constructor(LoggerInterface logger, string schema_source, hash<auto> oh, *hash<auto> opts)
+            : ObjectBase(oh), AbstractRestSchemaValidator(logger)  {
         constructorIntern(schema_source, oh, opts);
     }
 

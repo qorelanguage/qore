@@ -110,7 +110,11 @@ public class Main inherits QUnit::Test {
 
     negTest() {
         checkModule();
-        assertThrows("SAP4HANARESTCLIENT-ERROR", sub () {new Sap4HanaRestClient(("url": "http://localhost:" + port));});
+        assertThrows("SAP4HANARESTCLIENT-ERROR", sub () {
+            new Sap4HanaRestClient({
+                "url": "http://localhost:" + port,
+            });
+        });
         RestClient rest(("url": "http://localhost:" + port, "apikey": ""));
         assertThrows("REST-RESPONSE-ERROR", \rest.get(), "/api_json");
     }

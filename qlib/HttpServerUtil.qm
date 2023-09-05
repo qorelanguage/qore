@@ -434,8 +434,8 @@ public hashdecl HttpListenerOptionInfo {
     #! handler info
     *hash<string, hash<HttpHandlerConfigInfo>> handler_info;
 
-    #! logger
-    *Logger logger;
+    #! logger interface
+    *LoggerInterface logger;
 
     #! stopc stop notification closure
     *code stopc;

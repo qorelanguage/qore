@@ -369,7 +369,7 @@ public hashdecl HttpServerOptionInfo {
     };
 
     #! HTTP server logger
-    *Logger logger;
+    *LoggerInterface logger;
 }
 
 #! The HttpServer class implements a multithreaded HTTP server
@@ -502,7 +502,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         hash<string, bool> http_methods = HttpMethods;
 
         #! logger
-        *Logger logger;
+        *LoggerInterface logger;
     }
     #! @endcond
 
@@ -1377,7 +1377,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     #! @cond nodoc
     # don't reimplement this method; fix/enhance it in the module
     final private HttpListener addListenerIntern(*string node, *softstring service, *Qore::SSLCertificate cert,
-            *Qore::SSLPrivateKey key, *hash<string, hash<HttpHandlerConfigInfo>> handler_info, *Logger logger,
+            *Qore::SSLPrivateKey key, *hash<string, hash<HttpHandlerConfigInfo>> handler_info, *LoggerInterface logger,
             *code stopc, *string name, int family = AF_UNSPEC) {
         return addListenerIntern(<HttpListenerOptionInfo>{
             "node": node,
@@ -1931,7 +1931,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         Mutex m();
 
         #! listener-specific logger; if not present, then the server's logger will be used
-        *Logger logger;
+        *LoggerInterface logger;
 
         # stop notification closure
         *code stopc;

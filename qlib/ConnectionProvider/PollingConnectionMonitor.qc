@@ -29,7 +29,7 @@ public namespace ConnectionProvider {
 #! Class for monitoring connection supporting the polling API
 /** @since ConnectionProvider 1.7
 */
-public class PollingConnectionMonitor {
+public class PollingConnectionMonitor inherits LoggerWrapper {
     public {}
 
     private {
@@ -41,9 +41,6 @@ public class PollingConnectionMonitor {
 
         #! I/O thread TID
         int tid;
-
-        #! Logger
-        *Logger logger;
 
         #! Autostart monitoring thread with first connection
         bool autostart = True;
@@ -94,8 +91,7 @@ public class PollingConnectionMonitor {
     }
 
     #! Creates the object
-    constructor(*Logger logger) {
-        self.logger = logger;
+    constructor(*LoggerInterface logger) : LoggerWrapper(logger) {
         hash<PipeInfo> info = File::getPipe();
         sem_read = info.read;
         sem_write = info.write;
@@ -108,11 +104,6 @@ public class PollingConnectionMonitor {
     #! Stops the monitoring thread and destroys the object
     destructor() {
         stop();
-    }
-
-    #! Sets the logger
-    setLogger(Logger logger) {
-        self.logger = logger;
     }
 
     #! Set autostart flag
@@ -275,14 +266,6 @@ public class PollingConnectionMonitor {
         if (!removeConnection(name)) {
             throw "MONITOR-REMOVE-ERROR", sprintf("no connection %y is being monitored", name);
         }
-    }
-
-    logArgs(int lvl, string msg, auto args) {
-        logger.logArgs(lvl, msg, args);
-    }
-
-    log(int lvl, string msg) {
-        logArgs(lvl, msg, argv);
     }
 
     private startIntern() {

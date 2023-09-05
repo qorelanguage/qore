@@ -1017,8 +1017,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     }
 
     #! Creates the data provider with the given Logger
-    constructor(LoggerInterface logger) {
-        self.logger = logger;
+    constructor(LoggerInterface logger) : LoggerWrapper(logger) {
     }
 
     #! Returns static provider information as data; no objects are returned
