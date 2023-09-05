@@ -204,12 +204,12 @@ CdsRestClient rest({
             client_id = getString(opts, "client_id");
             client_secret = getString(opts, "client_secret");
         } else {
-            error("missing the \"client_id\" and \"client_secret\" options");
+            raiseError("missing the \"client_id\" and \"client_secret\" options");
         }
         if (opts.tenant) {
             tenant = getString(opts, "tenant");
         } else {
-            error("missing the \"tenant\" option");
+            raiseError("missing the \"tenant\" option");
         }
 
         if (opts.scope) {
@@ -309,16 +309,16 @@ CdsRestClient rest({
     static string getString(hash<auto> opts, string key) {
         auto v = opts{key};
         if (!exists v || v == "") {
-            CdsRestClient::error("missing required option %y in option argument", key);
+            CdsRestClient::raiseError("missing required option %y in option argument", key);
         }
         if (v.typeCode() != NT_STRING) {
-            CdsRestClient::error("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+            CdsRestClient::raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
         }
         return v;
     }
 
     #! throws an exception due to an error
-    static error(string fmt) {
+    static raiseError(string fmt) {
         throw "CDSRESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 
