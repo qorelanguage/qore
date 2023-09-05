@@ -276,17 +276,6 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
         return create_object("GoogleDataProvider", get());
     }
 
-    #! Called to start a non-blocking polling ping operation on the Google REST server
-    /**
-        @return a socket poll operation object that will allow the connection goal to be reached with polling
-
-        @see supportsPollingApi()
-    */
-    Qore::AbstractPollOperation startPollConnect() {
-        # start the polling operation manually using the full request path
-        return new RestPingPollOperation(getPollImpl(), real_opts);
-    }
-
     #! Sets child data provider capabilities
     private setChildCapabilities() {
         #children_can_support_records = True;

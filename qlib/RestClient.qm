@@ -2127,7 +2127,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         @see supportsPollingApi()
     */
     Qore::AbstractPollOperation startPollConnect() {
-        if (!opts.ping_method || !exists opts.ping_path) {
+        if (!real_opts.ping_method || !exists real_opts.ping_path) {
             return HttpBasedConnection::startPollConnect();
         }
 
