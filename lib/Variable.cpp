@@ -473,15 +473,19 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
         }
 
         h = nullptr;
-        //printd(5, "LValueHelper::doHashLValue() cv: '%s' ti: %p '%s' c: %p\n", getValue().getFullTypeName(), typeInfo, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo));
+        //printd(5, "LValueHelper::doHashLValue() cv: '%s' ti: %p '%s' c: %p\n", getValue().getFullTypeName(),
+        //    typeInfo, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo));
         // create a hash of the required type if the lvalue has a complex hash type and currently has no value
         if (!getValue()) {
-            if (!typeInfo || typeInfo == anyTypeInfo || typeInfo == hashTypeInfo || typeInfo == hashOrNothingTypeInfo) {
+            if (!typeInfo || typeInfo == anyTypeInfo || typeInfo == hashTypeInfo
+                || typeInfo == hashOrNothingTypeInfo) {
                 // issue #3429 assign an untyped hash if required
                 assignNodeIntern((h = new QoreHashNode));
             } else {
                 // issue #2652: assign the current runtime type based on the declared complex list type
-                const QoreTypeInfo* sti = typeInfo == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo);
+                const QoreTypeInfo* sti = typeInfo == autoTypeInfo
+                    ? autoTypeInfo
+                    : QoreTypeInfo::getReturnComplexHashOrNothing(typeInfo);
                 if (sti) {
                     assignNodeIntern((h = new QoreHashNode(sti)));
                 } else {
@@ -489,7 +493,9 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
                     if (thd) {
                         // we cannot initialize a hashdecl value here while holding lvalue locks
                         // so we have to throw an exception
-                        QoreStringNode* desc = new QoreStringNodeMaker("cannot implicitly create typed hash '%s' with an assignment; to address this error, declare the typed hash before the assignment", thd->getName());
+                        QoreStringNode* desc = new QoreStringNodeMaker("cannot implicitly create typed hash '%s' "
+                            "with an assignment; to address this error, declare the typed hash before the assignment",
+                            thd->getName());
                         vl.xsink->raiseException("HASHDECL-IMPLICIT-CONSTRUCTION-ERROR", desc);
                         clearPtr();
                         return -1;
@@ -502,7 +508,8 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
             //printd(5, "LValueHelper::doHashLValue() this: %p saving value to dereference before making hash: %p '%s'\n", this, vp, get_type_name(vp));
             saveTemp(getValue().getInternalNode());
             const QoreTypeInfo* valueTypeInfo;
-            if (!typeInfo || typeInfo == anyTypeInfo || typeInfo == hashTypeInfo || typeInfo == hashOrNothingTypeInfo) {
+            if (!typeInfo || typeInfo == anyTypeInfo || typeInfo == hashTypeInfo
+                || typeInfo == hashOrNothingTypeInfo) {
                 valueTypeInfo = nullptr;
             } else {
                 valueTypeInfo = autoTypeInfo;
@@ -513,7 +520,8 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
 
     ocvec.push_back(ObjCountRec(h));
 
-    //printd(5, "LValueHelper::doHashLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(), mem->getEncoding()->getCode(), mem->getBuffer());
+    //printd(5, "LValueHelper::doHashLValue() def: %s member %s \"%s\"\n", QCS_DEFAULT->getCode(),
+    //    mem->getEncoding()->getCode(), mem->getBuffer());
     return qore_hash_private::get(*h)->getLValue(mem, *this, for_remove, vl.xsink);
 }
 
@@ -539,7 +547,8 @@ int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* o
     else
         return doHashLValue(t, mem->c_str(), for_remove);
 
-    //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, getTypeName(), getValue() ? getValue()->reference_count() : 0);
+    //printd(5, "LValueHelper::doHashObjLValue() h: %p v: %p ('%s', refs: %d)\n", h, getTypeName(),
+    //    getValue() ? getValue()->reference_count() : 0);
 
     //printd(5, "LValueHelper::doHashObjLValue() obj: %p member: '%s'\n", o, mem->c_str());
 
@@ -1910,8 +1919,11 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op)
 #endif
 }
 
-int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo, const QoreTypeInfo* refTypeInfo) const {
-    //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d assigned: %d ti: '%s' rti: '%s' (%p)\n", this, val.getTypeName(), val.getType(), val.assigned, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(refTypeInfo), refTypeInfo);
+int LocalVarValue::getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo,
+        const QoreTypeInfo* refTypeInfo) const {
+    //printd(5, "LocalVarValue::getLValue() this: %p type: '%s' %d assigned: %d ti: '%s' rti: '%s' (%p)\n", this,
+    //    val.getTypeName(), val.getType(), val.assigned, QoreTypeInfo::getName(typeInfo),
+    //    QoreTypeInfo::getName(refTypeInfo), refTypeInfo);
     if (val.getType() == NT_REFERENCE) {
         ReferenceNode* ref = reinterpret_cast<ReferenceNode*>(val.v.n);
         LocalRefHelper<LocalVarValue> helper(this, *ref, lvh.vl.xsink);

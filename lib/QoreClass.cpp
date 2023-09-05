@@ -519,15 +519,16 @@ qore_class_private::qore_class_private(QoreClass* n_cls, std::string&& nme, std:
     assert(methodID == classID);
     assert(!name.empty());
     assert(n_cls);
+    selfid.setSelf();
 
     if (!n_typeInfo) {
         orNothingTypeInfo = new QoreClassOrNothingTypeInfo(cls, name.c_str(), path.c_str());
         owns_ornothingtypeinfo = true;
     } else {
         // see if typeinfo already accepts NOTHING
-        if (QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING))
+        if (QoreTypeInfo::parseAcceptsReturns(typeInfo, NT_NOTHING)) {
             orNothingTypeInfo = reinterpret_cast<QoreClassOrNothingTypeInfo*>(typeInfo);
-        else {
+        } else {
             orNothingTypeInfo = new QoreClassOrNothingTypeInfo(cls, name.c_str(), path.c_str());
             owns_ornothingtypeinfo = true;
         }
@@ -1296,7 +1297,7 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bc
 }
 
 QoreObject* qore_class_private::execConstructor(ExceptionSink* xsink, const AbstractQoreFunctionVariant* variant,
-    const QoreListNode* args, const QoreClass* obj_cls, bool allow_abstract) const {
+        const QoreListNode* args, const QoreClass* obj_cls, bool allow_abstract) const {
 #ifdef DEBUG
     if (!allow_abstract) {
         // instantiation checks have to be made at parse time
@@ -1329,7 +1330,8 @@ QoreObject* qore_class_private::execConstructor(ExceptionSink* xsink, const Abst
 
     ReferenceHolder<BCEAList> bceal(scl ? new BCEAList : nullptr, xsink);
 
-    printd(5, "qore_class_private::execConstructor() class: %p %s::constructor() o: %p variant: %p\n", cls, name.c_str(), self, variant);
+    printd(5, "qore_class_private::execConstructor() class: %p %s::constructor() o: %p variant: %p\n", cls,
+        name.c_str(), self, variant);
 
     // if we made at least one assignment, then scan the object for recursive references after all assignments
     bool need_scan = false;
@@ -5013,7 +5015,7 @@ MethodVariantBase* MethodFunctionBase::parseHasVariantWithSignature(MethodVarian
     return nullptr;
 }
 
-QoreValue UserMethodVariant::evalMethod(QoreObject* self, CodeEvaluationHelper &ceh, ExceptionSink* xsink) const {
+QoreValue UserMethodVariant::evalMethod(QoreObject* self, CodeEvaluationHelper& ceh, ExceptionSink* xsink) const {
     //QORE_TRACE("UserMethodVariant::evalMethod()");
     VRMutexOptionalLockHelper vrmolh(synchronized ? (
         self
@@ -5022,8 +5024,9 @@ QoreValue UserMethodVariant::evalMethod(QoreObject* self, CodeEvaluationHelper &
         ) : nullptr, xsink);
     if (*xsink)
         return QoreValue();
-    //printd(5, "UserMethodVariant::evalMethod() this: %p %s::%s()\n", this, getClassPriv()->name.c_str(),
-    //    qmethod->getName());
+    //printd(5, "UserMethodVariant::evalMethod() this: %p %s::%s() self: %p cctx: %p (%s)\n", this,
+    //    getClassPriv()->name.c_str(), qmethod->getName(), self, runtime_get_class(),
+    //    runtime_get_class() ? runtime_get_class()->name.c_str() : "n/a");
     return eval(qmethod->getName(), &ceh, self, xsink, getClassPriv());
 }
 
@@ -5038,7 +5041,7 @@ void BuiltinConstructorValueVariant::evalConstructor(const QoreClass& thisclass,
 }
 
 void BuiltinExternalConstructorValueVariant::evalConstructor(const QoreClass& thisclass, QoreObject* self,
-        CodeEvaluationHelper &ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
+        CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const {
     CodeContextHelper cch(xsink, CT_BUILTIN, "constructor", self, qore_class_private::get(thisclass));
 
     if (constructorPrelude(thisclass, ceh, self, bcl, bceal, xsink))

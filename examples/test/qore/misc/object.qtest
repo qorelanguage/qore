@@ -13,6 +13,24 @@ our int calls_constructor = 0;
 our int calls_destructor  = 0;
 our int calls_hello  = 0;
 
+class C1 {
+    private {
+        hash<auto> h;
+    }
+
+    constructor() {
+        test(\self.h);
+    }
+
+    *int get() {
+        return h.a;
+    }
+
+    static test(reference<hash<auto>> h) {
+        h.a = 1;
+    }
+}
+
 class PrivTest {
     constructor(int i) {}
     private constructor(string str) {}
@@ -118,6 +136,7 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
     constructor() : QUnit::Test("Object test", "1.0") {
         issue_3596 = new Issue3596_1();
 
+        addTestCase("object perm test", \objPermTest());
         addTestCase("issue 3596", \issue3596Test());
         addTestCase("instanceof Test", \instanceofTest());
         addTestCase("Test", \testObj());
@@ -125,6 +144,11 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
         addTestCase("inheritance", \inheritance());
         addTestCase("weak refs", \weakRefTest());
         set_return_value(main());
+    }
+
+    objPermTest() {
+        C1 c();
+        assertEq(1, c.get());
     }
 
     issue3596Test() {

@@ -270,17 +270,17 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
 
 // top-level block (program) execution member function
 void StatementBlock::exec() {
-   ExceptionSink xsink;
-   exec(&xsink);
+    ExceptionSink xsink;
+    exec(&xsink);
 }
 
 static void push_top_level_local_var(LocalVar* lv, const QoreProgramLocation* loc) {
-   new VNode(lv, loc, 1, true);
+    new VNode(lv, loc, 1, true);
 }
 
 // used for constructor methods sharing a common "self" local variable
 void push_local_var(LocalVar* lv, const QoreProgramLocation* loc) {
-   new VNode(lv, loc, 1);
+    new VNode(lv, loc, 1);
 }
 
 LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, int& err,

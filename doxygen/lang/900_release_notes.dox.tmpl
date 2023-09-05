@@ -38,6 +38,9 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
       - fixed a bug where polling pings did not respect connection options or the validator
         (<a href="https://github.com/qorelanguage/qore/issues/4764">issue 4764</a>)
+    - fixed a bug where an access exception could be raised when a reference to a private member was used in a static
+      class method
+      (<a href="https://github.com/qorelanguage/qore/issues/4778">issue 4778</a>)
     - fixed a bug where the stack guard was not properly enforced when the JVM assumed enforcement responsibility; in
       addition, due to the fact that thread stacks are allocated from overcommitted memory, reducing the thread stack
       size to 512KB had no effect on the memory size of %Qore programs but did affect %Qore, Java, and Python

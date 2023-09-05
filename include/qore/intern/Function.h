@@ -313,9 +313,9 @@ public:
         saves current program location in case there's an exception
     */
     DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
-        const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr,
-        QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
-        bool is_copy = false, const qore_class_private* cctx = nullptr);
+            const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr,
+            QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
+            bool is_copy = false, const qore_class_private* cctx = nullptr);
 
     //! Creates the object for evaluating the given code (function, method, closure) with the given arguments
     /**
@@ -332,9 +332,9 @@ public:
         performs destructive evaluation of "args"
     */
     DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
-        const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args,
-        QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
-        bool is_copy = false, const qore_class_private* cctx = nullptr);
+            const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args,
+            QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
+            bool is_copy = false, const qore_class_private* cctx = nullptr);
 
     DLLLOCAL ~CodeEvaluationHelper();
 
@@ -410,6 +410,11 @@ public:
 
     DLLLOCAL virtual const AbstractStatement* getStatement() const {
         return stmt;
+    }
+
+    //! Returns the method / function name
+    DLLLOCAL const char* getName() const {
+        return name;
     }
 
 protected:
@@ -654,9 +659,9 @@ protected:
 
 public:
     DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) :
-        ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true),
-        ThreadFrameBoundaryHelper(!*n_xsink),
-        uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+            ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true),
+            ThreadFrameBoundaryHelper(!*n_xsink),
+            uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
         assert(xsink);
         if (*xsink || uvb->setupCall(ceh, argv, xsink))
             uvb = nullptr;
