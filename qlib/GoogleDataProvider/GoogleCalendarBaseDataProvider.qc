@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore GoogleDataProvider module definition
 
-/** GoogleCalendarDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarBaseDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,7 @@
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
 #! The parent class for Google calendar REST APIs
-public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarBaseDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
         GoogleRestClient::GoogleRestClient rest;
@@ -33,14 +33,9 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "calendar",
-            "desc": "Google calendar data provider; parent provider for APIs related to calendars",
-            "type": "GoogleCalendarDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
-                "id": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderTypeMap."string",
-                    "desc": "The calendar ID",
-                },
-            },
+            "desc": "Google calendar base data provider; parent provider for APIs related to calendars",
+            "type": "GoogleCalendarBaseDataProvider",
+            "constructor_options": GoogleDataProvider::ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
         };
@@ -52,17 +47,9 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
     }
 
     private {
-        #! The calendar's ID
-        string id;
-
-        #! The calendar's metadata
-        *hash<auto> cal;
-
         const ChildMap = {
-            "events": Class::forName("GoogleDataProvider::GoogleCalendarEventsDataProvider"),
-            "get": Class::forName("GoogleDataProvider::GoogleCalendarGetDataProvider"),
-            "patch": Class::forName("GoogleDataProvider::GoogleCalendarPatchDataProvider"),
-            "update": Class::forName("GoogleDataProvider::GoogleCalendarUpdateDataProvider"),
+            "calendarList": Class::forName("GoogleDataProvider::GoogleCalendarListDataProvider"),
+            "calendars": Class::forName("GoogleDataProvider::GoogleCalendarsDataProvider"),
         };
     }
 
@@ -70,14 +57,11 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
     constructor(*hash<auto> options) {
         checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
         rest = GoogleDataProvider::getRestConnection(options);
-        id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) {
+    constructor(GoogleRestClient::GoogleRestClient rest) {
         self.rest = rest;
-        self.id = id;
-        self.cal = cal;
     }
 
     #! Returns the data provider name
@@ -87,7 +71,7 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
+        return sprintf("Google data %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
     }
 
     #! Return data provider summary info
@@ -112,7 +96,7 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
         if (!cls) {
             return;
         }
-        return cls.newObject(rest, id, cal);
+        return cls.newObject(rest);
     }
 
     #! Returns data provider static info

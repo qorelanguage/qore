@@ -22,8 +22,31 @@
 %exec-class Main
 
 public class Main inherits QUnit::Test {
-    constructor() : Test("GoogleRestClientTest", "1.0") {
+    private {
+        GoogleRestConnection grc;
+        Logger logger;
+
+        # command-line options
+        const MyOpts = Opts + {
+            "conn": "c,connection=s",
+        };
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("GoogleRestClientTest", "1.0", \ARGV, MyOpts) {
         addTestCase("connection tests", \connectionTest());
+        addTestCase("poll tests", \pollTest());
+
+        try {
+            setupConnection();
+        } catch (hash<ExceptionInfo> ex) {
+            if (m_options.verbose > 2) {
+                printf("%s\n", get_exception_string(ex));
+            } else if (m_options.verbose) {
+                printf("%s: %s\n", ex.err, ex.desc);
+            }
+        }
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
@@ -52,12 +75,83 @@ public class Main inherits QUnit::Test {
             "oauth2_client_secret": "x",
             "oauth2_redirect_url": "https://localhost",
         };
-        GoogleRestConnection grc("test", "test", NOTHING, NOTHING, fake_opts);
-        assertEq(True, grc instanceof GoogleRestConnection);
+        {
+            GoogleRestConnection rc("test", "test", NOTHING, NOTHING, fake_opts);
+            assertEq(True, rc instanceof GoogleRestConnection);
 
-        GoogleRestClient client = grc.get(False);
-        # issue #3321: check default timeouts
-        assertEq(45000, client.getTimeout());
-        assertEq(45000, client.getConnectTimeout());
+            GoogleRestClient client = rc.get(False);
+            # issue #3321: check default timeouts
+            assertEq(45000, client.getTimeout());
+            assertEq(45000, client.getConnectTimeout());
+        }
+    }
+
+    pollTest() {
+        if (!grc) {
+            testSkip("no connection");
+        }
+
+        {
+            # first test a standard ping
+            hash<PingInfo> ping = grc.ping(True);
+            assertTrue(ping.ok);
+            assertEq("OK", ping.info);
+
+            TestPollingConnectionMonitor monitor(logger);
+            on_exit delete monitor;
+
+            monitor.add(grc);
+            hash<auto> info = monitor.waitForResult();
+            on_error if (info.ex) {
+                printf("%s\n", get_exception_string(info.ex));
+            }
+            assertEq("OK", info.result);
+        }
+    }
+
+    private error(string fmt) {
+        throw "OPTION-ERROR", sprintf("%s: ERROR: %s", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    private setupConnection() {
+        *string conn_name = m_options.conn ?? ENV.GOOGLE_CONNECTION;
+        if (!conn_name.val()) {
+            error("missing -c,--connection option or GOOGLE_CONNECTION environment variable");
+        }
+
+        AbstractConnection conn = get_connection(conn_name);
+        if (!(conn instanceof GoogleRestConnection)) {
+            error("connection %y is type %y; expecting \"GoogleRestConnection\"", conn_name, conn.className());
+        }
+        grc = conn;
+    }
+}
+
+class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
+    private {
+        Queue msgq();
+    }
+
+    constructor(*Logger logger) : PollingConnectionMonitor(logger) {
+        ping_timeout = 5s;
+    }
+
+    hash<auto> waitForResult() {
+        return msgq.get();
+    }
+
+    private handlePingSuccess(string name, date delta, *bool oldok) {
+        PollingConnectionMonitor::handlePingSuccess(name, delta, oldok);
+        msgq.push({"name": name, "result": "OK"});
+    }
+
+    private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
+        PollingConnectionMonitor::handlePingFailed(name, delta, ex);
+        msgq.push({"name": name, "result": "error", "ex": ex});
+    }
+
+    private handlePingTimeout(string name, date delta) {
+        PollingConnectionMonitor::handlePingTimeout(name, delta);
+        msgq.push({"name": name, "result": "timeout"});
     }
 }

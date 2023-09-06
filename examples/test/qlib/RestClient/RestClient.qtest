@@ -541,4 +541,3 @@ class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
         msgq.push({"name": name, "result": "timeout"});
     }
 }
-

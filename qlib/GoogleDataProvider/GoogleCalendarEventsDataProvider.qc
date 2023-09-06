@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore GoogleDataProvider module definition
 
-/** GoogleCalendarDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarEventsDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,17 +24,17 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
-#! The parent class for Google calendar REST APIs
-public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvider {
+#! The parent class for Google calendar events REST APIs
+public class GoogleCalendarEventsDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
         GoogleRestClient::GoogleRestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "calendar",
-            "desc": "Google calendar data provider; parent provider for APIs related to calendars",
-            "type": "GoogleCalendarDataProvider",
+            "name": "events",
+            "desc": "Google calendar events data provider; parent provider for APIs related to calendar events",
+            "type": "GoogleCalendarEventsDataProvider",
             "constructor_options": GoogleDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "type": AbstractDataProviderTypeMap."string",
@@ -59,10 +59,10 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
         *hash<auto> cal;
 
         const ChildMap = {
-            "events": Class::forName("GoogleDataProvider::GoogleCalendarEventsDataProvider"),
-            "get": Class::forName("GoogleDataProvider::GoogleCalendarGetDataProvider"),
-            "patch": Class::forName("GoogleDataProvider::GoogleCalendarPatchDataProvider"),
-            "update": Class::forName("GoogleDataProvider::GoogleCalendarUpdateDataProvider"),
+            "get": Class::forName("GoogleDataProvider::GoogleCalendarEventsGetDataProvider"),
+            "list": Class::forName("GoogleDataProvider::GoogleCalendarEventsListDataProvider"),
+            #"patch": Class::forName("GoogleDataProvider::GoogleCalendarEventsPatchDataProvider"),
+            #"update": Class::forName("GoogleDataProvider::GoogleCalendarEventsUpdateDataProvider"),
         };
     }
 

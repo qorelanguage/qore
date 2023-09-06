@@ -335,7 +335,7 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper {
         const AcceptMap = map {$1: True}, AcceptList;
 
         #! RestClient Version
-        const Version = "1.7";
+        const Version = "2.0";
 
         #! RestClient Version String
         const VersionString = sprintf("Qore-RestClient/%s", RestClient::Version);
@@ -2337,6 +2337,9 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
 
         #! token refresh flag
         bool in_refresh;
+
+        #! ping message prepared
+        bool ping_prepared;
     }
 
     constructor(RestClient rc, hash<auto> real_opts) {
@@ -2480,6 +2483,8 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
 %ifdef NoJson
         throw "REST-PING-ERROR", "cannot retrieve an OAuth2 token without the json module";
 %else
+        # remove the Authorization header, so it can be set from the new token
+        headers -= "Authorization";
         state = SPS_OAUTH2_REFRESH_TOKEN;
         poller = rc.startOAuth2PollRefreshToken();
         in_refresh = True;
@@ -2487,8 +2492,14 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
     }
 
     private doStartPing() {
-        # first prepare message for ping from any validator
         rc.prepareToSend(method, \path, \body, \headers);
+        if (!ping_prepared) {
+            # prepare message for ping from any validator
+            ping_prepared = True;
+            # ensure that the path is only set once
+            rc.setConnectionPath();
+        }
+
         state = SPS_REST_PING;
         poller = rc.startPollSendRecv(method, path, body, headers);
     }

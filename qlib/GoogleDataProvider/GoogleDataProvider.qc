@@ -76,7 +76,7 @@ public class GoogleDataProvider inherits DataProvider::AbstractDataProvider {
 
     private {
         const ChildMap = {
-            "calendar": Class::forName("GoogleDataProvider::GoogleCalendarDataProvider"),
+            "calendar": Class::forName("GoogleDataProvider::GoogleCalendarBaseDataProvider"),
         };
     }
 
@@ -186,4 +186,23 @@ public class SoftBoolStringType inherits Qore::Reflection::Type {
         return "false";
     }
 }
+
+#! Timestamp string type for query parameters
+public const SoftTimestampStringType = new SoftTimestampStringType();
+
+#! Timestamp data provider string type for query parameters
+public const SoftTimestampDataProviderStringType = AbstractDataProviderType::get(SoftTimestampStringType);
+
+#! Timestamp string type
+public class SoftTimestampStringType inherits Qore::Reflection::Type {
+    #! Creates the object
+    constructor() : Type("*softstring") {
+    }
+
+    #! Returns the value after any conversions by the type
+    auto acceptsValue(auto value) {
+        return date(value).format("YYYY-MM-DDTHH:mm:SSZ");
+    }
+}
+
 }

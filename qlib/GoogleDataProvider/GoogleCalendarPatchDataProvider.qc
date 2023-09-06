@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore GoogleDataProvider module definition
 
-/** GoogleCalendarDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarPatchDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,30 +25,35 @@
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
 #! The parent class for Google calendar REST APIs
-public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarPatchDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
         GoogleRestClient::GoogleRestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "calendar",
+            "name": "patch",
             "desc": "Google calendar data provider; parent provider for APIs related to calendars",
-            "type": "GoogleCalendarDataProvider",
+            "type": "GoogleCalendarPatchDataProvider",
             "constructor_options": GoogleDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "The calendar ID",
                 },
             },
-            "supports_children": True,
-            "children_can_support_apis": True,
+            "supports_request": True,
         };
 
         #! Provider summary info
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
+
+        #! Request type
+        const RequestType = new GoogleCalendarPatchRequestType();
+
+        #! Response type
+        const ResponseType = new GoogleCalendarType();
     }
 
     private {
@@ -57,13 +62,6 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
 
         #! The calendar's metadata
         *hash<auto> cal;
-
-        const ChildMap = {
-            "events": Class::forName("GoogleDataProvider::GoogleCalendarEventsDataProvider"),
-            "get": Class::forName("GoogleDataProvider::GoogleCalendarGetDataProvider"),
-            "patch": Class::forName("GoogleDataProvider::GoogleCalendarPatchDataProvider"),
-            "update": Class::forName("GoogleDataProvider::GoogleCalendarUpdateDataProvider"),
-        };
     }
 
     #! Creates the object from constructor options
@@ -87,37 +85,58 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
+        return sprintf("Google data %s provider for cakendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
     }
 
-    #! Return data provider summary info
-    *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
-    }
+    #! Makes a request and returns the response
+    /** @param req the request to serialize and make according to the request type
+        @param request_options the request options; will be processed by validateRequestOptions()
 
-    #! Returns a list of child data provider names, if any
-    /** @return a list of child data provider names, if any
+        @return the response to the request
     */
-    private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
-    }
-
-    #! Returns the given child provider or @ref nothing if the given child is unknown
-    /** @return the given child provider or @ref nothing if the given child is unknown
-
-        @see getChildProviderEx()
-    */
-    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
-        if (!cls) {
-            return;
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        hash<auto> info;
+        try {
+            return rest.patch("/calendar/v3/calendars/" + id, req, \info).body;
+        } catch (hash<ExceptionInfo> ex) {
+            # ensure that any error response body is included in the exception
+            hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
+            rethrow ex.err, ex.desc, ex.arg + ex_arg;
         }
-        return cls.newObject(rest, id, cal);
+    }
+
+    #! Returns the description of a successful request message, if any
+    /** @return the request type for this provider
+    */
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
+        return RequestType;
+    }
+
+    #! Returns the description of a response message, if this object represents a response message
+    /** @return the response type for this response message
+    */
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
+        return ResponseType;
     }
 
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
+    }
+}
+
+#! Google calenderList element type
+public class GoogleCalendarPatchRequestType inherits DataProvider::HashDataType {
+    private {
+        #! Field descriptions
+        const Fields = map {$1.key: $1.value + {"type": AbstractDataProviderTypeMap."*string"}},
+            GoogleCalendarType::Fields{"description", "location", "summary", "timeZone"}.pairIterator();
+    }
+
+    #! Creates the object
+    constructor() {
+        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
+            Fields.pairIterator();
     }
 }
 }

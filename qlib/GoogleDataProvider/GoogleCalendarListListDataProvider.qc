@@ -201,7 +201,7 @@ public class GoogleCalendarListResponseType inherits DataProvider::HashDataType 
                 "desc": "A synchronization token for the data",
             },
             "items": {
-                "type": new ListDataType("*GoogleCalendarType", new GoogleCalendarType(), True),
+                "type": new ListDataType("*GoogleCalendarListElementType", new GoogleCalendarListElementType(), True),
                 "desc": "response items",
             }
         };

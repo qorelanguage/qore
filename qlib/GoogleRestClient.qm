@@ -107,7 +107,8 @@ public namespace GoogleRestClient {
     - \c username: the Google username
     - \c password: the Google password
 
-    You can use an OAuth2 token by setting the \c token option, otherwise the following options need to be set:
+    You can use an OAuth2 token by setting the \c token and \c oauth2_refresh_token options; the following options
+    need to be set as well:
     - \c oauth2_client_id: the OAuth2 client ID
     - \c oauth2_client_secret: the OAuth2 client secret
 
@@ -139,6 +140,24 @@ public class GoogleRestClient inherits RestClient::RestClient {
             "oauth2_grant_type": DefaultGrantType,
             "oauth2_token_url": DefaultTokenUrl,
         };
+
+        #! Ping profiles
+        const PingProfiles = {
+            "none": {},
+            "calendar": {
+                "ping_method": DefaultGooglePingMethod,
+                "ping_path": "/calendar/v3/users/me/calendarList?maxResults=1",
+                "ping_headers": DefaultGooglePingHeaders,
+            },
+        };
+
+        #! Default Google ping method
+        const DefaultGooglePingMethod= "GET";
+
+        #! Default Google ping headers
+        const DefaultGooglePingHeaders = {
+            "Accept": MimeTypeJson,
+        };
     }
 
     #! creates the object with the given options
@@ -153,7 +172,10 @@ GoogleRestClient rest({
         @endcode
 
         @param opts valid options are all the options for the @ref RestClient::RestClient "RestClient" class; note
-        that the URL is set by default if not provided (see @ref DefaultUrl)
+        that the URL is set by default if not provided (see @ref DefaultUrl); the following options are unique to this
+        class:
+        - \c ping_profile: one of \c none (no ping options set) or \c calendar (set ping options for the Google
+          calendar API)
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server
 
@@ -165,6 +187,15 @@ GoogleRestClient rest({
 
     #! returns options for @ref GoogleRestClient::GoogleRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
+        if (*string pprof = opts.ping_profile) {
+            *hash<auto> conf = PingProfiles{pprof};
+            if (!exists conf) {
+                throw "GOOGLE-RESTCLIENT-ERROR", sprintf("ping profile %y is unknown; known ping profiles: %y", pprof,
+                    keys PingProfiles);
+            }
+            # set ping options
+            map opts{$1.key} = $1.value, conf.pairIterator(), !opts.hasKey($1.key);
+        }
         return DefaultOptions + opts;
     }
 }
@@ -201,36 +232,29 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
                 + <ConnectionOptionInfo>{
                     "default_value": GoogleRestClient::DefaultTokenUrl,
                 },
-                /*
-                "ping_headers": RestConnection::ConnectionScheme.options."ping_headers" + <ConnectionOptionInfo>{
-                    "default_value": DefaultGooglePingHeaders,
+                "ping_profile": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the ping profile according to the Google API in use; this option will set the REST ping "
+                        "options if they are not already set (`ping_body`, `ping_headers`, and `ping_method`); valid "
+                        "values:\n"
+                        "- `none`: no pings configured (default)\n"
+                        "- `calendar`: the Google calendar API",
+                    "default_value": "none",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "desc": "",
+                            "value": "none",
+                        },
+                        <AllowedValueInfo>{
+                            "desc": "",
+                            "value": "calendar",
+                        },
+                    ),
                 },
-                "ping_method": RestConnection::ConnectionScheme.options."ping_method" + <ConnectionOptionInfo>{
-                    "default_value": DefaultGooglePingMethod,
-                },
-                "ping_path": RestConnection::ConnectionScheme.options."ping_path" + <ConnectionOptionInfo>{
-                    "default_value": DefaultGooglePingPath,
-                },
-                */
             },
             "required_options": "token|oauth2_auth_args,oauth2_auth_url,oauth2_grant_type,oauth2_token_url,"
                 "oauth2_client_id,oauth2_client_secret",
         };
-
-        /*
-        #! Default Google ping method
-        const DefaultGooglePingMethod= "GET";
-
-        #! Default Google ping path (from the API root)
-        const DefaultGooglePingPath = "table/sys_properties?sysparm_exclude_reference_link=true"
-                        "&sysparm_suppress_pagination_header=true&sysparm_fields=value"
-                        "&sysparm_query=name=mid.version";
-
-        #! Default Google ping headers
-        const DefaultGooglePingHeaders = {
-            "Accept": MimeTypeJson,
-        };
-        */
     }
 
     #! creates the GoogleRestConnection object

@@ -123,6 +123,21 @@ public class ListDataType inherits QoreDataType {
         return rv;
     }
 
+    #! returns the value if the value can be assigned to the type
+    /** @param value the value to assign to the type
+
+        @return the value to be assigned; can be converted by the type
+
+        @throw RUNTIME-TYPE-ERROR value cannot be assigned to type
+    */
+    auto acceptsValue(auto value) {
+        value = QoreDataType::acceptsValue(value);
+        if (element_type.hasType()) {
+            value = map element_type.acceptsValue($1), value;
+        }
+        return value;
+    }
+
     #! Returns the underlying %Qore type for this type
     private Type getQoreType(Type element_type, bool or_nothing) {
         return new Type(sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName()));
