@@ -116,6 +116,36 @@ public class GoogleDataProviderTest inherits QUnit::Test {
             h = prov.doRequest({"id": h.id, "description": desc});
             assertEq(desc, h.description);
         }
+
+        # test the freeBusy calendar API
+        prov = gdp.getChildProviderPath("calendar/calendars/primary/freeBusy");
+        {
+            date now = now_us();
+            hash<auto> req = {
+                "timeMin": date(now.format("YYYY-MM-DDT00:00:00Z")),
+                "timeMax": date((now + 1D).format("YYYY-MM-DDT00:00:00Z")),
+            };
+            h = prov.doRequest(req);
+            assertEq(req.timeMin, h.timeMin);
+            assertEq(req.timeMax, h.timeMax);
+            assertEq("calendar#freeBusy", h.kind);
+        }
+
+        # create and delete a calendar
+        prov = gdp.getChildProviderPath("calendar/calendar-insert");
+        {
+            string summary = "Test Delete Me " + get_random_string();
+            h = prov.doRequest({
+                "summary": summary,
+                "timeZone": "Europe/Prague",
+            });
+            del = gdp.getChildProviderPath("calendar/calendars/" + h.id + "/delete");
+            on_exit del.doRequest();
+
+            assertEq("calendar#calendar", h.kind);
+            assertEq(summary, h.summary);
+            assertEq("Europe/Prague", h.timeZone);
+        }
     }
 
     private usageIntern() {

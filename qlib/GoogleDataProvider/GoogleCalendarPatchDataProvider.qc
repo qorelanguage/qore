@@ -55,7 +55,7 @@ public class GoogleCalendarPatchDataProvider inherits DataProvider::AbstractData
         const RequestType = new GoogleCalendarPatchRequestType();
 
         #! Response type
-        const ResponseType = new GoogleCalendarType();
+        const ResponseType = GoogleCalendarType;
     }
 
     private {
@@ -87,7 +87,7 @@ public class GoogleCalendarPatchDataProvider inherits DataProvider::AbstractData
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for cakendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
+        return sprintf("Google data %s provider for calendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
     }
 
     #! Makes a request and returns the response

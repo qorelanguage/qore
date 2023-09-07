@@ -87,7 +87,7 @@ public class GoogleCalendarFreeBusyDataProvider inherits DataProvider::AbstractD
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for cakendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
+        return sprintf("Google data %s provider for calendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
     }
 
     #! Makes a request and returns the response
@@ -233,11 +233,11 @@ public class GoogleCalendarFreeBusyResponseType inherits DataProvider::HashDataT
                 "desc": "The type of the collection",
             },
             "timeMax": {
-                "type": SoftTimestampDataProviderStringType,
+                "type": AbstractDataProviderTypeMap."softdate",
                 "desc": "The start of the interval for the query",
             },
             "timeMin": {
-                "type": SoftTimestampDataProviderStringType,
+                "type": AbstractDataProviderTypeMap."softdate",
                 "desc": "The end of the interval for the query",
             },
             "groups": {

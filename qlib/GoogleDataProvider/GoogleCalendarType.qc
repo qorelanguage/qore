@@ -24,6 +24,9 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
+#! Google calendar type constant
+public const GoogleCalendarType = new GoogleCalendarType();
+
 #! Google calender type
 public class GoogleCalendarType inherits DataProvider::HashDataType {
     public {

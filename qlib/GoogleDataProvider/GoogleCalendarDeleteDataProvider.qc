@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore GoogleDataProvider module definition
 
-/** GoogleCalendarUpdateDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarDeleteDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,22 +24,19 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
-#! The Google calendar update API data provider
-/** This API allows the caller to update a calendar
-
-    Note that this API works like a `patch` operation; if any fields are missing in the request, they are first set
-    based on a fetch of the current attributes.
+#! The Google calendar delete API data provider
+/** Deletes the given calendar
 */
-public class GoogleCalendarUpdateDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarDeleteDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
         GoogleRestClient::GoogleRestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "update",
-            "desc": "Google calendar update calender API data provider",
-            "type": "GoogleCalendarUpdateDataProvider",
+            "name": "delete",
+            "desc": "Google calendar delete API data provider",
+            "type": "GoogleCalendarDeleteDataProvider",
             "constructor_options": GoogleDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "type": AbstractDataProviderTypeMap."string",
@@ -55,10 +52,10 @@ public class GoogleCalendarUpdateDataProvider inherits DataProvider::AbstractDat
         });
 
         #! Request type
-        const RequestType = new GoogleCalendarPatchRequestType();
+        const RequestType = AbstractDataProviderTypeMap."nothing";
 
         #! Response type
-        const ResponseType = GoogleCalendarType;
+        const ResponseType = AbstractDataProviderTypeMap."nothing";
     }
 
     private {
@@ -90,7 +87,8 @@ public class GoogleCalendarUpdateDataProvider inherits DataProvider::AbstractDat
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for calendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
+        return sprintf("Google data %s provider for calendar `%s` for `%s`", ProviderInfo.name, id,
+            rest.getSafeURL());
     }
 
     #! Makes a request and returns the response
@@ -102,18 +100,8 @@ public class GoogleCalendarUpdateDataProvider inherits DataProvider::AbstractDat
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         hash<auto> info;
         try {
-            # we get the current values to make the update in case any values are missing
-            {
-                list<string> fields = keys RequestType.getFields();
-                if (req.size() < fields.size()) {
-                    if (!cal) {
-                        cal = rest.get("/calendar/v3/calendars/" + id, NOTHING, \info).body;
-                    }
-                    map req{$1.key} = $1.value, cal{fields}.pairIterator(), !req.hasKey($1.key);
-                }
-            }
-
-            return rest.put("/calendar/v3/calendars/" + id, req, \info).body;
+            rest.del("/calendar/v3/calendars/" + id, req, \info);
+            # this method returns no value when successfully executed
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
