@@ -1216,7 +1216,10 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
         @return a @ref SalesforceRestClient::SalesforceRestClient "SalesforceRestClient" object
     */
     private SalesforceRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new SalesforceRestClient(real_opts, !connect);
+        return new SalesforceRestClient(real_opts + {
+            "logger": logger,
+            "update_token": update_token,
+        }, !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

@@ -420,7 +420,10 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         @return a @ref ServiceNowRestClient object
     */
     private ServiceNowRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new ServiceNowRestClient(real_opts, !connect);
+        return new ServiceNowRestClient(real_opts + {
+            "logger": logger,
+            "update_token": update_token,
+        }, !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

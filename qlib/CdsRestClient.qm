@@ -198,7 +198,8 @@ CdsRestClient rest({
         @throw CDSRESTCLIENT-ERROR missing or invalid required option for REST
         authentication or communication
     */
-    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(CdsRestClient::getOptions(opts), do_not_connect) {
+    constructor(hash<auto> opts, *softbool do_not_connect)
+            : RestClient(CdsRestClient::getOptions(opts), do_not_connect) {
         # check for either the apikey or client id/secret options
         if (opts.client_id && opts.client_secret) {
             client_id = getString(opts, "client_id");
@@ -445,7 +446,10 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         @return a @ref CdsRestClient object
     */
     private CdsRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new CdsRestClient(real_opts, !connect);
+        return new CdsRestClient(real_opts + {
+            "logger": logger,
+            "update_token": update_token,
+        }, !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

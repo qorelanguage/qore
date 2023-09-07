@@ -476,6 +476,8 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper {
 
             This closure will only be called when the token is automatically acquired in blocking I/O; it will not be
             called when setToken() is called externally, for example
+
+            @since RestClient 2.0
         */
         *code update_token;
     }
@@ -513,6 +515,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
           request method calls
         - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing
           message headers
+        - \c logger: any logger to use for the object
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
         - \c oauth2_auto_refresh: If OAuth2 tokens should be automatically refreshed
           (default \c True)
@@ -559,10 +562,11 @@ RestClient rest({"url": "http://localhost:8001/rest"});
           if this option is set then any OAuth2 options are ignored
         - \c token_type: The type of token to use for the \c Authentication header; ignored if no \c token option is
           set
+        - \c update_token: Any update token code to use for the object; @see update_token for more information
         - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any
           \c validator option, if given by calling
           @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
-        - \c "username": The username for authentication; only used if no username or password is set in the URL and
+        - \c username: The username for authentication; only used if no username or password is set in the URL and
           if the \c password option is also used
         - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
           object to validate request and response messages; overrides \a swagger
@@ -570,6 +574,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server
         @param logger Any logger interface to use for internal logging
+        @param update_token Closure or call reference to be called when an access token is automatically acquired
 
         @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
 
@@ -577,9 +582,13 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - %RestClient 1.2 the \a send_encoding option was added
         - %RestClient 1.4 the \a validator and \a swagger options were added
     */
-    constructor(*hash<auto> opts, *softbool do_not_connect, *LoggerInterface logger)
+    constructor(*hash<auto> opts, *softbool do_not_connect)
             : HTTPClient(opts + ((opts.url || !opts.validator) ? NOTHING : {"url": opts.validator.getTargetUrl()})) {
-        self.logger = logger;
+        # set logger, if any
+        self.logger = remove opts.logger;
+        # set update token code, if any
+        self.update_token = remove opts.update_token;
+
         setSerialization(opts."data");
         if (opts.send_encoding) {
             setSendEncoding(opts.send_encoding);
@@ -2029,6 +2038,17 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         hash<string, bool> features = {
             CF_LOGGER: True,
         };
+
+        #! Closure or call reference to be called when an access token is automatically acquired
+        /** The closure or call reference must have the following signature:
+            <tt><update_token(*string token_type, string token, *string oauth2_refresh_token) /tt>
+
+            This closure will only be called when the token is automatically acquired in blocking I/O; it will not be
+            called when setToken() is called externally, for example
+
+            @since RestClient 2.0
+        */
+        *code update_token;
     }
 
     #! creates the RestConnection connection object
@@ -2088,6 +2108,16 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     #! returns \c "rest"
     string getType() {
         return "rest";
+    }
+
+    #! Can be called to set or clear a closure or call reference to be called when the authentication token is updated
+    /** The closure or call reference must have the following signature:
+        <tt><update_token(*string token_type, string token, *string oauth2_refresh_token) /tt>
+
+        @since %RestClient 2.0
+    */
+    setUpdateTokenCode(*code update_token) {
+        self.update_token = update_token;
     }
 
     #! returns a data provider object for this connection
@@ -2237,8 +2267,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         @return a @ref RestClient::RestClient "RestClient" object
     */
     private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new RestClient(real_opts + (rtopts.validator ? {"validator": rtopts.validator} : NOTHING), !connect,
-            logger);
+        return RestClient rest(real_opts + (rtopts.validator ? {"validator": rtopts.validator} : NOTHING + {
+            "logger": logger,
+            "update_token": update_token,
+        }), !connect);
     }
 
     #! performs the internal ping
@@ -2342,6 +2374,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
         bool ping_prepared;
     }
 
+    #! Creates the poller with the REST client and option hash
     constructor(RestClient rc, hash<auto> real_opts) {
         self.rc = rc;
         self.real_opts = real_opts;

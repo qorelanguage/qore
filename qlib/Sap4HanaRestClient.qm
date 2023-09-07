@@ -292,7 +292,10 @@ public class Sap4HanaRestConnection inherits RestClient::RestConnection {
         @return a @ref Sap4HanaRestClient::Sap4HanaRestClient "Sap4HanaRestClient" object
     */
     private Sap4HanaRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new Sap4HanaRestClient(real_opts, !connect);
+        return new Sap4HanaRestClient(real_opts + {
+            "logger": logger,
+            "update_token": update_token,
+        }, !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

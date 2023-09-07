@@ -172,7 +172,8 @@ ZeyosRestClient zeyos(
         @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
         @throw ZEYOSRESTCLIENT-ERROR missing or invalid required option for <a href="http://www.zeyos.com">Zeyos.com</a> REST authentication or communication
     */
-    constructor(hash<auto> options, *softbool do_not_connect) : RestClient(ZeyosRestClient::getOptions(options), True) {
+    constructor(hash<auto> options, *softbool do_not_connect)
+            : RestClient(ZeyosRestClient::getOptions(options), True) {
         # set username and password, if present
         if (options.url) {
             self += parse_url(options.url){"username", "password"};
@@ -327,7 +328,10 @@ public class ZeyosRestConnection inherits RestClient::RestConnection {
         @return a @ref ZeyosRestClient::ZeyosRestClient "ZeyosRestClient" object
     */
     private ZeyosRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new ZeyosRestClient(real_opts, !connect);
+        return new ZeyosRestClient(real_opts + {
+            "logger": logger,
+            "update_token": update_token,
+        }, !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object
