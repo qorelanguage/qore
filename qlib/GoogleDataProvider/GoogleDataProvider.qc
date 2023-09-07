@@ -187,22 +187,33 @@ public class SoftBoolStringType inherits Qore::Reflection::Type {
     }
 }
 
-#! Timestamp string type for query parameters
-public const SoftTimestampStringType = new SoftTimestampStringType();
-
-#! Timestamp data provider string type for query parameters
-public const SoftTimestampDataProviderStringType = AbstractDataProviderType::get(SoftTimestampStringType);
+#! Data provider type for timestamps in API arguments
+const SoftTimestampDataProviderStringType = new SoftTimestampDataProviderStringType();
 
 #! Timestamp string type
-public class SoftTimestampStringType inherits Qore::Reflection::Type {
+public class SoftTimestampDataProviderStringType inherits DataProvider::QoreSoftStringOrNothingDataType {
     #! Creates the object
-    constructor() : Type("*softstring") {
+    constructor() {
     }
 
     #! Returns the value after any conversions by the type
     auto acceptsValue(auto value) {
-        return date(value).format("YYYY-MM-DDTHH:mm:SSZ");
+        return exists value ? date(value).format("YYYY-MM-DDTHH:mm:SSZ") : NOTHING;
     }
 }
 
+#! Data provider type for timestamps in API arguments
+const SoftDateDataProviderStringType = new SoftDateDataProviderStringType();
+
+#! Date string type
+public class SoftDateDataProviderStringType inherits DataProvider::QoreSoftStringOrNothingDataType {
+    #! Creates the object
+    constructor() {
+    }
+
+    #! Returns the value after any conversions by the type
+    auto acceptsValue(auto value) {
+        return exists value ? date(value).format("YYYY-MM-DD") : NOTHING;
+    }
+}
 }

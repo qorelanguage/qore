@@ -185,6 +185,7 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c default_path: The default path to use for new connections if a path is not otherwise specified in the
       connection URL
     - \c default_port: The default port number to connect to if none is given in the URL
+    - \c encode_chars: Additional characters to encode in URI paths
     - \c encoding: The default character encoding for outgoing messge bodies
     - \c encoding_passthru: Do not decode known content-encodings but rather pass the body through as-is
     - \c error_passthru: If @ref True "True" then HTTP status codes indicating errors will not cause an
@@ -258,11 +259,14 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
       - \c ssl_key_data
     - %Qore 1.13 added the following option:
       - \c pre_encoded_urls
+    - %Qore 1.19 added the following option:
+      - \c encode_chars
  */
 HTTPClient::constructor(hash<auto> opts) {
     ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
-    if (client->setOptions(opts, xsink))
+    if (client->setOptions(opts, xsink)) {
         return;
+    }
 
     self->setPrivate(CID_HTTPCLIENT, client.release());
 }

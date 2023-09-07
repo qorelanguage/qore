@@ -113,7 +113,7 @@ public class GoogleCalendarListListDataProvider inherits DataProvider::AbstractD
     }
 }
 
-#! Google calenderList request data type
+#! Google calenderList list request data type
 public class GoogleCalendarListRequestType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
@@ -178,7 +178,7 @@ public class GoogleCalendarListRequestType inherits DataProvider::HashDataType {
     }
 }
 
-#! Create measurements request data type
+#! Google calendarList list response data type
 public class GoogleCalendarListResponseType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions

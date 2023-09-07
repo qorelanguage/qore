@@ -69,6 +69,53 @@ public class GoogleDataProviderTest inherits QUnit::Test {
         assertEq("list", prov.getName());
         hash<auto> h = prov.doRequest();
         assertEq(Type::String, h.etag.type());
+
+        # create, update and delete calendar events
+        prov = gdp.getChildProviderPath("calendar/calendars/primary/events/quickAdd");
+        AbstractDataProvider del = gdp.getChildProviderPath("calendar/calendars/primary/events/delete");
+        {
+            h = prov.doRequest({"text": "Lunch at Burger Bar from 12:30-13:30 today"});
+            on_exit del.doRequest({"id": h.id});
+
+            assertEq("calendar#event", h.kind);
+            assertEq("confirmed", h.status);
+            assertEq("Lunch at Burger Bar", h.summary);
+            assertRegex("Burger Bar", h.location);
+            assertNothing(h.description);
+
+            prov = gdp.getChildProviderPath("calendar/calendars/primary/events/patch");
+            string desc = "today's lunch appointment";
+            h = prov.doRequest({"id": h.id, "description": desc});
+            assertEq(desc, h.description);
+        }
+        prov = gdp.getChildProviderPath("calendar/calendars/primary/events/insert");
+        {
+            date now = now_us();
+            date start = date(now.format("YYYY-MM-DDT12:30:00Z"));
+            date end = date(now.format("YYYY-MM-DDT13:30:00Z"));
+            h = prov.doRequest({
+                "start": {
+                    "dateTime": start,
+                },
+                "end": {
+                    "dateTime": end,
+                },
+                "summary": "Lunch at Burger Bar",
+                "location": "Burger Bar",
+            });
+            on_exit del.doRequest({"id": h.id});
+
+            assertEq("calendar#event", h.kind);
+            assertEq("confirmed", h.status);
+            assertEq("Lunch at Burger Bar", h.summary);
+            assertRegex("Burger Bar", h.location);
+            assertNothing(h.description);
+
+            prov = gdp.getChildProviderPath("calendar/calendars/primary/events/update");
+            string desc = "today's lunch appointment";
+            h = prov.doRequest({"id": h.id, "description": desc});
+            assertEq(desc, h.description);
+        }
     }
 
     private usageIntern() {

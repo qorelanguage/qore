@@ -134,7 +134,7 @@ public class GoogleCalendarEventsGetDataProvider inherits DataProvider::Abstract
     }
 }
 
-#! Google calenderList request data type
+#! Google calendar event get request data type
 public class GoogleCalendarEventsGetRequestType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
@@ -157,7 +157,7 @@ public class GoogleCalendarEventsGetRequestType inherits DataProvider::HashDataT
     }
 
     #! Creates the object
-    constructor() {
+    constructor(string name = "GoogleCalendarEventsGetRequestType") : HashDataType(name) {
         map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
             $1.value.allowed_values)), Fields.pairIterator();
     }

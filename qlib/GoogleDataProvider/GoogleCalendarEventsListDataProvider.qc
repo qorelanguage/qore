@@ -133,7 +133,7 @@ public class GoogleCalendarEventsListDataProvider inherits DataProvider::Abstrac
     }
 }
 
-#! Google calenderList request data type
+#! Google calender events list request data type
 public class GoogleCalendarEventsListRequestType inherits DataProvider::HashDataType {
     private {
         #! Field descriptions
@@ -169,12 +169,11 @@ public class GoogleCalendarEventsListRequestType inherits DataProvider::HashData
                     "specified number of attendees, only the participant is returned",
             },
             "maxResults": {
-                "type": AbstractDataProviderTypeMap."int",
+                "type": AbstractDataProviderTypeMap."*int",
                 "desc": "Maximum number of events returned on one result page. The number of events in the resulting "
                     "page may be less than this value, or none at all, even if there are more events matching the "
                     "query. Incomplete pages can be detected by a non-empty `nextPageToken` field in the response. By "
                     "default the value is `250` events. The page size can never be larger than `2500` events",
-                "default_value": 250,
             },
             "orderBy": {
                 "type": AbstractDataProviderTypeMap."*string",
@@ -279,7 +278,7 @@ public class GoogleCalendarEventsListRequestType inherits DataProvider::HashData
     }
 
     #! Creates the object
-    constructor() {
+    constructor() : HashDataType("GoogleCalendarEventsListRequestType") {
         map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
             $1.value.allowed_values)), Fields.pairIterator();
     }
@@ -316,9 +315,98 @@ public class GoogleCalendarDateTimeHashType inherits DataProvider::HashDataType 
 #! Timestamp string type for query parameters
 public const GoogleCalendarDateTimeHashType = new GoogleCalendarDateTimeHashType();
 
+public class GoogleCalendarSourceHashBaseType inherits HashDataType {
+    private {
+        #! Field descriptions
+        const Fields = {
+            "title": {
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "Title of the source; for example a title of a web page or an email subject",
+
+            },
+            "url": {
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "URL of the source pointing to a resource. The URL scheme must be HTTP or HTTPS",
+            },
+        };
+    }
+
+    #! Creates the object
+    constructor(bool or_nothing) : HashDataType(or_nothing ? AutoHashOrNothingType : AutoHashType,
+            "GoogleCalendarSourceHashType") {
+        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
+            Fields.pairIterator();
+    }
+}
+
+public class GoogleCalendarSourceHashType inherits GoogleCalendarSourceHashBaseType {
+    constructor() : GoogleCalendarSourceHashBaseType(False) {
+    }
+}
+
+public class GoogleCalendarSourceHashOrNothingType inherits GoogleCalendarSourceHashBaseType {
+    constructor() : GoogleCalendarSourceHashBaseType(True) {
+    }
+}
+
+#! Google calendar source type
+public const GoogleCalendarSourceHashType = new GoogleCalendarSourceHashType();
+
+#! Google calendar source "or nothing" type
+public const GoogleCalendarSourceHashOrNothingType = new GoogleCalendarSourceHashOrNothingType();
+
+#! Base type for Google calendar time hash types
+public class GoogleCalendarTimeHashBaseType inherits HashDataType {
+    private {
+        #! Field descriptions
+        const Fields = {
+            "date": {
+                "type": SoftDateDataProviderStringType,
+                "desc": "The date, in the format `yyyy-mm-dd`, if this is an all-day event",
+
+            },
+            "dateTime": {
+                "type": SoftTimestampDataProviderStringType,
+                "desc": "The time, as a combined date-time value (formatted according to RFC3339). A time zone "
+                    "offset is required unless a time zone is explicitly specified in `timeZone`",
+            },
+            "timeZone": {
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "The time zone in which the time is specified. (Formatted as an IANA Time Zone Database "
+                    "name, e.g. `Europe/Zurich`.) For recurring events this field is required and specifies the time "
+                    "zone in which the recurrence is expanded. For single events this field is optional and "
+                    "indicates a custom time zone for the event start/end",
+            },
+        };
+    }
+
+    #! Creates the object
+    constructor(bool or_nothing) : HashDataType(or_nothing ? AutoHashOrNothingType : AutoHashType,
+            "GoogleCalendarTimeHashType") {
+        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
+            Fields.pairIterator();
+    }
+}
+
+public class GoogleCalendarTimeHashType inherits GoogleCalendarTimeHashBaseType {
+    constructor() : GoogleCalendarTimeHashBaseType(False) {
+    }
+}
+
+public class GoogleCalendarTimeHashOrNothingType inherits GoogleCalendarTimeHashBaseType {
+    constructor() : GoogleCalendarTimeHashBaseType(True) {
+    }
+}
+
+#! Google calendar time hash type
+public const GoogleCalendarTimeHashType = new GoogleCalendarTimeHashType();
+
+#! Google calendar time hash "or nothing" type
+public const GoogleCalendarTimeHashOrNothingType = new GoogleCalendarTimeHashOrNothingType();
+
 #! Google calendar event data type
 public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType {
-    private {
+    public {
         #! Field descriptions
         const Fields = {
             "kind": {
@@ -344,6 +432,7 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
                     "Note that the `icalUID` and the `id` are not identical and only one of them should be supplied "
                     "at event creation time. One difference in their semantics is that in recurring events, all "
                     "occurrences of one event have different `id`s while they all share the same `icalUID`",
+                "updatable": True,
             },
             "status": {
                 "type": AbstractDataProviderTypeMap."string",
@@ -370,58 +459,71 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
                         "If an event changes its organizer (for example via the move operation) and the original "
                         "organizer is not on the attendee list, it will leave behind a cancelled event where only "
                         "the `id` field is guaranteed to be populated",
+                "updatable": True,
             },
             "htmlLink": {
-                "type": AbstractDataProviderTypeMap."string",
+                "type": AbstractDataProviderTypeMap."*string",
                 "desc": "An absolute link to this event in the Google Calendar Web UI",
             },
             "created": {
-                "type": AbstractDataProviderTypeMap."softdate",
+                "type": AbstractDataProviderTypeMap."*softdate",
                 "desc": "Creation time of the event",
             },
             "updated": {
-                "type": AbstractDataProviderTypeMap."softdate",
+                "type": AbstractDataProviderTypeMap."*softdate",
                 "desc": "Last modification time of the event",
             },
             "summary": {
-                "type": AbstractDataProviderTypeMap."string",
+                "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Title of the event",
+                "updatable": True,
             },
             "description": {
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Description of the event. Can contain HTML",
+                "updatable": True,
             },
             "location": {
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Geographic location of the event as free-form text",
+                "updatable": True,
             },
             "colorId": {
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The color of the event. This is an ID referring to an entry in the event section of the "
                     "`colors` definition",
+                "updatable": True,
             },
             "creator": {
-                "type": AbstractDataProviderTypeMap."hash",
+                "type": AbstractDataProviderTypeMap."*hash",
                 "desc": "The creator of the event",
             },
             "organizer": {
-                "type": AbstractDataProviderTypeMap."hash",
+                "type": AbstractDataProviderTypeMap."*hash",
                 "desc": "The organizer of the event. If the organizer is also an attendee, this is indicated with a "
                     "separate entry in attendees with the `organizer` field set to `True`. To change the "
                     "`organizer`, use the move operation. Read-only, except when importing an event",
+                "updatable": True,
             },
             "start": {
                 "type": GoogleCalendarDateTimeHashType,
                 "desc": "The (inclusive) start time of the event. For a recurring event, this is the start time of "
                     "the first instance",
+                "updatable": True,
             },
             "end": {
                 "type": GoogleCalendarDateTimeHashType,
                 "desc": "The (exclusive) end time of the event. For a recurring event, this is the end time of the "
                     "first instance",
+                "updatable": True,
+            },
+            "endTimeUnspecified": {
+                "type": AbstractDataProviderTypeMap."*bool",
+                "desc": "Whether the end time is actually unspecified. An end time is still provided for "
+                    "compatibility reasons, even if this attribute is set to `True`. The default is `False`",
             },
             "iCalUID": {
-                "type": AbstractDataProviderTypeMap."string",
+                "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Event unique identifier as defined in RFC5545. It is used to uniquely identify events "
                     "across calendaring systems and must be supplied when importing events via the import method.\n"
                     "Note that `iCalUID` and `id` are not identical and only one of them should be supplied at event "
@@ -430,16 +532,24 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
                     "using its `iCalUID`, call the `events.list` method using the `iCalUID` parameter. To retrieve "
                     "an event using its `id`, call the `events.get` method",
             },
+            "locked": {
+                "type": AbstractDataProviderTypeMap."*bool",
+                "desc": "Whether this is a locked event copy where no changes can be made to the main event fields "
+                    "`summary`, `description`, `location`, `start`, `end` or `recurrence`. Read-Only. The default is "
+                    "`False`",
+            },
             "sequence": {
-                "type": AbstractDataProviderTypeMap."int",
+                "type": AbstractDataProviderTypeMap."*int",
                 "desc": "Sequence number as per iCalendar",
+                "updatable": True,
             },
             "reminders": {
-                "type": AbstractDataProviderTypeMap."hash",
+                "type": AbstractDataProviderTypeMap."*hash",
                 "desc": "Information about the event's reminders for the authenticated user",
+                "updatable": True,
             },
             "eventType": {
-                "type": AbstractDataProviderTypeMap."string",
+                "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Specific type of the event. This cannot be modified after the event is created. Possible "
                     "values are:\n"
                     "- `default`: A regular event or not further specified\n"
@@ -448,6 +558,7 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
                     "- `workingLocation`: A working location event\n"
                     "Currently, only `default` and `workingLocation` events can be created using the API. Extended "
                     "support for other event types will be made available in later releases",
+                "updatable": True,
             },
             "transparency": {
                 "type": AbstractDataProviderTypeMap."*string",
@@ -456,6 +567,7 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
                         "setting `Show me as` to `Busy` in the Calendar UI\n"
                     "- `transparent`: The event does not block time on the calendar. This is equivalent to setting "
                         "`Show me as` to `Available` in the Calendar UI",
+                "updatable": True,
             },
             "visibility": {
                 "type": AbstractDataProviderTypeMap."*string",
@@ -464,12 +576,14 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
                     "- `public`: The event is public and event details are visible to all readers of the calendar\n"
                     "- `private`: The event is private and only event attendees may view event details\n"
                     "- `confidential`: The event is private. This value is provided for compatibility reasons",
+                "updatable": True,
             },
             "attendees": {
                 "type": AbstractDataProviderTypeMap."*list",
                 "desc": "The attendees of the event. See the 'Events with attendees' guide for more information on "
                     "scheduling events with other calendar users. Service accounts need to use domain-wide "
                     "delegation of authority to populate the attendee list",
+                "updatable": True,
             },
             "privateCopy": {
                 "type": AbstractDataProviderTypeMap."*bool",
@@ -487,17 +601,71 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
                     "according to the recurrence data in the recurring event identified by `recurringEventId`. It "
                     "uniquely identifies the instance within the recurring event series even if the instance was "
                     "moved to a different time. Immutable",
+                "updatable": True,
+            },
+            "gadget": {
+                "type": AbstractDataProviderTypeMap."*hash",
+                "desc": "A gadget that extends this event. Gadgets are deprecated; this structure is instead only "
+                    "used for returning birthday calendar metadata",
             },
             "guestsCanInviteOthers": {
                 "type": AbstractDataProviderTypeMap."*bool",
                 "desc": "Whether attendees other than the organizer can invite others to the event. Optional. The "
                     "default is `True`",
+                "updatable": True,
+            },
+            "guestsCanModify": {
+                "type": AbstractDataProviderTypeMap."*bool",
+                "desc": "Whether attendees other than the organizer can modify the event. Optional. The default is "
+                    "`False`",
+                "updatable": True,
+            },
+            "guestsCanSeeOtherGuests": {
+                "type": AbstractDataProviderTypeMap."*bool",
+                "desc": "Whether attendees other than the organizer can see who the event's attendees are. Optional. "
+                    "The default is `True`",
+                "updatable": True,
             },
             "source": {
-                "type": AbstractDataProviderTypeMap."*hash",
+                "type": GoogleCalendarSourceHashOrNothingType,
                 "desc": "Source from which the event was created. For example, a web page, an email message or any "
                     "document identifiable by an URL with HTTP or HTTPS scheme. Can only be seen or modified by the "
                     "creator of the event",
+                "updatable": True,
+            },
+            "recurrence": {
+                "type": new ListDataType("GoogleCalendarRecurrence", StringType, True),
+                "desc": "List of RRULE, EXRULE, RDATE and EXDATE lines for a recurring event, as specified in "
+                    "RFC5545. Note that DTSTART and DTEND lines are not allowed in this field; event start and end "
+                    "times are specified in the `start` and `end` fields. This field is omitted for single events or "
+                    "instances of recurring events",
+                "updatable": True,
+            },
+            "extendedProperties": {
+                "type": AbstractDataProviderTypeMap."*hash",
+                "desc": "Extended properties of the event",
+                "updatable": True,
+            },
+            "hangoutLink": {
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "An absolute link to the Google Hangout associated with this event. Read-only",
+            },
+            "conferenceData": {
+                "type": AbstractDataProviderTypeMap."*hash",
+                "desc": "An absolute link to the Google Hangout associated with this event. Read-only",
+            },
+            "attachments": {
+                "type": new ListDataType("GoogleCalendarAttachment", AutoHashType, True),
+                "desc": "File attachments for the event.\n"
+                    "In order to modify attachments the `supportsAttachments` request parameter should be set to "
+                    "`True`.\n"
+                    "There can be at most 25 attachments per event",
+                "updatable": True,
+            },
+            "workingLocationProperties": {
+                "type": AbstractDataProviderTypeMap."*hash",
+                "desc": "Working location event data",
+                "updatable": True,
             },
             /*
             "": {
@@ -509,7 +677,7 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
     }
 
     #! Creates the object
-    constructor() {
+    constructor() : HashDataType("GoogleCalendarEventsElementType") {
         map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
             Fields.pairIterator();
     }
@@ -580,7 +748,7 @@ public class GoogleCalendarEventsListResponseType inherits DataProvider::HashDat
     }
 
     #! Creates the object
-    constructor() {
+    constructor() : HashDataType("GoogleCalendarEventsListResponseType") {
         map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
             Fields.pairIterator();
     }

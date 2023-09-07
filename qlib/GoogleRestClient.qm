@@ -114,6 +114,9 @@ public namespace GoogleRestClient {
 
     Then an external program has to guide the user through using the authorization_grant flow to get a token to use;
     this module does not implement that flow.
+
+    @note This class encodes \c "+" characters in URI paths as \c "%2B", as the Google API server will return a
+    <tt>400 Bad Request</tt> error to requests with this character unencoded
 */
 public class GoogleRestClient inherits RestClient::RestClient {
     public {
@@ -139,6 +142,7 @@ public class GoogleRestClient inherits RestClient::RestClient {
             "oauth2_auth_url": DefaultAuthUrl,
             "oauth2_grant_type": DefaultGrantType,
             "oauth2_token_url": DefaultTokenUrl,
+            "encode_chars": "+",
         };
 
         #! Ping profiles

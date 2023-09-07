@@ -24,7 +24,12 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
-#! The parent class for Google calendar REST APIs
+#! The Google calendar update API data provider
+/** This API allows the caller to update a calendar
+
+    Note that this API works like a `patch` operation; if any fields are missing in the request, they are first set
+    based on a fetch of the current attributes.
+*/
 public class GoogleCalendarUpdateDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
@@ -33,7 +38,7 @@ public class GoogleCalendarUpdateDataProvider inherits DataProvider::AbstractDat
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "update",
-            "desc": "Google calendar data provider; parent provider for APIs related to calendars",
+            "desc": "Google calendar update calender API data provider",
             "type": "GoogleCalendarUpdateDataProvider",
             "constructor_options": GoogleDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{

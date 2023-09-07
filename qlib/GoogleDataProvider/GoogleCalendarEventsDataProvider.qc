@@ -24,7 +24,7 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
-#! The parent class for Google calendar events REST APIs
+#! The parent class for APIs related to Google calendar events
 public class GoogleCalendarEventsDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
@@ -59,10 +59,14 @@ public class GoogleCalendarEventsDataProvider inherits DataProvider::AbstractDat
         *hash<auto> cal;
 
         const ChildMap = {
+            "delete": Class::forName("GoogleDataProvider::GoogleCalendarEventsDeleteDataProvider"),
             "get": Class::forName("GoogleDataProvider::GoogleCalendarEventsGetDataProvider"),
+            "insert": Class::forName("GoogleDataProvider::GoogleCalendarEventsInsertDataProvider"),
+            "instances": Class::forName("GoogleDataProvider::GoogleCalendarEventsInstancesDataProvider"),
             "list": Class::forName("GoogleDataProvider::GoogleCalendarEventsListDataProvider"),
-            #"patch": Class::forName("GoogleDataProvider::GoogleCalendarEventsPatchDataProvider"),
-            #"update": Class::forName("GoogleDataProvider::GoogleCalendarEventsUpdateDataProvider"),
+            "patch": Class::forName("GoogleDataProvider::GoogleCalendarEventsPatchDataProvider"),
+            "quickAdd": Class::forName("GoogleDataProvider::GoogleCalendarEventsQuickAddDataProvider"),
+            "update": Class::forName("GoogleDataProvider::GoogleCalendarEventsUpdateDataProvider"),
         };
     }
 

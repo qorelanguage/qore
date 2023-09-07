@@ -24,7 +24,7 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
-#! The parent class for Google calendars REST APIs
+#! The parent class for REST APIs related to specific Google calendars
 public class GoogleCalendarsDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
@@ -33,7 +33,8 @@ public class GoogleCalendarsDataProvider inherits DataProvider::AbstractDataProv
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "calendars",
-            "desc": "Google calendars data provider; parent provider for APIs related to calendars",
+            "desc": "Google calendars data provider; parent provider for REST APIs related to specific Google "
+                "calendars",
             "type": "GoogleCalendarsDataProvider",
             "constructor_options": GoogleDataProvider::ConstructorOptions,
             "supports_children": True,

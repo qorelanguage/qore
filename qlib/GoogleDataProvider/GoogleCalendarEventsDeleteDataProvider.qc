@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore GoogleDataProvider module definition
 
-/** GoogleCalendarGetDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarEventsDeleteDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,17 +24,19 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
-#! Data provider API for retrieving a specific calendar
-public class GoogleCalendarGetDataProvider inherits DataProvider::AbstractDataProvider {
+#! The Google calendar event delete API data provider
+/** This API allows the caller to delete a calendar event
+*/
+public class GoogleCalendarEventsDeleteDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        GoogleRestClient::GoogleRestClient rest;
+       GoogleRestClient::GoogleRestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "get",
-            "desc": "Google calendar API for retrieving a specific calendar",
-            "type": "GoogleCalendarGetDataProvider",
+            "name": "delete",
+            "desc": "Google calendar events delete calender event API data provider",
+            "type": "GoogleCalendarEventsDeleteDataProvider",
             "constructor_options": GoogleDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "type": AbstractDataProviderTypeMap."string",
@@ -50,10 +52,13 @@ public class GoogleCalendarGetDataProvider inherits DataProvider::AbstractDataPr
         });
 
         #! Request type
-        const RequestType = AbstractDataProviderTypeMap."nothing";
+        const RequestType = new GoogleCalendarEventsDeleteRequestType();
 
         #! Response type
-        const ResponseType = new GoogleCalendarType();
+        const ResponseType = AbstractDataProviderTypeMap."nothing";
+
+        #! Query args
+        const QueryArgs = ("sendUpdates",);
     }
 
     private {
@@ -85,7 +90,7 @@ public class GoogleCalendarGetDataProvider inherits DataProvider::AbstractDataPr
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for cakendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
+        return sprintf("Google calendar events %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
     }
 
     #! Makes a request and returns the response
@@ -95,12 +100,17 @@ public class GoogleCalendarGetDataProvider inherits DataProvider::AbstractDataPr
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        if (cal) {
-            return cal;
+        string query_args;
+        foreach hash<auto> i in (req{QueryArgs}.pairIterator()) {
+            # this handles list key values by repeating the expression in the output
+            map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", i.key, $1))), i.value;
+            remove req{i.key};
         }
         hash<auto> info;
         try {
-            return rest.get("/calendar/v3/calendars/" + id, NOTHING, \info).body;
+            rest.del("/calendar/v3/calendars/" + id + "/events/" + req.id + query_args,
+                NOTHING, \info);
+            # this API returns no value when successful
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -125,6 +135,25 @@ public class GoogleCalendarGetDataProvider inherits DataProvider::AbstractDataPr
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
+    }
+}
+
+#! Google calendar event delete request data type
+public class GoogleCalendarEventsDeleteRequestType inherits GoogleCalendarEventsGetRequestType {
+    private {
+        #! Field descriptions
+        const Fields = {
+            "id": {
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "The event ID to delete",
+            },
+        } + GoogleCalendarEventsQuickAddRequestType::Fields{"sendUpdates",};
+    }
+
+    #! Creates the object
+    constructor() : GoogleCalendarEventsGetRequestType("GoogleCalendarEventsDeleteRequestType") {
+        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
+            $1.value.allowed_values)), Fields.pairIterator();
     }
 }
 }

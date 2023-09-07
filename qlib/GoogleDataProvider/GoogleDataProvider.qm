@@ -58,7 +58,24 @@ module GoogleDataProvider {
     services.
 
     This data provider provides Google API access to:
-    - <b><tt>@ref GoogleDataProvider::GoogleCalendarDataProvider "calendar"</tt></b>
+    - calendarList:
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarListListDataProvider "calendar/calendarList/list"</tt></b>
+    - calendars:
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarGetDataProvider "calendar/calendars/<calendar_id>/get"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarPatchDataProvider "calendar/calendars/<calendar_id>/patch"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarUpdateDataProvider "calendar/calendars/<calendar_id>/update"</tt></b>
+    - <b><tt>calendar events</tt></b>:
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsDeleteDataProvider "calendar/calendars/<calendar_id>/events/delete"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsGetDataProvider "calendar/calendars/<calendar_id>/events/get"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsInsertDataProvider "calendar/calendars/<calendar_id>/events/insert"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsInstancesDataProvider "calendar/calendars/<calendar_id>/events/instances"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsListDataProvider "calendar/calendars/<calendar_id>/events/list"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsListDataProvider "calendar/calendars/<calendar_id>/events/patch"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsListDataProvider "calendar/calendars/<calendar_id>/events/quickAdd"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsListDataProvider "calendar/calendars/<calendar_id>/events/update"</tt></b>
+
+    To use this data provider, you will need a connection that has already executed the OAuth2 authorization code flow
+    and acquired a token to communicate with the Google API.
 
     @section googledataprovider_factory Google Data Provider Factory
 
@@ -67,6 +84,34 @@ module GoogleDataProvider {
     @section googledataprovider_examples Google Data Provider Examples
 
     These examples are with \c qdp, the command-line interface to the Data Provider API.
+
+    @par API Example: Retrieve Metadata for All Calendars
+    @verbatim qdp google-conn/calendar/calendarList/list dor
+    @endverbatim
+
+    @par API Example: Retrieve Metadata for the Primary Calendar
+    @verbatim qdp google-conn/calendar/calendars/primary/get dor
+    @endverbatim
+
+    @par API Example: Update Calendar Description
+    @verbatim qdp google-conn/calendar/calendars/calendar_name/patch dor description="new description"
+    @endverbatim
+
+    @par API Example: Retrieve Calendar Event
+    @verbatim qdp google-conn/calendar/calendars/primary/events/get dor id=event_id
+    @endverbatim
+
+    @par API Example: Quick Add a Calendar Event
+    @verbatim qdp google-conn/calendar/calendars/primary/events/quickAdd dor text="Lunch at Burger Bar from 12:30-13:30 today"
+    @endverbatim
+
+    @par API Example: Update a Calendar Event
+    @verbatim qdp google-conn/calendar/calendars/primary/events/update dor id=event_id,summary="Lunch Today"
+    @endverbatim
+
+    @par API Example: Delete a Calendar Event
+    @verbatim qdp google-conn/calendar/calendars/primary/events/delete dor id=event_id
+    @endverbatim
 
     @section googledataprovider_relnotes Release Notes
 

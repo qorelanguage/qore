@@ -299,6 +299,10 @@ struct qore_httpclient_priv {
     typedef std::map<char, const char*> pct_encoding_map_t;
     static pct_encoding_map_t pct_encoding_map;
 
+    // any local map for this object for additional characters to encode
+    typedef std::set<char> pct_encoding_set_t;
+    pct_encoding_set_t local_pct_encoding_set;
+
     DLLLOCAL qore_httpclient_priv(my_socket_priv* ms) :
             msock(ms),
             connection(HTTPCLIENT_DEFAULT_PORT) {
@@ -808,7 +812,13 @@ struct qore_httpclient_priv {
             while (*p) {
                 pct_encoding_map_t::const_iterator i = pct_encoding_map.find(*p);
                 if (i == pct_encoding_map.end()) {
-                    pstr.concat(*p);
+                    pct_encoding_set_t::iterator j = local_pct_encoding_set.find(*p);
+                    if (j == local_pct_encoding_set.end()) {
+                        pstr.concat(*p);
+                    } else {
+                        QoreStringMaker tmp("%%%X", *p);
+                        pstr.concat(tmp.c_str());
+                    }
                 } else {
                     pstr.concat(i->second);
                 }
@@ -1149,6 +1159,19 @@ struct qore_httpclient_priv {
         }
 
         return 0;
+    }
+
+    // Set additional characters to encode in the URI path
+    DLLLOCAL void setEncodeChar(const char c) {
+        pct_encoding_map_t::iterator i = pct_encoding_map.find(c);
+        // ignore if already in the global map
+        if (i == pct_encoding_map.end()) {
+            pct_encoding_set_t::iterator j = local_pct_encoding_set.find(c);
+            // ignore if already in the local set
+            if (j == local_pct_encoding_set.end()) {
+                local_pct_encoding_set.insert(j, c);
+            }
+        }
     }
 
     DLLLOCAL static qore_httpclient_priv* get(QoreHttpClientObject& client) {
@@ -2702,6 +2725,20 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
     n = opts->getKeyValue("pre_encoded_urls");
     if (n.getAsBool()) {
         http_priv->pre_encoded_urls = true;
+    }
+
+    // issue #4773: allow the set of automatically-percent-encoded characters to be expanded
+    n = opts->getKeyValue("encode_chars");
+    if (!n.isNothing()) {
+        if (n.getType() != NT_STRING) {
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting a string as the value for the "
+                "\"encode_chars\" key in the options hash; got type \"%s\" instead", n.getTypeName());
+            return -1;
+        }
+        const QoreStringNode* chars = n.get<const QoreStringNode>();
+        for (size_t i = 0, e = chars->size(); i < e; ++i) {
+            http_priv->setEncodeChar((*chars)[i]);
+        }
     }
 
     // issue #3978: allow the output encoding to be set as an option

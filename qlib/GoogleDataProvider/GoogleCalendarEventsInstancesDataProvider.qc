@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore GoogleDataProvider module definition
 
-/** GoogleCalendarPatchDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarEventsInstancesDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,19 +24,19 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
-#! The Google calendar patch API data provider
-/** This API allows the caller to update (patch) a calendar
+#! The Google calendar event instances API data provider
+/** This API allows the caller to get instances of a recurring calendar event
 */
-public class GoogleCalendarPatchDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarEventsInstancesDataProvider inherits DataProvider::AbstractDataProvider {
     public {
         #! REST client connection
-        GoogleRestClient::GoogleRestClient rest;
+       GoogleRestClient::GoogleRestClient rest;
 
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "patch",
-            "desc": "Google calendar update (patch) calender API data provider",
-            "type": "GoogleCalendarPatchDataProvider",
+            "name": "instances",
+            "desc": "Google calendar events get instances of a recurring event API data provider",
+            "type": "GoogleCalendarEventsInstancesDataProvider",
             "constructor_options": GoogleDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "type": AbstractDataProviderTypeMap."string",
@@ -52,10 +52,10 @@ public class GoogleCalendarPatchDataProvider inherits DataProvider::AbstractData
         });
 
         #! Request type
-        const RequestType = new GoogleCalendarPatchRequestType();
+        const RequestType = new GoogleCalendarEventsInstancesRequestType();
 
         #! Response type
-        const ResponseType = new GoogleCalendarType();
+        const ResponseType = new GoogleCalendarEventsListResponseType();
     }
 
     private {
@@ -87,7 +87,7 @@ public class GoogleCalendarPatchDataProvider inherits DataProvider::AbstractData
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for cakendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
+        return sprintf("Google calendar events %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
     }
 
     #! Makes a request and returns the response
@@ -97,9 +97,16 @@ public class GoogleCalendarPatchDataProvider inherits DataProvider::AbstractData
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        string query_args;
+        foreach hash<auto> i in (req.pairIterator()) {
+            # this handles list key values by repeating the expression in the output
+            map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", i.key, $1))), i.value;
+        }
         hash<auto> info;
         try {
-            return rest.patch("/calendar/v3/calendars/" + id, req, \info).body;
+            hash<auto> rv = rest.get("/calendar/v3/calendars/" + id + "/events/" + req.id + "/instances" + query_args,
+                NOTHING, \info).body;
+            return ResponseType.acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -127,18 +134,55 @@ public class GoogleCalendarPatchDataProvider inherits DataProvider::AbstractData
     }
 }
 
-#! Google calendar patch request type
-public class GoogleCalendarPatchRequestType inherits DataProvider::HashDataType {
+#! Google calendar event instances request data type
+public class GoogleCalendarEventsInstancesRequestType inherits GoogleCalendarEventsGetRequestType {
     private {
         #! Field descriptions
-        const Fields = map {$1.key: $1.value + {"type": AbstractDataProviderTypeMap."*string"}},
-            GoogleCalendarType::Fields{"description", "location", "summary", "timeZone"}.pairIterator();
+        const Fields = {
+            # query parameters
+            "maxResults": {
+                "type": AbstractDataProviderTypeMap."*int",
+                "desc": "Maximum number of events returned on one result page. The number of events in the resulting "
+                    "page may be less than this value, or none at all, even if there are more events matching the "
+                    "query. Incomplete pages can be detected by a non-empty `nextPageToken` field in the response. By "
+                    "default the value is `250` events. The page size can never be larger than `2500` events",
+            },
+            "originalStart": {
+                "type": SoftTimestampDataProviderStringType,
+                "desc": "The original start time of the instance in the result. Optional",
+            },
+            "pageToken": {
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "Token specifying which result page to return",
+            },
+            "showDeleted": {
+                "type": SoftBoolDataProviderStringType,
+                "desc": "Whether to include deleted events (with status equals `cancelled`) in the result. Cancelled "
+                    "instances of recurring events (but not the underlying recurring event) will still be included "
+                    "if `showDeleted` and `singleEvents` are both `False`. If `showDeleted` and `singleEvents` are "
+                    "both `True`, only single instances of deleted events (but not the underlying recurring events) "
+                    "are returned",
+                "default_value": False,
+            },
+            "timeMax": {
+                "type": SoftTimestampDataProviderStringType,
+                "desc": "Upper bound (exclusive) for an event's start time to filter by. The default is not to "
+                    "filter by start time. Resolution to the second. If `timeMin` is set, `timeMax` must be greater "
+                    "than `timeMin`",
+            },
+            "timeMin": {
+                "type": SoftTimestampDataProviderStringType,
+                "desc": "Lower bound (exclusive) for an event's end time to filter by. The default is not to filter "
+                    "by end time. Resolution to the second. If `timeMax` is set, `timeMin` must be smaller than "
+                    "`timeMax`",
+            },
+        };
     }
 
     #! Creates the object
-    constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+    constructor() : GoogleCalendarEventsGetRequestType("GoogleCalendarEventsInstancesRequestType") {
+        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
+            $1.value.allowed_values)), Fields.pairIterator();
     }
 }
 }
