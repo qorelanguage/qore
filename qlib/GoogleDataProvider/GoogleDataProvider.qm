@@ -61,10 +61,11 @@ module GoogleDataProvider {
     - calendarList:
       - <b><tt>@ref GoogleDataProvider::GoogleCalendarListListDataProvider "calendar/calendarList/list"</tt></b>
     - calendars:
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarGetDataProvider "calendar/calendars/<calendar_id>/freeBusy"</tt></b>
       - <b><tt>@ref GoogleDataProvider::GoogleCalendarGetDataProvider "calendar/calendars/<calendar_id>/get"</tt></b>
       - <b><tt>@ref GoogleDataProvider::GoogleCalendarPatchDataProvider "calendar/calendars/<calendar_id>/patch"</tt></b>
       - <b><tt>@ref GoogleDataProvider::GoogleCalendarUpdateDataProvider "calendar/calendars/<calendar_id>/update"</tt></b>
-    - <b><tt>calendar events</tt></b>:
+    - calendar events:
       - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsDeleteDataProvider "calendar/calendars/<calendar_id>/events/delete"</tt></b>
       - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsGetDataProvider "calendar/calendars/<calendar_id>/events/get"</tt></b>
       - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsInsertDataProvider "calendar/calendars/<calendar_id>/events/insert"</tt></b>

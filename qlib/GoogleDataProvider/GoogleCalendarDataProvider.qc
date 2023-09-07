@@ -60,6 +60,7 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
 
         const ChildMap = {
             "events": Class::forName("GoogleDataProvider::GoogleCalendarEventsDataProvider"),
+            "freeBusy": Class::forName("GoogleDataProvider::GoogleCalendarFreeBusyDataProvider"),
             "get": Class::forName("GoogleDataProvider::GoogleCalendarGetDataProvider"),
             "patch": Class::forName("GoogleDataProvider::GoogleCalendarPatchDataProvider"),
             "update": Class::forName("GoogleDataProvider::GoogleCalendarUpdateDataProvider"),
