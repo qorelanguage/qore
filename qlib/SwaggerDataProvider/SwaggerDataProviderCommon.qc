@@ -49,5 +49,10 @@ public class SwaggerDataProviderCommon inherits DataProvider::AbstractDataProvid
         rest.setLogger(logger);
         LoggerWrapper::setLogger(logger);
     }
+
+    #! Returns the Swagger schema
+    SwaggerSchema getSchema() {
+        return schema;
+    }
 }
 }

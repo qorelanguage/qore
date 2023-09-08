@@ -623,7 +623,7 @@ public class RestHandlerTest inherits QUnit::Test {
         SwaggerSchema swagger = RestHandlerTest::getSwagger();
         RestConnection conn("test", "test", url, {}, {"validator": swagger});
         AbstractDataProvider rest_provider = conn.getDataProvider().getChildProviderEx("test").getChildProviderEx("PUT");
-        assertEq("/swagger", cast<SwaggerRequestDataProvider>(rest_provider).schema.getBasePath());
+        assertEq("/swagger", cast<SwaggerRequestDataProvider>(rest_provider).getSchema().getBasePath());
 
         #printf("req: %N\nresp: %N\n", rest_provider.getRequestType(), rest_provider.getResponseType());
 
