@@ -43,11 +43,8 @@ hashdecl CdsRestRecordInfo {
 }
 
 #! The CdsEntityDataProvider data provider class
-public class CdsEntityDataProvider inherits DataProvider::AbstractDataProvider {
+public class CdsEntityDataProvider inherits CdsRestDataProviderBase {
     public {
-        #! The REST client object for API calls
-        CdsRestClient::CdsRestClient rest;
-
         #! current object name
         string name;
 
@@ -61,8 +58,7 @@ public class CdsEntityDataProvider inherits DataProvider::AbstractDataProvider {
     }
 
     #! Creates the object from the arguments
-    constructor(CdsRestClient rest, string name, hash<auto> meta) {
-        self.rest = rest;
+    constructor(CdsRestClient rest, string name, hash<auto> meta) : CdsRestDataProviderBase(rest) {
         self.name = name;
         self.meta = meta;
         getRecordInfoIntern();

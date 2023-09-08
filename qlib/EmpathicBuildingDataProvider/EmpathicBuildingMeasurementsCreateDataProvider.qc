@@ -27,11 +27,8 @@ public namespace EmpathicBuildingDataProvider {
 #! The Empathic Building measurements create API data provider
 /** This API allows the caller to create Empathic Building measurements
 */
-public class EmpathicBuildingMeasurementsCreateDataProvider inherits DataProvider::AbstractDataProvider {
+public class EmpathicBuildingMeasurementsCreateDataProvider inherits EmpathicBuildingDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "create",
@@ -61,8 +58,7 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits DataProvide
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : EmpathicBuildingDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

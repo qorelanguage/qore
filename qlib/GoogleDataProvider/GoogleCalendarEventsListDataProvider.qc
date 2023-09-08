@@ -27,11 +27,8 @@ public namespace GoogleDataProvider {
 #! The Google calendar events list API data provider
 /** This API allows the caller to list calendar events for the user
 */
-public class GoogleCalendarEventsListDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarEventsListDataProvider inherits GoogleDataProviderBase {
     public {
-        #! REST client connection
-       GoogleRestClient::GoogleRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "list",
@@ -74,8 +71,7 @@ public class GoogleCalendarEventsListDataProvider inherits DataProvider::Abstrac
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) {
-        self.rest = rest;
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -471,7 +467,8 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
             },
             "updated": {
                 "type": AbstractDataProviderTypeMap."*softdate",
-                "desc": "Last modification time of the event",
+                "desc": "Last modification time of the even        self.rest = rest;
+t",
             },
             "summary": {
                 "type": AbstractDataProviderTypeMap."*string",

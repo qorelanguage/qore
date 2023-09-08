@@ -2531,7 +2531,7 @@ public class LoggerFilterRegex inherits LoggerFilter {
 }
 
 #! This abstract class defines the logging interface
-public class LoggerInterface {
+public class LoggerInterface inherits Qore::Serializable {
     #! Logs a message using the provided logging level
     /**
         @param level The logging level.
@@ -2719,7 +2719,7 @@ public class LoggerInterface {
 }
 
 #! Class handling a LoggerInterface object as a member and proviging atomic logging through it
-public class LoggerWrapper inherits Qore::Serializable {
+public class LoggerWrapper inherits LoggerInterface, Qore::Serializable {
     private {
         #! The logger interface
         transient *LoggerInterface logger;
@@ -2829,6 +2829,17 @@ public class LoggerWrapper inherits Qore::Serializable {
         }
     }
 
+    #! Logs an already prepared logging event object
+    /**
+        @param event the event to log
+    */
+    logEvent(LoggerEvent event) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logEvent(event);
+        }
+    }
+
     #! Logs a message object with the TRACE level
     /**
         @see @ref log()
@@ -2910,6 +2921,134 @@ public class LoggerWrapper inherits Qore::Serializable {
         *LoggerInterface logger = self.logger;
         if (logger) {
             logger.logArgs(LoggerLevel::getLevelFatal(), message, argv);
+        }
+    }
+
+    #! Performs logging of assertions
+    /**
+        If the \a assertion parameter is @ref False, then the message is logged
+        using the ERROR level.
+
+        @see @ref log()
+
+        @param assertion the boolean assertion value
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    assertLog(bool assertion, string message, ...) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.assertLogArgs(assertion, message, argv);
+        }
+    }
+
+    #! Logs the variable name and value using TRACE level
+    /**
+        @see @ref log()
+
+        @param var_name the variable name
+        @param value the value of the variable
+    */
+    traceVar(string var_name, auto value) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.traceVar(var_name, value);
+        }
+    }
+
+    #! Logs the variable name and value using DEBUG level
+    /**
+        @see @ref log()
+
+        @param var_name the variable name
+        @param value the value of the variable
+    */
+    debugVar(string var_name, auto value) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.debugVar(var_name, value);
+        }
+    }
+
+    #! Checks whether this Logger is enabled for a given Level passed as parameter
+    /**
+        @param level the log level to check
+    */
+    bool isEnabledFor(LoggerLevel level) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isEnabledFor(level);
+        }
+    }
+
+    #! Checks whether this Logger is enabled for a given Level passed as parameter
+    /**
+        @param level the log level to check
+    */
+    bool isEnabledFor(int level) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isEnabledFor(level);
+        }
+    }
+
+    #! Checks whether this Logger is enabled for a given Level passed as parameter
+    /**
+        @param level the log level to check
+    */
+    bool isEnabledFor(string level) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isEnabledFor(level);
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the TRACE Level
+    bool isTraceEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isTraceEnabled();
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the DEBUG Level
+    bool isDebugEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isDebugEnabled();
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the INFO Level
+    bool isInfoEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isInfoEnabled();
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the WARN Level
+    bool isWarnEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isWarnEnabled();
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the ERROR Level
+    bool isErrorEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isErrorEnabled();
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the FATAL Level
+    bool isFatalEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isFatalEnabled();
         }
     }
 }

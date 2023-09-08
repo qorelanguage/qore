@@ -27,11 +27,8 @@ public namespace ElasticSearchDataProvider {
 #! The ElasticSearch index create API data provider
 /** This API allows the caller to create a new ElasticSearch index from the arguments describing the new index.
 */
-public class ElasticSearchIndexCreateDataProvider inherits DataProvider::AbstractDataProvider {
+public class ElasticSearchIndexCreateDataProvider inherits ElasticSearchDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "create",
@@ -63,8 +60,7 @@ public class ElasticSearchIndexCreateDataProvider inherits DataProvider::Abstrac
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : ElasticSearchDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

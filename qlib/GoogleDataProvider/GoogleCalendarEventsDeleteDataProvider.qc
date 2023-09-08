@@ -27,11 +27,8 @@ public namespace GoogleDataProvider {
 #! The Google calendar event delete API data provider
 /** This API allows the caller to delete a calendar event
 */
-public class GoogleCalendarEventsDeleteDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarEventsDeleteDataProvider inherits GoogleDataProviderBase {
     public {
-        #! REST client connection
-       GoogleRestClient::GoogleRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "delete",
@@ -77,8 +74,7 @@ public class GoogleCalendarEventsDeleteDataProvider inherits DataProvider::Abstr
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) {
-        self.rest = rest;
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }

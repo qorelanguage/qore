@@ -25,14 +25,8 @@
 #! contains all public definitions in the SwaggerDataProvider module
 public namespace SwaggerDataProvider {
 #! The Swagger data provider class
-public class SwaggerDataProvider inherits AbstractDataProvider {
+public class SwaggerDataProvider inherits SwaggerDataProviderCommon {
     public {
-        #! The Swagger schema
-        SwaggerSchema schema;
-
-        #! The REST client object for API calls
-        *RestClient rest;
-
         #! current URI path
         string uri_path = "/";
 
@@ -119,21 +113,17 @@ public class SwaggerDataProvider inherits AbstractDataProvider {
     }
 
     #! Private constructor; used when traversing the tree
-    private constructor(hash<auto> path_tree, string uri_path, SwaggerSchema schema, *RestClient rest) {
+    private constructor(hash<auto> path_tree, string uri_path, SwaggerSchema schema, *RestClient rest)
+            : SwaggerDataProviderCommon(rest) {
         self.path_tree = path_tree;
         self.uri_path = uri_path;
         self.schema = schema;
-        self.rest = rest;
 
         display_name = uri_path.split("/").last();
     }
 
     #! Creates the object from the arguments
-    constructor(SwaggerSchema schema, *RestClient rest) {
-        if (rest) {
-            self.rest = rest;
-        }
-
+    constructor(SwaggerSchema schema, *RestClient rest) : SwaggerDataProviderCommon(rest) {
         setSchema(schema);
         setupTree();
     }

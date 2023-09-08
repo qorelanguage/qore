@@ -1474,7 +1474,11 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         on_error if ($1.err != "CREATE-CHILD-PROVIDER-ERROR") {
             rethrow "CREATE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         }
-        return createChildProviderImpl(name, fields, child_create_options);
+        AbstractDataProvider child = createChildProviderImpl(name, fields, child_create_options);
+        if (logger && !child.logger) {
+            child.setLogger(logger);
+        }
+        return child;
     }
 
     #! Deletes a child data provider
@@ -1714,7 +1718,11 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         @see getChildProviderEx()
     */
     *AbstractDataProvider getChildProvider(string name) {
-        return getChildProviderImpl(name);
+        AbstractDataProvider child = getChildProviderImpl(name);
+        if (logger && !child.logger) {
+            child.setLogger(logger);
+        }
+        return child;
     }
 
     #! Returns the given child provider or throws an exception if the given child is unknown
@@ -1729,6 +1737,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         if (!provider) {
             throw "INVALID-CHILD-PROVIDER", sprintf("provider %y is unknown; known children of %y: %y", name,
                 getName(), getChildProviderNames());
+        }
+        if (logger && !provider.logger) {
+            provider.setLogger(logger);
         }
         return provider;
     }
@@ -1745,6 +1756,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     AbstractDataProvider getChildProviderPath(string path) {
         AbstractDataProvider provider = self;
         map provider = provider.getChildProviderEx($1), path.split("/");
+        if (logger && !provider.logger) {
+            provider.setLogger(logger);
+        }
         return provider;
     }
 

@@ -25,17 +25,8 @@
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
 #! The Google data provider class
-public class GoogleDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleDataProvider inherits GoogleDataProviderBase {
     public {
-        #! The REST client object for API calls
-        *GoogleRestClient::GoogleRestClient rest;
-
-        #! current URI path
-        string uri_path = "/";
-
-        #! The value to returns as the name of the object
-        string display_name;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "type": "GoogleDataProvider",
@@ -87,13 +78,14 @@ public class GoogleDataProvider inherits DataProvider::AbstractDataProvider {
     }
 
     #! Creates the object from a GoogleRestClient
-    constructor(GoogleRestClient rest) {
+    constructor(GoogleRestClient rest) : GoogleDataProviderBase(rest) {
         rest.setConnectionPath("/");
         self.rest = rest;
     }
 
-    static RestClient::RestClient getRestConnection(*hash<auto> options) {
-        RestClient rest;
+    #! Returns a GoogleRestClient connection from the options
+    static GoogleRestClient::GoogleRestClient getRestConnection(*hash<auto> options) {
+        GoogleRestClient rest;
         if (options.restclient) {
             rest = options.restclient;
         } else {

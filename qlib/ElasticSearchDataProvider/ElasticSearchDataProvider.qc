@@ -25,11 +25,8 @@
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
 #! The ElasticSearch data provider class
-public class ElasticSearchDataProvider inherits DataProvider::AbstractDataProvider {
+public class ElasticSearchDataProvider inherits ElasticSearchDataProviderBase {
     public {
-        #! The REST client object for API calls
-        *RestClient::RestClient rest;
-
         #! current URI path
         string uri_path = "/";
 
@@ -90,6 +87,12 @@ public class ElasticSearchDataProvider inherits DataProvider::AbstractDataProvid
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         rest = ElasticSearchDataProvider::getRestConnection(copts);
+    }
+
+    #! Accepts a LoggerInterface object for logging (or clears it)
+    setLogger(*LoggerInterface logger) {
+        rest.setLogger(logger);
+        LoggerWrapper::setLogger(logger);
     }
 
     static RestClient::RestClient getRestConnection(*hash<auto> options) {

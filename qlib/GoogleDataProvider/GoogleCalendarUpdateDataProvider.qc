@@ -30,11 +30,8 @@ public namespace GoogleDataProvider {
     Note that this API works like a `patch` operation; if any fields are missing in the request, they are first set
     based on a fetch of the current attributes.
 */
-public class GoogleCalendarUpdateDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarUpdateDataProvider inherits GoogleDataProviderBase {
     public {
-        #! REST client connection
-        GoogleRestClient::GoogleRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "update",
@@ -77,8 +74,7 @@ public class GoogleCalendarUpdateDataProvider inherits DataProvider::AbstractDat
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) {
-        self.rest = rest;
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }

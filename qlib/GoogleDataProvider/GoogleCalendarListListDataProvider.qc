@@ -27,11 +27,8 @@ public namespace GoogleDataProvider {
 #! The Google calendarList list API data provider
 /** This API allows the caller to list all calendars for the user
 */
-public class GoogleCalendarListListDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarListListDataProvider inherits GoogleDataProviderBase {
     public {
-        #! REST client connection
-       GoogleRestClient::GoogleRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "list",
@@ -60,8 +57,7 @@ public class GoogleCalendarListListDataProvider inherits DataProvider::AbstractD
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest) {
-        self.rest = rest;
+    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

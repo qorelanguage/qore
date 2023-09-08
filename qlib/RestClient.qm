@@ -37,7 +37,7 @@
 %enable-all-warnings
 
 %requires Mime >= 1.3
-%requires(reexport) ConnectionProvider >= 1.4
+%requires(reexport) ConnectionProvider >= 1.10
 %requires(reexport) RestSchemaValidator >= 1.0
 %requires Swagger >= 2.0
 %requires(reexport) Logger
@@ -90,23 +90,27 @@ module RestClient {
 
     The main classes are:
     - @ref RestClient::RestClient "RestClient": this class provides the REST client API
-    - @ref RestClient::RestConnection "RestConnection": provides a connection object to a REST server (based on the @ref connectionproviderintro "ConnectionProvider" module)
+    - @ref RestClient::RestConnection "RestConnection": provides a connection object to a REST server (based on the
+      @ref connectionproviderintro "ConnectionProvider" module)
 
     The @ref RestClient::RestClient "RestClient" class can support the following methods of data serialization:
     - \c "json": using the \c "json" module; messages bodies are encoded using JSON
     - \c "rawxml": using the \c "xml" module; message bodies are encoded with XML without any data type encodings
-    - \c "url": message bodies are encoded in URL form encoded format (see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>)
+    - \c "url": message bodies are encoded in URL form encoded format (see
+      <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>)
     - \c "xml": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
     - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
     - \c "text": message bodies are not serialized, plain text value is used
     - \c "bin": message bodies are not serialized, binary data is used instead
 
-    If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
+    If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to
+    initialize.
 
-    Runtime REST API validation against a REST schema is supported; see the \c validator and \c swagger options in @ref RestClient::RestClient::constructor() "RestClient::constructor()".
+    Runtime REST API validation against a REST schema is supported; see the \c validator and \c swagger options in
+    @ref RestClient::RestClient::constructor() "RestClient::constructor()".
 
-    For maximum compatibility with other REST solutions, the \c "json" encoding method is the default when no other encoding method
-    is chosen and the \c "json" module is available.
+    For maximum compatibility with other REST solutions, the \c "json" encoding method is the default when no other
+    encoding method is chosen and the \c "json" module is available.
 
     @par Example:
     @code{.py}
@@ -267,7 +271,7 @@ printf("%N\n", ans.body);
 #! the RestClient namespace contains all the objects in the RestClient module
 public namespace RestClient {
 #! this class provides the REST client API
-public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper {
+public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, ConnectionProvider::UpdateOptionsInterface {
     public {
         #! Data serialization support mapping codes to MIME types and de/serialization functions
         const DataSerializationSupport = {
@@ -469,17 +473,6 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper {
         string refresh_token;
         #! If OAuth2 tokens should be automatically refreshed
         bool oauth2_auto_refresh = True;
-
-        #! Closure or call reference to be called when an access token is automatically acquired
-        /** The closure or call reference must have the following signature:
-            <tt><update_token(*string token_type, string token, *string oauth2_refresh_token) /tt>
-
-            This closure will only be called when the token is automatically acquired in blocking I/O; it will not be
-            called when setToken() is called externally, for example
-
-            @since RestClient 2.0
-        */
-        *code update_token;
     }
 
     #! calls the base class HTTPClient constructor and optionally connects to the REST server
@@ -562,7 +555,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
           if this option is set then any OAuth2 options are ignored
         - \c token_type: The type of token to use for the \c Authentication header; ignored if no \c token option is
           set
-        - \c update_token: Any update token code to use for the object; @see update_token for more information
+        - \c update_options: Any update token code to use for the object; @see update_options for more information
         - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any
           \c validator option, if given by calling
           @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
@@ -573,8 +566,6 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - \c no_charset: if True no charset will be added to the Content-Type header
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server
-        @param logger Any logger interface to use for internal logging
-        @param update_token Closure or call reference to be called when an access token is automatically acquired
 
         @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
 
@@ -587,7 +578,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         # set logger, if any
         self.logger = remove opts.logger;
         # set update token code, if any
-        self.update_token = remove opts.update_token;
+        self.update_options = remove opts.update_options;
 
         setSerialization(opts."data");
         if (opts.send_encoding) {
@@ -1268,12 +1259,15 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
                 if (refresh_token) {
                     # get a new token with the refresh token
                     oauth2Auth(getOAuth2RefreshInfo(), \info);
-                    if (token && (*code update_token = self.update_token)) {
-                        try {
-                            update_token(token_type, token, refresh_token);
-                        } catch (hash<ExceptionInfo> ex) {
-                            error("error updating token: %s", get_exception_string(ex));
+                    if (token && update_options) {
+                        hash<auto> new_opts = {
+                            "token": token,
+                            "token_type": token_type,
+                        };
+                        if (refresh_token) {
+                            new_opts.oauth2_refresh_token = refresh_token;
                         }
+                        doUpdateOptions(self, new_opts);
                     }
                 } else {
                     # try to get a new token
@@ -1384,18 +1378,9 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
         # set the token
         setToken(h.token_type, h.access_token, h.refresh_token);
-        #printf("OAUth2 auth %y: -> %y\n", login, h);
+        debug("set oauth2 auth header: %s %s; refresh_token: %s", h.token_type, h.access_token,
+            h.refresh_token ?? "-");
         return h;
-    }
-
-    #! Can be called to set or clear a closure or call reference to be called when the authentication token is updated
-    /** The closure or call reference must have the following signature:
-        <tt><update_token(*string token_type, string token, *string oauth2_refresh_token) /tt>
-
-        @since %RestClient 2.0
-    */
-    setUpdateTokenCode(*code update_token) {
-        self.update_token = update_token;
     }
 
     #! Sets up authentication info
@@ -1640,10 +1625,14 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     private hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr,
             *reference<hash<auto>> info, *softbool decode_errors) {
         hash<auto> h;
+
         try {
             h = send(body, m, path, hdr, False, \info);
             info."response-code" = h.status_code;
+            debug("sent: %y received: %y (%s bytes%s)", info."request-uri", info."response-uri", h.body.size(),
+                h.body.size() && h."content-type" ? (" " + h."content-type") : "");
         } catch (hash<ExceptionInfo> ex) {
+            debug("sent: %y received: %y err: %s: %s", info."request-uri", info."response-uri", ex.err, ex.desc);
             info."response-code" = info."response-headers".status_code;
             if (ex.arg) {
                 if (decode_errors && ex.arg.body) {
@@ -1778,7 +1767,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
     @since %RestConnection 1.4
 */
-public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
+public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
+        ConnectionProvider::UpdateOptionsInterface {
     public {
         #! real options used when creating an object
         hash<auto> real_opts;
@@ -2023,14 +2013,6 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
             flow
         */
         const RCF_OAUTH2_AUTH_CODE = "oauth2-auth-code";
-
-        #! RestClient feature: Update Token support
-        /** Returned as a connection feature indicating that this object supports setting a closure to update the
-            access token in external systems (in blocking I/O calls)
-
-            @see @ref RestClient::setUpdateTokenCode()
-        */
-        const RCF_UPDATE_TOKEN = "oauth2-update-token";
     }
 
     private {
@@ -2038,17 +2020,6 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         hash<string, bool> features = {
             CF_LOGGER: True,
         };
-
-        #! Closure or call reference to be called when an access token is automatically acquired
-        /** The closure or call reference must have the following signature:
-            <tt><update_token(*string token_type, string token, *string oauth2_refresh_token) /tt>
-
-            This closure will only be called when the token is automatically acquired in blocking I/O; it will not be
-            called when setToken() is called externally, for example
-
-            @since RestClient 2.0
-        */
-        *code update_token;
     }
 
     #! creates the RestConnection connection object
@@ -2071,7 +2042,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
 
         # setup feature list appropriately
         if (opts.oauth2_grant_type) {
-            features{RCF_UPDATE_TOKEN} = True;
+            features{CF_UPDATE_OPTIONS} = True;
         }
         if (opts.oauth2_grant_type == "authorization_code"
             && (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size())) {
@@ -2108,16 +2079,6 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     #! returns \c "rest"
     string getType() {
         return "rest";
-    }
-
-    #! Can be called to set or clear a closure or call reference to be called when the authentication token is updated
-    /** The closure or call reference must have the following signature:
-        <tt><update_token(*string token_type, string token, *string oauth2_refresh_token) /tt>
-
-        @since %RestClient 2.0
-    */
-    setUpdateTokenCode(*code update_token) {
-        self.update_token = update_token;
     }
 
     #! returns a data provider object for this connection
@@ -2269,7 +2230,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
         return RestClient rest(real_opts + (rtopts.validator ? {"validator": rtopts.validator} : NOTHING + {
             "logger": logger,
-            "update_token": update_token,
+            "update_options": update_options,
         }), !connect);
     }
 

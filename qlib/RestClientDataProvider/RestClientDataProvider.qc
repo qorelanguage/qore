@@ -25,7 +25,7 @@
 #! contains all public definitions in the RestClientDataProvider module
 public namespace RestClientDataProvider {
 #! The REST client data provider class, provides API classes as children
-public class RestClientDataProvider inherits AbstractDataProvider {
+public class RestClientDataProvider inherits RestClientDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -236,8 +236,6 @@ public class RestClientDataProvider inherits AbstractDataProvider {
                     "option",
             },
         };
-
-        RestClient rest;
     }
 
     private {
@@ -260,8 +258,7 @@ public class RestClientDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient rest) : RestClientDataProviderBase(rest) {
     }
 
     #! Returns the data provider name
@@ -277,6 +274,12 @@ public class RestClientDataProvider inherits AbstractDataProvider {
     #! Return data provider summary info
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+    }
+
+    #! Accepts a LoggerInterface object for logging (or clears it)
+    setLogger(*LoggerInterface logger) {
+        rest.setLogger(logger);
+        LoggerWrapper::setLogger(logger);
     }
 
     #! Returns a REST connection

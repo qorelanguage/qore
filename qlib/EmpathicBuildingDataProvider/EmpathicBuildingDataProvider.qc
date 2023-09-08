@@ -25,11 +25,8 @@
 #! Contains all public definitions in the EmpathicBuildingDataProvider module
 public namespace EmpathicBuildingDataProvider {
 #! The EmpathicBuilding data provider class
-public class EmpathicBuildingDataProvider inherits DataProvider::AbstractDataProvider {
+public class EmpathicBuildingDataProvider inherits EmpathicBuildingDataProviderBase {
     public {
-        #! The REST client object for API calls
-        *RestClient::RestClient rest;
-
         #! current URI path
         string uri_path = "/";
 
@@ -78,6 +75,10 @@ public class EmpathicBuildingDataProvider inherits DataProvider::AbstractDataPro
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         rest = EmpathicBuildingDataProvider::getRestConnection(copts);
+    }
+
+    #! Create the object from the REST connection
+    constructor(RestClient::RestClient rest) : EmpathicBuildingDataProviderBase(rest) {
     }
 
     static RestClient::RestClient getRestConnection(*hash<auto> options) {

@@ -25,7 +25,15 @@
 #! contains all public definitions in the SwaggerDataProvider module
 public namespace SwaggerDataProvider {
 #! The Swagger data provider base class
-public class SwaggerDataProviderBase inherits AbstractDataProvider {
+public class SwaggerDataProviderBase inherits SwaggerDataProviderCommon {
+    #! Creates the object
+    constructor() {
+    }
+
+    #! Creates the object
+    constructor(RestClient::RestClient rest) : SwaggerDataProviderCommon(rest) {
+    }
+
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
         return SwaggerDataProvider::ProviderInfo - "constructor_options";

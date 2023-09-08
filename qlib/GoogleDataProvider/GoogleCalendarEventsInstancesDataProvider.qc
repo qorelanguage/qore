@@ -27,11 +27,8 @@ public namespace GoogleDataProvider {
 #! The Google calendar event instances API data provider
 /** This API allows the caller to get instances of a recurring calendar event
 */
-public class GoogleCalendarEventsInstancesDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProviderBase {
     public {
-        #! REST client connection
-       GoogleRestClient::GoogleRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "instances",
@@ -74,8 +71,7 @@ public class GoogleCalendarEventsInstancesDataProvider inherits DataProvider::Ab
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) {
-        self.rest = rest;
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }

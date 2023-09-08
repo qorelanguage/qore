@@ -25,11 +25,8 @@
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
 #! The parent class for Google calendar REST APIs
-public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarDataProvider inherits GoogleDataProviderBase {
     public {
-        #! REST client connection
-        GoogleRestClient::GoogleRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "calendar",
@@ -76,8 +73,7 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) {
-        self.rest = rest;
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -109,7 +105,7 @@ public class GoogleCalendarDataProvider inherits DataProvider::AbstractDataProvi
 
         @see getChildProviderEx()
     */
-    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
+    private *GoogleDataProviderBase getChildProviderImpl(string name) {
         *Class cls = ChildMap{name};
         if (!cls) {
             return;

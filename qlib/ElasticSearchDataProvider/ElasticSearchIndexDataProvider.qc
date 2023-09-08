@@ -27,11 +27,8 @@ public namespace ElasticSearchDataProvider {
 #! The ElasticSearch index API root data provider
 /** This data provider provides children that are API data providers for actions on ElasticSearch indices
 */
-public class ElasticSearchIndexDataProvider inherits DataProvider::AbstractDataProvider {
+public class ElasticSearchIndexDataProvider inherits ElasticSearchDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "index",
@@ -66,8 +63,7 @@ public class ElasticSearchIndexDataProvider inherits DataProvider::AbstractDataP
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : ElasticSearchDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

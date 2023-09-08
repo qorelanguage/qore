@@ -29,11 +29,8 @@ public namespace ElasticSearchDataProvider {
 
     @note A pipeline can be specified as an argument as well to perform transformations on the ingested document data
 */
-public class ElasticSearchDocumentCreateDataProvider inherits DataProvider::AbstractDataProvider {
+public class ElasticSearchDocumentCreateDataProvider inherits ElasticSearchDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "create",
@@ -66,8 +63,7 @@ public class ElasticSearchDocumentCreateDataProvider inherits DataProvider::Abst
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : ElasticSearchDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

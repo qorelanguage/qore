@@ -27,11 +27,8 @@ public namespace GoogleDataProvider {
 #! The Google calendar insert API data provider
 /** This API allows the caller to create a new calendar
 */
-public class GoogleCalendarInsertDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarInsertDataProvider inherits GoogleDataProviderBase {
     public {
-        #! REST client connection
-       GoogleRestClient::GoogleRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "insert",
@@ -60,8 +57,7 @@ public class GoogleCalendarInsertDataProvider inherits DataProvider::AbstractDat
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest) {
-        self.rest = rest;
+    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

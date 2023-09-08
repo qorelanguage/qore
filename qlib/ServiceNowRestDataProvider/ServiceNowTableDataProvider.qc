@@ -43,11 +43,8 @@ hashdecl ServiceNowRestRecordInfo {
 }
 
 #! The ServiceNowTableDataProvider data provider class
-public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProvider {
+public class ServiceNowTableDataProvider inherits ServiceNowRestDataProviderBase {
     public {
-        #! The REST client object for API calls
-        ServiceNowRestClient::ServiceNowRestClient rest;
-
         #! Current object name
         string name;
 
@@ -227,8 +224,8 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
     }
 
     #! Creates the object from the arguments
-    constructor(ServiceNowRestClient rest, string name, hash<auto> access, hash<auto> meta) {
-        self.rest = rest;
+    constructor(ServiceNowRestClient rest, string name, hash<auto> access, hash<auto> meta)
+            : ServiceNowRestDataProviderBase(rest){
         self.name = name;
         self.access = access;
         self.meta = SysColumns + meta;

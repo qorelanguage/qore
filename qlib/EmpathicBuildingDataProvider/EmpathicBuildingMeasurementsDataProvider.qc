@@ -25,11 +25,8 @@
 #! Contains all public definitions in the EmpathicBuildingDataProvider module
 public namespace EmpathicBuildingDataProvider {
 #! The parent class for Empathic Building measurement APIs
-public class EmpathicBuildingMeasurementsDataProvider inherits DataProvider::AbstractDataProvider {
+public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "measurements",
@@ -59,8 +56,7 @@ public class EmpathicBuildingMeasurementsDataProvider inherits DataProvider::Abs
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : EmpathicBuildingDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

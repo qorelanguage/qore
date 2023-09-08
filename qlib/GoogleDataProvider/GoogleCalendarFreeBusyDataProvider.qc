@@ -27,11 +27,8 @@ public namespace GoogleDataProvider {
 #! The Google calendar free/busy API data provider
 /** Returns Free/Busy information for the given calendar
 */
-public class GoogleCalendarFreeBusyDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarFreeBusyDataProvider inherits GoogleDataProviderBase {
     public {
-        #! REST client connection
-        GoogleRestClient::GoogleRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "freeBusy",
@@ -74,8 +71,7 @@ public class GoogleCalendarFreeBusyDataProvider inherits DataProvider::AbstractD
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) {
-        self.rest = rest;
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }

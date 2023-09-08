@@ -27,12 +27,6 @@ public namespace SwaggerDataProvider {
 #! The Swagger data provider class
 public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     public {
-        #! The Swagger schema
-        SwaggerSchema schema;
-
-        #! The REST client object for API calls
-        *RestClient rest;
-
         #! The current URI path
         string uri_path;
 
@@ -53,9 +47,9 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
     }
 
     #! Creates the object from the arguments
-    constructor(SwaggerSchema schema, *RestClient rest, string uri_path, PathItemObject pio, OperationObject op) {
+    constructor(SwaggerSchema schema, *RestClient rest, string uri_path, PathItemObject pio, OperationObject op)
+            : SwaggerDataProviderBase(rest) {
         self.schema = schema;
-        self.rest = rest;
         self.uri_path = uri_path;
         self.pio = pio;
         self.op = op;

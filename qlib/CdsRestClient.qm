@@ -448,7 +448,7 @@ public class CdsRestConnection inherits RestClient::RestConnection {
     private CdsRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
         return new CdsRestClient(real_opts + {
             "logger": logger,
-            "update_token": update_token,
+            "update_options": update_options,
         }, !connect);
     }
 

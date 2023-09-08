@@ -111,9 +111,18 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         transient hash<auto> transient_info;
 
         #! Connection feature: Logger support
-        /** Indicates that connection objects supports setting / updating a logger interface object in the connection
+        /** Indicates that connection objects support setting / updating a logger interface object in the connection
         */
         const CF_LOGGER = "logger";
+
+        #! Connection feature: Update Options support
+        /** Returned as a connection feature indicating that the connection object inherits
+            @ref UpdateOptionsInterface and therefore supports setting a closure to update connection options in
+            external systems (in blocking I/O calls)
+
+            @see @ref UpdateOptionsInterface
+        */
+        const CF_UPDATE_OPTIONS = "update-options";
     }
 
     #! creates the AbstractConnection object

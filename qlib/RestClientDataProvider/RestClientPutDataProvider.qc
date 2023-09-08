@@ -25,11 +25,8 @@
 #! contains all public definitions in the RestClientDataProvider module
 public namespace RestClientDataProvider {
 #! The REST client PUT data provider class
-public class RestClientPutDataProvider inherits AbstractDataProvider {
+public class RestClientPutDataProvider inherits RestClientDataProviderBase {
     public {
-        #! REST client connection
-        RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "put",
@@ -58,8 +55,7 @@ public class RestClientPutDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient rest) : RestClientDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

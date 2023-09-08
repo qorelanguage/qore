@@ -27,11 +27,8 @@ public namespace ElasticSearchDataProvider {
 #! The ElasticSearch index delete API data provider
 /** This API allows the caller to delete an ElasticSearch index
 */
-public class ElasticSearchIndexDeleteDataProvider inherits DataProvider::AbstractDataProvider {
+public class ElasticSearchIndexDeleteDataProvider inherits ElasticSearchDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "delete",
@@ -63,8 +60,7 @@ public class ElasticSearchIndexDeleteDataProvider inherits DataProvider::Abstrac
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : ElasticSearchDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

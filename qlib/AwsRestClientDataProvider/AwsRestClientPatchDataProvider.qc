@@ -25,11 +25,8 @@
 #! contains all public definitions in the AwsRestClientDataProvider module
 public namespace AwsRestClientDataProvider {
 #! The AWS REST client PATCH data provider class
-public class AwsRestClientPatchDataProvider inherits AbstractDataProvider {
+public class AwsRestClientPatchDataProvider inherits AwsRestClientDataProviderBase {
     public {
-        #! REST client connection
-        AwsRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "patch",
@@ -58,8 +55,7 @@ public class AwsRestClientPatchDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(AwsRestClient rest) {
-        self.rest = rest;
+    constructor(AwsRestClient rest) : AwsRestClientDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

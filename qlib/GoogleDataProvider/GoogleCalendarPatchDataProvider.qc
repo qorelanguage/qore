@@ -27,11 +27,8 @@ public namespace GoogleDataProvider {
 #! The Google calendar patch API data provider
 /** This API allows the caller to update (patch) a calendar
 */
-public class GoogleCalendarPatchDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarPatchDataProvider inherits GoogleDataProviderBase {
     public {
-        #! REST client connection
-        GoogleRestClient::GoogleRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "patch",
@@ -74,8 +71,7 @@ public class GoogleCalendarPatchDataProvider inherits DataProvider::AbstractData
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) {
-        self.rest = rest;
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }

@@ -27,11 +27,8 @@ public namespace GoogleDataProvider {
 #! The Google calendar event quickAdd API data provider
 /** This API allows the caller to quickadd a calendar event
 */
-public class GoogleCalendarEventsQuickAddDataProvider inherits DataProvider::AbstractDataProvider {
+public class GoogleCalendarEventsQuickAddDataProvider inherits GoogleDataProviderBase {
     public {
-        #! REST client connection
-       GoogleRestClient::GoogleRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "quickAdd",
@@ -77,8 +74,7 @@ public class GoogleCalendarEventsQuickAddDataProvider inherits DataProvider::Abs
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) {
-        self.rest = rest;
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }

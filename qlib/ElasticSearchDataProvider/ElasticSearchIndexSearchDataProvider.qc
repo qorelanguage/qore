@@ -29,11 +29,8 @@ public namespace ElasticSearchDataProvider {
 
     The `query` API argument takes a data structure that corresponds to ElasticSearch's JSON Query DSL, for example.
 */
-public class ElasticSearchIndexSearchDataProvider inherits DataProvider::AbstractDataProvider {
+public class ElasticSearchIndexSearchDataProvider inherits ElasticSearchDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "search",
@@ -72,8 +69,7 @@ public class ElasticSearchIndexSearchDataProvider inherits DataProvider::Abstrac
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : ElasticSearchDataProviderBase(rest) {
     }
 
     #! Returns the data provider name
