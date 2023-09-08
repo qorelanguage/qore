@@ -90,6 +90,8 @@ public class ConnectionSchemeCache {
 
             "grests": "GoogleRestClient",
 
+            "hue": "HueRestClient",
+
             "jsonrpc": "JsonRpcClient",
             "jsonrpcs": "JsonRpcClient",
 
@@ -159,6 +161,9 @@ public class ConnectionSchemeCache {
 
         #! Connection provider cache lock
         static Mutex lck();
+
+        #! Load all flag
+        static bool load_all;
     }
 
     #! Register a new connection provider in the cache
@@ -183,6 +188,26 @@ public class ConnectionSchemeCache {
 
         cache{scheme} = entry;
         return True;
+    }
+
+    #! Loads all possible schemes and returns the entire cache
+    static hash<string, hash<ConnectionSchemeInfo>> getLoadAll() {
+        if (load_all) {
+            return cache;
+        }
+        bool needs_lock = !lck.lockOwner();
+        if (needs_lock) {
+            lck.lock();
+        }
+        on_exit if (needs_lock) {
+            lck.unlock();
+        }
+        # check again in the lock
+        if (needs_lock && load_all) {
+            return cache;
+        }
+        map ConnectionSchemeCache::getSchemeImpl($1, False), keys SchemeMap, !cache{$1};
+        return cache;
     }
 
     #! Returns the entire cache
