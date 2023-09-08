@@ -1718,7 +1718,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         @see getChildProviderEx()
     */
     *AbstractDataProvider getChildProvider(string name) {
-        AbstractDataProvider child = getChildProviderImpl(name);
+        *AbstractDataProvider child = getChildProviderImpl(name);
         if (logger && !child.logger) {
             child.setLogger(logger);
         }
