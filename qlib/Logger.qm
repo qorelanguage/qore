@@ -240,7 +240,7 @@ public namespace Logger {
     The set of built-in levels includes \c TRACE, \c DEBUG, \c INFO, \c WARN, \c ERROR and \c FATAL. Log4q also supports
     custom log levels where the \c LoggerLevel class may be subclassed to define a larger level set.
 */
-public class LoggerLevel inherits Qore::Serializable {
+public class LoggerLevel {
     public {
         #! The highest logger level
         const OFF = MAXINT;
@@ -502,7 +502,7 @@ public class LoggerEventParameter {
     an exception then exception instance is passed for formatting. So it should be considered if format string and
     use for example "%y" to get readable data.
 */
-public class LoggerEvent inherits Qore::Serializable {
+public class LoggerEvent {
     private:internal {
         #! origin stamp to calculate relative time
         static date startTime = now_us();
@@ -511,7 +511,7 @@ public class LoggerEvent inherits Qore::Serializable {
         string fqcn;
 
         #! Logger reference
-        transient *Logger logger;
+        *Logger logger;
 
         #! The category (logger) name.
         string categoryName;
@@ -2531,7 +2531,7 @@ public class LoggerFilterRegex inherits LoggerFilter {
 }
 
 #! This abstract class defines the logging interface
-public class LoggerInterface inherits Qore::Serializable {
+public class LoggerInterface {
     #! Logs a message using the provided logging level
     /**
         @param level The logging level.
@@ -2719,10 +2719,10 @@ public class LoggerInterface inherits Qore::Serializable {
 }
 
 #! Class handling a LoggerInterface object as a member and proviging atomic logging through it
-public class LoggerWrapper inherits LoggerInterface, Qore::Serializable {
+public class LoggerWrapper inherits LoggerInterface {
     private {
         #! The logger interface
-        transient *LoggerInterface logger;
+        *LoggerInterface logger;
     }
 
     #! Creates the object with no logger
@@ -3063,7 +3063,7 @@ public class LoggerWrapper inherits LoggerInterface, Qore::Serializable {
 public class Logger inherits LoggerInterface {
     private:internal {
         #! The lock to protect object manipulation
-        transient RWLock lock();
+        RWLock lock();
 
         #! The lock to protect access to parent/child hierarchy
         static RWLock hierarchyLock();
