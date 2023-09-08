@@ -404,7 +404,7 @@ string connstr = get_connection_url(str);
     @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
 
     @see @ref connectionprovider_modules
-    */
+*/
 public string sub get_connection_url(string str) {
     return str =~ /^[^:\/]+:\/\/.+/
         ? str
@@ -426,7 +426,7 @@ string connstr = get_connection(str);
     @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
 
     @see @ref connectionprovider_modules
-    */
+*/
 public AbstractConnection sub get_connection(string conn) {
     # process connection provider modules in declaration order
     if (ENV.QORE_CONNECTION_PROVIDERS) {
@@ -439,10 +439,12 @@ public AbstractConnection sub get_connection(string conn) {
                 el += sprintf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             }
         }
-        throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; tried the following connection provider modules: %y; errors: %y", conn, pl, el);
+        throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; "
+            "tried the following connection provider modules: %y; errors: %y", conn, pl, el);
     }
 
-    throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; no connection provider modules are set in the QORE_CONNECTION_PROVIDERS environment variable", conn);
+    throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; no "
+        "connection provider modules are set in the QORE_CONNECTION_PROVIDERS environment variable", conn);
 }
 
 #! returns all known connections as a hash keyed by connection identifier; values are AbstractConnection objects; @ref nothing is returned if no connections are known
@@ -460,7 +462,7 @@ public AbstractConnection sub get_connection(string conn) {
     @see
     - get_connection_hash()
     - @ref connectionprovider_modules
-    */
+*/
 public *hash<string, AbstractConnection> sub get_connections(*bool verbose) {
     hash<string, AbstractConnection> h();
     # process connection provider modules in declaration order
@@ -494,7 +496,7 @@ public *hash<string, AbstractConnection> sub get_connections(*bool verbose) {
     @see
     - get_connections()
     - @ref connectionprovider_modules
-    */
+*/
 public *hash<string, hash<ConnectionInfo>> sub get_connection_hash(*bool verbose) {
     return map {
         $1.key: $1.value.getInfo(True),
