@@ -240,7 +240,7 @@ public namespace Logger {
     The set of built-in levels includes \c TRACE, \c DEBUG, \c INFO, \c WARN, \c ERROR and \c FATAL. Log4q also supports
     custom log levels where the \c LoggerLevel class may be subclassed to define a larger level set.
 */
-public class LoggerLevel {
+public class LoggerLevel inherits Qore::Serializable {
     public {
         #! The highest logger level
         const OFF = MAXINT;
@@ -2531,7 +2531,7 @@ public class LoggerFilterRegex inherits LoggerFilter {
 }
 
 #! This abstract class defines the logging interface
-public class LoggerInterface {
+public class LoggerInterface inherits Qore::Serializable {
     #! Logs a message using the provided logging level
     /**
         @param level The logging level.
@@ -2718,11 +2718,11 @@ public class LoggerInterface {
     abstract bool isFatalEnabled();
 }
 
-#! Class handling a LoggerInterface object as a member and proviging atomic logging through it
+#! Class handling a LoggerInterface object as a member and providing atomic logging through it
 public class LoggerWrapper inherits LoggerInterface {
     private {
         #! The logger interface
-        *LoggerInterface logger;
+        transient *LoggerInterface logger;
     }
 
     #! Creates the object with no logger
@@ -3055,15 +3055,15 @@ public class LoggerWrapper inherits LoggerInterface {
 
 #! Implements main logger class whose instance will be used by user code when logging
 /**
-    The Logger object is provided to user code. When a log is triggered then
-    message, arguments, current code position, time are appended into @ref LoggerEvent event instance when
+    The Logger object is provided to user code. When a log is triggered, the message, arguments, current code
+    position, and time are appended as a @ref LoggerEvent event instance when
     the logging level is enabled. The event is passed to all registered appenders in the given Logger as well as
     in parents in the hierarchy when additivity is enabled.
 */
 public class Logger inherits LoggerInterface {
     private:internal {
         #! The lock to protect object manipulation
-        RWLock lock();
+        transient RWLock lock();
 
         #! The lock to protect access to parent/child hierarchy
         static RWLock hierarchyLock();
@@ -3083,7 +3083,7 @@ public class Logger inherits LoggerInterface {
         *Logger parent;
 
         #! A collection of appenders linked to this logger.
-        list<LoggerAppender> appenders;
+        transient list<LoggerAppender> appenders;
     }
 
     #! Creates the object
