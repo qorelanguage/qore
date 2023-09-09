@@ -308,17 +308,38 @@ public:
     //! concatenates the base64-encoded version of the binary data passed
     DLLEXPORT void concatBase64(const BinaryNode* bin);
 
-    //! concatenates the base64-encoded version of the binary data passed (does not make any character encoding conversions)
+    //! concatenates the base64-encoded version of the binary data passed
+    /** does not make any character encoding conversions
+    */
     DLLEXPORT void concatBase64(const QoreString* str);
 
-    //! concatenates the base64-encoded version of the binary data passed and ensures the maximum line length for the base64-encoded output
+    //! concatenates the base64-encoded version of the binary data passed
+    /** ensures the maximum line length for the base64-encoded output
+    */
     DLLEXPORT void concatBase64(const char* buf, size_t size, size_t maxlinelen);
 
-    //! concatenates the base64-encoded version of the binary data passed and ensures the maximum line length for the base64-encoded output
+    //! concatenates the base64-encoded version of the binary data passed
+    /** ensures the maximum line length for the base64-encoded output
+    */
     DLLEXPORT void concatBase64(const BinaryNode* bin, size_t maxlinelen);
 
-    //! concatenates the base64-encoded version of the binary data passed (does not make any character encoding conversions) and ensures the maximum line length for the base64-encoded output
+    //! concatenates the base64-encoded version of the binary data passed
+    /** does not make any character encoding conversions; ensures the maximum line length for the base64-encoded output
+    */
     DLLEXPORT void concatBase64(const QoreString* str, size_t maxlinelen);
+
+    //! concatenates the base64-url-encoded version of the binary data passed
+    /**
+        @since %Qore 1.19.0
+    */
+    DLLEXPORT void concatBase64Url(const BinaryNode& bin);
+
+    //! concatenates the base64-url-encoded version of the binary data passed
+    /** does not make any character encoding conversions
+
+        @since %Qore 1.19.0
+    */
+    DLLEXPORT void concatBase64Url(const QoreString& str);
 
     //! parses the current string data as base64-encoded data and returns it as a BinaryNode pointer (caller owns the reference count), throws a qore-language exception if any errors are encountered
     /**

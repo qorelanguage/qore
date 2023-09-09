@@ -270,6 +270,23 @@ printf("%N\n", ans.body);
 
 #! the RestClient namespace contains all the objects in the RestClient module
 public namespace RestClient {
+#! Hash to use for generating authorization code requests
+/** @since RestClient 2.0
+*/
+public hashdecl AuthCodeInfo {
+    #! The response type value to use in the request
+    string response_type = "code";
+
+    #! To override the redirect_uri; if not set, the \c oauth2_redirect_uri option will be used instead
+    *string redirect_uri;
+
+    #! Scopes to use in the request
+    *list<string> scopes;
+
+    #! The state value to use in the request
+    *string state;
+}
+
 #! this class provides the REST client API
 public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, ConnectionProvider::UpdateOptionsInterface {
     public {
@@ -2163,15 +2180,13 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
 
     #! Returns a URI for an authorization code request
     /** The \c oauth2_grant_type must be \c authorization_code, and \c oauth2_client_id, \c oauth2_auth_url,
-        \c oauth2_redirect_url must set
+        \c oauth2_redirect_url must set if the \c redirect_uri option is not used
 
-        @param response_type the response type to request (\c code or \c token)
-        @param scopes one or more scopes to request
-        @param state any value for the \c state parameter
+        @param info context information for the authorization code request
 
         @since %RestClient 2.0
     */
-    string getAuthorizationCodeRequest(string response_type = "code", *list<string> scopes, *string state) {
+    string getAuthorizationCodeRequest(hash<AuthCodeInfo> info = <AuthCodeInfo>{}) {
         if (opts.oauth2_grant_type != "authorization_code") {
             throw "OAUTH2-ERROR", sprintf("oauth2_grant_type is %y; must be \"authorization_code\" to get an "
                 "authorization code request URI", opts.oauth2_grant_type);
@@ -2182,27 +2197,13 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     "authorization code request URI", key);
             }
         }
-        return getAuthorizationCodeRequestIntern(response_type, scopes ? (foldl $1 + " " + $2, scopes) : NOTHING,
-            state);
-    }
-
-    #! Returns a URI for an authorization code request
-    /** The \c oauth2_grant_type must be \c authorization_code, and \c oauth2_client_id, \c oauth2_auth_url,
-        \c oauth2_redirect_url must set
-
-        @param response_type the response type to request (\c code or \c token)
-        @param scope one or more scopes to request
-        @param state any value for the \c state parameter
-
-        @since %RestClient 2.0
-    */
-    private string getAuthorizationCodeRequestIntern(string response_type, *string scope, *string state) {
+        *string scope = info.scopes ? (foldl $1 + " " + $2, info.scopes) : NOTHING;
         string uri = sprintf("%s?scope=%s&redirect_uri=%s&client_id=%s&response_type=%s", opts.oauth2_auth_url,
-            scope, opts.oauth2_redirect_url, opts.oauth2_client_id, response_type);
+            scope, info.redirect_uri ?? opts.oauth2_redirect_url, opts.oauth2_client_id, info.response_type);
         # add any optional auth args
         map uri += sprintf("&%s=%s", $1.key, getUriValue($1.value)), opts.oauth2_auth_args.pairIterator();
-        if (state) {
-            uri += sprintf("&state=%s", state);
+        if (info.state) {
+            uri += sprintf("&state=%s", info.state);
         }
         return uri;
     }

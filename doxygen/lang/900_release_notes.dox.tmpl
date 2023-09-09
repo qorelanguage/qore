@@ -26,6 +26,11 @@
     - <a href="../../modules/Logger/html/index.html">Logger</a> module
       - added \c LoggerInterface and \c LoggerWrapper classes
         (<a href="https://github.com/qorelanguage/qore/issues/4776">issue 4776</a>)
+    - added the following function and methods to support base64-url encoding of data:
+      - @ref Qore::make_base64_url_string() "make_base64_url_string()"
+      - @ref <string>::toBase64Url()
+      - @ref <binary>::toBase64Url()
+      (<a href="https://github.com/qorelanguage/qore/issues/4783">issue 4783</a>)
     - added the following class and new methods to support OAuth2 and non-blocking polling functionality:
       - @ref Qore::FilePollOperation "FilePollOperation" class
       - @ref Qore::ReadOnlyFile::startPollRead() "ReadOnlyFile::startPollRead()"
