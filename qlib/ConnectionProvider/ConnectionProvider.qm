@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore module
-%requires qore >= 1.14.1
+%requires qore >= 1.19
 
 %require-types
 %enable-all-warnings
