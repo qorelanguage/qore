@@ -187,6 +187,8 @@ public class ConnectionSchemeCache {
         }
 
         cache{scheme} = entry;
+        # sort connection options when caching
+        cache{scheme}.options = cache{scheme}.options{sort(keys cache{scheme}.options)};
         return True;
     }
 

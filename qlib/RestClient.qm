@@ -277,7 +277,7 @@ public hashdecl AuthCodeInfo {
     #! The response type value to use in the request
     string response_type = "code";
 
-    #! To override the redirect_uri; if not set, the \c oauth2_redirect_uri option will be used instead
+    #! To override the redirect_uri; if not set, the \c oauth2_redirect_url option will be used instead
     *string redirect_uri;
 
     #! Scopes to use in the request
@@ -365,6 +365,14 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, Connec
         const DefaultHeaders = {
             "Accept": Accept,
             "User-Agent": RestClient::VersionString,
+        };
+
+        #! Default oauth2_redirect_uri option value
+        const DefaultOAuth2RedirectUri = "auto";
+
+        #! Default option values
+        const DefaultOptions = {
+            "oauth2_redirect_uri": DefaultOAuth2RedirectUri,
         };
 
         #! Data serialization options; this is a hash to simulate a set of strings
@@ -548,7 +556,8 @@ RestClient rest({"url": "http://localhost:8001/rest"});
             \c oauth2_token_url
         - \c oauth2_redirect_url: The OAuth2 redirect URL for the \c authorization_code grant type; ignored if the
           \c token option is set.  Note that the \c authorization_code grant type requires external user authorization
-          to acquire an access token
+          to acquire an access token; the special value \c "auto" (the default) is meant to be interpreted by servers
+          that implement OAuth2 authorization code client handling
         - \c oauth2_refresh_token: An OAuth2 refresh token (complements option \c token)
         - \c oauth2_scopes: A list of OAuth2 scopes to request; ignored if the \c token option is set
         - \c oauth2_token_url: The token URL OAuth2 flows; ignored if the \c token option is set
@@ -596,6 +605,9 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         self.logger = remove opts.logger;
         # set update token code, if any
         self.update_options = remove opts.update_options;
+
+        # apply default option values
+        opts = DefaultOptions + opts;
 
         setSerialization(opts."data");
         if (opts.send_encoding) {
@@ -1748,7 +1760,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         \c oauth2_token_url
     - \c "oauth2_redirect_url": The OAuth2 redirect URL for the \c authorization_code grant type; ignored if the
       \c token option is set.  Note that the \c authorization_code grant type requires external user authorization to
-      acquire an access token
+      acquire an access token; the special value \c "auto" (the default) is meant to be interpreted by servers
+      that implement OAuth2 authorization code client handling
     - \c "oauth2_refresh_token": An OAuth2 refresh token (complements option \c "token")
     - \c "oauth2_scopes": A list of OAuth2 scopes to request; ignored if the \c token option is set
     - \c "oauth2_token_url": The token URL for OAuth2 flows; ignored if the \c token option is set
@@ -1906,7 +1919,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     "type": "string",
                     "desc": "The OAuth2 redirect URL for the `authorization_code` grant type; ignored "
                         "if the `token` option is set.  Note that the `authorization_code` grant type requires "
-                        "external user authorization to acquire an access token",
+                        "external user authorization to acquire an access token; the special value \c \"auto\" (the "
+                        "default) is meant to be interpreted by servers that implement OAuth2 authorization code "
+                        "client handling",
+                    "default_value": "auto",
                 },
                 "oauth2_refresh_token": <ConnectionOptionInfo>{
                     "type": "string",

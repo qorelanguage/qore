@@ -126,20 +126,27 @@ public class GoogleRestClient inherits RestClient::RestClient {
         #! Default token request URL
         const DefaultTokenUrl = "https://oauth2.googleapis.com/token";
 
+        #! Default "data" option value
+        const DefaultData = "json";
+
         #! Default constructor options
         const DefaultOptions = {
-            "url": DefaultUrl,
+            "data": DefaultData,
+            "encode_chars": "+",
             "oauth2_auth_args": DefaultAuthArgs,
             "oauth2_auth_url": DefaultAuthUrl,
             "oauth2_grant_type": DefaultGrantType,
             "oauth2_token_url": DefaultTokenUrl,
-            "encode_chars": "+",
+            "url": DefaultUrl,
         };
 
-        #! Ping profiles
-        const PingProfiles = {
+        #! API profiles
+        const ApiProfiles = {
             "none": {},
             "calendar": {
+                "oauth2_scopes": (
+                    "https://www.googleapis.com/auth/calendar",
+                ),
                 "ping_method": DefaultGooglePingMethod,
                 "ping_path": "/calendar/v3/users/me/calendarList?maxResults=1",
                 "ping_headers": DefaultGooglePingHeaders,
@@ -165,8 +172,9 @@ GoogleRestClient rest(opts);
         @param opts valid options are all the options for the @ref RestClient::RestClient "RestClient" class; note
         that the URL is set by default if not provided (see @ref DefaultUrl); the following options are unique to this
         class:
-        - \c ping_profile: one of \c none (no ping options set) or \c calendar (set ping options for the Google
-          calendar API)
+        - \c api_profile: one of:
+          - \c none (no options set)
+          - \c calendar (set client options for the Google calendar API)
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server
 
@@ -176,13 +184,13 @@ GoogleRestClient rest(opts);
             : RestClient(GoogleRestClient::getOptions(opts), True) {
     }
 
-    #! returns options for @ref GoogleRestClient::GoogleRestClient::constructor()
+    #! returns options for @ref GoogleRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
-        if (*string pprof = opts.ping_profile) {
-            *hash<auto> conf = PingProfiles{pprof};
+        if (*string prof = opts.api_profile) {
+            *hash<auto> conf = ApiProfiles{prof};
             if (!exists conf) {
-                throw "GOOGLE-RESTCLIENT-ERROR", sprintf("ping profile %y is unknown; known ping profiles: %y", pprof,
-                    keys PingProfiles);
+                throw "GOOGLE-RESTCLIENT-ERROR", sprintf("api_profile %y is unknown; known API profiles: %y", prof,
+                    keys ApiProfiles);
             }
             # set ping options
             map opts{$1.key} = $1.value, conf.pairIterator(), !opts.hasKey($1.key);
@@ -207,6 +215,30 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("GoogleRestConnection"),
             "options": RestConnection::ConnectionScheme.options + {
+                "api_profile": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the API profile according to the Google API in use; this option will set the REST "
+                        "options if they are not already set (`oauth2_scopes`, `ping_body`, `ping_headers`, and "
+                        "`ping_method`); valid "
+                        "values:\n"
+                        "- `none`: no options configured (default)\n"
+                        "- `calendar`: set options for the Google calendar API",
+                    "default_value": "none",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "desc": "No options are set",
+                            "value": "none",
+                        },
+                        <AllowedValueInfo>{
+                            "desc": "Set REST client options for the Google calendar API",
+                            "value": "calendar",
+                        },
+                    ),
+                },
+                "data": RestConnection::ConnectionScheme.options."data"
+                + <ConnectionOptionInfo>{
+                    "default_value": GoogleRestClient::DefaultData,
+                },
                 "oauth2_auth_args": RestConnection::ConnectionScheme.options.oauth2_auth_args
                 + <ConnectionOptionInfo>{
                     "default_value": GoogleRestClient::DefaultAuthArgs,
@@ -222,25 +254,6 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
                 "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url
                 + <ConnectionOptionInfo>{
                     "default_value": GoogleRestClient::DefaultTokenUrl,
-                },
-                "ping_profile": <ConnectionOptionInfo>{
-                    "type": "string",
-                    "desc": "the ping profile according to the Google API in use; this option will set the REST ping "
-                        "options if they are not already set (`ping_body`, `ping_headers`, and `ping_method`); valid "
-                        "values:\n"
-                        "- `none`: no pings configured (default)\n"
-                        "- `calendar`: the Google calendar API",
-                    "default_value": "none",
-                    "allowed_values": (
-                        <AllowedValueInfo>{
-                            "desc": "",
-                            "value": "none",
-                        },
-                        <AllowedValueInfo>{
-                            "desc": "",
-                            "value": "calendar",
-                        },
-                    ),
                 },
             },
             "required_options": "token|oauth2_auth_url,oauth2_grant_type,oauth2_token_url,"
@@ -261,7 +274,7 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
     */
     constructor(string name, string description, string url = GoogleRestClient::DefaultUrl,
             hash<auto> attributes = {}, hash<auto> options = {})
-            : RestConnection(name, description, url, attributes, options) {
+            : RestConnection(name, description, url, attributes, GoogleRestConnection::getOptions(options)) {
         real_opts = {
             "url": real_url,
         } + urlh{"username", "password"} + opts;
@@ -289,6 +302,20 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
         # object dynamically
         load_module("GoogleDataProvider");
         return create_object("GoogleDataProvider", get());
+    }
+
+    #! returns options for @ref GoogleRestConnection::constructor()
+    static hash<auto> getOptions(hash<auto> opts) {
+        if (*string prof = opts.api_profile) {
+            *hash<auto> conf = (GoogleRestClient::ApiProfiles{prof} - ("encode_chars",));
+            if (!exists conf) {
+                throw "GOOGLE-RESTCLIENT-ERROR", sprintf("api_profile %y is unknown; known API profiles: %y", prof,
+                    keys GoogleRestClient::ApiProfiles);
+            }
+            # set ping options
+            map opts{$1.key} = $1.value, conf.pairIterator(), !opts.hasKey($1.key);
+        }
+        return opts;
     }
 
     #! Sets child data provider capabilities

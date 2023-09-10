@@ -290,6 +290,10 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
             delete h.url_hash.password;
         }
         h.opts = orig_opts;
+        # sort options by key
+        if (h.opts) {
+            h.opts = h.opts{sort(keys h.opts)};
+        }
         return h;
     }
 
