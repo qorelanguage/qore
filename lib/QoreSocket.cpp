@@ -3637,8 +3637,8 @@ void QoreSocketThroughputHelper::finalize(int64 bytes) {
     priv->finalize(bytes);
 }
 
-SocketConnectPollOperation::SocketConnectPollOperation(ExceptionSink* xsink, bool ssl, const char* target, QoreSocketObject* sock)
-        : sock(sock) {
+SocketConnectPollOperation::SocketConnectPollOperation(ExceptionSink* xsink, bool ssl, const char* target,
+        QoreSocketObject* sock) : sock(sock) {
     sgoal = ssl ? SPG_CONNECT_SSL : SPG_CONNECT;
 
     AutoLocker al(sock->priv->m);
