@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.4
 
 module SalesforceRestClient {
-    version = "1.6";
+    version = "2.0";
     desc = "user module for calling Salesforce.com REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -153,7 +153,7 @@ rc.bulkJobClose(h.id);
 
     @section salesforcerestclientrelnotes Release Notes
 
-    @subsection salesforcerestclientv1_6 SalesforceRestClient v1.6
+    @subsection salesforcerestclientv2_0 SalesforceRestClient v2.0
     - updated to use the generic OAuth2 support in the RestClient class
 
     @subsection salesforcerestclientv1_5_1 SalesforceRestClient v1.5.1
@@ -323,6 +323,7 @@ public class SalesforceRestClient inherits RestClient::RestClient {
             "oauth_url_token": "https://login.salesforce.com/services/oauth2/token",
             "oauth_url_revoke": "https://login.salesforce.com/services/oauth2/revoke",
             "api": "auto",
+            "oauth2_grant_type": "password",
         };
 
         #! default send encoding
@@ -334,10 +335,6 @@ public class SalesforceRestClient inherits RestClient::RestClient {
             "client_id",
             # the Salesforce.com "consumer secret"
             "client_secret",
-            # the Salesforce.com username
-            "username",
-            # the Salesforce.com password
-            "password",
         );
 
         #! Salesforce.com async dataload namespace
@@ -375,6 +372,9 @@ public class SalesforceRestClient inherits RestClient::RestClient {
 
         #! Salesforce.com REST API version currently in use
         string api_used;
+
+        #! The instance URL
+        string instance_url;
 
         #! hash of APIs retrieved from GET /services/data; keyed by API version string; values: \c "label", \c "url"
         hash<string, hash<auto>> api_hash;
@@ -418,7 +418,7 @@ SalesforceRestClient rest({"url": "http://localhost:8001/rest"});
         - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing message
           headers
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
-        - \c password: (required) the Salesforce.com account password for the Connected App
+        - \c password: the Salesforce.com account password for the Connected App
         - \c proxy: The proxy URL for connecting through a proxy
         - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead of
             processed
@@ -429,17 +429,18 @@ SalesforceRestClient rest({"url": "http://localhost:8001/rest"});
           note that Salesforce.com does not support \c "bzip2" compression
         - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
           \c 30s)
-        - \c username: (required) the Salesforce.com account username for the Connected App
+        - \c username: the Salesforce.com account username for the Connected App
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server and a token will be received
 
-        The following are mandatory options for Salesforce.com authentication: \c client_id, \c client_secret,
-        \c username, \c password
+        The following are mandatory options for Salesforce.com authentication: \c client_id, \c client_secret, other
+        options may be required depending on the OAuth2 grant type used
 
         @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
         @throw SALESFORCERESTCLIENT-ERROR missing or invalid connection option
     */
-    constructor(*hash<auto> opts, *softbool do_not_connect) : RestClient(SalesforceRestClient::getOptions(opts), True) {
+    constructor(*hash<auto> opts, *softbool do_not_connect)
+            : RestClient(SalesforceRestClient::getOptions(opts), True) {
         # set options
         setSendEncoding(opts.send_encoding ?? DefaultSendEncoding);
         # check required options
@@ -457,6 +458,10 @@ SalesforceRestClient rest({"url": "http://localhost:8001/rest"});
         }
 
         map self{$1} = opts{$1} ?? Defaults{$1}, keys Defaults;
+
+        if (opts.instance_url) {
+            instance_url = opts.instance_url;
+        }
 
         if (!do_not_connect) {
             loginIntern();
@@ -614,7 +619,7 @@ hash<auto> ans = rest.doBulkRequest("POST", "job", job);
 
         AutoLock al(self.m);
 
-        if (!token) {
+        if (!token || !instance_url) {
             loginIntern(\info);
         }
 
@@ -837,7 +842,7 @@ printf("batch ID: %y batch state: %y\n", h.id, h.state);
         map hdr.($1.key) = getGmtDate($1.value), hdr.pairIterator(), $1.value.typeCode() == NT_DATE;
 
         AutoLock al(m);
-        if (!token) {
+        if (!token || !instance_url) {
             loginIntern(\info);
         }
 
@@ -1026,8 +1031,8 @@ sfrest.logout();
             "additional_methods": {"PATCH": False} + opts.additional_methods,
             "data": "json",
 
+            "oauth2_auth_url": opts.oauth_url_auth ?? Defaults.oauth_url_auth,
             "oauth2_token_url": opts.oauth_url_token ?? Defaults.oauth_url_token,
-            "oauth2_grant_type": "password",
             "oauth2_client_id": opts.client_id,
             "oauth2_client_secret": opts.client_secret,
 
@@ -1055,9 +1060,21 @@ sfrest.logout();
         hash<auto> h = gotOAuth2LoginInfo(RestClient::loginIntern(\info));
         # set the URL to the Salesforce.com URL for REST API calls
         setURL(h.instance_url);
+
         processApis(RestClient::doRequest("GET", "services/data").body);
         setVerifyApi(h);
         return h;
+    }
+
+    #! Returns options to update after an OAuth2 login
+    /** @since %SalesforceRestClient 2.0
+    */
+    private *hash<auto> getUpdateOptionsAfterLogin(hash<auto> h) {
+        *hash<auto> new_opts = RestClient::getUpdateOptionsAfterLogin(h);
+        if (h.instance_url != instance_url) {
+            new_opts.instance_url = h.instance_url;
+        }
+        return new_opts;
     }
 
     #! Process the API response from Salesforce and set / verify the client's API level
@@ -1127,6 +1144,10 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
                 "data": RestConnection::ConnectionScheme.options."data" + <ConnectionOptionInfo>{
                     "default_value": "json",
                 },
+                "instance_url": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the Salesforce.com instance URL returned in the OAuth2 login process",
+                },
                 "oauth_url_auth": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the OAuth authorization URL",
@@ -1141,6 +1162,14 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
                     "type": "string",
                     "desc": "the OAuth logout / revoke token URL",
                     "default_value": SalesforceRestClient::Defaults.oauth_url_revoke,
+                },
+                "oauth2_grant_type": RestConnection::ConnectionScheme.options.oauth2_grant_type
+                    + <ConnectionOptionInfo>{
+                    "default_value": SalesforceRestClient::Defaults.oauth2_grant_type,
+                },
+                "oauth2_scopes": RestConnection::ConnectionScheme.options.oauth2_scopes
+                    + <ConnectionOptionInfo>{
+                    "default_value": SalesforceRestClient::Defaults.oauth2_scopes,
                 },
                 "password": <ConnectionOptionInfo>{
                     "type": "string",
@@ -1162,6 +1191,30 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
             # FIXME: username and password are currently optional for backwards compatibility with URL auth options
             "required_options": "client_id,client_secret",
         };
+
+        #! options required to support the OAuth2 authorization code grant flow
+        const OAuth2AuthRequestOptions = (
+            "client_id",
+            "client_secret",
+            "oauth_url_auth",
+            "oauth_url_token",
+            "oauth2_redirect_url",
+        );
+
+        #! Maps Salesforce REST options to standard Options
+        const OAuth2Options = {
+            "oauth2_auto_refresh": "oauth2_auto_refresh",
+            "oauth2_auth_args": "oauth2_auth_args",
+            "oauth_url_auth": "oauth2_auth_url",
+            "client_id": "oauth2_client_id",
+            "client_secret": "oauth2_client_secret",
+            "oauth2_redirect_url": "oauth2_redirect_url",
+            "oauth2_refresh_token": "oauth2_refresh_token",
+            "oauth2_scopes": "oauth2_scopes",
+            "oauth_url_token": "oauth2_token_url",
+            "password": "password",
+            "username": "username",
+        };
     }
 
     #! creates the SalesforceRestConnection connection object
@@ -1174,7 +1227,7 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
         See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : RestConnection(name, description, url, attributes, options) {
+            : RestConnection(name, description, url, attributes, SalesforceRestConnection::getOptions(options)) {
         real_opts = ("url": real_url) + urlh.("username", "password") + opts;
     }
 
@@ -1192,6 +1245,25 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
         return True;
     }
 
+    #! Returns the native options
+    *hash<auto> getRealOptions() {
+        return RestConnection::getRealOptions() - (
+            "oauth2_client_id",
+            "oauth2_client_secret",
+            "oauth2_auth_url",
+            "oauth2_token_url",
+        );
+    }
+
+    #! Returns OAuth2 options in a standard format
+    hash<auto> getOAuth2Options() {
+        hash<auto> rv;
+        foreach hash<auto> i in (OAuth2Options.pairIterator()) {
+            rv{i.value} = real_opts{i.key};
+        }
+        return rv;
+    }
+
     #! returns a data provider object for this connection
     /** @return a data provider object for this connection
 
@@ -1202,6 +1274,23 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
         # object dynamically
         load_module("SalesforceRestDataProvider");
         return create_object("SalesforceRestDataProvider", get());
+    }
+
+    #! Processes OAuth2 login responses and returns updated options
+    private *hash<auto> processOAuth2TokenResponseImpl(hash<auto> resp) {
+        resp = resp.OAuth;
+        *hash<auto> new_opts = RestConnection::processOAuth2TokenResponseImpl(resp);
+        if (resp.instance_url && resp.instance_url != real_opts.instance_url) {
+            new_opts.instance_url = resp.instance_url;
+        }
+        return new_opts;
+    }
+
+    #! Sets the auth code feature if supported
+    private checkAuthCodeFeature() {
+        if (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size()) {
+            features{RCF_OAUTH2_AUTH_CODE} = True;
+        }
     }
 
     #! Sets child data provider capabilities
@@ -1240,6 +1329,16 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
 
         # returns a RestClient option without connecting and without retrieving any external schemas with I/O
         return new SalesforceRestPingPollOperation(getPollImpl(), real_opts);
+    }
+
+    #! returns options for the @ref RestClient::RestConnection::constructor() "RestConnection::constructor()"
+    private static hash getOptions(*hash<auto> opts) {
+        return {
+            "oauth2_auth_url": opts.oauth_url_auth ?? SalesforceRestClient::Defaults.oauth_url_auth,
+            "oauth2_token_url": opts.oauth_url_token ?? SalesforceRestClient::Defaults.oauth_url_token,
+            "oauth2_client_id": opts.client_id,
+            "oauth2_client_secret": opts.client_secret,
+        } + opts;
     }
 }
 

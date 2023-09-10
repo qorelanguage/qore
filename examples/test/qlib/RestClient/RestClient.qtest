@@ -466,11 +466,14 @@ public class Main inherits QUnit::Test {
 
         {
             string auth_uri = "https://example.com/auth";
+            string token_uri = "https://example.com/token";
             RestConnection rc("test", "test", "http://localhost:" + port, {}, {
                 "data": "yaml",
                 "oauth2_grant_type": "authorization_code",
                 "oauth2_auth_url": auth_uri,
+                "oauth2_token_url": token_uri,
                 "oauth2_client_id": get_random_string(),
+                "oauth2_client_secret": get_random_string(),
                 "oauth2_redirect_url": "https://other.app.com",
             });
 
@@ -483,11 +486,14 @@ public class Main inherits QUnit::Test {
 
         {
             string auth_uri = "https://example.com/auth";
+            string token_uri = "https://example.com/token";
             RestConnection rc("test", "test", "http://localhost:" + port, {}, {
                 "data": "yaml",
                 "oauth2_grant_type": "authorization_code",
                 "oauth2_auth_url": auth_uri,
+                "oauth2_token_url": token_uri,
                 "oauth2_client_id": get_random_string(),
+                "oauth2_client_secret": get_random_string(),
                 "oauth2_redirect_url": "https://other.app.com",
                 "oauth2_auth_args": {
                     "access_type": "offline",

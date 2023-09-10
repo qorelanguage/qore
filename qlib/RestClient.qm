@@ -1405,11 +1405,32 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             throw "REST-LOGIN-ERROR", sprintf("OAuth2 response for grant type %y is invalid, needs both "
                 "token_type (%y) and access_token (%y)", oauth2_grant_type, h.token_type, h.access_token);
         }
+        *hash<auto> new_opts = update_options ? getUpdateOptionsAfterLogin(h) : NOTHING;
         # set the token
         setToken(h.token_type, h.access_token, h.refresh_token);
         debug("set oauth2 auth header: %s %s; refresh_token: %s", h.token_type, h.access_token,
             h.refresh_token ?? "-");
+        if (update_options && new_opts) {
+            doUpdateOptions(self, new_opts);
+        }
         return h;
+    }
+
+    #! Returns options to update after an OAuth2 login
+    /** @since %RestClient 2.0
+    */
+    private *hash<auto> getUpdateOptionsAfterLogin(hash<auto> h) {
+        hash<auto> new_opts;
+        if (h.token_type != token_type) {
+            new_opts.token_type = h.token_type;
+        }
+        if (h.access_token != token) {
+            new_opts.token = h.access_token;
+        }
+        if (h.refresh_token != refresh_token) {
+            new_opts.oauth2_refresh_token = h.refresh_token;
+        }
+        return new_opts;
     }
 
     #! Sets up authentication info
@@ -2037,8 +2058,25 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         #! Options required for an OAuth2 authorization request
         const OAuth2AuthRequestOptions = (
             "oauth2_auth_url",
+            "oauth2_token_url",
             "oauth2_client_id",
+            "oauth2_client_secret",
             "oauth2_redirect_url",
+        );
+
+        #! All OAuth2 options
+        const OAuth2Options = (
+            "oauth2_auto_refresh",
+            "oauth2_auth_args",
+            "oauth2_auth_url",
+            "oauth2_client_id",
+            "oauth2_client_secret",
+            "oauth2_redirect_url",
+            "oauth2_refresh_token",
+            "oauth2_scopes",
+            "oauth2_token_url",
+            "password",
+            "username",
         );
 
         #! RestClient feature: OAuth2 Auth Code support
@@ -2077,9 +2115,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         if (opts.oauth2_grant_type) {
             features{CF_UPDATE_OPTIONS} = True;
         }
-        if (opts.oauth2_grant_type == "authorization_code"
-            && (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size())) {
-            features{RCF_OAUTH2_AUTH_CODE} = True;
+        if (opts.oauth2_grant_type == "authorization_code") {
+            checkAuthCodeFeature();
         }
     }
 
@@ -2112,6 +2149,20 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
     #! returns \c "rest"
     string getType() {
         return "rest";
+    }
+
+    #! Returns OAuth2 options in a standard format
+    hash<auto> getOAuth2Options() {
+        return real_opts{OAuth2Options};
+    }
+
+    #! Processes the OAuth2 token response
+    hash<auto> processOAuth2TokenResponse(hash<auto> resp) {
+        *hash<auto> new_opts = processOAuth2TokenResponseImpl(resp);
+        if (new_opts && update_options) {
+            doUpdateOptions(self, new_opts);
+        }
+        return (real_opts - "url") + new_opts;
     }
 
     #! returns a data provider object for this connection
@@ -2233,6 +2284,25 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             return v ? "true" : "false";
         }
         return v;
+    }
+
+    #! Processes OAuth2 login responses and returns updated options
+    private *hash<auto> processOAuth2TokenResponseImpl(hash<auto> resp) {
+        hash<auto> new_opts;
+        if (resp.access_token != real_opts.token) {
+            new_opts.token = resp.access_token;
+        }
+        if (resp.refresh_token && resp.refresh_token != real_opts.oauth2_refresh_token) {
+            new_opts.oauth2_refresh_token = resp.refresh_token;
+        }
+        return new_opts;
+    }
+
+    #! Sets the auth code feature if supported
+    private checkAuthCodeFeature() {
+        if (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size()) {
+            features{RCF_OAUTH2_AUTH_CODE} = True;
+        }
     }
 
     #! returns a @ref RestClient::RestClient "RestClient" object
