@@ -131,12 +131,8 @@ public class CdsRestClient inherits RestClient::RestClient {
     }
 
     private:internal {
-        # for OAuth2-based access
-        string client_id;
-        string client_secret;
         string api;
         string tenant;
-        string scope;
         string uri_path_pfx;
     }
 
@@ -199,12 +195,9 @@ CdsRestClient rest({
         authentication or communication
     */
     constructor(hash<auto> opts, *softbool do_not_connect)
-            : RestClient(CdsRestClient::getOptions(opts), do_not_connect) {
-        # check for either the apikey or client id/secret options
-        if (opts.client_id && opts.client_secret) {
-            client_id = getString(opts, "client_id");
-            client_secret = getString(opts, "client_secret");
-        } else {
+            : RestClient(CdsRestClient::getOptions(opts), True) {
+        # check for the OAuth2 client id/secret options
+        if (!oauth2_client_id || !oauth2_client_secret) {
             raiseError("missing the \"client_id\" and \"client_secret\" options");
         }
         if (opts.tenant) {
@@ -213,8 +206,8 @@ CdsRestClient rest({
             raiseError("missing the \"tenant\" option");
         }
 
-        if (opts.scope) {
-            scope = getString(opts, "scope");
+        if (oauth2_token_url == "auto") {
+            oauth2_token_url = tenant + OAuth2TokenUriPathSuffix;
         }
 
         string version;
@@ -225,8 +218,12 @@ CdsRestClient rest({
         uri_path_pfx = RequestUriPathPrefix + api;
         setConnectionPath(uri_path_pfx);
 
-        if (client_id && !do_not_connect) {
-            loginIntern();
+        if (!do_not_connect) {
+            if (!token) {
+                loginIntern();
+            } else {
+                connect();
+            }
         }
     }
 
@@ -235,61 +232,9 @@ CdsRestClient rest({
         return api;
     }
 
-    #! returns the access token
-    *string getToken() {
-        return token;
-    }
-
-    hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True,
-            *hash<auto> hdr) {
-        if (client_id && !token) {
-            loginIntern(\info);
-        }
-        return RestClient::doRequest(m, path, body, \info, decode_errors, hdr);
-    }
-
-    #! performs authentication and authorization with SAP using the OAuth2 authorization URL
-    private loginIntern(*reference<hash<auto>> info) {
-        # clear connection path for login call
-        *string path = getConnectionPath();
-        on_exit setConnectionPath(path);
-        setConnectionPath();
-
-        string orig_url = getURL();
-        on_success setURL(orig_url);
-
-        if (!scope) {
-            hash<UrlInfo> h = parse_url(getURL());
-            scope = h.protocol + "://" + h.host + "/.default";
-        }
-
-        setURL(OAuth2AuthUrl);
-
-        hash<auto> login = self{"client_id", "client_secret",} + {
-            "grant_type": "client_credentials",
-            "scope": scope,
-        };
-
-        # restore the old serialization option on exit
-        string old_ds = ds;
-        on_exit
-            setSerialization(old_ds);
-
-        # use URL form encoding for the message body
-        setSerialization("url");
-
-        # make the authorization call
-        hash<auto> h = RestClient::doRequest("POST", tenant + OAuth2TokenUriPathSuffix, login, \info).body;
-        #printf("DEBUG: h: %N\n", h);
-
-        # set the token
-        token = h.access_token;
-        addDefaultHeaders({"Authorization": sprintf("%s %s", h.token_type, h.access_token)});
-        #printf("DEBUG: logged in with %y = %y\n", h.token_type, h.access_token);
-    }
-
     #! sends the outgoing HTTP message and recodes the response to data
-    private hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr, *reference<hash<auto>> info, *softbool decode_errors) {
+    private hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr,
+            *reference<hash<auto>> info, *softbool decode_errors) {
         try {
             return RestClient::sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
         } catch (hash<ExceptionInfo> ex) {
@@ -313,7 +258,8 @@ CdsRestClient rest({
             CdsRestClient::raiseError("missing required option %y in option argument", key);
         }
         if (v.typeCode() != NT_STRING) {
-            CdsRestClient::raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+            CdsRestClient::raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key,
+                v.type(), v);
         }
         return v;
     }
@@ -327,7 +273,15 @@ CdsRestClient rest({
     static hash<auto> getOptions(hash<auto> opts) {
         return opts + {
             "data": "json",
-        };
+        } + ((opts.client_id && opts.client_secret)
+            ? {
+                "oauth2_token_url": opts.oauth2_token_url ?? "auto",
+                "oauth2_grant_type": opts.oauth2_grant_type ?? "client_credentials",
+                "oauth2_client_id": opts.client_id,
+                "oauth2_client_secret": opts.client_secret,
+            }
+            : NOTHING
+        );
     }
 }
 
@@ -364,32 +318,73 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("CdsRestConnection"),
-            "options": RestConnection::ConnectionScheme.options + {
+            "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the API version for CDS",
                     "default_value": CdsRestClient::DefaultApiVersion,
                 },
-                "client_id": <ConnectionOptionInfo>{
-                    "type": "string",
+                "client_id": RestConnection::ConnectionScheme.options.oauth2_client_id + <ConnectionOptionInfo>{
                     "desc": "the Microsoft Common Data Service OAuth2 client ID",
                 },
-                "client_secret": <ConnectionOptionInfo>{
-                    "type": "string",
+                "client_secret": RestConnection::ConnectionScheme.options.oauth2_client_secret + <ConnectionOptionInfo>{
                     "desc": "the Microsoft Common Data Service OAuth2 client secret",
-                    "sensitive": True,
+                },
+                "data": RestConnection::ConnectionScheme.options."data" + <ConnectionOptionInfo>{
+                    "default_value": "json",
+                },
+                "oauth2_auth_url": RestConnection::ConnectionScheme.options.oauth2_auth_url + <ConnectionOptionInfo>{
+                    "default_value": CdsRestClient::OAuth2AuthUrl,
+                },
+                "oauth2_grant_type": RestConnection::ConnectionScheme.options.oauth2_grant_type + <ConnectionOptionInfo>{
+                    "default_value": "client_credentials",
+                },
+                "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url + <ConnectionOptionInfo>{
+                    "default_value": "auto",
                 },
                 "tenant": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the tenant ID",
                 },
-                "scope": <ConnectionOptionInfo>{
-                    "type": "string",
+                "oauth2_scopes": RestConnection::ConnectionScheme.options.oauth2_scopes + <ConnectionOptionInfo>{
                     "desc": "the OAuth2 scope for the login; the default it to use the target URL + `/.default`",
+                    "default_value": (
+                        "/.default",
+                    ),
                 },
             },
             "required_options": "client_id,client_secret,tenant",
         };
+
+        #! options required to support the OAuth2 authorization code grant flow
+        const OAuth2AuthRequestOptions = (
+            "client_id",
+            "client_secret",
+            "oauth2_auth_url",
+            "oauth2_token_url",
+            "oauth2_redirect_url",
+        );
+
+        #! Maps CDS REST options to standard options
+        const OAuth2Options = {
+            "oauth2_auto_refresh": "oauth2_auto_refresh",
+            "oauth2_auth_args": "oauth2_auth_args",
+            "oauth2_auth_url": "oauth2_auth_url",
+            "client_id": "oauth2_client_id",
+            "client_secret": "oauth2_client_secret",
+            "oauth2_redirect_url": "oauth2_redirect_url",
+            "oauth2_refresh_token": "oauth2_refresh_token",
+            "oauth2_scopes": "oauth2_scopes",
+            "oauth2_token_url": "oauth2_token_url",
+            "password": "password",
+            "username": "username",
+        };
+
+        #! Maps standard option names to CDS REST option names
+        const OAuth2StandardToCdsOptionMap = map {$1.value: $1.key}, OAuth2Options.pairIterator();
+
+        #! Different OAuth2 option map; standard name => our name
+        const OAuth2DifferentOptionMap = map {$1.value: $1.key}, OAuth2Options.pairIterator(), $1.key != $1.value;
     }
 
     #! creates the CdsRestConnection object
@@ -432,6 +427,24 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         # object dynamically
         load_module("CdsRestDataProvider");
         return create_object("CdsRestDataProvider", get());
+    }
+
+    #! Returns the OAuth2 option name for this connection
+    /** @since %CdsRestClient 2.0
+    */
+    string getOAuth2OptionName(string opt) {
+        return OAuth2StandardToCdsOptionMap{opt} ?? opt;
+    }
+
+    #! Returns OAuth2 options in a standard format
+    /** @since %CdsRestClient 2.0
+    */
+    hash<auto> getOAuth2Options() {
+        hash<auto> rv;
+        foreach hash<auto> i in (OAuth2Options.pairIterator()) {
+            rv{i.value} = real_opts{i.key};
+        }
+        return rv;
     }
 
     #! Sets child data provider capabilities

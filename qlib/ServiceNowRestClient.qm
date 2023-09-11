@@ -141,11 +141,7 @@ public class ServiceNowRestClient inherits RestClient::RestClient {
     }
 
     private:internal {
-        # for OAuth2-based access
-        string client_id;
-        string client_secret;
         *string api;
-        string scope;
         string uri_path_pfx;
     }
 
@@ -218,7 +214,7 @@ ServiceNowRestClient rest({
         setConnectionPath(uri_path_pfx);
 
         if (!do_not_connect) {
-            if (client_id) {
+            if (oauth2_client_id && !token) {
                 loginIntern();
             } else {
                 connect();
@@ -304,25 +300,20 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("ServiceNowRestConnection"),
-            "options": RestConnection::ConnectionScheme.options + {
+            "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the API version for ServiceNow; if not set the latest version is used",
                     "default_value": ServiceNowRestClient::DefaultApiVersion,
                 },
-                "client_id": <ConnectionOptionInfo>{
-                    "type": "string",
+                "client_id": RestConnection::ConnectionScheme.options.oauth2_client_id + <ConnectionOptionInfo>{
                     "desc": "the ServiceNow OAuth2 client ID",
                 },
-                "client_secret": <ConnectionOptionInfo>{
-                    "type": "string",
+                "client_secret": RestConnection::ConnectionScheme.options.oauth2_client_secret + <ConnectionOptionInfo>{
                     "desc": "the ServiceNow OAuth2 client secret",
-                    "sensitive": True,
                 },
-                "password": <ConnectionOptionInfo>{
-                    "type": "string",
+                "password": RestConnection::ConnectionScheme.options.password + <ConnectionOptionInfo>{
                     "desc": "the ServiceNow password",
-                    "sensitive": True,
                 },
                 "ping_headers": RestConnection::ConnectionScheme.options."ping_headers" + <ConnectionOptionInfo>{
                     "default_value": DefaultServiceNowPingHeaders,
@@ -333,12 +324,11 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
                 "ping_path": RestConnection::ConnectionScheme.options."ping_path" + <ConnectionOptionInfo>{
                     "default_value": DefaultServiceNowPingPath,
                 },
-                "username": <ConnectionOptionInfo>{
-                    "type": "string",
+                "username": RestConnection::ConnectionScheme.options.username + <ConnectionOptionInfo>{
                     "desc": "the ServiceNow username",
                 },
             },
-            "required_options": "username,password",
+            "required_options": "username,password|token",
         };
 
         #! Default ServiceNow ping method
@@ -353,6 +343,36 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         const DefaultServiceNowPingHeaders = {
             "Accept": MimeTypeJson,
         };
+
+        #! options required to support the OAuth2 authorization code grant flow
+        const OAuth2AuthRequestOptions = (
+            "client_id",
+            "client_secret",
+            "oauth2_auth_url",
+            "oauth2_token_url",
+            "oauth2_redirect_url",
+        );
+
+        #! Maps ServiceNow REST options to standard options
+        const OAuth2Options = {
+            "oauth2_auto_refresh": "oauth2_auto_refresh",
+            "oauth2_auth_args": "oauth2_auth_args",
+            "oauth2_auth_url": "oauth2_auth_url",
+            "client_id": "oauth2_client_id",
+            "client_secret": "oauth2_client_secret",
+            "oauth2_redirect_url": "oauth2_redirect_url",
+            "oauth2_refresh_token": "oauth2_refresh_token",
+            "oauth2_scopes": "oauth2_scopes",
+            "oauth2_token_url": "oauth2_token_url",
+            "password": "password",
+            "username": "username",
+        };
+
+        #! Maps standard option names to ServiceNow REST option names
+        const OAuth2StandardToServiceNowOptionMap = map {$1.value: $1.key}, OAuth2Options.pairIterator();
+
+        #! Different OAuth2 option map; standard name => our name
+        const OAuth2DifferentOptionMap = map {$1.value: $1.key}, OAuth2Options.pairIterator(), $1.key != $1.value;
     }
 
     #! creates the ServiceNowRestConnection object
@@ -395,6 +415,24 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
         # object dynamically
         load_module("ServiceNowRestDataProvider");
         return create_object("ServiceNowRestDataProvider", get());
+    }
+
+    #! Returns the OAuth2 option name for this connection
+    /** @since %ServiceNowRestClient 2.0
+    */
+    string getOAuth2OptionName(string opt) {
+        return OAuth2StandardToServiceNowOptionMap{opt} ?? opt;
+    }
+
+    #! Returns OAuth2 options in a standard format
+    /** @since %ServiceNowRestClient 2.0
+    */
+    hash<auto> getOAuth2Options() {
+        hash<auto> rv;
+        foreach hash<auto> i in (OAuth2Options.pairIterator()) {
+            rv{i.value} = real_opts{i.key};
+        }
+        return rv;
     }
 
     #! Called to start a non-blocking polling ping operation on the ServiceNow REST server

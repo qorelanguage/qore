@@ -175,6 +175,12 @@ public class ConnectionProviderTest inherits QUnit::Test {
         };
         InvalidConnection ic2("name", "desc", "url", attributes);
         assertEq(attributes.error, ic2.error);
+
+        {
+            string url = "https://example.com";
+            InvalidConnection c("x", "x", url);
+            assertEq(url, c.getInfo().url);
+        }
     }
 
     customParseUrlTest() {

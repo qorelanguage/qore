@@ -68,7 +68,7 @@ class SalesforceTest inherits QUnit::Test {
             setupConnection();
         } catch (hash<ExceptionInfo> ex) {
             if (m_options.verbose) {
-                printf("%s: %s\n", ex.err, ex.desc);
+                printf("%s\n", get_exception_string(ex));
             }
         }
 
@@ -112,6 +112,7 @@ class SalesforceTest inherits QUnit::Test {
 
         SalesforceRestConnection sfrc("test", "test", rc.getURL(), {}, sfopts);
         assertEq(True, sfrc instanceof SalesforceRestConnection);
+        sfrc.setLogger(logger);
 
         TestPollingConnectionMonitor monitor(logger);
         on_exit delete monitor;
@@ -205,7 +206,7 @@ class SalesforceTest inherits QUnit::Test {
 
     connectionTest() {
         string url = sprintf("http://%s:%s@localhost:8080", sfopts.username, sfopts.password);
-        remove sfopts.("username", "password");
+        remove sfopts{"username", "password"};
         SalesforceRestConnection swsc("test", "test", url, {}, sfopts);
         assertEq(True, swsc instanceof SalesforceRestConnection);
 
