@@ -58,26 +58,15 @@ public namespace ConnectionProvider {
 
                 - \c error a custom error string
          */
-        constructor(string name, string description, string url, hash attributes = {}, hash options = {})
+        constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
                 : AbstractConnection(name, description, url, attributes, options) {
             if (attributes.error.val()) {
                 self.error = attributes.error;
             }
         }
 
-        #! Parse the URL to a hash
-        /** @param url a string with url
-            @return hash with url - string as url
-
-            The reason for this is to avoid a unwanted Qore::parse_url() call in connections
-            with custom parseUrl() implementation.
-         */
-        private hash parseUrl(string url) {
-            return {"url": url};
-        }
-
         #! throws an exception because the object is invalid
-        private object getImpl(bool connect = True, *hash rtopts) {
+        private object getImpl(bool connect = True, *hash<auto> rtopts) {
             throw "INVALID-CONNECTION", sprintf("connection %y (type %y url %y) is invalid and therefore could not "
                 "be loaded: %s", name, urlh.protocol, url, error);
         }

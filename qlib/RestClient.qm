@@ -1590,8 +1590,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
         if (grant_type == "password") {
             login += {
-                "username": getUsername(),
-                "password": getPassword(),
+                "username": username ?? getUsername(),
+                "password": password ?? getPassword(),
             };
         }
         return login;
@@ -2110,6 +2110,12 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
         real_opts = {"url": real_url} + opts;
+        if (urlh.username.val() && !opts.username) {
+            real_opts.username = urlh.username;
+        }
+        if (urlh.password.val() && !opts.password) {
+            real_opts.password = urlh.password;
+        }
 
         # setup feature list appropriately
         if (opts.oauth2_grant_type) {
@@ -2118,6 +2124,13 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         if (opts.oauth2_grant_type == "authorization_code") {
             checkAuthCodeFeature();
         }
+    }
+
+    #! Returns the OAuth2 option name for this connection
+    /** @since %RestClient 2.0
+    */
+    string getOAuth2OptionName(string opt) {
+        return opt;
     }
 
     #! Returns an unconnected object for a non-blocking poll operation
@@ -2152,11 +2165,15 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
     }
 
     #! Returns OAuth2 options in a standard format
+    /** @since %RestClient 2.0
+    */
     hash<auto> getOAuth2Options() {
         return real_opts{OAuth2Options};
     }
 
     #! Processes the OAuth2 token response
+    /** @since %RestClient 2.0
+    */
     hash<auto> processOAuth2TokenResponse(hash<auto> resp) {
         *hash<auto> new_opts = processOAuth2TokenResponseImpl(resp);
         if (new_opts && update_options) {
@@ -2259,14 +2276,19 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                 "authorization code request URI", opts.oauth2_grant_type);
         }
         foreach string key in (OAuth2AuthRequestOptions) {
-            if (!opts{key}.val()) {
+            string optname = getOAuth2OptionName(key);
+            if (!opts{optname}.val()) {
                 throw "OAUTH2-ERROR", sprintf("option %y is not set; this option must be set to retrieve an "
-                    "authorization code request URI", key);
+                    "authorization code request URI", optname);
             }
         }
+        # get local names for options
+        string oauth2_auth_url_opt = getOAuth2OptionName("oauth2_auth_url");
+        string oauth2_client_id_opt = getOAuth2OptionName("oauth2_client_id");
+
         *string scope = info.scopes ? (foldl $1 + " " + $2, info.scopes) : NOTHING;
-        string uri = sprintf("%s?scope=%s&redirect_uri=%s&client_id=%s&response_type=%s", opts.oauth2_auth_url,
-            scope, info.redirect_uri ?? opts.oauth2_redirect_url, opts.oauth2_client_id, info.response_type);
+        string uri = sprintf("%s?scope=%s&redirect_uri=%s&client_id=%s&response_type=%s", opts{oauth2_auth_url_opt},
+            scope, info.redirect_uri ?? opts.oauth2_redirect_url, opts{oauth2_client_id_opt}, info.response_type);
         # add any optional auth args
         map uri += sprintf("&%s=%s", $1.key, getUriValue($1.value)), opts.oauth2_auth_args.pairIterator();
         if (info.state) {
@@ -2484,6 +2506,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
             if (state == SPS_GET_SWAGGER) {
                 # create Swagger validator from file
                 rc.setValidator(SwaggerLoader::fromString(poller.getOutput().toString()));
+                rc.debug("ping: set Swagger schema for %y", rc.getValidator().getTargetUrl());
                 if (rc.requiresOAuth2Token()) {
                     doStartGetToken();
                 } else {
@@ -2547,6 +2570,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
     }
 
     private gotOAuth2LoginInfo(hash<auto> h) {
+        rc.debug("ping: got OAuth2 login response: %y", h);
         rc.gotOAuth2LoginInfo(h);
         doStartPing();
     }

@@ -599,7 +599,7 @@ scheme://user:pass@hostname:port/path
                     type = Type::String;
                 }
                 string vtype = i.value.type();
-                if (type != "any" && vtype != type) {
+                if (type != "any" && type != "auto" && vtype != type) {
                     if (type == Type::Int && i.value.intp()) {
                         options{i.key} = i.value.toInt();
                         continue;
