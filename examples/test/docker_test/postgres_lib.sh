@@ -1,7 +1,7 @@
 #!/bin/sh
 
 start_postgres() {
-    docker run --name=postgres --network=host -e POSTGRES_PASSWORD=omq -e TZ=Europe/Prague -e PGTZ=Europe/Prague -d postgres:13
+    docker run --name=postgres --network=host -e POSTGRES_PASSWORD=omq -e TZ=Europe/Prague -e PGTZ=Europe/Prague -d postgres:15
 
     # wait for PostgreSQL server to start
     printf "waiting on PostgreSQL server: "
@@ -34,7 +34,7 @@ start_postgres() {
     qore -nX "(new Datasource(\"${QORE_DB_CONNSTR_PGSQL}\")).getServerVersion()"
 }
 
-setup_postgres_on_rippy() {
+setup_postgres_on_host() {
     # add env vars to environment file and load it
     # NOTE: must convert to lower case only, or the psql commands below will fail
     user=omq_test_`qore -lUtil -ne 'printf("%s", get_random_string(10));' | tr A-Z a-z`
@@ -48,8 +48,17 @@ setup_postgres_on_rippy() {
 
     . /tmp/env.sh
 
+    # if we have a password for the local postgres user, then use it and connect to localhost as well
+    if [ -n "${POSTGRES_PASSWORD_MAP}" ]; then
+        PGPASSWORD=`qore -l Util -ne "printf(\"%s\", parse_to_qore_value(\"${POSTGRES_PASSWORD_MAP}\"){\"${RUNNER_HOST:=host}\"});"`
+        if [ -n "${PGPASSWORD}" ]; then
+            export PGPASSWORD
+            export PSQL_ARGS=" -h ${RUNNER_HOST:=host}"
+        fi
+    fi
+
     # create user for test
-    cat <<EOF | psql -Upostgres
+    cat <<EOF | psql -Upostgres ${PSQL_ARGS}
 create database ${OMQ_DB_NAME} encoding = 'utf8';
 \connect ${OMQ_DB_NAME};
 create user ${OMQ_DB_USER} password 'omq';
@@ -64,11 +73,11 @@ EOF
     # make sure we can access the DB
     qore -nX "(new Datasource(\"${QORE_DB_CONNSTR_PGSQL}\")).getServerVersion()"
 
-    export POSTGRES_RIPPY=1
+    export POSTGRES_HOST=1
 }
 
-cleanup_postgres_on_rippy() {
-    if [ "${POSTGRES_RIPPY}" = "1" ]; then
+cleanup_postgres_on_host() {
+    if [ "${POSTGRES_HOST}" = "1" ]; then
         # drop postgresql test user
         cat <<EOF | psql -Upostgres
 drop owned by ${OMQ_DB_USER};
