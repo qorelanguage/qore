@@ -46,16 +46,16 @@ setup_postgres_on_host() {
     echo export QORE_DB_CONNSTR_PGSQL=${systemdb} >> /tmp/env.sh
     echo export QORE_DB_CONNSTR=${systemdb} >> /tmp/env.sh
 
-    . /tmp/env.sh
-
     # if we have a password for the local postgres user, then use it and connect to localhost as well
     if [ -n "${POSTGRES_PASSWORD_MAP}" ]; then
         PGPASSWORD=`qore -l Util -ne "printf(\"%s\", parse_to_qore_value(\"${POSTGRES_PASSWORD_MAP}\"){\"${RUNNER_HOST:=host}\"});"`
         if [ -n "${PGPASSWORD}" ]; then
-            export PGPASSWORD
-            export PSQL_ARGS=" -h ${RUNNER_HOST:=host}"
+            echo export PGPASSWORD=${PGPASSWORD} >> /tmp/env.sh
+            echo export PSQL_ARGS=" -h ${RUNNER_HOST:=host}" >> /tmp/env.sh
         fi
     fi
+
+    . /tmp/env.sh
 
     # create user for test
     cat <<EOF | psql -Upostgres ${PSQL_ARGS}
@@ -79,7 +79,7 @@ EOF
 cleanup_postgres_on_host() {
     if [ "${POSTGRES_HOST}" = "1" ]; then
         # drop postgresql test user
-        cat <<EOF | psql -Upostgres
+        cat <<EOF | psql -Upostgres ${PSQL_ARGS}
 drop owned by ${OMQ_DB_USER};
 drop database ${OMQ_DB_NAME} with (force);
 drop role ${OMQ_DB_USER};
