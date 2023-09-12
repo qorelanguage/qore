@@ -499,6 +499,10 @@ public class Main inherits QUnit::Test {
                     "access_type": "offline",
                     "include_granted_scopes": True,
                 },
+                "oauth2_scopes": (
+                    "scope1",
+                    "scope2",
+                ),
             });
 
             assertEq("yaml", rc.getRealOptions()."data");
@@ -506,6 +510,7 @@ public class Main inherits QUnit::Test {
             assertTrue(uri.equalPartialPath(auth_uri));
             assertRegex("&access_type=offline", uri);
             assertRegex("&include_granted_scopes=true", uri);
+            assertRegex("scope1%20scope2", uri);
             hash<ConnectionInfo> cinfo = rc.getInfo();
             assertTrue(cinfo.features{AbstractConnection::CF_UPDATE_OPTIONS});
             assertTrue(cinfo.features{RestConnection::RCF_OAUTH2_AUTH_CODE});

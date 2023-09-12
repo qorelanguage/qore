@@ -280,7 +280,7 @@ public hashdecl AuthCodeInfo {
     #! To override the redirect_uri; if not set, the \c oauth2_redirect_url option will be used instead
     *string redirect_uri;
 
-    #! Scopes to use in the request
+    #! Scopes to use in the request; if not set, the \c oauth2_scopes option will be used instead
     *list<string> scopes;
 
     #! The state value to use in the request
@@ -2286,7 +2286,11 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         string oauth2_auth_url_opt = getOAuth2OptionName("oauth2_auth_url");
         string oauth2_client_id_opt = getOAuth2OptionName("oauth2_client_id");
 
-        *string scope = info.scopes ? (foldl $1 + " " + $2, info.scopes) : NOTHING;
+        *list<auto> scopes = info.hasKey("scopes") ? info.scopes : real_opts.oauth2_scopes;
+        *string scope = scopes ? (foldl $1 + " " + $2, scopes) : NOTHING;
+        if (scope.val()) {
+            scope = encode_url(scope);
+        }
         string uri = sprintf("%s?scope=%s&redirect_uri=%s&client_id=%s&response_type=%s", opts{oauth2_auth_url_opt},
             scope, info.redirect_uri ?? opts.oauth2_redirect_url, opts{oauth2_client_id_opt}, info.response_type);
         # add any optional auth args
