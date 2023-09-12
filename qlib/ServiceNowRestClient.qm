@@ -311,9 +311,11 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
                 },
                 "client_secret": RestConnection::ConnectionScheme.options.oauth2_client_secret + <ConnectionOptionInfo>{
                     "desc": "the ServiceNow OAuth2 client secret",
+                    "sensitive": True,
                 },
                 "password": RestConnection::ConnectionScheme.options.password + <ConnectionOptionInfo>{
                     "desc": "the ServiceNow password",
+                    "sensitive": True,
                 },
                 "ping_headers": RestConnection::ConnectionScheme.options."ping_headers" + <ConnectionOptionInfo>{
                     "default_value": DefaultServiceNowPingHeaders,

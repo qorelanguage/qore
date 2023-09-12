@@ -279,6 +279,7 @@ public class BillwerkRestConnection inherits RestClient::RestConnection {
                 "client_secret": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the client secret",
+                    "sensitive": True,
                 },
             },
             "required_options": foldl $1 + "," + $2, BillwerkRestClient::RequiredOptions,

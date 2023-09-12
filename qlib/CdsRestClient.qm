@@ -329,6 +329,7 @@ public class CdsRestConnection inherits RestClient::RestConnection {
                 },
                 "client_secret": RestConnection::ConnectionScheme.options.oauth2_client_secret + <ConnectionOptionInfo>{
                     "desc": "the Microsoft Common Data Service OAuth2 client secret",
+                    "sensitive": True,
                 },
                 "data": RestConnection::ConnectionScheme.options."data" + <ConnectionOptionInfo>{
                     "default_value": "json",
