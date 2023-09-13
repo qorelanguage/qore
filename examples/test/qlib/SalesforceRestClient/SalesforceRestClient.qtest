@@ -237,6 +237,21 @@ class SalesforceTest inherits QUnit::Test {
             assertTrue(cinfo.features{AbstractConnection::CF_UPDATE_OPTIONS});
             assertTrue(cinfo.features{RestConnection::RCF_OAUTH2_AUTH_CODE});
         }
+
+        {
+            SalesforceRestConnection rc("test", "test", "http://localhost", {}, {
+                "oauth2_grant_type": "authorization_code",
+                "client_id": get_random_string(),
+                "client_secret": get_random_string(),
+                "oauth2_redirect_url": "cloud",
+            });
+            assertEq("json", rc.getRealOptions()."data");
+            string uri = rc.getAuthorizationCodeRequest();
+            assertTrue(uri.equalPartialPath(SalesforceRestClient::Defaults.oauth_url_auth));
+            hash<ConnectionInfo> cinfo = rc.getInfo();
+            assertTrue(cinfo.features{AbstractConnection::CF_UPDATE_OPTIONS});
+            assertTrue(cinfo.features{RestConnection::RCF_OAUTH2_AUTH_CODE});
+        }
     }
 }
 

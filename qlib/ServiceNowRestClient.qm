@@ -130,6 +130,12 @@ public namespace ServiceNowRestClient {
 */
 public class ServiceNowRestClient inherits RestClient::RestClient {
     public {
+        #! OAuth2 default grant type
+        const OAuth2DefaultGrantType = "authorization_code";
+
+        #! OAuth2 auth URL
+        const OAuth2AuthUriPathSuffix = "/oauth_auth.do";
+
         #! OAuth2 token URI path suffix
         const OAuth2TokenUriPathSuffix = "/oauth_token.do";
 
@@ -276,8 +282,9 @@ ServiceNowRestClient rest({
             "data": "json",
         } + ((opts.client_id && opts.client_secret)
             ? {
-                "oauth2_token_url": OAuth2TokenUriPathSuffix,
-                "oauth2_grant_type": "password",
+                "oauth2_auth_url": opts.oauth2_auth_url ?? OAuth2AuthUriPathSuffix,
+                "oauth2_token_url": opts.oauth2_token_url ?? OAuth2TokenUriPathSuffix,
+                "oauth2_grant_type": opts.oauth2_grant_type ?? OAuth2DefaultGrantType,
                 "oauth2_client_id": opts.client_id,
                 "oauth2_client_secret": opts.client_secret,
             }
@@ -312,6 +319,15 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
                 "client_secret": RestConnection::ConnectionScheme.options.oauth2_client_secret + <ConnectionOptionInfo>{
                     "desc": "the ServiceNow OAuth2 client secret",
                     "sensitive": True,
+                },
+                "oauth2_auth_url": RestConnection::ConnectionScheme.options.oauth2_auth_url + <ConnectionOptionInfo>{
+                    "default_value": ServiceNowRestClient::OAuth2AuthUriPathSuffix,
+                },
+                "oauth2_grant_type": RestConnection::ConnectionScheme.options.oauth2_grant_type + <ConnectionOptionInfo>{
+                    "default_value": ServiceNowRestClient::OAuth2DefaultGrantType,
+                },
+                "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url + <ConnectionOptionInfo>{
+                    "default_value": ServiceNowRestClient::OAuth2TokenUriPathSuffix,
                 },
                 "password": RestConnection::ConnectionScheme.options.password + <ConnectionOptionInfo>{
                     "desc": "the ServiceNow password",

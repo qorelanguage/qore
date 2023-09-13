@@ -1575,8 +1575,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     */
     private hash<auto> getOAuth2LoginInfo(string grant_type) {
         if (grant_type == "authorization_code") {
-            throw "OAUTH2-ERROR", sprintf("the 'authorization_code' grant type can only be handled externally; "
-                "it requires user authorization with the authorization server (rt: %y)", refresh_token);
+            throw "OAUTH2-ERROR", "the 'authorization_code' grant type can only be handled externally; it requires "
+                "user authorization with the authorization server";
         }
         hash<auto> login = {
             "client_id": oauth2_client_id,
