@@ -64,9 +64,9 @@ public:
     }
 
     DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList,
-            const arg_vec_t& n_defaultArgList, const name_vec_t& n_names)
+            const arg_vec_t& n_defaultArgList, const name_vec_t& n_names, bool varargs)
             : returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList),
-                names(n_names) {
+                names(n_names), varargs(varargs) {
     }
 
     DLLLOCAL virtual ~AbstractFunctionSignature() {
@@ -126,6 +126,12 @@ public:
             if (i != typeList.size() - 1) {
                 str.append(", ");
             }
+        }
+        if (varargs) {
+            if (!typeList.empty()) {
+                str.append(", ");
+            }
+            str.append("...");
         }
     }
 

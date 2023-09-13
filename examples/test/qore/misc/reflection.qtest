@@ -97,6 +97,10 @@ class CTestComplex {
     constructor(hash<auto> h) {}
 }
 
+int sub ftest(int i, ...) {
+    return 1;
+}
+
 class ReflectionTest inherits QUnit::Test {
     constructor() : QUnit::Test("ReflectionTest", "1.0") {
         addTestCase("ns path test", \nsPathTest());
@@ -336,6 +340,13 @@ class ReflectionTest inherits QUnit::Test {
             assertEq("Test2", n.getName());
             n = TypedHash::findAllRegex(p, "^Tes[tuv]2")[0];
             assertEq("Test2", n.getName());
+        }
+
+        {
+            Function f = Function::forName("ftest");
+            FunctionVariant v = f.getVariants()[0];
+            assertEq("int i, ...", v.getParamString());
+            assertEq("int ftest(int i, ...)", v.toString());
         }
     }
 
@@ -594,6 +605,7 @@ class ReflectionTest inherits QUnit::Test {
         v = Class::forName("File").getMethod("printf").getVariants()[0];
         assertEq(CF_USES_EXTRA_ARGS, v.getCodeFlags());
         assertEq(("USES_EXTRA_ARGS",), v.getCodeFlagList());
+        assertEq("string fmt, ...", v.getParamString());
 
         {
             ConstructorMethodVariant conv = c.getConstructorVariant();

@@ -331,10 +331,12 @@ public:
 class CopyMethodVariant : public MethodVariantBase {
 protected:
 public:
-   DLLLOCAL CopyMethodVariant(ClassAccess n_access, bool n_is_user = false) : MethodVariantBase(n_access, false, QCF_NO_FLAGS, n_is_user) {
-   }
+    DLLLOCAL CopyMethodVariant(ClassAccess n_access, bool n_is_user = false)
+            : MethodVariantBase(n_access, false, QCF_NO_FLAGS, n_is_user) {
+    }
 
-   DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old, CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const = 0;
+    DLLLOCAL virtual void evalCopy(const QoreClass &thisclass, QoreObject* self, QoreObject* old,
+            CodeEvaluationHelper& ceh, BCList* scl, ExceptionSink* xsink) const = 0;
 };
 
 #define COPYMV(f) (reinterpret_cast<CopyMethodVariant*>(f))
@@ -391,25 +393,29 @@ public:
 
 class UserConstructorVariant : public ConstructorMethodVariant, public UserVariantBase {
 protected:
-   // base class argument list for constructors
-   BCAList* bcal;
+    // base class argument list for constructors
+    BCAList* bcal;
 
-   DLLLOCAL virtual ~UserConstructorVariant();
+    DLLLOCAL virtual ~UserConstructorVariant();
 
 public:
-   DLLLOCAL UserConstructorVariant(ClassAccess n_access, StatementBlock* b, int n_sig_first_line, int n_sig_last_line, QoreValue params, BCAList* n_bcal, int64 n_flags = QCF_NO_FLAGS) : ConstructorMethodVariant(n_access, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, nullptr, false), bcal(n_bcal) {
-   }
+    DLLLOCAL UserConstructorVariant(ClassAccess n_access, StatementBlock* b, int n_sig_first_line, int n_sig_last_line,
+            QoreValue params, BCAList* n_bcal, int64 n_flags = QCF_NO_FLAGS)
+            : ConstructorMethodVariant(n_access, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line,
+                params, nullptr, false), bcal(n_bcal) {
+    }
 
-   // the following defines the pure virtual functions that are common to all user variants
-   COMMON_USER_VARIANT_FUNCTIONS
+    // the following defines the pure virtual functions that are common to all user variants
+    COMMON_USER_VARIANT_FUNCTIONS
 
-   DLLLOCAL virtual const BCAList* getBaseClassArgumentList() const {
-      return bcal;
-   }
+    DLLLOCAL virtual const BCAList* getBaseClassArgumentList() const {
+        return bcal;
+    }
 
-   DLLLOCAL virtual void evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper& ceh, BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
+    DLLLOCAL virtual void evalConstructor(const QoreClass& thisclass, QoreObject* self, CodeEvaluationHelper& ceh,
+        BCList* bcl, BCEAList* bceal, ExceptionSink* xsink) const;
 
-   DLLLOCAL virtual int parseInit(QoreFunction* f);
+    DLLLOCAL virtual int parseInit(QoreFunction* f);
 };
 
 #define UCONV(f) (reinterpret_cast<UserConstructorVariant*>(f))
@@ -418,7 +424,9 @@ public:
 class UserDestructorVariant : public DestructorMethodVariant, public UserVariantBase {
 protected:
 public:
-    DLLLOCAL UserDestructorVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line) : DestructorMethodVariant(true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, QoreValue(), nullptr, false) {
+    DLLLOCAL UserDestructorVariant(StatementBlock* b, int n_sig_first_line, int n_sig_last_line)
+            : DestructorMethodVariant(true), UserVariantBase(b, n_sig_first_line, n_sig_last_line, QoreValue(),
+                nullptr, false) {
     }
 
     // the following defines the pure virtual functions that are common to all user variants
@@ -471,7 +479,11 @@ public:
 
 class BuiltinMethodVariant : public MethodVariant, public BuiltinFunctionVariantBase {
 public:
-   DLLLOCAL BuiltinMethodVariant(ClassAccess n_access, bool n_final, int64 n_flags, int64 n_functionality, const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : MethodVariant(n_access, n_final, n_flags), BuiltinFunctionVariantBase(n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {}
+   DLLLOCAL BuiltinMethodVariant(ClassAccess n_access, bool n_final, int64 n_flags, int64 n_functionality,
+        const QoreTypeInfo* n_returnTypeInfo, const type_vec_t &n_typeList = type_vec_t(),
+        const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t())
+        : MethodVariant(n_access, n_final, n_flags),
+            BuiltinFunctionVariantBase(n_flags, n_functionality, n_returnTypeInfo, n_typeList, n_defaultArgList, n_names) {}
 
    // the following defines the pure virtual functions that are common to all builtin variants
    COMMON_BUILTIN_VARIANT_FUNCTIONS
@@ -559,7 +571,11 @@ public:
 class BuiltinConstructorVariantBase : public ConstructorMethodVariant, public BuiltinFunctionVariantBase {
 public:
     // return type info is set to 0 because the new operator actually returns the new object, not the constructor
-    DLLLOCAL BuiltinConstructorVariantBase(ClassAccess n_access, int64 n_flags = QCF_USES_EXTRA_ARGS, int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(), const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t()) : ConstructorMethodVariant(n_access, n_flags), BuiltinFunctionVariantBase(n_functionality, 0, n_typeList, n_defaultArgList, n_names) {
+    DLLLOCAL BuiltinConstructorVariantBase(ClassAccess n_access, int64 n_flags = QCF_USES_EXTRA_ARGS,
+            int64 n_functionality = QDOM_DEFAULT, const type_vec_t &n_typeList = type_vec_t(),
+            const arg_vec_t &n_defaultArgList = arg_vec_t(), const name_vec_t& n_names = name_vec_t())
+            : ConstructorMethodVariant(n_access, n_flags),
+            BuiltinFunctionVariantBase(n_flags, n_functionality, 0, n_typeList, n_defaultArgList, n_names) {
     }
 
     // the following defines the pure virtual functions that are common to all builtin variants
@@ -625,7 +641,9 @@ public:
 class BuiltinCopyVariantBase : public CopyMethodVariant, public BuiltinFunctionVariantBase {
 protected:
 public:
-    DLLLOCAL BuiltinCopyVariantBase(const QoreClass* c) : CopyMethodVariant(Public), BuiltinFunctionVariantBase(QDOM_DEFAULT, c->getTypeInfo()) {
+    DLLLOCAL BuiltinCopyVariantBase(const QoreClass* c)
+        : CopyMethodVariant(Public),
+        BuiltinFunctionVariantBase(0, QDOM_DEFAULT, c->getTypeInfo()) {
     }
 
     // the following defines the pure virtual functions that are common to all builtin variants

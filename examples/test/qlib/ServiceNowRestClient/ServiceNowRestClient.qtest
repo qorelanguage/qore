@@ -243,6 +243,7 @@ class ServiceNowTest inherits QUnit::Test {
     connectionTest() {
         string url = "http://localhost:8080";
         ServiceNowRestConnection swsc("test", "test", url, {}, {
+            "oauth2_grant_type": "password",
             "client_id": "x",
             "client_secret": "x",
             "username": "x",
