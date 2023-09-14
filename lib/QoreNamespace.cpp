@@ -360,7 +360,7 @@ void qore_ns_private::runtimeImportSystemClasses(const qore_ns_private& source, 
             qore_ns_private* npns = new qore_ns_private(i->first.c_str(), *i->second->priv);
             nns = npns->ns;
             nns->priv->imported = true;
-            nsl.runtimeAdd(nns, this);
+            nns = nsl.runtimeAdd(nns, this)->ns;
         }
 
         nns->priv->runtimeImportSystemClasses(*i->second->priv, rns, xsink);
@@ -385,7 +385,7 @@ void qore_ns_private::runtimeImportSystemHashDecls(const qore_ns_private& source
             qore_ns_private* npns = new qore_ns_private(i->first.c_str(), *i->second->priv);
             nns = npns->ns;
             nns->priv->imported = true;
-            nsl.runtimeAdd(nns, this);
+            nns = nsl.runtimeAdd(nns, this)->ns;
         }
 
         nns->priv->runtimeImportSystemHashDecls(*i->second->priv, rns, xsink);
@@ -410,7 +410,7 @@ void qore_ns_private::runtimeImportSystemConstants(const qore_ns_private& source
             qore_ns_private* npns = new qore_ns_private(i->first.c_str(), *i->second->priv);
             nns = npns->ns;
             nns->priv->imported = true;
-            nsl.runtimeAdd(nns, this);
+            nns = nsl.runtimeAdd(nns, this)->ns;
         }
 
         nns->priv->runtimeImportSystemConstants(*i->second->priv, rns, xsink);
@@ -435,7 +435,7 @@ void qore_ns_private::runtimeImportSystemFunctions(const qore_ns_private& source
             qore_ns_private* npns = new qore_ns_private(i->first.c_str(), *i->second->priv);
             nns = npns->ns;
             nns->priv->imported = true;
-            nsl.runtimeAdd(nns, this);
+            nns = nsl.runtimeAdd(nns, this)->ns;
         }
 
         nns->priv->runtimeImportSystemFunctions(*i->second->priv, rns, xsink);
@@ -485,7 +485,7 @@ void qore_ns_private::addModuleNamespace(qore_ns_private* nns, QoreModuleContext
 void qore_ns_private::addCommitNamespaceIntern(qore_ns_private* nns) {
     assert(!classList.find(nns->name.c_str()));
 
-    nsl.runtimeAdd(nns->ns, this);
+    nns = nsl.runtimeAdd(nns->ns, this);
 
     assert(nns->parent == this);
 
@@ -869,7 +869,7 @@ QoreNamespace* qore_ns_private::findCreateNamespace(const char* nsn, bool user, 
         if (user) {
             ns->priv->builtin = false;
         }
-        nsl.runtimeAdd(ns, this);
+        ns = nsl.runtimeAdd(ns, this)->ns;
         is_new = true;
         // add to namespace map if attached
         if (rns)
@@ -2896,7 +2896,7 @@ void qore_ns_private::copyMergeCommittedNamespace(const qore_ns_private& mns) {
             nns->priv->imported = true;
 
             //printd(5, "qore_ns_private::copyMergeCommittedNamespace() this: %p '%s::' merged %p '%s::' pub: %d\n", this, name.c_str(), nns, nns->getName(), nns->priv->pub);
-            nsl.runtimeAdd(nns, this);
+            nns = nsl.runtimeAdd(nns, this)->ns;
         }
 
         nns->priv->copyMergeCommittedNamespace(*i->second->priv);
