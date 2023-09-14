@@ -79,6 +79,7 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
             "desc": sprintf("Google calendar %y", $1),
             "type": "GoogleCalendarDataProvider",
             "supports_children": True,
+            "children_can_support_apis": True,
         }, getChildProviderNames();
     }
 
