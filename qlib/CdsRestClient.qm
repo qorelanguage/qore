@@ -194,8 +194,7 @@ CdsRestClient rest({
         @throw CDSRESTCLIENT-ERROR missing or invalid required option for REST
         authentication or communication
     */
-    constructor(hash<auto> opts, *softbool do_not_connect)
-            : RestClient(CdsRestClient::getOptions(opts), True) {
+    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(CdsRestClient::getOptions(opts), True) {
         # check for the OAuth2 client id/secret options
         if (!oauth2_client_id || !oauth2_client_secret) {
             raiseError("missing the \"client_id\" and \"client_secret\" options");

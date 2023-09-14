@@ -533,8 +533,9 @@ int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink) {
 QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name) {
     assert(sig > 0);
     AutoLocker al(&mutex);
-    if (!enabled())
+    if (!enabled()) {
         return nullptr;
+    }
 
     // wait for any blocks to be lifted
     while (block) {
@@ -559,6 +560,8 @@ QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name) {
     }
 
     fmap[sig] = name;
+    sigdelset(&mask, sig);
+    reload();
 
     //printd(5, "QoreSignalManager::reassignSignal(): %s: success\n", name);
 
@@ -567,8 +570,9 @@ QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name) {
 
 QoreStringNode* QoreSignalManager::reassignSignals(const sig_vec_t& sig_vec, const char* name) {
     AutoLocker al(&mutex);
-    if (!enabled())
+    if (!enabled()) {
         return nullptr;
+    }
 
     // wait for any blocks to be lifted
     while (block) {
@@ -588,7 +592,7 @@ QoreStringNode* QoreSignalManager::reassignSignals(const sig_vec_t& sig_vec, con
 
         sig_map_t::iterator i = fmap.find(sig);
         if (i != fmap.end()) {
-            QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' "
+            QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' "
                 "because it is already managed by module '%s'", sig, name, i->second.c_str());
             //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
             return err;
@@ -597,7 +601,9 @@ QoreStringNode* QoreSignalManager::reassignSignals(const sig_vec_t& sig_vec, con
 
     for (auto& sig : sig_vec) {
         fmap[sig] = name;
+        sigdelset(&mask, sig);
     }
+    reload();
 
     //printd(5, "QoreSignalManager::reassignSignals(): %s (%d signal(s)): success\n", name, (int)sig_vec.size());
 
@@ -610,28 +616,36 @@ int QoreSignalManager::releaseSignal(int sig, const char* name) {
         return -1;
 
     sig_map_t::iterator i = fmap.find(sig);
-    if (i == fmap.end() || i->second != name)
+    if (i == fmap.end() || i->second != name) {
         return -1;
+    }
 
     fmap.erase(i);
+    sigaddset(&mask, sig);
+    reload();
+
     return 0;
 }
 
 int QoreSignalManager::releaseSignals(const sig_vec_t& sig_vec, const char* name) {
     AutoLocker al(&mutex);
-    if (!enabled())
+    if (!enabled()) {
         return -1;
+    }
 
     for (auto& sig : sig_vec) {
         sig_map_t::iterator i = fmap.find(sig);
-        if (i == fmap.end() || i->second != name)
+        if (i == fmap.end() || i->second != name) {
             return -1;
+        }
     }
 
     for (auto& sig : sig_vec) {
         sig_map_t::iterator i = fmap.find(sig);
         fmap.erase(i);
+        sigaddset(&mask, sig);
     }
+    reload();
 
     return 0;
 }
