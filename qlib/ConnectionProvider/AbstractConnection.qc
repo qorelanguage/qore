@@ -61,7 +61,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         string status = "not checked";
 
         #! connection status flag; set by monitoring or explicit pings/connections
-        bool up = False;
+        bool up = True;
 
         #! monitoring flag
         bool monitor;

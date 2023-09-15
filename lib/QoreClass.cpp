@@ -2754,7 +2754,6 @@ QoreValue QoreClass::evalPseudoMethod(const QoreMethod* m, const QoreExternalMet
 void QoreClass::setSystem() {
     priv->sys = true;
     priv->committed = true;
-    priv->initialized = true;
     priv->loc = &loc_builtin;
 }
 
