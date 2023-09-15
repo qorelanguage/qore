@@ -1325,18 +1325,19 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         preparePath(\path);
 
         on_error {
-            string url = getSafeURL();
-
-            if (url.size() < path.size() || (url[(url.length() - path.length())..] != path)) {
-                if (url !~ /\/$/) {
-                    url += "/";
-                }
-                if (path =~ /^\//) {
-                    url += path[1..];
-                } else {
-                    url += path;
-                }
+            hash<UrlInfo> url_info = parse_url(getSafeURL());
+            string url = printf("%s://", url_info.protocol);
+            if (url_info.username.val()) {
+                url += sprintf("%s@", url_info.username);
             }
+            if (url_info.host.val()) {
+                url += url_info.host;
+            }
+            if (url_info.port && (url_info.port != 80 || url_info.protocol != "http") && (url_info.port != 443
+                || url_info.protocol != "https")) {
+                url += sprintf(":%d", url_info.port);
+            }
+            url += path;
             rethrow $1.err, sprintf("%s (REST URL %y)", $1.desc, url);
         }
 
