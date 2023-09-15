@@ -189,12 +189,12 @@ public class Main inherits QUnit::Test {
 
     invalidConnectionOptionTest() {
         assertThrows("CONNECTION-OPTION-ERROR", sub () {
-            new RestConnection("test", "test", "rests://localhost", NOTHING, {"data": "invalid"});
+            new RestConnection("test", "test", "rests://127.0.0.1", NOTHING, {"data": "invalid"});
         });
     }
 
     pollTest() {
-        RestClient rest({"url": "http://localhost:" + port});
+        RestClient rest({"url": "http://127.0.0.1:" + port});
 
         {
             SocketPollOperation spop = rest.startPollConnect();
@@ -208,7 +208,7 @@ public class Main inherits QUnit::Test {
             assertTrue(spop.goalReached());
         }
 
-        string url = "http://localhost:" + port;
+        string url = "http://127.0.0.1:" + port;
         RestConnection conn("test", "test", url);
 
         assertTrue(conn.supportsPollingApi());
@@ -226,7 +226,7 @@ public class Main inherits QUnit::Test {
     }
 
     issue3472() {
-        RestClient rest({"url": "http://localhost:" + port});
+        RestClient rest({"url": "http://127.0.0.1:" + port});
         assertThrows("REST-RESPONSE-ERROR", \rest.get(), ("/api_text", NOTHING, NOTHING, {"Do-Error": True}));
         rest.setErrorPassthru(True);
         hash<auto> msg = rest.get("/api_text", NOTHING, NOTHING, {"Do-Error": True});
@@ -235,14 +235,14 @@ public class Main inherits QUnit::Test {
     }
 
     methodOptionsTest() {
-        RestClient rest({"url": "http://localhost:" + port});
+        RestClient rest({"url": "http://127.0.0.1:" + port});
         hash<auto> info;
         rest.doRequest("OPTIONS", "/api_bin", NOTHING, \info);
         assertEq("0", info."response-headers"."content-length");
     }
 
     methodDeleteTest() {
-        RestClient rest({"url": "http://localhost:" + port});
+        RestClient rest({"url": "http://127.0.0.1:" + port});
         hash<auto> info;
         try {
             # issue #3237: must throw an exception due to the 404 Not Found response
@@ -254,7 +254,7 @@ public class Main inherits QUnit::Test {
     }
 
     methodGetTest() {
-        RestClient rest(("url" : "http://localhost:" + port));
+        RestClient rest(("url" : "http://127.0.0.1:" + port));
         auto ret;
 
         ret = rest.get("/api_text");
@@ -280,7 +280,7 @@ public class Main inherits QUnit::Test {
     }
 
     methodPutTest() {
-        RestClient rest(("url" : "http://localhost:" + port));
+        RestClient rest(("url" : "http://127.0.0.1:" + port));
         auto ret;
 
         rest.setSerialization("text");
@@ -314,7 +314,7 @@ public class Main inherits QUnit::Test {
     }
 
     methodPostTest() {
-        RestClient rest({"url": "http://localhost:" + port});
+        RestClient rest({"url": "http://127.0.0.1:" + port});
         auto ret;
 
         rest.setSerialization("text");
@@ -334,7 +334,7 @@ public class Main inherits QUnit::Test {
     }
 
     connectionTests() {
-        string url = "http://localhost:8099/";
+        string url = "http://127.0.0.1:8099/";
         RestConnection conn("test", "test", url);
         RestClient client = conn.get(False);
         assertEq(url, client.getURL());
@@ -373,7 +373,7 @@ public class Main inherits QUnit::Test {
         });
 
         {
-            RestConnection rc("test", "test", "http://localhost:" + port, {}, {
+            RestConnection rc("test", "test", "http://127.0.0.1:" + port, {}, {
                 "data": "text",
                 "ping_method": "PUT",
                 "ping_path": "/api_text",
@@ -383,11 +383,14 @@ public class Main inherits QUnit::Test {
             TestPollingConnectionMonitor monitor(logger);
             on_exit delete monitor;
 
+            assertTrue(rc.getInfo().up);
+
             # first test a standard ping
             hash<PingInfo> ping = rc.ping(True);
             assertEq("test", ping.name);
             assertTrue(ping.ok);
             assertEq("OK", ping.info);
+            assertTrue(rc.getInfo().up);
 
             monitor.add(rc);
 
@@ -397,16 +400,17 @@ public class Main inherits QUnit::Test {
                 printf("%s\n", get_exception_string(info.ex));
             }
             assertEq("OK", info.result);
+            assertTrue(rc.getInfo().up);
         }
 
 %ifndef NoYaml
         {
-            RestConnection rc("test", "test", "http://localhost:" + port, {}, {
+            RestConnection rc("test", "test", "http://127.0.0.1:" + port, {}, {
                 "data": "yaml",
                 "ping_method": "PUT",
                 "ping_path": "/api_yaml",
                 "ping_body": VALUE_YAML.output,
-                "swagger": "http://localhost:" + port + "/swagger",
+                "swagger": "http://127.0.0.1:" + port + "/swagger",
             });
 
             # first test a standard ping
@@ -433,7 +437,7 @@ public class Main inherits QUnit::Test {
             tmp.file.write(getSwaggerSchema());
             tmp.file.close();
 
-            RestConnection rc("test", "test", "http://localhost:" + port, {}, {
+            RestConnection rc("test", "test", "http://127.0.0.1:" + port, {}, {
                 "data": "yaml",
                 "ping_method": "PUT",
                 "ping_path": "/api_yaml",
@@ -467,7 +471,7 @@ public class Main inherits QUnit::Test {
         {
             string auth_uri = "https://example.com/auth";
             string token_uri = "https://example.com/token";
-            RestConnection rc("test", "test", "http://localhost:" + port, {}, {
+            RestConnection rc("test", "test", "http://127.0.0.1:" + port, {}, {
                 "data": "yaml",
                 "oauth2_grant_type": "authorization_code",
                 "oauth2_auth_url": auth_uri,
@@ -487,7 +491,7 @@ public class Main inherits QUnit::Test {
         {
             string auth_uri = "https://example.com/auth";
             string token_uri = "https://example.com/token";
-            RestConnection rc("test", "test", "http://localhost:" + port, {}, {
+            RestConnection rc("test", "test", "http://127.0.0.1:" + port, {}, {
                 "data": "yaml",
                 "oauth2_grant_type": "authorization_code",
                 "oauth2_auth_url": auth_uri,

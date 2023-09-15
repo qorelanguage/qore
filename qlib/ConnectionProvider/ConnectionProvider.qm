@@ -114,6 +114,8 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @section connectionproviderrelnotes Release Notes
 
     @subsection connectionprovider_1_10 ConnectionProvider 1.10
+    - assume connections are up until they are proven to be down
+      (<a href="https://github.com/qorelanguage/qore/issues/4789">issue 4789</a>)
     - fixed a bug where the @ref ConnectionProvider::InvalidConnection "InvalidConnection" class would report an
       invalid \c url hash
       (<a href="https://github.com/qorelanguage/qore/issues/4785">issue 4785</a>)
