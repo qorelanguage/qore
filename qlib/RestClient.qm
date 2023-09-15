@@ -2503,8 +2503,6 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
         }
 
         while (True) {
-            printf("REST poll state: %s\n", state + (poller ? ("-" + poller.getState()) : NOTHING));
-
             *hash<SocketPollInfo> pinfo = poller.continuePoll();
             if (pinfo) {
                 return pinfo;
