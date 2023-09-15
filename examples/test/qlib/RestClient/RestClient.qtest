@@ -194,7 +194,8 @@ public class Main inherits QUnit::Test {
     }
 
     pollTest() {
-        RestClient rest({"url": "http://127.0.0.1:" + port});
+        string url = "http://127.0.0.1:" + port;
+        RestClient rest({"url": url});
 
         {
             SocketPollOperation spop = rest.startPollConnect();
@@ -208,9 +209,7 @@ public class Main inherits QUnit::Test {
             assertTrue(spop.goalReached());
         }
 
-        string url = "http://127.0.0.1:" + port;
         RestConnection conn("test", "test", url);
-
         assertTrue(conn.supportsPollingApi());
         {
             SocketPollOperation spop = conn.startPollConnect();
@@ -335,45 +334,71 @@ public class Main inherits QUnit::Test {
 
     connectionTests() {
         string url = "http://127.0.0.1:8099/";
-        RestConnection conn("test", "test", url);
-        RestClient client = conn.get(False);
-        assertEq(url, client.getURL());
+        RestClient client;
+        {
+            RestConnection conn("test", "test", url);
+            client = conn.get(False);
+            assertEq(url, client.getURL());
 
-        # issue #3696: test connection serialization
-        RestConnection conn2 = Serializable::deserialize(conn.serialize());
-        assertEq(conn.url, conn2.url);
+            # issue #3696: test connection serialization
+            RestConnection conn2 = Serializable::deserialize(conn.serialize());
+            assertEq(conn.url, conn2.url);
 
-        # issue #3321: check default timeouts
-        assertEq(45000, client.getTimeout());
-        assertEq(45000, client.getConnectTimeout());
+            # issue #3321: check default timeouts
+            assertEq(45000, client.getTimeout());
+            assertEq(45000, client.getConnectTimeout());
+        }
 
         string val = get_random_string();
         hash<auto> hdr = {
             "X-Test": val,
         };
-        conn = new RestConnection("test", "test", url, {"monitor": False}, {"headers": hdr});
-        client = conn.get(False);
-        assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
-        assertEq(url, client.getURL());
-        assertEq(False, conn.monitor);
-        assertEq(True, conn.enabled);
+        {
+            RestConnection conn("test", "test", url, {"monitor": False}, {"headers": hdr});
+            client = conn.get(False);
+            assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
+            assertEq(url, client.getURL());
+            assertEq(False, conn.monitor);
+            assertEq(True, conn.enabled);
 
-        assertThrows("OAUTH2-ERROR", \conn.getAuthorizationCodeRequest());
+            assertThrows("OAUTH2-ERROR", \conn.getAuthorizationCodeRequest());
+        }
 
-        conn = new RestConnection("test", "test", url, {"monitor": False}, {"headers": "X-Test=" + val});
-        client = conn.get(False);
-        assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
+        {
+            RestConnection conn("test", "test", url, {"monitor": False}, {"headers": "X-Test=" + val});
+            client = conn.get(False);
+            assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
+        }
 
-        conn = new RestConnection("test", "test", url, {"monitor": False}, {"headers": "abc=2, X-Test=" + val});
-        client = conn.get(False);
-        assertEq({"abc": "2"} + hdr, client.getDefaultHeaders(){"abc", "X-Test",});
+        {
+            RestConnection conn("test", "test", url, {"monitor": False}, {"headers": "abc=2, X-Test=" + val});
+            client = conn.get(False);
+            assertEq({"abc": "2"} + hdr, client.getDefaultHeaders(){"abc", "X-Test",});
+        }
 
         assertThrows("REST-CONNECTION-ERROR", sub () {
             new RestConnection("test", "test", url, {"monitor": False}, {"headers": "1"});
         });
 
+        url = "http://127.0.0.1:" + port;
         {
-            RestConnection rc("test", "test", "http://127.0.0.1:" + port, {}, {
+            RestConnection conn("test", "test", url);
+            assertTrue(conn.supportsPollingApi());
+            {
+                SocketPollOperation spop = conn.startPollConnect();
+                assertEq("connect", spop.getGoal());
+                assertEq("connecting", spop.getState());
+                while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                    #printf("info: %y\n", info);
+                    Socket::poll((info,), 1s);
+                }
+                assertEq("connected", spop.getState());
+                assertTrue(spop.goalReached());
+            }
+        }
+
+        {
+            RestConnection rc("test", "test", url, {}, {
                 "data": "text",
                 "ping_method": "PUT",
                 "ping_path": "/api_text",
@@ -405,12 +430,12 @@ public class Main inherits QUnit::Test {
 
 %ifndef NoYaml
         {
-            RestConnection rc("test", "test", "http://127.0.0.1:" + port, {}, {
+            RestConnection rc("test", "test", url, {}, {
                 "data": "yaml",
                 "ping_method": "PUT",
                 "ping_path": "/api_yaml",
                 "ping_body": VALUE_YAML.output,
-                "swagger": "http://127.0.0.1:" + port + "/swagger",
+                "swagger": url + "/swagger",
             });
 
             # first test a standard ping
@@ -437,7 +462,7 @@ public class Main inherits QUnit::Test {
             tmp.file.write(getSwaggerSchema());
             tmp.file.close();
 
-            RestConnection rc("test", "test", "http://127.0.0.1:" + port, {}, {
+            RestConnection rc("test", "test", url, {}, {
                 "data": "yaml",
                 "ping_method": "PUT",
                 "ping_path": "/api_yaml",
@@ -471,7 +496,7 @@ public class Main inherits QUnit::Test {
         {
             string auth_uri = "https://example.com/auth";
             string token_uri = "https://example.com/token";
-            RestConnection rc("test", "test", "http://127.0.0.1:" + port, {}, {
+            RestConnection rc("test", "test", url, {}, {
                 "data": "yaml",
                 "oauth2_grant_type": "authorization_code",
                 "oauth2_auth_url": auth_uri,
@@ -491,7 +516,7 @@ public class Main inherits QUnit::Test {
         {
             string auth_uri = "https://example.com/auth";
             string token_uri = "https://example.com/token";
-            RestConnection rc("test", "test", "http://127.0.0.1:" + port, {}, {
+            RestConnection rc("test", "test", url, {}, {
                 "data": "yaml",
                 "oauth2_grant_type": "authorization_code",
                 "oauth2_auth_url": auth_uri,

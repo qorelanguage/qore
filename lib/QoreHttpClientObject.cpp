@@ -1761,9 +1761,9 @@ HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation(E
             assert(proxy_path);
         }
     }
-    //printd(5, "HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation() this: %p "
-    //    "proxy connected: %d proxy: %d use_proxy_connect: %d proxy_path: %s\n", this, client->http_priv->proxy_connected,
-    //    client->http_priv->proxy_connection.has_url(), use_proxy_connect, proxy_path ? proxy_path : "n/a");
+    printd(0, "HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation() this: %p "
+        "proxy connected: %d proxy: %d use_proxy_connect: %d proxy_path: %s\n", this, client->http_priv->proxy_connected,
+        client->http_priv->proxy_connection.has_url(), use_proxy_connect, proxy_path ? proxy_path : "n/a");
 
     connectOrSend(xsink);
 }

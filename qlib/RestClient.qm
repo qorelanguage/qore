@@ -2503,6 +2503,8 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
         }
 
         while (True) {
+            printf("REST poll state: %s\n", state + (poller ? ("-" + poller.getState()) : NOTHING));
+
             *hash<SocketPollInfo> pinfo = poller.continuePoll();
             if (pinfo) {
                 return pinfo;
@@ -2609,6 +2611,8 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
             # ensure that the path is only set once
             rc.setConnectionPath();
         }
+
+printf("dSP cp: %y method: %y path: %y body: %y h: %y u: %y\n", rc.getConnectionPath(), method, path, body, headers, rc.getURL());
 
         state = SPS_REST_PING;
         poller = rc.startPollSendRecv(method, path, body, headers);
