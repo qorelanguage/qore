@@ -956,6 +956,17 @@ int SocketConnectInetPollState::checkConnection(ExceptionSink* xsink) {
         return -1;
     }
 
+    // try a zero-byte send
+    rc = send(sock->sock, nullptr, 0, 0);
+    if (rc) {
+        // NOTE: an ENOTCONN error can be returned on Darwin / macOS even though poll() reports the connection is ready
+        // for writing
+        if (errno == EINPROGRESS || errno == EAGAIN || errno == ENOTCONN) {
+            return 1;
+        }
+        return -1;
+    }
+
     // connected successfully within the timeout period
     sock->sfamily = p->ai_family;
     sock->stype = p->ai_socktype;
@@ -969,13 +980,19 @@ int SocketConnectInetPollState::checkConnection(ExceptionSink* xsink) {
 int SocketConnectInetPollState::next(ExceptionSink* xsink) {
     p = p->ai_next;
     if (!p) {
-        qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, host.c_str(), service.c_str());
+        qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", nullptr, host.c_str(), service.c_str());
         if (sock->sock != QORE_INVALID_SOCKET) {
             sock->close_and_reset();
         }
         return -1;
     }
-    //printd(5, "SocketConnectInetPollState::next() trying next address: %p\n", p);
+
+    {
+        QoreString addr;
+        q_addr_to_string2(p->ai_addr, addr);
+        printd(0, "SocketConnectInetPollState::next() trying address: %p family: %s addr: %s\n", p,
+            q_af_to_str(p->ai_family), addr.c_str());
+    }
     return nextIntern(xsink);
 }
 
@@ -988,8 +1005,6 @@ int SocketConnectInetPollState::nextIntern(ExceptionSink* xsink) {
             host.c_str(), service.c_str());
         return -1;
     }
-    //printd(5, "SocketConnectInetPollState::nextIntern(sock: %p host: '%s' port: %d) created "
-    //    "socket %d\n", sock, host.c_str(), prt, sock->sock);
     return 0;
 }
 
@@ -1114,6 +1129,17 @@ int SocketConnectUnixPollState::checkConnection(ExceptionSink* xsink) {
 
     if (val) {
         errno = val;
+        return -1;
+    }
+
+    // try a zero-byte send
+    rc = send(sock->sock, nullptr, 0, 0);
+    if (rc) {
+        // NOTE: an ENOTCONN error can be returned on Darwin / macOS even though poll() reports the connection is ready
+        // for writing
+        if (errno == EINPROGRESS || errno == EAGAIN || errno == ENOTCONN) {
+            return 1;
+        }
         return -1;
     }
 
