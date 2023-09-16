@@ -1326,7 +1326,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
         on_error {
             hash<UrlInfo> url_info = parse_url(getSafeURL());
-            string url = printf("%s://", url_info.protocol);
+            string url = sprintf("%s://", url_info.protocol);
             if (url_info.username.val()) {
                 url += sprintf("%s@", url_info.username);
             }
