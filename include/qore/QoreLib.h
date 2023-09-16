@@ -510,7 +510,10 @@ DLLEXPORT extern size_t qore_option_list_size;
 /** @param sig signal number
     @param name module name taking ownership of managing the signal
 
-    @return nullptr for OK, non-zero for failed (error message); in case a QoreStringNode pointer is returned, the caller must dereference it
+    @return nullptr for OK, non-zero for failed (error message); in case a QoreStringNode pointer is returned, the
+    caller must dereference it
+
+    @note this is equivalent to qore_reassign_signal(sig, name, false)
 
     @see
     - @ref qore_reassign_signals() to allocate multiple signals to a module atomically
@@ -519,13 +522,36 @@ DLLEXPORT extern size_t qore_option_list_size;
  */
 DLLEXPORT QoreStringNode* qore_reassign_signal(int sig, const char* name);
 
+//! allows a module to take over ownership of a signal
+/** @param sig signal number
+    @param name module name taking ownership of managing the signal
+    @param reuse_sys do not fail if signals are allocated to the system already; in this case a failuse will only
+    happen when %Qore code has a signal handler assigned
+
+    @return nullptr for OK, non-zero for failed (error message); in case a QoreStringNode pointer is returned, the
+    caller must dereference it
+
+    @since %Qore 1.19
+
+    @see
+    - @ref qore_reassign_signals() to allocate multiple signals to a module atomically
+    - @ref qore_release_signal() to release a signal allocation manually
+    - @ref qore_release_signals() to release multiple signal allocations manually
+ */
+DLLEXPORT QoreStringNode* qore_reassign_signal(int sig, const char* name, bool reuse_sys);
+
 //! allows a module to take over ownership of multiple signals atomically
 /** @param sig_vec a vector of signal numbers to allocate to the module
     @param name module name taking ownership of managing the signal
 
-    @return nullptr for OK (all signals were allocated to the module), non-zero for failed (error message; no signals were allocated); in case a QoreStringNode pointer is returned, the caller must dereference it
+    @return nullptr for OK (all signals were allocated to the module), non-zero for failed (error message; no signals
+    were allocated); in case a QoreStringNode pointer is returned, the caller must dereference it
 
-    @note if any signal cannot be allocated to the module, no signals are allocated to the module; the call either succeeds for all or fails for all; no partial failures are possible; use this variant when allocating multiple signals to a module
+    @note
+    - if any signal cannot be allocated to the module, no signals are allocated to the module; the call either
+      succeeds for all or fails for all; no partial failures are possible; use this variant when allocating multiple
+      signals to a module
+    - this is equivalent to qore_reassign_signals(sig_vec, name, false)
 
     @see
     - @ref qore_reassign_signal() to allocate a single signal to a module
@@ -535,6 +561,28 @@ DLLEXPORT QoreStringNode* qore_reassign_signal(int sig, const char* name);
     @since %Qore 0.8.13.1
 */
 DLLEXPORT QoreStringNode* qore_reassign_signals(const sig_vec_t& sig_vec, const char* name);
+
+//! allows a module to take over ownership of multiple signals atomically
+/** @param sig_vec a vector of signal numbers to allocate to the module
+    @param name module name taking ownership of managing the signal
+    @param reuse_sys do not fail if signals are allocated to the system already; in this case a failuse will only
+    happen when %Qore code has a signal handler assigned
+
+    @return nullptr for OK (all signals were allocated to the module), non-zero for failed (error message; no signals
+    were allocated); in case a QoreStringNode pointer is returned, the caller must dereference it
+
+    @note if any signal cannot be allocated to the module, no signals are allocated to the module; the call either
+    succeeds for all or fails for all; no partial failures are possible; use this variant when allocating multiple
+    signals to a module
+
+    @see
+    - @ref qore_reassign_signal() to allocate a single signal to a module
+    - @ref qore_release_signal() to release a signal allocation manually
+    - @ref qore_release_signals() to release multiple signal allocations manually
+
+    @since %Qore 1.19
+*/
+DLLEXPORT QoreStringNode* qore_reassign_signals(const sig_vec_t& sig_vec, const char* name, bool reuse_sys);
 
 //! releases the signal allocated to the given module
 /** @param sig the signal number allocated to the module
