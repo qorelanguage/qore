@@ -39,6 +39,30 @@
 
 QoreSignalManager QSM;
 
+static int qore_sigmask(int how, const sigset_t* set, sigset_t* oset) {
+    int rc = pthread_sigmask(how, set, oset);
+#ifdef __APPLE__X
+    /* why do we call sigprocmask on Darwin?
+        it seems that Darwin has a bug in handling per-thread signal masks.
+        Even though we explicitly set this thread's signal mask to unblock all signals
+        we are not explicitly catching (including QORE_STATUS_SIGNAL, currently set to
+        SIGSYS), no signal is delivered that is not in our list.  For example (on
+        Darwin only), if we are catching SIGUSR1 with a Qore signal handler (therefore
+        it's included in c_mask and blocked in this thread, because it will be also
+        included in sigwait below) and have no handler for SIGUSR2, if we send a
+        SIGUSR2 to the process, unless we call sigprocmask here and below after
+        pthread_sigmask, the SIGUSR2 will also be blocked (even through the signal
+        thread's signal mask explicitly allows for it to be delivered to this thread),
+        instead of being delivered to the process and triggering the default action -
+        terminate the process.  The workaround (discovered with trial and error) is to
+        call sigprocmask after every call to pthread_sigmask in the signal handler
+        thread
+    */
+    sigprocmask(how, set, oset);
+#endif
+    return rc;
+}
+
 void QoreSignalHandler::init() {
     funcref = 0;
     status = SH_OK;
@@ -76,6 +100,7 @@ void QoreSignalManager::setMask(sigset_t& mask) {
     sigdelset(&mask, SIGCHLD);
     sigdelset(&mask, SIGSEGV);
     if (!is_enabled) {
+        // here we set signal that cannot be managed by Qore code
         fmap[QORE_STATUS_SIGNAL] = "QORE (SIGSYS for internal use)";
         fmap[SIGALRM] = "QORE (SIGALRM for sleep()/usleep())";
         fmap[SIGCHLD] = "QORE (SIGCHLD for system())";
@@ -83,6 +108,8 @@ void QoreSignalManager::setMask(sigset_t& mask) {
     }
 }
 
+/** When new threads are created, they inherit their mask from the creating thread
+ */
 void QoreSignalManager::init(bool disable_signal_mask) {
     // set SIGPIPE to ignore
     struct sigaction sa;
@@ -96,12 +123,14 @@ void QoreSignalManager::init(bool disable_signal_mask) {
         setMask(mask);
         is_enabled = true;
 
-        pthread_sigmask(SIG_SETMASK, &mask, 0);
+        qore_sigmask(SIG_SETMASK, &mask, 0);
 
         // set up default handler mask
         sigemptyset(&mask);
         sigaddset(&mask, QORE_STATUS_SIGNAL);
         sigaddset(&mask, SIGSEGV);
+        sigaddset(&mask, SIGALRM);
+        sigaddset(&mask, SIGCHLD);
 
         ExceptionSink xsink;
         if (start_signal_thread(&xsink)) {
@@ -268,27 +297,7 @@ void QoreSignalManager::signal_handler_thread() {
         // reload copy of the signal mask for the sigwait command
         memcpy(&c_mask, &mask, sizeof(sigset_t));
         // block only signals we are catching in this thread
-        pthread_sigmask(SIG_SETMASK, &c_mask, 0);
-
-#ifdef DARWIN
-        /* why do we call sigprocmask on Darwin?
-           it seems that Darwin has a bug in handling per-thread signal masks.
-           Even though we explicitly set this thread's signal mask to unblock all signals
-           we are not explicitly catching (including QORE_STATUS_SIGNAL, currently set to
-           SIGSYS), no signal is delivered that is not in our list.  For example (on
-           Darwin only), if we are catching SIGUSR1 with a Qore signal handler (therefore
-           it's included in c_mask and blocked in this thread, because it will be also
-           included in sigwait below) and have no handler for SIGUSR2, if we send a
-           SIGUSR2 to the process, unless we call sigprocmask here and below after
-           pthread_sigmask, the SIGUSR2 will also be blocked (even through the signal
-           thread's signal mask explicitly allows for it to be delivered to this thread),
-           instead of being delivered to the process and triggering the default action -
-           terminate the process.  The workaround (discovered with trial and error) is to
-           call sigprocmask after every call to pthread_sigmask in the signal handler
-           thread
-        */
-        sigprocmask(SIG_SETMASK, &c_mask, 0);
-#endif
+        qore_sigmask(SIG_SETMASK, &c_mask, 0);
 
         while (true) {
             if (cmd != C_None) {
@@ -302,11 +311,7 @@ void QoreSignalManager::signal_handler_thread() {
                     //printd(5, "QoreSignalManager::signal_handler_thread() C_Reload called:\n");
                     memcpy(&c_mask, &mask, sizeof(sigset_t));
                     // block only signals we are catching in this thread
-                    pthread_sigmask(SIG_SETMASK, &c_mask, 0);
-#ifdef DARWIN
-                    // see above for reasoning behind calling sigprocmask on Darwin
-                    sigprocmask(SIG_SETMASK, &c_mask, 0);
-#endif
+                    qore_sigmask(SIG_SETMASK, &c_mask, 0);
                     // confirm that the mask has been updated so updates are atomic
                     cond.signal();
                 }
@@ -530,7 +535,7 @@ int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink) {
     return 0;
 }
 
-QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name) {
+QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name, bool reuse_sys) {
     assert(sig > 0);
     AutoLocker al(&mutex);
     if (!enabled()) {
@@ -551,14 +556,23 @@ QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name) {
         return err;
     }
 
-    sig_map_t::iterator i = fmap.find(sig);
-    if (i != fmap.end()) {
-        QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' "
-            "because it is already managed by module '%s'", sig, name, i->second.c_str());
-        //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
-        return err;
+    if (!reuse_sys) {
+        sig_map_t::iterator i = fmap.find(sig);
+        if (i != fmap.end()) {
+            QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' "
+                "because it is already managed by module '%s'", sig, name, i->second.c_str());
+            //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
+            return err;
+        }
     }
 
+    // unmask signal in calling thread
+    sigset_t new_mask;
+    sigemptyset(&new_mask);
+    sigaddset(&new_mask, sig);
+    qore_sigmask(SIG_UNBLOCK, &new_mask, 0);
+
+    // unmask signal in signal-handling thread
     fmap[sig] = name;
     sigdelset(&mask, sig);
     reload();
@@ -568,7 +582,7 @@ QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name) {
     return nullptr;
 }
 
-QoreStringNode* QoreSignalManager::reassignSignals(const sig_vec_t& sig_vec, const char* name) {
+QoreStringNode* QoreSignalManager::reassignSignals(const sig_vec_t& sig_vec, const char* name, bool reuse_sys) {
     AutoLocker al(&mutex);
     if (!enabled()) {
         return nullptr;
@@ -590,23 +604,35 @@ QoreStringNode* QoreSignalManager::reassignSignals(const sig_vec_t& sig_vec, con
             return err;
         }
 
-        sig_map_t::iterator i = fmap.find(sig);
-        if (i != fmap.end()) {
-            QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' "
-                "because it is already managed by module '%s'", sig, name, i->second.c_str());
-            //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
-            return err;
+        if (!reuse_sys) {
+            sig_map_t::iterator i = fmap.find(sig);
+            if (i != fmap.end()) {
+                QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' "
+                    "because it is already managed by module '%s'", sig, name, i->second.c_str());
+                //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
+                return err;
+            }
         }
     }
 
+    sigset_t new_mask;
+    sigemptyset(&new_mask);
+
     for (auto& sig : sig_vec) {
         fmap[sig] = name;
+        // unmask signal in signal-handling thread
         sigdelset(&mask, sig);
+        // unmask signal in the current thread
+        sigaddset(&new_mask, sig);
     }
+
+    // unmask signals in the current thread
+    qore_sigmask(SIG_UNBLOCK, &new_mask, 0);
+
+    // unmask signals in signal-handling thread
     reload();
 
     //printd(5, "QoreSignalManager::reassignSignals(): %s (%d signal(s)): success\n", name, (int)sig_vec.size());
-
     return nullptr;
 }
 

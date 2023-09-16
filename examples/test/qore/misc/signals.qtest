@@ -12,12 +12,28 @@
 
 class SignalTest inherits QUnit::Test {
     constructor() : QUnit::Test("Signal test", "1.0") {
-        addTestCase("SignalTest", \signalTest());
+        addTestCase("signal neg test", \signalNegTest());
+        addTestCase("signal test", \signalTest());
         set_return_value(main());
     }
 
-    signalTest() {
+    signalNegTest() {
         assertThrows("SET-SIGNAL-HANDLER-ERROR", \set_signal_handler(), (-1, sub () {}));
         assertThrows("REMOVE-SIGNAL-HANDLER-ERROR", \remove_signal_handler(), -1);
+    }
+
+    signalTest() {
+        if (!HAVE_SIGNAL_HANDLING) {
+            testSkip("no signal handling on this platform");
+        }
+
+        Queue q();
+        code handle = sub (int sig) {
+            q.push(sig);
+        };
+
+        set_signal_handler(SIGUSR1, handle);
+        kill(getpid(), SIGUSR1);
+        assertEq(SIGUSR1, q.get(1s));
     }
 }

@@ -1616,25 +1616,41 @@ QoreStringNode* q_strerror(int err) {
 
 QoreStringNode* qore_reassign_signal(int sig, const char* name) {
 #ifdef HAVE_SIGNAL_HANDLING
-   return QSM.reassignSignal(sig, name);
+    return QSM.reassignSignal(sig, name, false);
 #else
-   return nullptr;
+    return nullptr;
+#endif
+}
+
+QoreStringNode* qore_reassign_signal(int sig, const char* name, bool reuse_sys) {
+#ifdef HAVE_SIGNAL_HANDLING
+    return QSM.reassignSignal(sig, name, reuse_sys);
+#else
+    return nullptr;
 #endif
 }
 
 QoreStringNode* qore_reassign_signals(const sig_vec_t& sig_vec, const char* name) {
 #ifdef HAVE_SIGNAL_HANDLING
-   return QSM.reassignSignals(sig_vec, name);
+    return QSM.reassignSignals(sig_vec, name, false);
 #else
-   return nullptr;
+    return nullptr;
+#endif
+}
+
+QoreStringNode* qore_reassign_signals(const sig_vec_t& sig_vec, const char* name, bool reuse_sys) {
+#ifdef HAVE_SIGNAL_HANDLING
+    return QSM.reassignSignals(sig_vec, name, reuse_sys);
+#else
+    return nullptr;
 #endif
 }
 
 int qore_release_signal(int sig, const char* name) {
 #ifdef HAVE_SIGNAL_HANDLING
-   return QSM.releaseSignal(sig, name);
+    return QSM.releaseSignal(sig, name);
 #else
-   return 0;
+    return 0;
 #endif
 }
 
@@ -1705,16 +1721,16 @@ int check_lvalue(AbstractQoreNode* node, bool assignment) {
     return -1;
 }
 
-static void stat_get_blocks(const struct stat &sbuf, int64& blksize, int64& blocks) {
+static void stat_get_blocks(const struct stat& sbuf, int64& blksize, int64& blocks) {
 #ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
-   blksize = sbuf.st_blksize;
+    blksize = sbuf.st_blksize;
 #else
-   blksize = 0;
+    blksize = 0;
 #endif
 #ifdef HAVE_STRUCT_STAT_ST_BLOCKS
-   blocks = sbuf.st_blocks;
+    blocks = sbuf.st_blocks;
 #else
-   blocks = 0;
+    blocks = 0;
 #endif
 }
 
