@@ -2327,10 +2327,29 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         }
         string uri = sprintf("%s?scope=%s&redirect_uri=%s&client_id=%s&response_type=%s", opts{oauth2_auth_url_opt},
             scope, info.redirect_uri ?? opts.oauth2_redirect_url, opts{oauth2_client_id_opt}, info.response_type);
+        if (uri !~ /^http/) {
+            uri = real_url + uri;
+        }
         # add any optional auth args
         map uri += sprintf("&%s=%s", $1.key, getUriValue($1.value)), opts.oauth2_auth_args.pairIterator();
         if (info.state) {
             uri += sprintf("&state=%s", info.state);
+        }
+        return uri;
+    }
+
+    #! Returns the OAuth2 token URL or throws an exception if not set
+    /*
+        @since %RestClient 2.0
+    */
+    string getTokenUrl() {
+        string oauth2_token_url_opt = getOAuth2OptionName("oauth2_token_url");
+        *string uri = opts{oauth2_token_url_opt};
+        if (!uri) {
+            throw "OAUTH2-AUTH-ERROR", sprintf("no %y option is set on connection %y", oauth2_token_url_opt, name);
+        }
+        if (uri !~ /^http/) {
+            uri = real_url + uri;
         }
         return uri;
     }

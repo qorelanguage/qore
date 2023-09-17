@@ -245,7 +245,7 @@ class ServiceNowTest inherits QUnit::Test {
     }
 
     connectionTest() {
-        string url = "http://localhost:8080";
+        string url = "snrests://localhost:8080";
         ServiceNowRestConnection swsc("test", "test", url, {}, {
             "oauth2_grant_type": "password",
             "client_id": "x",
@@ -278,6 +278,15 @@ class ServiceNowTest inherits QUnit::Test {
         # issue #3321: check default timeouts
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
+
+        swsc = new ServiceNowRestConnection("test", "test", url, {}, {
+            "client_id": "x",
+            "client_secret": "x",
+            "username": "x",
+            "password": "x",
+        });
+        assertEq("https://localhost:8080/oauth_auth.do?scope=&redirect_uri=auto&client_id=x&response_type=code",
+            swsc.getAuthorizationCodeRequest());
     }
 }
 
