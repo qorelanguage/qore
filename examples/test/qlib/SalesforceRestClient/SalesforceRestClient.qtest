@@ -100,7 +100,7 @@ class SalesforceTest inherits QUnit::Test {
         if (sfopts."timeout")
             sfopts.connect_timeout = sfopts.timeout;
 
-        rc = new SalesforceRestClient(sfopts);
+        rc = new SalesforceRestClient(sfopts + {"logger": logger});
     }
 
     private error(string fmt) {

@@ -463,8 +463,12 @@ SalesforceRestClient rest({"url": "http://localhost:8001/rest"});
             instance_url = opts.instance_url;
         }
 
-        if (!do_not_connect && (!token || !instance_url)) {
-            loginIntern();
+        if (!do_not_connect) {
+            if (!token || !instance_url) {
+                loginIntern();
+            } else {
+                setApi();
+            }
         }
     }
 
@@ -965,21 +969,25 @@ sfrest.logout();
         AutoLock al(m);
 
         # if we are not logged in, then do nothing
-        if (!token)
+        if (!token) {
             return;
+        }
 
         # use the Salesforce.com OAuth2 revocation URL to log out
         setURL(oauth_url_revoke);
 
         # use URL form encoding for the message body
+        string serialization = getSerialization();
         setSerialization("url");
+        on_exit setSerialization(serialization);
 
         # create message body hash
         hash<auto> lh.token = token;
 
         # make the revoke call
-        RestClient::doRequest("POST", "", lh, \info);
+        RestClient::doRequestIntern("POST", "", lh, \info, NOTHING, getOAuth2AuthHeaders());
 
+        # delete the token
         delete token;
     }
 
@@ -1005,6 +1013,35 @@ sfrest.logout();
         }
     }
 
+    #! Process the API response from Salesforce and set / verify the client's API level
+    processApis(*list<auto> apis) {
+        # get as hash of supported APIs
+        api_hash = cast<hash<string, hash<auto>>>(map {$1.version: $1 - "version"}, apis);
+        debug("SalesforceRestClient: got %d apis; latest: %y", api_hash.size(), api_hash.lastKey());
+    }
+
+    #! Sets / verifies the api level and sets the application URL accordingly
+    setVerifyApi() {
+        hash<auto> ah;
+        if (api == "auto") {
+            api = api_used = api_hash.lastKey();
+            ah = api_hash.lastValue();
+        } else {
+            *hash<auto> aah = api_hash{api};
+            if (!aah) {
+                throw "SALESFORCE-API-ERROR", sprintf("Salesforce.com REST API %y was requested but is not "
+                    "supported; supported Salesforce.com APIs: %y", api, keys api_hash);
+            }
+            api_used = api;
+            ah = aah;
+        }
+
+        # set the URL to the Salesforce.com URL for REST API calls
+        setURL(instance_url + ah.url);
+
+        debug("SalesforceRestClient: API set to %y (%y) URL: %y", api_used, ah, getURL());
+    }
+
     #! returns a date string for use with Salesforce.com Bulk REST API requests
     /** @param d the date to return as a formatted string using \c "YYYY-MM-DDTHH:mm:SSZ"
 
@@ -1019,6 +1056,32 @@ sfrest.logout();
     #! returns a date string in GMT for use in Salesforce.com requests
     static string getGmtDate(date d) {
         return gmtime(d).format("Dy, DD Mon YYYY HH:mm:SS") + " GMT";
+    }
+
+    #! Checks the API and sets the final URL
+    /** @since %SalesforceRestClient 2.0
+    */
+    private setApi() {
+        if (!api_hash) {
+            # set the URL to the Salesforce.com URL for REST API calls
+            setURL(instance_url);
+            processApis(RestClient::doRequestIntern("GET", "services/data", NOTHING, NOTHING, NOTHING,
+                {"Accept": MimeTypeJson}).body);
+        }
+        setVerifyApi();
+    }
+
+    #! Sets options from the OAuth2 login response on the local object
+    /** @since %SalesforceRestClient 2.0
+    */
+    private setOAuth2LoginInfo(hash<auto> h) {
+        RestClient::setOAuth2LoginInfo(h);
+        if (h.instance_url != instance_url) {
+            instance_url = h.instance_url;
+            debug("SalesforceRestClient: set instance URL to %y from OAuth2 response", h.instance_url);
+        }
+
+        setApi();
     }
 
     #! returns options for the @ref RestClient::RestClient::constructor() "RestClient::constructor()"
@@ -1047,33 +1110,24 @@ sfrest.logout();
     private checkLogin(*reference<hash<auto>> info) {
         if (oauth2_grant_type && (!token || !instance_url)) {
             loginIntern(\info);
+        } else if (!api_used.val()) {
+            setApi();
         }
     }
 
     #! performs authentication and authorization with Salesforce.com using the OAuth2 authorization URL
     private hash<auto> loginIntern(*reference<hash> info) {
-        # ensure that if json serialization is set, that we do not claim to understand XML responses
-        # (which Salesforce.com will prefer otherwise, and then no type information will be transmitted)
-        if (ds == "json") {
+        # ensure that if a non-xml serialization is set, we do not accept XML responses, because otherwise
+        # Salesforce will prefer XML responses to JSON
+        if (ds !~ /xml/) {
             addDefaultHeaders({"Accept": MimeTypeJson + "," + MimeTypeFormUrlEncoded});
         } else {
             delete headers.Accept;
         }
 
-        # save send encoding and retore on error
-        *hash<auto> old_seh = seh;
-        # turn off compression for the login request (is not currently supported in Salesforce.com)
-        setSendEncoding("identity");
-        # restore the encoding on exit
-        on_exit seh = old_seh;
-
-        hash<auto> h = gotOAuth2LoginInfo(RestClient::loginIntern(\info));
-        # set the URL to the Salesforce.com URL for REST API calls
-        setURL(h.instance_url);
-
-        processApis(RestClient::doRequest("GET", "services/data").body);
-        setVerifyApi(h);
-        return h;
+        # must set the final URL after login; RestClient::loginIntern() will reset the original URL
+        on_success setURL(instance_url + api_hash{api_used}.url);
+        return RestClient::loginIntern(\info);
     }
 
     #! Returns options to update after an OAuth2 login
@@ -1084,6 +1138,7 @@ sfrest.logout();
         if (h.instance_url) {
             if (h.instance_url != instance_url) {
                 new_opts.instance_url = h.instance_url;
+                instance_url = h.instance_url;
             }
             if (h.instance_url != getURL()) {
                 new_opts.url = h.instance_url;
@@ -1101,31 +1156,11 @@ sfrest.logout();
         return new_opts;
     }
 
-    #! Process the API response from Salesforce and set / verify the client's API level
-    processApis(*list<auto> apis) {
-        # get as hash of supported APIs
-        on_error printf("APIs: %y\n", apis);
-        api_hash = cast<hash<string, hash<auto>>>(map {$1.version: $1 - "version"}, apis);
-    }
-
-    #! Sets / verifies the api level and sets the application URL accordingly
-    setVerifyApi(hash<auto> h) {
-        hash<auto> ah;
-        if (api == "auto") {
-            api = api_used = api_hash.lastKey();
-            ah = api_hash.lastValue();
-        } else {
-            *hash<auto> aah = api_hash{api};
-            if (!aah) {
-                throw "SALESFORCE-API-ERROR", sprintf("Salesforce.com REST API %y was requested but is not "
-                    "supported; supported Salesforce.com APIs: %y", api, keys api_hash);
-            }
-            api_used = api;
-            ah = aah;
-        }
-
-        # set the URL to the Salesforce.com URL for REST API calls
-        setURL(h.instance_url + ah.url);
+    #! Returns headers to use with OAuth2 authorization / token requests
+    /** @since %RestClient 2.0
+    */
+    private *hash<auto> getOAuth2AuthHeaders() {
+        return {"Accept": MimeTypeJson};
     }
 }
 
@@ -1298,7 +1333,10 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
 
     #! Processes OAuth2 login responses and returns updated options
     private *hash<auto> processOAuth2TokenResponseImpl(hash<auto> resp) {
-        resp = resp.OAuth;
+        # if the request was made with Accept: text/xml, the top-level key will be "OAuth"
+        if (resp.OAuth) {
+            resp = resp.OAuth;
+        }
         *hash<auto> new_opts = RestConnection::processOAuth2TokenResponseImpl(resp);
         if (resp.instance_url) {
             if (resp.instance_url != real_opts.instance_url) {
@@ -1361,8 +1399,10 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
             return HttpBasedConnection::startPollConnect();
         }
 
+        SalesforceRestClient rc = getPollImpl();
+        rc.setSerialization("json");
         # returns a RestClient option without connecting and without retrieving any external schemas with I/O
-        return new SalesforceRestPingPollOperation(getPollImpl(), real_opts);
+        return new SalesforceRestPingPollOperation(rc, real_opts + {"data": "json"});
     }
 }
 
@@ -1376,7 +1416,9 @@ public class SalesforceRestPingPollOperation inherits RestClient::RestPingPollOp
     }
 
     constructor(RestClient rc, hash<auto> real_opts)
-            : RestPingPollOperation(rc, real_opts + {"url": real_opts.instance_url ?? real_opts.url}) {
+            : RestPingPollOperation(rc, real_opts + {
+                "url": real_opts.instance_url ?? real_opts.url,
+            }) {
     }
 
     private checkOtherStates() {
@@ -1414,7 +1456,7 @@ public class SalesforceRestPingPollOperation inherits RestClient::RestPingPollOp
             doStartGetApis();
         } else {
             # verify API
-            src.setVerifyApi(h);
+            src.setVerifyApi();
             # start ping
             doStartPing();
         }

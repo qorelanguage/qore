@@ -278,18 +278,18 @@ ServiceNowRestClient rest({
 
     #! returns options for @ref ServiceNowRestClient::ServiceNowRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
-        return opts + {
-            "data": "json",
-        } + ((opts.client_id && opts.client_secret)
-            ? {
+        if (opts.client_id && opts.client_secret) {
+            opts += {
                 "oauth2_auth_url": opts.oauth2_auth_url ?? OAuth2AuthUriPathSuffix,
                 "oauth2_token_url": opts.oauth2_token_url ?? OAuth2TokenUriPathSuffix,
                 "oauth2_grant_type": opts.oauth2_grant_type ?? OAuth2DefaultGrantType,
                 "oauth2_client_id": opts.client_id,
                 "oauth2_client_secret": opts.client_secret,
-            }
-            : NOTHING
-        );
+            };
+        } else {
+            opts -= "oauth2_grant_type";
+        }
+        return opts;
     }
 }
 

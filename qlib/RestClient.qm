@@ -453,6 +453,13 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, Connec
                 "oauth2_token_url",
             ),
         };
+
+        #! Headers to send when making an authorization / token request
+        const OAuth2AuthHeaders = {
+            # this will ensure that OAuth2 servers do not prefer XML or other serialization with a different data
+            # format (ex: the Salesforce OAuth2 server)
+            "Accept": MimeTypeFormUrlEncoded + "," + MimeTypeJson,
+        };
     }
 
     private {
@@ -1311,7 +1318,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
     #! Makes a REST request and returns the result
     private hash<auto> doRequestIntern(string m, string path, auto body, *reference<hash<auto>> info,
-            softbool decode_errors = True, *hash<auto> hdr) {
+            softbool decode_errors = True, *hash<auto> hdr, *string assume_content_type) {
         prepareMsg(m, path, \body, \hdr);
 
         on_exit if (exists body) {
@@ -1341,7 +1348,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             rethrow $1.err, sprintf("%s (REST URL %y)", $1.desc, url);
         }
 
-        return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
+        return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors, assume_content_type);
     }
 
     #! Prepares and processes message parameters for sending without sending the message
@@ -1408,13 +1415,20 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
         *hash<auto> new_opts = update_options ? getUpdateOptionsAfterLogin(h) : NOTHING;
         # set the token
-        setToken(h.token_type, h.access_token, h.refresh_token);
-        debug("set oauth2 auth header: %s %s; refresh_token: %s", h.token_type, h.access_token,
-            h.refresh_token ?? "-");
+        setOAuth2LoginInfo(h);
         if (update_options && new_opts) {
             doUpdateOptions(self, new_opts);
         }
         return h;
+    }
+
+    #! Sets options from the OAuth2 login response on the local object
+    /** @since %RestClient 2.0
+    */
+    private setOAuth2LoginInfo(hash<auto> h) {
+        setToken(h.token_type, h.access_token, h.refresh_token);
+        debug("RestClient: set OAuth2 auth header: %s %s; refresh_token: %s", h.token_type, h.access_token,
+            h.refresh_token ?? "n/a");
     }
 
     #! Returns options to update after an OAuth2 login
@@ -1518,7 +1532,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
         return startPollSendRecv("POST", oauth2_token_url, request_body, {
             "Content-Type": MimeTypeFormUrlEncoded,
-            "Accept": "application/json",
+            "Accept": MimeTypeJson + "," + MimeTypeFormUrlEncoded,
         });
     }
 
@@ -1567,8 +1581,22 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         setSerialization("url");
 
         # make the authorization call
-        return gotOAuth2LoginInfo(RestClient::doRequestIntern("POST", set_url ? "/" : oauth2_token_url, login,
-            \info).body);
+        return gotOAuth2LoginInfo(doOAuth2LoginRequest(set_url ? "/" : oauth2_token_url, login, \info));
+    }
+
+    #! Returns the deserialized response body of an OAuth2 authorization / token request
+    /** @since %RestClient 2.0
+    */
+    private hash<auto> doOAuth2LoginRequest(string url, hash<auto> login, *reference<hash<auto>> info) {
+        return RestClient::doRequestIntern("POST", url, login,
+            \info, NOTHING, getOAuth2AuthHeaders()).body;
+    }
+
+    #! Returns headers to use with OAuth2 authorization / token requests
+    /** @since %RestClient 2.0
+    */
+    private *hash<auto> getOAuth2AuthHeaders() {
+        return OAuth2AuthHeaders;
     }
 
     #! Returns an OAuth2 login hash
@@ -1674,16 +1702,21 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
     #! sends the outgoing HTTP message and recodes the response to data
     private hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr,
-            *reference<hash<auto>> info, *softbool decode_errors) {
+            *reference<hash<auto>> info, *softbool decode_errors, *string assume_content_type) {
         hash<auto> h;
 
         try {
             h = send(body, m, path, hdr, False, \info);
             info."response-code" = h.status_code;
-            debug("sent: %y received: %y (%s bytes%s)", info."request-uri", info."response-uri", h.body.size(),
-                h.body.size() && h."content-type" ? (" " + h."content-type") : "");
+            debug("RestClient sent: %y received: %y (%s bytes%s)", info."request-uri", info."response-uri",
+                h.body.size(), h.body.size() && h."content-type" ? (" " + h."content-type") : "");
+            if (!h."content-type".val() && assume_content_type.val()) {
+                debug("missing content-type from response; assuming %y", assume_content_type);
+                h."content-type" = assume_content_type;
+            }
         } catch (hash<ExceptionInfo> ex) {
-            debug("sent: %y received: %y err: %s: %s", info."request-uri", info."response-uri", ex.err, ex.desc);
+            debug("RestClient sent: %y received: %y err: %s: %s", info."request-uri", info."response-uri", ex.err,
+                ex.desc);
             info."response-code" = info."response-headers".status_code;
             if (ex.arg) {
                 if (decode_errors && ex.arg.body) {
@@ -2445,8 +2478,8 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
         #! token refresh flag
         bool in_refresh;
 
-        #! ping message prepared
-        bool ping_prepared;
+        #! Use path directly / ping path already prepared
+        bool use_path_as_is;
     }
 
     #! Creates the poller with the REST client and option hash
@@ -2458,9 +2491,9 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
         body = method != "GET" ? real_opts.ping_body : NOTHING;
         headers = real_opts.ping_headers;
 
-        # if the ping path is an absolute path, then replace the connection path
+        # use the path directly if it's an absolute path
         if (real_opts.ping_path[0] == "/") {
-            rc.setConnectionPath();
+            use_path_as_is = True;
         }
 
         if (real_opts.swagger) {
@@ -2511,7 +2544,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
             if (state == SPS_GET_SWAGGER) {
                 # create Swagger validator from file
                 rc.setValidator(SwaggerLoader::fromString(poller.getOutput().toString()));
-                rc.debug("ping: set Swagger schema for %y", rc.getValidator().getTargetUrl());
+                rc.debug("RestConnection ping: set Swagger schema for %y", rc.getValidator().getTargetUrl());
                 if (rc.requiresOAuth2Token()) {
                     doStartGetToken();
                 } else {
@@ -2575,7 +2608,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
     }
 
     private gotOAuth2LoginInfo(hash<auto> h) {
-        rc.debug("ping: got OAuth2 login response: %y", h);
+        rc.debug("RestConnection ping: got OAuth2 login response: %y", h);
         rc.gotOAuth2LoginInfo(h);
         doStartPing();
     }
@@ -2602,15 +2635,15 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
     }
 
     private doStartPing() {
-        rc.prepareToSend(method, \path, \body, \headers);
-        if (!ping_prepared) {
-            # prepare message for ping from any validator
-            ping_prepared = True;
-            # ensure that the path is only set once
-            rc.setConnectionPath();
+        # if the path has already been prepared, use it directly
+        if (use_path_as_is) {
+            string p = path;
+            rc.prepareToSend(method, \p, \body, \headers);
+        } else {
+            use_path_as_is = True;
+            rc.prepareToSend(method, \path, \body, \headers);
+            rc.debug("prepared ping path: %y", path);
         }
-
-printf("dSP cp: %y method: %y path: %y body: %y h: %y u: %y\n", rc.getConnectionPath(), method, path, body, headers, rc.getURL());
 
         state = SPS_REST_PING;
         poller = rc.startPollSendRecv(method, path, body, headers);

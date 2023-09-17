@@ -108,7 +108,7 @@ void QoreSignalManager::setMask(sigset_t& mask) {
     }
 }
 
-/** When new threads are created, they inherit their mask from the creating thread
+/** When new threads are created, they inherit their signal mask from the creating thread
  */
 void QoreSignalManager::init(bool disable_signal_mask) {
     // set SIGPIPE to ignore
@@ -131,6 +131,7 @@ void QoreSignalManager::init(bool disable_signal_mask) {
         sigaddset(&mask, SIGSEGV);
         sigaddset(&mask, SIGALRM);
         sigaddset(&mask, SIGCHLD);
+        sigaddset(&mask, SIGINT);
 
         ExceptionSink xsink;
         if (start_signal_thread(&xsink)) {
@@ -332,8 +333,12 @@ void QoreSignalManager::signal_handler_thread() {
             }
 
             //printd(5, "signal %d received (handler: %d)\n", sig, handlers[sig].isSet());
-            if (!handlers[sig].isSet())
+            if (!handlers[sig].isSet()) {
+                if (sig == SIGINT) {
+                    qore_exit_process(128 + SIGINT);
+                }
                 continue;
+            }
 
             // set in progress status while in the lock
             assert(handlers[sig].status == QoreSignalHandler::SH_OK);

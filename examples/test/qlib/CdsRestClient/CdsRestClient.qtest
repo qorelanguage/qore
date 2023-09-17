@@ -95,7 +95,7 @@ class CdsTest inherits QUnit::Test {
     }
 
     private error(string fmt) {
-        throw "OPTION-ERROR", sprintf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
+        throw "OPTION-ERROR", sprintf("%s: ERROR: %s", get_script_name(), vsprintf(fmt, argv));
     }
 
     CdsDataProviderTests() {

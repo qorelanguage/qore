@@ -30,6 +30,7 @@ class ServiceNowTest inherits QUnit::Test {
 
     private {
         ServiceNowRestClient rc;
+        Logger logger;
 
         # ServiceNow connection options
         hash<auto> snopts;
@@ -56,6 +57,12 @@ class ServiceNowTest inherits QUnit::Test {
         addTestCase("ServiceNow DataProvider test", \ServiceNowDataProviderTests());
         addTestCase("ServiceNow REST", \ServiceNowRestTests());
         addTestCase("connection tests", \connectionTest());
+
+        logger = new Logger("test",
+            (m_options.verbose > 3 ? LoggerLevel::getLevelDebug() : LoggerLevel::getLevelInfo()));
+        if (m_options.verbose > 2) {
+            logger.addAppender(new StdoutAppender());
+        }
 
         try {
             setupConnection();
@@ -100,8 +107,9 @@ class ServiceNowTest inherits QUnit::Test {
         if (snopts."timeout") {
             snopts.connect_timeout = snopts."timeout";
         }
+        snopts.oauth2_grant_type = "password";
 
-        rc = new ServiceNowRestClient(snopts);
+        rc = new ServiceNowRestClient(snopts + {"logger": logger});
     }
 
     private error(string fmt) {
@@ -178,11 +186,6 @@ class ServiceNowTest inherits QUnit::Test {
             url += ":" + info.port;
         }
 
-        Logger logger("test", (m_options.verbose > 3 ? LoggerLevel::getLevelDebug() : LoggerLevel::getLevelInfo()));
-        if (m_options.verbose > 2) {
-            logger.addAppender(new StdoutAppender());
-        }
-
         {
             # setup valid connection and test polling
             ServiceNowRestConnection snrc("test", "test", url, {"monitor": True}, {
@@ -215,6 +218,7 @@ class ServiceNowTest inherits QUnit::Test {
                 "password": snopts.password,
                 "client_id": snopts.client_id,
                 "client_secret": snopts.client_secret,
+                "oauth2_grant_type": "password",
             };
 
             # setup valid connection and test polling

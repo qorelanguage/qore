@@ -906,7 +906,11 @@ public namespace RestSchemaValidator {
             if (response_body.val()) {
                 string ct = (hdr."content-type".typeCode() == NT_LIST
                     ? hdr."content-type"[0]
-                    : hdr."content-type");
+                    : hdr."content-type") ?? "";
+                if (!ct.val()) {
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body without a content-type; "
+                        "response body: %y; headers: %y", response_body, hdr);
+                }
                 *hash<auto> dh = DataDeserializationSupport{ct};
                 if (!dh) {
                     throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y; "
