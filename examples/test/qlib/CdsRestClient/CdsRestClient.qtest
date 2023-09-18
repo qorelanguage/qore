@@ -176,7 +176,7 @@ class CdsTest inherits QUnit::Test {
             });
             assertEq(True, crc instanceof CdsRestConnection);
             assertEq("https://login.microsoftonline.com/x/oauth2/v2.0/authorize?"
-                "scope=offline_access%20https://example.com/x/.default&redirect_uri=auto&"
+                "scope=offline_access%20https://example.com/.default&redirect_uri=auto&"
                 "client_id=x&response_type=code&response_mode=query",
                 crc.getAuthorizationCodeRequest());
             assertEq("https://login.microsoftonline.com/x/oauth2/v2.0/authorize", crc.getAuthUrl());
