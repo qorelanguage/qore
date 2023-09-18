@@ -242,8 +242,12 @@ class RestCmd {
                 request_path = body;
                 body = shift ARGV;
 
-                # if the path is absolute, then override the connection path
-                if (request_path[0] == "/") {
+                # if the request path is a full URL, override the connection URL
+                if (request_path =~ /^http/) {
+                    rest.setURL(request_path);
+                    request_path = "";
+                } else if (request_path[0] == "/") {
+                    # if the path is absolute, then override the connection path
                     rest.setConnectionPath();
                 }
             } catch (hash<ExceptionInfo> ex) {

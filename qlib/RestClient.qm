@@ -1288,8 +1288,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         } catch (hash<ExceptionInfo> ex) {
             # in case of a 401 error, try to get a new token
             if (info."response-code" == 401 && oauth2_grant_type && oauth2_auto_refresh) {
-                on_error rethrow $1.err, $1.desc, $1.arg + {
-                    "cause": ex,
+                on_error {
+                    rethrow ex.err, ex.desc, ex.arg;
                 };
 
                 if (refresh_token) {
@@ -2317,19 +2317,14 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             }
         }
         # get local names for options
-        string oauth2_auth_url_opt = getOAuth2OptionName("oauth2_auth_url");
         string oauth2_client_id_opt = getOAuth2OptionName("oauth2_client_id");
-
         *list<auto> scopes = info.hasKey("scopes") ? info.scopes : real_opts.oauth2_scopes;
         *string scope = scopes ? (foldl $1 + " " + $2, scopes) : NOTHING;
         if (scope.val()) {
             scope = encode_url(scope);
         }
-        string uri = sprintf("%s?scope=%s&redirect_uri=%s&client_id=%s&response_type=%s", opts{oauth2_auth_url_opt},
+        string uri = sprintf("%s?scope=%s&redirect_uri=%s&client_id=%s&response_type=%s", getAuthUrl(),
             scope, info.redirect_uri ?? opts.oauth2_redirect_url, opts{oauth2_client_id_opt}, info.response_type);
-        if (uri !~ /^http/) {
-            uri = real_url + uri;
-        }
         # add any optional auth args
         map uri += sprintf("&%s=%s", $1.key, getUriValue($1.value)), opts.oauth2_auth_args.pairIterator();
         if (info.state) {
@@ -2338,18 +2333,46 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         return uri;
     }
 
-    #! Returns the OAuth2 token URL or throws an exception if not set
-    /*
+    #! Returns the OAuth2 authorization URL or throws an exception if not set
+    /*  @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
+        is to return a full URL
+
         @since %RestClient 2.0
     */
-    string getTokenUrl() {
+    string getAuthUrl(*bool allow_relative) {
+        string oauth2_auth_url_opt = getOAuth2OptionName("oauth2_auth_url");
+        *string uri = opts{oauth2_auth_url_opt};
+        if (!uri) {
+            throw "OAUTH2-AUTH-ERROR", sprintf("no %y option is set on connection %y", oauth2_auth_url_opt, name);
+        }
+        if (!allow_relative && uri !~ /^http/) {
+            string url = real_url;
+            if (url !~ /\/$/) {
+                url += "/";
+            }
+            uri = url + uri;
+        }
+        return uri;
+    }
+
+    #! Returns the OAuth2 token URL or throws an exception if not set
+    /*  @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
+        is to return a full URL
+
+        @since %RestClient 2.0
+    */
+    string getTokenUrl(*bool allow_relative) {
         string oauth2_token_url_opt = getOAuth2OptionName("oauth2_token_url");
         *string uri = opts{oauth2_token_url_opt};
         if (!uri) {
             throw "OAUTH2-AUTH-ERROR", sprintf("no %y option is set on connection %y", oauth2_token_url_opt, name);
         }
-        if (uri !~ /^http/) {
-            uri = real_url + uri;
+        if (!allow_relative && uri !~ /^http/) {
+            string url = real_url;
+            if (url !~ /\/$/) {
+                url += "/";
+            }
+            uri = url + uri;
         }
         return uri;
     }

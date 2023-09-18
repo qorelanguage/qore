@@ -155,21 +155,44 @@ class CdsTest inherits QUnit::Test {
     }
 
     connectionTest() {
-        string url = "http://localhost:8080";
-        CdsRestConnection swsc("test", "test", url, {}, {"client_id": "x", "client_secret": "x", "tenant": "x",});
-        assertEq(True, swsc instanceof CdsRestConnection);
+        string url = "https://localhost:8080";
+
+        {
+            CdsRestConnection crc("test", "test", url, {}, {"client_id": "x", "client_secret": "x", "tenant": "x",});
+            assertEq(True, crc instanceof CdsRestConnection);
+        }
 
         assertThrows("CONNECTION-ERROR", sub () {
-            CdsRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
+            CdsRestConnection crc("test", "test", url, {"monitor": True}, {"x": 1});
         });
+
+        {
+            CdsRestConnection crc("test", "test", "https://example.com", {}, {
+                "client_id": "x",
+                "client_secret": "x",
+                "tenant": "x",
+                "oauth2_grant_type": "authorization_code",
+                "api_profile": "dynamics",
+            });
+            assertEq(True, crc instanceof CdsRestConnection);
+            assertEq("https://login.microsoftonline.com/x/oauth2/v2.0/authorize?"
+                "scope=offline_access%20https://example.com/x/.default&redirect_uri=auto&"
+                "client_id=x&response_type=code&response_mode=query",
+                crc.getAuthorizationCodeRequest());
+            assertEq("https://login.microsoftonline.com/x/oauth2/v2.0/authorize", crc.getAuthUrl());
+            assertEq("https://login.microsoftonline.com/x/oauth2/v2.0/token", crc.getTokenUrl());
+        }
 
 %ifdef NoJson
         testSkip("no json module present");
 %endif
 
-        CdsRestClient client = swsc.get(False);
-        # issue #3321: check default timeouts
-        assertEq(45000, client.getTimeout());
-        assertEq(45000, client.getConnectTimeout());
+        {
+            CdsRestConnection crc("test", "test", url, {}, {"client_id": "x", "client_secret": "x", "tenant": "x",});
+            CdsRestClient client = crc.get(False);
+            # issue #3321: check default timeouts
+            assertEq(45000, client.getTimeout());
+            assertEq(45000, client.getConnectTimeout());
+        }
     }
 }
