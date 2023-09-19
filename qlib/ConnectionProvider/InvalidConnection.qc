@@ -43,6 +43,7 @@ public class InvalidConnection inherits AbstractConnection {
     constructor(string n_name, string n_desc, string n_url, *hash n_opts, string n_error, hash urlh)
             : AbstractConnection(n_name, n_desc, n_url, {"monitor": False}, n_opts ?? {}) {
         error = n_error;
+        up = False;
     }
 
     #! creates the invalid connection object
@@ -63,6 +64,7 @@ public class InvalidConnection inherits AbstractConnection {
         if (attributes.error.val()) {
             self.error = attributes.error;
         }
+        up = False;
     }
 
     #! Parse the URL to a hash
