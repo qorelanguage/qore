@@ -29,13 +29,16 @@ class CdsTest inherits QUnit::Test {
     public {}
 
     private {
+        CdsRestConnection rconn;
         CdsRestClient rc;
+        Logger logger;
 
         # CDS connection options
         hash cdsopts;
 
         # command-line options
         const MyOpts = Opts + {
+            "conn":           "c,connection=s",
             "client_id":      "i,client_id=s",
             "client_secret":  "s,client_secret=s",
             "tenant":         "T,tenant,=s",
@@ -52,6 +55,7 @@ class CdsTest inherits QUnit::Test {
     }
 
     constructor() : Test("CdsTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("poll tests", \pollTests());
         addTestCase("CDS DataProvider test", \CdsDataProviderTests());
         addTestCase("CDS REST", \CdsRestTests());
         addTestCase("connection tests", \connectionTest());
@@ -59,8 +63,14 @@ class CdsTest inherits QUnit::Test {
         try {
             setupConnection();
         } catch (hash<ExceptionInfo> ex) {
-            if (m_options.verbose)
+            if (m_options.verbose) {
                 printf("%s: %s\n", ex.err, ex.desc);
+            }
+        }
+
+        Logger logger("test", LoggerLevel::getLevelInfo());
+        if (m_options.verbose > 2) {
+            logger.addAppender(new StdoutAppender());
         }
 
         set_return_value(main());
@@ -68,6 +78,7 @@ class CdsTest inherits QUnit::Test {
 
     private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--connection=ARG", "set CDS connection name", OptionColumn);
         printOption("-i,--client_id=ARG", "set CDS consumer key", OptionColumn);
         printOption("-s,--client_secret=ARG", "set CDS consumer secret", OptionColumn);
         printOption("-T,--tenant=ARG", "set CDS tenant", OptionColumn);
@@ -76,9 +87,20 @@ class CdsTest inherits QUnit::Test {
     }
 
     setupConnection() {
+        *string conn_name = m_options.conn ?? ENV.CDS_CONNECTION;
+        if (conn_name) {
+            AbstractConnection conn = get_connection(conn_name);
+            if (!(conn instanceof CdsRestConnection)) {
+                error("connection %y is type %y; expecting \"CdsRestConnection\"", conn_name, conn.className());
+            }
+            rconn = conn;
+            rc = conn.get(False);
+            return;
+        }
         cdsopts.url = m_options.url ?? ENV.CDS_URL;
-        if (!cdsopts.url)
-            error("missing --url option or CDS_URL environment variable");
+        if (!cdsopts.url) {
+            error("missing --url or --connection options, CDS_URL or CDS_CONNECTION environment variables");
+        }
         cdsopts.client_id = m_options.client_id ?? ENV.CDS_CLIENT_ID;
         if (!cdsopts.client_id)
             error("missing --client_id option or CDS_CLIENT_ID environment variable");
@@ -154,6 +176,29 @@ class CdsTest inherits QUnit::Test {
         #assertEq(NOTHING, rc.getToken());
     }
 
+    pollTests() {
+        if (!rconn) {
+            testSkip("no CdsRestConnection");
+        }
+
+        {
+            # first test a standard ping
+            hash<PingInfo> ping = rconn.ping(True);
+            assertTrue(ping.ok);
+            assertEq("OK", ping.info);
+
+            TestPollingConnectionMonitor monitor(logger);
+            on_exit delete monitor;
+
+            monitor.add(rconn);
+            hash<auto> info = monitor.waitForResult();
+            on_error if (info.ex) {
+                printf("%s\n", get_exception_string(info.ex));
+            }
+            assertEq("OK", info.result);
+        }
+    }
+
     connectionTest() {
         string url = "https://localhost:8080";
 
@@ -194,5 +239,34 @@ class CdsTest inherits QUnit::Test {
             assertEq(45000, client.getTimeout());
             assertEq(45000, client.getConnectTimeout());
         }
+    }
+}
+
+class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
+    private {
+        Queue msgq();
+    }
+
+    constructor(*Logger logger) : PollingConnectionMonitor(logger) {
+        ping_timeout = 5s;
+    }
+
+    hash<auto> waitForResult() {
+        return msgq.get();
+    }
+
+    private handlePingSuccess(string name, date delta, *bool oldok) {
+        PollingConnectionMonitor::handlePingSuccess(name, delta, oldok);
+        msgq.push({"name": name, "result": "OK"});
+    }
+
+    private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
+        PollingConnectionMonitor::handlePingFailed(name, delta, ex);
+        msgq.push({"name": name, "result": "error", "ex": ex});
+    }
+
+    private handlePingTimeout(string name, date delta) {
+        PollingConnectionMonitor::handlePingTimeout(name, delta);
+        msgq.push({"name": name, "result": "timeout"});
     }
 }

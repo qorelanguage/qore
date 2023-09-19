@@ -2628,6 +2628,8 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
                     AbstractRestSchemaValidator validator = rc.getValidator();
                     on_error rethrow $1.err, sprintf("%s: info: %y", $1.desc, resp.info{"request-uri",
                         "response-uri"});
+                    # remove any excess info from the body content type
+                    resp.info."body-content-type" =~ s/;.*//;
                     #hash<RestResponseClientInfo> info =
                     validator.parseResponse(method, path, resp."code", body,
                         resp.info."response-headers" + {"content-type": resp.info."body-content-type"});

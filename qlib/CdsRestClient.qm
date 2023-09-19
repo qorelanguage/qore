@@ -138,6 +138,17 @@ public class CdsRestClient inherits RestClient::RestClient {
         #! Default Dynamics 365 base URI
         const DefaultBusinessCentralBaseUri = "https://api.businesscentral.dynamics.com/";
 
+        #! Default Dynamics ping method
+        const DefaultDynamicsPingMethod = "GET";
+
+        #! Default Dynamics ping path
+        const DefaultDynamicsPingPath = "{api_uri_path}/systemusers?$top=1&$select=identityid";
+
+        #! Default Dynamics ping headers
+        const DefaultDynamicsPingHeaders = {
+            "Accept": MimeTypeJson,
+        };
+
         #! API profiles
         const ApiProfiles = {
             "none": {},
@@ -146,11 +157,9 @@ public class CdsRestClient inherits RestClient::RestClient {
                     "offline_access",
                     "{url}.default",
                 ),
-                /*
                 "ping_method": DefaultDynamicsPingMethod,
-                "ping_path": "",
+                "ping_path": DefaultDynamicsPingPath,
                 "ping_headers": DefaultDynamicsPingHeaders,
-                */
             },
             "dynamics-business-central": {
                 "url": DefaultBusinessCentralBaseUri,
@@ -595,7 +604,15 @@ public class CdsRestConnection inherits RestClient::RestConnection {
             }
             # process scopes; substitute "{url}" with the connection URL
             opts.oauth2_scopes = map replace($1, "{url}", url), opts.oauth2_scopes;
+
+            if (opts.ping_path) {
+                opts.ping_path = replace(opts.ping_path, "{api_uri_path}", CdsRestClient::RequestUriPathPrefix +
+                    (opts.api ?? CdsRestClient::DefaultApiVersion));
+            }
+        } else if (opts.url) {
+            remove opts.url;
         }
+
         return opts;
     }
 }
