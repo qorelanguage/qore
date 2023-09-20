@@ -2526,15 +2526,7 @@ struct qore_socket_private {
 
         // check exception and socket status
         assert(xsink);
-        if (*xsink)
-            return -1;
-
-        if (sock == QORE_INVALID_SOCKET) {
-            se_not_open(cname, mname, xsink, "runCallback");
-            return QSE_NOT_OPEN;
-        }
-
-        return 0;
+        return *xsink ? -1 : 0;
     }
 
     DLLLOCAL int sendHttpChunkedWithCallback(ExceptionSink* xsink, const char* cname, const char* mname,
