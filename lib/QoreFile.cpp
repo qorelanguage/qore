@@ -195,7 +195,12 @@ FileReadPollOperation::FileReadPollOperation(ExceptionSink* xsink, File* file, c
     }
     set_non_block = true;
 
+#ifdef _Q_WINDOWS
+    // FIXME: implement non-blocking I/O (overlapped) for QoreFile on Windows
+    if (file->priv->open_intern(path, O_RDONLY, 0, file->priv->charset)) {
+#else
     if (file->priv->open_intern(path, O_RDONLY | O_NONBLOCK, 0, file->priv->charset)) {
+#endif
         xsink->raiseErrnoException("FILE-OPEN-ERROR", errno, "failed to open file: '%s'", path);
         file->priv->clearNonBlock(xsink);
         set_non_block = false;
