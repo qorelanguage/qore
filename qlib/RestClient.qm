@@ -367,12 +367,12 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, Connec
             "User-Agent": RestClient::VersionString,
         };
 
-        #! Default oauth2_redirect_uri option value
-        const DefaultOAuth2RedirectUri = "auto";
+        #! Default oauth2_redirect_url option value
+        const DefaultOAuth2RedirectUrl = "auto";
 
         #! Default option values
         const DefaultOptions = {
-            "oauth2_redirect_uri": DefaultOAuth2RedirectUri,
+            "oauth2_redirect_url": DefaultOAuth2RedirectUrl,
         };
 
         #! Data serialization options; this is a hash to simulate a set of strings
