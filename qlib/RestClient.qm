@@ -1974,7 +1974,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     "type": "string",
                     "desc": "The OAuth2 redirect URL for the `authorization_code` grant type; ignored "
                         "if the `token` option is set.  Note that the `authorization_code` grant type requires "
-                        "external user authorization to acquire an access token; the special value \c \"auto\" (the "
+                        "external user authorization to acquire an access token; the special value `auto` (the "
                         "default) is meant to be interpreted by servers that implement OAuth2 authorization code "
                         "client handling",
                     "default_value": "auto",
