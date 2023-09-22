@@ -2365,6 +2365,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             if (url !~ /\/$/) {
                 url += "/";
             }
+            if (uri =~ /^\//) {
+                uri = uri[1..];
+            }
             uri = url + uri;
         }
         return uri;
