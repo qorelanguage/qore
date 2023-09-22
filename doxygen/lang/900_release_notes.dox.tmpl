@@ -2,6 +2,18 @@
 
     @tableofcontents
 
+    @section qore_1_19_1 Qore 1.19.1
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_19_1_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a>
+      - do not try to get another OAuth2 token if the token was just retrieved
+        (<a href="https://github.com/qorelanguage/qore/issues/4796">issue 4796</a>)
+    - fixed an extraneous \c SOCKET-NOT-OPEN exception when running socket callbacks after a socket was closed
+      (<a href="https://github.com/qorelanguage/qore/issues/4795">issue 4795</a>)
+
     @section qore_1_19_0 Qore 1.19.0
 
     @par Release Summary
@@ -53,8 +65,6 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
       - fixed a bug where polling pings did not respect connection options or the validator
         (<a href="https://github.com/qorelanguage/qore/issues/4764">issue 4764</a>)
-    - fixed an extraneous \c SOCKET-NOT-OPEN exception when running socket callbacks after a socket was closed
-      (<a href="https://github.com/qorelanguage/qore/issues/4795">issue 4795</a>)
     - fixed a bugs handling the signal mask that could cause hard-to-debug problems such as deadlocks in JIT in the
       JVM on macOS aarch64
       (<a href="https://github.com/qorelanguage/qore/issues/4793">issue 4793</a>)
