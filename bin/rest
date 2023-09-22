@@ -251,7 +251,11 @@ class RestCmd {
                     rest.setConnectionPath();
                 }
             } catch (hash<ExceptionInfo> ex) {
-                stderr.printf("connection %y: %s: %s: %s\n", opt.conn, get_ex_pos(ex), ex.err, ex.desc);
+                if (opt.fullex) {
+                    stderr.printf("%s\n", get_exception_string(ex));
+                } else {
+                    stderr.printf("connection %y: %s: %s: %s\n", opt.conn, get_ex_pos(ex), ex.err, ex.desc);
+                }
                 exit(1);
             }
         } else {
@@ -333,36 +337,37 @@ class RestCmd {
                 showRestResponse(info, h.body, opt);
             }
 
-            on_error rethrow $1.err, sprintf("%s (using url: %y request path: %y)", $1.desc, rest.getURL(), request_path ?? "");
+            on_error rethrow $1.err, sprintf("%s (using url: %y request path: %y)", $1.desc, rest.getURL(),
+                request_path ?? "");
             h = rest.doRequest(meth, request_path ?? "", body, \info);
             if (!opt.lit) {
                 printf("%N\n", h.body);
             }
         } catch (hash<ExceptionInfo> ex) {
             if (opt.fullex) {
-                printf("%s\n", get_exception_string(ex));
+                stderr.printf("%s\n", get_exception_string(ex));
             } else {
                 if (ex.err == "DESERIALIZATION-ERROR"
                     && info."response-headers"."content-type" == "text/html"
                     && info."response-body") {
-                    printf("%s\n%s\n", info."response-uri", html_decode(info."response-body"));
+                    stderr.printf("%s\n%s\n", info."response-uri", html_decode(info."response-body"));
                 } else {
-                    printf("%s: %s: %s", rest.getURL(), ex.err, ex.desc);
+                    stderr.printf("%s: %s: %s", rest.getURL(), ex.err, ex.desc);
                     if (ex.arg) {
-                        print(": ");
+                        stderr.print(": ");
                         if (ex.arg.body.typeCode() == NT_STRING) {
                             trim ex.arg.body;
-                            print(ex.arg.body);
+                            stderr.print(ex.arg.body);
                         } else {
                             if (ex.arg.typeCode() == NT_STRING) {
                                 trim ex.arg;
-                                printf("%y", ex.arg);
+                                stderr.printf("%y", ex.arg);
                             } else {
-                                printf("%y", ex.arg);
+                                stderr.printf("%y", ex.arg);
                             }
                         }
                     }
-                    print("\n");
+                    stderr.print("\n");
                 }
             }
         }

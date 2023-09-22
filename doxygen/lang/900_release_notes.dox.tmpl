@@ -8,6 +8,9 @@
     Major release of %Qore
 
     @subsection qore_2_0_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a>
+      - do not try to get another OAuth2 token if the token was just retrieved
+        (<a href="https://github.com/qorelanguage/qore/issues/4796">issue 4796</a>)
     - fixed an extraneous \c SOCKET-NOT-OPEN exception when running socket callbacks after a socket was closed
       (<a href="https://github.com/qorelanguage/qore/issues/4795">issue 4795</a>)
 

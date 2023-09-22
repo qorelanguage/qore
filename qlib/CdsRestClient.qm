@@ -522,6 +522,9 @@ public class CdsRestConnection inherits RestClient::RestConnection {
             if (url !~ /\/$/) {
                 url += "/";
             }
+            if (rv =~ /^\//) {
+                rv = rv[1..];
+            }
             rv = url + rv;
         }
         return rv;
