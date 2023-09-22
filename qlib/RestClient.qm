@@ -55,7 +55,7 @@
 %endtry
 
 module RestClient {
-    version = "2.0";
+    version = "2.0.1";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -131,6 +131,10 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv2_0_1 RestClient v2.0.1
+    - do not try to get another OAuth2 token if the token was just retrieved
+      (<a href="https://github.com/qorelanguage/qore/issues/4796">issue 4796</a>)
 
     @subsection restclientv2_0 RestClient v2.0
     - implemented support for OAuth2 authorization flows
@@ -460,6 +464,9 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, Connec
             # format (ex: the Salesforce OAuth2 server)
             "Accept": MimeTypeFormUrlEncoded + "," + MimeTypeJson,
         };
+
+        #! Minimum time between OAuth2 token requests
+        const MinimumTokenRefresh = 1m;
     }
 
     private {
@@ -505,6 +512,8 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, Connec
         string refresh_token;
         #! If OAuth2 tokens should be automatically refreshed
         bool oauth2_auto_refresh = True;
+        #! Last timestamp for token acquisition
+        date token_timestamp;
     }
 
     #! calls the base class HTTPClient constructor and optionally connects to the REST server
@@ -1287,7 +1296,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             return doRequestIntern(m, path, body, \info, decode_errors, hdr);
         } catch (hash<ExceptionInfo> ex) {
             # in case of a 401 error, try to get a new token
-            if (info."response-code" == 401 && oauth2_grant_type && oauth2_auto_refresh) {
+            if (info."response-code" == 401 && oauth2_grant_type && oauth2_auto_refresh
+                && ((now_us() - token_timestamp) > MinimumTokenRefresh)) {
                 on_error {
                     rethrow ex.err, ex.desc, ex.arg;
                 };
@@ -1419,6 +1429,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         if (update_options && new_opts) {
             doUpdateOptions(self, new_opts);
         }
+        token_timestamp = now_us();
         return h;
     }
 
@@ -1536,7 +1547,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         });
     }
 
-    #! Perform OAuth2 password authentication
+    #! Perform OAuth2 authentication
     /** @since %RestClient 2.0
     */
     private hash<auto> oauth2Auth(hash<auto> login, *reference<hash<auto>> info) {
@@ -1551,6 +1562,10 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         on_exit if (username && self.password) {
             setUserPassword(username, self.password);
         }
+
+        # remove tokens and Authorization header
+        remove token;
+        remove headers.Authorization;
 
         # temporarily remove any schema for the OAuth2 call
         AbstractRestSchemaValidator v;
