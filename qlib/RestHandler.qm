@@ -1708,10 +1708,10 @@ namespace Priv {
         auto removeUserThreadContext(*string k) {
         }
 
-        log(string fmt) {
+        log(string fmt, ...) {
         }
 
-        logError(string fmt) {
+        logError(string fmt, ...) {
         }
     }
 }

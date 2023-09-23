@@ -19,6 +19,10 @@
     Bugfix release; see below for more information
 
     @subsection qore_1_19_1_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>
+      - allow context info to be cleared after handling each request to ensure that context info (like thread-local
+        data) does not leak into other connections on the same thread
+        (<a href="https://github.com/qorelanguage/qore/issues/4802">issue 4802</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a>
       - do not try to get another OAuth2 token if the token was just retrieved
         (<a href="https://github.com/qorelanguage/qore/issues/4796">issue 4796</a>)

@@ -790,13 +790,13 @@ public class AbstractLogger {
     /** @param fmt the message to log, can be a format string, in which case additional arguments are processed with
         vsprintf()
     */
-    abstract log(string fmt);
+    abstract log(string fmt, ...);
 
     #! called to log error information to the registered error log code
     /** @param fmt the error message to log, can be a format string, in which case additional arguments are processed
         with vsprintf()
     */
-    abstract logError(string fmt);
+    abstract logError(string fmt, ...);
 
     #! calls log() with the given args
     /** @param args a single string or a list of arguments used to call the log() method
@@ -1651,7 +1651,7 @@ public class AbstractHttpRequestHandler {
     }
 
     #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
-    static hash<HttpResponseInfo> makeResponse(int code, string fmt) {
+    static hash<HttpResponseInfo> makeResponse(int code, string fmt, ...) {
         return <HttpResponseInfo>{
             "code": code,
             "body": vsprintf(fmt, argv),
@@ -1659,7 +1659,7 @@ public class AbstractHttpRequestHandler {
     }
 
     #! creates a hash for an HTTP response with the response code and the response message body as a formatted string
-    static hash<HttpResponseInfo> makeResponse(hash<auto> hdr, int code, string fmt) {
+    static hash<HttpResponseInfo> makeResponse(hash<auto> hdr, int code, string fmt, ...) {
         return <HttpResponseInfo>{
             "code": code,
             "body": vsprintf(fmt, argv),
@@ -1705,12 +1705,12 @@ public class AbstractHttpRequestHandler {
     }
 
     #! creates a hash for an HTTP 200 OK error response with the response message body as a string
-    static hash<HttpResponseInfo> make200(string fmt) {
+    static hash<HttpResponseInfo> make200(string fmt, ...) {
         return AbstractHttpRequestHandler::makeResponse(200, vsprintf(fmt, argv));
     }
 
     #! creates a hash for an HTTP 200 OK error response with the response message body as a string
-    static hash<HttpResponseInfo> make200(hash<auto> hdr, string fmt) {
+    static hash<HttpResponseInfo> make200(hash<auto> hdr, string fmt, ...) {
         return AbstractHttpRequestHandler::makeResponse(200, vsprintf(fmt, argv), hdr);
     }
 
@@ -1725,32 +1725,32 @@ public class AbstractHttpRequestHandler {
     }
 
     #! creates a hash for an HTTP 400 error response with the response message body as a string
-    static hash<HttpResponseInfo> make400(string fmt) {
+    static hash<HttpResponseInfo> make400(string fmt, ...) {
         return AbstractHttpRequestHandler::makeResponse(400, vsprintf(fmt, argv));
     }
 
     #! creates a hash for an HTTP 400 error response with the response message body as a string
-    static hash<HttpResponseInfo> make400(hash<auto> hdr, string fmt) {
+    static hash<HttpResponseInfo> make400(hash<auto> hdr, string fmt, ...) {
         return AbstractHttpRequestHandler::makeResponse(400, vsprintf(fmt, argv), hdr);
     }
 
     #! creates a hash for an HTTP 500 error response with the response message body as a string
-    static hash<HttpResponseInfo> make500(string fmt) {
+    static hash<HttpResponseInfo> make500(string fmt, ...) {
         return AbstractHttpRequestHandler::makeResponse(500, vsprintf(fmt, argv));
     }
 
     #! creates a hash for an HTTP 500 error response with the response message body as a string
-    static hash<HttpResponseInfo> make500(hash<auto> hdr, string fmt) {
+    static hash<HttpResponseInfo> make500(hash<auto> hdr, string fmt, ...) {
         return AbstractHttpRequestHandler::makeResponse(500, vsprintf(fmt, argv), hdr);
     }
 
     #! creates a hash for an HTTP 501 error response with the response message body as a string
-    static hash<HttpResponseInfo> make501(string fmt) {
+    static hash<HttpResponseInfo> make501(string fmt, ...) {
         return AbstractHttpRequestHandler::makeResponse(501, vsprintf(fmt, argv));
     }
 
     #! creates a hash for an HTTP 501 error response with the response message body as a string
-    static hash<HttpResponseInfo> make501(hash<auto> hdr, string fmt) {
+    static hash<HttpResponseInfo> make501(hash<auto> hdr, string fmt, ...) {
         return AbstractHttpRequestHandler::makeResponse(501, vsprintf(fmt, argv), hdr);
     }
 
