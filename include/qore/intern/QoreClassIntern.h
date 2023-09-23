@@ -351,6 +351,9 @@ public:
             int n_sig_last_line, QoreValue params, RetTypeInfo* rv, bool synced, int64 n_flags, bool is_abstract)
             : MethodVariant(n_access, n_final, n_flags, true, is_abstract),
             UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, false), synchronized(synced) {
+         if (signature.hasVarargs()) {
+            flags |= QCF_USES_EXTRA_ARGS;
+        }
     }
 
     DLLLOCAL ~UserMethodVariant() {
@@ -403,6 +406,9 @@ public:
             QoreValue params, BCAList* n_bcal, int64 n_flags = QCF_NO_FLAGS)
             : ConstructorMethodVariant(n_access, n_flags, true), UserVariantBase(b, n_sig_first_line, n_sig_last_line,
                 params, nullptr, false), bcal(n_bcal) {
+        if (signature.hasVarargs()) {
+            flags |= QCF_USES_EXTRA_ARGS;
+        }
     }
 
     // the following defines the pure virtual functions that are common to all user variants
