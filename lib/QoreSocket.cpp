@@ -990,8 +990,8 @@ int SocketConnectInetPollState::next(ExceptionSink* xsink) {
     {
         QoreString addr;
         q_addr_to_string2(p->ai_addr, addr);
-        printd(0, "SocketConnectInetPollState::next() trying address: %p family: %s addr: %s\n", p,
-            q_af_to_str(p->ai_family), addr.c_str());
+        //printd(5, "SocketConnectInetPollState::next() trying address: %p family: %s addr: %s\n", p,
+        //    q_af_to_str(p->ai_family), addr.c_str());
     }
     return nextIntern(xsink);
 }
