@@ -1529,7 +1529,7 @@ AC_SEARCH_LIBS(clock_gettime, rt)
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h poll.h grp.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h poll.h grp.h net/if_dl.h linux/if_packet.h])
 
 # check for umem.h
 AC_CHECK_HEADER([umem.h], have_umem_h=yes, have_umem_h=no)
@@ -1679,7 +1679,7 @@ AC_CHECK_FUNCS([bzero floor getaddrinfo gethostbyaddr gethostbyname gethostname 
     getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid
     setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep
     usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath
-    memmem getifaddrs pthread_get_stacksize_np pthread_get_name_np pthread_getname_np])
+    memmem getifaddrs pthread_get_stacksize_np pthread_get_name_np pthread_getname_np link_ntoa])
 
 # some systems have internal gethostby*_r in libc but don't hide the
 # symbols, so we look if they are declared before checking in the libraries

@@ -188,7 +188,9 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
     target_link_libraries(${_module_name} ${_libs})
 
     # ensure that modules use dynamic lookups; works with g++ & clang++
+    if(CMAKE_HOST_APPLE)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-undefined -Wl,dynamic_lookup")
+    endif(CMAKE_HOST_APPLE)
 
     install( TARGETS ${_module_name} DESTINATION ${_mod_target_dir})
 
