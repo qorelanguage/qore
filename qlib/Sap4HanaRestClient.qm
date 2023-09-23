@@ -207,7 +207,7 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
     }
 
     #! throws an exception due to an error
-    static raiseError(string fmt) {
+    static raiseError(string fmt, ...) {
         throw "SAP4HANARESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 

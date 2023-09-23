@@ -264,7 +264,7 @@ CdsRestClient rest({
     }
 
     #! throws an exception due to an error
-    static raiseError(string fmt) {
+    static raiseError(string fmt, ...) {
         throw "CDSRESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 

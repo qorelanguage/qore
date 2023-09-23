@@ -272,7 +272,7 @@ ServiceNowRestClient rest({
     }
 
     #! throws an exception due to an error
-    static raiseError(string fmt) {
+    static raiseError(string fmt, ...) {
         throw "SERVICENOWRESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 

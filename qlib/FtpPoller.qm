@@ -526,21 +526,21 @@ public class FtpPoller {
     }
 
     #! calls the \c "log_info" @ref closure "closure" or @ref call_reference "call reference" with important information
-    private logInfo(string fmt) {
+    private logInfo(string fmt, ...) {
         if (log_info) {
             call_function(log_info, vsprintf(fmt, argv));
         }
     }
 
     #! calls the \c "log_detail" @ref closure "closure" or @ref call_reference "call reference" with detail information
-    private logDetail(string fmt) {
+    private logDetail(string fmt, ...) {
         if (log_detail) {
             call_function(log_detail, vsprintf(fmt, argv));
         }
     }
 
     #! calls the \c "log_debug" @ref closure "closure" or @ref call_reference "call reference" with verbose debugging information
-    private logDebug(string fmt) {
+    private logDebug(string fmt, ...) {
         if (log_debug) {
             call_function(log_debug, vsprintf(fmt, argv));
         }

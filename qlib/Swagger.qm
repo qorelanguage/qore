@@ -3231,7 +3231,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! raises an exception with context information
-    private error(string err, string fmt) {
+    private error(string err, string fmt, ...) {
         throw err, sprintf("%s %s Operation Object: %s", method.upr(), path, vsprintf(fmt, argv));
     }
 }

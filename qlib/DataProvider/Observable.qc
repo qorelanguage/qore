@@ -137,8 +137,7 @@ public class Observable {
         @param fmt the format string
         @param ... any arguments for any format placeholders in \a fmt
     */
-    log(int level, string fmt) {
-        delete argv;
+    log(int level, string fmt, ...) {
         # this method intentionally left blank
     }
 

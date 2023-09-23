@@ -339,7 +339,7 @@ StaticTextTemplateBase::add(p, "/html/index.qhtml", qhtml, "t0");
         }
 
         #! a helper method that strips dollar signs from code when PO_ALLOW_BARE_REFS is set in the template program
-        private static string getCode(bool bare_refs, string fmt) {
+        private static string getCode(bool bare_refs, string fmt, ...) {
             string str = vsprintf(fmt, argv);
             if (bare_refs)
                 str =~ s/\$//g;
@@ -971,18 +971,15 @@ hash<HttpResponseInfo> h = tm.render("html/index.qhtml", ctx);
         }
 
         #! default implementation is empty; this method is called with informational log messages; reimplement in subclasses to provide for logging
-        logInfo(string fmt) {
-            delete argv;
+        logInfo(string fmt, ...) {
         }
 
         #! default implementation is empty; this method is called with error log messages; reimplement in subclasses to provide for logging
-        logError(string fmt) {
-            delete argv;
+        logError(string fmt, ...) {
         }
 
         #! default implementation is empty; this method is called with debug log messages; reimplement in subclasses to provide for logging
-        logDebug(string fmt) {
-            delete argv;
+        logDebug(string fmt, ...) {
         }
 
         #! this method returns a 404 \c "Not Found" error code to \c GET requests and a 501 \c "Not Implemented" error code to all other requests

@@ -820,21 +820,15 @@ public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
     }
 
     #! default implementation is empty
-    logInfo(string fmt) {
-        # to avoid warnings about extra arguments in the call
-        delete argv;
+    logInfo(string fmt, ...) {
     }
 
     #! default implementation is empty
-    logError(string fmt) {
-        # to avoid warnings about extra arguments in the call
-        delete argv;
+    logError(string fmt, ...) {
     }
 
     #! default implementation is empty
-    logDebug(string fmt) {
-        # to avoid warnings about extra arguments in the call
-        delete argv;
+    logDebug(string fmt, ...) {
     }
 }
 }

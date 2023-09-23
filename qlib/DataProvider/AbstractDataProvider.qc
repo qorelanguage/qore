@@ -2489,7 +2489,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     }
 
     #! thrown an exception
-    private error(string err, string fmt) {
+    private error(string err, string fmt, ...) {
         string desc_name;
         # the getName() method cannot be run in the constructor before the object has been created and the name set
         try {

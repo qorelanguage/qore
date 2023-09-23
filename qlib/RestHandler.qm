@@ -1602,26 +1602,26 @@ public namespace RestHandler {
         #! This method is called with informational log messages
         /** reimplement in subclasses to provide for logging
         */
-        logInfo(string fmt) {
+        logInfo(string fmt, ...) {
             logArgs(LoggerLevel::INFO, fmt, argv);
         }
 
         #! This method is called with error log messages
         /** reimplement in subclasses to provide for logging
         */
-        logError(string fmt) {
+        logError(string fmt, ...) {
             logArgs(LoggerLevel::ERROR, fmt, argv);
         }
 
         #! This method is called with debug log messages
         /** reimplement in subclasses to provide for logging
         */
-        logDebug(string fmt) {
+        logDebug(string fmt, ...) {
             logArgs(LoggerLevel::DEBUG, fmt, argv);
         }
 
         #! creates a hash for an HTTP 200 OK error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make200(string fmt) {
+        static hash<HttpHandlerResponseInfo> make200(string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 200,
                 "body": vsprintf(fmt, argv),
@@ -1629,7 +1629,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 200 OK error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make200(hash<auto> hdr, string fmt) {
+        static hash<HttpHandlerResponseInfo> make200(hash<auto> hdr, string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 200,
                 "body": vsprintf(fmt, argv),
@@ -1638,7 +1638,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 400 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make400(string fmt) {
+        static hash<HttpHandlerResponseInfo> make400(string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 400,
                 "body": vsprintf(fmt, argv),
@@ -1646,7 +1646,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 400 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make400(hash<auto> hdr, string fmt) {
+        static hash<HttpHandlerResponseInfo> make400(hash<auto> hdr, string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 400,
                 "body": vsprintf(fmt, argv),
@@ -1664,7 +1664,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 500 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make500(string fmt) {
+        static hash<HttpHandlerResponseInfo> make500(string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 500,
                 "body": vsprintf(fmt, argv),
@@ -1672,7 +1672,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 500 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make500(hash<auto> hdr, string fmt) {
+        static hash<HttpHandlerResponseInfo> make500(hash<auto> hdr, string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 500,
                 "body": vsprintf(fmt, argv),
@@ -1680,7 +1680,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 501 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make501(string fmt) {
+        static hash<HttpHandlerResponseInfo> make501(string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 501,
                 "body": vsprintf(fmt, argv),
@@ -1688,7 +1688,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 501 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make501(hash<auto> hdr, string fmt) {
+        static hash<HttpHandlerResponseInfo> make501(hash<auto> hdr, string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 501,
                 "body": vsprintf(fmt, argv),

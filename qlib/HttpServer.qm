@@ -516,10 +516,10 @@ public class HttpServer inherits HttpServer::AbstractLogger {
 
         @param logfunc an optional closure or call reference that will be called with logging information; must take
         an initial string with optional arguments; ex:
-        @code{.py} code log = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @code{.py} code log = sub (string fmt, ...) { vprintf(fmt, argv); }@endcode
         @param errlogfunc an optional closure or call reference that will be called with error information; must
         take an initial string with optional arguments; ex:
-        @code{.py} code errloglog = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @code{.py} code errloglog = sub (string fmt, ...) { vprintf(fmt, argv); }@endcode
         @param dbg if this parameter is set to @ref True "True", then additional information will be logged when
         errors occur; note that this parameter is only used if \a log is not provided
         @param name the name of the HTTP server as returned in the Server header (should be formatted according to
