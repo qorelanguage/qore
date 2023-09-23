@@ -413,6 +413,8 @@ void AbstractFunctionSignature::addDefaultArgument(std::string& str, QoreValue a
     str.append("<exp>");
 }
 
+static void breakit() {}
+
 UserSignature::UserSignature(int first_line, int last_line, QoreValue params, RetTypeInfo* retTypeInfo, int64 po) :
         AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : nullptr),
         parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : nullptr),
@@ -451,6 +453,9 @@ UserSignature::UserSignature(int first_line, int last_line, QoreValue params, Re
     if (params.getType() == NT_ELLIPSES) {
         assert(!varargs);
         varargs = true;
+
+breakit();
+
         return;
     }
 
@@ -1024,6 +1029,9 @@ const AbstractQoreFunctionVariant* QoreFunction::runtimeFindVariant(ExceptionSin
 
             sig = (*i)->getSignature();
             assert(sig);
+
+            // if the signature has ellipses, then QCF_USES_EXTRA_ARGS must be set in vflags
+            assert(uses_extra_args || !sig->hasVarargs());
 
             //printd(5, "QoreFunction::runtimeFindVariant() this: %p %s(%s) args: %p (%d) class: %s class_ctx: %p '%s' "
             //    "nargs: %d nparams: %d\n", this, getName(), sig->getSignatureText(), args, args ? args->size() : 0,
