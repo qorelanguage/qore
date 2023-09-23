@@ -164,8 +164,8 @@ class SwaggerRestHandler inherits RestHandler {
 class DummyListenerInterface inherits HttpListenerInterface {
     addUserThreadContext(hash<auto> uctx) {}
     auto removeUserThreadContext(*string k) {}
-    log(string fmt) {}
-    logError(string fmt) {}
+    log(string fmt, ...) {}
+    logError(string fmt, ...) {}
 }
 
 public class RestHandlerTest inherits QUnit::Test {
