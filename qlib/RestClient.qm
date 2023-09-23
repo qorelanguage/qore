@@ -55,7 +55,7 @@
 %endtry
 
 module RestClient {
-    version = "2.0.1";
+    version = "2.1";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -132,7 +132,8 @@ printf("%N\n", ans.body);
 
     @section restclientrelnotes Release Notes
 
-    @subsection restclientv2_0_1 RestClient v2.0.1
+    @subsection restclientv2_1 RestClient v2.1
+    - added @ref RestClient::RestClient::setOAuth2Options() "RestClient::setOAuth2Options()"
     - do not try to get another OAuth2 token if the token was just retrieved
       (<a href="https://github.com/qorelanguage/qore/issues/4796">issue 4796</a>)
 
@@ -701,6 +702,18 @@ RestClient rest({"url": "http://localhost:8001/rest"});
                 connect();
             }
         }
+    }
+
+    #! Sets OAuth2 options
+    /** @param new_opts a hash of OAuth2 options for the object
+
+        @since RestClient 2.1
+    */
+    setOAuth2Options(hash<auto> new_opts) {
+        if (new_opts.username.val() && new_opts.password.val()) {
+            setUserPassword(new_opts.username, new_opts.password);
+        }
+        checkOAuth2Options(new_opts);
     }
 
     #! Clears the connection path when a validator is present that manages the URI path
@@ -1495,8 +1508,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
         *list<string> req_opts = OAuth2GrantOptions{grant_type};
         if (!req_opts) {
-            throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y is unknown; known grant types: "
-                "\"client_credentials\", \"password\"", grant_type);
+            throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y is unknown; known grant types: %y", grant_type,
+                keys OAuth2GrantOptions);
         }
         oauth2_grant_type = grant_type;
         foreach string req_opt in (req_opts) {
