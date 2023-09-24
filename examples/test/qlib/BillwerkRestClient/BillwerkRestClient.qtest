@@ -39,7 +39,8 @@ class FakeBillwerkRestHandler inherits AbstractHttpRequestHandler {
     hash handleRequest(hash cx, hash hdr, *data body) {
         #printf("cx: %N\nhdr: %N\nbody: %N\n", cx, hdr, body);
         if (cx.raw_path =~ /^\/?oauth\/token$/) {
-            return makeResponse({"Content-Type": MimeTypeJson}, 200, "{\"access_token\": \"token\"}");
+            return makeResponse({"Content-Type": MimeTypeJson}, 200,
+                "{\"token_type\": \"Bearer\", \"access_token\": \"token\"}");
         }
         if (!hdr."authorization") {
             return makeResponse(400, "Missing authorization header");
@@ -95,7 +96,11 @@ class BillwerkTest inherits QUnit::Test {
         port = m_http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
 
         try {
-            billwerkRestClient = new BillwerkRestClient({"url": "http://test1:test2@localhost:" + port, "client_id": "a"});
+            billwerkRestClient = new BillwerkRestClient({
+                "url": "http://test1:test2@localhost:" + port,
+                "client_id": "a",
+                "client_secret": "b",
+            });
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err == "REST-RESPONSE-ERROR" || ex.err == "DESERIALIZATION-ERROR") {
                 printf("no client support: %s: %s\n", ex.err, ex.desc);
@@ -139,7 +144,10 @@ class BillwerkTest inherits QUnit::Test {
 
     connectionTest() {
         string url = "http://user:pass@localhost:" + port;
-        BillwerkRestConnection billwerkrc("test", "test", url, NOTHING, {"client_id": "a"});
+        BillwerkRestConnection billwerkrc("test", "test", url, NOTHING, {
+            "client_id": "a",
+            "client_secret": "b",
+        });
         assertEq(True, billwerkrc instanceof BillwerkRestConnection);
 
 %ifdef NoJson

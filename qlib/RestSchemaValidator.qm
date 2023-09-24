@@ -206,23 +206,13 @@ public namespace RestSchemaValidator {
     }
 
     #! abstract REST schema validation classes
-    public class AbstractRestSchemaValidator {
-        private {
-            *Logger::Logger logger;
-        }
-
+    public class AbstractRestSchemaValidator inherits LoggerWrapper {
         #! Creates the object without a logger
         constructor() {
         }
 
         #! Creates the object with the given logger
-        constructor(Logger::Logger logger) {
-            self.logger = logger;
-        }
-
-        #! Sets a new logger
-        setLogger(Logger::Logger logger) {
-            self.logger = logger;
+        constructor(Logger::LoggerInterface logger) : LoggerWrapper(logger) {
         }
 
         #! returns a unique hash for the schema that can be used to compare schemas
@@ -844,11 +834,9 @@ public namespace RestSchemaValidator {
                 if (*string ct = headers."Content-Type" ?? headers."content-type") {
                     ctl = (ct,);
                     if (!DataSerializationSupport{ct}) {
-                        if (logger) {
-                            logger.log(LoggerLevel::ERROR, "error serializing response with unsupported "
-                                "Content-Type %y required by the REST handler response: failed with response body: "
-                                "%N", ct, response_body);
-                        }
+                        log(LoggerLevel::ERROR, "error serializing response with unsupported "
+                            "Content-Type %y required by the REST handler response: failed with response body: "
+                            "%N", ct, response_body);
                         throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; "
                             "types supported: %y (required by REST response handler); discarding response: %y",
                             content_types, keys DataSerializationSupport, response_body),
@@ -881,11 +869,9 @@ public namespace RestSchemaValidator {
                         ok = True;
                         break;
                     } catch (hash<ExceptionInfo> ex1) {
-                        if (logger) {
-                            logger.log(LoggerLevel::ERROR, "error serializing response with Content-Type %y (%d/%d): "
-                                "%s; failed with response body: %N", ct, $#, ctl.size(), get_exception_string(ex1),
-                                response_body);
-                        }
+                        log(LoggerLevel::ERROR, "error serializing response with Content-Type %y (%d/%d): "
+                            "%s; failed with response body: %N", ct, $#, ctl.size(), get_exception_string(ex1),
+                            response_body);
                         # ignore serialization exceptions
                         ex = ex1;
                     }
@@ -920,7 +906,11 @@ public namespace RestSchemaValidator {
             if (response_body.val()) {
                 string ct = (hdr."content-type".typeCode() == NT_LIST
                     ? hdr."content-type"[0]
-                    : hdr."content-type");
+                    : hdr."content-type") ?? "";
+                if (!ct.val()) {
+                    throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body without a content-type; "
+                        "response body: %y; headers: %y", response_body, hdr);
+                }
                 *hash<auto> dh = DataDeserializationSupport{ct};
                 if (!dh) {
                     throw "DESERIALIZATION-ERROR", sprintf("cannot deserialize response body; content-type is: %y; "

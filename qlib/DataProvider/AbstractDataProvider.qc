@@ -740,7 +740,7 @@ public hashdecl DataProviderInfo {
 }
 
 #! The AbstractDataProvider class
-public class AbstractDataProvider {
+public class AbstractDataProvider inherits Logger::LoggerWrapper {
     public {
         #! Generic expression implementations for data providers without native search functionality
         const GenericExpressionImplementations = {
@@ -981,9 +981,6 @@ public class AbstractDataProvider {
     }
 
     private {
-        #! Logger for logging
-        *Logger logger;
-
         #! flag if callbacks are locked
         static bool callbacks_locked = False;
 
@@ -1020,13 +1017,7 @@ public class AbstractDataProvider {
     }
 
     #! Creates the data provider with the given Logger
-    constructor(Logger logger) {
-        self.logger = logger;
-    }
-
-    #! Sets or replaces the logger
-    setLogger(Logger logger) {
-        self.logger = logger;
+    constructor(LoggerInterface logger) : LoggerWrapper(logger) {
     }
 
     #! Returns static provider information as data; no objects are returned
@@ -1483,7 +1474,11 @@ public class AbstractDataProvider {
         on_error if ($1.err != "CREATE-CHILD-PROVIDER-ERROR") {
             rethrow "CREATE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         }
-        return createChildProviderImpl(name, fields, child_create_options);
+        AbstractDataProvider child = createChildProviderImpl(name, fields, child_create_options);
+        if (logger && !child.logger) {
+            child.setLogger(logger);
+        }
+        return child;
     }
 
     #! Deletes a child data provider
@@ -1723,7 +1718,11 @@ public class AbstractDataProvider {
         @see getChildProviderEx()
     */
     *AbstractDataProvider getChildProvider(string name) {
-        return getChildProviderImpl(name);
+        *AbstractDataProvider child = getChildProviderImpl(name);
+        if (logger && !child.logger) {
+            child.setLogger(logger);
+        }
+        return child;
     }
 
     #! Returns the given child provider or throws an exception if the given child is unknown
@@ -1738,6 +1737,9 @@ public class AbstractDataProvider {
         if (!provider) {
             throw "INVALID-CHILD-PROVIDER", sprintf("provider %y is unknown; known children of %y: %y", name,
                 getName(), getChildProviderNames());
+        }
+        if (logger && !provider.logger) {
+            provider.setLogger(logger);
         }
         return provider;
     }
@@ -1754,6 +1756,9 @@ public class AbstractDataProvider {
     AbstractDataProvider getChildProviderPath(string path) {
         AbstractDataProvider provider = self;
         map provider = provider.getChildProviderEx($1), path.split("/");
+        if (logger && !provider.logger) {
+            provider.setLogger(logger);
+        }
         return provider;
     }
 
@@ -2484,7 +2489,7 @@ public class AbstractDataProvider {
     }
 
     #! thrown an exception
-    private error(string err, string fmt) {
+    private error(string err, string fmt, ...) {
         string desc_name;
         # the getName() method cannot be run in the constructor before the object has been created and the name set
         try {

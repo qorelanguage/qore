@@ -39,6 +39,30 @@
 
 QoreSignalManager QSM;
 
+static int qore_sigmask(int how, const sigset_t* set, sigset_t* oset) {
+    int rc = pthread_sigmask(how, set, oset);
+#ifdef __APPLE__X
+    /* why do we call sigprocmask on Darwin?
+        it seems that Darwin has a bug in handling per-thread signal masks.
+        Even though we explicitly set this thread's signal mask to unblock all signals
+        we are not explicitly catching (including QORE_STATUS_SIGNAL, currently set to
+        SIGSYS), no signal is delivered that is not in our list.  For example (on
+        Darwin only), if we are catching SIGUSR1 with a Qore signal handler (therefore
+        it's included in c_mask and blocked in this thread, because it will be also
+        included in sigwait below) and have no handler for SIGUSR2, if we send a
+        SIGUSR2 to the process, unless we call sigprocmask here and below after
+        pthread_sigmask, the SIGUSR2 will also be blocked (even through the signal
+        thread's signal mask explicitly allows for it to be delivered to this thread),
+        instead of being delivered to the process and triggering the default action -
+        terminate the process.  The workaround (discovered with trial and error) is to
+        call sigprocmask after every call to pthread_sigmask in the signal handler
+        thread
+    */
+    sigprocmask(how, set, oset);
+#endif
+    return rc;
+}
+
 void QoreSignalHandler::init() {
     funcref = 0;
     status = SH_OK;
@@ -52,11 +76,13 @@ void QoreSignalHandler::runHandler(int sig, ExceptionSink *xsink) {
     funcref->execValue(*args, xsink).discard(xsink);
 }
 
-QoreSignalManager::QoreSignalManager() : is_enabled(false), tid(-1), block(false), waiting(0), num_handlers(0), thread_running(false), cmd(C_None) {
+QoreSignalManager::QoreSignalManager() : is_enabled(false), tid(-1), block(false), waiting(0), num_handlers(0),
+        thread_running(false), cmd(C_None) {
     //printd(5, "QoreSignalManager::QoreSignalManager() QORE_SIGNAL_MAX: %d\n", QORE_SIGNAL_MAX);
     // initilize handlers
-    for (int i = 0; i < QORE_SIGNAL_MAX; ++i)
+    for (int i = 0; i < QORE_SIGNAL_MAX; ++i) {
         handlers[i].init();
+    }
 }
 
 void QoreSignalManager::setMask(sigset_t& mask) {
@@ -65,19 +91,25 @@ void QoreSignalManager::setMask(sigset_t& mask) {
 #ifdef PROFILE
     // do not block SIGPROF if profiling is enabled
     sigdelset(&mask, SIGPROF);
-    if (!is_enabled)
+    if (!is_enabled) {
         fmap[SIGPROF] = "QORE (system profiling)";
+    }
 #endif
     // do not block SIGALRM or SIGCHLD on UNIX platforms (any platform that supports signals)
     sigdelset(&mask, SIGALRM);
     sigdelset(&mask, SIGCHLD);
+    sigdelset(&mask, SIGSEGV);
     if (!is_enabled) {
+        // here we set signal that cannot be managed by Qore code
         fmap[QORE_STATUS_SIGNAL] = "QORE (SIGSYS for internal use)";
         fmap[SIGALRM] = "QORE (SIGALRM for sleep()/usleep())";
         fmap[SIGCHLD] = "QORE (SIGCHLD for system())";
+        fmap[SIGSEGV] = "QORE (SIGSEGV for stack guard)";
     }
 }
 
+/** When new threads are created, they inherit their signal mask from the creating thread
+ */
 void QoreSignalManager::init(bool disable_signal_mask) {
     // set SIGPIPE to ignore
     struct sigaction sa;
@@ -91,15 +123,19 @@ void QoreSignalManager::init(bool disable_signal_mask) {
         setMask(mask);
         is_enabled = true;
 
-        pthread_sigmask(SIG_SETMASK, &mask, 0);
+        qore_sigmask(SIG_SETMASK, &mask, 0);
 
         // set up default handler mask
         sigemptyset(&mask);
         sigaddset(&mask, QORE_STATUS_SIGNAL);
+        sigaddset(&mask, SIGSEGV);
+        sigaddset(&mask, SIGALRM);
+        sigaddset(&mask, SIGCHLD);
+        sigaddset(&mask, SIGINT);
 
         ExceptionSink xsink;
         if (start_signal_thread(&xsink)) {
-              xsink.handleExceptions();
+            xsink.handleExceptions();
             _Exit(1);
         }
     }
@@ -118,7 +154,7 @@ void QoreSignalManager::del() {
 
     // remove all signal handlers to ensure that all Programs are dereferenced
     for (int i = 0; i < QORE_SIGNAL_MAX; ++i) {
-        if (i != QORE_STATUS_SIGNAL || !handlers[i].isSet())
+        if (i != QORE_STATUS_SIGNAL|| !handlers[i].isSet())
             continue;
         sigdelset(&mask, i);
         changed = true;
@@ -170,7 +206,8 @@ void QoreSignalManager::reload() {
 void QoreSignalManager::stop_signal_thread_unlocked() {
     QORE_TRACE("QoreSignalManager::stop_signal_thread_unlocked()");
 
-    printd(5, "QoreSignalManager::stop_signal_thread_unlocked() pid: %d, thread_running: %d\n", getpid(), thread_running);
+    printd(5, "QoreSignalManager::stop_signal_thread_unlocked() pid: %d, thread_running: %d\n", getpid(),
+        thread_running);
 
     cmd = C_Exit;
     if (thread_running) {
@@ -179,8 +216,9 @@ void QoreSignalManager::stop_signal_thread_unlocked() {
 #endif
             pthread_kill(ptid, QORE_STATUS_SIGNAL);
 #ifdef DEBUG
-        if (rc)
+        if (rc) {
             printd(0, "pthread_kill() returned %d: %s\n", rc, strerror(rc));
+        }
         assert(!rc);
 #endif
     }
@@ -236,7 +274,8 @@ void QoreSignalManager::postFork(bool new_process, ExceptionSink *xsink) {
         return;
     }
 
-    printd(5, "QoreSignalManager::postFork() pid: %d, new_process: %d, starting signal thread\n", getpid(), new_process);
+    printd(5, "QoreSignalManager::postFork() pid: %d, new_process: %d, starting signal thread\n", getpid(),
+        new_process);
 
     AutoLocker al(mutex);
     start_signal_thread(xsink);
@@ -245,7 +284,8 @@ void QoreSignalManager::postFork(bool new_process, ExceptionSink *xsink) {
 void QoreSignalManager::signal_handler_thread() {
     register_thread(tid, ptid, 0);
 
-    printd(5, "QoreSignalManager::signal_handler_thread() pid: %d, signal handler thread started (TID %d) &ptid: %p\n", getpid(), tid, &ptid);
+    printd(5, "QoreSignalManager::signal_handler_thread() pid: %d, signal handler thread started (TID %d) "
+        "&ptid: %p\n", getpid(), tid, &ptid);
 
     sigset_t c_mask;
     int sig;
@@ -258,27 +298,7 @@ void QoreSignalManager::signal_handler_thread() {
         // reload copy of the signal mask for the sigwait command
         memcpy(&c_mask, &mask, sizeof(sigset_t));
         // block only signals we are catching in this thread
-        pthread_sigmask(SIG_SETMASK, &c_mask, 0);
-
-#ifdef DARWIN
-        /* why do we call sigprocmask on Darwin?
-           it seems that Darwin has a bug in handling per-thread signal masks.
-           Even though we explicitly set this thread's signal mask to unblock all signals
-           we are not explicitly catching (including QORE_STATUS_SIGNAL, currently set to
-           SIGSYS), no signal is delivered that is not in our list.  For example (on
-           Darwin only), if we are catching SIGUSR1 with a Qore signal handler (therefore
-           it's included in c_mask and blocked in this thread, because it will be also
-           included in sigwait below) and have no handler for SIGUSR2, if we send a
-           SIGUSR2 to the process, unless we call sigprocmask here and below after
-           pthread_sigmask, the SIGUSR2 will also be blocked (even through the signal
-           thread's signal mask explicitly allows for it to be delivered to this thread),
-           instead of being delivered to the process and triggering the default action -
-           terminate the process.  The workaround (discovered with trial and error) is to
-           call sigprocmask after every call to pthread_sigmask in the signal handler
-           thread
-        */
-        sigprocmask(SIG_SETMASK, &c_mask, 0);
-#endif
+        qore_sigmask(SIG_SETMASK, &c_mask, 0);
 
         while (true) {
             if (cmd != C_None) {
@@ -292,11 +312,7 @@ void QoreSignalManager::signal_handler_thread() {
                     //printd(5, "QoreSignalManager::signal_handler_thread() C_Reload called:\n");
                     memcpy(&c_mask, &mask, sizeof(sigset_t));
                     // block only signals we are catching in this thread
-                    pthread_sigmask(SIG_SETMASK, &c_mask, 0);
-#ifdef DARWIN
-                    // see above for reasoning behind calling sigprocmask on Darwin
-                    sigprocmask(SIG_SETMASK, &c_mask, 0);
-#endif
+                    qore_sigmask(SIG_SETMASK, &c_mask, 0);
                     // confirm that the mask has been updated so updates are atomic
                     cond.signal();
                 }
@@ -312,12 +328,17 @@ void QoreSignalManager::signal_handler_thread() {
             sl.lock();
 
             //printd(5, "sigwait() sig: %d (cmd: %d) set: %d\n", sig, cmd, handlers[sig].isSet());
-            if (sig == QORE_STATUS_SIGNAL && cmd != C_None)
+            if (sig == QORE_STATUS_SIGNAL && cmd != C_None) {
                 continue;
+            }
 
             //printd(5, "signal %d received (handler: %d)\n", sig, handlers[sig].isSet());
-            if (!handlers[sig].isSet())
+            if (!handlers[sig].isSet()) {
+                if (sig == SIGINT) {
+                    qore_exit_process(128 + SIGINT);
+                }
                 continue;
+            }
 
             // set in progress status while in the lock
             assert(handlers[sig].status == QoreSignalHandler::SH_OK);
@@ -385,7 +406,8 @@ void QoreSignalManager::signal_handler_thread() {
 
     tcount.dec();
 
-    //fprintf(stderr, "signal handler thread stopped (count: %d) &ptid: %p\n", tcount.getCount(), &ptid);fflush(stderr);
+    //fprintf(stderr, "signal handler thread stopped (count: %d) &ptid: %p\n", tcount.getCount(), &ptid);
+    //fflush(stderr);
     pthread_exit(0);
 }
 
@@ -434,7 +456,8 @@ int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, 
 
         sig_map_t::iterator i = fmap.find(sig);
         if (i != fmap.end()) {
-            xsink->raiseException("SIGNAL-HANDLER-ERROR", "cannot install a handler for signal %d because management for the signal has been reassigned to module '%s'", sig, i->second.c_str());
+            xsink->raiseException("SIGNAL-HANDLER-ERROR", "cannot install a handler for signal %d because management "
+                "for the signal has been reassigned to module '%s'", sig, i->second.c_str());
             return -1;
         }
 
@@ -451,8 +474,7 @@ int QoreSignalManager::setHandler(int sig, const ResolvedCallReferenceNode *fr, 
             qore_program_private::addSignal(*pgm, sig);
             handlers[sig].set(fr, pgm);
             ++num_handlers;
-        }
-        else {
+        } else {
             old = handlers[sig].replace(fr, pgm);
             // handle different Programs here inside the lock
             if (old.pgm != pgm) {
@@ -502,9 +524,9 @@ int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink) {
         //printd(5, "removing handler for signal %d\n", sig);
 
         // ensure handler is not in progress, if so mark for deletion
-        if (handlers[sig].status == QoreSignalHandler::SH_InProgress)
+        if (handlers[sig].status == QoreSignalHandler::SH_InProgress) {
             handlers[sig].status = QoreSignalHandler::SH_Delete;
-        else {
+        } else {
             // must be called in the signal lock
             old = handlers[sig].take();
             qore_program_private::delSignal(*old.pgm, sig);
@@ -518,11 +540,12 @@ int QoreSignalManager::removeHandler(int sig, ExceptionSink *xsink) {
     return 0;
 }
 
-QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name) {
+QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name, bool reuse_sys) {
     assert(sig > 0);
     AutoLocker al(&mutex);
-    if (!enabled())
+    if (!enabled()) {
         return nullptr;
+    }
 
     // wait for any blocks to be lifted
     while (block) {
@@ -532,29 +555,43 @@ QoreStringNode* QoreSignalManager::reassignSignal(int sig, const char* name) {
     }
 
     if (handlers[sig].isSet()) {
-        QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d because a handler has already been installed", sig);
+        QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d because a handler "
+            "has already been installed", sig);
         //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
         return err;
     }
 
-    sig_map_t::iterator i = fmap.find(sig);
-    if (i != fmap.end()) {
-        QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' because it is already managed by module '%s'", sig, name, i->second.c_str());
-        //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
-        return err;
+    if (!reuse_sys) {
+        sig_map_t::iterator i = fmap.find(sig);
+        if (i != fmap.end()) {
+            QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' "
+                "because it is already managed by module '%s'", sig, name, i->second.c_str());
+            //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
+            return err;
+        }
     }
 
+    // unmask signal in calling thread
+    sigset_t new_mask;
+    sigemptyset(&new_mask);
+    sigaddset(&new_mask, sig);
+    qore_sigmask(SIG_UNBLOCK, &new_mask, 0);
+
+    // unmask signal in signal-handling thread
     fmap[sig] = name;
+    sigdelset(&mask, sig);
+    reload();
 
     //printd(5, "QoreSignalManager::reassignSignal(): %s: success\n", name);
 
     return nullptr;
 }
 
-QoreStringNode* QoreSignalManager::reassignSignals(const sig_vec_t& sig_vec, const char* name) {
+QoreStringNode* QoreSignalManager::reassignSignals(const sig_vec_t& sig_vec, const char* name, bool reuse_sys) {
     AutoLocker al(&mutex);
-    if (!enabled())
+    if (!enabled()) {
         return nullptr;
+    }
 
     // wait for any blocks to be lifted
     while (block) {
@@ -566,25 +603,41 @@ QoreStringNode* QoreSignalManager::reassignSignals(const sig_vec_t& sig_vec, con
     for (auto& sig : sig_vec) {
         assert(sig > 0);
         if (handlers[sig].isSet()) {
-            QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d because a handler has already been installed", sig);
+            QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d because a "
+                "handler has already been installed", sig);
             //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
             return err;
         }
 
-        sig_map_t::iterator i = fmap.find(sig);
-        if (i != fmap.end()) {
-            QoreStringNode *err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' because it is already managed by module '%s'", sig, name, i->second.c_str());
-            //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
-            return err;
+        if (!reuse_sys) {
+            sig_map_t::iterator i = fmap.find(sig);
+            if (i != fmap.end()) {
+                QoreStringNode* err = new QoreStringNodeMaker("the Qore library cannot reassign signal %d to module '%s' "
+                    "because it is already managed by module '%s'", sig, name, i->second.c_str());
+                //printd(5, "QoreSignalManager::reassignSignal(): %s\n", err->c_str());
+                return err;
+            }
         }
     }
+
+    sigset_t new_mask;
+    sigemptyset(&new_mask);
 
     for (auto& sig : sig_vec) {
         fmap[sig] = name;
+        // unmask signal in signal-handling thread
+        sigdelset(&mask, sig);
+        // unmask signal in the current thread
+        sigaddset(&new_mask, sig);
     }
 
-    //printd(5, "QoreSignalManager::reassignSignals(): %s (%d signal(s)): success\n", name, (int)sig_vec.size());
+    // unmask signals in the current thread
+    qore_sigmask(SIG_UNBLOCK, &new_mask, 0);
 
+    // unmask signals in signal-handling thread
+    reload();
+
+    //printd(5, "QoreSignalManager::reassignSignals(): %s (%d signal(s)): success\n", name, (int)sig_vec.size());
     return nullptr;
 }
 
@@ -594,28 +647,36 @@ int QoreSignalManager::releaseSignal(int sig, const char* name) {
         return -1;
 
     sig_map_t::iterator i = fmap.find(sig);
-    if (i == fmap.end() || i->second != name)
+    if (i == fmap.end() || i->second != name) {
         return -1;
+    }
 
     fmap.erase(i);
+    sigaddset(&mask, sig);
+    reload();
+
     return 0;
 }
 
 int QoreSignalManager::releaseSignals(const sig_vec_t& sig_vec, const char* name) {
     AutoLocker al(&mutex);
-    if (!enabled())
+    if (!enabled()) {
         return -1;
+    }
 
     for (auto& sig : sig_vec) {
         sig_map_t::iterator i = fmap.find(sig);
-        if (i == fmap.end() || i->second != name)
+        if (i == fmap.end() || i->second != name) {
             return -1;
+        }
     }
 
     for (auto& sig : sig_vec) {
         sig_map_t::iterator i = fmap.find(sig);
         fmap.erase(i);
+        sigaddset(&mask, sig);
     }
+    reload();
 
     return 0;
 }

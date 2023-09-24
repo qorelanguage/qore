@@ -25,12 +25,7 @@
 #! contains all public definitions in the ServiceNowRestDataProvider module
 public namespace ServiceNowRestDataProvider {
 #! The ServiceNowTablesDataProvider data provider class
-public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataProvider {
-    public {
-        #! The REST client object for API calls
-        ServiceNowRestClient::ServiceNowRestClient rest;
-    }
-
+public class ServiceNowTablesDataProvider inherits ServiceNowRestDataProviderBase {
     private {
         #! Flag if all access info has been queried
         bool all_access;
@@ -52,8 +47,7 @@ public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataPro
     }
 
     #! Creates the object from the arguments
-    constructor(ServiceNowRestClient rest) {
-        self.rest = rest;
+    constructor(ServiceNowRestClient rest) : ServiceNowRestDataProviderBase(rest) {
     }
 
     #! Returns the data provider name
@@ -138,7 +132,7 @@ public class ServiceNowTablesDataProvider inherits DataProvider::AbstractDataPro
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
-            throw ex.err, ex.desc, ex.arg + ex_arg;
+            rethrow ex.err, ex.desc, ex.arg + ex_arg;
         }
 
         return access;

@@ -25,11 +25,8 @@
 #! contains all public definitions in the SalesforceRestDataProvider module
 public namespace SalesforceRestDataProvider {
 #! The SalesforceRest data provider class
-public class SalesforceRestDataProvider inherits AbstractDataProvider {
+public class SalesforceRestDataProvider inherits SalesforceRestDataProviderBase {
     public {
-        #! The REST client object for API calls
-        SalesforceRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "type": "SalesforceRestDataProvider",
@@ -108,8 +105,7 @@ public class SalesforceRestDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from the arguments
-    constructor(SalesforceRestClient rest) {
-        self.rest = rest;
+    constructor(SalesforceRestClient rest) : SalesforceRestDataProviderBase(rest) {
     }
 
     #! Creates the object from constructor options

@@ -922,7 +922,8 @@ string <string>::toHex() [flags=CONSTANT] {
 string base64 = str.toBase64(64);
     @endcode
 
-    Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
+    Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and
+    <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
 
     @param maxlinelen the maximum length of a line in the resulting output string in bytes; if this value is > 0 then
     output lines will be separated by CRLF characters
@@ -938,6 +939,26 @@ string base64 = str.toBase64(64);
 string <string>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
     QoreStringNode *rv = new QoreStringNode;
     rv->concatBase64(str, maxlinelen);
+    return rv;
+}
+
+//! Returns the base64-url-encoded representation of the string
+/** @par Example:
+    @code{.py}
+string base64 = str.toBase64Url();
+    @endcode
+
+    @return the base64-url-encoded string of the data passed
+
+    @since %Qore 1.19.0
+
+    @see
+    - <binary>::toBase64Url()
+    - make_base64_url_string(string)
+*/
+string <string>::toBase64Url(softint maxlinelen = -1) [flags=CONSTANT] {
+    QoreStringNode* rv = new QoreStringNode;
+    rv->concatBase64Url(*str);
     return rv;
 }
 

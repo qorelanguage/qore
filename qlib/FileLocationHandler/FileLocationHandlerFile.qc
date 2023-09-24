@@ -105,6 +105,19 @@ class FileLocationHandlerFile inherits AbstractFileLocationHandler {
         return ReadOnlyFile::readBinaryFile(substitute_env_vars(location), opts.max_file_len);
     }
 
+    #! Retrieves an I/O poller to retrieve a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an I/O poller to retrieve the file's data
+    */
+    private Qore::AbstractPollOperation getIoPollerForLocationImpl(string scheme, string location,
+            *hash<auto> opts) {
+        File f();
+        return f.startPollRead(substitute_env_vars(location));
+    }
+
     #! Returns a stream reader for the file's data at the given location
     /** @param scheme the scheme being used
         @param location the location string without the scheme

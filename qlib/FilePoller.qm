@@ -631,19 +631,19 @@ public class FilePoller {
     }
 
     #! calls \c "log_info" with important information, if set
-    private logInfo(string fmt) {
+    private logInfo(string fmt, ...) {
         if (log_info)
             log_info(vsprintf(fmt, argv));
     }
 
     #! calls \c "log_detail" with detail information; if set
-    private logDetail(string fmt) {
+    private logDetail(string fmt, ...) {
         if (log_detail)
             log_detail(vsprintf(fmt, argv));
     }
 
     #! calls \c "log_debug" with verbose debugging information; if set
-    private logDebug(string fmt) {
+    private logDebug(string fmt, ...) {
         if (log_debug)
             log_debug(vsprintf(fmt, argv));
     }

@@ -246,10 +246,14 @@ ReadOnlyFile::copy() {
 }
 
 //! Opens a file in a particular mode; throws an exception on failure
-/** Opens the file in the mode given; if the %ReadOnlyFile was previously open, it is closed first. Optionally the %ReadOnlyFile's default character encoding can be specified.
+/** Opens the file in the mode given; if the %ReadOnlyFile was previously open, it is closed first. Optionally the
+    %ReadOnlyFile's default character encoding can be specified.
 
-    Note that if no encoding is specified, the %ReadOnlyFile will be tagged with the @ref character_encoding "character encoding" set in the %ReadOnlyFile's @ref ReadOnlyFile::constructor() "constructor".
-    Any string data written to the %ReadOnlyFile will be converted to the %ReadOnlyFile's encoding, and any string data read from the %ReadOnlyFile will be automatically tagged with the %ReadOnlyFile's encoding.
+    Note that if no encoding is specified, the %ReadOnlyFile will be tagged with the
+    @ref character_encoding "character encoding" set in the %ReadOnlyFile's
+    @ref ReadOnlyFile::constructor() "constructor".
+    Any string data written to the %ReadOnlyFile will be converted to the %ReadOnlyFile's encoding, and any string
+    data read from the %ReadOnlyFile will be automatically tagged with the %ReadOnlyFile's encoding.
 
     If an error occurs, a \c READONLYFILE-OPEN-ERROR exception is thrown.
 
@@ -266,11 +270,14 @@ try {
     @ref EVENT_OPEN_FILE, @ref EVENT_FILE_OPENED
 
     @param path the path to the file
-    @param encoding the name of the @ref character_encoding "character encoding" for the %ReadOnlyFile; if this argument is not given, the %ReadOnlyFile will be tagged with the @ref character_encoding "character encoding" given in the @ref File::constructor() "constructor"
+    @param encoding the name of the @ref character_encoding "character encoding" for the %ReadOnlyFile; if this
+    argument is not given, the %ReadOnlyFile will be tagged with the @ref character_encoding "character encoding"
+    given in the @ref File::constructor() "constructor"
 
     @throw READONLYFILE-OPEN-ERROR an error occurred opening the file
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
- */
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin,
+    @ref stdout, @ref stderr) when @ref no-terminal-io is set
+*/
 nothing ReadOnlyFile::open(string path, *string encoding) {
     if (check_terminal_io(self, "ReadOnlyFile::open", xsink))
         return QoreValue();
@@ -290,23 +297,32 @@ if (f.close())
     @par Events:
     @ref EVENT_CHANNEL_CLOSED
 
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin,
+    @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @return 0 for success, -1 for an error (see errno() and strerror() for the error information)
- */
+*/
 int ReadOnlyFile::close() {
-    if (check_terminal_io(self, "ReadOnlyFile::close", xsink))
+    if (check_terminal_io(self, "ReadOnlyFile::close", xsink)) {
         return QoreValue();
+    }
 
-    return f->close();
+    return f->close(xsink);
 }
 
 //! Reads a certain number of characters from the %ReadOnlyFile within an optional timeout period and returns a string of the data read or @ref nothing if no data can be read
-/** Reads a certain amount of string data from the %ReadOnlyFile; the size argument is required. To read binary data, use the ReadOnlyFile::readBinary() method.
+/** Reads a certain amount of string data from the %ReadOnlyFile; the size argument is required. To read binary data,
+    use the ReadOnlyFile::readBinary() method.
 
-    Note that the amount of data read from the file may be less than the size given, for example if the file does not contain enough data to fulfill the request. In this case, only the data available in the file is returned.
+    Note that the amount of data read from the file may be less than the size given, for example if the file does not
+    contain enough data to fulfill the request. In this case, only the data available in the file is returned.
 
-    An optional timeout period in milliseconds can be passed as well (or a @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units clear; ex: \c 25ms). If a timeout value is passed and the data cannot be read within the timeout period, then a \c READONLYFILE-READ-TIMEOUT exception is thrown. If no timeout value is passed or a negative value is given, then the call will never timeout until either the requested amount of data has been read from the %ReadOnlyFile or an end-of-file condition has been reached.
+    An optional timeout period in milliseconds can be passed as well (or a
+    @ref relative_dates "relative date/time value" may be passed instead of an integer to make the timeout units
+    clear; ex: \c 25ms). If a timeout value is passed and the data cannot be read within the timeout period, then a
+    \c READONLYFILE-READ-TIMEOUT exception is thrown. If no timeout value is passed or a negative value is given, then
+    the call will never timeout until either the requested amount of data has been read from the %ReadOnlyFile or an
+    end-of-file condition has been reached.
 
     @par Example:
     @code{.py}
@@ -317,14 +333,20 @@ int ReadOnlyFile::close() {
     @ref EVENT_DATA_READ
 
     @param size the number of characters to read of the file, -1 will read the entire file
-    @param timeout_ms a timeout period with a resolution of milliseconds (a @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not given or negative the call will never time out and will only return when the data has been read
+    @param timeout_ms a timeout period with a resolution of milliseconds (a
+    @ref relative_dates "relative date/time value"; integer arguments will be assumed to be milliseconds); if not
+    given or negative the call will never time out and will only return when the data has been read
 
-    @return the data read from the file, returned as a string tagged with the %ReadOnlyFile's @ref character_encoding "character encoding".  @ref nothing is returned if end-of-file is encountered, however, if data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned on the next call to this method.
+    @return the data read from the file, returned as a string tagged with the %ReadOnlyFile's
+    @ref character_encoding "character encoding".  @ref nothing is returned if end-of-file is encountered, however, if
+    data has been read before EOF, the data read will be returned and @ref nothing (signifying EOF) will be returned
+    on the next call to this method.
 
     @throw READONLYFILE-READ-PARAMETER-ERROR zero size argument passed
     @throw FILE-READ-ERROR file is not open
     @throw FILE-READ-TIMEOUT timeout limit exceeded
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin,
+    @ref stdout, @ref stderr) when @ref no-terminal-io is set
 
     @see ReadOnlyFile::readBinary()
 
@@ -349,11 +371,13 @@ int ReadOnlyFile::close() {
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 1-byte unsigned integer as read from the %ReadOnlyFile in binary format or @ref nothing if no data can be read
+    @return a 1-byte unsigned integer as read from the %ReadOnlyFile in binary format or @ref nothing if no data can
+    be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
- */
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin,
+    @ref stdout, @ref stderr) when @ref no-terminal-io is set
+*/
 *int ReadOnlyFile::readu1() {
     if (check_terminal_io(self, "ReadOnlyFile::readu1", xsink))
         return QoreValue();
@@ -373,11 +397,13 @@ int ReadOnlyFile::close() {
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 2-byte unsigned integer as read from the file in binary big-endian format or @ref nothing if no data can be read
+    @return a 2-byte unsigned integer as read from the file in binary big-endian format or @ref nothing if no data can
+    be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
- */
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin,
+    @ref stdout, @ref stderr) when @ref no-terminal-io is set
+*/
 *int ReadOnlyFile::readu2() {
     if (check_terminal_io(self, "ReadOnlyFile::readu2", xsink))
         return QoreValue();
@@ -397,11 +423,13 @@ int ReadOnlyFile::close() {
     @par Events:
     @ref EVENT_DATA_READ
 
-    @return a 4-byte unsigned integer as read from the file in binary big-endian format or @ref nothing if no data can be read
+    @return a 4-byte unsigned integer as read from the file in binary big-endian format or @ref nothing if no data can
+    be read
 
     @throw FILE-READ-ERROR file is not open
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
- */
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin,
+    @ref stdout, @ref stderr) when @ref no-terminal-io is set
+*/
 *int ReadOnlyFile::readu4() {
     if (check_terminal_io(self, "ReadOnlyFile::readu4", xsink))
         return QoreValue();
@@ -712,16 +740,18 @@ while (exists (*string line = f.readLine(False))) {
 f.setEncoding("ISO-8859-1");
     @endcode
 
-    @param encoding the @ref character_encoding "character encoding" for the file; if called with no argument, the @ref default_encoding "default encoding" is set
+    @param encoding the @ref character_encoding "character encoding" for the file; if called with no argument, the
+    @ref default_encoding "default encoding" is set
 
-    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin, @ref stdout, @ref stderr) when @ref no-terminal-io is set
+    @throw ILLEGAL-EXPRESSION this exception is only thrown if called with a system constant object (@ref stdin,
+    @ref stdout, @ref stderr) when @ref no-terminal-io is set
  */
 nothing ReadOnlyFile::setEncoding(*string encoding) {
     if (check_terminal_io(self, "ReadOnlyFile::setEncoding", xsink))
         return QoreValue();
 
     const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
-    f->setEncoding(qe);
+    f->setEncoding(qe, xsink);
 }
 
 //! Returns the @ref character_encoding "character encoding" for the %ReadOnlyFile
@@ -751,10 +781,11 @@ f.setPos(0); # go to the beginning of the file
     @see ReadOnlyFile::getPos()
  */
 int ReadOnlyFile::setPos(int pos = 0) {
-    if (check_terminal_io(self, "ReadOnlyFile::setPos", xsink))
+    if (check_terminal_io(self, "ReadOnlyFile::setPos", xsink)) {
         return QoreValue();
+    }
 
-    return (int64)f->setPos(pos);
+    return f->setPos(pos, xsink);
 }
 
 //! Returns the current file position as an integer giving the offset in bytes from the beginning of the file (starting from zero)
@@ -981,6 +1012,27 @@ bool ReadOnlyFile::isTty() [flags=CONSTANT] {
  */
 *string ReadOnlyFile::getFileName() [flags=CONSTANT] {
    return f->getFileName();
+}
+
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read a file from the filesystem
+/** @param path the path of the file to read
+    @param to_string return the file's data as a string, if @ref False, it will be returned as binary data, if
+    @ref True, the encoding of the output string will be the same as the file's character encoding
+    @param to_read maximum number of bytes to read, negative values mean read until end of file
+
+    @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read a file from the filesystem; the
+    @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" method returns
+    a hash with the following keys after a successful read operation:
+    - \c data: the file's data as a string or binary data according to the \c to_string parameter
+
+    @throw ENCODING-CONVERSION-ERROR the path could not be converted to the
+    @ref default_encoding "default character encoding"
+
+    @since %Qore 1.19
+*/
+AbstractPollOperation ReadOnlyFile::startPollRead(string path, bool to_string = True, int to_read = -1) [dom=FILESYSTEM] {
+    TempEncodingHelper npath(path, QCS_DEFAULT, xsink);
+    return f->startPollRead(xsink, self, npath->c_str(), to_read, to_string);
 }
 
 //! returns the contents of a text file as a string optionally tagged with the given @ref character_encoding "character encoding"

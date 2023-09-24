@@ -465,6 +465,80 @@ size_t qore_get_unicode_character_width(int ucs) {
                 (ucs >= 0x30000 && ucs <= 0x3fffd)));
 }
 
+static void base64_concat(qore_string_private& str, unsigned char c, size_t& linelen, size_t maxlinelen,
+        bool url_encode = false) {
+    if (url_encode) {
+        // ignore maxlinelen when url_encode == true
+        if (c == '+') {
+            str.concat("%2B");
+            return;
+        } else {
+            str.concat("%2F");
+            return;
+        }
+    }
+    str.concat(table64[c]);
+    ++linelen;
+    if (maxlinelen > 0 && linelen == maxlinelen) {
+        str.concat("\r\n");
+        linelen = 0;
+    }
+}
+
+void qore_string_private::concatBase64(const char* bbuf, size_t size, size_t maxlinelen, bool url_encode) {
+    //printd(0, "bbuf=%p, size=" QSD "\n", bbuf, size);
+    if (!size) {
+        return;
+    }
+
+    size_t linelen = 0;
+
+    unsigned char* p = (unsigned char*)bbuf;
+    unsigned char* endbuf = p + size;
+    while (p < endbuf) {
+        // get 6 bits of data
+        unsigned char c = p[0] >> 2;
+
+        // byte 1: concat 1st 6-bit value
+        base64_concat(*this, c, linelen, maxlinelen);
+
+        // byte 1: use remaining 2 bits in low order position
+        c = (p[0] & 3) << 4;
+
+        // check end
+        if ((endbuf - p) == 1) {
+            base64_concat(*this, c, linelen, maxlinelen);
+            concat("==");
+            break;
+        }
+
+        // byte 2: get 4 bits to make next 6-bit unit
+        c |= p[1] >> 4;
+
+        // concat 2nd 6-bit value
+        base64_concat(*this, c, linelen, maxlinelen);
+
+        // byte 2: get 4 low bits
+        c = (p[1] & 15) << 2;
+
+        if ((endbuf - p) == 2) {
+            base64_concat(*this, c, linelen, maxlinelen);
+            concat('=');
+            break;
+        }
+
+        // byte 3: get high 2 bits to make next 6-bit unit
+        c |= p[2] >> 6;
+
+        // concat 3rd 6-bit value
+        base64_concat(*this, c, linelen, maxlinelen);
+
+        // byte 3: concat final 6 bits
+        base64_concat(*this, p[2] & 63, linelen, maxlinelen);
+        p += 3;
+    }
+}
+
 void qore_string_private::concatUTF8FromUnicode(unsigned code) {
     if (code > 0xffff) { // 4-byte code
         concat(0xf0 | ((code & (0x7 << 18)) >> 18));
@@ -2206,91 +2280,40 @@ QoreString* QoreString::convertEncoding(const QoreEncoding* nccs, ExceptionSink*
     return targ.release();
 }
 
-static void base64_concat(QoreString& str, unsigned char c, size_t& linelen, size_t maxlinelen) {
-    str.concat(table64[c]);
-
-    ++linelen;
-    if (maxlinelen > 0 && linelen == maxlinelen) {
-        str.concat("\r\n");
-        linelen = 0;
-    }
-}
-
 // endian-agnostic binary object -> base64 string function
 // NOTE: not very high-performance - high-performance versions
 //       would likely be endian-aware and operate directly on 32-bit words
 // FIXME: does not work with non-ASCII-compatible encodings such as UTF-16*
 void QoreString::concatBase64(const char* bbuf, size_t size, size_t maxlinelen) {
-    //printf("bbuf=%p, size=" QSD "\n", bbuf, size);
-    if (!size)
-        return;
-
-    size_t linelen = 0;
-
-    unsigned char* p = (unsigned char*)bbuf;
-    unsigned char* endbuf = p + size;
-    while (p < endbuf) {
-        // get 6 bits of data
-        unsigned char c = p[0] >> 2;
-
-        // byte 1: concat 1st 6-bit value
-        base64_concat(*this, c, linelen, maxlinelen);
-
-        // byte 1: use remaining 2 bits in low order position
-        c = (p[0] & 3) << 4;
-
-        // check end
-        if ((endbuf - p) == 1) {
-            base64_concat(*this, c, linelen, maxlinelen);
-            concat("==");
-            break;
-        }
-
-        // byte 2: get 4 bits to make next 6-bit unit
-        c |= p[1] >> 4;
-
-        // concat 2nd 6-bit value
-        base64_concat(*this, c, linelen, maxlinelen);
-
-        // byte 2: get 4 low bits
-        c = (p[1] & 15) << 2;
-
-        if ((endbuf - p) == 2) {
-            base64_concat(*this, c, linelen, maxlinelen);
-            concat('=');
-            break;
-        }
-
-        // byte 3: get high 2 bits to make next 6-bit unit
-        c |= p[2] >> 6;
-
-        // concat 3rd 6-bit value
-        base64_concat(*this, c, linelen, maxlinelen);
-
-        // byte 3: concat final 6 bits
-        base64_concat(*this, p[2] & 63, linelen, maxlinelen);
-        p += 3;
-    }
+    priv->concatBase64(bbuf, size, maxlinelen);
 }
 
 void QoreString::concatBase64(const BinaryNode *b, size_t maxlinelen) {
-    concatBase64((char*)b->getPtr(), b->size(), maxlinelen);
+    priv->concatBase64((char*)b->getPtr(), b->size(), maxlinelen);
 }
 
 void QoreString::concatBase64(const QoreString* str, size_t maxlinelen) {
-    concatBase64(str->priv->buf, str->priv->len, maxlinelen);
+    priv->concatBase64(str->priv->buf, str->priv->len, maxlinelen);
 }
 
 void QoreString::concatBase64(const BinaryNode *b) {
-    concatBase64((char*)b->getPtr(), b->size(), -1);
+    priv->concatBase64((char*)b->getPtr(), b->size(), -1);
 }
 
 void QoreString::concatBase64(const QoreString* str) {
-    concatBase64(str->priv->buf, str->priv->len, -1);
+    priv->concatBase64(str->priv->buf, str->priv->len, -1);
 }
 
 void QoreString::concatBase64(const char* bbuf, size_t size) {
-    concatBase64(bbuf, size, -1);
+    priv->concatBase64(bbuf, size, -1);
+}
+
+void QoreString::concatBase64Url(const BinaryNode& b) {
+    priv->concatBase64((char*)b.getPtr(), b.size(), -1, true);
+}
+
+void QoreString::concatBase64Url(const QoreString& str) {
+    priv->concatBase64(str.priv->buf, str.priv->len, -1, true);
 }
 
 #define DO_HEX_CHAR(b) ((b) + (((b) > 9) ? 87 : 48))

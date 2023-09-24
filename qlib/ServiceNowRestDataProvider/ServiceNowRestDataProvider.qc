@@ -25,11 +25,8 @@
 #! contains all public definitions in the ServiceNowRestDataProvider module
 public namespace ServiceNowRestDataProvider {
 #! The ServiceNowRest data provider class
-public class ServiceNowRestDataProvider inherits DataProvider::AbstractDataProvider {
+public class ServiceNowRestDataProvider inherits ServiceNowRestDataProviderBase {
     public {
-        #! The REST client object for API calls
-        ServiceNowRestClient::ServiceNowRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "type": "ServiceNowRestDataProvider",
@@ -89,8 +86,7 @@ public class ServiceNowRestDataProvider inherits DataProvider::AbstractDataProvi
     }
 
     #! Creates the object from the arguments
-    constructor(ServiceNowRestClient::ServiceNowRestClient rest) {
-        self.rest = rest;
+    constructor(ServiceNowRestClient::ServiceNowRestClient rest) : ServiceNowRestDataProviderBase(rest) {
     }
 
     #! Creates the object from constructor options

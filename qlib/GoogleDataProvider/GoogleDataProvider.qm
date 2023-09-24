@@ -1,0 +1,127 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! Qore GoogleDataProvider module definition
+
+/*  GoogleDataProvider.qm Copyright 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 1.19
+# assume local scope for variables, do not use "$" signs
+%new-style
+# require type definitions everywhere
+%require-types
+# strict argument handling
+%strict-args
+# enable all warnings
+%enable-all-warnings
+
+%requires(reexport) DataProvider
+%requires(reexport) GoogleRestClient
+
+module GoogleDataProvider {
+    version = "1.0";
+    desc = "user module providing a data provider API for Google REST cloud services";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::registerFactory(new GoogleDataProviderFactory());
+    };
+}
+
+/** @mainpage GoogleDataProvider Module
+
+    @tableofcontents
+
+    @section eoogledataproviderintro Introduction to the GoogleDataProvider Module
+
+    The %GoogleDataProvider module provides a @ref dataproviderintro "data provider" API for Google cloud REST API
+    services.
+
+    This data provider provides Google API access to:
+    - calendarList:
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarListListDataProvider "calendar/calendarList/list"</tt></b>
+    - calendars:
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarInsertDataProvider "calendar/calendar-insert"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarDeleteDataProvider "calendar/calendars/<calendar_id>/delete"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarFreeBusyDataProvider "calendar/calendars/<calendar_id>/freeBusy"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarGetDataProvider "calendar/calendars/<calendar_id>/get"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarPatchDataProvider "calendar/calendars/<calendar_id>/patch"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarUpdateDataProvider "calendar/calendars/<calendar_id>/update"</tt></b>
+    - calendar events:
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsDeleteDataProvider "calendar/calendars/<calendar_id>/events/delete"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsGetDataProvider "calendar/calendars/<calendar_id>/events/get"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsInsertDataProvider "calendar/calendars/<calendar_id>/events/insert"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsInstancesDataProvider "calendar/calendars/<calendar_id>/events/instances"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsListDataProvider "calendar/calendars/<calendar_id>/events/list"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsListDataProvider "calendar/calendars/<calendar_id>/events/patch"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsListDataProvider "calendar/calendars/<calendar_id>/events/quickAdd"</tt></b>
+      - <b><tt>@ref GoogleDataProvider::GoogleCalendarEventsListDataProvider "calendar/calendars/<calendar_id>/events/update"</tt></b>
+
+    To use this data provider, you will need a connection that has already executed the OAuth2 authorization code flow
+    and acquired a token to communicate with the Google API.
+
+    @section googledataprovider_factory Google Data Provider Factory
+
+    The name of the Google data provider factory is <b><tt>google</tt></b>.
+
+    @section googledataprovider_examples Google Data Provider Examples
+
+    These examples are with \c qdp, the command-line interface to the Data Provider API.
+
+    @par API Example: Retrieve Metadata for All Calendars
+    @verbatim qdp google-conn/calendar/calendarList/list dor
+    @endverbatim
+
+    @par API Example: Retrieve Metadata for the Primary Calendar
+    @verbatim qdp google-conn/calendar/calendars/primary/get dor
+    @endverbatim
+
+    @par API Example: Update Calendar Description
+    @verbatim qdp google-conn/calendar/calendars/calendar_name/patch dor description="new description"
+    @endverbatim
+
+    @par API Example: Retrieve Calendar Event
+    @verbatim qdp google-conn/calendar/calendars/primary/events/get dor id=event_id
+    @endverbatim
+
+    @par API Example: Quick Add a Calendar Event
+    @verbatim qdp google-conn/calendar/calendars/primary/events/quickAdd dor text="Lunch at Burger Bar from 12:30-13:30 today"
+    @endverbatim
+
+    @par API Example: Update a Calendar Event
+    @verbatim qdp google-conn/calendar/calendars/primary/events/update dor id=event_id,summary="Lunch Today"
+    @endverbatim
+
+    @par API Example: Delete a Calendar Event
+    @verbatim qdp google-conn/calendar/calendars/primary/events/delete dor id=event_id
+    @endverbatim
+
+    @section googledataprovider_relnotes Release Notes
+
+    @subsection googledataprovider_v1_0 GoogleDataProvider v1.0
+    - initial release of the module
+*/
+
+#! Contains all public definitions in the GoogleDataProvider module
+public namespace GoogleDataProvider {
+}

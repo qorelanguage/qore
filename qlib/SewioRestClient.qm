@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 0.9.5
+%requires qore >= 1.19
 
 # require type definitions everywhere
 %require-types
@@ -173,16 +173,23 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
         @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
         @throw SEWIORESTCLIENT-ERROR missing or invalid connection option
     */
-    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(SewioRestClient::getOptions(opts), do_not_connect) {
+    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(SewioRestClient::getOptions(opts), True) {
         # check required options
         foreach string key in (RequiredOptions) {
             auto v = opts{key};
-            if (!exists v || v == "")
+            if (!exists v || v == "") {
                 throw "SEWIORESTCLIENT-ERROR", sprintf("missing required option %y in option argument", key);
-            if (v.typeCode() != NT_STRING)
-                throw "SEWIORESTCLIENT-ERROR", sprintf("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+            }
+            if (v.typeCode() != NT_STRING) {
+                throw "SEWIORESTCLIENT-ERROR", sprintf("required option %y was passed as a %s (%y); expecting "
+                    "\"string\"", key, v.type(), v);
+            }
 
             self{key} = v;
+        }
+
+        if (!do_not_connect) {
+            connect();
         }
     }
 
@@ -196,22 +203,9 @@ SewioRestClient rest(("url": "http://rtlsstudio.com/sensmapserver", "apikey": ap
 }
 
 #! class for <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio REST connections; returns @ref SewioRestClient::SewioRestClient objects
-/** supports the following options:
+/** In addition to all options supported by @ref RestClient::RestClientConnection "RestClientConnection", this
+    connection class supports the following options:
     - \c "apikey": (required) the <a href="http://www.sewio.net">Sewio.net</a>'s RTLS Studio api key
-    - \c "connect_timeout": connection timeout to use in milliseconds
-    - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-    - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
-        values; the default is \c "json"
-    - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
-        \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-        like any other response
-    - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-    - \c "max_redirects": maximum redirects to support
-    - \c "proxy": proxy URL to use
-    - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
-        processed
-    - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
-    - \c "timeout": transfer timeout to use in milliseconds
 
     @see @ref SewioRestClient::SewioRestClient::constructor() "SewioRestClient::constructor()" for more information on the above options
 */
@@ -273,7 +267,7 @@ public class SewioRestConnection inherits RestClient::RestConnection {
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : RestConnection(name, description, url, attributes, options) {
+            : RestConnection(name, description, url, attributes, options) {
         real_opts = ("url": real_url) + urlh.("username", "password") + self.opts;
     }
 
@@ -289,7 +283,10 @@ public class SewioRestConnection inherits RestClient::RestConnection {
         @return a @ref SewioRestClient::SewioRestClient "SewioRestClient" object
     */
     private SewioRestClient getImpl(bool connect = True, *hash<auto>rtopts) {
-        return new SewioRestClient(real_opts, !connect);
+        return new SewioRestClient(real_opts + {
+            "logger": logger,
+            "update_options": update_options,
+        }, !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

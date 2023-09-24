@@ -495,30 +495,36 @@ public namespace RestHandler {
         }
 
         #! creates the object with the given arguments
-        /** @param n_cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parse_url())
-            - \c id: the unique HTTP connection ID
-            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
-            - \c user: the current RBAC username (if any)
-            - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
+        /** @param cx call context hash; this hash will have the following keys:
+            - \c aih: a hash of \c "Accept" values, keys are hash values, values are boolean @ref True
             - \c body: the deserialized message body
-            - \c aih: a hash of \c "Accept" values
-            @param n_ah any URI arguments in the request
+            - \c hdr: a hash of header information as returned by
+              @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()"
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see
+              @ref HttpServer::HttpServer::getListenerInfo() "HttpServer::getListenerInfo()")
+            - \c peer-info: a hash of socket information for the remote socket (as returned by
+              @ref Qore::Socket::getPeerInfo() "Socket::getPeerInfo()")
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed
+              information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by
+              @ref Qore::Socket::getSocketInfo() "Socket::getSocketInfo()")
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
+            - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url() "parse_url()")
+            - \c user: the current authorized username (if any)
+            @param ah any URI arguments in the request
         */
-        constructor(hash<auto> n_cx, *hash<auto> n_ah) {
-            cx = n_cx;
-            ah = n_ah;
+        constructor(hash<auto> cx, *hash<auto> ah) {
+            self.cx = cx;
+            self.ah = ah;
         }
 
         #! this method returns the response message description hash by calling getResponseHeaderMessageImpl()
         /**
             @return a @ref HttpServer::HttpHandlerResponseInfo "HttpHandlerResponseInfo" hash with the following keys:
             - \c "code": the HTTP return code (see @ref HttpServer::HttpCodes)
-            - \c "body": the message body to return in the response; if this key is returned, then the reply is sent immediately; a chunked reply is not made, and send() and sendImpl() are not called
+            - \c "body": the message body to return in the response; if this key is returned, then the reply is sent
+              immediately; a chunked reply is not made, and send() and sendImpl() are not called
             - \c "close": (optional) set this key to @ref True if the connection should be unconditionally closed when the handler returns
             - \c "hdr": (optional) set this key to a hash of extra header information to be returned with the response
 
@@ -745,19 +751,29 @@ public namespace RestHandler {
             class_hash{name} = cls;
         }
 
-        #! this method will be called to find a sub-class (ie with GET /invoices/1 - if this class represents "invoices", then subClass("1") will be called to return invoice 1; return @ref nothing if the object doesn't exist
-        /** @param name the name of the subclass
+        #! this method will be called to find a sub-class
+        /** For example with <tt>GET /invoices/1</tt>, if this class represents "invoices", then subClass("1") will be
+            called to return invoice \c 1; return @ref nothing if the object doesn't exist
+
+            @param name the name of the subclass
             @param cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parse_url())
-            - \c id: the unique HTTP connection ID
-            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
-            - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
+            - \c aih: a hash of \c "Accept" values, keys are hash values, values are boolean @ref True
+            - \c arg_path: a list of string URI path segments for any after the current node
             - \c body: the deserialized message body
-            - \c aih: a hash of \c "Accept" values
+            - \c hdr: a hash of header information as returned by
+              @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()"
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see
+              @ref HttpServer::HttpServer::getListenerInfo() "HttpServer::getListenerInfo()")
+            - \c peer-info: a hash of socket information for the remote socket (as returned by
+              @ref Qore::Socket::getPeerInfo() "Socket::getPeerInfo()")
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed
+              information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by
+              @ref Qore::Socket::getSocketInfo() "Socket::getSocketInfo()")
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
+            - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url() "parse_url()")
+            - \c user: the current authorized username (if any)
             @param args the holds URI and / or message body arguments for the REST call; if a request has both URI
             query arguments and message body arguments, then this value will be a combination of URI query arguments
             and deserialized message body arguments with URI query arguments taking precedence over the message body
@@ -775,19 +791,28 @@ public namespace RestHandler {
             return class_hash{name} ?? subClassImpl(name, cx, args);
         }
 
-        #! this method will be called to find a sub-class (ie with GET /invoices/1 - if this class represents "invoices", then subClass("1") will be called to return invoice 1; return @ref nothing if the object doesn't exist
-        /** @param name the name of the subclass
+        #! this method will be called to find a sub-class
+        /** For example with <tt>GET /invoices/1</tt>, if this class represents "invoices", then subClass("1") will be
+            called to return invoice \c 1; return @ref nothing if the object doesn't exist
+
+            @param name the name of the subclass
             @param cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parse_url())
-            - \c id: the unique HTTP connection ID
-            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
-            - \c hdr: a hash of header information as returned by @ref Qore::Socket::readHTTPHeader()
+            - \c aih: a hash of \c "Accept" values, keys are hash values, values are boolean @ref True
+            - \c arg_path: a list of string URI path segments for any after the current node
             - \c body: the deserialized message body
-            - \c aih: a hash of \c "Accept" values
+            - \c hdr: a hash of header information as returned by
+              @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()"
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see
+              @ref HttpServer::HttpServer::getListenerInfo() "HttpServer::getListenerInfo()")
+            - \c peer-info: a hash of socket information for the remote socket (as returned by
+              @ref Qore::Socket::getPeerInfo() "Socket::getPeerInfo()")
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by
+              @ref Qore::Socket::getSocketInfo() "Socket::getSocketInfo()")
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
+            - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url() "parse_url()")
+            - \c user: the current authorized username (if any)
             @param args the holds URI and / or message body arguments for the REST call; if a request has both URI
             query arguments and message body arguments, then this value will be a combination of URI query arguments
             and deserialized message body arguments with URI query arguments taking precedence over the message body
@@ -811,6 +836,9 @@ public namespace RestHandler {
             cx.socketobject = s;
             if (cl) {
                 string cname = shift cl;
+                cx += {
+                    "arg_path": cl,
+                };
                 *AbstractRestClass cls = subClass(cname, cx, args);
                 if (!cls) {
                     # issue #2994: if we are on the last class and there is no "action" argument; see if we can find
@@ -888,16 +916,21 @@ public namespace RestHandler {
             and deserialized message body arguments with URI query arguments taking precedence over the message body
             arguments
             @param cx call context hash; this hash will have the following keys:
-            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed
-              information)
-            - \c socket-info: a hash of socket information for the listening socket (as returned by
-              Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by
-              Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parse_url())
+            - \c aih: a hash of \c "Accept" values, keys are hash values, values are boolean @ref True
+            - \c body: the deserialized message body
+            - \c hdr: a hash of header information as returned by
+              @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()"
             - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see
+              @ref HttpServer::HttpServer::getListenerInfo() "HttpServer::getListenerInfo()")
+            - \c peer-info: a hash of socket information for the remote socket (as returned by
+              @ref Qore::Socket::getPeerInfo() "Socket::getPeerInfo()")
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by
+              @ref Qore::Socket::getSocketInfo() "Socket::getSocketInfo()")
             - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
+            - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url() "parse_url()")
+            - \c user: the current authorized username (if any)
 
             @return the return value is the same as the return value for
             @ref HttpServer::AbstractHttpRequestHandler::handleRequest()
@@ -953,7 +986,23 @@ public namespace RestHandler {
 
         #! returns a 404 Not Found response when a request tries to access an unknown subclass
         /** @param cls_name the URI path element that could not be matched to a REST subclass
-            @param cx the HTTP call context hash
+            @param cx the HTTP call context hash with the following keys:
+            - \c aih: a hash of \c "Accept" values, keys are hash values, values are boolean @ref True
+            - \c arg_path: a list of string URI path segments for any after the current node
+            - \c body: the deserialized message body
+            - \c hdr: a hash of header information as returned by
+              @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()"
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see
+              @ref HttpServer::HttpServer::getListenerInfo() "HttpServer::getListenerInfo()")
+            - \c peer-info: a hash of socket information for the remote socket (as returned by
+              @ref Qore::Socket::getPeerInfo() "Socket::getPeerInfo()")
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by
+              @ref Qore::Socket::getSocketInfo() "Socket::getSocketInfo()")
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
+            - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url() "parse_url()")
+            - \c user: the current authorized username (if any)
             @param ah the holds URI and / or message body arguments for the REST call; if a request has both URI
             query arguments and message body arguments, then this value will be a combination of URI query arguments
             and deserialized message body arguments with URI query arguments taking precedence over the message body
@@ -981,7 +1030,23 @@ public namespace RestHandler {
         }
 
         #! returns a set of possible subclasses for a particular request
-        /** @param cx the HTTP call context hash
+        /** @param cx the HTTP call context hash with the following keys:
+            - \c aih: a hash of \c "Accept" values, keys are hash values, values are boolean @ref True
+            - \c arg_path: a list of string URI path segments for any after the current node
+            - \c body: the deserialized message body
+            - \c hdr: a hash of header information as returned by
+              @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()"
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see
+              @ref HttpServer::HttpServer::getListenerInfo() "HttpServer::getListenerInfo()")
+            - \c peer-info: a hash of socket information for the remote socket (as returned by
+              @ref Qore::Socket::getPeerInfo() "Socket::getPeerInfo()")
+            - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed information)
+            - \c socket-info: a hash of socket information for the listening socket (as returned by
+              @ref Qore::Socket::getSocketInfo() "Socket::getSocketInfo()")
+            - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
+            - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url() "parse_url()")
+            - \c user: the current authorized username (if any)
             @param ah the holds URI and / or message body arguments for the REST call; if a request has both URI
             query arguments and message body arguments, then this value will be a combination of URI query arguments
             and deserialized message body arguments with URI query arguments taking precedence over the message body
@@ -1024,7 +1089,8 @@ public namespace RestHandler {
         In order to match REST requests under a root path, reimplement the following method in a subclass:
         - @ref RestHandler::RestHandler::removeRootPath()
     */
-    public class RestHandler inherits HttpServer::AbstractHttpRequestHandler, AbstractRestClass {
+    public class RestHandler inherits HttpServer::AbstractHttpRequestHandler, AbstractRestClass,
+            Logger::LoggerWrapper {
         public {
             #! a hash for a 501 Unimplemented error message
             const Err501 = new hash<HttpResponseInfo>({
@@ -1044,9 +1110,6 @@ public namespace RestHandler {
         }
 
         private {
-            #! logger
-            Logger::Logger logger;
-
             #! REST schema validator
             RestSchemaValidator::AbstractRestSchemaValidator validator;
         }
@@ -1065,18 +1128,18 @@ public namespace RestHandler {
         }
 
         #! create the object optionally with the given Logger and authenticator
-        /** @param logger the logger to use for the handler
+        /** @param logger the logger interface to use for the handler
             @param auth the authentication object to use to authenticate connections (see
             HttpServer::AbstractAuthenticator); if no HttpServer::AbstractAuthenticator object is passed, then by
             default no authentication will be required
             @param validator a REST API schema validator object; if none is present, then the default REST
             de/serialization support is provided as documented in @ref RestSchemaValidator::NullRestSchemaValidator
         */
-        constructor(Logger::Logger logger, *HttpServer::AbstractAuthenticator auth,
+        constructor(Logger::LoggerInterface logger, *HttpServer::AbstractAuthenticator auth,
                 RestSchemaValidator::AbstractRestSchemaValidator validator = new NullRestSchemaValidator(logger))
-                : HttpServer::AbstractHttpRequestHandler(auth, True) {
-            self.logger = logger;
+                : HttpServer::AbstractHttpRequestHandler(auth, True), LoggerWrapper(logger) {
             self.validator = validator;
+            validator.setLogger(logger);
         }
 
         #! returns the name of the root REST class
@@ -1085,8 +1148,8 @@ public namespace RestHandler {
         }
 
         #! Sets a new logger
-        setLogger(Logger::Logger logger) {
-            self.logger = logger;
+        setLogger(*Logger::LoggerInterface logger) {
+            LoggerWrapper::setLogger(logger);
             validator.setLogger(logger);
         }
 
@@ -1095,7 +1158,8 @@ public namespace RestHandler {
 
             @param method the HTTP method; if the the method is unknown, an \c UNKNOWN-REST-METHOD exception is raised
             @param path the URI path for the call
-            @param body the arguments to the call; note that arguments are combined with any arguments provided in \a path
+            @param body the arguments to the call; note that arguments are combined with any arguments provided in
+            \a path
             @param cx simulated HTTP call context hash
 
             @return the response value of the REST method
@@ -1107,14 +1171,18 @@ public namespace RestHandler {
             @throw REST-ERROR an error response was returned from the REST handler for the given method
 
             @note
-            - the \c arg key of the exception hash in the exceptions above contains the HTTP status code of the response
-            - exceptions thrown internally by REST handlers are returned directly; no \c 409 status code is added in the \c arg key of the exception hash
+            - the \c arg key of the exception hash in the exceptions above contains the HTTP status code of the
+              response
+            - exceptions thrown internally by REST handlers are returned directly; no \c 409 status code is added in
+              the \c arg key of the exception hash
 
             @since %RestHandler 1.2
          */
         auto handleExternalRequest(string method, string path, *hash<auto> body, hash<auto> cx = {}) {
-            if (!Methods{method})
-                throw "UNKNOWN-REST-METHOD", sprintf("unsupported HTTP method %y given in REST call %y; known methods: %y", method, path, Methods), 400;
+            if (!Methods{method}) {
+                throw "UNKNOWN-REST-METHOD", sprintf("unsupported HTTP method %y given in REST call %y; known "
+                    "methods: %y", method, path, Methods), 400;
+            }
 
             # REST call context hash
             cx += (
@@ -1131,7 +1199,9 @@ public namespace RestHandler {
             *hash<auto> args;
             if (ah.params) {
                 if (ah.params.typeCode() != NT_HASH)
-                    throw "INVALID-URI-PATH", sprintf("cannot parse arguments in REST call %y, URI arguments must be key/value pairs with an 'action' key; got type %y instead (value: %y)", path, ah.params.type(), ah.params), 400;
+                    throw "INVALID-URI-PATH", sprintf("cannot parse arguments in REST call %y, URI arguments must be "
+                        "key/value pairs with an 'action' key; got type %y instead (value: %y)", path,
+                        ah.params.type(), ah.params), 400;
                 args = ah.params;
             }
 
@@ -1153,7 +1223,8 @@ public namespace RestHandler {
 
                 if (action) {
                     if (action.typeCode() != NT_STRING)
-                        throw "INVALID-REST-ARGS", sprintf("cannot parse arguments in REST call %y, the 'action' key is not assigned to a string; got %y instead", path, action.type()), 400;
+                        throw "INVALID-REST-ARGS", sprintf("cannot parse arguments in REST call %y, the 'action' key "
+                            "is not assigned to a string; got %y instead", path, action.type()), 400;
                     mn = action;
                     cx.orig_method = mn;
                     # ensure first letter of the action is in upper case
@@ -1181,6 +1252,9 @@ public namespace RestHandler {
 
             # get initial class
             *string cls = shift cl;
+            cx += {
+                "arg_path": cl,
+            };
 
             AbstractRestClass rcls;
 
@@ -1189,7 +1263,8 @@ public namespace RestHandler {
             else {
                 *AbstractRestClass c = subClass(cls, cx, args);
                 if (!c) {
-                    # issue #2994: if we are on the last class and there is no "action" argument; see if we can find an action method instead
+                    # issue #2994: if we are on the last class and there is no "action" argument; see if we can find
+                    # an action method instead
                     if (!cl && !args.action) {
                         string mname = sprintf("%s%s%s", mn, cls[0].upr(), cls[1..]);
                         if (self.hasCallableMethod(mname)) {
@@ -1223,16 +1298,22 @@ public namespace RestHandler {
             @param listener a listener API object
             @param s the @ref Qore::Socket "Socket" object serving the request
             @param cx call context hash; this hash will have the following keys:
+            - \c aih: a hash of \c "Accept" values, keys are hash values, values are boolean @ref True
+            - \c body: the deserialized message body
+            - \c hdr: a hash of header information as returned by
+              @ref Qore::Socket::readHTTPHeader() "Socket::readHTTPHeader()"
+            - \c id: the unique HTTP connection ID
+            - \c listener-id: the HTTP server listener ID (see
+              @ref HttpServer::HttpServer::getListenerInfo() "HttpServer::getListenerInfo()")
+            - \c peer-info: a hash of socket information for the remote socket (as returned by
+              @ref Qore::Socket::getPeerInfo() "Socket::getPeerInfo()")
             - \c socket: the bind address used to bind the listener (\c "socket-info" provides more detailed
               information)
             - \c socket-info: a hash of socket information for the listening socket (as returned by
-              Qore::Socket::getSocketInfo())
-            - \c peer-info: a hash of socket information for the remote socket (as returned by
-              Qore::Socket::getPeerInfo())
-            - \c url: a hash of broken-down URL information (as returned from parse_url())
-            - \c id: the unique HTTP connection ID
+              @ref Qore::Socket::getSocketInfo() "Socket::getSocketInfo()")
             - \c ssl: @ref True "True" if the request was encrypted with HTTPS, @ref False "False" if not
-            - \c listener-id: the HTTP server listener ID (see HttpServer::HttpServer::getListenerInfo())
+            - \c url: a hash of broken-down URL information (as returned from @ref Qore::parse_url() "parse_url()")
+            - \c user: the current authorized username (if any)
             @param hdr incoming header hash; all keys will be converted to lower-case, additionally the following
             keys will be present:
             - \c method: the HTTP method received (ie \c "GET", \c "POST", etc)
@@ -1452,6 +1533,9 @@ public namespace RestHandler {
 
             # get initial class
             *string cls = shift class_list;
+            cx += {
+                "arg_path": class_list,
+            };
 
             if (!cls) {
                 rcls = self;
@@ -1518,32 +1602,26 @@ public namespace RestHandler {
         #! This method is called with informational log messages
         /** reimplement in subclasses to provide for logging
         */
-        logInfo(string fmt) {
-            if (logger) {
-                logger.logArgs(LoggerLevel::INFO, fmt, argv);
-            }
+        logInfo(string fmt, ...) {
+            logArgs(LoggerLevel::INFO, fmt, argv);
         }
 
         #! This method is called with error log messages
         /** reimplement in subclasses to provide for logging
         */
-        logError(string fmt) {
-            if (logger) {
-                logger.logArgs(LoggerLevel::ERROR, fmt, argv);
-            }
+        logError(string fmt, ...) {
+            logArgs(LoggerLevel::ERROR, fmt, argv);
         }
 
         #! This method is called with debug log messages
         /** reimplement in subclasses to provide for logging
         */
-        logDebug(string fmt) {
-            if (logger) {
-                logger.logArgs(LoggerLevel::DEBUG, fmt, argv);
-            }
+        logDebug(string fmt, ...) {
+            logArgs(LoggerLevel::DEBUG, fmt, argv);
         }
 
         #! creates a hash for an HTTP 200 OK error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make200(string fmt) {
+        static hash<HttpHandlerResponseInfo> make200(string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 200,
                 "body": vsprintf(fmt, argv),
@@ -1551,7 +1629,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 200 OK error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make200(hash<auto> hdr, string fmt) {
+        static hash<HttpHandlerResponseInfo> make200(hash<auto> hdr, string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 200,
                 "body": vsprintf(fmt, argv),
@@ -1560,7 +1638,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 400 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make400(string fmt) {
+        static hash<HttpHandlerResponseInfo> make400(string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 400,
                 "body": vsprintf(fmt, argv),
@@ -1568,7 +1646,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 400 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make400(hash<auto> hdr, string fmt) {
+        static hash<HttpHandlerResponseInfo> make400(hash<auto> hdr, string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 400,
                 "body": vsprintf(fmt, argv),
@@ -1586,7 +1664,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 500 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make500(string fmt) {
+        static hash<HttpHandlerResponseInfo> make500(string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 500,
                 "body": vsprintf(fmt, argv),
@@ -1594,7 +1672,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 500 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make500(hash<auto> hdr, string fmt) {
+        static hash<HttpHandlerResponseInfo> make500(hash<auto> hdr, string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 500,
                 "body": vsprintf(fmt, argv),
@@ -1602,7 +1680,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 501 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make501(string fmt) {
+        static hash<HttpHandlerResponseInfo> make501(string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 501,
                 "body": vsprintf(fmt, argv),
@@ -1610,7 +1688,7 @@ public namespace RestHandler {
         }
 
         #! creates a hash for an HTTP 501 error response with the response message body as a string
-        static hash<HttpHandlerResponseInfo> make501(hash<auto> hdr, string fmt) {
+        static hash<HttpHandlerResponseInfo> make501(hash<auto> hdr, string fmt, ...) {
             return <HttpHandlerResponseInfo>{
                 "code": 501,
                 "body": vsprintf(fmt, argv),
@@ -1630,10 +1708,10 @@ namespace Priv {
         auto removeUserThreadContext(*string k) {
         }
 
-        log(string fmt) {
+        log(string fmt, ...) {
         }
 
-        logError(string fmt) {
+        logError(string fmt, ...) {
         }
     }
 }

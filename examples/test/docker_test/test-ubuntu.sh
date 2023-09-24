@@ -24,7 +24,7 @@ echo "export QORE_GID=999" >> ${ENV_FILE}
 
 if [ -z "${QORE_DB_CONNSTR_PGSQL}" ]; then
     . examples/test/docker_test/postgres_lib.sh
-    setup_postgres_on_rippy
+    setup_postgres_on_host
     drop_pgsql_schema=1
 fi
 if [ -z "${QORE_DB_CONNSTR_ORACLE}" ]; then
@@ -56,5 +56,5 @@ cd ${QORE_SRC_DIR}
 gosu qore:qore ./run_tests.sh
 
 if [ "${drop_pgsql_schema}" = "1" ]; then
-    cleanup_postgres_on_rippy
+    cleanup_postgres_on_host
 fi

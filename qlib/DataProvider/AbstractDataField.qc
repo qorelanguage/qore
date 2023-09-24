@@ -38,7 +38,7 @@ public hashdecl DataFieldInfo {
     auto default_value;
 
     #! for enum fields; allowed values
-    list<auto> allowed_values;
+    *list<auto> allowed_values;
 
     #! type info
     hash<DataTypeInfo> type;
@@ -123,6 +123,7 @@ public class AbstractDataField inherits Qore::Serializable {
         AbstractDataProviderType type = getType();
         # check that the value can be assigned to the type
         self.allowed_values = map type.acceptsValue($1), allowed_values;
+        # NOTE: requires that values can be converted to a string hash key to simulate a set
         allowed_values_map = map {$1: True}, self.allowed_values;
     }
 
@@ -194,6 +195,7 @@ public class AbstractDataField inherits Qore::Serializable {
             "name": getName(),
             "desc": getDescription(),
             "default_value": default_value,
+            "allowed_values": allowed_values,
             "type": getType().getInfo(),
         };
     }

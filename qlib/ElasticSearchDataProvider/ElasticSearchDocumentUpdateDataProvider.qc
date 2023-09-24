@@ -27,11 +27,8 @@ public namespace ElasticSearchDataProvider {
 #! The ElasticSearch document update API data provider
 /** This API allows the caller to update an ElasticSearch document
 */
-public class ElasticSearchDocumentUpdateDataProvider inherits DataProvider::AbstractDataProvider {
+public class ElasticSearchDocumentUpdateDataProvider inherits ElasticSearchDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "update",
@@ -64,8 +61,7 @@ public class ElasticSearchDocumentUpdateDataProvider inherits DataProvider::Abst
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : ElasticSearchDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

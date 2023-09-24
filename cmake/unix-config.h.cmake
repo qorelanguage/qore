@@ -10,10 +10,12 @@
 #cmakedefine HAVE_GRP_H
 #cmakedefine HAVE_ICONV_H
 #cmakedefine HAVE_INTTYPES_H
+#cmakedefine HAVE_LINUX_IF_PACKET_H
 #cmakedefine HAVE_MEMORY_H
 #cmakedefine HAVE_NETDB_H
 #cmakedefine HAVE_NETINET_IN_H
 #cmakedefine HAVE_NETINET_TCP_H
+#cmakedefine HAVE_NET_IF_DL_H
 #cmakedefine HAVE_POLL_H
 #cmakedefine HAVE_PWD_H
 #cmakedefine HAVE_STDBOOL_H
@@ -64,6 +66,7 @@
 #cmakedefine HAVE_GETPPID
 #cmakedefine HAVE_GETPWNAM_R
 #cmakedefine HAVE_GETPWUID_R
+#cmakedefine HAVE_GETRLIMIT
 #cmakedefine HAVE_GETSOCKOPT
 #cmakedefine HAVE_GETTIMEOFDAY
 #cmakedefine HAVE_GETUID
@@ -74,6 +77,7 @@
 #cmakedefine HAVE_ISBLANK
 #cmakedefine HAVE_KILL
 #cmakedefine HAVE_LCHOWN
+#cmakedefine HAVE_LINK_NTOA
 #cmakedefine HAVE_LOCALTIME_R
 #cmakedefine HAVE_LSTAT
 #cmakedefine HAVE_MEMMEM

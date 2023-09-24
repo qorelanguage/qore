@@ -35,6 +35,7 @@ public class ElasticSearchDataProviderFactory inherits DataProvider::AbstractDat
             "name": "elasticsearch",
             "desc": "ElasticSearch API data provider factory",
             "children_can_support_apis": True,
+            "children_can_support_records": True,
         };
     }
 

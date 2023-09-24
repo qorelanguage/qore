@@ -57,13 +57,14 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
         self.record_info = record_info;
 
         # make query
-        *string query = makeQuery(where_cond, search_options);
+        *string query = makeQuery(cast<*hash<DataProviderExpression>>(where_cond), search_options);
         hash<auto> info;
         try {
             string uri = "table/" + name;
             if (query) {
                 uri += sprintf("?%s", query);
             }
+
             i = new ListHashIterator(rest.get(uri, NOTHING, \info).body.response.result);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
@@ -97,7 +98,8 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
     /** @throw INVALID-ITERATOR the iterator is not pointing at a valid element
     */
     hash<auto> getValue() {
-        hash<auto> rv = i.getValue();
+        # value may be NOTHING in case referenced columns do not exist
+        hash<auto> rv = i.getValue() ?? {};
         # convert JSON strings to native Qore date/time values
         map rv{$1} = date(rv{$1}), keys record_info.date_time_fields, rv{$1}.val();
         # convert JSON strings to native boolean values
@@ -136,7 +138,7 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
     *string makeQuery(*hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         string filter = "sysparm_exclude_reference_link=true&sysparm_suppress_pagination_header=true";
         if (search_options.columns) {
-            filter = "sysparm_fields=" + getColumnNames(search_options.columns);
+            filter += "&sysparm_fields=" + getColumnNames(search_options.columns);
         }
         if (where_cond) {
             if (filter) {
@@ -237,7 +239,7 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
 
     private string doWhereExpression(hash<DataProviderExpression> where_cond, *hash<auto> search_options) {
         list<string> clauses;
-        if (where_cond.exp.label == DP_OP_AND) {
+        if (where_cond.exp == DP_OP_AND) {
             map clauses += doWhereExpressionIntern($1), where_cond.args;
         } else {
             clauses += doWhereExpressionIntern(where_cond);
@@ -246,14 +248,14 @@ public class ServiceNowRestRecordIterator inherits AbstractDataProviderRecordIte
     }
 
     private string doWhereExpressionIntern(hash<DataProviderExpression> arg) {
-        *hash<auto> expinfo = ServiceNowTableDataProvider::Expressions{arg.exp.label};
+        *hash<auto> expinfo = ServiceNowTableDataProvider::Expressions{arg.exp};
         if (!expinfo) {
             throw "WHERE-ERROR", sprintf("expression references unknown operator %y; known operators: %y",
-                arg.exp.label, keys ServiceNowTableDataProvider::Expressions);
+                arg.exp, keys ServiceNowTableDataProvider::Expressions);
         }
         if (!(arg.args[0] instanceof hash<DataProviderFieldReference>)) {
             throw "WHERE-ERROR", sprintf("the first argument to expression %y must be a field reference",
-                arg.exp.label);
+                arg.exp);
         }
         string column = (shift arg.args).field;
         list<auto> args = (column,);

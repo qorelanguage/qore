@@ -77,6 +77,18 @@ public class MaxThreadCountTest inherits QUnit::Test {
             c.waitForZero();
         };
 
+        # wait for all threads to complete
+        {
+            date now = now_us();
+            while (num_threads() > 1) {
+                sleep(100ms);
+                date d = now_us() - now;
+                if (d > 20s) {
+                    throw "TIMEOUT-ERROR", "timeout waiting for threads to terminate";
+                }
+            }
+        }
+
         try {
             while (True) {
                 Counter c0(1);

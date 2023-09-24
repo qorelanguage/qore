@@ -154,9 +154,10 @@ class QdpCmd {
             }
             list<string> path = name.split("/");
             provider = getDataProvider((shift path) + opts);
+            # set logger on data provider
+            provider.setLogger(getLogger());
             map provider = provider.getChildProviderEx($1), path;
         }
-        provider.setLogger(getLogger());
 
         string cmd = shift ARGV ?? "list";
         *code action = Cmds{cmd};
@@ -194,9 +195,9 @@ class QdpCmd {
 
     private Logger getLogger() {
         LoggerLevel level;
-        if (opts.verbose > 3) {
+        if (opts.verbose > 1) {
             level = LoggerLevel::getLevelDebug();
-        } else if (opts.verbose > 2) {
+        } else if (opts.verbose) {
             level = LoggerLevel::getLevelInfo();
         } else {
             level = LoggerLevel::getLevelError();
@@ -612,7 +613,13 @@ class QdpCmd {
         if (fields) {
             QdpCmd::showRecord(fields, offset);
         } else {
-            printf("%s%s%s (%s)\n", offset, type.getName());
+            if (type.getBaseTypeCode() == NT_LIST && (*AbstractDataProviderType element_type = type.getElementType())
+                && (*hash<string, AbstractDataField> element_rec = element_type.getFields())) {
+                printf("%s%s elements ->\n", type.getName(), offset);
+                QdpCmd::showRecord(element_rec, offset + "  ");
+            } else {
+                printf("%s%s%s (%s)\n", offset, type.getName());
+            }
         }
     }
 

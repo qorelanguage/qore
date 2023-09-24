@@ -2960,7 +2960,7 @@ Mapper mapv(DataMap);
     #! throws a \c MAP-ERROR exception; prepends the map name to the description if known
     /** if this method is subclassed, it must also cause an exception to be thrown
     */
-    private error(string fmt) {
+    private error(string fmt, ...) {
         string err = vsprintf(fmt, argv);
         if (name)
             err = sprintf("mapper %y: %s", name, err);
@@ -2968,7 +2968,7 @@ Mapper mapv(DataMap);
     }
 
     #! throws the given exception; prepends the map name to the description if known
-    private error2(string ex, string fmt) {
+    private error2(string ex, string fmt, ...) {
         string err = vsprintf(fmt, argv);
         if (name)
             err = sprintf("%y mapper: %s", name, err);

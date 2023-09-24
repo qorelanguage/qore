@@ -121,6 +121,7 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
         set(_dox_src ${CMAKE_SOURCE_DIR}/modules/${_module_name}/src)
         set(_dox_output ${CMAKE_BINARY_DIR}/docs/modules/${_module_name})
         set(QORE_MOD_NAME ${_module_name})
+	include_directories(${CMAKE_SOURCE_DIR}/include/)
 
         if ("${QORE_USERMODULE_DOXYGEN_TEMPLATE}" STREQUAL "")
             set(QORE_USERMODULE_DOXYGEN_TEMPLATE ${CMAKE_SOURCE_DIR}/doxygen/modules/Doxyfile.cmake.in)
@@ -187,7 +188,9 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
     target_link_libraries(${_module_name} ${_libs})
 
     # ensure that modules use dynamic lookups; works with g++ & clang++
+    if(CMAKE_HOST_APPLE)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-undefined -Wl,dynamic_lookup")
+    endif(CMAKE_HOST_APPLE)
 
     install( TARGETS ${_module_name} DESTINATION ${_mod_target_dir})
 
@@ -219,8 +222,10 @@ MACRO (QORE_BINARY_MODULE_INTERN2 _module_name _version _install_suffix _mod_suf
         message(WARNING "Module ${_module_name} uninstall script: no file: ${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in")
     endif()
 
-    # docs
-    FIND_PACKAGE(Doxygen)
+    # docs: do not try to find doxygen again when building Qore
+    if (NOT "${_mod_suffix}" STREQUAL "1")
+        FIND_PACKAGE(Doxygen)
+    endif()
     if (DOXYGEN_FOUND)
         if (EXISTS "${QORE_USERMODULE_DOXYGEN_TEMPLATE}")
             set(CURRENT_MODULE_NAME ${_module_name})
@@ -398,8 +403,10 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
     get_filename_component(f ${_module_file} NAME_WE)
     if (IS_DIRECTORY ${CMAKE_SOURCE_DIR}/qlib/${f})
         file(GLOB _mod_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qm" "${CMAKE_SOURCE_DIR}/qlib/${f}/*.qc")
+        file(GLOB _mod_jar_targets "${CMAKE_SOURCE_DIR}/qlib/${f}/jar/*.jar")
         set(qm_install_subdir "${f}") # install files into a subdir
         #message(STATUS "_mod_targets ${_mod_targets}")
+        message(STATUS "_mod_jar_targets ${_mod_jar_targets}")
     else()
         set(_mod_targets ${_module_file})
         set(qm_install_subdir "") # common qm file
@@ -465,8 +472,12 @@ MACRO (QORE_EXTERNAL_USER_MODULE _module_file _mod_deps)
         endforeach(i)
     endif (DOXYGEN_FOUND)
 
-    # install qm file
+    # install user module files
     install(FILES ${_mod_targets} DESTINATION ${QORE_USER_MODULES_DIR}/${qm_install_subdir})
+    if (DEFINED _mod_jar_targets)
+        install(FILES ${_mod_jar_targets} DESTINATION ${QORE_USER_MODULES_DIR}/${qm_install_subdir}/jar)
+        message(STATUS "called install for ${_mod_jar_targets} -> ${QORE_USER_MODULES_DIR}/${qm_install_subdir}/jar")
+    endif()
 ENDMACRO (QORE_EXTERNAL_USER_MODULE)
 
 # Install qore native/user modules (qm files) into the proper location.

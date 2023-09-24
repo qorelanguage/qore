@@ -2,13 +2,136 @@
 
     @tableofcontents
 
+    @section qore_2_0_0 Qore 2.0.0
+
+    @par Release Summary
+    Major release of %Qore; see below for more information
+
+    @subsection qore_2_0_0_new_features New Features in Qore
+    TBD
+
+    @subsection qore_2_0_0_bug_fixes Bug Fixes in Qore
+    TBD
+
+    @section qore_1_19_1 Qore 1.19.1
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_19_1_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a>
+      - allow context info to be cleared after handling each request to ensure that context info (like thread-local
+        data) does not leak into other connections on the same thread
+        (<a href="https://github.com/qorelanguage/qore/issues/4802">issue 4802</a>)
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a>
+      - do not try to get another OAuth2 token if the token was just retrieved
+        (<a href="https://github.com/qorelanguage/qore/issues/4796">issue 4796</a>)
+    - fixed a bug where user variants would not always set the varargs flags from ellipses
+      (<a href="https://github.com/qorelanguage/qore/issues/4804">issue 4804</a>)
+    - fixed an extraneous \c SOCKET-NOT-OPEN exception when running socket callbacks after a socket was closed
+      (<a href="https://github.com/qorelanguage/qore/issues/4795">issue 4795</a>)
+
+    @section qore_1_19_0 Qore 1.19.0
+
+    @par Release Summary
+    Bugfix release with minor new features; see below for more information
+
+    @subsection qore_1_19_0_new_features New Features in Qore
+    - New user modules:
+      - <a href="../../modules/GoogleDataProvider/html/index.html">GoogleDataProvider</a>
+        (<a href="https://github.com/qorelanguage/qore/issues/4773">issue 4773</a>)
+      - <a href="../../modules/GoogleRestClient/html/index.html">GoogleRestClient</a>
+        (<a href="https://github.com/qorelanguage/qore/issues/4773">issue 4773</a>)
+      - <a href="../../modules/HueRestClient/html/index.html">HueRestClient</a>
+        (<a href="https://github.com/qorelanguage/qore/issues/4781">issue 4781</a>)
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - added a logger interface to the abstract base connection class
+        (<a href="https://github.com/qorelanguage/qore/issues/4776">issue 4776</a>)
+      - added a connection-defined feature list to connection info
+        (<a href="https://github.com/qorelanguage/qore/issues/4771">issue 4771</a>)
+    - <a href="../../modules/FileLocationHandler/html/index.html">FileLocationHandler</a> module
+      - implemented support for non-blocking I/O from file handlers
+        (<a href="https://github.com/qorelanguage/qore/issues/4764">issue 4764</a>)
+    - <a href="../../modules/Logger/html/index.html">Logger</a> module
+      - added \c LoggerInterface and \c LoggerWrapper classes
+        (<a href="https://github.com/qorelanguage/qore/issues/4776">issue 4776</a>)
+    - added the following function and methods to support base64-url encoding of data:
+      - @ref Qore::make_base64_url_string() "make_base64_url_string()"
+      - @ref <string>::toBase64Url()
+      - @ref <binary>::toBase64Url()
+      (<a href="https://github.com/qorelanguage/qore/issues/4783">issue 4783</a>)
+    - added the following class and new methods to support OAuth2 and non-blocking polling functionality:
+      - @ref Qore::FilePollOperation "FilePollOperation" class
+      - @ref Qore::ReadOnlyFile::startPollRead() "ReadOnlyFile::startPollRead()"
+      - @ref Qore::HTTPClient::getUsername() "HTTPClient::getUsername()"
+      - @ref Qore::HTTPClient::getPassword() "HTTPClient::getPassword()"
+      (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
+    - added the \c encode_chars option to the @ref Qore::HTTPClient "HTTPClient" class
+      (<a href="https://github.com/qorelanguage/qore/issues/4773">issue 4773</a>)
+
+    @subsection qore_1_19_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - assume connections are up until they are proven to be down
+        (<a href="https://github.com/qorelanguage/qore/issues/4789">issue 4789</a>)
+      - fixed a bug where the @ref ConnectionProvider::InvalidConnection "InvalidConnection" class would report an
+        invalid \c url hash
+        (<a href="https://github.com/qorelanguage/qore/issues/4785">issue 4785</a>)
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
+      - implemented consistent support for OAuth2 authorization flows including for OAuth2 with non-blocking I/O and
+        non-blocking retrieval of Swagger schemas for REST clients
+        (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
+      - fixed a bug where polling pings did not respect connection options or the validator
+        (<a href="https://github.com/qorelanguage/qore/issues/4764">issue 4764</a>)
+    - fixed a bugs handling the signal mask that could cause hard-to-debug problems such as deadlocks in JIT in the
+      JVM on macOS aarch64
+      (<a href="https://github.com/qorelanguage/qore/issues/4793">issue 4793</a>)
+    - fixed a bug handling non-blocking I/O for socket connections on Darwin / macOS
+      (<a href="https://github.com/qorelanguage/qore/issues/4791">issue 4791</a>)
+    - fixed a bug where function and method variants did not report varargs in the signature
+      (<a href="https://github.com/qorelanguage/qore/issues/4787">issue 4787</a>)
+    - fixed a bug where an access exception could be raised when a reference to a private member was used in a static
+      class method
+      (<a href="https://github.com/qorelanguage/qore/issues/4778">issue 4778</a>)
+    - fixed a bug where the stack guard was not properly enforced when the JVM assumed enforcement responsibility; in
+      addition, due to the fact that thread stacks are allocated from overcommitted memory, reducing the thread stack
+      size to 512KB had no effect on the memory size of %Qore programs but did affect %Qore, Java, and Python
+      programs, therefore the stack limit for all threads was reset to 8MB as of this release
+      (<a href="https://github.com/qorelanguage/qore/issues/4768">issue 4768</a>)
+
+    @section qore_1_18_1 Qore 1.18.1
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_18_1_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - added \c allowed_values to field data info
+        (<a href="https://github.com/qorelanguage/qore/issues/4762">issue 4762</a>)
+    - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
+      - fixed URI path reporting in REST error messages
+        (<a href="https://github.com/qorelanguage/qore/issues/4760">issue 4760</a>)
+    - <a href="../../modules/ServiceNowRestClient/html/index.html">ServiceNowRestClient</a> module
+      - create URI request paths properly; restored functionality with recent versions of ServiceNow
+        (<a href="https://github.com/qorelanguage/qore/issues/4758">issue 4758</a>)
+    - <a href="../../modules/ServiceNowRestDataProvider/html/index.html">ServiceNowRestDataProvider</a> module
+      - fixed operator handling in searches
+        (<a href="https://github.com/qorelanguage/qore/issues/4759">issue 4759</a>)
+    - allow user modules included with external binary modules to install jar files
+      (<a href="https://github.com/qorelanguage/qore/issues/4756">issue 4756</a>)
+
     @section qore_1_18_0 Qore 1.18.0
 
     @par Release Summary
     Bugfix release with minor new features; see below for more information
 
     @subsection qore_1_18_0_new_features New Features in Qore
+    - <a href="../../modules/EmpathicBuildingDataProvider/html/index.html">EmpathicBuildingDataProvider</a> module
+      - implemented this module to provide data provider support for Haltian Empathic Building services
+        (<a href="https://github.com/qorelanguage/qore/issues/4745">issue 4745</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
+      - implemented the \c swagger_lax_parsing option to try to parse invalid Swagger schemas
+        (<a href="https://github.com/qorelanguage/qore/issues/4741">issue 4741</a>)
+    - <a href="../../modules/RestClientDataProvider/html/index.html">RestClientDataProvider</a> module
       - implemented the \c swagger_lax_parsing option to try to parse invalid Swagger schemas
         (<a href="https://github.com/qorelanguage/qore/issues/4741">issue 4741</a>)
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
@@ -17,6 +140,17 @@
     - <a href="../../modules/SwaggerDataProvider/html/index.html">SwaggerDataProvider</a> module
       - implemented the \c lax_parsing option to try to parse invalid Swagger schemas
         (<a href="https://github.com/qorelanguage/qore/issues/4741">issue 4741</a>)
+
+    @subsection qore_1_18_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - fixed a bug where the \c HttpConnection scheme could not be used
+        (<a href="https://github.com/qorelanguage/qore/issues/4753">issue 4753</a>)
+      - fixed a bug where invalid connection options were silently accepted
+        (<a href="https://github.com/qorelanguage/qore/issues/4751">issue 4751</a>)
+    - fixed date subtraction when the RHS is <tt>1970-01-01Z</tt>
+      (<a href="https://github.com/qorelanguage/qore/issues/4747">issue 4747</a>)
+    - set the default connect timeout for HTTP connections to 60 seconds
+      (<a href="https://github.com/qorelanguage/qore/issues/4743">issue 4743</a>)
 
     @section qore_1_17_0 Qore 1.17.0
 

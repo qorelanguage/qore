@@ -60,7 +60,7 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
-            "cls": Class::forName("FilesystemConnection"),
+            "cls": Class::forName("HttpConnection"),
             "options": {
                 "assume_encoding": <ConnectionOptionInfo>{
                     "type": "string",
@@ -86,6 +86,16 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                     "type": "string",
                     "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
                     "default_value": "1.1",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "1.0",
+                            "desc": "For HTTP 1.0",
+                        },
+                        <AllowedValueInfo>{
+                            "value": "1.1",
+                            "desc": "For HTTP 1.1",
+                        },
+                    ),
                 },
                 "max_redirects": <ConnectionOptionInfo>{
                     "type": "int",
@@ -146,10 +156,6 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
 
         #! HttpConnection object connection options
         const Options = map {$1: True}, keys ConnectionScheme.options;
-
-        #! HttpConnection default options
-        const DefaultOptions = map {$1.key: $1.value.default_value}, ConnectionScheme.options.pairIterator(),
-            exists $1.value.default_value;
     }
 
     #! Creates the HttpConnection object

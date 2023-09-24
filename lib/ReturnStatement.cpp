@@ -33,6 +33,7 @@
 #include "qore/intern/qore_program_private.h"
 
 int ReturnStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
+    //QORE_TRACE("ReturnStatement::execImpl()");
     ValueEvalRefHolder val(exp, xsink);
     if (!*xsink) {
         return_value = val.takeReferencedValue();

@@ -38,6 +38,7 @@
 // eval method against an object where the assumed qoreclass and method were saved at parse time
 QoreValue AbstractMethodCallNode::exec(QoreObject* o, const char* c_str, const qore_class_private* ctx,
         ExceptionSink* xsink) const {
+    //QORE_TRACE("AbstractMethodCallNode::exec()");
     /* the class and method saved at parse time are used here for this run-time
         optimization: the method pointer saved at parse time is used to execute the
         method directly if the object used at run-time is of the same class as

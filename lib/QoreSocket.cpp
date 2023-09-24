@@ -89,7 +89,7 @@ int sock_get_raw_error() {
     return WSAGetLastError();
 }
 
-int sock_get_error() {
+int windows_set_errno() {
     int rc = WSAGetLastError();
 
     switch (rc) {
@@ -164,18 +164,22 @@ int sock_get_error() {
     return errno;
 }
 
+int sock_get_error() {
+    return windows_set_errno();
+}
+
 int check_windows_rc(int rc) {
     if (rc != SOCKET_ERROR) {
         return 0;
     }
 
-    sock_get_error();
+    windows_set_errno();
     return -1;
 }
 
 void qore_socket_error_intern(int rc, ExceptionSink* xsink, const char* err, const char* cdesc, const char* mname,
         const char* host, const char* svc, const struct sockaddr *addr) {
-    sock_get_error();
+    windows_set_errno();
     assert(xsink);
 
     QoreStringNode* desc = new QoreStringNode;
@@ -952,6 +956,17 @@ int SocketConnectInetPollState::checkConnection(ExceptionSink* xsink) {
         return -1;
     }
 
+    // try a zero-byte send
+    rc = send(sock->sock, nullptr, 0, 0);
+    if (rc) {
+        // NOTE: an ENOTCONN error can be returned on Darwin / macOS even though poll() reports the connection is ready
+        // for writing
+        if (errno == EINPROGRESS || errno == EAGAIN || errno == ENOTCONN) {
+            return 1;
+        }
+        return -1;
+    }
+
     // connected successfully within the timeout period
     sock->sfamily = p->ai_family;
     sock->stype = p->ai_socktype;
@@ -965,13 +980,19 @@ int SocketConnectInetPollState::checkConnection(ExceptionSink* xsink) {
 int SocketConnectInetPollState::next(ExceptionSink* xsink) {
     p = p->ai_next;
     if (!p) {
-        qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", 0, host.c_str(), service.c_str());
+        qore_socket_error(xsink, "SOCKET-CONNECT-ERROR", "error in connect()", nullptr, host.c_str(), service.c_str());
         if (sock->sock != QORE_INVALID_SOCKET) {
             sock->close_and_reset();
         }
         return -1;
     }
-    //printd(5, "SocketConnectInetPollState::next() trying next address: %p\n", p);
+
+    {
+        QoreString addr;
+        q_addr_to_string2(p->ai_addr, addr);
+        //printd(5, "SocketConnectInetPollState::next() trying address: %p family: %s addr: %s\n", p,
+        //    q_af_to_str(p->ai_family), addr.c_str());
+    }
     return nextIntern(xsink);
 }
 
@@ -984,8 +1005,6 @@ int SocketConnectInetPollState::nextIntern(ExceptionSink* xsink) {
             host.c_str(), service.c_str());
         return -1;
     }
-    //printd(5, "SocketConnectInetPollState::nextIntern(sock: %p host: '%s' port: %d) created "
-    //    "socket %d\n", sock, host.c_str(), prt, sock->sock);
     return 0;
 }
 
@@ -1113,6 +1132,17 @@ int SocketConnectUnixPollState::checkConnection(ExceptionSink* xsink) {
         return -1;
     }
 
+    // try a zero-byte send
+    rc = send(sock->sock, nullptr, 0, 0);
+    if (rc) {
+        // NOTE: an ENOTCONN error can be returned on Darwin / macOS even though poll() reports the connection is ready
+        // for writing
+        if (errno == EINPROGRESS || errno == EAGAIN || errno == ENOTCONN) {
+            return 1;
+        }
+        return -1;
+    }
+
     // connected successfully within the timeout period
     sock->socketname = addr.sun_path;
     sock->sfamily = AF_UNIX;
@@ -1161,6 +1191,9 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
         return -1;
     }
 
+    // do not allow more than 10 loops at a time
+    unsigned loop = 0;
+
     while (true) {
         ssize_t rc;
         if (sock->ssl) {
@@ -1174,6 +1207,10 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
                 sent += real_io;
                 if (sent == size) {
                     break;
+                }
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLOUT;
                 }
                 // do another send
                 continue;
@@ -1191,11 +1228,19 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
                 if (sent == size) {
                     break;
                 }
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLOUT;
+                }
                 // do another send
                 continue;
             }
             sock_get_error();
             if (errno == EINTR) {
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLOUT;
+                }
                 continue;
             }
             if (errno == EAGAIN
@@ -1254,6 +1299,8 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
         return -1;
     }
 
+    unsigned loop = 0;
+
     while (true) {
         ssize_t rc;
         if (sock->ssl) {
@@ -1270,7 +1317,10 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
                     bin->setSize(size);
                     break;
                 }
-                // do another send
+                if (++loop >= 10) {
+                    return SOCK_POLLIN;
+                }
+                // do another read
                 continue;
             }
             return rc;
@@ -1293,11 +1343,19 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
                     bin->setSize(size);
                     break;
                 }
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLIN;
+                }
                 // do another recv
                 continue;
             }
             sock_get_error();
             if (errno == EINTR) {
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLIN;
+                }
                 continue;
             }
             if (errno == EAGAIN
@@ -1368,6 +1426,8 @@ int SocketRecvUntilBytesPollState::doRecv(ExceptionSink* xsink) {
         return -1;
     }
 
+    unsigned loop = 0;
+
     while (true) {
         ssize_t rc;
         if (sock->ssl) {
@@ -1395,6 +1455,10 @@ int SocketRecvUntilBytesPollState::doRecv(ExceptionSink* xsink) {
             }
             sock_get_error();
             if (errno == EINTR) {
+                // do not allow more than 10 loops at a time
+                if (++loop >= 10) {
+                    return SOCK_POLLIN;
+                }
                 continue;
             }
             if (errno == EAGAIN
@@ -1439,10 +1503,12 @@ int qore_socket_private::send(int fd, qore_offset_t size, int timeout_ms, Except
         }
         while (true) {
             rc = ::read(fd, buf, bn);
-            if (rc >= 0)
+            if (rc >= 0) {
                 break;
+            }
             if (errno != EINTR) {
-                xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in Socket::send()", bs);
+                xsink->raiseErrnoException("FILE-READ-ERROR", errno, "error reading file after " QSD " bytes read in "
+                    "Socket::send()", bs);
                 break;
             }
         }
@@ -1913,7 +1979,8 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
                 rc = 0;
             } else {
                 if (!sslError(xsink, mname, "SSL_write"))
-                    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the socket was closed by the remote host while calling SSL_write()", mname);
+                    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the socket was closed by the "
+                        "remote host while calling SSL_write()", mname);
                 rc = QSE_SSL_ERR;
             }
 
@@ -3596,8 +3663,8 @@ void QoreSocketThroughputHelper::finalize(int64 bytes) {
     priv->finalize(bytes);
 }
 
-SocketConnectPollOperation::SocketConnectPollOperation(ExceptionSink* xsink, bool ssl, const char* target, QoreSocketObject* sock)
-        : sock(sock) {
+SocketConnectPollOperation::SocketConnectPollOperation(ExceptionSink* xsink, bool ssl, const char* target,
+        QoreSocketObject* sock) : sock(sock) {
     sgoal = ssl ? SPG_CONNECT_SSL : SPG_CONNECT;
 
     AutoLocker al(sock->priv->m);

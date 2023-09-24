@@ -30,11 +30,8 @@ public namespace ElasticSearchDataProvider {
 
     Note that wildcards can be used, in which case multiple indices can be returned in the return value.
 */
-public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
+public class ElasticSearchIndexReadDataProvider inherits ElasticSearchDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "read",
@@ -67,8 +64,7 @@ public class ElasticSearchIndexReadDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : ElasticSearchDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

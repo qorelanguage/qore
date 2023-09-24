@@ -42,7 +42,8 @@ DOX_SRC_SPLIT_MODULES = \
     qlib/DbDataProvider \
     qlib/FileLocationHandler \
     qlib/RestClientDataProvider \
-    qlib/ElasticSearchDataProvider
+    qlib/ElasticSearchDataProvider \
+    qlib/EmpathicBuildingDataProvider
 
 DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
@@ -50,6 +51,8 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugHandler.qm \
 	qlib/Diff.qm \
 	qlib/CdsRestClient.qm \
+	qlib/GoogleRestClient.qm \
+	qlib/HueRestClient.qm \
 	qlib/ServiceNowRestClient.qm \
 	qlib/FilePoller.qm \
 	qlib/FreetdsSqlUtil.qm \
@@ -96,7 +99,8 @@ DOX_SPLIT_MODULES = \
     qlib/FileDataProvider \
     qlib/FtpClientDataProvider \
     qlib/HttpClientDataProvider \
-    qlib/AwsRestClientDataProvider
+    qlib/AwsRestClientDataProvider \
+    qlib/GoogleDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -114,8 +118,10 @@ RestClientDataProvider_modverdir = $(modverdir)/RestClientDataProvider
 AwsRestClientDataProvider_modverdir = $(modverdir)/AwsRestClientDataProvider
 FileDataProvider_modverdir = $(modverdir)/FileDataProvider
 FtpClientDataProvider_modverdir = $(modverdir)/FtpClientDataProvider
+GoogleDataProvider_modverdir = $(modverdir)/GoogleDataProvider
 HttpClientDataProvider_modverdir = $(modverdir)/HttpClientDataProvider
 ElasticSearchDataProvider_modverdir = $(modverdir)/ElasticSearchDataProvider
+EmpathicBuildingDataProvider_modverdir = $(modverdir)/EmpathicBuildingDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
@@ -133,8 +139,10 @@ dist_RestClientDataProvider_modver_DATA = $(wildcard qlib/RestClientDataProvider
 dist_AwsRestClientDataProvider_modver_DATA = $(wildcard qlib/AwsRestClientDataProvider/*.q[cm])
 dist_FileDataProvider_modver_DATA = $(wildcard qlib/FileDataProvider/*.q[cm])
 dist_FtpClientDataProvider_modver_DATA = $(wildcard qlib/FtpClientDataProvider/*.q[cm])
+dist_GoogleDataProvider_modver_DATA = $(wildcard qlib/GoogleDataProvider/*.q[cm])
 dist_HttpClientDataProvider_modver_DATA = $(wildcard qlib/HttpClientDataProvider/*.q[cm])
 dist_ElasticSearchDataProvider_modver_DATA = $(wildcard qlib/ElasticSearchDataProvider/*.q[cm])
+dist_EmpathicBuildingDataProvider_modver_DATA = $(wildcard qlib/EmpathicBuildingDataProvider/*.q[cm])
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
@@ -201,8 +209,9 @@ LANG_QPP_SRC = lib/QC_AbstractSmartLock.qpp \
 	lib/QC_Expression.qpp \
 	lib/QC_File.qpp \
 	lib/QC_FileInputStream.qpp \
-	lib/QC_FileOutputStream.qpp \
 	lib/QC_FileLineIterator.qpp \
+	lib/QC_FileOutputStream.qpp \
+    lib/QC_FilePollOperation.qpp \
 	lib/QC_FtpClient.qpp \
 	lib/QC_Gate.qpp \
 	lib/QC_GetOpt.qpp \
@@ -877,8 +886,9 @@ noinst_HEADERS = \
 	include/qore/intern/QC_AbstractPollableIoObjectBase.h \
 	include/qore/intern/QC_SocketPollOperationBase.h \
 	include/qore/intern/QC_SocketPollOperation.h \
+	include/qore/intern/QC_FilePollOperation.h \
 	include/qore/intern/QoreEllipsesNode.h \
-	lib/getopt_long.h \
+	include/qore/intern/getopt_long.h \
 	command-line.h
 
 LIB_DOXYFILES_FIXED = \
@@ -1009,6 +1019,7 @@ dist_qoredata_DATA = doxygen/Doxyfile.in \
     doxygen/dox_qore.css \
     doxygen/DataProvider-Full.svg \
     doxygen/elastic-logo.svg \
+    doxygen/Haltian-EmpathicBuilding.svg \
     doxygen/SqlUtil-Full.svg \
     doxygen/Qore-Q.ico \
     doxygen/header_template.html \
@@ -1158,6 +1169,10 @@ doxygen/qlib/Doxyfile.FsUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 # to provide the graphic file
 doxygen/qlib/Doxyfile.ElasticSearchDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/ElasticSearchDataProvider:doxygen/qlib/ElasticSearchDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html -X=doxygen/ -E=elastic-logo.svg $< $@
+
+# to provide the graphic file
+doxygen/qlib/Doxyfile.EmpathicBuildingDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/EmpathicBuildingDataProvider:doxygen/qlib/EmpathicBuildingDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html -X=doxygen/ -E=Haltian-EmpathicBuilding.svg $< $@
 
 doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/astparser/ \
@@ -1314,7 +1329,7 @@ TAR_NAME := arch/qore-v$(PACKAGE_VERSION)-$(BUILD)-$(shell date +%Y%m%d).tar
 
 tar: clean
 	find $(top_srcdir) -name \*~ -exec rm {} \;
-	cd ..; tar cvf $(TAR_NAME) src && gzip $(TAR_NAME)
+	cd ..; tar --posix -cvf $(TAR_NAME) src && gzip $(TAR_NAME)
 
 tests:
 	./run_tests.sh

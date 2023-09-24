@@ -814,17 +814,17 @@ ws.setEventQueue();
         hc.send2(ws_encode_message(h.msg ?? "heartbeat", WSOP_Pong, True), timeout_ms);
     }
 
-    private logInfo(string fmt) {
+    private logInfo(string fmt, ...) {
         if (log)
             call_function(log, sprintf("WebSocketClient %s INFO: ", cid) + vsprintf(fmt, argv));
     }
 
-    private logError(string fmt) {
+    private logError(string fmt, ...) {
         if (errlog)
             call_function(errlog, sprintf("WebSocketClient %s ERROR: ", cid) + vsprintf(fmt, argv));
     }
 
-    private logDebug(string fmt) {
+    private logDebug(string fmt, ...) {
         if (debuglog)
             call_function(debuglog, sprintf("WebSocketClient %s DEBUG:", cid) + vsprintf(fmt, argv));
     }

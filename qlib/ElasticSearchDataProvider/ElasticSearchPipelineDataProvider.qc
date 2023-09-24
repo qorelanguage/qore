@@ -27,11 +27,8 @@ public namespace ElasticSearchDataProvider {
 #! The ElasticSearch pipeline API root data provider
 /** This data provider provides children that are API data providers for actions on ElasticSearch pipelines
 */
-public class ElasticSearchPipelineDataProvider inherits DataProvider::AbstractDataProvider {
+public class ElasticSearchPipelineDataProvider inherits ElasticSearchDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "pipeline",
@@ -67,8 +64,7 @@ public class ElasticSearchPipelineDataProvider inherits DataProvider::AbstractDa
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : ElasticSearchDataProviderBase (rest) {
     }
 
     #! Returns the data provider name

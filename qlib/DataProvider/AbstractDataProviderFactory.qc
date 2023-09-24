@@ -206,7 +206,7 @@ public class AbstractDataProviderFactory {
     }
 
     #! thrown an exception
-    private error(string err, string fmt) {
+    private error(string err, string fmt, ...) {
         throw err, sprintf("data provider factory %y (%y): %s", getName(), self.className(), vsprintf(fmt, argv));
     }
 

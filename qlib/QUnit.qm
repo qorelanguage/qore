@@ -667,12 +667,12 @@ public class QUnit::TestReporter {
 
     public {
         #! default options for @ref Qore::GetOpt::constructor()
-        const Opts = (
+        const Opts = {
             "help"    : "h,help",
             "verbose" : "v,verbose:i+",
             "quiet"   : "q,quiet",
             "format"  : "format=s",
-            );
+        };
 
         const TEST_SUCCESS = 0;
         const TEST_FAILURE = 1;

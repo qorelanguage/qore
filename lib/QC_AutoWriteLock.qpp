@@ -1,32 +1,32 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-  QC_AutoWriteLock.cpp
- 
-  Qore Programming Language
- 
-  Copyright (C) 2003 - 2023 David Nichols
- 
-  Permission is hereby granted, free of charge, to any person obtaining a
-  copy of this software and associated documentation files (the "Software"),
-  to deal in the Software without restriction, including without limitation
-  the rights to use, copy, modify, merge, publish, distribute, sublicense,
-  and/or sell copies of the Software, and to permit persons to whom the
-  Software is furnished to do so, subject to the following conditions:
+    QC_AutoWriteLock.cpp
 
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
+    Qore Programming Language
 
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-  DEALINGS IN THE SOFTWARE.
+    Copyright (C) 2003 - 2023 David Nichols
 
-  Note that the Qore library is released under a choice of three open-source
-  licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
-  information.
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
 */
 
 #include <qore/Qore.h>
@@ -34,21 +34,27 @@
 #include "qore/intern/QC_RWLock.h"
 
 //! A helper class for the @ref Qore::Thread::RWLock "RWLock" class for exception-safe write lock handling
-/** AutoWriteLock objects, when used along with a @ref Qore::Thread::RWLock "RWLock" object, allow %Qore programmers to safely acquire and release a write lock, even if exceptions are thrown or return statements are executed in the block where the AutoWriteLock object is created.
+/** AutoWriteLock objects, when used along with a @ref Qore::Thread::RWLock "RWLock" object, allow %Qore programmers
+    to safely acquire and release a write lock, even if exceptions are thrown or return statements are executed in the
+    block where the AutoWriteLock object is created.
 
-    AutoWriteLock objects are helper objects that acquire a write lock for the lifetime of the AutoWriteLock object. For this reason, it is only appropriate to assign an AutoWriteLock object to a local variable, so when the local variable goes out of scope, the AutoWriteLock object will be deleted and the write lock will be automatically released.
+    AutoWriteLock objects are helper objects that acquire a write lock for the lifetime of the AutoWriteLock object.
+    For this reason, it is normally only appropriate to assign an AutoWriteLock object to a local variable, so when
+    the local variable goes out of scope, the AutoWriteLock object will be deleted and the write lock will be
+    automatically released.
 
     For example:
     @code{.py}
 our RWLock rwl();
 
-sub check_error(error) {
+sub check_error(bool error) {
     # note that the write lock is acquired in the AutoWriteLock constructor, and
     # the write lock will be released as soon as the block is exited below.
     # (with either the throw statement or the return statement)
     AutoWriteLock awl(rwl);
-    if (error)
+    if (error) {
         throw "ERROR", "sorry, an error happened";
+    }
 
     return "OK";
 }
@@ -59,7 +65,8 @@ sub check_error(error) {
 qclass AutoWriteLock [dom=THREAD_CLASS; arg=QoreAutoWriteLock* arwl; ns=Qore::Thread];
 
 //! Creates the AutoWriteLock object based on the RWLock argument passed and immediately calls RWLock::writeLock()
-/** The AutoReadLock object immediately calls RWLock::writeLock() on the RWLock object passed, and saves it so it can be released when the AutoReadLock object is destroyed.
+/** The AutoWriteLock object immediately calls RWLock::writeLock() on the RWLock object passed, and saves it so it can
+    be released when the AutoWriteLock object is destroyed.
 
     @par Example:
     @code{.py}
@@ -67,32 +74,35 @@ AutoWriteLock awl(rwlock);
     @endcode
 
     @throw THREAD-DEADLOCK A deadlock was detected while trying to acquire the lock
-    @throw LOCK-ERROR RWLock::writeLock() called while already holding the read lock, object deleted in another thread, etc.
- */
+    @throw LOCK-ERROR RWLock::writeLock() called while already holding the read lock, object deleted in another
+    thread, etc.
+*/
 AutoWriteLock::constructor(RWLock[RWLock] rwl) {
-   ReferenceHolder<QoreAutoWriteLock> arwl(new QoreAutoWriteLock(rwl, xsink), xsink);
-   if (!*xsink)
-      self->setPrivate(CID_AUTOWRITELOCK, arwl.release());
+    ReferenceHolder<QoreAutoWriteLock> arwl(new QoreAutoWriteLock(rwl, xsink), xsink);
+    if (!*xsink) {
+        self->setPrivate(CID_AUTOWRITELOCK, arwl.release());
+    }
 }
 
 //! Calls RWLock::writeUnlock() on the saved RWLock and destroys the AutoWriteLock object
-/** 
+/**
     @par Example:
     @code{.py}
 delete awl;
     @endcode
 
-    @throw LOCK-ERROR RWLock::writeUnlock() called while not holding the write lock, RWLock object deleted in another thread, etc
- */
+    @throw LOCK-ERROR RWLock::writeUnlock() called while not holding the write lock, RWLock object deleted in another
+    thread, etc
+*/
 AutoWriteLock::destructor() {
-   arwl->destructor(xsink);
-   arwl->deref(xsink);
+    arwl->destructor(xsink);
+    arwl->deref(xsink);
 }
 
 //! Throws an exception; objects of this class cannot be copied
-/** 
+/**
     @throw AUTOWRITELOCK-COPY-ERROR objects of this class cannot be copied
  */
 AutoWriteLock::copy() {
-   xsink->raiseException("AUTOWRITELOCK-COPY-ERROR", "objects of this class cannot be copied");
+    xsink->raiseException("AUTOWRITELOCK-COPY-ERROR", "objects of this class cannot be copied");
 }

@@ -64,9 +64,9 @@ public:
     }
 
     DLLLOCAL AbstractFunctionSignature(const QoreTypeInfo* n_returnTypeInfo, const type_vec_t& n_typeList,
-            const arg_vec_t& n_defaultArgList, const name_vec_t& n_names)
+            const arg_vec_t& n_defaultArgList, const name_vec_t& n_names, bool varargs)
             : returnTypeInfo(n_returnTypeInfo), typeList(n_typeList), defaultArgList(n_defaultArgList),
-                names(n_names) {
+                names(n_names), varargs(varargs) {
     }
 
     DLLLOCAL virtual ~AbstractFunctionSignature() {
@@ -127,6 +127,12 @@ public:
                 str.append(", ");
             }
         }
+        if (varargs) {
+            if (!typeList.empty()) {
+                str.append(", ");
+            }
+            str.append("...");
+        }
     }
 
     DLLLOCAL unsigned numParams() const {
@@ -161,11 +167,6 @@ public:
 
     DLLLOCAL bool hasVarargs() const {
         return varargs;
-    }
-
-    DLLLOCAL void setVarargs() {
-        assert(!varargs);
-        varargs = true;
     }
 
 protected:
@@ -313,9 +314,9 @@ public:
         saves current program location in case there's an exception
     */
     DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
-        const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr,
-        QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
-        bool is_copy = false, const qore_class_private* cctx = nullptr);
+            const AbstractQoreFunctionVariant*& variant, const char* n_name, const QoreListNode* args = nullptr,
+            QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
+            bool is_copy = false, const qore_class_private* cctx = nullptr);
 
     //! Creates the object for evaluating the given code (function, method, closure) with the given arguments
     /**
@@ -332,9 +333,9 @@ public:
         performs destructive evaluation of "args"
     */
     DLLLOCAL CodeEvaluationHelper(ExceptionSink* n_xsink, const QoreFunction* func,
-        const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args,
-        QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
-        bool is_copy = false, const qore_class_private* cctx = nullptr);
+            const AbstractQoreFunctionVariant*& variant, const char* n_name, QoreListNode* args,
+            QoreObject* self = nullptr, const qore_class_private* n_qc = nullptr, qore_call_t n_ct = CT_UNUSED,
+            bool is_copy = false, const qore_class_private* cctx = nullptr);
 
     DLLLOCAL ~CodeEvaluationHelper();
 
@@ -410,6 +411,11 @@ public:
 
     DLLLOCAL virtual const AbstractStatement* getStatement() const {
         return stmt;
+    }
+
+    //! Returns the method / function name
+    DLLLOCAL const char* getName() const {
+        return name;
     }
 
 protected:
@@ -654,9 +660,9 @@ protected:
 
 public:
     DLLLOCAL UserVariantExecHelper(const UserVariantBase* n_uvb, CodeEvaluationHelper* ceh, ExceptionSink* n_xsink) :
-        ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true),
-        ThreadFrameBoundaryHelper(!*n_xsink),
-        uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
+            ProgramThreadCountContextHelper(n_xsink, n_uvb->pgm, true),
+            ThreadFrameBoundaryHelper(!*n_xsink),
+            uvb(n_uvb), argv(n_xsink), xsink(n_xsink) {
         assert(xsink);
         if (*xsink || uvb->setupCall(ceh, argv, xsink))
             uvb = nullptr;
@@ -685,6 +691,9 @@ public:
             RetTypeInfo* rv, bool synced, int64 n_flags = QCF_NO_FLAGS) :
             AbstractQoreFunctionVariant(n_flags, true),
             UserVariantBase(b, n_sig_first_line, n_sig_last_line, params, rv, synced), mod_pub(false) {
+        if (signature.hasVarargs()) {
+            flags |= QCF_USES_EXTRA_ARGS;
+        }
     }
 
     // the following defines the virtual functions that are common to all user variants

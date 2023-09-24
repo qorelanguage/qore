@@ -651,7 +651,7 @@ public namespace Schema {
         #! outputs a log message prefixed with the schema name
         /** the log string is output with a following newline, and the terminal I/O is flushed
         */
-        logpf(string fmt) {
+        logpf(string fmt, ...) {
             printf("%s: %s\n", db.getDatasourceDesc(), vsprintf(fmt, argv));
             flush();
         }
@@ -659,7 +659,7 @@ public namespace Schema {
         #! outputs a log message
         /** the log string is output with a following newline, and the terminal I/O is flushed
         */
-        log(string fmt) {
+        log(string fmt, ...) {
             vprintf(fmt + "\n", argv);
             flush();
         }

@@ -103,6 +103,7 @@ DLLLOCAL void se_closed(const char* cname, const char* mname, ExceptionSink* xsi
 #define QORE_INVALID_SOCKET ((int)INVALID_SOCKET)
 #define QORE_SOCKET_ERROR SOCKET_ERROR
 DLLLOCAL int check_windows_rc(int rc);
+DLLLOCAL int windows_set_errno();
 
 #ifndef ECONNRESET
 #define ECONNRESET WSAECONNRESET
@@ -1354,7 +1355,7 @@ struct qore_socket_private {
     }
 
     DLLLOCAL int sock_errno_err(const char* err, const char* desc, ExceptionSink* xsink) {
-        sock = QORE_INVALID_SOCKET;
+        //sock = QORE_INVALID_SOCKET;
         qore_socket_error(xsink, err, desc);
         return -1;
     }
@@ -1363,7 +1364,7 @@ struct qore_socket_private {
         assert(xsink);
         // ignore call when socket already closed
         if (sock == QORE_INVALID_SOCKET) {
-            assert(!xsink || *xsink);
+            assert(*xsink);
             return -1;
         }
 
@@ -1790,8 +1791,10 @@ struct qore_socket_private {
             }
 
             char host[NI_MAXHOST + 1];
-            if (!getnameinfo((struct sockaddr *)&addr, qore_get_in_len((struct sockaddr *)&addr), host, sizeof(host), 0, 0, 0))
+            if (!getnameinfo((struct sockaddr *)&addr, qore_get_in_len((struct sockaddr *)&addr), host, sizeof(host),
+                0, 0, 0)) {
                 o->setValue("source_host", new QoreStringNode(host), 0);
+            }
         }
 #ifndef _Q_WINDOWS
         else if (addr.ss_family == AF_UNIX) {
@@ -1854,7 +1857,8 @@ struct qore_socket_private {
 
         // real socket reads are only done when the buffer is empty
 
-        //printd(5, "qore_socket_private::brecv(buf: %p, bs: %d, flags: %d, timeout: %d, do_event: %d) this: %p ssl: %d\n", buf, (int)bs, flags, timeout, (int)do_event, this, ssl);
+        //printd(5, "qore_socket_private::brecv(buf: %p, bs: %d, flags: %d, timeout: %d, do_event: %d) this: %p "
+        //    ssl: %d\n", buf, (int)bs, flags, timeout, (int)do_event, this, ssl);
 
         qore_offset_t rc;
         if (!ssl) {
@@ -1884,13 +1888,15 @@ struct qore_socket_private {
                         qore_socket_error(xsink, "SOCKET-RECV-ERROR", "error in recv()", meth);
                     break;
                 }
-                //printd(5, "qore_socket_private::brecv(%d, %p, %ld, %d) rc: %ld errno: %d\n", sock, buf, bs, flags, rc, errno);
+                //printd(5, "qore_socket_private::brecv(%d, %p, %ld, %d) rc: %ld errno: %d\n", sock, buf, bs, flags,
+                //    rc, errno);
                 // try again if we were interrupted by a signal
                 if (rc >= 0)
                     break;
             }
-        } else
+        } else {
             rc = ssl->read(meth, rbuf, DEFAULT_SOCKET_BUFSIZE, timeout, xsink);
+        }
 
         //printd(5, "qore_socket_private::brecv(%d, %p, %ld, %d) rc: %ld errno: %d\n", sock, buf, bs, flags, rc, errno);
         if (rc > 0) {
@@ -2011,7 +2017,8 @@ struct qore_socket_private {
         return hdr.release();
     }
 
-    DLLLOCAL QoreStringNode* recv(ExceptionSink* xsink, qore_offset_t bufsize, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
+    DLLLOCAL QoreStringNode* recv(ExceptionSink* xsink, qore_offset_t bufsize, int timeout, qore_offset_t& rc,
+            int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
             se_not_open("Socket", "recv", xsink, "recv");
@@ -2040,8 +2047,7 @@ struct qore_socket_private {
 
             if (rc <= 0) {
                 if (*xsink) {
-                    xsink->appendLastDescription(" (%zd bytes requested; %zu bytes received)", bufsize,
-                        str->size());
+                    xsink->appendLastDescription(" (%zd bytes requested; %zu bytes received)", bs, str->size());
                 }
                 printd(5, "qore_socket_private::recv(" QSD ", %d) bs=" QSD ", br=" QSD ", rc=" QSD ", errno: %d "
                     "(%s)\n", bufsize, timeout, bs, str->size(), rc, errno, strerror(errno));
@@ -2063,7 +2069,8 @@ struct qore_socket_private {
             }
         }
 
-        printd(5, "qore_socket_private::recv() received " QSD " byte(s), bufsize=" QSD ", strlen=" QSD " str='%s'\n", str->size(), bufsize, (str ? str->strlen() : 0), str ? str->getBuffer() : "n/a");
+        printd(5, "qore_socket_private::recv() received " QSD " byte(s), bufsize=" QSD ", strlen=" QSD " str='%s'\n",
+            str->size(), bufsize, (str ? str->strlen() : 0), str ? str->getBuffer() : "n/a");
 
         // "fix" return code value if no error occurred
         if (rc >= 0)
@@ -2081,7 +2088,8 @@ struct qore_socket_private {
         return str.release();
     }
 
-    DLLLOCAL QoreStringNode* recvAll(ExceptionSink* xsink, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
+    DLLLOCAL QoreStringNode* recvAll(ExceptionSink* xsink, int timeout, qore_offset_t& rc,
+            int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
             se_not_open("Socket", "recv", xsink, "recvAll");
@@ -2518,15 +2526,7 @@ struct qore_socket_private {
 
         // check exception and socket status
         assert(xsink);
-        if (*xsink)
-            return -1;
-
-        if (sock == QORE_INVALID_SOCKET) {
-            se_not_open(cname, mname, xsink, "runCallback");
-            return QSE_NOT_OPEN;
-        }
-
-        return 0;
+        return *xsink ? -1 : 0;
     }
 
     DLLLOCAL int sendHttpChunkedWithCallback(ExceptionSink* xsink, const char* cname, const char* mname,

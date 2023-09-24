@@ -79,41 +79,41 @@ DateTimeNode::~DateTimeNode() {
 // if del is true, then the returned QoreString*  should be deleted, if false, then it must not be
 // use the QoreStringValueHelper class (defined in QoreStringNode.h) instead of using this function directly
 QoreString* DateTimeNode::getStringRepresentation(bool& del) const {
-   del = true;
-   return new QoreString(this);
+    del = true;
+    return new QoreString(this);
 }
 
 // concatenate string representation to a QoreString (no action for complex types = default implementation)
 void DateTimeNode::getStringRepresentation(QoreString& str) const {
-   str.concat(this);
+    str.concat(this);
 }
 
 // if del is true, then the returned DateTime*  should be deleted, if false, then it should not
 DateTime* DateTimeNode::getDateTimeRepresentation(bool& del) const {
-   del = false;
-   return const_cast<DateTimeNode*>(this);
+    del = false;
+    return const_cast<DateTimeNode*>(this);
 }
 
 // assign date representation to a DateTime (no action for complex types = default implementation)
 void DateTimeNode::getDateTimeRepresentation(DateTime& dt) const {
-   dt.setDate(*this);
+    dt.setDate(*this);
 }
 
 bool DateTimeNode::getAsBoolImpl() const {
-   // always the same logic with or without perl-style boolean evaluation
-   return hasValue();
+    // always the same logic with or without perl-style boolean evaluation
+    return hasValue();
 }
 
 int DateTimeNode::getAsIntImpl() const {
-   return (int)getEpochSeconds();
+    return (int)getEpochSeconds();
 }
 
 int64 DateTimeNode::getAsBigIntImpl() const {
-   return getEpochSeconds();
+    return getEpochSeconds();
 }
 
 double DateTimeNode::getAsFloatImpl() const {
-   return (double)getEpochSeconds();
+    return (double)getEpochSeconds();
 }
 
 // get string representation (for %n and %N), foff is for multi-line formatting offset, -1 = no line breaks
@@ -121,79 +121,79 @@ double DateTimeNode::getAsFloatImpl() const {
 // the ExceptionSink is only needed for QoreObject where a method may be executed
 // use the QoreNodeAsStringHelper class (defined in QoreStringNode.h) instead of using this function directly
 QoreString* DateTimeNode::getAsString(bool& del, int foff, ExceptionSink* xsink) const {
-   del = true;
-   QoreString* str = new QoreString;
-   getAsString(*str, foff, xsink);
-   return str;
+    del = true;
+    QoreString* str = new QoreString;
+    getAsString(*str, foff, xsink);
+    return str;
 }
 
 int DateTimeNode::getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
-   priv->getAsString(str);
-   return 0;
+    priv->getAsString(str);
+    return 0;
 }
 
 AbstractQoreNode* DateTimeNode::realCopy() const {
-   return new DateTimeNode(*this);
+    return new DateTimeNode(*this);
 }
 
 bool DateTimeNode::is_equal_soft(const AbstractQoreNode* v, ExceptionSink* xsink) const {
-   DateTimeValueHelper date(v);
-   return isEqual(*date);
+    DateTimeValueHelper date(v);
+    return isEqual(*date);
 }
 
 bool DateTimeNode::is_equal_hard(const AbstractQoreNode* v, ExceptionSink* xsink) const {
-   const DateTimeNode* date = dynamic_cast<const DateTimeNode*>(v);
-   if (!date)
-      return false;
+    const DateTimeNode* date = dynamic_cast<const DateTimeNode*>(v);
+    if (!date)
+        return false;
 
-   return isEqual(date);
+    return isEqual(date);
 }
 
 const char *DateTimeNode::getTypeName() const {
-   return getStaticTypeName();
+    return getStaticTypeName();
 }
 
 DateTimeNode* DateTimeNode::copy() const {
-   return new DateTimeNode(*this);
+    return new DateTimeNode(*this);
 }
 
 DateTimeNode* DateTimeNode::add(const DateTime* dt) const {
-   assert(dt);
-   return add(*dt);
+    assert(dt);
+    return add(*dt);
 }
 
 DateTimeNode* DateTimeNode::add(const DateTime& dt) const {
-   DateTimeNode* rv;
-   if (!dt.hasValue())
-      return refSelf();
+    DateTimeNode* rv;
+    if (!dt.hasValue())
+        return refSelf();
 
-   if (isRelative()) {
-      rv = new DateTimeNode(dt);
-      rv->priv->add(*priv);
-   }
-   else {
-      rv = new DateTimeNode(*this);
-      rv->priv->add(*dt.priv);
-   }
-   return rv;
+    if (isRelative()) {
+        rv = new DateTimeNode(dt);
+        rv->priv->add(*priv);
+    } else {
+        rv = new DateTimeNode(*this);
+        rv->priv->add(*dt.priv);
+    }
+    return rv;
 }
 
 DateTimeNode* DateTimeNode::refSelf() const {
-   ref();
-   return const_cast<DateTimeNode*>(this);
+    ref();
+    return const_cast<DateTimeNode*>(this);
 }
 
 DateTimeNode* DateTimeNode::subtractBy(const DateTime* dt) const {
-   return subtractBy(*dt);
+    return subtractBy(*dt);
 }
 
 DateTimeNode* DateTimeNode::subtractBy(const DateTime& dt) const {
-   if (!dt.hasValue())
-      return refSelf();
+    if (!dt.hasValue() && dt.isRelative()) {
+        return refSelf();
+    }
 
-   DateTimeNode* rv = new DateTimeNode(*this);
-   rv->priv->subtractBy(*dt.priv);
-   return rv;
+    DateTimeNode* rv = new DateTimeNode(*this);
+    rv->priv->subtractBy(*dt.priv);
+    return rv;
 }
 
 // note that ISO-8601 week days go from 1 - 7 = Mon - Sun
@@ -212,11 +212,13 @@ DateTimeNode* DateTimeNode::unaryMinus() const {
     return rv;
 }
 
-DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, int mo, int d, int h, int mi, int s, int u) {
+DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, int mo, int d, int h, int mi, int s,
+        int u) {
     return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u));
 }
 
-DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, int mo, int d, int h, int mi, int s, int u, ExceptionSink* xsink) {
+DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, int mo, int d, int h, int mi, int s,
+        int u, ExceptionSink* xsink) {
     return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u, xsink));
 }
 

@@ -95,7 +95,7 @@ module ElasticSearchDataProvider {
 
     @section elasticsearchdataprovider_factory ElasticSearch Data Provider Factory
 
-    The name of the ElastiSearch data provider factory is <b><tt>elasticsearch</tt></b>.
+    The name of the ElasticSearch data provider factory is <b><tt>elasticsearch</tt></b>.
 
     @section elasticsearchdataprovider_examples ElasticSearch Data Provider Examples
 

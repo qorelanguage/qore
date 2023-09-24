@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.4
 
 module CdsRestClient {
-    version = "1.0";
+    version = "2.0";
     desc = "user module for calling Microsoft Dynamics 365 Common Data Service REST services";
     author = "David Nichols <david@qore.org>";
     url = "https://qore.org";
@@ -97,6 +97,9 @@ printf("%N\n", ans.body);
 
     @section cdsrestclientrelnotes Release Notes
 
+    @subsection cdsrestclientv2_0 CdsRestClient v2.0
+    - updated to use the OAuth2 infrastructure
+
     @subsection cdsrestclientv1_0 CdsRestClient v1.0
     - the initial version of the %CdsRestClient module
 */
@@ -118,26 +121,59 @@ public namespace CdsRestClient {
 public class CdsRestClient inherits RestClient::RestClient {
     public {
         #! OAuth2 auth URL
-        const OAuth2AuthUrl = "https://login.microsoftonline.com";
+        const OAuth2BaseUrl = "https://login.microsoftonline.com/";
+
+        #! OAuth2 auth URI path suffix
+        const OAuth2AuthUriPathSuffix = "/oauth2/v2.0/authorize";
 
         #! OAuth2 token URI path suffix
         const OAuth2TokenUriPathSuffix = "/oauth2/v2.0/token";
 
         #! Default API version
-        const DefaultApiVersion = "9.1";
+        const DefaultApiVersion = "9.2";
 
         #! Request URI path prefix
         const RequestUriPathPrefix = "/api/data/v";
+
+        #! Default Dynamics 365 base URI
+        const DefaultBusinessCentralBaseUri = "https://api.businesscentral.dynamics.com/";
+
+        #! Default Dynamics ping method
+        const DefaultDynamicsPingMethod = "GET";
+
+        #! Default Dynamics ping path
+        const DefaultDynamicsPingPath = "{api_uri_path}/systemusers?$top=1&$select=identityid";
+
+        #! Default Dynamics ping headers
+        const DefaultDynamicsPingHeaders = {
+            "Accept": MimeTypeJson,
+        };
+
+        #! API profiles
+        const ApiProfiles = {
+            "none": {},
+            "dynamics": {
+                "oauth2_scopes": (
+                    "offline_access",
+                    "{url}.default",
+                ),
+                "ping_method": DefaultDynamicsPingMethod,
+                "ping_path": DefaultDynamicsPingPath,
+                "ping_headers": DefaultDynamicsPingHeaders,
+            },
+            "dynamics-business-central": {
+                "url": DefaultBusinessCentralBaseUri,
+                "oauth2_scopes": (
+                    "offline_access",
+                    "{url}.default",
+                ),
+            },
+        };
     }
 
     private:internal {
-        # for OAuth2-based access
-        string client_id;
-        string client_secret;
         string api;
         string tenant;
-        string scope;
-        string token;
         string uri_path_pfx;
     }
 
@@ -150,48 +186,20 @@ CdsRestClient rest({
     "client_id": client_id,
     "client_secret": client_secret,
     "tenant": "bef147c4-8dd3-4e18-9af8-9573d86d3738",
+    "oauth2_grant_type": "client_credentials",
 });
         @endcode
 
-        @param opts valid options are:
-        - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to
-            create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value
-            is a boolean @ref True "True" or @ref False "False": indicating if the method requires a message body as
-            well. Example:
-            @code{.py}
-# add new HTTP methods for WebDAV. Both of them require body posting to the server
-{"additional_methods": {"PROPFIND": True, "MKCOL": True}}
-            @endcode
-        - \c api: the API version for Dynamics
-        - \c client_id: (required) the OAuth2 client ID
-        - \c client_secret: (required) the OAuth2 client secret
-        - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the
-            \c "send_encoding" option is not set) and the requested response encoding (note that the
-            @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
-            @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
-        - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "json"
-        - \c default_path: The default path to use for new connections if a path is not otherwise specified in the
-            connection URL
-        - \c default_port: The default port number to connect to if none is given in the URL
-        - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause a
-            \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-            like any other response
-        - \c headers: an optional hash of headers to send with every request, these can also be overridden in
-            request method calls
-        - \c http_version: Either '1.0' or '1.1' (default) for the claimed HTTP protocol version compliancy in
-            outgoing message headers
-        - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
-        - \c proxy: The proxy URL for connecting through a proxy
-        - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead of
-            processed
-        - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means
-            to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies
-            (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies
-            over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
-        - \c scope: the OAuth2 scope for the login; the default it to use the target URL + "/.default"
+        @param opts valid options are the same as @ref RestClient::RestClient "RestClient" with the following
+        differences:
+        - \c api: the API version for CDS
+        - \c api_profile: one of:
+          - \c none (no options set)
+          - \c dynamics (set client options for the MS Dynamics 365 API)
+        - \c data: see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
+        values; the default is \c "json"
+        - \c scope: the OAuth2 scope for the login; the default depends on the \c "api_profile" option
         - \c tenant: (required) the tenant ID
-        - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
-          \c 30s)
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server
 
@@ -199,22 +207,22 @@ CdsRestClient rest({
         @throw CDSRESTCLIENT-ERROR missing or invalid required option for REST
         authentication or communication
     */
-    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(CdsRestClient::getOptions(opts), do_not_connect) {
-        # check for either the apikey or client id/secret options
-        if (opts.client_id && opts.client_secret) {
-            client_id = getString(opts, "client_id");
-            client_secret = getString(opts, "client_secret");
-        } else {
-            error("missing the \"client_id\" and \"client_secret\" options");
+    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(CdsRestClient::getOptions(opts), True) {
+        # check for the OAuth2 client id/secret options
+        if (!oauth2_client_id || !oauth2_client_secret) {
+            raiseError("missing the \"client_id\" and \"client_secret\" options");
         }
         if (opts.tenant) {
             tenant = getString(opts, "tenant");
         } else {
-            error("missing the \"tenant\" option");
+            raiseError("missing the \"tenant\" option");
         }
 
-        if (opts.scope) {
-            scope = getString(opts, "scope");
+        if (oauth2_token_url == "auto") {
+            oauth2_token_url = OAuth2BaseUrl + tenant + OAuth2TokenUriPathSuffix;
+        }
+        if (oauth2_auth_url == "auto") {
+            oauth2_auth_url = OAuth2BaseUrl + tenant + OAuth2AuthUriPathSuffix;
         }
 
         string version;
@@ -223,10 +231,17 @@ CdsRestClient rest({
         }
         api = version ?? DefaultApiVersion;
         uri_path_pfx = RequestUriPathPrefix + api;
+        # XXX DEBUG DELETEME
+        #uri_path_pfx = "v2.0/production/api/v2.0";
+
         setConnectionPath(uri_path_pfx);
 
-        if (client_id && !do_not_connect) {
-            loginIntern();
+        if (!do_not_connect) {
+            if (!token) {
+                loginIntern();
+            } else {
+                connect();
+            }
         }
     }
 
@@ -235,60 +250,59 @@ CdsRestClient rest({
         return api;
     }
 
-    #! returns the access token
-    *string getToken() {
-        return token;
+    #! gets a string option
+    static string getString(hash<auto> opts, string key) {
+        auto v = opts{key};
+        if (!exists v || v == "") {
+            CdsRestClient::raiseError("missing required option %y in option argument", key);
+        }
+        if (v.typeCode() != NT_STRING) {
+            CdsRestClient::raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key,
+                v.type(), v);
+        }
+        return v;
     }
 
-    hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True, *hash<auto> hdr) {
-        if (client_id && !token) {
-            loginIntern(\info);
-        }
-        return RestClient::doRequest(m, path, body, \info, decode_errors, hdr);
+    #! throws an exception due to an error
+    static raiseError(string fmt, ...) {
+        throw "CDSRESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 
-    #! performs authentication and authorization with SAP using the OAuth2 authorization URL
-    private loginIntern(*reference<hash<auto>> info) {
-        # clear connection path for login call
-        *string path = getConnectionPath();
-        on_exit setConnectionPath(path);
-        setConnectionPath();
-
-        string orig_url = getURL();
-        on_success setURL(orig_url);
-
-        if (!scope) {
-            hash<UrlInfo> h = parse_url(getURL());
-            scope = h.protocol + "://" + h.host + "/.default";
+    #! returns options for the @ref CdsRestClient::CdsRestClient::constructor()
+    static hash<auto> getOptions(hash<auto> opts) {
+        if (opts.url !~ /\/$/) {
+            opts.url += "/";
         }
+        if (*string prof = opts.api_profile) {
+            *hash<auto> conf = ApiProfiles{prof};
+            if (!exists conf) {
+                throw "CDS-RESTCLIENT-ERROR", sprintf("api_profile %y is unknown; known API profiles: %y", prof,
+                    keys ApiProfiles);
+            }
+            # set ping options
+            map opts{$1.key} = $1.value, conf.pairIterator(), !opts.hasKey($1.key);
 
-        setURL(OAuth2AuthUrl);
-
-        hash<auto> login = self{"client_id", "client_secret",} + {
-            "grant_type": "client_credentials",
-            "scope": scope,
-        };
-
-        # restore the old serialization option on exit
-        string old_ds = ds;
-        on_exit
-            setSerialization(old_ds);
-
-        # use URL form encoding for the message body
-        setSerialization("url");
-
-        # make the authorization call
-        hash<auto> h = RestClient::doRequest("POST", tenant + OAuth2TokenUriPathSuffix, login, \info).body;
-        #printf("DEBUG: h: %N\n", h);
-
-        # set the token
-        token = h.access_token;
-        addDefaultHeaders({"Authorization": sprintf("%s %s", h.token_type, h.access_token)});
-        #printf("DEBUG: logged in with %y = %y\n", h.token_type, h.access_token);
+            # process scopes; substitute "{url}" with the connection URL
+            opts.oauth2_scopes = map replace($1, "{url}", opts.url), opts.oauth2_scopes;
+        }
+        opts.url += opts.tenant;
+        return opts + {
+            "data": "json",
+        } + ((opts.client_id && opts.client_secret)
+            ? {
+                "oauth2_auth_url": opts.oauth2_auth_url ?? "auto",
+                "oauth2_token_url": opts.oauth2_token_url ?? "auto",
+                "oauth2_grant_type": opts.oauth2_grant_type ?? "authorization_code",
+                "oauth2_client_id": opts.client_id,
+                "oauth2_client_secret": opts.client_secret,
+            }
+            : NOTHING
+        );
     }
 
     #! sends the outgoing HTTP message and recodes the response to data
-    private hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr, *reference<hash<auto>> info, *softbool decode_errors) {
+    private hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr,
+            *reference<hash<auto>> info, *softbool decode_errors) {
         try {
             return RestClient::sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
         } catch (hash<ExceptionInfo> ex) {
@@ -304,57 +318,21 @@ CdsRestClient rest({
             rethrow;
         }
     }
-
-    #! gets a string option
-    static string getString(hash<auto> opts, string key) {
-        auto v = opts{key};
-        if (!exists v || v == "") {
-            CdsRestClient::error("missing required option %y in option argument", key);
-        }
-        if (v.typeCode() != NT_STRING) {
-            CdsRestClient::error("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
-        }
-        return v;
-    }
-
-    #! throws an exception due to an error
-    static error(string fmt) {
-        throw "CDSRESTCLIENT-ERROR", vsprintf(fmt, argv);
-    }
-
-    #! returns options for the @ref CdsRestClient::CdsRestClient::constructor()
-    static hash<auto> getOptions(hash<auto> opts) {
-        return opts + {
-            "data": "json",
-        };
-    }
 }
 
 #! class for Microsoft Common Data Service REST connections; returns @ref CdsRestClient objects
-/** supports the following options:
+/** supports options as in @ref RestClient::RestClient with the following differences:
     - \c "api": the API version for CDS
-    - \c "client_id": (required) the Microsoft Common Data Service OAuth2 client ID
-    - \c "client_secret": (required) the Microsoft Common Data Service OAuth2 client secret
-    - \c "connect_timeout": connection timeout to use in milliseconds
-    - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
-      requested response encoding; for possible values, see
-      @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+    - \c "api_profile": one of:
+      - \c none (no options set)
+      - \c dynamics (set client options for the MS Dynamics 365 API)
+    - \c "client_id": (required) the Microsoft Common Data Service OAuth2 client ID (instead of \c oauth2_client_id)
+    - \c "client_secret": (required) the Microsoft Common Data Service OAuth2 client secret (instead of
+      \c oauth2_client_secret)
     - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
       values; the default is \c "json"
-    - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
-      \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-      like any other response
-    - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-    - \c "max_redirects": maximum redirects to support
-    - \c "proxy": proxy URL to use
-    - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
-        processed
-    - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
-      \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message
-      bodies
-    - \c "scope": the OAuth2 scope for the login; the default it to use the target URL + "/.default"
+    - \c "scope": the OAuth2 scope for the login; the default depends on the \c "api_profile" option
     - \c "tenant": (required) the tenant ID
-    - \c "timeout": transfer timeout to use in milliseconds
 
     @see @ref CdsRestClient::CdsRestClient::constructor() for more information on the above options
 */
@@ -363,32 +341,94 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("CdsRestConnection"),
-            "options": RestConnection::ConnectionScheme.options + {
+            "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the API version for CDS",
                     "default_value": CdsRestClient::DefaultApiVersion,
                 },
-                "client_id": <ConnectionOptionInfo>{
+                "api_profile": <ConnectionOptionInfo>{
                     "type": "string",
+                    "desc": "the API profile according to the CDS API in use; this option will set the REST "
+                        "options if they are not already set (`oauth2_scopes`, `ping_body`, `ping_headers`, and "
+                        "`ping_method`); valid "
+                        "values:\n"
+                        "- `none`: no options configured (default)\n"
+                        "- `dynamics`: set options for the Dynamics 365 API",
+                    "default_value": "none",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "desc": "No options are set",
+                            "value": "none",
+                        },
+                        <AllowedValueInfo>{
+                            "desc": "Set REST client options for the Dynamics 365 API",
+                            "value": "dynamics",
+                        },
+                        /*
+                        <AllowedValueInfo>{
+                            "desc": "Set REST client options for the Dynamics 365 API",
+                            "value": "dynamics-business-central",
+                        },
+                        */
+                    ),
+                },
+                "client_id": RestConnection::ConnectionScheme.options.oauth2_client_id + <ConnectionOptionInfo>{
                     "desc": "the Microsoft Common Data Service OAuth2 client ID",
                 },
-                "client_secret": <ConnectionOptionInfo>{
-                    "type": "string",
+                "client_secret": RestConnection::ConnectionScheme.options.oauth2_client_secret + <ConnectionOptionInfo>{
                     "desc": "the Microsoft Common Data Service OAuth2 client secret",
                     "sensitive": True,
+                },
+                "data": RestConnection::ConnectionScheme.options."data" + <ConnectionOptionInfo>{
+                    "default_value": "json",
+                },
+                "oauth2_auth_url": RestConnection::ConnectionScheme.options.oauth2_auth_url + <ConnectionOptionInfo>{
+                    "default_value": "auto",
+                },
+                "oauth2_grant_type": RestConnection::ConnectionScheme.options.oauth2_grant_type + <ConnectionOptionInfo>{
+                    "default_value": "authorization_code",
+                },
+                "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url + <ConnectionOptionInfo>{
+                    "default_value": "auto",
                 },
                 "tenant": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "the tenant ID",
                 },
-                "scope": <ConnectionOptionInfo>{
-                    "type": "string",
-                    "desc": "the OAuth2 scope for the login; the default it to use the target URL + `/.default`",
-                },
             },
             "required_options": "client_id,client_secret,tenant",
         };
+
+        #! options required to support the OAuth2 authorization code grant flow
+        const OAuth2AuthRequestOptions = (
+            "client_id",
+            "client_secret",
+            "oauth2_auth_url",
+            "oauth2_token_url",
+            "oauth2_redirect_url",
+        );
+
+        #! Maps CDS REST options to standard options
+        const OAuth2Options = {
+            "oauth2_auto_refresh": "oauth2_auto_refresh",
+            "oauth2_auth_args": "oauth2_auth_args",
+            "oauth2_auth_url": "oauth2_auth_url",
+            "client_id": "oauth2_client_id",
+            "client_secret": "oauth2_client_secret",
+            "oauth2_redirect_url": "oauth2_redirect_url",
+            "oauth2_refresh_token": "oauth2_refresh_token",
+            "oauth2_scopes": "oauth2_scopes",
+            "oauth2_token_url": "oauth2_token_url",
+            "password": "password",
+            "username": "username",
+        };
+
+        #! Maps standard option names to CDS REST option names
+        const OAuth2StandardToCdsOptionMap = map {$1.value: $1.key}, OAuth2Options.pairIterator();
+
+        #! Different OAuth2 option map; standard name => our name
+        const OAuth2DifferentOptionMap = map {$1.value: $1.key}, OAuth2Options.pairIterator(), $1.key != $1.value;
     }
 
     #! creates the CdsRestConnection object
@@ -396,14 +436,15 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         @param description connection description
         @param url connection URL (potentially with password info)
         @param attributes various attributes. See below
-        @param options connection options
+        @param options see the class documentation for valid options
 
         See @ref ConnectionProvider::AbstractConnection::constructor() for \c attributes and \c options reference.
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : RestConnection(name, description, url, attributes, options) {
+    constructor(string name, string description, string url,
+            hash<auto> attributes = {}, hash<auto> options = {})
+            : RestConnection(name, description, url, attributes, CdsRestConnection::getOptions(url, options)) {
         real_opts = {
             "url": real_url,
         } + urlh{"username", "password"} + self.opts;
@@ -433,6 +474,92 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         return create_object("CdsRestDataProvider", get());
     }
 
+    #! Returns a URI for an authorization code request
+    /** The \c oauth2_grant_type must be \c authorization_code, and \c oauth2_client_id, \c oauth2_auth_url,
+        \c oauth2_redirect_url must set if the \c redirect_uri option is not used
+
+        @param info context information for the authorization code request
+
+        @since %CdsRestClient 2.0
+    */
+    string getAuthorizationCodeRequest(hash<AuthCodeInfo> info = <AuthCodeInfo>{}) {
+        return RestConnection::getAuthorizationCodeRequest(info) + "&response_mode=query";
+    }
+
+    #! Returns the OAuth2 option name for this connection
+    /** @since %CdsRestClient 2.0
+    */
+    string getOAuth2OptionName(string opt) {
+        return OAuth2StandardToCdsOptionMap{opt} ?? opt;
+    }
+
+    #! Returns OAuth2 options in a standard format
+    /** @since %CdsRestClient 2.0
+    */
+    hash<auto> getOAuth2Options() {
+        hash<auto> rv;
+        foreach hash<auto> i in (OAuth2Options.pairIterator()) {
+            rv{i.value} = real_opts{i.key};
+        }
+        return rv;
+    }
+
+    #! Returns the OAuth2 auth URL or throws an exception if not set
+    /*  @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
+        is to return a full URL
+
+        @since %CdsRestClient 2.0
+    */
+    string getAuthUrl(*bool allow_relative) {
+        *string rv = opts.oauth2_auth_url;
+        if (!rv.val()) {
+            throw "OAUTH2-ERROR", sprintf("connection %y has no \"oauth2_auth_url\" option set", name);
+        }
+        if (rv == "auto") {
+            rv = CdsRestClient::OAuth2BaseUrl + opts.tenant + CdsRestClient::OAuth2AuthUriPathSuffix;
+        } else if (!allow_relative && rv !~ /^http/) {
+            string url = real_url;
+            if (url !~ /\/$/) {
+                url += "/";
+            }
+            if (rv =~ /^\//) {
+                rv = rv[1..];
+            }
+            rv = url + rv;
+        }
+        return rv;
+    }
+
+    #! Returns the OAuth2 token URL or throws an exception if not set
+    /*  @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
+        is to return a full URL
+
+        @since %CdsRestClient 2.0
+    */
+    string getTokenUrl(*bool allow_relative) {
+        *string rv = opts.oauth2_token_url;
+        if (!rv.val()) {
+            throw "OAUTH2-ERROR", sprintf("connection %y has no \"oauth2_token_url\" option set", name);
+        }
+        if (rv == "auto") {
+            rv = CdsRestClient::OAuth2BaseUrl + opts.tenant + CdsRestClient::OAuth2TokenUriPathSuffix;
+        } else if (!allow_relative && rv !~ /^http/) {
+            string url = real_url;
+            if (url !~ /\/$/) {
+                url += "/";
+            }
+            rv = url + rv;
+        }
+        return rv;
+    }
+
+    #! Sets the auth code feature if supported
+    private checkAuthCodeFeature() {
+        if (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size()) {
+            features{RCF_OAUTH2_AUTH_CODE} = True;
+        }
+    }
+
     #! Sets child data provider capabilities
     private setChildCapabilities() {
         children_can_support_records = True;
@@ -445,12 +572,51 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         @return a @ref CdsRestClient object
     */
     private CdsRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new CdsRestClient(real_opts, !connect);
+        return new CdsRestClient(real_opts + {
+            "logger": logger,
+            "update_options": update_options,
+        }, !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object
     private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         return ConnectionScheme;
+    }
+
+    #! returns options for @ref GoogleRestConnection::constructor()
+    private static hash<auto> getOptions(string url, hash<auto> orig_opts) {
+        # to enusure opts are hash<auto>
+        hash<auto> opts += orig_opts;
+
+        if (*string prof = opts.api_profile) {
+            *hash<auto> conf = (CdsRestClient::ApiProfiles{prof} - ("encode_chars",));
+            if (!exists conf) {
+                throw "CDS-RESTCLIENT-ERROR", sprintf("api_profile %y is unknown; known API profiles: %y", prof,
+                    keys CdsRestClient::ApiProfiles);
+            }
+            # set ping options
+            map opts{$1.key} = $1.value, conf.pairIterator(), !opts.hasKey($1.key);
+
+            if (opts.url) {
+                url = remove opts.url;
+            } else {
+                url =~ s/^cdsrest/http/;
+            }
+            if (url !~ /\/$/) {
+                url += "/";
+            }
+            # process scopes; substitute "{url}" with the connection URL
+            opts.oauth2_scopes = map replace($1, "{url}", url), opts.oauth2_scopes;
+
+            if (opts.ping_path) {
+                opts.ping_path = replace(opts.ping_path, "{api_uri_path}", CdsRestClient::RequestUriPathPrefix +
+                    (opts.api ?? CdsRestClient::DefaultApiVersion));
+            }
+        } else if (opts.url) {
+            remove opts.url;
+        }
+
+        return opts;
     }
 }
 }

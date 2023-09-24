@@ -192,10 +192,13 @@ public:
    // try to allow the signal to be managed externally (by a module)
    // sig = signal number, name = name of module to manage signal
    // returns 0 for OK, or an error string on error
-   DLLLOCAL QoreStringNode* reassignSignal(int sig, const char* name);
+   DLLLOCAL QoreStringNode* reassignSignal(int sig, const char* name, bool reuse_sys = false);
+
    // 0 = OK, -1 = no signals allocated (all or nothing)
-   DLLLOCAL QoreStringNode* reassignSignals(const sig_vec_t& sig_vec, const char* name);
+   DLLLOCAL QoreStringNode* reassignSignals(const sig_vec_t& sig_vec, const char* name, bool reuse_sys = false);
+
    DLLLOCAL int releaseSignal(int sig, const char* name);
+
    // 0 = OK, -1 = no signals release (all or nothing)
    DLLLOCAL int releaseSignals(const sig_vec_t& sig_vec, const char* name);
 };

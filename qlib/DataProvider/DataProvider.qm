@@ -213,6 +213,10 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
 
     @section dataprovider_relnotes Release Notes
 
+    @subsection dataprovider_v2_7_4 DataProvider v2.7.4
+    - added \c allowed_values to field data info
+      (<a href="https://github.com/qorelanguage/qore/issues/4762">issue 4762</a>)
+
     @subsection dataprovider_v2_7_3 DataProvider v2.7.3
     - added missing \c base64binary and \c hexbinary type support
       (<a href="https://github.com/qorelanguage/qore/issues/4732">issue 4732</a>)

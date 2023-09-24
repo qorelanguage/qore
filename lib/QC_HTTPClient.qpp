@@ -72,9 +72,9 @@ extern QoreClass* QC_SOCKET;
     This class understands and automatically decodes \c "deflate", \c "gzip", and \c "bzip2" content encodings as
     well.
 
-    The default I/O timeout value is 300,000 milliseconds (5 minutes). Note that the timeout value applies to
-    individual internal send() or recv() operations; for this reason for large transfers the overall I/O time could
-    exceed the timeout value.
+    The default connect timeout value is 60,000 milliseconds (60 seconds), and the default I/O timeout is 300,000
+    milliseconds (5 minutes). Note that the timeout value applies to individual internal send() or recv() operations;
+    for this reason for large transfers the overall I/O time could exceed the timeout value.
 
     When an exception is thrown (for example, a response code of < \c 100 or >= \c 400 is received from the server),
     any message body returned will be in the \c "arg" key of the exception hash.
@@ -185,6 +185,7 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
     - \c default_path: The default path to use for new connections if a path is not otherwise specified in the
       connection URL
     - \c default_port: The default port number to connect to if none is given in the URL
+    - \c encode_chars: Additional characters to encode in URI paths
     - \c encoding: The default character encoding for outgoing messge bodies
     - \c encoding_passthru: Do not decode known content-encodings but rather pass the body through as-is
     - \c error_passthru: If @ref True "True" then HTTP status codes indicating errors will not cause an
@@ -258,11 +259,14 @@ HTTPClient httpclient(("url":"http://hostname:8080/path"));
       - \c ssl_key_data
     - %Qore 1.13 added the following option:
       - \c pre_encoded_urls
+    - %Qore 1.19 added the following option:
+      - \c encode_chars
  */
 HTTPClient::constructor(hash<auto> opts) {
     ReferenceHolder<QoreHttpClientObject> client(new QoreHttpClientObject, xsink);
-    if (client->setOptions(opts, xsink))
+    if (client->setOptions(opts, xsink)) {
         return;
+    }
 
     self->setPrivate(CID_HTTPCLIENT, client.release());
 }
@@ -1452,7 +1456,7 @@ nothing HTTPClient::setProxyURL(string url) {
     @see getProxyURL()
 
     @since %Qore 1.6.0
- */
+*/
 *string HTTPClient::getSafeProxyURL() [flags=CONSTANT] {
     return client->getSafeProxyURL();
 }
@@ -1463,9 +1467,9 @@ nothing HTTPClient::setProxyURL(string url) {
     @code{.py}
 httpclient.setProxyURL();
     @endcode
- */
+*/
 nothing HTTPClient::clearProxyURL() {
-   client->clearProxyURL();
+    client->clearProxyURL();
 }
 
 //! Sets the SSL/TLS flag for the next connection to the proxy
@@ -1476,9 +1480,45 @@ httpclient.setProxySecure(True);
     @endcode
 
     @see HTTPClient::isProxySecure() to check the flag
- */
+*/
 nothing HTTPClient::setProxySecure(softbool b = True) {
-   client->setProxySecure(b);
+    client->setProxySecure(b);
+}
+
+//! Returns any username set for the connection
+/** @return any username set for the connection
+
+    @since %Qore 1.18.2
+*/
+*string HTTPClient::getUsername() [flags=CONSTANT] {
+    return client->getUsername();
+}
+
+//! Returns any password set for the connection
+/** @return any password set for the connection
+
+    @since %Qore 1.18.2
+*/
+*string HTTPClient::getPassword() [flags=CONSTANT] {
+    return client->getPassword();
+}
+
+//! Returns any username set for the proxy connection, if any
+/** @return any username set for the proxy connection, if any
+
+    @since %Qore 1.18.2
+*/
+*string HTTPClient::getProxyUsername() [flags=CONSTANT] {
+    return client->getProxyUsername();
+}
+
+//! Returns any password set for the proxy connection, if any
+/** @return any password set for the proxy connection, if any
+
+    @since %Qore 1.18.2
+*/
+*string HTTPClient::getProxyPassword() [flags=CONSTANT] {
+    return client->getProxyPassword();
 }
 
 //! Returns the SSL/TLS flag for the next proxy connection
@@ -1488,9 +1528,9 @@ nothing HTTPClient::setProxySecure(softbool b = True) {
     @code{.py}
 bool b = httpclient.isProxySecure();
     @endcode
- */
+*/
 bool HTTPClient::isProxySecure() [flags=CONSTANT] {
-   return client->isProxySecure();
+    return client->isProxySecure();
 }
 
 //! Updates the setting for the \c max_redirects value for the object (maximum number of HTTP redirects that will be processed before an exception is raised)
@@ -1502,9 +1542,9 @@ httpclient.setMaxRedirects(5);
     @endcode
 
     @see HTTPClient::getMaxRedirects() to retrieve this value
- */
+*/
 nothing HTTPClient::setMaxRedirects(softint mr = 0) {
-   client->setMaxRedirects((int)mr);
+    client->setMaxRedirects((int)mr);
 }
 
 //! Returns the current \c max_redirects value for the object (the maximum number of HTTP redirects that will be processed before an exception is raised)
@@ -1514,9 +1554,9 @@ nothing HTTPClient::setMaxRedirects(softint mr = 0) {
     @code{.py}
 int mr = httpclient.getMaxRedirects();
     @endcode
- */
+*/
 int HTTPClient::getMaxRedirects() [flags=CONSTANT] {
-   return client->getMaxRedirects();
+    return client->getMaxRedirects();
 }
 
 //! Clears any Queue object that may be set on the HTTPClient object so that @ref event_handling "I/O events" are no longer captured on the object
@@ -1525,7 +1565,7 @@ int HTTPClient::getMaxRedirects() [flags=CONSTANT] {
     @code{.py}
 httpclient.setEventQueue();
     @endcode
- */
+*/
 nothing HTTPClient::setEventQueue() {
     client->setEventQueue(xsink, nullptr, QoreValue(), false);
 }
@@ -1536,7 +1576,8 @@ nothing HTTPClient::setEventQueue() {
 httpclient.setEventQueue(queue);
     @endcode
 
-    @param queue a @ref Qore::Thread::Queue "Queue" object to receive HTTPClient and Socket events; note that the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+    @param queue a @ref Qore::Thread::Queue "Queue" object to receive HTTPClient and Socket events; note that the
+    Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
     @param arg an argument that will be included in each event hash in the \a arg key
     @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
 
@@ -1549,43 +1590,55 @@ httpclient.setEventQueue(queue);
 nothing HTTPClient::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg, *bool with_data) {
     ReferenceHolder<Queue> q(queue, xsink);
     if (queue->getMax() != -1)
-        return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the HttpClient object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+        return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which "
+            "could cause internal I/O to freeze in the HttpClient object if used; use a Queue object with no maximum "
+            "size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
     // pass reference from QoreObject::getReferencedPrivateData() to function
     client->setEventQueue(xsink, q.release(), arg.refSelf(), with_data);
 }
 
 //! Sets the connect timeout in milliseconds
-/** @param timeout_ms the connect timeout in milliseconds; negative numbers mean use the default system connect timeout. Note that like all %Qore functions and methods taking timeout values, a @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 30s = 30 seconds, etc.).
+/** @param timeout_ms the connect timeout in milliseconds; negative numbers mean use the default system connect
+    timeout. Note that like all %Qore functions and methods taking timeout values, a
+    @ref relative_dates "relative date/time value" can be used to make the units clear (i.e. \c 30s = 30 seconds,
+    etc.)
 
     @par Example:
     @code{.py}
 httpclient.setConnectTimeout(2m);
     @endcode
- */
+*/
 nothing HTTPClient::setConnectTimeout(timeout timeout_ms = -1) {
    client->setConnectTimeout((int)timeout_ms);
 }
 
 //! Returns the connect timeout as an integer in milliseconds
-/** @return Returns the connect timeout as an integer in milliseconds; negative numbers mean the system default timeout is used
+/** @return Returns the connect timeout as an integer in milliseconds; negative numbers mean the system default
+    timeout is used
 
     @par Example:
     @code{.py}
 int to = httpclient.getConnectTimeout();
     @endcode
- */
+*/
 int HTTPClient::getConnectTimeout() [flags=CONSTANT] {
    return client->getConnectTimeout();
 }
 
 //! Sets the \c TCP_NODELAY setting for the object
-/** When this setting is True, then data will be immediately sent out over the HTTPClient object's socket, when it is @ref False, then data transmission may be delayed to be packaged with other data for the same target.
+/** When this setting is True, then data will be immediately sent out over the HTTPClient object's socket, when it is
+    @ref False, then data transmission may be delayed to be packaged with other data for the same target.
 
-    Delayed data transmissions may cause problems when the sender immediately closes the socket after sending data; in this case the receiver may not get the data even though the send succeeded.
+    Delayed data transmissions may cause problems when the sender immediately closes the socket after sending data; in
+    this case the receiver may not get the data even though the send succeeded.
 
-    Note that if no value is given to the method, the argument will be assumed to be @ref True, and output buffering will be turned off for the HTTPClient object.
+    Note that if no value is given to the method, the argument will be assumed to be @ref True, and output buffering
+    will be turned off for the HTTPClient object.
 
-    If the socket is not connected when this call is made, then an internal flag is set and the \c TCP_NODELAY option is enabled when the next connection is established. If the socket is connected, then if an error occurs setting the \c TCP_NODELAY option on the socket, this method will return a non-zero error code; the actual error can be checked with the errno() function.
+    If the socket is not connected when this call is made, then an internal flag is set and the \c TCP_NODELAY option
+    is enabled when the next connection is established. If the socket is connected, then if an error occurs setting
+    the \c TCP_NODELAY option on the socket, this method will return a non-zero error code; the actual error can be
+    checked with the errno() function.
 
     @par Example:
     @code{.py}
@@ -1595,7 +1648,7 @@ httpclient.setNoDelay(True);
     @param b the \c TCP_NODELAY setting for the object
 
     @see HTTPClient::getNoDelay()
- */
+*/
 int HTTPClient::setNoDelay(softbool b = True) {
     return client->setNoDelay(b);
 }
@@ -1608,7 +1661,7 @@ bool b = httpclient.getNoDelay();
     @endcode
 
     @see also HTTPClient::setNoDelay()
- */
+*/
 bool HTTPClient::getNoDelay() [flags=CONSTANT] {
     return client->getNoDelay();
 }
@@ -1620,13 +1673,14 @@ bool HTTPClient::getNoDelay() [flags=CONSTANT] {
     @code{.py}
 bool b = httpclient.isConnected();
     @endcode
- */
+*/
 bool HTTPClient::isConnected() [flags=CONSTANT] {
     return client->isConnected();
 }
 
 //! Sets the username and password for the connection; call after HTTPClient::setURL()
-/** Call this method after calling HTTPClient::setURL() to set authentication information when not present in the URL used in HTTPClient::setURL()
+/** Call this method after calling HTTPClient::setURL() to set authentication information when not present in the URL
+    used in HTTPClient::setURL()
 
     @param user the username to use for authentication in the next HTTP connection
     @param pass the password to use for authentication in the next HTTP connection
@@ -1650,7 +1704,8 @@ nothing HTTPClient::setUserPassword(string user, string pass) {
 }
 
 //! Clears the username and password for the connection
-/** Call this method after calling HTTPClient::setURL() to clear any authentication information present in the URL used in HTTPClient::setURL()
+/** Call this method after calling HTTPClient::setURL() to clear any authentication information present in the URL
+    used in HTTPClient::setURL()
 
     This variant of the method is equivalent to HTTPClient::clearUserPassword()
 
@@ -1660,25 +1715,27 @@ httpclient.setUserPassword();
     @endcode
 
     @see HTTPClient::clearUserPassword()
- */
+*/
 nothing HTTPClient::setUserPassword() {
    client->clearUserPassword();
 }
 
 //! Clears the username and password for the connection
-/** Call this method after calling HTTPClient::setURL() to clear any authentication information present in the URL used in HTTPClient::setURL()
+/** Call this method after calling HTTPClient::setURL() to clear any authentication information present in the URL
+    used in HTTPClient::setURL()
 
     @par Example:
     @code{.py}
 httpclient.clearUserPassword();
     @endcode
- */
+*/
 nothing HTTPClient::clearUserPassword() {
    client->clearUserPassword();
 }
 
 //! Sets the username and password for the connection to the proxy; call after HTTPClient::setProxyURL()
-/** Call this method after calling HTTPClient::setProxyURL() to set proxy authentication information when not present in the URL used in HTTPClient::setProxyURL()
+/** Call this method after calling HTTPClient::setProxyURL() to set proxy authentication information when not present
+    in the URL used in HTTPClient::setProxyURL()
 
     @par Example:
     @code{.py}
@@ -1687,7 +1744,7 @@ httpclient.setProxyUserPassword(user, pass);
 
     @param user the username to use for proxy authentication in the next HTTP connection
     @param pass the password to use for proxy authentication in the next HTTP connection
- */
+*/
 nothing HTTPClient::setProxyUserPassword(string user, string pass) {
     TempEncodingHelper nuser(user, QCS_DEFAULT, xsink);
     if (*xsink) {
@@ -1702,7 +1759,8 @@ nothing HTTPClient::setProxyUserPassword(string user, string pass) {
 }
 
 //! Clears the username and password for the next proxy connection
-/** Call this method after calling HTTPClient::setProxyURL() to clear any proxy authentication information present in the URL used in HTTPClient::setProxyURL()
+/** Call this method after calling HTTPClient::setProxyURL() to clear any proxy authentication information present in
+    the URL used in HTTPClient::setProxyURL()
 
     This variant of the method is equivalent to HTTPClient::clearProxyUserPassword()
 
@@ -1712,21 +1770,22 @@ httpclient.setProxyUserPassword();
     @endcode
 
     @see HTTPClient::clearProxyUserPassword()
- */
+*/
 nothing HTTPClient::setProxyUserPassword() {
-   client->clearProxyUserPassword();
+    client->clearProxyUserPassword();
 }
 
 //! Clears the username and password for the next proxy connection
-/** Call this method after calling HTTPClient::setProxyURL() to clear any proxy authentication information present in the URL used in HTTPClient::setProxyURL()
+/** Call this method after calling HTTPClient::setProxyURL() to clear any proxy authentication information present in
+   the URL used in HTTPClient::setProxyURL()
 
     @par Example:
     @code{.py}
 httpclient.clearProxyUserPassword();
     @endcode
- */
+*/
 nothing HTTPClient::clearProxyUserPassword() {
-   client->clearProxyUserPassword();
+    client->clearProxyUserPassword();
 }
 
 //! Sets headers to send by default with every outgoing request
@@ -1822,9 +1881,9 @@ httpclient.clearWarningQueue();
     @see HTTPClient::setWarningQueue()
 
     @since Qore 0.8.9
- */
+*/
 nothing HTTPClient::clearWarningQueue() {
-   client->clearWarningQueue(xsink);
+    client->clearWarningQueue(xsink);
 }
 
 //! Sets a @ref Qore::Thread::Queue "Queue" object to receive socket warnings
@@ -1833,23 +1892,31 @@ nothing HTTPClient::clearWarningQueue() {
 httpclient.setWarningQueue(5000, 5000, queue, "socket-1");
     @endcode
 
-    @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
+    @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if
+    exceeded, a socket warning is placed on the warning queue with the following keys:
     - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
     - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
     - \c "us": an integer giving the number of microseconds for the operation
     - \c "timeout": an integer giving the warning threshold in microseconds
-    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()" method, it will be included in the warning hash here
-    @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
+    - \c "arg": if any \c "arg" argument is passed to the
+      @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()" method, it will be included in the
+      warning hash here
+    @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is
+    placed on the warning queue with the following keys:
     - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
     - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
     - \c "bytes": the amount of bytes sent
     - \c "us": an integer giving the number of microseconds for the operation
     - \c "bytes_sec": a float giving the transfer speed in bytes per second
     - \c "threshold": an integer giving the warning threshold in bytes per second
-    - \c "arg": if any \c "arg" argument is passed to the @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()" method, it will be included in the warning hash here
+    - \c "arg": if any \c "arg" argument is passed to the
+      @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()" method, it will be included in the
+      warning hash here
     @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
-    @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
-    @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
+    @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify
+    the socket for example)
+    @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for
+    triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
 
     @throw QUEUE-ERROR the Queue passed has a maximum size set
     @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
@@ -1858,14 +1925,17 @@ httpclient.setWarningQueue(5000, 5000, queue, "socket-1");
 
     @since
     - %Qore 0.8.9
-    - %Qore 0.8.12 the minimum threshold for a warning is a transfer of at least 1024 bytes, smaller transfers will not result in a warning
- */
+    - %Qore 0.8.12 the minimum threshold for a warning is a transfer of at least 1024 bytes, smaller transfers will
+      not result in a warning
+*/
 nothing HTTPClient::setWarningQueue(int warning_ms, int warning_bs, Queue[Queue] queue, auto arg, timeout min_ms = 1s) {
-   ReferenceHolder<Queue> q(queue, xsink);
-   if (queue->getMax() != -1)
-      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
-   // pass reference from QoreObject::getReferencedPrivateData() to function
-   client->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.refSelf(), min_ms);
+    ReferenceHolder<Queue> q(queue, xsink);
+    if (queue->getMax() != -1)
+        return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which "
+            "could cause internal I/O to freeze in the Socket object if used; use a Queue object with no maximum "
+            "size for I/O monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+    // pass reference from QoreObject::getReferencedPrivateData() to function
+    client->setWarningQueue(xsink, warning_ms, warning_bs, q.release(), arg.refSelf(), min_ms);
 }
 
 //! Returns performance statistics for the socket
@@ -1879,16 +1949,21 @@ hash<auto> h = httpclient.getUsageInfo();
     - \c "bytes_recv": an integer giving the total amount of bytes received
     - \c "us_sent": an integer giving the total number of microseconds spent sending data
     - \c "us_recv": an integer giving the total number of microseconds spent receiving data
-    - \c "arg": (only if warning values have been set with @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()") the optional argument for warning hashes
-    - \c "timeout": (only if warning values have been set with @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()") the warning timeout in microseconds
-    - \c "min_throughput": (only if warning values have been set with @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()") the minimum warning throughput in bytes/sec
+    - \c "arg": (only if warning values have been set with
+      @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()") the optional argument for warning
+      hashes
+    - \c "timeout": (only if warning values have been set with
+      @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()") the warning timeout in microseconds
+    - \c "min_throughput": (only if warning values have been set with
+      @ref Qore::HTTPClient::setWarningQueue() "HTTPClient::setWarningQueue()") the minimum warning throughput in
+      bytes/sec
 
     @since Qore 0.8.9
 
     @see HTTPClient::clearStats()
- */
+*/
 hash<auto> HTTPClient::getUsageInfo() [flags=CONSTANT] {
-   return client->getUsageInfo();
+    return client->getUsageInfo();
 }
 
 //! Clears performance statistics
@@ -1902,7 +1977,7 @@ httpclient.clearStats();
     @see HTTPClient::getUsageInfo()
 */
 HTTPClient::clearStats() {
-   client->clearStats();
+    client->clearStats();
 }
 
 //! temporarily disables implicit reconnections; must be called when the server is already connected
@@ -1912,14 +1987,15 @@ httpclient.connect();
 httpclient.setPersistent();
     @endcode
 
-    The persistent flag is automatically reset to @ref False "False" whenever the connection is closed; it must be called manually for every connection to turn off implicit reconnections.
+    The persistent flag is automatically reset to @ref False "False" whenever the connection is closed; it must be
+    called manually for every connection to turn off implicit reconnections.
 
     To turn off the persistent flag manually, call @ref HTTPClient::disconnect()
 
     @since Qore 0.8.10
- */
+*/
 HTTPClient::setPersistent() {
-   client->setPersistent(xsink);
+    client->setPersistent(xsink);
 }
 
 //! set the error passthru status
@@ -1957,7 +2033,7 @@ bool b = httpclient.getErrorPassthru();
     like any other response.
 
     @since %Qore 0.9.3
- */
+*/
 bool HTTPClient::getErrorPassthru() [flags=CONSTANT] {
     return client->getErrorPassthru();
 }
@@ -1992,7 +2068,7 @@ bool b = httpclient.getRedirectPassthru();
 
 
     @since %Qore 0.9.3
- */
+*/
 bool HTTPClient::getRedirectPassthru() [flags=CONSTANT] {
     return client->getRedirectPassthru();
 }
@@ -2029,7 +2105,7 @@ bool b = httpclient.getErrorPassthru();
     rather passed through as-is
 
     @since %Qore 0.9.3
- */
+*/
 bool HTTPClient::getEncodingPassthru() [flags=CONSTANT] {
     return client->getEncodingPassthru();
 }

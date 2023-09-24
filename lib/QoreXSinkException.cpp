@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "intern/QoreException.h"
+#include "qore/intern/QoreException.h"
 
 QoreXSinkException::QoreXSinkException(ExceptionSink& xsink) : priv(xsink.priv) {
     xsink.priv = nullptr;

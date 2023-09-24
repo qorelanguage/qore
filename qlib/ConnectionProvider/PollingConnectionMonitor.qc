@@ -29,7 +29,7 @@ public namespace ConnectionProvider {
 #! Class for monitoring connection supporting the polling API
 /** @since ConnectionProvider 1.7
 */
-public class PollingConnectionMonitor {
+public class PollingConnectionMonitor inherits LoggerWrapper {
     public {}
 
     private {
@@ -41,9 +41,6 @@ public class PollingConnectionMonitor {
 
         #! I/O thread TID
         int tid;
-
-        #! Logger
-        *Logger logger;
 
         #! Autostart monitoring thread with first connection
         bool autostart = True;
@@ -94,8 +91,7 @@ public class PollingConnectionMonitor {
     }
 
     #! Creates the object
-    constructor(*Logger logger) {
-        self.logger = logger;
+    constructor(*LoggerInterface logger) : LoggerWrapper(logger) {
         hash<PipeInfo> info = File::getPipe();
         sem_read = info.read;
         sem_write = info.write;
@@ -108,11 +104,6 @@ public class PollingConnectionMonitor {
     #! Stops the monitoring thread and destroys the object
     destructor() {
         stop();
-    }
-
-    #! Sets the logger
-    setLogger(Logger logger) {
-        self.logger = logger;
     }
 
     #! Set autostart flag
@@ -175,8 +166,8 @@ public class PollingConnectionMonitor {
     add(AbstractConnection conn, *hash<auto> other) {
         string name = conn.getName();
         if (!conn.supportsPollingApi()) {
-            throw "MONITOR-CONNECTION-ERROR", sprintf("connection %y does not support the polling API and cannot be added to "
-                "the polling connection monitor", name);
+            throw "MONITOR-CONNECTION-ERROR", sprintf("connection %y does not support the polling API and cannot be "
+                "added to the polling connection monitor", name);
         }
         AutoLock al(m);
         if (*hash<PollInfo> info = cache{name}) {
@@ -185,9 +176,9 @@ public class PollingConnectionMonitor {
                 return;
             }
             # otherwise throw an exception
-            throw "MONITOR-ADD-ERROR", sprintf("connection %y with URL %y cannot be added, as connection %y with URL %y "
-                "is already being monitored; update the connection if this definition should replace the existing "
-                "one", name, conn.getSafeUrl(), name, info.conn.getSafeUrl());
+            throw "MONITOR-ADD-ERROR", sprintf("connection %y with URL %y cannot be added, as connection %y with "
+                "URL %y is already being monitored; update the connection if this definition should replace the "
+                "existing one", name, conn.getSafeUrl(), name, info.conn.getSafeUrl());
         }
         cache{name} = <PollInfo>{
             "conn": conn,
@@ -209,8 +200,8 @@ public class PollingConnectionMonitor {
     addOrUpdate(AbstractConnection conn, *hash<auto> other) {
         string name = conn.getName();
         if (!conn.supportsPollingApi()) {
-            throw "MONITOR-CONNECTION-ERROR", sprintf("connection %y does not support the polling API and cannot be added to "
-                "the polling connection monitor", name);
+            throw "MONITOR-CONNECTION-ERROR", sprintf("connection %y does not support the polling API and cannot be "
+                "added to the polling connection monitor", name);
         }
         string cmd;
         AutoLock al(m);
@@ -275,14 +266,6 @@ public class PollingConnectionMonitor {
         if (!removeConnection(name)) {
             throw "MONITOR-REMOVE-ERROR", sprintf("no connection %y is being monitored", name);
         }
-    }
-
-    logArgs(int lvl, string msg, auto args) {
-        logger.logArgs(lvl, msg, args);
-    }
-
-    log(int lvl, string msg) {
-        logArgs(lvl, msg, argv);
     }
 
     private startIntern() {

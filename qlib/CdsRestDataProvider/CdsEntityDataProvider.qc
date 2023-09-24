@@ -43,11 +43,8 @@ hashdecl CdsRestRecordInfo {
 }
 
 #! The CdsEntityDataProvider data provider class
-public class CdsEntityDataProvider inherits DataProvider::AbstractDataProvider {
+public class CdsEntityDataProvider inherits CdsRestDataProviderBase {
     public {
-        #! The REST client object for API calls
-        CdsRestClient::CdsRestClient rest;
-
         #! current object name
         string name;
 
@@ -61,8 +58,7 @@ public class CdsEntityDataProvider inherits DataProvider::AbstractDataProvider {
     }
 
     #! Creates the object from the arguments
-    constructor(CdsRestClient rest, string name, hash<auto> meta) {
-        self.rest = rest;
+    constructor(CdsRestClient rest, string name, hash<auto> meta) : CdsRestDataProviderBase(rest) {
         self.name = name;
         self.meta = meta;
         getRecordInfoIntern();
@@ -269,10 +265,15 @@ public class CdsEntityDataProvider inherits DataProvider::AbstractDataProvider {
                 "qore.no_null": True,
             };
             hash<auto> attr = field."^attributes^";
+            string cdstype;
             switch (attr.Type) {
                 case "Edm.String":
+                    type = AbstractDataProviderType::get(SoftStringOrNothingType, opts);
+                    break;
+
                 case "Edm.Guid":
                     type = AbstractDataProviderType::get(SoftStringOrNothingType, opts);
+                    cdstype = "guid";
                     break;
 
                 case "Edm.Int32":
@@ -310,7 +311,7 @@ public class CdsEntityDataProvider inherits DataProvider::AbstractDataProvider {
                     break;
                 }
             }
-            record_info.field_types{attr.Name} = type.getBaseTypeName();
+            record_info.field_types{attr.Name} = cdstype ?? type.getBaseTypeName();
             record_info.record_type{attr.Name} = new QoreDataField(attr.Name, desc, type);
         }
     }
@@ -330,13 +331,13 @@ public class CdsEntityDataProvider inherits DataProvider::AbstractDataProvider {
             return;
         } catch (hash<ExceptionInfo> ex) {
             if (info."response-headers".status_code != 403) {
-                rethrow;
+                rethrow ex.err, ex.desc, info{"request-uri", "response-uri"};
             }
         }
         # if we get a 403 Unauthorized response, then we determine the entity set name with a heuristic
-        record_info.entity_set_name = record_info.key;
-        if (record_info.key[-1] == "y") {
-            splice record_info.entity_set_name, -1, "ies";
+        record_info.entity_set_name = name;
+        if (name[-1] == "y") {
+            splice record_info.entity_set_name, -1, 1, "ies";
         } else {
             record_info.entity_set_name += "s";
         }

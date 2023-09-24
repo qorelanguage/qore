@@ -27,11 +27,8 @@ public namespace ElasticSearchDataProvider {
 #! The ElasticSearch read all indices API data provider
 /** This class implements an API that return the descriptions of all known indices in the ElasticSearch server.
 */
-public class ElasticSearchIndexReadAllDataProvider inherits DataProvider::AbstractDataProvider {
+public class ElasticSearchIndexReadAllDataProvider inherits ElasticSearchDataProviderBase {
     public {
-        #! REST client connection
-        RestClient::RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "read-all",
@@ -63,8 +60,7 @@ public class ElasticSearchIndexReadAllDataProvider inherits DataProvider::Abstra
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient::RestClient rest) : ElasticSearchDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

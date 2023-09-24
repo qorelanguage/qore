@@ -25,11 +25,8 @@
 #! contains all public definitions in the AwsRestClientDataProvider module
 public namespace AwsRestClientDataProvider {
 #! The AWS REST client DELETE data provider class
-public class AwsRestClientDeleteDataProvider inherits AbstractDataProvider {
+public class AwsRestClientDeleteDataProvider inherits AwsRestClientDataProviderBase {
     public {
-        #! REST client connection
-        AwsRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "delete",
@@ -59,8 +56,7 @@ public class AwsRestClientDeleteDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(AwsRestClient rest) {
-        self.rest = rest;
+    constructor(AwsRestClient rest) : AwsRestClientDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

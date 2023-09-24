@@ -8,6 +8,8 @@
 %allow-injection
 
 %requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/ConnectionProvider
@@ -58,6 +60,8 @@ public class ConnectionProviderTest inherits QUnit::Test {
         assertEq(False, fc.locked, "connection is unlocked by default");
         assertEq(True, fc.children_can_support_apis);
         assertEq(False, fc.children_can_support_transactions);
+        hash<ConnectionInfo> info = fc.getInfo();
+        assertNothing(info.features);
 
         AbstractDataProvider prov = fc.getDataProvider();
         assertEq("ftp", prov.getName());
@@ -171,6 +175,12 @@ public class ConnectionProviderTest inherits QUnit::Test {
         };
         InvalidConnection ic2("name", "desc", "url", attributes);
         assertEq(attributes.error, ic2.error);
+
+        {
+            string url = "https://example.com";
+            InvalidConnection c("x", "x", url);
+            assertEq(url, c.getInfo().url);
+        }
     }
 
     customParseUrlTest() {
