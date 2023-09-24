@@ -25,11 +25,8 @@
 #! contains all public definitions in the CdsRestDataProvider module
 public namespace CdsRestDataProvider {
 #! The CdsRest data provider class
-public class CdsRestDataProvider inherits DataProvider::AbstractDataProvider {
+public class CdsRestDataProvider inherits CdsRestDataProviderBase {
     public {
-        #! The REST client object for API calls
-        CdsRestClient::CdsRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "type": "CdsRestDataProvider",
@@ -101,8 +98,7 @@ public class CdsRestDataProvider inherits DataProvider::AbstractDataProvider {
     }
 
     #! Creates the object from the arguments
-    constructor(CdsRestClient::CdsRestClient rest) {
-        self.rest = rest;
+    constructor(CdsRestClient::CdsRestClient rest) : CdsRestDataProviderBase(rest) {
     }
 
     #! Creates the object from constructor options
@@ -119,6 +115,12 @@ public class CdsRestDataProvider inherits DataProvider::AbstractDataProvider {
     #! Returns the data provider name
     string getName() {
         return "/";
+    }
+
+    #! Accepts a LoggerInterface object for logging (or clears it)
+    setLogger(*LoggerInterface logger) {
+        rest.setLogger(logger);
+        LoggerWrapper::setLogger(logger);
     }
 
     #! Returns a list of child data provider names, if any

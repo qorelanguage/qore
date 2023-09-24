@@ -195,6 +195,10 @@ public class HashDataType inherits QoreDataType {
         if (default_other_field_type && !manual_default_other_field_type) {
             remove default_other_field_type;
         }
+        if (type == AutoHashType && exists field.getDefaultValue()) {
+            type = AutoHashOrNothingType;
+            soft_type = True;
+        }
         return self;
     }
 

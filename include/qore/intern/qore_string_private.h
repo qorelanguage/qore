@@ -271,7 +271,8 @@ public:
         if (!ptr) {
             return -1;
         }
-        return static_cast<qore_offset_t>(reinterpret_cast<const char*>(ptr) - reinterpret_cast<const char*>(haystack));
+        return static_cast<qore_offset_t>(reinterpret_cast<const char*>(ptr) -
+            reinterpret_cast<const char*>(haystack));
     }
 
     // start is a byte offset that has to point to the start of a valid character
@@ -682,6 +683,8 @@ public:
     }
 
     DLLLOCAL size_t getCharWidth(ExceptionSink* xsink) const;
+
+    DLLLOCAL void concatBase64(const char* bbuf, size_t size, size_t maxlinelen, bool url_encode = false);
 
     DLLLOCAL static bool inVector(int c, const intvec_t& vec) {
         for (unsigned j = 0; j < vec.size(); ++j) {

@@ -16,6 +16,7 @@
 %requires ../../../../qlib/Swagger.qm
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/HttpServer.qm
+%requires ../../../../qlib/FsUtil.qm
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -86,9 +87,69 @@ public class Main inherits QUnit::Test {
         HttpServer m_http;
 
         int port;
+
+        Logger logger;
+
+        const TestSchema = {
+            "swagger": "2.0",
+            "info": {
+                "title": "title",
+                "version": "1.0",
+            },
+            "basePath": "/",
+            "paths": {
+                "/api_yaml": {
+                    "put": {
+                       "produces": (MimeTypeYaml,),
+                        "consumes": (MimeTypeYaml,),
+                        "parameters": (
+                            {
+                                "in": "body",
+                                "name": "body",
+                                "required": True,
+                                "schema": {
+                                    "$ref": "#/definitions/MyObject",
+                                },
+                            },
+                        ),
+                        "responses": (
+                            "200": (
+                                "description": "",
+                                "schema": (
+                                    "$ref": "#/definitions/MyObject",
+                                ),
+                            ),
+                        ),
+                    },
+                },
+            },
+            "definitions": (
+                "MyObject": (
+                    "type": "object",
+                    "properties": {
+                        "foo": {
+                            "type": "object",
+                            "description": "the foo object",
+                            "properties": {
+                                "bar": {
+                                    "type": "integer",
+                                    "description": "the bar int",
+                                },
+                                "other": {
+                                    "type": "string",
+                                    "format": "date",
+                                    "desc": "the other date",
+                                },
+                            },
+                        },
+                    },
+                ),
+            ),
+        };
     }
 
     constructor() : Test("RestClientTest", "1.0") {
+        addTestCase("invalid connection option", \invalidConnectionOptionTest());
         addTestCase("poll test", \pollTest());
         addTestCase("issue 3472", \issue3472());
         addTestCase("connection tests", \connectionTests());
@@ -103,7 +164,7 @@ public class Main inherits QUnit::Test {
     }
 
     setUp() {
-        Logger logger("test", LoggerLevel::getLevelInfo());
+        logger = new Logger("test", (m_options.verbose > 3 ? LoggerLevel::getLevelDebug() : LoggerLevel::getLevelInfo()));
         if (m_options.verbose > 2) {
             logger.addAppender(new StdoutAppender());
         }
@@ -118,6 +179,7 @@ public class Main inherits QUnit::Test {
         m_http.setHandler("/api_json", "/api_json", MimeTypeJson, new SimpleStringHandler(MimeTypeJson, VALUE_JSON.input));
         m_http.setHandler("/api_yaml", "/api_yaml", MimeTypeYaml, new SimpleStringHandler(MimeTypeYaml, VALUE_YAML.input));
         m_http.setHandler("/api_bin", "/api_bin", MimeTypeOctetStream, new SimpleStringHandler(MimeTypeOctetStream));
+        m_http.setHandler("/swagger", "/swagger", MimeTypeYaml, new SimpleStringHandler(MimeTypeYaml, Main::getSwaggerSchema()));
         port = m_http.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
     }
 
@@ -125,8 +187,15 @@ public class Main inherits QUnit::Test {
         delete m_http;
     }
 
+    invalidConnectionOptionTest() {
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
+            new RestConnection("test", "test", "rests://127.0.0.1", NOTHING, {"data": "invalid"});
+        });
+    }
+
     pollTest() {
-        RestClient rest({"url": "http://localhost:" + port});
+        string url = "http://127.0.0.1:" + port;
+        RestClient rest({"url": url});
 
         {
             SocketPollOperation spop = rest.startPollConnect();
@@ -140,9 +209,7 @@ public class Main inherits QUnit::Test {
             assertTrue(spop.goalReached());
         }
 
-        string url = "http://localhost:" + port;
         RestConnection conn("test", "test", url);
-
         assertTrue(conn.supportsPollingApi());
         {
             SocketPollOperation spop = conn.startPollConnect();
@@ -158,7 +225,7 @@ public class Main inherits QUnit::Test {
     }
 
     issue3472() {
-        RestClient rest({"url": "http://localhost:"+port});
+        RestClient rest({"url": "http://127.0.0.1:" + port});
         assertThrows("REST-RESPONSE-ERROR", \rest.get(), ("/api_text", NOTHING, NOTHING, {"Do-Error": True}));
         rest.setErrorPassthru(True);
         hash<auto> msg = rest.get("/api_text", NOTHING, NOTHING, {"Do-Error": True});
@@ -167,14 +234,14 @@ public class Main inherits QUnit::Test {
     }
 
     methodOptionsTest() {
-        RestClient rest({"url": "http://localhost:" + port});
+        RestClient rest({"url": "http://127.0.0.1:" + port});
         hash<auto> info;
         rest.doRequest("OPTIONS", "/api_bin", NOTHING, \info);
         assertEq("0", info."response-headers"."content-length");
     }
 
     methodDeleteTest() {
-        RestClient rest({"url": "http://localhost:"+port});
+        RestClient rest({"url": "http://127.0.0.1:" + port});
         hash<auto> info;
         try {
             # issue #3237: must throw an exception due to the 404 Not Found response
@@ -186,7 +253,7 @@ public class Main inherits QUnit::Test {
     }
 
     methodGetTest() {
-        RestClient rest(("url" : "http://localhost:"+port));
+        RestClient rest(("url" : "http://127.0.0.1:" + port));
         auto ret;
 
         ret = rest.get("/api_text");
@@ -212,7 +279,7 @@ public class Main inherits QUnit::Test {
     }
 
     methodPutTest() {
-        RestClient rest(("url" : "http://localhost:"+port));
+        RestClient rest(("url" : "http://127.0.0.1:" + port));
         auto ret;
 
         rest.setSerialization("text");
@@ -246,7 +313,7 @@ public class Main inherits QUnit::Test {
     }
 
     methodPostTest() {
-        RestClient rest({"url": "http://localhost:" + port});
+        RestClient rest({"url": "http://127.0.0.1:" + port});
         auto ret;
 
         rest.setSerialization("text");
@@ -266,40 +333,251 @@ public class Main inherits QUnit::Test {
     }
 
     connectionTests() {
-        string url = "http://localhost:8099/";
-        RestConnection conn("test", "test", url);
-        RestClient client = conn.get(False);
-        assertEq(url, client.getURL());
+        string url = "http://127.0.0.1:8099/";
+        RestClient client;
+        {
+            RestConnection conn("test", "test", url);
+            client = conn.get(False);
+            assertEq(url, client.getURL());
 
-        # issue #3696: test connection serialization
-        RestConnection conn2 = Serializable::deserialize(conn.serialize());
-        assertEq(conn.url, conn2.url);
+            # issue #3696: test connection serialization
+            RestConnection conn2 = Serializable::deserialize(conn.serialize());
+            assertEq(conn.url, conn2.url);
 
-        # issue #3321: check default timeouts
-        assertEq(45000, client.getTimeout());
-        assertEq(45000, client.getConnectTimeout());
+            # issue #3321: check default timeouts
+            assertEq(45000, client.getTimeout());
+            assertEq(45000, client.getConnectTimeout());
+        }
 
         string val = get_random_string();
         hash<auto> hdr = {
             "X-Test": val,
         };
-        conn = new RestConnection("test", "test", url, {"monitor": False}, {"headers": hdr});
-        client = conn.get(False);
-        assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
-        assertEq(url, client.getURL());
-        assertEq(False, conn.monitor);
-        assertEq(True, conn.enabled);
+        {
+            RestConnection conn("test", "test", url, {"monitor": False}, {"headers": hdr});
+            client = conn.get(False);
+            assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
+            assertEq(url, client.getURL());
+            assertEq(False, conn.monitor);
+            assertEq(True, conn.enabled);
 
-        conn = new RestConnection("test", "test", url, {"monitor": False}, {"headers": "X-Test=" + val});
-        client = conn.get(False);
-        assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
+            assertThrows("OAUTH2-ERROR", \conn.getAuthorizationCodeRequest());
+        }
 
-        conn = new RestConnection("test", "test", url, {"monitor": False}, {"headers": "abc=2, X-Test=" + val});
-        client = conn.get(False);
-        assertEq({"abc": "2"} + hdr, client.getDefaultHeaders(){"abc", "X-Test",});
+        {
+            RestConnection conn("test", "test", url, {"monitor": False}, {"headers": "X-Test=" + val});
+            client = conn.get(False);
+            assertEq(hdr, client.getDefaultHeaders(){"X-Test",});
+        }
+
+        {
+            RestConnection conn("test", "test", url, {"monitor": False}, {"headers": "abc=2, X-Test=" + val});
+            client = conn.get(False);
+            assertEq({"abc": "2"} + hdr, client.getDefaultHeaders(){"abc", "X-Test",});
+        }
 
         assertThrows("REST-CONNECTION-ERROR", sub () {
             new RestConnection("test", "test", url, {"monitor": False}, {"headers": "1"});
         });
+
+        url = "http://127.0.0.1:" + port;
+        {
+            RestConnection conn("test", "test", url);
+            assertTrue(conn.supportsPollingApi());
+            {
+                SocketPollOperation spop = conn.startPollConnect();
+                assertEq("connect", spop.getGoal());
+                assertEq("connecting", spop.getState());
+                while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                    #printf("info: %y\n", info);
+                    Socket::poll((info,), 1s);
+                }
+                assertEq("connected", spop.getState());
+                assertTrue(spop.goalReached());
+            }
+        }
+
+        {
+            RestConnection rc("test", "test", url, {}, {
+                "data": "text",
+                "ping_method": "PUT",
+                "ping_path": "/api_text",
+                "ping_body": VALUE_TEXT.input,
+            });
+
+            TestPollingConnectionMonitor monitor(logger);
+            on_exit delete monitor;
+
+            assertTrue(rc.getInfo().up);
+
+            # first test a standard ping
+            hash<PingInfo> ping = rc.ping(True);
+            assertEq("test", ping.name);
+            assertTrue(ping.ok);
+            assertEq("OK", ping.info);
+            assertTrue(rc.getInfo().up);
+
+            monitor.add(rc);
+
+            hash<auto> info = monitor.waitForResult();
+            assertEq(info.name, "test");
+            on_error if (info.ex) {
+                printf("%s\n", get_exception_string(info.ex));
+            }
+            assertEq("OK", info.result);
+            assertTrue(rc.getInfo().up);
+        }
+
+%ifndef NoYaml
+        {
+            RestConnection rc("test", "test", url, {}, {
+                "data": "yaml",
+                "ping_method": "PUT",
+                "ping_path": "/api_yaml",
+                "ping_body": VALUE_YAML.output,
+                "swagger": url + "/swagger",
+            });
+
+            # first test a standard ping
+            hash<PingInfo> ping = rc.ping(True);
+            assertEq("test", ping.name);
+            assertTrue(ping.ok);
+            assertEq("OK", ping.info);
+
+            TestPollingConnectionMonitor monitor(logger);
+            on_exit delete monitor;
+
+            monitor.add(rc);
+
+            hash<auto> info = monitor.waitForResult();
+            assertEq(info.name, "test");
+            on_error if (info.ex) {
+                printf("%s\n", get_exception_string(info.ex));
+            }
+            assertEq("OK", info.result);
+        }
+
+        {
+            TmpFile tmp();
+            tmp.file.write(getSwaggerSchema());
+            tmp.file.close();
+
+            RestConnection rc("test", "test", url, {}, {
+                "data": "yaml",
+                "ping_method": "PUT",
+                "ping_path": "/api_yaml",
+                "ping_body": VALUE_YAML.output,
+                "swagger": "file://" + tmp.path,
+            });
+
+            hash<ConnectionInfo> cinfo = rc.getInfo();
+            assertTrue(cinfo.features{AbstractConnection::CF_LOGGER});
+
+            # first test a standard ping
+            hash<PingInfo> ping = rc.ping(True);
+            assertEq("test", ping.name);
+            assertTrue(ping.ok);
+            assertEq("OK", ping.info);
+
+            TestPollingConnectionMonitor monitor(logger);
+            on_exit delete monitor;
+
+            monitor.add(rc);
+
+            hash<auto> info = monitor.waitForResult();
+            assertEq(info.name, "test");
+            on_error if (info.ex) {
+                printf("%s\n", get_exception_string(info.ex));
+            }
+            assertEq("OK", info.result);
+        }
+%endif
+
+        {
+            string auth_uri = "https://example.com/auth";
+            string token_uri = "https://example.com/token";
+            RestConnection rc("test", "test", url, {}, {
+                "data": "yaml",
+                "oauth2_grant_type": "authorization_code",
+                "oauth2_auth_url": auth_uri,
+                "oauth2_token_url": token_uri,
+                "oauth2_client_id": get_random_string(),
+                "oauth2_client_secret": get_random_string(),
+                "oauth2_redirect_url": "https://other.app.com",
+            });
+
+            string uri = rc.getAuthorizationCodeRequest();
+            assertTrue(uri.equalPartialPath(auth_uri));
+            hash<ConnectionInfo> cinfo = rc.getInfo();
+            assertTrue(cinfo.features{AbstractConnection::CF_UPDATE_OPTIONS});
+            assertTrue(cinfo.features{RestConnection::RCF_OAUTH2_AUTH_CODE});
+        }
+
+        {
+            string auth_uri = "https://example.com/auth";
+            string token_uri = "https://example.com/token";
+            RestConnection rc("test", "test", url, {}, {
+                "data": "yaml",
+                "oauth2_grant_type": "authorization_code",
+                "oauth2_auth_url": auth_uri,
+                "oauth2_token_url": token_uri,
+                "oauth2_client_id": get_random_string(),
+                "oauth2_client_secret": get_random_string(),
+                "oauth2_redirect_url": "https://other.app.com",
+                "oauth2_auth_args": {
+                    "access_type": "offline",
+                    "include_granted_scopes": True,
+                },
+                "oauth2_scopes": (
+                    "scope1",
+                    "scope2",
+                ),
+            });
+
+            assertEq("yaml", rc.getRealOptions()."data");
+            string uri = rc.getAuthorizationCodeRequest();
+            assertTrue(uri.equalPartialPath(auth_uri));
+            assertRegex("&access_type=offline", uri);
+            assertRegex("&include_granted_scopes=true", uri);
+            assertRegex("scope1%20scope2", uri);
+            hash<ConnectionInfo> cinfo = rc.getInfo();
+            assertTrue(cinfo.features{AbstractConnection::CF_UPDATE_OPTIONS});
+            assertTrue(cinfo.features{RestConnection::RCF_OAUTH2_AUTH_CODE});
+        }
+    }
+
+    static *string getSwaggerSchema() {
+%ifndef NoYaml
+        return make_yaml(TestSchema);
+%endif
+    }
+}
+
+class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
+    private {
+        Queue msgq();
+    }
+
+    constructor(*Logger logger) : PollingConnectionMonitor(logger) {
+        ping_timeout = 5s;
+    }
+
+    hash<auto> waitForResult() {
+        return msgq.get();
+    }
+
+    private handlePingSuccess(string name, date delta, *bool oldok) {
+        PollingConnectionMonitor::handlePingSuccess(name, delta, oldok);
+        msgq.push({"name": name, "result": "OK"});
+    }
+
+    private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
+        PollingConnectionMonitor::handlePingFailed(name, delta, ex);
+        msgq.push({"name": name, "result": "error", "ex": ex});
+    }
+
+    private handlePingTimeout(string name, date delta) {
+        PollingConnectionMonitor::handlePingTimeout(name, delta);
+        msgq.push({"name": name, "result": "timeout"});
     }
 }

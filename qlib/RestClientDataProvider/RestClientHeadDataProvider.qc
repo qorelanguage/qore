@@ -25,11 +25,8 @@
 #! contains all public definitions in the RestClientDataProvider module
 public namespace RestClientDataProvider {
 #! The REST client HEAD data provider class
-public class RestClientHeadDataProvider inherits AbstractDataProvider {
+public class RestClientHeadDataProvider inherits RestClientDataProviderBase {
     public {
-        #! REST client connection
-        RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "head",
@@ -58,8 +55,7 @@ public class RestClientHeadDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient rest) : RestClientDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

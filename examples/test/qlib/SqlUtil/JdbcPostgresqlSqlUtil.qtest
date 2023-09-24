@@ -1,0 +1,301 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/SqlUtil
+%requires ../../../../qlib/PgsqlSqlUtilBase.qm
+%requires ../../../../qlib/JdbcPostgresqlSqlUtil.qm
+
+%requires ./SqlUtilTestBase.qm
+
+%exec-class PgsqlTest
+
+class PgsqlTestSchema inherits SqlUtilTestSchema {
+    public {
+        const SchemaName = "PgsqlTestSchema";
+        const SchemaVersion = "1.0";
+    }
+
+    private {
+        const GenericOptions = (
+            "replace": True,
+        );
+
+        const IndexOptions = {};
+
+        const ColumnOptions = {};
+
+        const T_PgsqlTest = (
+            "columns": (
+                "id": c_number(14, True, "an example comment with 'quotes'"),
+                "id_": c_number(14, True),
+                "null_f": c_varchar(69),
+                "blob_f": c_blob(True),
+                "clob_f": c_clob(True),
+                "dvtest_f": c_varchar(10) + ("default_value": "test"),
+            ),
+            "primary_key": ("name": "pk_pgsql_test", "columns": ("id")),
+        );
+
+        const Tables = (
+            "pgsql_test": T_PgsqlTest,
+        );
+
+        const Sequences = (
+            "pgsql_test_seq": {},
+        );
+    }
+
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
+    }
+
+    private string getNameImpl() {
+        return SchemaName;
+    }
+
+    private string getVersionImpl() {
+        return SchemaVersion;
+    }
+
+    private *hash getTablesImpl() {
+        return doTables(Tables, PgsqlTest::CustomColumns)
+                + ( "test_analytic_functions" : T_TestAnalyticFunctions );
+    }
+
+    private *hash getSequencesImpl() {
+        return Sequences;
+    }
+
+    private *hash getIndexOptionsImpl() {
+        return IndexOptions;
+    }
+
+    private *hash getGenericOptionsImpl() {
+        return GenericOptions;
+    }
+
+    private *hash getColumnOptionsImpl() {
+        return ColumnOptions;
+    }
+}
+
+# A minimal schema just to create simple table to test bug #2963
+#  = to drop triggers and functions during the schema alignment
+class Bug2963Schema inherits SqlUtilTestSchema {
+    constructor(AbstractDatasource ds, *string dts, *string its) : SqlUtilTestSchema(ds, dts, its) {
+    }
+    private string getNameImpl() {
+        return "Bug2963Schema";
+    }
+    private string getVersionImpl() {
+        return "1.0";
+    }
+    private *hash getTablesImpl() {
+        return {
+            "pgsql_test_2963": {
+                "columns": {
+                    "id": c_number(14, True, "an example comment with 'quotes'"),
+                },
+            },
+        };
+    }
+} # class Bug2963Schema
+
+class PgsqlTest inherits SqlTestBase {
+    public {
+        hash<SchemaAlignmentInfo> schema_info;
+
+        const CustomColumns = {
+            "varchar": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "char": (
+                "value": "hello",
+                "size": "20",
+            ),
+            "numeric": (
+                "size": 15,
+                "scale": 2,
+                "value": 400.95n,
+            ),
+            "numeric_def": (
+                "type": "numeric",
+                "value": 400.95n,
+            ),
+
+            "smallint": 100,
+            "integer": 1928381,
+            "bigint": 2198374739812,
+
+            "smallserial": 100,
+            "serial": 39484392,
+            "bigserial": 129383948393,
+
+            "real": 1.5,
+            "double precision": 3.1415927,
+            "float": 3.141592653589793238,
+            "oid": 1234, # should not be used
+
+            "date": 2016-01-11,
+            "time": 09:26:52,
+            "time with time zone": 09:27:03-06,
+            "timetz": 09:27:03-06,
+            "timestamp": 2016-02-11T09:26:14,
+            "timestamp with time zone": 2016-02-11T09:28:12.384629+03,
+            "timestamptz": 2016-02-11T09:28:12.384629+03,
+
+            "text": "test",
+            "character": "c",
+            "character varying": "character varying",
+
+            "bool": True,
+            "boolean": False,
+
+            "bytea": <bead>,
+        };
+    }
+
+    constructor() : SqlTestBase("PgsqlTest", "1.0", \ARGV, MyOpts) {
+        Datasource ds;
+        try {
+            ds = getDatasource();
+        } catch (hash<ExceptionInfo> ex) {
+            if (m_options.verbose)
+                printf("%s: %s\n", ex.err, ex.desc);
+            # skip tests if we can't create the datasource
+        }
+
+        if (ds) {
+            initTestData(CustomColumns);
+
+            { # Make sure the DB is clear before doing the tests.
+                PgsqlTable t = new PgsqlTable(ds, "pgsql_test");
+                if (t.checkExistence())
+                    t.dropCommit();
+            }
+
+            # create the test schema
+            schema = new PgsqlTestSchema(ds);
+
+            # workaround for issue #853 (https://github.com/qorelanguage/qore/issues/853)
+            try {
+                on_error ds.rollback();
+                on_success ds.commit();
+                ds.exec("drop table pgsql_test");
+            } catch () {}
+            try {
+                on_error ds.rollback();
+                on_success ds.commit();
+                ds.exec("drop sequence pgsql_test_seq");
+            } catch () {}
+
+            schema_info = schema.alignWithInfo(False, m_options.verbose, m_options.verbose > 0);
+
+            # get table object
+            table = (new Table(schema.getDatasource(), "pgsql_test")).getTable();
+
+            addTestCase("create schema", \createSchema());
+            addTestCase("sequence operators", \testSequenceOperators());
+            addTestCase("analytic/window functions", \testAnalyticFunctions());
+            addTestCase("default value", \testDefaultValue());
+            addTestCase("pgsqlutil: schema align with trigger drop #2963", \test2963());
+        }
+
+        set_return_value(main());
+    }
+
+    createSchema() {
+        on_error printf("alignment: %y\n", map {AbstractDatabase::ActionMap{$1.key}: $1.value},
+            schema_info.change_map.pairIterator());
+        on_error printf("info: %y\n", schema_info);
+        assertTrue(schema_info.created);
+    }
+
+    testSequenceOperators() {
+        if (!table)
+            testSkip("no DB connection");
+
+        hash sh = (
+            "columns": ("id", cop_seq("pgsql_test_seq", "seq"), cop_seq_currval("pgsql_test_seq", "seq_currval")),
+            "where": ("id": 2),
+        );
+
+        assertEq(("id": 2, "seq": 1, "seq_currval": 1), table.selectRow(sh));
+        assertEq(("id": 2, "seq": 2, "seq_currval": 2), table.selectRow(sh));
+        assertEq(("id": 2, "seq": 3, "seq_currval": 3), table.selectRow(sh));
+
+        assertEq(1, table.update(("id": uop_seq("pgsql_test_seq")), ("id": 2)));
+        sh."where".id = 4;
+        assertEq(("id": 4, "seq": 5, "seq_currval": 5), table.selectRow(sh));
+    }
+
+    testDefaultValue() {
+        if (!table)
+            testSkip("no DB connection");
+
+        AbstractColumn c = table.describe().dvtest_f;
+        AbstractColumn new_col = c.copy();
+        new_col.def_val =~ s/::.*//;
+        assertRegex("::character varying", c.def_val);
+        assertNRegex("::character varying", new_col.def_val);
+        list l = c.getModifySql(table, new_col);
+        assertEq((), l);
+    }
+
+    private test2963() {
+        AbstractDatasource ds = getDatasource();
+        on_exit ds.rollback();
+
+        Bug2963Schema schema(ds);
+        # to create test schema without triggers
+        auto res = schema.align(False, m_options.verbose, m_options.verbose > 0);
+
+        # create trigger outseide the schema
+        ds.execRaw("create function pgsql_test_2963_func() returns trigger\n"
+                   "language plpgsql as $function$\n"
+                   "begin\n"
+                   "   null;\n"
+                   "end;\n"
+                   "$function$");
+        ds.execRaw("create trigger pgsql_test_2963_func "
+                   "before insert on pgsql_test_2963 execute procedure pgsql_test_2963_func()");
+
+        # align the schema again to drop trigger (and function)
+        res = schema.align(False, m_options.verbose, m_options.verbose > 0);
+        # 1 = drop trigger
+        # 2 = drop function
+        assertEq(2, res, "2 actions must be performed");
+    }
+
+    private string getResultSetSql() {
+        testSkip("does not support result set output binds");
+        return "";
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set DB connection argument (ex: "
+            "\"jdbc:user/pass@postgresql:db{classpath=/usr/share/java/postgresql.jar}\")", OptionColumn);
+    }
+
+    Datasource getDatasource() {
+        if (!m_options.connstr) {
+            m_options.connstr = ENV.QORE_DB_CONNSTR_JDBC_PGSQL;
+        }
+        Datasource ds(m_options.connstr);
+        if (ds.getDriverRealName() != "PostgreSQL") {
+            throw "PGSQL-ERROR", sprintf("cannot execute the pgsql tests on a connection using driver %y",
+                ds.getDriverRealName());
+        }
+        ds.open();
+        return ds;
+    }
+}

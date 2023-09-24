@@ -126,6 +126,9 @@ typedef std::vector<int> sig_vec_t;
 //! defined because this version of Qore has the DateTime::addSecondsTo() API
 #define _QORE_HAS_DATETIME_ADD_SECONDS_TO 1
 
+//! defined for q_enforce_thread_size_on_primary_thread()
+#define _QORE_HAS_ENFORCE_THREAD_SIZE_ON_PRIMARY_THREAD 1
+
 // qore code flags
 #define QCF_NO_FLAGS                     0   //! no flag
 #define QCF_NOOP                   (1 << 0)  //! this variant is a noop, meaning it returns a constant value with the given argument types
@@ -333,6 +336,8 @@ static inline const char* get_type_name(const AbstractQoreNode* n) {
 //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
 /** differs from the return value of get_type_name() for complex types (ex: \c "hash<string, int>")
 
+    @param n the value to process
+
     @since %Qore 0.8.13
 */
 DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n);
@@ -340,11 +345,24 @@ DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n);
 //! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
 /** differs from the return value of get_type_name() for complex types (ex: \c "hash<string, int>")
 
+    @param n the value to process
+
     @param with_namespaces if true then class and hashdecl names are given with full namespace paths
 
     @since %Qore 1.0
 */
 DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces);
+
+//! returns a string type description of the full type of the value contained (ex: \c "nothing" for a null AbstractQoreNode pointer)
+/** will return NOTHING (delete object of class ...) for invalid objects
+
+    @param n the value to process
+    @param with_namespaces if true then class and hashdecl names are given with full namespace paths
+    @param scratch scratch space for creating formatting string return values
+
+    @since %Qore 1.18
+*/
+DLLEXPORT const char* get_full_type_name(const AbstractQoreNode* n, bool with_namespaces, QoreString& scratch);
 
 static inline qore_type_t get_node_type(const AbstractQoreNode* n) {
    return n ? n->getType() : NT_NOTHING;
@@ -492,7 +510,10 @@ DLLEXPORT extern size_t qore_option_list_size;
 /** @param sig signal number
     @param name module name taking ownership of managing the signal
 
-    @return nullptr for OK, non-zero for failed (error message); in case a QoreStringNode pointer is returned, the caller must dereference it
+    @return nullptr for OK, non-zero for failed (error message); in case a QoreStringNode pointer is returned, the
+    caller must dereference it
+
+    @note this is equivalent to qore_reassign_signal(sig, name, false)
 
     @see
     - @ref qore_reassign_signals() to allocate multiple signals to a module atomically
@@ -501,13 +522,36 @@ DLLEXPORT extern size_t qore_option_list_size;
  */
 DLLEXPORT QoreStringNode* qore_reassign_signal(int sig, const char* name);
 
+//! allows a module to take over ownership of a signal
+/** @param sig signal number
+    @param name module name taking ownership of managing the signal
+    @param reuse_sys do not fail if signals are allocated to the system already; in this case a failuse will only
+    happen when %Qore code has a signal handler assigned
+
+    @return nullptr for OK, non-zero for failed (error message); in case a QoreStringNode pointer is returned, the
+    caller must dereference it
+
+    @since %Qore 1.19
+
+    @see
+    - @ref qore_reassign_signals() to allocate multiple signals to a module atomically
+    - @ref qore_release_signal() to release a signal allocation manually
+    - @ref qore_release_signals() to release multiple signal allocations manually
+ */
+DLLEXPORT QoreStringNode* qore_reassign_signal(int sig, const char* name, bool reuse_sys);
+
 //! allows a module to take over ownership of multiple signals atomically
 /** @param sig_vec a vector of signal numbers to allocate to the module
     @param name module name taking ownership of managing the signal
 
-    @return nullptr for OK (all signals were allocated to the module), non-zero for failed (error message; no signals were allocated); in case a QoreStringNode pointer is returned, the caller must dereference it
+    @return nullptr for OK (all signals were allocated to the module), non-zero for failed (error message; no signals
+    were allocated); in case a QoreStringNode pointer is returned, the caller must dereference it
 
-    @note if any signal cannot be allocated to the module, no signals are allocated to the module; the call either succeeds for all or fails for all; no partial failures are possible; use this variant when allocating multiple signals to a module
+    @note
+    - if any signal cannot be allocated to the module, no signals are allocated to the module; the call either
+      succeeds for all or fails for all; no partial failures are possible; use this variant when allocating multiple
+      signals to a module
+    - this is equivalent to qore_reassign_signals(sig_vec, name, false)
 
     @see
     - @ref qore_reassign_signal() to allocate a single signal to a module
@@ -517,6 +561,28 @@ DLLEXPORT QoreStringNode* qore_reassign_signal(int sig, const char* name);
     @since %Qore 0.8.13.1
 */
 DLLEXPORT QoreStringNode* qore_reassign_signals(const sig_vec_t& sig_vec, const char* name);
+
+//! allows a module to take over ownership of multiple signals atomically
+/** @param sig_vec a vector of signal numbers to allocate to the module
+    @param name module name taking ownership of managing the signal
+    @param reuse_sys do not fail if signals are allocated to the system already; in this case a failuse will only
+    happen when %Qore code has a signal handler assigned
+
+    @return nullptr for OK (all signals were allocated to the module), non-zero for failed (error message; no signals
+    were allocated); in case a QoreStringNode pointer is returned, the caller must dereference it
+
+    @note if any signal cannot be allocated to the module, no signals are allocated to the module; the call either
+    succeeds for all or fails for all; no partial failures are possible; use this variant when allocating multiple
+    signals to a module
+
+    @see
+    - @ref qore_reassign_signal() to allocate a single signal to a module
+    - @ref qore_release_signal() to release a signal allocation manually
+    - @ref qore_release_signals() to release multiple signal allocations manually
+
+    @since %Qore 1.19
+*/
+DLLEXPORT QoreStringNode* qore_reassign_signals(const sig_vec_t& sig_vec, const char* name, bool reuse_sys);
 
 //! releases the signal allocated to the given module
 /** @param sig the signal number allocated to the module
@@ -761,5 +827,10 @@ DLLEXPORT size_t q_thread_stack_remaining();
 /** @since %Qore 0.9.5
 */
 DLLEXPORT size_t q_thread_stack_used();
+
+//! Sets the thread stack limit on the primary thread
+/** @since %Qore 1.19
+*/
+DLLEXPORT void q_enforce_thread_size_on_primary_thread();
 
 #endif // _QORE_QORELIB_H

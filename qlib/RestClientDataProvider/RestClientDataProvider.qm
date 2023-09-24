@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.12.4
+%requires qore >= 1.18
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -38,7 +38,7 @@
 %requires FileLocationHandler
 
 module RestClientDataProvider {
-    version = "1.0.1";
+    version = "1.1";
     desc = "user module providing a data provider API for REST servers";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -75,6 +75,10 @@ module RestClientDataProvider {
     - @ref RestClientDataProvider::RestClientPutDataProvider "RestClientPutDataProvider"
 
     @section restclientdataprovider_relnotes Release Notes
+
+    @subsection restclientdataprovider_v1_1 RestClientDataProvider v1.1
+    - implemented the \c swagger_lax_parsing option to try to parse invalid Swagger schemas
+      (<a href="https://github.com/qorelanguage/qore/issues/4741">issue 4741</a>)
 
     @subsection restclientdataprovider_v1_0_1 RestClientDataProvider v1.0.1
     - added support for the \c pre_encoded_urls option

@@ -49,16 +49,16 @@ struct qore_ds_private {
 
     Datasource* ds;
 
-    bool in_transaction;
-    bool active_transaction;
-    bool isopen;
-    bool autocommit;
-    bool connection_aborted;
+    bool in_transaction = false;
+    bool active_transaction = false;
+    bool isopen = false;
+    bool autocommit = false;
+    bool connection_aborted = false;
     bool keep_lock = false;
 
     mutable DBIDriver* dsl;
-    const QoreEncoding* qorecharset;
-    void* private_data;               // driver private data per connection
+    const QoreEncoding* qorecharset = QCS_DEFAULT;
+    void* private_data = nullptr;               // driver private data per connection
 
     // for pending connection values
     std::string p_username,
@@ -66,7 +66,7 @@ struct qore_ds_private {
         p_dbname,
         p_db_encoding, // database-specific name for the encoding for the connection
         p_hostname;
-    int p_port;       // pending port number (0 = default port)
+    int p_port = 0;       // pending port number (0 = default port)
 
     // actual connection values set by init() before the datasource is opened
     std::string username,
@@ -74,48 +74,48 @@ struct qore_ds_private {
         db_encoding,   // database-specific name for the encoding for the connection
         dbname,
         hostname;
-    int port; // port number (0 = default port)
+    int port = 0; // port number (0 = default port)
 
     // options per connection
     QoreHashNode* opt;
     // DBI event queue
-    Queue* event_queue;
+    Queue* event_queue = nullptr;
     // DBI Event queue argument
     QoreValue event_arg;
 
     // interface for the parent class
     DatasourceStatementHelper* dsh;
 
-    DLLLOCAL qore_ds_private(Datasource* n_ds, DBIDriver* ndsl, DatasourceStatementHelper* dsh) : ds(n_ds), in_transaction(false), active_transaction(false), isopen(false), autocommit(false), connection_aborted(false), dsl(ndsl), qorecharset(QCS_DEFAULT), private_data(nullptr), p_port(0), port(0), opt(new QoreHashNode(autoTypeInfo)), event_queue(nullptr), dsh(dsh) {
+    DLLLOCAL qore_ds_private(Datasource* n_ds, DBIDriver* ndsl, DatasourceStatementHelper* dsh) : ds(n_ds),
+            dsl(ndsl), opt(new QoreHashNode(autoTypeInfo)), dsh(dsh) {
     }
 
     DLLLOCAL qore_ds_private(const qore_ds_private& old, Datasource* n_ds, DatasourceStatementHelper* dsh) :
-        ds(n_ds), in_transaction(false), active_transaction(false), isopen(false),
-        autocommit(old.autocommit), connection_aborted(false), dsl(old.dsl),
-        qorecharset(QCS_DEFAULT), private_data(0),
-        p_username(old.p_username), p_password(old.p_password),
-        p_dbname(old.p_dbname), p_db_encoding(old.p_db_encoding),
-        p_hostname(old.p_hostname), p_port(old.p_port),
-        port(0),
-        //opt(old.opt->copy()) {
-        opt(old.getCurrentOptionHash(true)),
-        event_queue(old.event_queue ? old.event_queue->queueRefSelf() : nullptr),
-        event_arg(old.event_arg.refSelf()),
-        dsh(dsh) {
+            ds(n_ds), autocommit(old.autocommit), dsl(old.dsl),
+            p_username(old.p_username), p_password(old.p_password),
+            p_dbname(old.p_dbname), p_db_encoding(old.p_db_encoding),
+            p_hostname(old.p_hostname), p_port(old.p_port),
+            //opt(old.opt->copy()) {
+            opt(old.getCurrentOptionHash(true)),
+            event_queue(old.event_queue ? old.event_queue->queueRefSelf() : nullptr),
+            event_arg(old.event_arg.refSelf()),
+            dsh(dsh) {
     }
 
     DLLLOCAL ~qore_ds_private() {
         assert(!private_data);
         assert(stmt_set.empty());
         ExceptionSink xsink;
-        if (opt)
+        if (opt) {
             opt->deref(&xsink);
+        }
         event_arg.discard(&xsink);
-        if (event_queue)
+        if (event_queue) {
             event_queue->deref(&xsink);
+        }
     }
 
-    DLLLOCAL void setPendingConnectionValues(const qore_ds_private *other) {
+    DLLLOCAL void setPendingConnectionValues(const qore_ds_private* other) {
         p_username    = other->p_username;
         p_password    = other->p_password;
         p_dbname      = other->p_dbname;

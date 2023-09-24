@@ -1,0 +1,107 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file JdbcOracleSqlUtil.qm Qore user module for working with Oracle SQL data
+
+/*  JdbcOracleSqlUtil.qm Copyright 2013 - 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 1.14
+
+# requires the SqlUtil module
+%requires(reexport) SqlUtil >= 1.9
+
+# requires the Util module
+%requires Util >= 1.0
+
+# the implementation is in OracleSqlUtilBase
+%requires OracleSqlUtilBase
+
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+module JdbcOracleSqlUtil {
+    version = "1.0";
+    desc = "user module for working with Oracle SQL data with the jdbc driver";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/*  Version History: see docs below
+*/
+
+/** @mainpage JdbcOracleSqlUtil Module
+
+    @tableofcontents
+
+    @section jdbcoraclesqlutilintro JdbcOracleSqlUtil Module Introduction
+
+    The %JdbcOracleSqlUtil module provides a high level API for working with Oracle database objects using the \c jdbc
+    driver.
+
+    Usually this module is loaded on demand from the SqlUtil module, however to use this module directly, use
+    \c "%requires JdbcOracleSqlUtil" in your code.
+
+    All the public symbols in the module are defined in the JdbcOracleSqlUtil namespace
+
+    @note This module requires the <a href="https://github.com/qorelanguage/module-jni">jni</a> binary module and the
+    PostgreSQL JDBC driver for communication with PostgreSQL databases
+
+    @see @ref pgsqlsqlutilbaseintro for implementation information about this module
+
+    @section ora_relnotes Release Notes
+
+    @subsection oracle15 JdbcOracleSqlUtil v1.0
+    - initial release
+*/
+
+#! the JdbcOracleSqlUtil namespace contains all the objects in the JdbcOracleSqlUtil module
+public namespace JdbcOracleSqlUtil {
+    #! returns an OracleTable object corresponding to the arguments
+    public JdbcOracleTable sub get_table(AbstractDatasource nds, string nname, *hash<auto> opts) {
+        return new JdbcOracleTable(nds, nname, opts);
+    }
+
+    #! returns an OracleDatabase object corresponding to the arguments
+    public OracleDatabase sub get_database(AbstractDatasource nds, *hash<auto> opts) {
+        return new OracleDatabase(nds, opts);
+    }
+
+    #! represents an Oracle table
+    /** this is the specialization of SqlUtil::AbstractTable
+    */
+    public class JdbcOracleTable inherits OracleTable {
+        constructor(AbstractDatasource nds, string nname, *hash<auto> opts) : OracleTable(nds, nname, opts) {
+        }
+
+        private introspectSystemViews() {
+%ifdef NO_ORACLE
+            throw "MISSING-ORACLE-DRIVER", "system catalogue/dictionary access requires oracle driver";
+%endif
+        }
+    }
+}

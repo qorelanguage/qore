@@ -111,17 +111,12 @@ public class Sap4HanaRestClient inherits RestClient::RestClient {
         const DefaultSendEncoding = "gzip";
 
         #! OAuth2 URI path
-        const OAuth2UriPath = "oauth2/apitoken/v1?grant_type=client_credentials";
+        const OAuth2TokenUriPath = "oauth2/apitoken/v1";
     }
 
     private:internal {
         # for access based on a simple API key
         string apikey;
-
-        # for OAuth2-based access
-        string client_id;
-        string client_secret;
-        string token;
     }
 
     #! creates the object with the given options (which include the mandatory \c apikey option for <a href="https://sap.com">SAP S/4Hana</a> server authentication)
@@ -132,41 +127,53 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
         @endcode
 
         @param opts valid options are:
-        - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is a boolean @ref True "True" or @ref False "False": indicating if the method requires a message body as well. Example:
+        - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to
+            create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value is
+            a boolean @ref True "True" or @ref False "False": indicating if the method requires a message body as
+            well. Example:
             @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
             @endcode
         - \c apikey: (required) the <a href="https://sap.com">SAP S/4Hana</a> api key for the target server
-        - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+        - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the
+          \c "send_encoding" option is not set) and the requested response encoding (note that the
+          @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
+          @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
         - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to \c "json"
-        - \c default_path: The default path to use for new connections if a path is not otherwise specified in the connection URL
+        - \c default_path: The default path to use for new connections if a path is not otherwise specified in the
+          connection URL
         - \c default_port: The default port number to connect to if none is given in the URL
         - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause a
             \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
             like any other response
-        - \c headers: an optional hash of headers to send with every request, these can also be overridden in request method calls
-        - \c http_version: Either '1.0' or '1.1' (default) for the claimed HTTP protocol version compliancy in outgoing message headers
+        - \c headers: an optional hash of headers to send with every request, these can also be overridden in request
+          method calls
+        - \c http_version: Either '1.0' or '1.1' (default) for the claimed HTTP protocol version compliancy in
+          outgoing message headers
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
         - \c proxy: The proxy URL for connecting through a proxy
         - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead of
-            processed
-        - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies (note that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
-        - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex: \c 30s)
-        @param do_not_connect if \c False (the default), then a connection will be immediately established to the remote server
+          processed
+        - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means to
+          use automatic encoding; if not present defaults to \c "gzip" content encoding on sent message bodies (note
+          that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
+          @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+        - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
+          \c 30s)
+        @param do_not_connect if \c False (the default), then a connection will be immediately established to the
+        remote server
 
         @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
-        @throw SAP4HANARESTCLIENT-ERROR missing or invalid required option for <a href="https://sap.com">SAP S/4Hana</a> REST authentication or communication
+        @throw SAP4HANARESTCLIENT-ERROR missing or invalid required option for
+        <a href="https://sap.com">SAP S/4Hana</a> REST authentication or communication
     */
-    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(Sap4HanaRestClient::getOptions(opts), do_not_connect) {
+    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(Sap4HanaRestClient::getOptions(opts), True) {
         # check for either the apikey or client id/secret options
-        if (opts.client_id && opts.client_secret) {
-            client_id = getString(opts, "client_id");
-            client_secret = getString(opts, "client_secret");
-        } else if (opts.apikey) {
+        if (opts.apikey) {
             apikey = getString(opts, "apikey");
-        } else {
-            error("missing either the \"apikey\" or both \"client_id\" and \"client_secret\" options");
+        } else if (!oauth2_client_id || !oauth2_client_secret) {
+            raiseError("missing either the \"apikey\" or both \"client_id\" and \"client_secret\" options");
         }
 
         # ensure that if json serialization is set, that we do not claim to understand XML responses (which SAP
@@ -177,51 +184,30 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
             delete headers.Accept;
         }
 
-        if (client_id && !do_not_connect) {
-            loginIntern();
+        if (!do_not_connect) {
+            if (!token && oauth2_grant_type) {
+                loginIntern();
+            } else {
+                connect();
+            }
         }
-    }
-
-    hash<auto> doRequest(string m, string path, auto body, *reference<hash> info, softbool decode_errors = True, *hash<auto> hdr) {
-        if (client_id && !token) {
-            loginIntern(\info);
-        }
-        return RestClient::doRequest(m, path, body, \info, decode_errors, hdr);
-    }
-
-    #! performs authentication and authorization with SAP using the OAuth2 authorization URL
-    private loginIntern(*reference<hash<auto>> info) {
-        setUserPassword(client_id, client_secret);
-        on_exit setUserPassword();
-
-        # clear connection path for login call
-        *string path = getConnectionPath();
-        on_exit setConnectionPath(path);
-        setConnectionPath();
-
-        # make the authorization call
-        hash<auto> h = RestClient::doRequest("POST", OAuth2UriPath, NOTHING, \info).body;
-
-        # set the token
-        token = h.access_token;
-        addDefaultHeaders({"Authorization": sprintf("%s %s", h.token_type, h.access_token)});
-        #printf("DEBUG: logged in with %y = %y\n", h.token_type, h.access_token);
     }
 
     #! gets a string option
     static string getString(hash<auto> opts, string key) {
         auto v = opts{key};
         if (!exists v || v == "") {
-            Sap4HanaRestClient::error("missing required option %y in option argument", key);
+            Sap4HanaRestClient::raiseError("missing required option %y in option argument", key);
         }
         if (v.typeCode() != NT_STRING) {
-            Sap4HanaRestClient::error("required option %y was passed as a %s (%y); expecting \"string\"", key, v.type(), v);
+            Sap4HanaRestClient::raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key,
+                v.type(), v);
         }
         return v;
     }
 
     #! throws an exception due to an error
-    static error(string fmt) {
+    static raiseError(string fmt, ...) {
         throw "SAP4HANARESTCLIENT-ERROR", vsprintf(fmt, argv);
     }
 
@@ -231,6 +217,13 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
         if (!opts.client_id || !opts.client_secret) {
             hdr = {
                 "ApiKey": opts.apikey,
+            };
+        } else {
+            opts += {
+                "oauth2_client_id": opts.client_id,
+                "oauth2_client_secret": opts.client_secret,
+                "oauth2_grant_type": opts.oauth2_grant_type ?? "client_credentials",
+                "oauth2_token_url": OAuth2TokenUriPath,
             };
         }
         hdr += opts.headers;
@@ -242,25 +235,14 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
 }
 
 #! class for <a href="https://sap.com">SAP S/4Hana</a> REST connections; returns @ref Sap4HanaRestClient::Sap4HanaRestClient objects
-/** supports the following options:
+/** In addition to all options supported by @ref RestClient::RestClientConnection "RestClientConnection", this
+    connection class supports the following options:
     - \c "apikey": (required if \c "client_id" and \c "client_secret" are not supplied) the
         <a href="https://sap.com">SAP S/4Hana</a> api key
-    - \c "client_id": (required if \c "apikey" is not supplied) the <a href="https://sap.com">SAP S/4Hana</a> OAuth2 client ID
-    - \c "client_secret": (required if \c "apikey" is not supplied) the <a href="https://sap.com">SAP S/4Hana</a> OAuth2 client secret
-    - \c "connect_timeout": connection timeout to use in milliseconds
-    - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the requested response encoding; for possible values, see @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-    - \c "data": see @ref RestClient::RestClient::DataSerializationOptions "DataSerializationOptions" for possible
-        values; the default is \c "json"
-    - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
-        \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-        like any other response
-    - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-    - \c "max_redirects": maximum redirects to support
-    - \c "proxy": proxy URL to use
-    - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
-        processed
-    - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent message bodies
-    - \c "timeout": transfer timeout to use in milliseconds
+    - \c "client_id": (required if \c "apikey" is not supplied) the <a href="https://sap.com">SAP S/4Hana</a> OAuth2
+      client ID
+    - \c "client_secret": (required if \c "apikey" is not supplied) the <a href="https://sap.com">SAP S/4Hana</a>
+      OAuth2 client secret
 
     @see @ref Sap4HanaRestClient::Sap4HanaRestClient::constructor() "Sap4HanaRestClient::constructor()" for more information on the above options
 */
@@ -274,18 +256,47 @@ public class Sap4HanaRestConnection inherits RestClient::RestConnection {
                     "type": "string",
                     "desc": "the SAP S/4 Hana API key",
                 },
-                "client_id": <ConnectionOptionInfo>{
-                    "type": "string",
-                    "desc": "the OAuth2 client ID",
+                "client_id": RestConnection::ConnectionScheme.options.oauth2_client_id,
+                "client_secret": RestConnection::ConnectionScheme.options.oauth2_client_secret,
+                "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url + <ConnectionOptionInfo>{
+                    "default_value": Sap4HanaRestClient::OAuth2TokenUriPath,
                 },
-                "client_secret": <ConnectionOptionInfo>{
-                    "type": "string",
-                    "desc": "the OAuth2 client secret",
-                    "sensitive": True,
+                "send_encoding": RestConnection::ConnectionScheme.options.send_encoding + <ConnectionOptionInfo>{
+                    "default_value": Sap4HanaRestClient::DefaultSendEncoding,
                 },
             },
             "required_options": "client_id,client_secret|apikey",
         };
+
+        #! options required to support the OAuth2 authorization code grant flow
+        const OAuth2AuthRequestOptions = (
+            "client_id",
+            "client_secret",
+            "oauth2_auth_url",
+            "oauth2_token_url",
+            "oauth2_redirect_url",
+        );
+
+        #! Maps SAP REST options to standard options
+        const OAuth2Options = {
+            "oauth2_auto_refresh": "oauth2_auto_refresh",
+            "oauth2_auth_args": "oauth2_auth_args",
+            "oauth2_auth_url": "oauth2_auth_url",
+            "client_id": "oauth2_client_id",
+            "client_secret": "oauth2_client_secret",
+            "oauth2_redirect_url": "oauth2_redirect_url",
+            "oauth2_refresh_token": "oauth2_refresh_token",
+            "oauth2_scopes": "oauth2_scopes",
+            "oauth2_token_url": "oauth2_token_url",
+            "password": "password",
+            "username": "username",
+        };
+
+        #! Maps standard option names to SAP REST option names
+        const OAuth2StandardToSapOptionMap = map {$1.value: $1.key}, OAuth2Options.pairIterator();
+
+        #! Different OAuth2 option map; standard name => our name
+        const OAuth2DifferentOptionMap = map {$1.value: $1.key}, OAuth2Options.pairIterator(), $1.key != $1.value;
     }
 
     #! creates the Sap4HanaRestConnection object
@@ -300,7 +311,7 @@ public class Sap4HanaRestConnection inherits RestClient::RestConnection {
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : RestConnection(name, description, url, attributes, options) {
+            : RestConnection(name, description, url, attributes, options) {
         real_opts = {
             "url": real_url,
         } + urlh.("username", "password") + self.opts;
@@ -311,6 +322,24 @@ public class Sap4HanaRestConnection inherits RestClient::RestConnection {
         return "sap4hanarests";
     }
 
+    #! Returns the OAuth2 option name for this connection
+    /** @since %SapRestClient 2.0
+    */
+    string getOAuth2OptionName(string opt) {
+        return OAuth2StandardToSapOptionMap{opt} ?? opt;
+    }
+
+    #! Returns OAuth2 options in a standard format
+    /** @since %SapRestClient 2.0
+    */
+    hash<auto> getOAuth2Options() {
+        hash<auto> rv;
+        foreach hash<auto> i in (OAuth2Options.pairIterator()) {
+            rv{i.value} = real_opts{i.key};
+        }
+        return rv;
+    }
+
     #! returns a @ref Sap4HanaRestClient::Sap4HanaRestClient object
     /** @param connect if @ref True "True", then the connection is returned already connected
         @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
@@ -318,7 +347,10 @@ public class Sap4HanaRestConnection inherits RestClient::RestConnection {
         @return a @ref Sap4HanaRestClient::Sap4HanaRestClient "Sap4HanaRestClient" object
     */
     private Sap4HanaRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new Sap4HanaRestClient(real_opts, !connect);
+        return new Sap4HanaRestClient(real_opts + {
+            "logger": logger,
+            "update_options": update_options,
+        }, !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

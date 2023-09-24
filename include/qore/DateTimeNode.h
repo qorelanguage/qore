@@ -324,26 +324,26 @@ DLLEXPORT extern DateTimeNode* OneDate;
     @see DateTimeNodeValueHelper
 */
 class DateTimeValueHelper {
-private:
-   const DateTime* dt;
-   bool del;
-
-   DLLLOCAL DateTimeValueHelper(const DateTimeValueHelper&); // not implemented
-   DLLLOCAL DateTimeValueHelper& operator=(const DateTimeValueHelper&); // not implemented
-   DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
-
 public:
-   //! gets the DateTime value and set the delete flag
-   DLLEXPORT DateTimeValueHelper(const AbstractQoreNode* n);
+    //! gets the DateTime value and set the delete flag
+    DLLEXPORT DateTimeValueHelper(const AbstractQoreNode* n);
 
-   //! gets the DateTime value and set the delete flag
-   DLLEXPORT DateTimeValueHelper(const QoreValue& n);
+    //! gets the DateTime value and set the delete flag
+    DLLEXPORT DateTimeValueHelper(const QoreValue& n);
 
-   //! deletes the DateTime value being managed if necessary
-   DLLEXPORT ~DateTimeValueHelper();
+    //! deletes the DateTime value being managed if necessary
+    DLLEXPORT ~DateTimeValueHelper();
 
-   DLLLOCAL const DateTime* operator->() { return dt; }
-   DLLLOCAL const DateTime* operator*() { return dt; }
+    DLLLOCAL const DateTime* operator->() { return dt; }
+    DLLLOCAL const DateTime* operator*() { return dt; }
+
+private:
+    const DateTime* dt;
+    bool del;
+
+    DLLLOCAL DateTimeValueHelper(const DateTimeValueHelper&) = delete;
+    DLLLOCAL DateTimeValueHelper& operator=(const DateTimeValueHelper&) = delete;
+    DLLLOCAL static void* operator new(size_t) = delete;
 };
 
 //! manages calls to AbstractQoreNode::getDateTimeRepresentation() when a DateTimeNode value is required
@@ -351,66 +351,66 @@ public:
     @see DateTimeNodeHelper
 */
 class DateTimeNodeValueHelper {
-private:
-   DateTimeNode* dt;
-   bool del;
-
-   DLLLOCAL DateTimeNodeValueHelper(const DateTimeNodeValueHelper&); // not implemented
-   DLLLOCAL DateTimeNodeValueHelper& operator=(const DateTimeNodeValueHelper&); // not implemented
-   DLLLOCAL void* operator new(size_t); // not implemented, make sure it is not new'ed
-
 public:
-   //! gets the DateTimeNode value and sets the temporary flag
-   DLLLOCAL DateTimeNodeValueHelper(const AbstractQoreNode* n) {
-      if (!n) {
-         dt = ZeroDate;
-         del = false;
-         return;
-      }
+    //! gets the DateTimeNode value and sets the temporary flag
+    DLLLOCAL DateTimeNodeValueHelper(const AbstractQoreNode* n) {
+        if (!n) {
+            dt = ZeroDate;
+            del = false;
+            return;
+        }
 
-      // optmization without virtual function call for most common case
-      if (n->getType() == NT_DATE) {
-         dt = const_cast<DateTimeNode*>(reinterpret_cast<const DateTimeNode*>(n));
-         del = false;
-         return;
-      }
+        // optmization without virtual function call for most common case
+        if (n->getType() == NT_DATE) {
+            dt = const_cast<DateTimeNode*>(reinterpret_cast<const DateTimeNode*>(n));
+            del = false;
+            return;
+        }
 
-      dt = new DateTimeNode;
-      n->getDateTimeRepresentation(*dt);
-      del = true;
-   }
+        dt = new DateTimeNode;
+        n->getDateTimeRepresentation(*dt);
+        del = true;
+    }
 
-   //! gets the DateTimeNode value and sets the temporary flag
-   /** this variant throws a Qore-language exception if the input is invalid
+    //! gets the DateTimeNode value and sets the temporary flag
+    /** this variant throws a Qore-language exception if the input is invalid
 
-       @since %Qore 0.8.12.4
+        @since %Qore 0.8.12.4
     */
-   DLLLOCAL DateTimeNodeValueHelper(const AbstractQoreNode* n, ExceptionSink* xsink);
+    DLLLOCAL DateTimeNodeValueHelper(const AbstractQoreNode* n, ExceptionSink* xsink);
 
-   //! gets the DateTime value and set the delete flag
-   DLLEXPORT DateTimeNodeValueHelper(const QoreValue& n);
+    //! gets the DateTime value and set the delete flag
+    DLLEXPORT DateTimeNodeValueHelper(const QoreValue& n);
 
-   //! dereferences the DateTimeNode value if necessary
-   DLLLOCAL ~DateTimeNodeValueHelper() {
-      if (dt && del)
-         dt->deref();
-   }
+    //! dereferences the DateTimeNode value if necessary
+    DLLLOCAL ~DateTimeNodeValueHelper() {
+        if (dt && del)
+            dt->deref();
+    }
 
-   DLLLOCAL const DateTimeNode* operator->() { return dt; }
-   DLLLOCAL const DateTimeNode* operator*() { return dt; }
+    DLLLOCAL const DateTimeNode* operator->() { return dt; }
+    DLLLOCAL const DateTimeNode* operator*() { return dt; }
 
-   //! returns a referenced value - the caller will own the reference
-   /**
-      The value is referenced if necessary (if it was a temporary value)
-      @return the DateTimeNode value, where the caller will own the reference count
-   */
-   DLLLOCAL DateTimeNode* getReferencedValue() {
-      if (del)
-         del = false;
-      else if (dt)
-         dt->ref();
-      return dt;
-   }
+    //! returns a referenced value - the caller will own the reference
+    /**
+        The value is referenced if necessary (if it was a temporary value)
+        @return the DateTimeNode value, where the caller will own the reference count
+    */
+    DLLLOCAL DateTimeNode* getReferencedValue() {
+        if (del)
+            del = false;
+        else if (dt)
+            dt->ref();
+        return dt;
+    }
+
+private:
+    DateTimeNode* dt;
+    bool del;
+
+    DLLLOCAL DateTimeNodeValueHelper(const DateTimeNodeValueHelper&) = delete;
+    DLLLOCAL DateTimeNodeValueHelper& operator=(const DateTimeNodeValueHelper&) = delete;
+    DLLLOCAL static void* operator new(size_t) = delete;
 };
 
 #endif

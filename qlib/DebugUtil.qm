@@ -118,7 +118,8 @@ public namespace DebugUtil {
             }
             @endcode
         **/
-        public split(list<string> args, reference<list<string>> wrp_args, reference<*string> pgm_name, reference<list<string>> pgm_args) {
+        public split(list<string> args, reference<list<string>> wrp_args, reference<*string> pgm_name,
+                reference<list<string>> pgm_args) {
             pgm_name = NOTHING;
             wrp_args = new list<string>();
             pgm_args = new list<string>();
@@ -171,7 +172,7 @@ public namespace DebugUtil {
           @param verbosity use DPC_xxx constants
           @param fmt @ref Qore::sprintf() format
         */
-        public log(int verbosity, string fmt) {
+        public log(int verbosity, string fmt, ...) {
             log2(verbosity, fmt, argv);
         }
 
@@ -181,7 +182,7 @@ public namespace DebugUtil {
           @param fmt @ref Qore::sprintf() format
           @param args arguments to format
         */
-        public log2(int verbosity, string fmt, *list args) {
+        public log2(int verbosity, string fmt, *list<auto> args) {
             if (verbose < verbosity) {
                 # note: \r\n is necessary for clients using linenoise even on UNIX/Linux
                 stdout.vprintf(fmt+"\r\n", args);
@@ -202,7 +203,7 @@ public namespace DebugUtil {
             const policyStrings = ('none': BreakpointPolicyNone, 'accept': BreakpointPolicyAccept, 'reject': BreakpointPolicyReject);
         }
 
-        public log(int verbosity, string fmt) {
+        public log(int verbosity, string fmt, ...) {
             if (logger) {
                 logger.log2(verbosity, fmt, argv);
             }

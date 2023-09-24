@@ -82,21 +82,24 @@ int QoreMinusEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext&
 
 QoreValue QoreMinusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder new_right(right, xsink);
-    if (*xsink)
+    if (*xsink) {
         return QoreValue();
+    }
 
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper v(left, xsink);
-    if (!v)
+    if (!v) {
         return QoreValue();
+    }
 
-    if (new_right->isNothing())
+    if (new_right->isNothing()) {
         return needs_deref ? v.getReferencedValue() : QoreValue();
+    }
 
     // do float minus-equals if left side is a float
     qore_type_t vtype = v.getType();
 
-    //printd(5, "QoreMinusEqualsOperatorNode::evalImpl() vtype: %d rtype: %d\n", vtype, new_right->getType());
+    printd(5, "QoreMinusEqualsOperatorNode::evalImpl() vtype: %d rtype: %d\n", vtype, new_right->getType());
 
     if (vtype == NT_NOTHING) {
         // see if the lvalue has a default type
@@ -105,33 +108,38 @@ QoreValue QoreMinusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink
             if (v.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
                 return QoreValue();
             vtype = v.getType();
-        }
-        else {
+        } else {
             if (new_right->getType() == NT_FLOAT) {
                 v.assign(-new_right->getAsFloat());
             } else if (new_right->getType() == NT_NUMBER) {
                 const QoreNumberNode* num = reinterpret_cast<const QoreNumberNode*>(new_right->getInternalNode());
                 v.assign(num->negate());
-            } else
+            } else {
                 v.assign(-new_right->getAsBigInt());
+            }
 
-            if (*xsink)
+            if (*xsink) {
                 return QoreValue();
+            }
 
             // v has been assigned to a value by this point
             return ref_rv ? v.getReferencedValue() : QoreValue();
         }
     }
 
-    if (vtype == NT_FLOAT)
+    if (vtype == NT_FLOAT) {
         return v.minusEqualsFloat(new_right->getAsFloat());
-    else if (vtype == NT_NUMBER) {
+    } else if (vtype == NT_NUMBER) {
         v.minusEqualsNumber(*new_right, "<-= operator>");
     } else if (vtype == NT_DATE) {
-        // get a relative date-time value
-        DateTime date(*new_right);
-        //DateTimeValueHelper date(*new_right);
-        v.assign(v.getValue().get<DateTimeNode>()->subtractBy(date));
+        if (new_right->getType() == NT_DATE) {
+            v.assign(v.getValue().get<DateTimeNode>()->subtractBy(*new_right->get<DateTimeNode>()));
+        } else {
+            // get a relative date-time value
+            DateTime date(*new_right);
+            //DateTimeValueHelper date(*new_right);
+            v.assign(v.getValue().get<DateTimeNode>()->subtractBy(date));
+        }
     } else if (vtype == NT_HASH) {
         if (new_right->getType() != NT_HASH && new_right->getType() != NT_OBJECT) {
             v.ensureUnique();

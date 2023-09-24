@@ -57,16 +57,21 @@ public:
     }
 
     DLLLOCAL void reset() {
-        if (protocol)
+        if (protocol) {
             protocol->deref();
-        if (path)
+        }
+        if (path) {
             path->deref();
-        if (username)
+        }
+        if (username) {
             username->deref();
-        if (password)
+        }
+        if (password) {
             password->deref();
-        if (host)
+        }
+        if (host) {
             host->deref();
+        }
     }
 
     DLLLOCAL int parse(const char* url, int options = 0, ExceptionSink* xsink = nullptr) {
@@ -117,11 +122,11 @@ private:
     DLLLOCAL void invalidate() {
         if (host) {
             host->deref();
-            host = 0;
+            host = nullptr;
         }
         if (path) {
             path->deref();
-            path = 0;
+            path = nullptr;
         }
     }
 
@@ -177,8 +182,15 @@ private:
             return;
         }
 
-        // find end of hostname
-        size_t path_start = sbuf.find_last_of(":@");
+        // find end of hostname; look for username and password separator characters first
+        size_t path_start = sbuf.rfind('@');
+        if (path_start != std::string::npos) {
+            size_t sep = sbuf.find(':');
+            // ignore if there is no ':' character before
+            if (sep == std::string::npos || sep > path_start) {
+                path_start = 0;
+            }
+        }
         if (path_start == std::string::npos) {
             path_start = 0;
         }

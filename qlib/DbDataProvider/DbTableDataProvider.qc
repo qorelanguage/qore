@@ -228,11 +228,8 @@ public class DbTableDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object
-    constructor(AbstractTable table, *Logger logger) {
+    constructor(AbstractTable table, *LoggerInterface logger) : AbstractDataProvider(logger) {
         self.table = table;
-        if (logger) {
-            self.logger = logger;
-        }
     }
 
     #! Creates the object from constructor options
@@ -614,17 +611,12 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             # execute alignment
             string sql;
             on_error {
-                if (logger) {
-                    logger.error("DbTableDataProvider %y DDL: %s: %s: SQL: %s", table.getName(), $1.err, $1.desc,
-                        sql);
-                }
+                error("DbTableDataProvider %y DDL: %s: %s: SQL: %s", table.getName(), $1.err, $1.desc, sql);
             }
             map ds.execRaw(sql = $1), sqll;
             table.clear();
         }
-        if (logger) {
-            logger.info("DbTableDataProvider %y DDL: %s", table.getName(), (foldl $1 + "\n" + $2, sqll));
-        }
+        info("DbTableDataProvider %y DDL: %s", table.getName(), (foldl $1 + "\n" + $2, sqll));
     }
 }
 }

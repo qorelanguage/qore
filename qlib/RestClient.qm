@@ -37,9 +37,10 @@
 %enable-all-warnings
 
 %requires Mime >= 1.3
-%requires(reexport) ConnectionProvider >= 1.4
+%requires(reexport) ConnectionProvider >= 1.10
 %requires(reexport) RestSchemaValidator >= 1.0
 %requires Swagger >= 2.0
+%requires(reexport) Logger
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -54,7 +55,7 @@
 %endtry
 
 module RestClient {
-    version = "1.9.2";
+    version = "2.1";
     desc = "user module for calling REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -89,23 +90,27 @@ module RestClient {
 
     The main classes are:
     - @ref RestClient::RestClient "RestClient": this class provides the REST client API
-    - @ref RestClient::RestConnection "RestConnection": provides a connection object to a REST server (based on the @ref connectionproviderintro "ConnectionProvider" module)
+    - @ref RestClient::RestConnection "RestConnection": provides a connection object to a REST server (based on the
+      @ref connectionproviderintro "ConnectionProvider" module)
 
     The @ref RestClient::RestClient "RestClient" class can support the following methods of data serialization:
     - \c "json": using the \c "json" module; messages bodies are encoded using JSON
     - \c "rawxml": using the \c "xml" module; message bodies are encoded with XML without any data type encodings
-    - \c "url": message bodies are encoded in URL form encoded format (see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>)
+    - \c "url": message bodies are encoded in URL form encoded format (see
+      <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>)
     - \c "xml": using the \c "xml" module; message bodies are encoded using XML-RPC value encoding
     - \c "yaml": using the \c "yaml" module; message bodies are encoded using YAML
     - \c "text": message bodies are not serialized, plain text value is used
     - \c "bin": message bodies are not serialized, binary data is used instead
 
-    If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to initialize.
+    If none of the above modules can be loaded by the RestClient module, then the RestClient module will fail to
+    initialize.
 
-    Runtime REST API validation against a REST schema is supported; see the \c validator and \c swagger options in @ref RestClient::RestClient::constructor() "RestClient::constructor()".
+    Runtime REST API validation against a REST schema is supported; see the \c validator and \c swagger options in
+    @ref RestClient::RestClient::constructor() "RestClient::constructor()".
 
-    For maximum compatibility with other REST solutions, the \c "json" encoding method is the default when no other encoding method
-    is chosen and the \c "json" module is available.
+    For maximum compatibility with other REST solutions, the \c "json" encoding method is the default when no other
+    encoding method is chosen and the \c "json" module is available.
 
     @par Example:
     @code{.py}
@@ -113,7 +118,7 @@ module RestClient {
 
 %requires RestClient
 
-RestClient rest(("url": "http://localhost:8001/rest"));
+RestClient rest({"url": "http://localhost:8001/rest"});
 hash<auto> ans = rest.get("orders/1?option=full");
 printf("%N\n", ans.body);
     @endcode
@@ -126,6 +131,30 @@ printf("%N\n", ans.body);
     could lead to compatibility problems; see @ref httpclient_get_with_body for more information
 
     @section restclientrelnotes Release Notes
+
+    @subsection restclientv2_1 RestClient v2.1
+    - added @ref RestClient::RestClient::setOAuth2Options() "RestClient::setOAuth2Options()"
+    - do not try to get another OAuth2 token if the token was just retrieved
+      (<a href="https://github.com/qorelanguage/qore/issues/4796">issue 4796</a>)
+
+    @subsection restclientv2_0 RestClient v2.0
+    - implemented support for OAuth2 authorization flows
+      (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
+    - fixed handling polling pings of REST connections to respect the connection parameters and behave like the
+      non-polling ping
+      (<a href="https://github.com/qorelanguage/qore/issues/4764">issue 4764</a>)
+
+    @subsection restclientv1_10_1 RestClient v1.10.1
+    - fixed URI path reporting in REST error messages
+      (<a href="https://github.com/qorelanguage/qore/issues/4760">issue 4760</a>)
+
+    @subsection restclientv1_10 RestClient v1.10
+    - implemented the \c swagger_lax_parsing option to try to parse invalid Swagger schemas
+      (<a href="https://github.com/qorelanguage/qore/issues/4741">issue 4741</a>)
+
+    @subsection restclientv1_9_3 RestClient v1.9.3
+    - allow connection options designating files to be selected as files
+      (<a href="https://github.com/qorelanguage/qore/issues/4725">issue 4725</a>)
 
     @subsection restclientv1_9_2 RestClient v1.9.2
     - support full ping operations, also with polling, using an authenticated request
@@ -189,7 +218,8 @@ printf("%N\n", ans.body);
       call (<a href="https://github.com/qorelanguage/qore/issues/2628">issue 2628</a>)
 
     @subsection restclientv1_4_2 RestClient v1.4.2
-    - fixed a bug handling default options including timeouts in REST connections in @ref RestClient::RestConnection "RestConnection"
+    - fixed a bug handling default options including timeouts in REST connections in
+      @ref RestClient::RestConnection "RestConnection"
       (<a href="https://github.com/qorelanguage/qore/issues/3321">issue 3321</a>)
 
     @subsection restclientv1_4_1 RestClient v1.4.1
@@ -198,15 +228,21 @@ printf("%N\n", ans.body);
 
     @subsection restclientv1_4 RestClient v1.4
     - added support for the \c text/plain Content-Type
-    - added the @ref RestClient::RestConnection "RestConnection" class to support the <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
+    - added the @ref RestClient::RestConnection "RestConnection" class to support the
+      <a href="../../ConnectionProvider/html/index.html">ConnectionProvider</a> module
     - updated for complex types
-    - added support for REST API validation with a REST schema through the @ref restschemavalidatorintro "RestSchemaValidator" module and the @ref swaggerintro "Swagger" module
+    - added support for REST API validation with a REST schema through the
+      @ref restschemavalidatorintro "RestSchemaValidator" module and the @ref swaggerintro "Swagger" module
     - added default support for the HTTP \c "PATCH" method
 
     @subsection restclientv1_3_1 RestClient v1.3.1
-    - added support for the \c "url" encoding for URL form encoded message bodies (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
-    - added support for the \c "rawxml" data type; when parsing XML responses, if the XML cannot be parsed as XML-RPC data, then it's attempted to be parsed as untyped XML data (<a href="https://github.com/qorelanguage/qore/issues/1437">issue 1437</a>)
-    - fixed a bug where an empty chunked response would cause a spurious exception to be thrown (<a href="https://github.com/qorelanguage/qore/issues/1448">issue 1448</a>)
+    - added support for the \c "url" encoding for URL form encoded message bodies
+      (<a href="https://github.com/qorelanguage/qore/issues/1436">issue 1436</a>)
+    - added support for the \c "rawxml" data type; when parsing XML responses, if the XML cannot be parsed as XML-RPC
+      data, then it's attempted to be parsed as untyped XML data
+      (<a href="https://github.com/qorelanguage/qore/issues/1437">issue 1437</a>)
+    - fixed a bug where an empty chunked response would cause a spurious exception to be thrown
+      (<a href="https://github.com/qorelanguage/qore/issues/1448">issue 1448</a>)
 
     @subsection restclientv1_3 RestClient v1.3
     - added:
@@ -216,8 +252,10 @@ printf("%N\n", ans.body);
       - @ref RestClient::RestClient::setContentEncoding() "RestClient::setContentEncoding()"
     - implemented the \c "content_encoding" option for the RestClient constructor
     - made \c "gzip" the default content encoding
-    - added a compression threshold giving a minimum size for for applying content encoding on message bodies; small messages will be sent uncompressed
-    - when possible, REST bodies are decoded and stored in the \a info output argument when the HTTP server returns a status code < 100 or >= 300 to allow for error-handling in the client
+    - added a compression threshold giving a minimum size for for applying content encoding on message bodies; small
+      messages will be sent uncompressed
+    - when possible, REST bodies are decoded and stored in the \a info output argument when the HTTP server returns a
+      status code < 100 or >= 300 to allow for error-handling in the client
     - fixed issues where multiple leading \c "/" chars were sometimes present in the request URI path
     - doc updates
     @subsection restclientv1_2 RestClient v1.2
@@ -237,8 +275,25 @@ printf("%N\n", ans.body);
 
 #! the RestClient namespace contains all the objects in the RestClient module
 public namespace RestClient {
+#! Hash to use for generating authorization code requests
+/** @since RestClient 2.0
+*/
+public hashdecl AuthCodeInfo {
+    #! The response type value to use in the request
+    string response_type = "code";
+
+    #! To override the redirect_uri; if not set, the \c oauth2_redirect_url option will be used instead
+    *string redirect_uri;
+
+    #! Scopes to use in the request; if not set, the \c oauth2_scopes option will be used instead
+    *list<string> scopes;
+
+    #! The state value to use in the request
+    *string state;
+}
+
 #! this class provides the REST client API
-public class RestClient inherits Qore::HTTPClient {
+public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, ConnectionProvider::UpdateOptionsInterface {
     public {
         #! Data serialization support mapping codes to MIME types and de/serialization functions
         const DataSerializationSupport = {
@@ -306,7 +361,7 @@ public class RestClient inherits Qore::HTTPClient {
         const AcceptMap = map {$1: True}, AcceptList;
 
         #! RestClient Version
-        const Version = "1.7";
+        const Version = "2.0";
 
         #! RestClient Version String
         const VersionString = sprintf("Qore-RestClient/%s", RestClient::Version);
@@ -315,6 +370,14 @@ public class RestClient inherits Qore::HTTPClient {
         const DefaultHeaders = {
             "Accept": Accept,
             "User-Agent": RestClient::VersionString,
+        };
+
+        #! Default oauth2_redirect_url option value
+        const DefaultOAuth2RedirectUrl = "auto";
+
+        #! Default option values
+        const DefaultOptions = {
+            "oauth2_redirect_url": DefaultOAuth2RedirectUrl,
         };
 
         #! Data serialization options; this is a hash to simulate a set of strings
@@ -372,6 +435,39 @@ public class RestClient inherits Qore::HTTPClient {
 
         #! default threadhold for data compressions; transfers smaller than this size will not be compressed
         const CompressionThreshold = 1024;
+
+        #! Option requirements per OAuth2 grant type
+        /** @note the \c authorization_code grant type cannot be handled automatically
+        */
+        const OAuth2GrantOptions = {
+            "authorization_code": (
+                "oauth2_auth_url",
+                "oauth2_client_id",
+                "oauth2_client_secret",
+                "oauth2_redirect_url",
+                "oauth2_token_url",
+            ),
+            "client_credentials": (
+                "oauth2_client_id",
+                "oauth2_client_secret",
+                "oauth2_token_url",
+            ),
+            "password": (
+                "oauth2_client_id",
+                "oauth2_client_secret",
+                "oauth2_token_url",
+            ),
+        };
+
+        #! Headers to send when making an authorization / token request
+        const OAuth2AuthHeaders = {
+            # this will ensure that OAuth2 servers do not prefer XML or other serialization with a different data
+            # format (ex: the Salesforce OAuth2 server)
+            "Accept": MimeTypeFormUrlEncoded + "," + MimeTypeJson,
+        };
+
+        #! Minimum time between OAuth2 token requests
+        const MinimumTokenRefresh = 1m;
     }
 
     private {
@@ -387,6 +483,38 @@ public class RestClient inherits Qore::HTTPClient {
         RestSchemaValidator::AbstractRestSchemaValidator validator;
         # no_charset option
         *bool noCharset;
+
+        #! username for authentication
+        string username;
+        #! password for authentication
+        string password;
+
+        #! OAuth2 grant type
+        string oauth2_grant_type;
+        #! OAuth2 client ID
+        string oauth2_client_id;
+        #! OAuth2 client secret
+        string oauth2_client_secret;
+        #! OAuth2 scope
+        *softlist<string> oauth2_scopes;
+        #! OAuth2 extra args
+        *hash<auto> oauth2_auth_args;
+        #! OAuth2 auth URL
+        string oauth2_auth_url;
+        #! OAuth2 redirect URL
+        string oauth2_redirect_url;
+        #! OAuth2 token URL
+        string oauth2_token_url;
+        #! The token type, if any
+        string token_type;
+        #! Any token set for the connection; will be passed as a bearer token (Authorization: Bearer ...)
+        string token;
+        #! Any refresh token granted to the client
+        string refresh_token;
+        #! If OAuth2 tokens should be automatically refreshed
+        bool oauth2_auto_refresh = True;
+        #! Last timestamp for token acquisition
+        date token_timestamp;
     }
 
     #! calls the base class HTTPClient constructor and optionally connects to the REST server
@@ -397,50 +525,87 @@ RestClient rest({"url": "http://localhost:8001/rest"});
 
         @param opts valid options are:
         - \c additional_methods: Optional hash with more but not-HTTP-standardized methods to handle. It allows to
-            create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value
-            is a boolean @ref True "True" or @ref False "False": indicating if the method can accept a message body
-            as well. Example:
-            @code{.py}
+          create various HTTP extensions like e.g. WebDAV. The hash takes the method name as a key, and the value
+          is a boolean @ref True "True" or @ref False "False": indicating if the method can accept a message body
+          as well. Example:
+          @code{.py}
 # add new HTTP methods for WebDAV. Both of them require body posting to the server
 ("additional_methods": ("PROPFIND": True, "MKCOL": True ));
-            @endcode
+          @endcode
         - \c connect_timeout: The timeout value in milliseconds for establishing a new socket connection (also can
-            be a relative date-time value for clarity, ex: \c 20s)
+          be a relative date-time value for clarity, ex: \c 20s)
         - \c content_encoding: for possible values, see @ref EncodingSupport; this sets the send encoding (if the
-            \c "send_encoding" option is not set) and the requested response encoding (note that the
-            @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
-            @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+          \c "send_encoding" option is not set) and the requested response encoding (note that the
+          @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
+          @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
         - \c data: a @ref DataSerializationOptions "data serialization option"; if not present defaults to
-            \c "auto"
+          \c "auto"
         - \c default_path: The default path to use for new connections if a path is not otherwise specified in the
-            connection URL
+          connection URL
         - \c default_port: The default port number to connect to if none is given in the URL
         - \c error_passthru: if @ref True "True" then HTTP status codes indicating errors will not cause a
-            \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the
-            caller like any other response
+          \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the
+          caller like any other response
         - \c headers: an optional hash of headers to send with every request, these can also be overridden in
-            request method calls
+          request method calls
         - \c http_version: Either '1.0' or '1.1' for the claimed HTTP protocol version compliancy in outgoing
-            message headers
+          message headers
+        - \c logger: any logger to use for the object
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+        - \c oauth2_auto_refresh: If OAuth2 tokens should be automatically refreshed
+          (default \c True)
+        - \c oauth2_auth_args: Extra arguments for OAuth2 authentication requests to \c oauth2_auth_url for the
+          \c authentication_code grant type.  Note that the \c authorization_code grant type requires external user
+          authorization to acquire an access token
+        - \c oauth2_auth_url: The OAuth2 authorization URL for the \c authorization_code grant type; ignored if the
+          \c token option is set.  Note that the \c authorization_code grant type requires external user authorization
+          to acquire an access token
+        - \c oauth2_client_id: The OAuth2 client ID; ignored if the \c token option is set
+        - \c oauth2_client_secret: the OAuth2 client secret; ignored if the \c token option is set
+        - \c oauth2_grant_type: the OAuth2 grant type; ignored if the \c token option is set; possible values:
+          - \c authorization_code: requires \c oauth2_client_id, \c oauth2_client_secret, \c oauth2_auth_url, as well
+            as \c oauth2_token_url; note that this grant type cannot be handled automatically but rather must be
+            handled by external code that redirects the user to the authentication server and then updates the
+            connection with token information retrieved
+          - \c client_credentials: requires \c oauth2_client_id, \c oauth2_client_secret, as well as
+            \c oauth2_token_url
+          - \c password: requires a username, password, \c oauth2_client_id, \c oauth2_client_secret, as well as
+            \c oauth2_token_url
+        - \c oauth2_redirect_url: The OAuth2 redirect URL for the \c authorization_code grant type; ignored if the
+          \c token option is set.  Note that the \c authorization_code grant type requires external user authorization
+          to acquire an access token; the special value \c "auto" (the default) is meant to be interpreted by servers
+          that implement OAuth2 authorization code client handling
+        - \c oauth2_refresh_token: An OAuth2 refresh token (complements option \c token)
+        - \c oauth2_scopes: A list of OAuth2 scopes to request; ignored if the \c token option is set
+        - \c oauth2_token_url: The token URL OAuth2 flows; ignored if the \c token option is set
+        - \c password: The password for authentication; only used if no username or password is set in the URL and if
+          the \c username option is also used
         - \c proxy: The proxy URL for connecting through a proxy
         - \c redirect_passthru: if @ref True "True" then redirect responses will be passed to the caller instead
-            of processed
+          of processed
         - \c send_encoding: a @ref EncodingSupport "send data encoding option" or the value \c "auto" which means
-            to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note
-            that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
-            @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
+          to use automatic encoding; if not present defaults to no content-encoding on sent message bodies (note
+          that the @ref RestClient::RestClient "RestClient" class will only compress outgoing message bodies over
+          @ref RestClient::RestClient::CompressionThreshold "CompressionThreshold" bytes in size)
         - \c swagger: the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for API
-            validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
+          validation; only used if \a validator not provided (see the @ref swaggerintro "Swagger" module)
         - \c swagger_base_path: in case a REST validator is used, the base path in the schema can be overridden
           with this option (applies to any REST validator; not just Swagger validators)
         - \c timeout: The timeout value in milliseconds (also can be a relative date-time value for clarity, ex:
-            \c 30s)
+          \c 30s)
+        - \c token: Any bearer token to use for the connection; will be passed as <tt>Authorization: Bearer ...</tt>
+          in request headers; conflicts with username and password options or authentication credentials in the URL;
+          if this option is set then any OAuth2 options are ignored
+        - \c token_type: The type of token to use for the \c Authentication header; ignored if no \c token option is
+          set
+        - \c update_options: Any update token code to use for the object; @see update_options for more information
         - \c url: A string giving the URL to connect to; if not given then the target URL will be taken from any
-            \c validator option, if given by calling
-            @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
+          \c validator option, if given by calling
+          @ref RestSchemaValidator::AbstractRestSchemaValidator::getTargetUrl() "AbstractRestSchemaValidator::getTargetUrl()"
+        - \c username: The username for authentication; only used if no username or password is set in the URL and
+          if the \c password option is also used
         - \c validator: an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
-            object to validate request and response messages; overrides \a swagger
+          object to validate request and response messages; overrides \a swagger
         - \c no_charset: if True no charset will be added to the Content-Type header
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server
@@ -451,19 +616,28 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         - %RestClient 1.2 the \a send_encoding option was added
         - %RestClient 1.4 the \a validator and \a swagger options were added
     */
-    constructor(*hash<auto> opts, *softbool do_not_connect) : HTTPClient(opts + ((opts.url || !opts.validator)
-            ? NOTHING
-            : {"url": opts.validator.getTargetUrl()})) {
-        setSerialization(opts.data);
-        if (opts.send_encoding)
+    constructor(*hash<auto> opts, *softbool do_not_connect)
+            : HTTPClient(opts + ((opts.url || !opts.validator) ? NOTHING : {"url": opts.validator.getTargetUrl()})) {
+        # set logger, if any
+        self.logger = remove opts.logger;
+        # set update token code, if any
+        self.update_options = remove opts.update_options;
+
+        # apply default option values
+        opts = DefaultOptions + opts;
+
+        setSerialization(opts."data");
+        if (opts.send_encoding) {
             setSendEncoding(opts.send_encoding);
+        }
 
         if (opts.content_encoding) {
-            if (!opts.send_encoding)
+            if (!opts.send_encoding) {
                 setSendEncoding(opts.content_encoding);
-            else if (!EncodingSupport.(opts.content_encoding))
+            } else if (!EncodingSupport.(opts.content_encoding)) {
                 throw "RESTCLIENT-ERROR", sprintf("content encoding option %y is unknown; valid options: %y",
-                    opts.content_encoding, EncodingSupport.keys());
+                    opts.content_encoding, keys EncodingSupport);
+            }
             opts.headers."Accept-Encoding" = opts.content_encoding;
         }
 
@@ -474,7 +648,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         if (opts.validator) {
             if (!(opts.validator instanceof AbstractRestSchemaValidator))
                 throw "RESTCLIENT-ERROR", sprintf("validator object expected to be an instance of "
-                    "AbstractRestSchemaValidator; got %y instead", opts.validator.type());
+                    "AbstractRestSchemaValidator; got %y instead", opts.validator.fullType());
             validator = opts.validator;
             if (opts.swagger_base_path) {
                 validator.setBasePath(opts.swagger_base_path);
@@ -482,7 +656,8 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         } else {
             if (opts.swagger) {
                 # this will use FileLocationHandler::getTextFileFileLocation() that reads a file if there is no scheme
-                validator = SwaggerLoader::fromUrl(opts.swagger);
+                validator = SwaggerLoader::fromUrl(opts.swagger, NOTHING,
+                    opts.swagger_lax_parsing ? {"parse_flags": -1} : NOTHING);
                 if (opts.swagger_base_path) {
                     validator.setBasePath(opts.swagger_base_path);
                 }
@@ -496,11 +671,49 @@ RestClient rest({"url": "http://localhost:8001/rest"});
             clearConnectionPath();
         }
 
-        if (!do_not_connect)
-            connect();
+        if (exists opts.oauth2_refresh_token) {
+            refresh_token = opts.oauth2_refresh_token;
+        }
+        if (exists opts.oauth2_auto_refresh) {
+            oauth2_auto_refresh = parse_boolean(opts.oauth2_auto_refresh);
+        }
+        if (opts.oauth2_auth_args) {
+            if (opts.oauth2_auth_args.typeCode() != NT_HASH) {
+                throw "RESTCLIENT-ERROR", sprintf("option \"oauth2_auth_args\" expects a hash when set; got type %y "
+                    "instead", opts.oauth2_auth_args.fullType());
+            }
+            oauth2_auth_args = opts.oauth2_auth_args;
+        }
+        if (opts.oauth2_scopes) {
+            oauth2_scopes = opts.oauth2_scopes;
+        }
 
+        # setup headers before setupAuth()
         headers = DefaultHeaders + opts.headers;
         noCharset = opts.no_charset;
+
+        # setup authentication
+        setupAuth(opts);
+
+        if (!do_not_connect) {
+            if (oauth2_grant_type && !token) {
+                loginIntern();
+            } else {
+                connect();
+            }
+        }
+    }
+
+    #! Sets OAuth2 options
+    /** @param new_opts a hash of OAuth2 options for the object
+
+        @since RestClient 2.1
+    */
+    setOAuth2Options(hash<auto> new_opts) {
+        if (new_opts.username.val() && new_opts.password.val()) {
+            setUserPassword(new_opts.username, new_opts.password);
+        }
+        checkOAuth2Options(new_opts);
     }
 
     #! Clears the connection path when a validator is present that manages the URI path
@@ -520,7 +733,9 @@ rest.setSerialization("yaml");
 
         @throw RESTCLIENT-ERROR invalid or unsupported serialization option
 
-        @see @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+        @see
+        - @ref RestClient::RestClient::getSerialization() "RestClient::getSerialization()"
+        - @ref DataSerializationOptions for valid options
     */
     setSerialization(string data = "auto") {
         if (!DataSerializationOptions{data})
@@ -540,7 +755,7 @@ rest.setSerialization("yaml");
         ds = data;
     }
 
-    #! change the data content encoding (compression) option for the object; see @ref EncodingSupport for valid options
+    #! change the data content encoding (compression) option for the object
     /** @par Example:
         @code{.py}
 rest.setSendEncoding("gzip");
@@ -548,20 +763,24 @@ rest.setSendEncoding("gzip");
 
         The default is to send requests unencoded/uncompressed.
 
-        @param enc the data content encoding (compression) option for the object; see @ref EncodingSupport for valid options; if the value \c "auto" is passed then \c "gzip" encoding is used
+        @param enc the data content encoding (compression) option for the object; see @ref EncodingSupport for valid
+        options; if the value \c "auto" is passed then \c "gzip" encoding is used
 
         @throw RESTCLIENT-ERROR invalid or unsupported data content encoding / compression option
 
         @see
         - @ref RestClient::RestClient::setContentEncoding() "RestClient::setContentEncoding()"
         - @ref RestClient::RestClient::getSendEncoding() "RestClient::getSendEncoding()"
+        - @ref EncodingSupport for valid options
     */
     setSendEncoding(string enc = "auto") {
-        if (enc == "auto")
+        if (enc == "auto") {
             seh = EncodingSupport.firstValue();
-        else {
-            if (!EncodingSupport{enc})
-                throw "RESTCLIENT-ERROR", sprintf("send content encoding option %y is unknown; valid options: %y", enc, EncodingSupport.keys());
+        } else {
+            if (!EncodingSupport{enc}) {
+                throw "RESTCLIENT-ERROR", sprintf("send content encoding option %y is unknown; valid options: %y",
+                    enc, keys EncodingSupport);
+            }
             seh = EncodingSupport{enc};
         }
     }
@@ -572,7 +791,9 @@ rest.setSendEncoding("gzip");
 rest.setContentEncoding("gzip");
         @endcode
 
-        @param enc the data content encoding (compression) option for requests and the desired response content encoding for the object; see @ref EncodingSupport for valid options; if the value \c "auto" is passed then \c "gzip" encoding is used for outgoing requests and requested for responses
+        @param enc the data content encoding (compression) option for requests and the desired response content
+        encoding for the object; see @ref EncodingSupport for valid options; if the value \c "auto" is passed then
+        \c "gzip" encoding is used for outgoing requests and requested for responses
 
         @throw RESTCLIENT-ERROR invalid or unsupported data content encoding / compression option
 
@@ -583,15 +804,16 @@ rest.setContentEncoding("gzip");
         @since %RestClient 1.3
     */
     setContentEncoding(string enc = "auto") {
-        if (enc == "auto")
+        if (enc == "auto") {
             seh = EncodingSupport.firstValue();
-        else
+        } else {
             setSendEncoding(enc);
+        }
 
         headers."Accept-Encoding" = seh.ce ? seh.ce : "identity";
     }
 
-    #! adds default headers to each request; these headers will be sent in all requests but can be overridden in requests as well
+    #! adds default headers to each request
     /** @par Example:
         @code{.py}
 # disable gzip and bzip encoding in responses
@@ -601,6 +823,8 @@ rest.addDefaultHeaders({"Accept-Encoding": "compress"});
         @param h a hash of headers to add to the default headers to send on each request
 
         @note default headers can also be set in the constructor
+
+        Headers added here will be sent in all requests but can be overridden in requests as well.
 
         @see @ref RestClient::RestClient::getDefaultHeaders() "RestClient::getDefaultHeaders()"
 
@@ -628,17 +852,29 @@ hash<auto> h = rest.getDefaultHeaders();
         return headers;
     }
 
-    #! returns the current data content encoding (compression) object or @ref nothing if no encoding option is set; see @ref EncodingSupport for valid options
+    #! replaces default headers
+    /** @param hdr The headers to set; @ref DefaultHeaders will be added to this hash to set the default headers for
+        the object
+
+        @since %RestClient 2.0
+    */
+    replaceDefaultHeaders(*hash<auto> hdr) {
+        headers = DefaultHeaders + hdr;
+    }
+
+    #! returns the current data content encoding (compression) object or @ref nothing if no encoding option is set
     /** @par Example:
         @code{.py}
 *string ce = rest.getSendEncoding();
         @endcode
 
-        @return the current data content encoding (compression) object or @ref nothing if no encoding option is set; see @ref EncodingSupport for valid options
+        @return the current data content encoding (compression) object or @ref nothing if no encoding option is set;
+        see @ref EncodingSupport for valid options
 
         @see
         - @ref RestClient::RestClient::setContentEncoding() "RestClient::setContentEncoding()"
         - @ref RestClient::RestClient::setSendEncoding() "RestClient::setSendEncoding()"
+        - @ref EncodingSupport for valid options
 
         @since %RestClient 1.3
     */
@@ -646,15 +882,18 @@ hash<auto> h = rest.getDefaultHeaders();
         return seh.ce;
     }
 
-    #! returns the current data serialization format currently in effect for the object (see @ref DataSerializationOptions for possible values)
+    #! returns the current data serialization format currently in effect for the object
     /** @par Example:
         @code{.py}
 string ser = rest.getSerialization();
         @endcode
 
-        @return the current data serialization format currently in effect for the object (see @ref DataSerializationOptions for possible values)
+        @return the current data serialization format currently in effect for the object (see
+        @ref DataSerializationOptions for possible values)
 
-        @see @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        @see
+        - @ref RestClient::RestClient::setSerialization() "RestClient::setSerialization()"
+        - @ref DataSerializationOptions for possible values
     */
     string getSerialization() {
         return ds;
@@ -667,8 +906,13 @@ hash<auto> ans = rest.get("/orders/1?info=verbose");
         @endcode
 
         @param path the URI path to add (will be appended to any root path given in the constructor)
-        @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"; note that sending a message body with an HTTP \c GET request is not standards compliant; see @ref httpclient_get_with_body for more information; for maximum compatibility, use @ref nothing for this argument when calling this method
-        @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+        @param body an optional message body to be included in the request; if a value for this parameter is passed to
+        the method, then the body will be serialized according to the serialization rules set in
+        @ref RestClient::RestClient::constructor() "RestClient::constructor()"; note that sending a message body with
+        an HTTP \c GET request is not standards compliant; see @ref httpclient_get_with_body for more information; for
+        maximum compatibility, use @ref nothing for this argument when calling this method
+        @param info an optional reference to a hash that will be used as an output variable giving a hash of request
+        headers and other information about the HTTP request; if present the hash will contain the following keys:
         - \c headers: a hash of outgoing HTTP request headers
         - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
         - \c body-content-type: the outgoing message body Mime \c Content-Type value
@@ -678,15 +922,23 @@ hash<auto> ans = rest.get("/orders/1?info=verbose");
         - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
         - \c response-code: the HTTP response code
         - \c response-body: the raw message body in the response (after any content decoding)
-        - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
+        - \c response-serialization: the type of message serialization in the response; see
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
         - \c request-body: the raw message body in the request (before any content encoding)
-        - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
-        @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+        - \c request-serialization: the type of message serialization in the request; see
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
+        @param hdr any headers to be sent with the request; headers here will override default headers for the object
+        as well
 
-        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
+        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any
+        message body is included in the response, it will be deserialized to %Qore data and assigned to the value of
+        the \c "body" key
 
-        @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
-        @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+        @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid
+        serialization)
+        @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an
+        HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response
+        information can be retrieved in the \a info hash output keys as follows:
         - \c "response-code": the HTTP response code given
         - \c "response-headers": a hash of processed response headers
         - \c "response-headers-raw": a hash of raw unprocessed response headers
@@ -713,8 +965,11 @@ hash<auto> ans = rest.put("/orders/1", ("action": "cancel"));
         @endcode
 
         @param path the URI path to add (will be appended to any root path given in the constructor)
-        @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-        @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+        @param body an optional message body to be included in the request; if a value for this parameter is passed to
+        the method, then the body will be serialized according to the serialization rules set in
+        @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+        @param info an optional reference to a hash that will be used as an output variable giving a hash of request
+        headers and other information about the HTTP request; if present the hash will contain the following keys:
         - \c headers: a hash of outgoing HTTP request headers
         - \c request-uri: the request URI string sent (ex: \c "PUT /services/async/38.0/job HTTP/1.1")
         - \c body-content-type: the outgoing message body Mime \c Content-Type value
@@ -724,15 +979,23 @@ hash<auto> ans = rest.put("/orders/1", ("action": "cancel"));
         - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
         - \c response-code: the HTTP response code
         - \c response-body: the raw message body in the response (after any content decoding)
-        - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
+        - \c response-serialization: the type of message serialization in the response; see
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
         - \c request-body: the raw message body in the request (before any content encoding)
-        - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
-        @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+        - \c request-serialization: the type of message serialization in the request; see
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
+        @param hdr any headers to be sent with the request; headers here will override default headers for the object
+        as well
 
-        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
+        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any
+        message body is included in the response, it will be deserialized to %Qore data and assigned to the value of
+        the \c "body" key
 
-        @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
-        @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+        @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid
+        serialization)
+        @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an
+        HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response
+        information can be retrieved in the \a info hash output keys as follows:
         - \c "response-code": the HTTP response code given
         - \c "response-headers": a hash of processed response headers
         - \c "response-headers-raw": a hash of raw unprocessed response headers
@@ -758,8 +1021,11 @@ hash<auto> ans = rest.patch("/orders/1", ("action": "cancel"));
         @endcode
 
         @param path the URI path to add (will be appended to any root path given in the constructor)
-        @param body an optional message body to be included in the request; if a value for this parameter is passed to the method, then the body will be serialized according to the serialization rules set in @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-        @param info an optional reference to a hash that will be used as an output variable giving a hash of request headers and other information about the HTTP request; if present the hash will contain the following keys:
+        @param body an optional message body to be included in the request; if a value for this parameter is passed to
+        the method, then the body will be serialized according to the serialization rules set in
+        @ref RestClient::RestClient::constructor() "RestClient::constructor()"
+        @param info an optional reference to a hash that will be used as an output variable giving a hash of request
+        headers and other information about the HTTP request; if present the hash will contain the following keys:
         - \c headers: a hash of outgoing HTTP request headers
         - \c request-uri: the request URI string sent (ex: \c "PATCH /services/async/38.0/job HTTP/1.1")
         - \c body-content-type: the outgoing message body Mime \c Content-Type value
@@ -769,15 +1035,23 @@ hash<auto> ans = rest.patch("/orders/1", ("action": "cancel"));
         - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
         - \c response-code: the HTTP response code
         - \c response-body: the raw message body in the response (after any content decoding)
-        - \c response-serialization: the type of message serialization in the response; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
+        - \c response-serialization: the type of message serialization in the response; see
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
         - \c request-body: the raw message body in the request (before any content encoding)
-        - \c request-serialization: the type of message serialization in the request; see @ref DataSerializationOptions for possible values when used with the null REST schema validator
-        @param hdr any headers to be sent with the request; headers here will override default headers for the object as well
+        - \c request-serialization: the type of message serialization in the request; see
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
+        @param hdr any headers to be sent with the request; headers here will override default headers for the object
+        as well
 
-        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any message body is included in the response, it will be deserialized to %Qore data and assigned to the value of the \c "body" key
+        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any
+        message body is included in the response, it will be deserialized to %Qore data and assigned to the value of
+        the \c "body" key
 
-        @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid serialization)
-        @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response information can be retrieved in the \a info hash output keys as follows:
+        @throw DESERIALIZATION-ERROR the response body could not be deserialized (unknown \c Content-Type or invalid
+        serialization)
+        @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an
+        HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response
+        information can be retrieved in the \a info hash output keys as follows:
         - \c "response-code": the HTTP response code given
         - \c "response-headers": a hash of processed response headers
         - \c "response-headers-raw": a hash of raw unprocessed response headers
@@ -917,57 +1191,69 @@ hash<auto> ans = rest.del("/orders/1");
         return validator;
     }
 
-    #! sets up the Content-Type header and encodes any body for sending
-    private nothing prepareMsg(string method, string path, reference<auto> body, reference<hash<auto>> hdr,
-            string ct = "Content-Type") {
-        # use {} + ... here to ensure that hdr stays "hash<auto>"
-        hdr = {} + headers + hdr;
+    #! Sets a new REST schema validator
+    /** @since %RestClient 2.0
+    */
+    setValidator(RestSchemaValidator::AbstractRestSchemaValidator validator) {
+        self.validator = validator;
+    }
 
-        # must get the path from the HTTPClient object if not given in the request
-        if (!path.val() && (*string p = getConnectionPath()))
-            path = p;
+    #! Returns True if the client is configured for authentication with OAuth2
+    /** @since %RestClient 2.0
+    */
+    bool usingOAuth2() {
+        return oauth2_grant_type.val();
+    }
 
-        hash<RestRequestClientInfo> req = validator.processRequest(method, path, body, hdr, sct);
+    #! Returns True if the client requires an OAuth2 token
+    /** @since %RestClient 2.0
+    */
+    bool requiresOAuth2Token() {
+        return oauth2_grant_type && !exists token;
+    }
 
-        if (exists body) {
-            body = req.body;
-            if (!hdr{ct})
-                hdr{ct} = req.content;
-            if (!noCharset && body.typeCode() == NT_STRING && hdr{ct} !~ /;charset=/)
-                hdr{ct} += ";charset=" + body.encoding();
-            if (seh.ce && body.size() > CompressionThreshold) {
-                hdr."Content-Encoding" = seh.ce;
-                body = seh.func(body);
-            }
+    #! Sets a token for authentication
+    /** @since %RestClient 2.0
+    */
+    setToken(string token_type, string token, *string refresh_token) {
+        self.token_type = token_type;
+        self.token = token;
+        addDefaultHeaders({"Authorization": sprintf("%s %s", token_type, token)});
+        if (refresh_token) {
+            self.refresh_token = refresh_token;
+        } else {
+            delete self.refresh_token;
         }
     }
 
-    #! sets up the path for the HTTP request URI
-    private nothing preparePath(reference<string> path) {
-        # strip leading "/" off the given path
-        path =~ s/^\/+//;
+    #! Returns the token type for any token
+    /** @since %RestClient 2.0
+    */
+    string getTokenType() {
+        return token_type ?? "Bearer";
+    }
 
-        # prepare path = connection path + base path + path
-        *string p = getConnectionPath();
-        string base_path = validator.getBasePath();
-        if (base_path.val() && base_path != "/" && path.comparePartial(base_path[1..])) {
-            # strip trailing "/" off the base path
-            base_path =~ s/\/+$//;
-            path = base_path + (path.val() ? ("/" + path) : "");
-        }
+    #! Returns any token set for the connection
+    /** @since %RestClient 2.0
+    */
+    *string getToken() {
+        return token;
+    }
 
-        if (p.val() && p != "/") {
-            # strip trailing "/" off the connection path
-            p =~ s/\/+$//;
-            path = p + (path.val() ? ("/" + path) : "");
-        }
+    #! Starts an OAuth2 token request in a non-blocking I/O operation
+    /** @since %RestClient 2.0
+    */
+    AbstractPollOperation startOAuth2PollSendRecv() {
+        return startOAuth2AuthPoll(getOAuth2LoginInfo(oauth2_grant_type));
+    }
 
-        # ensure path is absolute
-        if (path !~ /^\//) {
-            splice path, 0, 0, "/";
-        }
-
-        # NOTE: Qore will perform URL encoding on the URL + path
+    #! Starts an OAuth2 refresh token request in a non-blocking I/O operation
+    /** @since %RestClient 2.0
+    */
+    AbstractPollOperation startOAuth2PollRefreshToken() {
+        return refresh_token
+            ? startOAuth2AuthPoll(getOAuth2RefreshInfo())
+            : startOAuth2PollSendRecv();
     }
 
     #! sends an HTTP request to the REST server and returns the response
@@ -981,22 +1267,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         @param path the URI path to add (will be appended to any root path given in the constructor)
         @param body an optional message body to be included in the request; if a value for this parameter is
         passed to the method, then the body will be serialized according to the serialization rules set in
-        @ref RestClient::RestClient::constructor() "RestClient::constructor()"
-        @param info an optional reference to a hash that will be used as an output variable giving a hash of
-        request headers and other information about the HTTP request; if present the hash will contain the
-        following keys:
-        - \c headers: a hash of outgoing HTTP request headers
-        - \c request-uri: the request URI string sent (ex: \c "POST /services/async/38.0/job HTTP/1.1")
-        - \c body-content-type: the outgoing message body Mime \c Content-Type value
-        - \c response-headers: a hash of processed incoming HTTP headers in the response with keys converted to
-            lower case and additional information added
-        - \c response-headers-raw: a hash of raw unprocessed incoming HTTP headers
-        - \c chunked: set to @ref True "True" if the response was received with chunked transfer encoding
-        - \c response-code: the HTTP response code
-        - \c response-body: the raw message body in the response (after any content decoding)
-        - \c response-serialization: the type of message serialization in the response; see
-            @ref DataSerializationOptions for possible values when used with the null REST schema validator
-        - \c request-body: the raw message body in the request (before any content encoding)
+        @ref RestClient::RestClient::constructor() "RestCde any content encoding)
         - \c request-serialization: the type of message serialization in the request; see
             @ref DataSerializationOptions for possible values when used with the null REST schema validator
         @param decode_errors decode the message body with HTTP error responses and throw an exception based on the
@@ -1033,6 +1304,44 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     */
     hash<auto> doRequest(string m, string path, auto body, *reference<hash<auto>> info, softbool decode_errors = True,
             *hash<auto> hdr) {
+        checkLogin(\info);
+        try {
+            return doRequestIntern(m, path, body, \info, decode_errors, hdr);
+        } catch (hash<ExceptionInfo> ex) {
+            # in case of a 401 error, try to get a new token
+            if (info."response-code" == 401 && oauth2_grant_type && oauth2_auto_refresh
+                && ((now_us() - token_timestamp) > MinimumTokenRefresh)) {
+                on_error {
+                    rethrow ex.err, ex.desc, ex.arg;
+                };
+
+                if (refresh_token) {
+                    # get a new token with the refresh token
+                    oauth2Auth(getOAuth2RefreshInfo(), \info);
+                    if (token && update_options) {
+                        hash<auto> new_opts = {
+                            "token": token,
+                            "token_type": token_type,
+                        };
+                        if (refresh_token) {
+                            new_opts.oauth2_refresh_token = refresh_token;
+                        }
+                        doUpdateOptions(self, new_opts);
+                    }
+                } else {
+                    # try to get a new token
+                    loginIntern(\info);
+                }
+                # try request again
+                return doRequestIntern(m, path, body, \info, decode_errors, hdr);
+            }
+            rethrow;
+        }
+    }
+
+    #! Makes a REST request and returns the result
+    private hash<auto> doRequestIntern(string m, string path, auto body, *reference<hash<auto>> info,
+            softbool decode_errors = True, *hash<auto> hdr, *string assume_content_type) {
         prepareMsg(m, path, \body, \hdr);
 
         on_exit if (exists body) {
@@ -1045,9 +1354,37 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         # prepare path
         preparePath(\path);
 
-        on_error rethrow $1.err, sprintf("%s (REST URL %y)", $1.desc, getSafeURL());
+        on_error {
+            hash<UrlInfo> url_info = parse_url(getSafeURL());
+            string url = sprintf("%s://", url_info.protocol);
+            if (url_info.username.val()) {
+                url += sprintf("%s@", url_info.username);
+            }
+            if (url_info.host.val()) {
+                url += url_info.host;
+            }
+            if (url_info.port && (url_info.port != 80 || url_info.protocol != "http") && (url_info.port != 443
+                || url_info.protocol != "https")) {
+                url += sprintf(":%d", url_info.port);
+            }
+            url += path;
+            rethrow $1.err, sprintf("%s (REST URL %y)", $1.desc, url);
+        }
 
-        return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
+        return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors, assume_content_type);
+    }
+
+    #! Prepares and processes message parameters for sending without sending the message
+    /** @param method the HTTP method to use
+        @path a reference to the URI path
+        @path body a reference to any message body
+        @path hdr a reference to any headers to send
+
+        @since %RestClient 1.10.2
+    */
+    prepareToSend(string method, reference<string> path, reference<auto> body, *reference<hash<auto>> hdr) {
+        prepareMsg(method, path, \body, \hdr);
+        preparePath(\path);
     }
 
     #! The same as doRequest() except no schema validation is performed on the request
@@ -1068,14 +1405,346 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         return sendAndDecodeResponse(body, m, path, hdr, \info, decode_errors);
     }
 
+    #! Process the raw REST response received
+    /** @param resp the return value from HTTPClient::send()
+        @param method the HTTP method used
+        @param path the URI path used
+        @param info an optional info hash reference for information about the call
+
+        @return \a resp with additional or processed information
+    */
+    hash<auto> processRestResponse(hash<auto> resp, string method, string path, *reference<hash<auto>> info) {
+        hash<RestResponseClientInfo> sh = validator.parseResponse(method, path, resp.status_code, resp.body, resp);
+        if (exists resp.body) {
+            resp.body = sh.body;
+            info += {
+                "response-serialization": sh.info."code"
+                    ?? NullRestSchemaValidator::DataDeserializationSupport{resp."content-type"}."code"
+                    ?? "unknown",
+                "response-body": resp.body,
+            };
+        }
+
+        return resp;
+    }
+
+    #! Called when OAuth2 login information has been received
+    /** @since %RestClient 2.0
+    */
+    hash<auto> gotOAuth2LoginInfo(hash<auto> h) {
+        if (h.token_type.typeCode() != NT_STRING || h.access_token.typeCode() != NT_STRING) {
+            throw "REST-LOGIN-ERROR", sprintf("OAuth2 response for grant type %y is invalid, needs both "
+                "token_type (%y) and access_token (%y)", oauth2_grant_type, h.token_type, h.access_token);
+        }
+        *hash<auto> new_opts = update_options ? getUpdateOptionsAfterLogin(h) : NOTHING;
+        # set the token
+        setOAuth2LoginInfo(h);
+        if (update_options && new_opts) {
+            doUpdateOptions(self, new_opts);
+        }
+        token_timestamp = now_us();
+        return h;
+    }
+
+    #! Sets options from the OAuth2 login response on the local object
+    /** @since %RestClient 2.0
+    */
+    private setOAuth2LoginInfo(hash<auto> h) {
+        setToken(h.token_type, h.access_token, h.refresh_token);
+        debug("RestClient: set OAuth2 auth header: %s %s; refresh_token: %s", h.token_type, h.access_token,
+            h.refresh_token ?? "n/a");
+    }
+
+    #! Returns options to update after an OAuth2 login
+    /** @since %RestClient 2.0
+    */
+    private *hash<auto> getUpdateOptionsAfterLogin(hash<auto> h) {
+        hash<auto> new_opts;
+        if (h.token_type != token_type) {
+            new_opts.token_type = h.token_type;
+        }
+        if (h.access_token != token) {
+            new_opts.token = h.access_token;
+        }
+        if (h.refresh_token != refresh_token) {
+            new_opts.oauth2_refresh_token = h.refresh_token;
+        }
+        return new_opts;
+    }
+
+    #! Sets up authentication info
+    /** @since %RestClient 2.0
+    */
+    private setupAuth(hash<auto> opts) {
+        # set any token
+        if (opts.token) {
+            setToken(opts.token_type ?? "Bearer", opts.token, opts.oauth2_refresh_token);
+        } else {
+            if (!exists getUsername() && !exists getPassword() && exists opts.username && exists opts.password) {
+                setUserPassword(opts.username, opts.password);
+                username = opts.username;
+                password = opts.password;
+            } else {
+                if (*string u = getUsername()) {
+                    username = u;
+                }
+                if (*string p = getPassword()) {
+                    password = p;
+                }
+            }
+        }
+
+        # check any OAuth2 options
+        checkOAuth2Options(opts);
+    }
+
+    #! Validates and sets any OAuth2 options
+    /** @since %RestClient 2.0
+    */
+    private checkOAuth2Options(hash<auto> opts) {
+        *string grant_type = opts.oauth2_grant_type;
+        if (!exists grant_type) {
+            return;
+        }
+        *list<string> req_opts = OAuth2GrantOptions{grant_type};
+        if (!req_opts) {
+            throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y is unknown; known grant types: %y", grant_type,
+                keys OAuth2GrantOptions);
+        }
+        oauth2_grant_type = grant_type;
+        foreach string req_opt in (req_opts) {
+            if (!opts.hasKey(req_opt)) {
+                throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y requires option %y, but this option is not "
+                    "set; options provided: %y", grant_type, req_opt, keys opts);
+            }
+            if (opts{req_opt}.typeCode() != NT_STRING) {
+                throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y requires option %y to be set with a string; "
+                    "type provided: %y (value: %y)", grant_type, req_opt, opts{req_opt}.fullType(), opts{req_opt});
+            }
+            self{req_opt} = opts{req_opt};
+        }
+        if (grant_type == "password") {
+            # requires username and password
+            if (!exists username) {
+                throw "OAUTH2-ERROR", "the 'password' OAuth2 grant type requires a username and password; no "
+                    "username is set for the current connection";
+            }
+            if (!exists password) {
+                throw "OAUTH2-ERROR", "the 'password' OAuth2 grant type requires a username and password; no "
+                    "password is set for the current connection";
+            }
+        }
+    }
+
+    #! Authenticates with OAuth2 if configured
+    /** @since %RestClient 2.0
+    */
+    private hash<auto> loginIntern(*reference<hash<auto>> info) {
+        return oauth2Auth(getOAuth2LoginInfo(oauth2_grant_type), \info);
+    }
+
+    #! Starts a non-blocking I/O operation to authenticate with an OAuth2 server and acquire an auth token
+    /** @since %RestClient 2.0
+    */
+    private AbstractPollOperation startOAuth2AuthPoll(hash<auto> login) {
+        string request_body = mime_get_form_urlencoded_string(login);
+        # do not send a basic auth header in the request
+        clearUserPassword();
+        # restore the username and password on exit
+        on_exit if (username && self.password) {
+            setUserPassword(username, self.password);
+        }
+        return startPollSendRecv("POST", oauth2_token_url, request_body, {
+            "Content-Type": MimeTypeFormUrlEncoded,
+            "Accept": MimeTypeJson + "," + MimeTypeFormUrlEncoded,
+        });
+    }
+
+    #! Perform OAuth2 authentication
+    /** @since %RestClient 2.0
+    */
+    private hash<auto> oauth2Auth(hash<auto> login, *reference<hash<auto>> info) {
+        # clear connection path for login call
+        *string path = getConnectionPath();
+        on_exit setConnectionPath(path);
+        setConnectionPath();
+
+        # do not send a basic auth header in the request
+        clearUserPassword();
+        # restore the username and password on exit
+        on_exit if (username && self.password) {
+            setUserPassword(username, self.password);
+        }
+
+        # remove tokens and Authorization header
+        remove token;
+        remove headers.Authorization;
+
+        # temporarily remove any schema for the OAuth2 call
+        AbstractRestSchemaValidator v;
+        if (!(validator instanceof NullRestSchemaValidator)) {
+            v = remove self.validator;
+            validator = new NullRestSchemaValidator();
+        }
+        on_exit if (v) {
+            validator = v;
+        }
+
+        # save URL in case the token URL is on a completely different server
+        string orig_url = getURL();
+        bool set_url = oauth2_token_url =~ /^http/;
+        # set the full URL if the token URL is possibly on another server
+        if (set_url) {
+            setURL(oauth2_token_url);
+        }
+        # restore the URL on exit if necessary
+        on_exit if (set_url) {
+            setURL(orig_url);
+        }
+
+        # restore the old serialization option on exit
+        string old_ds = ds;
+        on_exit setSerialization(old_ds);
+        # use URL form encoding for the message body
+        setSerialization("url");
+
+        # make the authorization call
+        return gotOAuth2LoginInfo(doOAuth2LoginRequest(set_url ? "/" : oauth2_token_url, login, \info));
+    }
+
+    #! Returns the deserialized response body of an OAuth2 authorization / token request
+    /** @since %RestClient 2.0
+    */
+    private hash<auto> doOAuth2LoginRequest(string url, hash<auto> login, *reference<hash<auto>> info) {
+        return RestClient::doRequestIntern("POST", url, login,
+            \info, NOTHING, getOAuth2AuthHeaders()).body;
+    }
+
+    #! Returns headers to use with OAuth2 authorization / token requests
+    /** @since %RestClient 2.0
+    */
+    private *hash<auto> getOAuth2AuthHeaders() {
+        return OAuth2AuthHeaders;
+    }
+
+    #! Returns an OAuth2 login hash
+    /** @since %RestClient 2.0
+    */
+    private hash<auto> getOAuth2LoginInfo(string grant_type) {
+        if (grant_type == "authorization_code") {
+            throw "OAUTH2-ERROR", "the 'authorization_code' grant type can only be handled externally; it requires "
+                "user authorization with the authorization server";
+        }
+        hash<auto> login = {
+            "client_id": oauth2_client_id,
+            "client_secret": oauth2_client_secret,
+            "grant_type": grant_type,
+        };
+        if (oauth2_scopes) {
+            login += {
+                "scope": foldl $1 + " " + $2, oauth2_scopes,
+            };
+        }
+        if (grant_type == "password") {
+            login += {
+                "username": username ?? getUsername(),
+                "password": password ?? getPassword(),
+            };
+        }
+        return login;
+    }
+
+    #! Returns an OAuth2 refresh hash
+    /** @since %RestClient 2.0
+    */
+    private hash<auto> getOAuth2RefreshInfo() {
+        return {
+            "client_id": oauth2_client_id,
+            "client_secret": oauth2_client_secret,
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+        };
+    }
+
+    #! sets up the Content-Type header and encodes any body for sending
+    private nothing prepareMsg(string method, string path, reference<auto> body, reference<hash<auto>> hdr,
+            string ct = "Content-Type") {
+        # use {} + ... here to ensure that hdr stays "hash<auto>"
+        hdr = {} + headers + hdr;
+
+        # must get the path from the HTTPClient object if not given in the request
+        if (!path.val() && (*string p = getConnectionPath())) {
+            path = p;
+        }
+
+        hash<RestRequestClientInfo> req = validator.processRequest(method, path, body, hdr, sct);
+        if (exists body) {
+            body = req.body;
+            if (!hdr{ct}) {
+                hdr{ct} = req.content;
+            }
+            if (!noCharset && body.typeCode() == NT_STRING && hdr{ct} !~ /;charset=/) {
+                hdr{ct} += ";charset=" + body.encoding();
+            }
+            if (seh.ce && body.size() > CompressionThreshold) {
+                hdr."Content-Encoding" = seh.ce;
+                body = seh.func(body);
+            }
+        }
+    }
+
+    #! sets up the path for the HTTP request URI
+    private nothing preparePath(reference<string> path) {
+        # strip leading "/" off the given path
+        path =~ s/^\/+//;
+
+        # prepare path = connection path + base path + path
+        *string p = getConnectionPath();
+        string base_path = validator.getBasePath();
+        if (base_path.val() && base_path != "/" && path.comparePartial(base_path[1..])) {
+            # strip trailing "/" off the base path
+            base_path =~ s/\/+$//;
+            path = base_path + (path.val() ? ("/" + path) : "");
+        }
+
+        if (p.val() && p != "/") {
+            # strip trailing "/" off the connection path
+            p =~ s/\/+$//;
+            path = p + (path.val() ? ("/" + path) : "");
+        }
+
+        # ensure path is absolute
+        if (path !~ /^\//) {
+            splice path, 0, 0, "/";
+        }
+
+        # NOTE: Qore will perform URL encoding on the URL + path
+    }
+
+    #! Checks if a login is necessary; if so, then the login is performed
+    private checkLogin(*reference<hash<auto>> info) {
+        if (oauth2_grant_type && !token) {
+            loginIntern(\info);
+        }
+    }
+
     #! sends the outgoing HTTP message and recodes the response to data
     private hash<auto> sendAndDecodeResponse(*data body, string m, string path, hash<auto> hdr,
-            *reference<hash<auto>> info, *softbool decode_errors) {
+            *reference<hash<auto>> info, *softbool decode_errors, *string assume_content_type) {
         hash<auto> h;
+
         try {
             h = send(body, m, path, hdr, False, \info);
             info."response-code" = h.status_code;
+            debug("RestClient sent: %y received: %y (%s bytes%s)", info."request-uri", info."response-uri",
+                h.body.size(), h.body.size() && h."content-type" ? (" " + h."content-type") : "");
+            if (!h."content-type".val() && assume_content_type.val()) {
+                debug("missing content-type from response; assuming %y", assume_content_type);
+                h."content-type" = assume_content_type;
+            }
         } catch (hash<ExceptionInfo> ex) {
+            debug("RestClient sent: %y received: %y err: %s: %s", info."request-uri", info."response-uri", ex.err,
+                ex.desc);
             info."response-code" = info."response-headers".status_code;
             if (ex.arg) {
                 if (decode_errors && ex.arg.body) {
@@ -1094,29 +1763,6 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         }
 
         return processRestResponse(h, m, path, \info);
-    }
-
-    #! Process the raw REST response received
-    /** @param resp the return value from HTTPClient::send()
-        @param method the HTTP method used
-        @param path the URI path used
-        @param info an optional info hash reference for information about the call
-
-        @return \a resp with additional or processed information
-    */
-    private hash<auto> processRestResponse(hash<auto> resp, string method, string path, *reference<hash<auto>> info) {
-        hash<RestResponseClientInfo> sh = validator.parseResponse(method, path, resp.status_code, resp.body, resp);
-        if (exists resp.body) {
-            resp.body = sh.body;
-            info += {
-                "response-serialization": sh.info."code"
-                    ?? NullRestSchemaValidator::DataDeserializationSupport{resp."content-type"}."code"
-                    ?? "unknown",
-                "response-body": resp.body,
-            };
-        }
-
-        return resp;
     }
 
     #! decode any REST errors returned if possible
@@ -1165,44 +1811,77 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 /** supports the following options:
     - \c "connect_timeout": connection timeout to use in milliseconds
     - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
-        requested response encoding; for possible values, see
-        @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
+      requested response encoding; for possible values, see
+      @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
     - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the
-        null REST schema validator; the default is \c "auto"
+      null REST schema validator; the default is \c "auto"
     - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
-        \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-        like any other response
+      \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
+      like any other response
     - \c "headers": an optional hash of headers to send with every request, these can also be overridden in
-        request method calls; also a string giving headers can be given in the format:
-        <tt>header1=value, header2=value</tt>; the value will be parsed with
-        @ref Util::parse_to_qore_value() "parse_to_qore_value()"
+      request method calls; also a string giving headers can be given in the format:
+      <tt>header1=value, header2=value</tt>; the value will be parsed with
+      @ref Util::parse_to_qore_value() "parse_to_qore_value()"
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
+    - \c "oauth2_auth_args": Extra arguments for OAuth2 authentication requests to \c oauth2_auth_url for the
+      \c authentication_code grant type.  Note that the \c authorization_code grant type requires external user
+      authorization to acquire an access token
+    - \c "oauth2_auth_url": The OAuth2 authorization URL for the \c authorization_code grant type; ignored if the
+      \c token option is set.  Note that the \c authorization_code grant type requires external user authorization to
+      acquire an access token
+    - \c "oauth2_client_id": The OAuth2 client ID; ignored if the \c token option is set
+    - \c "oauth2_client_secret": the OAuth2 client secret; ignored if the \c token option is set
+    - \c "oauth2_grant_type": the OAuth2 grant type; ; ignored if the \c token option is set; possible values:
+      - \c "authorization_code": requires \c oauth2_client_id, \c oauth2_client_secret, \c oauth2_auth_url, as well as
+        \c oauth2_token_url; note that this grant type cannot be handled automatically but rather must be handled by
+        external code that redirects the user to the authentication server and then updates the connection with token
+        information retrieved
+      - \c "client_credentials": requires \c oauth2_client_id, \c oauth2_client_secret, as well as
+        \c oauth2_token_url
+      - \c "password": requires a username, password, \c oauth2_client_id, \c oauth2_client_secret, as well as
+        \c oauth2_token_url
+    - \c "oauth2_redirect_url": The OAuth2 redirect URL for the \c authorization_code grant type; ignored if the
+      \c token option is set.  Note that the \c authorization_code grant type requires external user authorization to
+      acquire an access token; the special value \c "auto" (the default) is meant to be interpreted by servers
+      that implement OAuth2 authorization code client handling
+    - \c "oauth2_refresh_token": An OAuth2 refresh token (complements option \c "token")
+    - \c "oauth2_scopes": A list of OAuth2 scopes to request; ignored if the \c token option is set
+    - \c "oauth2_token_url": The token URL for OAuth2 flows; ignored if the \c token option is set
+    - \c "password": The password for authentication; only used if no username or password is set in the URL and if
+      the \c username option is also used
     - \c "proxy": proxy URL to use
-    - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
-        processed
+    - \c "redirect_passthru": if @ref True "True" then redirect responses wil0l be passed to the caller instead of
+      processed
     - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
-        \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
-        message bodies
+      \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
+      message bodies
     - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API
-        validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
+      validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
     - \c "swagger_base_path": in case a REST validator is used, the base path in the schema can be overridden
       with this option (applies to any REST validator; not just Swagger validators)
+    - \c "swagger_lax_parsing": try to parse invalid Swagger schemas
     - \c "timeout": transfer timeout to use in milliseconds
+    - \c "token": Any bearer token to use for the connection; will be passed as <tt>Authorization: Bearer ...</tt>
+      in request headers; cannot be used with username and password options or authentication information in the URL;
+      if this option is set then any OAuth2 options are ignored
+    - \c "username": The username for authentication; only used if no username or password is set in the URL and if
+      the \c password option is also used
     - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
-        object to validate request and response messages; conflicts with \a swagger
+      object to validate request and response messages; conflicts with \a swagger
 
     @note additionally supports the following runtime option in getImpl():
     - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
-        object for REST message validation (if present, overrides any REST schema validation option provided as a
-        connection option)
+      object for REST message validation (if present, overrides any REST schema validation option provided as a
+      connection option)
 
     @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above
     options
 
     @since %RestConnection 1.4
 */
-public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
+public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
+        ConnectionProvider::UpdateOptionsInterface {
     public {
         #! real options used when creating an object
         hash<auto> real_opts;
@@ -1268,15 +1947,97 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                     "desc": "an optional hash of headers to send with every request, these can also be "
                         "overridden in request method calls",
                 },
+                "oauth2_auth_args": <ConnectionOptionInfo>{
+                    "type": "hash",
+                    "desc": "Optional arguments for authentication requests for the `authorization_code` grant type; "
+                        "ignored if the `token` option is set.  Note that the `authorization_code` grant type "
+                        "requires external user authorization to acquire an access token",
+                },
+                "oauth2_auth_url": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The OAuth2 authorization URL for the `authorization_code` grant type; ignored "
+                        "if the `token` option is set.  Note that the `authorization_code` grant type requires "
+                        "external user authorization to acquire an access token",
+                },
+                "oauth2_auto_refresh": <ConnectionOptionInfo>{
+                    "type": "bool",
+                    "desc": "If OAuth2 tokens should be automatically refreshed",
+                    "default_value": True,
+                },
+                "oauth2_client_id": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The OAuth2 client ID; ignored if the `token` option is set",
+                },
+                "oauth2_client_secret": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the OAuth2 client secret; ignored if the `token` option is set",
+                    "sensitive": True,
+                },
+                "oauth2_grant_type": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The OAuth2 grant type; ignored if the `token` option is set",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "authorization_code",
+                            "desc": "OAuth2 2.0 authorization code grant "
+                                "([RFC 6749 authorization code grant]"
+                                "(https://datatracker.ietf.org/doc/html/rfc6749#section-4.1)); this grant type "
+                                "requires external user authorization to acquire an access token; the "
+                                "`oauth2_auth_url` must be set to inform external code where to request "
+                                "authorization from the external authorization server",
+                        }, <AllowedValueInfo>{
+                            "value": "client_credentials",
+                            "desc": "OAuth2 2.0 client credentials grant "
+                                "([RFC 6749 client credentials grant]"
+                                "(https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.4))",
+                        }, <AllowedValueInfo>{
+                            "value": "password",
+                            "desc": "OAuth2 2.0 legacy password grant "
+                                "([RFC 6749 password grant]"
+                                "(https://datatracker.ietf.org/doc/html/rfc6749#section-1.3.3))",
+                        },
+                    ),
+                },
+                "oauth2_redirect_url": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The OAuth2 redirect URL for the `authorization_code` grant type; ignored "
+                        "if the `token` option is set.  Note that the `authorization_code` grant type requires "
+                        "external user authorization to acquire an access token; the special value `auto` (the "
+                        "default) is meant to be interpreted by servers that implement OAuth2 authorization code "
+                        "client handling",
+                    "default_value": "auto",
+                },
+                "oauth2_refresh_token": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "the OAuth2 refresh token, if any (complements option `token`)",
+                    "sensitive": True,
+                },
+                "oauth2_scopes": <ConnectionOptionInfo>{
+                    "type": "list",
+                    "desc": "Space-separated string of OAuth2 scopes to request; ignored if the `token` option is set",
+                },
+                "oauth2_token_url": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The token URL for OAuth2 flows; ignored if the `token` option is set",
+                },
+                "password": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The password for authentication; only used if no username or password is set in the URL "
+                        "and if the `username` option is also used; conflicts with the `token` option",
+                    "sensitive": True,
+                },
                 "ping_method": <ConnectionOptionInfo>{
                     "type": "string",
-                    "desc": "The HTTP method to use for an advanced ping; this and `ping_path` must be set to make an "
-                        "HTTP request as a part of the socket polling ping operation; must be a valid HTTP method name",
+                    "desc": "The HTTP method to use for an advanced ping; this and `ping_path` must be set to make "
+                        "an HTTP request as a part of the socket polling ping operation; must be a valid HTTP method "
+                        "name",
                 },
                 "ping_path": <ConnectionOptionInfo>{
                     "type": "string",
-                    "desc": "The URI path to use for an advanced ping; this and `ping_method` must be made to make an "
-                        "HTTP request as a part of the socket polling ping operation",
+                    "desc": "The URI path to use for an advanced ping; this and `ping_method` must be made to make "
+                        "an HTTP request as a part of the socket polling ping operation.  If the value for this "
+                        "option begins with a `/` character, then it replaces any connection path for the REST "
+                        "client, otherwise the value is appended to the connection path for the REST client.",
                 },
                 "ping_headers": <ConnectionOptionInfo>{
                     "type": "hash",
@@ -1284,7 +2045,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                         "one of `ping_method` and `ping_path` are not set",
                 },
                 "ping_body": <ConnectionOptionInfo>{
-                    "type": "auto",
+                    "type": "any",
                     "desc": "Any message body to send when performing an advanced ping operation; ignored if either "
                         "one of `ping_method` and `ping_path` are not set or if `ping_method` is `GET`",
                 },
@@ -1308,15 +2069,39 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
                     ),
                 },
                 "swagger": <ConnectionOptionInfo>{
-                    "type": "string",
+                    "type": "file-as-string",
                     "desc": "the location of a Swagger schema to use for message validation; processed with "
                         "`FileLocationHandler::getTextFileFromLocation()` "
                         "(ex: `file:///path/to/swagger-schema.json`); conflicts with `validator`",
+                    "freeform": True,
                 },
                 "swagger_base_path": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "in case a REST validator is used, the base path in the schema can be overridden "
                         "with this option (applies to any REST validator; not just Swagger validators)",
+                },
+                "swagger_lax_parsing": <ConnectionOptionInfo>{
+                    "type": "bool",
+                    "desc": "try to parse invalid Swagger schemas",
+                },
+                "token": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "Any bearer token to use for the connection; will be passed as "
+                        "`Authorization: Bearer ...` in request headers; this option cannot be used with username "
+                        "and password options or authentication information in the URL; if this option is set then "
+                        "OAuth2 options are ignored",
+                    "sensitive": True,
+                },
+                "token_type": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The type of `token` to use for the `Authentication` header; ignored if no `token` "
+                        "option is set",
+                    "default_value": "Bearer",
+                },
+                "username": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The username for authentication; only used if no username or password is set in the URL "
+                        "and if the `password` option is also used; conflicts with the `token` option",
                 },
                 "validator": <ConnectionOptionInfo>{
                     "type": "any",
@@ -1329,12 +2114,45 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         #! object connection options
         const Options = map {$1: True}, keys ConnectionScheme.options;
 
-        #! default options
-        const DefaultOptions = map {$1.key: $1.value.default_value}, ConnectionScheme.options.pairIterator(),
-            exists $1.value.default_value;
-
         #! object connection option list
         const OptionList = keys ConnectionScheme.options;
+
+        #! Options required for an OAuth2 authorization request
+        const OAuth2AuthRequestOptions = (
+            "oauth2_auth_url",
+            "oauth2_token_url",
+            "oauth2_client_id",
+            "oauth2_client_secret",
+            "oauth2_redirect_url",
+        );
+
+        #! All OAuth2 options
+        const OAuth2Options = (
+            "oauth2_auto_refresh",
+            "oauth2_auth_args",
+            "oauth2_auth_url",
+            "oauth2_client_id",
+            "oauth2_client_secret",
+            "oauth2_redirect_url",
+            "oauth2_refresh_token",
+            "oauth2_scopes",
+            "oauth2_token_url",
+            "password",
+            "username",
+        );
+
+        #! RestClient feature: OAuth2 Auth Code support
+        /** Returned as a connection feature if the connection is configured for the oauth2 authorization_code grant
+            flow
+        */
+        const RCF_OAUTH2_AUTH_CODE = "oauth2-auth-code";
+    }
+
+    private {
+        #! Hash of supported features
+        hash<string, bool> features = {
+            CF_LOGGER: True,
+        };
     }
 
     #! creates the RestConnection connection object
@@ -1342,7 +2160,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         @param description connection description
         @param url connection URL (potentially with password info)
         @param attributes various attributes. See below
-        @param options connection options
+        @param options connection options; see class documentation for information on supported options
 
         See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
 
@@ -1354,19 +2172,27 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
         real_opts = {"url": real_url} + opts;
+        if (urlh.username.val() && !opts.username) {
+            real_opts.username = urlh.username;
+        }
+        if (urlh.password.val() && !opts.password) {
+            real_opts.password = urlh.password;
+        }
+
+        # setup feature list appropriately
+        if (opts.oauth2_grant_type) {
+            features{CF_UPDATE_OPTIONS} = True;
+        }
+        if (opts.oauth2_grant_type == "authorization_code") {
+            checkAuthCodeFeature();
+        }
     }
 
-    #! returns a @ref RestClient::RestClient "RestClient" object
-    /** @param connect if @ref True "True", then the connection is returned already connected
-        @param rtopts supports the following runtime option in getImpl():
-        - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
-          object for REST message validation (if present, overrides any REST schema validation option provided as a
-          connection option)
-
-        @return a @ref RestClient::RestClient "RestClient" object
+    #! Returns the OAuth2 option name for this connection
+    /** @since %RestClient 2.0
     */
-    private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new RestClient(real_opts + (rtopts.validator ? {"validator": rtopts.validator} : NOTHING), !connect);
+    string getOAuth2OptionName(string opt) {
+        return opt;
     }
 
     #! Returns an unconnected object for a non-blocking poll operation
@@ -1377,53 +2203,45 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     object getPollImpl() {
         # ensure that no validator is used, as loading the schema cannot be done in a nonblocking way in the polling
         # thread
-        return getImpl(False, {"validator": new NullRestSchemaValidator()});
+        hash<auto> new_opts;
+        if (real_opts.validator instanceof AbstractRestSchemaValidator) {
+            new_opts.validator = real_opts.validator;
+        } else {
+            new_opts.validator = new NullRestSchemaValidator();
+        }
+        return getImpl(False, new_opts);
     }
 
     #! gets options
-    /** @return returns a hash with the following supported options:
-        - \c "connect_timeout": connection timeout to use in milliseconds
-        - \c "content_encoding": this sets the send encoding (if the \c "send_encoding" option is not set) and the
-            requested response encoding; for possible values, see
-            @ref RestClient::RestClient::EncodingSupport "EncodingSupport"
-        - \c "data": see @ref RestClient::RestClient::DataSerializationOptions for possible values when used with the
-            null REST schema validator; the default is \c "auto"
-        - \c "error_passthru": if @ref True "True" then HTTP status codes indicating errors will not cause a
-            \c REST-RESPONSE-ERROR exception to be raised, rather such responses will be passed through to the caller
-            like any other response
-        - \c "headers": an optional hash of headers to send with every request, these can also be overridden in
-            request method calls; also a string giving headers can be given in the format:
-            <tt>header1=value, header2=value</tt>; the value will be parsed with
-            @ref Util::parse_to_qore_value() "parse_to_qore_value()"
-        - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-        - \c "max_redirects": maximum redirects to support
-        - \c "proxy": proxy URL to use
-        - \c "redirect_passthru": if @ref True "True" then redirect responses will be passed to the caller instead of
-            processed
-        - \c "send_encoding": a @ref RestClient::RestClient::EncodingSupport "send data encoding option" or the value
-            \c "auto" which means to use automatic encoding; if not present defaults to no content-encoding on sent
-            message bodies
-        - \c "swagger": the path to a <a href="https://swagger.io/">Swagger 2.0</a> REST schema file for runtime API
-            validation (see the @ref swaggerintro "Swagger" module); conflicts with \a validator
-        - \c "timeout": transfer timeout to use in milliseconds
-        - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
-            object to validate request and response messages; conflicts with \a swagger
+    /** @return returns a hash with supported options
 
-        @see @ref RestClient::RestClient::constructor() "RestClient::constructor()" for more information on the above
-        options
+        @see class documentation for information on supported options
     */
     hash<auto> getOptions() {
         return Options;
     }
 
-    #! returns default options
-    *hash<auto> getDefaultOptions() {
-        return DefaultOptions;
-    }
-
     #! returns \c "rest"
     string getType() {
         return "rest";
+    }
+
+    #! Returns OAuth2 options in a standard format
+    /** @since %RestClient 2.0
+    */
+    hash<auto> getOAuth2Options() {
+        return real_opts{OAuth2Options};
+    }
+
+    #! Processes the OAuth2 token response
+    /** @since %RestClient 2.0
+    */
+    hash<auto> processOAuth2TokenResponse(hash<auto> resp) {
+        *hash<auto> new_opts = processOAuth2TokenResponseImpl(resp);
+        if (new_opts && update_options) {
+            doUpdateOptions(self, new_opts);
+        }
+        return (real_opts - "url") + new_opts;
     }
 
     #! returns a data provider object for this connection
@@ -1437,12 +2255,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         if (opts.validator || opts.swagger) {
             # get a REST client object without connecting
             RestClient rest = get(False);
-            # get any validator
-            *AbstractRestSchemaValidator validator = rest.getValidator();
-            if (validator) {
-                # if there's a validator, return the provider
-                return validator.getDataProvider(rest);
-            }
+            # get the validator and return the provider
+            return rest.getValidator().getDataProvider(rest);
         }
 
         # to avoid circular dependencies, this object loads the RestClientDataProvider and creates the data provider
@@ -1467,12 +2281,12 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         @see supportsPollingApi()
     */
     Qore::AbstractPollOperation startPollConnect() {
-        if (!opts.ping_method || !exists opts.ping_path) {
+        if (!real_opts.ping_method || !exists real_opts.ping_path) {
             return HttpBasedConnection::startPollConnect();
         }
 
-        return new RestPingPollOperation(getPollImpl().startPollSendRecv(opts.ping_method, opts.ping_path ?* NOTHING,
-            opts.ping_method != "GET" ? opts.ping_body : NOTHING, opts.ping_headers));
+        # returns a RestClient option without connecting and without retrieving any external schemas with I/O
+        return new RestPingPollOperation(getPollImpl(), real_opts);
     }
 
     #! processes options for the constructor
@@ -1510,6 +2324,136 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
         return rv;
     }
 
+    #! Returns a URI for an authorization code request
+    /** The \c oauth2_grant_type must be \c authorization_code, and \c oauth2_client_id, \c oauth2_auth_url,
+        \c oauth2_redirect_url must set if the \c redirect_uri option is not used
+
+        @param info context information for the authorization code request
+
+        @since %RestClient 2.0
+    */
+    string getAuthorizationCodeRequest(hash<AuthCodeInfo> info = <AuthCodeInfo>{}) {
+        if (opts.oauth2_grant_type != "authorization_code") {
+            throw "OAUTH2-ERROR", sprintf("oauth2_grant_type is %y; must be \"authorization_code\" to get an "
+                "authorization code request URI", opts.oauth2_grant_type);
+        }
+        foreach string key in (OAuth2AuthRequestOptions) {
+            string optname = getOAuth2OptionName(key);
+            if (!opts{optname}.val()) {
+                throw "OAUTH2-ERROR", sprintf("option %y is not set; this option must be set to retrieve an "
+                    "authorization code request URI", optname);
+            }
+        }
+        # get local names for options
+        string oauth2_client_id_opt = getOAuth2OptionName("oauth2_client_id");
+        *list<auto> scopes = info.hasKey("scopes") ? info.scopes : real_opts.oauth2_scopes;
+        *string scope = scopes ? (foldl $1 + " " + $2, scopes) : NOTHING;
+        if (scope.val()) {
+            scope = encode_url(scope);
+        }
+        string uri = sprintf("%s?scope=%s&redirect_uri=%s&client_id=%s&response_type=%s", getAuthUrl(),
+            scope, info.redirect_uri ?? opts.oauth2_redirect_url, opts{oauth2_client_id_opt}, info.response_type);
+        # add any optional auth args
+        map uri += sprintf("&%s=%s", $1.key, getUriValue($1.value)), opts.oauth2_auth_args.pairIterator();
+        if (info.state) {
+            uri += sprintf("&state=%s", info.state);
+        }
+        return uri;
+    }
+
+    #! Returns the OAuth2 authorization URL or throws an exception if not set
+    /*  @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
+        is to return a full URL
+
+        @since %RestClient 2.0
+    */
+    string getAuthUrl(*bool allow_relative) {
+        string oauth2_auth_url_opt = getOAuth2OptionName("oauth2_auth_url");
+        *string uri = opts{oauth2_auth_url_opt};
+        if (!uri) {
+            throw "OAUTH2-AUTH-ERROR", sprintf("no %y option is set on connection %y", oauth2_auth_url_opt, name);
+        }
+        if (!allow_relative && uri !~ /^http/) {
+            string url = real_url;
+            if (url !~ /\/$/) {
+                url += "/";
+            }
+            if (uri =~ /^\//) {
+                uri = uri[1..];
+            }
+            uri = url + uri;
+        }
+        return uri;
+    }
+
+    #! Returns the OAuth2 token URL or throws an exception if not set
+    /*  @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
+        is to return a full URL
+
+        @since %RestClient 2.0
+    */
+    string getTokenUrl(*bool allow_relative) {
+        string oauth2_token_url_opt = getOAuth2OptionName("oauth2_token_url");
+        *string uri = opts{oauth2_token_url_opt};
+        if (!uri) {
+            throw "OAUTH2-AUTH-ERROR", sprintf("no %y option is set on connection %y", oauth2_token_url_opt, name);
+        }
+        if (!allow_relative && uri !~ /^http/) {
+            string url = real_url;
+            if (url !~ /\/$/) {
+                url += "/";
+            }
+            uri = url + uri;
+        }
+        return uri;
+    }
+
+    #! Returns a value for use as a URI parameter
+    /*
+        @since %RestClient 2.0
+    */
+    private static softstring getUriValue(auto v) {
+        if (v.typeCode() == NT_BOOLEAN) {
+            return v ? "true" : "false";
+        }
+        return v;
+    }
+
+    #! Processes OAuth2 login responses and returns updated options
+    private *hash<auto> processOAuth2TokenResponseImpl(hash<auto> resp) {
+        hash<auto> new_opts;
+        if (resp.access_token != real_opts.token) {
+            new_opts.token = resp.access_token;
+        }
+        if (resp.refresh_token && resp.refresh_token != real_opts.oauth2_refresh_token) {
+            new_opts.oauth2_refresh_token = resp.refresh_token;
+        }
+        return new_opts;
+    }
+
+    #! Sets the auth code feature if supported
+    private checkAuthCodeFeature() {
+        if (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size()) {
+            features{RCF_OAUTH2_AUTH_CODE} = True;
+        }
+    }
+
+    #! returns a @ref RestClient::RestClient "RestClient" object
+    /** @param connect if @ref True "True", then the connection is returned already connected
+        @param rtopts supports the following runtime option in getImpl():
+        - \c "validator": an @ref RestSchemaValidator::AbstractRestSchemaValidator "AbstractRestSchemaValidator"
+          object for REST message validation (if present, overrides any REST schema validation option provided as a
+          connection option)
+
+        @return a @ref RestClient::RestClient "RestClient" object
+    */
+    private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        return RestClient rest(real_opts + (rtopts.validator ? {"validator": rtopts.validator} : NOTHING + {
+            "logger": logger,
+            "update_options": update_options,
+        }), !connect);
+    }
+
     #! performs the internal ping
     /** By default this creates a new connection only; override in child classes to implement additional ping logic
     */
@@ -1519,12 +2463,23 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
             return;
         }
 
+        if (opts.ping_path[0] == "/") {
+            client.clearConnectionPath();
+        }
+
         hash<auto> info;
         hash<auto> h = client.doRequest(opts.ping_method, opts.ping_path,
             opts.ping_method != "GET" ? opts.ping_body : NOTHING, \info, NOTHING, opts.ping_headers);
         if ((h.status_code / 100) != 2) {
             throw "REST-PING-ERROR", sprintf("%y returned from %y", info."response-uri", info."request-uri");
         }
+    }
+
+    #! Returns a list of connection-defined features
+    /** @since RestClient 2.0
+    */
+    private *hash<string, bool> getFeaturesImpl() {
+        return features;
     }
 
     #! Sets child data provider capabilities
@@ -1541,24 +2496,87 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection {
     }
 }
 
-#! REST ping polling class
+#! REST ping polling I/O class with OAuth2 authentication
 /** Ensures a 200 response to the polling send/receive operation
 */
 public class RestPingPollOperation inherits Qore::AbstractPollOperation {
+    public {
+        #! Retrieve Swagger schema
+        const SPS_GET_SWAGGER = 'get-swagger';
+
+        #! OAuth2 get token state
+        const SPS_OAUTH2_GET_TOKEN = "oauth2-get-token";
+
+        #! OAuth2 refresh token state
+        const SPS_OAUTH2_REFRESH_TOKEN = "oauth2-refresh-token";
+
+        #! Execute ping request
+        const SPS_REST_PING = "rest-ping";
+
+        #! Complete state
+        const SPS_COMPLETE = "complete";
+    }
+
     private {
+        #! The RestClient object to use for polling I/O
+        RestClient rc;
+
+        #! RestClient options
+        hash<auto> real_opts;
+
         #! The polling object
         AbstractPollOperation poller;
 
         #! Goal reached flag
         bool goal_reached = False;
 
+        #! The HTTP method to use
+        string method;
+
+        #! The URI path to use
+        string path;
+
+        #! The message body to send
+        *auto body;
+
+        #! Headers to send
+        *hash<auto> headers;
+
+        #! Current state
+        string state;
+
         #! Lock for atomicity
         Mutex m();
+
+        #! token refresh flag
+        bool in_refresh;
+
+        #! Use path directly / ping path already prepared
+        bool use_path_as_is;
     }
 
-    #! Creates the object with the send/receive poller
-    constructor(AbstractPollOperation poller) {
-        self.poller = poller;
+    #! Creates the poller with the REST client and option hash
+    constructor(RestClient rc, hash<auto> real_opts) {
+        self.rc = rc;
+        self.real_opts = real_opts;
+        method = real_opts.ping_method ?? "GET";
+        path = real_opts.ping_path ?? "/";
+        body = method != "GET" ? real_opts.ping_body : NOTHING;
+        headers = real_opts.ping_headers;
+
+        # use the path directly if it's an absolute path
+        if (real_opts.ping_path[0] == "/") {
+            use_path_as_is = True;
+        }
+
+        if (real_opts.swagger) {
+            state = SPS_GET_SWAGGER;
+            poller = FileLocationHandler::getIoPollerForLocation(real_opts.swagger);
+        } else if (rc.requiresOAuth2Token()) {
+            doStartGetToken();
+        } else {
+            doStartPing();
+        }
     }
 
     #! Returns the goal
@@ -1573,10 +2591,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
     */
     string getState() {
         AutoLock al(m);
-        if (!poller) {
-            return goal_reached ? "complete" : "error";
-        }
-        return poller.getState();
+        return state + (poller ? ("-" + poller.getState()) : NOTHING);
     }
 
     #! Returns @ref True when the goal as been reached
@@ -1599,19 +2614,114 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
                 return pinfo;
             }
 
-            if (poller.goalReached()) {
-                hash<auto> resp = poller.getOutput();
-                if ((resp."code" / 100) == 2) {
-                    goal_reached = True;
+            if (state == SPS_GET_SWAGGER) {
+                # create Swagger validator from file
+                rc.setValidator(SwaggerLoader::fromString(poller.getOutput().toString()));
+                rc.debug("RestConnection ping: set Swagger schema for %y", rc.getValidator().getTargetUrl());
+                if (rc.requiresOAuth2Token()) {
+                    doStartGetToken();
                 } else {
-                    throw "REST-PING-ERROR", sprintf("%y returned from %y", resp.info."response-uri",
-                        resp.info."request-uri");
+                    doStartPing();
                 }
+                continue;
             }
 
-            delete poller;
-            break;
+            if (state == SPS_OAUTH2_GET_TOKEN || state == SPS_OAUTH2_REFRESH_TOKEN) {
+                hash<auto> resp = poller.getOutput();
+                string body = resp."response-body"
+                    ? resp."response-body".toString(resp.info.charset ?? "ISO-8859-1")
+                    : "";
+%ifndef NoJson
+                if ((resp."code" / 100) == 2) {
+                    gotOAuth2LoginInfo(parse_json(body));
+                    continue;
+                }
+%endif
+
+                throw "REST-PING-ERROR", sprintf("%y returned from %y'; response body: %y", resp.info."response-uri",
+                    resp.info."request-uri", body);
+            }
+
+            if (state == SPS_REST_PING) {
+                hash<auto> resp = poller.getOutput();
+                string body = resp."response-body"
+                    ? resp."response-body".toString(resp.info.charset ?? "ISO-8859-1")
+                    : "";
+                if (resp."code" == 401 && rc.getToken() && rc.usingOAuth2() && real_opts.oauth2_auto_refresh
+                    && real_opts.oauth2_refresh_token && !in_refresh) {
+                    doStartRefresh();
+                    continue;
+                }
+                if (in_refresh) {
+                    in_refresh = False;
+                }
+                if ((resp."code" / 100) == 2) {
+                    AbstractRestSchemaValidator validator = rc.getValidator();
+                    on_error rethrow $1.err, sprintf("%s: info: %y", $1.desc, resp.info{"request-uri",
+                        "response-uri"});
+                    # remove any excess info from the body content type
+                    resp.info."body-content-type" =~ s/;.*//;
+                    #hash<RestResponseClientInfo> info =
+                    validator.parseResponse(method, path, resp."code", body,
+                        resp.info."response-headers" + {"content-type": resp.info."body-content-type"});
+                    goal_reached = True;
+                    state = SPS_COMPLETE;
+                    delete poller;
+                    break;
+                }
+
+                throw "REST-PING-ERROR", sprintf("%y returned from %y; response body: %y", resp.info."response-uri",
+                    resp.info."request-uri", body);
+            }
+
+            checkOtherStates();
         }
+    }
+
+    private checkOtherStates() {
+        throw "INVALID-STATE", sprintf("invalid state %y; aborting", state);
+    }
+
+    private gotOAuth2LoginInfo(hash<auto> h) {
+        rc.debug("RestConnection ping: got OAuth2 login response: %y", h);
+        rc.gotOAuth2LoginInfo(h);
+        doStartPing();
+    }
+
+    private doStartGetToken() {
+%ifdef NoJson
+        throw "REST-PING-ERROR", "cannot retrieve an OAuth2 token without the json module";
+%else
+        state = SPS_OAUTH2_GET_TOKEN;
+        poller = rc.startOAuth2PollSendRecv();
+%endif
+    }
+
+    private doStartRefresh() {
+%ifdef NoJson
+        throw "REST-PING-ERROR", "cannot retrieve an OAuth2 token without the json module";
+%else
+        # remove the Authorization header, so it can be set from the new token
+        headers -= "Authorization";
+        state = SPS_OAUTH2_REFRESH_TOKEN;
+        poller = rc.startOAuth2PollRefreshToken();
+        in_refresh = True;
+%endif
+    }
+
+    private doStartPing() {
+        # if the path has already been prepared, use it directly
+        if (use_path_as_is) {
+            string p = path;
+            rc.prepareToSend(method, \p, \body, \headers);
+        } else {
+            use_path_as_is = True;
+            rc.prepareToSend(method, \path, \body, \headers);
+            rc.debug("prepared ping path: %y", path);
+        }
+
+        state = SPS_REST_PING;
+        poller = rc.startPollSendRecv(method, path, body, headers);
     }
 }
 }

@@ -29,7 +29,7 @@
 */
 
 #include <qore/Qore.h>
-#include "intern/QoreException.h"
+#include "qore/intern/QoreException.h"
 
 #include <cstdlib>
 

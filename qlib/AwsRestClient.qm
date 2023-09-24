@@ -549,7 +549,10 @@ public class AwsRestConnection inherits RestClient::RestConnection {
         @return a @ref AwsRestClient::AwsRestClient "AwsRestClient" object
     */
     private AwsRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new AwsRestClient(real_opts, !connect);
+        return new AwsRestClient(real_opts + {
+            "logger": logger,
+            "update_options": update_options,
+        }, !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

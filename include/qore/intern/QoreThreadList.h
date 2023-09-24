@@ -94,6 +94,7 @@ public:
 
 class QoreThreadList {
 friend class QoreThreadListIterator;
+friend class QoreThreadDataHelper;
 friend class tid_node;
 public:
     // lock for reading / writing call stacks externally
@@ -105,30 +106,48 @@ public:
     DLLLOCAL QoreThreadList() {
     }
 
+    DLLLOCAL ThreadData* getThreadData(int tid) {
+        return entry[tid].active()
+            ? entry[tid].thread_data
+            : nullptr;
+    }
+
     DLLLOCAL int get(int status = QTS_NA, bool reuse_last = false) {
         int tid = -1;
         AutoLocker al(lck);
 
         if (current_tid == MAX_QORE_THREADS) {
-            int i;
-            // scan thread_list for free entry
-            for (i = 1; i < MAX_QORE_THREADS; i++) {
+            int i = last_tid + 1;
+            while (true) {
+                // never try to assign TID 0
+                if (i == MAX_QORE_THREADS) {
+                    if (!last_tid) {
+                        break;
+                    }
+                    i = 1;
+                }
+                assert(i && i < MAX_QORE_THREADS);
                 if (entry[i].available()) {
-                    tid = i;
-                    goto finish;
+                    tid = last_tid = i;
+                    break;
+                }
+                ++i;
+                if (i == last_tid) {
+                    break;
                 }
             }
-            if (i == MAX_QORE_THREADS) {
+            if (tid == -1) {
                 return -1;
             }
         } else if (reuse_last && current_tid && entry[current_tid - 1].available()) {
+            printd(5, "QoreThreadList::get() reusing TID %d\n", current_tid - 1);
             // re-assign the last assigned TID
             tid = current_tid - 1;
         } else {
             tid = current_tid++;
         }
+        assert(entry[tid].available());
 
-finish:
         entry[tid].allocate(new tid_node(tid), status);
         ++num_threads;
         //printf("t%d cs=0\n", tid);
@@ -212,6 +231,9 @@ protected:
     // current TID to be issued next
     int current_tid = 1;
 
+    // last TID issued to avoid reusing the same TID over and over again
+    int last_tid = 0;
+
     bool exiting = false;
 
     DLLLOCAL void releaseIntern(int tid) {
@@ -229,7 +251,7 @@ DLLLOCAL extern QoreThreadList thread_list;
 class QoreThreadListIterator : public AutoLocker {
 public:
     DLLLOCAL QoreThreadListIterator(bool access_stack = false) : AutoLocker(thread_list.lck),
-        access_stack(access_stack) {
+            access_stack(access_stack) {
         if (access_stack) {
             // grab the call stack write lock to get exclusive access to all thread stacks
             thread_list.stack_lck.wrlock();
@@ -261,4 +283,19 @@ protected:
     bool access_stack;
 };
 
+class QoreThreadDataHelper : public AutoLocker {
+public:
+    DLLLOCAL QoreThreadDataHelper(int tid) : AutoLocker(thread_list.lck), tid(tid) {
+    }
+
+    DLLLOCAL ThreadData* get() {
+        if (tid >= 0 && tid < MAX_QORE_THREADS) {
+            return thread_list.getThreadData(tid);
+        }
+        return nullptr;
+    }
+
+private:
+    int tid;
+};
 #endif

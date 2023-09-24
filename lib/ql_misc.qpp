@@ -1367,6 +1367,52 @@ string make_base64_string(binary bin, softint maxlinelen = -1) [flags=CONSTANT] 
    return new QoreStringNode(bin, maxlinelen);
 }
 
+//! Returns a base64-url-encoded representation of a string
+/** Just like @ref make_base64_string() but with \c "+" and \c "/" subject to URL percent encoding
+
+    @param str the string to encode
+
+    @return the base64-url-encoded string of the data passed
+
+    @par Example:
+    @code{.py}
+string base64 = make_base64_url_string(data);
+    @endcode
+
+    @see
+    - <string>::toBase64Url()
+
+    @since %Qore 1.19.0
+*/
+string make_base64_url_string(string str) [flags=CONSTANT] {
+    QoreStringNode* rv = new QoreStringNode;
+    rv->concatBase64Url(*str);
+    return rv;
+}
+
+//! Returns a base64-url-encoded representation of a binary object
+/** Just like @ref make_base64_string() but with \c "+" and \c "/" subject to URL percent encoding
+
+    @param bin the data to encode
+
+    @return the base64-encoded string of the data passed
+
+    @par Example:
+    @code{.py}
+string base64 = make_base64_url_string(data);
+    @endcode
+
+    @see
+    - <binary>::toBase64Url()
+
+    @since %Qore 1.19.0
+*/
+string make_base64_url_string(binary bin) [flags=CONSTANT] {
+    QoreStringNode* rv = new QoreStringNode;
+    rv->concatBase64Url(*bin);
+    return rv;
+}
+
 //! Parses a base64 encoded string and returns a binary object of the decoded data
 /** Implementation based on <a href="http://www.ietf.org/rfc/rfc1421.txt">RFC-1421</a> and <a href="http://www.ietf.org/rfc/rfc2045.txt">RFC-2045</a>
 

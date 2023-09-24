@@ -184,7 +184,7 @@ class SocketTest inherits QUnit::Test {
         list<hash<SocketPollInfo>> new_list;
 
         {
-            if (s0.bind("localhost:0", True)) {
+            if (s0.bind("127.0.0.1:0", True)) {
                 throw "SOCKET-BIND-ERROR", strerror();
             }
             s0.listen();
@@ -211,18 +211,22 @@ class SocketTest inherits QUnit::Test {
             assertThrows("SOCKET-NOT-OPEN", \s2.startPollRecvString(), 1234);
             assertThrows("SOCKET-NOT-OPEN", \s2.startPollRecvBinary(), 1234);
 
-            string target = "localhost:" + port;
+            string target = "127.0.0.1:" + port;
             SocketPollOperation spop = s2.startPollConnect(target);
             assertEq("connect", spop.getGoal());
             assertEq("connecting", spop.getState());
             while (*hash<SocketPollInfo> info = spop.continuePoll()) {
                 #printf("info: %y\n", info);
-                new_list = Socket::poll((info,), 1s);
+                new_list = Socket::poll((info,), 100ms);
             }
             assertEq("connected", spop.getState());
             assertTrue(spop.goalReached());
 
-            Socket s3 = s0.accept();
+            assertTrue(s2.isOpen());
+            assertTrue(s0.isOpen());
+            assertTrue(s0.isDataAvailable());
+
+            Socket s3 = s0.accept(1ms);
             string test_msg = get_random_string();
             s3.send(test_msg);
 
@@ -284,17 +288,18 @@ class SocketTest inherits QUnit::Test {
             }
 
             Socket s4();
-            if (s4.bind("localhost:0", True)) {
+            if (s4.bind("127.0.0.1:0", True)) {
                 throw "SOCKET-BIND-ERROR", strerror();
             }
             s4.listen();
             int port2 = s4.getSocketInfo().port;
             s4.close();
             s4.shutdown();
-            target = "localhost:" + port2;
+            target = "127.0.0.1:" + port2;
             spop = s2.startPollConnect(target);
             assertEq("connect", spop.getGoal());
             assertEq("connecting", spop.getState());
+
             assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
 
             spop = s2.startPollConnectSsl(target);
@@ -345,7 +350,7 @@ class SocketTest inherits QUnit::Test {
 
                 int port3 = q.get();
 
-                target = "localhost:" + port3;
+                target = "127.0.0.1:" + port3;
                 spop = s2.startPollConnectSsl(target);
                 assertEq("connect-ssl", spop.getGoal());
                 assertEq("connecting", spop.getState());
@@ -395,7 +400,7 @@ class SocketTest inherits QUnit::Test {
 
                 int port3 = q.get();
 
-                target = "localhost:" + port3;
+                target = "127.0.0.1:" + port3;
                 spop = s2.startPollConnectSsl(target);
                 assertEq("connect-ssl", spop.getGoal());
                 assertEq("connecting", spop.getState());
@@ -415,13 +420,13 @@ class SocketTest inherits QUnit::Test {
         }
 
         # bind and listen again
-        if (s0.bind("localhost:0", True)) {
+        if (s0.bind("127.0.0.1:0", True)) {
             throw "SOCKET-BIND-ERROR", strerror();
         }
         s0.listen();
         int port = s0.getSocketInfo().port;
 
-        s1.connect("localhost:" + port);
+        s1.connect("127.0.0.1:" + port);
         Socket s2 = s0.accept();
         string test_msg = get_random_string();
         s2.send(test_msg);
@@ -488,7 +493,7 @@ class SocketTest inherits QUnit::Test {
         assertThrows("OBJECT-ALREADY-DELETED", \Socket::poll(), (poll_list, 1s));
 
         # close socket in background
-        s1.connect("localhost:" + port);
+        s1.connect("127.0.0.1:" + port);
         s2 = s0.accept();
 
         Counter cnt(1);
@@ -534,7 +539,7 @@ class SocketTest inherits QUnit::Test {
         background doServ(q);
 
         Socket s1();
-        s1.connectSSL("localhost:" + q.get());
+        s1.connectSSL("127.0.0.1:" + q.get());
 
         if (m_options.verbose > 2) {
             SocketTest::printf("server: secure connection (%s %s) from %s\n", s1.getSSLCipherName(), s1.getSSLCipherVersion(),
@@ -583,7 +588,7 @@ class SocketTest inherits QUnit::Test {
     sslReadDisconnect(Queue q) {
         Socket s();
         int port = q.get();
-        s.connectSSL("localhost:" + port);
+        s.connectSSL("127.0.0.1:" + port);
 
         # get one byte
         s.recvu1();
@@ -597,7 +602,7 @@ class SocketTest inherits QUnit::Test {
         Socket s();
         # wait for server to be listening and get port
         int port = q.get();
-        s.connectSSL("localhost:" + port);
+        s.connectSSL("127.0.0.1:" + port);
         assertThrows("SOCKET-CLOSED", \s.readHTTPHeader());
     }
 
@@ -614,7 +619,7 @@ class SocketTest inherits QUnit::Test {
     randomPortSocketTest() {
         Socket s();
         # bind on a random port
-        s.bindINET("localhost", 0);
+        s.bindINET("127.0.0.1", 0);
         # get port bound
         hash h = s.getSocketInfo();
         if (m_options.verbose > 2)
@@ -630,7 +635,7 @@ class SocketTest inherits QUnit::Test {
         string str = "hello";
         code sendMsg = sub () {
             Socket ns();
-            ns.connectINET("localhost", h.port, 10s);
+            ns.connectINET("127.0.0.1", h.port, 10s);
             ns.send(str);
             assertEq(str, ns.recv(str.size()));
             c.dec();
@@ -928,7 +933,7 @@ class SocketTest inherits QUnit::Test {
         if (exists m_options.server) {
             if (m_options.server == int(m_options.server)) {
                 client_port = int(m_options.server);
-                client_host = "localhost";
+                client_host = "127.0.0.1";
             } else {
                 hash h = parse_url(m_options.server);
                 if (!exists h.port) {
@@ -938,13 +943,13 @@ class SocketTest inherits QUnit::Test {
 
                 client_port = h.port;
                 if (!exists h.host)
-                    client_host = "localhost";
+                    client_host = "127.0.0.1";
                 else
                     client_host = h.host;
             }
         } else {
             client_port = server_port;
-            client_host = "localhost";
+            client_host = "127.0.0.1";
         }
 
         # set address family for sockets

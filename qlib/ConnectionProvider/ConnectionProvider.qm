@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore module
-%requires qore >= 1.13
+%requires qore >= 1.19
 
 %require-types
 %enable-all-warnings
@@ -35,7 +35,7 @@
 %requires(reexport) DataProvider
 
 module ConnectionProvider {
-    version = "1.7.3";
+    version = "1.10";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -112,6 +112,39 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section connectionproviderrelnotes Release Notes
+
+    @subsection connectionprovider_1_10 ConnectionProvider 1.10
+    - assume connections are up until they are proven to be down
+      (<a href="https://github.com/qorelanguage/qore/issues/4789">issue 4789</a>)
+    - fixed a bug where the @ref ConnectionProvider::InvalidConnection "InvalidConnection" class would report an
+      invalid \c url hash
+      (<a href="https://github.com/qorelanguage/qore/issues/4785">issue 4785</a>)
+    - added a logger interface to the abstract base connection class
+      (<a href="https://github.com/qorelanguage/qore/issues/4776">issue 4776</a>)
+    - added a connection-defined capability list to connection info
+      (<a href="https://github.com/qorelanguage/qore/issues/4771">issue 4771</a>)
+
+    @subsection connectionprovider_1_9_2 ConnectionProvider 1.9.2
+    - fixed a bug where the @ref ConnectionProvider::HttpConnection "HttpConnection" scheme could not be used
+      (<a href="https://github.com/qorelanguage/qore/issues/4753">issue 4753</a>)
+    - allow connection options designating files to be selected as files
+      (<a href="https://github.com/qorelanguage/qore/issues/4725">issue 4725</a>)
+
+    @subsection connectionprovider_1_9_1 ConnectionProvider 1.9.1
+    - added a transaction capability flag for data providers to the connection info hash
+      (<a href="https://github.com/qorelanguage/qore/issues/4722">issue 4722</a>)
+
+    @subsection connectionprovider_1_9 ConnectionProvider 1.9
+    - ensure that exception attributes from ping errors are serializable
+      (<a href="https://github.com/qorelanguage/qore/issues/4708">issue 4708</a>)
+
+    @subsection connectionprovider_1_8 ConnectionProvider 1.8
+    - added the \c headers option to HTTP connections (@ref ConnectionProvider::HttpConnection "HttpConnection")
+      (<a href="https://github.com/qorelanguage/qore/issues/4695">issue 4695</a>)
+
+    @subsection connectionprovider_1_7_4 ConnectionProvider 1.7.4
+    - set connection status to \c OK after a successful manual ping operation
+      (<a href="https://github.com/qorelanguage/qore/issues/4685">issue 4685</a>)
 
     @subsection connectionprovider_1_7_3 ConnectionProvider 1.7.3
     - support full ping operations, also with polling, using an authenticated request
@@ -297,6 +330,9 @@ public hashdecl ConnectionInfo {
     #! user-defined key-value pairs associated with the connection
     hash<auto> tags;
 
+    #! connection-defined feature hash
+    *hash<string, bool> features;
+
     #! if the connection supports the data provider API
     bool has_provider = False;
 
@@ -311,6 +347,9 @@ public hashdecl ConnectionInfo {
 
     #! if the data provider or any of its children support messages
     bool children_can_support_messages = False;
+
+    #! if the data provider or any of its children support transaction management
+    bool children_can_support_transactions = False;
 }
 
 #! config informaton
@@ -370,7 +409,7 @@ string connstr = get_connection_url(str);
     @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
 
     @see @ref connectionprovider_modules
-    */
+*/
 public string sub get_connection_url(string str) {
     return str =~ /^[^:\/]+:\/\/.+/
         ? str
@@ -392,7 +431,7 @@ string connstr = get_connection(str);
     @note connection provider modules are processed in the order they are declared with the \c QORE_CONNECTION_PROVIDERS environment variable; connection provider modules must be separated with @ref Qore::PathSep "PathSep" characters
 
     @see @ref connectionprovider_modules
-    */
+*/
 public AbstractConnection sub get_connection(string conn) {
     # process connection provider modules in declaration order
     if (ENV.QORE_CONNECTION_PROVIDERS) {
@@ -405,10 +444,12 @@ public AbstractConnection sub get_connection(string conn) {
                 el += sprintf("%s: %s: %s\n", get_ex_pos(ex), ex.err, ex.desc);
             }
         }
-        throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; tried the following connection provider modules: %y; errors: %y", conn, pl, el);
+        throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; "
+            "tried the following connection provider modules: %y; errors: %y", conn, pl, el);
     }
 
-    throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; no connection provider modules are set in the QORE_CONNECTION_PROVIDERS environment variable", conn);
+    throw "CONNECTION-ERROR", sprintf("connection identifier %y could not be matched to a known connection; no "
+        "connection provider modules are set in the QORE_CONNECTION_PROVIDERS environment variable", conn);
 }
 
 #! returns all known connections as a hash keyed by connection identifier; values are AbstractConnection objects; @ref nothing is returned if no connections are known
@@ -426,7 +467,7 @@ public AbstractConnection sub get_connection(string conn) {
     @see
     - get_connection_hash()
     - @ref connectionprovider_modules
-    */
+*/
 public *hash<string, AbstractConnection> sub get_connections(*bool verbose) {
     hash<string, AbstractConnection> h();
     # process connection provider modules in declaration order
@@ -460,7 +501,7 @@ public *hash<string, AbstractConnection> sub get_connections(*bool verbose) {
     @see
     - get_connections()
     - @ref connectionprovider_modules
-    */
+*/
 public *hash<string, hash<ConnectionInfo>> sub get_connection_hash(*bool verbose) {
     return map {
         $1.key: $1.value.getInfo(True),

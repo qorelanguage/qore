@@ -58,7 +58,7 @@
 #ifdef HAVE_GETOPT_H
 #include <getopt.h>
 #else
-#include "getopt_long.h"
+#include "qore/intern/getopt_long.h"
 #endif
 
 const char usage_str[] = "usage: %s [options] <input file(s)...>\n"
@@ -1609,14 +1609,15 @@ static void process_comment(std::string& buf) {
 
         tstr += "    </table>\n";
 
-        buf.replace(start, end - start, tstr);
         if (!str.empty()) {
-            buf.append(str);
+            tstr.append(str);
         }
+        buf.replace(start, end - start, tstr);
     }
 }
 
-static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& dom = strlist_t(), const strlist_t& flags = strlist_t()) {
+static int serialize_dox_comment(FILE* fp, std::string& buf, const strlist_t& dom = strlist_t(),
+        const strlist_t& flags = strlist_t()) {
     process_comment(buf);
 
     size_t start = 0;
@@ -2349,17 +2350,12 @@ protected:
 
     int readUntilOpenGroup(const char* fileName, unsigned &lineNumber, std::string& str, FILE* fp) {
         bool open_group = false;
-        bool open_group_injected = false;
         while (true) {
             std::string line;
             if (read_line(lineNumber, line, fp)) {
                 error("%s:%d: premature EOF reading group description\n", fileName, lineNumber);
                 valid = false;
                 return -1;
-            }
-
-            if (open_group_injected && !line.compare(0, 5, "///@{")) {
-                break;
             }
 
             str += line;

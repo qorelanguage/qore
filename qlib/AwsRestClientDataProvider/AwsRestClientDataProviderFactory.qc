@@ -24,7 +24,7 @@
 #! Main module namespace
 public namespace AwsRestClientDataProvider {
 #! The awsrestclient data provider factory
-public class AwsRestClientDataProviderFactory inherits AbstractDataProviderFactory {
+public class AwsRestClientDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {
     private {
         #! Data provider type info
         static Class cls = new Class("AwsRestClientDataProvider");

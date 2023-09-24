@@ -445,10 +445,31 @@ class qdx {
 
             # skip module declarations for now
             if (line =~ /^[[:space:]]*module[[:space:]]+/) {
-                while (line.val() && !regex(line, "}") && ins.next()) {
+                while (line.val() && !regex(line, "}$") && ins.next()) {
                     line = ins.getValue();
                 }
                 continue;
+            }
+
+            # see if we have a class declaration that spans multiple lines
+            if (line =~ /class .* inherits / && line !~ /(\{|;)/) {
+                # trim trailing whitespace
+                line =~ s/\s+$//;
+                # read until we have an open curly bracket or semicolon
+                while (True) {
+                    if (!ins.next()) {
+                        throw "INPUT-ERROR", sprintf("cannot find end of class declaration", line);
+                    }
+                    string new_line = ins.getValue();
+                    # trim trailing whitespace
+                    new_line =~ s/\s*$//;
+                    # trim leading whitespace
+                    new_line =~ s/^\s+//;
+                    line += " " + new_line;
+                    if (new_line =~ /(\{|;)/) {
+                        break;
+                    }
+                }
             }
 
             # see if we have a function or method declaration that spans multiple lines
@@ -490,8 +511,16 @@ class qdx {
                         string new_line = ins.getValue();
                         # trim trailing whitespace
                         new_line =~ s/\s*$//;
-                        #trim new_line;
-                        line += "\n" + new_line;
+                        # put function calls on one line
+                        if (fcall) {
+                            # trim leading whitespace
+                            line =~ s/\s+$//;
+                            # trim leading whitespace
+                            new_line =~ s/^\s+//;
+                            line += " " + new_line;
+                        } else {
+                            line += "\n" + new_line;
+                        }
 
                         #printf("FOUND COMPLEX LINE: fcall: %y tot: %d ctot: %d: %y\n", fcall, tot, ctot, line);
 
@@ -589,8 +618,10 @@ class qdx {
                 xl = regex_extract(line, '(.*) inherits ([^{]+)(.*)');
                 xl[1] = split(",", xl[1]);
                 foreach string e in (\xl[1]) {
-                    if (e !~ /(private:internal|private:hierarchy|private|public)[^A-Za-z0-9_]/)
+                    if (e !~ /(private:internal|private:hierarchy|private|public)[^A-Za-z0-9_]/) {
+                        e =~ s/ +//g;
                         e = "public " + e;
+                    }
                     else {
                         if (e =~ /private:hierarchy/) {
                             e = replace(e, "private:hierarchy", "protected");
@@ -602,7 +633,7 @@ class qdx {
                     }
                 }
                 trim(xl[0]);
-                line = xl[0] + " : " + join(",", xl[1]) + xl[2] + "\n";
+                line = xl[0] + " : " + join(", ", xl[1]) + " " + xl[2] + "\n";
 
                 # add {} to any inline empty class declaration
                 if (line =~ /;[ \t]*/) #/)

@@ -82,43 +82,47 @@ softstring MyNamespace::MyClass::myMethod(softint i) {
     In a class hierarchy, base class constructor methods can be explicitly specified using a special syntax unique to subclass constructor methods. Please see @ref inheritance for more information.\n\n
     It's possible to write purely object-oriented scripts/programs in %Qore by defining an application class and using the \c "-x" or \c "--exec-class" command-line arguments to tell %Qore to instantiate the class instead of doing normal top-level execution (in fact, the \c "--exec-class" argument disallows the use of top-level statements entirely). For more information, please see @ref command_line_processing and @ref parse_directives.
 
-    @anchor final_classes
-    @par Final Classes
+    @subsection final_classes Final Classes
     Classes declared <b><tt>final</tt></b> cannot be subclassed, and, by extension, no methods of a <b><tt>final</tt></b> class can be reimplemented as well.\n\n
     Currently the %Qore standard class library (delivered with %Qore) has no <b><tt>final</tt></b> classes.
 
     @section class_methods Class Methods
 
-    @anchor public_methods
-    @par Public Methods
+    @subsection public_methods Public Methods
     All class methods are public by default, but methods can also be explicitly declared with the <tt><b>public</b></tt> access modifier as well.  Public methods have no class protection and can be called from any code context.
 
-    @anchor private_methods
-    @par Private Methods
+    @subsection private_methods Private Methods
     Methods declared with the <tt><b>private</b></tt> access modifier can only be called by other member methods of the same class or in the same class hierarchy. Any attempt to call these methods from outside the class hierarchy will result in a run-time exception.  This access modifier, when used without any modifiers, is equivalent to <tt><b>private:hierarchy</b></tt> and is functionally identical to C++'s \a protected access modifier.\n\n
     Methods declared as <tt><b>private:internal</b></tt> are not available outside the class, even in classes in the same class hierarchy, providing strong encapsulation of the declared method.  This can be used to ensure that the declared method can be changed in later versions of the class without affecting API compatibility.\n\n
     Methods declared as <tt><b>private:hierarchy</b></tt> are equivalent to those declared <tt><b>private</b></tt> and are only private from outside the class hierarchy.
 
-    @anchor synchronized_methods
-    @par Synchronized Methods
+    @subsection synchronized_methods Synchronized Methods
     Methods declared with the <tt><b>synchronized</b></tt> keyword will only run in one thread at a time.\n\n
     <tt><b>synchronized</b></tt> normal class methods share a reentrant lock associated with the object, while <tt><b>synchronized</b></tt> static class methods share a reentrant lock associated with the class itself.\n\n
     For more information, see the @ref synchronized "synchronized keyword".
 
-    @anchor static_methods
-    @par Static Methods
+    @subsection static_methods Static Methods
     Methods declared with the <tt><b>static</b></tt> keyword are like regular functions that are attached to the class. These methods are not associated with a particular object's state and therefore are not allowed to refer to object members or call non-static methods. Also, no reference to the special <tt>self</tt> variable is allowed within static methods.\n\n
     Static methods may be declared <tt><b>private</b></tt>, <tt><b>private:internal</b></tt>, or <tt><b>public</b></tt> or <tt><b>synchronized</b></tt> like non-static methods; static methods can also access private members of a class (through an object of the class for non-static members).   Static methods may not be also @ref abstract "abstract".\n\n
     Static method calls take a special syntax as documented in @ref static_method_calls .\n
 
-    @anchor abstract
-    @par Abstract Methods
-    Methods declared with the <tt><b>abstract</b></tt> keyword define methods interfaces that must be defined in child classes for the class to be instantiated.  Methods defining the declared interfaces in child classes must define exactly the same parameters in order for the abstract method to match, but the return type of the concrete method in the child class has to simply be compatible with the return type of the abstract method in the parent class.\n\n
-    Classes with undefined abstract methods cannot be instantiated.  Abstract methods cannot have a method body; an abstract method's declaration must be terminated with a semicolon (\c ";").   Furthermore, abstract methods cannot be also @ref static_methods "static".\n\n
-    The <tt><b>abstract</b></tt> keyword can only be used in abstract method declaration; the use of this keyword with a method declaration with a method body will cause a parse exception to be thrown.
+    @subsection abstract Abstract Methods
+    Methods declared with the <tt><b>abstract</b></tt> keyword define methods interfaces that must be defined in child
+    classes for the class to be instantiated.  Methods defining the declared interfaces in child classes must define
+    exactly the same parameters in order for the abstract method to match, but the return type of the concrete method
+    in the child class has to simply be compatible with the return type of the abstract method in the parent
+    class.\n\n
+    Classes with undefined abstract methods cannot be instantiated.  Abstract methods cannot have a method body; an
+    abstract method's declaration must be terminated with a semicolon (\c ";").  Furthermore, abstract methods cannot
+    be also @ref static_methods "static".\n\n
+    The <tt><b>abstract</b></tt> keyword can only be used in abstract method declaration; the use of this keyword
+    with a method declaration with a method body will cause a parse exception to be thrown.\n\N
+    @note Ellipses (\c "...") may be provided as the only or last parameter, indicating the the method takes a
+    variable number of arguments. This is most important with @ref abstract "abstract" class methods and any concrete
+    methods in child classes implementing the abstract method, as the ellipses must match, or the method will not be
+    overridden.
 
-    @anchor class_special_methods
-    @par Constructors, Destructors, and Other Special Methods
+    @subsection class_special_methods Constructors, Destructors, and Other Special Methods
     All class methods are optional, but some methods have a special meaning.\n\n
     <b>Special Methods</b>
     |!Name|!Description
@@ -129,8 +133,7 @@ softstring MyNamespace::MyClass::myMethod(softint i) {
     |@ref any_type "any" <tt>@ref methodGate_methods "methodGate"(</tt>@ref string_type "string" <tt>$</tt><em>method_param_name</em><tt>, ...) {}</tt>|If this method is implemented in the class, it is called when methods are called on the object that do not exist in the current object and the return value of this method is returned as the value of the method call.\n\n\c methodGate() methods cannot be @ref overloaded_methods "overloaded" and are not inherited by subclasses.
     |<tt>@ref memberNotification_methods "memberNotification"(</tt>@ref string_type "string" <tt>$</tt><em>member_param_name</em><tt>) {}</tt>|If this method is implemented in the class, it is called when an object member is updated outside the class with the member name as the argument. Note that this method is called after the member has been updated and without locking; the call is not atomic respective to other threads that also may update the same member simultaneously.\n\n\c memberNotification() methods cannot be @ref overloaded_methods "overloaded" and are not inherited by subclasses.
 
-    @anchor final_methods
-    @par Final Methods
+    @subsection final_methods Final Methods
 	Methods declared <b><tt>final</tt></b> cannot be reimplemented in a subclass.  Methods can be declared <b><tt>final</tt></b> to prevent a subclass from altering the behavior of a method that is critical to the class's functionality.\n\n
 	None of the following special methods can be declared <b><tt>final</tt></b>:
 	- constructor(): declare the class @ref final_classes "final" instead
@@ -139,11 +142,15 @@ softstring MyNamespace::MyClass::myMethod(softint i) {
 	- @ref memberGate_methods "memberGate()": these methods are not inherited so they may not be declared <b><tt>final</tt></b>
 	- @ref memberNotification_methods "memberNotification()": these methods are not inherited so they may not be declared <b><tt>final</tt></b>
 	- methodGate(): these methods are not inherited so they may not be declared <b><tt>final</tt></b>
-	.
-    Currently the %Qore standard class library has no <b><tt>final</tt></b> methods.
 
-    @anchor class_constants
-    @par Class Constants
+    @subsection class_method_param_varargs Ellipses For Variable Arguments
+
+    Ellipses (\c "...") may be provided as the only or last parameter for any method, indicating the the method takes
+    a variable number of arguments.
+
+    This is most important with @ref abstract "abstract" class methods.
+
+    @subsection class_constants Class Constants
     Class constants, like non-class constants, allow programmers to refer to values with %Qore identifiers rather than using the value or the expression that generates the value.\n\n
     See @ref class_overview for a description of the syntax required to declare a class constant.\n\n
     Like other attributes of classes, class constants may be declared <tt><b>private</b></tt>, <tt><b>private:internal</b></tt>, or <tt><b>public</b></tt>. The following are examples of class constant definitions:\n
@@ -165,8 +172,7 @@ class Test {
 
     @note Class constants cannot have the same names as @ref static_class_variables "static class variables".
 
-    @anchor static_class_variables
-    @par Static Class Variables
+    @subsection static_class_variables Static Class Variables
     Static class variables are like global variables that belong to a class. They are not associated with any particular object.\n\n
     See @ref class_overview for a description of the syntax required to declare a static class variable.\n\n
     Like other attributes of classes, static class variables may be declared <tt><b>private</b></tt>, <tt><b>private:internal</b></tt>, or <tt><b>public</b></tt>. The following are examples of static class variable definitions:\n

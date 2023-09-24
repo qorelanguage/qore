@@ -43,11 +43,8 @@ hashdecl ServiceNowRestRecordInfo {
 }
 
 #! The ServiceNowTableDataProvider data provider class
-public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProvider {
+public class ServiceNowTableDataProvider inherits ServiceNowRestDataProviderBase {
     public {
-        #! The REST client object for API calls
-        ServiceNowRestClient::ServiceNowRestClient rest;
-
         #! Current object name
         string name;
 
@@ -85,7 +82,7 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
         const Expressions = {
             DP_OP_AND: {
                 "exp": AbstractDataProvider::GenericExpressions{DP_OP_AND},
-                "impl": string sub (string cn, auto arg) {
+                "impl": string sub (*string ignored, auto arg) {
                     throw "WHERE-ERROR", "ServiceNow does not support nested boolean logic in queries";
                 },
             },
@@ -227,8 +224,8 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
     }
 
     #! Creates the object from the arguments
-    constructor(ServiceNowRestClient rest, string name, hash<auto> access, hash<auto> meta) {
-        self.rest = rest;
+    constructor(ServiceNowRestClient rest, string name, hash<auto> access, hash<auto> meta)
+            : ServiceNowRestDataProviderBase(rest){
         self.name = name;
         self.access = access;
         self.meta = SysColumns + meta;
@@ -467,7 +464,7 @@ public class ServiceNowTableDataProvider inherits DataProvider::AbstractDataProv
     private hash<DataProviderExpression> getEqualityComparisonExpression(int role, hash<DataProviderInfo> info, string key,
             auto value) {
         return <DataProviderExpression>{
-            "exp": info.expressions.eq,
+            "exp": info.expressions.eq.label,
             "args": (<DataProviderFieldReference>{"field": key},) + value,
         };
     }

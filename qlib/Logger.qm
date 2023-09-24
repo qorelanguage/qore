@@ -33,7 +33,7 @@
 %requires Util
 
 module Logger {
-    version = "0.4";
+    version = "0.5";
     desc = "user module implementing Log4q logger library";
     author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
@@ -204,6 +204,10 @@ module Logger {
     }
     # wait till finished
     @endcode
+
+    @subsection logger_v0_5 v0.5
+    - added @ref Logger::LoggerInterface "LoggerInterface" and @ref Logger::LoggerWrapper "LoggerWrapper" classes
+      (<a href="https://github.com/qorelanguage/qore/issues/4776">issue 4776</a>)
 
     @subsection logger_v0_4 v0.4
     - added the @ref Logger::StdoutAppender "StdoutAppender" class
@@ -498,7 +502,7 @@ public class LoggerEventParameter {
     an exception then exception instance is passed for formatting. So it should be considered if format string and
     use for example "%y" to get readable data.
 */
-public class LoggerEvent inherits Qore::Serializable {
+public class LoggerEvent {
     private:internal {
         #! origin stamp to calculate relative time
         static date startTime = now_us();
@@ -507,7 +511,7 @@ public class LoggerEvent inherits Qore::Serializable {
         string fqcn;
 
         #! Logger reference
-        transient *Logger logger;
+        *Logger logger;
 
         #! The category (logger) name.
         string categoryName;
@@ -905,7 +909,8 @@ public class LoggerAppenderQueueThreadPool inherits LoggerAppenderQueue {
                     }
                     last_match.appender = e.appender;
                     pendingEvents{last_match.id} = {
-                        "id": last_match.id,  # to get reason of this value duplicating key see problem description above ThreadPool::submit(id, ...) call
+                        "id": last_match.id,  # to get reason of this value duplicating key see problem description
+                                              # above ThreadPool::submit(id, ...) call
                         "appender": e.appender,
                         "events": (),
                     };
@@ -2525,14 +2530,537 @@ public class LoggerFilterRegex inherits LoggerFilter {
     }
 }
 
+#! This abstract class defines the logging interface
+public class LoggerInterface inherits Qore::Serializable {
+    #! Logs a message using the provided logging level
+    /**
+        @param level The logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    abstract log(LoggerLevel level, string message);
+
+    #! Logs a message using the provided logging level
+    /**
+        @param level the logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    abstract log(int level, string message);
+
+    #! Logs a message using the provided logging level
+    /**
+        @param level The logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    abstract log(string level, string message);
+
+    #! Logs a message using the provided logging level and a single argument for any format string arguments
+    /**
+        @param level The logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+        @param args any format string arguments to the log message
+    */
+    abstract logArgs(LoggerLevel level, string message, *softlist<auto> args);
+
+    #! Logs a message using the provided logging level and a single argument for any format string arguments
+    /**
+        @param level the logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+        @param args any format string arguments to the log message
+    */
+    abstract logArgs(int level, string message, *softlist<auto> args);
+
+    #! Logs a message using the provided logging level and a single argument for any format string arguments
+    /**
+        @param level The logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+        @param args any format string arguments to the log message
+    */
+    abstract logArgs(string level, string message, *softlist<auto> args);
+
+    #! Logs an already prepared logging event object
+    /**
+        @param event the event to log
+    */
+    abstract logEvent(LoggerEvent event);
+
+    #! Logs a message object with the TRACE level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    abstract trace(string message, ...);
+
+    #! Logs a message object with the DEBUG level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    abstract debug(string message, ...);
+
+    #! Logs a message object with the INFO level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    abstract info(string message, ...);
+
+    #! Logs a message object with the WARN level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    abstract warn(string message, ...);
+
+    #! Logs a message object with the ERROR level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    abstract error(string message, ...);
+
+    #! Logs a message object with the FATAL level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    abstract fatal(string message, ...);
+
+    #! Performs logging of assertions
+    /**
+        If the \a assertion parameter is @ref False, then the message is logged
+        using the ERROR level.
+
+        @see @ref log()
+
+        @param assertion the boolean assertion value
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    abstract assertLog(bool assertion, string message, ...);
+
+    #! Logs the variable name and value using TRACE level
+    /**
+        @see @ref log()
+
+        @param var_name the variable name
+        @param value the value of the variable
+    */
+    abstract traceVar(string var_name, auto value);
+
+    #! Logs the variable name and value using DEBUG level
+    /**
+        @see @ref log()
+
+        @param var_name the variable name
+        @param value the value of the variable
+    */
+    abstract debugVar(string var_name, auto value);
+
+    #! Checks whether this Logger is enabled for a given Level passed as parameter
+    /**
+        @param level the log level to check
+    */
+    abstract bool isEnabledFor(LoggerLevel level);
+
+    #! Checks whether this Logger is enabled for a given Level passed as parameter
+    /**
+        @param level the log level to check
+    */
+    abstract bool isEnabledFor(int level);
+
+    #! Checks whether this Logger is enabled for a given Level passed as parameter
+    /**
+        @param level the log level to check
+    */
+    abstract bool isEnabledFor(string level);
+
+    #! Checks whether this Logger is enabled for the TRACE Level
+    abstract bool isTraceEnabled();
+
+    #! Checks whether this Logger is enabled for the DEBUG Level
+    abstract bool isDebugEnabled();
+
+    #! Checks whether this Logger is enabled for the INFO Level
+    abstract bool isInfoEnabled();
+
+    #! Checks whether this Logger is enabled for the WARN Level
+    abstract bool isWarnEnabled();
+
+    #! Checks whether this Logger is enabled for the ERROR Level
+    abstract bool isErrorEnabled();
+
+    #! Checks whether this Logger is enabled for the FATAL Level
+    abstract bool isFatalEnabled();
+}
+
+#! Class handling a LoggerInterface object as a member and providing atomic logging through it
+public class LoggerWrapper inherits LoggerInterface {
+    private {
+        #! The logger interface
+        transient *LoggerInterface logger;
+    }
+
+    #! Creates the object with no logger
+    constructor() {
+    }
+
+    #! Creates the object with a logger
+    constructor(LoggerInterface logger) {
+        self.logger = logger;
+    }
+
+    #! Accepts a LoggerInterface object for logging (or clears it)
+    setLogger(*LoggerInterface logger) {
+        self.logger = logger;
+    }
+
+    #! Logs a message using the provided logging level if a logger is set
+    /**
+        @param level The logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    log(LoggerLevel level, string message) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(level, message, argv);
+        }
+    }
+
+    #! Logs a message using the provided logging level if a logger is set
+    /**
+        @param level the logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    log(int level, string message) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(level, message, argv);
+        }
+    }
+
+    #! Logs a message using the provided logging level if a logger is set
+    /**
+        @param level The logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    log(string level, string message) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(level, message, argv);
+        }
+    }
+
+    #! Logs a message using the provided logging level and a single argument for any format string arguments
+    /** Logging is only performed if a logger is set
+
+        @param level The logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+        @param args any format string arguments to the log message
+    */
+    logArgs(LoggerLevel level, string message, *softlist<auto> args) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(level, message, args);
+        }
+    }
+
+    #! Logs a message using the provided logging level and a single argument for any format string arguments.
+    /** Logging is only performed if a logger is set
+
+        @param level the logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+        @param args any format string arguments to the log message
+    */
+    logArgs(int level, string message, *softlist<auto> args) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(level, message, args);
+        }
+    }
+
+    #! Logs a message using the provided logging level and a single argument for any format string arguments.
+    /** Logging is only performed if a logger is set
+
+        @param level The logging level.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+        @param args any format string arguments to the log message
+    */
+    logArgs(string level, string message, *softlist<auto> args) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(level, message, args);
+        }
+    }
+
+    #! Logs an already prepared logging event object
+    /**
+        @param event the event to log
+    */
+    logEvent(LoggerEvent event) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logEvent(event);
+        }
+    }
+
+    #! Logs a message object with the TRACE level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    trace(string message, ...) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(LoggerLevel::getLevelTrace(), message, argv);
+        }
+    }
+
+    #! Logs a message object with the DEBUG level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    debug(string message, ...) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(LoggerLevel::getLevelDebug(), message, argv);
+        }
+    }
+
+    #! Logs a message object with the INFO level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    info(string message, ...) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(LoggerLevel::getLevelInfo(), message, argv);
+        }
+    }
+
+    #! Logs a message object with the WARN level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    warn(string message, ...) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(LoggerLevel::getLevelWarn(), message, argv);
+        }
+    }
+
+    #! Logs a message object with the ERROR level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    error(string message, ...) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(LoggerLevel::getLevelError(), message, argv);
+        }
+    }
+
+    #! Logs a message object with the FATAL level
+    /**
+        @see @ref log()
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    fatal(string message, ...) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.logArgs(LoggerLevel::getLevelFatal(), message, argv);
+        }
+    }
+
+    #! Performs logging of assertions
+    /**
+        If the \a assertion parameter is @ref False, then the message is logged
+        using the ERROR level.
+
+        @see @ref log()
+
+        @param assertion the boolean assertion value
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
+    */
+    assertLog(bool assertion, string message, ...) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.assertLogArgs(assertion, message, argv);
+        }
+    }
+
+    #! Logs the variable name and value using TRACE level
+    /**
+        @see @ref log()
+
+        @param var_name the variable name
+        @param value the value of the variable
+    */
+    traceVar(string var_name, auto value) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.traceVar(var_name, value);
+        }
+    }
+
+    #! Logs the variable name and value using DEBUG level
+    /**
+        @see @ref log()
+
+        @param var_name the variable name
+        @param value the value of the variable
+    */
+    debugVar(string var_name, auto value) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.debugVar(var_name, value);
+        }
+    }
+
+    #! Checks whether this Logger is enabled for a given Level passed as parameter
+    /**
+        @param level the log level to check
+    */
+    bool isEnabledFor(LoggerLevel level) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isEnabledFor(level);
+        }
+    }
+
+    #! Checks whether this Logger is enabled for a given Level passed as parameter
+    /**
+        @param level the log level to check
+    */
+    bool isEnabledFor(int level) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isEnabledFor(level);
+        }
+    }
+
+    #! Checks whether this Logger is enabled for a given Level passed as parameter
+    /**
+        @param level the log level to check
+    */
+    bool isEnabledFor(string level) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isEnabledFor(level);
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the TRACE Level
+    bool isTraceEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isTraceEnabled();
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the DEBUG Level
+    bool isDebugEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isDebugEnabled();
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the INFO Level
+    bool isInfoEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isInfoEnabled();
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the WARN Level
+    bool isWarnEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isWarnEnabled();
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the ERROR Level
+    bool isErrorEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isErrorEnabled();
+        }
+    }
+
+    #! Checks whether this Logger is enabled for the FATAL Level
+    bool isFatalEnabled() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.isFatalEnabled();
+        }
+    }
+}
+
 #! Implements main logger class whose instance will be used by user code when logging
 /**
-    The Logger object is provided to user code. When a log is triggered then
-    message, arguments, current code position, time are appended into @ref LoggerEvent event instance when
+    The Logger object is provided to user code. When a log is triggered, the message, arguments, current code
+    position, and time are appended as a @ref LoggerEvent event instance when
     the logging level is enabled. The event is passed to all registered appenders in the given Logger as well as
     in parents in the hierarchy when additivity is enabled.
 */
-public class Logger {
+public class Logger inherits LoggerInterface {
     private:internal {
         #! The lock to protect object manipulation
         transient RWLock lock();
@@ -2540,7 +3068,9 @@ public class Logger {
         #! The lock to protect access to parent/child hierarchy
         static RWLock hierarchyLock();
 
-        #! Logger additivity. If set to true then child loggers will inherit the appenders of their ancestors by default.
+        #! Logger additivity
+        /** If set to true then child loggers will inherit the appenders of their ancestors by default
+        */
         bool additivity = True;
 
         #! The assigned Logger level. If @ref nothing, the parent level is used
@@ -2553,7 +3083,7 @@ public class Logger {
         *Logger parent;
 
         #! A collection of appenders linked to this logger.
-        list<LoggerAppender> appenders;
+        transient list<LoggerAppender> appenders;
     }
 
     #! Creates the object
@@ -2811,37 +3341,45 @@ public class Logger {
         }
     }
 
-    #! Logs a message using the provided logging level.
+    #! Logs a message using the provided logging level
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
     */
     public log(LoggerLevel level, string message) {
         logIntern(level, message, argv, getLocation(), True);
     }
 
-    #! Logs a message using the provided logging level.
+    #! Logs a message using the provided logging level
     /**
         @param level the logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
     */
     public log(int level, string message) {
         logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
     }
 
-    #! Logs a message using the provided logging level.
+    #! Logs a message using the provided logging level
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
     */
     public log(string level, string message) {
         logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
     }
 
-    #! Logs a message using the provided logging level and a single argument for any format string arguments.
+    #! Logs a message using the provided logging level and a single argument for any format string arguments
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
     public logArgs(LoggerLevel level, string message, *softlist<auto> args) {
@@ -2851,7 +3389,9 @@ public class Logger {
     #! Logs a message using the provided logging level and a single argument for any format string arguments.
     /**
         @param level the logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
     public logArgs(int level, string message, *softlist<auto> args) {
@@ -2861,7 +3401,9 @@ public class Logger {
     #! Logs a message using the provided logging level and a single argument for any format string arguments.
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
     public logArgs(string level, string message, *softlist<auto> args) {
@@ -2889,54 +3431,66 @@ public class Logger {
     #! Logs a message object with the TRACE level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
     */
-    public trace(string message) {
+    public trace(string message, ...) {
         logIntern(LoggerLevel::getLevelTrace(), message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the DEBUG level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
     */
-    public debug(string message) {
+    public debug(string message, ...) {
         logIntern(LoggerLevel::getLevelDebug(), message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the INFO level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
     */
-    public info(string message) {
+    public info(string message, ...) {
         logIntern(LoggerLevel::getLevelInfo(), message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the WARN level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
     */
-    public warn(string message) {
+    public warn(string message, ...) {
         logIntern(LoggerLevel::getLevelWarn(), message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the ERROR level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
     */
-    public error(string message) {
+    public error(string message, ...) {
         logIntern(LoggerLevel::getLevelError(), message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the FATAL level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
     */
-    public fatal(string message) {
+    public fatal(string message, ...) {
         logIntern(LoggerLevel::getLevelFatal(), message, argv, getLocation(), True);
     }
 
@@ -2948,15 +3502,17 @@ public class Logger {
         @see @ref log()
 
         @param assertion the boolean assertion value
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
+        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        then it is considered "throwable" information.
     */
-    public assertLog(bool assertion, string message) {
+    public assertLog(bool assertion, string message, ...) {
         if(!assertion) {
             logIntern(LoggerLevel::getLevelError(), message, argv, getLocation(), True);
         }
     }
 
-        #! Logs the variable name and value using TRACE level
+    #! Logs the variable name and value using TRACE level
     /**
         @see @ref log()
 

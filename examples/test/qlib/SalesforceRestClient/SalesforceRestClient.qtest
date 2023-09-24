@@ -32,7 +32,9 @@ class SalesforceTest inherits QUnit::Test {
         SalesforceRestClient rc;
 
         # salesforce.com connection options
-        hash sfopts;
+        hash<auto> sfopts;
+
+        Logger logger;
 
         # command-line options
         const MyOpts = Opts + {
@@ -52,15 +54,22 @@ class SalesforceTest inherits QUnit::Test {
     }
 
     constructor() : Test("SalesforceTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("ping tests", \pingTests());
         addTestCase("Salesforce.com DataProvider test", \salesForceDataProviderTests());
         addTestCase("Salesforce.com REST", \salesForceRestTests());
         addTestCase("connection tests", \connectionTest());
 
+        logger = new Logger("test", (m_options.verbose > 3 ? LoggerLevel::getLevelDebug() : LoggerLevel::getLevelInfo()));
+        if (m_options.verbose > 2) {
+            logger.addAppender(new StdoutAppender());
+        }
+
         try {
             setupConnection();
         } catch (hash<ExceptionInfo> ex) {
-            if (m_options.verbose)
-                printf("%s: %s\n", ex.err, ex.desc);
+            if (m_options.verbose) {
+                printf("%s\n", get_exception_string(ex));
+            }
         }
 
         set_return_value(main());
@@ -88,14 +97,40 @@ class SalesforceTest inherits QUnit::Test {
         sfopts.password = m_options.pass ?? ENV.SALESFORCE_PASS;
         if (!sfopts.password)
             error("missing --password option or SALESFORCE_PASS environment variable");
-        if (sfopts.timeout)
+        if (sfopts."timeout")
             sfopts.connect_timeout = sfopts.timeout;
 
-        rc = new SalesforceRestClient(sfopts);
+        rc = new SalesforceRestClient(sfopts + {"logger": logger});
     }
 
     private error(string fmt) {
         throw "OPTION-ERROR", sprintf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    private pingTests() {
+        if (!rc) testSkip("no Salesforce.com connection");
+
+        SalesforceRestConnection sfrc("test", "test", rc.getURL(), {}, sfopts);
+        assertEq(True, sfrc instanceof SalesforceRestConnection);
+        sfrc.setLogger(logger);
+
+        TestPollingConnectionMonitor monitor(logger);
+        on_exit delete monitor;
+
+        # first test a standard ping
+        hash<PingInfo> ping = sfrc.ping(True);
+        assertEq("test", ping.name);
+        assertTrue(ping.ok);
+        assertEq("OK", ping.info);
+
+        monitor.add(sfrc);
+
+        hash<auto> info = monitor.waitForResult();
+        assertEq(info.name, "test");
+        on_error if (info.ex) {
+            printf("%s\n", get_exception_string(info.ex));
+        }
+        assertEq("OK", info.result);
     }
 
     salesForceDataProviderTests() {
@@ -171,7 +206,7 @@ class SalesforceTest inherits QUnit::Test {
 
     connectionTest() {
         string url = sprintf("http://%s:%s@localhost:8080", sfopts.username, sfopts.password);
-        remove sfopts.("username", "password");
+        remove sfopts{"username", "password"};
         SalesforceRestConnection swsc("test", "test", url, {}, sfopts);
         assertEq(True, swsc instanceof SalesforceRestConnection);
 
@@ -187,5 +222,64 @@ class SalesforceTest inherits QUnit::Test {
         # issue #3321: check default timeouts
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
+
+        {
+            SalesforceRestConnection rc("test", "test", "http://localhost", {}, {
+                "oauth2_grant_type": "authorization_code",
+                "client_id": get_random_string(),
+                "client_secret": get_random_string(),
+                "oauth2_redirect_url": "auto",
+            });
+            assertEq("json", rc.getRealOptions()."data");
+            string uri = rc.getAuthorizationCodeRequest();
+            assertTrue(uri.equalPartialPath(SalesforceRestClient::Defaults.oauth_url_auth));
+            hash<ConnectionInfo> cinfo = rc.getInfo();
+            assertTrue(cinfo.features{AbstractConnection::CF_UPDATE_OPTIONS});
+            assertTrue(cinfo.features{RestConnection::RCF_OAUTH2_AUTH_CODE});
+        }
+
+        {
+            SalesforceRestConnection rc("test", "test", "http://localhost", {}, {
+                "oauth2_grant_type": "authorization_code",
+                "client_id": get_random_string(),
+                "client_secret": get_random_string(),
+                "oauth2_redirect_url": "cloud",
+            });
+            assertEq("json", rc.getRealOptions()."data");
+            string uri = rc.getAuthorizationCodeRequest();
+            assertTrue(uri.equalPartialPath(SalesforceRestClient::Defaults.oauth_url_auth));
+            hash<ConnectionInfo> cinfo = rc.getInfo();
+            assertTrue(cinfo.features{AbstractConnection::CF_UPDATE_OPTIONS});
+            assertTrue(cinfo.features{RestConnection::RCF_OAUTH2_AUTH_CODE});
+        }
+    }
+}
+
+class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
+    private {
+        Queue msgq();
+    }
+
+    constructor(*Logger logger) : PollingConnectionMonitor(logger) {
+        ping_timeout = 5s;
+    }
+
+    hash<auto> waitForResult() {
+        return msgq.get();
+    }
+
+    private handlePingSuccess(string name, date delta, *bool oldok) {
+        PollingConnectionMonitor::handlePingSuccess(name, delta, oldok);
+        msgq.push({"name": name, "result": "OK"});
+    }
+
+    private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
+        PollingConnectionMonitor::handlePingFailed(name, delta, ex);
+        msgq.push({"name": name, "result": "error", "ex": ex});
+    }
+
+    private handlePingTimeout(string name, date delta) {
+        PollingConnectionMonitor::handlePingTimeout(name, delta);
+        msgq.push({"name": name, "result": "timeout"});
     }
 }

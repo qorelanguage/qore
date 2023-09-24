@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.8.1";
+    version = "1.9";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -115,6 +115,12 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_9 SqlUtil v1.9
+    - updated the logic used to find implementation-specific %SqlUtil modules to use the new
+      @ref Qore::SQL::AbstractDatasource::getDriverRealName() "AbstractDatasource::getDriverRealName()" APIs to
+      better support the \c jdbc and \c odbc drivers
+      (<a href="https://github.com/qorelanguage/qore/issues/4684">issue 4684</a>)
 
     @subsection sqlutilv1_8_1 SqlUtil v1.8.1
     - fixed a bug serializing and deserializing \c Table objects using the \c odbc driver
@@ -5864,7 +5870,8 @@ table.insert(("id": id, "ref": iop_seq("xid"), "ref2": iop_seq_currval("xid")));
             case "Datasource":
                 return new Datasource(config);
             default:
-                throw "DATASOURCE-DESERIALIZATION-ERROR", sprintf("cannot deserialize datasource of unknown type %y with config %y", type, config);
+                throw "DATASOURCE-DESERIALIZATION-ERROR", sprintf("cannot deserialize datasource of unknown type %y "
+                    "with config %y", type, config);
         }
     }
 

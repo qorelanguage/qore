@@ -248,6 +248,7 @@
 #include "Transform.cpp"
 #include "QoreSerializable.cpp"
 #include "UnicodeCharacterIterator.cpp"
+#include "QoreEllipsesNode.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"
@@ -359,6 +360,7 @@
 #include "QC_AbstractPollOperation.cpp"
 #include "QC_SocketPollOperationBase.cpp"
 #include "QC_SocketPollOperation.cpp"
+#include "QC_FilePollOperation.cpp"
 
 #include "QorePseudoMethods.cpp"
 

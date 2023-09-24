@@ -25,11 +25,8 @@
 #! contains all public definitions in the AwsRestClientDataProvider module
 public namespace AwsRestClientDataProvider {
 #! The AWS REST client OPTIONS data provider class
-public class AwsRestClientOptionsDataProvider inherits AbstractDataProvider {
+public class AwsRestClientOptionsDataProvider inherits AwsRestClientDataProviderBase {
     public {
-        #! REST client connection
-        AwsRestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "options",
@@ -59,8 +56,7 @@ public class AwsRestClientOptionsDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(AwsRestClient rest) {
-        self.rest = rest;
+    constructor(AwsRestClient rest) : AwsRestClientDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

@@ -60,7 +60,7 @@ public class CdsRestRecordIterator inherits AbstractDataProviderRecordIterator {
         *string query = makeQuery(where_cond, search_options);
         hash<auto> info;
         try {
-            string uri = name + "s";
+            string uri = record_info.entity_set_name;
             if (query) {
                 uri += sprintf("?%s", query);
             }
@@ -177,6 +177,9 @@ public class CdsRestRecordIterator inherits AbstractDataProviderRecordIterator {
 
             case "bool":
                 return value ? "true" : "false";
+
+            case "guid":
+                return value;
 
             default:
                 break;

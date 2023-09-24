@@ -57,7 +57,7 @@ class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
         return ret;
     }
 
-    prepare(string s) {}
+    prepare(string s, ...) {}
     execArgs(list<auto> l) {}
     hash<auto> getOutput() {}
     getSQL() {}
@@ -72,16 +72,16 @@ class FakeSQLStatement inherits Qore::SQL::AbstractSQLStatement {
     hash<auto> getOutputRows() { throw "X"; }
     nothing prepareRaw(string sql) { throw "X"; }
     bool active() { throw "X"; }
-    nothing bindPlaceholders() { throw "X"; }
+    nothing bindPlaceholders(...) { throw "X"; }
     *hash<auto> fetchRow() { throw "X"; }
     nothing define() { throw "X"; }
     bool currentThreadInTransaction() { throw "X"; }
-    nothing bindValues() { throw "X"; }
+    nothing bindValues(...) { throw "X"; }
     int affectedRows() { throw "X"; }
-    nothing bind() { throw "X"; }
+    nothing bind(...) { throw "X"; }
     nothing bindValuesArgs(softlist<auto> vargs) { throw "X"; }
     nothing close() { throw "X"; }
-    nothing exec() { throw "X"; }
+    nothing exec(...) { throw "X"; }
     nothing beginTransaction() { throw "X"; }
     nothing bindPlaceholdersArgs(softlist<auto> vargs) { throw "X"; }
     auto memberGate(string m) { }
@@ -93,23 +93,23 @@ class FakeDatasource inherits Qore::SQL::AbstractDatasource {
     *string getPassword() {}
     *string getOSEncoding() {}
     *string getDBName() {}
-    auto selectRows(string sql) {}
+    auto selectRows(string sql, ...) {}
     bool inTransaction() { return False;}
     auto getClientVersion() {}
-    auto exec(string sql) {}
+    auto exec(string sql, ...) {}
     *int getPort() {}
     auto execRaw(string sql) {}
     auto getServerVersion() {}
     *string getHostName() {}
     string getDriverName() { return ""; }
-    auto select(string sql) {}
+    auto select(string sql, ...) {}
     *string getDBEncoding() { }
     auto vselect(string sql, *softlist<auto> vargs) {}
     string getConfigString() { return ""; }
     auto vselectRows(string sql, *softlist<auto> vargs) {}
     nothing beginTransaction() {}
     nothing rollback() {}
-    auto selectRow(string sql) {}
+    auto selectRow(string sql, ...) {}
     hash<auto> getConfigHash() {}
     nothing commit() {}
     auto vselectRow(string sql, *softlist<auto> vargs) {}

@@ -36,25 +36,26 @@
 #include <cstring>
 
 DatasourceActionHelper::~DatasourceActionHelper() {
-   if (ok) {
-      if (cmd == DAH_NOCONN) {
-         ds.releaseLock();
-      } else {
-         bool keep_lock = qore_ds_private::get(ds)->keepLock();
+    if (ok) {
+        if (cmd == DAH_NOCONN) {
+            ds.releaseLock();
+        } else {
+            bool keep_lock = qore_ds_private::get(ds)->keepLock();
 
-         // FIXME: check connection aborted handling if exec could have been executed after connection reset
-         if (ds.wasConnectionAborted())
-            cmd = DAH_RELEASE;
-         else if (new_transaction) {
-            if (cmd == DAH_NOCHANGE && ds.isInTransaction() && keep_lock)
-               cmd = DAH_ACQUIRE;
-            else if ((cmd == DAH_NOCHANGE) || !ds.isInTransaction())
-               cmd = DAH_RELEASE;
-         }
+            // FIXME: check connection aborted handling if exec could have been executed after connection reset
+            if (ds.wasConnectionAborted()) {
+                cmd = DAH_RELEASE;
+            } else if (new_transaction) {
+                if (cmd == DAH_NOCHANGE && ds.isInTransaction() && keep_lock) {
+                    cmd = DAH_ACQUIRE;
+                } else if ((cmd == DAH_NOCHANGE) || !ds.isInTransaction()) {
+                    cmd = DAH_RELEASE;
+                }
+            }
 
-         ds.endDBAction(cmd, new_transaction);
-      }
-   }
+            ds.endDBAction(cmd, new_transaction);
+        }
+    }
 }
 
 void ManagedDatasource::cleanup(ExceptionSink *xsink) {
@@ -436,14 +437,24 @@ int ManagedDatasource::getPendingPort() const {
 
 QoreValue ManagedDatasource::getServerVersion(ExceptionSink *xsink) {
     DatasourceActionHelper dbah(*this, xsink);
-    if (!dbah)
+    if (!dbah) {
         return QoreValue();
+    }
 
     return Datasource::getServerVersion(xsink);
 }
 
 QoreValue ManagedDatasource::getClientVersion(ExceptionSink *xsink) const {
    return Datasource::getClientVersion(xsink);
+}
+
+QoreStringNode* ManagedDatasource::getDriverRealName(ExceptionSink *xsink) {
+    DatasourceActionHelper dbah(*this, xsink);
+    if (!dbah) {
+        return nullptr;
+    }
+
+    return Datasource::getDriverRealName(xsink);
 }
 
 QoreHashNode* ManagedDatasource::getOptionHash(ExceptionSink* xsink) {

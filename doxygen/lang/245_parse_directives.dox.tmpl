@@ -32,6 +32,7 @@
     |@ref broken-range "%broken-range"|Include the upper limit in @ref Qore::range() "range()" and @ref Qore::xrange() "xrange()" as with pre-0.9.5
     |@ref broken-references "%broken-references"|Do not enforce @ref reference_type "reference" and @ref reference_or_nothing_type "*reference" type restrictions as with pre-0.8.13
     |@ref broken-sprintf "%broken-sprintf"|Use pre-0.9 sprintf format handling where no argument is handled differently than @ref nothing
+    |@ref broken-varargs "%broken-varargs"|Assume varargs for all @ref abstract "abstract" methods as with pre-1.17
     |@ref correct-cast "%correct-cast"|revert the effect of the @ref broken-cast "%broken-cast" parse option
     |@ref correct-int-assignments "%correct-int-assignments"|revert the effect of the @ref broken-int-assignments "%broken-int-assignments" parse option
     |@ref correct-list-parsing "%correct-list-parsing"|revert the effect of the @ref broken-list-parsing "%broken-list-parsing" parse option
@@ -41,6 +42,7 @@
     |@ref correct-range "%correct-range"|revert the effect of the @ref broken-range "%broken-range" parse option
     |@ref correct-references "%correct-references"|revert the effect of the @ref broken-references "%broken-references" parse option
     |@ref correct-sprintf "%correct-sprintf"|revert the effect of the @ref broken-sprintf "%broken-sprintf" parse option
+    |@ref correct-varargs "%correct-varargs"|revert the effect of the @ref broken-varargs "%broken-varargs" parse option
     |@ref define "%define"|Creates and optionally sets a value for a @ref conditional_parsing "parse define" <br><br>Since %Qore 0.8.3
     |@ref disable-all-warnings "%disable-all-warnings"|Turns off all @ref warnings "warnings"
     |@ref disable-warning "%disable-warning" <em>@ref warnings "warning-code"</em>|Disables the named @ref warnings "warning" until @ref enable-warning "%enable-warning" is encountered with the same code or @ref enable-all-warnings "%enable-all-warnings" is encountered
@@ -500,6 +502,26 @@ i+ =4;
     @since %Qore 0.9
 
     <hr>
+    @section broken-varargs %broken-varargs
+
+    @par Parse Directive:
+    <tt>%%broken-varargs</tt>
+
+    @par Command Line:
+    <tt>-</tt><tt>-pbroken-varargs</tt>
+
+    @par Parse Option Constant:
+    @ref Qore::PO_BROKEN_VARARGS
+
+    @par Description:
+    Use pre-1.17 varargs handling where varargs are detected based on the function or method body, and the vararg flag
+    is set by default on all @ref abstract "abstract" methods.
+
+    @see @ref correct-varargs "%correct-varargs"
+
+    @since %Qore 1.17
+
+    <hr>
     @section correct-cast %correct-cast
 
     @par Parse Directive:
@@ -669,6 +691,25 @@ i+ =4;
     @see @ref broken-sprintf "%broken-sprintf"
 
     @since %Qore 0.9
+
+    <hr>
+    @section correct-varargs %correct-varargs
+
+    @par Parse Directive:
+    <tt>%%correct-varargs</tt>
+
+    @par Command Line:
+    n/a
+
+    @par Parse Option Constant:
+    n/a
+
+    @par Description:
+    Reverts the effect of the @ref broken-varargs "%broken-varargs" parse option.
+
+    @see @ref broken-varargs "%broken-varargs"
+
+    @since %Qore 1.17
 
     <hr>
     @section define %define

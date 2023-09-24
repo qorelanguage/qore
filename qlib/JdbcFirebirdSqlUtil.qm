@@ -1,0 +1,88 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file JdbcFirebirdSqlUtil.qm Qore user module for working with JdbcFirebird SQL data
+
+/*  JdbcFirebirdSqlUtil.qm Copyright 2013 - 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:bool n_auto_increment = False, bool n_pk = False
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 1.14
+
+# requires the SqlUtil module
+%requires SqlUtil >= 1.9
+
+# don't use "$" signs for variables and class members, assume local variable scope
+%new-style
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# the implementation is in XdbcFirebirdSqlUtilBase
+%requires XdbcFirebirdSqlUtilBase
+
+module JdbcFirebirdSqlUtil {
+    version = "0.1";
+    desc = "user module for working with Firebird DBs using the jdbc driver";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+}
+
+/** @mainpage JdbcFirebirdSqlUtil Module
+
+    @tableofcontents
+
+    @section jdbcfirebirdsqlutilintro JdbcFirebirdSqlUtil Module Introduction
+
+    The %JdbcFirebirdSqlUtil module provides a high level API for working with Firebird database objects through the
+    jdbc driver.
+
+    Usually this module is loaded on demand from the SqlUtil module, however to use this module
+    directly, use \c "%requires JdbcFirebirdSqlUtil" in your code.
+
+    All the public symbols in the module are defined in the JdbcFirebirdSqlUtil namespace
+
+    @note
+    - This module requires the <a href="https://github.com/qorelanguage/module-jdbc">jdbc</a> binary module
+      for communication with Firebird databases plus the Firebird client library and the Firebird JDBC driver
+
+    @see @ref xdbcfirebirdsqlutilbaseintro for implementation information
+
+    @section jdbcfirebird_relnotes Release Notes
+
+    @subsection jdbcfirebirdsqlutilv_0_1 JdbcFirebirdSqlUtil Module v0.1
+    - initial release
+*/
+
+#! the JdbcFirebirdSqlUtil namespace contains all the objects in the JdbcFirebirdSqlUtil module
+public namespace JdbcFirebirdSqlUtil {
+    #! returns a XdbcFirebirdTable object corresponding to the arguments
+    public XdbcFirebirdTable sub get_table(AbstractDatasource nds, string nname, *hash<auto> opts) {
+        return new XdbcFirebirdTable(nds, nname, opts);
+    }
+
+    #! returns a XdbcFirebirdDatabase object corresponding to the arguments
+    public XdbcFirebirdDatabase sub get_database(AbstractDatasource nds, *hash<auto> opts) {
+        return new XdbcFirebirdDatabase(nds, opts);
+    }
+}

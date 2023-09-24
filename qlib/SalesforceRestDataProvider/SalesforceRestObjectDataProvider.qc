@@ -43,11 +43,8 @@ hashdecl SalesforceRestRecordInfo {
 }
 
 #! The SalesforceRestObjectDataProvider data provider class
-public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
+public class SalesforceRestObjectDataProvider inherits SalesforceRestDataProviderBase {
     public {
-        #! The REST client object for API calls
-        SalesforceRestClient rest;
-
         #! current object name
         string name;
 
@@ -64,8 +61,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from the arguments
-    constructor(SalesforceRestClient rest, string name, hash<auto> sobject) {
-        self.rest = rest;
+    constructor(SalesforceRestClient rest, string name, hash<auto> sobject) : SalesforceRestDataProviderBase(rest) {
         self.name = name;
         self.sobject = sobject;
         getRecordInfoIntern();
@@ -218,7 +214,7 @@ public class SalesforceRestObjectDataProvider inherits AbstractDataProvider {
                 ex.err = "DUPLICATE-RECORD";
                 ex_arg.id = id;
             }
-            throw ex.err, ex.desc, ex_arg;
+            rethrow ex.err, ex.desc, ex_arg;
         }
         if (!resp.body.success) {
             throw "UPSERT-ERROR", sprintf("error creating record: %y", resp.errors);

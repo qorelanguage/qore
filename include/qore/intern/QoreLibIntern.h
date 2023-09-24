@@ -625,6 +625,7 @@ class QoreParseListNode;
 #include "qore/intern/QorePseudoMethods.h"
 #include "qore/intern/ParseReferenceNode.h"
 #include "qore/intern/WeakReferenceNode.h"
+#include "qore/intern/QoreEllipsesNode.h"
 
 DLLLOCAL extern std::atomic<bool> qore_initialized;
 DLLLOCAL extern std::atomic<bool> qore_shutdown;
@@ -814,23 +815,28 @@ class HashMember;
 class hash_assignment_priv {
 public:
     qore_hash_private& h;
-    HashMember* om;
+    HashMember* om = nullptr;
     qore_object_private* o = nullptr;
 
     DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, HashMember* n_om) : h(n_h), om(n_om) {
     }
 
-    DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false, qore_object_private* obj = nullptr);
+    DLLLOCAL hash_assignment_priv(qore_hash_private& n_h, const char* key, bool must_already_exist = false,
+            qore_object_private* obj = nullptr);
 
     DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const char* key, bool must_already_exist = false);
 
     DLLLOCAL hash_assignment_priv(QoreHashNode& n_h, const std::string &key, bool must_already_exist = false);
 
-    DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString& key, bool must_already_exist = false);
+    DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString& key,
+            bool must_already_exist = false);
 
-    DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key, bool must_already_exist = false);
+    DLLLOCAL hash_assignment_priv(ExceptionSink* xsink, QoreHashNode& n_h, const QoreString* key,
+            bool must_already_exist = false);
 
     DLLLOCAL void reassign(const char* key, bool must_already_exist = false);
+
+    DLLLOCAL const char* getKey() const;
 
     DLLLOCAL QoreValue swapImpl(QoreValue v);
 

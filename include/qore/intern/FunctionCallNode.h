@@ -286,29 +286,15 @@ public:
 };
 
 class MethodCallNode : public AbstractMethodCallNode {
-protected:
-    char* c_str;
-    const QoreTypeInfo* pseudoTypeInfo = nullptr;
-    bool pseudo = false;
-
-    using AbstractFunctionCallNode::evalImpl;
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-        assert(false);
-        return QoreValue();
-    }
-
-    // note that the class and method are set in QoreDotEvalOperatorNode::parseInitImpl()
-    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
-        parse_context.typeInfo = nullptr;
-        return parseArgs(parse_context, nullptr, nullptr);
-    }
-
 public:
-    DLLLOCAL MethodCallNode(const QoreProgramLocation* loc, char* name, QoreParseListNode* n_args) : AbstractMethodCallNode(loc, NT_METHOD_CALL, n_args), c_str(name) {
-        //printd(0, "MethodCallNode::MethodCallNode() this=%p name='%s' args=%p (len=%d)\n", this, c_str, args, args ? args->size() : -1);
+    DLLLOCAL MethodCallNode(const QoreProgramLocation* loc, char* name, QoreParseListNode* n_args)
+            : AbstractMethodCallNode(loc, NT_METHOD_CALL, n_args), c_str(name) {
+        //printd(0, "MethodCallNode::MethodCallNode() this=%p name='%s' args=%p (len=%d)\n", this, c_str, args,
+        //    args ? args->size() : -1);
     }
 
-    DLLLOCAL MethodCallNode(const MethodCallNode &old, QoreListNode* n_args) : AbstractMethodCallNode(old, n_args), c_str(old.c_str ? strdup(old.c_str) : nullptr), pseudo(old.pseudo) {
+    DLLLOCAL MethodCallNode(const MethodCallNode& old, QoreListNode* n_args)
+            : AbstractMethodCallNode(old, n_args), c_str(old.c_str ? strdup(old.c_str) : nullptr), pseudo(old.pseudo) {
     }
 
     DLLLOCAL virtual ~MethodCallNode() {
@@ -378,16 +364,26 @@ public:
     DLLLOCAL const QoreTypeInfo* getPseudoTypeInfo() const {
         return pseudoTypeInfo;
     }
+
+protected:
+    char* c_str;
+    const QoreTypeInfo* pseudoTypeInfo = nullptr;
+    bool pseudo = false;
+
+    using AbstractFunctionCallNode::evalImpl;
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+        assert(false);
+        return QoreValue();
+    }
+
+    // note that the class and method are set in QoreDotEvalOperatorNode::parseInitImpl()
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        parse_context.typeInfo = nullptr;
+        return parseArgs(parse_context, nullptr, nullptr);
+    }
 };
 
 class SelfFunctionCallNode : public AbstractMethodCallNode {
-protected:
-    NamedScope ns;
-    const qore_class_private* class_ctx = nullptr;
-    bool is_copy;
-
-    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
-
 public:
     DLLLOCAL SelfFunctionCallNode(const QoreProgramLocation* loc, char* n, QoreParseListNode* n_args)
             : AbstractMethodCallNode(loc, NT_SELF_CALL, n_args, parse_get_class()), ns(n), is_copy(false) {
@@ -431,6 +427,14 @@ public:
     DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const;
 
     DLLLOCAL AbstractQoreNode* makeReferenceNodeAndDeref();
+
+protected:
+    NamedScope ns;
+    const qore_class_private* class_ctx = nullptr;
+    bool is_copy;
+    bool is_abstract = false;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
 };
 
 //! Used in arguments background expressions to ensure that the object context is set for the call

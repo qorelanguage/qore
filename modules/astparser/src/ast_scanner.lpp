@@ -291,9 +291,20 @@ RTIME           PT(-?[0-9]+(\.[0-9]+)?[HMSu])+
 ^%correct-int-assignments{WS}*$         { yylval->parseopt = new ASTParseOption(APOK_CORRECT_INT_ASSIGNMENTS); return PARSE_OPTION_FULL; }
 ^%correct-operators{WS}*$               { PO_BROKEN_OPERATORS = false; yylval->parseopt = new ASTParseOption(APOK_CORRECT_OPERATORS); return PARSE_OPTION_FULL; }
 ^%loose-args{WS}*$                      { yylval->parseopt = new ASTParseOption(APOK_LOOSE_ARGS); return PARSE_OPTION_FULL; }
+^%broken-range{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_BROKEN_RANGE); return PARSE_OPTION_FULL; }
+^%correct-range{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_CORRECT_RANGE); return PARSE_OPTION_FULL; }
 ^%broken-references{WS}*$               { yylval->parseopt = new ASTParseOption(APOK_BROKEN_REFERENCES); return PARSE_OPTION_FULL; }
 ^%correct-references{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_CORRECT_REFERENCES); return PARSE_OPTION_FULL; }
+^%broken-sprintf{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_BROKEN_SPRINTF); return PARSE_OPTION_FULL; }
+^%correct-sprintf{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_CORRECT_SPRINTF); return PARSE_OPTION_FULL; }
+^%broken-cast{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_BROKEN_CAST); return PARSE_OPTION_FULL; }
+^%correct-cast{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_CORRECT_CAST); return PARSE_OPTION_FULL; }
+^%broken-varargs{WS}*$                  { yylval->parseopt = new ASTParseOption(APOK_BROKEN_VARARGS); return PARSE_OPTION_FULL; }
+^%correct-varargs{WS}*$                 { yylval->parseopt = new ASTParseOption(APOK_CORRECT_VARARGS); return PARSE_OPTION_FULL; }
+^%allow-returns{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_ALLOW_RETURNS); return PARSE_OPTION_FULL; }
 ^%allow-statement-no-effect{WS}*$       { yylval->parseopt = new ASTParseOption(APOK_ALLOW_STATEMENT_NO_EFFECT); return PARSE_OPTION_FULL; }
+^%strict-types{WS}*$                    { yylval->parseopt = new ASTParseOption(APOK_STRICT_TYPES); return PARSE_OPTION_FULL; }
+^%loose-types{WS}*$                     { yylval->parseopt = new ASTParseOption(APOK_LOOSE_TYPES); return PARSE_OPTION_FULL; }
 ^%no-reflection{WS}*$                   { yylval->parseopt = new ASTParseOption(APOK_NO_REFLECTION); return PARSE_OPTION_FULL; }
 ^%no-transient{WS}*$                    { PO_NO_TRANSIENT = true; yylval->parseopt = new ASTParseOption(APOK_NO_TRANSIENT); return PARSE_OPTION_FULL; }
 ^%push-parse-options{WS}*$              { yylval->parseopt = new ASTParseOption(APOK_PUSH_PARSE_OPTIONS); return PARSE_OPTION_FULL; }
@@ -1023,6 +1034,7 @@ hash\<{WORD}\>\{                        {
 \>\>=                                   return SHIFT_RIGHT_EQUALS;
 \<\<=                                   return SHIFT_LEFT_EQUALS;
 \.\.                                    return RANGE;
+\.\.\.                                  return ELLIPSES;
 
 \<{WS}+=                                return PO_BROKEN_OPERATORS ? LOGICAL_LE : WS_LOGICAL_LE;
 \>{WS}+=                                return PO_BROKEN_OPERATORS ? LOGICAL_GE : WS_LOGICAL_GE;

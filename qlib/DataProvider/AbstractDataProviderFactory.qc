@@ -54,6 +54,10 @@ public hashdecl DataProviderFactoryInfo {
     bool children_can_support_observers = False;
     #! Can any child data providers support messages?
     bool children_can_support_messages = False;
+    #! Can any child data providers support transaction management?
+    /** @since DataProvider 2.8
+    */
+    bool children_can_support_transaction_management = False;
     #! Which server profiles are supported for API management (if any)?
     *softlist<string> api_profiles;
     #! Info about providers created from this factory (without the \a name and \a children attributes)
@@ -202,7 +206,7 @@ public class AbstractDataProviderFactory {
     }
 
     #! thrown an exception
-    private error(string err, string fmt) {
+    private error(string err, string fmt, ...) {
         throw err, sprintf("data provider factory %y (%y): %s", getName(), self.className(), vsprintf(fmt, argv));
     }
 

@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.12)
 
 # NOTE: Qore should always use semantic versioning: https://semver.org/
-set(VERSION_MAJOR 1)
-set(VERSION_MINOR 13)
+set(VERSION_MAJOR 2)
+set(VERSION_MINOR 0)
 set(VERSION_SUB 0)
 #set(VERSION_PATCH 0)
 
@@ -51,6 +51,13 @@ else ()
     add_definitions(-DNDEBUG)
 endif ()
 
+include_directories(BEFORE ${CMAKE_SOURCE_DIR}/include)
+include_directories(BEFORE ${CMAKE_BINARY_DIR}/include/)
+include_directories(BEFORE ${CMAKE_BINARY_DIR})
+
+# for add the source dir include for cmake runs that refuse to add it in some environments for an unknown reason
+set(CMAKE_CXX_FLAGS "-I${CMAKE_SOURCE_DIR}/include")
+
 find_package(Java)
 
 if (DEFINED ENV{DOXYGEN_EXECUTABLE})
@@ -65,13 +72,6 @@ set(QORE_QJAR_EXECUTABLE "${CMAKE_SOURCE_DIR}/doxygen/qjar")
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake")
 include("${CMAKE_SOURCE_DIR}/cmake/QoreMacrosIntern.cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-
-include_directories( ${CMAKE_BINARY_DIR} )
-include_directories( ${CMAKE_BINARY_DIR}/include/ )
-include_directories( ${CMAKE_BINARY_DIR}/include/qore )
-include_directories( ${CMAKE_BINARY_DIR}/include/qore/intern )
-include_directories( ${CMAKE_SOURCE_DIR}/include )
-include_directories( ${CMAKE_SOURCE_DIR}/include/qore )
 
 include(CheckIncludeFiles)
 include(GNUInstallDirs)
@@ -193,6 +193,7 @@ set(LIBQORE_QPP_SRC
     lib/QC_AbstractPollOperation.qpp
     lib/QC_SocketPollOperationBase.qpp
     lib/QC_SocketPollOperation.qpp
+    lib/QC_FilePollOperation.qpp
     lib/ql_misc.qpp
     lib/ql_compression.qpp
     lib/ql_thread.qpp
@@ -341,11 +342,15 @@ qore_iconv_translit_check()
 qore_openssl_checks()
 qore_mpfr_checks()
 
-qore_check_headers_cxx(arpa/inet.h cxxabi.h dlfcn.h fcntl.h getopt.h glob.h grp.h iconv.h inttypes.h memory.h netdb.h
+qore_check_headers_cxx(arpa/inet.h cxxabi.h dlfcn.h fcntl.h getopt.h glob.h grp.h iconv.h inttypes.h linux/if_packet.h memory.h netdb.h
     netinet/in.h netinet/tcp.h poll.h pwd.h stdbool.h stddef.h stdint.h stdlib.h string.h strings.h sys/select.h
     sys/socket.h sys/socket.h sys/stat.h sys/statvfs.h sys/time.h sys/types.h sys/un.h sys/wait.h termios.h umem.h
     unistd.h vfork.h winsock2.h ws2tcpip.h
 )
+
+# net/if_dl.h is not self-contained
+include(CheckIncludeFiles)
+check_include_files("sys/types.h;sys/socket.h;net/if_dl.h" HAVE_NET_IF_DL_H)
 
 qore_search_libs(LIBQORE_LIBS setsockopt socket)
 qore_search_libs(LIBQORE_LIBS gethostbyname nsl)
@@ -355,11 +360,13 @@ set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES} ${CMAKE_THREAD
 qore_check_funcs(
     access alarm atoll bzero chown clock_gettime doprnt exp2 floor fork fsync getaddrinfo getegid geteuid
     getgid getgrgid_r getgrnam_r getgroups gethostbyaddr gethostbyname gethostname getifaddrs getnameinfo getppid
-    getpwnam_r getpwuid_r getsockopt gettimeofday getuid glob gmtime_r inet_ntop inet_pton isblank kill lchown
-    localtime_r lstat memmem memmove memset mkfifo mkfifo nanosleep poll pthread_attr_getstacksize
+    getpwnam_r getpwuid_r getrlimit getsockopt gettimeofday getuid glob gmtime_r inet_ntop inet_pton isblank kill lchown
+    localtime_r link_ntoa lstat memmem memmove memset mkfifo mkfifo nanosleep poll
+    pthread_attr_getstacksize
     pthread_get_name_np pthread_get_stacksize_np pthread_getname_np putenv random
-    readlink realloc realpath regcomp round select setegid setegid setenv seteuid seteuid setgid setgroups setsid
-    setsockopt setuid setuid sleep socket strcasecmp strcasestr strchr strdup strerror strncasecmp strspn strstr
+    readlink realloc realpath regcomp round select setegid setegid setenv
+    seteuid seteuid setgid setgroups setsid setsockopt setuid setuid sleep socket
+    strcasecmp strcasestr strchr strdup strerror strncasecmp strspn strstr
     strtoll strtol symlink system tbbmalloc timegm unsetenv usleep vfork vprintf
 )
 qore_func_strerror_r()
@@ -647,6 +654,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreSquareBracketsRangeOperatorNode.cpp
     lib/QoreSerializable.cpp
     lib/UnicodeCharacterIterator.cpp
+    lib/QoreEllipsesNode.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)
@@ -665,11 +673,15 @@ if (${QORE_BUILD_TYPE_LWR} MATCHES "debug")
     set(LIBQORE_CPP_SRC ${LIBQORE_CPP_SRC} lib/ql_debug.cpp)
 endif ()
 
+# get list of header files
+file(GLOB LIBQORE_SOURCE_HEADERS "include/qore/*.h" "include/qore/intern/*.h")
+set(LIBQORE_SOURCE_HEADERS ${LIBQORE_SOURCE_HEADERS} include/qore/qlist include/qore/safe_dslist include/qore/vector_map include/qore/vector_set)
+
 # prepare libqore target
 if (SINGLE_COMPILATION_UNIT)
-    add_library(libqore SHARED lib/single-compilation-unit.cpp)
+    add_library(libqore SHARED lib/single-compilation-unit.cpp ${LIBQORE_SOURCE_HEADERS})
 else (SINGLE_COMPILATION_UNIT)
-    add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC})
+    add_library(libqore SHARED ${LIBQORE_QPP_CPP_SRC} ${LIBQORE_CPP_SRC} ${LIBQORE_ASM_SRC} ${LIBQORE_SOURCE_HEADERS})
 endif (SINGLE_COMPILATION_UNIT)
 
 add_dependencies(QPP_GENERATED_FILES qpp)
@@ -684,7 +696,7 @@ if (WIN32 OR MINGW OR MSYS)
     target_compile_definitions(libqore PUBLIC BUILDING_DLL)
 endif (WIN32 OR MINGW OR MSYS)
 
-target_include_directories(libqore PUBLIC ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIRS} ${LIBQORE_OPTIONAL_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/lib)
+target_include_directories(libqore PUBLIC ${CMAKE_SOURCE_DIR}/include ${BZIP2_INCLUDE_DIR} ${ICONV_INCLUDE_DIR} ${MPFR_INCLUDE_DIRS} ${LIBQORE_OPTIONAL_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${PCRE_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS})
 
 set(QORE_LIBS ${BZIP2_LIBRARIES} ${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${ICONV_LIBRARY} ${LIBQORE_LIBS} ${LIBQORE_OPTIONAL_LIBS} ${MPFR_LIBRARIES} ${OPENSSL_LIBRARIES} ${PCRE_LDFLAGS} ${ZLIB_LIBRARIES})
 string(REPLACE ";" " " CMAKE_LDFLAGS "${QORE_LIBS}")
@@ -701,7 +713,7 @@ if (APPLE)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
     set_target_properties(libqore PROPERTIES INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
 else (APPLE)
-    set_target_properties(libqore PROPERTIES VERSION 12.2.0)
+    set_target_properties(libqore PROPERTIES VERSION 12.4.2)
     set_target_properties(libqore PROPERTIES SOVERSION 12)
 endif (APPLE)
 
@@ -766,6 +778,8 @@ install(FILES
             doxygen/qore-logo-55x151-white.png
             doxygen/dox_qore.css
             doxygen/DataProvider-Full.svg
+            doxygen/elastic-logo.svg
+            doxygen/Haltian-EmpathicBuilding.svg
             doxygen/SqlUtil-Full.svg
             doxygen/Qore-Q.ico
             doxygen/header_template.html
@@ -881,12 +895,12 @@ qore_user_module("qlib/FtpPollerUtil.qm" "DataProvider")
 
 # base 4 modules
 qore_user_module("qlib/BulkSqlUtil" "SqlUtil")
-qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil;DataProvider")
+qore_user_module("qlib/MssqlSqlUtilBase.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/MysqlSqlUtil.qm" "SqlUtil;DataProvider")
-qore_user_module("qlib/OracleSqlUtil.qm" "SqlUtil;Util;DataProvider")
-qore_user_module("qlib/PgsqlSqlUtil.qm" "SqlUtil;DataProvider")
+qore_user_module("qlib/OracleSqlUtilBase.qm" "SqlUtil;Util;DataProvider")
+qore_user_module("qlib/PgsqlSqlUtilBase.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/Sqlite3SqlUtil.qm" "SqlUtil;DataProvider")
-qore_user_module("qlib/OdbcFirebirdSqlUtil.qm" "SqlUtil;DataProvider")
+qore_user_module("qlib/XdbcFirebirdSqlUtilBase.qm" "SqlUtil;DataProvider")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
 qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
 qore_user_module("qlib/WebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;DataProvider")
@@ -903,6 +917,14 @@ qore_user_module("qlib/DbDataProvider" "DataProvider;SqlUtil;BulkSqlUtil")
 qore_user_module("qlib/FtpPoller.qm" "FtpPollerUtil;Util;DataProvider")
 
 # base 5 modules
+qore_user_module("qlib/FreetdsSqlUtil.qm" "SqlUtil;DataProvider;MssqlSqlUtilBase")
+qore_user_module("qlib/JdbcMicrosoftSqlUtil.qm" "SqlUtil;DataProvider;MssqlSqlUtilBase")
+qore_user_module("qlib/OracleSqlUtil.qm" "OracleSqlUtil;SqlUtil;Util;DataProvider")
+qore_user_module("qlib/JdbcOracleSqlUtil.qm" "OracleSqlUtil;SqlUtil;Util;DataProvider")
+qore_user_module("qlib/PgsqlSqlUtil.qm" "PgsqlSqlUtilBase;SqlUtil;DataProvider")
+qore_user_module("qlib/JdbcPostgresqlSqlUtil.qm" "PgsqlSqlUtilBase;SqlUtil;DataProvider")
+qore_user_module("qlib/JdbcFirebirdSqlUtil.qm" "XdbcFirebirdSqlUtilBase;SqlUtil;DataProvider")
+qore_user_module("qlib/OdbcFirebirdSqlUtil.qm" "XdbcFirebirdSqlUtilBase;SqlUtil;DataProvider")
 qore_user_module("qlib/SchemaReverse.qm" "Qorize;Schema;SqlUtil;Util")
 qore_user_module("qlib/DebugHandler.qm" "DebugProgramControl;DebugUtil;HttpServer;HttpServerUtil;WebSocketHandler;WebSocketUtil")
 qore_user_module("qlib/DebugLinenoiseCmdLine.qm" "DebugUtil;DebugCmdLine")
@@ -920,16 +942,21 @@ qore_user_module("qlib/ZeyosRestClient.qm" "ConnectionProvider;RestClient;Swagge
 qore_user_module("qlib/BillwerkRestClient.qm" "ConnectionProvider;RestClient")
 qore_user_module("qlib/Sap4HanaRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/CdsRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/GoogleRestClient.qm" "ConnectionProvider;Mime;RestClient")
+qore_user_module("qlib/HueRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/ServiceNowRestClient.qm" "ConnectionProvider;Mime;RestClient")
 qore_user_module("qlib/AwsRestClient.qm" "ConnectionProvider;RestClient;RestSchemaValidator")
 qore_user_module("qlib/SwaggerDataProvider" "Swagger;RestClient;RestSchemaValidator;DataProvider")
 qore_user_module("qlib/CdsRestDataProvider" "RestClient;CdsRestClient;RestSchemaValidator;DataProvider")
 qore_user_module("qlib/ServiceNowRestDataProvider" "RestClient;ServiceNowRestClient;RestSchemaValidator;DataProvider")
 qore_user_module("qlib/RestClientDataProvider" "RestClient;DataProvider")
+qore_user_module("qlib/ElasticSearchDataProvider" "RestClient;DataProvider" "elastic-logo.svg")
+qore_user_module("qlib/EmpathicBuildingDataProvider" "RestClient;DataProvider" "Haltian-EmpathicBuilding.svg")
 
 # base 8 modules
 qore_user_module("qlib/SalesforceRestDataProvider" "RestClient;SalesforceRestClient;DataProvider")
 qore_user_module("qlib/AwsRestClientDataProvider" "RestClient;DataProvider;RestClientDataProvider")
+qore_user_module("qlib/GoogleDataProvider" "GoogleRestClient;RestClient;DataProvider")
 
 # print info
 message(STATUS "")

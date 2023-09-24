@@ -44,7 +44,7 @@
 %strict-args
 
 module Schema {
-    version = "1.4.1";
+    version = "1.4.2";
     desc = "user module for working with SQL schemas";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -71,6 +71,10 @@ module Schema {
       and management where the schema contains its current version
 
     @section schema_relnotes Schema Module Release History
+
+    @subsection schema_v1_4_2 Schema Module v1.4.2
+    - fixed reporting changes with negative verbose options
+      (<a href="https://github.com/qorelanguage/qore/issues/4702">issue 4702</a>)
 
     @subsection schema_v1_4_1 Schema Module v1.4.1
     - allow information about schema changes after alignments to be returned to the user
@@ -647,7 +651,7 @@ public namespace Schema {
         #! outputs a log message prefixed with the schema name
         /** the log string is output with a following newline, and the terminal I/O is flushed
         */
-        logpf(string fmt) {
+        logpf(string fmt, ...) {
             printf("%s: %s\n", db.getDatasourceDesc(), vsprintf(fmt, argv));
             flush();
         }
@@ -655,7 +659,7 @@ public namespace Schema {
         #! outputs a log message
         /** the log string is output with a following newline, and the terminal I/O is flushed
         */
-        log(string fmt) {
+        log(string fmt, ...) {
             vprintf(fmt + "\n", argv);
             flush();
         }
@@ -720,12 +724,7 @@ public namespace Schema {
             SchemaCallbackHelper sch(self, verbose);
 
             pure_callback_opts = sch.getCallbacks();
-            if (verbose >= 0) {
-                info_callback = pure_callback_opts.info_callback;
-            } else {
-                info_callback = sub () { remove argv; };
-                pure_callback_opts.info_callback = info_callback;
-            }
+            info_callback = pure_callback_opts.info_callback;
             callback_opts = all_options + pure_callback_opts;
 
             bool first_time_install = checkFirstTimeInstall();
@@ -871,12 +870,6 @@ public namespace Schema {
             SchemaCallbackHelper sch(self, verbose);
 
             callback_opts = sch.getCallbacks(force);
-            if (verbose >= 0) {
-                info_callback = callback_opts.info_callback;
-            } else {
-                info_callback = sub () { remove argv; };
-                callback_opts.info_callback = info_callback;
-            }
 
             if (!checkExistence()) {
                 if (!force) {

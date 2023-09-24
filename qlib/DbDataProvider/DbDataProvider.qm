@@ -43,7 +43,7 @@
 %requires(reexport) BulkSqlUtil
 
 module DbDataProvider {
-    version = "2.0.1";
+    version = "2.1.1";
     desc = "user module providing a data provider API for databases";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -78,12 +78,20 @@ module DbDataProvider {
 
     @section dbdataprovider_relnotes Release Notes
 
-    @subsection dbdataprovider_v2.0.1 DbDataProvider v2.0.1
+    @subsection dbdataprovider_v2_1_1 DbDataProvider v2.1.1
+    - @ref DbDataProvider::DbDataProvider "DbDataProvider" was missing search options
+      (<a href="https://github.com/qorelanguage/qore/issues/4713">issue 4713</a>)
+
+    @subsection dbdataprovider_v2_1 DbDataProvider v2.1
+    - enabled browsing the data provider hierarchy according to transactional support
+      (<a href="https://github.com/qorelanguage/qore/issues/4699">issue 4699</a>)
+
+    @subsection dbdataprovider_v2_0_1 DbDataProvider v2.0.1
     - fixed \c sequence and \c sequence_currval mapper options in
       @ref DbDataProvider::DbTableDataProvider "DbTableDataProvider"
       (<a href="https://github.com/qorelanguage/qore/issues/4628">issue 4628</a>)
 
-    @subsection dbdataprovider_v2.0 DbDataProvider v2.0
+    @subsection dbdataprovider_v2_0 DbDataProvider v2.0
     - added the @ref DbDataProvider::DbTransactionHelper "DbTransactionHelper" class
     - added support for creating, reading, updating, and modifying data providers
       (<a href="https://github.com/qorelanguage/qore/issues/4395">issue 4395</a>)

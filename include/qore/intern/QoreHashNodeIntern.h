@@ -83,8 +83,7 @@ public:
                 i = ml.begin();
                 val = true;
             }
-        }
-        else {
+        } else {
             ++i;
             if (i == ml.end())
                 val = false;
@@ -99,8 +98,7 @@ public:
                 --i;
                 val = true;
             }
-        }
-        else {
+        } else {
             if (i == ml.begin())
                 val = false;
             else

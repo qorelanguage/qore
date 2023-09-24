@@ -101,6 +101,7 @@ void ParseOptionMap::static_init() {
     DO_MAP("allow-returns",            PO_ALLOW_RETURNS);
     DO_MAP("strict-types",             PO_STRICT_TYPES);
     DO_MAP("broken-range",             PO_BROKEN_RANGE);
+    DO_MAP("broken-varargs",           PO_BROKEN_VARARGS);
 
     // the following are not useful from the command-line
     //DO_MAP("no-user-constants",        PO_NO_INHERIT_USER_CONSTANTS);

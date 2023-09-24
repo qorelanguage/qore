@@ -197,23 +197,25 @@ OKKqgBjNAlYDdPhOy8O8Agk=
         # try to start listener on port 80 to ensure errors below
         Socket s();
         try {
-            s.bind(80);
+            s.bind("127.0.0.1:0");
             s.listen();
         } catch (hash<ExceptionInfo> ex) {
             # ignore exceptions; assume we have a listener on port 80 from here on out
         }
 
+        int port = s.getSocketInfo().port;
+
         hash<string, string> errmap;
-        list<hash<auto>> l = mServer.addListeners("80", <HttpListenerOptionInfo>{}, \errmap);
+        list<hash<auto>> l = mServer.addListeners("127.0.0.1:" + port, <HttpListenerOptionInfo>{}, \errmap);
         assertEq((), l);
         assertEq(1, errmap.size());
-        assertEq("80", errmap.firstKey());
+        assertEq("127.0.0.1:" + port, errmap.firstKey());
         assertRegex("SOCKET-BIND-ERROR", errmap.firstValue());
 
-        l = mServer.addListeners(<HttpListenerOptionInfo>{"service": "80"}, \errmap);
+        l = mServer.addListeners(<HttpListenerOptionInfo>{"node": "127.0.0.1", "service": port.toString()}, \errmap);
         assertEq((), l);
         assertEq(1, errmap.size());
-        assertEq("80", errmap.firstKey());
+        assertEq("127.0.0.1:" + port, errmap.firstKey());
         assertRegex("SOCKET-BIND-ERROR", errmap.firstValue());
     }
 

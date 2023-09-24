@@ -4,7 +4,7 @@
 /** AwsRestClientDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
-    copy of this software and associated documentation files (the "Software"),
+    copy of this software and associated doContent-Typecumentation files (the "Software"),
     to deal in the Software without restriction, including without limitation
     the rights to use, copy, modify, merge, publish, distribute, sublicense,
     and/or sell copies of the Software, and to permit persons to whom the
@@ -25,7 +25,7 @@
 #! contains all public definitions in the AwsRestClientDataProvider module
 public namespace AwsRestClientDataProvider {
 #! The AWS REST client data provider class, provides API classes as children
-public class AwsRestClientDataProvider inherits AbstractDataProvider {
+public class AwsRestClientDataProvider inherits AwsRestClientDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -78,8 +78,6 @@ public class AwsRestClientDataProvider inherits AbstractDataProvider {
                 "desc": "A temporary session token from AWS Security Token Service for this HTTP session",
             },
         };
-
-        AwsRestClient rest;
     }
 
     private {
@@ -102,8 +100,7 @@ public class AwsRestClientDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(AwsRestClient rest) {
-        self.rest = rest;
+    constructor(AwsRestClient rest) : AwsRestClientDataProviderBase(rest) {
     }
 
     #! Returns the data provider name
@@ -119,6 +116,12 @@ public class AwsRestClientDataProvider inherits AbstractDataProvider {
     #! Return data provider summary info
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+    }
+
+    #! Accepts a LoggerInterface object for logging (or clears it)
+    setLogger(*LoggerInterface logger) {
+        rest.setLogger(logger);
+        LoggerWrapper::setLogger(logger);
     }
 
     #! Returns a REST connection

@@ -164,8 +164,8 @@ class SwaggerRestHandler inherits RestHandler {
 class DummyListenerInterface inherits HttpListenerInterface {
     addUserThreadContext(hash<auto> uctx) {}
     auto removeUserThreadContext(*string k) {}
-    log(string fmt) {}
-    logError(string fmt) {}
+    log(string fmt, ...) {}
+    logError(string fmt, ...) {}
 }
 
 public class RestHandlerTest inherits QUnit::Test {
@@ -422,27 +422,46 @@ public class RestHandlerTest inherits QUnit::Test {
     }
 
     badRequestTest() {
-        HTTPClient client({"url": mClient.getURL()});
+        {
+            HTTPClient client({"url": mClient.getURL()});
 
-        hash<auto> info;
-        on_error printf("info: %N\n", info);
+            hash<auto> info;
+            on_error printf("info: %N\n", info);
 
-        string body = make_yaml(LargerHashValue);
-        hash<auto> hdr = {
-            "Content-Type": MimeTypeYaml,
-            "Accept": MimeTypeYaml,
-        };
-        hash<auto> h = client.send(body, "PUT", "test?action=echo", hdr, False, \info);
-        assertEq(body, h.body);
+            string body = make_yaml(LargerHashValue);
+            hash<auto> hdr = {
+                "Content-Type": MimeTypeYaml,
+                "Accept": MimeTypeYaml,
+            };
+            hash<auto> h = client.send(body, "PUT", "test?action=echo", hdr, False, \info);
+            assertEq(body, h.body);
 
-        hdr = {
-            "Content-Type": MimeTypeJson,
-            "Accept": MimeTypeJson,
-        };
-        assertThrows("HTTP-CLIENT-RECEIVE-ERROR", \client.send(),
-            ("[x x]", "PUT", "test?action=echo", hdr, False, \info));
-        assertEq(400, info."response-headers".status_code);
-        assertEq("True", info."response-headers".error);
+            hdr = {
+                "Content-Type": MimeTypeJson,
+                "Accept": MimeTypeJson,
+            };
+            assertThrows("HTTP-CLIENT-RECEIVE-ERROR", \client.send(),
+                ("[x x]", "PUT", "test?action=echo", hdr, False, \info));
+            assertEq(400, info."response-headers".status_code);
+            assertEq("True", info."response-headers".error);
+        }
+        {
+            RestClient client({"url": mClient.getURL()});
+
+            hash<auto> info;
+            on_error printf("info: %N\n", info);
+
+            client.setSerialization("bin");
+            hash<auto> hdr = {
+                "Content-Type": MimeTypeJson,
+                "Accept": MimeTypeJson,
+            };
+            assertThrows("REST-RESPONSE-ERROR", "test.action=echo", \client.put(),
+                ("test?action=echo", "[x x]", \info, hdr));
+            assertEq(400, info."response-headers".status_code);
+            assertEq("True", info."response-headers".error);
+
+        }
     }
 
     directTest() {
@@ -604,7 +623,7 @@ public class RestHandlerTest inherits QUnit::Test {
         SwaggerSchema swagger = RestHandlerTest::getSwagger();
         RestConnection conn("test", "test", url, {}, {"validator": swagger});
         AbstractDataProvider rest_provider = conn.getDataProvider().getChildProviderEx("test").getChildProviderEx("PUT");
-        assertEq("/swagger", cast<SwaggerRequestDataProvider>(rest_provider).schema.getBasePath());
+        assertEq("/swagger", cast<SwaggerRequestDataProvider>(rest_provider).getSchema().getBasePath());
 
         #printf("req: %N\nresp: %N\n", rest_provider.getRequestType(), rest_provider.getResponseType());
 

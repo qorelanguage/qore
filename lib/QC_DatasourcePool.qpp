@@ -763,9 +763,32 @@ string DatasourcePool::getOSCharset() [flags=CONSTANT] {
     @code{.py}
 string driver = db.getDriverName();
     @endcode
- */
+
+    @see getDriverRealName()
+*/
 string DatasourcePool::getDriverName() [flags=CONSTANT] {
    return new QoreStringNode(ds->getDriverName());
+}
+
+//! Returns the real DB driver name if supported by the driver, otherwise the %Qore driver name
+/** @return the real DB driver name if supported by the driver, otherwise the %Qore driver name
+
+    @par Example:
+    @code{.py}
+string driver = db.getDriverRealName();
+    @endcode
+
+    The return value will differ from getDriverName() in the case of "wrapper" drivers such as \c odbc or \c jdbc,
+    where the generic %Qore driver name is insufficient to identify the database server type.
+
+    In other cases, this method will return the same value as getDriverName()
+
+    @see getDriverRName()
+
+    @since %Qore 1.14
+*/
+string DatasourcePool::getDriverRealName() [flags=RET_VALUE_ONLY] {
+    return ds->getDriverRealName(xsink);
 }
 
 //! Returns the minimum number of connections in this object

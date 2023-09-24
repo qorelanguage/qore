@@ -23,10 +23,10 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.0
+%requires qore >= 1.14
 
 # requires the SqlUtil module
-%requires(reexport) SqlUtil >= 1.6
+%requires(reexport) SqlUtil >= 1.9
 
 # requires the Util module
 %requires Util >= 1.0
@@ -46,7 +46,7 @@
 %enable-all-warnings
 
 module OracleSqlUtil {
-    version = "1.5";
+    version = "1.6";
     desc = "user module for working with Oracle SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -72,208 +72,12 @@ module OracleSqlUtil {
     @note This module requires the <a href="https://github.com/qorelanguage/module-oracle">oracle</a> binary module
     for communication with Oracle databases
 
-    @section ora_sql_operations SQL Operations on Oracle
-
-    @subsection ora_paging Select With Paging on Oracle
-
-    Select with paging on Oracle is more complicated than on some databases due to the lack of direct \c limit and
-    \c offset support (applies to Oracle pre 12c).
-
-    For example, for the following select:
-    @code{.py}
-*list<auto> rows = $table.selectRows({"where": {"type": "user"}, "limit": 100, "offset": 200});
-    @endcode
-    the following SQL is generated for Oracle with a pre 12c server:
-    @code{.py}
-ds.vselectRows("select * from (select /*+ first_rows(100) *<!--%%-->/ a.*, rownum rnum from
-    (select * from schema.table where type = %v order by type) a
-        where rownum <= %v) where rnum > %v", ("user", 300, 200));
-    @endcode
-    note that the following simpler SQL is generated for Oracle 12c+ servers:
-    @code{.py}
-ds.vselectRows("select * from schema.table where type = %v order by type offset %v rows
-    fetch next %v rows only", ("user", 200, 100));
-    @endcode
-
-    @subsection ora_in_operator IN Operator on Oracle
-
-    In order to avoid dynamic SQL and better manage the server's shared pool (in particular, the number of parsed
-    statements), the %OracleSqlUtil module uses bind by value with the SQL \c IN operator.
-
-    For example, the following query:
-    @code{.py}
-*hash<auto> q = table.select({"where": {"col1": op_in(1, 2, 3, 4)}});
-    @endcode
-
-    Results in the equivalent of the following SQL:
-    @code{.py}
-*hash<auto> q = ds.select("select * from schema.table where col1 in (select column_value from table(%v))",
-    bindOracleCollection("SYS.ODCIVARCHAR2LIST", (1,2,3,4)));
-    @endcode
-
-    |!Qore Type|!Oracle Collection
-    |Date|\c SYS.ODCIDATELIST
-    |Float|\c SYS.ODCINUMBERLIST
-    |Integer|\c SYS.ODCINUMBERLIST
-    |Number|\c SYS.ODCINUMBERLIST
-    |String|\c SYS.ODCIVARCHAR2LIST
-
-    There universal collections are limited to 32767 elements. And \c SYS.ODCIVARCHAR2LIST element size is
-    \c VARCHAR2(4000).
-
-    @subsection ora_partitioning_select Partition Support in Selects
-
-    It's possible to select from a particular partition of a table with %OracleSqlUtil;
-    @ref OracleSqlUtil::OracleTable::OracleSelectOptions "OracleSelectOptions" defines the \c "partition" key which
-    can be added to a @ref select_option_hash "select option hash" to specify the partition to select from as in the
-    following example:
-    @code{.py}
-*list<auto> rows = $table.selectRows(("created": op_gt(2012-05-01), "partition": "p1"));
-    @endcode
-    Which generates an SQL command like the following:
-    @code{.py}
-*list<auto> rows = ds.vselectRows("select * from schema.table partition(p1) where created > %v", (2012-05-01));
-    @endcode
-
-    @subsection ora_partitioning_join Partition Support in Joins
-
-    It's possible to perform a join on a particular partition of a table with %OracleSqlUtil; the join option
-    \c "partition" is supported to specify the partition to join on as in the following example:
-    @code{.py}
-*list<auto> $rows = table.selectRows({"join": join_inner($table2, "t2", ("id": "altid"), NOTHING,
-    {"partition": "p2"})});
-    @endcode
-    Which generates an SQL command like the following:
-    @code{.py}
-*list<auto> $rows = ds.vselectRows("select * from schema.table inner join schema.table2 partition(p2) t2 on
-    (schema.table.id = t2.altid)");
-    @endcode
-
-    @section ora_schema_management Schema Management on Oracle
-
-    Note that when getting an object description from an Oracle database, if the object cannot be found in the
-    connection schema, then if a synonym of the same type exists and the target object is accessible, then the target
-    object is read  automatically and the owning schema name is also set to the actual owner of the object.
-
-    @subsection ora_type_mapping Type Mapping
-
-    Column types are mapped from %Qore types as follows:
-
-    <b>Oracle Column Type Mappings</b>
-    |!Generic Type Name|!Oracle Type Used
-    |\c float|\c number
-    |\c integer|\c number
-    |\c number|\c number
-    |\c string|\c varchar2
-    |\c date|\c timestamp(6)
-    |\c binary|\c blob
-    |@ref SqlUtil::BLOB|\c blob
-    |@ref SqlUtil::CHAR|\c char
-    |@ref SqlUtil::CLOB|\c clob
-    |@ref SqlUtil::NUMERIC|\c number
-    |@ref SqlUtil::VARCHAR|\c varchar2
-
-    To use other types, use the \c "native_type"
-    @ref SqlUtil::AbstractTable::ColumnDescOptions "column description option" with the native Oracle type name
-    instead (under the \c "driver" and \c "oracle" keys for schemas supporting multiple databases).
-
-    @subsection ora_other_objects Additional Object Types Supported
-
-    The following additional schema objects can be managed with %OracleSqlUtil:
-    - @ref ora_materialized_views "materialized views"
-    - @ref ora_packages "packages"
-    - @ref ora_types "types"
-
-    @subsection ora_materialized_views Materialized Views
-
-    The @ref schema_desc_hash takes an optional key, \c "materialized_views" that allows materialized views in Oracle
-    schemas to be managed along with other objects.
-
-    The \c "materialized_views" should be assigned to a hash, each key name is the name of the materialized view, and
-    the values are hashes with the
-    following keys:
-    - \c "logging": (@ref bool_type "bool") if the materialized view should be logged
-    - \c "use_index": (@ref bool_type "bool") if the materialized view should be indexed
-    - \c "src": (@ref bool_type "bool") the source of the materialized view
-
-    The \c "materialized_views" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or,
-    for schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following
-    example:
-
-    @code{.py}
-hash schema = (
-    "driver": (
-        "oracle": (
-            "materialized_views": (
-                "example_mv": (
-                    "logging": False,
-                    "use_index": False,
-                    "src": "select type, count(1) total_count from table group by type",
-                ),
-            ),
-        ),
-    ),
-);
-    @endcode
-
-    @subsection ora_packages Packages
-
-    The @ref schema_desc_hash takes an optional key, \c "packages" that allows packages in Oracle schemas to be
-    managed along with other objects.
-
-    The \c "packages" should be assigned to a hash, each key name is the name of the package, and the values are
-    hashes with the following key:
-    - \c "src": (@ref bool_type "bool") the source of the package
-
-    The \c "packages" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for
-    schemas targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
-
-    @code{.py}
-hash schema = (
-    "driver": (
-        "oracle": (
-            "packages": (
-                "example_pkg": (
-                    "src": "types as
-type cursorType is ref cursor;
-MYSTATCOMPLETE constant order_status.orderstatus%type := 'C';
-MYSTATERROR constant order_status.orderstatus%type := 'E';
-",
-                ),
-            ),
-        ),
-    ),
-);
-    @endcode
-
-    @subsection ora_types Types
-
-    The @ref schema_desc_hash takes an optional key, \c "types" that allows types in Oracle schemas to be managed
-    along with other objects.
-
-    The \c "types" should be assigned to a hash, each key name is the name of the type, and the values are strings
-    giving the type definition.
-
-    The \c "types" key can go in the top level of the @ref schema_desc_hash for Oracle-only schemas, or, for schemas
-    targeting multiple database types, under the \c "driver" and \c "oracle" keys as in the following example:
-
-    @code{.py}
-hash schema = (
-    "driver": (
-        "oracle": (
-            "types": (
-                "num_array": "table of number",
-                "str_array": "table of varchar2(240)",
-            ),
-        ),
-    ),
-);
-    @endcode
-
-    @see OracleSqlUtil::OracleDatabase::OracleSchemaDescriptionOptions for a list of Oracle-specific schema
-    description hash keys.
+    @see @ref pgsqlsqlutilbaseintro for implementation information about this module
 
     @section ora_relnotes Release Notes
+
+    @subsection oracle16 OracleSqlUtil v1.6
+    - updated to use the @ref oraclesqlutilbaseintro module for the base implementation
 
     @subsection oracle15 OracleSqlUtil v1.5
     - implemented support for generating queries based on generic expressions using the DataProvider module's generic

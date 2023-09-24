@@ -206,10 +206,10 @@ public:
     DLLLOCAL QoreStringNode* getPendingHostName() const;
     DLLLOCAL int getPendingPort() const;
     DLLLOCAL const QoreEncoding* getQoreEncoding() const;
-    DLLLOCAL const DBIDriver* getDriver () const {
+    DLLLOCAL const DBIDriver* getDriver() const {
         return pool[0]->getDriver();
     }
-    DLLLOCAL const char* getDriverName () const {
+    DLLLOCAL const char* getDriverName() const {
         return pool[0]->getDriverName();
     }
 
@@ -220,6 +220,8 @@ public:
     DLLLOCAL QoreValue getClientVersion(ExceptionSink* xsink) {
         return pool[0]->getClientVersion(xsink);
     }
+
+    DLLLOCAL QoreStringNode* getDriverRealName(ExceptionSink* xsink);
 
     DLLLOCAL bool inTransaction();
 

@@ -399,25 +399,6 @@ public:
     */
     DLLEXPORT int parseRollback(ExceptionSink* xsink);
 
-    //! Parses code from the given string and serializes the data to the given output stream
-    /** Does not commit changes to the QoreProgram
-
-        @param stream the output stream where the serialized data will be written
-        @param str the code to parse
-        @param lstr the label of the code being parsed to be used as a file name
-        @param xsink if an error occurs, the Qore-language exception information will be added here
-        @param warn_sink if a warning is raised, the warning information will be added here (0 = no warnings)
-        @param warn_mask the warning mask to set (-1 sets all possible warnings)
-        @param source the source file name (if lstr is a label representing a section of a file for example)
-        @param offset the line offset from the label to the file
-
-        @return -1 if an error occurs, a positive number for the number of bytes written to \a out
-
-        @since %Qore 1.13
-    */
-    DLLEXPORT int parseToBinary(ExceptionSink* xsink, OutputStream& stream, const QoreString* str,
-            const QoreString* lstr, ExceptionSink* wS, int wm, const QoreString* source, int offset);
-
     //! returns true if the given function exists as a user function, false if not
     DLLEXPORT bool existsFunction(const char* name);
 
@@ -901,14 +882,6 @@ public:
 
     //! check if program can provide debugging stuff
     DLLEXPORT bool checkAllowDebugging(ExceptionSink* xsink);
-
-    //! Creates a QoreProgram object from a stream
-    /** @param stream the input stream (serialized with parseToBinary())
-        @param xsink any errors raised while deserializing the stream are raised here
-
-        @return a QoreProgram pointer created from the stream or nullptr in case of errors
-     */
-    DLLEXPORT static QoreProgram* deserialize(ExceptionSink* xsink, InputStream& stream);
 
 protected:
     //! the destructor is private in order to prohibit the object from being allocated on the stack

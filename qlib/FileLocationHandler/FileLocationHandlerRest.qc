@@ -186,6 +186,20 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
         return val.toString().toBinary();
     }
 
+    #! Retrieves an I/O poller to retrieve a binary file from the given location
+    /** @param scheme the scheme being used
+        @param location the location string without the scheme
+        @param opts read options
+
+        @return an I/O poller to retrieve the file's data
+    */
+    private Qore::AbstractPollOperation getIoPollerForLocationImpl(string scheme, string location,
+            *hash<auto> opts) {
+        string path;
+        object client = getRestClient(scheme, location, opts, \path, False);
+        return new HttpPollWrapper(client.startPollSendRecv(opts.method ? opts.method.upr() : "GET", path));
+    }
+
     #! Returns a stream reader for the file's data at the given location
     /** @param scheme the scheme being used
         @param location the location string without the scheme
@@ -262,7 +276,8 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
     /**
         @note This method can throw any exception related to making a REST connection
     */
-    private object getRestClient(string scheme, string location, *hash<auto> opts, reference<string> path) {
+    private object getRestClient(string scheme, string location, *hash<auto> opts, reference<string> path,
+            bool do_connect = True) {
         # dynamically load the module to avoid a circular module dependency
         load_module("RestClient");
 
@@ -287,8 +302,48 @@ class FileLocationHandlerRest inherits AbstractFileLocationHandler {
                 "url": location,
             } + opts
         );
-        client.connect();
+        if (do_connect) {
+            client.connect();
+        }
         return client;
+    }
+}
+
+#! Wraps an HTTP poller so that the response body is always returned as the output
+public class HttpPollWrapper inherits AbstractPollOperation {
+    private {
+        #! The HTTP poller to execute
+        AbstractPollOperation op;
+    }
+
+    #! Creates the object wrapping the HTTP poller passed as an argument
+    constructor(AbstractPollOperation op) {
+        self.op = op;
+    }
+
+    #! Calls the corresponding method in the wrapped poller and returns the return value
+    string getGoal() {
+        return op.getGoal();
+    }
+
+    #! Calls the corresponding method in the wrapped poller and returns the return value
+    string getState() {
+        return op.getState();
+    }
+
+    #! Calls the corresponding method in the wrapped poller and returns the return value
+    bool goalReached() {
+        return op.goalReached();
+    }
+
+    #! Calls the corresponding method in the wrapped poller and returns the return value
+    *hash<SocketPollInfo> continuePoll() {
+        return op.continuePoll();
+    }
+
+    #! Returns the value of the \c "response-body" key in the wrapped HTTP poller's output data
+    auto getOutput() {
+        return op.getOutput()."response-body";
     }
 }
 }

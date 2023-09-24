@@ -35,7 +35,7 @@
 %enable-all-warnings
 
 module Util {
-    version = "1.9";
+    version = "1.10";
     desc    = "user module for generally useful routines";
     author  = "David Nichols <david@qore.org>";
     url     = "http://qore.org";
@@ -57,6 +57,7 @@ module Util {
     All the public symbols in the module are defined in the Util namespace
 
     Functions:
+    - @ref Util::check_exception_serializable()
     - @ref Util::compare_version()
     - @ref Util::flatten()
     - @ref Util::get_byte_size()
@@ -87,6 +88,10 @@ module Util {
     - @ref Util::zip()
 
     @section utilrelnotes Release Notes
+
+    @subsection util_1_10 Util 1.10
+    - added the Util::check_exception_serializable() "check_exception_serializable()" method
+      (<a href="https://github.com/qorelanguage/qore/issues/4708">issue 4708</a>)
 
     @subsection util_1_9 Util 1.9
     - added a \c path_params element to the @ref Util::UriQueryInfo "UriQueryInfo" typed hash to allow for reporting
@@ -1911,5 +1916,40 @@ check_ip_address(str, True);
             }
         }
         return str;
+    }
+
+    #! Recursively ensure that exception arguments are serializable
+    /** @param ex the exception to check and remove any non-serializable attributes
+
+        @return an exception object with all non-serializable attributes removed
+
+        @since Util 1.10
+    */
+    public hash<ExceptionInfo> sub check_exception_serializable(hash<ExceptionInfo> ex) {
+        try {
+            if (ex.arg.typeCode() == NT_OBJECT) {
+                string new_arg;
+                if (ex.arg.hasCallableMethod("toString")) {
+                    try {
+                        new_arg = sprintf("unserializable arg.toString(): %s", ex.arg.toString());
+                    } catch (hash<ExceptionInfo> ex1) {
+                    }
+                }
+                if (!exists new_arg) {
+                    new_arg = sprintf("unserializable arg: %y", ex.arg);
+                }
+                ex.arg = new_arg;
+            } else {
+                if (ex.arg.ex instanceof hash<ExceptionInfo>) {
+                    ex.arg.ex = check_exception_serializable(ex.arg.ex);
+                }
+            }
+            if (ex.next) {
+                ex.next = check_exception_serializable(ex.next);
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            ex.arg = sprintf("unserializable arg: %y", ex.arg);
+        }
+        return ex;
     }
 }

@@ -7,9 +7,11 @@
 %strict-args
 
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/SqlUtil
 %requires ../../../../qlib/BulkSqlUtil
+%requires ../../../../qlib/PgsqlSqlUtilBase.qm
 %requires ../../../../qlib/PgsqlSqlUtil.qm
 %requires ../../../../qlib/Schema.qm
 

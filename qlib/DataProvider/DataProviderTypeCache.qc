@@ -352,8 +352,8 @@ public class DataProviderTypeCache inherits Qore::Serializable {
             *DataProviderTypeEntry next_entry = type_entry.getChild(node);
             if (!next_entry) {
                 if (throw_exception) {
-                    throw "PROVIDER-ERROR", sprintf("%y: data provider type element %y is unknown in %y; known children: %y",
-                        path, node, type_entry.getPath(), type_entry.getChildNames());
+                    throw "PROVIDER-ERROR", sprintf("%y: data provider type element %y is unknown in %y; known "
+                        "children: %y", path, node, type_entry.getPath(), type_entry.getChildNames());
                 }
                 return;
             }
@@ -384,7 +384,8 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         @note types are stored based on the path provided which may differ from their type names (which may be generic
         and therefore not suitable for indexing)
     */
-    private static *AbstractDataProviderType getTypeFromFields(string path, AbstractDataProviderType type, list<string> type_path, bool throw_exception) {
+    private static *AbstractDataProviderType getTypeFromFields(string path, AbstractDataProviderType type,
+            list<string> type_path, bool throw_exception) {
         AbstractDataProviderType curr = type;
         foreach string elem in (type_path) {
             *AbstractDataProviderType new_type = curr.getFieldType(elem);

@@ -288,7 +288,7 @@ struct qore_httpclient_priv {
     int timeout = HTTPCLIENT_DEFAULT_TIMEOUT;
     std::string socketpath;
     header_map_t default_headers;
-    int connect_timeout_ms = -1;
+    int connect_timeout_ms = HTTPCLIENT_DEFAULT_CONNECT_TIMEOUT;
 
     method_map_t additional_methods_map;
 
@@ -298,6 +298,10 @@ struct qore_httpclient_priv {
     // characters subject to percent encoding by Qore
     typedef std::map<char, const char*> pct_encoding_map_t;
     static pct_encoding_map_t pct_encoding_map;
+
+    // any local map for this object for additional characters to encode
+    typedef std::set<char> pct_encoding_set_t;
+    pct_encoding_set_t local_pct_encoding_set;
 
     DLLLOCAL qore_httpclient_priv(my_socket_priv* ms) :
             msock(ms),
@@ -527,7 +531,7 @@ struct qore_httpclient_priv {
             return -1;
         }
 
-        const QoreString *tmp = url.getProtocol();
+        const QoreString* tmp = url.getProtocol();
         if (tmp) {
             prot_map_t::const_iterator i = prot_map.find(tmp->c_str());
             if (i == prot_map.end()) {
@@ -808,7 +812,13 @@ struct qore_httpclient_priv {
             while (*p) {
                 pct_encoding_map_t::const_iterator i = pct_encoding_map.find(*p);
                 if (i == pct_encoding_map.end()) {
-                    pstr.concat(*p);
+                    pct_encoding_set_t::iterator j = local_pct_encoding_set.find(*p);
+                    if (j == local_pct_encoding_set.end()) {
+                        pstr.concat(*p);
+                    } else {
+                        QoreStringMaker tmp("%%%X", *p);
+                        pstr.concat(tmp.c_str());
+                    }
                 } else {
                     pstr.concat(i->second);
                 }
@@ -1149,6 +1159,19 @@ struct qore_httpclient_priv {
         }
 
         return 0;
+    }
+
+    // Set additional characters to encode in the URI path
+    DLLLOCAL void setEncodeChar(const char c) {
+        pct_encoding_map_t::iterator i = pct_encoding_map.find(c);
+        // ignore if already in the global map
+        if (i == pct_encoding_map.end()) {
+            pct_encoding_set_t::iterator j = local_pct_encoding_set.find(c);
+            // ignore if already in the local set
+            if (j == local_pct_encoding_set.end()) {
+                local_pct_encoding_set.insert(j, c);
+            }
+        }
     }
 
     DLLLOCAL static qore_httpclient_priv* get(QoreHttpClientObject& client) {
@@ -1738,9 +1761,9 @@ HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation(E
             assert(proxy_path);
         }
     }
-    //printd(5, "HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation() this: %p "
-    //    "proxy connected: %d proxy: %d use_proxy_connect: %d proxy_path: %s\n", this, client->http_priv->proxy_connected,
-    //    client->http_priv->proxy_connection.has_url(), use_proxy_connect, proxy_path ? proxy_path : "n/a");
+    printd(5, "HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation() this: %p "
+        "proxy connected: %d proxy: %d use_proxy_connect: %d proxy_path: %s\n", this, client->http_priv->proxy_connected,
+        client->http_priv->proxy_connection.has_url(), use_proxy_connect, proxy_path ? proxy_path : "n/a");
 
     connectOrSend(xsink);
 }
@@ -2519,7 +2542,10 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         }
     }
 
-    http_priv->connect_timeout_ms = (int)get_ms_zero(opts->getKeyValue("connect_timeout"));
+    n = opts->getKeyValue("connect_timeout");
+    if (!n.isNothing()) {
+        http_priv->connect_timeout_ms = (int)get_ms_zero(n);
+    }
 
     if (http_priv->connection.path.empty())
         http_priv->connection.path = http_priv->default_path.empty() ? "/" : http_priv->default_path;
@@ -2701,6 +2727,20 @@ int QoreHttpClientObject::setOptions(const QoreHashNode* opts, ExceptionSink* xs
         http_priv->pre_encoded_urls = true;
     }
 
+    // issue #4773: allow the set of automatically-percent-encoded characters to be expanded
+    n = opts->getKeyValue("encode_chars");
+    if (!n.isNothing()) {
+        if (n.getType() != NT_STRING) {
+            xsink->raiseException("HTTP-CLIENT-OPTION-ERROR", "expecting a string as the value for the "
+                "\"encode_chars\" key in the options hash; got type \"%s\" instead", n.getTypeName());
+            return -1;
+        }
+        const QoreStringNode* chars = n.get<const QoreStringNode>();
+        for (size_t i = 0, e = chars->size(); i < e; ++i) {
+            http_priv->setEncodeChar((*chars)[i]);
+        }
+    }
+
     // issue #3978: allow the output encoding to be set as an option
     n = opts->getKeyValue("encoding");
     if (!n.isNothing()) {
@@ -2817,6 +2857,38 @@ void QoreHttpClientObject::clearProxyURL() {
     SafeLocker sl(priv->m);
     http_priv->proxy_connection.clear();
     http_priv->setSocketPath();
+}
+
+QoreStringNode* QoreHttpClientObject::getUsername() const {
+    SafeLocker sl(priv->m);
+    if (!http_priv->connection.username.empty()) {
+        return new QoreStringNode(http_priv->connection.username);
+    }
+    return nullptr;
+}
+
+QoreStringNode* QoreHttpClientObject::getPassword() const {
+    SafeLocker sl(priv->m);
+    if (!http_priv->connection.password.empty()) {
+        return new QoreStringNode(http_priv->connection.password);
+    }
+    return nullptr;
+}
+
+QoreStringNode* QoreHttpClientObject::getProxyUsername() const {
+    SafeLocker sl(priv->m);
+    if (!http_priv->proxy_connection.username.empty()) {
+        return new QoreStringNode(http_priv->proxy_connection.username);
+    }
+    return nullptr;
+}
+
+QoreStringNode* QoreHttpClientObject::getProxyPassword() const {
+    SafeLocker sl(priv->m);
+    if (!http_priv->proxy_connection.password.empty()) {
+        return new QoreStringNode(http_priv->proxy_connection.password);
+    }
+    return nullptr;
 }
 
 void QoreHttpClientObject::setSecure(bool is_secure) {

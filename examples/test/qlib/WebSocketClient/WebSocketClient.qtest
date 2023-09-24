@@ -8,6 +8,7 @@
 
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/Logger.qm
 %requires ../../../../qlib/HttpServerUtil.qm
@@ -107,6 +108,7 @@ class WebSocketClientTest inherits QUnit::Test {
         MyObserver observer();
         WebSocketClientDelayedDataProvider prov({
             "url": "ws://localhost:" + port,
+            "data": "none",
         });
         prov.setLogger(logger);
         prov.registerObserver(observer);
@@ -115,7 +117,17 @@ class WebSocketClientTest inherits QUnit::Test {
         prov.sendMessage(MESSAGE_WS_PING, "hb");
 
         observer.wait();
-        assertTrue(True);
+        assertEq(1, observer.l.size());
+        assertEq(EVENT_WS_PONG, observer.l[0].id);
+
+        AbstractDataProvider child = prov.getChildProvider("wait-for-message");
+        prov.sendMessage(MESSAGE_WS_DATA, "hi");
+
+        auto response = child.doRequest();
+        assertEq("RESPONSE:hi", response);
+
+        # negative test
+        assertThrows("WEBSOCKET-RECV-TIMEOUT", \child.doRequest(), {"timeout": 1});
     }
 
     webSocketClientTests() {

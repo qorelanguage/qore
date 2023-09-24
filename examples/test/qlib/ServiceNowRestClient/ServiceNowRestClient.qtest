@@ -30,6 +30,7 @@ class ServiceNowTest inherits QUnit::Test {
 
     private {
         ServiceNowRestClient rc;
+        Logger logger;
 
         # ServiceNow connection options
         hash<auto> snopts;
@@ -57,11 +58,20 @@ class ServiceNowTest inherits QUnit::Test {
         addTestCase("ServiceNow REST", \ServiceNowRestTests());
         addTestCase("connection tests", \connectionTest());
 
+        logger = new Logger("test",
+            (m_options.verbose > 3 ? LoggerLevel::getLevelDebug() : LoggerLevel::getLevelInfo()));
+        if (m_options.verbose > 2) {
+            logger.addAppender(new StdoutAppender());
+        }
+
         try {
             setupConnection();
         } catch (hash<ExceptionInfo> ex) {
-            if (m_options.verbose)
+            if (m_options.verbose > 2) {
+                printf("%s\n", get_exception_string(ex));
+            } else if (m_options.verbose) {
                 printf("%s: %s\n", ex.err, ex.desc);
+            }
         }
 
         set_return_value(main());
@@ -97,8 +107,9 @@ class ServiceNowTest inherits QUnit::Test {
         if (snopts."timeout") {
             snopts.connect_timeout = snopts."timeout";
         }
+        snopts.oauth2_grant_type = "password";
 
-        rc = new ServiceNowRestClient(snopts);
+        rc = new ServiceNowRestClient(snopts + {"logger": logger});
     }
 
     private error(string fmt) {
@@ -107,6 +118,8 @@ class ServiceNowTest inherits QUnit::Test {
 
     ServiceNowDataProviderTests() {
         if (!rc) testSkip("no ServiceNow connection");
+
+        assertEq(snopts.username, rc.getUsername());
 
         AbstractDataProvider dp = new ServiceNowRestDataProvider(rc);
         dp = dp.getChildProvider("tables");
@@ -150,21 +163,91 @@ class ServiceNowTest inherits QUnit::Test {
     ServiceNowRestTests() {
         if (!rc) testSkip("no ServiceNow connection");
 
-        assertEq(Type::NothingType, rc.getApi().type());
+        assertEq("now", rc.getApi());
 
         if (rc.usingOAuth2()) {
             assertEq(Type::String, rc.getToken().type());
         }
 
-        hash<auto> info;
-        hash<auto> h = rc.get("table/incident?sysparm_limit=1", NOTHING, \info);
-        on_error printf("%N\n", h);
-        assertEq(Type::Hash, h.body.response.result.type());
+        {
+            hash<auto> info;
+            hash<auto> h = rc.get("table/incident?sysparm_limit=1", NOTHING, \info);
+            on_error printf("%N\n", h);
+            assertEq(Type::Hash, h.body.response.result.type());
+        }
+
+%ifdef NoJson
+        testSkip("no json module present");
+%endif
+
+        hash<auto> info = parse_url(rc.getURL());
+        string url = info.protocol + "://" + info.host;
+        if (info.port) {
+            url += ":" + info.port;
+        }
+
+        {
+            # setup valid connection and test polling
+            ServiceNowRestConnection snrc("test", "test", url, {"monitor": True}, {
+                "username": snopts.username,
+                "password": snopts.password,
+            });
+
+            # first test a standard ping
+            hash<PingInfo> ping = snrc.ping(True);
+            assertEq("test", ping.name);
+            assertTrue(ping.ok);
+            assertEq("OK", ping.info);
+
+            TestPollingConnectionMonitor monitor(logger);
+            on_exit delete monitor;
+
+            monitor.add(snrc);
+
+            info = monitor.waitForResult();
+            assertEq(info.name, "test");
+            on_error if (info.ex) {
+                printf("%s\n", get_exception_string(info.ex));
+            }
+            assertEq("OK", info.result);
+        }
+
+        if (snopts.client_id && snopts.client_secret) {
+            hash<auto> auth = {
+                "username": snopts.username,
+                "password": snopts.password,
+                "client_id": snopts.client_id,
+                "client_secret": snopts.client_secret,
+                "oauth2_grant_type": "password",
+            };
+
+            # setup valid connection and test polling
+            ServiceNowRestConnection snrc("test", "test", url, {"monitor": True}, auth);
+
+            # first test a standard ping
+            hash<PingInfo> ping = snrc.ping(True);
+            assertEq("test", ping.name);
+            assertTrue(ping.ok);
+            assertEq("OK", ping.info);
+
+            TestPollingConnectionMonitor monitor(logger);
+            on_exit delete monitor;
+
+            monitor.add(snrc);
+
+            info = monitor.waitForResult();
+            assertEq(info.name, "test");
+            on_error if (info.ex) {
+                printf("%s\n", get_exception_string(info.ex));
+            }
+            assertEq("OK", info.result);
+        }
     }
 
     connectionTest() {
-        string url = "http://localhost:8080";
+        string url = "snrests://localhost:8080";
         ServiceNowRestConnection swsc("test", "test", url, {}, {
+            "oauth2_grant_type": "password",
             "client_id": "x",
             "client_secret": "x",
             "username": "x",
@@ -176,6 +259,12 @@ class ServiceNowTest inherits QUnit::Test {
         assertEq(True, info.children_can_support_records);
         assertEq(False, info.children_can_support_observers);
         assertEq(False, info.children_can_support_messages);
+
+        # ping negative test
+        hash<PingInfo> ping = swsc.ping();
+        assertEq("test", ping.name);
+        assertFalse(ping.ok);
+        assertEq("SOCKET-CONNECT-ERROR", ping.ex.err);
 
         assertThrows("CONNECTION-ERROR", sub () {
             ServiceNowRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
@@ -189,5 +278,43 @@ class ServiceNowTest inherits QUnit::Test {
         # issue #3321: check default timeouts
         assertEq(45000, client.getTimeout());
         assertEq(45000, client.getConnectTimeout());
+
+        swsc = new ServiceNowRestConnection("test", "test", url, {}, {
+            "client_id": "x",
+            "client_secret": "x",
+            "username": "x",
+            "password": "x",
+        });
+        assertEq("https://localhost:8080/oauth_auth.do?scope=&redirect_uri=auto&client_id=x&response_type=code",
+            swsc.getAuthorizationCodeRequest());
+    }
+}
+
+class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
+    private {
+        Queue msgq();
+    }
+
+    constructor(*Logger logger) : PollingConnectionMonitor(logger) {
+        ping_timeout = 5s;
+    }
+
+    hash<auto> waitForResult() {
+        return msgq.get();
+    }
+
+    private handlePingSuccess(string name, date delta, *bool oldok) {
+        PollingConnectionMonitor::handlePingSuccess(name, delta, oldok);
+        msgq.push({"name": name, "result": "OK"});
+    }
+
+    private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
+        PollingConnectionMonitor::handlePingFailed(name, delta, ex);
+        msgq.push({"name": name, "result": "error", "ex": ex});
+    }
+
+    private handlePingTimeout(string name, date delta) {
+        PollingConnectionMonitor::handlePingTimeout(name, delta);
+        msgq.push({"name": name, "result": "timeout"});
     }
 }

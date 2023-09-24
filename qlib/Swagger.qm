@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.1";
+    version = "2.2.0";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,16 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_2 Swagger v2.2
+    - implemented lax mode parsing for Swagger schemas with common errors to work
+      (<a href="https://github.com/qorelanguage/qore/issues/4741">issue 4741</a>)
+
+    @subsection swagger_2_1_1 Swagger v2.1.1
+    - do not require \c items for arrays not describing a body parameter
+      (<a href="https://github.com/qorelanguage/qore/issues/4730">issue 4730</a>)
+    - ensure that URI paths are created without duplicated slashes by handling the base path consistently
+      (<a href="https://github.com/qorelanguage/qore/issues/4728">issue 4728</a>)
 
     @subsection swagger_2_1 Swagger v2.1
     - parse and report path arguments when processing REST requests on the server side
@@ -253,6 +263,30 @@ RestHandler handler(NOTHING, swagger);
 
 #! main namespace for all public %Swagger declarations
 public namespace Swagger {
+/** @defgroup ParseOptionFlags Parse Option Flags
+    Options that determine which common errors are acceptable when parsing Swagger schemas
+*/
+#/@{
+#! parse option: ignore missing required in path parameters
+public const LM_IGNORE_MISSING_REQUIRED    = (1 << 0);
+
+#! parse option: allow collectionFormat on non-array types
+public const LM_LAX_COLLECTIONFORMAT       = (1 << 1);
+
+#! parse option: ignore invalid "required" properties
+public const LM_IGNORE_INVALID_REQUIRED    = (1 << 2);
+
+#! parse option: reconstruct invalid body parameters
+public const LM_ACCEPT_INVALID_BODY_PARAMS = (1 << 3);
+
+#! parse option: add consumes application/x-www-form-urlencoded to API endpoint if formData is used in params
+public const LM_AUTO_FORM_DATA             = (1 << 4);
+
+#! parse options: all options
+public const LM_ALL = (LM_IGNORE_MISSING_REQUIRED | LM_LAX_COLLECTIONFORMAT | LM_IGNORE_INVALID_REQUIRED
+    | LM_ACCEPT_INVALID_BODY_PARAMS | LM_AUTO_FORM_DATA);
+#/@}
+
 #! Valid integer type formats
 public const ValidIntFormats = ("int32", "int64");
 #! Valid number type formats
@@ -848,32 +882,49 @@ public class SwaggerLoader {
         @param swaggerSpecification <a href="https://swagger.io/">Swagger</a> API specification
         @param json whether the specification is in JSON or YAML format; if not given the source encoding will be
         detected automatically
+        @param opts options as per @ref SwaggerOptions as follows:
+        - \c compact_serialization (default @ref True "True"): (type *bool) optimize the size of serialized data
+          strings
+        - \c def_path: (type *string) the default path to use when retrieving external schema references
+        - \c try_import: (type *code) a call reference or closure to be passed a string name for external schema
+          references, must
+          take a string argument (the resource name) and return a string (the resource data)
+        - \c parse_flags: (type *int) a binary or combination of @ref ParseOptionFlags
 
         @throws JSON-MODULE-MISSING trying to parse a JSON %Swagger specification with JSON module unavailable
         @throws YAML-MODULE-MISSING trying to parse a YAML %Swagger specification with YAML module unavailable
     */
-    static SwaggerSchema fromString(string swaggerSpecification, *bool json) {
+    static SwaggerSchema fromString(string swaggerSpecification, *bool json, *hash<auto> opts) {
         string ser;
         if (!exists json) {
             ser = SwaggerLoader::detectSourceEncoding(swaggerSpecification);
         } else {
             ser = json ? "json" : "yaml";
         }
-        return new SwaggerSchema(swaggerSpecification, SwaggerLoader::parseSchemaSource(swaggerSpecification, ser));
+        return new SwaggerSchema(swaggerSpecification, SwaggerLoader::parseSchemaSource(swaggerSpecification, ser),
+            opts);
     }
 
     #! Load <a href="https://swagger.io/">Swagger</a> definition from a file.
     /**
         @param filepath path to the <a href="https://swagger.io/">Swagger</a> file
+        @param opts options as per @ref SwaggerOptions as follows:
+        - \c compact_serialization (default @ref True "True"): (type *bool) optimize the size of serialized data
+          strings
+        - \c def_path: (type *string) the default path to use when retrieving external schema references
+        - \c try_import: (type *code) a call reference or closure to be passed a string name for external schema
+          references, must
+          take a string argument (the resource name) and return a string (the resource data)
+        - \c parse_flags: (type *int) a binary or combination of @ref ParseOptionFlags
 
         @throws EMPTY-SCHEMA-FILE %Swagger file is empty
         @throws JSON-MODULE-MISSING trying to parse a JSON %Swagger specification with the json module unavailable
         @throws YAML-MODULE-MISSING trying to parse a YAML %Swagger specification with the yaml module unavailable
         @throws XML-MODULE-MISSING trying to parse an XML %Swagger specification with the xml module unavailable
     */
-    static SwaggerSchema fromFile(string filepath) {
+    static SwaggerSchema fromFile(string filepath, *hash<auto> opts) {
         string file_data = ReadOnlyFile::readTextFile(filepath);
-        return new SwaggerSchema(file_data, SwaggerLoader::parseSchemaContent(filepath, file_data));
+        return new SwaggerSchema(file_data, SwaggerLoader::parseSchemaContent(filepath, file_data), opts);
     }
 
     #! Load <a href="https://swagger.io/">Swagger</a> definition from a URL or file path.
@@ -882,13 +933,21 @@ public class SwaggerLoader {
         @ref filelocationhandlerintro "FileLocationHandler" to load the file
         @param json whether the specification is in JSON or YAML format; if not given the source encoding will be
         detected automatically
+        @param opts options as per @ref SwaggerOptions as follows:
+        - \c compact_serialization (default @ref True "True"): (type *bool) optimize the size of serialized data
+          strings
+        - \c def_path: (type *string) the default path to use when retrieving external schema references
+        - \c try_import: (type *code) a call reference or closure to be passed a string name for external schema
+          references, must
+          take a string argument (the resource name) and return a string (the resource data)
+        - \c parse_flags: (type *int) a binary or combination of @ref ParseOptionFlags
 
         @throws EMPTY-SCHEMA-FILE %Swagger file is empty
         @throws JSON-MODULE-MISSING trying to parse a JSON %Swagger specification with the json module unavailable
         @throws YAML-MODULE-MISSING trying to parse a YAML %Swagger specification with the yaml module unavailable
         @throws XML-MODULE-MISSING trying to parse an XML %Swagger specification with the xml module unavailable
     */
-    static SwaggerSchema fromUrl(string url, *bool json) {
+    static SwaggerSchema fromUrl(string url, *bool json, *hash<auto> opts) {
         if (!exists json) {
             if (url =~ /\.yaml$/i) {
                 json = False;
@@ -899,7 +958,7 @@ public class SwaggerLoader {
         on_error {
             rethrow $1.err, sprintf("%s (from URL %y)", $1.desc, get_safe_url(url));
         }
-        return SwaggerLoader::fromString(FileLocationHandler::getTextFileFromLocation(url), json);
+        return SwaggerLoader::fromString(FileLocationHandler::getTextFileFromLocation(url), json, opts);
     }
 
     #! Load a schema definition from a file
@@ -962,7 +1021,7 @@ public class SwaggerLoader {
         }
         if (rv.typeCode() != NT_HASH) {
             throw "SWAGGER-SCHEMA-ERROR", sprintf("data of type %y provided for OpenAPI / Swagger schema; expecting "
-                "\"string\"", rv.fullType());
+                "\"hash\"", rv.fullType());
         }
         return rv;
     }
@@ -975,7 +1034,7 @@ public class SwaggerLoader {
             if (line.size()) {
                 if (line =~ /^<\?xml/) {
                     return "xml";
-                } else if (line =~ /^([^{])+:/ || line =~ /^(---|%YAML)/) {
+                } else if (line =~ /^([^{])+:/ || line =~ /^(---|%YAML)/ || line =~ /^\{[a-z0-9_]+:/) {
                     return "yaml";
                 }
                 return "json";
@@ -1098,6 +1157,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             "compact_serialization": True,
             "def_path": True,
             "try_import": True,
+            "parse_flags": True,
         );
     }
 
@@ -1116,6 +1176,9 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         #! the hash for the schema
         string hash_str;
 
+        #! parse option flags
+        *int opt_flags;
+
         #! maps name -> SHA1 hash of the config -> schema objects for recursive references
         hash<string, hash<string, SchemaObject>> so_map;
     }
@@ -1129,10 +1192,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /**
         @param oh deserialized hash from the source schema description describing the root document object
         @param opts options as per @ref SwaggerOptions as follows:
-        - \c compact_serialization (default @ref True "True"): optimize the size of serialized data strings
-        - \c def_path: the default path to use when retrieving external schema references
-        - \c try_import: a call reference or closure to be passed a string name for external schema references, must
+        - \c compact_serialization (default @ref True "True"): (type *bool) optimize the size of serialized data
+          strings
+        - \c def_path: (type *string) the default path to use when retrieving external schema references
+        - \c try_import: (type *code) a call reference or closure to be passed a string name for external schema
+          references, must
           take a string argument (the resource name) and return a string (the resource data)
+        - \c parse_flags: (type *int) a binary or combination of @ref ParseOptionFlags
 
         @throws SWAGGER-OPTION-ERROR unsuported options in constructor
         @throws INVALID-SWAGGER-VERSION invalid or missing Swagger schema version
@@ -1150,10 +1216,13 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
     /** @param logger the logger to use
         @param oh deserialized hash from the source schema description describing the root document object
         @param opts options as per @ref SwaggerOptions as follows:
-        - \c compact_serialization (default @ref True "True"): optimize the size of serialized data strings
-        - \c def_path: the default path to use when retrieving external schema references
-        - \c try_import: a call reference or closure to be passed a string name for external schema references, must
+        - \c compact_serialization (default @ref True "True"): (type *bool) optimize the size of serialized data
+          strings
+        - \c def_path: (type *string) the default path to use when retrieving external schema references
+        - \c try_import: (type *code) a call reference or closure to be passed a string name for external schema
+          references, must
           take a string argument (the resource name) and return a string (the resource data)
+        - \c parse_flags: (type *int) a binary or combination of @ref ParseOptionFlags
 
         @throws SWAGGER-OPTION-ERROR unsuported options in constructor
         @throws INVALID-SWAGGER-VERSION invalid or missing Swagger schema version
@@ -1163,8 +1232,8 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         @throws REQUIRED-FIELD-MISSING required field is missing
         @throws SECURITY-ERROR inconsistent security information in schema
     */
-    public constructor(Logger logger, string schema_source, hash<auto> oh, *hash<auto> opts) : ObjectBase(oh),
-            AbstractRestSchemaValidator(logger)  {
+    public constructor(LoggerInterface logger, string schema_source, hash<auto> oh, *hash<auto> opts)
+            : ObjectBase(oh), AbstractRestSchemaValidator(logger)  {
         constructorIntern(schema_source, oh, opts);
     }
 
@@ -1176,9 +1245,11 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         compact_serialization = remove opts.compact_serialization ?? True;
         def_path = remove opts.def_path;
         try_import = remove opts.try_import;
-        if (opts)
+        opt_flags = remove opts.parse_flags;
+        if (opts) {
             throw "SWAGGER-OPTION-ERROR", sprintf("unknown options in SwaggerSchema constructor: %y; known "
                 "options: %y", keys opts, keys SwaggerOptions);
+        }
 
         string objType = "Swagger";
         if (!oh.hasKey("swagger"))
@@ -1210,6 +1281,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 if (item.value.typeCode() != NT_HASH)
                     throw "INVALID-FIELD-TYPE", "Swagger Object: invalid parameter datatype: " + item.value.type();
                 parameters{item.key} = AbstractParameterObject::newParameter(item.key, item.value, self);
+                if (opt_flags & LM_AUTO_FORM_DATA && parameters{item.key}.inLoc.formData
+                    && !consumes{MimeTypeFormUrlEncoded}) {
+                    consumes{MimeTypeFormUrlEncoded} = True;
+                }
             }
 
             delete obj;
@@ -1237,6 +1312,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         if (optional_field(objType, oh, "basePath", NT_STRING, \basePath)) {
             if (exists basePath && basePath[0] != "/")
                 throw "INVALID-FIELD-FORMAT", "Swagger Object: basePath does not begin with a slash: " + basePath;
+            # make sure basePath never ends in a slash
+            if (basePath =~ /\/$/) {
+                splice basePath, -1;
+            }
         }
 
         if (oh.schemes) {
@@ -1282,6 +1361,10 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             if (optional_field(objType, oh, "externalDocs", NT_HASH, \extDocsObj))
                 externalDocs = new ExternalDocumentationObject(extDocsObj);
         }
+    }
+
+    *int getParseFlags() {
+        return opt_flags;
     }
 
     *SchemaObject tryGetSchemaObject(string name, hash<auto> oh, reference<string> hash_str) {
@@ -1462,7 +1545,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
         if (path !~ /^\//)
             path = "/" + path;
 
-        # remove basePath if present; note that "basePath" must always have a leading /
+        # remove basePath if present; note that "basePath" must always have a leading / if set
         fixPath(\path);
 
         hash<UriQueryInfo> h = parse_uri_query(path);
@@ -1546,7 +1629,9 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                 try {
                     rv.body = ds ? ds(response_body) : response_body;
                 } catch (hash<ExceptionInfo> ex) {
-                    rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc);
+                    rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc), ex.arg + {
+                        "response-body": response_body,
+                    };
                 }
             }
         }
@@ -1568,7 +1653,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             path = "/" + path;
         }
         # issue #4087: remove the base path if it matches the prefix of the path
-        if (basePath.val()) {
+        if (basePath) {
             if (!path.comparePartial(basePath)) {
                 splice path, 0, basePath.length();
             }
@@ -1604,7 +1689,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             }
             self.basePath = basePath;
         } else {
-            remove basePath;
+            remove self.basePath;
         }
     }
 
@@ -2458,7 +2543,9 @@ public class PathItemObject inherits ObjectBase {
                     throw "INVALID-FIELD-TYPE",
                         sprintf("Path Item Object: 'parameters' list value has invalid type %y",
                             param.type());
-                AbstractParameterObject p = AbstractParameterObject::newParameter(sprintf("%d/%d", $# + 1, params.lsize()), param, swagger);
+                AbstractParameterObject p = AbstractParameterObject::newParameter(
+                    sprintf("%d/%d", $# + 1, params.lsize()), param, swagger
+                );
                 if (p.inLoc == "body") {
                     if (body)
                         throw "INVALID-FIELD-VALUE", sprintf("path %y: more than one \"body\" parameter provided", path);
@@ -2644,10 +2731,47 @@ public class OperationObject inherits ObjectBase {
         if (!optional_field(objType, oh, "produces", SwaggerListToStringSet, \produces) && swagger.produces) {
             produces = swagger.produces;
         }
-
         {
             list listObj;
             optional_field(objType, oh, "parameters", NT_LIST, \listObj);
+            # NOTE: rewrite badly formed body parameters if LM_ACCEPT_INVALID_BODY_PARAMS is set
+            *int opt_flags = swagger.getParseFlags();
+            if (opt_flags & LM_ACCEPT_INVALID_BODY_PARAMS) {
+                hash new_body;
+                for (int i = 0; i < listObj.size();) {
+                    if (listObj[i].typeCode() != NT_HASH) {
+                        continue;
+                    }
+                    hash<auto> p = listObj[i];
+                    if (p."in" == "body" && !p.schema) {
+                        if (!new_body) {
+                            new_body = {
+                                "in": "body",
+                                "name": "body",
+                                "schema": {
+                                    "type": "object",
+                                },
+                            };
+                        }
+                        if (p.required == True) {
+                            remove p.required;
+                            if (!new_body.schema.required) {
+                                new_body.schema.required = ();
+                            }
+                            new_body.schema.required += p.name;
+                        }
+                        string name = remove p.name;
+                        remove p."in";
+                        new_body.schema.properties{name} = p;
+                        splice listObj, i, 1;
+                    } else {
+                        ++i;
+                    }
+                }
+                if (new_body) {
+                    listObj += new_body;
+                }
+            }
             foreach auto p in (listObj) {
                 if (p.typeCode() != NT_HASH) {
                     error("INVALID-FIELD-TYPE", "invalid 'parameters' list value datatype %y; expecing \"hash\"",
@@ -2659,6 +2783,9 @@ public class OperationObject inherits ObjectBase {
                     body = param;
                 } else if (param.inLoc == "formData") {
                     formData{param.name} = param;
+                    if (opt_flags & LM_AUTO_FORM_DATA && !consumes{MimeTypeFormUrlEncoded}) {
+                        consumes{MimeTypeFormUrlEncoded} = True;
+                    }
                 } else {
                     parameters{param.name} = param;
                 }
@@ -3104,7 +3231,7 @@ public class OperationObject inherits ObjectBase {
     }
 
     #! raises an exception with context information
-    private error(string err, string fmt) {
+    private error(string err, string fmt, ...) {
         throw err, sprintf("%s %s Operation Object: %s", method.upr(), path, vsprintf(fmt, argv));
     }
 }
@@ -3218,16 +3345,17 @@ public class AbstractParameterObject inherits ObjectBase {
         @throws INVALID-FIELD-VALUE field has invalid value
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    public constructor(hash<auto> oh) : ObjectBase(oh) {
+    public constructor(hash<auto> oh, *int opt_flags) : ObjectBase(oh) {
         string objType = "Parameter";
         required_field(objType, oh, "name", NT_STRING, \name);
         on_error rethrow $1.err, sprintf("%s (parameter %y)", $1.desc, name);
         required_field(objType, oh, "in", NT_STRING, \inLoc);
         optional_field(objType, oh, "description", (NT_STRING: True, NT_NOTHING: True), \desc);
-        if (inLoc == "path")
+        if (inLoc == "path" && !(opt_flags & LM_IGNORE_MISSING_REQUIRED)) {
             required_field(objType, oh, "required", NT_BOOLEAN, \required);
-        else
+        } else {
             optional_field(objType, oh, "required", NT_BOOLEAN, \required);
+        }
     }
 
     #! verifies the parameter in an actual REST API call
@@ -3268,10 +3396,10 @@ public class BodyParameter inherits AbstractParameterObject {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    public constructor(hash<auto> oh, SwaggerSchema swagger) : AbstractParameterObject(oh) {
+    public constructor(hash<auto> oh, SwaggerSchema swagger) : AbstractParameterObject(oh, swagger.getParseFlags()) {
         hash schemaObj;
         required_field("Body Parameter", oh, "schema", NT_HASH, \schemaObj);
-        schema = SchemaObject::newSchemaObject("body", schemaObj, swagger);
+        schema = SchemaObject::newSchemaObject("body", schemaObj, swagger, True);
     }
 
     #! verifies the parameter in an actual REST API call
@@ -3368,14 +3496,20 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
     public constructor(string name, hash<auto> oh, SwaggerSchema swagger)
-            : AbstractParameterObject(oh), SchemaBase("Parameter", oh) {
+            : AbstractParameterObject(oh, swagger.getParseFlags()), SchemaBase("Parameter", oh) {
         string objType = "Parameter";
         required_field(objType, oh, "type", NT_STRING, \type);
         if (!ParameterTypes{type})
             throw "INVALID-FIELD-VALUE", sprintf("Parameter Object %y: invalid parameter type value passed: %y, "
                 "expecting one of: %y", name, type, keys ParameterTypes);
+        if (type != "array" && oh.collectionFormat && (swagger.getParseFlags() & LM_LAX_COLLECTIONFORMAT)) {
+            format = type;
+            type = "array";
+        }
         if (type == "array") {
-            items = ParameterItemsSchemaObject::newSchemaObject("items", oh.items, swagger);
+            if (oh.items) {
+                items = ParameterItemsSchemaObject::newSchemaObject("items", oh.items, swagger);
+            }
             if (optional_field(objType, oh, "collectionFormat", NT_STRING, \collectionFormat)) {
                 if (!ParameterCollectionFormats{collectionFormat})
                     throw "INVALID-FIELD-VALUE",
@@ -3899,6 +4033,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @param name the name of the object
         @param oh deserialized hash from the source schema description describing an object in the schema
         @param swagger the REST schema for resolving references
+        @param hash_str the unique hash for the value being parsed
+        @param require_items require items for arrays
 
         @throws INVALID-FIELD-FORMAT field has invalid format
         @throws INVALID-FIELD-TYPE field has invalid type
@@ -3906,18 +4042,20 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
      */
-    private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string hash_str)
+    private constructor(string name, hash<auto> oh, SwaggerSchema swagger, *string hash_str, *bool require_items)
             : ObjectBase(oh), SchemaBase("Schema", oh) {
         self.name = name;
         # add static map reference
         swagger.cacheSchemaObject(name, hash_str ?? sprintf("%y", oh).toSHA1(), self);
         string objType = "Schema";
 
+        *int opt_flags = swagger.getParseFlags();
+
         if (optional_field(objType, oh, "type", NT_STRING, \type)) {
             if (!ReferenceTypes{type})
                 throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid schema type value passed: %y; "
                     "expected one of: %y", name, type, keys ReferenceTypes);
-            if (type == "array") {
+            if (type == "array" && (require_items || oh.items)) {
                 items = newSchemaObject("items", oh.items, swagger);
             }
 
@@ -3936,9 +4074,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
 
         if (optional_field(objType, oh, "format", NT_STRING, \format)) {
             if (type == "integer" && !ValidIntFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid integer type format value passed: %y", name, format);
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid integer type format value passed: %y",
+                    name, format);
             else if (type == "number" && !ValidNumberFormatsHash{format})
-                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid number type format value passed: %y", name, format);
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: invalid number type format value passed: %y",
+                    name, format);
         }
 
         optional_field(objType, oh, "title", NT_STRING, \title);
@@ -3962,27 +4102,31 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 foreach string k in (keys props) {
                     auto val = props{k};
                     if (val.typeCode() != NT_HASH)
-                        throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'properties' field is not a hash of Schema Objects", name);
+                        throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'properties' field is not a hash of "
+                            "Schema Objects", name);
                     properties{k} = SchemaObject::newSchemaObject(k, val, swagger);
                 }
             }
         }
 
-        if (optional_field(objType, oh, "additionalProperties", (NT_BOOLEAN: True, NT_HASH: True), \additionalProperties)) {
+        if (optional_field(objType, oh, "additionalProperties", (NT_BOOLEAN: True, NT_HASH: True),
+            \additionalProperties)) {
             checkObjectProperty(name, "additionalProperties");
             if (additionalProperties.typeCode() == NT_HASH)
-                additionalProperties = SchemaObject::newSchemaObject("additionalProperties", additionalProperties, swagger);
+                additionalProperties = SchemaObject::newSchemaObject("additionalProperties", additionalProperties,
+                    swagger);
         }
 
         # process "required"
-        if (optional_field(objType, oh, "required", SwaggerListToStringSet, \required)) {
+        if (optional_field(objType, oh, "required", SwaggerListToStringSet, \required, opt_flags)) {
             if (!required)
                 throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'required' is an empty list", name);
         }
 
         if (optional_field(objType, oh, "discriminator", NT_STRING, \discriminator)) {
             if (!required{discriminator})
-                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: 'discriminator' field value not in the 'required' list", name);
+                throw "INVALID-FIELD-VALUE", sprintf("Schema Object %y: 'discriminator' field value not in the "
+                    "'required' list", name);
         }
 
         optional_field(objType, oh, "readOnly", NT_BOOLEAN, \readOnly);
@@ -3994,7 +4138,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                     throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: field 'allOf' is an empty list", name);
                 foreach auto val in (allOfList) {
                     if (val.typeCode() != NT_HASH)
-                        throw "INVALID-FIELD-TYPE", sprintf("Schema Object %y: invalid 'allOf' list value datatype: %y", name, val.type());
+                        throw "INVALID-FIELD-TYPE", sprintf("Schema Object %y: invalid 'allOf' list value "
+                            "datatype: %y", name, val.type());
                     allOf += SchemaObject::newSchemaObject(name + "AllOf", val, swagger);
                 }
             }
@@ -4185,7 +4330,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         @throws INVALID-REFERENCE cannot resolve reference; unknown attributes in description
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    static SchemaObject newSchemaObject(string name, hash<auto> oh, SwaggerSchema swagger) {
+    static SchemaObject newSchemaObject(string name, hash<auto> oh, SwaggerSchema swagger, *bool require_items) {
         string refstr;
         if (optional_field("Schema", oh, "$ref", NT_STRING, \refstr))
             return swagger.resolveSchemaObject(name, refstr, oh);
@@ -4195,7 +4340,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         if (rv) {
             return rv;
         }
-        return new SchemaObject(name, oh, swagger, hash_str);
+        return new SchemaObject(name, oh, swagger, hash_str, require_items);
     }
 
     #! throws an \c "INVALID-FIELD-TYPE" exception
@@ -4488,12 +4633,12 @@ namespace Priv {
         @throws INVALID-FIELD-TYPE field has invalid type
         @throws REQUIRED-FIELD-MISSING required field is missing
     */
-    sub required_field(string objType, hash<auto> oh, string name, int typeCode, reference<auto> target) {
+    sub required_field(string objType, hash<auto> oh, string name, int typeCode, reference<auto> target, *int opt_flags) {
         if (!oh.hasKey(name))
             throw "REQUIRED-FIELD-MISSING", sprintf("%s Object%s: %y field is missing; fields present: %y", objType,
                 oh.name ? sprintf(" %y", oh.name) : "", name, keys oh);
         auto val = oh{name};
-        check_type_code(objType, oh, name, val, typeCode);
+        check_type_code(objType, oh, name, val, typeCode, opt_flags);
         get_value(objType, name, typeCode, val, \target);
     }
 
@@ -4532,11 +4677,14 @@ namespace Priv {
 
         @throws INVALID-FIELD-TYPE field has invalid type
     */
-    bool sub optional_field(string objType, hash<auto> oh, string name, int typeCode, reference<auto> target) {
+    bool sub optional_field(string objType, hash<auto> oh, string name, int typeCode, reference<auto> target,
+            *int opt_flags) {
         if (!oh.hasKey(name))
             return False;
         auto val = oh{name};
-        check_type_code(objType, oh, name, val, typeCode);
+        if (check_type_code(objType, oh, name, val, typeCode, opt_flags)) {
+            return False;
+        }
         get_value(objType, name, typeCode, val, \target);
         return True;
     }
@@ -4566,14 +4714,18 @@ namespace Priv {
     }
 
     #! verifies the type of a field
-    sub check_type_code(string objType, hash<auto> oh, string name, auto val, int typeCode) {
+    *bool sub check_type_code(string objType, hash<auto> oh, string name, auto val, int typeCode, *int opt_flags) {
         int vtc = val.typeCode();
         if ((typeCode == SwaggerListToStringSet || typeCode == SwaggerListToAnySet
             || typeCode == SwaggerListToHashOfStrings) && vtc == NT_LIST)
             return;
-        if (vtc != typeCode)
+        if (vtc != typeCode) {
+            if (name == "required" && (opt_flags & LM_IGNORE_INVALID_REQUIRED)) {
+                return True;
+            }
             throw "INVALID-FIELD-TYPE", sprintf("%s Object%s: %y field has invalid type %y; expecting %y", objType,
                 oh.name ? sprintf(" %y", oh.name) : "", name, val.type(), TypeMap{typeCode});
+        }
     }
 
     #! assigns a value to a field

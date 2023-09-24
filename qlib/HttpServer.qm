@@ -32,7 +32,7 @@
 %new-style
 
 module HttpServer {
-    version = "1.1";
+    version = "1.1.2";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -103,8 +103,10 @@ class MyHandler inherits AbstractHttpRequestHandler {
     }
 }
 
-sub log(string str) {
-    printf("%y: %s\n", now_us(), vsprintf(str, argv));
+sub log(string str, ...) {
+    printf("%y: %s\n", now_us(), vsprintf(str, argv));    - fixed a bug reloading X.509 certificates on running listeners
+      (<a href="https://github.com/qorelanguage/qore/issues/4720">issue 4720</a>)
+
 }
 
 const MyHttpPort = 19001;
@@ -122,13 +124,22 @@ hs.setHandler("my-handler", "/", MimeTypeHtml, myHandler);
 hs.setDefaultHandler("my-handler", myHandler);
 
 # start a listener
-hash lh = hs.addListener(MyHttpPort);
+hash<auto> lh = hs.addListener(MyHttpPort);
 
 # output a log message
 log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http1_1_2 HttpServer 1.1.2
+    - allow context info to be cleared after handling each request to ensure that context info (like thread-local
+      data) does not leak into other connections on the same thread
+      (<a href="https://github.com/qorelanguage/qore/issues/4802">issue 4802</a>)
+
+    @subsection http1_1_1 HttpServer 1.1.1
+    - fixed a bug reloading X.509 certificates on running listeners
+      (<a href="https://github.com/qorelanguage/qore/issues/4720">issue 4720</a>)
 
     @subsection http1_1 HttpServer 1.1
     - implemented support for reloading X.509 certificate information without manually restarting listeners
@@ -363,7 +374,7 @@ public hashdecl HttpServerOptionInfo {
     };
 
     #! HTTP server logger
-    *Logger logger;
+    *LoggerInterface logger;
 }
 
 #! The HttpServer class implements a multithreaded HTTP server
@@ -496,7 +507,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         hash<string, bool> http_methods = HttpMethods;
 
         #! logger
-        *Logger logger;
+        *LoggerInterface logger;
     }
     #! @endcond
 
@@ -505,10 +516,10 @@ public class HttpServer inherits HttpServer::AbstractLogger {
 
         @param logfunc an optional closure or call reference that will be called with logging information; must take
         an initial string with optional arguments; ex:
-        @code{.py} code log = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @code{.py} code log = sub (string fmt, ...) { vprintf(fmt, argv); }@endcode
         @param errlogfunc an optional closure or call reference that will be called with error information; must
         take an initial string with optional arguments; ex:
-        @code{.py} code errloglog = sub (string fmt) { vprintf(fmt, argv); }@endcode
+        @code{.py} code errloglog = sub (string fmt, ...) { vprintf(fmt, argv); }@endcode
         @param dbg if this parameter is set to @ref True "True", then additional information will be logged when
         errors occur; note that this parameter is only used if \a log is not provided
         @param name the name of the HTTP server as returned in the Server header (should be formatted according to
@@ -1199,12 +1210,12 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     }
 
     #! called to log information to the registered log code
-    log(string fmt) {
+    log(string fmt, ...) {
         logger.logArgs(LoggerLevel::INFO, "HttpServer: " + fmt, argv);
     }
 
     #! called to log error information to the registered error log code
-    logError(string fmt) {
+    logError(string fmt, ...) {
         logger.logArgs(LoggerLevel::ERROR, "HttpServer: " + fmt, argv);
     }
 
@@ -1332,6 +1343,15 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         threadPool.submit(c);
     }
 
+    #! This method is called after each request to clear context info so that it does not leak into other requests
+    /** Reimplement in subclasses if necessarily
+
+        @since HttpServer 1.1.2
+    */
+    clearContextInfo() {
+        # this method left intentionally blank
+    }
+
     #! returns the listener ID from the bind name or throws an exception if not valid
     /** @throw INVALID-LISTENER-ERROR invalid listener bind address
     */
@@ -1371,7 +1391,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     #! @cond nodoc
     # don't reimplement this method; fix/enhance it in the module
     final private HttpListener addListenerIntern(*string node, *softstring service, *Qore::SSLCertificate cert,
-            *Qore::SSLPrivateKey key, *hash<string, hash<HttpHandlerConfigInfo>> handler_info, *Logger logger,
+            *Qore::SSLPrivateKey key, *hash<string, hash<HttpHandlerConfigInfo>> handler_info, *LoggerInterface logger,
             *code stopc, *string name, int family = AF_UNSPEC) {
         return addListenerIntern(<HttpListenerOptionInfo>{
             "node": node,
@@ -1539,6 +1559,18 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             "url": url,
             "debug": debug,
         };
+
+        # clear any context info set during handling the request so it does not leak into other requests
+        on_exit try {
+            clearContextInfo();
+        } catch (hash<ExceptionInfo> ex) {
+            # log the error
+            string desc = "error clearing request context data: " + !debug
+                ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
+                : get_exception_string(ex);
+            desc += sprintf(": received from %s", cx."peer-info".address_desc);
+            listener.logError("%s", desc);
+        }
 
         HttpServer::AbstractHttpRequestHandler handler;
         # the dynamic handler helper maintains the request count for dynamic handlers so any call to remove the handler will only return after all in-progress requests are completed; the object is only allocated if needed
@@ -1925,7 +1957,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         Mutex m();
 
         #! listener-specific logger; if not present, then the server's logger will be used
-        *Logger logger;
+        *LoggerInterface logger;
 
         # stop notification closure
         *code stopc;
@@ -2095,7 +2127,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
 
         on_error rethrow "REFRESH-CERTIFICATE-ERROR", sprintf("%s: %s", $1.err, $1.desc);
         hash<HttpCertInfo> info = http_get_ssl_objects(opts.cert_loc, opts.key_loc, opts.key_password);
-        setCertificateAndPrivateKey(opts.cert, opts.key);
+        setCertificateAndPrivateKey(info.cert, info.key);
     }
 
     #! add handlers to the listener
@@ -2395,7 +2427,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         }
     }
 
-    log(string fmt) {
+    log(string fmt, ...) {
         softlist<auto> args = fmt;
         if (argv)
             args += argv;
@@ -2412,7 +2444,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
             serv.logArgs(args);
     }
 
-    logError(string fmt) {
+    logError(string fmt, ...) {
         softlist<auto> args = fmt;
         if (argv)
             args += argv;

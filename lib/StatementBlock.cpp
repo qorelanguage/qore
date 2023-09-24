@@ -150,6 +150,7 @@ StatementBlock::StatementBlock(int sline, int eline, AbstractStatement* s) : Abs
 }
 
 QoreValue StatementBlock::exec(ExceptionSink* xsink) {
+    //QORE_TRACE("StatementBlock::exec()");
     QoreValue return_value;
     ThreadLocalProgramData* tlpd = get_thread_local_program_data();
     tlpd->dbgFunctionEnter(this, xsink);
@@ -171,7 +172,6 @@ void StatementBlock::addStatement(AbstractStatement* s) {
 
 void StatementBlock::del() {
     //QORE_TRACE("StatementBlock::del()");
-
     for (statement_list_t::iterator i = statement_list.begin(), e = statement_list.end(); i != e; ++i)
         delete *i;
 
@@ -184,6 +184,7 @@ void StatementBlock::del() {
 }
 
 int StatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
+    //QORE_TRACE("StatementBlock::execImpl()");
     // instantiate local variables
     LVListInstantiator lvi(lvars, xsink);
 
@@ -191,17 +192,18 @@ int StatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
 }
 
 int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
-    QORE_TRACE("StatementBlock::execImpl()");
+    //QORE_TRACE("StatementBlock::execIntern()");
     int rc = 0;
 
     assert(xsink);
 
-    //printd(5, "StatementBlock::execImpl() this=%p, lvars=%p, %ld vars\n", this, lvars, lvars->size());
+    //printd(5, "StatementBlock::execIntern() this=%p, lvars=%p, %ld vars\n", this, lvars, lvars->size());
 
     bool obe = !on_block_exit_list.empty();
     // push "on block exit" iterator if necessary
-    if (obe)
+    if (obe) {
         pushBlock(on_block_exit_list.end());
+    }
 
     ThreadLocalProgramData* tlpd = get_thread_local_program_data();
     // to execute even when block is empty, e.g. while(true);
@@ -268,17 +270,17 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
 
 // top-level block (program) execution member function
 void StatementBlock::exec() {
-   ExceptionSink xsink;
-   exec(&xsink);
+    ExceptionSink xsink;
+    exec(&xsink);
 }
 
 static void push_top_level_local_var(LocalVar* lv, const QoreProgramLocation* loc) {
-   new VNode(lv, loc, 1, true);
+    new VNode(lv, loc, 1, true);
 }
 
 // used for constructor methods sharing a common "self" local variable
 void push_local_var(LocalVar* lv, const QoreProgramLocation* loc) {
-   new VNode(lv, loc, 1);
+    new VNode(lv, loc, 1);
 }
 
 LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, int& err,

@@ -40,87 +40,90 @@ DLLLOCAL extern QoreClass* QC_SQLSTATEMENT;
 static const char* DSC_ERR = "DATASOURCE-CONSTRUCTOR-ERROR";
 
 static int ds_set_options(ManagedDatasource* ds, const QoreHashNode* opts, ExceptionSink* xsink) {
-   ConstHashIterator hi(opts);
-   while (hi.next()) {
-      // skip "min" and "max" options
-      if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
-         continue;
+    ConstHashIterator hi(opts);
+    while (hi.next()) {
+        // skip "min" and "max" options
+        if (!strcmp(hi.getKey(), "min") || !strcmp(hi.getKey(), "max"))
+            continue;
 
-      if (ds->setOptionInit(hi.getKey(), hi.get(), xsink))
-         return -1;
-   }
-   return 0;
+        if (ds->setOptionInit(hi.getKey(), hi.get(), xsink))
+            return -1;
+    }
+    return 0;
 }
 
-static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const QoreValue& arg, ExceptionSink* xsink) {
-   ReferenceHolder<Queue> q(queue, xsink);
+static void ds_constructor_hash(const QoreHashNode* opts, QoreObject* self, Queue* queue, const QoreValue& arg,
+        ExceptionSink* xsink) {
+    ReferenceHolder<Queue> q(queue, xsink);
 
-   const char* str = check_hash_key(opts, "type", DSC_ERR, xsink);
-   if (*xsink) return;
+    const char* str = check_hash_key(opts, "type", DSC_ERR, xsink);
+    if (*xsink) return;
 
-   if (!str) {
-      xsink->raiseException(DSC_ERR, "expecting a string value with the 'type' key giving the driver name");
-      return;
-   }
+    if (!str) {
+        xsink->raiseException(DSC_ERR, "expecting a string value with the 'type' key giving the driver name");
+        return;
+    }
 
-   DBIDriver* db_driver = DBI.find(str, xsink);
-   if (!db_driver) {
-      if (!*xsink)
-         xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", str);
-      return;
-   }
+    DBIDriver* db_driver = DBI.find(str, xsink);
+    if (!db_driver) {
+        if (!*xsink)
+            xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", str);
+        return;
+    }
 
-   ReferenceHolder<ManagedDatasource> ds(new ManagedDatasource(db_driver), xsink);
+    ReferenceHolder<ManagedDatasource> ds(new ManagedDatasource(db_driver), xsink);
 
-   str = check_hash_key(opts, "user", DSC_ERR, xsink);
-   if (*xsink) return;
-   if (str) ds->setPendingUsername(str);
+    str = check_hash_key(opts, "user", DSC_ERR, xsink);
+    if (*xsink) return;
+    if (str) ds->setPendingUsername(str);
 
-   str = check_hash_key(opts, "pass", DSC_ERR, xsink);
-   if (*xsink) return;
-   if (str) ds->setPendingPassword(str);
+    str = check_hash_key(opts, "pass", DSC_ERR, xsink);
+    if (*xsink) return;
+    if (str) ds->setPendingPassword(str);
 
-   str = check_hash_key(opts, "db", DSC_ERR, xsink);
-   if (*xsink) return;
-   if (str) ds->setPendingDBName(str);
+    str = check_hash_key(opts, "db", DSC_ERR, xsink);
+    if (*xsink) return;
+    if (str) ds->setPendingDBName(str);
 
-   str = check_hash_key(opts, "charset", DSC_ERR, xsink);
-   if (*xsink) return;
-   if (str) ds->setPendingDBEncoding(str);
+    str = check_hash_key(opts, "charset", DSC_ERR, xsink);
+    if (*xsink) return;
+    if (str) ds->setPendingDBEncoding(str);
 
-   str = check_hash_key(opts, "host", DSC_ERR, xsink);
-   if (*xsink) return;
-   if (str) ds->setPendingHostName(str);
+    str = check_hash_key(opts, "host", DSC_ERR, xsink);
+    if (*xsink) return;
+    if (str) ds->setPendingHostName(str);
 
-   int port = (int)opts->getKeyValue("port").getAsBigInt();
-   if (port) {
-      if (port < 0) {
-         xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
-         return;
-      }
-      ds->setPendingPort(port);
-   }
-
-   {
-      QoreValue p = opts->getKeyValue("options", xsink);
-      if (!p.isNothing()) {
-         if (p.getType() != NT_HASH) {
-            xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", p.getTypeName());
+    int port = (int)opts->getKeyValue("port").getAsBigInt();
+    if (port) {
+        if (port < 0) {
+            xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive "
+                "(value given: %d)", port);
             return;
-         }
-         const QoreHashNode* opt_hash = p.get<const QoreHashNode>();
-         if (ds_set_options(*ds, opt_hash, xsink))
-            return;
-      }
-   }
+        }
+        ds->setPendingPort(port);
+    }
 
-   if (queue)
-      ds->setEventQueue(q.release(), arg.refSelf(), xsink);
+    {
+        QoreValue p = opts->getKeyValue("options", xsink);
+        if (!p.isNothing()) {
+            if (p.getType() != NT_HASH) {
+                xsink->raiseException(DSC_ERR, "'options' key is not type 'hash' but is type '%s'", p.getTypeName());
+                return;
+            }
+            const QoreHashNode* opt_hash = p.get<const QoreHashNode>();
+            if (ds_set_options(*ds, opt_hash, xsink))
+                return;
+        }
+    }
 
-   self->setPrivate(CID_DATASOURCE, ds.release());
+    if (queue)
+        ds->setEventQueue(q.release(), arg.refSelf(), xsink);
+
+    self->setPrivate(CID_DATASOURCE, ds.release());
 }
 
-static void create_datasource_from_conf(const QoreString& conf, QoreObject& self, Queue* queue, QoreValue arg, ExceptionSink* xsink) {
+static void create_datasource_from_conf(const QoreString& conf, QoreObject& self, Queue* queue, QoreValue arg,
+        ExceptionSink* xsink) {
     ReferenceHolder<Queue> holder(queue, xsink);
 
     qore_offset_t colon = conf.find(':');
@@ -140,7 +143,8 @@ static void create_datasource_from_conf(const QoreString& conf, QoreObject& self
     ds_constructor_hash(*h, &self, holder.release(), arg, xsink);
 }
 
-static QoreHashNode* Datasource_serializer(const QoreObject& self, const ManagedDatasource& ds, QoreSerializationContext& context, ExceptionSink* xsink) {
+static QoreHashNode* Datasource_serializer(const QoreObject& self, const ManagedDatasource& ds,
+        QoreSerializationContext& context, ExceptionSink* xsink) {
     SimpleRefHolder<QoreStringNode> str(const_cast<ManagedDatasource&>(ds).getConfigString(xsink));
     if (*xsink) {
         return nullptr;
@@ -151,12 +155,14 @@ static QoreHashNode* Datasource_serializer(const QoreObject& self, const Managed
     return rv.release();
 }
 
-static void Datasource_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
+static void Datasource_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context,
+        ExceptionSink* xsink) {
     if (sdata) {
         QoreValue val = sdata->getKeyValue("conf");
         if (val) {
             if (val.getType() != NT_STRING) {
-                xsink->raiseException("DESERIALIZATION-ERROR", "Datasource serialization key 'conf' has type '%s'; expecting 'string'", val.getTypeName());
+                xsink->raiseException("DESERIALIZATION-ERROR", "Datasource serialization key 'conf' has type '%s'; "
+                    "expecting 'string'", val.getTypeName());
                 return;
             }
             create_datasource_from_conf(*val.get<QoreStringNode>(), self, nullptr, QoreValue(), xsink);
@@ -195,13 +201,13 @@ const DSSQLite3 = "sqlite3";
 //! for the \c "db2" driver
 const DSDB2 = "db2";
 
-// the following have no drivers yet
-//const DSInformix = "informix";
-//const DSTimesTen = "timesten";
+//! for the \c "jdbc" driver
+const DSJDBC = "jdbc";
 ///@}
 
 /** @defgroup dbi_capabilities DBI Capability Constants
-    These are contants that define the meaning of bits in the capability mask such as returned by Datasource::getCapabilities()
+    These are contants that define the meaning of bits in the capability mask such as returned by
+    Datasource::getCapabilities()
 */
 ///@{
 //! Indicates that the DBI driver supports time zones in times
@@ -343,19 +349,31 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
     @note This class is not available with the @ref PO_NO_DATABASE parse option
 
     @see <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> for a high level database-independent API
- */
+*/
 qclass Datasource [dom=DATABASE; arg=ManagedDatasource* ds; ns=Qore::SQL; vparent=AbstractDatasource, Serializable; serializer=reinterpret_cast<q_serializer_t>(Datasource_serializer); deserializer=Datasource_deserializer];
 
 //! Creates the Datasource object; attempts to load a DBI driver if the driver is not already present in %Qore
-/** @param driver The name of the DBI driver for the Datasource. See @ref sql_constants for builtin constants for DBI drivers shipped with %Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
-    @param user The user name for the new connection. Also see Datasource::setUserName() for a method that allows this parameter to be set after the constructor.
-    @param pass The password for the new connection. Also see Datasource::setPassword() for a method that allows this parameter to be set after the constructor.
-    @param db The database name for the new connection. Also see Datasource::setDBName() for a method that allows this parameter to be set after the constructor.
-    @param encoding The database-specific name of the @ref character_encoding "character encoding" to use for the new connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the @ref default_encoding "default character encoding" will be used instead.
-    @param host The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
-    @param port The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor.
+/** @param driver The name of the DBI driver for the Datasource. See @ref sql_constants for builtin constants for DBI
+    drivers shipped with %Qore, or see the DBI driver documentation to use an add-on driver (this string should be the
+    name of the driver to be loaded)
+    @param user The user name for the new connection. Also see Datasource::setUserName() for a method that allows this
+    parameter to be set after the constructor.
+    @param pass The password for the new connection. Also see Datasource::setPassword() for a method that allows this
+    parameter to be set after the constructor.
+    @param db The database name for the new connection. Also see Datasource::setDBName() for a method that allows this
+    parameter to be set after the constructor.
+    @param encoding The database-specific name of the @ref character_encoding "character encoding" to use for the new
+    connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set after the
+    constructor. If no value is passed for this parameter, then the database character encoding corresponding to the
+    @ref default_encoding "default character encoding" will be used instead.
+    @param host The host name for the new connection. Also see Datasource::setHostName() for a method that allows this
+    parameter to be set after the constructor.
+    @param port The port number for the new connection. Also see Datasource::setPort() for a method that allows this
+    parameter to be set after the constructor.
     @param options Any options for the database driver for the new connection
-    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the
+    @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown;
+    passing @ref nothing will clear any event queue
     @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
@@ -366,71 +384,74 @@ Datasource db(DSPGSQL, "user", "pass", "database", "utf8", "localhost", 5432);
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
     @throw DATASOURCE-CONSTRUCTOR-ERROR port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
- */
+*/
 Datasource::constructor(string driver, *string user, *string pass, *string db, *string encoding, *string host, *softint port, *hash<auto> options, *Qore::Thread::Queue[Queue] queue, auto arg) {
-   ReferenceHolder<Queue> q(queue, xsink);
+    ReferenceHolder<Queue> q(queue, xsink);
 
-   if (!port && driver->find('@') != -1) {
-      qore_offset_t colon = driver->find(':');
-      qore_offset_t atsign = driver->find('@');
-      if (colon < 0 || (atsign < colon)) {
-         xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
-         return;
-      }
+    if (!port && driver->find('@') != -1) {
+        qore_offset_t colon = driver->find(':');
+        qore_offset_t atsign = driver->find('@');
+        if (colon < 0 || (atsign < colon)) {
+            xsink->raiseException("DATASOURCE-PARSE-ERROR", "driver is missing from the datasource string");
+            return;
+        }
 
-      ReferenceHolder<QoreHashNode> h(parseDatasource(driver->getBuffer(), xsink), xsink);
-      if (!h) {
-         assert(*xsink);
-         return;
-      }
-      ds_constructor_hash(*h, self, q.release(), arg, xsink);
-      return;
-   }
+        ReferenceHolder<QoreHashNode> h(parseDatasource(driver->c_str(), xsink), xsink);
+        if (!h) {
+            assert(*xsink);
+            return;
+        }
+        ds_constructor_hash(*h, self, q.release(), arg, xsink);
+        return;
+    }
 
-   DBIDriver *db_driver = DBI.find(driver->getBuffer(), xsink);
-   if (!db_driver) {
-      if (!*xsink)
-	 xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", driver->getBuffer());
-      return;
-   }
+    DBIDriver *db_driver = DBI.find(driver->c_str(), xsink);
+    if (!db_driver) {
+        if (!*xsink)
+        xsink->raiseException("DATASOURCE-UNSUPPORTED-DATABASE", "DBI driver '%s' cannot be loaded", driver->c_str());
+        return;
+    }
 
-   ReferenceHolder<ManagedDatasource> ds(new ManagedDatasource(db_driver), xsink);
+    ReferenceHolder<ManagedDatasource> ds(new ManagedDatasource(db_driver), xsink);
 
-   if (user && !user->empty())
-      ds->setPendingUsername(user->getBuffer());
+    if (user && !user->empty())
+        ds->setPendingUsername(user->c_str());
 
-   if (pass && !pass->empty())
-      ds->setPendingPassword(pass->getBuffer());
+    if (pass && !pass->empty())
+        ds->setPendingPassword(pass->c_str());
 
-   if (db && !db->empty())
-      ds->setPendingDBName(db->getBuffer());
+    if (db && !db->empty())
+        ds->setPendingDBName(db->c_str());
 
-   if (encoding && !encoding->empty())
-      ds->setPendingDBEncoding(encoding->getBuffer());
+    if (encoding && !encoding->empty())
+        ds->setPendingDBEncoding(encoding->c_str());
 
-   if (host && !host->empty())
-      ds->setPendingHostName(host->getBuffer());
+    if (host && !host->empty())
+        ds->setPendingHostName(host->c_str());
 
-   if (port) {
-      if (port < 0) {
-	 xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive (value given: %d)", port);
-	 return;
-      }
-      ds->setPendingPort((int)port);
-   }
+    if (port) {
+        if (port < 0) {
+            xsink->raiseException(DSC_ERR, "port value must be zero (meaning use the default port) or positive "
+                "(value given: %d)", port);
+            return;
+        }
+        ds->setPendingPort((int)port);
+    }
 
-   if (options)
-      ds_set_options(*ds, options, xsink);
+    if (options)
+        ds_set_options(*ds, options, xsink);
 
-   if (queue)
-      ds->setEventQueue(q.release(), arg.refSelf(), xsink);
+    if (queue)
+        ds->setEventQueue(q.release(), arg.refSelf(), xsink);
 
-   self->setPrivate(CID_DATASOURCE, ds.release());
+    self->setPrivate(CID_DATASOURCE, ds.release());
 }
 
 //! Creates a Datasource object from a single string giving all parameters that can be parsed by parse_datasource()
 /** @param desc a datasource description string in the format that can be parsed by parse_datasource()
-    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the
+    @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown;
+    passing @ref nothing will clear any event queue
     @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
@@ -443,7 +464,7 @@ Datasource ds("pgsql:user/pass@db01(utf8)%localhost:5432");
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
 
     @since %Qore 0.8.6
- */
+*/
 Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, auto arg) {
     ReferenceHolder<Queue> q(queue, xsink);
 
@@ -456,16 +477,31 @@ Datasource::constructor(string desc, *Qore::Thread::Queue[Queue] queue, auto arg
 }
 
 //! Creates a Datasource object from a hash argument giving parameters for the constructor
-/** @param opts a hash giving parameters for the new datasource with the following possible keys (the \c "type" key is mandatory, also usable with the output of the parse_datasource() function):
-    - \c type: (@ref string_or_nothing_type "*string") The name of the database driver to use; this key is mandatory; if not present, an exception will be raised. See @ref sql_constants for builtin constants for DBI drivers shipped with Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name of the driver to be loaded)
-    - \c user: (@ref string_or_nothing_type "*string") The user name for the new connection. Also see Datasource::setUserName() for a method that allows this parameter to be set after the constructor.
-    - \c pass: (@ref string_or_nothing_type "*string") The password for the new connection. Also see Datasource::setPassword() for a method that allows this parameter to be set after the constructor.
-    - \c db: (@ref string_or_nothing_type "*string") The database name for the new connection. Also see Datasource::setDBName() for a method that allows this parameter to be set after the constructor.
-    - \c charset: (@ref string_or_nothing_type "*string") The database-specific name of the character encoding to use for the new connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set after the constructor. If no value is passed for this parameter, then the database character encoding corresponding to the default character encoding for the %Qore process will be used instead.
-    - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection. Also see Datasource::setHostName() for a method that allows this parameter to be set after the constructor.
-    - \c port: (@ref softint_type "softint") The port number for the new connection. Also see Datasource::setPort() for a method that allows this parameter to be set after the constructor. If this key is present and is 0 then an exception will be raised.
+/** @param opts a hash giving parameters for the new datasource with the following possible keys (the \c "type" key is
+    mandatory, also usable with the output of the parse_datasource() function):
+    - \c type: (@ref string_or_nothing_type "*string") The name of the database driver to use; this key is mandatory;
+      if not present, an exception will be raised. See @ref sql_constants for builtin constants for DBI drivers
+      shipped with Qore, or see the DBI driver documentation to use an add-on driver (this string should be the name
+      of the driver to be loaded)
+    - \c user: (@ref string_or_nothing_type "*string") The user name for the new connection. Also see
+      Datasource::setUserName() for a method that allows this parameter to be set after the constructor
+    - \c pass: (@ref string_or_nothing_type "*string") The password for the new connection. Also see
+      Datasource::setPassword() for a method that allows this parameter to be set after the constructor
+    - \c db: (@ref string_or_nothing_type "*string") The database name for the new connection. Also see
+      Datasource::setDBName() for a method that allows this parameter to be set after the constructor
+    - \c charset: (@ref string_or_nothing_type "*string") The database-specific name of the character encoding to use
+      for the new connection. Also see Datasource::setDBCharset() for a method that allows this parameter to be set
+      after the constructor. If no value is passed for this parameter, then the database character encoding
+      corresponding to the default character encoding for the %Qore process will be used instead
+    - \c host: (@ref string_or_nothing_type "*string") The host name for the new connection. Also see
+      Datasource::setHostName() for a method that allows this parameter to be set after the constructor
+    - \c port: (@ref softint_type "softint") The port number for the new connection. Also see Datasource::setPort()
+      for a method that allows this parameter to be set after the constructor. If this key is present and is 0 then an
+      exception will be raised.
     - \c options: (@ref hash_or_nothing_type "*hash") Any options for the new connection
-    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown; passing @ref nothing will clear any event queue
+    @param queue An optional @ref Qore::Thread::Queue "Queue" object to receive datasource events; note that the
+    @ref Qore::Thread::Queue "Queue" passed cannot have any maximum size set or a \c QUEUE-ERROR will be thrown;
+    passing @ref nothing will clear any event queue
     @param arg an optional argument to be included in the \c arg key of datasource events
 
     @par Example:
@@ -474,11 +510,12 @@ Datasource db(("type": DSPGSQL, "user": "username", "pass": "password", "db": "d
     @endcode
 
     @throw DATASOURCE-UNSUPPORTED-DATABASE DBI driver cannot be loaded
-    @throw DATASOURCE-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string; port value is \<= 0
+    @throw DATASOURCE-CONSTRUCTOR-ERROR missing or invalid \c "driver" key, other key name not assigned to a string;
+    port value is \<= 0
     @throw DBI-OPTION-ERROR unknown or unsupported option passed to driver
- */
+*/
 Datasource::constructor(hash<auto> opts, *Qore::Thread::Queue[Queue] queue, auto arg) {
-   ds_constructor_hash(opts, self, queue, arg, xsink);
+    ds_constructor_hash(opts, self, queue, arg, xsink);
 }
 
 //! Closes the datasource if it's open (if any operations are in progress, will block until the operations complete) and destroys the object
@@ -488,11 +525,12 @@ Datasource::constructor(hash<auto> opts, *Qore::Thread::Queue[Queue] queue, auto
 delete db;
     @endcode
 
-    @throw DATASOURCE-TRANSACTION-EXCEPTION The Datasource was destroyed while a transaction was still in progress; the transaction will be automatically rolled back
- */
+    @throw DATASOURCE-TRANSACTION-EXCEPTION The Datasource was destroyed while a transaction was still in progress;
+    the transaction will be automatically rolled back
+*/
 Datasource::destructor() {
-   ds->destructor(xsink);
-   ds->deref(xsink);
+    ds->destructor(xsink);
+    ds->deref(xsink);
 }
 
 //! Creates a new Datasource object with the same driver as the original and copies of all the connection parameters
@@ -501,9 +539,9 @@ Datasource::destructor() {
     @code{.py}
 Datasource new_ds = ds.copy();
     @endcode
- */
+*/
 Datasource::copy() {
-   self->setPrivate(CID_DATASOURCE, ds->copy());
+    self->setPrivate(CID_DATASOURCE, ds->copy());
 }
 
 //! Opens a connection to the datasouce, using the connection parameters already set; an exception is thrown if any errors occur
@@ -517,9 +555,9 @@ db.open();
     @note see the documentation for the DBI driver being used for possible exceptions
 
     @see Datasource::reset()
- */
+*/
 nothing Datasource::open() {
-   ds->open(xsink);
+    ds->open(xsink);
 }
 
 //! Closes the connection to the database; if any actions are in progress on the database, the close call will block until the actions complete. If any errors are encountered, an exception is raised
@@ -534,7 +572,7 @@ db.close();
     @note see the documentation for the DBI driver being used for additional possible exceptions
 */
 nothing Datasource::close() {
-   ds->close(xsink);
+    ds->close(xsink);
 }
 
 //! Commits the current transaction and releases the @ref transaction_lock "transaction lock"
@@ -547,9 +585,9 @@ db.commit();
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
- */
+*/
 nothing Datasource::commit() {
-   ds->commit(xsink);
+    ds->commit(xsink);
 }
 
 //! Rolls the current transaction back and releases the @ref transaction_lock "transaction lock"
@@ -562,20 +600,21 @@ db.rollback();
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
- */
+*/
 nothing Datasource::rollback() {
-   ds->rollback(xsink);
+    ds->rollback(xsink);
 }
 
 //! Turns autocommit on or off for this object
-/** @param ac @ref True to turn on autocommit (a commit will be executed after every %SQL call to the server), @ref False to turn off autocommit (commits must be manually triggered)
+/** @param ac @ref True to turn on autocommit (a commit will be executed after every %SQL call to the server),
+    @ref False to turn off autocommit (commits must be manually triggered)
     @par Example:
     @code{.py}
 db.setAutoCommit(False);
     @endcode
- */
+*/
 nothing Datasource::setAutoCommit(bool ac = True) {
-   ds->setAutoCommit(ac, xsink);
+    ds->setAutoCommit(ac, xsink);
 }
 
 //! Returns the autocommit status for the object
@@ -585,18 +624,23 @@ nothing Datasource::setAutoCommit(bool ac = True) {
     @code{.py}
 bool b = db.getAutoCommit();
     @endcode
- */
+*/
 bool Datasource::getAutoCommit() [flags=CONSTANT] {
-   return ds->getAutoCommit();
+    return ds->getAutoCommit();
 }
 
 //! Grabs the transaction lock (if autocommit is disabled) and executes an %SQL command on the server and returns either the integer row count (for example, for updates, inserts, and deletes) or the data retrieved (for example, if a stored procedure is executed that returns values).
-/** This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+/** This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in
+    @ref sql_binding "Binding by Value and Placeholder"
 
     @param sql The %SQL command to execute on the server
-    @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+    @param ... Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications
+    (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned
+    holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row
+    count is returned. However, some DBI drivers also allow select statements to be executed through this interface,
+    which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
     @code{.py}
@@ -606,21 +650,26 @@ int rows = db.exec("insert into table (varchar_col, timestamp_col, blob_col, num
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
- */
+*/
 auto Datasource::exec(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
-   return ds->exec(sql, *argl, xsink);
+    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+    return ds->exec(sql, *argl, xsink);
 }
 
 //! Grabs the transaction lock (if autocommit is disabled) and executes %SQL code on the DB connection, taking a list for all bind arguments
 /** Same as Datasource::exec() except takes an explicit list for bind arguments
 
-    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in @ref sql_binding "Binding by Value and Placeholder"
+    This method also accepts all bind parameters (<tt>%%d</tt>, <tt>%%v</tt>, <tt>%%s</tt>, etc) as documented in
+    @ref sql_binding "Binding by Value and Placeholder"
 
     @param sql The %SQL command to execute on the server
-    @param vargs Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
+    @param vargs Include any values to be bound (using <tt>%%v</tt> in the command string) or placeholder
+    specifications (using <tt>:</tt><em>key_name</em> in the command string) in order after the command string
 
-    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned
+    holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row
+    count is returned. However, some DBI drivers also allow select statements to be executed through this interface,
+    which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
     @code{.py}
@@ -630,20 +679,27 @@ int rows = db.vexec("insert into example_table value (%v, %v, %v)", arg_list);
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
- */
+*/
 auto Datasource::vexec(string sql, *softlist<auto> vargs) {
-   return ds->exec(sql, vargs, xsink);
+    return ds->exec(sql, vargs, xsink);
 }
 
 //! Grabs the transaction lock (if autocommit is disabled) and executes an %SQL command on the server and returns either the row count (for example, for updates and inserts) or the data retrieved (for example, if a stored procedure is executed that returns values)
 /** This method does not do any variable binding, so it's useful for example for DDL statements etc
 
     @par Warning:
-    Using this method to execute pure dynamic %SQL many times with different %SQL strings (as opposed to using the same string and binding by value instead of dynamic %SQL) can affect application performance by prohibiting the efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the %SQL statement cache for more information.
+    Using this method to execute pure dynamic %SQL many times with different %SQL strings (as opposed to using the
+    same string and binding by value instead of dynamic %SQL) can affect application performance by prohibiting the
+    efficient usage of the DB server's statement cache. See DB server documentation for variable binding and the %SQL
+    statement cache for more information.
 
-    @param sql The %SQL command to execute on the server; this string will not be subjected to any transformations for variable binding
+    @param sql The %SQL command to execute on the server; this string will not be subjected to any transformations for
+    variable binding
 
-    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row count is returned. However, some DBI drivers also allow select statements to be executed through this interface, which would also return a hash (column names) of lists (values for each column).
+    @return The return value depends on the DBI driver; normally, for commands with placeholders, a hash is returned
+    holding the values acquired from executing the %SQL statement. For all other commands, normally an integer row
+    count is returned. However, some DBI drivers also allow select statements to be executed through this interface,
+    which would also return a hash (column names) of lists (values for each column).
 
     @par Example:
     @code{.py}
@@ -653,9 +709,9 @@ db.execRaw("create table my_tab (id number, some_text varchar2(30))");
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
- */
+*/
 auto Datasource::execRaw(string sql) {
-   return ds->execRaw(sql, xsink);
+    return ds->execRaw(sql, xsink);
 }
 
 //! Executes an %SQL select statement on the server and returns the result as a hash (column names) of lists (column values per row)
@@ -691,10 +747,10 @@ if (query.firstValue())
     - Datasource::vselect()
     - <hash>::contextIterator()
     - @ref context
- */
+*/
 auto Datasource::select(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
-   return ds->select(sql, *argl, xsink);
+    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+    return ds->select(sql, *argl, xsink);
 }
 
 //! Executes an %SQL select statement on the server and returns the first row as a hash (the column values)
@@ -718,10 +774,10 @@ auto Datasource::select(string sql, ...) {
     @throw DBI-SELECT-ROW-ERROR more than 1 row retrieved from the server
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
- */
+*/
 *hash<auto> Datasource::selectRow(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
-   return ds->selectRow(sql, *argl, xsink);
+    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+    return ds->selectRow(sql, *argl, xsink);
 }
 
 //! Executes an %SQL select statement on the server and returns the result as a list (rows) of hashes (the column values)
@@ -750,10 +806,10 @@ auto Datasource::select(string sql, ...) {
     - This method returns all the data available immediately; to process query data piecewise, use the SQLStatement class
 
     @see Datasource::select()
- */
+*/
 auto Datasource::selectRows(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
-   return ds->selectRows(sql, *argl, xsink);
+    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+    return ds->selectRows(sql, *argl, xsink);
 }
 
 //! Executes a select statement on the server and returns the results in a hash (column names) of lists (column values per row), taking a list for all bind arguments
@@ -786,9 +842,9 @@ if (query.firstValue())
     - Datasource::select()
     - <hash>::contextIterator()
     - @ref context
- */
+*/
 auto Datasource::vselect(string sql, *softlist<auto> vargs) {
-   return ds->select(sql, vargs, xsink);
+    return ds->select(sql, vargs, xsink);
 }
 
 //! Executes a select statement on the server and returns the first row as a hash (column names and values), taking a list for all bind arguments
@@ -813,9 +869,9 @@ auto Datasource::vselect(string sql, *softlist<auto> vargs) {
     @note see the documentation for the DBI driver being used for additional possible exceptions
 
     @see Datasource::selectRow()
- */
+*/
 *hash<auto> Datasource::vselectRow(string sql, *softlist<auto> vargs) {
-   return ds->selectRow(sql, vargs, xsink);
+    return ds->selectRow(sql, vargs, xsink);
 }
 
 //! Executes a select statement on the server and returns the results in a list (rows) of hashes (column names and values), taking a list for all bind arguments
@@ -848,7 +904,7 @@ auto Datasource::vselect(string sql, *softlist<auto> vargs) {
     @see Datasource::selectRows()
  */
 auto Datasource::vselectRows(string sql, *softlist<auto> vargs) {
-   return ds->selectRows(sql, vargs, xsink);
+    return ds->selectRows(sql, vargs, xsink);
 }
 
 //! Executes an %SQL select statement on the server and returns a description of the result set as a hash
@@ -878,8 +934,8 @@ auto Datasource::vselectRows(string sql, *softlist<auto> vargs) {
     @since %Qore 0.8.9
  */
 *hash<auto> Datasource::describe(string sql, ...) {
-   ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
-   return ds->describe(sql, *argl, xsink);
+    ReferenceHolder<QoreListNode> argl((args->size() > 1 ? args->copyListFrom(1) : 0), xsink);
+    return ds->describe(sql, *argl, xsink);
 }
 
 //! Manually grabs the transaction lock
@@ -898,7 +954,7 @@ db.beginTransaction();
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
  */
 nothing Datasource::beginTransaction() {
-   ds->beginTransaction(xsink);
+    ds->beginTransaction(xsink);
 }
 
 //! Closes and reopens the Datasource
@@ -913,7 +969,7 @@ db.reset();
     @note see the documentation for the DBI driver being used for additional possible exceptions
  */
 nothing Datasource::reset() {
-   ds->reset(xsink);
+    ds->reset(xsink);
 }
 
 //! Returns an integer bitfield of DBI driver capabilities
@@ -927,7 +983,7 @@ if (!(caps & DBI_CAP_TRANSACTION_MANAGEMENT))
     @endcode
  */
 int Datasource::getCapabilities() [flags=CONSTANT] {
-   return ds->getCapabilities();
+    return ds->getCapabilities();
 }
 
 //! Returns a list of strings giving the capabilities of the current DBI driver
@@ -939,9 +995,9 @@ printf("driver %y has the following capabilities:\n", db.getDriverName());
 foreach string cap in (db.getCapabilityList())
     printf("- %s\n", cap);
     @endcode
- */
+*/
 list<auto> Datasource::getCapabilityList() [flags=CONSTANT] {
-   return ds->getCapabilityList();
+    return ds->getCapabilityList();
 }
 
 //! Sets the username parameter for the time a connection to the server is established
@@ -953,9 +1009,9 @@ list<auto> Datasource::getCapabilityList() [flags=CONSTANT] {
     @code{.py}
 db.setUserName(user);
     @endcode
- */
+*/
 nothing Datasource::setUserName(string user) {
-   ds->setPendingUsername(user->getBuffer());
+    ds->setPendingUsername(user->c_str());
 }
 
 //! Sets the password parameter for the time a connection to the server is established
@@ -967,9 +1023,9 @@ nothing Datasource::setUserName(string user) {
     @code{.py}
 db.setPassword(pass);
     @endcode
- */
+*/
 nothing Datasource::setPassword(string pass) {
-   ds->setPendingPassword(pass->getBuffer());
+    ds->setPendingPassword(pass->c_str());
 }
 
 //! Sets the database name parameter for the time a connection to the server is established
@@ -981,9 +1037,9 @@ nothing Datasource::setPassword(string pass) {
     @code{.py}
 db.setDBName(db);
     @endcode
- */
+*/
 nothing Datasource::setDBName(string db) {
-   ds->setPendingDBName(db->getBuffer());
+    ds->setPendingDBName(db->c_str());
 }
 
 //! Sets the database-specific character encoding name for the next connection to the server
@@ -997,9 +1053,9 @@ nothing Datasource::setDBName(string db) {
     @code{.py}
 db.setDBCharset(encoding);
     @endcode
- */
+*/
 nothing Datasource::setDBCharset(string encoding) {
-   ds->setPendingDBEncoding(encoding->getBuffer());
+    ds->setPendingDBEncoding(encoding->c_str());
 }
 
 //! Sets the database-specific character encoding name for the next connection to the server
@@ -1011,9 +1067,9 @@ nothing Datasource::setDBCharset(string encoding) {
     @code{.py}
 db.setDBEncoding(encoding);
     @endcode
- */
+*/
 nothing Datasource::setDBEncoding(string encoding) {
-   ds->setPendingDBEncoding(encoding->getBuffer());
+    ds->setPendingDBEncoding(encoding->c_str());
 }
 
 //! Sets the hostname to use for the next connection to the server
@@ -1025,9 +1081,9 @@ nothing Datasource::setDBEncoding(string encoding) {
     @code{.py}
 db.setHostName(host);
     @endcode
- */
+*/
 nothing Datasource::setHostName(string host) {
-   ds->setPendingHostName(host->getBuffer());
+    ds->setPendingHostName(host->c_str());
 }
 
 //! Sets the port number to use for the connection
@@ -1039,9 +1095,9 @@ nothing Datasource::setHostName(string host) {
     @code{.py}
 db.setPort(port);
     @endcode
- */
+*/
 nothing Datasource::setPort(softint port = 0) {
-   ds->setPendingPort((int)port);
+    ds->setPendingPort((int)port);
 }
 
 //! Returns the username parameter as a string or @ref nothing if none is set
@@ -1051,9 +1107,9 @@ nothing Datasource::setPort(softint port = 0) {
     @code{.py}
 *string user = db.getUserName();
     @endcode
- */
+*/
 *string Datasource::getUserName() [flags=CONSTANT] {
-   return ds->getPendingUsername();
+    return ds->getPendingUsername();
 }
 
 //! Returns the password parameter as a string or @ref nothing if none is set
@@ -1063,9 +1119,9 @@ nothing Datasource::setPort(softint port = 0) {
     @code{.py}
 *string pass = db.getPassword();
     @endcode
- */
+*/
 *string Datasource::getPassword() [flags=CONSTANT] {
-   return ds->getPendingPassword();
+    return ds->getPendingPassword();
 }
 
 //! Returns the database name parameter as a string or @ref nothing if none is set
@@ -1075,9 +1131,9 @@ nothing Datasource::setPort(softint port = 0) {
     @code{.py}
 *string db = db.getDBName();
     @endcode
- */
+*/
 *string Datasource::getDBName() [flags=CONSTANT] {
-   return ds->getPendingDBName();
+    return ds->getPendingDBName();
 }
 
 //! Retrieves the database-specific charset set encoding for the current connection
@@ -1089,9 +1145,9 @@ nothing Datasource::setPort(softint port = 0) {
     @code{.py}
 *string enc = db.getDBCharset();
     @endcode
- */
+*/
 *string Datasource::getDBCharset() [flags=CONSTANT] {
-   return ds->getPendingDBEncoding();
+    return ds->getPendingDBEncoding();
 }
 
 //! Retrieves the database-specific charset set encoding for the current connection
@@ -1103,9 +1159,9 @@ nothing Datasource::setPort(softint port = 0) {
     @endcode
 
     @see Datasource::getOSEncoding();
- */
+*/
 *string Datasource::getDBEncoding() [flags=CONSTANT] {
-   return ds->getPendingDBEncoding();
+    return ds->getPendingDBEncoding();
 }
 
 //! Returns the %Qore character encoding name for the current connection as a string or \c "(unknown)" if none is set
@@ -1117,10 +1173,10 @@ string enc = db.getOSCharset();
     @endcode
 
     @see Datasource::getOSEncoding()
- */
+*/
 string Datasource::getOSCharset() [flags=CONSTANT] {
-   const QoreEncoding *enc = ds->getQoreEncoding();
-   return new QoreStringNode(enc ? enc->getCode() : "(unknown)");
+    const QoreEncoding *enc = ds->getQoreEncoding();
+    return new QoreStringNode(enc ? enc->getCode() : "(unknown)");
 }
 
 //! Returns the %Qore character encoding name for the current connection as a string or @ref nothing if none is set
@@ -1130,10 +1186,10 @@ string Datasource::getOSCharset() [flags=CONSTANT] {
     @code{.py}
 *string enc = db.getOSEncoding();
     @endcode
- */
+*/
 *string Datasource::getOSEncoding() [flags=CONSTANT] {
-   const QoreEncoding *enc = ds->getQoreEncoding();
-   return enc ? new QoreStringNode(enc->getCode()) : 0;
+    const QoreEncoding *enc = ds->getQoreEncoding();
+    return enc ? new QoreStringNode(enc->getCode()) : 0;
 }
 
 //! Returns the hostname parameter as a string or @ref nothing if none is set
@@ -1143,9 +1199,9 @@ string Datasource::getOSCharset() [flags=CONSTANT] {
     @code{.py}
 *string host = db.getHostName();
     @endcode
- */
+*/
 *string Datasource::getHostName() [flags=CONSTANT] {
-   return ds->getPendingHostName();
+    return ds->getPendingHostName();
 }
 
 //! Gets the port number that will be used for the next connection to the server
@@ -1155,7 +1211,7 @@ string Datasource::getOSCharset() [flags=CONSTANT] {
     @code{.py}
 *int port = db.getPort();
     @endcode
- */
+*/
 *int Datasource::getPort() [flags=CONSTANT] {
     int port = ds->getPort();
     return port ? QoreValue(port) : QoreValue();
@@ -1168,9 +1224,9 @@ string Datasource::getOSCharset() [flags=CONSTANT] {
     @code{.py}
 db.setTransactionLockTimeout(4s);
     @endcode
- */
+*/
 nothing Datasource::setTransactionLockTimeout(timeout timeout_ms = 0) {
-   ds->setTransactionLockTimeout((int)timeout_ms);
+    ds->setTransactionLockTimeout((int)timeout_ms);
 }
 
 //! Retrieves the transaction lock timeout value as an integer in milliseconds
@@ -1180,9 +1236,9 @@ nothing Datasource::setTransactionLockTimeout(timeout timeout_ms = 0) {
     @code{.py}
 int to_ms = db.getTransactionLockTimeout();
     @endcode
- */
+*/
 int Datasource::getTransactionLockTimeout() [flags=CONSTANT] {
-   return ds->getTransactionLockTimeout();
+    return ds->getTransactionLockTimeout();
 }
 
 //! Returns the name of the driver used for the object
@@ -1192,9 +1248,11 @@ int Datasource::getTransactionLockTimeout() [flags=CONSTANT] {
     @code{.py}
 string driver = db.getDriverName();
     @endcode
- */
+
+    @see getDriverRealName()
+*/
 string Datasource::getDriverName() [flags=CONSTANT] {
-   return new QoreStringNode(ds->getDriver()->getName());
+    return new QoreStringNode(ds->getDriver()->getName());
 }
 
 //! Returns the driver-specific server version data for the current connection
@@ -1208,9 +1266,28 @@ auto ver = db.getServerVersion();
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @note see the documentation for the DBI driver being used for additional possible exceptions
- */
+*/
 auto Datasource::getServerVersion() {
-   return ds->getServerVersion(xsink);
+    return ds->getServerVersion(xsink);
+}
+
+//! Returns the real DB driver name if supported by the driver, otherwise the %Qore driver name
+/** @return the real DB driver name if supported by the driver, otherwise the %Qore driver name
+
+    @par Example:
+    @code{.py}
+string driver = db.getDriverRealName();
+    @endcode
+
+    The return value will differ from getDriverName() in the case of "wrapper" drivers such as \c odbc or \c jdbc,
+    where the generic %Qore driver name is insufficient to identify the database server type.
+
+    In other cases, this method will return the same value as getDriverName()
+
+    @since %Qore 1.14
+*/
+string Datasource::getDriverRealName() [flags=CONSTANT] {
+    return ds->ManagedDatasource::getDriverRealName(xsink);
 }
 
 //! Retrieves the driver-specific client library version information; this method may not be implemented for all drivers
@@ -1222,9 +1299,9 @@ auto ver = db.getClientVersion();
     @endcode
 
     @note see the documentation for the DBI driver being used for possible exceptions
- */
+*/
 auto Datasource::getClientVersion() {
-   return ds->getClientVersion(xsink);
+    return ds->getClientVersion(xsink);
 }
 
 //! Returns @ref True if a transaction is currently in progress, @ref False if not
@@ -1234,9 +1311,9 @@ auto Datasource::getClientVersion() {
     @code{.py}
 bool b = db.inTransaction();
     @endcode
- */
+*/
 bool Datasource::inTransaction() [flags=CONSTANT] {
-   return ds->isInTransaction();
+    return ds->isInTransaction();
 }
 
 //! Returns @ref True if the current thread is in a transaction (i.e. holds the transaction lock), @ref False if not
@@ -1250,9 +1327,9 @@ bool b = db.currentThreadInTransaction();
     @see Datasource::transactionTid()
 
     @since %Qore 0.8.7
- */
+*/
 bool Datasource::currentThreadInTransaction() [flags=CONSTANT] {
-   return ds->currentThreadInTransaction();
+    return ds->currentThreadInTransaction();
 }
 
 //! Returns the TID of the thread holding the transaction lock or -1 if it's not currently held
@@ -1269,9 +1346,9 @@ int tid = db.transactionTid();
     @see Datasource::currentThreadInTransaction()
 
     @since %Qore 0.8.7
- */
+*/
 int Datasource::transactionTid() [flags=CONSTANT] {
-   return ds->transactionTid();
+    return ds->transactionTid();
 }
 
 //! returns the valid options for the driver associated with the Datasource with descriptions and current values for the current Datasource object
@@ -1285,9 +1362,9 @@ int Datasource::transactionTid() [flags=CONSTANT] {
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @since %Qore 0.8.6
- */
+*/
 hash<auto> Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
-   return ds->getOptionHash(xsink);
+    return ds->getOptionHash(xsink);
 }
 
 //! sets an option for the datasource
@@ -1301,9 +1378,9 @@ hash<auto> Datasource::getOptionHash() [flags=RET_VALUE_ONLY] {
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @since %Qore 0.8.6
- */
+*/
 Datasource::setOption(string opt, auto val) {
-   ds->setOption(opt->getBuffer(), val, xsink);
+    ds->setOption(opt->c_str(), val, xsink);
 }
 
 //! Returns the current value for the given option
@@ -1315,9 +1392,9 @@ Datasource::setOption(string opt, auto val) {
     @throw TRANSACTION-LOCK-TIMEOUT Timeout trying to acquire the transaction lock
 
     @since %Qore 0.8.6
- */
+*/
 auto Datasource::getOption(string opt) [flags=RET_VALUE_ONLY] {
-   return ds->getOption(opt->getBuffer(), xsink);
+    return ds->getOption(opt->c_str(), xsink);
 }
 
 //! Returns a @ref datasource_hash "datasource hash" describing the configuration of the current object
@@ -1332,9 +1409,9 @@ hash<auto> h = ds.getConfigHash();
     objects, as the DB driver may set default option values when the datasource is connected.
 
     @since %Qore 0.8.8
- */
+*/
 hash<auto> Datasource::getConfigHash() [flags=CONSTANT] {
-   return ds->getConfigHash(xsink);
+    return ds->getConfigHash(xsink);
 }
 
 //! Returns a string giving the configuration of the current object in a format that can be parsed by parse_datasource()
@@ -1349,9 +1426,9 @@ string str = ds.getConfigString();
     objects, as the DB driver may set default option values when the datasource is connected.
 
     @since %Qore 0.8.8
- */
+*/
 string Datasource::getConfigString() [flags=CONSTANT] {
-   return ds->getConfigString(xsink);
+    return ds->getConfigString(xsink);
 }
 
 //! Sets a queue object for DBI events on the datasource
@@ -1362,22 +1439,22 @@ string Datasource::getConfigString() [flags=CONSTANT] {
     @throw QUEUE-ERROR the Queue passed has a maximum size set
 
     @since %Qore 0.8.9
- */
+*/
 nothing Datasource::setEventQueue(Qore::Thread::Queue[Queue] queue, auto arg) {
-   ReferenceHolder<Queue> q(queue, xsink);
+    ReferenceHolder<Queue> q(queue, xsink);
 
-   if (queue->getMax() != -1)
-      return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
+    if (queue->getMax() != -1)
+        return xsink->raiseException("QUEUE-ERROR", "the Queue object passed as a maximum size of %d entr%s, which could cause internal I/O to freeze in the Datasource object if used; use a Queue object with no maximum size for datasource event monitoring", queue->getMax(), queue->getMax() == 1 ? "y" : "ies");
 
-   ds->setEventQueue(q.release(), arg.refSelf(), xsink);
+    ds->setEventQueue(q.release(), arg.refSelf(), xsink);
 }
 
 //! Clears the queue object for DBI events on the datasource
 /**
     @since %Qore 0.8.9
- */
+*/
 nothing Datasource::clearEventQueue() {
-   ds->setEventQueue(0, 0, xsink);
+    ds->setEventQueue(0, 0, xsink);
 }
 
 //! Returns an @ref Qore::SQL::AbstractSQLStatement "AbstractSQLStatement" object based on the current database connection object
@@ -1392,9 +1469,10 @@ AbstractSQLStatement stmt = ds.getSQLStatement();
 */
 AbstractSQLStatement Datasource::getSQLStatement() {
     if (!ds->getDriver()->hasStatementAPI()) {
-        xsink->raiseException("SQLSTATEMENT-ERROR", "DBI driver '%s' does not support the prepared statement API", ds->getDriver()->getName());
+        xsink->raiseException("SQLSTATEMENT-ERROR", "DBI driver '%s' does not support the prepared statement API",
+            ds->getDriver()->getName());
         return QoreValue();
-     }
+    }
 
     return new QoreObject(QC_SQLSTATEMENT, getProgram(), new QoreSQLStatement(ds));
 }

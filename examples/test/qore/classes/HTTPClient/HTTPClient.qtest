@@ -379,6 +379,7 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
         if (m_options.verbose) {
             verbose = m_options.verbose;
         }
+        addTestCase("timeouts", \timeoutTest());
         addTestCase("pre-encoded-urls", \preEncodedUrlsTest());
         addTestCase("poll proxy test", \pollProxyTest());
         addTestCase("poll test", \pollTest());
@@ -398,6 +399,12 @@ I45SPdad6fpziP1EtT5rfrC0ZH7cMU8edg==
    private usageIntern() {
         TestReporter::usageIntern(OptionColumn);
         printOption("-P,--proxy=ARG", "the proxy to use for proxy tests", OptionColumn);
+    }
+
+    timeoutTest() {
+        HTTPClient hc({"url": "http://localhost"});
+        assertEq(300000, hc.getTimeout());
+        assertEq(60000, hc.getConnectTimeout());
     }
 
     preEncodedUrlsTest() {

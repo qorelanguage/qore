@@ -25,11 +25,8 @@
 #! contains all public definitions in the RestClientDataProvider module
 public namespace RestClientDataProvider {
 #! The REST client DELETE data provider class
-public class RestClientDeleteDataProvider inherits AbstractDataProvider {
+public class RestClientDeleteDataProvider inherits RestClientDataProviderBase {
     public {
-        #! REST client connection
-        RestClient rest;
-
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "delete",
@@ -58,8 +55,7 @@ public class RestClientDeleteDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient rest) {
-        self.rest = rest;
+    constructor(RestClient rest) : RestClientDataProviderBase(rest) {
     }
 
     #! Returns the data provider name

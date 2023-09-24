@@ -1,0 +1,172 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/GoogleRestClient.qm
+%requires ../../../../qlib/GoogleDataProvider
+
+%exec-class GoogleDataProviderTest
+
+public class GoogleDataProviderTest inherits QUnit::Test {
+    private {
+        GoogleDataProvider gdp;
+
+        # command-line options
+        const MyOpts = Opts + {
+            "conn": "c,connection=s",
+        };
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("GoogleDataProviderTest Test", "1.0", \ARGV, MyOpts) {
+        addTestCase("test", \googleDataProviderTest());
+        addTestCase("calendar test", \googleCalendarTest());
+
+        try {
+            setupConnection();
+        } catch (hash<ExceptionInfo> ex) {
+            if (m_options.verbose > 2) {
+                printf("%s\n", get_exception_string(ex));
+            } else if (m_options.verbose) {
+                printf("%s: %s\n", ex.err, ex.desc);
+            }
+        }
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    googleDataProviderTest() {
+        if (!gdp) {
+            testSkip("no connection");
+        }
+
+        assertEq("google", gdp.getName());
+    }
+
+    googleCalendarTest() {
+        if (!gdp) {
+            testSkip("no connection");
+        }
+
+        AbstractDataProvider prov = gdp.getChildProviderEx("calendar");
+        assertEq("calendar", prov.getName());
+        prov = prov.getChildProviderEx("calendarList");
+        assertEq("calendarList", prov.getName());
+        prov = prov.getChildProviderEx("list");
+        assertEq("list", prov.getName());
+        hash<auto> h = prov.doRequest();
+        assertEq(Type::String, h.etag.type());
+
+        # create, update and delete calendar events
+        prov = gdp.getChildProviderPath("calendar/calendars/primary/events/quickAdd");
+        AbstractDataProvider del = gdp.getChildProviderPath("calendar/calendars/primary/events/delete");
+        {
+            h = prov.doRequest({"text": "Lunch at Burger Bar from 12:30-13:30 today"});
+            on_exit del.doRequest({"id": h.id});
+
+            assertEq("calendar#event", h.kind);
+            assertEq("confirmed", h.status);
+            assertEq("Lunch at Burger Bar", h.summary);
+            assertRegex("Burger Bar", h.location);
+            assertNothing(h.description);
+
+            prov = gdp.getChildProviderPath("calendar/calendars/primary/events/patch");
+            string desc = "today's lunch appointment";
+            h = prov.doRequest({"id": h.id, "description": desc});
+            assertEq(desc, h.description);
+        }
+        prov = gdp.getChildProviderPath("calendar/calendars/primary/events/insert");
+        {
+            date now = now_us();
+            date start = date(now.format("YYYY-MM-DDT12:30:00Z"));
+            date end = date(now.format("YYYY-MM-DDT13:30:00Z"));
+            h = prov.doRequest({
+                "start": {
+                    "dateTime": start,
+                },
+                "end": {
+                    "dateTime": end,
+                },
+                "summary": "Lunch at Burger Bar",
+                "location": "Burger Bar",
+            });
+            on_exit del.doRequest({"id": h.id});
+
+            assertEq("calendar#event", h.kind);
+            assertEq("confirmed", h.status);
+            assertEq("Lunch at Burger Bar", h.summary);
+            assertRegex("Burger Bar", h.location);
+            assertNothing(h.description);
+
+            prov = gdp.getChildProviderPath("calendar/calendars/primary/events/update");
+            string desc = "today's lunch appointment";
+            h = prov.doRequest({"id": h.id, "description": desc});
+            assertEq(desc, h.description);
+        }
+
+        # test the freeBusy calendar API
+        prov = gdp.getChildProviderPath("calendar/calendars/primary/freeBusy");
+        {
+            date now = now_us();
+            hash<auto> req = {
+                "timeMin": date(now.format("YYYY-MM-DDT00:00:00Z")),
+                "timeMax": date((now + 1D).format("YYYY-MM-DDT00:00:00Z")),
+            };
+            h = prov.doRequest(req);
+            assertEq(req.timeMin, h.timeMin);
+            assertEq(req.timeMax, h.timeMax);
+            assertEq("calendar#freeBusy", h.kind);
+        }
+
+        # create and delete a calendar
+        prov = gdp.getChildProviderPath("calendar/calendar-insert");
+        {
+            string summary = "Test Delete Me " + get_random_string();
+            h = prov.doRequest({
+                "summary": summary,
+                "timeZone": "Europe/Prague",
+            });
+            del = gdp.getChildProviderPath("calendar/calendars/" + h.id + "/delete");
+            on_exit del.doRequest();
+
+            assertEq("calendar#calendar", h.kind);
+            assertEq(summary, h.summary);
+            assertEq("Europe/Prague", h.timeZone);
+        }
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--connection=ARG", "set connection name", OptionColumn);
+    }
+
+    private error(string fmt) {
+        throw "OPTION-ERROR", sprintf("%s: ERROR: %s", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    private setupConnection() {
+        *string conn_name = m_options.conn ?? ENV.GOOGLE_CONNECTION;
+        if (!conn_name.val()) {
+            error("missing -c,--connection option or GOOGLE_CONNECTION environment variable");
+        }
+
+        AbstractConnection conn = get_connection(conn_name);
+        if (!(conn instanceof GoogleRestConnection)) {
+            error("connection %y is type %y; expecting \"GoogleRestConnection\"", conn_name, conn.className());
+        }
+        gdp = conn.getDataProvider();
+    }
+}

@@ -139,6 +139,7 @@ public class FileLocationHandlerTest inherits QUnit::Test {
         if (m_options.verbose) {
             verbose = m_options.verbose;
         }
+        addTestCase("info tests", \infoTests());
         addTestCase("data tests", \dataTests());
         addTestCase("file tests", \fileTests());
         addTestCase("ftp tests", \ftpTests());
@@ -148,6 +149,17 @@ public class FileLocationHandlerTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value
         set_return_value(main());
+    }
+
+    private infoTests() {
+        list<string> l = FileLocationHandler::getHandlerNames();
+        assertGt(0, l.size());
+
+        hash<auto> h = FileLocationHandler::getHandlers();
+        assertGt(0, h.size());
+
+        h = FileLocationHandler::getHandlerInfo("http");
+        assertEq("http", h.scheme);
     }
 
     private dataTests() {

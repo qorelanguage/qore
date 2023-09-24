@@ -4,7 +4,6 @@ find_package(FLEX 2.5.35 REQUIRED)
 # start of hacks to simulate installed QoreConfig.cmake
 # which cannot be available yet - the QORE_LIBRARY is missing
 # as find_library does not work yet
-#include(${CMAKE_BINARY_DIR}/cmake/QoreConfig.cmake)
 if (NOT QORE_MODULES_DIR)
     set(QORE_MODULES_DIR ${MODULE_DIR})
 endif (NOT QORE_MODULES_DIR)
@@ -20,6 +19,8 @@ include(${CMAKE_SOURCE_DIR}/cmake/QoreMacros.cmake)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_SOURCE_DIR/build/include})
+include_directories(${CMAKE_SOURCE_DIR/include})
 
 # source files
 set(ASTPARSER_QPP_SRC

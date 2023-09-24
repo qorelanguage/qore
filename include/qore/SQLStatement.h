@@ -39,9 +39,6 @@ class SQLStatement {
     friend class DBActionHelper;
     friend class QoreSQLStatement;
 
-private:
-    struct sql_statement_private* priv; // private implementation
-
 public:
     DLLLOCAL SQLStatement();
 
@@ -52,8 +49,24 @@ public:
     //! returns the private DBI-specific data structure for this object
     DLLEXPORT void* getPrivateData() const;
 
+    //! returns the private DBI-specific data structure for this object
+    /** @since %Qore 1.14
+    */
+    template<typename T>
+    DLLLOCAL T* getPrivateData() const {
+        return reinterpret_cast<T*>(getPrivateData());
+    }
+
     //! returns the private DBI-specific data structure for this object and clears the object
     DLLEXPORT void* takePrivateData();
+
+    //! returns the private DBI-specific data structure for this object and clears the object
+    /** @since %Qore 1.14
+    */
+    template<typename T>
+    DLLLOCAL T* takePrivateData() {
+        return reinterpret_cast<T*>(takePrivateData());
+    }
 
     //! sets the private DBI-specific data structure for this object
     /** this should only be called once in the actual DBI driver code
@@ -65,6 +78,9 @@ public:
     /** @return the Datasource bound to this statement
     */
     DLLEXPORT Datasource* getDatasource() const;
+
+private:
+    struct sql_statement_private* priv; // private implementation
 };
 
 #endif

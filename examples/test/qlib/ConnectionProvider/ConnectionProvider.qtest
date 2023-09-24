@@ -8,6 +8,8 @@
 %allow-injection
 
 %requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/ConnectionProvider
@@ -56,6 +58,10 @@ public class ConnectionProviderTest inherits QUnit::Test {
         assertEq(True, fc.enabled, "connection is enabled by default");
         assertEq(True, fc.monitor, "connection is monitored by default");
         assertEq(False, fc.locked, "connection is unlocked by default");
+        assertEq(True, fc.children_can_support_apis);
+        assertEq(False, fc.children_can_support_transactions);
+        hash<ConnectionInfo> info = fc.getInfo();
+        assertNothing(info.features);
 
         AbstractDataProvider prov = fc.getDataProvider();
         assertEq("ftp", prov.getName());
@@ -85,6 +91,11 @@ public class ConnectionProviderTest inherits QUnit::Test {
         HttpConnection hc("name", "desc", url, attributes, opts);
         assertEq(True, hc.enabled, "connection is enabled by default");
         assertEq(False, hc.locked, "connection is unlocked by default");
+        assertEq(True, hc.children_can_support_apis);
+        assertEq(False, hc.children_can_support_transactions);
+
+        hash<ConnectionSchemeInfo> scheme_info = hc.getConnectionSchemeInfo();
+        assertFalse(scheme_info.options.firstValue().freeform);
 
         # issue #3696: test connection serialization
         HttpConnection conn2 = Serializable::deserialize(hc.serialize());
@@ -164,6 +175,12 @@ public class ConnectionProviderTest inherits QUnit::Test {
         };
         InvalidConnection ic2("name", "desc", "url", attributes);
         assertEq(attributes.error, ic2.error);
+
+        {
+            string url = "https://example.com";
+            InvalidConnection c("x", "x", url);
+            assertEq(url, c.getInfo().url);
+        }
     }
 
     customParseUrlTest() {

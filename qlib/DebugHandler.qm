@@ -22,8 +22,9 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# this module requires Qore 0.8.12 or better
-%requires qore >= 0.8.13
+# this module requires Qore 1.19 or better
+%requires qore >= 1.19
+
 %requires WebSocketUtil
 %requires WebSocketHandler
 %requires yaml >= 0.5
@@ -121,18 +122,24 @@ public namespace DebugHandler {
     }
 
     #! The abstract web socket debug handler class
-    /** Connections are represented by an object descended from @ref WebSocketHandler::WebSocketConnection "WebSocketConnection" which is
+    /** Connections are represented by an object descended from
+        @ref WebSocketHandler::WebSocketConnection "WebSocketConnection" which is
         instantiated via @ref WebSocketHandler::WebSocketHandler::getConnectionImpl().
 
-        The handler is registered via @ref HtpServer::HttpServer::setHandler() "HttpServer::setHandler()" to receive messages.
+        The handler is registered via @ref HtpServer::HttpServer::setHandler() "HttpServer::setHandler()" to receive
+        messages.
 
         @par Receiving WebSocket Messages from Clients
-        When a message is received via @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" from the client then it is passed to @ref receiveData as is.
+        When a message is received via
+        @ref WebSocketHandler::WebSocketConnection::gotMessage() "WebSocketConnection::gotMessage()" from the client
+        then it is passed to @ref receiveData as is.
 
         @par Sending WebSocket Message to Clients
-        To send a message to a websocket client, call one of the following methods @ref sendData or @ref broadcastData.
+        To send a message to a websocket client, call one of the following methods @ref sendData or @ref broadcastData
 
-        Websocket connections are identified by their HTTP connection ID as passed in @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "cx.id" argument when the connection is first established.
+        Websocket connections are identified by their HTTP connection ID as passed in
+        @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "cx.id"
+        argument when the connection is first established.
     */
     public class AbstractWebSocketDebugHandler inherits WebSocketHandler::WebSocketHandler {
         public {
@@ -141,16 +148,17 @@ public namespace DebugHandler {
             #const DefaultSocketSendTimeout = 30s;
             DebugLogger logger;
         }
-        constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash opts) : WebSocketHandler::WebSocketHandler(auth, opts) {
+        constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash opts)
+                : WebSocketHandler::WebSocketHandler(auth, opts) {
             debugProgram = dpc;
             dpc.addHandler(self);
         }
 
-        log(int verbosity, string fmt) {
+        log(int verbosity, string fmt, ...) {
             log2(verbosity, fmt, argv);
         }
 
-        log2(int verbosity, string fmt, *list args) {
+        log2(int verbosity, string fmt, *list<auto> args) {
             if (logger) {
                 logger.log2(verbosity, fmt, args);
             }
@@ -169,14 +177,19 @@ public namespace DebugHandler {
 
         #! called when web socket receives data
         /**
-            Data are passed as is, i.e. decoding is needed. Intercept method when implementing a 3rd party protocol.
+            Data are passed as is, i.e. decoding is needed
+
+            Override this method when implementing a 3rd party protocol
         */
         abstract public receiveData(hash cx, string msg);
 
         #! sends data to the given connection
         /**
-            Encode data and send using @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()" a message
-            to single connection given its connection ID. Intercept method when implementing a 3rd party protocol.
+            Encodes data and sends using
+            @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()" to send a message
+            to a single connection given its connection ID
+
+            Override this method when implementing a 3rd party protocol
         */
         public sendData(hash cx, auto data) {
             sendOne(cx.id, encodeData(data));
@@ -184,8 +197,11 @@ public namespace DebugHandler {
 
         #! sends data to all connections
         /**
-            Encode data and broadcast data using @ref WebSocketHandler::WebSocketHandler::sendAll() "WebSocketHandler::sendAll()" a message to all connected clients.
-            Intercept method when implementing a 3rd party protocol.
+            Encodes broadcasts data using
+            @ref WebSocketHandler::WebSocketHandler::sendAll() "WebSocketHandler::sendAll()" to send a message to all
+            connected clients
+
+            Override this method when implementing a 3rd party protocol
         */
         public broadcastData(auto data) {
             sendAll(encodeData(data));
@@ -193,7 +209,7 @@ public namespace DebugHandler {
 
         #! called by the HTTP server to handle incoming HTTP requests
         /**
-            It adds custom header \c X-QoreDebugWsProtocol to response
+            It adds custom header \c X-QoreDebugWsProtocol to the response
          */
         hash handleRequest(hash cx, hash hdr, *data b) {
             hash rv = WebSocketHandler::handleRequest(cx, hdr, b);
@@ -201,29 +217,31 @@ public namespace DebugHandler {
             return rv;
         }
 
-        logInfo(string fmt) {
+        logInfo(string fmt, ...) {
             log2(DUV_INFO, fmt, argv);
         }
 
-        logDebug(string fmt) {
+        logDebug(string fmt, ...) {
             log2(DUV_DEBUG, fmt, argv);
         }
 
-        logError(string fmt) {
+        logError(string fmt, ...) {
             log2(DUV_INFO, "ERROR: " + fmt, argv);
         }
     }
 
     #! the main web socket debug handler class implementing internal protocol in YAML format.
     public class WebSocketDebugHandler inherits AbstractWebSocketDebugHandler {
-
         #! create the object optionally with the given @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator"
-        /** @param auth the authentication object to use to authenticate connections (see @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator");
-            if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no authentication will be required
+        /** @param auth the authentication object to use to authenticate connections (see
+            @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator");
+            if no @ref HttpServer::AbstractAuthenticator "AbstractAuthenticator" object is passed, then by default no
+            authentication will be required
             @param dpc the debug program controller object
             @param opts passed to @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" constructor
          */
-        constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash opts) : AbstractWebSocketDebugHandler(dpc, auth, opts) {
+        constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash opts)
+                : AbstractWebSocketDebugHandler(dpc, auth, opts) {
         }
 
         #! returns the MIME type for serialized data
@@ -246,8 +264,7 @@ public namespace DebugHandler {
                 sd = debugProgram.processCommand(cx, rd);
                 if (exists sd)
                     sendData(cx, sd);
-            }
-            catch (hash<ExceptionInfo> ex) {
+            } catch (hash<ExceptionInfo> ex) {
                 log(DUV_DEBUG, "exception: %y", ex);
                 sd.type = 'error';
                 sd.result.err = ex.err;
@@ -267,7 +284,7 @@ public namespace DebugHandler {
     public class WebSocketDebugProgramControl inherits DebugProgramControl {
         private {
             #! list of associated @ref AbstractWebSocketDebugHandler handlers
-            list handlers = ();
+            list<AbstractWebSocketDebugHandler> handlers = ();
         }
 
         #! creates the object
@@ -298,6 +315,5 @@ public namespace DebugHandler {
             }
             push handlers, newHandler;
         }
-
     }
 }

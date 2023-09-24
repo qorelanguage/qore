@@ -446,11 +446,15 @@ public:
     */
     DLLEXPORT Datasource* copy() const;
 
-    //! returns the name of the current DBI driver
+    //! returns the name of the current %Qore DBI driver
+    /** @see getDriverRealName()
+    */
     DLLEXPORT const char* getDriverName() const;
 
-    //! executes the "get_server_version" function of the driver, if any, and returns the result, makes an implicit connection if necessary
-    /** the caller owns the pointer's reference count returned (if the QoreValue returned holds a pointer)
+    //! executes the "get_server_version" function of the driver, if any, and returns the result
+    /** makes an implicit connection if necessary
+
+        the caller owns the pointer's reference count returned (if the QoreValue returned holds a pointer)
         this function is not "const" to allow for implicit connections (and reconnections)
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
@@ -462,6 +466,24 @@ public:
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
     DLLEXPORT QoreValue getClientVersion(ExceptionSink* xsink) const;
+
+    //! Executes the "get_driver_name" function of the driver, if any, and returns the result
+    /** If the driver does not support this function, then the name of the %Qore driver is returned directly.
+
+        If the driver supports this function, a connection is made implicitly before executing the call.
+
+        This function is designed to return the real DB driver name for %Qore DBI drivers that wrap other drivers,
+        such as ODBC and JDBC, for example.
+
+        The caller owns the pointer's reference count returned
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @see getDriverName()
+
+        @since %Qore 1.14
+    */
+    DLLEXPORT QoreStringNode* getDriverRealName(ExceptionSink* xsink);
 
     //! returns the DBIDriver pointer used for this object
     /**

@@ -32,6 +32,8 @@
 #ifndef _QORE_DBI_H
 #define _QORE_DBI_H
 
+#include <string>
+
 //! @file DBI.h describes Qore's DBI interface for writing database drivers
 
 // DBI Driver capabilities
@@ -95,8 +97,9 @@
 #define QDBI_METHOD_DESCRIBE                 31
 #define QDBI_METHOD_STMT_FREE                32
 #define QDBI_METHOD_STMT_EXEC_DESCRIBE       33
+#define QDBI_METHOD_GET_DRIVER_REAL_NAME     34
 
-#define QDBI_VALID_CODES 33
+#define QDBI_VALID_CODES 34
 
 /* DBI EVENT Types
    all DBI events must have the following keys:
@@ -223,6 +226,14 @@ typedef QoreValue (*q_dbi_get_server_version_t)(Datasource* ds, ExceptionSink* x
 */
 typedef QoreValue (*q_dbi_get_client_version_t)(const Datasource* ds, ExceptionSink* xsink);
 
+//! signature for the "get_driver_real_name" method
+/**
+    @param ds the Datasource for the connection
+    @param xsink if any errors occur, error information should be added to this object
+    @return a value describing the database name
+*/
+typedef QoreStringNode* (*q_dbi_get_driver_real_name_t)(Datasource* ds, ExceptionSink* xsink);
+
 //! prepare statement and process placeholder specifications and bind parameters
 /** @returns -1 = an exception occurred, 0 = OK
  */
@@ -318,6 +329,8 @@ public:
     DLLEXPORT void add(int code, q_dbi_get_server_version_t method);
     // covers get_client_version
     DLLEXPORT void add(int code, q_dbi_get_client_version_t method);
+    // covers get_driver_real_name
+    DLLEXPORT void add(int code, q_dbi_get_driver_real_name_t method);
 
     // covers prepare
     DLLEXPORT void add(int code, q_dbi_stmt_prepare_t method);

@@ -31,7 +31,7 @@ public namespace ConnectionProvider {
 
     @deprecated use AbstractConnectionWithInfo instead
 */
-public class AbstractConnection inherits Qore::Serializable {
+public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapper {
     public {
         #! connection name
         string name;
@@ -61,7 +61,7 @@ public class AbstractConnection inherits Qore::Serializable {
         string status = "not checked";
 
         #! connection status flag; set by monitoring or explicit pings/connections
-        bool up = False;
+        bool up = True;
 
         #! monitoring flag
         bool monitor;
@@ -72,7 +72,9 @@ public class AbstractConnection inherits Qore::Serializable {
         #! set to @ref True "True" for loopback connections
         bool loopback = False;
 
-        #! optional code for default post-processing of objects created by getImpl(); must take the connection object and the object created as arguments
+        #! optional code for default post-processing of objects created by getImpl()
+        /** must take the connection object and the object created as arguments
+        */
         static *code post_processing;
 
         #! enabled/disabled indicator flag
@@ -99,8 +101,28 @@ public class AbstractConnection inherits Qore::Serializable {
         #! if the data provider or any of its children support messages
         bool children_can_support_messages = False;
 
-        #! internal tags
+        #! if the data provider or any of its children support transaction management
+        bool children_can_support_transactions = False;
+
+        #! internal tags (serializable)
         hash<auto> internal_info;
+
+        #! internal transient tags (non-serializable)
+        transient hash<auto> transient_info;
+
+        #! Connection feature: Logger support
+        /** Indicates that connection objects support setting / updating a logger interface object in the connection
+        */
+        const CF_LOGGER = "logger";
+
+        #! Connection feature: Update Options support
+        /** Returned as a connection feature indicating that the connection object inherits
+            @ref UpdateOptionsInterface and therefore supports setting a closure to update connection options in
+            external systems (in blocking I/O calls)
+
+            @see @ref UpdateOptionsInterface
+        */
+        const CF_UPDATE_OPTIONS = "update-options";
     }
 
     #! creates the AbstractConnection object
@@ -110,7 +132,8 @@ public class AbstractConnection inherits Qore::Serializable {
         @param monitor monitoring flag
         @param opts connection options
         @param urlh broken down URL hash (as returned by @ref Qore::parse_url())
-        @param safe_url "safe" URL (password information removed); if not set this will be set automatically by calling @ref getSafeUrl()
+        @param safe_url "safe" URL (password information removed); if not set this will be set automatically by
+        calling @ref getSafeUrl()
         @param enabled enabled/disabled flag
     */
     deprecated
@@ -137,6 +160,7 @@ public class AbstractConnection inherits Qore::Serializable {
         @param url connection URL (potentially with password info)
         @param attributes various attributes; see below
         @param options connection options
+        @param logger any logger interface to use for the connection
 
         @par Attributes
         Attributes are special flags for given connection - stored as public
@@ -149,7 +173,8 @@ public class AbstractConnection inherits Qore::Serializable {
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {}) {
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {},
+            *LoggerInterface logger) : LoggerWrapper(logger) {
         constructorInit(name, description, url, attributes, options);
     }
 
@@ -195,7 +220,7 @@ public class AbstractConnection inherits Qore::Serializable {
         @return a @ref PingInfo hash
     */
     hash<PingInfo> ping(bool throw_exception = False) {
-        hash<PingInfo> rv(hash(self).("name", "desc", "opts"));
+        hash<PingInfo> rv(self{"name", "desc", "opts"});
         rv.url = safe_url;
 
         last_check = now_us();
@@ -206,10 +231,13 @@ public class AbstractConnection inherits Qore::Serializable {
         try {
             return pingIntern(rv);
         } catch (hash<ExceptionInfo> ex) {
+            date delta = now_us() - last_check;
+            handlePingFailed(delta, ex);
             return rv += {
                 "ok": False,
+                "time": delta,
                 "info": sprintf("%s: %s", ex.err, ex.desc),
-                "ex": ex,
+                "ex": check_exception_serializable(ex),
             };
         }
     }
@@ -218,18 +246,13 @@ public class AbstractConnection inherits Qore::Serializable {
     private hash<PingInfo> pingIntern(hash<PingInfo> rv) {
         date start = now_us();
         pingImpl();
+        date delta = now_us() - start;
+        handlePingSuccess(delta);
         return rv += {
             "ok": True,
-            "time": now_us() - start,
+            "time": delta,
             "info": "OK",
         };
-    }
-
-    #! performs the internal ping
-    /** By default this creates a new connection only; override in child classes to implement additional ping logic
-    */
-    private pingImpl() {
-        get();
     }
 
     #! returns a @ref ConnectionInfo hash of information about the connection
@@ -255,18 +278,30 @@ public class AbstractConnection inherits Qore::Serializable {
         hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self{
             "name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled",
             "locked", "debug_data", "tags", "children_can_support_apis", "children_can_support_records",
-            "children_can_support_observers", "children_can_support_messages",
+            "children_can_support_observers", "children_can_support_messages", "children_can_support_transactions",
         } + {
             "type": getType(),
             "url_hash": urlh,
             "has_provider": hasDataProvider(),
+            "features": getFeatures(),
         });
         if (!opts.with_passwords) {
             h.url = safe_url;
             delete h.url_hash.password;
         }
         h.opts = orig_opts;
+        # sort options by key
+        if (h.opts) {
+            h.opts = h.opts{sort(keys h.opts)};
+        }
         return h;
+    }
+
+    #! Returns a list of connection-defined features
+    /** @since ConnectionProvider 1.10
+    */
+    *hash<string, bool> getFeatures() {
+        return getFeaturesImpl();
     }
 
     #! Returns connection info plus any extended information returned by the connection
@@ -289,6 +324,11 @@ public class AbstractConnection inherits Qore::Serializable {
 
     #! Returns a default ConnectionSchemeInfo hash
     hash<ConnectionSchemeInfo> getConnectionSchemeInfo() {
+        return getConnectionSchemeInfoImpl();
+    }
+
+    #! Override in subclasses to return a native ConnectionSchemeInfo hash
+    hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         hash<string, hash<ConnectionOptionInfo>> options;
         *hash<auto> opt = getOptions();
         if (opt) {
@@ -353,7 +393,8 @@ public class AbstractConnection inherits Qore::Serializable {
     }
 
     #! this method is called when parsing connection file definitions from text files when loading into the database
-    /** reimplement this method in subclasses to parse the option hash as set from a text file if needed (for special option formats, etc)
+    /** reimplement this method in subclasses to parse the option hash as set from a text file if needed (for special
+        option formats, etc)
     */
     parseTextOptions() {
     }
@@ -447,6 +488,31 @@ public class AbstractConnection inherits Qore::Serializable {
         return getImpl(False);
     }
 
+    #! Handles a successful ping operation on the connection
+    handlePingSuccess(date delta) {
+        up = True;
+        status = "OK";
+    }
+
+    #! Handles a failed ping operation on the connection
+    handlePingFailed(date delta, hash<ExceptionInfo> ex) {
+        up = False;
+        status = sprintf("%s: %s", ex.err, ex.desc);
+    }
+
+    #! Handles a failed ping operation on the connection
+    handlePingFailed(date delta, string err) {
+        up = False;
+        status = err;
+    }
+
+    #! performs the internal ping
+    /** By default this creates a new connection only; override in child classes to implement additional ping logic
+    */
+    private pingImpl() {
+        get();
+    }
+
     #! Parse the URL to a hash
     /** @param url a string with url
         @return hash untyped, depends on the parsing method
@@ -508,6 +574,7 @@ scheme://user:pass@hostname:port/path
     */
     private hash<auto> validateOptions(hash<auto> options) {
         hash<ConnectionSchemeInfo> scheme_info = getConnectionSchemeInfo();
+
         options = getDefaultOptions() + options;
         if (options) {
             # check for unknown options
@@ -518,15 +585,21 @@ scheme://user:pass@hostname:port/path
                     keys scheme_info.options);
             }
             foreach hash<auto> i in (options.pairIterator()) {
+                hash<ConnectionOptionInfo> info = scheme_info.options{i.key};
                 if (!exists i.value) {
+                    if (exists info.default_value) {
+                        options{i.key} = info.default_value;
+                    }
                     continue;
                 }
-                string type = scheme_info.options{i.key}.type;
+                string type = info.type;
                 if (type == "int") {
                     type = Type::Int;
+                } else if (type == "file-as-string") {
+                    type = Type::String;
                 }
                 string vtype = i.value.type();
-                if (type != "any" && vtype != type) {
+                if (type != "any" && type != "auto" && vtype != type) {
                     if (type == Type::Int && i.value.intp()) {
                         options{i.key} = i.value.toInt();
                         continue;
@@ -539,8 +612,24 @@ scheme://user:pass@hostname:port/path
                         sprintf("connection %y (type %y url %y) option %y was passed with type %s (%y); expecting %y",
                             name, urlh.protocol, url, i.key, i.value.type(), i.value, type);
                 }
-                if (scheme_info.options{i.key}.subst_env_vars) {
+                if (info.subst_env_vars) {
                     options{i.key} = substitute_env_vars(i.value);
+                }
+                # verify against allowed values
+                if (info.allowed_values) {
+                    bool ok;
+                    foreach hash<AllowedValueInfo> v in (info.allowed_values) {
+                        if (v.value == options{i.key}) {
+                            ok = True;
+                            break;
+                        }
+                    }
+                    if (!ok) {
+                        throw "CONNECTION-OPTION-ERROR",
+                            sprintf("connection %y (type %y url %y) option %y was passed with value %y, but allowed "
+                                "values are: %y", name, urlh.protocol, url, i.key, i.value, (map $1.value,
+                                info.allowed_values));
+                    }
                 }
             }
         }
@@ -564,10 +653,10 @@ scheme://user:pass@hostname:port/path
             if (!ok) {
                 if (missing) {
                     throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
-                                                             missing, options);
+                        missing, options);
                 } else {
-                    throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
-                                                             req_list, options);
+                    throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %s; options provided: %y",
+                        (foldl $1 + " OR " + $2, (map sprintf("%y", $1), req_list)), options);
                 }
             }
         }
@@ -578,7 +667,8 @@ scheme://user:pass@hostname:port/path
     /**
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    private:internal constructorInit(string name, string description, string url, hash<auto> attributes, hash<auto> options) {
+    private:internal constructorInit(string name, string description, string url, hash<auto> attributes,
+            hash<auto> options) {
         # metadata
         self.name = name;
         desc = description;
@@ -598,6 +688,14 @@ scheme://user:pass@hostname:port/path
         opts = validateOptions(options);
         orig_opts = opts;
         setChildCapabilities();
+    }
+
+    #! Returns a hash of connection-defined features
+    /** This method returns no value; override in child classes to return features
+
+        @since ConnectionProvider 1.10
+    */
+    private *hash<string, bool> getFeaturesImpl() {
     }
 
     #! Override to set child data provider capabilities once per child class

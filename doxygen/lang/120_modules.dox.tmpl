@@ -73,6 +73,11 @@ ModuleName/
         develop debug server
     |user|<a href="../../modules/DebugHandler/html/index.html">DebugHandler</a>|Provides a websocket for debug server
     |user|<a href="../../modules/DebugUtil/html/index.html">DebugUtil</a>|Provides a general stuff for debugger
+    |user|<a href="../../modules/ElasticSearchDataProvider/html/index.html">ElasticSearchDataProvider</a>|Provides a \
+        <a href="../../modules/DataProvider/html/index.html">data provider</a> API for ElasticSearch services
+    |user|<a href="../../modules/EmpathicBuildingDataProvider/html/index.html">EmpathicBuildingDataProvider</a>|\
+        Provides a <a href="../../modules/DataProvider/html/index.html">data provider</a> API for Haltian Empathic \
+        Building servers
     |user|<a href="../../modules/FileDataProvider/html/index.html">FileDataProvider</a>|Provides a \
         <a href="../../modules/DataProvider/html/index.html">data provider</a> API for the local filesystem
     |user|<a href="../../modules/FileLocationHandler/html/index.html">FileLocationHandler</a>|Provides an API for \
@@ -94,12 +99,39 @@ ModuleName/
         remote directory with the FTP protocol
     |user|<a href="../../modules/FtpPollerUtil/html/index.html">FtpPollerUtil</a>|Provides definitions for the \
         <a href="../../modules/FtpPoller/html/index.html">FtpPoller</a> module
+    |user|<a href="../../modules/GoogleDataProvider/html/index.html">GoogleDataProvider</a>|Provides a \
+        <a href="../../modules/DataProvider/html/index.html">data provider</a> API for Google REST API cloud services
+    |user|<a href="../../modules/GoogleRestClient/html/index.html">GoogleRestClient</a>|providing APIs for \
+        communicating with Google cloud REST APIs
     |user|<a href="../../modules/HttpClientDataProvider/html/index.html">HttpClientDataProvider</a>|Provides a \
         <a href="../../modules/DataProvider/html/index.html">data provider</a> API for HTTP servers
     |user|<a href="../../modules/HttpServer/html/index.html">HttpServer</a>|Provides a multi-threaded HTTP server \
         and request handler APIs; provides the infrastructure for server-side HTTP services
     |user|<a href="../../modules/HttpServerUtil/html/index.html">HttpServerUtil</a>|Provides base definitions for \
         handler classes integrating with the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+    |user|<a href="../../modules/HueRestClient/html/index.html">HueRestClient</a>|providing APIs for \
+        communicating with Philips Hue cloud REST APIs
+    |user|<a href="../../modules/JdbcFirebirdSqlUtil/html/index.html">JdbcFirebirdSqlUtil</a>|Provides a high-level \
+        DB-independent API for working with Firebird database objects using \
+        <a href="../../modules/XdbcFirebirdSqlUtilBase/html/index.html">XdbcFirebirdSqlUtilBase</a> and the binary \
+        <a href="https://github.com/qorelanguage/module-jni">jni</a> module providing the \c jdbc DBI driver; loaded \
+        automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with \
+        Firebird databases for automated schema management, programmatic DB access, schema and data synchronization, \
+        and more
+    |user|<a href="../../modules/JdbcMicrosoftSqlUtil/html/index.html">JdbcMicrosoftSqlUtil</a>|Provides a high-level \
+        DB-independent API for working with MS SQL Server database objects through the \c jdbc driver; loaded \
+        automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with MS \
+        SQL Server databases for automated schema management, programmatic DB access, schema and data \
+        synchronization, and more
+    |user|<a href="../../modules/JdbcOracleSqlUtil/html/index.html">JdbcOracleSqlUtil</a>|Provides a high-level \
+        DB-independent API for working with Oracle database objects through the \c jdbc driver; loaded automatically \
+        by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with Oracle databases \
+        for automated schema management, programmatic DB access, schema and data synchronization, and more
+    |user|<a href="../../modules/JdbcPostgresqlSqlUtil/html/index.html">JdbcPostgresqlSqlUtil</a>|Provides a \
+        high-level DB-independent API for working with PostgreSQL database objects; loaded automatically by the \
+        <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with PostgreSQL databases \
+        with the \c jdbc driver for automated schema management, programmatic DB access, schema and data \
+        synchronization, and more
     |user|<a href="../../modules/Logger/html/index.html">Logger</a>|Provides a flexible logging API (aka "log4q")
     |user|<a href="../../modules/MailMessage/html/index.html">MailMessage</a>|Provides supporting classes for the \
         <a href="../../modules/Pop3Client/html/index.html">Pop3Client</a> and \
@@ -110,12 +142,20 @@ ModuleName/
         mapping APIs
     |user|<a href="../../modules/Mime/html/index.html">Mime</a>|Provides MIME definitions and functions; MIME type \
         lookups, MIME encoding and decoding functions, MIME multipart handling, etc
+    |user|<a href="../../modules/MssqlSqlUtilBase/html/index.html">MssqlSqlUtilBase</a>|Provides a \
+        high-level DB-independent API for working with MS SQL Serfer database objects; this module supports \
+        <a href="../../modules/FreetdsSqlUtil/html/index.html">FreetdsSqlUtil</a> and \
+        <a href="../../modules/JdbcMicrosoftSqlUtil/html/index.html">JdbcMicrosoftSqlUtil</a>; loaded \
+        automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with \
+        MS SQL Server databases for automated schema management, programmatic DB access, schema and data \
+        synchronization, and more
     |user|<a href="../../modules/MysqlSqlUtil/html/index.html">MysqlSqlUtil</a>|Provides a high-level DB-independent \
         API for working with MySQL database objects; loaded automatically by the \
         <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with MySQL databases for \
         automated schema management, programmatic DB access, schema and data synchronization, and more
     |user|<a href="../../modules/OdbcFirebirdSqlUtil/html/index.html">OdbcFirebirdSqlUtil</a>|Provides a high-level \
-        DB-independent API for working with Firebird database objects using the binary \
+        DB-independent API for working with Firebird database objects using \
+        <a href="../../modules/XdbcFirebirdSqlUtilBase/html/index.html">XdbcFirebirdSqlUtilBase</a> and the binary \
         <a href="https://github.com/qorelanguage/module-odbc">odbc</a> module; loaded automatically by the \
         <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with Firebird databases \
         for automated schema management, programmatic DB access, schema and data synchronization, and more
@@ -123,8 +163,22 @@ ModuleName/
         DB-independent API for working with Oracle database objects; loaded automatically by the \
         <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with Oracle databases for \
         automated schema management, programmatic DB access, schema and data synchronization, and more
+    |user|<a href="../../modules/OracleSqlUtilBase/html/index.html">OracleSqlUtilBase</a>|Provides a \
+        high-level DB-independent API for working with Oracle database objects; this module supports \
+        <a href="../../modules/OracleSqlUtil/html/index.html">OracleSqlUtil</a> and \
+        <a href="../../modules/JdbcOracleSqlUtil/html/index.html">JdbcOracleSqlUtil</a>; loaded \
+        automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with \
+        Oracle databases for automated schema management, programmatic DB access, schema and data \
+        synchronization, and more
     |user|<a href="../../modules/Pop3Client/html/index.html">Pop3Client</a>|Provides POP3 client functionality; \
         provides an API to retrieve email messages from a POP3 server
+    |user|<a href="../../modules/PgsqlSqlUtilBase/html/index.html">PgsqlSqlUtilBase</a>|Provides a \
+        high-level DB-independent API for working with PostgreSQL database objects; this module supports \
+        <a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a> and \
+        <a href="../../modules/JdbcPostgresqlSqlUtil/html/index.html">JdbcPostgresqlSqlUtil</a>; loaded \
+        automatically by the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with \
+        PostgreSQL databases for automated schema management, programmatic DB access, schema and data \
+        synchronization, and more
     |user|<a href="../../modules/PgsqlSqlUtil/html/index.html">PgsqlSqlUtil</a>|Provides a high-level DB-independent \
         API for working with PostgreSQL database objects; loaded automatically by the \
         <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with PostgreSQL databases \
@@ -197,6 +251,12 @@ ModuleName/
     |user|<a href="../../modules/WebUtil/html/index.html">WebUtil</a>|Provides higher-level classes for implementing \
         more complex web services in %Qore; works with the \
         <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+    |user|<a href="../../modules/XdbcFirebirdSqlUtilBase/html/index.html">XdbcFirebirdSqlUtilBase</a>|Provides a \
+        high-level DB-independent API for working with Firebird database objects; this module supports \
+        <a href="../../modules/JdbcFirebirdSqlUtil/html/index.html">JdbcFirebirdSqlUtil</a> and \
+        <a href="../../modules/OdbcFirebirdSqlUtil/html/index.html">OdbcFirebirdSqlUtil</a>; loaded automatically by \
+        the <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module when working with Firebird databases \
+        for automated schema management, programmatic DB access, schema and data synchronization, and more
     |user|<a href="../../modules/ZeyosRestClient/html/index.html">ZeyosRestClient</a>|providing APIs for \
         communicating with <a href="http://www.zeyos.com">Zeyos.com</a>'s REST API
 
@@ -204,7 +264,10 @@ ModuleName/
     |!Type|!Module|!Description
     |binary|<a href="https://github.com/qorelanguage/module-sybase">freetds</a>|Provides a FreeTDS-based DBI driver for communicating with Sybase and MS SQL Server databases
     |binary|<a href="https://github.com/qorelanguage/module-fsevent">fsevent</a>|Provides an event-driven filesystem event API
-    |binary|<a href="https://github.com/qorelanguage/module-jni">jni</a>|Provides access to Java APIs in %Qore
+    |binary|<a href="https://github.com/qorelanguage/module-jni">jni</a>|Provides access to Java APIs in %Qore as \
+        well as the following user module:\n\
+        - <a href="https://qoretechnologies.com/manual/qorus/current/jni/MqttDataProvider/html/index.html">MqttDataProvider</a>: \
+            a data provider API for MQTT messaging\n
     |binary|<a href="https://github.com/qorelanguage/module-json">json</a>|Provides JSON and JSON-RPC client functionality, also provides the following user modules:\n- <a href="http://www.qore.org/manual/modules/json/current/JsonRpcHandler/html/index.html">JsonRpcHandler</a>: provides infrastructure for implementing JSON-RPC server-side services using the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
     |binary|<a href="https://github.com/qorelanguage/module-linenoise">linenoise</a>|Provides a readline-like API to %Qore under a permissive license
     |binary|<a href="https://github.com/qorelanguage/module-msgpack">msgpack</a>|Provides APIs for efficient data serialization in %Qore using the <a href="https://msgpack.org/index.html">MessagePack</a> format
@@ -223,26 +286,41 @@ ModuleName/
     |binary|<a href="https://github.com/qorelanguage/module-uuid">uuid</a>|Provices an API for generating UUIDs
     |binary|<a href="https://github.com/qorelanguage/module-xml">xml</a>|Provides XML (SAX and DOM parsers), XPath, \
         XML-RPC, SOAP client and server, etc functionality, also provides the following user modules:\n\
-        - <a href="http://docs.qore.org/modules/xml/current/SoapClient/html/index.html">SoapClient</a>: provides an \
-            easy to use API for making requests to SOAP servers\n\
-        - <a href="http://docs.qore.org/modules/xml/current/SalesforceSoapClient/html/index.html">SalesforceSoapClient</a>: \
+        - <a href="https://qoretechnologies.com/manual/qorus/current/xml/SalesforceSoapClient/html/index.html">SalesforceSoapClient</a>: \
             provides an easy to use API for making requests to Salesforce.com SOAP servers\n\
-        - <a href="http://docs.qore.org/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a>: provides \
+        - <a href="https://qoretechnologies.com/manual/qorus/current/xml/SaxDataProvider/html/index.html">SaxDataProvider</a>: \
+            provides a data provider API for streaming XML data\n\
+        - <a href="https://qoretechnologies.com/manual/qorus/current/xml/SoapClient/html/index.html">SoapClient</a>: provides an \
+            easy to use API for making requests to SOAP servers\n\
+        - <a href="https://qoretechnologies.com/manual/qorus/current/xml/SoapHandler/html/index.html">SoapHandler</a>: provides \
             infrastructure for implementing SOAP server-side services using the \
             <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module\n\
-        - <a href="http://docs.qore.org/modules/xml/current/WSDL/html/index.html">WSDL</a>: provides underlying web \
+        - <a href="https://qoretechnologies.com/manual/qorus/current/xml/WSDL/html/index.html">WSDL</a>: provides underlying web \
             service/WSDL support for the \
-            <a href="http://docs.qore.org/modules/xml/current/SoapClient/html/index.html">SoapClient</a> and \
-            <a href="http://docs.qore.org/modules/xml/current/SoapHandler/html/index.html">SoapHandler</a> modules\n\
-        - <a href="http://docs.qore.org/modules/xml/current/WebDavHandler/html/index.html">WebDavHandler</a>: \
+            <a href="https://qoretechnologies.com/manual/qorus/current/xml/SoapClient/html/index.html">SoapClient</a> and \
+            <a href="https://qoretechnologies.com/manual/qorus/current/xml/SoapHandler/html/index.html">SoapHandler</a> modules\n\
+        - <a href="https://qoretechnologies.com/manual/qorus/current/xml/WebDavHandler/html/index.html">WebDavHandler</a>: \
             provides an API for serving WebDAV content using the \
             <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module\n\
-        - <a href="http://docs.qore.org/modules/xml/current/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: \
+        - <a href="https://qoretechnologies.com/manual/qorus/current/xml/XmlRpcHandler/html/index.html">XmlRpcHandler</a>: \
             provides infrastructure for implementing XML-RPC server-side services using the \
             <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
-    |binary|<a href="https://github.com/qorelanguage/module-xmlsec">xmlsec</a>|Provides xmldsig and xmlenc functionality
-    |binary|<a href="https://github.com/qorelanguage/module-yaml">yaml</a>|Provides YAML functionality, also provides the following user modules:\n- <a href="http://docs.qore.org/modules/yaml/current/DataStreamClient/html/index.html">DataStreamClient</a>: provides a DataStream client API extending the RestClient\n- <a href="http://docs.qore.org/modules/yaml/current/DataStreamRequestHandler/html/index.html">DataStreamRequestHandler</a>: provides a DataStream server-side handler API extending the RestHandler\n- <a href="http://docs.qore.org/modules/yaml/current/DataStreamUtil/html/index.html">DataStreamUtil</a>: provides underlying DataStream client and server protocol support\n- <a href="http://docs.qore.org/modules/yaml/current/YamlRpcClient/html/index.html">YamlRpcClient</a>: provides an API for easily making YAML-RPC calls over the network\n- <a href="http://docs.qore.org/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>: provides infrastructure for implementing YAML-RPC server-side services using the <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
-    |binary|<a href="https://github.com/qorelanguage/module-zmq">zmq</a>|Provides <a href="https://zeromq.org/">ZeroMQ</a> distributed queue and clustering API support
+    |binary|<a href="https://github.com/qorelanguage/module-xmlsec">xmlsec</a>|Provides \c xmldsig and \c xmlenc functionality
+    |binary|<a href="https://github.com/qorelanguage/module-yaml">yaml</a>|Provides YAML functionality, also \
+        provides the following user modules:\n\
+        - <a href="http://docs.qore.org/modules/yaml/current/DataStreamClient/html/index.html">DataStreamClient</a>: \
+            provides a DataStream client API extending the RestClient\n\
+        - <a href="http://docs.qore.org/modules/yaml/current/DataStreamRequestHandler/html/index.html">DataStreamRequestHandler</a>: \
+            provides a DataStream server-side handler API extending the RestHandler\n\
+        - <a href="http://docs.qore.org/modules/yaml/current/DataStreamUtil/html/index.html">DataStreamUtil</a>: \
+            provides underlying DataStream client and server protocol support\n\
+        - <a href="http://docs.qore.org/modules/yaml/current/YamlRpcClient/html/index.html">YamlRpcClient</a>: \
+            provides an API for easily making YAML-RPC calls over the network\n\
+        - <a href="http://docs.qore.org/modules/yaml/current/YamlRpcHandler/html/index.html">YamlRpcHandler</a>: \
+            provides infrastructure for implementing YAML-RPC server-side services using the \
+            <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+    |binary|<a href="https://github.com/qorelanguage/module-zmq">zmq</a>|Provides <a href="https://zeromq.org/">ZeroMQ</a> \
+        distributed queue and clustering API support
 
     @section binary_modules Binary Modules
 

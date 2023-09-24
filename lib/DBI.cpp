@@ -39,6 +39,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <map>
+
+typedef std::map<std::string, std::string> strstrmap_t;
+strstrmap_t driver_mod_map = {
+    {"jdbc", "jni"},
+};
 
 typedef safe_dslist<DBIDriver* > dbi_list_t;
 
@@ -143,6 +149,13 @@ void qore_dbi_method_list::add(int code, q_dbi_get_server_version_t method) {
 // covers get_client_version
 void qore_dbi_method_list::add(int code, q_dbi_get_client_version_t method) {
     assert(code == QDBI_METHOD_GET_CLIENT_VERSION);
+    assert(priv->l.find(code) == priv->l.end());
+    priv->l[code] = (void*)method;
+}
+
+// covers get_driver_real_name
+void qore_dbi_method_list::add(int code, q_dbi_get_driver_real_name_t method) {
+    assert(code == QDBI_METHOD_GET_DRIVER_REAL_NAME);
     assert(priv->l.find(code) == priv->l.end());
     priv->l[code] = (void*)method;
 }
@@ -325,6 +338,10 @@ qore_dbi_private::qore_dbi_private(const char* nme, const qore_dbi_mlist_private
                 assert(!f.get_client_version);
                 f.get_client_version = (q_dbi_get_client_version_t)(*i).second;
                 break;
+            case QDBI_METHOD_GET_DRIVER_REAL_NAME:
+                assert(!f.get_driver_real_name);
+                f.get_driver_real_name = (q_dbi_get_driver_real_name_t)(*i).second;
+                break;
 
             case QDBI_METHOD_STMT_PREPARE:
                 assert(!f.stmt.prepare);
@@ -498,7 +515,7 @@ struct qore_dbi_dlist_private {
     }
 
     DLLLOCAL DBIDriver* find_intern(const char* name) const {
-        for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++) {
+        for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); ++i) {
             if (!strcmp(name, (*i)->getName())) {
                 return *i;
             }
@@ -514,7 +531,7 @@ struct qore_dbi_dlist_private {
 
         QoreListNode* lst = new QoreListNode(stringTypeInfo);
 
-        for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); i++) {
+        for (dbi_list_t::const_iterator i = l.begin(); i != l.end(); ++i) {
             lst->push(new QoreStringNode((*i)->getName()), nullptr);
         }
 
@@ -534,29 +551,32 @@ DBIDriver* DBIDriverList::find_intern(const char* name) const {
 }
 
 DBIDriver* DBIDriverList::find(const char* name) const {
-    DBIDriver* d = priv->find_intern(name);
-    if (d)
-        return d;
-
-    // to to load the driver if it doesn't exist
+    // try to load the driver if it doesn't exist
     // ignore any exceptions
     ExceptionSink xs;
-    MM.runTimeLoadModule(name, &xs);
+    DBIDriver* d = find(name, &xs);
     xs.clear();
-
-    return priv->find_intern(name);
+    return d;
 }
 
 DBIDriver* DBIDriverList::find(const char* name, ExceptionSink* xsink) const {
     DBIDriver* d = priv->find_intern(name);
-    if (d)
+    if (d) {
         return d;
+    }
 
-    // to to load the driver if it doesn't exist
-    if (MM.runTimeLoadModule(name, xsink))
+    const char* dbi_name = name;
+    // try to load the driver if it doesn't exist
+    // see if the module name differs from the DBI driver name
+    strstrmap_t::iterator i = driver_mod_map.find(name);
+    if (i != driver_mod_map.end()) {
+        name = i->second.c_str();
+    }
+    if (MM.runTimeLoadModule(name, xsink)) {
         return nullptr;
+    }
 
-    return priv->find_intern(name);
+    return priv->find_intern(dbi_name);
 }
 
 DBIDriver* DBIDriverList::registerDriver(const char* name, const qore_dbi_method_list& methods, int caps) {
@@ -595,12 +615,14 @@ void DBI_concat_numeric(QoreString* str, QoreValue v) {
 
 int DBI_concat_string(QoreString* str, QoreValue v, ExceptionSink* xsink) {
     assert(xsink);
-    if (v.isNullOrNothing())
+    if (v.isNullOrNothing()) {
         return 0;
+    }
 
     QoreStringValueHelper tstr(v, str->getEncoding(), xsink);
-    if (*xsink)
+    if (*xsink) {
         return -1;
+    }
 
     str->concat(*tstr, xsink);
     return *xsink;
@@ -638,13 +660,80 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
         return nullptr;
     }
 
+    QoreStringNode* driver = nullptr;
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
+
     // use a QoreString to create a temporary buffer
     QoreString tmp(ds);
     tmp.trim();
     char* str = const_cast<char*>(tmp.c_str());
 
-    QoreStringNode* driver = nullptr;
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode(autoTypeInfo), xsink);
+    // first remove the option substring from the string, if any
+    if (tmp.size() > 2 && tmp[tmp.size() - 1] == '}') {
+        char* p = strrchr(str, '{');
+        if (p) {
+            // remove } char from final string
+            tmp.terminate(tmp.size() - 1);
+            // terminate the string before the option string
+            tmp.terminate(p - str);
+            ++p;
+            // parse option hash
+            ReferenceHolder<QoreHashNode> opt(new QoreHashNode(autoTypeInfo), xsink);
+
+            while (true) {
+                if (!*p) {
+                    break;
+                }
+                char* eq = strchr(p, '=');
+                char* oend = strchr(p, ',');
+                size_t len = 0;
+                // if there is only an option left with no more options and no value
+                if (!eq && !oend) {
+                    opt->setKeyValue(p, true, xsink);
+                    p += strlen(p);
+                } else {
+                    // if there is more than one option and the next option to be parsed has no value
+                    if (oend && (!eq || oend < eq)) {
+                        len = oend - p;
+                        QoreString tmp(p, len);
+                        opt->setKeyValue(tmp.c_str(), true, nullptr);
+                        p += len;
+                    } else {
+                        // here we must have an equals sign
+                        assert(eq);
+                        if (eq == p) {
+                            xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing value after '=' in option "
+                                "specification in '%s'", ds);
+                            return nullptr;
+                        }
+                        *eq = '\0';
+                        ++eq;
+                        len = oend ? oend - eq : strlen(eq);
+                        if (opt->existsKey(p)) {
+                            xsink->raiseException(DATASOURCE_PARSE_ERROR, "option '%s' repeated in '%s'", p, ds);
+                            return nullptr;
+                        }
+
+                        QoreString key(p);
+                        key.trim();
+
+                        QoreString value(eq, len);
+                        value.trim();
+
+                        opt->setKeyValue(key.c_str(), new QoreStringNode(value), nullptr);
+
+                        p = eq + len;
+                    }
+                }
+                if (oend) {
+                    ++p;
+                }
+            }
+
+            h->setKeyValue("options", opt.release(), nullptr);
+        }
+    }
+
     char* p = strchr(str, ':');
     // make sure this is the driver name and not the port at the end
     if (p) {
@@ -718,7 +807,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
     }
 
     // get db name
-    p = check_datasource_chars(str, "%:{");
+    p = check_datasource_chars(str, "%:");
     if (!p) {
         h->setKeyValue("db", new QoreStringNode(db), nullptr);
     } else {
@@ -729,7 +818,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
         str = p + 1;
 
         if (tok == '%') {
-            p = check_datasource_chars(str, ":{");
+            p = check_datasource_chars(str, ":");
             if ((p == str) || !*str) {
                 xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing hostname string after '%%' delimeter in '%s'",
                     ds);
@@ -754,16 +843,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
             assert(port);
             h->setKeyValue("port", port, nullptr);
 
-            const char* pstr = str;
-            p = strchr(str, '{');
-            if (p) {
-                tok = *p;
-                *p = '\0';
-                str = p + 1;
-            } else {
-                str += strlen(str);
-            }
-
+            char* pstr = str;
             while (isdigit(*pstr)) {
                 ++pstr;
             }
@@ -773,89 +853,7 @@ QoreHashNode* parseDatasource(const char* ds, ExceptionSink* xsink) {
                     ds);
                 return nullptr;
             }
-        }
-
-        if (tok == '{') {
-            p = str;
-            {
-                char* str0 = str;
-                // open bracket count
-                int obc = 0;
-                while (true) {
-                    if (!*p) {
-                        xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing closing curly bracket '}' in option "
-                            "specification in '%s'", ds, str);
-                        return nullptr;
-                    }
-                    if (*p == '{') {
-                        ++obc;
-                    } else if (*p == '}') {
-                        if (!obc) {
-                            *p = '\0';
-                            str = p + 1;
-                            break;
-                        }
-                        --obc;
-                    }
-                    ++p;
-                }
-                p = str0;
-            }
-
-            // parse option hash
-            ReferenceHolder<QoreHashNode> opt(new QoreHashNode(autoTypeInfo), xsink);
-
-            while (true) {
-                if (!*p) {
-                    break;
-                }
-                char* eq = strchr(p, '=');
-                char* oend = strchr(p, ',');
-                size_t len = 0;
-                // if there is only an option left with no more options and no value
-                if (!eq && !oend) {
-                    opt->setKeyValue(p, true, nullptr);
-                    p += strlen(p);
-                } else {
-                    // if there is more than one option and the next option to be parsed has no value
-                    if (oend && (!eq || oend < eq)) {
-                        len = oend - p;
-                        QoreString tmp(p, len);
-                        opt->setKeyValue(tmp.c_str(), true, nullptr);
-                        p += len;
-                    } else {
-                        // here we must have an equals sign
-                        assert(eq);
-                        if (eq == p) {
-                            xsink->raiseException(DATASOURCE_PARSE_ERROR, "missing value after '=' in option "
-                                "specification in '%s'", ds);
-                            return nullptr;
-                        }
-                        *eq = '\0';
-                        ++eq;
-                        len = oend ? oend - eq : strlen(eq);
-                        if (opt->existsKey(p)) {
-                            xsink->raiseException(DATASOURCE_PARSE_ERROR, "option '%s' repeated in '%s'", p, ds);
-                            return nullptr;
-                        }
-
-                        QoreString key(p);
-                        key.trim();
-
-                        QoreString value(eq, len);
-                        value.trim();
-
-                        opt->setKeyValue(key.c_str(), new QoreStringNode(value), nullptr);
-
-                        p = eq + len;
-                    }
-                }
-                if (oend) {
-                    ++p;
-                }
-            }
-
-            h->setKeyValue("options", opt.release(), nullptr);
+            str = pstr;
         }
 
         if (*str) {

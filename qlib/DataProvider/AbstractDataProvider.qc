@@ -173,6 +173,11 @@ public hashdecl DataProviderSummaryInfo {
     /** @since DataProvider 2.7
     */
     bool children_can_support_messages = False;
+
+    #! Can any child data providers support transaction management?
+    /** @since DataProvider 2.8
+    */
+    bool children_can_support_transactions = False;
 }
 
 #! Data provider message and event info
@@ -612,6 +617,11 @@ public hashdecl DataProviderInfo {
     */
     bool children_can_support_messages = False;
 
+    #! Can any child data providers support transaction management?
+    /** @since DataProvider 2.8
+    */
+    bool children_can_support_transactions = False;
+
     #! Returns the schema type supported by this data provider
     /**
         @since DataProvider 2.2
@@ -730,7 +740,7 @@ public hashdecl DataProviderInfo {
 }
 
 #! The AbstractDataProvider class
-public class AbstractDataProvider {
+public class AbstractDataProvider inherits Logger::LoggerWrapper {
     public {
         #! Generic expression implementations for data providers without native search functionality
         const GenericExpressionImplementations = {
@@ -971,9 +981,6 @@ public class AbstractDataProvider {
     }
 
     private {
-        #! Logger for logging
-        *Logger logger;
-
         #! flag if callbacks are locked
         static bool callbacks_locked = False;
 
@@ -1010,13 +1017,7 @@ public class AbstractDataProvider {
     }
 
     #! Creates the data provider with the given Logger
-    constructor(Logger logger) {
-        self.logger = logger;
-    }
-
-    #! Sets or replaces the logger
-    setLogger(Logger logger) {
-        self.logger = logger;
+    constructor(LoggerInterface logger) : LoggerWrapper(logger) {
     }
 
     #! Returns static provider information as data; no objects are returned
@@ -1473,7 +1474,11 @@ public class AbstractDataProvider {
         on_error if ($1.err != "CREATE-CHILD-PROVIDER-ERROR") {
             rethrow "CREATE-CHILD-PROVIDER-ERROR", sprintf("%s: %s", $1.err, $1.desc), $1.arg;
         }
-        return createChildProviderImpl(name, fields, child_create_options);
+        AbstractDataProvider child = createChildProviderImpl(name, fields, child_create_options);
+        if (logger && !child.logger) {
+            child.setLogger(logger);
+        }
+        return child;
     }
 
     #! Deletes a child data provider
@@ -1713,7 +1718,11 @@ public class AbstractDataProvider {
         @see getChildProviderEx()
     */
     *AbstractDataProvider getChildProvider(string name) {
-        return getChildProviderImpl(name);
+        *AbstractDataProvider child = getChildProviderImpl(name);
+        if (logger && !child.logger) {
+            child.setLogger(logger);
+        }
+        return child;
     }
 
     #! Returns the given child provider or throws an exception if the given child is unknown
@@ -1728,6 +1737,9 @@ public class AbstractDataProvider {
         if (!provider) {
             throw "INVALID-CHILD-PROVIDER", sprintf("provider %y is unknown; known children of %y: %y", name,
                 getName(), getChildProviderNames());
+        }
+        if (logger && !provider.logger) {
+            provider.setLogger(logger);
         }
         return provider;
     }
@@ -1744,19 +1756,22 @@ public class AbstractDataProvider {
     AbstractDataProvider getChildProviderPath(string path) {
         AbstractDataProvider provider = self;
         map provider = provider.getChildProviderEx($1), path.split("/");
+        if (logger && !provider.logger) {
+            provider.setLogger(logger);
+        }
         return provider;
     }
 
-    #! Returns @ref True if the data provider supports transaction management
-    /** @return @ref True if the data provider supports transaction management, in which case commit() or rollback()
+    #! Returns @ref True if the data provider requires transaction management
+    /** @return @ref True if the data provider requires transaction management, in which case commit() or rollback()
         must be called to flush or discard data written to the data provider
     */
     bool requiresTransactionManagement() {
-        return False;
+        return getStaticInfoImpl().transaction_management;
     }
 
     #! Begins a transaction with a data provider
-    /** Has no effect if the data provider does not support transaction management
+    /** Has no effect if the data provider does not require transaction management
 
         @see:
         - commit()
@@ -2356,7 +2371,9 @@ public class AbstractDataProvider {
 
     #! verifies options according to the option
     private *hash<auto> checkOptions(string err, *hash<string, hash<DataProviderOptionInfo>> option_desc,
-            *hash<auto> options) {
+            *hash<auto> uoptions) {
+        # to ensure that the return value has type "hash<auto>"
+        hash<auto> options += uoptions;
         if (!option_desc && options) {
             error(err, "invalid options: %y; no options are supported",
                 keys options);
@@ -2364,28 +2381,22 @@ public class AbstractDataProvider {
         if (*list<string> invalid_keys = keys (options - (keys option_desc))) {
             error(err, "invalid options: %y; supported options: %y", invalid_keys, keys option_desc);
         }
-        bool updated;
         # check types and required keys
         foreach hash<auto> i in (option_desc.pairIterator()) {
             bool present = options.hasKey(i.key);
-            if (i.value.required && !present) {
+            if (!present) {
                 if (exists i.value.default_value) {
                     options{i.key} = i.value.default_value;
                     continue;
+                } else if (i.value.required) {
+                    error(err, "missing required option %y%s", i.key,
+                        i.value.desc ? sprintf(" (%s)", i.value.desc) : "");
                 }
-                error(err, "missing required option %y%s", i.key, i.value.desc ? sprintf(" (%s)", i.value.desc) : "");
-            }
-            if (!present) {
                 continue;
             }
             # process value
             bool ok;
             string err;
-            # issue #4062: ensure "options" remains "hash<auto>"
-            if (!updated) {
-                options = {} + options;
-                updated = True;
-            }
             foreach AbstractDataProviderType type in (i.value.type) {
                 try {
                     options{i.key} = type.acceptsValue(options{i.key});
@@ -2405,6 +2416,20 @@ public class AbstractDataProvider {
                     error("RUNTIME-TYPE-ERROR", err);
                 }
                 error("RUNTIME-TYPE-ERROR", "no type information available for option %y", i.key);
+            }
+            # check allowed values
+            if (i.value.allowed_values) {
+                bool ok = False;
+                foreach auto v in (i.value.allowed_values) {
+                    if (options{i.key} === v.value) {
+                        ok = True;
+                        break;
+                    }
+                }
+                if (!ok) {
+                    error("OPTION-VALUE-ERROR", sprintf("option %y does not accept value %y; possible values: %y",
+                        i.key, options{i.key}, (map $1.value, i.value.allowed_values)));
+                }
             }
         }
         return options;
@@ -2464,7 +2489,7 @@ public class AbstractDataProvider {
     }
 
     #! thrown an exception
-    private error(string err, string fmt) {
+    private error(string err, string fmt, ...) {
         string desc_name;
         # the getName() method cannot be run in the constructor before the object has been created and the name set
         try {
@@ -2842,7 +2867,7 @@ public class AbstractDataProvider {
 
         @see requestSearchRecordsImpl()
     */
-    private AbstractDataProviderRecordIterator searchRecordsImpl(hash<auto> where_cond,
+    private AbstractDataProviderRecordIterator searchRecordsImpl(*hash<auto> where_cond,
             *hash<auto> search_options) {
         throwUnimplementedException();
     }

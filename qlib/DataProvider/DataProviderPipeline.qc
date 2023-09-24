@@ -798,7 +798,7 @@ public class DataProviderPipeline {
     }
 
     #! Logs to the info log, if set
-    logInfo(string fmt) {
+    logInfo(string fmt, ...) {
         if (info_log) {
             softlist<auto> args += ("PIPELINE " + name + " INFO: " + fmt);
             if (argv) {
@@ -809,7 +809,7 @@ public class DataProviderPipeline {
     }
 
     #! Logs to the error log, if set
-    logError(string fmt) {
+    logError(string fmt, ...) {
         if (error_log) {
             softlist<auto> args += ("PIPELINE " + name + " ERROR: " + fmt);
             if (argv) {
@@ -820,7 +820,7 @@ public class DataProviderPipeline {
     }
 
     #! Logs to the debug log, if set
-    logDebug(string fmt) {
+    logDebug(string fmt, ...) {
         if (debug_log) {
             softlist<auto> args += ("PIPELINE " + name + " DEBUG: " + fmt);
             if (argv) {

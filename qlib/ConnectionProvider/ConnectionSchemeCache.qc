@@ -54,6 +54,9 @@ public hashdecl ConnectionOptionInfo {
 
     #! Do environment variable substitution on the value?
     bool subst_env_vars = False;
+
+    #! Modifier for the "file-as-string" type; can a freeform location option be returned?
+    bool freeform = False;
 }
 
 #! Connection provider information
@@ -78,25 +81,47 @@ public class ConnectionSchemeCache {
     public {
         #! Map of known connection schemes to modules
         const SchemeMap = {
-            "rest": "RestClient",
-            "rests": "RestClient",
+            "awsrests": "AwsRestClient",
 
             "billwerkrest": "BillwerkRestClient",
             "billwerkrests": "BillwerkRestClient",
+
+            "cdsrests": "CdsRestClient",
+
+            "grests": "GoogleRestClient",
+
+            "hue": "HueRestClient",
+
+            "jsonrpc": "JsonRpcClient",
+            "jsonrpcs": "JsonRpcClient",
+
+            "pop3": "Pop3Client",
+            "pop3s": "Pop3Client",
+
+            "rest": "RestClient",
+            "rests": "RestClient",
 
             "sewiorest": "SewioRestClient",
             "sewiorests": "SewioRestClient",
 
             "sfrests": "SalesforceRestClient",
 
+            "sfsoap": "SalesforceSoapClient",
+            "sfsoaps": "SalesforceSoapClient",
+
             "sap4hanarests": "Sap4HanaRestClient",
 
-            "awsrests": "AwsRestClient",
+            "snrests": "ServiceNowRestClient",
 
-            "cdsrests": "CdsRestClient",
+            "sewiows": "SewioWebSocketClient",
+            "sewiowss": "SewioWebSocketClient",
 
-            "zeyosrest": "ZeyosRestClient",
-            "zeyosrests": "ZeyosRestClient",
+            "soap": "SoapClient",
+            "soaps": "SoapClient",
+
+            "sftp": "Ssh2Connections",
+
+            "ssh": "Ssh2Connections",
 
             "smtp": "SmtpClient",
             "smtps": "SmtpClient",
@@ -105,37 +130,19 @@ public class ConnectionSchemeCache {
             "esmtps": "SmtpClient",
             "esmtptls": "SmtpClient",
 
-            "pop3": "Pop3Client",
-            "pop3s": "Pop3Client",
-
             "telnet": "TelnetClient",
 
             "ws": "WebSocketClient",
             "wss": "WebSocketClient",
-
-            "sewiows": "SewioWebSocketClient",
-            "sewiowss": "SewioWebSocketClient",
-
-            "soap": "SoapClient",
-            "soaps": "SoapClient",
-
-            "sfsoap": "SalesforceSoapClient",
-            "sfsoaps": "SalesforceSoapClient",
-
-            "sftp": "Ssh2Connections",
-
-            "snrests": "ServiceNowRestClient",
-
-            "ssh": "Ssh2Connections",
-
-            "jsonrpc": "JsonRpcClient",
-            "jsonrpcs": "JsonRpcClient",
 
             "xmlrpc": "XmlRpcClient",
             "xmlrpcs": "XmlRpcClient",
 
             "yamlrpc": "YamlRpcClient",
             "yamlrpcs": "YamlRpcClient",
+
+            "zeyosrest": "ZeyosRestClient",
+            "zeyosrests": "ZeyosRestClient",
         };
     }
 
@@ -154,6 +161,9 @@ public class ConnectionSchemeCache {
 
         #! Connection provider cache lock
         static Mutex lck();
+
+        #! Load all flag
+        static bool load_all;
     }
 
     #! Register a new connection provider in the cache
@@ -177,7 +187,29 @@ public class ConnectionSchemeCache {
         }
 
         cache{scheme} = entry;
+        # sort connection options when caching
+        cache{scheme}.options = cache{scheme}.options{sort(keys cache{scheme}.options)};
         return True;
+    }
+
+    #! Loads all possible schemes and returns the entire cache
+    static hash<string, hash<ConnectionSchemeInfo>> getLoadAll() {
+        if (load_all) {
+            return cache;
+        }
+        bool needs_lock = !lck.lockOwner();
+        if (needs_lock) {
+            lck.lock();
+        }
+        on_exit if (needs_lock) {
+            lck.unlock();
+        }
+        # check again in the lock
+        if (needs_lock && load_all) {
+            return cache;
+        }
+        map ConnectionSchemeCache::getSchemeImpl($1, False), keys SchemeMap, !cache{$1};
+        return cache;
     }
 
     #! Returns the entire cache

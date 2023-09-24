@@ -2,10 +2,10 @@
 
 # AC_PREREQ(2.59)
 # NOTE: Qore should always use semantic versioning: https://semver.org/
-AC_INIT([qore], [1.13.0],
+AC_INIT([qore], [2.0.0],
         [David Nichols <david@qore.org>],
         [qore])
-AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-ustar subdir-objects])
+AM_INIT_AUTOMAKE([no-dist-gzip dist-bzip2 tar-pax subdir-objects])
 AC_CONFIG_HEADER(include/qore/intern/unix-config.h)
 AC_CONFIG_HEADER(modules/astparser/config.h)
 
@@ -1529,7 +1529,7 @@ AC_SEARCH_LIBS(clock_gettime, rt)
 # Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h poll.h grp.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h netdb.h netinet/in.h stddef.h stdlib.h string.h strings.h sys/socket.h sys/time.h unistd.h execinfo.h cxxabi.h arpa/inet.h sys/socket.h sys/statvfs.h winsock2.h ws2tcpip.h glob.h sys/un.h termios.h netinet/tcp.h pwd.h sys/wait.h getopt.h stdint.h poll.h grp.h net/if_dl.h linux/if_packet.h])
 
 # check for umem.h
 AC_CHECK_HEADER([umem.h], have_umem_h=yes, have_umem_h=no)
@@ -1671,7 +1671,15 @@ AC_FUNC_STAT
 AC_FUNC_STRERROR_R
 AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([bzero floor getaddrinfo gethostbyaddr gethostbyname gethostname getnameinfo gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2 clock_gettime realloc timegm seteuid setegid setenv unsetenv round pthread_attr_getstacksize getpwuid_r getpwnam_r getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath memmem getifaddrs pthread_get_stacksize_np pthread_get_name_np pthread_getname_np])
+AC_CHECK_FUNCS([bzero floor getaddrinfo gethostbyaddr gethostbyname gethostname getnameinfo getrlimit
+    gettimeofday memmove memset mkfifo putenv regcomp select socket setsockopt getsockopt strcasecmp
+    strchr strdup strerror strspn strstr atoll strtol strtoll isblank localtime_r gmtime_r exp2
+    clock_gettime realloc timegm seteuid setegid setenv unsetenv round
+    pthread_attr_getstacksize getpwuid_r getpwnam_r
+    getgrgid_r getgrnam_r backtrace glob system inet_ntop inet_pton lstat fsync lchown chown setsid
+    setuid mkfifo random kill getppid getgid getegid getuid geteuid setuid seteuid setgid setegid sleep
+    usleep nanosleep readlink symlink access strcasestr strncasecmp setgroups getgroups poll realpath
+    memmem getifaddrs pthread_get_stacksize_np pthread_get_name_np pthread_getname_np link_ntoa])
 
 # some systems have internal gethostby*_r in libc but don't hide the
 # symbols, so we look if they are declared before checking in the libraries
