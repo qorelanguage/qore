@@ -829,14 +829,20 @@ static bool skip_method_variant(const AbstractQoreFunctionVariant* v, const qore
 }
 
 static AbstractQoreFunctionVariant* doSingleVariantTypeException(const QoreProgramLocation* loc, int pi,
-        const char* class_name, const char* name, const char* sig, const QoreTypeInfo* proto,
+        const char* class_name, const char* name, const AbstractFunctionSignature* sig, const QoreTypeInfo* proto,
         const QoreTypeInfo* arg) {
     QoreStringNode* desc = new QoreStringNode("argument ");
-    desc->sprintf("%d to '", pi);
-    if (class_name)
+    const name_vec_t& nv = sig->getParamNames();
+    if (nv.size() > pi) {
+        desc->sprintf("'%s' to ", nv[pi].c_str());
+    } else {
+        desc->sprintf("%d to '", pi + 1);
+    }
+    if (class_name) {
         desc->sprintf("%s::", class_name);
-    desc->sprintf("%s(%s)' expects %s, but call supplies %s", name, sig, QoreTypeInfo::getPath(proto),
-        QoreTypeInfo::getPath(arg));
+    }
+    desc->sprintf("%s(%s)' expects %s, but call supplies %s", name, sig->getSignatureText(),
+        QoreTypeInfo::getPath(proto), QoreTypeInfo::getPath(arg));
     qore_program_private::makeParseException(getProgram(), *loc, "PARSE-TYPE-ERROR", desc);
     return nullptr;
 }
@@ -1610,8 +1616,7 @@ const AbstractQoreFunctionVariant* QoreFunction::parseFindVariant(const QoreProg
                         ok = false;
                         // raise a detailed parse exception immediately if there is only one variant
                         if (ilist.size() == 1 && aqf->vlist.singular() && getProgram()->getParseExceptionSink()) {
-                            return doSingleVariantTypeException(loc, pi + 1, aqf->className(), getName(),
-                                sig->getSignatureText(), t, a);
+                            return doSingleVariantTypeException(loc, pi, aqf->className(), getName(), sig, t, a);
                         }
                         break;
                     }

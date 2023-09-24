@@ -160,6 +160,7 @@ public class OverloadTest inherits QUnit::Test {
     }
 
     constructor() : Test("Overload test", "1.0") {
+        addTestCase("param type err", \paramTypeErrorTest());
         addTestCase("varargs", \varargsTest());
         addTestCase("reference matching", \referenceMatching());
         addTestCase("issue 4419", \issue4419());
@@ -173,6 +174,14 @@ public class OverloadTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    paramTypeErrorTest() {
+        {
+            Program p(PO_NEW_STYLE);
+            assertThrows("PARSE-TYPE-ERROR", "argument 'opts'", \p.parse(), ("sub t(int i, hash<auto> opts) {}\n"
+                "t(1, 1);", ""));
+        }
     }
 
     varargsTest() {
