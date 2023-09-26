@@ -727,7 +727,7 @@ struct qore_httpclient_priv {
             if (!str->empty()) {
                 str->concat(',');
             }
-            str->concat(*vh);
+            str->concat(*vh, xsink);
             //printd(5, "qore_httpclient_priv::addAppendHeader() %s: %s\n", key, str->c_str());
         }
     }
