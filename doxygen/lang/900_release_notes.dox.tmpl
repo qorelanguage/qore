@@ -24,6 +24,11 @@
     - <a href="../../modules/RestClient/html/index.html">RestClient</a>
       - fixed a bug returning the token URL
         (<a href="https://github.com/qorelanguage/qore/issues/4809">issue 4809</a>)
+    - <a href="../../modules/SalesforceRestClient/html/index.html">SalesforceRestClient</a>
+      - fixed a bug where the REST headers were not set up to accept JSON responses when the REST client was used with
+        a token, this also caused breakage in the
+        <a href="../../modules/SalesforceRestDataProvider/html/index.html">SalesforceRestDataProvider</a> module
+        (<a href="https://github.com/qorelanguage/qore/issues/4813">issue 4813</a>)
     - fixed a bug where %Qore could characters with the incorrect character encoding to strings while processing HTTP
       headers in HTTP calls
       (<a href="https://github.com/qorelanguage/qore/issues/4810">issue 4810</a>)
