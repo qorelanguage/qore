@@ -132,7 +132,7 @@ printf("%N\n", ans.body);
 
     @section restclientrelnotes Release Notes
 
-    @subsection restclientv2_1 RestClient v2.1.1
+    @subsection restclientv2_1_1 RestClient v2.1.1
     - fixed a bug returning the token URL
       (<a href="https://github.com/qorelanguage/qore/issues/4809">issue 4809</a>)
 
