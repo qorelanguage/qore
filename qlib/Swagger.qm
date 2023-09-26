@@ -541,6 +541,7 @@ class SchemaBase {
     #! validates the value against the schema definition
     private check(bool serialize, bool request, string type, *string format, *SchemaObject items, string path,
             string method, string name, reference<auto> value) {
+        on_error rethrow $1.err, sprintf("%s (while checking parameter %y)", $1.desc, name);
         # accept a single value for an array (= one-element list)
         if (type == "array") {
             checkArrayParam(serialize, request, items, path, method, name, \value);
@@ -3408,6 +3409,7 @@ public class BodyParameter inherits AbstractParameterObject {
         if (!exists value && !required)
             return;
 
+        on_error rethrow $1.err, sprintf("%s (while checking body parameter)", $1.desc);
         return schema.check(serialize, request, path, method, name, \value);
     }
 

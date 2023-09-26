@@ -132,6 +132,10 @@ printf("%N\n", ans.body);
 
     @section restclientrelnotes Release Notes
 
+    @subsection restclientv2_1 RestClient v2.1.1
+    - fixed a bug returning the token URL
+      (<a href="https://github.com/qorelanguage/qore/issues/4809">issue 4809</a>)
+
     @subsection restclientv2_1 RestClient v2.1
     - added @ref RestClient::RestClient::setOAuth2Options() "RestClient::setOAuth2Options()"
     - do not try to get another OAuth2 token if the token was just retrieved
@@ -2368,22 +2372,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         @since %RestClient 2.0
     */
     string getAuthUrl(*bool allow_relative) {
-        string oauth2_auth_url_opt = getOAuth2OptionName("oauth2_auth_url");
-        *string uri = opts{oauth2_auth_url_opt};
-        if (!uri) {
-            throw "OAUTH2-AUTH-ERROR", sprintf("no %y option is set on connection %y", oauth2_auth_url_opt, name);
-        }
-        if (!allow_relative && uri !~ /^http/) {
-            string url = real_url;
-            if (url !~ /\/$/) {
-                url += "/";
-            }
-            if (uri =~ /^\//) {
-                uri = uri[1..];
-            }
-            uri = url + uri;
-        }
-        return uri;
+        return getUrlOption("oauth2_auth_url", allow_relative);
     }
 
     #! Returns the OAuth2 token URL or throws an exception if not set
@@ -2393,15 +2382,29 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         @since %RestClient 2.0
     */
     string getTokenUrl(*bool allow_relative) {
-        string oauth2_token_url_opt = getOAuth2OptionName("oauth2_token_url");
-        *string uri = opts{oauth2_token_url_opt};
+        return getUrlOption("oauth2_token_url", allow_relative);
+    }
+
+    #! Returns the value of a URL option or throws an exception if not set
+    /*  @param opt the URL option name
+        @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
+        is to return a full URL
+
+        @since %RestClient 2.1.1
+    */
+    private string getUrlOption(string opt, *bool allow_relative) {
+        string url_opt = getOAuth2OptionName(opt);
+        *string uri = opts{url_opt};
         if (!uri) {
-            throw "OAUTH2-AUTH-ERROR", sprintf("no %y option is set on connection %y", oauth2_token_url_opt, name);
+            throw "OAUTH2-AUTH-ERROR", sprintf("no %y option is set on connection %y", url_opt, name);
         }
         if (!allow_relative && uri !~ /^http/) {
             string url = real_url;
             if (url !~ /\/$/) {
                 url += "/";
+            }
+            if (uri =~ /^\//) {
+                uri = uri[1..];
             }
             uri = url + uri;
         }
