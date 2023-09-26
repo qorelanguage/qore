@@ -259,7 +259,7 @@ class RestCmd {
                 exit(1);
             }
         } else {
-            request_path = url_info.path;
+            request_path = url_info.path ?? "";
 
             opts.url = sprintf("%s://", url_info.protocol);
             if (url_info.username && url_info.password) {
