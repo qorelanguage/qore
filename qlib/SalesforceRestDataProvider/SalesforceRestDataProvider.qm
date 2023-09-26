@@ -50,9 +50,86 @@ module SalesforceRestDataProvider {
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "factory": "salesforcerest",
             "scheme": "sfrests",
-            "path": "/",
+            "path": "/{table}",
+            "action": "create",
             "short_desc": "Create a record in Salesforce",
             "desc": "Create a record in Salesforce using Salesforce's REST API",
+            "path_vars": {
+                "table": "The name of the Salesforce table or sobject, ex: `Account`",
+            },
+            # NOTE: this may not be true of every table, but we assume that it is
+            "supports_create": True,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "factory": "salesforcerest",
+            "scheme": "sfrests",
+            "path": "/{table}",
+            "action": "find_single",
+            "short_desc": "Find a record in Salesforce",
+            "desc": "Find a single record in Salesforce using Salesforce's REST API",
+            "path_vars": {
+                "table": "The name of the Salesforce table or sobject, ex: `Account`",
+            },
+            # NOTE: this may not be true of every table, but we assume that it is
+            "supports_read": True,
+            "single_record": True,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "factory": "salesforcerest",
+            "scheme": "sfrests",
+            "path": "/{table}",
+            "action": "find",
+            "short_desc": "Find records in Salesforce",
+            "desc": "Find records in Salesforce using Salesforce's REST API",
+            "path_vars": {
+                "table": "The name of the Salesforce table or sobject, ex: `Account`",
+            },
+            # NOTE: this may not be true of every table, but we assume that it is
+            "supports_read": True,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "factory": "salesforcerest",
+            "scheme": "sfrests",
+            "path": "/{table}",
+            "action": "update",
+            "short_desc": "Update records in Salesforce",
+            "desc": "Update records in Salesforce using Salesforce's REST API",
+            "path_vars": {
+                "table": "The name of the Salesforce table or sobject, ex: `Account`",
+            },
+            # NOTE: this may not be true of every table, but we assume that it is
+            "supports_update": True,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "factory": "salesforcerest",
+            "scheme": "sfrests",
+            "path": "/{table}",
+            "action": "upsert",
+            "short_desc": "Upsert records in Salesforce",
+            "desc": "Upsert records in Salesforce using Salesforce's REST API",
+            "path_vars": {
+                "table": "The name of the Salesforce table or sobject, ex: `Account`",
+            },
+            # NOTE: this may not be true of every table, but we assume that it is
+            "supports_upsert": True,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "factory": "salesforcerest",
+            "scheme": "sfrests",
+            "path": "/{table}",
+            "action": "delete",
+            "short_desc": "Delete records in Salesforce",
+            "desc": "Delete records in Salesforce using Salesforce's REST API",
+            "path_vars": {
+                "table": "The name of the Salesforce table or sobject, ex: `Account`",
+            },
+            # NOTE: this may not be true of every table, but we assume that it is
+            "supports_delete": True,
         });
     };
 }

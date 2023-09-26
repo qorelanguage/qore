@@ -39,6 +39,14 @@ public hashdecl DataProviderActionInfo {
     */
     string path;
 
+    #! The unique action code for the action; unique in the factory and path
+    string action;
+
+    #! Description of any path variables
+    /** Keys are path variables, values are string descriptions with markdown formatting
+    */
+    *hash<string, string> path_vars;
+
     #! Action short description, plain text formatting
     string short_desc;
 
@@ -68,6 +76,11 @@ public hashdecl DataProviderActionInfo {
 
     #! Action type: delete records
     bool supports_delete = False;
+
+    #! Action subtype: do a single record search
+    /** Only used when \c supports_read is True
+    */
+    bool single_record = False;
 }
 
 #! data provider action flags
@@ -90,8 +103,8 @@ public class DataProviderActionCatalog {
         #! Mutex for atomic operations
         static Mutex lck();
 
-        #! Action cache, the key is made up of <factory>-<path>
-        static hash<string, hash<DataProviderActionInfo>> cache;
+        #! Action cache, the key is made up of <factory>-<path>, the second key is the action
+        static hash<string, hash<string, hash<DataProviderActionInfo>>> cache;
 
         #! Scheme map; keys are connection schemes
         static hash<string, list<hash<DataProviderActionInfo>>> smap;
@@ -114,16 +127,37 @@ public class DataProviderActionCatalog {
         if (!action.path.val()) {
             throw "ACTION-ERROR", sprintf("missing path in action: %y", action);
         }
+        if (!action.action.val()) {
+            throw "ACTION-ERROR", sprintf("missing action code in action: %y", action);
+        }
         action.path = DataProviderActionCatalog::normalizePath(action.path);
         string key = sprintf("%s/%s", action.factory, action.path);
 
+        # check that all path variables are defined
+        if (action.path_vars) {
+            *list<string> vars = (action.path =~ x/\{([^\}]*)}/g);
+            if (*hash<string, string> pvc = action.path_vars - vars) {
+                throw "ACTION-ERROR", sprintf("action has definitions for nonexistent path variables: %y", keys pvc);
+            }
+            if (vars) {
+                hash<string, bool> vmap = map {$1: True}, vars;
+                if (*hash<string, bool> ev = vmap - keys action.path_vars) {
+                    throw "ACTION-ERROR", sprintf("action is missing definitions for path variables: %y", keys ev);
+                }
+            }
+        } else {
+            if (*string var = (action.path =~ x/\{([^\}]*)}/[0])) {
+                throw "ACTION-ERROR", sprintf("action has path variables without definitions; path: %y", action.path);
+            }
+        }
+
         AutoLock al(lck);
-        if (*hash<DataProviderActionInfo> act = cache{key}) {
-            throw "ACTION-ERROR", sprintf("action with factory %y and path %y already registered: %y",
-                act.factory, act.path, act);
+        if (*hash<DataProviderActionInfo> act = cache{key}{action.action}) {
+            throw "ACTION-ERROR", sprintf("action with factory %y, path %y, and action %y already registered: %y",
+                act.factory, act.path, action.action, act);
         }
         # add to cache
-        cache{key} = action;
+        cache{key}{action.action} = action;
         # add to scheme map
         if (action.scheme) {
             if (!smap{action.scheme}) {
@@ -156,20 +190,21 @@ public class DataProviderActionCatalog {
         return fmap{factory};
     }
 
-    #! Returns the action for the given factory and path
+    #! Returns all actions for the given factory and path
     /** @param factory the data provider factory
         @param path the path for the action
 
+        @return a list of actions for the given factory and path
     */
-    *hash<DataProviderActionInfo> getAction(string factory, string path) {
-        return cache{sprintf("%s/%s", factory, DataProviderActionCatalog::normalizePath(path))};
+    *list<hash<DataProviderActionInfo>> getActions(string factory, string path) {
+        return cache{sprintf("%s/%s", factory, DataProviderActionCatalog::normalizePath(path))}.values();
     }
 
     #! Returns all actions in the cache
     /** @return all actions in the cache
     */
     static *list<hash<DataProviderActionInfo>> getAll() {
-        return cache.values();
+        return foldl $1 + $2, (map $1.values(), cache.values());
     }
 
     #! Searches for actions whose descriptions match a regular expression pattern
@@ -179,17 +214,24 @@ public class DataProviderActionCatalog {
         @return All actions that match the regular expression pattern in the \c short_desc or \c desc fields
     */
     static *list<hash<DataProviderActionInfo>> searchRegex(string regex_pattern, int regex_options = RE_Caseless) {
-        return map $1, cache.values(),
+        return map $1, (foldl $1 + $2, (map $1.values(), cache.values())),
             regex($1.short_desc, regex_pattern, regex_options) || regex($1.desc, regex_pattern, regex_options);
     }
 
     #! Searches for actions whose descriptions match a substring
     /** @param substr A substring to match in the \c short_desc and \c desc fields
+        @param ignore_case Ignore case when searching
 
         @return All actions that match the substring argument in the \c short_desc or \c desc fields
     */
-    static *list<hash<DataProviderActionInfo>> searchSubstr(string substr) {
-        return map $1, cache.values(), ($1.short_desc.find(substr) >= 0) || ($1.desc.find(substr) >= 0);
+    static *list<hash<DataProviderActionInfo>> searchSubstr(string substr, bool ignore_case = True) {
+        if (ignore_case) {
+            substr = substr.upr();
+            return map $1, (foldl $1 + $2, (map $1.values(), cache.values())),
+                ($1.short_desc.upr().find(substr) >= 0) || ($1.desc.upr().find(substr) >= 0);
+        }
+        return map $1, (foldl $1 + $2, (map $1.values(), cache.values())),
+            ($1.short_desc.find(substr) >= 0) || ($1.desc.find(substr) >= 0);
     }
 
     #! Returns a normalized path to ensure that comparisons always work
