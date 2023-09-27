@@ -217,6 +217,9 @@ protected:
 
 DLLLOCAL QoreValue do_op_background(const QoreValue left, ExceptionSink* xsink);
 
+// updates the active exception count
+DLLLOCAL void inc_active_exceptions(int diff);
+
 // returns 0 if the last mark has been cleared, -1 if there are more marks to check
 DLLLOCAL int purge_thread_resources_to_mark(ExceptionSink* xsink);
 DLLLOCAL void purge_thread_resources(ExceptionSink* xsink);

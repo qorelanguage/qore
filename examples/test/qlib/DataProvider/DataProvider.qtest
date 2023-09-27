@@ -245,6 +245,7 @@ class StringTestType inherits Type {
 
 public class DataProviderTest inherits QUnit::Test {
     constructor() : Test("DataProvider Test", "1.0") {
+        addTestCase("app/action catalog tests", \actionCatalogTests());
         addTestCase("string test", \stringTest());
         addTestCase("data test", \dataTest());
         addTestCase("compat test", \compatTest());
@@ -254,6 +255,135 @@ public class DataProviderTest inherits QUnit::Test {
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    actionCatalogTests() {
+        # negative tests registering apps
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{});
+
+        # missing description
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
+            "name": "test",
+            "factory": "test",
+        });
+
+        string app = get_random_string();
+        string scheme = get_random_string();
+        string factory = get_random_string();
+        hash<DataProviderAppInfo> my_app = <DataProviderAppInfo>{
+            "name": app,
+            "desc": "test",
+            "factory": factory,
+            "scheme": scheme,
+        };
+        DataProviderActionCatalog::registerApp(my_app);
+        assertEq(my_app, DataProviderActionCatalog::getApp(app));
+
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::getAppEx(), get_random_string());
+
+        # negative tests registering actions
+        assertThrows("ACTION-ERROR", \DataProviderActionCatalog::registerAction(), <DataProviderActionInfo>{});
+
+        string act = get_random_string();
+
+        string short_desc = get_random_string(40);
+        string desc = get_random_string(100);
+
+        # invalid app
+        assertThrows("ACTION-ERROR", \DataProviderActionCatalog::registerAction(), <DataProviderActionInfo>{
+            "app": get_random_string(),
+            "action": act,
+            "path": "/",
+            "short_desc": short_desc,
+            "desc": desc,
+            "action_code": DPAT_API,
+        });
+
+        # missing path var definitions
+        assertThrows("ACTION-ERROR", \DataProviderActionCatalog::registerAction(), <DataProviderActionInfo>{
+            "app": app,
+            "action": act,
+            "path": "/{key}",
+            "short_desc": short_desc,
+            "desc": desc,
+            "action_code": DPAT_API,
+        });
+
+        # extra path var definitions
+        assertThrows("ACTION-ERROR", \DataProviderActionCatalog::registerAction(), <DataProviderActionInfo>{
+            "app": app,
+            "action": act,
+            "path": "/",
+            "short_desc": short_desc,
+            "desc": desc,
+            "path_vars": {
+                "test": "test",
+            },
+            "action_code": DPAT_API,
+        });
+
+        # invalid action code
+        assertThrows("ACTION-ERROR", \DataProviderActionCatalog::registerAction(), <DataProviderActionInfo>{
+            "app": app,
+            "action": act,
+            "path": "/",
+            "short_desc": short_desc,
+            "desc": desc,
+            "action_code": -1,
+        });
+
+        hash<DataProviderActionInfo> action = <DataProviderActionInfo>{
+            "app": app,
+            "action": act,
+            "path": "/",
+            "short_desc": short_desc,
+            "desc": desc,
+            "action_code": DPAT_API,
+        };
+        DataProviderActionCatalog::registerAction(action);
+
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::getActionsEx(), get_random_string());
+
+        list<hash<DataProviderActionInfo>> actions = DataProviderActionCatalog::getActions(app);
+        assertEq(1, actions.size());
+        assertEq(action, actions[0]);
+
+        assertEq((), DataProviderActionCatalog::searchRegex(get_random_string()));
+        assertEq((), DataProviderActionCatalog::searchSubstr(get_random_string()));
+        assertNothing(DataProviderActionCatalog::getActionsForScheme(get_random_string()));
+        assertNothing(DataProviderActionCatalog::getActionsForFactory(get_random_string()));
+
+        actions = DataProviderActionCatalog::searchRegex(short_desc);
+        assertEq(1, actions.size());
+        assertEq(action, actions[0]);
+
+        actions = DataProviderActionCatalog::searchRegex(desc);
+        assertEq(1, actions.size());
+        assertEq(action, actions[0]);
+
+        actions = DataProviderActionCatalog::searchSubstr(short_desc, False);
+        assertEq(1, actions.size());
+        assertEq(action, actions[0]);
+
+        actions = DataProviderActionCatalog::searchSubstr(desc, False);
+        assertEq(1, actions.size());
+        assertEq(action, actions[0]);
+
+        actions = DataProviderActionCatalog::searchSubstr(short_desc, True);
+        assertEq(1, actions.size());
+        assertEq(action, actions[0]);
+
+        actions = DataProviderActionCatalog::searchSubstr(desc, True);
+        assertEq(1, actions.size());
+        assertEq(action, actions[0]);
+
+        actions = DataProviderActionCatalog::getActionsForScheme(scheme);
+        assertEq(1, actions.size());
+        assertEq(action, actions[0]);
+
+        actions = DataProviderActionCatalog::getActionsForFactory(factory);
+        assertEq(1, actions.size());
+        assertEq(action, actions[0]);
     }
 
     stringTest() {

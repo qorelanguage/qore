@@ -54,6 +54,7 @@ class SalesforceTest inherits QUnit::Test {
     }
 
     constructor() : Test("SalesforceTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("app/action catalog tests", \actionCatalogTests());
         addTestCase("ping tests", \pingTests());
         addTestCase("Salesforce.com DataProvider test", \salesForceDataProviderTests());
         addTestCase("Salesforce.com REST", \salesForceRestTests());
@@ -105,6 +106,12 @@ class SalesforceTest inherits QUnit::Test {
 
     private error(string fmt) {
         throw "OPTION-ERROR", sprintf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    private actionCatalogTests() {
+        list<hash<DataProviderActionInfo>> actions =
+            DataProviderActionCatalog::getActions(SalesforceRestDataProvider::AppName);
+        assertGt(0, actions.size());
     }
 
     private pingTests() {

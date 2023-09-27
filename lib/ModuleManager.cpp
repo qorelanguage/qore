@@ -250,13 +250,15 @@ int QoreModuleDefContext::initClosure(const QoreProgramLocation* loc, QoreValue&
 }
 
 int QoreModuleDefContext::init(QoreProgram& pgm, ExceptionSink& xsink) {
-    if (!init_c)
+    if (!init_c) {
         return 0;
+    }
 
     {
         ProgramThreadCountContextHelper tch(&xsink, &pgm, true);
-        if (xsink)
+        if (xsink) {
             return -1;
+        }
 
         ValueHolder cn(init_c.eval(&xsink), &xsink);
         assert(!xsink);
@@ -1336,6 +1338,7 @@ QoreAbstractModule* QoreModuleManager::setupUserModule(ExceptionSink& xsink, std
         if (qmd.init(*mi->getProgram(), xsink)) {
             return nullptr;
         }
+        assert(!xsink);
     }
 
     mi->set(desc, version, author, url, license_str, qmd.takeDel());

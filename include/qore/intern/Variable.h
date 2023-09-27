@@ -244,8 +244,9 @@ public:
     DLLLOCAL int parseInit() {
         QoreLValue<qore_gvar_ref_u>& val = getVal();
 
-        if (val.type == QV_Ref)
+        if (val.type == QV_Ref) {
             return 0;
+        }
 
         int err = 0;
 

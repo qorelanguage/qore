@@ -1211,6 +1211,9 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, hn, lvhelper);
                     ha.swap(hn);
                     if (xsink && *xsink) {
+                        // enrich exception so that it's not confusing
+                        xsink->appendLastDescription(" (while folding values into type 'hash<%s>')",
+                            QoreTypeInfo::getName(u.ti));
                         return true;
                     }
                 }
@@ -1258,6 +1261,9 @@ bool QoreTypeSpec::acceptInput(ExceptionSink* xsink, const QoreTypeInfo& typeInf
                     u.ti->acceptInputIntern(xsink, arg_type, obj, param_num, param_name, ln, lvhelper);
                     lp->swap(i, ln);
                     if (xsink && *xsink) {
+                        // enrich exception so that it's not confusing
+                        xsink->appendLastDescription(" (while folding values into type 'list<%s>')",
+                            QoreTypeInfo::getName(u.ti));
                         return true;
                     }
                 }

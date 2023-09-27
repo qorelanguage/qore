@@ -24,6 +24,9 @@
 
 #! contains all public definitions in the SalesforceRestDataProvider module
 public namespace SalesforceRestDataProvider {
+#! Application name
+public const AppName = "Salesforce";
+
 #! The SalesforceRest data provider class
 public class SalesforceRestDataProvider inherits SalesforceRestDataProviderBase {
     public {

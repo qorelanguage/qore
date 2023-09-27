@@ -105,11 +105,13 @@ HashDeclList::HashDeclList(const HashDeclList& old, int64 po, qore_ns_private* n
 
 void HashDeclList::mergeUserPublic(const HashDeclList& old, qore_ns_private* ns) {
     for (auto& i : old.hm) {
-        if (!typed_hash_decl_private::get(*i.second)->isUserPublic())
+        if (!typed_hash_decl_private::get(*i.second)->isUserPublic()) {
             continue;
+        }
 
-        if (find(i.first))
+        if (find(i.first)) {
             continue;
+        }
         TypedHashDecl* hd = new TypedHashDecl(*i.second);
         typed_hash_decl_private::get(*hd)->setNamespace(ns);
         addInternal(hd);

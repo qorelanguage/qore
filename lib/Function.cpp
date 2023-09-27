@@ -413,8 +413,6 @@ void AbstractFunctionSignature::addDefaultArgument(std::string& str, QoreValue a
     str.append("<exp>");
 }
 
-static void breakit() {}
-
 UserSignature::UserSignature(int first_line, int last_line, QoreValue params, RetTypeInfo* retTypeInfo, int64 po) :
         AbstractFunctionSignature(retTypeInfo ? retTypeInfo->getTypeInfo() : nullptr),
         parseReturnTypeInfo(retTypeInfo ? retTypeInfo->takeParseTypeInfo() : nullptr),
@@ -453,9 +451,6 @@ UserSignature::UserSignature(int first_line, int last_line, QoreValue params, Re
     if (params.getType() == NT_ELLIPSES) {
         assert(!varargs);
         varargs = true;
-
-breakit();
-
         return;
     }
 

@@ -115,8 +115,9 @@ const QoreTypeInfo* Var::parseGetTypeInfoForInitialAssignment() {
     QoreLValue<qore_gvar_ref_u>& val = getVal();
 
     // imported variables have already been initialized
-    if (val.type == QV_Ref)
+    if (val.type == QV_Ref) {
         return val.v.getPtr()->getTypeInfo();
+    }
 
     parseInit();
     return typeInfo;
