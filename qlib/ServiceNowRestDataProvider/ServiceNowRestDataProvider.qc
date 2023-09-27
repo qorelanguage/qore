@@ -24,6 +24,9 @@
 
 #! contains all public definitions in the ServiceNowRestDataProvider module
 public namespace ServiceNowRestDataProvider {
+#! Application name
+public const AppName = "ServiceNow";
+
 #! The ServiceNowRest data provider class
 public class ServiceNowRestDataProvider inherits ServiceNowRestDataProviderBase {
     public {

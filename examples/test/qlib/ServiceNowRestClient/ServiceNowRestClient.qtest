@@ -54,6 +54,7 @@ class ServiceNowTest inherits QUnit::Test {
     }
 
     constructor() : Test("ServiceNowTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("app/action catalog tests", \actionCatalogTests());
         addTestCase("ServiceNow DataProvider test", \ServiceNowDataProviderTests());
         addTestCase("ServiceNow REST", \ServiceNowRestTests());
         addTestCase("connection tests", \connectionTest());
@@ -114,6 +115,12 @@ class ServiceNowTest inherits QUnit::Test {
 
     private error(string fmt) {
         throw "OPTION-ERROR", sprintf("%s: ERROR: %s", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    private actionCatalogTests() {
+        list<hash<DataProviderActionInfo>> actions =
+            DataProviderActionCatalog::getActions(ServiceNowRestDataProvider::AppName);
+        assertGt(0, actions.size());
     }
 
     ServiceNowDataProviderTests() {

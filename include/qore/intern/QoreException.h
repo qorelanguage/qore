@@ -211,6 +211,8 @@ public:
 
 struct qore_es_private {
     QoreException* head = nullptr, * tail = nullptr;
+    // exception count
+    unsigned count = 0;
     bool thread_exit = false;
     bool rethrown = false;
 
@@ -229,14 +231,7 @@ struct qore_es_private {
         }
     }
 
-    DLLLOCAL void insert(QoreException *e) {
-        // append exception to the list
-        if (!head)
-            head = e;
-        else
-            tail->next = e;
-        tail = e;
-    }
+    DLLLOCAL void insert(QoreException *e);
 
     DLLLOCAL void appendListIntern(QoreString& str) const {
         QoreException* w = head;

@@ -94,8 +94,8 @@ typed_hash_decl_private::typed_hash_decl_private(const typed_hash_decl_private& 
         thd(thd),
         from_module(old.from_module),
         orig(old.orig),
-        typeInfo(new QoreHashDeclTypeInfo(thd, old.name.c_str(), old.path.c_str())),
-        orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, old.name.c_str(), old.path.c_str())),
+        typeInfo(new QoreHashDeclTypeInfo(thd, name.c_str(), path.c_str())),
+        orNothingTypeInfo(new QoreHashDeclOrNothingTypeInfo(thd, name.c_str(), path.c_str())),
         pub(false),
         sys(old.sys),
         parse_init_done(old.parse_init_done) {

@@ -123,6 +123,9 @@ public class DataProvider {
             }
         }
         factory_cache{name} = factory;
+
+        # deregister the app automatically if module initialization fails
+        DataProviderImplicitModuleTransaction::add(sub () { DataProvider::deregisterFactory(name); });
     }
 
     #! Returns the given data provider factory or @ref nothing if not present
@@ -668,6 +671,21 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{oracle:us
     private static bool checkInjection(object obj, hash<string, string> module_map) {
         *string module_name = Class::getClass(obj).getModuleName();
         return module_name && module_map{obj.className()} == module_name;
+    }
+
+    #! Deregisters a factory if an exception occurs during the other module's initialization
+    private static deregisterFactory(string name) {
+        factory_cache_lock.lock();
+        on_exit factory_cache_lock.unlock();
+
+        *AbstractDataProviderFactory factory = remove factory_cache{name};
+        if (!factory) {
+            return;
+        }
+        *string module_name = Class::getClass(factory).getModuleName();
+        if (exists module_name) {
+            remove factory_module_map{factory.className()};
+        }
     }
 }
 

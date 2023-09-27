@@ -41,14 +41,36 @@ void qore_es_private::assimilate(qore_es_private& xs) {
         xs.thread_exit = false;
     }
     if (xs.tail) {
+        assert(xs.head);
         if (tail) {
             tail->next = xs.head;
         } else {
             head = xs.head;
         }
         tail = xs.tail;
+
+        assert(xs.count);
+        count += xs.count;
+        xs.count = 0;
+        xs.head = xs.tail = nullptr;
+    } else {
+        assert(!xs.head);
+        assert(!xs.count);
     }
-    xs.head = xs.tail = nullptr;
+}
+
+void qore_es_private::insert(QoreException *e) {
+    // append exception to the list
+    if (!head) {
+        head = e;
+    } else {
+        tail->next = e;
+    }
+    tail = e;
+
+    // increment exception counts
+    ++count;
+    inc_active_exceptions(1);
 }
 
 ExceptionSink::ExceptionSink() : priv(new qore_es_private) {
@@ -87,20 +109,24 @@ ExceptionSink::operator bool () const {
 
 void ExceptionSink::overrideLocation(const QoreProgramLocation& loc) {
     //printd(5, "ExceptionSink::overrideLocation() loc: %p: %s:%d\n", &loc, loc.getFileValue(), loc.start_line);
-    QoreException *w = priv->head;
+    QoreException* w = priv->head;
     while (w) {
         w->set(loc);
         w = w->next;
     }
 }
 
-QoreException *ExceptionSink::catchException() {
-    QoreException *e = priv->head;
+QoreException* ExceptionSink::catchException() {
+    QoreException* e = priv->head;
     priv->head = priv->tail = nullptr;
+    if (priv->count) {
+        inc_active_exceptions(-priv->count);
+        priv->count = 0;
+    }
     return e;
 }
 
-QoreException *ExceptionSink::getException() {
+QoreException* ExceptionSink::getException() {
     return priv->head;
 }
 
@@ -108,9 +134,9 @@ void ExceptionSink::handleExceptions() {
     if (priv->head) {
         defaultExceptionHandler(priv->head);
         clear();
-    }
-    else
+    } else {
         priv->thread_exit = false;
+    }
 }
 
 void ExceptionSink::handleWarnings() {
@@ -121,6 +147,10 @@ void ExceptionSink::handleWarnings() {
 }
 
 void ExceptionSink::clear() {
+    if (priv->count) {
+        inc_active_exceptions(-priv->count);
+        priv->count = 0;
+    }
     priv->clearIntern();
     priv->head = priv->tail = nullptr;
     priv->thread_exit = false;
@@ -186,7 +216,7 @@ int ExceptionSink::renamePrependLastException(const char* err, const char* desc_
 }
 
 AbstractQoreNode* ExceptionSink::raiseException(const char *err, const char *fmt, ...) {
-    QoreStringNode *desc = new QoreStringNode;
+    QoreStringNode* desc = new QoreStringNode;
 
     va_list args;
 
@@ -260,7 +290,7 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue ar
 }
 
 AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue arg, QoreStringNode *desc,
-    const QoreCallStack& stack) {
+        const QoreCallStack& stack) {
     printd(5, "ExceptionSink::raiseExceptionArg(%s, %s, %p)\n", err, desc->getBuffer(), &stack);
     QoreException* exc = new QoreException(err, desc);
     exc->arg = arg;
@@ -270,14 +300,14 @@ AbstractQoreNode* ExceptionSink::raiseExceptionArg(const char* err, QoreValue ar
 }
 
 AbstractQoreNode* ExceptionSink::raiseExceptionArg(const QoreProgramLocation& loc, const char* err, QoreValue arg,
-    QoreStringNode *desc) {
+        QoreStringNode *desc) {
     printd(5, "ExceptionSink::raiseExceptionArg(loc, %s, %s)\n", err, desc->getBuffer());
     priv->insert(new QoreException(loc, err, desc, arg));
     return nullptr;
 }
 
 AbstractQoreNode* ExceptionSink::raiseExceptionArg(const QoreProgramLocation& loc, const char* err, QoreValue arg,
-    QoreStringNode *desc, const QoreCallStack& stack) {
+        QoreStringNode *desc, const QoreCallStack& stack) {
     printd(5, "ExceptionSink::raiseExceptionArg(loc, %s, %s, %p)\n", err, desc->getBuffer(), &stack);
     priv->insert(new QoreException(loc, err, desc, arg));
     priv->addStackInfo(stack);
@@ -575,7 +605,7 @@ void ExceptionSink::outputExceptionLocation(const char* fns, int start_line, int
 }
 
 // static member function
-void ExceptionSink::defaultWarningHandler(QoreException *e) {
+void ExceptionSink::defaultWarningHandler(QoreException* e) {
     ExceptionSink xsink;
 
     while (e) {
@@ -606,20 +636,20 @@ QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper() : loc(n
 }
 
 QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper(const QoreExternalProgramLocationWrapper& old)
-    : file_str(old.file_str), source_str(old.source_str), lang_str(old.lang_str),
-      loc(new QoreProgramLocation(file_str.c_str(), old.loc->start_line, old.loc->end_line,
-        source_str.empty() ? nullptr : source_str.c_str(), old.loc->offset,
-        lang_str.empty() ? nullptr : lang_str.c_str())) {
+        : file_str(old.file_str), source_str(old.source_str), lang_str(old.lang_str),
+            loc(new QoreProgramLocation(file_str.c_str(), old.loc->start_line, old.loc->end_line,
+            source_str.empty() ? nullptr : source_str.c_str(), old.loc->offset,
+            lang_str.empty() ? nullptr : lang_str.c_str())) {
 }
 
 QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper(QoreExternalProgramLocationWrapper&& old)
-    : file_str(old.file_str), source_str(old.source_str), lang_str(old.lang_str), loc(old.loc) {
+        : file_str(old.file_str), source_str(old.source_str), lang_str(old.lang_str), loc(old.loc) {
     old.loc = nullptr;
 }
 
 QoreExternalProgramLocationWrapper::QoreExternalProgramLocationWrapper(const char* file, int start_line, int end_line,
-    const char* source, int offset, const char* lang) : file_str(file ? file : ""), source_str(source ? source : ""),
-    lang_str(lang ? lang : ""), loc(new QoreProgramLocation(file_str.c_str(), start_line, end_line,
+        const char* source, int offset, const char* lang) : file_str(file ? file : ""), source_str(source ? source : ""),
+        lang_str(lang ? lang : ""), loc(new QoreProgramLocation(file_str.c_str(), start_line, end_line,
         source_str.empty() ? nullptr : source_str.c_str(), offset, lang_str.empty() ? nullptr : lang_str.c_str())) {
     assert(file);
 }
@@ -705,21 +735,26 @@ const AbstractStatement* QoreExternalStackLocation::getStatement() const {
 class qore_external_runtime_stack_location_helper_priv : public QoreProgramStackLocationHelper {
 public:
     DLLLOCAL qore_external_runtime_stack_location_helper_priv(QoreExternalStackLocation& stack_loc)
-        : QoreProgramStackLocationHelper(&stack_loc, stack_loc.priv->stmt, stack_loc.priv->pgm) {
+            : QoreProgramStackLocationHelper(&stack_loc, stack_loc.priv->stmt, stack_loc.priv->pgm) {
     }
 
-    DLLLOCAL qore_external_runtime_stack_location_helper_priv(const qore_external_runtime_stack_location_helper_priv& old) = default;
+    DLLLOCAL qore_external_runtime_stack_location_helper_priv(
+        const qore_external_runtime_stack_location_helper_priv& old
+    ) = default;
 };
 
 QoreExternalRuntimeStackLocationHelper::QoreExternalRuntimeStackLocationHelper()
-    : priv(new qore_external_runtime_stack_location_helper_priv(*this)) {
+        : priv(new qore_external_runtime_stack_location_helper_priv(*this)) {
 }
 
-QoreExternalRuntimeStackLocationHelper::QoreExternalRuntimeStackLocationHelper(const QoreExternalRuntimeStackLocationHelper& old)
-    : priv(new qore_external_runtime_stack_location_helper_priv(*old.priv)) {
+QoreExternalRuntimeStackLocationHelper::QoreExternalRuntimeStackLocationHelper(
+            const QoreExternalRuntimeStackLocationHelper& old
+        ) : priv(new qore_external_runtime_stack_location_helper_priv(*old.priv)) {
 }
 
-QoreExternalRuntimeStackLocationHelper::QoreExternalRuntimeStackLocationHelper(QoreExternalRuntimeStackLocationHelper&& old) : priv(old.priv) {
+QoreExternalRuntimeStackLocationHelper::QoreExternalRuntimeStackLocationHelper(
+            QoreExternalRuntimeStackLocationHelper&& old
+        ) : priv(old.priv) {
     old.priv = nullptr;
 }
 

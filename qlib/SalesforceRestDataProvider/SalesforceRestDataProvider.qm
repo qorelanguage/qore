@@ -46,10 +46,17 @@ module SalesforceRestDataProvider {
         # register the data provider factory
         DataProvider::registerFactory(new SalesforceRestDataProviderFactory());
 
-        # register all supported actions
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+        # register the data provider application
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": SalesforceRestDataProvider::AppName,
+            "desc": "Salesforce® cloud CRM; Salesforce is a trademark of Salesforce, Inc.",
             "factory": "salesforcerest",
             "scheme": "sfrests",
+        });
+
+        # register all supported actions
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": SalesforceRestDataProvider::AppName,
             "path": "/{table}",
             "action": "create",
             "short_desc": "Create a record in Salesforce",
@@ -57,28 +64,23 @@ module SalesforceRestDataProvider {
             "path_vars": {
                 "table": "The name of the Salesforce table or sobject, ex: `Account`",
             },
-            # NOTE: this may not be true of every table, but we assume that it is
-            "supports_create": True,
+            "action_code": DPAT_CREATE,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "factory": "salesforcerest",
-            "scheme": "sfrests",
+            "app": SalesforceRestDataProvider::AppName,
             "path": "/{table}",
             "action": "find_single",
-            "short_desc": "Find a record in Salesforce",
+            "short_desc": "Find a single record in Salesforce",
             "desc": "Find a single record in Salesforce using Salesforce's REST API",
             "path_vars": {
                 "table": "The name of the Salesforce table or sobject, ex: `Account`",
             },
-            # NOTE: this may not be true of every table, but we assume that it is
-            "supports_read": True,
-            "single_record": True,
+            "action_code": DPAT_FIND_SINGLE,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "factory": "salesforcerest",
-            "scheme": "sfrests",
+            "app": SalesforceRestDataProvider::AppName,
             "path": "/{table}",
             "action": "find",
             "short_desc": "Find records in Salesforce",
@@ -86,13 +88,11 @@ module SalesforceRestDataProvider {
             "path_vars": {
                 "table": "The name of the Salesforce table or sobject, ex: `Account`",
             },
-            # NOTE: this may not be true of every table, but we assume that it is
-            "supports_read": True,
+            "action_code": DPAT_FIND,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "factory": "salesforcerest",
-            "scheme": "sfrests",
+            "app": SalesforceRestDataProvider::AppName,
             "path": "/{table}",
             "action": "update",
             "short_desc": "Update records in Salesforce",
@@ -100,13 +100,11 @@ module SalesforceRestDataProvider {
             "path_vars": {
                 "table": "The name of the Salesforce table or sobject, ex: `Account`",
             },
-            # NOTE: this may not be true of every table, but we assume that it is
-            "supports_update": True,
+            "action_code": DPAT_UPDATE,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "factory": "salesforcerest",
-            "scheme": "sfrests",
+            "app": SalesforceRestDataProvider::AppName,
             "path": "/{table}",
             "action": "upsert",
             "short_desc": "Upsert records in Salesforce",
@@ -114,13 +112,11 @@ module SalesforceRestDataProvider {
             "path_vars": {
                 "table": "The name of the Salesforce table or sobject, ex: `Account`",
             },
-            # NOTE: this may not be true of every table, but we assume that it is
-            "supports_upsert": True,
+            "action_code": DPAT_UPSERT,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
-            "factory": "salesforcerest",
-            "scheme": "sfrests",
+            "app": SalesforceRestDataProvider::AppName,
             "path": "/{table}",
             "action": "delete",
             "short_desc": "Delete records in Salesforce",
@@ -128,8 +124,7 @@ module SalesforceRestDataProvider {
             "path_vars": {
                 "table": "The name of the Salesforce table or sobject, ex: `Account`",
             },
-            # NOTE: this may not be true of every table, but we assume that it is
-            "supports_delete": True,
+            "action_code": DPAT_DELETE,
         });
     };
 }

@@ -871,4 +871,15 @@ nothing set_thread_name(string name) [dom=THREAD_CONTROL] {
     return QoreValue();
 #endif
 }
+
+//! Returns @ref True if there is an active exception for the current thread
+/** @return @ref True if there is an active exception for the current thread
+
+    Can be run in destructors or thread cleanup code to determine if an exception is active
+
+    @since %Qore 2.0
+*/
+bool active_exception() [dom=PROCESS] {
+    return q_active_exception();
+}
 ///@}

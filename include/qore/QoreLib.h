@@ -833,4 +833,9 @@ DLLEXPORT size_t q_thread_stack_used();
 */
 DLLEXPORT void q_enforce_thread_size_on_primary_thread();
 
+//! Returns true if there is an active %Qore exception in the current thread
+/** @since %Qore 2.0
+*/
+DLLEXPORT bool q_active_exception();
+
 #endif // _QORE_QORELIB_H

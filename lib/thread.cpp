@@ -406,6 +406,9 @@ public:
     // thread-local values
     tlvmap_t tlvmap;
 
+    // active exception counter
+    unsigned active_exceptions = 0;
+
     bool
         foreign : 1, // true if the thread is a foreign thread
         try_reexport : 1,
@@ -988,6 +991,13 @@ int check_stack(ExceptionSink* xsink) {
     return 0;
 }
 #endif
+
+void inc_active_exceptions(int diff) {
+    ThreadData* td = thread_data.get();
+    assert(diff == 1 || diff < 0);
+    assert(diff == 1 || ((td->active_exceptions + diff) >= 0));
+    td->active_exceptions += diff;
+}
 
 void get_thread_local_lvalue(void* ptr, QoreLValue<qore_gvar_ref_u>*& lvar, bool& is_new, bool& finalized) {
     ThreadData* td = thread_data.get();
@@ -2389,7 +2399,7 @@ void register_thread(int tid, pthread_t ptid, QoreProgram* p, bool foreign) {
     thread_list.activate(tid, ptid, p, foreign);
 }
 
-static void qore_thread_cleanup(void* n = 0) {
+static void qore_thread_cleanup(void* n = nullptr) {
 #ifdef HAVE_MPFR_BUILDOPT_TLS_T
     // only call mpfr_free_cache if MPFR uses TLS
     if (mpfr_buildopt_tls_p()) {
@@ -2446,6 +2456,8 @@ int q_deregister_foreign_thread() {
     // run any thread cleanup functions
     tclist.exec();
 
+    assert(!td->active_exceptions);
+
     // delete internal thread data structure and release TID entry
     thread_list.deleteDataRelease(tid);
 
@@ -2496,6 +2508,8 @@ int q_deregister_reserved_foreign_thread() {
 
     // run any thread cleanup functions
     tclist.exec();
+
+    assert(!td->active_exceptions);
 
     // delete internal thread data structure (do not release TID entry)
     thread_list.deleteData(td->tid);
@@ -2583,7 +2597,8 @@ namespace {
                 purge_thread_resources(&xsink);
 
                 // delete any thread data
-                thread_data.get()->del(&xsink);
+                ThreadData* td = thread_data.get();
+                td->del(&xsink);
 
                 xsink.handleExceptions();
 
@@ -2591,6 +2606,8 @@ namespace {
 
                 // run any cleanup functions
                 tclist.exec();
+
+                assert(!td->active_exceptions);
 
                 // delete internal thread data structure and release TID entry
                 thread_list.deleteDataRelease(ta->tid);
@@ -2661,6 +2678,8 @@ namespace {
                 int tid = btp->tid;
                 // dereference current Program object
                 btp->del();
+
+                assert(!td->active_exceptions);
 
                 // delete any thread data
                 td->del(&xsink);
@@ -2892,6 +2911,10 @@ void q_get_thread_name(QoreString& str) {
 }
 #endif
 #endif
+
+bool q_active_exception() {
+    return thread_data.get()->active_exceptions ? true : false;
+}
 
 void init_qore_threads() {
     QORE_TRACE("init_qore_threads()");

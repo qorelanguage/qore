@@ -46,14 +46,59 @@ module ServiceNowRestDataProvider {
         # register the data provider factory
         DataProvider::registerFactory(new ServiceNowRestDataProviderFactory());
 
-        # register all supported actions
-        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+        # register the data provider application
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": ServiceNowRestDataProvider::AppName,
+            "desc": "ServiceNow® cloud APIs; ServiceNow is a trademark of ServiceNow, Inc.",
             "factory": "servicenowrest",
             "scheme": "snrests",
-            "path": "/",
+        });
+
+        # register all supported actions
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": ServiceNowRestDataProvider::AppName,
+            "path": "/tables/incident",
+            "action": "create-incident",
             "short_desc": "Create an incident in ServiceNow",
             "desc": "Create an incident in ServiceNow by creating a record in the `incident` table using "
                 "ServiceNow's REST API",
+            "action_code": DPAT_CREATE,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": ServiceNowRestDataProvider::AppName,
+            "path": "/tables/incident",
+            "action": "find-single-incident",
+            "short_desc": "Find a specific incident in ServiceNow",
+            "desc": "Find a specific record in the `incident` table using ServiceNow's REST API",
+            "action_code": DPAT_FIND_SINGLE,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": ServiceNowRestDataProvider::AppName,
+            "path": "/tables/incident",
+            "action": "find-incidents",
+            "short_desc": "Find incident records in ServiceNow",
+            "desc": "Find records in the `incident` table using ServiceNow's REST API",
+            "action_code": DPAT_FIND,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": ServiceNowRestDataProvider::AppName,
+            "path": "/tables/incident",
+            "action": "update-incidents",
+            "short_desc": "Update incident records in ServiceNow",
+            "desc": "Update records in the `incident` table using ServiceNow's REST API",
+            "action_code": DPAT_UPDATE,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": ServiceNowRestDataProvider::AppName,
+            "path": "/tables/incident",
+            "action": "delete-incidents",
+            "short_desc": "Delete incident records in ServiceNow",
+            "desc": "Delete records in the `incident` table using ServiceNow's REST API",
+            "action_code": DPAT_DELETE,
         });
     };
 }
