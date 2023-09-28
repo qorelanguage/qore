@@ -416,6 +416,11 @@ public class DataProviderTest inherits QUnit::Test {
         assertEq((), DataProviderActionCatalog::searchAppActionRegex(get_random_string(), short_desc));
         assertEq((), DataProviderActionCatalog::searchAppActionSubstr(get_random_string(), short_desc));
 
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::searchAppActionRegexEx(), (get_random_string(),
+            short_desc));
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::searchAppActionSubstrEx(), (get_random_string(),
+            short_desc));
+
         assertEq((), DataProviderActionCatalog::searchActionRegex(get_random_string()));
         assertEq((), DataProviderActionCatalog::searchActionSubstr(get_random_string(), True));
         assertEq((), DataProviderActionCatalog::searchActionSubstr(get_random_string(), False));
