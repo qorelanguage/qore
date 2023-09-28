@@ -105,7 +105,7 @@ public const DPAT_DELETE = 9;
 #/@}
 
 #! Maps a @ref db_action_type "action type code" to a data provider attribute string
-const ActionMap = {
+public const ActionAttrMap = {
     DPAT_EVENT: "supports_observable",
     DPAT_API: "supports_request",
     DPAT_SEND_MESSAGE: "supports_messages",
@@ -115,6 +115,19 @@ const ActionMap = {
     DPAT_UPSERT: "supports_upsert",
     DPAT_UPDATE: "supports_update",
     DPAT_DELETE: "supports_delete",
+};
+
+#! Maps a @ref db_action_type "action type code" to a user-friendly name
+public const ActionNameMap = {
+    DPAT_EVENT: "event",
+    DPAT_API: "API",
+    DPAT_SEND_MESSAGE: "message",
+    DPAT_FIND: "find",
+    DPAT_FIND_SINGLE: "find_Single",
+    DPAT_CREATE: "create",
+    DPAT_UPSERT: "upsert",
+    DPAT_UPDATE: "update",
+    DPAT_DELETE: "delete",
 };
 
 #! DataProvider action definition
