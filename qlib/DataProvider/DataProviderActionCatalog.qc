@@ -160,18 +160,6 @@ public hashdecl DataProviderActionInfo {
     int action_code;
 }
 
-#! Data provider action flags
-const DataProviderActionFlags = (
-    "supports_request",
-    "supports_observable",
-    "supports_messages",
-    "supports_read",
-    "supports_create",
-    "supports_update",
-    "supports_upsert",
-    "supports_delete",
-);
-
 #! DataProvider action and application catalog class
 public class DataProviderActionCatalog {
     public {
@@ -413,6 +401,86 @@ public class DataProviderActionCatalog {
     */
     static *list<hash<DataProviderActionInfo>> getAllActions() {
         return top_actionmap.values();
+    }
+
+    #! Searches for application actions whose descriptions match a regular expression pattern
+    /** @param app The application to search for actions in
+        @param regex_pattern A regular expression pattern to match in the \c short_desc and \c desc fields
+        @param regex_options Regular expression options; a case-insensitive match is performed by default
+
+        @return All actions that match the regular expression pattern in the \c short_desc or \c desc fields
+
+        @note If the application does not exist, no results are returned
+    */
+    static *list<hash<DataProviderActionInfo>> searchAppActionRegex(string app, string regex_pattern,
+            int regex_options = RE_Caseless) {
+        return map $1, app_actionmap{app}.values(),
+            regex($1.short_desc, regex_pattern, regex_options) || regex($1.desc, regex_pattern, regex_options);
+    }
+
+    #! Searches for application actions whose descriptions match a substring
+    /** @param app The application to search for actions in
+        @param substr A substring to match in the \c short_desc and \c desc fields
+        @param ignore_case Ignore case when searching
+
+        @return All actions that match the substring argument in the \c short_desc or \c desc fields
+
+        @note If the application does not exist, no results are returned
+    */
+    static *list<hash<DataProviderActionInfo>> searchAppActionSubstr(string app, string substr,
+            bool ignore_case = True) {
+        if (ignore_case) {
+            substr = substr.upr();
+            return map $1, app_actionmap{app}.values(),
+                ($1.short_desc.upr().find(substr) >= 0) || ($1.desc.upr().find(substr) >= 0);
+        }
+        return map $1, app_actionmap{app}.values(), ($1.short_desc.find(substr) >= 0) || ($1.desc.find(substr) >= 0);
+    }
+
+    #! Searches for application actions whose descriptions match a regular expression pattern
+    /** @param app The application to search for actions in
+        @param regex_pattern A regular expression pattern to match in the \c short_desc and \c desc fields
+        @param regex_options Regular expression options; a case-insensitive match is performed by default
+
+        @return All actions that match the regular expression pattern in the \c short_desc or \c desc fields
+
+        @throw APP-ERROR the given application is not registered
+
+        @note If the application does not exist, an exception is thrown
+    */
+    static *list<hash<DataProviderActionInfo>> searchAppActionRegexEx(string app, string regex_pattern,
+            int regex_options = RE_Caseless) {
+        *hash<string, hash<DataProviderActionInfo>> appmap = app_actionmap{app};
+        if (!appmap) {
+            throw "APP-ERROR", sprintf("application %y is not registered", app);
+        }
+        return map $1, appmap.values(),
+            regex($1.short_desc, regex_pattern, regex_options) || regex($1.desc, regex_pattern, regex_options);
+    }
+
+    #! Searches for application actions whose descriptions match a substring
+    /** @param app The application to search for actions in
+        @param substr A substring to match in the \c short_desc and \c desc fields
+        @param ignore_case Ignore case when searching
+
+        @return All actions that match the substring argument in the \c short_desc or \c desc fields
+
+        @throw APP-ERROR the given application is not registered
+
+        @note If the application does not exist, an exception is thrown
+    */
+    static *list<hash<DataProviderActionInfo>> searchAppActionSubstrEx(string app, string substr,
+            bool ignore_case = True) {
+        *hash<string, hash<DataProviderActionInfo>> appmap = app_actionmap{app};
+        if (!appmap) {
+            throw "APP-ERROR", sprintf("application %y is not registered", app);
+        }
+        if (ignore_case) {
+            substr = substr.upr();
+            return map $1, appmap.values(),
+                ($1.short_desc.upr().find(substr) >= 0) || ($1.desc.upr().find(substr) >= 0);
+        }
+        return map $1, appmap.values(), ($1.short_desc.find(substr) >= 0) || ($1.desc.find(substr) >= 0);
     }
 
     #! Searches for actions whose descriptions match a regular expression pattern
