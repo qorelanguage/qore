@@ -289,6 +289,13 @@ public class DataProviderActionCatalog {
         fmap{app.factory} += action;
     }
 
+    #! Returns all applications in the cache
+    /** @return all applications in the cache
+    */
+    static *list<hash<DataProviderAppInfo>> getAllApps() {
+        return appcache.values();
+    }
+
     #! Returns the application definition for the given application name
     /** @param app the app name
 
@@ -315,6 +322,32 @@ public class DataProviderActionCatalog {
             return rv;
         }
         throw "APP-ERROR", sprintf("application %y is not registered", app);
+    }
+
+    #! Searches for applications whose names or descriptions match a regular expression pattern
+    /** @param regex_pattern A regular expression pattern to match in the \c name and \c desc fields
+        @param regex_options Regular expression options; a case-insensitive match is performed by default
+
+        @return All applications that match the regular expression pattern in the \c name or \c desc fields
+    */
+    static *list<hash<DataProviderAppInfo>> searchAppRegex(string regex_pattern, int regex_options = RE_Caseless) {
+        return map $1, appcache.values(),
+            regex($1.name, regex_pattern, regex_options) || regex($1.desc, regex_pattern, regex_options);
+    }
+
+    #! Searches for applications whose names or descriptions match a substring
+    /** @param substr A substring to match in the \c name and \c desc fields
+        @param ignore_case Ignore case when searching
+
+        @return All applications that match the substring argument in the \c name or \c desc fields
+    */
+    static *list<hash<DataProviderAppInfo>> searchAppSubstr(string substr, bool ignore_case = True) {
+        if (ignore_case) {
+            substr = substr.upr();
+            return map $1, appcache.values(),
+                ($1.name.upr().find(substr) >= 0) || ($1.desc.upr().find(substr) >= 0);
+        }
+        return map $1, appcache.values(), ($1.name.find(substr) >= 0) || ($1.desc.find(substr) >= 0);
     }
 
     #! Returns all actions for a particular connection scheme
@@ -365,34 +398,8 @@ public class DataProviderActionCatalog {
     #! Returns all actions in the cache
     /** @return all actions in the cache
     */
-    static *list<hash<DataProviderActionInfo>> getAll() {
+    static *list<hash<DataProviderActionInfo>> getAllActions() {
         return top_actionmap.values();
-    }
-
-    #! Searches for applications whose names or descriptions match a regular expression pattern
-    /** @param regex_pattern A regular expression pattern to match in the \c name and \c desc fields
-        @param regex_options Regular expression options; a case-insensitive match is performed by default
-
-        @return All applications that match the regular expression pattern in the \c name or \c desc fields
-    */
-    static *list<hash<DataProviderAppInfo>> searchAppRegex(string regex_pattern, int regex_options = RE_Caseless) {
-        return map $1, appcache.values(),
-            regex($1.name, regex_pattern, regex_options) || regex($1.desc, regex_pattern, regex_options);
-    }
-
-    #! Searches for applications whose names or descriptions match a substring
-    /** @param substr A substring to match in the \c name and \c desc fields
-        @param ignore_case Ignore case when searching
-
-        @return All applications that match the substring argument in the \c name or \c desc fields
-    */
-    static *list<hash<DataProviderAppInfo>> searchAppSubstr(string substr, bool ignore_case = True) {
-        if (ignore_case) {
-            substr = substr.upr();
-            return map $1, appcache.values(),
-                ($1.name.upr().find(substr) >= 0) || ($1.desc.upr().find(substr) >= 0);
-        }
-        return map $1, appcache.values(), ($1.name.find(substr) >= 0) || ($1.desc.find(substr) >= 0);
     }
 
     #! Searches for actions whose descriptions match a regular expression pattern

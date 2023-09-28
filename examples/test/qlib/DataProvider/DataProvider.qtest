@@ -312,6 +312,8 @@ public class DataProviderTest inherits QUnit::Test {
         # negative tests registering actions
         assertThrows("ACTION-ERROR", \DataProviderActionCatalog::registerAction(), <DataProviderActionInfo>{});
 
+        assertEq(my_app, DataProviderActionCatalog::getAllApps()[0]);
+
         string act = get_random_string();
 
         string short_desc = get_random_string(40);
@@ -371,6 +373,8 @@ public class DataProviderTest inherits QUnit::Test {
         DataProviderActionCatalog::registerAction(action);
 
         assertThrows("APP-ERROR", \DataProviderActionCatalog::getActionsEx(), get_random_string());
+
+        assertEq(action, DataProviderActionCatalog::getAllActions()[0]);
 
         list<hash<DataProviderAppInfo>> apps = DataProviderActionCatalog::searchAppRegex(app);
         assertEq(1, apps.size());
