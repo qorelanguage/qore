@@ -123,7 +123,7 @@ public const ActionNameMap = {
     DPAT_API: "API",
     DPAT_SEND_MESSAGE: "message",
     DPAT_FIND: "find",
-    DPAT_FIND_SINGLE: "find_Single",
+    DPAT_FIND_SINGLE: "find_single",
     DPAT_CREATE: "create",
     DPAT_UPSERT: "upsert",
     DPAT_UPDATE: "update",
@@ -291,7 +291,8 @@ public class DataProviderActionCatalog {
     }
 
     #! Returns all applications in the cache
-    /** @return all applications in the cache
+    /**
+        @return all applications in the cache
     */
     static *list<hash<DataProviderAppInfo>> getAllApps() {
         return appcache.values();
