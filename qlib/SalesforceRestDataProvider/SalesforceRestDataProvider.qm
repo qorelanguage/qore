@@ -52,6 +52,7 @@ module SalesforceRestDataProvider {
             "desc": "Salesforce® cloud CRM; Salesforce is a trademark of Salesforce, Inc.",
             "factory": "salesforcerest",
             "scheme": "sfrests",
+            "oauth2_auth_code": True,
             "logo": SalesforceLogo,
             "logo_mime_type": MimeTypeSvg,
         });
