@@ -57,6 +57,18 @@ public hashdecl DataProviderAppInfo {
         by the \c scheme attribute
     */
     string factory;
+
+    #! The application logo
+    /** Must be an SVG or PNG; all logos must be square, and PNG must be 200x200 px
+    */
+    data logo;
+
+    #! The mime type for \c logo
+    /** Must be one of:
+        - SVG: \c image/svg+xml
+        - PNG: \c image/png
+    */
+    string logo_mime_type;
 }
 
 /** @defgroup dp_action_type DataProvider Action Type Codes
@@ -155,6 +167,8 @@ public class DataProviderActionCatalog {
             "name": True,
             "desc": True,
             "factory": True,
+            "logo": True,
+            "logo_mime_type": True,
         );
 
         #! Required action key set (without action_code and path_vars, which are checked separately)
@@ -355,13 +369,39 @@ public class DataProviderActionCatalog {
         return top_actionmap.values();
     }
 
+    #! Searches for applications whose names or descriptions match a regular expression pattern
+    /** @param regex_pattern A regular expression pattern to match in the \c name and \c desc fields
+        @param regex_options Regular expression options; a case-insensitive match is performed by default
+
+        @return All applications that match the regular expression pattern in the \c name or \c desc fields
+    */
+    static *list<hash<DataProviderAppInfo>> searchAppRegex(string regex_pattern, int regex_options = RE_Caseless) {
+        return map $1, appcache.values(),
+            regex($1.name, regex_pattern, regex_options) || regex($1.desc, regex_pattern, regex_options);
+    }
+
+    #! Searches for applications whose names or descriptions match a substring
+    /** @param substr A substring to match in the \c name and \c desc fields
+        @param ignore_case Ignore case when searching
+
+        @return All applications that match the substring argument in the \c name or \c desc fields
+    */
+    static *list<hash<DataProviderAppInfo>> searchAppSubstr(string substr, bool ignore_case = True) {
+        if (ignore_case) {
+            substr = substr.upr();
+            return map $1, appcache.values(),
+                ($1.name.upr().find(substr) >= 0) || ($1.desc.upr().find(substr) >= 0);
+        }
+        return map $1, appcache.values(), ($1.name.find(substr) >= 0) || ($1.desc.find(substr) >= 0);
+    }
+
     #! Searches for actions whose descriptions match a regular expression pattern
     /** @param regex_pattern A regular expression pattern to match in the \c short_desc and \c desc fields
         @param regex_options Regular expression options; a case-insensitive match is performed by default
 
         @return All actions that match the regular expression pattern in the \c short_desc or \c desc fields
     */
-    static *list<hash<DataProviderActionInfo>> searchRegex(string regex_pattern, int regex_options = RE_Caseless) {
+    static *list<hash<DataProviderActionInfo>> searchActionRegex(string regex_pattern, int regex_options = RE_Caseless) {
         return map $1, top_actionmap.values(),
             regex($1.short_desc, regex_pattern, regex_options) || regex($1.desc, regex_pattern, regex_options);
     }
@@ -372,7 +412,7 @@ public class DataProviderActionCatalog {
 
         @return All actions that match the substring argument in the \c short_desc or \c desc fields
     */
-    static *list<hash<DataProviderActionInfo>> searchSubstr(string substr, bool ignore_case = True) {
+    static *list<hash<DataProviderActionInfo>> searchActionSubstr(string substr, bool ignore_case = True) {
         if (ignore_case) {
             substr = substr.upr();
             return map $1, top_actionmap.values(),

@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.0
+%requires qore >= 2.0
 
 %requires Util
 
@@ -31,7 +31,7 @@
 %new-style
 
 module Mime {
-    version = "1.4.4";
+    version = "1.5";
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
@@ -97,6 +97,9 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
     @endverbatim
 
     @section mimereleasenotes Release Notes
+
+    @subsection mime_1_5 v1.5
+    - added a constant for SVG types
 
     @subsection mime_1_4_4 v1.4.4
     - various fixes from downstream to Mime data handling
@@ -269,10 +272,13 @@ public namespace Mime {
     #! Mime type for multipart mixed
     public const MimeTypeMultipartMixed = "multipart/mixed";
 
+    #! Mime type for SVG files
+    public const MimeTypeSvg = "image/svg+xml";
+
     #! A map of default mime types per file extension; the hash keys are file extensions in lower-case without the dot (ex: \c "txt")
     /** @showinitializer
      */
-    public const MimeTypes = (
+    public const MimeTypes = {
         "7z": "application/x-7z-compressed",
         "ai": "application/postscript",
         "aif": "audio/x-aiff",
@@ -450,7 +456,7 @@ public namespace Mime {
         "src": "application/x-wais-source",
         "sv4cpio": "application/x-sv4cpio",
         "sv4crc": "application/x-sv4crc",
-        "svg": "image/svg+xml",
+        "svg": MimeTypeSvg,
         "swf": "application/x-shockwave-flash",
         "t": "application/x-troff",
         "tar": "application/x-tar",
@@ -495,7 +501,7 @@ public namespace Mime {
         "xyz": "chemical/x-xyz",
         "yaml": MimeTypeYaml,
         "zip": "application/zip",
-        );
+    };
 
     #! hash of non-alphanumeric characters that can be used unencoded in URL encoded format
     /** @note the plus character can also appear unencoded in a URL string, but because many
@@ -504,7 +510,7 @@ public namespace Mime {
 
         @see <a href="https://tools.ietf.org/html/rfc1738">RFC 2738 2.2</a>
     */
-    public const UrlEncodedChars = (
+    public const UrlEncodedChars = {
         "\$": True,
         "-": True,
         "_": True,
@@ -515,7 +521,7 @@ public namespace Mime {
         "(": True,
         ")": True,
         ",": True
-        );
+    };
     #/@}
 
     /** @defgroup MimeContentTransferEncodingConstants MIME Content Transfer Encoding Constants

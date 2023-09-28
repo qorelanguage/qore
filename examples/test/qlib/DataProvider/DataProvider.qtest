@@ -9,6 +9,7 @@
 
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/Mime.qm
 %requires ../../../../qlib/DataProvider
 
 %requires reflection
@@ -265,16 +266,43 @@ public class DataProviderTest inherits QUnit::Test {
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
             "factory": "test",
+            "logo": "data",
+            "logo_mime_type": MimeTypeSvg,
+        });
+
+        # missing logo
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
+            "name": "test",
+            "factory": "test",
+            "logo_mime_type": MimeTypeSvg,
+        });
+
+        # missing logo mime type
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
+            "name": "test",
+            "factory": "test",
+            "logo": "data",
+        });
+
+        # invalid logo mime type
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
+            "name": "test",
+            "factory": "test",
+            "logo": "data",
+            "logo_mime_type": MimeTypeJpeg,
         });
 
         string app = get_random_string();
+        string appdesc = get_random_string();
         string scheme = get_random_string();
         string factory = get_random_string();
         hash<DataProviderAppInfo> my_app = <DataProviderAppInfo>{
             "name": app,
-            "desc": "test",
+            "desc": appdesc,
             "factory": factory,
             "scheme": scheme,
+            "logo": "data",
+            "logo_mime_type": MimeTypeSvg,
         };
         DataProviderActionCatalog::registerApp(my_app);
         assertEq(my_app, DataProviderActionCatalog::getApp(app));
@@ -344,36 +372,70 @@ public class DataProviderTest inherits QUnit::Test {
 
         assertThrows("APP-ERROR", \DataProviderActionCatalog::getActionsEx(), get_random_string());
 
+        list<hash<DataProviderAppInfo>> apps = DataProviderActionCatalog::searchAppRegex(app);
+        assertEq(1, apps.size());
+        assertEq(my_app, apps[0]);
+
+        apps = DataProviderActionCatalog::searchAppSubstr(app, True);
+        assertEq(1, apps.size());
+        assertEq(my_app, apps[0]);
+
+        apps = DataProviderActionCatalog::searchAppSubstr(app, False);
+        assertEq(1, apps.size());
+        assertEq(my_app, apps[0]);
+
+        apps = DataProviderActionCatalog::searchAppRegex(appdesc[5..10]);
+        assertEq(1, apps.size());
+        assertEq(my_app, apps[0]);
+
+        apps = DataProviderActionCatalog::searchAppSubstr(appdesc[5..10], True);
+        assertEq(1, apps.size());
+        assertEq(my_app, apps[0]);
+
+        apps = DataProviderActionCatalog::searchAppSubstr(appdesc[5..10], False);
+        assertEq(1, apps.size());
+        assertEq(my_app, apps[0]);
+
+        apps = DataProviderActionCatalog::searchAppRegex(get_random_string());
+        assertEq((), apps);
+
+        apps = DataProviderActionCatalog::searchAppSubstr(get_random_string(), True);
+        assertEq((), apps);
+
+        apps = DataProviderActionCatalog::searchAppSubstr(get_random_string(), False);
+        assertEq((), apps);
+
         list<hash<DataProviderActionInfo>> actions = DataProviderActionCatalog::getActions(app);
         assertEq(1, actions.size());
         assertEq(action, actions[0]);
 
-        assertEq((), DataProviderActionCatalog::searchRegex(get_random_string()));
-        assertEq((), DataProviderActionCatalog::searchSubstr(get_random_string()));
+        assertEq((), DataProviderActionCatalog::searchActionRegex(get_random_string()));
+        assertEq((), DataProviderActionCatalog::searchActionSubstr(get_random_string(), True));
+        assertEq((), DataProviderActionCatalog::searchActionSubstr(get_random_string(), False));
         assertNothing(DataProviderActionCatalog::getActionsForScheme(get_random_string()));
         assertNothing(DataProviderActionCatalog::getActionsForFactory(get_random_string()));
 
-        actions = DataProviderActionCatalog::searchRegex(short_desc);
+        actions = DataProviderActionCatalog::searchActionRegex(short_desc);
         assertEq(1, actions.size());
         assertEq(action, actions[0]);
 
-        actions = DataProviderActionCatalog::searchRegex(desc);
+        actions = DataProviderActionCatalog::searchActionRegex(desc);
         assertEq(1, actions.size());
         assertEq(action, actions[0]);
 
-        actions = DataProviderActionCatalog::searchSubstr(short_desc, False);
+        actions = DataProviderActionCatalog::searchActionSubstr(short_desc, False);
         assertEq(1, actions.size());
         assertEq(action, actions[0]);
 
-        actions = DataProviderActionCatalog::searchSubstr(desc, False);
+        actions = DataProviderActionCatalog::searchActionSubstr(desc, False);
         assertEq(1, actions.size());
         assertEq(action, actions[0]);
 
-        actions = DataProviderActionCatalog::searchSubstr(short_desc, True);
+        actions = DataProviderActionCatalog::searchActionSubstr(short_desc, True);
         assertEq(1, actions.size());
         assertEq(action, actions[0]);
 
-        actions = DataProviderActionCatalog::searchSubstr(desc, True);
+        actions = DataProviderActionCatalog::searchActionSubstr(desc, True);
         assertEq(1, actions.size());
         assertEq(action, actions[0]);
 

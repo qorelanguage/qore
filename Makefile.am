@@ -1091,8 +1091,11 @@ doxygen/qlib/Doxyfile.Mime: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 doxygen/qlib/Doxyfile.Util: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Util.qm:doxygen/qlib/Util.qm $< $@
 
-doxygen/qlib/Doxyfile.DataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/DataProvider:doxygen/qlib/DataProvider.qm -X=doxygen/ -E=DataProvider-Full.svg $< $@
+doxygen/qlib/Doxyfile.MapperUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/MapperUtil.qm:doxygen/qlib/MapperUtil.qm $< $@
+
+doxygen/qlib/Doxyfile.DataProvider: doxygen/qlib/Doxyfile.tmpl doxygen/qlib/Doxyfile.Mime doxygen/qlib/Doxyfile.Util doxygen/qlib/Doxyfile.MapperUtil $(QDX_DEP)
+	$(QDX) -M=qlib/DataProvider:doxygen/qlib/DataProvider.qm -X=doxygen/ -tMime.tag=../../Mime/html -tUtil.tag=../../Util/html -tMapperUtil.tag=../../MapperUtil/html -E=DataProvider-Full.svg $< $@
 
 doxygen/qlib/Doxyfile.FileLocationHandler: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/FileLocationHandler:doxygen/qlib/FileLocationHandler.qm -tUtil.tag=../../Util/html $< $@
@@ -1117,9 +1120,6 @@ doxygen/qlib/Doxyfile.Logger: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.WebSocketUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/WebSocketUtil.qm:doxygen/qlib/WebSocketUtil.qm $< $@
-
-doxygen/qlib/Doxyfile.MapperUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/MapperUtil.qm:doxygen/qlib/MapperUtil.qm $< $@
 
 doxygen/qlib/Doxyfile.ConnectionProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/ConnectionProvider:doxygen/qlib/ConnectionProvider.qm -tMime.tag=../../Mime/html $< $@

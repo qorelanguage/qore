@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.12
+%requires qore >= 2.0
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -36,6 +36,7 @@
 %requires(reexport) reflection
 %requires(reexport) Util
 %requires(reexport) MapperUtil
+%requires(reexport) Mime
 
 module DataProvider {
     version = "3.0";
