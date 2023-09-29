@@ -326,7 +326,7 @@ public class AbstractTable inherits AbstractSqlUtilBase {
 
         /** @defgroup upsert_results Upsert Result Codes
             @see @ref UpsertResultMap and @ref UpsertResultDescriptionMap
-            */
+        */
         #/@{
         #! row was inserted
         const UR_Inserted = 1;

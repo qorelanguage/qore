@@ -77,6 +77,7 @@ class RestCmd {
             "to":            "T,timeout=i",
             "token":         "t,token=s",
             "token_url":     "token_url=s",
+            "verify_cert":   "V,verify-cert",
             "lax":           "X,lax-parsing",
             "example":       "x,example:s",
             "tokentype":     "y,token-type=s",
@@ -379,6 +380,11 @@ class RestCmd {
                 showRestResponse(info, h.body, opt);
             }
 
+            if (opt.verify_cert) {
+                rest.setSslVerifyMode(SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT);
+                rest.connect();
+            }
+
             on_error rethrow $1.err, sprintf("%s (using url: %y request path: %y)", $1.desc, rest.getURL(),
                 request_path ?? "");
             h = rest.doRequest(meth, request_path ?? "", body, \info);
@@ -519,13 +525,14 @@ class RestCmd {
  -OS,--client-secret=ARG    set OAuth2 client secret
  -OT,--token-url=ARG        set OAuth2 token URL
  -P, --proxy-url=ARG        set the proxy URL (ex: http://proxy:port)
- -p. --base-path=ARG        override the base path for Swagger schemas
+ -p, --base-path=ARG        override the base path for Swagger schemas
  -R, --reformat             reformat data with -l+ for better readability
  -S, --serialization=ARG    set REST data serialization type:
                             auto, json, yaml, xml, rawxml, url
  -s, --swagger=ARG          use the given Swagger 2.0 schema for validation
  -T, --timeout=ARG          set HTTP timeout in seconds
  -t, --token=ARG            an authorization token to use
+ -V, --verify-cert          require and verify X.509 certificates from the server
  -X, --lax-parsing          lax parsing of Swagger schemas
  -x, --example[=ARG]        generate an example message; ARG=
                               q: generate Qore example (default data)
