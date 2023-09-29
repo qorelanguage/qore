@@ -49,10 +49,15 @@ void qore_es_private::assimilate(qore_es_private& xs) {
         }
         tail = xs.tail;
 
-        assert(xs.count);
-        count += xs.count;
-        xs.count = 0;
         xs.head = xs.tail = nullptr;
+        // NOTE: xs.count can be 0 if the object is externally managed
+        if (!xs.externally_managed) {
+            assert(xs.count);
+            count += xs.count;
+            xs.count = 0;
+        } else {
+            assert(!xs.count);
+        }
     } else {
         assert(!xs.head);
         assert(!xs.count);
@@ -69,8 +74,10 @@ void qore_es_private::insert(QoreException *e) {
     tail = e;
 
     // increment exception counts
-    ++count;
-    inc_active_exceptions(1);
+    if (!externally_managed) {
+        ++count;
+        inc_active_exceptions(1);
+    }
 }
 
 ExceptionSink::ExceptionSink() : priv(new qore_es_private) {
@@ -120,6 +127,7 @@ QoreException* ExceptionSink::catchException() {
     QoreException* e = priv->head;
     priv->head = priv->tail = nullptr;
     if (priv->count) {
+        assert(!priv->externally_managed);
         inc_active_exceptions(-priv->count);
         priv->count = 0;
     }
@@ -146,8 +154,19 @@ void ExceptionSink::handleWarnings() {
     }
 }
 
+void ExceptionSink::markExternallyManaged() {
+    if (!priv->externally_managed) {
+        priv->externally_managed = true;
+        if (priv->count) {
+            inc_active_exceptions(-priv->count);
+            priv->count = 0;
+        }
+    }
+}
+
 void ExceptionSink::clear() {
     if (priv->count) {
+        assert(!priv->externally_managed);
         inc_active_exceptions(-priv->count);
         priv->count = 0;
     }

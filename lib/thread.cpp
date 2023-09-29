@@ -2456,7 +2456,7 @@ int q_deregister_foreign_thread() {
     // run any thread cleanup functions
     tclist.exec();
 
-    assert(!td->active_exceptions);
+    assert(xsink.isException() || !td->active_exceptions);
 
     // delete internal thread data structure and release TID entry
     thread_list.deleteDataRelease(tid);
@@ -2509,7 +2509,7 @@ int q_deregister_reserved_foreign_thread() {
     // run any thread cleanup functions
     tclist.exec();
 
-    assert(!td->active_exceptions);
+    assert(xsink.isException() || !td->active_exceptions);
 
     // delete internal thread data structure (do not release TID entry)
     thread_list.deleteData(td->tid);
@@ -2607,7 +2607,7 @@ namespace {
                 // run any cleanup functions
                 tclist.exec();
 
-                assert(!td->active_exceptions);
+                assert(xsink.isException() || !td->active_exceptions);
 
                 // delete internal thread data structure and release TID entry
                 thread_list.deleteDataRelease(ta->tid);
@@ -2679,7 +2679,7 @@ namespace {
                 // dereference current Program object
                 btp->del();
 
-                assert(!td->active_exceptions);
+                assert(xsink.isException() || !td->active_exceptions);
 
                 // delete any thread data
                 td->del(&xsink);

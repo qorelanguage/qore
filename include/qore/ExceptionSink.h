@@ -257,6 +257,9 @@ public:
     */
     DLLEXPORT int renamePrependLastException(const char* err, const char* desc_fmt, ...);
 
+    //! Call if the ExceptionSink object will be managed outside of Qore
+    DLLEXPORT void markExternallyManaged();
+
     DLLLOCAL void raiseException(QoreException* e);
     DLLLOCAL void raiseException(const QoreListNode* n);
     DLLLOCAL QoreException* catchException();

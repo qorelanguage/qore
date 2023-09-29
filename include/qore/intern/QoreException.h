@@ -215,6 +215,7 @@ struct qore_es_private {
     unsigned count = 0;
     bool thread_exit = false;
     bool rethrown = false;
+    bool externally_managed = false;
 
     DLLLOCAL qore_es_private() {
     }
