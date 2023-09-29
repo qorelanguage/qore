@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.14.1
+%requires qore >= 2.0
 
 # require type definitions everywhere
 %require-types
@@ -48,7 +48,7 @@
 %endtry
 
 module WebSocketClient {
-    version = "2.2";
+    version = "2.3";
     desc = "user module for providing client support for the WebSocket protocol";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -60,6 +60,34 @@ module WebSocketClient {
 
         # register the data provider factory
         DataProvider::registerFactory(new WebSocketClientDataProviderFactory());
+
+        # register the data provider application
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": WebSocketClient::AppName,
+            "desc": "Generic WebSocket server",
+            "factory": "wsclient",
+            "logo": WebSocketsLogo,
+            "logo_mime_type": MimeTypeSvg,
+        });
+
+        # register all supported actions
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": WebSocketClient::AppName,
+            "path": "/",
+            "action": "websocket-get-msg",
+            "short_desc": "Receive a WebSocket message",
+            "desc": "Receive a WebSocket message from a WebSocket server",
+            "action_code": DPAT_EVENT,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": WebSocketClient::AppName,
+            "path": "/",
+            "action": "websocket-send-msg",
+            "short_desc": "Send a WebSocket message",
+            "desc": "Send a WebSocket message to a WebSocket server",
+            "action_code": DPAT_SEND_MESSAGE,
+        });
     };
 }
 
@@ -114,6 +142,10 @@ c.waitForZero();
     @endcode
 
     @section websocketclient_relnotes WebSocketClient Module Release History
+
+    @subsection wsc_v2_3 v2.3
+    - added support for the data provider action catalog API
+      (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
 
     @subsection wsc_v2_2 v2.2
     - fixed creating example WebSocket client data providers from factories with templated option values
@@ -218,6 +250,9 @@ public const WsSchemes = {
 
 /** @defgroup WSClientRawCallbackReturnCodes WebSocketClient Raw Callback Return Codes
 */
+#! Application name
+public const AppName = "WebSockets";
+
 #/@{
 #! If the client should process the message normally
 public const WSC_Process = 0;
@@ -1501,7 +1536,9 @@ public class WebSocketClientDataProvider inherits WebSocketClientDataProviderBas
 
     #! Creates the object from constructor + template options
     constructor(hash<auto> template_options, *hash<auto> options)
-            : WebSocketClientDataProviderBase(WebSocketClientDataProviderBase::getOptionsFromTemplate(template_options, options)) {
+            : WebSocketClientDataProviderBase(
+                WebSocketClientDataProviderBase::getOptionsFromTemplate(template_options, options)
+            ) {
         start();
     }
 
@@ -1534,7 +1571,9 @@ public class WebSocketClientDelayedDataProvider inherits WebSocketClientDataProv
 
     #! Creates the object from constructor + template options
     constructor(hash<auto> template_options, *hash<auto> options)
-            : WebSocketClientDataProviderBase(WebSocketClientDataProviderBase::getOptionsFromTemplate(template_options, options)) {
+            : WebSocketClientDataProviderBase(
+                WebSocketClientDataProviderBase::getOptionsFromTemplate(template_options, options)
+            ) {
     }
 
     #! Called when all observers have been added to the object
@@ -1693,4 +1732,44 @@ public class WebSocketClientDataProviderFactory inherits AbstractDataProviderFac
         return cls;
     }
 }
+}
+
+namespace Priv {
+#! Logo for the WebSockets app
+const WebSocketsLogo = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
+<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">
+<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 567 567\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;\">
+    <g id=\"Layer-1\" serif:id=\"Layer 1\">
+        <g id=\"g5\" transform=\"matrix(1,0,0,1,0,-21)\">
+            <path id=\"rect1\" d=\"M445.886,268.502C445.886,234.066 417.929,206.109 383.493,206.109L182.735,206.109C148.299,206.109 120.342,234.066 120.342,268.502L120.342,457.2C120.342,491.635 148.299,519.593 182.735,519.593L383.493,519.593C417.929,519.593 445.886,491.635 445.886,457.2L445.886,268.502Z\" style=\"fill:rgb(0,12,60);stroke:white;stroke-width:2.31px;\"/>
+            <rect id=\"rect2\" x=\"186.959\" y=\"280.083\" width=\"33.727\" height=\"80.473\" style=\"fill:white;stroke:white;stroke-width:2.31px;\"/>
+            <g id=\"g3\" transform=\"matrix(1.44,0,0,1.44,60.276,91.5143)\">
+                <ellipse id=\"path2\" cx=\"156.458\" cy=\"231.332\" rx=\"13.39\" ry=\"15.519\" style=\"fill:white;stroke:white;stroke-width:1.57px;\"/>
+                <rect id=\"rect3\" x=\"143.371\" y=\"230.964\" width=\"26.707\" height=\"25.537\" style=\"fill:white;stroke:white;stroke-width:1.64px;\"/>
+            </g>
+            <g id=\"image1\" transform=\"matrix(1.08,0,0,1.08,340.423,278.93)\">
+                <use xlink:href=\"#_Image1\" x=\"0\" y=\"0\" width=\"33px\" height=\"77px\"/>
+            </g>
+        </g>
+        <g transform=\"matrix(1,0,0,1,46.2005,136.933)\">
+            <g id=\"text5\">
+                <g>
+                    <path d=\"M61.2,-4.23C60.66,-1.17 58.8,0.36 55.62,0.36L51.75,0.36C49.11,0.36 47.4,-1.14 46.62,-4.14L37.8,-37.44C37.68,-37.98 37.5,-38.25 37.26,-38.25L37.08,-38.25C36.84,-38.25 36.66,-37.98 36.54,-37.44L27.63,-4.14C26.85,-1.14 25.14,0.36 22.5,0.36L18.72,0.36C15.54,0.36 13.68,-1.17 13.14,-4.23L3.15,-65.34C3.15,-66.36 3.66,-66.87 4.68,-66.87L9.9,-66.87C10.74,-66.87 11.25,-66.36 11.43,-65.34L20.16,-8.01C20.34,-7.11 20.49,-6.66 20.61,-6.66C20.85,-6.66 21.06,-7.11 21.24,-8.01L30.06,-41.31C30.66,-43.71 32.07,-44.91 34.29,-44.91L40.05,-44.91C42.27,-44.91 43.68,-43.71 44.28,-41.31L53.1,-8.01C53.28,-7.11 53.49,-6.66 53.73,-6.66C53.85,-6.66 54,-7.11 54.18,-8.01L62.91,-65.34C63.09,-66.36 63.6,-66.87 64.44,-66.87L69.66,-66.87C70.68,-66.87 71.19,-66.36 71.19,-65.34L61.2,-4.23Z\" style=\"fill:rgb(0,0,70);fill-rule:nonzero;\"/>
+                    <path d=\"M115.74,-24.21C115.74,-22.89 115.17,-22.23 114.03,-22.23L83.88,-22.23L83.88,-20.97C83.88,-15.75 84.93,-11.97 87.03,-9.63C89.01,-7.41 92.13,-6.3 96.39,-6.3C102.75,-6.3 108.09,-6.63 112.41,-7.29L112.86,-7.29C113.82,-7.29 114.3,-6.87 114.3,-6.03L114.3,-2.97C114.3,-1.83 113.7,-1.14 112.5,-0.9C107.22,0.12 101.85,0.63 96.39,0.63C90.45,0.63 85.74,-0.87 82.26,-3.87C78.06,-7.53 75.96,-13.23 75.96,-20.97L75.96,-29.07C75.96,-35.61 77.67,-40.74 81.09,-44.46C84.63,-48.24 89.58,-50.13 95.94,-50.13C102.36,-50.13 107.31,-48.21 110.79,-44.37C114.09,-40.71 115.74,-35.61 115.74,-29.07L115.74,-24.21ZM107.73,-29.07C107.73,-38.49 103.8,-43.2 95.94,-43.2C87.9,-43.2 83.88,-38.49 83.88,-29.07L83.88,-28.26L107.73,-28.26L107.73,-29.07Z\" style=\"fill:rgb(0,0,70);fill-rule:nonzero;\"/>
+                    <path d=\"M164.61,-21.6C164.61,-6.78 158.07,0.63 144.99,0.63C139.23,0.63 133.71,0.12 128.43,-0.9C127.17,-1.14 126.54,-1.83 126.54,-2.97L126.54,-65.97C126.54,-67.11 127.08,-67.68 128.16,-67.68L132.75,-67.68C133.89,-67.68 134.46,-67.11 134.46,-65.97L134.46,-49.23C137.7,-49.83 141.21,-50.13 144.99,-50.13C158.07,-50.13 164.61,-42.78 164.61,-28.08L164.61,-21.6ZM156.69,-28.08C156.69,-33.12 155.85,-36.84 154.17,-39.24C152.31,-41.88 149.25,-43.2 144.99,-43.2C140.31,-43.2 136.8,-42.99 134.46,-42.57L134.46,-6.84C138.54,-6.48 142.05,-6.3 144.99,-6.3C149.25,-6.3 152.31,-7.62 154.17,-10.26C155.85,-12.66 156.69,-16.44 156.69,-21.6L156.69,-28.08Z\" style=\"fill:rgb(0,0,70);fill-rule:nonzero;\"/>
+                    <path d=\"M214.11,-17.37C214.11,-5.37 206.7,0.63 191.88,0.63C187.2,0.63 182.22,0.21 176.94,-0.63C175.8,-0.81 175.23,-1.35 175.23,-2.25L175.23,-5.85C175.23,-6.81 175.74,-7.29 176.76,-7.29L177.03,-7.29C181.17,-6.93 186.12,-6.75 191.88,-6.75C201,-6.75 205.56,-10.29 205.56,-17.37C205.56,-19.59 204.78,-21.54 203.22,-23.22C201.78,-24.78 198.96,-26.85 194.76,-29.43L186.03,-34.74C177.75,-39.78 173.61,-45.39 173.61,-51.57C173.61,-62.19 180.78,-67.5 195.12,-67.5C201,-67.5 206.22,-67.14 210.78,-66.42C211.8,-66.24 212.31,-65.73 212.31,-64.89L212.31,-61.02C212.31,-60.06 211.8,-59.58 210.78,-59.58L210.6,-59.58C205.32,-59.94 200.16,-60.12 195.12,-60.12C190.38,-60.12 187.02,-59.52 185.04,-58.32C182.94,-57.06 181.89,-54.81 181.89,-51.57C181.89,-48.27 185.16,-44.64 191.7,-40.68L199.98,-35.73C209.4,-30.15 214.11,-24.03 214.11,-17.37Z\" style=\"fill:rgb(0,0,70);fill-rule:nonzero;\"/>
+                    <path d=\"M263.16,-21.33C263.16,-14.55 261.48,-9.24 258.12,-5.4C254.58,-1.38 249.57,0.63 243.09,0.63C236.61,0.63 231.63,-1.38 228.15,-5.4C224.79,-9.24 223.11,-14.55 223.11,-21.33L223.11,-28.17C223.11,-34.95 224.79,-40.26 228.15,-44.1C231.63,-48.12 236.61,-50.13 243.09,-50.13C249.57,-50.13 254.58,-48.12 258.12,-44.1C261.48,-40.26 263.16,-34.95 263.16,-28.17L263.16,-21.33ZM255.24,-28.17C255.24,-38.19 251.19,-43.2 243.09,-43.2C235.05,-43.2 231.03,-38.19 231.03,-28.17L231.03,-21.33C231.03,-11.31 235.05,-6.3 243.09,-6.3C251.19,-6.3 255.24,-11.31 255.24,-21.33L255.24,-28.17Z\" style=\"fill:rgb(0,0,70);fill-rule:nonzero;\"/>
+                    <path d=\"M304.38,-2.34C304.38,-1.26 303.78,-0.6 302.58,-0.36C298.98,0.3 295.23,0.63 291.33,0.63C285.27,0.63 280.56,-1.35 277.2,-5.31C273.84,-9.21 272.16,-14.52 272.16,-21.24L272.16,-28.26C272.16,-34.98 273.81,-40.29 277.11,-44.19C280.53,-48.15 285.27,-50.13 291.33,-50.13C295.23,-50.13 298.98,-49.8 302.58,-49.14C303.78,-48.9 304.38,-48.24 304.38,-47.16L304.38,-43.92C304.38,-43.02 303.87,-42.57 302.85,-42.57L302.49,-42.57C298.77,-42.99 295.05,-43.2 291.33,-43.2C283.83,-43.2 280.08,-38.22 280.08,-28.26L280.08,-21.24C280.08,-11.28 283.83,-6.3 291.33,-6.3C295.05,-6.3 298.77,-6.51 302.49,-6.93L302.85,-6.93C303.87,-6.93 304.38,-6.48 304.38,-5.58L304.38,-2.34Z\" style=\"fill:rgb(0,0,70);fill-rule:nonzero;\"/>
+                    <path d=\"M349.83,-1.17C349.83,-0.39 349.5,0 348.84,0L342.36,0C341.58,0 340.89,-0.39 340.29,-1.17L322.38,-23.31L322.38,-1.8C322.38,-0.6 321.78,0 320.58,0L316.26,0C315.06,0 314.46,-0.6 314.46,-1.8L314.46,-65.88C314.46,-67.08 315.06,-67.68 316.26,-67.68L320.58,-67.68C321.78,-67.68 322.38,-67.08 322.38,-65.88L322.38,-28.44L340.38,-48.69C340.86,-49.23 341.46,-49.5 342.18,-49.5L348.48,-49.5C349.38,-49.5 349.83,-49.17 349.83,-48.51C349.83,-48.15 349.68,-47.82 349.38,-47.52L329.58,-26.1L349.56,-1.98C349.74,-1.8 349.83,-1.53 349.83,-1.17Z\" style=\"fill:rgb(0,0,70);fill-rule:nonzero;\"/>
+                    <path d=\"M394.11,-24.21C394.11,-22.89 393.54,-22.23 392.4,-22.23L362.25,-22.23L362.25,-20.97C362.25,-15.75 363.3,-11.97 365.4,-9.63C367.38,-7.41 370.5,-6.3 374.76,-6.3C381.12,-6.3 386.46,-6.63 390.78,-7.29L391.23,-7.29C392.19,-7.29 392.67,-6.87 392.67,-6.03L392.67,-2.97C392.67,-1.83 392.07,-1.14 390.87,-0.9C385.59,0.12 380.22,0.63 374.76,0.63C368.82,0.63 364.11,-0.87 360.63,-3.87C356.43,-7.53 354.33,-13.23 354.33,-20.97L354.33,-29.07C354.33,-35.61 356.04,-40.74 359.46,-44.46C363,-48.24 367.95,-50.13 374.31,-50.13C380.73,-50.13 385.68,-48.21 389.16,-44.37C392.46,-40.71 394.11,-35.61 394.11,-29.07L394.11,-24.21ZM386.1,-29.07C386.1,-38.49 382.17,-43.2 374.31,-43.2C366.27,-43.2 362.25,-38.49 362.25,-29.07L362.25,-28.26L386.1,-28.26L386.1,-29.07Z\" style=\"fill:rgb(0,0,70);fill-rule:nonzero;\"/>
+                    <path d=\"M428.49,-1.35C428.49,-0.51 427.95,0 426.87,0.18C424.89,0.48 422.94,0.63 421.02,0.63C416.64,0.63 413.58,-0.15 411.84,-1.71C409.8,-3.45 408.78,-6.69 408.78,-11.43L408.78,-42.84L400.05,-43.83C398.91,-43.95 398.34,-44.49 398.34,-45.45L398.34,-47.88C398.34,-48.96 398.91,-49.5 400.05,-49.5L408.78,-49.5L408.78,-58.32C408.78,-59.34 409.32,-59.94 410.4,-60.12L415.35,-60.84C416.25,-60.84 416.7,-60.33 416.7,-59.31L416.7,-49.5L426.42,-49.5C427.62,-49.5 428.22,-48.9 428.22,-47.7L428.22,-44.64C428.22,-43.44 427.62,-42.84 426.42,-42.84L416.7,-42.84L416.7,-11.43C416.7,-9.03 417.06,-7.47 417.78,-6.75C418.38,-6.09 419.64,-5.76 421.56,-5.76L426.6,-5.76C427.86,-5.76 428.49,-5.34 428.49,-4.5L428.49,-1.35Z\" style=\"fill:rgb(0,0,70);fill-rule:nonzero;\"/>
+                    <path d=\"M468.18,-12.42C468.18,-3.72 462.57,0.63 451.35,0.63C445.53,0.63 440.79,0.18 437.13,-0.72C435.87,-1.02 435.24,-1.62 435.24,-2.52L435.24,-5.67C435.24,-6.57 435.78,-7.02 436.86,-7.02L437.22,-7.02C442.5,-6.36 447.21,-6.03 451.35,-6.03C457.29,-6.03 460.26,-8.16 460.26,-12.42C460.26,-14.7 458.01,-17.19 453.51,-19.89L444.42,-25.29C438.3,-29.01 435.24,-33.3 435.24,-38.16C435.24,-46.14 440.67,-50.13 451.53,-50.13C456.33,-50.13 461.01,-49.74 465.57,-48.96C466.71,-48.78 467.28,-48.18 467.28,-47.16L467.28,-44.19C467.28,-43.17 466.77,-42.66 465.75,-42.66L465.48,-42.66C459.9,-43.14 455.25,-43.38 451.53,-43.38C448.65,-43.38 446.64,-43.08 445.5,-42.48C443.94,-41.7 443.16,-40.26 443.16,-38.16C443.16,-36.06 445.23,-33.78 449.37,-31.32L458.28,-26.01C464.88,-22.11 468.18,-17.58 468.18,-12.42Z\" style=\"fill:rgb(0,0,70);fill-rule:nonzero;\"/>
+                </g>
+            </g>
+        </g>
+    </g>
+    <defs>
+        <image id=\"_Image1\" width=\"33px\" height=\"77px\" xlink:href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAABNCAYAAAAo0g1OAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAWUlEQVRoge3OMRHAMAwAMbf8ObvTXyEkg4RAz+7uHPaeDsxI/CQiEYlIRCISkYhEJCIRiUhEIhKRiEQkIhGJSEQiEpGIRCQiEYlIRCISkYhEJCIRiUjkisQHlFkElhVBWMoAAAAASUVORK5CYII=\"/>
+    </defs>
+</svg>";
 }

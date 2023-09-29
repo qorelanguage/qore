@@ -24,6 +24,9 @@
 
 #! contains all public definitions in the FtpClientDataProvider module
 public namespace FtpClientDataProvider {
+#! Generic FTP server app name
+public const AppName = "FTP";
+
 #! The FTP client data provider class, provides API classes as children
 public class FtpClientDataProvider inherits AbstractDataProvider {
     public {

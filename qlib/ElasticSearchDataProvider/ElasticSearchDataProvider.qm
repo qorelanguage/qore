@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.16
+%requires qore >= 2.0
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -37,7 +37,7 @@
 %requires(reexport) RestClient
 
 module ElasticSearchDataProvider {
-    version = "1.0";
+    version = "1.1";
     desc = "user module providing a data provider API for ElasticSearch instances";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -45,6 +45,34 @@ module ElasticSearchDataProvider {
     init = sub () {
         # register the data provider factory
         DataProvider::registerFactory(new ElasticSearchDataProviderFactory());
+
+        # register the data provider application
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": ElasticSearchDataProvider::AppName,
+            "desc": "ElasticSearch server",
+            "factory": "elasticsearch",
+            "logo": ElasticSearchLogo,
+            "logo_mime_type": MimeTypeSvg,
+        });
+
+        # register all supported actions
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": ElasticSearchDataProvider::AppName,
+            "path": "/index/search",
+            "action": "search-index",
+            "short_desc": "Search for data in an ElasticSearch index",
+            "desc": "Search for data in an ElasticSearch index",
+            "action_code": DPAT_API,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": ElasticSearchDataProvider::AppName,
+            "path": "/document/create",
+            "action": "create-document",
+            "short_desc": "Add a document to ElasticSearch",
+            "desc": "Add a document to / ingest data in ElasticSearch",
+            "action_code": DPAT_API,
+        });
     };
 }
 
@@ -159,10 +187,124 @@ module ElasticSearchDataProvider {
 
     @section elasticsearchdataprovider_relnotes Release Notes
 
+    @subsection elasticsearchdataprovider_v1_1 ElasticSearchDataProvider v1.1
+    - added support for the data provider action catalog API
+      (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
+
     @subsection elasticsearchdataprovider_v1_0 ElasticSearchDataProvider v1.0
     - initial release of the module
 */
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
+}
+
+namespace Priv {
+const ElasticSearchLogo = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
+<!-- Generator: Adobe Illustrator 19.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   version=\"1.1\"
+   id=\"layer\"
+   x=\"0px\"
+   y=\"0px\"
+   viewBox=\"0 0 606.66666 207.87402\"
+   xml:space=\"preserve\"
+   sodipodi:docname=\"elastic-logo.svg\"
+   width=\"455pt\"
+   height=\"155.90552pt\"
+   inkscape:version=\"1.1.2 (0a00cf5339, 2022-02-04)\"
+   xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"
+   xmlns:sodipodi=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd\"
+   xmlns=\"http://www.w3.org/2000/svg\"
+   xmlns:svg=\"http://www.w3.org/2000/svg\"><defs
+   id=\"defs924\" /><sodipodi:namedview
+   id=\"namedview922\"
+   pagecolor=\"#ffffff\"
+   bordercolor=\"#666666\"
+   borderopacity=\"1.0\"
+   inkscape:pageshadow=\"2\"
+   inkscape:pageopacity=\"0.0\"
+   inkscape:pagecheckerboard=\"0\"
+   showgrid=\"false\"
+   units=\"pt\"
+   inkscape:zoom=\"0.90340483\"
+   inkscape:cx=\"230.24008\"
+   inkscape:cy=\"325.98896\"
+   inkscape:window-width=\"1852\"
+   inkscape:window-height=\"1016\"
+   inkscape:window-x=\"0\"
+   inkscape:window-y=\"0\"
+   inkscape:window-maximized=\"1\"
+   inkscape:current-layer=\"layer\"
+   inkscape:document-units=\"pt\" />
+<style
+   type=\"text/css\"
+   id=\"style891\">
+	.st0{fill:#FFFFFF;}
+	.st1{fill:#FED10A;}
+	.st2{fill:#24BBB1;}
+	.st3{fill:#EF5098;}
+	.st4{fill:#17A8E0;}
+	.st5{fill:#93C83E;}
+	.st6{fill:#0779A1;}
+</style>
+<path
+   class=\"st0\"
+   d=\"m 210.7565,110.74425 c 0,-17.300005 -10.7,-32.500005 -26.9,-38.300005 0.7,-3.7 1,-7.3 1,-11.1 0,-32.2 -26.2,-58.3999998 -58.3,-58.3999998 -18.9,0 -36.300002,8.9999998 -47.300002,24.1999998 -5.4,-4.2 -12,-6.5 -18.9,-6.5 -17.1,0 -31,13.9 -31,31 0,3.8 0.7,7.4 1.9,10.8 -16.1,5.8 -27.1000004,21.2 -27.1000004,38.400005 0,17.4 10.8000004,32.6 27.0000004,38.4 -0.7,3.6 -1,7.3 -1,11.1 0,32.1 26.1,58.2 58.2,58.2 18.900002,0 36.300002,-9.1 47.200002,-24.3 5.4,4.3 12,6.6 18.9,6.6 17.1,0 31,-13.9 31,-31 0,-3.8 -0.7,-7.4 -1.9,-10.8 16.2,-5.7 27.2,-21.1 27.2,-38.3\"
+   id=\"path893\" />
+<path
+   class=\"st1\"
+   d=\"m 85.456498,91.544245 45.200002,20.600005 45.6,-40.000005 c 0.7,-3.3 1,-6.5 1,-10 0,-28.1 -22.9,-51 -51,-51 -16.8,0 -32.500002,8.3 -42.000002,22.2 l -7.6,39.3 z\"
+   id=\"path895\" />
+<path
+   class=\"st2\"
+   d=\"m 38.656498,139.34425 c -0.7,3.3 -1,6.7 -1,10.2 0,28.2 23,51.1 51.1,51.1 16.900002,0 32.700002,-8.4 42.200002,-22.3 l 7.5,-39.2 -10,-19.2 -45.400002,-20.700005 z\"
+   id=\"path897\" />
+<path
+   class=\"st3\"
+   d=\"m 38.456498,61.144245 31,7.3 6.8,-35.2 c -4.2,-3.2 -9.4,-5 -14.8,-5 -13.4,0 -24.4,10.9 -24.4,24.4 -0.1,3 0.4,5.9 1.4,8.5\"
+   id=\"path899\" />
+<path
+   class=\"st4\"
+   d=\"m 35.756498,68.544245 c -13.8,4.5 -23.5,17.8 -23.5,32.399995 0,14.20001 8.8,26.90001 22,31.90001 l 43.4,-39.200005 -7.9,-17 z\"
+   id=\"path901\" />
+<path
+   class=\"st5\"
+   d=\"m 138.9565,178.24425 c 4.3,3.2 9.4,5.1 14.7,5.1 13.4,0 24.4,-10.9 24.4,-24.4 0,-3 -0.5,-5.8 -1.5,-8.5 l -30.9,-7.2 z\"
+   id=\"path903\" />
+<path
+   class=\"st6\"
+   d=\"m 145.2565,135.04425 34,7.9 c 13.9,-4.5 23.5,-17.8 23.5,-32.5 0,-14.100005 -8.8,-26.900005 -22,-31.900005 l -44.5,39.000005 z\"
+   id=\"path905\" />
+<path
+   d=\"m 292.9565,147.34425 4.1,-0.4 0.3,8.4 c -10.8,1.5 -20.1,2.3 -27.8,2.3 -10.2,0 -17.5,-3 -21.7,-8.9 -4.2,-5.9 -6.4,-15.2 -6.4,-27.7 0,-25.000005 9.9,-37.400005 29.8,-37.400005 9.6,0 16.8,2.7 21.5,8 4.7,5.3 7.1,13.800005 7.1,25.200005 l -0.6,8.1 h -47 c 0,7.9 1.4,13.7 4.3,17.5 2.9,3.8 7.8,5.7 14.8,5.7 7.2,0.1 14.3,-0.2 21.6,-0.8 z m -3.8,-30.8 c 0,-8.7 -1.4,-14.90001 -4.2,-18.500005 -2.8,-3.6 -7.3,-5.4 -13.6,-5.4 -6.3,0 -11.1,1.9 -14.2,5.7 -3.1,3.800005 -4.8,9.900005 -4.9,18.200005 z\"
+   id=\"path907\"
+   style=\"fill:#ffffff\" />
+<path
+   d=\"M 314.6565,156.24425 V 54.144245 h 10.6 V 156.24425 Z\"
+   id=\"path909\"
+   style=\"fill:#ffffff\" />
+<path
+   d=\"m 392.5565,106.64425 v 35 c 0,3.6 8.8,4.3 8.8,4.3 l -0.5,9.4 c -7.5,0 -13.7,0.6 -17.5,-3 -8.6,3.8 -17,5.3 -25.6,5.3 -6.5,0 -11.5,-1.8 -14.9,-5.6 -3.4,-3.7 -5.1,-9 -5.1,-16 0,-6.9 1.7,-12 5.2,-15.3 3.5,-3.3 9,-5.3 16.5,-6 l 22.3,-2.1 v -6 c 0,-4.8 -1,-8.300005 -3.1,-10.400005 -2.1,-2.1 -5,-3.1 -8.6,-3.1 h -28 v -9.5 h 27.3 c 8,0 13.9,1.8 17.5,5.6 3.9,3.7 5.7,9.5 5.7,17.400005 z m -43.8,28.9 c 0,8.7 3.6,13.1 10.8,13.1 6.5,0 12.8,-1 19,-3.2 l 3.2,-1.1 v -23.5 l -21,2 c -4.3,0.3 -7.3,1.6 -9.3,3.7 -2,2.1 -2.7,5.1 -2.7,9 z\"
+   id=\"path911\"
+   style=\"fill:#ffffff\" />
+<path
+   d=\"m 434.2565,93.144245 c -10.3,0 -15.5,3.6 -15.5,10.800005 0,3.3 1.2,5.7 3.6,7.1 2.4,1.4 7.8,2.8 16.2,4.3 8.5,1.5 14.4,3.5 17.9,6.2 3.5,2.6 5.2,7.6 5.2,14.9 0,7.3 -2.4,12.7 -7.1,16.1 -4.7,3.4 -11.5,5.1 -20.6,5.1 -5.8,0 -25.5,-2.2 -25.5,-2.2 l 0.6,-9.3 c 11.3,1 19.5,1.9 25,1.9 5.5,0 9.7,-0.9 12.6,-2.6 2.9,-1.7 4.4,-4.7 4.4,-8.8 0,-4.1 -1.2,-6.9 -3.7,-8.4 -2.4,-1.5 -7.9,-2.9 -16.2,-4.2 -8.4,-1.3 -14.3,-3.2 -17.8,-5.8 -3.5,-2.5 -5.2,-7.3 -5.2,-14.2 0,-6.900005 2.4,-12.000005 7.3,-15.400005 4.9,-3.3 11,-5 18.2,-5 5.8,0 25.8,1.5 25.8,1.5 v 9.3 c -10.6,-0.5 -19.2,-1.3 -25.2,-1.3 z\"
+   id=\"path913\"
+   style=\"fill:#ffffff\" />
+<path
+   d=\"m 513.0565,94.444245 h -22.6 v 34.000005 c 0,8.1 0.6,13.5 1.7,16.1 1.2,2.5 4,3.8 8.5,3.8 l 12.7,-0.9 0.7,8.8 c -6.4,1 -11.2,1.6 -14.5,1.6 -7.4,0 -12.5,-1.8 -15.4,-5.4 -2.9,-3.6 -4.3,-10.5 -4.3,-20.6 V 94.444245 h -10.1 v -9.3 h 10.1 v -21.8 h 10.6 v 21.7 h 22.6 z\"
+   id=\"path915\"
+   style=\"fill:#ffffff\" />
+<path
+   d=\"m 527.9565,69.044245 v -12.3 h 10.6 v 12.4 z m 0,87.200005 V 85.144245 h 10.6 v 71.100005 z\"
+   id=\"path917\"
+   style=\"fill:#ffffff\" />
+<path
+   d=\"m 584.8565,83.644245 c 3.1,0 8.5,0.6 16,1.7 l 3.4,0.4 -0.4,8.6 c -7.6,-0.9 -13.2,-1.3 -16.8,-1.3 -8,0 -13.5,1.9 -16.4,5.8 -2.9,3.800005 -4.4,11.000005 -4.4,21.400005 0,10.4 1.3,17.6 4,21.7 2.7,4.1 8.3,6.1 16.8,6.1 l 16.8,-1.3 0.4,8.8 c -8.8,1.3 -15.4,2 -19.8,2 -11.1,0 -18.8,-2.9 -23,-8.6 -4.2,-5.7 -6.4,-15.3 -6.4,-28.8 0,-13.5 2.3,-23.000005 6.8,-28.500005 4.7,-5.2 12.3,-8 23,-8 z\"
+   id=\"path919\"
+   style=\"fill:#ffffff\" />
+</svg>
+";
 }

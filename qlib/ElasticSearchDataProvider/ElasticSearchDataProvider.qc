@@ -24,6 +24,9 @@
 
 #! Contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
+#! ElasticSearch app name
+const AppName = "ElasticSearch";
+
 #! The ElasticSearch data provider class
 public class ElasticSearchDataProvider inherits ElasticSearchDataProviderBase {
     public {

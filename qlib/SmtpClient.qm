@@ -25,7 +25,7 @@
 */
 
 # minimum qore version
-%requires qore >= 1.10
+%requires qore >= 2.0
 
 # need mime definitions
 %requires Mime >= 1.4
@@ -56,6 +56,25 @@ module SmtpClient {
 
         # register the data provider factory
         DataProvider::registerFactory(new SmtpClientDataProviderFactory());
+
+        # register the data provider application
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": SmtpClient::AppName,
+            "desc": "Generic SMTP server for sending emails",
+            "factory": "smtpclient",
+            "logo": SmtpLogo,
+            "logo_mime_type": MimeTypeSvg,
+        });
+
+        # register all supported actions
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": SmtpClient::AppName,
+            "path": "/send-email",
+            "action": "send-email",
+            "short_desc": "Send an email through a generic SMTP server",
+            "desc": "Send an email through a generic SMTP server",
+            "action_code": DPAT_API,
+        });
     };
 }
 
@@ -143,6 +162,10 @@ smtp.sendMessage(msg);@endcode
 
     @section smtpclient_relnotes SmtpClient Release Notes
 
+    @subsection smtpclient_v2_1 SmtpClient 2.1
+    - added support for the data provider action catalog API
+      (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
+
     @subsection smtpclient_v2_0 SmtpClient 2.0
     - added support for the DataProvider API
       (<a href="https://github.com/qorelanguage/qore/issues/4564">issue 4564</a>)
@@ -216,6 +239,9 @@ smtp.sendMessage(msg);@endcode
     - Attachment: used to attach files to a Message
 */
 public namespace SmtpClient {
+#! SMTP server app name
+public const AppName = "SMTP";
+
 #! 15 second read timeout
 public const DefaultReadTimeout = 15s;
 
@@ -1737,4 +1763,48 @@ public class SmtpClientDataProviderFactory inherits AbstractDataProviderFactory 
         return cls;
     }
 }
+}
+
+namespace Priv {
+const SmtpLogo = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+
+<svg
+   height=\"200\"
+   width=\"200\"
+   version=\"1.1\"
+   id=\"_x32_\"
+   viewBox=\"0 0 128 128\"
+   xml:space=\"preserve\"
+   sodipodi:docname=\"email-icon.svg\"
+   inkscape:version=\"1.3 (0e150ed6c4, 2023-07-21)\"
+   xmlns:inkscape=\"http://www.inkscape.org/namespaces/inkscape\"
+   xmlns:sodipodi=\"http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd\"
+   xmlns=\"http://www.w3.org/2000/svg\"
+   xmlns:svg=\"http://www.w3.org/2000/svg\"><defs
+   id=\"defs1\" /><sodipodi:namedview
+   id=\"namedview1\"
+   pagecolor=\"#ffffff\"
+   bordercolor=\"#000000\"
+   borderopacity=\"0.25\"
+   inkscape:showpageshadow=\"2\"
+   inkscape:pageopacity=\"0.0\"
+   inkscape:pagecheckerboard=\"0\"
+   inkscape:deskcolor=\"#d1d1d1\"
+   inkscape:zoom=\"1.0289025\"
+   inkscape:cx=\"114.19935\"
+   inkscape:cy=\"270.67676\"
+   inkscape:window-width=\"1277\"
+   inkscape:window-height=\"820\"
+   inkscape:window-x=\"42\"
+   inkscape:window-y=\"1\"
+   inkscape:window-maximized=\"0\"
+   inkscape:current-layer=\"_x32_\" />&#10;<style
+   type=\"text/css\"
+   id=\"style1\">&#10;	.st0{fill:#000000;}&#10;</style>&#10;<g
+   id=\"g1\"
+   transform=\"matrix(0.2,0,0,0.2,12.541291,11.63442)\">&#10;	<path
+   class=\"st0\"
+   d=\"M 510.678,112.275 C 508.37,100.649 503.215,90.01 496.016,81.221 494.498,79.306 492.912,77.591 491.193,75.876 478.438,63.058 460.536,55.062 440.979,55.062 H 71.021 c -19.557,0 -37.395,7.996 -50.21,20.814 -1.715,1.715 -3.301,3.43 -4.823,5.345 C 8.785,90.009 3.63,100.649 1.386,112.275 0.464,116.762 0,121.399 0,126.087 V 385.92 c 0,9.968 2.114,19.55 5.884,28.203 3.497,8.26 8.653,15.734 14.926,22.001 1.59,1.586 3.169,3.044 4.892,4.494 12.286,10.175 28.145,16.32 45.319,16.32 h 369.958 c 17.18,0 33.108,-6.145 45.323,-16.384 1.718,-1.386 3.305,-2.844 4.891,-4.43 6.27,-6.267 11.425,-13.741 14.994,-22.001 v -0.064 c 3.769,-8.653 5.812,-18.171 5.812,-28.138 V 126.087 c 10e-4,-4.688 -0.456,-9.325 -1.321,-13.812 z M 46.509,101.571 C 52.854,95.233 61.375,91.396 71.021,91.396 h 369.958 c 9.646,0 18.242,3.837 24.512,10.175 1.122,1.129 2.179,2.387 3.112,3.637 L 274.696,274.203 c -5.348,4.687 -11.954,7.002 -18.696,7.002 -6.674,0 -13.276,-2.315 -18.695,-7.002 L 43.472,105.136 c 0.858,-1.25 1.915,-2.436 3.037,-3.565 z M 36.334,385.92 V 142.735 L 176.658,265.15 36.405,387.435 c -0.071,-0.464 -0.071,-0.986 -0.071,-1.515 z m 404.645,34.677 H 71.021 c -6.281,0 -12.158,-1.651 -17.174,-4.552 l 147.978,-128.959 13.815,12.018 c 11.561,10.046 26.028,15.134 40.36,15.134 14.406,0 28.872,-5.088 40.432,-15.134 l 13.808,-12.018 147.92,128.959 c -5.023,2.901 -10.9,4.552 -17.181,4.552 z m 34.687,-34.677 c 0,0.529 0,1.051 -0.068,1.515 L 335.346,265.221 475.666,142.8 Z\"
+   id=\"path1\" />&#10;</g>&#10;</svg>";
 }
