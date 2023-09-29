@@ -345,7 +345,15 @@ const AbstractQoreZoneInfo* QoreTimeZoneManager::processFile(const char* fn, boo
 
     return rv;
 #else
-    std::string name = !strncmp(root.c_str(), fn, root.strlen()) ? fn + root.strlen() + 1 : fn;
+    std::string name;
+    {
+        QoreString filename(fn);
+        if (filename.equalPartialPath(root, nullptr)) {
+            name = fn + root.strlen() + 1;
+        } else {
+            name = fn;
+        }
+    }
     tzmap_t::iterator i = tzmap.find(name);
     if (i != tzmap.end()) {
         return i->second;
@@ -618,7 +626,7 @@ int QoreTimeZoneManager::setLocalTZ(QoreString fname) {
 
     if (fname[0] != '/') {
         dummy = root;
-    } else if (fname.equalPartialPath(root, nullptr)) { //!strncmp(root.c_str(), fname.c_str(), root.strlen())) {
+    } else if (fname.equalPartialPath(root, nullptr)) {
         fnamestr = fname.c_str() + root.strlen() + 1;
         if (fnamestr.empty()) {
             return -1;

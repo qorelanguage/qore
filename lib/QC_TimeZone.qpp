@@ -36,7 +36,8 @@
 static void create_timezone_from_region(const QoreString& region, QoreObject& self, ExceptionSink* xsink) {
     bool is_path = (!region.empty() && region.c_str()[0] == '.') || q_absolute_path(region.c_str());
     if (is_path && runtime_check_parse_option(PO_NO_FILESYSTEM)) {
-        xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path '%s' when sandboxing restriction PO_NO_FILESYSTEM is set", region.c_str());
+        xsink->raiseException("ILLEGAL-FILESYSTEM-ACCESS", "cannot create a TimeZone object from absolute path '%s' "
+            "when sandboxing restriction PO_NO_FILESYSTEM is set", region.c_str());
     }
     const AbstractQoreZoneInfo* zone = is_path
         ? QTZM.findLoadRegionFromPath(region.c_str(), xsink)
@@ -48,7 +49,8 @@ static void create_timezone_from_region(const QoreString& region, QoreObject& se
     self.setPrivate(CID_TIMEZONE, new TimeZoneData(zone));
 }
 
-static QoreHashNode* TimeZone_serializer(const QoreObject& self, const TimeZoneData& z, QoreSerializationContext& context, ExceptionSink* xsink) {
+static QoreHashNode* TimeZone_serializer(const QoreObject& self, const TimeZoneData& z,
+        QoreSerializationContext& context, ExceptionSink* xsink) {
     ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
 
     if (dynamic_cast<const QoreOffsetZoneInfo*>(*z)) {
@@ -61,12 +63,14 @@ static QoreHashNode* TimeZone_serializer(const QoreObject& self, const TimeZoneD
     return rv.release();
 }
 
-static void TimeZone_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context, ExceptionSink* xsink) {
+static void TimeZone_deserializer(QoreObject& self, const QoreHashNode* sdata, QoreDeserializationContext& context,
+        ExceptionSink* xsink) {
     if (sdata) {
         QoreValue val = sdata->getKeyValue("region");
         if (val) {
             if (val.getType() != NT_STRING) {
-                xsink->raiseException("DESERIALIZATION-ERROR", "TimeZone serialization key 'region' has type '%s'; expecting 'string'", val.getTypeName());
+                xsink->raiseException("DESERIALIZATION-ERROR", "TimeZone serialization key 'region' has type '%s'; "
+                    "expecting 'string'", val.getTypeName());
                 return;
             }
             create_timezone_from_region(*val.get<QoreStringNode>(), self, xsink);
