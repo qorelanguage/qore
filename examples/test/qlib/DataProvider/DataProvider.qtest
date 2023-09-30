@@ -265,29 +265,44 @@ public class DataProviderTest inherits QUnit::Test {
         # missing description
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
-            "factory": "test",
+            "scheme": "test",
             "logo": "data",
             "logo_mime_type": MimeTypeSvg,
+            "logo_file_name": "test.svg",
         });
 
         # missing logo
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
-            "factory": "test",
+            "desc": "desc",
+            "scheme": "test",
             "logo_mime_type": MimeTypeSvg,
+            "logo_file_name": "test.svg",
         });
 
         # missing logo mime type
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
-            "factory": "test",
+            "desc": "desc",
+            "scheme": "test",
             "logo": "data",
+            "logo_file_name": "test.svg",
         });
 
-        # invalid logo mime type
+        # missing scheme
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
-            "factory": "test",
+            "desc": "test",
+            "logo": "data",
+            "logo_mime_type": MimeTypeJpeg,
+            "logo_file_name": "test.svg",
+        });
+
+        # invalid logo file name
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
+            "name": "test",
+            "desc": "desc",
+            "scheme": "test",
             "logo": "data",
             "logo_mime_type": MimeTypeJpeg,
         });
@@ -295,14 +310,13 @@ public class DataProviderTest inherits QUnit::Test {
         string app = get_random_string();
         string appdesc = get_random_string();
         string scheme = get_random_string();
-        string factory = get_random_string();
         hash<DataProviderAppInfo> my_app = <DataProviderAppInfo>{
             "name": app,
             "desc": appdesc,
-            "factory": factory,
             "scheme": scheme,
             "logo": "data",
             "logo_mime_type": MimeTypeSvg,
+            "logo_file_name": "test.svg",
         };
         DataProviderActionCatalog::registerApp(my_app);
         assertEq(my_app, DataProviderActionCatalog::getApp(app));
@@ -425,7 +439,6 @@ public class DataProviderTest inherits QUnit::Test {
         assertEq((), DataProviderActionCatalog::searchActionSubstr(get_random_string(), True));
         assertEq((), DataProviderActionCatalog::searchActionSubstr(get_random_string(), False));
         assertNothing(DataProviderActionCatalog::getActionsForScheme(get_random_string()));
-        assertNothing(DataProviderActionCatalog::getActionsForFactory(get_random_string()));
 
         actions = DataProviderActionCatalog::searchAppActionRegex(app, short_desc);
         assertEq(1, actions.size());
@@ -460,10 +473,6 @@ public class DataProviderTest inherits QUnit::Test {
         assertEq(action, actions[0]);
 
         actions = DataProviderActionCatalog::getActionsForScheme(scheme);
-        assertEq(1, actions.size());
-        assertEq(action, actions[0]);
-
-        actions = DataProviderActionCatalog::getActionsForFactory(factory);
         assertEq(1, actions.size());
         assertEq(action, actions[0]);
     }
