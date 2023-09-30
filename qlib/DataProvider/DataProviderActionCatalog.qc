@@ -25,8 +25,7 @@
 #! Contains all public definitions in the DataProvider module
 public namespace DataProvider {
 #! Application information hash
-/** Note that action paths are relative from the data provider created from the factory and the connection if the
-    \c scheme attribute is also defined
+/** Note that action paths are relative from the data provider created from the connection and optionally the subtype
 */
 public hashdecl DataProviderAppInfo {
     #! Unique application name
@@ -35,13 +34,11 @@ public hashdecl DataProviderAppInfo {
     #! Description of the application with markdown formatting
     string desc;
 
-    #! Connection scheme for the application, if any
+    #! Connection scheme for the application
     /** This is the connection scheme for the \c ConnectionProvider module and indicates that the given connection
         type produces a data provider which will be the base data provider for application actions
-
-        @note The data provider created by the connection must be the same as the one created by the factory
     */
-    *string scheme;
+    string scheme;
 
     #! Indicates if the application supports the OAuth2 authorization code flow
     /** This means that the \c scheme attribute must be defined and the connection configuration supports the flow
@@ -50,18 +47,13 @@ public hashdecl DataProviderAppInfo {
     */
     bool oauth2_auth_code = False;
 
-    #! Name of the factory that creates the data provider
-    /** This produces a data provider which will be the base data provider for application actions
-
-        @note The data provider created by the factory must be the same as the one created by the connection specified
-        by the \c scheme attribute
-    */
-    string factory;
-
     #! The application logo
     /** Must be an SVG or PNG; all logos must be square, and PNG must be 200x200 px
     */
     data logo;
+
+    #! The logo file name
+    string logo_file_name;
 
     #! The mime type for \c logo
     /** Must be one of:
@@ -138,6 +130,11 @@ public hashdecl DataProviderActionInfo {
     #! The unique name for the action; unique in the application
     string action;
 
+    #! Any data provider subtype
+    /** This is the value that will be passed to \c AbstractConnection::getDataProvider(string subtype)
+    */
+    *string subtype;
+
     #! Data provider path to action
     /** The path is relative from the data provider provided by the application
     */
@@ -158,6 +155,13 @@ public hashdecl DataProviderActionInfo {
     /** @see @ref dp_action_type for valid values
     */
     int action_code;
+
+    #! Message or event type
+    /** if \c action_code is:
+        - @ref DPAT_EVENT: this is the event type
+        - @ref DPAT_SEND_MESSAGE: this is the message type
+    */
+    *string action_val;
 }
 
 #! DataProvider action and application catalog class
@@ -167,8 +171,9 @@ public class DataProviderActionCatalog {
         const RequiredAppKeys = (
             "name": True,
             "desc": True,
-            "factory": True,
+            "scheme": True,
             "logo": True,
+            "logo_file_name": True,
             "logo_mime_type": True,
         );
 
@@ -197,9 +202,6 @@ public class DataProviderActionCatalog {
 
         #! Scheme map; keys are connection schemes
         static hash<string, list<hash<DataProviderActionInfo>>> smap;
-
-        #! Factory map; keys are factory names
-        static hash<string, list<hash<DataProviderActionInfo>>> fmap;
     }
 
     #! Registers a data provider application
@@ -216,6 +218,10 @@ public class DataProviderActionCatalog {
 
         AutoLock al(lck);
         if (*hash<DataProviderAppInfo> existing_app = appcache{app.name}) {
+            # ignore if the application has the same definition
+            if (existing_app == app) {
+                return;
+            }
             throw "APP-ERROR", sprintf("application %y already registered: %y", app.name, existing_app);
         }
         # add to cache
@@ -283,11 +289,6 @@ public class DataProviderActionCatalog {
             }
             smap{app.scheme} += action;
         }
-        # add to factory map
-        if (!fmap{app.factory}) {
-            fmap{app.factory} = ();
-        }
-        fmap{app.factory} += action;
     }
 
     #! Returns all applications in the cache
@@ -359,15 +360,6 @@ public class DataProviderActionCatalog {
     */
     static *list<hash<DataProviderActionInfo>> getActionsForScheme(string scheme) {
         return smap{scheme};
-    }
-
-    #! Returns all actions for a particular data provider factory
-    /** @param factory the data provider factory
-
-        @return a list of actions associated with the given data provider factory
-    */
-    static *list<hash<DataProviderActionInfo>> getActionsForFactory(string factory) {
-        return fmap{factory};
     }
 
     #! Returns all actions for the given application
@@ -536,7 +528,6 @@ public class DataProviderActionCatalog {
         if (app.scheme) {
             remove smap{app.scheme};
         }
-        remove fmap{app.factory};
         map remove top_actionmap{name + "/" + $1.action}, app_actionmap{name}.values();
         remove app_actionmap{name};
     }

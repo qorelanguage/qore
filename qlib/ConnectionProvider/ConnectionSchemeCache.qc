@@ -88,6 +88,9 @@ public class ConnectionSchemeCache {
 
             "cdsrests": "CdsRestClient",
 
+            "esrest": "ElasticSearchDataProvider",
+            "esrests": "ElasticSearchDataProvider",
+
             "grests": "GoogleRestClient",
 
             "hue": "HueRestClient",
@@ -189,6 +192,10 @@ public class ConnectionSchemeCache {
         cache{scheme} = entry;
         # sort connection options when caching
         cache{scheme}.options = cache{scheme}.options{sort(keys cache{scheme}.options)};
+
+         # deregister the scheme automatically if module initialization fails
+        ImplicitModuleTransaction::add(sub () { ConnectionSchemeCache::deregisterScheme(scheme); });
+
         return True;
     }
 
@@ -306,6 +313,16 @@ public class ConnectionSchemeCache {
             }
         }
         return False;
+    }
+
+    #! Deregisters a scheme in case module intiialization fails for the module that registered it
+    /** @param scheme the scheme for the connection provider
+    */
+    private static deregisterScheme(string scheme) {
+        lck.lock();
+        on_exit lck.unlock();
+
+        remove cache{scheme};
     }
 }
 }

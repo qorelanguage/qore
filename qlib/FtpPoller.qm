@@ -29,13 +29,13 @@
 %allow-weak-references
 
 # make sure we have the required qore version
-%requires qore >= 1.10
+%requires qore >= 2.0
 
 %requires(reexport) FtpPollerUtil
 %requires(reexport) DataProvider
 
 module FtpPoller {
-    version = "2.0";
+    version = "2.1";
     desc = "user module providing FTP polling functionality";
     author = "Alzhan Turlybekov <alzhan.turlybekov@qoretechnologies.com>";
     url = "http://qore.org";
@@ -43,6 +43,29 @@ module FtpPoller {
     init = sub () {
         # register the data provider factory
         DataProvider::registerFactory(new FtpPollerDataProviderFactory());
+
+        # register the data provider application
+        # NOTE: this application is also registed in the FtpPoller module
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": FtpPoller::AppName,
+            "desc": "Generic FTP server for exchanging files with FTP and FTPS",
+            "scheme": "ftp",
+            "logo": FtpLogo,
+            "logo_file_name": "generic-ftp-logo.svg",
+            "logo_mime_type": MimeTypeSvg,
+        });
+
+        # register all supported actions
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": FtpPoller::AppName,
+            "path": "/",
+            "action": "ftp-file-event",
+            "subtype": "ftppoller",
+            "short_desc": "Poll files from an FTP server",
+            "desc": "Poll files from an FTP server",
+            "action_code": DPAT_EVENT,
+            "action_val": EVENT_FTP_FILE,
+        });
     };
 }
 
@@ -124,6 +147,10 @@ poller.waitStop();
 
     @section ftppollerrelnotes FtpPoller Module Release Notes
 
+    @section ftppollerv2_1 Version 2.1
+    - added support for the data provider action catalog API
+      (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
+
     @section ftppollerv2_0 Version 2.0
     - added support for the event-based DataProvider API
       (<a href="https://github.com/qorelanguage/qore/issues/4557">issue 4557</a>)
@@ -134,6 +161,9 @@ poller.waitStop();
 
 #! main FtpPoller namespace
 public namespace FtpPoller {
+#! Generic FTP server app name
+public const AppName = "FTP";
+
 #! FTP file event constant
 public const EVENT_FTP_FILE = "ftp-file-event";
 
@@ -1002,60 +1032,73 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
         #! Constructor options
         const ConstructorOptions = {
             "atomic_transfer":  <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Use an atomic transfer mechanism with `local_dir` where remote files are first moved to a "
                     "temporary location and then moved to the final location when they have been fully transferred",
                 "default_value": True,
             },
 
             "local_dir": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringOrNothingType),
+                "type": AbstractDataProviderTypeMap."*string",
                 "desc": "A local directory that will be used to retrieve files",
             },
 
             "mask": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The glob mask to use; will be treated as a regex if `regex` is `true`",
                 "default_value": "*",
             },
 
             "minage": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
+                "type": AbstractDataProviderTypeMap."int",
                 "desc": "An integer giving the minimum file age in seconds before the file will be polled; this is "
                     "meant to work around non-atomic file transfer operations",
             },
 
+            "password": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "The password for authentication; only used if no username or password is set in the URL "
+                    "and if the `username` option is also used",
+                "sensitive": True,
+            },
+
             "poll_interval": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
+                "type": AbstractDataProviderTypeMap."int",
                 "desc": "The interval in seconds between polling for files",
                 "default_value": 10,
             },
 
             "regex": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `true` then `mask` is treated as a regular expression instead of a glob pattern",
             },
 
             "reopt": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
+                "type": AbstractDataProviderTypeMap."int",
                 "desc": "A bitfield of regular expression options (`1` = ignore case, `2` = treat EOL as a regular "
                     "character); ignored if `regex` is not `true`",
             },
 
             "sort_desc": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Sort descending; if not given then an ascending sort is assumed if a `sort_type` is given",
             },
 
             "sort_type": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "Either `name` or `date` for the data to use for sorting",
             },
 
             "url": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "A URL for an FTP connection",
                 "required": True,
+            },
+
+            "username": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "The username for authentication; only used if no username or password is set in the URL "
+                    "and if the `password` option is also used",
             },
         };
     }
@@ -1104,19 +1147,13 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
         }
 
         copts.log_info = sub (string msg) {
-            if (logger) {
-                logger.info("%s", msg);
-            }
+            info("%s", msg);
         };
         copts.log_detail = sub (string msg) {
-            if (logger) {
-                logger.info("%s", msg);
-            }
+            info("%s", msg);
         };
         copts.log_debug = sub (string msg) {
-            if (logger) {
-                logger.debug("%s", msg);
-            }
+            debug("%s", msg);
         };
 
         poller = new EmbeddedFtpPoller(self, copts);
@@ -1261,4 +1298,20 @@ class EmbeddedFtpPoller inherits FtpPoller {
     postSingleFileEvent(hash<FtpPollerFileEventInfo> event) {
     }
 }
+
+const FtpLogo = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
+<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">
+<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 2363 2363\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;\">
+    <g transform=\"matrix(1,0,0,1,21.6682,127.933)\">
+        <g transform=\"matrix(958.333,0,0,958.333,325.915,1408.5)\">
+            <path d=\"M0.496,-0.367C0.496,-0.354 0.489,-0.347 0.476,-0.347L0.169,-0.347L0.169,-0.02C0.169,-0.007 0.162,-0 0.149,-0L0.098,-0C0.085,-0 0.078,-0.007 0.078,-0.02L0.078,-0.564C0.078,-0.688 0.149,-0.75 0.291,-0.75C0.379,-0.75 0.444,-0.748 0.486,-0.744C0.493,-0.743 0.496,-0.738 0.496,-0.73L0.496,-0.68C0.496,-0.672 0.492,-0.668 0.485,-0.668L0.292,-0.668C0.241,-0.668 0.208,-0.66 0.191,-0.645C0.176,-0.631 0.169,-0.604 0.169,-0.564L0.169,-0.425L0.476,-0.425C0.489,-0.425 0.496,-0.418 0.496,-0.405L0.496,-0.367Z\" style=\"fill:rgb(35,31,32);fill-rule:nonzero;\"/>
+        </g>
+        <g transform=\"matrix(958.333,0,0,958.333,853.957,1408.5)\">
+            <path d=\"M0.555,-0.681C0.555,-0.67 0.549,-0.665 0.536,-0.665L0.341,-0.665L0.341,-0.02C0.341,-0.007 0.335,-0 0.323,-0L0.268,-0C0.256,-0 0.25,-0.007 0.25,-0.02L0.25,-0.665L0.055,-0.665C0.042,-0.665 0.035,-0.67 0.035,-0.681L0.035,-0.725C0.035,-0.737 0.042,-0.743 0.055,-0.743L0.536,-0.743C0.549,-0.743 0.555,-0.737 0.555,-0.725L0.555,-0.681Z\" style=\"fill:rgb(35,31,32);fill-rule:nonzero;\"/>
+        </g>
+        <g transform=\"matrix(958.333,0,0,958.333,1419.37,1408.5)\">
+            <path d=\"M0.548,-0.52C0.548,-0.371 0.455,-0.296 0.268,-0.296C0.245,-0.296 0.211,-0.298 0.168,-0.301L0.168,-0.02C0.168,-0.007 0.162,-0 0.15,-0L0.096,-0C0.084,-0 0.078,-0.007 0.078,-0.02L0.078,-0.717C0.078,-0.732 0.086,-0.74 0.102,-0.742C0.148,-0.747 0.203,-0.75 0.268,-0.75C0.455,-0.75 0.548,-0.678 0.548,-0.533L0.548,-0.52ZM0.457,-0.533C0.457,-0.583 0.442,-0.619 0.411,-0.641C0.381,-0.662 0.333,-0.673 0.268,-0.673C0.233,-0.673 0.2,-0.672 0.168,-0.669L0.168,-0.376L0.268,-0.372C0.336,-0.372 0.385,-0.384 0.414,-0.407C0.443,-0.43 0.457,-0.467 0.457,-0.52L0.457,-0.533Z\" style=\"fill:rgb(35,31,32);fill-rule:nonzero;\"/>
+        </g>
+    </g>
+</svg>";
 }

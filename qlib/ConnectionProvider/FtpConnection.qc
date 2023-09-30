@@ -39,7 +39,38 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("FtpConnection"),
+            "options": HttpConnection::ConnectionScheme.options + {
+                "password": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The password for authentication; only used if no username or password is set in the URL "
+                        "and if the `username` option is also used",
+                    "sensitive": True,
+                },
+                "username": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The username for authentication; only used if no username or password is set in the URL "
+                        "and if the `password` option is also used",
+                },
+            },
         };
+
+        #! Data provider subtypes supported
+        const DataProviderSubtypeMap = {
+            "ftppoller": {
+                "module": "FtpPoller",
+                "class": "FtpDelayedPollerDataProvider",
+                "option_class": "FtpPollerDataProviderBase",
+                "options": "ConstructorOptions",
+            },
+        };
+    }
+
+    private {
+        #! Data provider subtype info
+        static hash<string, *hash<string, hash<DataProviderOptionInfo>>> subtype_info;
+
+        #! Data provider subtype lock
+        static Mutex subtype_lck();
     }
 
     #! creates the FtpConnection object
@@ -54,7 +85,7 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : AbstractConnectionWithInfo(name, description, url, attributes, options) {
+            : AbstractConnectionWithInfo(name, description, url, attributes, options) {
     }
 
     #! returns \c "ftp"
@@ -95,22 +126,99 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
         return True;
     }
 
+    #! returns a data provider object for the connection and subtype passed as an argument
+    /** @param subtype the subtype of data provider supported, in case the connection can return multiple data
+        providers
+        @param constructor_options any additional constructor options required by the data provider
+
+        @return a data provider object for the connection and subtype passed as an argument
+
+        @throw DATA-PROVIDER-ERROR this object does not support the data provider API or the given subtype is not
+        valid
+
+        This base class method throws a \c DATA-PROVIDER-ERROR exception by default; to support the data provider
+        API, override this method in child classes
+
+        @see
+        - hasDataProvider()
+        - getDataProviderSubtypes()
+
+        @since ConnectionProvider 2.0
+    */
+    private AbstractDataProvider getDataProviderImpl(string subtype, *hash<auto> constructor_options) {
+        *hash<auto> conf = DataProviderSubtypeMap{subtype};
+        if (!conf) {
+            throw "DATA-PROVIDER-ERROR", sprintf("ftp connections do not support data provider subtype %y; supported "
+                "subtypes: %y", subtype, getDataProviderSubtypes());
+        }
+        checkSubtypeInfo();
+        hash<auto> opts = getSubtypeOptions(subtype_info{subtype}, constructor_options);
+        return create_object(conf."class", opts);
+    }
+
     #! Sets child data provider capabilities
     private setChildCapabilities() {
         children_can_support_apis = True;
     }
 
-    #! returns an @ref Qore::FtpClient object
-    /** @param connect if @ref True "True" then a connection is made any if there is any path in the URL a \c CWD operation is performed to change to the target directory
+    #! Verifies that subtype info has been loaded from external modules
+    /** @since ConnectionProvider 2.0
+    */
+    private checkSubtypeInfo() {
+        if (!subtype_info) {
+            loadSubtypeInfo();
+        }
+    }
+
+    #! Returns a hash of supported data provider subtypes
+    /** @return a hash of supported data provider subtypes
+
+        @since ConnectionProvider 2.0
+    */
+    private *hash<string, *hash<string, hash<DataProviderOptionInfo>>> getDataProviderSubtypesImpl() {
+        if (subtype_info) {
+            return subtype_info;
+        }
+        loadSubtypeInfo();
+        return subtype_info;
+    }
+
+    #! Loads subtype info from external modules
+    private loadSubtypeInfo() {
+        subtype_lck.lock();
+        on_exit subtype_lck.unlock();
+        # check again inside the lock
+        if (subtype_info) {
+            return;
+        }
+        foreach hash<auto> i in (DataProviderSubtypeMap.pairIterator()) {
+            load_module(i.value."module");
+            Class cls = Class::forName(i.value."option_class" ?? i.value."class");
+            subtype_info{i.key} = cls.getConstant(i.value."options").getValue();
+        }
+    }
+
+    #! Returns an @ref Qore::FtpClient "FtpClient" object
+    /** @param connect if @ref True "True" then a connection is made any if there is any path in the URL a \c CWD
+        operation is performed to change to the target directory
         @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
     */
     private FtpClient getImpl(bool connect = True, *hash<auto> rtopts) {
         # set runtime path
         *string rtpath = rtopts.path ?* urlh.path;
         if (rtopts.path_add.val()) {
-            if (rtpath !~ /\/$/ && rtopts.path_add !~ /^\//)
+            if (rtpath !~ /\/$/ && rtopts.path_add !~ /^\//) {
                 rtpath += "/";
+            }
             rtpath += rtopts.path_add;
+        }
+
+        string url = self.url;
+        if (opts.username.val() && opts.password.val() && (!urlh.username.val() || !urlh.password.val())) {
+            url = sprintf("%s://%s:%s@%s", urlh.protocol, opts.username, opts.password, urlh.host);
+            if (urlh.port) {
+                url += sprintf(":%d", urlh.port);
+            }
         }
 
         # create the object and perform post processing if necessary

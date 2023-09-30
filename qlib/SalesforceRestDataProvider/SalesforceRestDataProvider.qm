@@ -50,10 +50,10 @@ module SalesforceRestDataProvider {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": SalesforceRestDataProvider::AppName,
             "desc": "Salesforce® cloud CRM; Salesforce is a trademark of Salesforce, Inc.",
-            "factory": "salesforcerest",
             "scheme": "sfrests",
             "oauth2_auth_code": True,
             "logo": SalesforceLogo,
+            "logo_file_name": "salesforce-logo.svg",
             "logo_mime_type": MimeTypeSvg,
         });
 

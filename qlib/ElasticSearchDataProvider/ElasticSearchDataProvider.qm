@@ -33,6 +33,7 @@
 # enable all warnings
 %enable-all-warnings
 
+%requires(reexport) ConnectionProvider
 %requires(reexport) DataProvider
 %requires(reexport) RestClient
 
@@ -43,6 +44,10 @@ module ElasticSearchDataProvider {
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
+        # register the connection scheme
+        ConnectionSchemeCache::registerScheme("esrest", ElasticSearchRestConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("esrests", ElasticSearchRestConnection::ConnectionScheme);
+
         # register the data provider factory
         DataProvider::registerFactory(new ElasticSearchDataProviderFactory());
 
@@ -50,8 +55,9 @@ module ElasticSearchDataProvider {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": ElasticSearchDataProvider::AppName,
             "desc": "ElasticSearch server",
-            "factory": "elasticsearch",
+            "scheme": "esrest",
             "logo": ElasticSearchLogo,
+            "logo_file_name": "elasticsearch-logo.svg",
             "logo_mime_type": MimeTypeSvg,
         });
 

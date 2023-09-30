@@ -273,6 +273,9 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         \c with_passwords: if @ref True, then passwords are returned in the info hash
 
         @return a @ref ConnectionInfo hash of information about the connection
+
+        @note Some of the information in this hash may be non-serializable objects, for a method that returns only
+        serializable information about the connection, see @ref getInfoAsData()
     */
     hash<ConnectionInfo> getInfo(*hash<auto> opts) {
         hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self{
@@ -284,6 +287,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
             "url_hash": urlh,
             "has_provider": hasDataProvider(),
             "features": getFeatures(),
+            "dataprovider_subtypes": getDataProviderSubtypes(),
         });
         if (!opts.with_passwords) {
             h.url = safe_url;
@@ -297,6 +301,27 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         return h;
     }
 
+    #! Returns a @ref ConnectionDataInfo hash of information about the connection
+    /** @param opts connection information options; options are connection-specific; the only universal option is
+        \c with_passwords: if @ref True, then passwords are returned in the info hash
+
+        @return a @ref ConnectionDataInfo hash of information about the connection
+
+        @note All the information in this hash is data; some info in the output of @ref getInfo() may be objects
+
+        @since ConnectionProvider 2.0
+    */
+    hash<ConnectionDataInfo> getInfoAsData(*hash<auto> opts) {
+        hash<ConnectionInfo> h = getInfo();
+        hash<ConnectionDataInfo> rv = cast<hash<ConnectionDataInfo>>(h - "dataprovider_subtypes");
+        foreach hash<auto> i in (h.dataprovider_subtypes.pairIterator()) {
+            foreach hash<auto> j in (i.value.pairIterator()) {
+                rv.dataprovider_subtypes{i.key}{j.key}.type = map $1.getName(), j.value.type;
+            }
+        }
+        return rv;
+    }
+
     #! Returns a list of connection-defined features
     /** @since ConnectionProvider 1.10
     */
@@ -307,11 +332,36 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     #! Returns connection info plus any extended information returned by the connection
     /** The default implementation in the base class returns the same value as getInfo(*hash<auto>)
 
+        @param opts connection information options; options are connection-specific; the only universal option is
+        \c with_passwords: if @ref True, then passwords are returned in the info hash
+
+        @return Connection info plus any extended information returned by the connection
+
+        @note Some of the information in this hash may be non-serializable objects, for a method that returns only
+        serializable information about the connection, see @ref getExtendedInfoAsData()
+
         @since ConnectionProvider 1.5
     */
     hash<auto> getExtendedInfo(*hash<auto> opts) {
         # ensure hash<auto> for the return type
         hash<auto> h += getInfo(opts);
+        return h;
+    }
+
+    #! Returns connection info plus any extended information returned by the connection
+    /** The default implementation in the base class returns the same value as getInfoAsData(*hash<auto>)
+
+        @param opts connection information options; options are connection-specific; the only universal option is
+        \c with_passwords: if @ref True, then passwords are returned in the info hash
+
+        @return Connection info plus any extended information returned by the connection
+
+        @note All the information in this hash is data; some info in the output of @ref getExtendedInfo() may be objects
+
+        @since ConnectionProvider 2.0
+    */
+    hash<auto> getExtendedInfoAsData(*hash<auto> opts) {
+        hash<auto> h += getInfoAsData(opts);
         return h;
     }
 
@@ -450,6 +500,41 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         return False;
     }
 
+    #! Returns a data provider object for the connection and subtype passed as an argument
+    /** @param subtype the subtype of data provider supported, in case the connection can return multiple data providers
+        @param constructor_options any additional constructor options required by the data provider
+
+        @return a data provider object for the connection and subtype passed as an argument
+
+        @throw DATA-PROVIDER-ERROR this object does not support the data provider API or the given subtype is not valid
+
+        @see
+        - hasDataProvider()
+        - getDataProviderSubtypes()
+
+        @since ConnectionProvider 2.0
+    */
+    AbstractDataProvider getDataProvider(string subtype, *hash<auto> constructor_options) {
+        if (subtype == getType()) {
+            return getDataProvider();
+        }
+        return getDataProviderImpl(subtype, constructor_options);
+    }
+
+    #! Returns a hash of of supported data provider subtypes and constructor option info
+    /** @return a hash of of supported data provider subtypes and constructor option info; top-level keys are data
+        provider subtypes supported by this connection, values are hashes of data provider constructor option
+        information
+
+        @since ConnectionProvider 2.0
+    */
+    *hash<string, *hash<string, hash<DataProviderOptionInfo>>> getDataProviderSubtypes() {
+        if (!hasDataProvider()) {
+            return;
+        }
+        return getDataProviderSubtypesImpl();
+    }
+
     #! returns @ref True if the connection supports the %Qore @ref Qore::Socket "Socket-based" polling API
     /** @return @ref True if the connection supports the polling API where multiple connections can be polled from a
         single thread
@@ -504,6 +589,48 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     handlePingFailed(date delta, string err) {
         up = False;
         status = err;
+    }
+
+    #! returns a data provider object for the connection and subtype passed as an argument
+    /** @param subtype the subtype of data provider supported, in case the connection can return multiple data providers
+        @param constructor_options any additional constructor options required by the data provider
+
+        @return a data provider object for the connection and subtype passed as an argument
+
+        @throw DATA-PROVIDER-ERROR this object does not support the data provider API or the given subtype is not valid
+
+        This base class method throws a \c DATA-PROVIDER-ERROR exception by default; to support the data provider
+        API, override this method in child classes
+
+        @see
+        - hasDataProvider()
+        - getDataProviderSubtypes()
+
+        @since ConnectionProvider 2.0
+    */
+    private AbstractDataProvider getDataProviderImpl(string subtype, *hash<auto> constructor_options) {
+        throw "DATA-PROVIDER-ERROR", hasDataProvider()
+            ? sprintf("%y connections do not support data provider subtypes", getType())
+            : sprintf("%y connections do not support the data provider API", getType());
+    }
+
+    #! Returns a hash of supported data provider subtypes
+    /** @return a hash of supported data provider subtypes
+
+        @since ConnectionProvider 2.0
+    */
+    private *hash<string, *hash<string, hash<DataProviderOptionInfo>>> getDataProviderSubtypesImpl() {
+        # no subtypes supported by default in the base class
+    }
+
+    #! Returns
+    /**
+        @param constructor_options any additional constructor options required by the data provider
+    */
+    private *hash<auto> getSubtypeOptions(*hash<string, hash<DataProviderOptionInfo>> subtype_options,
+            *hash<auto> constructor_options) {
+        *hash<auto> opts = getRealOptions();
+        return map {$1: constructor_options{$1} ?? opts{$1}}, keys subtype_options;
     }
 
     #! performs the internal ping

@@ -69,6 +69,7 @@ const Bstr = "-------------------------------------------------";
 
 const Opts = {
     "fullex"   : "e,full-exceptions",
+    "headers"  : "H,header=s@",
     "help"     : "h,help",
     "output"   : "o,output-file=s",
     "proxy"    : "P,proxy=s",
@@ -190,7 +191,7 @@ class QueueCallBack {
                     # ignore reads on FTP control channel
                     if (!ignore)
                         ignore = e.id;
-                    if ((e.code / 100) == 1) {
+                    if ((e."code" / 100) == 1) {
                         #printf("%s\n", e.message);
                         list<string> l = (e.message =~ x/opening.*connection for.*\(([0-9]*) byte/i);
                         body_len = l[0].toInt();
@@ -266,6 +267,7 @@ sub usage(*bool long) {
     printf("usage: %s [-vh] URL\n", get_script_name());
     if (long) {
         printf(" -e,--full-exceptions    show full exception info\n");
+        printf(" -H,--header=ARG         add headers to any HTTP/S requests\n");
         printf(" -o,--output-file=ARG    save the output to the given file name\n");
         printf(" -P,--proxy=ARG          any HTTP proxy to use for HTTP requests\n");
     	printf(" -v,--verbose            show socket events\n");
@@ -299,24 +301,41 @@ sub main() {
     }
 
     hash<auto> u = parse_url(url);
-    auto x;
+    data x;
     QueueCallBack cb;
     # get start time
     start = clock_getmicros();
+    string fn;
     try {
         switch (u.protocol) {
             case NOTHING:
             case "https":
             case "http": {
-                hash<auto> opts = {"url": url};
+                hash<auto> opts += {"url": url};
                 if (o.proxy) {
                     opts.proxy = o.proxy;
+                }
+                opts.headers.Accept = "*/*";
+                foreach string h in (o.headers) {
+                    (*string k, *string v) = (h =~ x/([^:]+):(.+)$/);
+                    trim k;
+                    trim v;
+                    if (!k || !v) {
+                        stderr.printf("invalid header %y; expecting \"key: value\" format\n", h);
+                        exit(1);
+                    }
+                    opts.headers{k} = v;
                 }
                 HTTPClient hc(opts);
 
                 cb = new QueueCallBack(hc, url);
 
-                x = hc.get(exists u.path ? u.path : "/", {"Accept": "*/*"});
+                hash<auto> info;
+                x = hc.get(exists u.path ? u.path : "/", NOTHING, \info);
+                if (exists
+                    (*string filename = (info."response-headers"."content-disposition" =~ x/filename="(.*)"/)[0])) {
+                    fn = filename;
+                }
                 break;
             }
             case "ftps":
@@ -339,6 +358,7 @@ sub main() {
 
                 #printf("%n: %n + %n\n", f.pwd(), dir, file);
                 x = f.getAsBinary(file);
+                fn = file;
             }
         }
     } catch (hash<ExceptionInfo> ex) {
@@ -351,22 +371,28 @@ sub main() {
     }
 
     # get the filename to save
-    string fn = o.output ?? basename(u.path && u.path != "/" ? u.path : u.host);
+    if (o.output) {
+        fn = o.output;
+    } else if (!fn.val()) {
+        fn = basename(u.path && u.path != "/" ? u.path : u.host);
+    }
 
     # wait for the event monitoring thread to complete
     cb.wait();
 
-    if (!o.verbose)
+    if (!o.verbose) {
 	    print("\n");
-    myprintf("done, saving %y (%d bytes)\n", fn, type(x) == Type::String ? strlen(x) : elements x);
+    }
+    myprintf("done, saving %y (%d bytes)\n", fn, x.size());
 
     # save the file read
     File f();
 
     # show file events if verbose is set
-    if (o.verbose)
+    if (o.verbose) {
     	cb = new QueueCallBack(f, fn);
+    }
 
     f.open2(fn, O_CREAT | O_TRUNC | O_WRONLY);
-    f.write(binary(x));
+    f.write(x.toBinary());
 }

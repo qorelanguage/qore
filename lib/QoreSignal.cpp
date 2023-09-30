@@ -132,6 +132,8 @@ void QoreSignalManager::init(bool disable_signal_mask) {
         sigaddset(&mask, SIGALRM);
         sigaddset(&mask, SIGCHLD);
         sigaddset(&mask, SIGINT);
+        sigaddset(&mask, SIGHUP);
+        sigaddset(&mask, SIGTERM);
 
         ExceptionSink xsink;
         if (start_signal_thread(&xsink)) {
@@ -334,8 +336,8 @@ void QoreSignalManager::signal_handler_thread() {
 
             //printd(5, "signal %d received (handler: %d)\n", sig, handlers[sig].isSet());
             if (!handlers[sig].isSet()) {
-                if (sig == SIGINT) {
-                    qore_exit_process(128 + SIGINT);
+                if (sig == SIGINT || sig == SIGTERM || sig == SIGHUP) {
+                    qore_exit_process(128 + sig);
                 }
                 continue;
             }
@@ -350,18 +352,21 @@ void QoreSignalManager::signal_handler_thread() {
             // create thread-local storage if possible
             // FIXME: set thread-local storage
             QoreProgram* pgm = handlers[sig].getProgram();
-            if (pgm)
+            if (pgm) {
                 qore_program_private::startThread(*pgm, xsink);
+            }
 
             {
                 ProgramThreadCountContextHelper tch(&xsink, pgm, true);
-                if (!xsink)
+                if (!xsink) {
                     handlers[sig].runHandler(sig, &xsink);
+                }
             }
 
             // delete thread-local storage, if any
-            if (pgm)
+            if (pgm) {
                 end_signal_thread(&xsink);
+            }
 
             // cleanup thread resources
             purge_thread_resources(&xsink);

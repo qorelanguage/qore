@@ -24,7 +24,7 @@
 
 #! contains all public definitions in the ElasticSearchDataProvider module
 public namespace ElasticSearchDataProvider {
-#! The AWS REST client base data provider class
+#! The ElasticSearch data provider base class
 public class ElasticSearchDataProviderBase inherits DataProvider::AbstractDataProvider {
     private {
         RestClient rest;

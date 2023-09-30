@@ -10,6 +10,7 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/DataProvider
 %requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/FtpClientDataProvider
@@ -20,10 +21,17 @@
 
 public class FtpClientDataProviderTest inherits QUnit::Test {
     constructor() : Test("FtpClientDataProvider Test", "1.0") {
+        addTestCase("connection test", \connectionTest());
         addTestCase("test", \ftpDataProviderTest());
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    connectionTest() {
+        FtpConnection conn("test", "ftp://localhost", "test");
+        hash<auto> h = conn.getInfoAsData();
+        assertEq(h, Serializable::deserialize(Serializable::serialize(h)));
     }
 
     ftpDataProviderTest() {

@@ -65,8 +65,9 @@ module WebSocketClient {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": WebSocketClient::AppName,
             "desc": "Generic WebSocket server",
-            "factory": "wsclient",
+            "scheme": "ws",
             "logo": WebSocketsLogo,
+            "logo_file_name": "generic-websockets-logo.svg",
             "logo_mime_type": MimeTypeSvg,
         });
 
@@ -78,15 +79,27 @@ module WebSocketClient {
             "short_desc": "Receive a WebSocket message",
             "desc": "Receive a WebSocket message from a WebSocket server",
             "action_code": DPAT_EVENT,
+            "action_val": EVENT_WS_DATA,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": WebSocketClient::AppName,
             "path": "/",
-            "action": "websocket-send-msg",
-            "short_desc": "Send a WebSocket message",
-            "desc": "Send a WebSocket message to a WebSocket server",
+            "action": "websocket-send-msg-data",
+            "short_desc": "Send a WebSocket data message",
+            "desc": "Send a WebSocket data message to a WebSocket server; the message is serialized for sending",
             "action_code": DPAT_SEND_MESSAGE,
+            "action_val": MESSAGE_WS_DATA,
+        });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": WebSocketClient::AppName,
+            "path": "/",
+            "action": "websocket-send-msg-raw",
+            "short_desc": "Send a raw WebSocket message",
+            "desc": "Send a raw WebSocket message to a WebSocket server",
+            "action_code": DPAT_SEND_MESSAGE,
+            "action_val": MESSAGE_WS_RAW,
         });
     };
 }
@@ -1413,7 +1426,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 auto msgdata = deserializeMessage(msg);
                 if (q) {
                     q.push(msgdata);
-                    printf("pushed event: %y q: %y\n", msg, q);
+                    #logger.debug("pushed event: %y q: %y", msg, q);
                 } else {
                     notifyObservers(EVENT_WS_DATA, {"data": msgdata});
                 }

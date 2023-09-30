@@ -46,11 +46,13 @@ module FtpClientDataProvider {
         DataProvider::registerFactory(new FtpClientDataProviderFactory());
 
         # register the data provider application
+        # NOTE: this application is also registed in the FtpPoller module
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": FtpClientDataProvider::AppName,
             "desc": "Generic FTP server for exchanging files with FTP and FTPS",
-            "factory": "ftpclient",
+            "scheme": "ftp",
             "logo": FtpLogo,
+            "logo_file_name": "generic-ftp-logo.svg",
             "logo_mime_type": MimeTypeSvg,
         });
 

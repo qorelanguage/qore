@@ -63,10 +63,6 @@ module RestClient {
 
 %ifndef QORE_QDX_RUN
     init = sub () {
-        # if no modules for data de/serialization can be loaded, then throw an exception
-        if (!RestClient::Accept)
-            throw "RESTCLIENT-ERROR", sprintf("none of the 'yaml', 'xml', or 'json' modules can be loaded; at least "
-                "one of which is required to support data de/serialization for REST requests and responses");
         ConnectionSchemeCache::registerScheme("rest", RestConnection::ConnectionScheme);
         ConnectionSchemeCache::registerScheme("rests", RestConnection::ConnectionScheme);
     };
@@ -2190,6 +2186,11 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         if (opts.oauth2_grant_type == "authorization_code") {
             checkAuthCodeFeature();
         }
+    }
+
+    #! Returns real options for creating an object
+    *hash<auto> getRealOptions() {
+        return real_opts;
     }
 
     #! Returns the OAuth2 option name for this connection

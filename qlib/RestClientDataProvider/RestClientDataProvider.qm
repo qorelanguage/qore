@@ -51,9 +51,10 @@ module RestClientDataProvider {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": RestClientDataProvider::AppName,
             "desc": "Generic REST server",
-            "factory": "restclient",
+            "scheme": "rest",
             "logo": WebHookLogo,
             "logo_mime_type": MimeTypeSvg,
+            "logo_file_name": "generic-rest-logo.svg",
         });
 
         # register all supported actions

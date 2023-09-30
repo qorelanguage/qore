@@ -61,8 +61,9 @@ module SmtpClient {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": SmtpClient::AppName,
             "desc": "Generic SMTP server for sending emails",
-            "factory": "smtpclient",
+            "scheme": "smtp",
             "logo": SmtpLogo,
+            "logo_file_name": "generic-smtp-logo.svg",
             "logo_mime_type": MimeTypeSvg,
         });
 
@@ -348,36 +349,36 @@ public class SmtpClient {
 
         #! procotol config
         const Protocols = {
-            "smtp": (
+            "smtp": {
                 "port": SmtpPort,
                 "ssl": False,
                 "tls": False,
-            ),
-            "smtps": (
+            },
+            "smtps": {
                 "port": SmtpsPort,
                 "ssl": True,
                 "tls": False,
-            ),
-            "smtptls": (
+            },
+            "smtptls": {
                 "port": SmtpsPort,
                 "ssl": False,
                 "tls": True,
-            ),
-            "esmtp": (
+            },
+            "esmtp": {
                 "port": EsmtpPort,
                 "ssl": False,
                 "tls": False,
-            ),
-            "esmtps": (
+            },
+            "esmtps": {
                 "port": SmtpsPort,
                 "ssl": True,
                 "tls": False,
-            ),
-            "esmtptls": (
+            },
+            "esmtptls": {
                 "port": EsmtpPort,
                 "ssl": False,
                 "tls": True,
-            ),
+            },
         };
     }
 
@@ -451,9 +452,10 @@ SmtpClient smtp("smtptls://user@gmail.com:password@smtp.gmail.com", \log(), \log
             pass = uh.password;
 
             logDbg("set authentication credentials to %s/xxx", user);
-        } else if (uh.password)
+        } else if (uh.password) {
             throw "SMTPCLIENT-INVALID-AUTHENTICATION", sprintf("password is set but username is missing in URL %y",
                 url);
+        }
     }
 
     #! disconnects if connected and destroys the object
@@ -1302,6 +1304,37 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("SmtpConnection"),
+            "options": HttpConnection::ConnectionScheme.options + {
+                "password": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The password for authentication; only used if no username or password is set in the URL "
+                        "and if the `username` option is also used",
+                    "sensitive": True,
+                },
+                "security": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "Sets the security option for the object; note that this option, if set to any value "
+                        "other than `default` will override any security implied by the URL scheme",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "default",
+                            "desc": "Security implied only by the protocol scheme",
+                        }, <AllowedValueInfo>{
+                            "value": "ssl",
+                            "desc": "Immediately negotiate an SSL session; fo not use `STARTTLS`",
+                        }, <AllowedValueInfo>{
+                            "value": "tls",
+                            "desc": "Make a standard socket connection and immediately issue a `STARTTLS` command "
+                                "for a secure connection",
+                        },
+                    ),
+                },
+                "username": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The username for authentication; only used if no username or password is set in the URL "
+                        "and if the `password` option is also used",
+                },
+            },
         };
     }
 
@@ -1317,7 +1350,7 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : AbstractConnectionWithInfo(name, description, url, attributes, options) {
+            : AbstractConnectionWithInfo(name, description, url, attributes, options) {
     }
 
     #! returns \c "smtp"
@@ -1390,6 +1423,18 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
         @return an @ref SmtpClient object
     */
     private SmtpClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        string url = self.url;
+        if (opts.username.val() && opts.password.val() && (!urlh.username.val() || !urlh.password.val())) {
+            url = sprintf("%s://%s:%s@%s", urlh.protocol, opts.username, opts.password, urlh.host);
+            if (urlh.port) {
+                url += sprintf(":%d", urlh.port);
+            }
+        }
+        if (opts.security == "tls") {
+            url =~ s/^(e)?[a-z]+:/$1smtptls:/;
+        } else if (opts.security == "ssl") {
+            url =~ s/^(e)?[a-z]+:/$1smtps:/;
+        }
         SmtpClient sc(url, rtopts.log, rtopts.dbglog);
         if (connect) {
             sc.connect();

@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore module
-%requires qore >= 1.19
+%requires qore >= 2.0
 
 %require-types
 %enable-all-warnings
@@ -33,9 +33,10 @@
 %requires Util
 %requires Logger
 %requires(reexport) DataProvider
+%requires reflection
 
 module ConnectionProvider {
-    version = "1.10";
+    version = "2.0";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -112,6 +113,10 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section connectionproviderrelnotes Release Notes
+
+    @subsection connectionprovider_2_0 ConnectionProvider 2.0
+    - added support for returning data provider subtypes
+      (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
 
     @subsection connectionprovider_1_10 ConnectionProvider 1.10
     - assume connections are up until they are proven to be down
@@ -270,7 +275,7 @@ public hashdecl ConnectionConstructorInfo {
     *string pre_processing;
 }
 
-#! connection information hash
+#! Connection information hash
 /** As returned by @ref ConnectionProvider::AbstractConnection::getInfo() "AbstractConnection::getInfo()"
 */
 public hashdecl ConnectionInfo {
@@ -332,6 +337,96 @@ public hashdecl ConnectionInfo {
 
     #! connection-defined feature hash
     *hash<string, bool> features;
+
+    #! Data provider subtype information
+    *hash<string, *hash<string, hash<DataProviderOptionInfo>>> dataprovider_subtypes;
+
+    #! if the connection supports the data provider API
+    bool has_provider = False;
+
+    #! if the data provider or any of its children support requests (APIs)
+    bool children_can_support_apis = False;
+
+    #! if the data provider or any of its children support records
+    bool children_can_support_records = False;
+
+    #! if the data provider or any of its children support events
+    bool children_can_support_observers = False;
+
+    #! if the data provider or any of its children support messages
+    bool children_can_support_messages = False;
+
+    #! if the data provider or any of its children support transaction management
+    bool children_can_support_transactions = False;
+}
+
+#! Connection information hash containing only serializable data
+/** As returned by @ref ConnectionProvider::AbstractConnection::getDataInfo() "AbstractConnection::getDataInfo()"
+
+    @since ConnectionProvider 2.0
+*/
+public hashdecl ConnectionDataInfo {
+    #! the connection name
+    string name;
+
+    #! the connection description
+    string desc;
+
+    #! the date/time value of the last connection check (or @ref nothing if not checked)
+    *date last_check;
+
+    #! a boolean vaue indicating if the connection is a loopback connection
+    bool loopback;
+
+    #! a boolean vaue indicating if the connection should be monitored or not
+    bool monitor;
+
+    #! the original options used to create the object
+    *hash opts;
+
+    #! a string giving the connection's status
+    string status;
+
+    #! the connection type
+    string type;
+
+    #! a boolean vaue indicating the connection is known to be up (will be @ref False "False" if not checked)
+    bool up = False;
+
+    #! the date/time value of the update (or @ref nothing if not updated)
+    *date updated;
+
+    #! the URL for the connection including the password
+    /** if any present and the \a with_password argument is @ref True "True"
+    */
+    string url;
+
+    #! a hash of URL information as returned by @ref Qore::parse_url() "parse_url()"
+    hash url_hash;
+
+    #! a boolean value indicating if the connection should be enabled or not
+    /** This flag does not affect anything by default, it is for user re-implementations
+    */
+    bool enabled;
+
+    #! a boolean value indicating whether the connection is locked or not
+    /** This flag does not affect anything by default, it is for user re-implementations
+    */
+    bool locked;
+
+    #! a boolean value indicating whether the connection should be subject to data debugging
+    /** This flag does not affect anything by default, it is for user re-implementations
+    */
+    bool debug_data;
+
+    #! user-defined key-value pairs associated with the connection
+    hash<auto> tags;
+
+    #! connection-defined feature hash
+    *hash<string, bool> features;
+
+    #! Data provider subtype information
+    *hash<string, *hash<string, hash<auto>>> dataprovider_subtypes;
 
     #! if the connection supports the data provider API
     bool has_provider = False;
