@@ -1077,7 +1077,7 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
     */
     private WebSocketClient getImpl(bool connect = True, *hash<auto> rtopts) {
         # to avoid type issues with rtopts
-        if (exists rtopts) {
+        if (rtopts) {
             rtopts = {} + rtopts;
         }
         if (!rtopts.callback) {
@@ -1087,9 +1087,10 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
         if (rtopts.dbglog) {
             rtopts.debuglog = remove rtopts.dbglog;
         }
-        WebSocketClient ws(rtopts.callback, {"url": url} + rtopts.("log", "errlog", "debuglog") + opts);
-        if (connect)
+        WebSocketClient ws(rtopts.callback, {"url": url} + rtopts{"log", "errlog", "debuglog"} + opts);
+        if (connect) {
             ws.connect();
+        }
         return ws;
     }
 

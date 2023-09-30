@@ -2188,11 +2188,6 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         }
     }
 
-    #! Returns real options for creating an object
-    *hash<auto> getRealOptions() {
-        return real_opts;
-    }
-
     #! Returns the OAuth2 option name for this connection
     /** @since %RestClient 2.0
     */
@@ -2386,6 +2381,14 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         return getUrlOption("oauth2_token_url", allow_relative);
     }
 
+    #! Returns options for creating a new connection
+    *hash<auto> getConnectionOptions(*hash<auto> rtopts) {
+        return real_opts + (rtopts.validator ? {"validator": rtopts.validator} : NOTHING + {
+            "logger": logger,
+            "update_options": update_options,
+        });
+    }
+
     #! Returns the value of a URL option or throws an exception if not set
     /*  @param opt the URL option name
         @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
@@ -2452,10 +2455,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         @return a @ref RestClient::RestClient "RestClient" object
     */
     private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return RestClient rest(real_opts + (rtopts.validator ? {"validator": rtopts.validator} : NOTHING + {
-            "logger": logger,
-            "update_options": update_options,
-        }), !connect);
+        return RestClient rest(getConnectionOptions(rtopts), !connect);
     }
 
     #! performs the internal ping

@@ -328,10 +328,7 @@ public class ZeyosRestConnection inherits RestClient::RestConnection {
         @return a @ref ZeyosRestClient::ZeyosRestClient "ZeyosRestClient" object
     */
     private ZeyosRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new ZeyosRestClient(real_opts + {
-            "logger": logger,
-            "update_options": update_options,
-        }, !connect);
+        return new ZeyosRestClient(getConnectionOptions(), !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

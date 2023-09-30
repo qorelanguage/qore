@@ -253,8 +253,7 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             if (!hurl.port && hurl.host[0] != "/") {
                 hurl.port = POP3Port;
             }
-        }
-        else {
+        } else {
             *hash conf = Protocols.(hurl.protocol.lwr());
             if (!exists conf) {
                 throw "POP3-URL-ERROR", sprintf("unknown scheme %y in %y; known schemes: %y", hurl.protocol,
@@ -273,15 +272,12 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
         if (hurl.host.val()) {
             if (string(int(hurl.host)) == hurl.host) {
                 connect = sprintf("localhost:%d", hurl.host);
-            }
-            else if (hurl.host[0] != "/") {
+            } else if (hurl.host[0] != "/") {
                 connect = sprintf("%s:%d", hurl.host, hurl.port);
-            }
-            else {
+            } else {
                 connect = hurl.host;
             }
-        }
-        else { # here hurl.path must be set
+        } else { # here hurl.path must be set
             connect = hurl.path;
         }
 
@@ -469,14 +465,14 @@ pop3.connect();
 
         @par Example:
         @code{.py}
-hash h = pop3.stat();
+hash<auto> h = pop3.stat();
         @endcode
 
         @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
         @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
     */
-    hash stat() {
+    hash<auto> stat() {
         AutoLock am(mutex);
         if (!isConnected())
             connectIntern();
@@ -491,7 +487,7 @@ hash h = pop3.stat();
 
         @par Example:
         @code{.py}
-*hash h = pop3.list();
+*hash<auto> h = pop3.list();
 HashIterator hi(h);
 map printf("%s: %d byte%s\n", $1.getKey(), $1.getValue(), $1.getValue() == 1 ? "" : "s"), hi;
         @endcode
@@ -500,10 +496,11 @@ map printf("%s: %d byte%s\n", $1.getKey(), $1.getValue(), $1.getValue() == 1 ? "
 
         @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
     */
-    *hash list() {
+    *hash<auto> list() {
         AutoLock am(mutex);
-        if (!isConnected())
+        if (!isConnected()) {
             connectIntern();
+        }
 
         return listIntern();
     }
@@ -522,8 +519,9 @@ pop3.del(msgid);
     */
     del(softstring msg) {
         AutoLock am(mutex);
-        if (!isConnected())
+        if (!isConnected()) {
             connectIntern();
+        }
 
         sendCommand("DELE %s", msg);
     }
@@ -540,8 +538,9 @@ pop3.del(msgidlist);
     */
     del(list l) {
         AutoLock am(mutex);
-        if (!isConnected())
+        if (!isConnected()) {
             connectIntern();
+        }
 
         foreach softstring msg in (l)
             sendCommand("DELE %s", msg);
@@ -559,8 +558,9 @@ pop3.noop();
     */
     noop() {
         AutoLock am(mutex);
-        if (!isConnected())
+        if (!isConnected()) {
             connectIntern();
+        }
 
         sendCommand("NOOP");
     }
@@ -577,8 +577,9 @@ pop3.reset();
     */
     reset() {
         AutoLock am(mutex);
-        if (!isConnected())
+        if (!isConnected()) {
             connectIntern();
+        }
 
         sendCommand("RSET");
     }
@@ -826,21 +827,21 @@ pop3.setEventQueue();
         string r = sendCommand("STAT");
         my (softint num, softint size) = (r =~ x/\+OK ([0-9]+) ([0-9]+)/);
         logDbg("messages: %d total size: %d bytes", num, size);
-        return (
+        return {
             "num": num,
             "size": size,
-            );
+        };
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private *hash listIntern() {
+    final private *hash<auto> listIntern() {
         list l = sendCommandMulti("LIST");
         # ignore first line (status line)
         shift l;
         # message info hash
         hash mih;
         foreach string ml in (l) {
-            my (string id, softint size) = (ml =~ x/^([0-9]+) ([0-9]+)/);
+            (string id, softint size) = (ml =~ x/^([0-9]+) ([0-9]+)/);
             mih{id}.size = size;
         }
         #logDbg("messages: %y", mih);
@@ -1053,15 +1054,16 @@ public class Pop3Connection inherits ConnectionProvider::AbstractConnectionWithI
     }
 
     #! returns runtime options
-    /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl() for connection logging:
+    /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl()
+        for connection logging:
         - \c "log": a closure accepting a single string for logging
         - \c "dbglog": a closure taking a single string for detailed technical connection logging
     */
     *hash<auto> getRuntimeOptions() {
-        return (
+        return {
             "log": True,
             "dbglog": True,
-        );
+        };
     }
 
     #! returns a @ref Pop3Client object
@@ -1072,10 +1074,11 @@ public class Pop3Connection inherits ConnectionProvider::AbstractConnectionWithI
 
         @return a @ref Pop3Client object
     */
-    private Pop3Client getImpl(bool connect = True, *hash rtopts) {
+    private Pop3Client getImpl(bool connect = True, *hash<auto> rtopts) {
         Pop3Client sc(url, rtopts.log, rtopts.dbglog);
-        if (connect)
+        if (connect) {
             sc.connect();
+        }
         return sc;
     }
 

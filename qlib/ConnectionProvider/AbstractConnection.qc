@@ -312,7 +312,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         @since ConnectionProvider 2.0
     */
     hash<ConnectionDataInfo> getInfoAsData(*hash<auto> opts) {
-        hash<ConnectionInfo> h = getInfo();
+        hash<ConnectionInfo> h = getInfo(opts);
         hash<ConnectionDataInfo> rv = cast<hash<ConnectionDataInfo>>(h - "dataprovider_subtypes");
         foreach hash<auto> i in (h.dataprovider_subtypes.pairIterator()) {
             foreach hash<auto> j in (i.value.pairIterator()) {
@@ -412,6 +412,11 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     #! returns options for saving the connection's configuration information
     *hash<auto> getRealOptions() {
         return orig_opts;
+    }
+
+    #! returns options for creating a new connection
+    *hash<auto> getConnectionOptions(*hash<auto> rtopts) {
+        return orig_opts + rtopts;
     }
 
     #! returns the underlying connection object

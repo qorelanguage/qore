@@ -61,10 +61,7 @@ public class ElasticSearchRestConnection inherits RestClient::RestConnection {
         @return a @ref RestClient::RestClient "RestClient" object
     */
     private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new RestClient(real_opts + {
-            "logger": logger,
-            "update_options": update_options,
-        }, !connect);
+        return new RestClient(getConnectionOptions(), !connect);
     }
 }
 }

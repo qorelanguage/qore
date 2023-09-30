@@ -331,10 +331,7 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
         @return a @ref GoogleRestClient object
     */
     private GoogleRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new GoogleRestClient(real_opts + {
-            "logger": logger,
-            "update_options": update_options,
-        }, !connect);
+        return new GoogleRestClient(getConnectionOptions(), !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

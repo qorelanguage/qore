@@ -220,6 +220,11 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
         return getPollImpl().startPollConnect();
     }
 
+    #! Returns options for creating a new connection
+    *hash<auto> getConnectionOptions(*hash<auto> rtopts) {
+        return {"url": url} + opts;
+    }
+
     #! Sets child data provider capabilities
     private setChildCapabilities() {
         children_can_support_apis = True;
@@ -230,9 +235,10 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
         @param rtopts this connection type does not accept any runtime option, so this parameter is ignored
     */
     private Qore::HTTPClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        HTTPClient sc({"url": url} + opts);
-        if (connect)
+        HTTPClient sc(getConnectionOptions());
+        if (connect) {
             sc.connect();
+        }
 
         return sc;
     }

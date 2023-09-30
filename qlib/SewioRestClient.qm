@@ -283,10 +283,7 @@ public class SewioRestConnection inherits RestClient::RestConnection {
         @return a @ref SewioRestClient::SewioRestClient "SewioRestClient" object
     */
     private SewioRestClient getImpl(bool connect = True, *hash<auto>rtopts) {
-        return new SewioRestClient(real_opts + {
-            "logger": logger,
-            "update_options": update_options,
-        }, !connect);
+        return new SewioRestClient(getConnectionOptions(), !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

@@ -253,10 +253,7 @@ public class HueRestConnection inherits RestClient::RestConnection {
         @return a @ref HueRestClient object
     */
     private HueRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new HueRestClient(real_opts + {
-            "logger": logger,
-            "update_options": update_options,
-        }, !connect);
+        return new HueRestClient(getConnectionOptions(), !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

@@ -572,10 +572,7 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         @return a @ref CdsRestClient object
     */
     private CdsRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new CdsRestClient(real_opts + {
-            "logger": logger,
-            "update_options": update_options,
-        }, !connect);
+        return new CdsRestClient(getConnectionOptions(), !connect);
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object
