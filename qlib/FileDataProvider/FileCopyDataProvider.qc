@@ -25,7 +25,7 @@
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! The File copy data provider class
-public class FileCopyDataProvider inherits AbstractDataProvider {
+public class FileCopyDataProvider inherits FileDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -33,6 +33,7 @@ public class FileCopyDataProvider inherits AbstractDataProvider {
             "desc": "File copy data provider; copies files or entire directory trees on the filesystem given source "
                 "and target paths as arguments",
             "type": "FileCopyDataProvider",
+            "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
 
@@ -46,6 +47,14 @@ public class FileCopyDataProvider inherits AbstractDataProvider {
 
         #! Response type
         const ResponseType = new FileTargetResponseDataType();
+    }
+
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) : FileDataProviderBase(options) {
+    }
+
+    #! Creates the object from the arguments
+    constructor(*string root, *bool lock, *bool readonly) : FileDataProviderBase(root, lock, readonly) {
     }
 
     #! Returns the data provider name
@@ -64,6 +73,11 @@ public class FileCopyDataProvider inherits AbstractDataProvider {
         @throws PATH-EXISTS-ERROR If destination path exists and overwrite flag is not set.
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        if (root.val() && lock) {
+            checkPath(req.source);
+            checkPath(req.target);
+        }
+        checkReadOnly("copy");
         return {
             "target": copy_path(req.source, req.target, req.follow_symlinks, req.overwrite),
         };

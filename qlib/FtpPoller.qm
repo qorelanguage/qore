@@ -61,8 +61,8 @@ module FtpPoller {
             "path": "/",
             "action": "ftp-file-event",
             "subtype": "ftppoller",
-            "short_desc": "Poll files from an FTP server",
-            "desc": "Poll files from an FTP server",
+            "short_desc": "A file is uploaded to an FTP server",
+            "desc": "React to files uploaded to an FTP server",
             "action_code": DPAT_EVENT,
             "action_val": EVENT_FTP_FILE,
         });

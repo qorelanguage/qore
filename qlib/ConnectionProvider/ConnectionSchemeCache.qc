@@ -88,6 +88,9 @@ public class ConnectionSchemeCache {
 
             "cdsrests": "CdsRestClient",
 
+            "ebrest": "EmpathicBuildingDataProvider",
+            "ebrests": "EmpathicBuildingDataProvider",
+
             "esrest": "ElasticSearchDataProvider",
             "esrests": "ElasticSearchDataProvider",
 
@@ -95,8 +98,12 @@ public class ConnectionSchemeCache {
 
             "hue": "HueRestClient",
 
+            # provided by the json module
             "jsonrpc": "JsonRpcClient",
             "jsonrpcs": "JsonRpcClient",
+
+            # provided by the jni module
+            "mqtt": "MqttDataProvider",
 
             "pop3": "Pop3Client",
             "pop3s": "Pop3Client",
@@ -109,6 +116,7 @@ public class ConnectionSchemeCache {
 
             "sfrests": "SalesforceRestClient",
 
+            # provided by the xml module
             "sfsoap": "SalesforceSoapClient",
             "sfsoaps": "SalesforceSoapClient",
 
@@ -119,11 +127,13 @@ public class ConnectionSchemeCache {
             "sewiows": "SewioWebSocketClient",
             "sewiowss": "SewioWebSocketClient",
 
+            # provided by the xml module
             "soap": "SoapClient",
             "soaps": "SoapClient",
 
             "sftp": "Ssh2Connections",
 
+            # provided by the ssh2 module
             "ssh": "Ssh2Connections",
 
             "smtp": "SmtpClient",
@@ -138,9 +148,11 @@ public class ConnectionSchemeCache {
             "ws": "WebSocketClient",
             "wss": "WebSocketClient",
 
+            # provided by the xml module
             "xmlrpc": "XmlRpcClient",
             "xmlrpcs": "XmlRpcClient",
 
+            # provided by the yaml module
             "yamlrpc": "YamlRpcClient",
             "yamlrpcs": "YamlRpcClient",
 

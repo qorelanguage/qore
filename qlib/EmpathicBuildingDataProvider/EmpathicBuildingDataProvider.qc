@@ -24,6 +24,9 @@
 
 #! Contains all public definitions in the EmpathicBuildingDataProvider module
 public namespace EmpathicBuildingDataProvider {
+#! Empathic building app name
+public const AppName = "EmpathicBuilding";
+
 #! The EmpathicBuilding data provider class
 public class EmpathicBuildingDataProvider inherits EmpathicBuildingDataProviderBase {
     public {

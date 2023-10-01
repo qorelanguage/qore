@@ -61,8 +61,9 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-        : AbstractConnectionWithInfo(name, description, url, attributes, options) {
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {},
+            *Logger logger)
+            : AbstractConnectionWithInfo(name, description, url, attributes, options, logger) {
         # the URL hash is parsed with parse_url() which will put a string in the
         # "host" key if it does not look like an absolute path, in which case "host"
         # needs to be prepended back to the path
@@ -84,9 +85,59 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
         urlh.path = normalize_dir(urlh.path);
     }
 
-    #! returns \c "dir"
+    #! returns \c "file"
     string getType() {
-        return "dir";
+        return "file";
+    }
+
+    #! returns @ref True
+    /** @return @ref True
+    */
+    bool hasDataProvider() {
+        return True;
+    }
+
+    #! Returns a data provider object for this connection
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return a data provider object for this connection
+    */
+    AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
+        load_module("FileDataProvider");
+    }
+
+    #! returns a data provider object for connection subtype passed as an argument
+    /** @param subtype the subtype of data provider supported, in case the connection can return multiple data
+        providers
+        @param constructor_options any additional constructor options required by the data provider
+
+        @return a data provider object for the connection and subtype passed as an argument
+
+        @throw DATA-PROVIDER-ERROR the given subtype is not valid
+    */
+    private AbstractDataProvider getDataProviderImpl(string subtype, *hash<auto> constructor_options) {
+        if (subtype != "filepoller") {
+            throw "DATA-PROVIDER-ERROR", sprintf("%y is an invalid subtype; expecting \"filepoller\"", subtype);
+        }
+        if (opts.readonly) {
+            throw "DATA-PROVIDER-ERROR", "cannot return a FilePollerDataProvider for readonly file connections";
+        }
+        load_module("FilePoller");
+        return create_object("FileDelayedPollerDataProvider", {
+            "path": urlh.path,
+            "readonly": opts.readonly,
+        } + constructor_options);
+    }
+
+    #! Returns a hash of data provider constructor option info, if applicable
+    /** @return a hash of data provider constructor option info for the primary data provider, if applicable
+    */
+    private *hash<string, hash<DataProviderOptionInfo>> getDataProviderConstructorOptionsImpl() {
+        load_module("FilePoller");
+        Class cls = Class::forName("FilePollerDataProviderBase");
+        return {
+            "filepoller": cls.getConstant("ConstructorOptions").getValue(),
+        };
     }
 
     #! returns a @ref Qore::Dir object

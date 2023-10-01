@@ -59,8 +59,8 @@ public class InvalidConnection inherits AbstractConnection {
 
             - \c error a custom error string
     */
-    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : AbstractConnection(name, description, url, attributes, options) {
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {},
+            *Logger logger) : AbstractConnection(name, description, url, attributes, options, logger) {
         if (attributes.error.val()) {
             self.error = attributes.error;
         }

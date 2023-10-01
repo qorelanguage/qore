@@ -699,7 +699,7 @@ class QdpCmd {
             printf("%s: scheme %y, %d action%s: %s\n", app.name, app.scheme, actions.size(),
                 actions.size() == 1 ? "" : "s", app.desc);
             if (opts.verbose) {
-                map printf(" + %s (%s: %s): %s\n", $1.action, ActionNameMap{$1.action_code}, $1.path, $1.short_desc),
+                map printf(" + %s (%s %y): %s\n", $1.action, ActionNameMap{$1.action_code}, $1.path, $1.short_desc),
                     actions;
             }
         }

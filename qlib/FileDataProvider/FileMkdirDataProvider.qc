@@ -25,13 +25,14 @@
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! The File mkdir data provider class
-public class FileMkdirDataProvider inherits AbstractDataProvider {
+public class FileMkdirDataProvider inherits FileDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "mkdir",
             "desc": "File mkdir data provider; creates a directory given a path as an argument",
             "type": "FileMkdirDataProvider",
+            "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
 
@@ -47,6 +48,14 @@ public class FileMkdirDataProvider inherits AbstractDataProvider {
         const ResponseType = new FilePathDataType();
     }
 
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) : FileDataProviderBase(options) {
+    }
+
+    #! Creates the object from the arguments
+    constructor(*string root, *bool lock, *bool readonly) : FileDataProviderBase(root, lock, readonly) {
+    }
+
     #! Returns the data provider name
     string getName() {
         return "mkdir";
@@ -59,6 +68,11 @@ public class FileMkdirDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        if (root.val() && lock) {
+            checkPath(req.path);
+        }
+        checkReadOnly("mkdir");
+
         mkdir(req.path, req.mode, True);
         return {
             "path": req.path,

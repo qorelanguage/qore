@@ -25,13 +25,14 @@
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! The create file data provider class
-public class FileCreateDataProvider inherits AbstractDataProvider {
+public class FileCreateDataProvider inherits FileDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "create",
             "desc": "Create file data provider; creates a file in the given location",
             "type": "FileCreateDataProvider",
+            "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
 
@@ -48,8 +49,11 @@ public class FileCreateDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from constructor options
-    constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", NOTHING, options);
+    constructor(*hash<auto> options) : FileDataProviderBase(options) {
+    }
+
+    #! Creates the object from the arguments
+    constructor(*string root, *bool lock, *bool readonly) : FileDataProviderBase(root, lock, readonly) {
     }
 
     #! Returns the data provider name
@@ -64,6 +68,11 @@ public class FileCreateDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        if (root.val() && lock) {
+            checkPath(req.path);
+        }
+        checkReadOnly("create");
+
         File f();
         f.open2(req.path, O_CREAT | O_TRUNC | O_WRONLY, req.mode);
         f.write(req."data");

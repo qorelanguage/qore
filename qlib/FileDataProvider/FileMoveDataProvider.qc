@@ -25,7 +25,7 @@
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! The File move data provider class
-public class FileMoveDataProvider inherits AbstractDataProvider {
+public class FileMoveDataProvider inherits FileDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -33,6 +33,7 @@ public class FileMoveDataProvider inherits AbstractDataProvider {
             "desc": "File move data provider; moves files or entire directory trees on the filesystem given source "
                 "and target paths as arguments",
             "type": "FileMoveDataProvider",
+            "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
 
@@ -48,6 +49,14 @@ public class FileMoveDataProvider inherits AbstractDataProvider {
         const ResponseType = new FileTargetResponseDataType();
     }
 
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) : FileDataProviderBase(options) {
+    }
+
+    #! Creates the object from the arguments
+    constructor(*string root, *bool lock, *bool readonly) : FileDataProviderBase(root, lock, readonly) {
+    }
+
     #! Returns the data provider name
     string getName() {
         return "move";
@@ -60,10 +69,16 @@ public class FileMoveDataProvider inherits AbstractDataProvider {
         @return the response to the request
 
         @throws SAME-FILE-ERROR If both paths point to the same file.
-        @throws FILE-STAT-ERROR If stat call for the source path fails.
+        @throws FILE-STAT-ERROR If stat call for the source path fails
         @throws PATH-EXISTS-ERROR If destination path exists and overwrite flag is False
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        if (root.val() && lock) {
+            checkPath(req.source);
+            checkPath(req.target);
+        }
+        checkReadOnly("move");
+
         return {
             "target": move_path(req.source, req.target, req.overwrite),
         };

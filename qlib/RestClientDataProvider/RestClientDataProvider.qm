@@ -62,8 +62,8 @@ module RestClientDataProvider {
             "app": RestClientDataProvider::AppName,
             "path": "/call",
             "action": "call",
-            "short_desc": "Make a call to a REST server or WebHook",
-            "desc": "Make a call to a REST server or a WebHook and return the response",
+            "short_desc": "Make a call to a REST server or webhook",
+            "desc": "Make a call to a REST server or a webhook and return the response",
             "action_code": DPAT_API,
         });
     };

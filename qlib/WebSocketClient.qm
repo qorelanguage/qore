@@ -75,9 +75,9 @@ module WebSocketClient {
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": WebSocketClient::AppName,
             "path": "/",
-            "action": "websocket-get-msg",
-            "short_desc": "Receive a WebSocket message",
-            "desc": "Receive a WebSocket message from a WebSocket server",
+            "action": "msg-received",
+            "short_desc": "A WebSocket message is received",
+            "desc": "Receive a WebSocket message from a WebSocket server; react to a WebSocket message",
             "action_code": DPAT_EVENT,
             "action_val": EVENT_WS_DATA,
         });
@@ -85,7 +85,7 @@ module WebSocketClient {
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": WebSocketClient::AppName,
             "path": "/",
-            "action": "websocket-send-msg-data",
+            "action": "send-msg-data",
             "short_desc": "Send a WebSocket data message",
             "desc": "Send a WebSocket data message to a WebSocket server; the message is serialized for sending",
             "action_code": DPAT_SEND_MESSAGE,
@@ -95,7 +95,7 @@ module WebSocketClient {
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": WebSocketClient::AppName,
             "path": "/",
-            "action": "websocket-send-msg-raw",
+            "action": "send-msg-raw",
             "short_desc": "Send a raw WebSocket message",
             "desc": "Send a raw WebSocket message to a WebSocket server",
             "action_code": DPAT_SEND_MESSAGE,

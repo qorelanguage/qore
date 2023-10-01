@@ -169,8 +169,8 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    constructor(string name, string desc, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : AbstractConnectionWithInfo(name, desc, url, attributes, options) {
+    constructor(string name, string desc, string url, hash<auto> attributes = {}, hash<auto> options = {},
+            *Logger logger) : AbstractConnectionWithInfo(name, desc, url, attributes, options, logger) {
     }
 
     #! Returns \c "http"

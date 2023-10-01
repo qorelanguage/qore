@@ -111,15 +111,15 @@ public const ActionAttrMap = {
 
 #! Maps a @ref db_action_type "action type code" to a user-friendly name
 public const ActionNameMap = {
-    DPAT_EVENT: "event",
+    DPAT_EVENT: "EVENT",
     DPAT_API: "API",
-    DPAT_SEND_MESSAGE: "message",
-    DPAT_FIND: "find",
-    DPAT_FIND_SINGLE: "find_single",
-    DPAT_CREATE: "create",
-    DPAT_UPSERT: "upsert",
-    DPAT_UPDATE: "update",
-    DPAT_DELETE: "delete",
+    DPAT_SEND_MESSAGE: "MESSAGE",
+    DPAT_FIND: "FIND",
+    DPAT_FIND_SINGLE: "FIND_SINGLE",
+    DPAT_CREATE: "CREATE",
+    DPAT_UPSERT: "UPSERT",
+    DPAT_UPDATE: "UPDATE",
+    DPAT_DELETE: "DELETE",
 };
 
 #! DataProvider action definition
@@ -513,7 +513,8 @@ public class DataProviderActionCatalog {
         if (!path.val()) {
             throw "ACTION-ERROR", sprintf("empty action path provided", path);
         }
-        return path;
+        # ensure path starts with a leading "/"
+        return path == "/" ? path : "/" + path;
     }
 
     #! Deregisters an app and all its actions if an exception occurs during the other module's initialization

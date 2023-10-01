@@ -69,7 +69,7 @@ module FtpClientDataProvider {
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": FtpClientDataProvider::AppName,
             "path": "/create-file",
-            "action": "create-file",
+            "action": "send-file",
             "short_desc": "Sends a file to an FTP server",
             "desc": "Sends a file to an FTP server",
             "action_code": DPAT_API,

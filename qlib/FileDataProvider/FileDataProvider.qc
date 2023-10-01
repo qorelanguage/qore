@@ -24,12 +24,16 @@
 
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
+#! Generic app name for the local filesystem
+public const AppName = "Filesystem";
+
 #! The main data provider class, provides API classes as children
-public class FileDataProvider inherits AbstractDataProvider {
+public class FileDataProvider inherits FileDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "type": "FileDataProvider",
+            "constructor_options": ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
             "children_can_support_records": False,
@@ -51,8 +55,7 @@ public class FileDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from constructor options
-    constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", NOTHING, options);
+    constructor(*hash<auto> options) : FileDataProviderBase(options) {
     }
 
     #! Returns the data provider name
@@ -89,7 +92,7 @@ public class FileDataProvider inherits AbstractDataProvider {
         if (!cls) {
             return;
         }
-        return cls.newObject();
+        return cls.newObject(root, lock, readonly);
     }
 
     #! Returns data provider static info

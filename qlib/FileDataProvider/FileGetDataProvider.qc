@@ -25,13 +25,14 @@
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! The get file data provider class
-public class FileGetDataProvider inherits AbstractDataProvider {
+public class FileGetDataProvider inherits FileDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "get",
             "desc": "Get file data provider; gets a file in the given location",
             "type": "FileGetDataProvider",
+            "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
 
@@ -47,9 +48,12 @@ public class FileGetDataProvider inherits AbstractDataProvider {
         const ResponseType = new FileGetResponseDataType();
     }
 
-    #! Gets the object from constructor options
-    constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", NOTHING, options);
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) : FileDataProviderBase(options) {
+    }
+
+    #! Creates the object from the arguments
+    constructor(*string root, *bool lock, *bool readonly) : FileDataProviderBase(root, lock, readonly) {
     }
 
     #! Returns the data provider name
@@ -64,6 +68,9 @@ public class FileGetDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        if (root.val() && lock) {
+            checkPath(req.path);
+        }
         return {
             "path": req.path,
             "data": req.text

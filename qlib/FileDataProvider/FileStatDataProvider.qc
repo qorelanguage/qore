@@ -25,13 +25,14 @@
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! The File stat data provider class
-public class FileStatDataProvider inherits AbstractDataProvider {
+public class FileStatDataProvider inherits FileDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "stat",
             "desc": "File stat data provider; returns information about the path given as an argument",
             "type": "FileStatDataProvider",
+            "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
 
@@ -45,6 +46,14 @@ public class FileStatDataProvider inherits AbstractDataProvider {
 
         #! Response type
         const ResponseType = new FileStatResponseDataType();
+    }
+
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) : FileDataProviderBase(options) {
+    }
+
+    #! Creates the object from the arguments
+    constructor(*string root, *bool lock, *bool readonly) : FileDataProviderBase(root, lock, readonly) {
     }
 
     #! Returns the data provider name
@@ -66,8 +75,11 @@ public class FileStatDataProvider inherits AbstractDataProvider {
         @throw STAT-ERROR if the path cannot be read
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        string path = normalize_dir(req.path, root);
+        if (root.val() && lock) {
+            checkPath(path);
+        }
         # += to ensure that "rv" stays "hash<auto>"
-        string path = normalize_dir(req.path);
         hash<auto> rv += (req.symlink ? hlstat(path) : hstat(path));
 
         if (!rv) {

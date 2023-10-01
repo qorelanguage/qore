@@ -361,6 +361,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         @since ConnectionProvider 2.0
     */
     hash<auto> getExtendedInfoAsData(*hash<auto> opts) {
+        # ensure hash<auto> for the return type
         hash<auto> h += getInfoAsData(opts);
         return h;
     }

@@ -25,7 +25,7 @@
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! The File delete data provider class
-public class FileDeleteDataProvider inherits AbstractDataProvider {
+public class FileDeleteDataProvider inherits FileDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -33,6 +33,7 @@ public class FileDeleteDataProvider inherits AbstractDataProvider {
             "desc": "File delete data provider; deletes files or entire directory trees on the filesystem given a "
                 "path as an argument",
             "type": "FileDeleteDataProvider",
+            "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
 
@@ -43,6 +44,14 @@ public class FileDeleteDataProvider inherits AbstractDataProvider {
 
         #! Request type
         const RequestType = new FilePathDataType();
+    }
+
+    #! Creates the object from constructor options
+    constructor(*hash<auto> options) : FileDataProviderBase(options) {
+    }
+
+    #! Creates the object from the arguments
+    constructor(*string root, *bool lock, *bool readonly) : FileDataProviderBase(root, lock, readonly) {
     }
 
     #! Returns the data provider name
@@ -57,6 +66,11 @@ public class FileDeleteDataProvider inherits AbstractDataProvider {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        if (root.val() && lock) {
+            checkPath(req.path);
+        }
+        checkReadOnly("delete");
+
         remove_path(req.path);
         return {
             "path": req.path,

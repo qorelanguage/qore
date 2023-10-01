@@ -84,8 +84,8 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : AbstractConnectionWithInfo(name, description, url, attributes, options) {
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {},
+            *Logger logger) : AbstractConnectionWithInfo(name, description, url, attributes, options, logger) {
     }
 
     #! returns \c "ftp"

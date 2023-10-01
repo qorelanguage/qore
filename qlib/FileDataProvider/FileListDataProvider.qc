@@ -25,13 +25,14 @@
 #! contains all public definitions in the FileDataProvider module
 public namespace FileDataProvider {
 #! The file list data provider class
-public class FileListDataProvider inherits AbstractDataProvider {
+public class FileListDataProvider inherits FileDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "list",
             "desc": "List files data provider; returns file information about the path given as an argument",
             "type": "FileListDataProvider",
+            "constructor_options": ConstructorOptions,
             "supports_request": True,
         };
 
@@ -48,8 +49,11 @@ public class FileListDataProvider inherits AbstractDataProvider {
     }
 
     #! Creates the object from constructor options
-    constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", NOTHING, options);
+    constructor(*hash<auto> options) : FileDataProviderBase(options) {
+    }
+
+    #! Creates the object from the arguments
+    constructor(*string root, *bool lock, *bool readonly) : FileDataProviderBase(root, lock, readonly) {
     }
 
     #! Returns the data provider name
@@ -66,6 +70,9 @@ public class FileListDataProvider inherits AbstractDataProvider {
         @throw LIST-ERROR if the path cannot be read
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        if (root.val() && lock) {
+            checkPath(req.path);
+        }
         Dir dir();
         dir.chdir(req.path);
         return dir.listFiles(True);

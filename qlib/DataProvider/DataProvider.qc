@@ -46,7 +46,10 @@ public class DataProvider {
             "ftppoller": "FtpPoller",
             "google": "GoogleDataProvider",
             "httpclient": "HttpClientDataProvider",
+
+            # provided by the jni module
             "mqtt": "MqttDataProvider",
+
             "restclient": "RestClientDataProvider",
             "salesforcerest": "SalesforceRestDataProvider",
             "sax": "SaxDataProvider",
