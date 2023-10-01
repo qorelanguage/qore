@@ -106,11 +106,13 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
     }
 
     #! returns an FtpClientDataProvider object for this connection
-    /** @return an FtpClientDataProvider object for this connection
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return an FtpClientDataProvider object for this connection
 
         @see hasDataProvider()
     */
-    DataProvider::AbstractDataProvider getDataProvider() {
+    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
         # to avoid circular dependencies, this object loads the FtpDataProvider and creates the data provider
         # object dynamically
         load_module("FtpClientDataProvider");

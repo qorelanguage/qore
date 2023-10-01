@@ -509,13 +509,15 @@ public class AwsRestConnection inherits RestClient::RestConnection {
     }
 
     #! returns a data provider object for this connection
-    /** @return a data provider object for this connection; the data provider is:
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return a data provider object for this connection; the data provider is:
         - \c SwaggerDataProvider: if an appropriate schema is configured
         - \c RestClientDataProvider: if there is no schema configured
 
         @throw DATA-PROVIDER-ERROR this object does not support the data provider API
     */
-    DataProvider::AbstractDataProvider getDataProvider() {
+    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
         if (opts.validator || opts.swagger) {
             # get a REST client object without connecting
             AwsRestClient rest = get(False);

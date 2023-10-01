@@ -475,22 +475,6 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         return rv;
     }
 
-    #! returns a data provider object for this connection, if supported
-    /** @return a data provider object for this connection, if supported
-
-        @throw DATA-PROVIDER-ERROR this object does not support the data provider API
-
-        This base class method throws a \c DATA-PROVIDER-ERROR exception by default; to support the data provider
-        API, override this method in child classes
-
-        @see hasDataProvider()
-
-        @since ConnectionProvider 1.3
-    */
-    AbstractDataProvider getDataProvider() {
-        throw "DATA-PROVIDER-ERROR", sprintf("%y connections do not support the data provider API", getType());
-    }
-
     #! returns @ref True if the connection returns a data provider with the @ref getDataProvider() method
     /** @return @ref True if the connection returns a data provider with the @ref getDataProvider() method
 
@@ -503,6 +487,26 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     */
     bool hasDataProvider() {
         return False;
+    }
+
+    #! returns a data provider object for this connection, if supported
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return a data provider object for this connection, if supported
+
+        @throw DATA-PROVIDER-ERROR this object does not support the data provider API
+
+        This base class method throws a \c DATA-PROVIDER-ERROR exception by default; to support the data provider
+        API, override this method in child classes
+
+        @see hasDataProvider()
+
+        @since
+        - ConnectionProvider 1.3
+        - ConnectionProvider 2.0 added the optional \c constructor_options argument
+    */
+    AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
+        throw "DATA-PROVIDER-ERROR", sprintf("%y connections do not support the data provider API", getType());
     }
 
     #! Returns a data provider object for the connection and subtype passed as an argument
@@ -521,22 +525,28 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     */
     AbstractDataProvider getDataProvider(string subtype, *hash<auto> constructor_options) {
         if (subtype == getType()) {
-            return getDataProvider();
+            return getDataProvider(constructor_options);
         }
         return getDataProviderImpl(subtype, constructor_options);
     }
 
-    #! Returns a hash of of supported data provider subtypes and constructor option info
-    /** @return a hash of of supported data provider subtypes and constructor option info; top-level keys are data
+    #! Returns a hash of data provider constructor option info, if applicable
+    /** @return a hash of data provider constructor option info for the primary data provider, if applicable
+
+        @since ConnectionProvider 2.0
+    */
+    *hash<string, hash<DataProviderOptionInfo>> getDataProviderConstructorOptions() {
+        return getDataProviderConstructorOptionsImpl();
+    }
+
+    #! Returns a hash of supported data provider subtypes and constructor option info
+    /** @return a hash of supported data provider subtypes and constructor option info; top-level keys are data
         provider subtypes supported by this connection, values are hashes of data provider constructor option
         information
 
         @since ConnectionProvider 2.0
     */
     *hash<string, *hash<string, hash<DataProviderOptionInfo>>> getDataProviderSubtypes() {
-        if (!hasDataProvider()) {
-            return;
-        }
         return getDataProviderSubtypesImpl();
     }
 
@@ -617,6 +627,15 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         throw "DATA-PROVIDER-ERROR", hasDataProvider()
             ? sprintf("%y connections do not support data provider subtypes", getType())
             : sprintf("%y connections do not support the data provider API", getType());
+    }
+
+    #! Returns a hash of data provider constructor option info, if applicable
+    /** @return a hash of data provider constructor option info for the primary data provider, if applicable
+
+        @since ConnectionProvider 2.0
+    */
+    private *hash<string, hash<DataProviderOptionInfo>> getDataProviderConstructorOptionsImpl() {
+        # the base class method returns NOTHING by default
     }
 
     #! Returns a hash of supported data provider subtypes

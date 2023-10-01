@@ -230,9 +230,11 @@ public class HueRestConnection inherits RestClient::RestConnection {
     }
 
     #! returns a data provider object for this connection
-    /** @return a data provider object for this connection
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return a data provider object for this connection
     */
-    DataProvider::AbstractDataProvider getDataProvider() {
+    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
         # to avoid circular dependencies, this object loads the HueDataProvider and creates the data provider
         # object dynamically
         load_module("HueDataProvider");

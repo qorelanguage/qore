@@ -179,11 +179,13 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
     }
 
     #! Returns an HttpDataProvider object for this connection
-    /** @return an HttpDataProvider object for this connection
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return an HttpDataProvider object for this connection
 
         @see hasDataProvider()
     */
-    DataProvider::AbstractDataProvider getDataProvider() {
+    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
         # to avoid circular dependencies, this object loads the HttpDataProvider and creates the data provider
         # object dynamically
         load_module("HttpDataProvider");

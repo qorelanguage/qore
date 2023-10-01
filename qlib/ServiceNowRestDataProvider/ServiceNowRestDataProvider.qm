@@ -121,7 +121,7 @@ module ServiceNowRestDataProvider {
             "app": ServiceNowRestDataProvider::AppName,
             "path": "/tables/{table}",
             "action": "find-single-record",
-            "short_desc": "Find a specific incident in ServiceNow",
+            "short_desc": "Find a specific record in ServiceNow",
             "desc": "Find a specific record in a ServiceNow table using ServiceNow's REST API",
             "action_code": DPAT_FIND_SINGLE,
             "path_vars": {
@@ -133,7 +133,7 @@ module ServiceNowRestDataProvider {
             "app": ServiceNowRestDataProvider::AppName,
             "path": "/tables/{table}",
             "action": "find-records",
-            "short_desc": "Find incident records in ServiceNow",
+            "short_desc": "Find records in ServiceNow",
             "desc": "Find records in a ServiceNow table using ServiceNow's REST API",
             "action_code": DPAT_FIND,
             "path_vars": {
@@ -145,7 +145,7 @@ module ServiceNowRestDataProvider {
             "app": ServiceNowRestDataProvider::AppName,
             "path": "/tables/{table}",
             "action": "update-records",
-            "short_desc": "Update incident records in ServiceNow",
+            "short_desc": "Update records in ServiceNow",
             "desc": "Update records in a ServiceNow table using ServiceNow's REST API",
             "action_code": DPAT_UPDATE,
             "path_vars": {

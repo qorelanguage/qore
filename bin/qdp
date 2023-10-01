@@ -49,10 +49,11 @@ class QdpCmd {
 
         #! program options
         const Opts = {
+            "bulk": "b,bulk",
+            "listapps": "a,list-apps",
             "listconnections": "c,list-connections",
             "listfactories": "f,list-factories",
             "listtypes": "t,list-types",
-            "bulk": "b,bulk",
             "verbose": "v,verbose:i+",
             "help": "h,help",
         };
@@ -130,6 +131,9 @@ class QdpCmd {
 
         GetOpt g(Opts);
         our hash<auto> opts = g.parse3(\ARGV);
+        if (opts.help) {
+            usage();
+        }
         if (opts.listconnections) {
             listConnections();
         }
@@ -139,7 +143,10 @@ class QdpCmd {
         if (opts.listtypes) {
             listTypes();
         }
-        if (opts.help || !ARGV[0]) {
+        if (opts.listapps) {
+            listApps();
+        }
+        if (!ARGV[0]) {
             usage();
         }
 
@@ -683,6 +690,22 @@ class QdpCmd {
         error("no connection or datasource connection %y exists in any known data provider", name);
     }
 
+    static listApps() {
+        DataProvider::registerKnownFactories();
+        *list<hash<DataProviderAppInfo>> l = DataProviderActionCatalog::getAllApps();
+        foreach hash<DataProviderAppInfo> app in (l) {
+            # get actions for app
+            *list<hash<DataProviderActionInfo>> actions = DataProviderActionCatalog::getActions(app.name);
+            printf("%s: scheme %y, %d action%s: %s\n", app.name, app.scheme, actions.size(),
+                actions.size() == 1 ? "" : "s", app.desc);
+            if (opts.verbose) {
+                map printf(" + %s (%s: %s): %s\n", $1.action, ActionNameMap{$1.action_code}, $1.path, $1.short_desc),
+                    actions;
+            }
+        }
+        exit(0);
+    }
+
     static listConnections() {
         # get connections
         *hash<string, string> h = map {$1.key: $1.value.url}, get_connection_hash(True).pairIterator();
@@ -786,6 +809,7 @@ class QdpCmd {
     upsert <record> (ex update id=123,name=\"my name\")
         upserts the given record
 
+ -a,--list-apps            list applications
  -b,--bulk                 use the bulk API for searches
  -c,--list-connections     list known connections and exit
  -f,--list-factories       list known data provider factories and exit

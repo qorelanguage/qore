@@ -1371,11 +1371,13 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
     }
 
     #! returns an SmtpClientDataProvider object for this connection
-    /** @return an SmtpClientDataProvider object for this connection
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return an SmtpClientDataProvider object for this connection
 
         @see hasDataProvider()
     */
-    DataProvider::AbstractDataProvider getDataProvider() {
+    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
         return new SmtpClientDataProvider(get());
     }
 
