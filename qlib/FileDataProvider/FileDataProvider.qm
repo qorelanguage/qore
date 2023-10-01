@@ -166,6 +166,10 @@ module FileDataProvider {
 
     @section filedataprovider_relnotes Release Notes
 
+    @subsection filedataprovider_v2_0 FileDataProvider v2.0
+    - added support for the data provider action catalog API
+      (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
+
     @subsection filedataprovider_v1_0 FileDataProvider v1.0
     - initial release of the module
 */

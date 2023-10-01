@@ -24,6 +24,8 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
+#! Google calendar application name
+public const CalendarAppName = "GoogleCalendar";
 #! The Google data provider class
 public class GoogleDataProvider inherits GoogleDataProviderBase {
     public {

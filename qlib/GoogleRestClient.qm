@@ -49,6 +49,7 @@ module GoogleRestClient {
     license = "MIT";
     init = sub () {
         ConnectionSchemeCache::registerScheme("grests", GoogleRestConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("gcal", GoogleCalendarRestConnection::ConnectionScheme);
     };
 }
 
@@ -195,7 +196,9 @@ GoogleRestClient rest(opts);
             # set ping options
             map opts{$1.key} = $1.value, conf.pairIterator(), !opts.hasKey($1.key);
         }
-        return DefaultOptions + opts;
+        return DefaultOptions + opts + {
+            "url": DefaultUrl,
+        };
     }
 }
 
@@ -264,7 +267,7 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
     #! creates the GoogleRestConnection object
     /** @param name the name of the connection
         @param description connection description
-        @param url connection URL (potentially with password info)
+        @param url this aargument is ignored; the default Google API is always used
         @param attributes various attributes. See below
         @param options connection options
 
@@ -339,6 +342,44 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
     #! Returns the ConnectionSchemeInfo hash for this object
     private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         return ConnectionScheme;
+    }
+}
+
+#! Class for Google REST connections; returns @ref GoogleRestClient objects
+/** This class implements all options of @ref GoogleRestConnection except \c "api_profile", which is assumed to be
+    \c "calendar"
+
+    @see @ref GoogleRestClient::GoogleRestClient::constructor() for more information on the above options
+*/
+public class GoogleCalendarRestConnection inherits GoogleRestConnection {
+    public {
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "cls": Class::forName("GoogleCalendarRestConnection"),
+            "options": GoogleRestConnection::ConnectionScheme.options - "api_profile",
+        };
+    }
+
+    #! creates the GoogleRestConnection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url this aargument is ignored; the default Google API is always used
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref ConnectionProvider::AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, string url = GoogleRestClient::DefaultUrl,
+            hash<auto> attributes = {}, hash<auto> options = {})
+            : GoogleRestConnection(name, description, url, attributes,
+                GoogleRestConnection::getOptions(options + {"api_profile": "calendar"})) {
+    }
+
+    #! returns \c "gcal"
+    string getType() {
+        return "gcal";
     }
 }
 }

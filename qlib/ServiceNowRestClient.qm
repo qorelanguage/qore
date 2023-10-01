@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 1.0
+%requires qore >= 2.0
 
 # require type definitions everywhere
 %require-types
