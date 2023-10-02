@@ -10,8 +10,8 @@
 %requires ../../../../qlib/Util.qm
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/Logger.qm
-%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/FtpClientDataProvider
 

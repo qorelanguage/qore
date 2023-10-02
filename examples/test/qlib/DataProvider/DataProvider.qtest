@@ -265,6 +265,7 @@ public class DataProviderTest inherits QUnit::Test {
         # missing description
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
+            "display_name": "test",
             "scheme": "test",
             "logo": "data",
             "logo_mime_type": MimeTypeSvg,
@@ -274,6 +275,7 @@ public class DataProviderTest inherits QUnit::Test {
         # missing logo
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
+            "display_name": "test",
             "desc": "desc",
             "scheme": "test",
             "logo_mime_type": MimeTypeSvg,
@@ -283,6 +285,7 @@ public class DataProviderTest inherits QUnit::Test {
         # missing logo mime type
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
+            "display_name": "test",
             "desc": "desc",
             "scheme": "test",
             "logo": "data",
@@ -292,19 +295,31 @@ public class DataProviderTest inherits QUnit::Test {
         # missing scheme
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
+            "display_name": "test",
             "desc": "test",
             "logo": "data",
             "logo_mime_type": MimeTypeJpeg,
             "logo_file_name": "test.svg",
         });
 
-        # invalid logo file name
+        # missing logo file name
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
+            "name": "test",
+            "display_name": "test",
+            "desc": "desc",
+            "scheme": "test",
+            "logo": "data",
+            "logo_mime_type": MimeTypeJpeg,
+        });
+
+        # missing display name
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
             "desc": "desc",
             "scheme": "test",
             "logo": "data",
             "logo_mime_type": MimeTypeJpeg,
+            "logo_file_name": "test.svg",
         });
 
         string app = get_random_string();
@@ -312,6 +327,7 @@ public class DataProviderTest inherits QUnit::Test {
         string scheme = get_random_string();
         hash<DataProviderAppInfo> my_app = <DataProviderAppInfo>{
             "name": app,
+            "display_name": "test",
             "desc": appdesc,
             "scheme": scheme,
             "logo": "data",

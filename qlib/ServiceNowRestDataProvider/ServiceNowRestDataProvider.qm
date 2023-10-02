@@ -49,6 +49,7 @@ module ServiceNowRestDataProvider {
         # register the data provider application
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": ServiceNowRestDataProvider::AppName,
+            "display_name": "ServiceNow",
             "desc": "ServiceNow® cloud APIs; ServiceNow is a trademark of ServiceNow, Inc.",
             "scheme": "snrests",
             "oauth2_auth_code": True,

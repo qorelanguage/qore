@@ -50,6 +50,7 @@ module FileDataProvider {
         # NOTE: this application is also registed in the FilePoller module
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": FileDataProvider::AppName,
+            "display_name": "Local Filesystem",
             "desc": "Access to the local filesystem",
             "scheme": "filesystem",
             "logo": FileLogo,

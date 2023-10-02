@@ -64,6 +64,7 @@ module WebSocketClient {
         # register the data provider application
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": WebSocketClient::AppName,
+            "display_name": "WebSocket Server",
             "desc": "Generic WebSocket server",
             "scheme": "ws",
             "logo": WebSocketsLogo,

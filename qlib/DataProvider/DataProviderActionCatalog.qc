@@ -29,7 +29,12 @@ public namespace DataProvider {
 */
 public hashdecl DataProviderAppInfo {
     #! Unique application name
+    /** This technical name should have no spaces and be in camel case or all caps by convention
+    */
     string name;
+
+    #! The display name for the application
+    string display_name;
 
     #! Description of the application with markdown formatting
     string desc;
@@ -170,6 +175,7 @@ public class DataProviderActionCatalog {
         #! Required application key set
         const RequiredAppKeys = (
             "name": True,
+            "display_name": True,
             "desc": True,
             "scheme": True,
             "logo": True,

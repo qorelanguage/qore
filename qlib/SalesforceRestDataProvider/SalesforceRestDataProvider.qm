@@ -49,6 +49,7 @@ module SalesforceRestDataProvider {
         # register the data provider application
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": SalesforceRestDataProvider::AppName,
+            "display_name": "Salesforce",
             "desc": "Salesforce® cloud CRM; Salesforce is a trademark of Salesforce, Inc.",
             "scheme": "sfrests",
             "oauth2_auth_code": True,

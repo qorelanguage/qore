@@ -50,6 +50,7 @@ module RestClientDataProvider {
         # register the data provider application
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": RestClientDataProvider::AppName,
+            "display_name": "REST Server",
             "desc": "Generic REST server",
             "scheme": "rest",
             "logo": WebHookLogo,

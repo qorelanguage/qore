@@ -49,6 +49,7 @@ module GoogleDataProvider {
         # NOTE: this application is also registed in the FilePoller module
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": GoogleDataProvider::CalendarAppName,
+            "display_name": "Google Calendar",
             "desc": "Google calendar services",
             "scheme": "gcal",
             "logo": GoogleCalendarLogo,

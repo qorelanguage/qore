@@ -54,6 +54,7 @@ module ElasticSearchDataProvider {
         # register the data provider application
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": ElasticSearchDataProvider::AppName,
+            "display_name": "ElasticSearch Server",
             "desc": "ElasticSearch server",
             "scheme": "esrest",
             "logo": ElasticSearchLogo,
