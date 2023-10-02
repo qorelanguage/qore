@@ -135,7 +135,7 @@ public class GoogleCalendarEventsQuickAddDataProvider inherits GoogleDataProvide
 }
 
 #! Google event quickAdd request data type
-public class GoogleCalendarEventsQuickAddRequestType inherits GoogleCalendarEventsGetRequestType {
+public class GoogleCalendarEventsQuickAddRequestType inherits HashDataType {
     public {
         #! Field descriptions
         const Fields = {
@@ -160,12 +160,11 @@ public class GoogleCalendarEventsQuickAddRequestType inherits GoogleCalendarEven
                 "desc": "The text describing the event to be created; ex: `Appointment at Somewhere on June 3rd "
                     "10am-10:25am`",
             },
-        } + map {$1.key: $1.value + {"type": $1.value.type.getOrNothingType()}},
-            GoogleCalendarEventsElementType::Fields.pairIterator(), $1.value.updatable;
+        };
     }
 
     #! Creates the object
-    constructor() : GoogleCalendarEventsGetRequestType("GoogleCalendarEventsQuickAddRequestType") {
+    constructor() : HashDataType("GoogleCalendarEventsQuickAddRequestType") {
         map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
             $1.value.allowed_values)), Fields.pairIterator();
     }
