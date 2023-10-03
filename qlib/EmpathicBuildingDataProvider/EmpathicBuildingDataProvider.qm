@@ -53,6 +53,7 @@ module EmpathicBuildingDataProvider {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": EmpathicBuildingDataProvider::AppName,
             "display_name": "Haltian Empathic Building",
+            "short_desc": "Haltian Empathic Building server",
             "desc": "Haltian Empathic Building server",
             "scheme": "ebrest",
             "logo": EmpathicBuildingLogo,
@@ -65,6 +66,7 @@ module EmpathicBuildingDataProvider {
             "app": EmpathicBuildingDataProvider::AppName,
             "path": "/measurements/create",
             "action": "create-measurements",
+            "display_name": "Create Measurements",
             "short_desc": "Post measurements to an EmpathicBuilding instance",
             "desc": "Post measurements to an EmpathicBuilding instance",
             "action_code": DPAT_API,

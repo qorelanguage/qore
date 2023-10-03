@@ -55,6 +55,7 @@ module ElasticSearchDataProvider {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": ElasticSearchDataProvider::AppName,
             "display_name": "ElasticSearch Server",
+            "short_desc": "ElasticSearch server",
             "desc": "ElasticSearch server",
             "scheme": "esrest",
             "logo": ElasticSearchLogo,
@@ -67,6 +68,7 @@ module ElasticSearchDataProvider {
             "app": ElasticSearchDataProvider::AppName,
             "path": "/index/search",
             "action": "search-index",
+            "display_name": "Search Index",
             "short_desc": "Search for data in an ElasticSearch index",
             "desc": "Search for data in an ElasticSearch index",
             "action_code": DPAT_API,
@@ -76,6 +78,7 @@ module ElasticSearchDataProvider {
             "app": ElasticSearchDataProvider::AppName,
             "path": "/document/create",
             "action": "create-document",
+            "display_name": "Add Document",
             "short_desc": "Add a document to ElasticSearch",
             "desc": "Add a document to / ingest data in ElasticSearch",
             "action_code": DPAT_API,

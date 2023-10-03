@@ -41,6 +41,7 @@ module FilePoller {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": FilePoller::AppName,
             "display_name": "Local Filesystem",
+            "short_desc": "Access to the local filesystem",
             "desc": "Access to the local filesystem",
             "scheme": "filesystem",
             "logo": FileLogo,
@@ -54,6 +55,7 @@ module FilePoller {
             "path": "/",
             "action": "file-received",
             "subtype": "filepoller",
+            "display_name": "New File Created",
             "short_desc": "A file is created in a local directory",
             "desc": "React to files created in a local directory",
             "action_code": DPAT_EVENT,

@@ -36,6 +36,9 @@ public hashdecl DataProviderAppInfo {
     #! The display name for the application
     string display_name;
 
+    #! A short description for the app, plain text formatting
+    string short_desc;
+
     #! Description of the application with markdown formatting
     string desc;
 
@@ -150,6 +153,9 @@ public hashdecl DataProviderActionInfo {
     */
     *hash<string, string> path_vars;
 
+    #! The display name for the action
+    string display_name;
+
     #! Action short description, plain text formatting
     string short_desc;
 
@@ -176,6 +182,7 @@ public class DataProviderActionCatalog {
         const RequiredAppKeys = (
             "name": True,
             "display_name": True,
+            "short_desc": True,
             "desc": True,
             "scheme": True,
             "logo": True,
@@ -188,6 +195,7 @@ public class DataProviderActionCatalog {
             "app": True,
             "action": True,
             "path": True,
+            "display_name": True,
             "short_desc": True,
             "desc": True,
         );

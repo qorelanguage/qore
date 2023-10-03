@@ -49,6 +49,7 @@ module FtpPoller {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": FtpPoller::AppName,
             "display_name": "FTP Server",
+            "short_desc": "Generic FTP server for exchanging files with FTP and FTPS",
             "desc": "Generic FTP server for exchanging files with FTP and FTPS",
             "scheme": "ftp",
             "logo": FtpLogo,
@@ -61,6 +62,7 @@ module FtpPoller {
             "app": FtpPoller::AppName,
             "path": "/",
             "action": "ftp-file-event",
+            "display_name": "FTP File Received",
             "subtype": "ftppoller",
             "short_desc": "A file is uploaded to an FTP server",
             "desc": "React to files uploaded to an FTP server",

@@ -266,6 +266,7 @@ public class DataProviderTest inherits QUnit::Test {
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
             "display_name": "test",
+            "short_desc": "test",
             "scheme": "test",
             "logo": "data",
             "logo_mime_type": MimeTypeSvg,
@@ -276,6 +277,7 @@ public class DataProviderTest inherits QUnit::Test {
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
             "display_name": "test",
+            "short_desc": "test",
             "desc": "desc",
             "scheme": "test",
             "logo_mime_type": MimeTypeSvg,
@@ -286,6 +288,7 @@ public class DataProviderTest inherits QUnit::Test {
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
             "display_name": "test",
+            "short_desc": "test",
             "desc": "desc",
             "scheme": "test",
             "logo": "data",
@@ -296,6 +299,7 @@ public class DataProviderTest inherits QUnit::Test {
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
             "display_name": "test",
+            "short_desc": "test",
             "desc": "test",
             "logo": "data",
             "logo_mime_type": MimeTypeJpeg,
@@ -306,6 +310,7 @@ public class DataProviderTest inherits QUnit::Test {
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
             "display_name": "test",
+            "short_desc": "test",
             "desc": "desc",
             "scheme": "test",
             "logo": "data",
@@ -315,6 +320,18 @@ public class DataProviderTest inherits QUnit::Test {
         # missing display name
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",
+            "short_desc": "test",
+            "desc": "desc",
+            "scheme": "test",
+            "logo": "data",
+            "logo_mime_type": MimeTypeJpeg,
+            "logo_file_name": "test.svg",
+        });
+
+        # missing short desc
+        assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
+            "name": "test",
+            "display_name": "test",
             "desc": "desc",
             "scheme": "test",
             "logo": "data",
@@ -328,6 +345,7 @@ public class DataProviderTest inherits QUnit::Test {
         hash<DataProviderAppInfo> my_app = <DataProviderAppInfo>{
             "name": app,
             "display_name": "test",
+            "short_desc": "test",
             "desc": appdesc,
             "scheme": scheme,
             "logo": "data",
@@ -354,6 +372,7 @@ public class DataProviderTest inherits QUnit::Test {
             "app": get_random_string(),
             "action": act,
             "path": "/",
+            "display_name": "test",
             "short_desc": short_desc,
             "desc": desc,
             "action_code": DPAT_API,
@@ -364,6 +383,7 @@ public class DataProviderTest inherits QUnit::Test {
             "app": app,
             "action": act,
             "path": "/{key}",
+            "display_name": "test",
             "short_desc": short_desc,
             "desc": desc,
             "action_code": DPAT_API,
@@ -374,6 +394,7 @@ public class DataProviderTest inherits QUnit::Test {
             "app": app,
             "action": act,
             "path": "/",
+            "display_name": "test",
             "short_desc": short_desc,
             "desc": desc,
             "path_vars": {
@@ -387,15 +408,27 @@ public class DataProviderTest inherits QUnit::Test {
             "app": app,
             "action": act,
             "path": "/",
+            "display_name": "test",
             "short_desc": short_desc,
             "desc": desc,
             "action_code": -1,
+        });
+
+        # missing display name
+        assertThrows("ACTION-ERROR", \DataProviderActionCatalog::registerAction(), <DataProviderActionInfo>{
+            "app": app,
+            "action": act,
+            "path": "/",
+            "short_desc": short_desc,
+            "desc": desc,
+            "action_code": DPAT_API,
         });
 
         hash<DataProviderActionInfo> action = <DataProviderActionInfo>{
             "app": app,
             "action": act,
             "path": "/",
+            "display_name": "test",
             "short_desc": short_desc,
             "desc": desc,
             "action_code": DPAT_API,

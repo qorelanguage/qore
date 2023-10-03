@@ -50,6 +50,7 @@ module FtpClientDataProvider {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": FtpClientDataProvider::AppName,
             "display_name": "FTP Server",
+            "short_desc": "Generic FTP server for exchanging files with FTP and FTPS",
             "desc": "Generic FTP server for exchanging files with FTP and FTPS",
             "scheme": "ftp",
             "logo": FtpLogo,
@@ -62,6 +63,7 @@ module FtpClientDataProvider {
             "app": FtpClientDataProvider::AppName,
             "path": "/get-file",
             "action": "get-file",
+            "display_name": "Retrieve File With FTP",
             "short_desc": "Get a file from an FTP server",
             "desc": "Retrieve a file from an FTP server",
             "action_code": DPAT_API,
@@ -71,6 +73,7 @@ module FtpClientDataProvider {
             "app": FtpClientDataProvider::AppName,
             "path": "/create-file",
             "action": "send-file",
+            "display_name": "Send File With FTP",
             "short_desc": "Sends a file to an FTP server",
             "desc": "Sends a file to an FTP server",
             "action_code": DPAT_API,

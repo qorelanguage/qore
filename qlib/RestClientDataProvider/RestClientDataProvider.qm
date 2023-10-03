@@ -51,6 +51,7 @@ module RestClientDataProvider {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": RestClientDataProvider::AppName,
             "display_name": "REST Server",
+            "short_desc": "Generic REST server",
             "desc": "Generic REST server",
             "scheme": "rest",
             "logo": WebHookLogo,
@@ -63,6 +64,7 @@ module RestClientDataProvider {
             "app": RestClientDataProvider::AppName,
             "path": "/call",
             "action": "call",
+            "display_name": "Call REST API / Webhook",
             "short_desc": "Make a call to a REST server or webhook",
             "desc": "Make a call to a REST server or a webhook and return the response",
             "action_code": DPAT_API,

@@ -61,6 +61,7 @@ module SmtpClient {
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": SmtpClient::AppName,
             "display_name": "SMTP Server",
+            "short_desc": "Generic SMTP server for sending emails",
             "desc": "Generic SMTP server for sending emails",
             "scheme": "smtp",
             "logo": SmtpLogo,
@@ -73,6 +74,7 @@ module SmtpClient {
             "app": SmtpClient::AppName,
             "path": "/send-email",
             "action": "send-email",
+            "display_name": "Send an Email With SMTP",
             "short_desc": "Send an email through a generic SMTP server",
             "desc": "Send an email through a generic SMTP server",
             "action_code": DPAT_API,
