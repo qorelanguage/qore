@@ -239,23 +239,23 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
                     ),
                 },
                 "data": RestConnection::ConnectionScheme.options."data"
-                + <ConnectionOptionInfo>{
+                   + <ConnectionOptionInfo>{
                     "default_value": GoogleRestClient::DefaultData,
                 },
                 "oauth2_auth_args": RestConnection::ConnectionScheme.options.oauth2_auth_args
-                + <ConnectionOptionInfo>{
+                    + <ConnectionOptionInfo>{
                     "default_value": GoogleRestClient::DefaultAuthArgs,
                 },
                 "oauth2_auth_url": RestConnection::ConnectionScheme.options.oauth2_auth_url
-                + <ConnectionOptionInfo>{
+                    + <ConnectionOptionInfo>{
                     "default_value": GoogleRestClient::DefaultAuthUrl,
                 },
                 "oauth2_grant_type": RestConnection::ConnectionScheme.options.oauth2_grant_type
-                + <ConnectionOptionInfo>{
+                    + <ConnectionOptionInfo>{
                     "default_value": GoogleRestClient::DefaultGrantType,
                 },
                 "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url
-                + <ConnectionOptionInfo>{
+                    + <ConnectionOptionInfo>{
                     "default_value": GoogleRestClient::DefaultTokenUrl,
                 },
             },
