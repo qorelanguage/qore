@@ -183,8 +183,20 @@ class QdpCmd {
             if (match.size() == 1) {
                 action = Cmds{match.firstKey()};
             } else if (match) {
-                error("unknown action %y; matches %y; please provide additional character(s) to ensure a unique "
-                    "match", cmd, keys match);
+                # check if all matches have the same action
+                {
+                    foreach string c in (keys match) {
+                        if (!action) {
+                            action = Cmds{c};
+                        } else if (Cmds{c} != action) {
+                            break;
+                        }
+                    }
+                }
+                if (!action) {
+                    error("unknown action %y; matches %y; please provide additional character(s) to ensure a unique "
+                        "match", cmd, keys match);
+                }
             } else {
                 error("unknown action %y; known actions: %y", cmd, keys Cmds);
             }
@@ -522,6 +534,11 @@ class QdpCmd {
         string message_id = QdpCmd::getString("message_id", True);
         auto val = QdpCmd::getAny("data");
         *hash<auto> send_options = QdpCmd::getHash("send options");
+
+        if (provider instanceof DataProvider::DelayedObservable) {
+            cast<DataProvider::DelayedObservable>(provider).observersReady();
+        }
+
         provider.sendMessage(message_id, val, send_options);
     }
 
