@@ -934,8 +934,12 @@ class InputHelper {
         # message map
         hash<string, hash<DataProviderMessageInfo>> mmap;
 
+%ifndef NoLinenoise
+        string path;
+        const HistoryFile = ".qdp-history";
+%endif
+
         const Prompt = "> ";
-        const HistoryFile = ".qdp";
 
         const Commands = {
             "help": True,
@@ -952,17 +956,34 @@ class InputHelper {
         Linenoise::history_set_max_len(100);
         Linenoise::set_callback(\completion());
 
+        path = ENV.HOME + DirSep + HistoryFile;
+
+        bool ok;
         try {
-            Linenoise::history_load(ENV.HOME + "/" + HistoryFile);
+            # create history file if it doesn't exist
+            if (!is_file(path)) {
+                File f();
+                f.open2(path, O_CREAT | O_WRONLY);
+            }
+            ok = True;
         } catch (hash<ExceptionInfo> ex) {
-            printf("cannot load history: %s: %s\n", ex.err, ex.desc);
+            stderr.printf("%y: WARNING: cannot create history file: %s: %s\n", path, ex.err, ex.desc);
+        }
+
+        if (ok) {
+            try {
+                Linenoise::history_load(path);
+            } catch (hash<ExceptionInfo> ex) {
+                stderr.printf("%y: WARNING: cannot load history: %s: %s\n", path, ex.err, ex.desc);
+            }
         }
 %endif
     }
 
     destructor() {
 %ifndef NoLinenoise
-        Linenoise::history_save(HistoryFile);
+        Linenoise::history_save(path);
+
 %endif
     }
 
