@@ -49,6 +49,7 @@ module CdsRestClient {
     license = "MIT";
     init = sub () {
         ConnectionSchemeCache::registerScheme("cdsrests", CdsRestConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("dynamics", DynamicsRestConnection::ConnectionScheme);
     };
 }
 
@@ -231,8 +232,6 @@ CdsRestClient rest({
         }
         api = version ?? DefaultApiVersion;
         uri_path_pfx = RequestUriPathPrefix + api;
-        # XXX DEBUG DELETEME
-        #uri_path_pfx = "v2.0/production/api/v2.0";
 
         setConnectionPath(uri_path_pfx);
 
@@ -616,6 +615,37 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         }
 
         return opts;
+    }
+}
+
+class DynamicsRestConnection inherits CdsRestConnection {
+    public {
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "cls": Class::forName("DynamicsRestConnection"),
+            "options": CdsRestConnection::ConnectionScheme.options - "api_profile",
+        };
+    }
+
+    #! creates the GoogleRestConnection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url this aargument is ignored; the default Google API is always used
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref ConnectionProvider::AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
+            : CdsRestConnection(name, description, url, attributes,
+                CdsRestConnection::getOptions(url, options + {"api_profile": "dynamics"})) {
+    }
+
+    #! returns \c "dynamics"
+    string getType() {
+        return "dynamics";
     }
 }
 }

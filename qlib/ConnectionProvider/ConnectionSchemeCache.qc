@@ -87,6 +87,7 @@ public class ConnectionSchemeCache {
             "billwerkrests": "BillwerkRestClient",
 
             "cdsrests": "CdsRestClient",
+            "dynamics": "CdsRestClient",
 
             "ebrest": "EmpathicBuildingDataProvider",
             "ebrests": "EmpathicBuildingDataProvider",

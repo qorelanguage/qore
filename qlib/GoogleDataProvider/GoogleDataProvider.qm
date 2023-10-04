@@ -46,7 +46,6 @@ module GoogleDataProvider {
         # register the data provider factory
         DataProvider::registerFactory(new GoogleDataProviderFactory());
 
-        # NOTE: this application is also registed in the FilePoller module
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": GoogleDataProvider::CalendarAppName,
             "display_name": "Google Calendar",

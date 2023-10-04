@@ -24,6 +24,9 @@
 
 #! contains all public definitions in the CdsRestDataProvider module
 public namespace CdsRestDataProvider {
+#! Application name for Dynamics
+public const DynamicsAppName = "Dynamics";
+
 #! The CdsRest data provider class
 public class CdsRestDataProvider inherits CdsRestDataProviderBase {
     public {
