@@ -428,9 +428,19 @@ class QdpCmd {
                 continue;
             }
 
-            auto v = parse_to_qore_value(msg);
+            auto v;
+            try {
+                v = parse_to_qore_value(msg);
+            } catch (hash<ExceptionInfo> ex) {
+                stderr.printf("%s: %s; client-side error; the message was not sent\n", ex.err, ex.desc);
+                continue;
+            }
             printf("> sending %y -> %y\n", msgid, v);
-            provider.sendMessage(msgid, v);
+            try {
+                provider.sendMessage(msgid, v);
+            } catch (hash<ExceptionInfo> ex) {
+                stderr.printf("%s: %s\n", ex.err, ex.desc);
+            }
         }
         ix = False;
         printf("stopped\n");
