@@ -129,7 +129,7 @@ printf("%N\n", ans.body);
     @section restclientrelnotes Release Notes
 
     @subsection restclientv2_2_0 RestClient v2.2.0
-    - implemented support for PKCE in OAuth2 flows
+    - implemented PKCE options for OAuth2 flows
       (<a href="https://github.com/qorelanguage/qore/issues/4820">issue 4820</a>)
 
     @subsection restclientv2_1_1 RestClient v2.1.1
