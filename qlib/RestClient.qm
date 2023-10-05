@@ -132,7 +132,10 @@ printf("%N\n", ans.body);
 
     @section restclientrelnotes Release Notes
 
+
     @subsection restclientv2_1_1 RestClient v2.1.1
+    - fixed a bug where the OAUth2 refresh token was sometimes dropped when an access token was acquired
+      (<a href="https://github.com/qorelanguage/qore/issues/4821">issue 4821</a>)
     - fixed a bug returning the token URL
       (<a href="https://github.com/qorelanguage/qore/issues/4809">issue 4809</a>)
 
@@ -674,7 +677,6 @@ RestClient rest({"url": "http://localhost:8001/rest"});
             # otherwise we will run into compatibility problems with the fix
             clearConnectionPath();
         }
-
         if (exists opts.oauth2_refresh_token) {
             refresh_token = opts.oauth2_refresh_token;
         }
@@ -1304,7 +1306,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             if (info."response-code" == 401 && oauth2_grant_type && oauth2_auto_refresh
                 && ((now_us() - token_timestamp) > MinimumTokenRefresh)) {
                 on_error {
-                    rethrow ex.err, ex.desc, ex.arg;
+                    rethrow;
                 };
 
                 if (refresh_token) {
@@ -1452,13 +1454,13 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     */
     private *hash<auto> getUpdateOptionsAfterLogin(hash<auto> h) {
         hash<auto> new_opts;
-        if (h.token_type != token_type) {
+        if (h.token_type && h.token_type != token_type) {
             new_opts.token_type = h.token_type;
         }
-        if (h.access_token != token) {
+        if (h.access_token && h.access_token != token) {
             new_opts.token = h.access_token;
         }
-        if (h.refresh_token != refresh_token) {
+        if (h.refresh_token && h.refresh_token != refresh_token) {
             new_opts.oauth2_refresh_token = h.refresh_token;
         }
         return new_opts;
