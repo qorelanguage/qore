@@ -467,8 +467,7 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
             },
             "updated": {
                 "type": AbstractDataProviderTypeMap."*softdate",
-                "desc": "Last modification time of the even        self.rest = rest;
-t",
+                "desc": "Last modification time of the event",
             },
             "summary": {
                 "type": AbstractDataProviderTypeMap."*string",
