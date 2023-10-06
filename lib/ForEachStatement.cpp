@@ -109,34 +109,41 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
 
     // here we get the runtime reference
     ReferenceHolder<ReferenceNode> vr(r->evalToRef(xsink), xsink);
-    if (*xsink)
+    if (*xsink) {
         return 0;
+    }
 
     // get the current value of the lvalue expression
     ValueHolder tlist(vr->eval(xsink), xsink);
-    if (!code || *xsink || tlist->isNothing())
+    if (!code || *xsink || tlist->isNothing()) {
         return 0;
+    }
 
     QoreListNode* l_tlist = tlist->getType() == NT_LIST ? tlist->get<QoreListNode>() : nullptr;
-    if (l_tlist && l_tlist->empty())
+    if (l_tlist && l_tlist->empty()) {
         return 0;
+    }
 
     // execute "foreach" body
     ValueHolder ln(xsink);
     unsigned i = 0;
 
-    if (l_tlist)
+    if (l_tlist) {
         ln = new QoreListNode(autoTypeInfo);
+    }
+    //printd(5, "ForEachStatement::execRef() l_tlist: %p ln: %s\n", l_tlist, ln->getFullTypeName());
 
     while (true) {
         {
             LValueHelper n(var, xsink);
-            if (!n)
+            if (!n) {
                 return 0;
+            }
 
             // assign variable to current value in list
-            if (n.assign(l_tlist ? l_tlist->getReferencedEntry(i) : tlist.release()))
+            if (n.assign(l_tlist ? l_tlist->getReferencedEntry(i) : tlist.release())) {
                 return 0;
+            }
         }
 
         // set offset in thread-local data for "$#"
@@ -144,8 +151,9 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
 
         // execute "for" body
         rc = code->execImpl(return_value, xsink);
-        if (*xsink)
+        if (*xsink) {
             return 0;
+        }
 
         // get value of foreach variable
         ValueEvalRefHolder nv(var, xsink);
@@ -154,10 +162,11 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
         }
 
         // assign new value to temporary variable for later assignment to referenced lvalue
-        if (l_tlist)
+        if (l_tlist) {
             ln->get<QoreListNode>()->push(nv.takeReferencedValue(), nullptr);
-        else
+        } else {
             ln = nv.takeReferencedValue();
+        }
 
         if (rc == RC_BREAK) {
             // assign remaining values to list unchanged
@@ -171,24 +180,28 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
             break;
         }
 
-        if (rc == RC_RETURN)
+        if (rc == RC_RETURN) {
             break;
-        else if (rc == RC_CONTINUE)
+        } else if (rc == RC_CONTINUE) {
             rc = 0;
-        i++;
+        }
+        ++i;
 
         // break out of loop if appropriate
-        if (!l_tlist || i == l_tlist->size())
+        if (!l_tlist || i == l_tlist->size()) {
             break;
+        }
     }
 
     // write the value back to the lvalue
     LValueHelper val(**vr, xsink);
-    if (!val)
+    if (!val) {
         return 0;
+    }
 
-    if (val.assign(ln.release()))
+    if (val.assign(ln.release())) {
         return 0;
+    }
 
     return rc;
 }

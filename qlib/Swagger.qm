@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.2.0";
+    version = "2.2.1";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -151,6 +151,9 @@ RestHandler handler(NOTHING, swagger);
     @section swagger_relnotes Swagger Module Release Notes
 
     @subsection swagger_2_2_1 Swagger v2.2.1
+    - fixed a bug converting arguments to fit the Swagger schema to avoid spurious and very difficult to debug type
+      errors
+      (<a href="https://github.com/qorelanguage/qore/issues/4825">issue 4825</a>)
     - fixed a bug where any additionalProperties would cause all properties to be accepted
       (<a href="https://github.com/qorelanguage/qore/issues/4823">issue 4823</a>)
 
@@ -547,6 +550,10 @@ class SchemaBase {
             string method, string name, reference<auto> value) {
         # accept a single value for an array (= one-element list)
         if (type == "array") {
+            # convert to a list before checking
+            if (exists value && value.typeCode() != NT_LIST) {
+                value = (value,);
+            }
             checkArrayParam(serialize, request, items, path, method, name, \value);
         } else {
             on_error rethrow $1.err, sprintf("%s (while checking parameter %y)", $1.desc, name);
@@ -816,27 +823,33 @@ class SchemaBase {
 
     #! validates the value against the schema definition
     private checkArrayParam(bool serialize, bool request, SchemaObject items, string path, string method, string name,
-            reference<softlist<auto>> value) {
-        if (exists maxItems && value.size() > maxItems)
+            reference<list<auto>> value) {
+        if (exists maxItems && value.size() > maxItems) {
             throw "SCHEMA-VALIDATION-ERROR",
                 sprintf("Parameter %y for path %y and method %y has too many items (maxItems: %d, actual: %d)",
                     name, path, method, maxItems, value.size());
-        if (exists minItems && value.size() < minItems)
+        }
+        if (exists minItems && value.size() < minItems) {
             throw "SCHEMA-VALIDATION-ERROR",
                 sprintf("Parameter %y for path %y and method %y has too few items (minItems: %d, actual: %d)",
                     name, path, method, minItems, value.size());
+        }
+
+        if (!value) {
+            return;
+        }
 
         # check array element types
         if (!uniqueItems || items.type != "array") {
             # hash for checking uniqueness if uniqueItems is true
-            #printf("v: %y self: %N\n", value, self);
             hash<string, bool> h;
             foreach auto v in (\value) {
                 items.check(serialize, request, path, method, name, \v);
                 if (uniqueItems) {
-                    if (h{v})
+                    if (h{v}) {
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("%s %s: parameter value %y is duplicated in the "
                             "array", method, path, v);
+                    }
                     h{v} = True;
                 }
             }
@@ -845,10 +858,11 @@ class SchemaBase {
             list<auto> uniqueItems = ();
             foreach auto val in (\value) {
                 items.check(serialize, request, path, method, name, \val);
-                if (uniqueItems.contains(val))
+                if (uniqueItems.contains(val)) {
                     throw "SCHEMA-VALIDATION-ERROR",
                         sprintf("%s %s: Array parameter %y does not have unique items",
                             method, path, name);
+                }
                 uniqueItems += val;
             }
         }
@@ -2947,7 +2961,7 @@ public class OperationObject inherits ObjectBase {
         # check body parameters
         {
             *AbstractParameterObject body_po = self.body ?? pio.body;
-            if (body_po)  {
+            if (body_po) {
                 body_po.check(serialize, True, path, method, "body", \body);
             } else if (formData) {
                 foreach hash<auto> i in (formData.pairIterator()) {
@@ -3421,7 +3435,7 @@ public class BodyParameter inherits AbstractParameterObject {
     }
 
     #! verifies the parameter in an actual REST API call
-    check(bool serialize, bool request, string path, string method, string name, reference value) {
+    check(bool serialize, bool request, string path, string method, string name, reference<auto> value) {
         # issue #2369 ignore the parameter if it's not required
         if (!exists value && !required) {
             return;
@@ -4304,6 +4318,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         */
         # check properties in this schema definition
         if (additionalProperties !== True && type != "any") {
+            # issue #4825: write the hash keys to another hash in case values need to change type
+            hash<auto> nv;
             foreach string key in (keys value) {
                 *SchemaObject prop = properties{key};
                 if (!prop) {
@@ -4315,7 +4331,11 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                             "(value: %y); valid properties: %y",  key, name, value, keys properties);
                     }
                 }
-                prop.check(serialize, request, path, method, key, \value{key});
+                nv{key} += value{key};
+                prop.check(serialize, request, path, method, key, \nv{key});
+            }
+            if (nv) {
+                value = nv;
             }
         }
         # check for missing required properties
@@ -4608,17 +4628,19 @@ public class ScopesObject inherits ObjectBase {
 
     #! Constructor.
     /**
-        @param oh deserialized hash from the source schema description describing the available scopes for an OAuth2 security scheme
+        @param oh deserialized hash from the source schema description describing the available scopes for an OAuth2
+        security scheme
 
         @throws INVALID-FIELD-TYPE field has invalid type
      */
     public constructor(hash<auto> oh) : ObjectBase(oh) {
         foreach hash item in (oh.pairIterator()) {
             if (item.key !~ /^x-/) { # if not vendor extension
-                if (item.value.typeCode() != NT_STRING)
+                if (item.value.typeCode() != NT_STRING) {
                     throw "INVALID-FIELD-TYPE",
                         sprintf("Scopes Object: %y field has invalid type %y, instead of 'string'",
                             item.key, item.value.type());
+                }
                 fields{item.key} = item.value;
             }
         }

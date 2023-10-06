@@ -272,15 +272,17 @@ ObjCountRec::ObjCountRec(const QoreObject* c) : con(c), before((bool)qore_object
 
 int ObjCountRec::getDifference() {
     bool after = needs_scan(con);
-    if (after)
+    if (after) {
         return !before ? 1 : 0;
+    }
     return before ? -1 : 0;
 }
 
 LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove) : vl(xsink) {
     RuntimeReferenceHelper rh(ref, xsink);
-    if (!*xsink)
+    if (!*xsink) {
         doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
+    }
 }
 
 LValueHelper::LValueHelper(QoreValue exp, ExceptionSink* xsink, bool for_remove) : vl(xsink) {
@@ -299,7 +301,8 @@ LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), 
 LValueHelper::LValueHelper(ExceptionSink* xsink) : vl(xsink) {
 }
 
-LValueHelper::LValueHelper(LValueHelper&& o) : vl(std::move(o.vl)), tvec(std::move(o.tvec)), lvid_set(o.lvid_set), ocvec(std::move(o.ocvec)), before(o.before), rdt(o.rdt), robj(o.robj), val(o.val), typeInfo(o.typeInfo) {
+LValueHelper::LValueHelper(LValueHelper&& o) : vl(std::move(o.vl)), tvec(std::move(o.tvec)), lvid_set(o.lvid_set),
+        ocvec(std::move(o.ocvec)), before(o.before), rdt(o.rdt), robj(o.robj), val(o.val), typeInfo(o.typeInfo) {
 }
 
 LValueHelper::~LValueHelper() {
@@ -315,17 +318,20 @@ LValueHelper::~LValueHelper() {
             if (qv) {
                 if (rdt) {
                     assert(qv && !qv->isNothing());
-                    if (!obj_chg)
+                    if (!obj_chg) {
                         obj_chg = true;
+                    }
                     inc_container_obj(ocvec[ocvec.size() - 1].con, rdt);
                 } else {
                     bool after = needs_scan(*qv);
                     if (before) {
-                        if (!after)
+                        if (!after) {
                             inc_container_obj(ocvec[ocvec.size() - 1].con, -1);
+                        }
                     } else if (after) {
-                        if (!obj_chg)
+                        if (!obj_chg) {
                             obj_chg = true;
+                        }
                         inc_container_obj(ocvec[ocvec.size() - 1].con, 1);
                     }
                 }
@@ -335,10 +341,12 @@ LValueHelper::~LValueHelper() {
             if (ocvec.size() > 1) {
                 for (int i = ocvec.size() - 2; i >= 0; --i) {
                     int dt = ocvec[i + 1].getDifference();
-                    if (dt)
+                    if (dt) {
                         inc_container_obj(ocvec[i].con, dt);
+                    }
 
-                    //printd(5, "LValueHelper::~LValueHelper() %s %p has obj: %d\n", get_type_name(ocvec[i].con), ocvec[i].con, (int)needs_scan(ocvec[i].con));
+                    //printd(5, "LValueHelper::~LValueHelper() %s %p has obj: %d\n", get_type_name(ocvec[i].con),
+                    //    ocvec[i].con, (int)needs_scan(ocvec[i].con));
                 }
             }
         }
@@ -350,15 +358,18 @@ LValueHelper::~LValueHelper() {
             robj->tRef();
             obj_ref = true;
         }
-        //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d rdt: %d obj_chg: %d (val: %s qv: %s v: %s)\n", robj, before, rdt, obj_chg, val ? val->getTypeName() : "n/a", qv ? qv->getTypeName() : "n/a", v ? get_type_name(*v) : "n/a");
+        //printd(5, "LValueHelper::~LValueHelper() robj: %p before: %d rdt: %d obj_chg: %d (val: %s qv: %s v: %s)\n",
+        //    robj, before, rdt, obj_chg, val ? val->getTypeName() : "n/a", qv ? qv->getTypeName() : "n/a",
+        //    v ? get_type_name(*v) : "n/a");
     }
 
     // first free any locks
     vl.del();
 
     // now delete temporary values (if any)
-    for (nvec_t::iterator i = tvec.begin(), e = tvec.end(); i != e; ++i)
+    for (nvec_t::iterator i = tvec.begin(), e = tvec.end(); i != e; ++i) {
         discard(*i, vl.xsink);
+    }
 
     delete lvid_set;
 
@@ -367,8 +378,9 @@ LValueHelper::~LValueHelper() {
         if (obj_chg) {
             RSetHelper rsh(*robj);
         }
-        if (obj_ref)
+        if (obj_ref) {
             robj->tDeref();
+        }
     }
 }
 
@@ -381,8 +393,9 @@ void LValueHelper::saveTemp(QoreValue val) {
 }
 
 static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, ExceptionSink* xsink) {
-   xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a %s", QoreTypeInfo::getName(typeInfo), type);
-   return -1;
+    xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a %s",
+        QoreTypeInfo::getName(typeInfo), type);
+    return -1;
 }
 
 int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove) {
@@ -398,13 +411,15 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
 
     int64 ind = rh->getAsBigInt();
     if (ind < 0) {
-        vl.xsink->raiseException("NEGATIVE-LIST-INDEX", "list index " QLLD " is invalid (index must evaluate to a non-negative integer)", ind);
+        vl.xsink->raiseException("NEGATIVE-LIST-INDEX", "list index " QLLD " is invalid (index must evaluate to a "
+            "non-negative integer)", ind);
         return -1;
     }
 
     // now get left hand side
-    if (doLValue(op->getLeft(), for_remove))
+    if (doLValue(op->getLeft(), for_remove)) {
         return -1;
+    }
 
     QoreListNode* l = nullptr;
     if (getType() == NT_LIST) {
@@ -430,7 +445,9 @@ int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool fo
                 // issue #3429 assign an untyped list if required
                 assignNodeIntern((l = new QoreListNode));
             } else {
-                const QoreTypeInfo* sti = typeInfo == autoTypeInfo ? autoTypeInfo : QoreTypeInfo::getReturnComplexListOrNothing(typeInfo);
+                const QoreTypeInfo* sti = typeInfo == autoTypeInfo
+                    ? autoTypeInfo
+                    : QoreTypeInfo::getReturnComplexListOrNothing(typeInfo);
                 if (sti) {
                     assignNodeIntern((l = new QoreListNode(sti)));
                 }
@@ -579,12 +596,15 @@ void LValueHelper::setObjectContext(qore_object_private* obj) {
 
 int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {
     const lvalue_ref* r = lvalue_ref::get(ref);
-    if (!lvid_set)
+    if (!lvid_set) {
         lvid_set = new lvid_set_t;
+    }
     // issue 1617: the lvalue_id might already be present in the set in case there is
     // a reference to a reference, however it's safe to insert it multiple times;
     // the reference count for the lvalue_id object is handled elsewhere
     lvid_set->insert(r->lvalue_id);
+    //printd(5, "LValueHelper::doLValue() this: %p ReferenceNode: %p r->vexp: %s ti: %s\n", this, ref,
+    //    r->vexp.getFullTypeName(), QoreTypeInfo::getName(r->typeInfo));
     return doLValue(r->vexp, for_remove);
 }
 
@@ -598,7 +618,8 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
     //printd(5, "LValueHelper::doLValue() n: %s (%d)\n", n.getTypeName(), n.getType());
     if (ntype == NT_VARREF) {
         const VarRefNode* v = n.get<const VarRefNode>();
-        //printd(5, "LValueHelper::doLValue(): vref: %s (%p) type: %d\n", v->getName(), v, v->getType());
+        //printd(5, "LValueHelper::doLValue() this: %p vref: %s (%p) vtype: %d ti: %s\n", this, v->getName(), v,
+        //    v->getType(), QoreTypeInfo::getName(v->getTypeInfo()));
         if (v->getLValue(*this, for_remove)) {
             // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
             clearPtr();
@@ -621,9 +642,9 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
 
         robj = qore_object_private::get(*obj);
         ocvec.push_back(ObjCountRec(obj));
-    } else if (ntype == NT_CLASS_VARREF)
+    } else if (ntype == NT_CLASS_VARREF) {
         n.get<const StaticClassVarRefNode>()->getLValue(*this);
-    else if (ntype == NT_REFERENCE) {
+    } else if (ntype == NT_REFERENCE) {
         if (doLValue(n.get<const ReferenceNode>(), for_remove)) {
             // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
             clearPtr();
@@ -651,7 +672,8 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
                 }
             } else {
                 assert(dynamic_cast<const QoreHashObjectDereferenceOperatorNode*>(n.getInternalNode()));
-                const QoreHashObjectDereferenceOperatorNode* hop = n.get<const QoreHashObjectDereferenceOperatorNode>();
+                const QoreHashObjectDereferenceOperatorNode* hop =
+                    n.get<const QoreHashObjectDereferenceOperatorNode>();
                 if (doHashObjLValue(hop, for_remove)) {
                     // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
                     clearPtr();
@@ -662,24 +684,26 @@ int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
     }
 
 #if 0
-    if (v && *v)
-        printd(0, "LValueHelper::doLValue() v: %p %s %d\n", *v, get_type_name(*v), get_node_type(*v));
-    else if (val)
+    if (val) {
         printd(0, "LValueHelper::doLValue() val: %s %d\n", val->getTypeName(), val->getType());
-    else if (qv)
+    } else if (qv) {
         printd(0, "LValueHelper::doLValue() qv: %s %d\n", qv->getTypeName(), qv->getType());
+    }
 #endif
 
     QoreValue current_value = getValue();
-    //printd(5, "LValueHelper::doLValue() current_value: %p %s %d ti: '%s'\n", current_value, get_type_name(current_value), get_node_type(current_value), QoreTypeInfo::getName(typeInfo));
+    //printd(5, "LValueHelper::doLValue() this: %p current_value: %s (%d) ti: '%s'\n", this,
+    //    current_value.getFullTypeName(), current_value.getType(), QoreTypeInfo::getName(typeInfo));
     if (current_value.getType() == NT_REFERENCE) {
         const ReferenceNode* ref = current_value.get<const ReferenceNode>();
-        if (val)
+        if (val) {
             val = nullptr;
-        else if (qv)
+        } else if (qv) {
             qv = nullptr;
-        if (typeInfo)
+        }
+        if (typeInfo) {
             typeInfo = nullptr;
+        }
         return doLValue(ref, for_remove);
     }
 
@@ -730,7 +754,9 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
         n.v.n = nullptr;
     }
 
-    //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' (%d) val: %p qv: %p\n", this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), n.getType(), val, qv);
+    //printd(5, "LValueHelper::assign() this: %p '%s' ti: %p '%s' check_types: %d n: '%s' (%d) val: %p qv: %p\n",
+    //    this, desc, typeInfo, QoreTypeInfo::getName(typeInfo), check_types, n.getFullTypeName(), n.getType(), val,
+    //    qv);
     if (check_types) {
         // check type for assignment
         QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink, this);
@@ -741,7 +767,9 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
         }
     }
 
-    if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
+    if (lvid_set && n.getType() == NT_REFERENCE
+        && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id)
+            != lvid_set->end())) {
         saveTemp(n);
         return doRecursiveException();
     }

@@ -334,10 +334,11 @@ protected:
         //printd(5, "LValueHelper::assignNodeIntern() this: %p n: %p '%s'\n", this, n, get_type_name(n));
 
         assert(val || qv);
-        if (val)
+        if (val) {
             val->assign(n);
-        else
+        } else {
             *qv = n;
+        }
     }
 
     DLLLOCAL int doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove);
@@ -412,11 +413,14 @@ public:
     }
 
     DLLLOCAL void setTypeInfo(const QoreTypeInfo* ti) {
+        //printd(5, "LValueHelper::setTypeInfo() this: %p ti: %s\n", this, QoreTypeInfo::getName(ti));
+
         typeInfo = ti;
     }
 
     DLLLOCAL void setValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
-        //printd(5, "LValueHelper::setValue() this: %p new val: %p\n", this, &nv);
+        //printd(5, "LValueHelper::setValue() this: %p nv: %s ti: %s\n", this, nv.getFixedTypeName(),
+        //    QoreTypeInfo::getName(ti));
 
         assert(!val);
         assert(!qv);
@@ -428,7 +432,9 @@ public:
     }
 
     DLLLOCAL void setValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
-        //printd(5, "LValueHelper::setValue() this: %p new qv: %p\n", this, &nqv);
+        //printd(5, "LValueHelper::setValue() this: %p nqv: %s ti: %s\n", this, nqv.getFullTypeName(),
+        //    QoreTypeInfo::getName(ti));
+
         assert(!val);
         assert(!qv);
         qv = &nqv;
@@ -439,7 +445,8 @@ public:
     }
 
     DLLLOCAL void resetValue(QoreLValueGeneric& nv, const QoreTypeInfo* ti = nullptr) {
-        //printd(5, "LValueHelper::resetValue() this: %p new val: %p\n", this, &nv);
+        //printd(5, "LValueHelper::resetValue() this: %p new val: %p ti: %s\n", this, &nv, QoreTypeInfo::getName(ti));
+
         if (qv) {
             qv = nullptr;
         } else {
@@ -453,7 +460,11 @@ public:
     }
 
     DLLLOCAL void resetValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
-        //printd(5, "LValueHelper::resetValue() this: %p new qv: %p\n", this, &nqv);
+        //printd(5, "LValueHelper::resetValue() this: %p nqv: %s ti: %s\n", this, nqv.getFullTypeName(),
+        //    QoreTypeInfo::getName(ti));
+
+        assert(!nqv || QoreTypeInfo::runtimeAcceptsValue(ti, nqv) > 0);
+
         if (val) {
             val = nullptr;
         } else {
