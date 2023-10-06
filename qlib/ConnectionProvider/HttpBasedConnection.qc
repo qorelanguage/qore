@@ -48,10 +48,7 @@ public class HttpBasedConnection inherits AbstractConnectionWithInfo {
     */
     constructor(string name, string desc, string url, hash<auto> attributes, hash<auto> options, *Logger logger)
             : AbstractConnectionWithInfo(name, desc, url, attributes, options, logger) {
-        string scheme = (url =~ x/^([^:]+)/)[0];
-        bool ssl = (scheme =~ /s$/);
-        string targ = "http" + (ssl ? "s" : "");
-        real_url = regex_subst(url, "^" + scheme, targ);
+        setRealUrl(url);
     }
 
     #! returns @ref True, since this connection type supports the %Qore @ref Qore::Socket "Socket-based" polling API
@@ -73,6 +70,27 @@ public class HttpBasedConnection inherits AbstractConnectionWithInfo {
     */
     Qore::AbstractPollOperation startPollConnect() {
         return getPollImpl().startPollConnect();
+    }
+
+    #! Called by the constructor to set the real URL
+    /** @path the new URL
+
+        sets the real HTTP URL for HTTP-based connections
+    */
+    private setRealUrl(string url) {
+        string scheme = (url =~ x/^([^:]+)/)[0];
+        bool ssl;
+        # remove type if possible
+        string type = getType();
+        if (url.equalPartial(type)) {
+            int len = type.length();
+            # set SSL if the scheme ends in an "s" after the expected scheme
+            ssl = url[len..len+3] == "s://";
+        } else {
+            ssl = (scheme =~ /s$/);
+        }
+        string targ = "http" + (ssl ? "s" : "");
+        real_url = regex_subst(url, "^" + scheme, targ);
     }
 }
 } # ConnectionProvider namespace
