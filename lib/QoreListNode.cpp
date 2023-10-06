@@ -99,7 +99,7 @@ int qore_list_private::getLValue(size_t ind, LValueHelper& lvh, bool for_remove,
         resize(ind + 1);
     }
 
-    lvh.resetValue(entry[ind], complexTypeInfo ? QoreTypeInfo::getUniqueReturnComplexList(complexTypeInfo) : nullptr);
+    lvh.resetValue(entry[ind], getValueTypeInfo());
     return 0;
 }
 

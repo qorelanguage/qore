@@ -19,6 +19,9 @@
 
     @subsection qore_2_0_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
+      - fixed a bug converting arguments to fit the Swagger schema to avoid spurious and very difficult to debug type
+        errors
+        (<a href="https://github.com/qorelanguage/qore/issues/4825">issue 4825</a>)
       - fixed a bug where any additionalProperties would cause all properties to be accepted
         (<a href="https://github.com/qorelanguage/qore/issues/4823">issue 4823</a>)
 
