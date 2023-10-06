@@ -462,9 +462,6 @@ public:
     DLLLOCAL void resetValue(QoreValue& nqv, const QoreTypeInfo* ti = nullptr) {
         //printd(5, "LValueHelper::resetValue() this: %p nqv: %s ti: %s\n", this, nqv.getFullTypeName(),
         //    QoreTypeInfo::getName(ti));
-
-        assert(!nqv || QoreTypeInfo::runtimeAcceptsValue(ti, nqv) > 0);
-
         if (val) {
             val = nullptr;
         } else {
