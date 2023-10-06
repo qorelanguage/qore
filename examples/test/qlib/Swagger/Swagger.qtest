@@ -725,8 +725,8 @@ public class SwaggerTest inherits QUnit::Test {
                 assertEq(MimeTypeJson, res.hdr."Content-Type");
                 assertEq("\"ERR\"", res.body);
 
-                assertThrows("SCHEMA-VALIDATION-ERROR", \so.processResponse(), ("get", "/test", 200, ("x": 2), NOTHING, MimeTypeJson));
-                #printf("res: %N\n", res);
+                assertThrows("SCHEMA-VALIDATION-ERROR", \so.processResponse(), ("get", "/test", 200, ("x": 2),
+                    NOTHING, MimeTypeJson));
 
                 cres = so.parseResponse("get", "/test", res.code, res.body, res.hdr);
                 assertEq(400, cres.code);
