@@ -385,3 +385,15 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
     }
 }
 }
+
+# Private namespace
+namespace Priv {
+class DataProviderTypeEntryPrivate inherits DataProviderTypeEntry {
+    #! Removes the given child unconditionally, even if locked
+    static forceRemoveChild(DataProviderTypeEntry entry, string child) {
+        remove entry.children{child};
+        remove entry.type_children{child};
+        remove entry.rec_children{child};
+    }
+}
+}

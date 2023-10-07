@@ -128,7 +128,7 @@ public class DataProvider {
         factory_cache{name} = factory;
 
         # deregister the app automatically if module initialization fails
-        DataProviderImplicitModuleTransaction::add(sub () { DataProvider::deregisterFactory(name); });
+        ImplicitModuleTransaction::add(sub () { DataProvider::deregisterFactory(name); });
     }
 
     #! Returns the given data provider factory or @ref nothing if not present
@@ -336,7 +336,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{oracle:us
     */
     static registerType(string path, AbstractDataProviderType type) {
         try {
-            type_cache.registerType(path, type);
+            type_cache.registerType(path, type, NOTHING, True);
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err == "TYPE-ERROR") {
                 # check if type is being re-registered after module injection

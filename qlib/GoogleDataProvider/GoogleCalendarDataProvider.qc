@@ -55,7 +55,7 @@ public class GoogleCalendarDataProvider inherits GoogleDataProviderBase {
         #! The calendar's metadata
         *hash<auto> cal;
 
-        const ChildMap = {
+        const DefaultChildMap = {
             "delete": Class::forName("GoogleDataProvider::GoogleCalendarDeleteDataProvider"),
             "events": Class::forName("GoogleDataProvider::GoogleCalendarEventsDataProvider"),
             "freeBusy": Class::forName("GoogleDataProvider::GoogleCalendarFreeBusyDataProvider"),
@@ -63,6 +63,8 @@ public class GoogleCalendarDataProvider inherits GoogleDataProviderBase {
             "patch": Class::forName("GoogleDataProvider::GoogleCalendarPatchDataProvider"),
             "update": Class::forName("GoogleDataProvider::GoogleCalendarUpdateDataProvider"),
         };
+
+        static hash<string, Reflection::Class> childMap = DefaultChildMap;
     }
 
     #! Creates the object from constructor options
@@ -90,14 +92,32 @@ public class GoogleCalendarDataProvider inherits GoogleDataProviderBase {
 
     #! Return data provider summary info
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+        return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
+    }
+
+    #! Register a new child data provider for Google calendars
+    static registerChild(string pathname, Reflection::Class cls) {
+        if (childMap{pathname}) {
+            throw "GOOGLE-CALENDAR-CHILD-ERROR", sprintf("child %y already registered", pathname);
+        }
+
+        childMap{pathname} = cls;
+
+        ImplicitModuleTransaction::add(sub () { GoogleCalendarDataProvider::deregisterChild(pathname); });
+    }
+
+    #! Deregister the named child data provider
+    private static deregisterChild(string pathname) {
+        if (!DefaultChildMap{pathname}) {
+            remove childMap{pathname};
+        }
     }
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
+        return keys childMap;
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -106,7 +126,7 @@ public class GoogleCalendarDataProvider inherits GoogleDataProviderBase {
         @see getChildProviderEx()
     */
     private *GoogleDataProviderBase getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
+        *Class cls = childMap{name};
         if (!cls) {
             return;
         }

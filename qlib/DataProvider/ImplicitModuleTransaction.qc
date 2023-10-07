@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! @file ImplicitModuleTransaction.qc rolls back module changes if external module initialization fails
+#! @file DataProviderImplicitModuleTransaction.qc provides the DataProvider catalog API
 
-/** ImplicitModuleTransaction.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
+/** DataProviderImplicitModuleTransaction.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,21 +22,17 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Private definitions
-namespace Priv {
-#! Private thread-local data to maintain transaction rollback information
-thread_local ImplicitModuleTransaction rb;
-
-#! Rolls back module changes if external module initialization fails
-class ImplicitModuleTransaction {
+#! Contains all public definitions in the DataProvider module
+public namespace DataProvider {
+#! Implements a mechanism to roll back changes made in external module initialization if an error occurs
+public class ImplicitModuleTransaction {
     public {}
 
     private {
-        #! list of rollback actions
         list<code> rollback();
     }
 
-    #! Executes all rollback actions if module initialization fails
+    #! Executes all rollback code if there is an active exception in module initialization
     destructor() {
         if (active_exception()) {
             # execute all rollback actions
@@ -44,19 +40,23 @@ class ImplicitModuleTransaction {
         }
     }
 
-    #! Adds a rollback action
-    addRollback(code rb_code) {
-        rollback += rb_code;
-    }
-
-    #! Adds a rollback action and creates the transaction context if necessary
+    #! Adds a rollback closure to be executed if there is an active exception in module initialization
     static add(code rb_code) {
         if (!rb) {
-            # create transaction context
             rb = new ImplicitModuleTransaction();
         }
-        # add rollback action to transaction context
         rb.addRollback(rb_code);
     }
+
+    #! Adds a rollback closure to be executed if there is an active exception in module initialization
+    private addRollback(code rb_code) {
+        rollback += rb_code;
+    }
 }
+}
+
+#! Private definitions
+namespace Priv {
+# holds and optionally executes rollback code
+thread_local ImplicitModuleTransaction rb;
 }

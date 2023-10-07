@@ -44,13 +44,14 @@ public class DataProviderTypeCache inherits Qore::Serializable {
     /** @param path a \c "/" separated path for the type; this is the lookup index
         @param type the new data provider type
         @param locked if the data type should be locked, prohibiting updates and deletions
+        @param set_rollback set rollback code; for use in module registration
 
         @throw PROVIDER-ERROR the given provider has already been registered
 
         @note types are stored based on the path provided which may differ from their type names (which may be generic
         and therefore not suitable for indexing)
     */
-    registerType(string path, AbstractDataProviderType type, bool locked = False) {
+    registerType(string path, AbstractDataProviderType type, bool locked = False, *bool set_rollback) {
         list<string> type_path = DataProvider::getPathList(path);
 
         DataProviderTypeEntry type_entry = root;
@@ -67,6 +68,11 @@ public class DataProviderTypeCache inherits Qore::Serializable {
 
         if (type_entry.setType(type, locked)) {
             ++size;
+        }
+
+        if (set_rollback) {
+            # deregister the app automatically if module initialization fails
+            ImplicitModuleTransaction::add(sub () { deregisterType(path); });
         }
     }
 
@@ -399,6 +405,31 @@ public class DataProviderTypeCache inherits Qore::Serializable {
             curr = new_type;
         }
         return curr;
+    }
+
+    #! Deregisters the type at the given path
+    /** @param path a \c "/" separated path for the type; this is the lookup index
+    */
+    private deregisterType(string path) {
+        list<string> type_path = DataProvider::getPathList(path);
+
+        *DataProviderTypeEntry type_entry = root;
+
+        bool needs_lock = !rwlock.writeLockOwner();
+        if (needs_lock) {
+            rwlock.writeLock();
+        }
+        on_exit if (needs_lock) {
+            rwlock.writeUnlock();
+        }
+
+        for (int i = 0, int e = type_path.size() - 1; i < e; ++i) {
+            if (!(type_entry = type_entry.getChild())) {
+                return;
+            }
+        }
+
+        DataProviderTypeEntryPrivate::forceRemoveChild(type_entry, type_path.last());
     }
 }
 }

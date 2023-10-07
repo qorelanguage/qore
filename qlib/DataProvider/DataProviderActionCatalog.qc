@@ -242,7 +242,7 @@ public class DataProviderActionCatalog {
         appcache{app.name} = app;
 
         # deregister the app automatically if module initialization fails
-        DataProviderImplicitModuleTransaction::add(sub () { DataProviderActionCatalog::deregisterApp(app.name); });
+        ImplicitModuleTransaction::add(sub () { DataProviderActionCatalog::deregisterApp(app.name); });
     }
 
     #! Registers a data provider action

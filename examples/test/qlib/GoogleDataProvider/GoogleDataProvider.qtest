@@ -132,7 +132,7 @@ public class GoogleDataProviderTest inherits QUnit::Test {
         }
 
         # create and delete a calendar
-        prov = gdp.getChildProviderPath("calendar/calendar-insert");
+        prov = gdp.getChildProviderPath("calendar/insert");
         {
             string summary = "Test Delete Me " + get_random_string();
             h = prov.doRequest({
