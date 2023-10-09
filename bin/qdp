@@ -54,6 +54,7 @@ class QdpCmd {
             "listconnections": "c,list-connections",
             "listfactories": "f,list-factories",
             "listtypes": "t,list-types",
+            "modules": "m,module=s@",
             "verbose": "v,verbose:i+",
             "help": "h,help",
         };
@@ -134,6 +135,10 @@ class QdpCmd {
         if (opts.help) {
             usage();
         }
+
+        # load any modules
+        map load_module($1), opts.modules;
+
         if (opts.listconnections) {
             listConnections();
         }
@@ -479,6 +484,7 @@ class QdpCmd {
                 }
             }
         }
+        delete provider;
         printf("listening stopped\n");
     }
 
@@ -840,6 +846,7 @@ class QdpCmd {
  -b,--bulk                 use the bulk API for searches
  -c,--list-connections     list known connections and exit
  -f,--list-factories       list known data provider factories and exit
+ -m,--module=ARG           Data Provider modules to load manually
  -t,--list-types           list known data provider types and exit
  -v,--verbose[=ARG]        show more output
  -h,--help                 this help text

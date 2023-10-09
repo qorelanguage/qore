@@ -732,6 +732,31 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         checkOAuth2Options(new_opts);
     }
 
+    #! Return OAuth2 options
+    /** @return a hash of OAuth2 options
+
+        @since RestClient 2.2
+    */
+    hash<auto> getOAuth2Options() {
+        return {
+            "username": username,
+            "password": password,
+            "token": token,
+            "token_type": token_type,
+            "oauth2_auth_args": oauth2_auth_args,
+            "oauth2_auth_url": oauth2_auth_url,
+            "oauth2_auto_refresh": oauth2_auto_refresh,
+            "oauth2_client_id": oauth2_client_id,
+            "oauth2_client_secret": oauth2_client_secret,
+            "oauth2_grant_type": oauth2_grant_type,
+            "oauth2_pkce": oauth2_pkce,
+            "oauth2_redirect_url": oauth2_redirect_url,
+            "oauth2_refresh_token": refresh_token,
+            "oauth2_scopes": oauth2_scopes,
+            "oauth2_token_url": oauth2_token_url,
+        };
+    }
+
     #! Clears the connection path when a validator is present that manages the URI path
     /** Called from the constructor when a REST validator is present that manages the URI path
     */

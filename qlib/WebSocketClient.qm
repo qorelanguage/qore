@@ -868,18 +868,36 @@ ws.setEventQueue();
     }
 
     private logInfo(string fmt, ...) {
-        if (log)
-            call_function(log, sprintf("WebSocketClient %s INFO: ", cid) + vsprintf(fmt, argv));
+        if (log) {
+            string msg = vsprintf(fmt, argv);
+            try {
+                call_function(log, sprintf("WebSocketClient %s INFO: ", cid) + vsprintf(fmt, argv));
+            } catch (hash<ExceptionInfo> ex) {
+                printf("WARNING: cannot log: %y: %s: %s\n", msg, get_exception_string(ex));
+            }
+        }
     }
 
     private logError(string fmt, ...) {
-        if (errlog)
-            call_function(errlog, sprintf("WebSocketClient %s ERROR: ", cid) + vsprintf(fmt, argv));
+        if (errlog) {
+            string msg = vsprintf(fmt, argv);
+            try {
+                call_function(errlog, sprintf("WebSocketClient %s ERROR: ", cid) + msg);
+            } catch (hash<ExceptionInfo> ex) {
+                printf("WARNING: cannot log error: %y: %s: %s\n", msg, get_exception_string(ex));
+            }
+        }
     }
 
     private logDebug(string fmt, ...) {
-        if (debuglog)
-            call_function(debuglog, sprintf("WebSocketClient %s DEBUG:", cid) + vsprintf(fmt, argv));
+        if (debuglog) {
+            string msg = vsprintf(fmt, argv);
+            try {
+                call_function(debuglog, sprintf("WebSocketClient %s DEBUG:", cid) + vsprintf(fmt, argv));
+            } catch (hash<ExceptionInfo> ex) {
+                printf("WARNING: cannot log debug: %y: %s: %s\n", msg, get_exception_string(ex));
+            }
+        }
     }
 
     private sendClose(int code, *string txtmsg) {
