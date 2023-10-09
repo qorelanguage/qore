@@ -48,7 +48,7 @@ extern "C" {
 #include <vector>
 
 // parse options set while parsing the module's header (init & del)
-#define MOD_HEADER_PO (PO_LOCKDOWN & ~PO_NO_MODULES)
+#define MOD_HEADER_PO (PO_LOCKDOWN & ~(PO_NO_MODULES | PO_NO_REFLECTION))
 
 // initial user module parse options
 #define USER_MOD_PO (PO_NO_TOP_LEVEL_STATEMENTS | PO_REQUIRE_PROTOTYPES | PO_REQUIRE_OUR | PO_IN_MODULE)

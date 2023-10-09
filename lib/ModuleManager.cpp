@@ -499,8 +499,6 @@ void ModuleManager::addAutoModuleDirList(const char* strlist) {
 }
 
 void QoreModuleManager::init(bool se) {
-    static const char* qt_blacklist_string = "because it was implemented with faulty namespace handling that does not work with newer versions of Qore; use the 'qt4' module based in libsmoke instead; it is much more complete";
-
     // setup possible user module keys
     QoreModuleDefContext::vset.insert("desc");
     QoreModuleDefContext::vset.insert("version");
@@ -508,18 +506,12 @@ void QoreModuleManager::init(bool se) {
     QoreModuleDefContext::vset.insert("url");
     QoreModuleDefContext::vset.insert("license");
 
-    // initialize blacklist
-    // add old QT modules to blacklist
-    mod_blacklist.insert(std::make_pair((const char*)"qt-core", qt_blacklist_string));
-    mod_blacklist.insert(std::make_pair((const char*)"qt-gui", qt_blacklist_string));
-    mod_blacklist.insert(std::make_pair((const char*)"qt-svn", qt_blacklist_string));
-    mod_blacklist.insert(std::make_pair((const char*)"qt-opengl", qt_blacklist_string));
-
     show_errors = se;
 
     // setup module directory list from QORE_MODULE_DIR (if it hasn't already been manually set up)
-    if (moduleDirList.empty())
+    if (moduleDirList.empty()) {
         QoreModuleManager::addStandardModulePaths();
+    }
 }
 
 /* this internal helper function solves an issue with modules

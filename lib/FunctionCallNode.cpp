@@ -775,8 +775,22 @@ int StaticMethodCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
             return -1;
         }
 
+// XXX DEBUG DELETEME
+    ExceptionSink xsink;
+    ReferenceHolder<QoreListNode> pl(parse_option_bitfield_to_string_list(parse_context.pgm->getParseOptions64(),
+        &xsink), &xsink);
+
+    ReferenceHolder<QoreListNode> cl(parse_option_bitfield_to_string_list(qc->getDomain(), &xsink), &xsink);
+
+    QoreNodeAsStringHelper pstr(*pl, FMT_NORMAL, &xsink);
+    QoreNodeAsStringHelper cstr(*cl, FMT_NORMAL, &xsink);
+
         // check class capabilities against parse options
         if (qore_program_private::parseAddDomain(parse_context.pgm, qc->getDomain())) {
+
+printd(0, "program opts: %s\n", pstr->c_str());
+printd(0, "class opts: %s\n", cstr->c_str());
+
             parseException(*loc, "INVALID-METHOD", "class '%s' implements capabilities that are not allowed by " \
                 "current parse options", qc->getName());
             return -1;
