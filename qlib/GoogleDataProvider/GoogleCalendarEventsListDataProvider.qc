@@ -681,7 +681,7 @@ public class GoogleCalendarEventsElementType inherits DataProvider::HashDataType
 
 #! Create calendar events request data type
 public class GoogleCalendarEventsListResponseType inherits DataProvider::HashDataType {
-    private {
+    public {
         #! Field descriptions
         const Fields = {
             "kind": {

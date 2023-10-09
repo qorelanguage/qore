@@ -334,26 +334,48 @@ ModuleName/
 
     User modules are written in %Qore and delivered in source form. They must have the extension \c "*.qm".
 
-    User modules will have their own dedicated @ref Qore::Program "Program" object; the @ref Qore::Program "Program" object is created automatically when the module is loaded and initialized.  The module's @ref Qore::Program "Program" object is created with locked parse options as follows:
-    - @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS "PO_NO_TOP_LEVEL_STATEMENTS": modules provide API services and are not designed to be executed at the top-level.  Put any initialization code in the module's \c init closure
-    - @ref Qore::PO_REQUIRE_PROTOTYPES "PO_REQUIRE_PROTOTYPES": to ensure that module's APIs are transparent, all method and function declarations must include parameter and return types
-    - @ref Qore::PO_REQUIRE_OUR "PO_REQUIRE_OUR": this parse option is meant to ensure that typos in variable names are caught at parse time and to ensure transparency of variable types in the module's source code
-    - @ref Qore::PO_IN_MODULE "PO_IN_MODULE": this parse option is set so that module code is recognized by the system when parsing modules
+    User modules will have their own dedicated @ref Qore::Program "Program" object; the @ref Qore::Program "Program"
+    object is created automatically when the module is loaded and initialized.  The module's
+    @ref Qore::Program "Program" object is created with locked parse options as follows:
+    - @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS "PO_NO_TOP_LEVEL_STATEMENTS": modules provide API services and are not
+      designed to be executed at the top-level.  Put any initialization code in the module's \c init closure
+    - @ref Qore::PO_REQUIRE_PROTOTYPES "PO_REQUIRE_PROTOTYPES": to ensure that module's APIs are transparent, all
+      method and function declarations must include parameter and return types
+    - @ref Qore::PO_REQUIRE_OUR "PO_REQUIRE_OUR": this parse option is meant to ensure that typos in variable names
+      are caught at parse time and to ensure transparency of variable types in the module's source code
+    - @ref Qore::PO_IN_MODULE "PO_IN_MODULE": this parse option is set so that module code is recognized by the system
+      when parsing modules
 
-    When parsing module code, the default warning mask is set to @ref Qore::WARN_MODULES "WARN_MODULES", and any warnings are treated as errors.   Furthermore, any restrictions that the importing @ref Qore::Program "Program" object has will be added to the module's @ref Qore::Program "Program" object.
+    When parsing module code, the default warning mask is set to @ref Qore::WARN_MODULES "WARN_MODULES", and any
+    warnings are treated as errors.   Furthermore, any restrictions that the importing @ref Qore::Program "Program"
+    object has will be added to the module's @ref Qore::Program "Program" object.
 
-    Any @ref qore_namespaces "namespaces", @ref qore_classes "classes", @ref constants "constants", @ref qore_functions "functions", and @ref global_variables "global variables" declared as @ref mod_public "public" will be exported into the importing @ref Qore::Program "Program" object; all other declarations will be private to the module's @ref Qore::Program "Program" object.
+    Any @ref qore_namespaces "namespaces", @ref qore_classes "classes", @ref constants "constants",
+    @ref qore_functions "functions", and @ref global_variables "global variables" declared as @ref mod_public "public"
+    will be exported into the importing @ref Qore::Program "Program" object; all other declarations will be private to
+    the module's @ref Qore::Program "Program" object.
 
-    @note The root namespace of a module @ref Qore::Program "Program" is always @ref mod_public "public" by default, however
-    declarations in the root namespace must be marked @ref mod_public "public" to be exported to importing @ref Qore::Program "Program" objects.
+    @note The root namespace of a module @ref Qore::Program "Program" is always @ref mod_public "public" by default,
+    however declarations in the root namespace must be marked @ref mod_public "public" to be exported to importing
+    @ref Qore::Program "Program" objects.
 
-    If a user module imports other modules with the <tt>%requires(reexport)</tt> form of the @ref requires "%requires" parse directive, then any loaded definitions will also be loaded into the importing @ref Qore::Program "Program".
+    If a user module imports other modules with the <tt>%requires(reexport)</tt> form of the @ref requires "%requires"
+    parse directive, then any loaded definitions will also be loaded into the importing @ref Qore::Program "Program".
 
-    Note that global variables exported from a module's @ref Qore::Program "Program" object are exported as references; each global variable declared in a module is unique, and they reside in the module's @ref Qore::Program "Program" object.
+    Note that global variables exported from a module's @ref Qore::Program "Program" object are exported as
+    references; each global variable declared in a module is unique, and they reside in the module's
+    @ref Qore::Program "Program" object.
 
-    Furthermore, when using an environment with multiple @ref Qore::Program "Program" objects, if a user module has already been loaded and initialized, then it's functional domain mask is compared against any importing @ref Qore::Program "Program" object's restrictions; if the module uses functionality that is not allowed in the importing @ref Qore::Program "Program" object, then an exception is raised and the module is not imported.
+    Furthermore, when using an environment with multiple @ref Qore::Program "Program" objects, if a user module has
+    already been loaded and initialized, then it's functional domain mask is compared against any importing
+    @ref Qore::Program "Program" object's restrictions; if the module uses functionality that is not allowed in the
+    importing @ref Qore::Program "Program" object, then an exception is raised and the module is not imported.
 
-    Also note that the @ref Qore::Program::constructor() applies a mask to the parse option mask option when @ref Qore::Program "Program" objects are created in a user module; in this case the parse options passed to the child @ref Qore::Program "Program" object are masked with the current parse options in the user module, and they are locked so that they cannot be made less restrictive.  This is to prevent user modules from circumventing functional restrictions imposed by parse options.
+    Also note that the @ref Qore::Program::constructor() applies a mask to the parse option mask option when
+    @ref Qore::Program "Program" objects are created in a user module; in this case the parse options passed to the
+    child @ref Qore::Program "Program" object are masked with the current parse options in the user module, and they
+    are locked so that they cannot be made less restrictive.  This is to prevent user modules from circumventing
+    functional restrictions imposed by parse options.
 
     @subsection user_module_declarations User Module Declarations
 
@@ -376,12 +398,17 @@ ModuleName/
     - \c author: (required) must be assigned to a string giving the module's author's name
     - \c url: (optional) if present, must be a string giving the URL of the module
     - \c license: (optional) if present, must be a string giving the license of the module
-    - \c init: (optional) if present, must be a closure that will be executed when the module is loaded; this can be used to initialize the module, for example
-    - \c del: (optional) if present, must be a closure that will be executed when the module is unloaded; this can be used to stop running services or free resources managed and still allocated by the module, for example
+    - \c init: (optional) if present, must be a closure that will be executed when the module is loaded; this can be
+      used to initialize the module, for example
+    - \c del: (optional) if present, must be a closure that will be executed when the module is unloaded; this can be
+      used to stop running services or free resources managed and still allocated by the module, for example
 
     @note
-    - any unhandled exceptions in the \c init closure will cause the module to fail to load
-    - unhandled exceptions in the \c init and \c del closures are displayed on @ref Qore::stdout "stdout"
+    - Any unhandled exceptions in the \c init closure will cause the module to fail to load
+    - Unhandled exceptions in the \c init and \c del closures are displayed on @ref Qore::stdout "stdout"
+    - \c init and \c del closures are parsed with restricted capabilities; they are parsed with
+      @ref Qore::PO_LOCKDOWN "PO_LOCKDOWN" permissions except that
+      @ref Qore::PO_NO_REFLECTION "PO_NO_REFLECTION" is not set
 
     @subsection mod_public The "public" Keyword
 
@@ -409,9 +436,17 @@ public namespace MyNamespace {
     public our int OurInt;
 }@endcode
 
-    @note Global variable declarations in a namespace declaration cannot be initialized at the point they are declared, also, since @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS is set for user module @ref Qore::Program "Program" objects, global variables also cannot be initialized at the top-level.  Use the \c init closure to initialize the module and any global variables requiring initialization.
+    @note Global variable declarations in a namespace declaration cannot be initialized at the point they are
+    declared, also, since @ref Qore::PO_NO_TOP_LEVEL_STATEMENTS is set for user module @ref Qore::Program "Program"
+    objects, global variables also cannot be initialized at the top-level.  Use the \c init closure to initialize the
+    module and any global variables requiring initialization.
 
-    User modules are only imported into a @ref Qore::Program "Program" if the importing @ref Qore::Program "Program" can use all of the capabilities used in the user module.  It is not possible to partially import a user module (in contrast with @ref binary_modules "binary modules", which can be imported even if they expose functionality not allowed in the importing @ref Qore::Program "Program", however that functionality will not be available in that case).  User module @ref Qore::Program "Program" objects have a functional domain attribute set on the @ref Qore::Program "Program" level, so either a user module is imported in its entirety or not at all.
+    User modules are only imported into a @ref Qore::Program "Program" if the importing @ref Qore::Program "Program"
+    can use all of the capabilities used in the user module.  It is not possible to partially import a user module (in
+    contrast with @ref binary_modules "binary modules", which can be imported even if they expose functionality not
+    allowed in the importing @ref Qore::Program "Program", however that functionality will not be available in that
+    case).  User module @ref Qore::Program "Program" objects have a functional domain attribute set on the
+    @ref Qore::Program "Program" level, so either a user module is imported in its entirety or not at all.
 
     @subsection User Module Example
 
