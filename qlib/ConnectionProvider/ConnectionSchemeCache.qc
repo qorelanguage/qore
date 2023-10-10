@@ -89,6 +89,8 @@ public class ConnectionSchemeCache {
             "cdsrests": "CdsRestClient",
             "dynamics": "CdsRestClient",
 
+            "discord": "DiscordRestClient",
+
             "ebrest": "EmpathicBuildingDataProvider",
             "ebrests": "EmpathicBuildingDataProvider",
 

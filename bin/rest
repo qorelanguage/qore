@@ -34,6 +34,7 @@
 %requires Util
 %requires Mime
 %requires ConnectionProvider
+%requires Logger
 
 %try-module yaml >= 0.5
 %define NoYaml
@@ -53,6 +54,8 @@
 
 class RestCmd {
     public {
+        hash<auto> opt;
+
         #! program options
         const Opts = {
             "cert":          "C,cert=s",
@@ -77,6 +80,7 @@ class RestCmd {
             "to":            "T,timeout=i",
             "token":         "t,token=s",
             "token_url":     "token_url=s",
+            "verbose":       "v,verbose:i+",
             "verify_cert":   "V,verify-cert",
             "lax":           "X,lax-parsing",
             "example":       "x,example:s",
@@ -98,9 +102,10 @@ class RestCmd {
 
     constructor() {
         GetOpt g(Opts);
-        hash<auto> opt = g.parse3(\ARGV);
-        if (opt.help || (!ARGV[0] && !opt.list))
+        opt = g.parse3(\ARGV);
+        if (opt.help || (!ARGV[0] && !opt."list")) {
             usage();
+        }
 
         hash<auto> opts;
 
@@ -371,6 +376,8 @@ class RestCmd {
             rest.setSendEncoding(opt.sendenc);
         }
 
+        rest.setLogger(getLogger());
+
         hash<auto> info;
         #printf("body: %y\n", body);
         try {
@@ -419,6 +426,20 @@ class RestCmd {
                 }
             }
         }
+    }
+
+    private Logger getLogger() {
+        LoggerLevel level;
+        if (opt.verbose > 1) {
+            level = LoggerLevel::getLevelDebug();
+        } else if (opt.verbose) {
+            level = LoggerLevel::getLevelInfo();
+        } else {
+            level = LoggerLevel::getLevelError();
+        }
+        Logger logger("stdout", level);
+        logger.addAppender(new StdoutAppender());
+        return logger;
     }
 
     private showRestRequest(hash info, any args, *hash opt) {

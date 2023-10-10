@@ -364,7 +364,7 @@ public class WebSocketClient {
         const DefaultTimeout = 15s;
 
         #! module version
-        const Version = "1.6";
+        const Version = "2.3";
 
         #! default user agent string for HTTP requests
         const DefaultUserAgent = sprintf("Qore-WebSocketClient/%s", WebSocketClient::Version);
@@ -939,7 +939,14 @@ ws.setEventQueue();
             "Sec-WebSocket-Key": key,
         };
 
-        hash<auto> rh = hc.send(NOTHING, "GET", NOTHING, hdr, NOTHING, \info);
+        hash<auto> rh;
+        {
+            on_error {
+                logError("error connecting to %s: %N", url, info);
+                rethrow $1.err, sprintf("%s: info: %y", $1.desc, info{"request-uri", "response-uri"});
+            }
+            rh = hc.send(NOTHING, "GET", NOTHING, hdr, NOTHING, \info);
+        }
 
         if (rh.status_code != 101) {
             throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned status code '%d %s' to our request; "
