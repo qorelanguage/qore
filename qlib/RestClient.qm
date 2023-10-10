@@ -1657,6 +1657,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     /** @since %RestClient 2.0
     */
     private hash<auto> doOAuth2LoginRequest(string url, hash<auto> login, *reference<hash<auto>> info) {
+        on_success debug("OAuth2: POST to %y successful", url);
+        on_error debug("OAuth2: POST to %y failed: %s: %s", $1.err, $1.desc);
         return RestClient::doRequestIntern("POST", url, login,
             \info, NOTHING, getOAuth2AuthHeaders()).body;
     }
