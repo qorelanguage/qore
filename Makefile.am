@@ -52,6 +52,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/Diff.qm \
 	qlib/CdsRestClient.qm \
 	qlib/DiscordRestClient.qm \
+	qlib/DiscordWebSocketClient.qm \
 	qlib/GoogleRestClient.qm \
 	qlib/HueRestClient.qm \
 	qlib/ServiceNowRestClient.qm \
@@ -101,7 +102,8 @@ DOX_SPLIT_MODULES = \
     qlib/FtpClientDataProvider \
     qlib/HttpClientDataProvider \
     qlib/AwsRestClientDataProvider \
-    qlib/GoogleDataProvider
+    qlib/GoogleDataProvider \
+    qlib/DiscordDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -117,6 +119,7 @@ CdsRestDataProvider_modverdir = $(modverdir)/CdsRestDataProvider
 ServiceNowRestDataProvider_modverdir = $(modverdir)/ServiceNowRestDataProvider
 RestClientDataProvider_modverdir = $(modverdir)/RestClientDataProvider
 AwsRestClientDataProvider_modverdir = $(modverdir)/AwsRestClientDataProvider
+DiscordDataProvider_modverdir = $(modverdir)/DiscordDataProvider
 FileDataProvider_modverdir = $(modverdir)/FileDataProvider
 FtpClientDataProvider_modverdir = $(modverdir)/FtpClientDataProvider
 GoogleDataProvider_modverdir = $(modverdir)/GoogleDataProvider
@@ -138,6 +141,7 @@ dist_CdsRestDataProvider_modver_DATA = $(wildcard qlib/CdsRestDataProvider/*.q[c
 dist_ServiceNowRestDataProvider_modver_DATA = $(wildcard qlib/ServiceNowRestDataProvider/*.q[cm])
 dist_RestClientDataProvider_modver_DATA = $(wildcard qlib/RestClientDataProvider/*.q[cm])
 dist_AwsRestClientDataProvider_modver_DATA = $(wildcard qlib/AwsRestClientDataProvider/*.q[cm])
+dist_DiscordDataProvider_modver_DATA = $(wildcard qlib/DiscordDataProvider/*.q[cm])
 dist_FileDataProvider_modver_DATA = $(wildcard qlib/FileDataProvider/*.q[cm])
 dist_FtpClientDataProvider_modver_DATA = $(wildcard qlib/FtpClientDataProvider/*.q[cm])
 dist_GoogleDataProvider_modver_DATA = $(wildcard qlib/GoogleDataProvider/*.q[cm])

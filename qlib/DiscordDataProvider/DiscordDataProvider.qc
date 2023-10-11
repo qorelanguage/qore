@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore DiscordDataProvider module definition
 
-/** GoogleDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** DiscordDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,16 +22,17 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
-#! Google calendar application name
-public const CalendarAppName = "GoogleCalendar";
-#! The Google data provider class
-public class GoogleDataProvider inherits GoogleDataProviderBase {
+#! Contains all public definitions in the DiscordDataProvider module
+public namespace DiscordDataProvider {
+#! Discord application name
+public const AppName = "Discord";
+
+#! The Discord data provider class
+public class DiscordDataProvider inherits DiscordDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "GoogleDataProvider",
+            "type": "DiscordDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
             "children_can_support_apis": True,
@@ -40,12 +41,12 @@ public class GoogleDataProvider inherits GoogleDataProviderBase {
         #! Constructor options
         const ConstructorOptions = {
             "restclient": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(new Type("GoogleRestClient")),
-                "desc": "The GoogleRestClient object",
+                "type": AbstractDataProviderType::get(new Type("DiscordRestClient")),
+                "desc": "The DiscordRestClient object",
             },
             "restclient_options": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderTypeMap."*hash",
-                "desc": "Options to the GoogleRestClient constructor; only used if a GoogleRestClient object is "
+                "desc": "Options to the DiscordRestClient constructor; only used if a DiscordRestClient object is "
                     "created for a call",
             },
             "oauth2_client_id": <DataProviderOptionInfo>{
@@ -69,39 +70,40 @@ public class GoogleDataProvider inherits GoogleDataProviderBase {
 
     private {
         const ChildMap = {
-            "calendar": Class::forName("GoogleDataProvider::GoogleCalendarBaseDataProvider"),
+            "guilds": Class::forName("DiscordDataProvider::DiscordGuildsDataProvider"),
+            "guilds-by-name": Class::forName("DiscordDataProvider::DiscordGuildsByNameDataProvider"),
+            "user-info": Class::forName("DiscordDataProvider::DiscordUserInfoGetDataProvider"),
         };
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(copts);
+        rest = DiscordDataProvider::getRestConnection(copts);
     }
 
-    #! Creates the object from a GoogleRestClient
-    constructor(GoogleRestClient rest) : GoogleDataProviderBase(rest) {
-        rest.setConnectionPath("/");
+    #! Creates the object from a DiscordRestClient
+    constructor(DiscordRestClient rest) : DiscordDataProviderBase(rest) {
         self.rest = rest;
     }
 
-    #! Returns a GoogleRestClient connection from the options
-    static GoogleRestClient::GoogleRestClient getRestConnection(*hash<auto> options) {
-        GoogleRestClient rest;
+    #! Returns a DiscordRestClient connection from the options
+    static DiscordRestClient::DiscordRestClient getRestConnection(*hash<auto> options) {
+        DiscordRestClient rest;
         if (options.restclient) {
             rest = options.restclient;
         } else {
             if (!options.oauth2_client_id) {
                 throw "CONSTRUCTOR-ERROR", "no 'restclient' or 'ouath2_client_id' option passed; "
-                    "cannot create REST client to Google instance without authentication information";
+                    "cannot create REST client to Discord instance without authentication information";
             }
             if (!options.oauth2_client_secret) {
                 throw "CONSTRUCTOR-ERROR", "no 'restclient', 'oauth2_client_secret' option passed; "
-                    "cannot create REST client to Google instance without authentication information";
+                    "cannot create REST client to Discord instance without authentication information";
             }
             if (!options.token) {
                 throw "CONSTRUCTOR-ERROR", "no 'restclient', 'token' option passed; "
-                    "cannot create REST client to Google instance without authentication information";
+                    "cannot create REST client to Discord instance without authentication information";
             }
 
             hash<auto> opts;
@@ -111,7 +113,7 @@ public class GoogleDataProvider inherits GoogleDataProviderBase {
                 "token",
                 "oauth2_refresh_token",
             };
-            rest = new GoogleRestClient(opts);
+            rest = new DiscordRestClient(opts);
         }
         rest.setConnectionPath("/");
         return rest;
@@ -119,12 +121,12 @@ public class GoogleDataProvider inherits GoogleDataProviderBase {
 
     #! Returns the data provider name
     string getName() {
-        return "google";
+        return "discord";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google REST API data provider for `%s`", rest.getSafeURL());
+        return sprintf("Discord REST API data provider for `%s`", rest.getSafeURL());
     }
 
     #! Return data provider summary info
@@ -155,59 +157,6 @@ public class GoogleDataProvider inherits GoogleDataProviderBase {
     #! Returns data provider static info
     private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-
-#! Boolean string type for query parameters
-public const SoftBoolStringType = new SoftBoolStringType();
-
-#! Boolean data provider string type for query parameters
-public const SoftBoolDataProviderStringType = AbstractDataProviderType::get(SoftBoolStringType);
-
-#! Boolean string type
-public class SoftBoolStringType inherits Qore::Reflection::Type {
-    #! Creates the object
-    constructor() : Type("*softstring") {
-    }
-
-    #! Returns the value after any conversions by the type
-    auto acceptsValue(auto value) {
-        return parse_boolean(value) ? "true" : "false";
-    }
-
-    #! Returns the default value for the type or NOTHING if the type has no default value
-    auto getDefaultValue() {
-        return "false";
-    }
-}
-
-#! Data provider type for timestamps in API arguments
-const SoftTimestampDataProviderStringType = new SoftTimestampDataProviderStringType();
-
-#! Timestamp string type
-public class SoftTimestampDataProviderStringType inherits DataProvider::QoreSoftStringOrNothingDataType {
-    #! Creates the object
-    constructor() {
-    }
-
-    #! Returns the value after any conversions by the type
-    auto acceptsValue(auto value) {
-        return exists value ? date(value).format("YYYY-MM-DDTHH:mm:SSZ") : NOTHING;
-    }
-}
-
-#! Data provider type for timestamps in API arguments
-const SoftDateDataProviderStringType = new SoftDateDataProviderStringType();
-
-#! Date string type
-public class SoftDateDataProviderStringType inherits DataProvider::QoreSoftStringOrNothingDataType {
-    #! Creates the object
-    constructor() {
-    }
-
-    #! Returns the value after any conversions by the type
-    auto acceptsValue(auto value) {
-        return exists value ? date(value).format("YYYY-MM-DD") : NOTHING;
     }
 }
 }

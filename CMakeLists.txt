@@ -898,6 +898,7 @@ qore_user_module("qlib/BulkSqlUtil" "SqlUtil")
 qore_user_module("qlib/Schema.qm" "SqlUtil;Util")
 qore_user_module("qlib/TelnetClient.qm" "ConnectionProvider")
 qore_user_module("qlib/DebugCmdLine.qm" "ConnectionProvider;DebugUtil;DebugProgramControl")
+qore_user_module("qlib/DiscordWebSocketClient.qm" "ConnectionProvider;Util;WebSocketUtil;WebSocketClient")
 qore_user_module("qlib/HttpServer.qm" "HttpServerUtil;Mime;Util")
 qore_user_module("qlib/Pop3Client.qm" "ConnectionProvider;MailMessage;Mime")
 qore_user_module("qlib/RestSchemaValidator.qm" "HttpServerUtil;Logger")
@@ -958,6 +959,7 @@ qore_user_module("qlib/EmpathicBuildingDataProvider" "RestClient;DataProvider" "
 qore_user_module("qlib/SalesforceRestDataProvider" "RestClient;SalesforceRestClient;DataProvider")
 qore_user_module("qlib/AwsRestClientDataProvider" "RestClient;DataProvider;RestClientDataProvider")
 qore_user_module("qlib/GoogleDataProvider" "GoogleRestClient;RestClient;DataProvider")
+qore_user_module("qlib/DiscordDataProvider" "DiscordRestClient;RestClient;DataProvider")
 
 # print info
 message(STATUS "")

@@ -43,7 +43,7 @@
 
 module DiscordRestClient {
     version = "1.0";
-    desc = "user module for calling Discord REST API services";
+    desc = "User module for calling Discord REST API services";
     author = "David Nichols <david@qore.org>";
     url = "https://qore.org";
     license = "MIT";
@@ -140,23 +140,33 @@ public class DiscordRestClient inherits RestClient::RestClient {
         #! Default "data" option value
         const DefaultData = "json";
 
+        #! Default Discord ping method
+        const DefaultPingMethod= "GET";
+
+        #! Default Discord ping path
+        const DefaultPingPath = "users/@me";
+
+        #! Default Discord ping headers
+        const DefaultPingHeaders = {
+            "Accept": MimeTypeJson,
+        };
+
+        #! The default API to use
+        const DefaultApi = 10;
+
         #! Default constructor options
         const DefaultOptions = {
-            "url": DefaultUrl,
+            "api": DefaultApi,
+            "data": DefaultData,
             "oauth2_auth_args": DefaultAuthArgs,
             "oauth2_auth_url": DefaultAuthUrl,
             "oauth2_grant_type": DefaultGrantType,
             "oauth2_token_url": DefaultTokenUrl,
             "oauth2_scopes": DefaultScopes,
-            "data": DefaultData,
-        };
-
-        #! Default Discord ping method
-        const DefaultDiscordPingMethod= "GET";
-
-        #! Default Discord ping headers
-        const DefaultDiscordPingHeaders = {
-            "Accept": MimeTypeJson,
+            "ping_headers": DefaultPingHeaders,
+            "ping_method": DefaultPingMethod,
+            "ping_path": DefaultPingPath,
+            "url": DefaultUrl,
         };
     }
 
@@ -180,7 +190,7 @@ DiscordRestClient rest(opts);
 
     #! returns options for @ref DiscordRestClient::DiscordRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
-        return DefaultOptions + opts + {"url": DefaultUrl};
+        return DefaultOptions + opts + {"url": DefaultUrl + "/v" + (opts.api ?? DefaultApi)};
     }
 }
 
@@ -203,6 +213,11 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("DiscordRestConnection"),
             "options": RestConnection::ConnectionScheme.options + {
+                "api": <ConnectionOptionInfo>{
+                    "type": "int",
+                    "desc": "The default API version to use",
+                    "default_value": DiscordRestClient::DefaultApi,
+                },
                 "data": RestConnection::ConnectionScheme.options."data"
                 + <ConnectionOptionInfo>{
                     "default_value": DiscordRestClient::DefaultData,
@@ -226,6 +241,18 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
                 "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url
                 + <ConnectionOptionInfo>{
                     "default_value": DiscordRestClient::DefaultTokenUrl,
+                },
+                "ping_headers": RestConnection::ConnectionScheme.options."ping_headers"
+                + <ConnectionOptionInfo>{
+                    "default_value": DiscordRestClient::DefaultPingHeaders,
+                },
+                "ping_method": RestConnection::ConnectionScheme.options."ping_method"
+                + <ConnectionOptionInfo>{
+                    "default_value": DiscordRestClient::DefaultPingMethod,
+                },
+                "ping_path": RestConnection::ConnectionScheme.options."ping_path"
+                + <ConnectionOptionInfo>{
+                    "default_value": DiscordRestClient::DefaultPingPath,
                 },
             },
             "required_options": "token|oauth2_auth_url,oauth2_grant_type,oauth2_token_url,"
@@ -257,7 +284,6 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
         return "discord";
     }
 
-%ifdef HaveDiscordDataProvider
     #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
     /** @return @ref True as this connection returns a data provider with the @ref getDataProvider() method
 
@@ -278,7 +304,6 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
         load_module("DiscordDataProvider");
         return create_object("DiscordDataProvider", get());
     }
-%endif
 
     #! Can be called to set or clear a closure or call reference to be called when options are automatically updated
     /** The closure or call reference must have the following signature:
@@ -291,7 +316,7 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
             doUpdateOptions(self, {
                 "url": opts.url = DefaultConnectionUrl,
             });
-            real_opts.url = real_url = DiscordRestClient::DefaultUrl;
+            real_url = DiscordRestClient::DefaultUrl;
         }
     }
 

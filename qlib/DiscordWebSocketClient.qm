@@ -1,0 +1,233 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file DiscordWebSocketClient.qm Qore user module for calling Discord WebSocket services
+
+/*  DiscordWebSocketClient.qm Copyright (C) 2020 - 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without websocketriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum qore version
+%requires qore >= 2.0
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# don't use "$" for vars, members, and methods, assume local variable scope
+%new-style
+
+# do not ignore argument errors
+%strict-args
+
+%requires(reexport) Mime >= 1.3
+%requires(reexport) WebSocketClient >= 1.3.1
+%requires(reexport) ConnectionProvider >= 1.4
+
+%try-module json >= 1.8.2
+%define NoJson
+%endtry
+
+module DiscordWebSocketClient {
+    version = "1.0";
+    desc = "User module for communicating with the Discord WebSocket API gateway";
+    author = "David Nichols <david@qore.org>";
+    url = "https://qore.org";
+    license = "MIT";
+    init = sub () {
+        ConnectionSchemeCache::registerScheme("discordwss", DiscordWebSocketConnection::ConnectionScheme);
+    };
+}
+
+/** @mainpage DiscordWebSocketClient Module
+
+    @tableofcontents
+
+    @section discordwebsocketclientintro DiscordWebSocketClient Introduction
+
+    The %DiscordWebSocketClient module provides an API for communicating with the Discord WebSocket API gateway.
+
+    To use this module, use \c "%requires DiscordWebSocketClient" in your code.
+
+    All the public symbols in the module are defined in the DiscordWebSocketClient namespace.
+
+    The main classes are:
+    - @ref DiscordWebSocketClient::DiscordWebSocketClient "DiscordWebSocketClient":
+      this class provides the WEBSOCKET client API for communuication with the Discord WEBSOCKET
+      API; it also automates authentication and authorization to the target
+    - @ref DiscordWebSocketClient::DiscordWebSocketConnection "DiscordWebSocketConnection":
+      provides a WEBSOCKET connection object to Discord cloud services (based on the
+      @ref connectionproviderintro "ConnectionProvider" module)
+
+    @section discordwebsocketclientrelnotes Release Notes
+
+    @subsection discordwebsocketclientv1_0 DiscordWebSocketClient v1.0
+    - the initial version of the %DiscordWebSocketClient module
+*/
+
+#! the DiscordWebSocketClient namespace contains all the objects in the DiscordWebSocketClient module
+public namespace DiscordWebSocketClient {
+#! The Discord WebSocket client class
+public class DiscordWebSocketClient inherits WebSocketClient {
+    public {
+        #! Default headers to use in the initial HTTP request after connecting
+        const DefaultHeaders = {
+            "Sec-WebSocket-Version": "13",
+        };
+    }
+
+    #! creates the object and optionally sets logging targets
+    /** @par Example:
+        @code{.py}
+MyDiscordWebSocketClient ws();
+        @endcode
+
+        @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages
+        @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient constructor"
+        plus the following keys:
+        - \c log: an optional @ref closure "closure" or @ref call_reference "call reference" for informational
+            logging
+        - \c errlog: an optional @ref closure "closure" or @ref call_reference "call reference" for error logging
+        - \c debuglog: an optional @ref closure "closure" or @ref call_reference "call reference" for logging
+            debugging/technical messages about the web socket connection
+        - \c raw_callback: an optional @ref closure "closure" or @ref call_reference "call reference" for
+          receiving raw WebSocket messages before processing; takes a single <tt>hash&lt;WsMsgInfo&gt;</tt>
+          argument and must return one of the following values: @ref WSClientRawCallbackReturnCodes
+        - \c yield: an options @ref closure "closure" or @ref call_reference "call reference" for yielding the
+            current thread's execution to another thread (default value: @ref Qore::Threads::thread_yield());
+            required if @ref Qore::PO_NO_PROCESS_CONTROL is set in the current execution context
+
+        @throw WEBSOCKET-ERROR unknown scheme, missing 'url' key in option hash; invalid option value
+
+        @since
+        - WebSocketClient 1.6 added the \c yield option
+        - WebSocketClient 1.9.1 added the \c raw_callback option
+    */
+    constructor(*hash<auto> opts) : WebSocketClient(DiscordWebSocketClient::getOptions(opts)) {
+    }
+
+    #! Processes options for the DiscordWebSocketClient constructor
+    static hash<auto> getOptions(*hash<auto> opts) {
+        if (!opts.url) {
+            opts.url = DiscordWebSocketConnection::discoverUrl();
+        }
+        return opts + {
+            "headers": DefaultHeaders,
+        };
+    }
+}
+
+#! class for Discord websocket connections; returns an object of class @ref DiscordWebSocketClient
+/** Supports all the options of the @ref WebSocketClient::WebSocketConnection "WebSocketConnection" class; note that
+    the \c token option is required by this class and is used as the gateway token after connecting and not as an HTTP
+    authentication token
+*/
+public class DiscordWebSocketConnection inherits WebSocketClient::WebSocketConnectionObject {
+    public {
+        #! A string containing the real URL using a wss scheme
+        string real_url;
+
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "cls": Class::forName("DiscordWebSocketConnection"),
+            "options": WebSocketConnectionObject::ConnectionScheme.options,
+        };
+
+        #! Default Discord gateway URL
+        const DefaultGatewayUrl = "wss://gateway.discord.gg/";
+
+        #! Discord gateway discovery URL
+        const GatewayDiscoveryUrl = "https://discord.com/api/gateway";
+    }
+
+    #! creates the DiscordWebSocketConnection connection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url connection URL; if not provided, then the URL will be discovered automatically
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, *string url, hash<auto> attributes = {}, hash<auto> options = {})
+            : WebSocketConnectionObject(name, description, url, attributes, options) {
+        setRealUrl(url);
+    }
+
+    #! returns \c "discordwss"
+    string getType() {
+        return "discordwss";
+    }
+
+    #! returns a @ref DiscordWebSocketClient object
+    /** @param connect if @ref True "True", then @ref WebSocketClient::connect() is called
+        @param rtopts runtime options
+
+        @return a @ref DiscordWebSocketClient object
+    */
+    private DiscordWebSocketClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        # to avoid type issues with rtopts
+        if (rtopts) {
+            rtopts = {} + rtopts;
+        }
+        # rename "dbglog" to "debuglog" for WebSocketClient object
+        if (rtopts.dbglog) {
+            rtopts.debuglog = remove rtopts.dbglog;
+        }
+        DiscordWebSocketClient ws({"url": real_url} + rtopts{"log", "errlog", "debuglog"} + opts);
+        if (connect) {
+            ws.connect();
+        }
+        return ws;
+    }
+
+    #! Called by the constructor to set the real URL
+    /** @path the new URL
+
+        sets the real WS URL for WebSocket-based connections
+    */
+    private setRealUrl(*string url) {
+        if (!url) {
+            url = discoverUrl();
+        } else {
+            string scheme = (url =~ x/^([^:]+)/)[0];
+            real_url = regex_subst(url, "^" + scheme, "wss");
+        }
+    }
+
+    #! Discover the Discord gateway URL
+    static string discoverUrl() {
+%ifndef NoJson
+        # lookup gateway address
+        return parse_json((new HTTPClient({
+            "url": GatewayDiscoveryUrl,
+            "headers": {
+                "Accept": MimeTypeJson,
+            },
+        })).get("")).url;
+%else
+        return DefaultGatewayUrl;
+%endif
+    }
+}
+}
+

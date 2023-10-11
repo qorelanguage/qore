@@ -90,6 +90,7 @@ public class ConnectionSchemeCache {
             "dynamics": "CdsRestClient",
 
             "discord": "DiscordRestClient",
+            "discordwss": "DiscordWebSocketClient",
 
             "ebrest": "EmpathicBuildingDataProvider",
             "ebrests": "EmpathicBuildingDataProvider",

@@ -117,7 +117,7 @@ module GoogleDataProvider {
 
     @tableofcontents
 
-    @section eoogledataproviderintro Introduction to the GoogleDataProvider Module
+    @section googledataproviderintro Introduction to the GoogleDataProvider Module
 
     The %GoogleDataProvider module provides a @ref dataproviderintro "data provider" API for Google cloud REST API
     services.

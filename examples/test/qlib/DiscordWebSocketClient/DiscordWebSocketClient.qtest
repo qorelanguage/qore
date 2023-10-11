@@ -1,0 +1,55 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/WebSocketClient.qm
+%requires ../../../../qlib/DiscordWebSocketClient.qm
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
+%exec-class Main
+
+public class Main inherits QUnit::Test {
+    constructor() : Test("DiscordWebSocketClientTest", "1.0") {
+        addTestCase("discord tests", \discordTests());
+        addTestCase("connection tests", \connectionTests());
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    checkModule() {
+%ifdef NoJson
+        testSkip("no json module");
+%endif
+    }
+
+    discordTests() {
+        checkModule();
+    }
+
+    connectionTests() {
+        checkModule();
+        string url = "discordwss://x";
+        DiscordWebSocketConnection drc("test", "test", url, {}, {
+            "token": "x",
+        });
+        assertEq(True, drc instanceof DiscordWebSocketConnection);
+
+        #assertThrows("CONNECTION-OPTION-ERROR", sub () { DiscordRestConnection swsc1("test", "test", url);});
+
+        DiscordWebSocketClient client = drc.get(False);
+        assertEq("DiscordWebSocketClient", client.className());
+    }
+}

@@ -39,6 +39,8 @@
 %requires(reexport) ConnectionProvider >= 1.4
 %requires(reexport) DataProvider
 
+%requires Logger
+
 %try-module yaml >= 0.5
 %define NoYaml
 %endtry
@@ -334,7 +336,18 @@ public const MESSAGE_WS_PONG = "pong";
     - \c PO_NO_PROCESS_CONTROL: in this case the \c "yield" option is required in
       @ref WebSocketClient::WebSocketClient::constructor() "WebSocketClient::constructor()"
 */
-public class WebSocketClient {
+public class WebSocketClient inherits Logger::LoggerWrapper {
+    public {
+        #! default socket I/O operation timeout: 15 seconds
+        const DefaultTimeout = 15s;
+
+        #! module version
+        const Version = "2.3";
+
+        #! default user agent string for HTTP requests
+        const DefaultUserAgent = sprintf("Qore-WebSocketClient/%s", WebSocketClient::Version);
+    }
+
     private {
         Mutex m();
         HTTPClient hc;
@@ -357,17 +370,6 @@ public class WebSocketClient {
         string url;
 
         static Sequence seq();
-    }
-
-    public {
-        #! default socket I/O operation timeout: 15 seconds
-        const DefaultTimeout = 15s;
-
-        #! module version
-        const Version = "2.3";
-
-        #! default user agent string for HTTP requests
-        const DefaultUserAgent = sprintf("Qore-WebSocketClient/%s", WebSocketClient::Version);
     }
 
     #! creates the object and optionally sets logging targets
@@ -412,65 +414,7 @@ WebSocketClient ws(\event(), {
         - WebSocketClient 1.9.1 added the \c raw_callback option
     */
     constructor(code cb, hash<auto> opts) {
-        # += to keep "http_opts" "hash<auto>"
-        hash<auto> http_opts += opts;
-        if (http_opts.url.typeCode() != NT_STRING)
-            throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'url' key "
-                "giving the connection target");
-        url = http_opts.url;
-
-        if (http_opts.hasKey("yield")) {
-            if (!http_opts.yield.callp())
-                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
-                    "'yield' key with type %y; must be a callable value", opts.yield.type());
-            yield = http_opts.yield;
-        }
-%ifdef PO_NO_PROCESS_CONTROL
-        else
-            throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'yield' key "
-                "giving the thread yield closure/call reference which is required when PO_NO_PROCESS_CONTROL is "
-                "in effect");
-%endif
-
-        if (http_opts.hasKey("raw_callback")) {
-            if (!http_opts.raw_callback.callp()) {
-                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
-                    "'raw_callback' key with type %y; must be a callable value", opts.raw_callback.type());
-            }
-            raw_callback = http_opts.raw_callback;
-        }
-
-        if (http_opts.hasKey("pong_callback")) {
-            if (!http_opts.pong_callback.callp()) {
-                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
-                    "'pong_callback' key with type %y; must be a callable value", opts.pong_callback.type());
-            }
-            pong_callback = http_opts.pong_callback;
-        }
-
-        hash<UrlInfo> uh = parse_url(http_opts.url);
-        if (uh.protocol) {
-            hash<auto> sh = getSchemes();
-            *hash<auto> ph = sh{uh.protocol};
-            if (!ph)
-                throw "WEBSOCKET-ERROR", sprintf("schema %y is unknown in %y; known schemes: %y", uh.protocol,
-                    http_opts.url, sh.keys());
-            # replace websocket scheme with an http scheme
-            splice http_opts.url, 0, uh.protocol.size(), "http" + (ph.ssl ? "s" : "");
-        }
-
-        # ensure that the timeout value is set correctly and consistently
-        if (http_opts."timeout") {
-            timeout_ms = http_opts."timeout";
-        } else {
-            http_opts."timeout" = timeout_ms;
-        }
-
-        hc = new HTTPClient(http_opts);
-        log = http_opts.log;
-        errlog = http_opts.errlog;
-        debuglog = http_opts.debuglog;
-
+        constructorInit(opts);
         callback = cb;
     }
 
@@ -563,7 +507,7 @@ ws.connect();
             remove tid;
             c.dec();
         }
-        tid = background eventLoop(callback);
+        tid = background eventLoop();
         return h;
     }
 
@@ -706,6 +650,79 @@ ws.setEventQueue();
         hc.setEventQueue();
     }
 
+    private constructor(hash<auto> opts) {
+        constructorInit(opts);
+    }
+
+    #! Common constructor code
+    private constructorInit(hash<auto> opts) {
+        # += to keep "http_opts" "hash<auto>"
+        hash<auto> http_opts += opts;
+        if (http_opts.url.typeCode() != NT_STRING)
+            throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'url' key "
+                "giving the connection target");
+        url = http_opts.url;
+
+        if (http_opts.hasKey("yield")) {
+            if (!http_opts.yield.callp())
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
+                    "'yield' key with type %y; must be a callable value", opts.yield.type());
+            yield = http_opts.yield;
+        }
+%ifdef PO_NO_PROCESS_CONTROL
+        else
+            throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'yield' key "
+                "giving the thread yield closure/call reference which is required when PO_NO_PROCESS_CONTROL is "
+                "in effect");
+%endif
+
+        if (http_opts.hasKey("raw_callback")) {
+            if (!http_opts.raw_callback.callp()) {
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
+                    "'raw_callback' key with type %y; must be a callable value", opts.raw_callback.type());
+            }
+            raw_callback = http_opts.raw_callback;
+        }
+
+        if (http_opts.hasKey("pong_callback")) {
+            if (!http_opts.pong_callback.callp()) {
+                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
+                    "'pong_callback' key with type %y; must be a callable value", opts.pong_callback.type());
+            }
+            pong_callback = http_opts.pong_callback;
+        }
+
+        hash<UrlInfo> uh = parse_url(http_opts.url);
+        if (uh.protocol) {
+            hash<auto> sh = getSchemes();
+            *hash<auto> ph = sh{uh.protocol};
+            if (!ph) {
+                throw "WEBSOCKET-ERROR", sprintf("schema %y is unknown in %y; known schemes: %y", uh.protocol,
+                    http_opts.url, sh.keys());
+            }
+            # replace websocket scheme with an http scheme
+            splice http_opts.url, 0, uh.protocol.size(), "http" + (ph.ssl ? "s" : "");
+        }
+
+        # ensure that the timeout value is set correctly and consistently
+        if (http_opts."timeout") {
+            timeout_ms = http_opts."timeout";
+        } else {
+            http_opts."timeout" = timeout_ms;
+        }
+        # remove the "token" option and use it if the Authentication header is not set
+        if ((*string token = remove http_opts.token) && !http_opts.headers.Authentication) {
+            http_opts.headers.Authentication = sprintf("%s %s", http_opts.token_type ?? "Bearer", token);
+        }
+        # unconditionally remove any "token_type" option
+        remove http_opts.token_type;
+
+        hc = new HTTPClient(http_opts);
+        log = http_opts.log;
+        errlog = http_opts.errlog;
+        debuglog = http_opts.debuglog;
+    }
+
     private disconnectUnlocked(int cmd = WSCC_GoingAway) {
         # disconnect only if possible; in case this method is called from the destructor from the event thread, we
         # cannot wait for the event thread to terminate, as there would be a deadlock
@@ -717,7 +734,41 @@ ws.setEventQueue();
         }
     }
 
-    private eventLoop(code callback) {
+    #! Handles processed messages
+    private handleEvent(string buf) {
+        if (callback) {
+            callback(buf);
+        } else {
+            log("ignoring TEXT message: %y", buf);
+        }
+    }
+
+    #! Handles processed messages
+    private handleEvent(binary buf) {
+        if (callback) {
+            callback(buf);
+        } else {
+            log("ignoring BINARY message: %y", buf);
+        }
+    }
+
+    #! Handles raw messages
+    private int eventRaw(hash<WsMsgInfo> event) {
+        if (raw_callback) {
+            return raw_callback(event);
+        }
+        # continue with default processing by default
+        return WSC_Process;
+    }
+
+    #! Called when the connection is closed
+    private closingConnection() {
+        if (callback) {
+            callback();
+        }
+    }
+
+    private eventLoop() {
         on_exit {
             # issue #4697: went out of scope in event loop
             if (self) {
@@ -748,8 +799,8 @@ ws.setEventQueue();
                     continue;
                 }
                 hash<WsMsgInfo> h = ws_read_message(hc, timeout_ms);
-                if (raw_callback) {
-                    int state = raw_callback(h);
+                {
+                    int state = eventRaw(h);
                     if (state == WSC_Continue) {
                         continue;
                     }
@@ -817,10 +868,10 @@ ws.setEventQueue();
                     } else {
                         buf += h.msg;
                     }
-                    callback(remove buf);
+                    handleEvent(remove buf);
                     continue;
                 } else if (h.op == WSOP_Text || h.op == WSOP_Binary) {
-                    callback(h.msg);
+                    handleEvent(h.msg);
                     continue;
                 } else if (h.op == WSOP_Pong) {
                     receivedPong(h.msg);
@@ -846,7 +897,7 @@ ws.setEventQueue();
         # call the callback with NOTHING to signal that the connection has been closed
         try {
             # issue #3225 catch and log any exeptions in the closing callback
-            callback();
+            closingConnection();
         } catch (hash<ExceptionInfo> ex) {
             logError("exception in closing WebSocketClient callback: %s", get_exception_string(ex));
         }
@@ -910,10 +961,12 @@ ws.setEventQueue();
         binary msg = code.encodeMsb(2);
 
         if (txtmsg) {
-            if (txtmsg.encoding() != "UTF-8")
+            if (txtmsg.encoding() != "UTF-8") {
                 txtmsg = convert_encoding(txtmsg, "UTF-8");
-        } else
+            }
+        } else {
             txtmsg = WSCCMap{code};
+        }
         msg += txtmsg;
         try {
             hc.send2(ws_encode_message(msg, WSOP_Close, True), timeout_ms);
@@ -1013,7 +1066,9 @@ ws.setEventQueue();
         hc.send2(ws_encode_message(bin, WSOP_Binary, True), timeout_ms);
     }
 
-    #! pushes an unencoded message on the connection's message queue; the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
+    #! pushes an unencoded message on the connection's message queue
+    /** the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
+    */
     send(data msg, int op, bool fin) {
         logDebug("sending message: %y op: %d/%y fin: %y (%y %y)", fin, op, WSOPMap{op} ?? "unknown", fin, hc.isOpen(),
             hc.isConnected());
@@ -1041,7 +1096,19 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("WebSocketConnectionObject"),
-            "options": HttpConnection::ConnectionScheme.options,
+            "options": HttpConnection::ConnectionScheme.options + {
+                "token": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "Any token to use for the initial HTTP request to authenticate with the server",
+                    "sensitive": True,
+                },
+                "token_type": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "The type of `token` to use for the `Authentication` header; ignored if no `token` "
+                        "option is set",
+                    "default_value": "Bearer",
+                },
+            },
         };
     }
 
@@ -1132,7 +1199,7 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
         @see hasDataProvider()
     */
     DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
-        return new WebSocketClientDataProvider({"url": url});
+        return new WebSocketClientDataProvider({"url": url, "token": opts.token, "token_type": opts.token_type});
     }
 
     #! returns @ref True, as the connection returns a data provider with the @ref getDataProvider() method
@@ -1216,6 +1283,20 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Raise events for ping message from clients",
                 "default_value": False,
+            },
+            "token": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "Any bearer token to use for the connection; will be passed as "
+                    "`Authorization: Bearer ...` in request headers; this option cannot be used with username "
+                    "and password options or authentication information in the URL; if this option is set then "
+                    "OAuth2 options are ignored",
+                "sensitive": True,
+            },
+            "token_type": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "The type of `token` to use for the `Authentication` header; ignored if no `token` "
+                    "option is set",
+                "default_value": "Bearer",
             },
             "timeout": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderTypeMap."int",

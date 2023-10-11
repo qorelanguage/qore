@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore DiscordDataProvider module definition
 
-/** GoogleCalendarsDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** DiscordGuildsByNameDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,18 +22,18 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
-#! The parent class for REST APIs related to specific Google calendars
-public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
+#! Contains all public definitions in the DiscordDataProvider module
+public namespace DiscordDataProvider {
+#! The parent class for REST APIs related to specific Discord guilds
+public class DiscordGuildsByNameDataProvider inherits DiscordDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "calendars",
-            "desc": "Google calendars data provider; parent provider for REST APIs related to specific Google "
-                "calendars",
-            "type": "GoogleCalendarsDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions,
+            "name": "guilds-by-name",
+            "desc": "Discord guilds data provider; parent provider for REST APIs related to specific Discord "
+                "guilds indexed by name",
+            "type": "DiscordGuildsByNameDataProvider",
+            "constructor_options": DiscordDataProvider::ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
         };
@@ -45,8 +45,8 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
     }
 
     private {
-        #! Calendar list
-        hash<string, bool> calendars;
+        #! Guild list
+        hash<string, hash<auto>> guilds;
 
         #! Metadata mutex
         Qore::Thread::Mutex lck();
@@ -54,12 +54,12 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", DiscordDataProvider::ConstructorOptions, options);
+        rest = DiscordDataProvider::getRestConnection(options);
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProviderBase(rest) {
+    constructor(DiscordRestClient::DiscordRestClient rest) : DiscordDataProviderBase(rest) {
     }
 
     #! Returns the data provider name
@@ -69,15 +69,15 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
+        return sprintf("Discord data %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
     }
 
     #! Return data provider summary info
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         return map <DataProviderSummaryInfo>{
             "name": $1,
-            "desc": sprintf("Google calendar %y", $1),
-            "type": "GoogleCalendarsDataProvider",
+            "desc": sprintf("Discord guild %y", $1),
+            "type": "DiscordGuildsByNameDataProvider",
             "supports_children": True,
             "children_can_support_apis": True,
         }, getChildProviderNames();
@@ -87,7 +87,7 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys getAllCalendars();
+        return keys getAllGuilds();
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -95,9 +95,9 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
 
         @see getChildProviderEx()
     */
-    private *GoogleDataProviderBase getChildProviderImpl(string name) {
-        if (getAllCalendars(){name}) {
-            return new GoogleCalendarDataProvider(rest, name);
+    private *DiscordDataProviderBase getChildProviderImpl(string name) {
+        if (*hash<auto> guild = getAllGuilds(){name}) {
+            return new DiscordGuildDataProvider(rest, guild);
         }
     }
 
@@ -107,33 +107,29 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
     }
 
     #! Returns access info for all tables
-    private hash<string, bool> getAllCalendars() {
-        if (exists calendars) {
-            return calendars;
+    private hash<string, hash<auto>> getAllGuilds() {
+        if (exists guilds) {
+            return guilds;
         }
 
         lck.lock();
         on_exit lck.unlock();
 
         # check again in the lock
-        if (exists calendars) {
-            return calendars;
+        if (exists guilds) {
+            return guilds;
         }
 
         hash<auto> info;
         try {
-            calendars = cast<hash<string, bool>>({
-                "primary": True,
-            } + (
-                map {$1.id: True}, rest.get("/calendar/v3/users/me/calendarList").body.items
-            ));
+            guilds = cast<*hash<string, hash<auto>>>(map {$1.name: $1}, rest.get("users/@me/guilds").body) ?? {};
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             *hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
             rethrow ex.err, ex.desc, ex.arg + ex_arg;
         }
 
-        return calendars;
+        return guilds;
     }
 }
 }

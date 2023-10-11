@@ -36,6 +36,7 @@ public class DataProvider {
             "csvread": "CsvUtil",
             "csvwrite": "CsvUtil",
             "db": "DbDataProvider",
+            "discord": "DiscordDataProvider",
             "elasticsearch": "ElasticSearchDataProvider",
             "empathicbuilding": "EmpathicBuildingDataProvider",
             "file": "FileDataProvider",
