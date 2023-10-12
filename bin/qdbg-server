@@ -17,7 +17,7 @@ class WebSocketDebugProgramControlHost inherits WebSocketDebugProgramControl {
     public {
         DebugWrapper dw;
     }
-    constructor(DebugWrapper n_dw) : WebSocketDebugProgramControl("qdb-server v1.0") {
+    constructor(DebugWrapper n_dw, *Logger::LoggerInterface logger) : WebSocketDebugProgramControl("qdb-server v1.0", logger) {
         dw = n_dw;
     }
 }
@@ -31,7 +31,7 @@ class DebugWrapper {
             'listen': 'l,listen=s@',
             'path': 'p,path=s',
         );
-        DebugLogger logger;
+        Logger logger;
         WebSocketDebugHandler wsHandler;
         HttpServer mServer;
         WebSocketDebugProgramControlHost dpc;
@@ -63,21 +63,25 @@ class DebugWrapper {
             help();
         }
 
-        logger = new DebugLogger();
-        logger.verbose = opt.verbose + 1;
+        logger = new Logger();
+        if (opt.verbose > 1) {
+            logger.setLevel("DEBUG");
+        } else if (opt.verbose) {
+            logger.setLevel("INFO");
+        } else {
+            logger.setLevel("ERROR");
+        }
         try {
-            logger.log(DUV_DEBUG, "create DebugProgram");
-            dpc = new WebSocketDebugProgramControlHost(self);
-            dpc.logger = logger;
-            logger.log(DUV_DEBUG, "create WebSocketDebugHandler");
-            AbstractWebSocketDebugHandler wsHandler = new WebSocketDebugHandler(dpc);
-            wsHandler.logger = logger;
+            logger.debug("create DebugProgram");
+            dpc = new WebSocketDebugProgramControlHost(self, logger);
+            logger.debug("create WebSocketDebugHandler");
+            AbstractWebSocketDebugHandler wsHandler = new WebSocketDebugHandler(dpc, NOTHING, {"logger": logger});
 
-            logger.log(DUV_DEBUG, "create HttpServer");
+            logger.debug("create HttpServer");
 
             Logger http_logger("my-logger", LoggerLevel::getLevelInfo());
-            if (logger.verbose >= DUV_DEBUG) {
-                http_logger.addAppender(new MyAppender());
+            if (opt.verbose > 1) {
+                http_logger.addAppender(new StdoutAppender());
             }
             hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
                 "logger": http_logger,
@@ -89,30 +93,31 @@ class DebugWrapper {
             if (opt.listen) {
                 foreach string l in (opt.listen) {
                     mServer.addListener(http_get_listener_options_from_bind(l));
-                    logger.log(DUV_INFO, "started debug server listener: %s", l);
+                    logger.info("started debug server listener: %s", l);
                 }
             } else {
                 int port = mServer.addListener(0).port;
-                logger.log(DUV_DEBUG, "debug server listening on port %d", port);
+                logger.debug("debug server listening on port %d", port);
             }
 
             if (exists fileName) {
                 Program pgm = dpc.createProgram(fileName, opt, ARGV);
-                logger.log(DUV_INFO, "run program");
+                logger.info("run program");
                 background pgm.run();
             }
             # background or http server uses own thread, loop
-        } catch (hash<ExceptionInfo> e) {
-            stderr.printf("%s: %s\n", e.err, e.desc);
+        } catch (hash<ExceptionInfo> ex) {
+            stderr.printf("%s\n", get_exception_string(ex));
+            #stderr.printf("%s: %s\n", ex.err, ex.desc);
             exit(-1);
         }
     }
 
-    public httplog(fmt) {
-        logger.log(DUV_INFO, vsprintf(fmt, argv));
+    public httplog(string fmt, ...) {
+        logger.logArgs(LoggerLevel::INFO, fmt, argv);
     }
 
-    public httperr(fmt) {
+    public httperr(string fmt, ...) {
         stderr.vprintf(fmt, argv);
     }
 
@@ -138,19 +143,5 @@ class DebugWrapper {
     }
 
     public dummy() {
-    }
-}
-
-class MyAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("test", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
-        open();
-    }
-
-    processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_LOG:
-                print(params);
-                break;
-        }
     }
 }

@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 2.0
 %requires(reexport) DebugUtil
 %requires Util
 %requires yaml
@@ -162,7 +162,7 @@ public namespace DebugCmdLine {
             Qore::Thread::RWLock rwlContext();
         }
 
-        constructor() {
+        constructor(*LoggerInterface logger) : AbstractDebugControl(logger) {
         }
 
         private hash<auto> getCommands() {
@@ -286,14 +286,14 @@ public namespace DebugCmdLine {
                                         '*': (
                                             'validate': \DebugCommandLine::validateInt(),
                                             'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                                logger.verbose = int(pop path);
+                                                logger.setLevel(pop path);
                                             },
                                         ),
                                     ),
                                     'get': (
                                         'desc': 'get current logger verbosity level',
                                         'action': sub(DebugCommandLine dcl, softlist path, softlist args) {
-                                            printfImpl("Logging level: %d\n", logger.verbose);
+                                            printfImpl("Logging level: %d\n", logger.getLevel().getStr());
                                         },
                                     ),
                                 },
@@ -1200,10 +1200,10 @@ public namespace DebugCmdLine {
         abstract public *hash doCommandImpl(hash data);
 
         public *hash doCommand(hash data, bool print) {
-            log(DUV_DEBUG, "Cmd: %y", data);
+            debug("Cmd: %y", data);
             *hash ret = doCommandImpl(data);
             if (ret) {
-                log(DUV_DEBUG, "Response: %y", ret);
+                debug("Response: %y", ret);
                 if (ret.type == "error") {
                     throw "DEBUG-COMMAND", sprintf("%s: %s", ret.result.err, ret.result.desc);
                 }

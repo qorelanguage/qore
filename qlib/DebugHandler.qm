@@ -42,7 +42,7 @@
 %allow-debugger
 
 module DebugHandler {
-    version = "0.1";
+    version = "0.2";
     desc = "user module for providing debug server via WebSocket server services";
     author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
@@ -61,6 +61,9 @@ module DebugHandler {
 
     @see
     - @ref DebugProgramControl::DebugProgramControl "DebugProgramControl"
+
+    @subsection debughandler_v0_1 DebugHandler Version 0.2
+    - updated to new WebSocket APIs
 
     @subsection debughandler_v0_1 DebugHandler Version 0.1
     - the initial version of the DebugHandler module
@@ -146,22 +149,11 @@ public namespace DebugHandler {
             WebSocketDebugProgramControl debugProgram;
             # default socket send timeout
             #const DefaultSocketSendTimeout = 30s;
-            DebugLogger logger;
         }
-        constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash opts)
+        constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash<auto> opts)
                 : WebSocketHandler::WebSocketHandler(auth, opts) {
             debugProgram = dpc;
             dpc.addHandler(self);
-        }
-
-        log(int verbosity, string fmt, ...) {
-            log2(verbosity, fmt, argv);
-        }
-
-        log2(int verbosity, string fmt, *list<auto> args) {
-            if (logger) {
-                logger.log2(verbosity, fmt, args);
-            }
         }
 
         #! called when a connection is established; the default implementation creates a WebSocketConnection object
@@ -216,18 +208,6 @@ public namespace DebugHandler {
             rv.hdr{QoreDebugWsProtocolHeader} = QoreDebugProtocolVersion;
             return rv;
         }
-
-        logInfo(string fmt, ...) {
-            log2(DUV_INFO, fmt, argv);
-        }
-
-        logDebug(string fmt, ...) {
-            log2(DUV_DEBUG, fmt, argv);
-        }
-
-        logError(string fmt, ...) {
-            log2(DUV_INFO, "ERROR: " + fmt, argv);
-        }
     }
 
     #! the main web socket debug handler class implementing internal protocol in YAML format.
@@ -240,7 +220,7 @@ public namespace DebugHandler {
             @param dpc the debug program controller object
             @param opts passed to @ref WebSocketHandler::WebSocketHandler "WebSocketHandler" constructor
          */
-        constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash opts)
+        constructor(WebSocketDebugProgramControl dpc, *HttpServer::AbstractAuthenticator auth, *hash<auto> opts)
                 : AbstractWebSocketDebugHandler(dpc, auth, opts) {
         }
 
@@ -252,7 +232,7 @@ public namespace DebugHandler {
         #! encode data as YAML
         string encodeData(auto data) {
             string s = make_yaml(data);
-            log(DUV_DEBUG_1, "%s", s);
+            logDebug("%s", s);
             return s;
         }
 
@@ -265,7 +245,7 @@ public namespace DebugHandler {
                 if (exists sd)
                     sendData(cx, sd);
             } catch (hash<ExceptionInfo> ex) {
-                log(DUV_DEBUG, "exception: %y", ex);
+                logDebug("exception: %y", ex);
                 sd.type = 'error';
                 sd.result.err = ex.err;
                 sd.result.desc = ex.desc;
@@ -291,7 +271,7 @@ public namespace DebugHandler {
         /**
             @param serverName is used identifier fr \c welcome message
         */
-        constructor(string serverName) : DebugProgramControl(serverName) {
+        constructor(string serverName, *Logger::LoggerInterface logger) : DebugProgramControl(serverName, logger) {
         }
 
         #! sends data to the given connection

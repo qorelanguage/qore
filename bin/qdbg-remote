@@ -4,7 +4,6 @@
 %enable-all-warnings
 %new-style
 
-%requires linenoise
 %requires qore >= 0.8.13
 %requires WebSocketClient
 %requires yaml >= 0.5
@@ -29,11 +28,9 @@ class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
         *hash headers;
     }
 
-    constructor(hash opts) : DebugLinenoiseCommandLine() {
+    constructor(hash<auto> opts) : DebugLinenoiseCommandLine() {
         wscTimeout = opts.response_timeout ?? WSC_TIMEOUT;
-        opts.log = \wscLog();
-        opts.errlog = \wscErr();
-        opts.debuglog = \wscDebug();
+        opts.logger = logger;
         url = opts.url;
         if (opts.header) {
             foreach string h in (opts.header) {
@@ -56,7 +53,7 @@ class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
         }
         counter.inc();
         recData = NOTHING;
-        logger.log(DUV_DEBUG, "send: %y", d);
+        debug("send: %y", d);
         wsc.send(d);
         if (counter.waitForZero(wscTimeout)) {
             return NOTHING;
@@ -71,9 +68,11 @@ class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
         hash hh = wsc.connect({"hdr": headers});
         *string prot_ver = hh{QoreDebugWsProtocolHeader.lwr()};
         if (!prot_ver.val())
-            throw "QORE-DEBUG", sprintf("Connected to %y, but no %y header received in response; check the URI path and try again", url, QoreDebugWsProtocolHeader);
+            throw "QORE-DEBUG", sprintf("Connected to %y, but no %y header received in response; check the URI path "
+                "and try again", url, QoreDebugWsProtocolHeader);
         if (prot_ver != QoreDebugProtocolVersion)
-            throw "QORE-DEBUG", sprintf("Qore debug server at %y claims unsupported protocol version %y; expecting %y", url, prot_ver, QoreDebugProtocolVersion);
+            throw "QORE-DEBUG", sprintf("Qore debug server at %y claims unsupported protocol version %y; expecting "
+                "%y", url, prot_ver, QoreDebugProtocolVersion);
         if (counter.waitForZero(wscTimeout)) {
             throw "QORE-DEBUG", "No response from debug server";
         } else {
@@ -82,7 +81,7 @@ class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
     }
 
     public wscEvent(*data msg) {
-        logger.log(DUV_DEBUG, "received: %y", msg);
+        debug("received: %y", msg);
         if (!exists msg)
             return;
         try {
@@ -98,23 +97,10 @@ class DebugCommandLineRemote inherits DebugLinenoiseCommandLine {
             }
             printData(d);
         } catch (hash<ExceptionInfo> ex) {
-            wscErr(sprintf("wscEvent: %y", ex));
+            error("wscEvent: %s", get_exception_string(ex));
         }
     }
-
-    public wscLog(s) {
-        logger.log(DUV_INFO, s);
-    }
-
-    public wscDebug(s) {
-        logger.log(DUV_DEBUG, s);
-    }
-
-    public wscErr(s) {
-        stderr.print(s+"\n");
-    }
 }
-
 
 class DebugWrapper {
     private {
@@ -132,7 +118,7 @@ class DebugWrapper {
             "session": "s,session=s",
         );
         DebugCommandLineRemote dcl;
-        DebugLogger logger;
+        Logger logger;
     }
 
     constructor() {
@@ -164,7 +150,9 @@ class DebugWrapper {
                     rethrow;
                 }
                 if (opt.url !~ /:\/\// && opt.url !~ /:/ && opt.url !~ /\//) {
-                    throw "CONNECTION-ERROR", sprintf("URL %y is not a valid URL and no connection can be found with this name; connection providers searched (QORE_CONNECTION_PROVIDERS env var): %y", opt.url, ENV.QORE_CONNECTION_PROVIDERS);
+                    throw "CONNECTION-ERROR", sprintf("URL %y is not a valid URL and no connection can be found with "
+                        "this name; connection providers searched (QORE_CONNECTION_PROVIDERS env var): %y", opt.url,
+                        ENV.QORE_CONNECTION_PROVIDERS);
                 }
             }
             if (orig_url != opt.url) {
@@ -201,25 +189,23 @@ class DebugWrapper {
         if (opt.help) {
             help();
         }
-        logger = new DebugLogger();
+        logger = new Logger();
+        logger.addAppender(new StdoutAppender());
         if (opt.verbose) {
-            int verbose;
             if (opt.verbose == 1) {
-                verbose = LoggerLevel::INFO;
+                logger.setLevel("INFO");
             } else if (opt.verbose == 2) {
-                verbose = LoggerLevel::DEBUG;
+                logger.setLevel("DEBUG");
             } else if (opt.verbose == 3) {
-                verbose = LoggerLevel::TRACE;
+                logger.setLevel("TRACE");
             } else {
-                verbose = LoggerLevel::ALL;
+                logger.setLevel("ALL");
             }
-            logger.verbose = verbose;
         } else {
-            logger.verbose = LoggerLevel::WARN;
+            logger.setLevel("WARN");
         }
-        logger.log(DUV_INFO, "url: %s, verbose: %d", opt.url, logger.verbose);
-        dcl = new DebugCommandLineRemote(opt);
-        dcl.logger = logger;
+        logger.info("url: %s verbose: %s", opt.url, logger.getLevel().getStr());
+        dcl = new DebugCommandLineRemote(opt + {"logger": logger});
         try {
             dcl.connect();
             # unconditional connection message

@@ -59,7 +59,7 @@ class DebugProgramControlLocal inherits DebugProgramControl {
         unregisterConnection(CX);
     }
     public nothing sendDataImpl(hash cx, any data) {    # TODO: nothing needed. why? I cannot reproduce in simple case to report issue
-        logger.log(DUV_DEBUG, "sendDataImpl: %y: %y", cx, data);
+        debug("sendDataImpl: %y: %y", cx, data);
         if (dcl.counter.getCount() > 0) {
             dcl.threadData = data;
             dcl.counter.dec();
@@ -68,7 +68,7 @@ class DebugProgramControlLocal inherits DebugProgramControl {
         }
     }
     public nothing broadcastDataImpl(any data) {
-        logger.log(DUV_DEBUG, "broadcastDataImpl: %y: %y", data);
+        debug("broadcastDataImpl: %y: %y", data);
         dcl.printData(data);
     }
 }

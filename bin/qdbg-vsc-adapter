@@ -47,7 +47,7 @@ class VscDebugAdapterLocal inherits VscDebugAdapter {
         any threadData;
         *hash programOpts;
     }
-    constructor(DebugProgramControlLocal n_dpc, hash opts): VscDebugAdapter() {
+    constructor(Logger logger, DebugProgramControlLocal n_dpc, hash opts) : VscDebugAdapter(logger) {
         dpc = n_dpc;
         dpc.vda = self;
         programOpts = opts;
@@ -79,14 +79,14 @@ class DebugProgramControlLocal inherits DebugProgramControl {
         VscDebugAdapterLocal vda;
     }
     const CX = ('id': 1);
-    constructor () : DebugProgramControl(QORE_ARGV[0]) {
+    constructor(*Logger::LoggerInterface logger) : DebugProgramControl(QORE_ARGV[0], logger) {
         registerConnection(CX);
     }
     destructor() {
         unregisterConnection(CX);
     }
     public sendDataImpl(hash cx, auto data) {
-        logger.log(DUV_DEBUG, "sendDataImpl: %y: %y", cx, data);
+        logger.debug("sendDataImpl: %y: %y", cx, data);
         if (vda.requestFlag.getCount() > 0) {
             vda.threadData = data;
             vda.requestFlag.dec();
@@ -95,7 +95,7 @@ class DebugProgramControlLocal inherits DebugProgramControl {
         }
     }
     public broadcastDataImpl(auto data) {
-        logger.log(DUV_DEBUG, "broadcastDataImpl: %y: %y", data);
+        logger.debug("broadcastDataImpl: %y: %y", data);
         vda.pushEvent(data);
     }
 }
@@ -115,7 +115,7 @@ class VscDebugAdapterRemote inherits VscDebugAdapter {
         *hash headers;
     }
 
-    constructor (hash opts): VscDebugAdapter() {
+    constructor(hash<auto> opts, *Logger::LoggerInterface logger) : VscDebugAdapter(logger) {
         wscTimeout = opts.response_timeout ?? WSC_TIMEOUT;
         opts.log = \wscLog();
         opts.errlog = \wscErr();
@@ -141,7 +141,7 @@ class VscDebugAdapterRemote inherits VscDebugAdapter {
         }
         requestFlag.inc();
         recData = NOTHING;
-        logger.log(DUV_DEBUG, "send: %y", d);
+        logger.debug("send: %y", d);
         wsc.send(d);
         if (requestFlag.waitForZero(wscTimeout)) {
             return NOTHING;
@@ -167,7 +167,7 @@ class VscDebugAdapterRemote inherits VscDebugAdapter {
     }
 
     public wscEvent(*data msg) {
-        logger.log(DUV_DEBUG, "received: %y", msg);
+        logger.debug("received: %y", msg);
         if (!exists msg)
             return;
         try {
@@ -189,15 +189,15 @@ class VscDebugAdapterRemote inherits VscDebugAdapter {
     }
 
     public wscLog(s) {
-        logger.log(DUV_INFO, s);
+        logger.info(s);
     }
 
     public wscDebug(s) {
-        logger.log(DUV_DEBUG, s);
+        logger.debug(s);
     }
 
     public wscErr(s) {
-        logger.log(DUV_INFO, s);
+        logger.info(s);
         #stderr.print(s+"\n");
     }
 
@@ -256,9 +256,9 @@ class DebugWrapper {
         }
         logger = new VscDebugLogger(opt.logfile, opt.append_to_log === True);
         if (opt.verbose) {
-            logger.verbose = opt.verbose;
+            logger.setLevel("DEBUG");
         }
-        logger.log(DUV_INFO, "Adapter arguments: %y", QORE_ARGV);
+        logger.info("Adapter arguments: %y", QORE_ARGV);
         try {
             if (opt.url) {
                 trim opt.url;
@@ -281,7 +281,7 @@ class DebugWrapper {
                     if (opt.url =~ /^https?:/) {
                         opt.url =~ s/^http/ws/;
                     }
-                    logger.log(DUV_INFO, "Using connection %y url: %y\n", orig_url, opt.url);
+                    logger.info("Using connection %y url: %y\n", orig_url, opt.url);
                 }
                 switch (opt.url) {
                 case /^wss?:\/\//:
@@ -291,43 +291,42 @@ class DebugWrapper {
                 default:
                     opt.url = "ws://"+opt.url;
                 }
-                logger.log(DUV_DEBUG, "Connection url: %s", opt.url);
-                logger.log(DUV_DEBUG, "Create VscDebugAdapterRemote(%y) instance", opt.url);
+                logger.debug("Connection url: %s", opt.url);
+                logger.debug("Create VscDebugAdapterRemote(%y) instance", opt.url);
                 vda = new VscDebugAdapterRemote(opt);
             } else {
-                logger.log(DUV_DEBUG, "Create DebugProgramControlLocal instance");
-                DebugProgramControlLocal dpcl();
-                logger.log(DUV_DEBUG, "Create VscDebugAdapterLocal instance");
-                vda = new VscDebugAdapterLocal(dpcl, opt);
-                dpcl.logger = logger;
+                logger.debug("Create DebugProgramControlLocal instance");
+                DebugProgramControlLocal dpcl(logger);
+                logger.debug("Create VscDebugAdapterLocal instance");
+                vda = new VscDebugAdapterLocal(logger, dpcl, opt);
             }
             vda.showFullException = exists opt.full_exception;
-            vda.logger = logger;
+            vda.setLogger(logger);
             vda.defaultProgram = opt.program;
             logger.debugAdapter = vda;
 
             if (vda instanceof VscDebugAdapterRemote) {
-                logger.log(DUV_DEBUG, "Connect remote adapter");
+                logger.debug("Connect remote adapter");
                 cast<VscDebugAdapterRemote>(vda).connect();
             }
             if (opt.execute) {
-                logger.log(DUV_DEBUG, "Execute command: %y");
+                logger.debug("Execute command: %y");
                 vda.execute(opt.execute);
             } else {
-                logger.log(DUV_DEBUG, "Run vda adapter");
+                logger.debug("Run vda adapter");
                 vda.run();
             }
 
             # resume any blocked debug threads
             if (vda instanceof VscDebugAdapterLocal) {
-                logger.log(DUV_DEBUG, "Shutdown local adapter");
+                logger.debug("Shutdown local adapter");
                 cast<VscDebugAdapterLocal>(vda).dpc.shutdown();
             } else {
-                logger.log(DUV_DEBUG, "Disconnect remote adapter");
+                logger.debug("Disconnect remote adapter");
                 cast<VscDebugAdapterRemote>(vda).wsc.disconnect();
             }
         } catch (hash e) {
-            logger.log(DUV_INFO, "%y", e);
+            logger.info("%y", e);
             printErr("%s: %s", e.err, e.desc);
             exit(-1);
         }

@@ -23,9 +23,9 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.12.2
+%requires qore >= 2.0
 
-%requires Logger
+%requires(reexport) Logger
 
 %require-types
 %enable-all-warnings
@@ -151,49 +151,9 @@ public namespace DebugUtil {
     #! The debug protocol version implemented
     public const QoreDebugProtocolVersion = "0.1";
 
-    #! logging constant: no logging
-    public const DUV_NONE = LoggerLevel::OFF;
-    #! logging constant: info messages
-    public const DUV_INFO = LoggerLevel::INFO;
-    #! logging constant: debug messages
-    public const DUV_DEBUG = LoggerLevel::DEBUG;
-    #! logging constant: detailed debug messages
-    public const DUV_DEBUG_1 = LoggerLevel::TRACE;
-
-    #! class that can be used for logging
-    public class DebugLogger {
-        public {
-            int verbose = DUV_NONE;
-        }
-        constructor() {}
-
-        #! implement logging
-        /**
-          @param verbosity use DPC_xxx constants
-          @param fmt @ref Qore::sprintf() format
-        */
-        public log(int verbosity, string fmt, ...) {
-            log2(verbosity, fmt, argv);
-        }
-
-        #! implement logging
-        /**
-          @param verbosity use DPC_xxx constants
-          @param fmt @ref Qore::sprintf() format
-          @param args arguments to format
-        */
-        public log2(int verbosity, string fmt, *list<auto> args) {
-            if (verbose < verbosity) {
-                # note: \r\n is necessary for clients using linenoise even on UNIX/Linux
-                stdout.vprintf(fmt+"\r\n", args);
-            }
-        }
-    }
-
     #! base class for controlling debugging
-    public class AbstractDebugControl {
+    public class AbstractDebugControl inherits Logger::LoggerWrapper {
         public {
-            DebugLogger logger;
             #! for debugging of debug library to see where exception is raised
             bool showFullException = False;
 
@@ -203,10 +163,8 @@ public namespace DebugUtil {
             const policyStrings = ('none': BreakpointPolicyNone, 'accept': BreakpointPolicyAccept, 'reject': BreakpointPolicyReject);
         }
 
-        public log(int verbosity, string fmt, ...) {
-            if (logger) {
-                logger.log2(verbosity, fmt, argv);
-            }
+        constructor(*LoggerInterface logger) {
+            setLogger(logger);
         }
 
         static public list enumFilter(softlist items, *string path) {

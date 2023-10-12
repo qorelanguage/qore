@@ -2532,6 +2532,11 @@ public class LoggerFilterRegex inherits LoggerFilter {
 
 #! This abstract class defines the logging interface
 public class LoggerInterface inherits Qore::Serializable {
+    #! Returns @ref True if the passed logger is the logger used to log, @ref False if not
+    bool isLogger(Logger logger) {
+        return logger == self;
+    }
+
     #! Logs a message using the provided logging level
     /**
         @param level The logging level.
@@ -2716,6 +2721,43 @@ public class LoggerInterface inherits Qore::Serializable {
 
     #! Checks whether this Logger is enabled for the FATAL Level
     abstract bool isFatalEnabled();
+
+    #! Sets the logging level
+    /**
+        @param level if nothing then inherits level from parent
+    */
+    abstract setLevel(*LoggerLevel level);
+
+    #! Sets the logging level
+    /**
+        @param level the logging level as a string
+    */
+    abstract setLevel(string level);
+
+    #! Sets the logging level
+    /**
+        @param level the logging level to set
+    */
+    abstract setLevel(int level);
+
+    #! Decrement logger level
+    /**
+        @return current \c LoggerLevel
+    */
+    abstract *LoggerLevel decLevel();
+
+    #! Increment logger level
+    /**
+        @return current \c LoggerLevel
+    */
+    abstract *LoggerLevel incLevel();
+
+    #! Returns the logging level
+    /**
+        @param effective if False then get current level which can be NOTHING, if True then get level which might be inherited from parent, Default: True
+        @throw LOGGER-ERROR if cannot get effective level from hierarchy
+    */
+    abstract *LoggerLevel getLevel(bool effective = True);
 }
 
 #! Class handling a LoggerInterface object as a member and providing atomic logging through it
@@ -2732,6 +2774,11 @@ public class LoggerWrapper inherits LoggerInterface {
     #! Creates the object with a logger
     constructor(LoggerInterface logger) {
         self.logger = logger;
+    }
+
+    #! Returns @ref True if the passed logger is the logger used to log, @ref False if not
+    bool isLogger(Logger logger) {
+        return logger == self.logger;
     }
 
     #! Accepts a LoggerInterface object for logging (or clears it)
@@ -3049,6 +3096,73 @@ public class LoggerWrapper inherits LoggerInterface {
         *LoggerInterface logger = self.logger;
         if (logger) {
             return logger.isFatalEnabled();
+        }
+    }
+
+    #! Sets the logging level
+    /**
+        @param level if nothing then inherits level from parent
+    */
+    setLevel(*LoggerLevel level) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.setLevel(level);
+        }
+    }
+
+    #! Sets the logging level
+    /**
+        @param level the logging level as a string
+    */
+    setLevel(string level) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.setLevel(level);
+        }
+    }
+
+    #! Sets the logging level
+    /**
+        @param level the logging level to set
+    */
+    setLevel(int level) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            logger.setLevel(level);
+        }
+    }
+
+    #! Decrement logger level
+    /**
+        @return current \c LoggerLevel
+    */
+    *LoggerLevel decLevel() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.decLevel();
+        }
+    }
+
+    #! Increment logger level
+    /**
+        @return current \c LoggerLevel
+    */
+    *LoggerLevel incLevel() {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.incLevel();
+        }
+    }
+
+    #! Returns the logging level
+    /**
+        @param effective if False then get current level which can be NOTHING, if True then get level which might be inherited from parent, Default: True
+        @throw LOGGER-ERROR if cannot get effective level from hierarchy
+    */
+    *LoggerLevel getLevel(bool effective = True) {
+        *LoggerInterface logger = self.logger;
+        if (logger) {
+            return logger.getLevel(effective);
         }
     }
 }

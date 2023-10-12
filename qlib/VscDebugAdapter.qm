@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 2.0
 %requires(reexport) DebugUtil
 %requires DebugCmdLine
 %requires Util
@@ -33,9 +33,10 @@
 %enable-all-warnings
 %new-style
 %no-debugging
+%allow-weak-references
 
 module VscDebugAdapter {
-    version = "0.1";
+    version = "0.2";
     desc = "Implements Visual Studio Code Debug Adapter protocol";
     author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
@@ -70,474 +71,479 @@ module VscDebugAdapter {
     - exception info is asked but the value is not displayed
     - some capabilities are not implemented
 
-    @subsection vda_v0_1
+    @subsection vda_v0_2
+    - updated to use a Logger
 
+    @subsection vda_v0_1
     - the initial version of the VscDebugAdapter module
 */
 
 #! the VscDebugAdapter namespace contains all the definitions in the VscDebugAdapter module
 public namespace VscDebugAdapter {
+#! class that can be used for logging
+public class VscDebugLogger inherits Logger {
+    public {
+        VscDebugAdapter debugAdapter;
+    }
 
-    #! class that can be used for logging
-    public class VscDebugLogger inherits DebugLogger {
-        private:internal {
-            *string m_filename;
-            File m_file;
-            bool m_logging = True;
-        }
-        public {
-            VscDebugAdapter debugAdapter;
-        }
-        constructor(*string filename, bool appendToLog) {
-            m_filename = filename;
-            if (exists m_filename) {
-                try {
-                    m_file = new File();
-                    mkdir_ex(dirname(m_filename), 0755, True);
-                    if (appendToLog) {
-                        if (m_file.open(m_filename, O_APPEND | O_WRONLY) == -1) {
-                            if (errno() == Qore::Err::ENOENT) {
-                                # No such file or directory
-                                m_file.open2(m_filename, O_CREAT | O_TRUNC | O_WRONLY);
-                            } else {
-                                throw "FILE-OPEN2-ERROR", sprintf("%s (arg: %d)", strerror(), errno());
-                            }
-                        }
-                    } else {
-                        m_file.open2(m_filename, O_CREAT | O_TRUNC | O_WRONLY);
-                    }
-                } catch (hash<ExceptionInfo> ex) {
-                    stderr.printf("%y\n", ex);
-                    m_logging = False;
+    private:internal {
+        bool m_logging = True;
+    }
+
+    constructor(*string filename, bool appendToLog) {
+        setLevel("INFO");
+        if (filename.val()) {
+            VscLoggerAppender appender(self, "vsc-file-appender", filename);
+            addAppender(appender);
+
+            try {
+                mkdir_ex(dirname(filename), 0755, True);
+                if (!appendToLog) {
+                    # zero out file
+                    File f();
+                    f.open2(filename, O_CREAT | O_TRUNC | O_WRONLY);
                 }
+            } catch (hash<ExceptionInfo> ex) {
+                stderr.printf("%s\n", get_exception_string(ex));
+                m_logging = False;
             }
-        }
 
-        destructor() {
-            if (m_logging && exists m_filename) {
-                try {
-                    m_file.close();
-                } catch (hash<ExceptionInfo> ex) {
-                    stderr.vprintf("Ex: %y\r\n", ex);
-                }
-            }
         }
+    }
+}
 
-        #! implements logging
-        /**
-          @param verbosity use DPC_xxx constants
-        */
-        public log2(int verbosity, string fmt, *list args) {
-            if (m_logging && verbose >= verbosity) {
-                if (m_filename) {
-                    try {
-                        m_file.write(binary(vsprintf(fmt+"\r\n", args)));
-                    } catch (hash<ExceptionInfo> ex) {
-                        stderr.vprintf("Ex: %y\r\n", ex);
-                    }
-                } else {
-                    stderr.vprintf(fmt+"\r\n", args);
-                }
-                if (debugAdapter) {
-                    debugAdapter.printfImpl("%s", vsprintf(fmt+"\n", args));
-                }
+class VscLoggerAppender inherits LoggerAppenderFile {
+    private {
+        VscDebugLogger logger;
+    }
+
+    constructor(VscDebugLogger logger, string name, string filename)
+            : LoggerAppenderFile(name, new LoggerLayoutPattern("%m\r\n"), filename) {
+        self.logger := logger;
+    }
+
+    #! Processes open, log, and close events with the output stream; all other events are ignored
+    processEventImpl(int type, auto params) {
+        LoggerAppenderFile::processEventImpl(type, params);
+        if (logger.debugAdapter) {
+            if (type == EVENT_LOG) {
+                logger.debugAdapter.printfImpl("%s\n", params);
             }
         }
     }
+}
 
+#! Visual Studio Code debug adapter class
+/**
+    VSC launches adapter executable and communicates over stdin and stdout. The class implements
+    common functionality and provides abstract interface to connect debug server
+*/
+public class VscDebugAdapter inherits DebugCommandLine {
+    private:internal {
+        const START_LAUNCH = 1;
+        const START_ATTACH = 2;
+        const START_ATTACH_SUSPENDED = 3;
+        const DEBUGVAR_PREFIX = "$";
 
-    #! Visual Studio Code debug adapter class
-    /**
-        VSC launches adapter executable and communicates over stdin and stdout. The class implements
-        common functionality and provides abstract interface to connect debug server
-    */
-    public class VscDebugAdapter inherits DebugCommandLine {
-        private:internal {
-            const START_LAUNCH = 1;
-            const START_ATTACH = 2;
-            const START_ATTACH_SUSPENDED = 3;
+        #! process loop flag
+        bool m_running = True;
 
-            const DEBUGVAR_PREFIX = "$";
-            #! process loop flag
-            bool m_running = True;
+        #! initialize command arguments
+        hash m_initializeArgs;
 
-            #! initialize command arguments
-            hash m_initializeArgs;
+        #! program stat information
+        hash m_programState;
 
-            #! program stat information
-            hash m_programState;
+        #! queue if incomming events from debug server
+        Queue m_queue();
 
-            #! queue if incomming events from debug server
-            Queue m_queue();
+        #! queue for VSC Output window
+        Queue m_outputQueue();
 
-            #! queue for VSC Output window
-            Queue m_outputQueue();
+        #! Sequence for events passed to VSC frontend
+        Sequence m_sequence(1);
 
-            #! Sequence for events passed to VSC frontend
-            Sequence m_sequence(1);
+        #! Sequence for loaded source reference
+        Sequence m_source(1);
 
-            #! Sequence for loaded source reference
-            Sequence m_source(1);
+        #! vsc program
+        int m_currentPgmId;
 
-            #! vsc program
-            int m_currentPgmId;
+    }
 
+    public {
+        #! use program name unless not specified in launch/attach command
+        *string defaultProgram;
+    }
+
+    constructor(*Logger::LoggerInterface logger) : DebugCommandLine(logger) {
+        showFullException = True;
+    }
+
+    #! send command to debug server
+    public *hash doCommand(hash data) {
+        return DebugCommandLine::doCommand(data, False);
+    }
+
+    #! push event from debug server in queue
+    public nothing pushEvent(auto event) {
+        if (event.type != "vsc_output") {
+            debug("Event: %y", event);
         }
-        public {
-            #! use program name unless not specified in launch/attach command
-            *string defaultProgram;
-        }
+        m_queue.push(event);
+    }
 
-        constructor() {
-            showFullException = True;
-        }
+    #! implement printing to console
+    public printfImpl(string fmt, ...) {
+        pushEvent((
+            "type": "vsc_output",
+            "category": "console",  # it goes to Debug Console regardless category.
+            "output": vsprintf(fmt, argv)
+        ));
+    }
 
-        #! send command to debug server
-        public *hash doCommand(hash data) {
-            return DebugCommandLine::doCommand(data, False);
-        }
-
-        #! push event from debug server in queue
-        public nothing pushEvent(auto event) {
-            if (event.type != "vsc_output") {
-                log(DUV_DEBUG, "Event: %y", event);
-            }
-            m_queue.push(event);
-        }
-
-        #! implement printing to console
-        public printfImpl(string fmt, ...) {
-            pushEvent((
-                "type": "vsc_output",
-                "category": "console",  # it goes to Debug Console regardless category.
-                "output": vsprintf(fmt, argv)
-            ));
-        }
-
-        #! run processing loop till @ref m_running is True
-        public run() {
-            try {
-                int len = -1;
-                binary buff;
-                bool payload = False;
-                log(DUV_INFO, "Run: %y", now());
-                while (m_running) {
-                    while (stdin.isDataAvailable()) {
-                        *binary c = stdin.readBinary(1);
-                        if (!exists c) {
-                            break;
-                        }
-                        if (payload) {
-                            buff += c;
-                            if (buff.size() >= len) {
-                                string s = buff.size() > 0 ? buff.substr(0, len).toString("UTF-8"): "";
-                                log(DUV_DEBUG_1, "%s", s);
-                                payload = False;
-                                splice buff, 0, len;
-                                len = -1;
-                                hash request;
-                                hash resp.type = "response";
-                                try {
-                                    request = parseVscRequest(s);
-                                    string m = "vsc_" + request.command;
-                                    if (!self.hasCallableMethod(m)) {
-                                        throw "VDA-ERROR", sprintf("Command %y not implemented", request.command);
-                                    }
-                                    if (!m_initializeArgs && request.command != "initialize") {
-                                        throw "VDA-ERROR", "Debug adapter is not initialized";
-                                    }
-                                    auto r = call_object_method(self, m, request.arguments);
-                                    resp.success = True;
-                                    if (r) {
-                                        resp.body = r;
-                                    }
-                                } catch (hash<ExceptionInfo> ex) {
-                                    switch (ex.err) {
-                                    case "VDA-ERROR":
-                                    default:
-                                        resp.success = False;
-                                        resp.message = ex.err + ": " + ex.desc;
-                                        log(DUV_DEBUG, "%s", get_exception_string(ex));
-                                    }
-                                }
-                                if (resp) {
-                                    resp.request_seq = request.seq;
-                                    resp.command = request.command;
-                                    sendVscMessage(resp);
-                                }
-                            }
-                        } else if (c == <0A>) {
-                            if (buff.size() == 0) {
-                                #if (len < 0 ) {
-                                    #throw "VDA-ERROR", "Missing content length";
-                                #}
-                                payload = len > 0;
-                            } else {
-                                string s = buff.toString("UTF-8");
-                                # read headers
-                                *list l = s =~ x/^([A-Za-z\-]+):(.+)$/;
-                                if (l[0] == "Content-Length") {
-                                    trim l[1];
-                                    len = int(l[1]);
-                                    log(DUV_DEBUG_1, "Content-Length: %d", len);
-                                }
-                            }
-                            remove buff;
-                        } else if (c != <0D>) {
-                            buff += c;
-                        }
-                    }
-                    while (m_queue.size() > 0) {
-                        auto msg = m_queue.get();
-                        try {
-                            # event from debug server
-                            if (msg.type == "event" ) {
-                                processDebugEvent(msg);
-                            }
-                            if (msg.type == "vsc_output") {
-                                hash h.category = msg.category;
-                                h.output = msg.output;
-                                stderr.printf("vscOutput: %y\n", h);
-                                sendVscEvent("output", h);
-                            }
-                        } catch (hash<ExceptionInfo> ex) {
-                            log(DUV_INFO, "ex: %y", ex);
-                        }
-                    }
-                }
-                sendVscEvent("terminated");
-            } catch (hash<ExceptionInfo> ex) {
-                log(DUV_INFO, "ex: %y", ex);
-                rethrow;
-            }
-        }
-
-        #! execute command (and exit)
-        public execute(string cmd) {
-            auto res;
-            switch (cmd) {
-                case 'pgmlist':
-                    res = doCommand(('cmd': 'program//list', 'listFiles': True));
-                    break;
-                default:
-                    throw "VDA-ERROR", sprintf("Unknown command: %y", cmd);
-            }
-            stdout.write(make_json(res)+"\r\n");
-        }
-
-        private:internal auto resolveValue(string name, *string val, hash strings, auto defVal) {
-            if (exists val) {
-                if (!exists strings{val}) {
-                    throw "VDA-ERROR", sprintf("%y value %y is not found in %y", name, val, keys strings);
-                }
-                return strings{val};
-            } else {
-                return defVal;
-            }
-        }
-
-        #! process event from debugger
-        private:internal processDebugEvent(hash event) {
-            if (exists event.pgmid) {
-                if (!exists m_programState{event.pgmid}.info || !exists m_programState{event.pgmid}.loadedSourceById) {
-                    updateProgramCache(doCommand(("cmd": "program/="+event.pgmid+"/list", "listFiles": True)));
-                }
-            }
-            log(DUV_DEBUG_1, "processDebugEvent: %y", event);
-            switch (event.cmd) {
-            case "interrupt":
-                if (event.func == "detach") {
-                    detach(event);
-                } else {
-                    if (!m_programState{event.pgmid}.vcsNotified) {
-                        hash e;
-                        e.name = m_programState{event.pgmid}.info.scriptName;
-                        switch (m_programState{event.pgmid}.startMethod) {
-                        case START_LAUNCH:
-                            e.startMethod = "launch";
-                            e.isLocalProcess = True;
-                            break;
-                        case START_ATTACH:
-                            e.startMethod = "attach";
-                            e.isLocalProcess = False;
-                            # we are ready receive breakpoints
-                            sendVscEvent("initialized");
-                            break;
-                        case START_ATTACH_SUSPENDED:
-                        }
-                        sendVscEvent("process", e);
-                        m_programState{event.pgmid}.vcsNotified = True;
-                        m_programState{event.pgmid}.mainThreadId = gettid();
-                    }
-                    if (!m_programState{event.pgmid}.vcsThreadNotified{event.tid}) {
-                        sendVscEvent("thread", ("threadId": event.tid, "reason": "started"));
-                        m_programState{event.pgmid}.vcsThreadNotified{event.tid} = True;
-                    }
-                    if (m_programState{event.pgmid}.startMethod == START_LAUNCH && m_programState{event.pgmid}.startThreadId == event.tid) {
-                        # skip debugging of bootstrap
-                        if (event.func == "attach") {
-                            m_programState{event.pgmid}.bootstrap.processFlag = 1;
-                            m_programState{event.pgmid}.bootstrap.file = event.intrInfo.file;
-                        } else if (m_programState{event.pgmid}.bootstrap.processFlag == 1 && event.file != m_programState{event.pgmid}.bootstrap.file) {
-                            m_programState{event.pgmid}.bootstrap.processFlag = 2;
-                            m_programState{event.pgmid}.bootstrap.frameCnt = event.framecnt-1;
-                        } else if (m_programState{event.pgmid}.bootstrap.processFlag == 2 && event.file == m_programState{event.pgmid}.bootstrap.file) {
-                            # we want exit event, so we cannot detach
-                            m_programState{event.pgmid}.bootstrap.processFlag = 3;
-                        }
-                        switch (m_programState{event.pgmid}.bootstrap.processFlag) {
-                        case 3:
-                            if (event.func == "exit" || event.func == "detach") {
-                                break;
-                            }
-                            # no break
-                        case 1:
-                            vsc_stepIn(("threadId": event.tid));
-                            return;
-                        }
-                    }
-                    if (event.func == "exception" && !inlist(event.exception.type, m_programState{event.pgmid}.exceptionBreakpoints.filters)) {
-                        refuseInterrupt(event);
+    #! run processing loop till @ref m_running is True
+    public run() {
+        try {
+            int len = -1;
+            binary buff;
+            bool payload = False;
+            info("Run: %y", now_us());
+            while (m_running) {
+                while (stdin.isDataAvailable()) {
+                    *binary c = stdin.readBinary(1);
+                    if (!exists c) {
                         break;
                     }
-                    hash e;
-                    e.reason = event.func;
-                    e.description = sprintf("Stopped on %s event", event.func);
-                    if (exists event.bkptid) {
-                        bool fl = False;
-                        foreach string s in (keys m_programState{event.pgmid}.sourceBreakpoints) {
-                            if (m_programState{event.pgmid}.sourceBreakpoints{s}{event.bkptid}) {
-                                e.description += "+src";
-                                fl = True;
-                                break;
+                    if (payload) {
+                        buff += c;
+                        if (buff.size() >= len) {
+                            string s = buff.size() > 0 ? buff.substr(0, len).toString("UTF-8"): "";
+                            debug("%s", s);
+                            payload = False;
+                            splice buff, 0, len;
+                            len = -1;
+                            hash request;
+                            hash resp.type = "response";
+                            try {
+                                request = parseVscRequest(s);
+                                string m = "vsc_" + request.command;
+                                if (!self.hasCallableMethod(m)) {
+                                    throw "VDA-ERROR", sprintf("Command %y not implemented", request.command);
+                                }
+                                if (!m_initializeArgs && request.command != "initialize") {
+                                    throw "VDA-ERROR", "Debug adapter is not initialized";
+                                }
+                                auto r = call_object_method(self, m, request.arguments);
+                                resp.success = True;
+                                if (r) {
+                                    resp.body = r;
+                                }
+                            } catch (hash<ExceptionInfo> ex) {
+                                switch (ex.err) {
+                                case "VDA-ERROR":
+                                default:
+                                    resp.success = False;
+                                    resp.message = ex.err + ": " + ex.desc;
+                                    debug("%s", get_exception_string(ex));
+                                }
+                            }
+                            if (resp) {
+                                resp.request_seq = request.seq;
+                                resp.command = request.command;
+                                sendVscMessage(resp);
                             }
                         }
-                        if (!fl) {
-                            if (m_programState{event.pgmid}.functionBreakpoints{event.bkptid}) {
-                                e.description += "+func";
-                            } else {
-                                e.description += "+bkpt";
-                            }
-                        }
-                    }
-                    e.threadId = event.tid;
-                    e.text = sprintf("%N", event);
-                    # e.allThreadsStopped =    is not used in vscode
-                    m_programState{event.pgmid}.thread{event.tid}.frameId = event.frame;
-                    m_programState{event.pgmid}.thread{event.tid}.debugVar = event.debugvar;
-                    m_programState{event.pgmid}.thread{event.tid}.exception = event.exception;
-
-                    sendVscEvent("stopped", e);
-                    if (event.func == "exit" || event.func == "detach") {
-                        if (m_programState{event.pgmid}.startThreadId == event.tid) {
-                            sendVscEvent("exited", ("exitCode": int(event.result)));
+                    } else if (c == <0A>) {
+                        if (buff.size() == 0) {
+                            #if (len < 0 ) {
+                                #throw "VDA-ERROR", "Missing content length";
+                            #}
+                            payload = len > 0;
                         } else {
-                            sendVscEvent("thread", ("threadId": event.tid, "reason": "exited"));
+                            string s = buff.toString("UTF-8");
+                            # read headers
+                            *list l = s =~ x/^([A-Za-z\-]+):(.+)$/;
+                            if (l[0] == "Content-Length") {
+                                trim l[1];
+                                len = int(l[1]);
+                                debug("Content-Length: %d", len);
+                            }
                         }
-                        detach(event);
+                        remove buff;
+                    } else if (c != <0D>) {
+                        buff += c;
                     }
                 }
-                break;
-            case "run":
-                remove m_programState{event.pgmid}.thread{event.tid};
-                if (event.runstate == "attach") {
-                    remove m_programState{m_currentPgmId}.detachedThreads{event.tid};
-                }
-                if (event.runstate == "detach") {
-                    remove m_programState{event.pgmid}.vcsThreadNotified{event.tid};
-                    m_programState{m_currentPgmId}.detachedThreads{event.tid} = True;
-                    if (!getThreads()) {
-                        doCommand(("cmd": "shutdown"));
-                        sendVscEvent("terminated");
+                while (m_queue.size() > 0) {
+                    auto msg = m_queue.get();
+                    try {
+                        # event from debug server
+                        if (msg.type == "event" ) {
+                            processDebugEvent(msg);
+                        }
+                        if (msg.type == "vsc_output") {
+                            hash h.category = msg.category;
+                            h.output = msg.output;
+                            stderr.printf("vscOutput: %y\n", h);
+                            sendVscEvent("output", h);
+                        }
+                    } catch (hash<ExceptionInfo> ex) {
+                        info("ex: %y", ex);
                     }
-
-                } else {
-                    sendVscEvent("continued", ("threadId": event.tid, "allThreadsContinued": False));
                 }
+            }
+            sendVscEvent("terminated");
+        } catch (hash<ExceptionInfo> ex) {
+            info("ex: %y", ex);
+            rethrow;
+        }
+    }
+
+    #! execute command (and exit)
+    public execute(string cmd) {
+        auto res;
+        switch (cmd) {
+            case 'pgmlist':
+                res = doCommand(('cmd': 'program//list', 'listFiles': True));
                 break;
-            case "welcome":
-                log(DUV_INFO, "Connected: %y", event.result);
-                break;
+            default:
+                throw "VDA-ERROR", sprintf("Unknown command: %y", cmd);
+        }
+        stdout.write(make_json(res)+"\r\n");
+    }
+
+    private:internal auto resolveValue(string name, *string val, hash strings, auto defVal) {
+        if (exists val) {
+            if (!exists strings{val}) {
+                throw "VDA-ERROR", sprintf("%y value %y is not found in %y", name, val, keys strings);
+            }
+            return strings{val};
+        } else {
+            return defVal;
+        }
+    }
+
+    #! process event from debugger
+    private:internal processDebugEvent(hash event) {
+        if (exists event.pgmid) {
+            if (!exists m_programState{event.pgmid}.info || !exists m_programState{event.pgmid}.loadedSourceById) {
+                updateProgramCache(doCommand(("cmd": "program/="+event.pgmid+"/list", "listFiles": True)));
             }
         }
-
-        #! refuse interrupt and continue
-        private:internal refuseInterrupt(hash event) {
-            doCommand(("cmd": "thread/go", "tid": event.tid));
-        }
-
-        #! detach interrupt
-        private:internal detach(hash event) {
-            doCommand(("cmd": "thread/go/detach", "tid": event.tid));
-        }
-
-        #! parse request from VSC frontend
-        private:internal hash parseVscRequest(string msg) {
-            auto req = parse_json(msg);
-            log(DUV_DEBUG, "receiveVsc: %y", req);
-            if (req.typeCode() != NT_HASH) {
-                throw "VDA-ERROR", "Invalid message datatype";
-            }
-            if (req.type != "request") {
-                throw "VDA-ERROR", sprintf("Wrong type: %y", req.type);
-            }
-            return req;
-        }
-
-        #! send message for VSC frontend
-        private:internal sendVscMessage(hash msg) {
-            if (msg.event != "output") {
-                log(DUV_DEBUG, "sendVsc: %y", msg);
-            }
-            string resp = make_json(msg);
-            binary b = binary(resp);
-            stdout.printf("Content-Length: %d\r\n\r\n", b.size());
-            stdout.write(b);
-        }
-
-        #! send event for VSC frontend
-        private:internal sendVscEvent(string event, auto payload) {
-            hash h;
-            h.type = "event";
-            h.event = event;
-            h.seq = m_sequence.next();
-            if (payload) {
-                h.body = payload;
-            }
-            sendVscMessage(h);
-        }
-
-        private:internal string getLoadedSourceName(string file, *string source) {
-            if (exists source) {
-                return file + '@' + source;
+        debug("processDebugEvent: %y", event);
+        switch (event.cmd) {
+        case "interrupt":
+            if (event.func == "detach") {
+                detach(event);
             } else {
-                return file;
-            }
-        }
-
-        private:internal updateProgramCache(*hash response) {
-            foreach string pgmId in (keys response.result) {
-                if (!response.result{pgmId}.scriptName.val()) {
-                    continue;
+                if (!m_programState{event.pgmid}.vcsNotified) {
+                    hash e;
+                    e.name = m_programState{event.pgmid}.info.scriptName;
+                    switch (m_programState{event.pgmid}.startMethod) {
+                    case START_LAUNCH:
+                        e.startMethod = "launch";
+                        e.isLocalProcess = True;
+                        break;
+                    case START_ATTACH:
+                        e.startMethod = "attach";
+                        e.isLocalProcess = False;
+                        # we are ready receive breakpoints
+                        sendVscEvent("initialized");
+                        break;
+                    case START_ATTACH_SUSPENDED:
+                    }
+                    sendVscEvent("process", e);
+                    m_programState{event.pgmid}.vcsNotified = True;
+                    m_programState{event.pgmid}.mainThreadId = gettid();
+                }
+                if (!m_programState{event.pgmid}.vcsThreadNotified{event.tid}) {
+                    sendVscEvent("thread", ("threadId": event.tid, "reason": "started"));
+                    m_programState{event.pgmid}.vcsThreadNotified{event.tid} = True;
+                }
+                if (m_programState{event.pgmid}.startMethod == START_LAUNCH && m_programState{event.pgmid}.startThreadId == event.tid) {
+                    # skip debugging of bootstrap
+                    if (event.func == "attach") {
+                        m_programState{event.pgmid}.bootstrap.processFlag = 1;
+                        m_programState{event.pgmid}.bootstrap.file = event.intrInfo.file;
+                    } else if (m_programState{event.pgmid}.bootstrap.processFlag == 1 && event.file != m_programState{event.pgmid}.bootstrap.file) {
+                        m_programState{event.pgmid}.bootstrap.processFlag = 2;
+                        m_programState{event.pgmid}.bootstrap.frameCnt = event.framecnt-1;
+                    } else if (m_programState{event.pgmid}.bootstrap.processFlag == 2 && event.file == m_programState{event.pgmid}.bootstrap.file) {
+                        # we want exit event, so we cannot detach
+                        m_programState{event.pgmid}.bootstrap.processFlag = 3;
+                    }
+                    switch (m_programState{event.pgmid}.bootstrap.processFlag) {
+                    case 3:
+                        if (event.func == "exit" || event.func == "detach") {
+                            break;
+                        }
+                        # no break
+                    case 1:
+                        vsc_stepIn(("threadId": event.tid));
+                        return;
+                    }
+                }
+                if (event.func == "exception" && !inlist(event.exception.type, m_programState{event.pgmid}.exceptionBreakpoints.filters)) {
+                    refuseInterrupt(event);
+                    break;
                 }
                 hash e;
-                if (exists m_programState{pgmId}.info) {
-                    e.reason = "changed";
-                } else {
-                    e.reason = "new";
+                e.reason = event.func;
+                e.description = sprintf("Stopped on %s event", event.func);
+                if (exists event.bkptid) {
+                    bool fl = False;
+                    foreach string s in (keys m_programState{event.pgmid}.sourceBreakpoints) {
+                        if (m_programState{event.pgmid}.sourceBreakpoints{s}{event.bkptid}) {
+                            e.description += "+src";
+                            fl = True;
+                            break;
+                        }
+                    }
+                    if (!fl) {
+                        if (m_programState{event.pgmid}.functionBreakpoints{event.bkptid}) {
+                            e.description += "+func";
+                        } else {
+                            e.description += "+bkpt";
+                        }
+                    }
                 }
-                m_programState{pgmId}.info = response.result{pgmId};
-                e.module = getModule(pgmId);
-                sendVscEvent("module", e);
-                remove e;
-                if (response.result{pgmId}.debugging) {
-                    foreach string f in (keys response.result{pgmId}.files) {
-                        string lsn = getLoadedSourceName(f);
-                        *hash ls = m_programState{pgmId}.loadedSourceByName{lsn};
+                e.threadId = event.tid;
+                e.text = sprintf("%N", event);
+                # e.allThreadsStopped =    is not used in vscode
+                m_programState{event.pgmid}.thread{event.tid}.frameId = event.frame;
+                m_programState{event.pgmid}.thread{event.tid}.debugVar = event.debugvar;
+                m_programState{event.pgmid}.thread{event.tid}.exception = event.exception;
+
+                sendVscEvent("stopped", e);
+                if (event.func == "exit" || event.func == "detach") {
+                    if (m_programState{event.pgmid}.startThreadId == event.tid) {
+                        sendVscEvent("exited", ("exitCode": int(event.result)));
+                    } else {
+                        sendVscEvent("thread", ("threadId": event.tid, "reason": "exited"));
+                    }
+                    detach(event);
+                }
+            }
+            break;
+        case "run":
+            remove m_programState{event.pgmid}.thread{event.tid};
+            if (event.runstate == "attach") {
+                remove m_programState{m_currentPgmId}.detachedThreads{event.tid};
+            }
+            if (event.runstate == "detach") {
+                remove m_programState{event.pgmid}.vcsThreadNotified{event.tid};
+                m_programState{m_currentPgmId}.detachedThreads{event.tid} = True;
+                if (!getThreads()) {
+                    doCommand(("cmd": "shutdown"));
+                    sendVscEvent("terminated");
+                }
+
+            } else {
+                sendVscEvent("continued", ("threadId": event.tid, "allThreadsContinued": False));
+            }
+            break;
+        case "welcome":
+            info("Connected: %y", event.result);
+            break;
+        }
+    }
+
+    #! refuse interrupt and continue
+    private:internal refuseInterrupt(hash event) {
+        doCommand(("cmd": "thread/go", "tid": event.tid));
+    }
+
+    #! detach interrupt
+    private:internal detach(hash event) {
+        doCommand(("cmd": "thread/go/detach", "tid": event.tid));
+    }
+
+    #! parse request from VSC frontend
+    private:internal hash parseVscRequest(string msg) {
+        auto req = parse_json(msg);
+        debug("receiveVsc: %y", req);
+        if (req.typeCode() != NT_HASH) {
+            throw "VDA-ERROR", "Invalid message datatype";
+        }
+        if (req.type != "request") {
+            throw "VDA-ERROR", sprintf("Wrong type: %y", req.type);
+        }
+        return req;
+    }
+
+    #! send message for VSC frontend
+    private:internal sendVscMessage(hash msg) {
+        if (msg.event != "output") {
+            debug("sendVsc: %y", msg);
+        }
+        string resp = make_json(msg);
+        binary b = binary(resp);
+        stdout.printf("Content-Length: %d\r\n\r\n", b.size());
+        stdout.write(b);
+    }
+
+    #! send event for VSC frontend
+    private:internal sendVscEvent(string event, auto payload) {
+        hash h;
+        h.type = "event";
+        h.event = event;
+        h.seq = m_sequence.next();
+        if (payload) {
+            h.body = payload;
+        }
+        sendVscMessage(h);
+    }
+
+    private:internal string getLoadedSourceName(string file, *string source) {
+        if (exists source) {
+            return file + '@' + source;
+        } else {
+            return file;
+        }
+    }
+
+    private:internal updateProgramCache(*hash response) {
+        foreach string pgmId in (keys response.result) {
+            if (!response.result{pgmId}.scriptName.val()) {
+                continue;
+            }
+            hash e;
+            if (exists m_programState{pgmId}.info) {
+                e.reason = "changed";
+            } else {
+                e.reason = "new";
+            }
+            m_programState{pgmId}.info = response.result{pgmId};
+            e.module = getModule(pgmId);
+            sendVscEvent("module", e);
+            remove e;
+            if (response.result{pgmId}.debugging) {
+                foreach string f in (keys response.result{pgmId}.files) {
+                    string lsn = getLoadedSourceName(f);
+                    *hash ls = m_programState{pgmId}.loadedSourceByName{lsn};
+                    if (!exists ls) {
+                        ls = (
+                            'id': m_source.next(),
+                            'file': f,
+                        );
+                        m_programState{pgmId}.loadedSourceByName{lsn} = ls;
+                        m_programState{pgmId}.loadedSourceById{ls.id} = ls;
+                        e.reason = "new";
+                    } else {
+                        e.reason = "changed";
+                    }
+                    e.source = getSource(ls);
+                    sendVscEvent("loadedSource", e);
+
+                    foreach string l in (keys response.result{pgmId}.files{f}) {
+                        lsn = getLoadedSourceName(l, f);
+                        ls = m_programState{pgmId}.loadedSourceByName{lsn};
                         if (!exists ls) {
                             ls = (
                                 'id': m_source.next(),
-                                'file': f,
+                                'file': l,
+                                'source': f,
                             );
                             m_programState{pgmId}.loadedSourceByName{lsn} = ls;
                             m_programState{pgmId}.loadedSourceById{ls.id} = ls;
@@ -547,719 +553,700 @@ public namespace VscDebugAdapter {
                         }
                         e.source = getSource(ls);
                         sendVscEvent("loadedSource", e);
-
-                        foreach string l in (keys response.result{pgmId}.files{f}) {
-                            lsn = getLoadedSourceName(l, f);
-                            ls = m_programState{pgmId}.loadedSourceByName{lsn};
-                            if (!exists ls) {
-                                ls = (
-                                    'id': m_source.next(),
-                                    'file': l,
-                                    'source': f,
-                                );
-                                m_programState{pgmId}.loadedSourceByName{lsn} = ls;
-                                m_programState{pgmId}.loadedSourceById{ls.id} = ls;
-                                e.reason = "new";
-                            } else {
-                                e.reason = "changed";
-                            }
-                            e.source = getSource(ls);
-                            sendVscEvent("loadedSource", e);
-                        }
                     }
                 }
             }
         }
+    }
 
-        private:internal setThreadFrame(int threadId, int frameId) {
-            if (m_programState{m_currentPgmId}.thread{threadId}.frameId !== frameId) {
-                doCommand((
-                    "cmd": "thread/debug/frame/set",
-                    "tid": threadId,
-                    "value": frameId,
-                ));
-                m_programState{m_currentPgmId}.thread{threadId}.frameId = frameId;
-            }
-        }
-
-        private:internal auto getVariable(int threadId, int frameId, string name) {
-            auto val;
-            if (threadId == 0) {
-                val = doCommand((
-                    "cmd": "program/"+m_currentPgmId+"/global/"+name+"/get",
-                )).result;
-            } else {
-                if (name[0] == DEBUGVAR_PREFIX) {
-                    val = doCommand((
-                        "cmd": "thread/debug/"+name[DEBUGVAR_PREFIX.size()..]+"/get",
-                        "tid": threadId,
-                        "frameid": frameId,
-                    )).result;
-                    if (exists val.value) {
-                        val = val.value;  # for $result
-                    }
-                } else {
-                    val = doCommand((
-                        "cmd": "thread/local/"+name+"/get",
-                        "tid": threadId,
-                        "frameid": frameId,
-                    )).result.value;
-                }
-            }
-            auto v;
-            try {
-                v = AbstractDebugControl::unserialize(val);
-            } catch (hash<ExceptionInfo> ex) {
-                v = "N/A";
-            }
-            return v;
-        }
-
-        private:internal deleteBreakpoints(*hash bkpts) {
-            foreach string bkptId in (keys bkpts) {
-                doCommand((
-                    "cmd": "program//breakpoint/"+bkptId+"/delete",
-                ));
-            }
-        }
-
-        private:internal list setBreakpoints(*list bkptRefs) {
-            list res = ();
-            foreach hash bkpt in (bkptRefs) {
-                hash b;
-                try {
-                    hash bs = doCommand((
-                        "cmd": "program/"+m_currentPgmId+"/breakpoint//create",
-                        "value": bkpt,
-                        # protocol and vscode supports also condition, hitCondition, logMessage
-                        # we could implement when Qore supports runtime evaluator
-                    )).result;
-                    b.id = bs.bkptid;
-                    b.verified = True;
-                    b.statementId = bs.stmtid;  # internal
-                } catch (hash<ExceptionInfo> ex) {
-                    b.verified = False;
-                }
-                push res, b;
-            }
-            return res;
-        }
-
-        private:internal string printValue(auto value, *hash format) {
-            return sprintf("%N", value);
-        }
-
-        private:internal auto vscParseValue(string val) {
-            return AbstractDebugControl::serialize(parse_to_qore_value(val));
-        }
-
-        private:internal hash getModule(softint pgmId) {
-            hash m;
-            m.id = pgmId;
-            m.name = m_programState{pgmId}.info.scriptName;
-            m.file = m_programState{pgmId}.info.scriptPath;
-            m.isUserCode = m_programState{pgmId}.info.debugging;
-            return m;
-        }
-
-        private:internal hash getSource(hash ls) {
-            hash src;
-
-            src.name = exists ls.source ? sprintf("Label: %s", ls.source) : sprintf("File: %s", ls.file);
-            src.sourceReference = ls.id;
-            src.path = ls.file;
-            if (src.path =~ /^<(.*)>$/) {
-                src.path =~ s/^<run-time-loaded: (.*)>$/$1/;
-                # tricky as all breakpoint commands are hidden in VSC if path does not satisfy its format
-                # trial/error I found it need an extension
-                src.path += '.q';
-            }
-            return src;
-        }
-
-        # get threads provided to vsc
-        private:internal list getThreads() {
-            return select m_programState{m_currentPgmId}.info.threads, !exists m_programState{m_currentPgmId}.detachedThreads{$1};
-        }
-
-        private hash<auto> getCommands() {
-            hash cmds = DebugCommandLine::getCommands();
-            # any extra commands ?
-            return cmds;
-        }
-
-        # methods implementing commands "public" is needed bacause of hasCallableMethod()
-        public hash vsc_initialize(hash args) {
-            m_initializeArgs = args;
-            m_programState = hash();
-            updateProgramCache(doCommand(("cmd": "program//list")));
-            return getCapabilities();
-        }
-
-        public nothing vsc_launch(hash args) {
-            if (!exists args.program) {
-                args.program = defaultProgram;
-            }
-            hash p = doCommand((
-                "cmd": "program//create",
-                "filename": args.program,
-                "args": args.args ?? (),
-            ));
-            updateProgramCache(p);
-            string pgmId = p.result.firstKey();
-            m_currentPgmId = int(pgmId);
-            m_programState{pgmId} += (
-                "startMethod": START_LAUNCH,
-                "launchArgs": args,
-                "startThreadId": p.result{pgmId}.threads[0],
-            );
-            # we are ready receive breakpoints
-            sendVscEvent("initialized");
-        }
-
-        public nothing vsc_attach(hash args) {
-            string pgmId;
-            if (!exists args.program) {
-                args.program = defaultProgram;
-            }
-            if (args.program =~ /^[0-9]+$/) {
-                pgmId = args.program;
-            } else {
-                foreach string pgmId2 in (keys m_programState) {
-                    if (m_programState{pgmId2}.info.scriptName == args.program) {
-                        pgmId = pgmId2;
-                        break;
-                    }
-                }
-                if (!exists pgmId) {
-                    throw "VDA-ERROR", sprintf("Cannot resolve program %y", args.program);
-                }
-            }
+    private:internal setThreadFrame(int threadId, int frameId) {
+        if (m_programState{m_currentPgmId}.thread{threadId}.frameId !== frameId) {
             doCommand((
-                "cmd": "program/"+pgmId+"/add",
+                "cmd": "thread/debug/frame/set",
+                "tid": threadId,
+                "value": frameId,
             ));
-            m_currentPgmId = int(pgmId);
-            m_programState{pgmId} += (
-                "startMethod": START_ATTACH,
-            );
-            if (m_programState{pgmId}.info.debugged) {
-                if (m_programState{pgmId}.info.interrupted) {
-                    # we are ready receive breakpoints
-                    sendVscEvent("initialized");
-
-                    hash e;
-                    e.name = m_programState{pgmId}.info.scriptName;
-                    e.isLocalProcess = False;
-                    e.startMethod = "attach";
-                    sendVscEvent("process", e);
-                    m_programState{pgmId}.vcsNotified = True;
-                    # we cannot get what is main thread when attaching
-                    # m_programState{pgmId}.mainThreadId = m_programState{pgmId}.threads[0];
-                    foreach int tid in (m_programState{pgmId}.info.interrupted) {
-                        sendVscEvent("thread", ("threadId": tid, "reason": "started"));
-                        m_programState{pgmId}.vcsThreadNotified{tid} = True;
-                    }
-                }
-            }
+            m_programState{m_currentPgmId}.thread{threadId}.frameId = frameId;
         }
+    }
 
-        public nothing vsc_configurationDone() {
-        }
-
-        public hash vsc_threads() {
-            #log(DUV_DEBUG_1, "pgmid: %y, state: %y", m_currentPgmId, m_programState);
-            hash res.threads = ();
-            if (m_currentPgmId) {
-                updateProgramCache(doCommand(("cmd": "program/="+m_currentPgmId+"/list")));
-
-                foreach int threadId in (getThreads()) {
-                    push res.threads, ("id": threadId, "name": sprintf("Thread ID: %d", threadId));
-                }
-
-                #push res.threads, ("id": 99, "name": "Thread ID: 99 -- IDE TEST"); # when only one thread then is not displayed in Call Stack
-            }
-            return res;
-        }
-
-        public vsc_pause(hash args) {
-            doCommand(("cmd": "program/"+m_currentPgmId+"/thread/"+args.threadId+"/stop"));
-        }
-
-        public hash vsc_continue(hash args) {
-            doCommand(("cmd": "thread/go/run", "tid": args.threadId));
-            return ("allThreadsContinued": False);
-        }
-
-        public vsc_next(hash args) {
-            doCommand(("cmd": "thread/go/stepover", "tid": args.threadId));
-        }
-
-        public vsc_stepIn(hash args) {
-            doCommand(("cmd": "thread/go/step", "tid": args.threadId));
-        }
-
-        public vsc_stepOut(hash args) {
-            doCommand(("cmd": "thread/go/untilreturn", "tid": args.threadId));
-        }
-
-        public hash vsc_stackTrace(hash args) {
-            *list l = m_programState{m_currentPgmId}.thread{args.threadId}.stack;
-            if (!l) {
-                l = doCommand((
-                    "cmd": "thread/stack",
-                    "tid": args.threadId,
+    private:internal auto getVariable(int threadId, int frameId, string name) {
+        auto val;
+        if (threadId == 0) {
+            val = doCommand((
+                "cmd": "program/"+m_currentPgmId+"/global/"+name+"/get",
+            )).result;
+        } else {
+            if (name[0] == DEBUGVAR_PREFIX) {
+                val = doCommand((
+                    "cmd": "thread/debug/"+name[DEBUGVAR_PREFIX.size()..]+"/get",
+                    "tid": threadId,
+                    "frameid": frameId,
                 )).result;
-                m_programState{m_currentPgmId}.thread{args.threadId}.stack = l;
-            }
-            hash res.stackFrames = ();
-            res.totalFrames = l.size();
-            if (args.threadId == m_programState{m_currentPgmId}.startThreadId) {
-                res.totalFrames -= (m_programState{m_currentPgmId}.bootstrap.frameCnt ?? 0);
-            }
-            int n = args.levels ?? 0;
-            if (n == 0) {
-                n = res.totalFrames;
-            }
-            for (int i = args.startFrame ?? 0; n > 0 && i < res.totalFrames; i++, n--) {
-                # args.format not supported now
-                hash sf;
-                sf.id = (args.threadId << 16) + i; # an identifier for the stack frame. It must be unique across all threads.
-                sf.name = sprintf("%s: %s", l[i].function, l[i].type);
-                *hash ls = m_programState{m_currentPgmId}.loadedSourceByName{getLoadedSourceName(l[i].file, l[i].source)};
-                if (exists ls) {
-                    sf.source = getSource(ls);
-                } else {
-                    sf.source.path = l[i].file;
-                    sf.source.sourceReference = 0;
-                    sf.source.presentationHint = "deemphasize";
+                if (exists val.value) {
+                    val = val.value;  # for $result
                 }
-                sf.line = l[i].line;
-                sf.column = 0;
-                sf.endline = l[i].endline;
-                #sf.endcolumn
-                #sf.moduleId
-                push res.stackFrames, sf;
-            }
-            return res;
-        }
-
-        public hash vsc_exceptionInfo(hash args) {
-            hash res;
-            *hash ex = m_programState{m_currentPgmId}.thread{args.threadId}.exception;
-            if (ex) {
-                res.exceptionId = ex.err;
-                res.description = ex.desc;
-                res.breakMode = "always";    # 'never' | 'always' | 'unhandled' | 'userUnhandled';
-                res.details.message = ex.desc;
-                res.details.typeName = ex.err;
-                res.details.stackTrace = sprintf("%N", ex);
             } else {
-                res.exceptionId = "N/A";
-                res.breakMode = "never";
+                val = doCommand((
+                    "cmd": "thread/local/"+name+"/get",
+                    "tid": threadId,
+                    "frameid": frameId,
+                )).result.value;
             }
-            return res;
         }
-
-        public hash vsc_scopes(hash args) {
-            int threadId = args.frameId >> 16;
-            int frameId = args.frameId & 0xFFFF;
-            hash res.scopes = ();
-            *list l = m_programState{m_currentPgmId}.thread{threadId}.locals{frameId};
-            if (!exists l) {
-                try {
-                    l = doCommand((
-                        "cmd": "thread/local//list",
-                        "tid": threadId,
-                        "frameid": frameId,
-                    )).result;
-                    if (frameId == 0 && exists m_programState{m_currentPgmId}.thread{threadId}.debugVar) {
-                        push l, DEBUGVAR_PREFIX+m_programState{m_currentPgmId}.thread{threadId}.debugVar;
-                    }
-                    m_programState{m_currentPgmId}.thread{threadId}.locals{frameId} = l;
-                } catch (hash<ExceptionInfo> ex) {
-                    l = ();
-                }
-            }
-            hash sc;
-            sc.name = "Locals";
-            sc.variablesReference = args.frameId;  # only one scope in frame ... local
-            sc.expensive = False;
-            sc.namedVariables = l.size();
-            sc.indexedVariabes = 0;
-            push res.scopes, sc;
-
-            remove sc;
-            sc.name = "Globals";
-            l = m_programState{m_currentPgmId}.thread{threadId}.globals;
-            if (!exists l) {
-                try {
-                    l = doCommand((
-                        "cmd": "program/"+m_currentPgmId+"/global//list",
-                    )).result;
-                    m_programState{m_currentPgmId}.thread{0}.globals = l;
-                } catch (hash<ExceptionInfo> ex) {
-                    l = ();
-                }
-            }
-            sc.variablesReference = 1; # non zero value
-            sc.expensive = False;
-            sc.namedVariables = l.size();
-            sc.indexedVariabes = 0;
-            push res.scopes, sc;
-
-            return res;
+        auto v;
+        try {
+            v = AbstractDebugControl::unserialize(val);
+        } catch (hash<ExceptionInfo> ex) {
+            v = "N/A";
         }
+        return v;
+    }
 
-        public hash vsc_variables(hash args) {
-            hash res.variables = ();
-            int threadId = args.variablesReference >> 16;
-            int frameId = args.variablesReference & 0xFFFF;
-            if (args.filter != "indexed") {
-                *list l;
-                if (threadId == 0) {
-                    l = m_programState{m_currentPgmId}.thread{threadId}.globals;
-                } else {
-                    l = m_programState{m_currentPgmId}.thread{threadId}.locals{frameId};
-                }
-                int n = args.count ?? 0;
-                if (n == 0) {
-                    n = l.size();
-                }
-                for (int i = args.start ?? 0; i < l.size() && n > 0; i++, n--) {
-                    hash v;
-                    v.name = l[i];
-                    auto val = getVariable(threadId, frameId, l[i]);
-                    v.value = printValue(val, args.format);
-                    v.type = val.type();
-                    # properties, private etc.
-                    # v.presentationHint =
-                    push res.variables, v;
+    private:internal deleteBreakpoints(*hash bkpts) {
+        foreach string bkptId in (keys bkpts) {
+            doCommand((
+                "cmd": "program//breakpoint/"+bkptId+"/delete",
+            ));
+        }
+    }
+
+    private:internal list setBreakpoints(*list bkptRefs) {
+        list res = ();
+        foreach hash bkpt in (bkptRefs) {
+            hash b;
+            try {
+                hash bs = doCommand((
+                    "cmd": "program/"+m_currentPgmId+"/breakpoint//create",
+                    "value": bkpt,
+                    # protocol and vscode supports also condition, hitCondition, logMessage
+                    # we could implement when Qore supports runtime evaluator
+                )).result;
+                b.id = bs.bkptid;
+                b.verified = True;
+                b.statementId = bs.stmtid;  # internal
+            } catch (hash<ExceptionInfo> ex) {
+                b.verified = False;
+            }
+            push res, b;
+        }
+        return res;
+    }
+
+    private:internal string printValue(auto value, *hash format) {
+        return sprintf("%N", value);
+    }
+
+    private:internal auto vscParseValue(string val) {
+        return AbstractDebugControl::serialize(parse_to_qore_value(val));
+    }
+
+    private:internal hash getModule(softint pgmId) {
+        hash m;
+        m.id = pgmId;
+        m.name = m_programState{pgmId}.info.scriptName;
+        m.file = m_programState{pgmId}.info.scriptPath;
+        m.isUserCode = m_programState{pgmId}.info.debugging;
+        return m;
+    }
+
+    private:internal hash getSource(hash ls) {
+        hash src;
+
+        src.name = exists ls.source ? sprintf("Label: %s", ls.source) : sprintf("File: %s", ls.file);
+        src.sourceReference = ls.id;
+        src.path = ls.file;
+        if (src.path =~ /^<(.*)>$/) {
+            src.path =~ s/^<run-time-loaded: (.*)>$/$1/;
+            # tricky as all breakpoint commands are hidden in VSC if path does not satisfy its format
+            # trial/error I found it need an extension
+            src.path += '.q';
+        }
+        return src;
+    }
+
+    # get threads provided to vsc
+    private:internal list getThreads() {
+        return select m_programState{m_currentPgmId}.info.threads, !exists m_programState{m_currentPgmId}.detachedThreads{$1};
+    }
+
+    private hash<auto> getCommands() {
+        hash cmds = DebugCommandLine::getCommands();
+        # any extra commands ?
+        return cmds;
+    }
+
+    # methods implementing commands "public" is needed bacause of hasCallableMethod()
+    public hash vsc_initialize(hash args) {
+        m_initializeArgs = args;
+        m_programState = hash();
+        updateProgramCache(doCommand(("cmd": "program//list")));
+        return getCapabilities();
+    }
+
+    public nothing vsc_launch(hash args) {
+        if (!exists args.program) {
+            args.program = defaultProgram;
+        }
+        hash p = doCommand((
+            "cmd": "program//create",
+            "filename": args.program,
+            "args": args.args ?? (),
+        ));
+        updateProgramCache(p);
+        string pgmId = p.result.firstKey();
+        m_currentPgmId = int(pgmId);
+        m_programState{pgmId} += (
+            "startMethod": START_LAUNCH,
+            "launchArgs": args,
+            "startThreadId": p.result{pgmId}.threads[0],
+        );
+        # we are ready receive breakpoints
+        sendVscEvent("initialized");
+    }
+
+    public nothing vsc_attach(hash args) {
+        string pgmId;
+        if (!exists args.program) {
+            args.program = defaultProgram;
+        }
+        if (args.program =~ /^[0-9]+$/) {
+            pgmId = args.program;
+        } else {
+            foreach string pgmId2 in (keys m_programState) {
+                if (m_programState{pgmId2}.info.scriptName == args.program) {
+                    pgmId = pgmId2;
+                    break;
                 }
             }
-            return res;
+            if (!exists pgmId) {
+                throw "VDA-ERROR", sprintf("Cannot resolve program %y", args.program);
+            }
         }
+        doCommand((
+            "cmd": "program/"+pgmId+"/add",
+        ));
+        m_currentPgmId = int(pgmId);
+        m_programState{pgmId} += (
+            "startMethod": START_ATTACH,
+        );
+        if (m_programState{pgmId}.info.debugged) {
+            if (m_programState{pgmId}.info.interrupted) {
+                # we are ready receive breakpoints
+                sendVscEvent("initialized");
 
-        public hash vsc_setVariable(hash args) {
-            int threadId = args.variablesReference >> 16;
-            int frameId = args.variablesReference & 0xFFFF;
-            auto val = call_function_args(\self.vscParseValue(), args.value);
-            if (threadId != 0) {
-                if (args.name[0] == DEBUGVAR_PREFIX) {
-                    doCommand((
-                        "cmd": "thread/debug/"+args.name[DEBUGVAR_PREFIX.size()..]+"/set",
-                        "tid": threadId,
-                        "value": val,
-                    ));
-                } else {
-                    doCommand((
-                        "cmd": "thread/local/"+args.name+"/set",
-                        "tid": threadId,
-                        "frameid": frameId,
-                        "value": val,
-                    ));
+                hash e;
+                e.name = m_programState{pgmId}.info.scriptName;
+                e.isLocalProcess = False;
+                e.startMethod = "attach";
+                sendVscEvent("process", e);
+                m_programState{pgmId}.vcsNotified = True;
+                # we cannot get what is main thread when attaching
+                # m_programState{pgmId}.mainThreadId = m_programState{pgmId}.threads[0];
+                foreach int tid in (m_programState{pgmId}.info.interrupted) {
+                    sendVscEvent("thread", ("threadId": tid, "reason": "started"));
+                    m_programState{pgmId}.vcsThreadNotified{tid} = True;
                 }
+            }
+        }
+    }
+
+    public nothing vsc_configurationDone() {
+    }
+
+    public hash vsc_threads() {
+        #debug("pgmid: %y, state: %y", m_currentPgmId, m_programState);
+        hash res.threads = ();
+        if (m_currentPgmId) {
+            updateProgramCache(doCommand(("cmd": "program/="+m_currentPgmId+"/list")));
+
+            foreach int threadId in (getThreads()) {
+                push res.threads, ("id": threadId, "name": sprintf("Thread ID: %d", threadId));
+            }
+
+            #push res.threads, ("id": 99, "name": "Thread ID: 99 -- IDE TEST"); # when only one thread then is not displayed in Call Stack
+        }
+        return res;
+    }
+
+    public vsc_pause(hash args) {
+        doCommand(("cmd": "program/"+m_currentPgmId+"/thread/"+args.threadId+"/stop"));
+    }
+
+    public hash vsc_continue(hash args) {
+        doCommand(("cmd": "thread/go/run", "tid": args.threadId));
+        return ("allThreadsContinued": False);
+    }
+
+    public vsc_next(hash args) {
+        doCommand(("cmd": "thread/go/stepover", "tid": args.threadId));
+    }
+
+    public vsc_stepIn(hash args) {
+        doCommand(("cmd": "thread/go/step", "tid": args.threadId));
+    }
+
+    public vsc_stepOut(hash args) {
+        doCommand(("cmd": "thread/go/untilreturn", "tid": args.threadId));
+    }
+
+    public hash vsc_stackTrace(hash args) {
+        *list l = m_programState{m_currentPgmId}.thread{args.threadId}.stack;
+        if (!l) {
+            l = doCommand((
+                "cmd": "thread/stack",
+                "tid": args.threadId,
+            )).result;
+            m_programState{m_currentPgmId}.thread{args.threadId}.stack = l;
+        }
+        hash res.stackFrames = ();
+        res.totalFrames = l.size();
+        if (args.threadId == m_programState{m_currentPgmId}.startThreadId) {
+            res.totalFrames -= (m_programState{m_currentPgmId}.bootstrap.frameCnt ?? 0);
+        }
+        int n = args.levels ?? 0;
+        if (n == 0) {
+            n = res.totalFrames;
+        }
+        for (int i = args.startFrame ?? 0; n > 0 && i < res.totalFrames; i++, n--) {
+            # args.format not supported now
+            hash sf;
+            sf.id = (args.threadId << 16) + i; # an identifier for the stack frame. It must be unique across all threads.
+            sf.name = sprintf("%s: %s", l[i].function, l[i].type);
+            *hash ls = m_programState{m_currentPgmId}.loadedSourceByName{getLoadedSourceName(l[i].file, l[i].source)};
+            if (exists ls) {
+                sf.source = getSource(ls);
+            } else {
+                sf.source.path = l[i].file;
+                sf.source.sourceReference = 0;
+                sf.source.presentationHint = "deemphasize";
+            }
+            sf.line = l[i].line;
+            sf.column = 0;
+            sf.endline = l[i].endline;
+            #sf.endcolumn
+            #sf.moduleId
+            push res.stackFrames, sf;
+        }
+        return res;
+    }
+
+    public hash vsc_exceptionInfo(hash args) {
+        hash res;
+        *hash ex = m_programState{m_currentPgmId}.thread{args.threadId}.exception;
+        if (ex) {
+            res.exceptionId = ex.err;
+            res.description = ex.desc;
+            res.breakMode = "always";    # 'never' | 'always' | 'unhandled' | 'userUnhandled';
+            res.details.message = ex.desc;
+            res.details.typeName = ex.err;
+            res.details.stackTrace = sprintf("%N", ex);
+        } else {
+            res.exceptionId = "N/A";
+            res.breakMode = "never";
+        }
+        return res;
+    }
+
+    public hash vsc_scopes(hash args) {
+        int threadId = args.frameId >> 16;
+        int frameId = args.frameId & 0xFFFF;
+        hash res.scopes = ();
+        *list l = m_programState{m_currentPgmId}.thread{threadId}.locals{frameId};
+        if (!exists l) {
+            try {
+                l = doCommand((
+                    "cmd": "thread/local//list",
+                    "tid": threadId,
+                    "frameid": frameId,
+                )).result;
+                if (frameId == 0 && exists m_programState{m_currentPgmId}.thread{threadId}.debugVar) {
+                    push l, DEBUGVAR_PREFIX+m_programState{m_currentPgmId}.thread{threadId}.debugVar;
+                }
+                m_programState{m_currentPgmId}.thread{threadId}.locals{frameId} = l;
+            } catch (hash<ExceptionInfo> ex) {
+                l = ();
+            }
+        }
+        hash sc;
+        sc.name = "Locals";
+        sc.variablesReference = args.frameId;  # only one scope in frame ... local
+        sc.expensive = False;
+        sc.namedVariables = l.size();
+        sc.indexedVariabes = 0;
+        push res.scopes, sc;
+
+        remove sc;
+        sc.name = "Globals";
+        l = m_programState{m_currentPgmId}.thread{threadId}.globals;
+        if (!exists l) {
+            try {
+                l = doCommand((
+                    "cmd": "program/"+m_currentPgmId+"/global//list",
+                )).result;
+                m_programState{m_currentPgmId}.thread{0}.globals = l;
+            } catch (hash<ExceptionInfo> ex) {
+                l = ();
+            }
+        }
+        sc.variablesReference = 1; # non zero value
+        sc.expensive = False;
+        sc.namedVariables = l.size();
+        sc.indexedVariabes = 0;
+        push res.scopes, sc;
+
+        return res;
+    }
+
+    public hash vsc_variables(hash args) {
+        hash res.variables = ();
+        int threadId = args.variablesReference >> 16;
+        int frameId = args.variablesReference & 0xFFFF;
+        if (args.filter != "indexed") {
+            *list l;
+            if (threadId == 0) {
+                l = m_programState{m_currentPgmId}.thread{threadId}.globals;
+            } else {
+                l = m_programState{m_currentPgmId}.thread{threadId}.locals{frameId};
+            }
+            int n = args.count ?? 0;
+            if (n == 0) {
+                n = l.size();
+            }
+            for (int i = args.start ?? 0; i < l.size() && n > 0; i++, n--) {
+                hash v;
+                v.name = l[i];
+                auto val = getVariable(threadId, frameId, l[i]);
+                v.value = printValue(val, args.format);
+                v.type = val.type();
+                # properties, private etc.
+                # v.presentationHint =
+                push res.variables, v;
+            }
+        }
+        return res;
+    }
+
+    public hash vsc_setVariable(hash args) {
+        int threadId = args.variablesReference >> 16;
+        int frameId = args.variablesReference & 0xFFFF;
+        auto val = call_function_args(\self.vscParseValue(), args.value);
+        if (threadId != 0) {
+            if (args.name[0] == DEBUGVAR_PREFIX) {
+                doCommand((
+                    "cmd": "thread/debug/"+args.name[DEBUGVAR_PREFIX.size()..]+"/set",
+                    "tid": threadId,
+                    "value": val,
+                ));
             } else {
                 doCommand((
-                    "cmd": "program/"+m_currentPgmId+"/global/"+args.name+"/set",
+                    "cmd": "thread/local/"+args.name+"/set",
+                    "tid": threadId,
+                    "frameid": frameId,
                     "value": val,
                 ));
             }
-            val = getVariable(threadId, frameId, args.name);
-            hash res.value = printValue(val, args.format);
-            res.type = val.type();
-            return res;
+        } else {
+            doCommand((
+                "cmd": "program/"+m_currentPgmId+"/global/"+args.name+"/set",
+                "value": val,
+            ));
         }
+        val = getVariable(threadId, frameId, args.name);
+        hash res.value = printValue(val, args.format);
+        res.type = val.type();
+        return res;
+    }
 
-        public hash vsc_evaluate(hash args) {
-            hash res.result = NOTHING;
-            switch (args.context) {
-            case "repl":
-                # command from console
-                if (args.expression[0] == "$") {
-                    splice args.expression, 0, 1;
-                } else {
-                    processCmdLine(args.expression);
-                    break;
-                }
-                # no break
-            case "watch":
-            case "hover":
-                # "hover"  ... word or selection text
-                # event from watch, just return local or global value
-                int threadId = (args.frameId ?? 0) >> 16;
-                int frameId = (args.frameId ?? 0) & 0xFFFF;
-                *list l;
-                if (threadId == 0) {
+    public hash vsc_evaluate(hash args) {
+        hash res.result = NOTHING;
+        switch (args.context) {
+        case "repl":
+            # command from console
+            if (args.expression[0] == "$") {
+                splice args.expression, 0, 1;
+            } else {
+                processCmdLine(args.expression);
+                break;
+            }
+            # no break
+        case "watch":
+        case "hover":
+            # "hover"  ... word or selection text
+            # event from watch, just return local or global value
+            int threadId = (args.frameId ?? 0) >> 16;
+            int frameId = (args.frameId ?? 0) & 0xFFFF;
+            *list l;
+            if (threadId == 0) {
+                l = m_programState{m_currentPgmId}.thread{threadId}.globals;
+            } else {
+                l = m_programState{m_currentPgmId}.thread{threadId}.locals{frameId};
+                if (!inlist(args.expression, l)) {
+                    threadId = 0;
                     l = m_programState{m_currentPgmId}.thread{threadId}.globals;
-                } else {
-                    l = m_programState{m_currentPgmId}.thread{threadId}.locals{frameId};
-                    if (!inlist(args.expression, l)) {
-                        threadId = 0;
-                        l = m_programState{m_currentPgmId}.thread{threadId}.globals;
-                    }
-                }
-                if (inlist(args.expression, l)) {
-                    auto val = getVariable(threadId, frameId, args.expression);
-                    res.result = printValue(val, args.format);
-                    res.type = val.type();
-                    # properties, private etc.
-                    # v.presentationHint =
                 }
             }
-            return res;
+            if (inlist(args.expression, l)) {
+                auto val = getVariable(threadId, frameId, args.expression);
+                res.result = printValue(val, args.format);
+                res.type = val.type();
+                # properties, private etc.
+                # v.presentationHint =
+            }
         }
+        return res;
+    }
 
-        public hash vsc_completions(hash args) {
-            # auto complete for debug console
-            hash res.targets = ();
-            if (args.text[0] == "$") {
-                # variable
-                int threadId = (args.frameId ?? 0) >> 16;
-                int frameId = (args.frameId ?? 0) & 0xFFFF;
-                *list l;
-                if (threadId == 0) {
-                    l = m_programState{m_currentPgmId}.thread{0}.globals ?? ();
-                } else {
-                    l = (m_programState{m_currentPgmId}.thread{threadId}.locals{frameId} ?? ()) + (m_programState{m_currentPgmId}.thread{0}.globals ?? ());
-                }
-                string ss = args.text.substr(1, args.column-2);
-                # args.column, line
-                foreach string s in (l) {
-                    if (bindex(s, ss) >= 0) {
-                        hash c;
-                        c.label = s;
-                        # c.text
-                        c.type = "variable";
-                        push res.targets, c;
-                    }
-                }
+    public hash vsc_completions(hash args) {
+        # auto complete for debug console
+        hash res.targets = ();
+        if (args.text[0] == "$") {
+            # variable
+            int threadId = (args.frameId ?? 0) >> 16;
+            int frameId = (args.frameId ?? 0) & 0xFFFF;
+            *list l;
+            if (threadId == 0) {
+                l = m_programState{m_currentPgmId}.thread{0}.globals ?? ();
             } else {
-                # command line command
-                foreach string s in (getLineCompletions(args.text.substr(0, args.column-1))) {
-                    list ll = s.split(" ");
+                l = (m_programState{m_currentPgmId}.thread{threadId}.locals{frameId} ?? ()) + (m_programState{m_currentPgmId}.thread{0}.globals ?? ());
+            }
+            string ss = args.text.substr(1, args.column-2);
+            # args.column, line
+            foreach string s in (l) {
+                if (bindex(s, ss) >= 0) {
                     hash c;
-                    c.label = pop ll;
+                    c.label = s;
                     # c.text
-                    c.type = "text";
+                    c.type = "variable";
                     push res.targets, c;
                 }
             }
-            return res;
-        }
-
-        public hash vsc_setBreakpoints(hash args) {
-            string sourceId = args.source.path;
-            string file = sourceId;
-            if (args.source.sourceReference > 0) { # always ?? Probably not when launching script
-                *hash ls = m_programState{m_currentPgmId}.loadedSourceById{args.source.sourceReference};
-                if (ls) {
-                    sourceId = string(ls.id);
-                    file = ls.file;
-                }
+        } else {
+            # command line command
+            foreach string s in (getLineCompletions(args.text.substr(0, args.column-1))) {
+                list ll = s.split(" ");
+                hash c;
+                c.label = pop ll;
+                # c.text
+                c.type = "text";
+                push res.targets, c;
             }
-            deleteBreakpoints(m_programState{m_currentPgmId}.sourceBreakpoints{sourceId});
-            remove m_programState{m_currentPgmId}.sourceBreakpoints{sourceId};
-            hash res.breakpoints = ();
-            if (args.breakpoints) {
-                list bkpts;
-                foreach hash b in (args.breakpoints) {
-                    push bkpts, ("file": file, "lineno": b.line); # +b.("condition", "hitCondition", "logMessage");
-                }
-                res.breakpoints = setBreakpoints(bkpts);
-                foreach hash b in (\res.breakpoints) {
-                    if (b.verified) {
-                        m_programState{m_currentPgmId}.sourceBreakpoints{sourceId}{b.id} = b + args.breakpoints[$#];
-                        remove b.statementId;
-                    }
-                }
-            }
-            return res;
         }
-
-        public hash vsc_setFunctionBreakpoints(hash args) {
-            deleteBreakpoints(m_programState{m_currentPgmId}.functionBreakpoints);
-            remove m_programState{m_currentPgmId}.functionBreakpoints;
-            hash res.breakpoints = ();
-            if (args.breakpoints) {
-                list bkpts;
-                foreach hash b in (args.breakpoints) {
-                    *list l = b.name =~ x/^(.+)\((.*)\)$/;
-                    if (l) {
-                        list la = ();
-                        foreach string s2 in (split(',', l[1])) {
-                            s2 = trim(s2);
-                            if (s2 != "") {
-                                push la, s2;
-                            }
-                        }
-                        push bkpts, ("function": l[0], "args": la); #+b.("condition", "hitCondition");
-                    } else {
-                        push bkpts, ("function": b.name, "args": ()); #+b.("condition", "hitCondition");
-                    }
-                }
-                res.breakpoints = setBreakpoints(bkpts);
-                foreach hash b in (\res.breakpoints) {
-                    if (b.verified) {
-                        m_programState{m_currentPgmId}.functionBreakpoints{b.id} = b + args.breakpoints[$#];
-                        remove b.statementId;
-                    }
-                }
-            }
-            return res;
-        }
-
-        public vsc_setExceptionBreakpoints(hash args) {
-            m_programState{m_currentPgmId}.exceptionBreakpoints.filters = args.filters;
-            # args.exceptionOptions
-        }
-
-        public hash vsc_modules(hash args) {
-            int n = args.totalModules;
-            if (!n) {
-                n = m_programState.size();
-            }
-            hash res.modules = ();
-            for (int i = args.startModule ?? 0; i < m_programState.size() && n > 0; i++, n--) {
-                push res.modules, getModule((keys m_programState)[i]);
-            }
-            res.totalModules = m_programState.size();
-            return res;
-        }
-
-        public hash vsc_loadedSources() {
-            hash res.sources = ();
-            if (m_currentPgmId) {
-                foreach string id in (keys m_programState{m_currentPgmId}.loadedSourceById) {
-                    push res.sources, getSource(m_programState{m_currentPgmId}.loadedSourceById{id});
-                }
-            }
-            return res;
-        }
-
-        public hash vsc_source(hash args) {
-            hash res;
-            if (m_currentPgmId) { # or do we need it global ?
-                *hash ls = m_programState{m_currentPgmId}.loadedSourceById{args.sourceReference};
-                if (exists ls.source) {
-                    res.content = doCommand((
-                        "cmd": "program/"+m_currentPgmId+"/label/source",
-                        "label": ls.file,
-                    )).result.code;
-                } else if (exists ls.file) {
-                    res.content = doCommand((
-                        "cmd": "program/"+m_currentPgmId+"/file/source",
-                        "file": ls.file,
-                    )).result.code;
-                }
-            }
-            if (!exists res.content) {
-                res.content = '';
-            }
-            return res;
-        }
-
-        public vsc_disconnect(*hash args) {
-            m_running = False;
-            # terminate debugger
-            # args.terminateDebuggee not supported
-            doCommand(("cmd": "shutdown"));
-            sendVscEvent("terminated");
-        }
-
-        private:internal hash getCapabilities() {
-            hash cap = (
-                /* The debug adapter supports the configurationDoneRequest. */
-                "supportsConfigurationDoneRequest": True,
-
-                /* The debug adapter supports function breakpoints. */
-                "supportsFunctionBreakpoints": True,
-
-                /* The debug adapter supports conditional breakpoints. */
-                #"supportsConditionalBreakpoints": False,   # cannot disable in IDE
-
-                /* The debug adapter supports breakpoints that break execution
-                    after a specified number of hits. */
-                #"supportsHitConditionalBreakpoints": True,  # cannot disable in IDE ?
-
-                /* The debug adapter supports a (side effect free) evaluate
-                    request for data hovers. */
-                "supportsEvaluateForHovers": True,
-
-                /* Available filters or options for the setExceptionBreakpoints request. */
-                "exceptionBreakpointFilters": (
-                    (
-                        "filter": "User",
-                        "label": "User exception",
-                    ),
-                    (
-                        "filter": "System",
-                        "label": "System exception",
-                    ),
-                ),
-
-                /* The debug adapter supports stepping back via the stepBack and
-                    reverseContinue requests. */
-                "supportsStepBack": False,
-
-                /* The debug adapter supports setting a variable to a value. */
-                "supportsSetVariable": True,
-
-                /* The debug adapter supports restarting a frame. */
-                "supportsRestartFrame": False,
-
-                /* The debug adapter supports the gotoTargetsRequest. */
-                "supportsGotoTargetsRequest": False,
-
-                /* The debug adapter supports the stepInTargetsRequest. */
-                "supportsStepInTargetsRequest": False,
-
-                /* The debug adapter supports the completionsRequest. */
-                "supportsCompletionsRequest": True,
-
-                /* The debug adapter supports the modules request. */
-                "supportsModulesRequest": True,  # not supported in IDE ?
-
-                /* The set of additional module information exposed by the debug adapter. */
-                #"additionalModuleColumns": ColumnDescriptor[],
-
-                /* Checksum algorithms supported by the debug adapter. */
-                "supportedChecksumAlgorithms": ('SHA1'),
-
-                /* The debug adapter supports the RestartRequest. In this case
-                    a client should not implement 'restart' by terminating and
-                    relaunching the adapter but by calling the RestartRequest. */
-                "supportsRestartRequest": False,
-
-                /* The debug adapter supports 'exceptionOptions' on the
-                    setExceptionBreakpoints request. */
-                "supportsExceptionOptions": False,
-
-                /* The debug adapter supports a 'format' attribute on the
-                    stackTraceRequest, variablesRequest, and evaluateRequest. */
-                "supportsValueFormattingOptions": False,  # not supported in IDE ?
-
-                /* The debug adapter supports the exceptionInfo request. */
-                "supportsExceptionInfoRequest": True,
-
-                /* The debug adapter supports the 'terminateDebuggee' attribute
-                    on the 'disconnect' request. */
-                "supportTerminateDebuggee": False,
-
-                /* The debug adapter supports the delayed loading of parts of the stack,
-                    which requires that both the 'startFrame' and 'levels' arguments and
-                    the 'totalFrames' result of the 'StackTrace' request are supported. */
-                "supportsDelayedStackTraceLoading": True,
-
-                /* The debug adapter supports the 'loadedSources' request. */
-                "supportsLoadedSourcesRequest": True,
-
-                /* The debug adapter supports logpoints by interpreting the 'logMessage' attribute of the SourceBreakpoint. */
-                "supportsLogPoints": False,   # not supported in IDE ?
-
-            );
-            return cap;
-        }
-
+        return res;
     }
 
+    public hash vsc_setBreakpoints(hash args) {
+        string sourceId = args.source.path;
+        string file = sourceId;
+        if (args.source.sourceReference > 0) { # always ?? Probably not when launching script
+            *hash ls = m_programState{m_currentPgmId}.loadedSourceById{args.source.sourceReference};
+            if (ls) {
+                sourceId = string(ls.id);
+                file = ls.file;
+            }
+        }
+        deleteBreakpoints(m_programState{m_currentPgmId}.sourceBreakpoints{sourceId});
+        remove m_programState{m_currentPgmId}.sourceBreakpoints{sourceId};
+        hash res.breakpoints = ();
+        if (args.breakpoints) {
+            list bkpts;
+            foreach hash b in (args.breakpoints) {
+                push bkpts, ("file": file, "lineno": b.line); # +b.("condition", "hitCondition", "logMessage");
+            }
+            res.breakpoints = setBreakpoints(bkpts);
+            foreach hash b in (\res.breakpoints) {
+                if (b.verified) {
+                    m_programState{m_currentPgmId}.sourceBreakpoints{sourceId}{b.id} = b + args.breakpoints[$#];
+                    remove b.statementId;
+                }
+            }
+        }
+        return res;
+    }
+
+    public hash vsc_setFunctionBreakpoints(hash args) {
+        deleteBreakpoints(m_programState{m_currentPgmId}.functionBreakpoints);
+        remove m_programState{m_currentPgmId}.functionBreakpoints;
+        hash res.breakpoints = ();
+        if (args.breakpoints) {
+            list bkpts;
+            foreach hash b in (args.breakpoints) {
+                *list l = b.name =~ x/^(.+)\((.*)\)$/;
+                if (l) {
+                    list la = ();
+                    foreach string s2 in (split(',', l[1])) {
+                        s2 = trim(s2);
+                        if (s2 != "") {
+                            push la, s2;
+                        }
+                    }
+                    push bkpts, ("function": l[0], "args": la); #+b.("condition", "hitCondition");
+                } else {
+                    push bkpts, ("function": b.name, "args": ()); #+b.("condition", "hitCondition");
+                }
+            }
+            res.breakpoints = setBreakpoints(bkpts);
+            foreach hash b in (\res.breakpoints) {
+                if (b.verified) {
+                    m_programState{m_currentPgmId}.functionBreakpoints{b.id} = b + args.breakpoints[$#];
+                    remove b.statementId;
+                }
+            }
+        }
+        return res;
+    }
+
+    public vsc_setExceptionBreakpoints(hash args) {
+        m_programState{m_currentPgmId}.exceptionBreakpoints.filters = args.filters;
+        # args.exceptionOptions
+    }
+
+    public hash vsc_modules(hash args) {
+        int n = args.totalModules;
+        if (!n) {
+            n = m_programState.size();
+        }
+        hash res.modules = ();
+        for (int i = args.startModule ?? 0; i < m_programState.size() && n > 0; i++, n--) {
+            push res.modules, getModule((keys m_programState)[i]);
+        }
+        res.totalModules = m_programState.size();
+        return res;
+    }
+
+    public hash vsc_loadedSources() {
+        hash res.sources = ();
+        if (m_currentPgmId) {
+            foreach string id in (keys m_programState{m_currentPgmId}.loadedSourceById) {
+                push res.sources, getSource(m_programState{m_currentPgmId}.loadedSourceById{id});
+            }
+        }
+        return res;
+    }
+
+    public hash vsc_source(hash args) {
+        hash res;
+        if (m_currentPgmId) { # or do we need it global ?
+            *hash ls = m_programState{m_currentPgmId}.loadedSourceById{args.sourceReference};
+            if (exists ls.source) {
+                res.content = doCommand((
+                    "cmd": "program/"+m_currentPgmId+"/label/source",
+                    "label": ls.file,
+                )).result.code;
+            } else if (exists ls.file) {
+                res.content = doCommand((
+                    "cmd": "program/"+m_currentPgmId+"/file/source",
+                    "file": ls.file,
+                )).result.code;
+            }
+        }
+        if (!exists res.content) {
+            res.content = '';
+        }
+        return res;
+    }
+
+    public vsc_disconnect(*hash args) {
+        m_running = False;
+        # terminate debugger
+        # args.terminateDebuggee not supported
+        doCommand(("cmd": "shutdown"));
+        sendVscEvent("terminated");
+    }
+
+    private:internal hash getCapabilities() {
+        hash cap = (
+            /* The debug adapter supports the configurationDoneRequest. */
+            "supportsConfigurationDoneRequest": True,
+
+            /* The debug adapter supports function breakpoints. */
+            "supportsFunctionBreakpoints": True,
+
+            /* The debug adapter supports conditional breakpoints. */
+            #"supportsConditionalBreakpoints": False,   # cannot disable in IDE
+
+            /* The debug adapter supports breakpoints that break execution
+                after a specified number of hits. */
+            #"supportsHitConditionalBreakpoints": True,  # cannot disable in IDE ?
+
+            /* The debug adapter supports a (side effect free) evaluate
+                request for data hovers. */
+            "supportsEvaluateForHovers": True,
+
+            /* Available filters or options for the setExceptionBreakpoints request. */
+            "exceptionBreakpointFilters": (
+                (
+                    "filter": "User",
+                    "label": "User exception",
+                ),
+                (
+                    "filter": "System",
+                    "label": "System exception",
+                ),
+            ),
+
+            /* The debug adapter supports stepping back via the stepBack and
+                reverseContinue requests. */
+            "supportsStepBack": False,
+
+            /* The debug adapter supports setting a variable to a value. */
+            "supportsSetVariable": True,
+
+            /* The debug adapter supports restarting a frame. */
+            "supportsRestartFrame": False,
+
+            /* The debug adapter supports the gotoTargetsRequest. */
+            "supportsGotoTargetsRequest": False,
+
+            /* The debug adapter supports the stepInTargetsRequest. */
+            "supportsStepInTargetsRequest": False,
+
+            /* The debug adapter supports the completionsRequest. */
+            "supportsCompletionsRequest": True,
+
+            /* The debug adapter supports the modules request. */
+            "supportsModulesRequest": True,  # not supported in IDE ?
+
+            /* The set of additional module information exposed by the debug adapter. */
+            #"additionalModuleColumns": ColumnDescriptor[],
+
+            /* Checksum algorithms supported by the debug adapter. */
+            "supportedChecksumAlgorithms": ('SHA1'),
+
+            /* The debug adapter supports the RestartRequest. In this case
+                a client should not implement 'restart' by terminating and
+                relaunching the adapter but by calling the RestartRequest. */
+            "supportsRestartRequest": False,
+
+            /* The debug adapter supports 'exceptionOptions' on the
+                setExceptionBreakpoints request. */
+            "supportsExceptionOptions": False,
+
+            /* The debug adapter supports a 'format' attribute on the
+                stackTraceRequest, variablesRequest, and evaluateRequest. */
+            "supportsValueFormattingOptions": False,  # not supported in IDE ?
+
+            /* The debug adapter supports the exceptionInfo request. */
+            "supportsExceptionInfoRequest": True,
+
+            /* The debug adapter supports the 'terminateDebuggee' attribute
+                on the 'disconnect' request. */
+            "supportTerminateDebuggee": False,
+
+            /* The debug adapter supports the delayed loading of parts of the stack,
+                which requires that both the 'startFrame' and 'levels' arguments and
+                the 'totalFrames' result of the 'StackTrace' request are supported. */
+            "supportsDelayedStackTraceLoading": True,
+
+            /* The debug adapter supports the 'loadedSources' request. */
+            "supportsLoadedSourcesRequest": True,
+
+            /* The debug adapter supports logpoints by interpreting the 'logMessage' attribute of the SourceBreakpoint. */
+            "supportsLogPoints": False,   # not supported in IDE ?
+
+        );
+        return cap;
+    }
+
+}
 }

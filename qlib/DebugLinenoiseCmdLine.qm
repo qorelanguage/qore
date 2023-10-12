@@ -92,7 +92,8 @@ public namespace DebugLinenoiseCmdLine {
                         ),
 
                     ),
-                    'desc': 'load or save history to file. The history is implicitly loaded when program starting and saved when exiting. See command line parameters.',
+                    'desc': 'load or save history to file. The history is implicitly loaded when program starting "
+                        "and saved when exiting. See command line parameters.',
                 ),
                 'quit': (
                     'desc': 'quit debugger',
@@ -137,7 +138,7 @@ public namespace DebugLinenoiseCmdLine {
                 try {
                     #printfImpl("Linenoise::history_save(%y)\n", historyFileName);
                     Linenoise::history_save(historyFileName);
-                } catch (hash ex) {
+                } catch (hash<ExceptionInfo> ex) {
                     printfImpl("Cannot save history to %y (%s)\n", historyFileName, ex.desc);
                 }
             }
@@ -150,7 +151,7 @@ public namespace DebugLinenoiseCmdLine {
                 # use file name in home dir
                 foreach string k in (('HOME', 'USERPROFILE')) {
                     if (exists ENV{k}) {
-                        historyFileName = ENV{k} + '/' + defaultHistoryFileName;
+                        historyFileName = ENV{k} + DirSep + defaultHistoryFileName;
                         break;
                     }
                 }

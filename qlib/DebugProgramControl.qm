@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.8.13
+%requires qore >= 2.0
 %requires(reexport) DebugUtil
 
 %require-types
@@ -94,7 +94,7 @@ public namespace DebugProgramControl {
         }
 
         #! creates the object
-        constructor(string serverName) : DebugProgram() {
+        constructor(string serverName, *LoggerInterface logger) : AbstractDebugControl(logger) {
             self.serverName = serverName;
         }
 
@@ -189,7 +189,7 @@ public namespace DebugProgramControl {
 
         #! Create new program
         public Program createProgram(string fileName, *hash opts, list args, *string script) {
-            log(DUV_DEBUG_1, "create program: %y", fileName);
+            debug("create program: %y", fileName);
             # must set PO_NO_CHILD_PO_RESTRICTIONS in order to avoid parse options being locked in the child
             Program pgm(PO_NO_CHILD_PO_RESTRICTIONS);
             # restore default options as we have PO_NO_CHILD_PO_RESTRICTIONS
@@ -223,24 +223,24 @@ public namespace DebugProgramControl {
             # update arguments without debug options
             pgm.setGlobalVarValue('ARGV', args);
             pgm.define('QoreDebugging', True);   # TODO: vs. QoreDebug define, better name ?
-            log(DUV_DEBUG_1, "add program");
+            debug("add program");
             addProgram(pgm.getProgram());
 
             if ((script ?? '') == '') {
                 if (fileName == '/dev/stdin') {  # is exception needed ??
-                    log(DUV_DEBUG_1, "read stdin");
+                    debug("read stdin");
                     script = stdin.read(-1, 0);
-                    log(DUV_DEBUG_1, "%s", script);
+                    debug("%s", script);
                 } else {
-                    log(DUV_DEBUG_1, "read file: %y", fileName);
+                    debug("read file: %y", fileName);
                     script = ReadOnlyFile::readTextFile(fileName);
                 }
             }
             pgm.setScriptPath(fileName);
-            log(DUV_DEBUG_1, "parse code");
+            debug("parse code");
             *hash wh = pgm.parse(script, fileName, WARN_DEFAULT, NOTHING, NOTHING, False);
             if (wh) {
-                log(DUV_INFO, "warning: %N", wh);
+                warn("warning: %N", wh);
             }
             return pgm;
         }
@@ -254,12 +254,12 @@ public namespace DebugProgramControl {
 
         #! process message in debugging thread, if message is related to debugged thread then put it in particular queue
         public *hash processCommand(hash cx, hash receiveData) {
-            log(DUV_DEBUG_1, "processCommand: %y", receiveData);
+            debug("processCommand: %y", receiveData);
             hash sendData;
             auto result;
             try {
                 list cmd = receiveData.cmd.split('/');
-                log(DUV_DEBUG_1, "command: %y", cmd);
+                debug("command: %y", cmd);
 
                 switch (shift cmd) {
                     case 'help':
@@ -295,9 +295,9 @@ public namespace DebugProgramControl {
                                     break;
                                 case 'verbose':
                                     if (optionSet) {
-                                        logger.verbose = receiveData.value;
+                                        logger.setLevel(receiveData.value);
                                     }
-                                    result = logger.verbose;
+                                    result = logger.getLevel().getStr();
                                     break;
                             }
                         }
@@ -328,7 +328,7 @@ public namespace DebugProgramControl {
                                 }
                                 break;
                             case 'set':
-                                log(DUV_DEBUG_1, "set session: %y", receiveData.value);
+                                debug("set session: %y", receiveData.value);
                                 # go through provided list and match current programs, no sophisticated matching algorithm
                                 result = hash();
                                 foreach string pgmName in (keys receiveData.value) {
@@ -779,7 +779,7 @@ public namespace DebugProgramControl {
                     sendData.type = 'response';
                 }
             } catch (hash<ExceptionInfo> ex) {
-                log(DUV_DEBUG, "exception: %y", ex);
+                debug("exception: %y", ex);
                 sendData.type = 'error';
                 result.err = ex.err;
                 result.desc = ex.desc;
@@ -945,7 +945,7 @@ public namespace DebugProgramControl {
                         if (p !~ /[\\\/]$/ ) {
                             p += DirSep;
                         }
-                        log(DUV_DEBUG_1, "is_file(%s)", p + name);
+                        debug("is_file(%s)", p + name);
                         if (is_file(p + name)) {
                             name = p + name;
                             break;
