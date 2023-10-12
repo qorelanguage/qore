@@ -85,42 +85,130 @@ module DiscordWebSocketClient {
 #! the DiscordWebSocketClient namespace contains all the objects in the DiscordWebSocketClient module
 public namespace DiscordWebSocketClient {
 #! The Discord WebSocket client class
-public class DiscordWebSocketClient inherits WebSocketClient {
+public class DiscordWebSocketClient inherits WebSocketClientWithSerialization {
     public {
         #! Default headers to use in the initial HTTP request after connecting
         const DefaultHeaders = {
             "Sec-WebSocket-Version": "13",
         };
+
+        #! Default API version
+        const DefaultApi = 10;
+
+        #! Default option values
+        const DefaultOptions = {
+            "headers": DefaultHeaders,
+            "data": "json",
+            "api": DefaultApi,
+        };
+
+        #! Receive: An event was dispatched
+        const DOP_DISPATCH = 0;
+
+        #! Send/Receive: Fired periodically by the client to keep the connection alive
+        const DOP_HEARTBEAT = 1;
+
+        #! Send: Starts a new session during the initial handshake
+        const DOP_IDENTIFY = 2;
+
+        #! Send: Update the client's presence
+        const DOP_PRESENCE_UPDATE = 3;
+
+        #! Send: Used to join/leave or move between voice channels
+        const DOP_VOICE_STATE_UPDATE = 4;
+
+        #! Send: Resume a previous session that was disconnected
+        const DOP_RESUME = 6;
+
+        #! Receive: You should attempt to reconnect and resume immediately
+        const DOP_RECONNECT = 7;
+
+        #! Send: Request information about offline guild members in a large guild
+        const DOP_REQUEST_GUILD_MEMBERS = 8;
+
+        #! Receive: The session has been invalidated. You should reconnect and identify/resume accordingly
+        const DOP_INVALID_SESSION = 9;
+
+        #! Receive: Sent immediately after connecting, contains the heartbeat_interval to use
+        const DOP_HELLO = 10;
+
+        #! Receive: Sent in response to receiving a heartbeat to acknowledge that it has been received
+        const DOP_HEARTBEAT_ACK = 11;
+
+        #! Opcode to string map
+        const OpMap = {
+            DOP_DISPATCH: "Dispatch",
+            DOP_HEARTBEAT: "Heartbeat",
+            DOP_IDENTIFY: "Identify",
+            DOP_PRESENCE_UPDATE: "Presence Update",
+            DOP_VOICE_STATE_UPDATE: "Voice State Update",
+            DOP_RESUME: "Resume",
+            DOP_RECONNECT: "Reconnect",
+            DOP_REQUEST_GUILD_MEMBERS: "Request Guild Members",
+            DOP_INVALID_SESSION: "Invalid Session",
+            DOP_HELLO: "Hello",
+            DOP_HEARTBEAT_ACK: "Heartbeat ACK",
+        };
+    }
+
+    private {
+        #! Bot token
+        string token;
+
+        #! Intents for the identify message
+        int intents;
+
+        #! The heartbeat interval in ms
+        int heartbeat_interval;
+
+        #! The last received sequence number
+        int last_sequence;
+
+        #! Current session ID
+        string session_id;
+
+        #! Resume gateway URL
+        string resume_gateway_url;
+
+        #! Heartbeat thread counter
+        Counter heartbeat_cnt();
+
+        #! Heartbeat thread ID
+        int hb_tid;
+
+        #! Heartbeat mutex
+        Mutex heartbeat_lock();
+
+        #! Heartbeat condition
+        Condition heartbeat_cond();
+
+        #! Heartbeat thread stop flag
+        bool hb_stop;
+
+        #! API version
+        int api = DefaultApi;
     }
 
     #! creates the object and optionally sets logging targets
     /** @par Example:
         @code{.py}
-MyDiscordWebSocketClient ws();
+DiscordWebSocketClient ws();
         @endcode
 
-        @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages
-        @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient constructor"
-        plus the following keys:
-        - \c log: an optional @ref closure "closure" or @ref call_reference "call reference" for informational
-            logging
-        - \c errlog: an optional @ref closure "closure" or @ref call_reference "call reference" for error logging
-        - \c debuglog: an optional @ref closure "closure" or @ref call_reference "call reference" for logging
-            debugging/technical messages about the web socket connection
-        - \c raw_callback: an optional @ref closure "closure" or @ref call_reference "call reference" for
-          receiving raw WebSocket messages before processing; takes a single <tt>hash&lt;WsMsgInfo&gt;</tt>
-          argument and must return one of the following values: @ref WSClientRawCallbackReturnCodes
-        - \c yield: an options @ref closure "closure" or @ref call_reference "call reference" for yielding the
-            current thread's execution to another thread (default value: @ref Qore::Threads::thread_yield());
-            required if @ref Qore::PO_NO_PROCESS_CONTROL is set in the current execution context
+        @param opts All options accepted by
+        @ref WebSocketClient::WebSocketClient::constructor() "WebSocketClient::constructor()" with the following
+        differences:
+        - \c token: must be a bot token and is a required option
+        - \c intents: optional integer intent for the identify message
 
         @throw WEBSOCKET-ERROR unknown scheme, missing 'url' key in option hash; invalid option value
-
-        @since
-        - WebSocketClient 1.6 added the \c yield option
-        - WebSocketClient 1.9.1 added the \c raw_callback option
     */
-    constructor(*hash<auto> opts) : WebSocketClient(DiscordWebSocketClient::getOptions(opts)) {
+    constructor(*hash<auto> opts) : WebSocketClientWithSerialization(DiscordWebSocketClient::getOptions(opts)) {
+    }
+
+    #! Deletes the object
+    destructor() {
+        stopHeartbeatThread();
     }
 
     #! Processes options for the DiscordWebSocketClient constructor
@@ -128,9 +216,214 @@ MyDiscordWebSocketClient ws();
         if (!opts.url) {
             opts.url = DiscordWebSocketConnection::discoverUrl();
         }
-        return opts + {
-            "headers": DefaultHeaders,
-        };
+        return opts + DefaultOptions;
+    }
+
+    #! Handles deserialized event data
+    private handleEventData(auto msgdata) {
+        if (msgdata.typeCode() != NT_HASH) {
+            throw "DISCORD-ERROR", sprintf("unexpected payload data type %y (value %y); expecting \"hash\"",
+                msgdata.fullType(), msgdata);
+        }
+        *int op = msgdata.op;
+        if (!exists op) {
+            throw "DISCORD-ERROR", sprintf("missing opcode in payload: %y", msgdata);
+        }
+        if (msgdata.s) {
+            last_sequence = msgdata.s;
+        }
+        logDebug("received %y: (%s) %y", OpMap{op}, msgdata.t ?? "n/a", msgdata.d);
+        switch (op) {
+            case DOP_HELLO:
+                handleHello(msgdata.d);
+                break;
+
+            case DOP_DISPATCH:
+                if (msgdata.t == "READY") {
+                    handleReadyMessage(msgdata.d);
+                } else {
+                    handleMessage(msgdata);
+                }
+                break;
+
+            case DOP_HEARTBEAT_ACK:
+                handleHeartbeatAck();
+                break;
+
+            case DOP_RECONNECT:
+                handleReconnect();
+                break;
+
+            default:
+                throw "DISCORD-ERROR", sprintf("do not know how to handle opcode %d (%s)", op,
+                    OpMap{op} ?? "unknown");
+        }
+    }
+
+    #! Handle a READY message
+    private handleReadyMessage(hash<auto> d) {
+        session_id = d.session_id;
+        resume_gateway_url = d.resume_gateway_url;
+    }
+
+    #! Handle a Heartbeat ACK
+    private handleHeartbeatAck() {
+    }
+
+    #! Handle a Reconnect
+    private handleReconnect() {
+        if (!session_id) {
+            throw "DISCORD-ERROR", "Reconnect message received, but no session_id is present";
+        }
+        if (!session_id || !resume_gateway_url) {
+            throw "DISCORD-ERROR", "Reconnect message received, but no resume_gateway_url is present";
+        }
+        stopHeartbeatThread();
+        disconnect();
+
+        url = setupUrl(resume_gateway_url);
+
+        # connect to the new gateway
+        connect();
+
+        startHeartbeatThread();
+        sendData({
+            "op": DOP_RESUME,
+            "d": {
+                "token": token,
+                "session_id": session_id,
+                "seq": last_sequence,
+            },
+        });
+    }
+
+    #! Handle a message by raising a data event
+    private handleMessage(hash<auto> msg) {
+        WebSocketClientWithSerialization::handleEventData(msg);
+    }
+
+    #! Handle a HELLO message
+    private handleHello(hash<auto> d) {
+        *int hbi = d.heartbeat_interval;
+        if (!hbi) {
+            throw "DISCORD-ERROR", sprintf("missing heartbeat interval in Hello msg: %y", d);
+        }
+        heartbeat_interval = hbi;
+        startHeartbeatThread();
+
+        # send Indentify message
+        sendData({
+            "op": DOP_IDENTIFY,
+            "d": {
+                "token": token,
+                "properties": {
+                    "os": PlatformOS == "Darwin" ? "macOS" : PlatformOS,
+                    "browser": "Qore",
+                    "device": "Qore",
+                },
+                "intents": intents,
+            },
+        });
+    }
+
+    private startHeartbeatThread() {
+        heartbeat_cnt.inc();
+        on_error {
+            remove hb_tid;
+            heartbeat_cnt.dec();
+        }
+        hb_tid = background heartbeatThread();
+    }
+
+    private stopHeartbeatThread() {
+        if (hb_tid == gettid()) {
+            throw "DISCORD-ERROR", sprintf("cannot call this method from the heartbeat thread (TID %d)", hb_tid);
+        }
+
+        {
+            AutoLock al(heartbeat_lock);
+            if (!hb_tid) {
+                return;
+            }
+            hb_stop = True;
+            heartbeat_cond.signal();
+        }
+
+        heartbeat_cnt.waitForZero();
+        remove hb_tid;
+    }
+
+    private heartbeatThread() {
+        # in case we went out of scope while running
+        on_exit if (self) {
+            heartbeat_cnt.dec();
+        }
+
+        bool running;
+        while (!hb_stop) {
+            int sleep = heartbeat_interval;
+            # calculate the first sleep with the heartbeat interval * jitter
+            if (!running) {
+                sleep = (float("0." + rand()) * heartbeat_interval).toInt();
+                running = True;
+            }
+
+            {
+                AutoLock al(heartbeat_lock);
+                heartbeat_cond.wait(heartbeat_lock, sleep);
+            }
+            if (hb_stop) {
+                break;
+            }
+            # send a heartbeat message
+            sendData({
+                "op": DOP_HEARTBEAT,
+                "d": last_sequence,
+            });
+        }
+    }
+
+    #! Gets an integer option
+    private *int getInt(hash<auto> opts, string key, *bool required, *int default_value) {
+        auto v = opts{key};
+        if (required && (!exists v)) {
+            if (exists default_value) {
+                return default_value;
+            }
+            raiseError("missing required option %y in option argument; got: %y", key, v);
+        }
+        if (v.typeCode() != NT_INT) {
+            raiseError("required option %y was passed as a %s (%y); expecting \"int\"", key, v.fullType(), v);
+        }
+        return v;
+    }
+
+    #! Common constructor code
+    private constructorInit(hash<auto> opts) {
+        token = getString(opts, "token", True);
+        remove opts.token;
+
+        intents = getInt(opts, "intents", True, 0);
+        remove opts.intents;
+
+        api = getInt(opts, "api", True, DefaultApi);
+        remove opts.api;
+
+        opts.url = setupUrl(opts.url);
+
+        WebSocketClientWithSerialization::constructorInit(opts);
+    }
+
+    #! setup URL
+    *string setupUrl(*string url) {
+        # add version and encoding to URL if there are no query arguments already
+        if (url && url !~ /\?/) {
+            if (url !~ /\/$/) {
+                url += "/";
+            }
+            url += sprintf("?v=%d&encoding=json", api);
+        }
+        return url;
     }
 }
 

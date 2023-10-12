@@ -484,11 +484,9 @@ ws.connect();
         option hash
     */
     hash<auto> connect(*hash<auto> opts, *reference<hash<auto>> info) {
-        if (opts.hdr) {
-            if (opts.hdr.typeCode() != NT_HASH) {
-                raiseError("option hash to WebSocketClient::connect() 'hdr' key not assigned "
-                    "to a hash; type received: %y", opts.hdr.type());
-            }
+        if (opts.hdr && opts.hdr.typeCode() != NT_HASH) {
+            raiseError("option hash to WebSocketClient::connect() 'hdr' key not assigned to a hash; type "
+                "received: %y", opts.hdr.fullType());
         }
 
         m.lock();
@@ -1178,13 +1176,16 @@ class MyObserver inherits Observer {
 
     #! Handles processed messages
     private handleEvent(string buf) {
-        auto msgdata;
         try {
-            msgdata = deserializeData(buf);
+            handleEventData(deserializeData(buf));
         } catch (hash<ExceptionInfo> ex) {
             logError("error handling WebSocket event data message: %s", get_exception_string(ex));
             return;
         }
+    }
+
+    #! Handles deserialized event data
+    private handleEventData(auto msgdata) {
         notifyObservers(EVENT_WS_DATA, {"data": msgdata});
     }
 
