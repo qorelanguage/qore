@@ -34,12 +34,13 @@
 %requires HttpServerUtil >= 1.0.12
 %requires WebSocketUtil >= 1.4.1
 %requires Util
+%requires(reexport) Logger
 
 %new-style
 
 module WebSocketHandler {
-    version = "1.5.4";
-    desc = "user module for providing WebSocket server services";
+    version = "2.0";
+    desc = "User module for providing WebSocket server services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
@@ -64,6 +65,9 @@ module WebSocketHandler {
     - @ref WebSocketHandler::WebSocketHandler
 
     @section websockethandler_relnotes WebSocketHandler Release History
+
+    @subsection websockethandler_v2_0 Version 2.0
+    - implemented support for @ref Logger::Logger "Logger" objects for logging
 
     @subsection websockethandler_v1_5_4 Version 1.5.4
     - fixed a bug in @ref WebSocketHandler::WebSocketHandler::sendOne() "WebSocketHandler::sendOne()"
@@ -325,7 +329,7 @@ public class WebSocketConnection {
     @ref WebSocketHandler::WebSocketHandler::handleRequest() "WebSocketHandler::handleRequest()" in the \c "cx.id"
     argument when the connection is first established.
 */
-public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
+public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler, Logger::LoggerWrapper {
     public {
         #! default socket send timeout
         const DefaultSocketSendTimeout = 30s;
@@ -390,9 +394,17 @@ public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
                 case "heartbeat_msg": {
                     if (h.value.typeCode() != NT_STRING) {
                         throw "WEBSOCKETHANDLER-OPTION-ERROR", sprintf("option %y has type %y; expecting \"string\"",
-                            h.key, h.value.type());
+                            h.key, h.value.fullType());
                     }
                     heartbeat_msg = h.value;
+                    break;
+                }
+                case "logger": {
+                    if (!(h.value instanceof LoggerInterface)) {
+                        throw "WEBSOCKETHANDLER-OPTION-ERROR", sprintf("option %y has type %y; expecting "
+                            "\"LoggerInterface\"", h.key, h.value.fullType());
+                    }
+                    logger = h.value;
                     break;
                 }
                 default:
@@ -819,16 +831,24 @@ public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler {
         return sprintf("type: %s: %y", d.type(), d);
     }
 
-    #! default implementation is empty
+    #! Log to the logger
     logInfo(string fmt, ...) {
+        logArgs(LoggerLevel::INFO, fmt, argv);
     }
 
-    #! default implementation is empty
+    #! Log to the logger
     logError(string fmt, ...) {
+        logArgs(LoggerLevel::ERROR, fmt, argv);
     }
 
-    #! default implementation is empty
+    #! Log to the logger
+    logWarn(string fmt, ...) {
+        logArgs(LoggerLevel::WARN, fmt, argv);
+    }
+
+    #! Log to the logger
     logDebug(string fmt, ...) {
+        logArgs(LoggerLevel::DEBUG, fmt, argv);
     }
 }
 }

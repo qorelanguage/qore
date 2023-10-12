@@ -109,8 +109,8 @@ class WebSocketClientTest inherits QUnit::Test {
         WebSocketClientDelayedDataProvider prov({
             "url": "ws://localhost:" + port,
             "data": "none",
+            "logger": logger,
         });
-        prov.setLogger(logger);
         prov.registerObserver(observer);
         prov.observersReady();
 
@@ -142,17 +142,9 @@ class WebSocketClientTest inherits QUnit::Test {
             }
         };
         responseSize = Data.size();
-        code log = code sub (string str) {
-            return sub (string fmt) {
-                #vprintf("CLIENT " + str + ": " + fmt + "\n", argv);
-                remove argv;
-            };
-        };
         hash<auto> opts = {
             "url": "ws://localhost:" + port,
-            "log": log("INFO"),
-            "errlog": log("ERROR"),
-            "debuglog": log("DEBUG"),
+            "logger": logger,
         };
         WebSocketClient wsc(cb, opts);
         wsc.connect({"hdr": {"Send-Data": 1}});
@@ -180,11 +172,6 @@ class WebSocketClientTest inherits QUnit::Test {
         conn = new WebSocketConnectionObject("test", "test", url, {"monitor": False});
         client = conn.get(False);
         assertEq(url, client.getUrl());
-    }
-
-    private log(string str) {
-        if (m_options.verbose > 2)
-            vprintf(str + "\n", argv);
     }
 }
 

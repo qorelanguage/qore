@@ -38,10 +38,9 @@
 %requires Util >= 1.0
 %requires(reexport) ConnectionProvider >= 1.4
 %requires(reexport) DataProvider
+%requires(reexport) Logger
 
-%requires Logger
-
-%try-module yaml >= 0.5
+%try-module yaml >= 0.7.3
 %define NoYaml
 %endtry
 
@@ -66,9 +65,9 @@ module WebSocketClient {
         # register the data provider application
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": WebSocketClient::AppName,
-            "display_name": "WebSocket Server",
-            "short_desc": "Generic WebSocket server",
-            "desc": "Generic WebSocket server",
+            "display_name": "WebSocket Messaging",
+            "short_desc": "Send and receive WebSocket messages",
+            "desc": "Send and receive WebSocket messages",
             "scheme": "ws",
             "logo": WebSocketsLogo,
             "logo_file_name": "generic-websockets-logo.svg",
@@ -164,6 +163,9 @@ c.waitForZero();
     @section websocketclient_relnotes WebSocketClient Module Release History
 
     @subsection wsc_v2_3 v2.3
+    - added the @ref WebSocketClient::WebSocketClientWithSerialization "WebSocketClientWithSerialization" class, added
+      support in the @ref WebSocketClient::WebSocketClient "WebSocketClient" class for tokens and a logger instead of
+      log closures / callbacks
     - added support for the data provider action catalog API
       (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
 
@@ -356,9 +358,6 @@ public class WebSocketClient inherits Logger::LoggerWrapper {
         code callback;
         code raw_callback;
         code pong_callback;
-        *code log;
-        *code errlog;
-        *code debuglog;
         timeout timeout_ms = DefaultTimeout;
         #! TID of the event thread
         int tid;
@@ -372,7 +371,7 @@ public class WebSocketClient inherits Logger::LoggerWrapper {
         static Sequence seq();
     }
 
-    #! creates the object and optionally sets logging targets
+    #! Creates the WebSocket client object from the arguments
     /** @par Example:
         @code{.py}
 sub event(*data msg) {
@@ -395,11 +394,7 @@ WebSocketClient ws(\event(), {
         @param cb the callback @ref closure "closure" or @ref call_reference "call reference" for received messages
         @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient constructor"
         plus the following keys:
-        - \c log: an optional @ref closure "closure" or @ref call_reference "call reference" for informational
-            logging
-        - \c errlog: an optional @ref closure "closure" or @ref call_reference "call reference" for error logging
-        - \c debuglog: an optional @ref closure "closure" or @ref call_reference "call reference" for logging
-            debugging/technical messages about the web socket connection
+        - \c logger: an optional @ref Logger::LoggerInterface "LoggerInterface" object for internal logging
         - \c raw_callback: an optional @ref closure "closure" or @ref call_reference "call reference" for
           receiving raw WebSocket messages before processing; takes a single <tt>hash&lt;WsMsgInfo&gt;</tt>
           argument and must return one of the following values: @ref WSClientRawCallbackReturnCodes
@@ -412,6 +407,8 @@ WebSocketClient ws(\event(), {
         @since
         - WebSocketClient 1.6 added the \c yield option
         - WebSocketClient 1.9.1 added the \c raw_callback option
+        - WebSocketClient 2.3 removed logging closures, added LoggerWrapper as a base class, added token option
+          support, added support for subclassing
     */
     constructor(code cb, hash<auto> opts) {
         constructorInit(opts);
@@ -480,7 +477,7 @@ ws.connect();
           server
         @param info a @ref reference_type "reference" to a hash which will be set to information about the call setup
 
-        @return a hash with information about the HTTP response from the webn socket server corresponding to the
+        @return a hash with information about the HTTP response from the web socket server corresponding to the
         return value of @ref Qore::Socket::readHTTPHeader()
 
         @throw WEBSOCKET-ERROR the option hash is missing either the 'url' or 'callback' keys or type error in the
@@ -489,8 +486,8 @@ ws.connect();
     hash<auto> connect(*hash<auto> opts, *reference<hash<auto>> info) {
         if (opts.hdr) {
             if (opts.hdr.typeCode() != NT_HASH) {
-                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::connect() 'hdr' key not assigned to a "
-                    "hash; type received: %y", opts.hdr.type());
+                raiseError("option hash to WebSocketClient::connect() 'hdr' key not assigned "
+                    "to a hash; type received: %y", opts.hdr.type());
             }
         }
 
@@ -539,7 +536,7 @@ ws.clearWarningQueue();
 
         @since %WebSocketClient 1.1
     */
-    nothing clearWarningQueue() {
+    clearWarningQueue() {
         hc.clearWarningQueue();
     }
 
@@ -549,23 +546,31 @@ ws.clearWarningQueue();
 ws.setWarningQueue(5000, 5000, queue, "socket-1");
         @endcode
 
-        @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
+        @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if
+        exceeded, a socket warning is placed on the warning queue with the following keys:
         - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
         - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
         - \c "us": an integer giving the number of microseconds for the operation
         - \c "timeout": an integer giving the warning threshold in microseconds
-        - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here
-        @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
+        - \c "arg": if any \c "arg" argument is passed to the
+          @ref setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash
+          here
+        @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket
+        warning is placed on the warning queue with the following keys:
         - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
         - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
         - \c "bytes": the amount of bytes sent
         - \c "us": an integer giving the number of microseconds for the operation
         - \c "bytes_sec": a float giving the transfer speed in bytes per second
         - \c "threshold": an integer giving the warning threshold in bytes per second
-        - \c "arg": if any \c "arg" argument is passed to the @ref setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash here
+        - \c "arg": if any \c "arg" argument is passed to the
+          @ref setWarningQueue() "WebSocketClient::setWarningQueue()" method, it will be included in the warning hash
+          here
         @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
-        @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
-        @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
+        @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to
+        identify the socket for example)
+        @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for
+        triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
 
         @throw QUEUE-ERROR the Queue passed has a maximum size set
         @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
@@ -574,7 +579,7 @@ ws.setWarningQueue(5000, 5000, queue, "socket-1");
 
         @since %WebSocketClient 1.1
     */
-    nothing setWarningQueue(int warning_ms, int warning_bs, Queue queue, auto arg, timeout min_ms = 1s) {
+    setWarningQueue(int warning_ms, int warning_bs, Queue queue, auto arg, timeout min_ms = 1s) {
         hc.setWarningQueue(warning_ms, warning_bs, queue, arg, min_ms);
     }
 
@@ -589,9 +594,12 @@ hash<auto> h = ws.getUsageInfo();
         - \c "bytes_recv": an integer giving the total amount of bytes received
         - \c "us_sent": an integer giving the total number of microseconds spent sending data
         - \c "us_recv": an integer giving the total number of microseconds spent receiving data
-        - \c "arg": (only if warning values have been set with @ref setWarningQueue() "WebSocketClient::setWarningQueue()") the optional argument for warning hashes
-        - \c "timeout": (only if warning values have been set with @ref setWarningQueue() "WebSocketClient::setWarningQueue()") the warning timeout in microseconds
-        - \c "min_throughput": (only if warning values have been set with @ref setWarningQueue() "WebSocketClient::setWarningQueue()") the minimum warning throughput in bytes/sec
+        - \c "arg": (only if warning values have been set with
+          @ref setWarningQueue() "WebSocketClient::setWarningQueue()") the optional argument for warning hashes
+        - \c "timeout": (only if warning values have been set with
+          @ref setWarningQueue() "WebSocketClient::setWarningQueue()") the warning timeout in microseconds
+        - \c "min_throughput": (only if warning values have been set with
+          @ref setWarningQueue() "WebSocketClient::setWarningQueue()") the minimum warning throughput in bytes/sec
 
         @since %WebSocketClient 1.1
 
@@ -650,44 +658,93 @@ ws.setEventQueue();
         hc.setEventQueue();
     }
 
+    #! Sends a \c PING message to the server as a unidirectional keep-alive message
+    /** @since WebSocketClient 2.0
+    */
+    ping(*data msg) {
+        logDebug("sending PING %y (open: %y connected: %y)", msg, hc.isOpen(), hc.isConnected());
+        hc.send2(ws_encode_message(msg ?? "", WSOP_Ping, True), timeout_ms);
+    }
+
+    #! Sends a \c PONG message to the server as a unidirectional keep-alive message
+    /** @since WebSocketClient 1.6.1
+    */
+    pong(*data msg) {
+        logDebug("sending PONG %y (open: %y connected: %y)", msg, hc.isOpen(), hc.isConnected());
+        hc.send2(ws_encode_message(msg ?? "", WSOP_Pong, True), timeout_ms);
+    }
+
+    #! Sends string data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
+    /**
+        @param str Sends the string data over the socket
+
+        @see Socket::send()
+    */
+    send(string str) {
+        logDebug("sending string: %y (open: %y connected: %y)", str, hc.isOpen(), hc.isConnected());
+        hc.send2(ws_encode_message(str, WSOP_Text, True), timeout_ms);
+    }
+
+    #! Sends binary data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
+    /**
+        @param bin Sends the binary data over the socket
+
+        @see Socket::send()
+    */
+    send(binary bin) {
+        logDebug("sending binary: %y (open: %y connected: %y)", bin, hc.isOpen(), hc.isConnected());
+        hc.send2(ws_encode_message(bin, WSOP_Binary, True), timeout_ms);
+    }
+
+    #! pushes an unencoded message on the connection's message queue
+    /** the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
+    */
+    send(data msg, int op, bool fin) {
+        logDebug("sending message: %y op: %d/%y fin: %y (%y %y)", fin, op, WSOPMap{op} ?? "unknown", fin, hc.isOpen(),
+            hc.isConnected());
+        hc.send2(ws_encode_message(msg, op, True, fin), timeout_ms);
+    }
+
+    #! Constructor for child classes with no callback
     private constructor(hash<auto> opts) {
         constructorInit(opts);
     }
 
     #! Common constructor code
     private constructorInit(hash<auto> opts) {
+        # set logger, if any
+        logger = remove opts.logger;
+
         # += to keep "http_opts" "hash<auto>"
         hash<auto> http_opts += opts;
-        if (http_opts.url.typeCode() != NT_STRING)
-            throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'url' key "
-                "giving the connection target");
-        url = http_opts.url;
+        url = getString(opts, "url", True);
 
         if (http_opts.hasKey("yield")) {
-            if (!http_opts.yield.callp())
-                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
-                    "'yield' key with type %y; must be a callable value", opts.yield.type());
+            if (!http_opts.yield.callp()) {
+                raiseError("option hash to WebSocketClient::constructor() has an invalid 'yield' key with type %y; "
+                    "must be a callable value", opts.yield.fullType());
+            }
             yield = http_opts.yield;
         }
 %ifdef PO_NO_PROCESS_CONTROL
-        else
-            throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() missing 'yield' key "
-                "giving the thread yield closure/call reference which is required when PO_NO_PROCESS_CONTROL is "
-                "in effect");
+        else {
+            raiseError("option hash to WebSocketClient::constructor() missing 'yield' key giving the thread yield "
+                "closure/call reference which is required when PO_NO_PROCESS_CONTROL is in effect");
+        }
 %endif
 
         if (http_opts.hasKey("raw_callback")) {
             if (!http_opts.raw_callback.callp()) {
-                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
-                    "'raw_callback' key with type %y; must be a callable value", opts.raw_callback.type());
+                raiseError("option hash to WebSocketClient::constructor() has an invalid 'raw_callback' key with "
+                    "type %y; must be a callable value", opts.raw_callback.type());
             }
             raw_callback = http_opts.raw_callback;
         }
 
         if (http_opts.hasKey("pong_callback")) {
             if (!http_opts.pong_callback.callp()) {
-                throw "WEBSOCKET-ERROR", sprintf("option hash to WebSocketClient::constructor() has an invalid "
-                    "'pong_callback' key with type %y; must be a callable value", opts.pong_callback.type());
+                raiseError("option hash to WebSocketClient::constructor() has an invalid 'pong_callback' key with "
+                    "type %y; must be a callable value", opts.pong_callback.type());
             }
             pong_callback = http_opts.pong_callback;
         }
@@ -697,8 +754,7 @@ ws.setEventQueue();
             hash<auto> sh = getSchemes();
             *hash<auto> ph = sh{uh.protocol};
             if (!ph) {
-                throw "WEBSOCKET-ERROR", sprintf("schema %y is unknown in %y; known schemes: %y", uh.protocol,
-                    http_opts.url, sh.keys());
+                raiseError("schema %y is unknown in %y; known schemes: %y", uh.protocol, http_opts.url, sh.keys());
             }
             # replace websocket scheme with an http scheme
             splice http_opts.url, 0, uh.protocol.size(), "http" + (ph.ssl ? "s" : "");
@@ -718,9 +774,6 @@ ws.setEventQueue();
         remove http_opts.token_type;
 
         hc = new HTTPClient(http_opts);
-        log = http_opts.log;
-        errlog = http_opts.errlog;
-        debuglog = http_opts.debuglog;
     }
 
     private disconnectUnlocked(int cmd = WSCC_GoingAway) {
@@ -739,7 +792,7 @@ ws.setEventQueue();
         if (callback) {
             callback(buf);
         } else {
-            log("ignoring TEXT message: %y", buf);
+            logWarn("ignoring TEXT message: %y", buf);
         }
     }
 
@@ -748,7 +801,7 @@ ws.setEventQueue();
         if (callback) {
             callback(buf);
         } else {
-            log("ignoring BINARY message: %y", buf);
+            logWarn("ignoring BINARY message: %y", buf);
         }
     }
 
@@ -918,43 +971,26 @@ ws.setEventQueue();
         hc.send2(ws_encode_message(h.msg ?? "heartbeat", WSOP_Pong, True), timeout_ms);
     }
 
+    private logDebug(string fmt, ...) {
+        logArgs(LoggerLevel::DEBUG, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+    }
+
     private logInfo(string fmt, ...) {
-        if (log) {
-            string msg = vsprintf(fmt, argv);
-            try {
-                call_function(log, sprintf("WebSocketClient %s INFO: ", cid) + vsprintf(fmt, argv));
-            } catch (hash<ExceptionInfo> ex) {
-                printf("WARNING: cannot log: %y: %s: %s\n", msg, get_exception_string(ex));
-            }
-        }
+        logArgs(LoggerLevel::INFO, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+    }
+
+    private logWarn(string fmt, ...) {
+        logArgs(LoggerLevel::WARN, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
     }
 
     private logError(string fmt, ...) {
-        if (errlog) {
-            string msg = vsprintf(fmt, argv);
-            try {
-                call_function(errlog, sprintf("WebSocketClient %s ERROR: ", cid) + msg);
-            } catch (hash<ExceptionInfo> ex) {
-                printf("WARNING: cannot log error: %y: %s: %s\n", msg, get_exception_string(ex));
-            }
-        }
-    }
-
-    private logDebug(string fmt, ...) {
-        if (debuglog) {
-            string msg = vsprintf(fmt, argv);
-            try {
-                call_function(debuglog, sprintf("WebSocketClient %s DEBUG:", cid) + vsprintf(fmt, argv));
-            } catch (hash<ExceptionInfo> ex) {
-                printf("WARNING: cannot log debug: %y: %s: %s\n", msg, get_exception_string(ex));
-            }
-        }
+        logArgs(LoggerLevel::ERROR, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
     }
 
     private sendClose(int code, *string txtmsg) {
         if (!WSCCMap{code}) {
             logError("WebSocketClient::sendClose(): invalid close code %d received; expecting one of: %y", code,
-                (map $1.toInt(), WSCCMap.keyIterator()));
+                (map $1.toInt(), keys WSCCMap));
             code = WSCC_InternalServerError;
         }
 
@@ -1002,20 +1038,20 @@ ws.setEventQueue();
         }
 
         if (rh.status_code != 101) {
-            throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned status code '%d %s' to our request; "
+            raiseError("HTTP server at URL %y returned status code '%d %s' to our request; "
                 "expecting '101 Switching Protocols'",
                 hc.getURL(), rh.status_code, rh.status_message);
         }
 
         if (!rh."sec-websocket-accept") {
-            throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y did not return the Sec-WebSocket-Accept response "
+            raiseError("HTTP server at URL %y did not return the Sec-WebSocket-Accept response "
                 "header (headers returned: %y)", hc.getURL(), rh);
         }
 
         {
             string expected_key = ws_get_response_key(key);
             if (rh."sec-websocket-accept" != expected_key) {
-                throw "WEBSOCKET-ERROR", sprintf("HTTP server at URL %y returned an invalid value in the "
+                raiseError("HTTP server at URL %y returned an invalid value in the "
                     "Sec-WebSocket-Accept response header: %y; expecting %y", hc.getURL(), rh."sec-websocket-accept",
                     expected_key);
             }
@@ -1028,67 +1064,200 @@ ws.setEventQueue();
         return rh;
     }
 
-    #! Sends a \c PING message to the server as a unidirectional keep-alive message
-    /** @since WebSocketClient 2.0
-    */
-    ping(*data msg) {
-        logDebug("sending PING %y (open: %y connected: %y)", msg, hc.isOpen(), hc.isConnected());
-        hc.send2(ws_encode_message(msg ?? "", WSOP_Ping, True), timeout_ms);
+    #! throws an exception due to an error
+    private raiseError(string fmt, ...) {
+        throw "WEBSOCKET-ERROR", vsprintf(fmt, argv);
     }
 
-    #! Sends a \c PONG message to the server as a unidirectional keep-alive message
-    /** @since WebSocketClient 1.6.1
+    #! gets a string option
+    private *string getString(hash<auto> opts, string key, *bool required, *string default_value) {
+        auto v = opts{key};
+        if (required && (!exists v || v == "")) {
+            if (default_value.val()) {
+                return default_value;
+            }
+            raiseError("missing required option %y in option argument; got: %y", key, v);
+        }
+        if (v.typeCode() != NT_STRING) {
+            raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key, v.fullType(), v);
+        }
+        return v;
+    }
+}
+
+#! WebSocket client with data serialization support
+public class WebSocketClientWithSerialization inherits WebSocketClient, DataProvider::DelayedObservable {
+    public {
+        #! Data serialization support
+        const DataSerializationSupport = {
+%ifndef NoJson
+            "json": True,
+%endif
+            "none": True,
+%ifndef NoYaml
+            "yaml": True,
+%endif
+        };
+    }
+
+    private {
+        #! data serialization option: none, json, or yaml
+        string serialization;
+    }
+
+    #! Creates the WebSocket client object from the arguments
+    /** @par Example:
+        @code{.py}
+WebSocketClientWithSerialization ws({
+    "url": "ws://example.com:8080/path",
+});
+MyObserver observer();
+prov.registerObserver(observer);
+ws.observersReady();
+
+class MyObserver inherits Observer {
+    update(string event_id, hash<auto> data_) {
+        printf("event %y: %y\n", event_id, data_);
+    }
+}
+        @endcode
+
+        @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient constructor"
+        plus the following keys:
+        - \c logger: an optional @ref Logger::LoggerInterface "LoggerInterface" object for internal logging
+        - \c raw_callback: an optional @ref closure "closure" or @ref call_reference "call reference" for
+          receiving raw WebSocket messages before processing; takes a single <tt>hash&lt;WsMsgInfo&gt;</tt>
+          argument and must return one of the following values: @ref WSClientRawCallbackReturnCodes
+        - \c yield: an options @ref closure "closure" or @ref call_reference "call reference" for yielding the
+            current thread's execution to another thread (default value: @ref Qore::Threads::thread_yield());
+            required if @ref Qore::PO_NO_PROCESS_CONTROL is set in the current execution context
+
+        @throw WEBSOCKET-ERROR unknown scheme, missing 'url' key in option hash; invalid option value
+
+        @since
+        - WebSocketClient 2.3
     */
-    pong(*data msg) {
-        logDebug("sending PONG %y (open: %y connected: %y)", msg, hc.isOpen(), hc.isConnected());
-        hc.send2(ws_encode_message(msg ?? "", WSOP_Pong, True), timeout_ms);
+    constructor(hash<auto> opts) : WebSocketClient(opts - "data") {
+        # set serialization option, if any
+        serialization = getString(opts, "data", True, "none");
+        if (!DataSerializationSupport{serialization}) {
+            unsupportedSerialization();
+        }
+    }
+
+    #! Called when all observers have been added to the object
+    /** This method is meant to trigger event generation
+    */
+    observersReady() {
+        start();
     }
 
     #! Sends string data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
     /**
-        @param str Sends the string data over the socket
-
-        @see Socket::send()
+        @param value The value to serialize and send over the WebSocket
     */
-    send(string str) {
-        logDebug("sending string: %y (open: %y connected: %y)", str, hc.isOpen(), hc.isConnected());
-        hc.send2(ws_encode_message(str, WSOP_Text, True), timeout_ms);
+    sendData(auto value) {
+        send(serializeData(value));
     }
 
-    #! Sends binary data over the web socket with timeout specified in options; if any errors occur, an exception is thrown
-    /**
-        @param bin Sends the binary data over the socket
-
-        @see Socket::send()
-    */
-    send(binary bin) {
-        logDebug("sending binary: %y (open: %y connected: %y)", bin, hc.isOpen(), hc.isConnected());
-        hc.send2(ws_encode_message(bin, WSOP_Binary, True), timeout_ms);
+    #! Returns the data serialization value (\c "none", \c "json", or \c "yaml")
+    string getSerialization() {
+        return serialization;
     }
 
-    #! pushes an unencoded message on the connection's message queue
-    /** the message will be encoded with @ref WebSocketUtil::ws_encode_message() before sending
-    */
-    send(data msg, int op, bool fin) {
-        logDebug("sending message: %y op: %d/%y fin: %y (%y %y)", fin, op, WSOPMap{op} ?? "unknown", fin, hc.isOpen(),
-            hc.isConnected());
-        hc.send2(ws_encode_message(msg, op, True, fin), timeout_ms);
+    #! Connects and starts receiving messages
+    private start() {
+        hash<auto> info;
+        try {
+            connect(NOTHING, \info);
+        } catch (hash<ExceptionInfo> ex) {
+            logError("failed to connect to WebSocket server: %s", get_exception_string(ex));
+            rethrow;
+        }
+    }
+
+    #! Handles processed messages
+    private handleEvent(string buf) {
+        auto msgdata;
+        try {
+            msgdata = deserializeData(buf);
+        } catch (hash<ExceptionInfo> ex) {
+            logError("error handling WebSocket event data message: %s", get_exception_string(ex));
+            return;
+        }
+        notifyObservers(EVENT_WS_DATA, {"data": msgdata});
+    }
+
+    #! Handles processed messages
+    private handleEvent(binary buf) {
+        logWarn("ignoring binary WebSocket event data message: %y", buf);
+    }
+
+    #! Got a pong message
+    private receivedPong(*data msg) {
+        notifyObservers(EVENT_WS_PONG, {"data": msg});
+    }
+
+    #! Called when the connection is closed
+    private closingConnection() {
+        notifyObservers(EVENT_WS_CLOSED, {});
+    }
+
+    #! Serializes data for sending
+    private data serializeData(auto value) {
+        switch (serialization) {
+%ifndef NoJson
+            case "json":
+                return make_json(value);
+%endif
+%ifndef NoYaml
+            case "yaml":
+                return make_yaml(value);
+%endif
+            case "none":
+                switch (value.typeCode()) {
+                    case NT_STRING:
+                    case NT_BINARY:
+                        break;
+                    default:
+                        raiseError("serialization is %y; cannot send data of type %y without serialization",
+                            serialization, value.fullType());
+                }
+                return value;
+        }
+        unsupportedSerialization();
+    }
+
+    #! Deserializes data received
+    private auto deserializeData(string buf) {
+        switch (serialization) {
+%ifndef NoJson
+            case "json":
+                return parse_json(buf);
+%endif
+%ifndef NoYaml
+            case "yaml":
+                return parse_yaml(buf);
+%endif
+            case "none":
+                return buf;
+        }
+        unsupportedSerialization();
+    }
+
+    #! Throws an UNSUPPORTED-SERIALIZATION error
+    private unsupportedSerialization() {
+        throw "UNSUPPORTED-SERIALIZATION", sprintf("unsupported data serialization value %y; known serialization "
+            "values: %y", serialization, keys DataSerializationSupport);
     }
 }
 
-#! class for websocket connections; returns an object of class @ref WebSocketClient for receiving websocket events from a websocket server
-/** supports the following options:
-    - \c "connect_timeout": connection timeout to use in milliseconds
-    - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
-    - \c "max_redirects": maximum redirects to support
-    - \c "proxy": proxy URL to use
-    - \c "timeout": transfer timeout to use in milliseconds
+#! class for websocket connections
+/** Returns an object of class @ref WebSocketClient for receiving websocket events from a websocket server; supports
+    all @ref ConnectionProvider::HttpConnection "HttpConnection" options.
 
-    also supports the following runtime options in getImpl():
-    - \c "callback": (required) a callback to receive websocket events
-    - \c "dbglog": a closure taking a single string for detailed technical connection logging
-    - \c "errlog": a closure accepting a single string for error logging
-    - \c "log": a closure accepting a single string for logging
+    Also supports the following runtime options in getImpl():
+    - \c "logger": a @ref Logger::LoggerInterface "LoggerInterface" object for internal logging
     - \c "yield": a closure to yield current thread execution
 */
 public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConnectionWithInfo {
@@ -1097,6 +1266,29 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("WebSocketConnectionObject"),
             "options": HttpConnection::ConnectionScheme.options + {
+                "data": <ConnectionOptionInfo>{
+                    "type": "string",
+                    "desc": "Data serialization options",
+                    "allowed_values": (
+%ifndef NoJson
+                        <AllowedValueInfo>{
+                            "value": "json",
+                            "desc": "use JSON serialization",
+                        },
+%endif
+                        <AllowedValueInfo>{
+                            "value": "none",
+                            "desc": "no serialization is used",
+                        },
+%ifndef NoYaml
+                        <AllowedValueInfo>{
+                            "value": "yaml",
+                            "desc": "use only YAML serialization",
+                        },
+%endif
+                    ),
+                    "default_value": "none",
+                },
                 "token": <ConnectionOptionInfo>{
                     "type": "string",
                     "desc": "Any token to use for the initial HTTP request to authenticate with the server",
@@ -1115,7 +1307,7 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
     #! creates the WebSocketConnectionObject connection object
     /** @param name the name of the connection
         @param description connection description
-        @param url connection URL (potentially with password info)
+        @param url connection URL (potentially with username and password info for HTTP basic authentication)
         @param attributes various attributes. See below
         @param options connection options
 
@@ -1135,17 +1327,12 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
     #! returns runtime options
     /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl():
         - \c "callback": (required) a callback to receive websocket events
-        - \c "dbglog": a closure taking a single string for detailed technical connection logging
-        - \c "errlog": a closure accepting a single string for error logging
-        - \c "log": a closure accepting a single string for logging
+        - \c "logger": a @ref Logger::LoggerInterface "LoggerInterface" object for internal logging
         - \c "yield": a closure to yield current thread execution
     */
     *hash<auto> getRuntimeOptions() {
         return {
-            "callback": True,
-            "log": True,
-            "errlog": True,
-            "dbglog": True,
+            "logger": True,
             "yield": True,
         };
     }
@@ -1161,30 +1348,26 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
         };
     }
 
-    #! returns a @ref WebSocketClient object
+    #! returns a @ref WebSocketClientWithSerialization object
     /** @param connect if @ref True "True", then @ref WebSocketClient::connect() is called
         @param rtopts supports the following runtime options in getImpl():
         - \c "callback": (required) a callback to receive websocket events
-        - \c "dbglog": a closure taking a single string for detailed technical connection logging
-        - \c "errlog": a closure accepting a single string for error logging
-        - \c "log": a closure accepting a single string for logging
+        - \c "logger": a @ref Logger::LoggerInterface "LoggerInterface" object for internal logging
         - \c "yield": a closure to yield current thread execution
 
         @return a @ref WebSocketClient object
     */
-    private WebSocketClient getImpl(bool connect = True, *hash<auto> rtopts) {
+    private WebSocketClientWithSerialization getImpl(bool connect = True, *hash<auto> rtopts) {
         # to avoid type issues with rtopts
         if (rtopts) {
             rtopts = {} + rtopts;
         }
-        if (!rtopts.callback) {
-            rtopts.callback = sub (*data msg) {};
+        hash<auto> opts = {"url": url} + rtopts{"logger",} + self.opts;
+        if (!opts.logger && logger) {
+            opts.logger = logger;
         }
-        # rename "dbglog" to "debuglog" for WebSocketClient object
-        if (rtopts.dbglog) {
-            rtopts.debuglog = remove rtopts.dbglog;
-        }
-        WebSocketClient ws(rtopts.callback, {"url": url} + rtopts{"log", "errlog", "debuglog"} + opts);
+
+        WebSocketClientWithSerialization ws(opts);
         if (connect) {
             ws.connect();
         }
@@ -1271,6 +1454,10 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
                 "default_value": "1.1",
             },
+            "logger": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(new Type("Logger::LoggerInterface")),
+                "desc": "Any logger to use for information about data provider operations",
+            },
             "max_redirects": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "maximum redirects to support",
@@ -1313,25 +1500,11 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         const ApiClasses = {
             "wait-for-message": Class::forName("WebSocketClientWaitForMessageDataProvider"),
         };
-
-        #! Set of serialization options as a hash
-        const SerializationMap = (
-%ifndef NoJson
-            "json": True,
-%endif
-%ifndef NoYaml
-            "yaml": True,
-%endif
-            "none": True,
-        );
     }
 
     private {
         #! The web socket client itself
-        WebSocketClient client;
-
-        #! Data serialization
-        string serialization;
+        WebSocketClientWithSerialization client;
 
         #! report pings
         bool report_pings;
@@ -1342,48 +1515,18 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         #! Wait for message API data provider
         WebSocketClientWaitForMessageDataProvider child;
 
-        #! Child message queue
-        Queue q;
+        #! Queued observer
+        QueuedObserver queued_observer;
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
-
-        serialization = remove copts."data" ??
-%ifndef NoJson
-            "json"
-%else
-            "none"
-%endif
-            ;
-
         report_pings = remove copts.report_pings;
-
-        if (!SerializationMap{serialization}) {
-            throw "CONSTRUCTOR-ERROR", sprintf("invalid data serialization %y; known serialization values: %y",
-                serialization, keys SerializationMap);
-        }
-
         copts += {
-            "log": sub (string msg) {
-                if (logger) {
-                    logger.info("%s", msg);
-                }
-            },
-            "errlog": sub (string msg) {
-                if (logger) {
-                    logger.error("%s", msg);
-                }
-            },
-            "dbglog": sub (string msg) {
-                if (logger) {
-                    logger.debug("%s", msg);
-                }
-            },
-            "pong_callback": \pong(),
+            "logger": logger,
         };
-        client = new WebSocketClient(\event(), copts);
+        client = new WebSocketClientWithSerialization(copts);
     }
 
     destructor() {
@@ -1394,6 +1537,12 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         return "wsclient";
     }
 
+    #! Accepts a LoggerInterface object for logging (or clears it)
+    setLogger(*LoggerInterface logger) {
+        client.setLogger(logger);
+        LoggerWrapper::setLogger(logger);
+    }
+
     #! Regstiger a child data provider
     register(WebSocketClientWaitForMessageDataProvider child) {
         AutoLock al(m);
@@ -1402,19 +1551,41 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 "only one child data provider to wait on messages can exist at a time for a single connection";
         }
         self.child = child;
-        q = new Queue();
+        queued_observer = new QueuedObserver();
+        client.registerObserver(queued_observer);
     }
 
     #! Dergister a child data provider
     deregister() {
         AutoLock al(m);
         remove child;
-        delete q;
+        delete queued_observer;
     }
 
     #! Returs the child message queue
     Queue getQueue() {
-        return q;
+        return queued_observer.getQueue();
+    }
+
+    #! The method registers the given observer
+    registerObserver(object observer) {
+        client.registerObserver(observer);
+    }
+
+    #! The method deregisters the given observer
+    /** @param observer the observer to be deregistered
+
+        @return True if found otherwise False
+    */
+    bool deregisterObserver(object observer) {
+        return client.deregisterObserver(observer);
+    }
+
+    #! Called when all observers have been added to the object
+    /** This method is meant to trigger event generation
+    */
+    observersReady() {
+        client.observersReady();
     }
 
     #! Returns a list of child data provider names
@@ -1436,12 +1607,6 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         if (cls) {
             return cls.newObject(self);
         }
-    }
-
-    #! Connects and starts receiving messages
-    private start() {
-        hash<auto> info;
-        client.connect(NOTHING, \info);
     }
 
     #! Returns a hash of all supported event types
@@ -1479,7 +1644,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         return {
             MESSAGE_WS_DATA: <DataProviderMessageInfo>{
                 "desc": "An outgoing WebSocket message that will be serialized according to the serialization option",
-                "type": serialization == "none"
+                "type": client.getSerialization() == "none"
                     ? AbstractDataProviderTypeMap."data"
                     : AbstractDataProviderTypeMap."any",
             },
@@ -1507,7 +1672,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         try {
             switch (message_id) {
                 case MESSAGE_WS_DATA:
-                    client.send(serializeMessage(msg));
+                    client.sendData(msg);
                     break;
 
                 case MESSAGE_WS_RAW:
@@ -1533,96 +1698,6 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         }
     }
 
-    #! Called when a WebSocket event arrives
-    private event(*data msg) {
-        try {
-            if (exists msg) {
-                auto msgdata = deserializeMessage(msg);
-                if (q) {
-                    q.push(msgdata);
-                    #logger.debug("pushed event: %y q: %y", msg, q);
-                } else {
-                    notifyObservers(EVENT_WS_DATA, {"data": msgdata});
-                }
-            } else {
-                notifyObservers(EVENT_WS_CLOSED, {});
-            }
-        } catch (hash<ExceptionInfo> ex) {
-            if (logger) {
-                logger.error("error handling WebSocket %s message: %s", exists msg ? "event" : "close",
-                    get_exception_string(ex));
-            }
-        }
-    }
-
-    #! Got a pong message
-    private pong(*data msg) {
-        notifyObservers(EVENT_WS_PONG, {"data": msg});
-    }
-
-    #! Deserializes the message
-    auto deserializeMessage(data msg) {
-        switch (serialization) {
-            case "none":
-                return msg;
-
-            case "json":
-                if (msg.typeCode() != NT_STRING) {
-                    throw "WEBSOCKETCLIENT-JSON-ERROR", sprintf("cannot deserialize JSON in WebSocket event from %y "
-                        "value", msg.fullType());
-                }
-%ifndef NoJson
-                on_error rethrow $1.err, sprintf("%s (JSON: %y)", $1.desc, msg);
-                return parse_json(msg);
-%else
-                unsupportedSerialization();
-%endif
-
-            case "yaml":
-                if (msg.typeCode() != NT_STRING) {
-                    throw "WEBSOCKETCLIENT-YAML-ERROR", sprintf("cannot deserialize YAML in WebSocket event from %y "
-                        "value", msg.fullType());
-                }
-%ifndef NoYaml
-                on_error rethrow $1.err, sprintf("%s (YAML: %y)", $1.desc, msg);
-                return parse_yaml(msg);
-%else
-                unsupportedSerialization();
-%endif
-
-            default:
-                unsupportedSerialization();
-        }
-    }
-
-    #! Serializes the message for sending
-    data serializeMessage(auto msg) {
-        switch (serialization) {
-            case "none":
-                if (msg.typeCode() != NT_STRING && msg.typeCode() != NT_BINARY) {
-                    throw "WEBSOCKETCLIENT-ERROR", sprintf("cannot send raw message of type %y", msg.fullType());
-                }
-                return msg;
-
-            case "json":
-%ifndef NoJson
-                return make_json(msg);
-%else
-                unsupportedSerialization();
-%endif
-
-            case "yaml":
-%ifndef NoYaml
-                return make_yaml(msg);
-%else
-                unsupportedSerialization();
-%endif
-
-            default:
-                unsupportedSerialization();
-        }
-    }
-
     #! Returns options from a template
     static hash<auto> getOptionsFromTemplate(hash<auto> template_options, *hash<auto> options) {
         if (exists options && template_options.url) {
@@ -1632,15 +1707,6 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         }
         return template_options + options;
     }
-
-    #! Throws an UNSUPPORTED-SERIALIZATION error
-    private unsupportedSerialization() {
-        throw "UNSUPPORTED-SERIALIZATION", sprintf("unsupported data serialization value %y; known serialization "
-            "values: %y", serialization, keys SerializationMap);
-    }
-
-    #! For WS event notifications
-    abstract notifyObservers(string msg_id, hash<auto> event);
 }
 
 #! Event-based data provider for WebSocket messaging
@@ -1658,7 +1724,7 @@ public class WebSocketClientDataProvider inherits WebSocketClientDataProviderBas
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) : WebSocketClientDataProviderBase(options) {
-        start();
+        client.observersReady();
     }
 
     #! Creates the object from constructor + template options
@@ -1666,7 +1732,7 @@ public class WebSocketClientDataProvider inherits WebSocketClientDataProviderBas
             : WebSocketClientDataProviderBase(
                 WebSocketClientDataProviderBase::getOptionsFromTemplate(template_options, options)
             ) {
-        start();
+        client.observersReady();
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {
@@ -1701,13 +1767,6 @@ public class WebSocketClientDelayedDataProvider inherits WebSocketClientDataProv
             : WebSocketClientDataProviderBase(
                 WebSocketClientDataProviderBase::getOptionsFromTemplate(template_options, options)
             ) {
-    }
-
-    #! Called when all observers have been added to the object
-    /** This method is meant to trigger event generation
-    */
-    observersReady() {
-        start();
     }
 
     private hash<DataProviderInfo> getStaticInfoImpl() {
@@ -1899,4 +1958,19 @@ const WebSocketsLogo = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no
         <image id=\"_Image1\" width=\"33px\" height=\"77px\" xlink:href=\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAABNCAYAAAAo0g1OAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAWUlEQVRoge3OMRHAMAwAMbf8ObvTXyEkg4RAz+7uHPaeDsxI/CQiEYlIRCISkYhEJCIRiUhEIhKRiEQkIhGJSEQiEpGIRCQiEYlIRCISkYhEJCIRiUjkisQHlFkElhVBWMoAAAAASUVORK5CYII=\"/>
     </defs>
 </svg>";
+
+class QueuedObserver inherits DataProvider::Observer {
+    private {
+        Queue q();
+    }
+
+    Queue getQueue() {
+        return q;
+    }
+
+    #! This method is called when an event is raised
+    update(string event_id, hash<auto> data_) {
+        q.push(data_."data");
+    }
+}
 }

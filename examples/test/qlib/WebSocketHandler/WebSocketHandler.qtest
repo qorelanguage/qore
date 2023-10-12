@@ -78,22 +78,8 @@ class MyWsHandler inherits WebSocketHandler {
     }
 
     logError(string fmt) {
-        if (debug) {
-            vprintf("SERVER ERROR " + fmt + "\n", argv);
-        }
         errs.push(vsprintf(fmt, argv));
-    }
-
-    logInfo(string fmt) {
-        if (debug) {
-            vprintf("SERVER INFO " + fmt + "\n", argv);
-        }
-    }
-
-    logDebug(string fmt) {
-        if (debug) {
-            vprintf("SERVER DEBUG " + fmt + "\n", argv);
-        }
+        logArgs(LoggerLevel::ERROR, fmt, argv);
     }
 }
 
@@ -118,17 +104,23 @@ class MyWsClient inherits WebSocketClient {
 class WebSocketHandlerTest inherits QUnit::Test {
     public {
         HttpServer mServer;
-        MyWsHandler wsHandler({"heartbeat": 1s, "heartbeat_msg": "test"});
+        MyWsHandler wsHandler;
+        Logger logger;
         int port;
     }
 
     constructor() : Test("WebSocketHandlerTest", "1.0") {
         addTestCase("WebSocketHandler tests", \webSocketHandlerTests());
 
-        Logger logger("test", LoggerLevel::getLevelInfo());
+        logger = new Logger("test", LoggerLevel::getLevelInfo());
         if (m_options.verbose > 2) {
             logger.addAppender(new StdoutAppender());
         }
+        wsHandler = new MyWsHandler({
+            "heartbeat": 1s,
+            "heartbeat_msg": "test",
+            "logger": logger,
+        });
         hash<HttpServerOptionInfo> http_opts = <HttpServerOptionInfo>{
             "logger": logger,
             "debug": True,
@@ -194,18 +186,10 @@ class WebSocketHandlerTest inherits QUnit::Test {
                 raw_msgs += msg;
                 return WSC_Process;
             };
-            code log = code sub (string str) {
-                return sub (string fmt) {
-                    #vprintf("CLIENT " + str + ": " + fmt + "\n", argv);
-                    remove argv;
-                };
-            };
             MyWsClient wsc(callback, {
                 "url": "ws://localhost:" + port,
                 "raw_callback": raw_callback,
-                "log": log("INFO"),
-                "errlog": log("ERROR"),
-                "debuglog": log("DEBUG"),
+                "logger": logger,
             }, c);
             wsc.connect();
             assertTrue(wsc.isOpen());
