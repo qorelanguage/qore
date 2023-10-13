@@ -37,6 +37,7 @@ public class DataProvider {
             "csvwrite": "CsvUtil",
             "db": "DbDataProvider",
             "discord": "DiscordDataProvider",
+            "discordws": "DiscordDataProvider",
             "elasticsearch": "ElasticSearchDataProvider",
             "empathicbuilding": "EmpathicBuildingDataProvider",
             "file": "FileDataProvider",
@@ -416,12 +417,13 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{oracle:us
     }
 
     #! Tries to load a data provider from the environment from the connection name
-    static *AbstractDataProvider tryLoadProviderForConnectionFromEnv(string name) {
+    static *AbstractDataProvider tryLoadProviderForConnectionFromEnv(string name, *string subtype) {
         load_module("ConnectionProvider");
         load_module("DatasourceProvider");
         *object v = DataProvider::loadFromEnvironment("get_data_provider_map", "data provider", <SymbolInfo>{
             "type": "connection",
             "name": name,
+            "subtype": subtype,
         });
         if (v) {
             return cast<AbstractDataProvider>(v);
@@ -642,7 +644,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{oracle:us
             case "connection": {
                 try {
                     object conn = call_function("get_connection", info.name);
-                    return conn.getDataProvider();
+                    return info.subtype.val() ? conn.getDataProvider(info.subtype) : conn.getDataProvider();
                 } catch (hash<ExceptionInfo> ex) {
                     if (ex.err != "CONNECTION-ERROR") {
                         rethrow;
@@ -699,6 +701,8 @@ hashdecl SymbolInfo {
     string type;
     # symbol name
     string name;
+    # subtype, if any
+    *string subtype;
 }
 hashdecl FactoryInfo {
     # factory name

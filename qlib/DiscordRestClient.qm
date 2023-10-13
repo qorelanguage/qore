@@ -258,6 +258,23 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
             "required_options": "token|oauth2_auth_url,oauth2_grant_type,oauth2_token_url,"
                 "oauth2_client_id,oauth2_client_secret",
         };
+
+        #! Data provider subtypes supported
+        const DataProviderSubtypeMap = {
+            "discordws": {
+                "module": "DiscordDataProvider",
+                "class": "DiscordGatewayDataProvider",
+                "options": "ConstructorOptions",
+            },
+        };
+    }
+
+    private {
+        #! Data provider subtype info
+        static hash<string, *hash<string, hash<DataProviderOptionInfo>>> subtype_info;
+
+        #! Data provider subtype lock
+        static Mutex subtype_lck();
     }
 
     #! creates the DiscordRestConnection object
@@ -317,6 +334,60 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
                 "url": opts.url = DefaultConnectionUrl,
             });
             real_url = DiscordRestClient::DefaultUrl;
+        }
+    }
+
+    #! returns a data provider object for the connection and subtype passed as an argument
+    /** @param subtype the subtype of data provider supported, in case the connection can return multiple data
+        providers
+        @param constructor_options any additional constructor options required by the data provider
+
+        @return a data provider object for the connection and subtype passed as an argument
+
+        @throw DATA-PROVIDER-ERROR this object does not support the data provider API or the given subtype is not
+        valid
+    */
+    private AbstractDataProvider getDataProviderImpl(string subtype, *hash<auto> constructor_options) {
+        *hash<auto> conf = DataProviderSubtypeMap{subtype};
+        if (!conf) {
+            throw "DATA-PROVIDER-ERROR", sprintf("ftp connections do not support data provider subtype %y; supported "
+                "subtypes: %y", subtype, getDataProviderSubtypes());
+        }
+        checkSubtypeInfo();
+        hash<auto> opts = getSubtypeOptions(subtype_info{subtype}, constructor_options);
+        return create_object(conf."class", opts);
+    }
+
+    #! Returns a hash of supported data provider subtypes
+    /** @return a hash of supported data provider subtypes
+    */
+    private *hash<string, *hash<string, hash<DataProviderOptionInfo>>> getDataProviderSubtypesImpl() {
+        if (subtype_info) {
+            return subtype_info;
+        }
+        loadSubtypeInfo();
+        return subtype_info;
+    }
+
+    #! Verifies that subtype info has been loaded from external modules
+    private checkSubtypeInfo() {
+        if (!subtype_info) {
+            loadSubtypeInfo();
+        }
+    }
+
+    #! Loads subtype info from external modules
+    private loadSubtypeInfo() {
+        subtype_lck.lock();
+        on_exit subtype_lck.unlock();
+        # check again inside the lock
+        if (subtype_info) {
+            return;
+        }
+        foreach hash<auto> i in (DataProviderSubtypeMap.pairIterator()) {
+            load_module(i.value."module");
+            Class cls = Class::forName(i.value."option_class" ?? i.value."class");
+            subtype_info{i.key} = cls.getConstant(i.value."options").getValue();
         }
     }
 

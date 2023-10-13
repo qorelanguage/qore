@@ -138,9 +138,6 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
         @throw DATA-PROVIDER-ERROR this object does not support the data provider API or the given subtype is not
         valid
 
-        This base class method throws a \c DATA-PROVIDER-ERROR exception by default; to support the data provider
-        API, override this method in child classes
-
         @see
         - hasDataProvider()
         - getDataProviderSubtypes()

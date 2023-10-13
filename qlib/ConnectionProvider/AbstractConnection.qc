@@ -648,14 +648,16 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         # no subtypes supported by default in the base class
     }
 
-    #! Returns
+    #! Returns options for each data provider subtype
     /**
         @param constructor_options any additional constructor options required by the data provider
     */
     private *hash<auto> getSubtypeOptions(*hash<string, hash<DataProviderOptionInfo>> subtype_options,
             *hash<auto> constructor_options) {
         *hash<auto> opts = getRealOptions();
-        return map {$1: constructor_options{$1} ?? opts{$1}}, keys subtype_options;
+        return map {$1.key: $1.value},
+            (map {$1: constructor_options{$1} ?? opts{$1}}, keys subtype_options).pairIterator(),
+            exists $1.value;
     }
 
     #! performs the internal ping

@@ -35,6 +35,7 @@
 
 %requires(reexport) DataProvider
 %requires(reexport) DiscordRestClient
+%requires(reexport) DiscordWebSocketClient
 
 module DiscordDataProvider {
     version = "2.0";
@@ -43,8 +44,9 @@ module DiscordDataProvider {
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
-        # register the data provider factory
+        # register the data provider factories
         DataProvider::registerFactory(new DiscordDataProviderFactory());
+        DataProvider::registerFactory(new DiscordGatewayDataProviderFactory());
 
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": DiscordDataProvider::AppName,
@@ -57,19 +59,26 @@ module DiscordDataProvider {
             "logo_mime_type": MimeTypeSvg,
         });
 
-        /*
         # register all supported actions
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": DiscordDataProvider::AppName,
-            "path": "/",
-            "action": "quick-add-event",
-            "display_name": "Add Event From Text",
-            "short_desc": "Quickly add an event to a calendar from text",
-            "desc": "Quickly add an event to a calendar from text; ex: 'Lunch at the Burger Bar from 12:30-13:30 "
-                "tomorrow'",
+            "path": "/user-info",
+            "action": "user-info",
+            "display_name": "Get user info",
+            "short_desc": "Get info about the current user",
+            "desc": "Get info about the current user",
             "action_code": DPAT_API,
         });
-        */
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": DiscordDataProvider::AppName,
+            "path": "/guilds-by-name/{guild_name}/get",
+            "action": "guild-info",
+            "display_name": "Get guild info",
+            "short_desc": "Get info about a guild accessible to the user",
+            "desc": "Get info about a guild (Discord server) accessible to the user",
+            "action_code": DPAT_API,
+        });
     };
 }
 

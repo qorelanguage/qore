@@ -55,6 +55,7 @@ class QdpCmd {
             "listfactories": "f,list-factories",
             "listtypes": "t,list-types",
             "modules": "m,module=s@",
+            "subtype": "s,subtype=s",
             "verbose": "v,verbose:i+",
             "help": "h,help",
         };
@@ -709,7 +710,7 @@ class QdpCmd {
 
         # load providers from environment and try to load a connection
         try {
-            *AbstractDataProvider dp = DataProvider::tryLoadProviderForConnectionFromEnv(name);
+            *AbstractDataProvider dp = DataProvider::tryLoadProviderForConnectionFromEnv(name, opts.subtype);
             if (dp) {
                 return dp;
             }
@@ -847,6 +848,7 @@ class QdpCmd {
  -c,--list-connections     list known connections and exit
  -f,--list-factories       list known data provider factories and exit
  -m,--module=ARG           Data Provider modules to load manually
+ -s,--subtype=ARG          use Data Provider subtype when creating from a connection
  -t,--list-types           list known data provider types and exit
  -v,--verbose[=ARG]        show more output
  -h,--help                 this help text
