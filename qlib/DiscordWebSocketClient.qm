@@ -299,6 +299,9 @@ DiscordWebSocketClient ws();
 
     #! Handle a message by raising a data event
     private handleMessage(hash<auto> msg) {
+        if (msg.d) {
+            msg.d = convertData(msg.d);
+        }
         WebSocketClientWithSerialization::handleEventData(msg);
     }
 
@@ -424,6 +427,24 @@ DiscordWebSocketClient ws();
             url += sprintf("?v=%d&encoding=json", api);
         }
         return url;
+    }
+
+    private static auto convertData(auto v) {
+        return v;
+    }
+
+    private static auto convertData(string v) {
+        return v =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+/
+            ? date(v)
+            : v;
+    }
+
+    private static list<auto> convertData(list<auto> l) {
+        return map DiscordWebSocketClient::convertData($1), l;
+    }
+
+    private static hash<auto> convertData(hash<auto> h) {
+        return map {$1.key: DiscordWebSocketClient::convertData($1.value)}, h.pairIterator();
     }
 }
 
