@@ -365,6 +365,9 @@ public class WebSocketClient inherits Logger::LoggerWrapper {
         int cid = -1;
         #! callable object to yield the current thread's execution
         *code yield;
+        #! callable value to start a new thread; must take a callable object as a parameter and return an integer TID
+        *code start_thread;
+
         #! URL string
         string url;
 
@@ -502,7 +505,11 @@ ws.connect();
             remove tid;
             c.dec();
         }
-        tid = background eventLoop();
+%ifdef PO_NO_THREAD_CONTROL
+        tid = start_thread(\eventLoop());
+%else
+        tid = start_thread ? start_thread(\eventLoop()) : background eventLoop();
+%endif
         return h;
     }
 
@@ -722,12 +729,26 @@ ws.setEventQueue();
                 raiseError("option hash to WebSocketClient::constructor() has an invalid 'yield' key with type %y; "
                     "must be a callable value", opts.yield.fullType());
             }
-            yield = http_opts.yield;
+            yield = remove http_opts.yield;
         }
 %ifdef PO_NO_PROCESS_CONTROL
         else {
             raiseError("option hash to WebSocketClient::constructor() missing 'yield' key giving the thread yield "
                 "closure/call reference which is required when PO_NO_PROCESS_CONTROL is in effect");
+        }
+%endif
+
+        if (http_opts.hasKey("start_thread")) {
+            if (!http_opts.start_thread.callp()) {
+                raiseError("option hash to WebSocketClient::constructor() has an invalid 'start_thread' key with type %y; "
+                    "must be a callable value", opts.start_thread.fullType());
+            }
+            start_thread = remove http_opts.start_thread;
+        }
+%ifdef PO_NO_THREAD_CONTROL
+        else {
+            raiseError("option hash to WebSocketClient::constructor() missing 'start_thread' key giving the a "
+                "closure/call reference to start new threads which is required when PO_NO_THREAD_CONTROL is in effect");
         }
 %endif
 
@@ -843,9 +864,9 @@ ws.setEventQueue();
             try {
                 if (!hc.isDataAvailable(50ms)) {
 %ifdef PO_NO_PROCESS_CONTROL
-                    call_function(yield);
+                    yield();
 %else
-                    yield ? call_function(yield) : Qore::thread_yield();
+                    yield ? yield() : Qore::thread_yield();
 %endif
                     continue;
                 }
@@ -1259,6 +1280,8 @@ class MyObserver inherits Observer {
 
     Also supports the following runtime options in getImpl():
     - \c "logger": a @ref Logger::LoggerInterface "LoggerInterface" object for internal logging
+    - \c "start_thread": a closure to start a new thread (signature:
+      @verbatim int sub start_thread(code callable) {}@endverbatim)
     - \c "yield": a closure to yield current thread execution
 */
 public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConnectionWithInfo {
@@ -1327,13 +1350,15 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
 
     #! returns runtime options
     /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl():
-        - \c "callback": (required) a callback to receive websocket events
         - \c "logger": a @ref Logger::LoggerInterface "LoggerInterface" object for internal logging
+        - \c "start_thread": a closure to start a new thread (signature:
+          @verbatim int sub start_thread(code callable) {}@endverbatim)
         - \c "yield": a closure to yield current thread execution
     */
     *hash<auto> getRuntimeOptions() {
         return {
             "logger": True,
+            "start_thread": True,
             "yield": True,
         };
     }
@@ -1352,8 +1377,9 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
     #! returns a @ref WebSocketClientWithSerialization object
     /** @param connect if @ref True "True", then @ref WebSocketClient::connect() is called
         @param rtopts supports the following runtime options in getImpl():
-        - \c "callback": (required) a callback to receive websocket events
         - \c "logger": a @ref Logger::LoggerInterface "LoggerInterface" object for internal logging
+        - \c "start_thread": a closure to start a new thread (signature:
+          @verbatim int sub start_thread(code callable) {}@endverbatim)
         - \c "yield": a closure to yield current thread execution
 
         @return a @ref WebSocketClient object
@@ -1363,7 +1389,7 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
         if (rtopts) {
             rtopts = {} + rtopts;
         }
-        hash<auto> opts = {"url": url} + rtopts{"logger",} + self.opts;
+        hash<auto> opts = {"url": url} + rtopts{"logger", "yield", "start_thread"} + self.opts;
         if (!opts.logger && logger) {
             opts.logger = logger;
         }

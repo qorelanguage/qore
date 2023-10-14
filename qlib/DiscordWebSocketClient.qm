@@ -392,7 +392,11 @@ DiscordWebSocketClient ws();
             remove hb_tid;
             heartbeat_cnt.dec();
         }
-        hb_tid = background heartbeatThread();
+%ifdef PO_NO_THREAD_CONTROL
+        hb_tid = start_thread(\heartbeatThread());
+%else
+        hb_tid = start_thread ? start_thread(\heartbeatThread()) : background heartbeatThread();
+%endif
     }
 
     private stopHeartbeatThread() {

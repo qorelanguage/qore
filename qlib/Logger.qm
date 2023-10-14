@@ -3412,7 +3412,6 @@ public class Logger inherits LoggerInterface {
 
     private:internal logIntern(LoggerLevel level, string message, *list<auto> args, *hash<CallStackInfo> location,
             bool check_throwable, date time_stamp = now_us()) {
-
         #printf("lI: level: %y msg: %y args: %y loc: %y c: %y t: %y", level, message, args, location, check_throwable, time_stamp);
 
         if (isEnabledFor(level)) {

@@ -77,6 +77,9 @@ module DiscordDataProvider {
             "display_name": "Get guild info",
             "short_desc": "Get info about a guild accessible to the user",
             "desc": "Get info about a guild (Discord server) accessible to the user",
+            "path_vars": {
+                "guild_name": "The name of the guild (Discord server)",
+            },
             "action_code": DPAT_API,
         });
     };
