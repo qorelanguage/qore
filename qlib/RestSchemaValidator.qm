@@ -28,7 +28,7 @@
 %strict-args
 
 # make sure we have the required qore version
-%requires qore >= 1.0
+%requires qore >= 2.0
 
 # requires the HttpServerUtil module
 %requires(reexport) HttpServerUtil >= 0.3.12
@@ -55,7 +55,7 @@
 %endtry
 
 module RestSchemaValidator {
-    version = "2.2";
+    version = "2.2.1";
     desc = "RestSchemaValidator module providing an abstract REST schema validation API";
     author = "David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -75,6 +75,9 @@ module RestSchemaValidator {
     - @ref RestSchemaValidator::NullRestSchemaValidator "NullRestSchemaValidator"
 
     @section restschemavalidator_relnotes RestSchemaValidator Module Release Notes
+
+    @subsection restschemavalidator_2_2_1 RestSchemaValidator v2.2.1
+    - assume UTF-8 encoding for JSON and YAML payloads, as otherwise deserialization errors occur
 
     @subsection restschemavalidator_2_2 RestSchemaValidator v2.2
     - parse and report path arguments when processing REST requests on the server side
@@ -898,10 +901,10 @@ public namespace RestSchemaValidator {
         */
         private hash<RestResponseClientInfo> parseResponseImpl(string method, string path, int code,
                 *data response_body, hash<auto> hdr) {
-            hash<RestResponseClientInfo> rv((
+            hash<RestResponseClientInfo> rv({
                 "code": code,
                 "hdr": hdr,
-            ));
+            });
 
             if (response_body.val()) {
                 string ct = (hdr."content-type".typeCode() == NT_LIST
@@ -923,13 +926,21 @@ public namespace RestSchemaValidator {
                         "body type is %y", ct, response_body.type());
                 }
 
+                # for encoding if necessary for JSON and YAML for HTTP servers that do not set the character encoding
+                # (ex: the Discord API server)
+                if ((ct == MimeTypeJson || ct == MimeTypeYaml)
+                    && response_body.encoding() == "ISO-8859-1") {
+                    response_body = force_encoding(response_body, "UTF-8");
+                }
+
                 string ds_code = dh."code";
                 try {
                     rv.body = dh.arg
                         ? dh.in(response_body, \ds_code)
                         : dh.in(response_body);
                 } catch (hash<ExceptionInfo> ex) {
-                    rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s", ex.err, ex.desc);
+                    rethrow "DESERIALIZATION-ERROR", sprintf("%s: %s (response body encoding: %s Content-Type: %y)",
+                        ex.err, ex.desc, response_body.encoding(), ct);
                 }
 
                 rv.info."code" = ds_code;
