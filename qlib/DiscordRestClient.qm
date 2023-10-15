@@ -97,6 +97,52 @@ printf("%N\n", ans.body);
 
 #! the DiscordRestClient namespace contains all the objects in the DiscordRestClient module
 public namespace DiscordRestClient {
+
+/** @defgroup discord_channel_types Discord Channel Types
+*/
+#/@{
+#! a text channel within a server
+public const DCT_GUILD_TEXT = 0;
+
+#! a direct message between users
+public const DCT_DM = 1;
+
+#! a voice channel within a server
+public const DCT_GUILD_VOICE = 2;
+
+#! a direct message between multiple users
+public const DCT_GROUP_DM = 3;
+
+#! an organizational category that contains up to 50 channels
+public const DCT_GUILD_CATEGORY = 4;
+
+#! a channel that users can follow and crosspost into their own server (formerly news channels)
+public const DCT_GUILD_ANNOUNCEMENT = 5;
+
+#! a temporary sub-channel within a \c GUILD_ANNOUNCEMENT channel
+public const DCT_ANNOUNCEMENT_THREAD = 10;
+
+#! a temporary sub-channel within a \c GUILD_TEXT or \c GUILD_FORUM channel
+public const DCT_PUBLIC_THREAD = 11;
+
+#! a temporary sub-channel within a GUILD_TEXT channel
+/** Only viewable by those invited and those with the \c MANAGE_THREADS permission
+*/
+public const DCT_PRIVATE_THREAD = 12;
+
+#! a voice channel for hosting events with an audience
+public const DCT_GUILD_STAGE_VOICE = 13;
+
+#! the channel in a hub containing the listed servers
+public const DCT_GUILD_DIRECTORY = 14;
+
+#! Channel that can only contain threads
+public const DCT_GUILD_FORUM = 15;
+
+#! Channel that can only contain threads, similar to \c GUILD_FORUM channels
+public const DCT_GUILD_MEDIA = 16;
+#/@}
+
 #! this class provides the REST client API for communication with Discord servers
 /** You must use an OAuth2 token by setting the \c token and \c oauth2_refresh_token options; the following options
     need to be set as well:
@@ -185,7 +231,15 @@ DiscordRestClient rest(opts);
         @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
     */
     constructor(hash<auto> opts, *softbool do_not_connect)
-            : RestClient(DiscordRestClient::getOptions(opts), True) {
+            : RestClient(DiscordRestClient::getOptions(opts), False) {
+        setAssumedEncoding("UTF-8");
+        if (!do_not_connect) {
+            if (token) {
+                connect();
+            } else {
+                loginIntern();
+            }
+        }
     }
 
     #! returns options for @ref DiscordRestClient::DiscordRestClient::constructor()

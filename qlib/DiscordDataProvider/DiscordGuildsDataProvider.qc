@@ -28,7 +28,7 @@ public namespace DiscordDataProvider {
 public class DiscordGuildsDataProvider inherits DiscordDataProviderBase {
     public {
         #! Provider info
-        const ProviderInfo = <DataProviderInfo>{
+        static hash<DataProviderInfo> ProviderInfo = <DataProviderInfo>{
             "name": "guilds",
             "desc": "Discord guilds data provider; parent provider for REST APIs related to specific Discord "
                 "guilds",
@@ -39,7 +39,7 @@ public class DiscordGuildsDataProvider inherits DiscordDataProviderBase {
         };
 
         #! Provider summary info
-        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+        static hash<DataProviderSummaryInfo> ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
     }

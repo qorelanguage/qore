@@ -1,0 +1,118 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Mime.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/DiscordRestClient.qm
+%requires ../../../../qlib/WebSocketClient.qm
+%requires ../../../../qlib/DiscordWebSocketClient.qm
+%requires ../../../../qlib/DiscordDataProvider
+
+%try-module json >= 1.5
+%define NoJson
+%endtry
+
+%exec-class Main
+
+public class Main inherits QUnit::Test {
+    private {
+        DiscordDataProvider ddp;
+
+        # command-line options
+        const MyOpts = Opts + {
+            "conn": "c,connection=s",
+        };
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("DiscordDataProviderTest", "1.0", \ARGV, MyOpts) {
+        addTestCase("discord sanity tests", \discordSanityTests());
+        addTestCase("discord tests", \discordTests());
+
+        try {
+            setupConnection();
+        } catch (hash<ExceptionInfo> ex) {
+            if (m_options.verbose > 2) {
+                printf("%s\n", get_exception_string(ex));
+            } else if (m_options.verbose) {
+                printf("%s: %s\n", ex.err, ex.desc);
+            }
+        }
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    checkModule() {
+%ifdef NoJson
+        testSkip("no json module");
+%endif
+    }
+
+    discordSanityTests() {
+        checkModule();
+
+        DiscordDataProvider prov({
+            "oauth2_client_id": "x",
+            "oauth2_client_secret": "x",
+            "token": "x",
+        });
+        assertEq("discord", prov.getName());
+    }
+
+    discordTests() {
+        checkModule();
+        if (!ddp) {
+            testSkip("no connection to Discord");
+        }
+
+        AbstractDataProvider prov = ddp.getChildProvider("user-info");
+        hash<auto> info = prov.doRequest();
+        assertEq(Type::String, info.username.type());
+        assertEq(Type::String, info.id.type());
+        assertEq(Type::String, info.avatar.type());
+        assertEq(Type::String, info.global_name.type());
+
+        prov = ddp.getChildProvider("guilds");
+        string gid = prov.getChildProviderNames()[0];
+        prov = prov.getChildProvider(gid);
+        prov = prov.getChildProvider("get");
+        info = prov.doRequest();
+        assertEq(Type::String, info.id.type());
+        assertEq(Type::String, info.name.type());
+        assertEq(Type::String, info.icon.type());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--connection=ARG", "set connection name", OptionColumn);
+    }
+
+    private error(string fmt) {
+        throw "OPTION-ERROR", sprintf("%s: ERROR: %s", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    private setupConnection() {
+        *string conn_name = m_options.conn ?? ENV.DISCORD_CONNECTION;
+        if (!conn_name.val()) {
+            error("missing -c,--connection option or DISCORD_CONNECTION environment variable");
+        }
+
+        AbstractConnection conn = get_connection(conn_name);
+        if (!(conn instanceof DiscordRestConnection)) {
+            error("connection %y is type %y; expecting \"DiscordRestConnection\"", conn_name, conn.className());
+        }
+        ddp = conn.getDataProvider();
+    }
+}

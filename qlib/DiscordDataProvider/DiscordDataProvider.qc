@@ -31,7 +31,7 @@ public const AppName = "Discord";
 public class DiscordDataProvider inherits DiscordDataProviderBase {
     public {
         #! Provider info
-        const ProviderInfo = <DataProviderInfo>{
+        static hash<DataProviderInfo> ProviderInfo = <DataProviderInfo>{
             "type": "DiscordDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
@@ -94,7 +94,7 @@ public class DiscordDataProvider inherits DiscordDataProviderBase {
             rest = options.restclient;
         } else {
             if (!options.oauth2_client_id) {
-                throw "CONSTRUCTOR-ERROR", "no 'restclient' or 'ouath2_client_id' option passed; "
+                throw "CONSTRUCTOR-ERROR", "no 'restclient' or 'oauth2_client_id' option passed; "
                     "cannot create REST client to Discord instance without authentication information";
             }
             if (!options.oauth2_client_secret) {

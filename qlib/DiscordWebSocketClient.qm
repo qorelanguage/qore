@@ -339,6 +339,9 @@ DiscordWebSocketClient ws();
         disconnect();
 
         url = setupUrl(resume_gateway_url);
+        string http_url = url;
+        http_url =~ s/^ws/http/;
+        hc.setURL(http_url);
 
         # connect to the new gateway
         connect();

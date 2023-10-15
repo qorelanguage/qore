@@ -1518,8 +1518,13 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
             },
             "url": <DataProviderOptionInfo>{
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "A URL for a WebSocket connection",
-                "required": True,
+                "desc": "A URL for a WebSocket connection; either this or the `wsclient` option must be provided",
+            },
+            "wsclient": <DataProviderOptionInfo>{
+                "type": AbstractDataProviderType::get(new Type("WebSocketClientWithSerialization")),
+                "desc": "A WebSocketClientWithSerialization for the connection; either this or the `url` option must "
+                    "be provided; if this option is provided, then all other options except `report_pings` are "
+                    "ignored",
             },
         };
 
@@ -1550,10 +1555,17 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
     constructor(*hash<auto> options) {
         hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         report_pings = remove copts.report_pings;
-        copts += {
-            "logger": logger,
-        };
-        client = new WebSocketClientWithSerialization(copts);
+        if (copts.wsclient) {
+            client = copts.wsclient;
+            if (copts.logger) {
+                setLogger(copts.logger);
+            }
+        } else {
+            client = new WebSocketClientWithSerialization(copts);
+            if (copts.logger) {
+                LoggerWrapper::setLogger(logger);
+            }
+        }
     }
 
     destructor() {

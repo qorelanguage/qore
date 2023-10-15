@@ -28,7 +28,7 @@ public namespace DiscordDataProvider {
 public class DiscordUserInfoGetDataProvider inherits DiscordDataProviderBase {
     public {
         #! Provider info
-        const ProviderInfo = <DataProviderInfo>{
+        static hash<DataProviderInfo> ProviderInfo = <DataProviderInfo>{
             "name": "get",
             "desc": "Discord API for retrieving the current user",
             "type": "DiscordUserInfoGetDataProvider",
@@ -37,7 +37,7 @@ public class DiscordUserInfoGetDataProvider inherits DiscordDataProviderBase {
         };
 
         #! Provider summary info
-        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+        static hash<DataProviderSummaryInfo> ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
 

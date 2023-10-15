@@ -92,7 +92,7 @@ public class GoogleDataProvider inherits GoogleDataProviderBase {
             rest = options.restclient;
         } else {
             if (!options.oauth2_client_id) {
-                throw "CONSTRUCTOR-ERROR", "no 'restclient' or 'ouath2_client_id' option passed; "
+                throw "CONSTRUCTOR-ERROR", "no 'restclient' or 'oauth2_client_id' option passed; "
                     "cannot create REST client to Google instance without authentication information";
             }
             if (!options.oauth2_client_secret) {

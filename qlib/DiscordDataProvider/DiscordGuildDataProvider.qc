@@ -28,7 +28,7 @@ public namespace DiscordDataProvider {
 public class DiscordGuildDataProvider inherits DiscordDataProviderBase {
     public {
         #! Provider info
-        const ProviderInfo = <DataProviderInfo>{
+        static hash<DataProviderInfo> ProviderInfo = <DataProviderInfo>{
             "name": "guild",
             "desc": "Discord guild data provider; parent provider for APIs related to guilds",
             "type": "DiscordGuildDataProvider",
@@ -43,7 +43,7 @@ public class DiscordGuildDataProvider inherits DiscordDataProviderBase {
         };
 
         #! Provider summary info
-        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+        static hash<DataProviderSummaryInfo> ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
     }
@@ -120,6 +120,33 @@ public class DiscordGuildDataProvider inherits DiscordDataProviderBase {
         childMap{pathname} = cls;
 
         ImplicitModuleTransaction::add(sub () { DiscordGuildDataProvider::deregisterChild(pathname); });
+
+        hash<DataProviderSummaryInfo> info = cls.getConstant("ProviderSummaryInfo").getValue();
+        if ((info.children_can_support_observers || info.supports_observable)
+            && !ProviderInfo.children_can_support_observers) {
+            ProviderInfo.children_can_support_observers = True;
+            ProviderSummaryInfo.children_can_support_observers = True;
+
+            # update parents
+            DiscordGuildsDataProvider::ProviderInfo.children_can_support_observers = True;
+            DiscordGuildsByNameDataProvider::ProviderInfo.children_can_support_observers = True;
+
+            # update grandparent
+            DiscordDataProvider::ProviderInfo.children_can_support_observers = True;
+        }
+
+        if ((info.children_can_support_messages || info.supports_messages)
+            && !ProviderInfo.children_can_support_messages) {
+            ProviderInfo.children_can_support_messages = True;
+            ProviderSummaryInfo.children_can_support_messages = True;
+
+            # update parent
+            DiscordGuildsDataProvider::ProviderInfo.children_can_support_messages = True;
+            DiscordGuildsByNameDataProvider::ProviderInfo.children_can_support_observers = True;
+
+            # update grandparent
+            DiscordDataProvider::ProviderInfo.children_can_support_messages = True;
+        }
     }
 
     #! Deregister the named child data provider
