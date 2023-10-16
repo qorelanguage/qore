@@ -34,7 +34,7 @@
 # do not require "$" signs for vars, assume local variable scope
 %new-style
 
-%requires WebSocketUtil >= 1.0
+%requires(reexport) WebSocketUtil >= 1.0
 %requires Util >= 1.0
 %requires(reexport) ConnectionProvider >= 1.4
 %requires(reexport) DataProvider
@@ -168,6 +168,7 @@ c.waitForZero();
       log closures / callbacks
     - added support for the data provider action catalog API
       (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
+    - added support for protocol version 13
 
     @subsection wsc_v2_2 v2.2
     - fixed creating example WebSocket client data providers from factories with templated option values
@@ -348,6 +349,12 @@ public class WebSocketClient inherits Logger::LoggerWrapper {
 
         #! default user agent string for HTTP requests
         const DefaultUserAgent = sprintf("Qore-WebSocketClient/%s", WebSocketClient::Version);
+
+        #! support WebSocket protocol versions
+        const VersionMap = {
+            "8": True,
+            "13": True,
+        };
     }
 
     private {
@@ -368,10 +375,22 @@ public class WebSocketClient inherits Logger::LoggerWrapper {
         #! callable value to start a new thread; must take a callable object as a parameter and return an integer TID
         *code start_thread;
 
+        #! protocol version level (8 or 13)
+        softint ws_ver;
+
         #! URL string
         string url;
 
         static Sequence seq();
+
+        #! Event disposition code: continue processing event loop
+        const WSEDC_CONTINUE = 1;
+
+        #! Event disposition code: break event loop
+        const WSEDC_BREAK = 2;
+
+        #! Event disposition code: unknown opcode
+        const WSEDC_UNKNOWN_OPCODE = 3;
     }
 
     #! Creates the WebSocket client object from the arguments
@@ -720,6 +739,15 @@ ws.setEventQueue();
         # set logger, if any
         logger = remove opts.logger;
 
+        # set protocol version
+        if (opts.version) {
+            if (!VersionMap{opts.version}) {
+                raiseError("unsupported version %y passed; supported versions: %y", opts.version,
+                    map $1.toInt(), keys VersionMap);
+            }
+            ws_ver = remove opts.version;
+        }
+
         # += to keep "http_opts" "hash<auto>"
         hash<auto> http_opts += opts;
         url = getString(opts, "url", True);
@@ -880,78 +908,10 @@ ws.setEventQueue();
                         break;
                     }
                 }
-                if (h.op == WSOP_Close) {
-                    if (!h.close) {
-                        logDebug("server sent OpClose without code; closing immediately");
-                        break;
-                    }
-                    logDebug("client sent WSOP_Close code %d (%s): %s", h.close, WSCCMap.(h.close), h.msg);
-                    sendClose(h.close, h.msg);
-                    break;
-                }
-
-                if (h.op == WSCC_GoingAway) {
-                    logDebug("server sent WSOP_GoingAway; closing immediately");
-                    break;
-                }
-
-                logDebug("received msg (%s: %d bytes): %s", WSOPMap.(h.op) ?? sprintf("unknown opcode %y", h.op),
-                    h.msg.size(), h.msg ? sprintf("type: %s: %y", h.msg.type(), h.msg) : "n/a");
-
-                if (h.masked) {
-                    logError("unmasked client frame received");
-                    sendClose(WSCC_ProtocolError);
-                    break;
-                }
-
-                if (h.op == WSOP_Ping) {
-                    handlePing(h);
+                int disp = handleMessage(h, \buf);
+                if (disp == WSEDC_CONTINUE) {
                     continue;
-                }
-
-                # issue #4073: handle fragmented frames
-                if (!h.fin) {
-                    if (!exists buf) {
-                        if (h.op == WSOP_Text || h.op == WSOP_Binary) {
-                            buf = h.msg;
-                        } else {
-                            logError("FIN bit not set but opcode is %d: %y", h.op, WSOPMap{h.op} ?? "unknown");
-                            sendClose(WSCC_ProtocolError);
-                            break;
-                        }
-                    } else {
-                        if (h.op != WSOP_Continuation) {
-                            logError("FIN bit not set with buffer of type %y but opcode is %d: %y", buf.type(), h.op,
-                                WSOPMap{h.op} ?? "unknown");
-                            sendClose(WSCC_ProtocolError);
-                            break;
-                        } else {
-                            if (buf.typeCode() == NT_STRING) {
-                                buf += h.msg.toString();
-                            } else {
-                                buf += h.msg;
-                            }
-                        }
-                    }
-                    continue;
-                } else if (exists buf && h.op == WSOP_Continuation) {
-                    if (buf.typeCode() == NT_STRING) {
-                        buf += h.msg.toString();
-                    } else {
-                        buf += h.msg;
-                    }
-                    handleEvent(remove buf);
-                    continue;
-                } else if (h.op == WSOP_Text || h.op == WSOP_Binary) {
-                    handleEvent(h.msg);
-                    continue;
-                } else if (h.op == WSOP_Pong) {
-                    receivedPong(h.msg);
-                    continue;
-                } else if (h.op == WSOP_Continuation) {
-                    logError("FIN bit set with %d: %y opcode, but no data has been buffered", h.op,
-                        WSOPMap{h.op} ?? "unknown");
-                    sendClose(WSCC_ProtocolError);
+                } else if (disp == WSEDC_BREAK) {
                     break;
                 }
 
@@ -978,6 +938,86 @@ ws.setEventQueue();
             hc.close();
         }
         logDebug("disconnected websocket connection");
+    }
+
+    #! Handles WebSocket protocol messages
+    private int handleMessage(hash<WsMsgInfo> h, reference<data> buf) {
+        if (h.op == WSOP_Close) {
+            if (!h.close) {
+                logDebug("server sent OpClose without code; closing immediately");
+                return WSEDC_BREAK;
+            }
+            logDebug("client sent WSOP_Close code %d (%s): %s", h.close, WSCCMap{h.close}, h.msg);
+            sendClose(h.close, h.msg);
+            return WSEDC_BREAK;
+        }
+
+        if (h.op == WSCC_GoingAway) {
+            logDebug("server sent WSOP_GoingAway; closing immediately");
+            return WSEDC_BREAK;
+        }
+
+        logDebug("received msg (%s: %d bytes): %s", WSOPMap.(h.op) ?? sprintf("unknown opcode %y", h.op),
+            h.msg.size(), h.msg ? sprintf("type: %s: %y", h.msg.type(), h.msg) : "n/a");
+
+        if (h.masked) {
+            logError("unmasked client frame received");
+            sendClose(WSCC_ProtocolError);
+            return WSEDC_BREAK;
+        }
+
+        if (h.op == WSOP_Ping) {
+            handlePing(h);
+            return WSEDC_CONTINUE;
+        }
+
+        # issue #4073: handle fragmented frames
+        if (!h.fin) {
+            if (!exists buf) {
+                if (h.op == WSOP_Text || h.op == WSOP_Binary) {
+                    buf = h.msg;
+                } else {
+                    logError("FIN bit not set but opcode is %d: %y", h.op, WSOPMap{h.op} ?? "unknown");
+                    sendClose(WSCC_ProtocolError);
+                    return WSEDC_BREAK;
+                }
+            } else {
+                if (h.op != WSOP_Continuation) {
+                    logError("FIN bit not set with buffer of type %y but opcode is %d: %y", buf.type(), h.op,
+                        WSOPMap{h.op} ?? "unknown");
+                    sendClose(WSCC_ProtocolError);
+                    return WSEDC_BREAK;
+                } else {
+                    if (buf.typeCode() == NT_STRING) {
+                        buf += h.msg.toString();
+                    } else {
+                        buf += h.msg;
+                    }
+                }
+            }
+            return WSEDC_CONTINUE;
+        } else if (exists buf && h.op == WSOP_Continuation) {
+            if (buf.typeCode() == NT_STRING) {
+                buf += h.msg.toString();
+            } else {
+                buf += h.msg;
+            }
+            handleEvent(remove buf);
+            return WSEDC_CONTINUE;
+        } else if (h.op == WSOP_Text || h.op == WSOP_Binary) {
+            handleEvent(h.msg);
+            return WSEDC_CONTINUE;
+        } else if (h.op == WSOP_Pong) {
+            receivedPong(h.msg);
+            return WSEDC_CONTINUE;
+        } else if (h.op == WSOP_Continuation) {
+            logError("FIN bit set with %d: %y opcode, but no data has been buffered", h.op,
+                WSOPMap{h.op} ?? "unknown");
+            sendClose(WSCC_ProtocolError);
+            return WSEDC_BREAK;
+        }
+
+        return WSEDC_UNKNOWN_OPCODE;
     }
 
     private receivedPong(*data msg) {
@@ -1027,8 +1067,9 @@ ws.setEventQueue();
             hc.send2(ws_encode_message(msg, WSOP_Close, True), timeout_ms);
         } catch (hash<ExceptionInfo> ex) {
             # ignore SOCKET-NOT-OPEN errors when closing (server already closed the connection)
-            if (ex.err == "SOCKET-NOT-OPEN")
+            if (ex.err == "SOCKET-NOT-OPEN") {
                 return;
+            }
             rethrow;
         }
     }
@@ -1046,6 +1087,9 @@ ws.setEventQueue();
             # https://tools.ietf.org/html/rfc6455#section-4.1 specifies a 16-byte length for this random nonce
             "Sec-WebSocket-Key": key,
         };
+        if (ws_ver == 13) {
+            hdr."Sec-SebSocket-Version" = 13;
+        }
 
         hash<auto> rh;
         {
@@ -1323,6 +1367,20 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
                     "desc": "The type of `token` to use for the `Authentication` header; ignored if no `token` "
                         "option is set",
                     "default_value": "Bearer",
+                },
+                "version": <ConnectionOptionInfo>{
+                    "type": "int",
+                    "desc": "The WebSocket protocol version to use in the client",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": 8,
+                            "desc": "Version 8",
+                        },
+                        <AllowedValueInfo>{
+                            "value": 13,
+                            "desc": "Version 13",
+                        },
+                    ),
                 },
             },
         };

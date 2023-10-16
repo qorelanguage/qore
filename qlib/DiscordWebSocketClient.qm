@@ -84,6 +84,9 @@ module DiscordWebSocketClient {
 
 #! the DiscordWebSocketClient namespace contains all the objects in the DiscordWebSocketClient module
 public namespace DiscordWebSocketClient {
+/** @defgroup discord_intents Discord Intent Codes
+*/
+#/@{
 #! Discord intent: guilds
 public const DI_GUILDS  = 1 << 0;
 
@@ -140,6 +143,91 @@ public const DI_AUTO_MODERATION_CONFIGURATION = 1 << 20;
 
 #! Discord intent:
 public const DI_AUTO_MODERATION_EXECUTION = 1 << 21;
+#/@}
+
+/** @defgroup discord_close_codes Discord Close Event Codes
+*/
+#/@{
+#! We're not sure what went wrong. Try reconnecting?
+public const DCC_UNKNOWN_ERROR = 4000;
+
+#! You sent an invalid Gateway opcode or an invalid payload for an opcode. Don't do that!
+public const DCC_UNKNOWN_OPCODE = 4001;
+
+#! You sent an invalid payload to Discord. Don't do that!
+public const DCC_DECODE_ERROR = 4002;
+
+#! You sent us a payload prior to identifying
+public const DCC_NOT_AUTHENTICATED = 4003;
+
+#! The account token sent with your identify payload is incorrect
+public const DCC_AUTHENTICATION_FAILED = 4004;
+
+#! You sent more than one identify payload. Don't do that!
+public const DCC_ALREADY_AUTHENTICATED = 4005;
+
+#! The sequence sent when resuming the session was invalid. Reconnect and start a new session
+public const DCC_INVALID_SEQ = 4007;
+
+#! Woah nelly! You're sending payloads to us too quickly. Slow it down! You will be disconnected on receiving this
+public const DCC_RATE_LIMITED = 4008;
+
+#! Your session timed out. Reconnect and start a new one
+public const DCC_SESSION_TIMED_OUT = 4009;
+
+#! You sent us an invalid shard when identifying
+public const DCC_INVALID_SHARD = 4010;
+
+#! The session would have handled too many guilds - you are required to shard your connection in order to connect
+public const DCC_SHARDING_REQUIRED = 4011;
+
+#! You sent an invalid version for the gateway.
+public const DCC_INVALID_API = 4012;
+
+#! You sent an invalid intent for a Gateway Intent. You may have incorrectly calculated the bitwise value
+public const DCC_INVALID_INTENT = 4013;
+
+#! You sent a disallowed intent for a Gateway Intent
+/** You may have tried to specify an intent that you have not enabled or are not approved for
+*/
+public const DCC_DISALLOWED_INTENT = 4014;
+#/@}
+
+#! Maps Discord close codes to a reconnect hint
+public const CloseReconnectMap = {
+    DCC_UNKNOWN_ERROR: True,
+    DCC_UNKNOWN_OPCODE: True,
+    DCC_DECODE_ERROR: True,
+    DCC_NOT_AUTHENTICATED: True,
+    DCC_AUTHENTICATION_FAILED: False,
+    DCC_ALREADY_AUTHENTICATED: True,
+    DCC_INVALID_SEQ: True,
+    DCC_RATE_LIMITED: True,
+    DCC_SESSION_TIMED_OUT: True,
+    DCC_INVALID_SHARD: False,
+    DCC_SHARDING_REQUIRED: False,
+    DCC_INVALID_API: False,
+    DCC_INVALID_INTENT: False,
+    DCC_DISALLOWED_INTENT: False,
+};
+
+#! Maps Discord close codes to a short description string
+public const CloseDescMap = {
+    DCC_UNKNOWN_ERROR: "Unknown error",
+    DCC_UNKNOWN_OPCODE: "Unknown opcode",
+    DCC_DECODE_ERROR: "Decode error",
+    DCC_NOT_AUTHENTICATED: "Not authenticated",
+    DCC_AUTHENTICATION_FAILED: "Authentication failed",
+    DCC_ALREADY_AUTHENTICATED: "Already authenticated",
+    DCC_INVALID_SEQ: "Invalid seq",
+    DCC_RATE_LIMITED: "Rate limited",
+    DCC_SESSION_TIMED_OUT: "Session timed out",
+    DCC_INVALID_SHARD: "Invalid shard",
+    DCC_SHARDING_REQUIRED: "Sharing required",
+    DCC_INVALID_API: "Invalid API version",
+    DCC_INVALID_INTENT: "Invalid intent(s)",
+    DCC_DISALLOWED_INTENT: "Disallowed intent(s)",
+};
 
 #! The Discord WebSocket client class
 public class DiscordWebSocketClient inherits WebSocketClientWithSerialization {
@@ -276,6 +364,31 @@ DiscordWebSocketClient ws();
         return opts + DefaultOptions;
     }
 
+    #! Handles WebSocket protocol messages
+    private int handleMessage(hash<WsMsgInfo> h, reference<data> buf) {
+        if (h.op == WSOP_Close) {
+            if (!h.close) {
+                logDebug("server sent OpClose without code; closing immediately");
+                return WSEDC_BREAK;
+            }
+            # check for Discord close codes
+            bool reconnect = CloseReconnectMap{h.close} ?? False;
+            logDebug("client sent WSOP_Close code %d (%s): %s; reconnect: %y", h.close,
+                WSCCMap{h.close} ?? CloseDescMap{h.close}, h.msg, reconnect);
+            sendClose(h.close, h.msg);
+            if (reconnect) {
+%ifdef PO_NO_THREAD_CONTROL
+                start_thread(\handleReconnectInline());
+%else
+                start_thread ? start_thread(\handleReconnectInline()) : background handleReconnectInline();
+%endif
+            }
+            return WSEDC_BREAK;
+        }
+
+        return WebSocketClientWithSerialization::handleMessage(h, \buf);
+    }
+
     #! Handles deserialized event data
     private handleEventData(auto msgdata) {
         if (msgdata.typeCode() != NT_HASH) {
@@ -325,6 +438,15 @@ DiscordWebSocketClient ws();
 
     #! Handle a Heartbeat ACK
     private handleHeartbeatAck() {
+    }
+
+    #! Handle a Reconnect
+    private handleReconnectInline() {
+        try {
+            handleReconnect();
+        } catch (hash<ExceptionInfo> ex) {
+            logError("failed to handle inline reconnect: %s", get_exception_string(ex));
+        }
     }
 
     #! Handle a Reconnect
@@ -493,21 +615,21 @@ DiscordWebSocketClient ws();
         return url;
     }
 
-    private static auto convertData(auto v) {
+    static auto convertData(auto v) {
         return v;
     }
 
-    private static auto convertData(string v) {
+    static auto convertData(string v) {
         return v =~ /^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]+/
             ? date(v)
             : v;
     }
 
-    private static list<auto> convertData(list<auto> l) {
+    static list<auto> convertData(list<auto> l) {
         return map DiscordWebSocketClient::convertData($1), l;
     }
 
-    private static hash<auto> convertData(hash<auto> h) {
+    static hash<auto> convertData(hash<auto> h) {
         return map {$1.key: DiscordWebSocketClient::convertData($1.value)}, h.pairIterator();
     }
 }
