@@ -26,6 +26,17 @@
 public namespace DiscordDataProvider {
 #! The Discord data provider base class
 public class DiscordDataProviderBase inherits DataProvider::AbstractDataProvider {
+    public {
+        #! IO errors for REST retries
+        const RetrySet = {
+            "SOCKET-SSL-ERROR": True,
+            "SOCKET-CLOSED": True,
+        };
+
+        #! Max retries
+        const MaxIoRetries = 5;
+    }
+
     private {
         #! The REST client object for API calls
         *DiscordRestClient::DiscordRestClient rest;
@@ -44,6 +55,53 @@ public class DiscordDataProviderBase inherits DataProvider::AbstractDataProvider
     setLogger(*LoggerInterface logger) {
         rest.setLogger(logger);
         LoggerWrapper::setLogger(logger);
+    }
+
+    #! Makes a REST call and returns the response; handles rate limit responses
+    hash<auto> doRestCommand(string method, string path, auto body, reference<hash<auto>> info) {
+        int retries = 0;
+        while (True) {
+            try {
+                debug("REST %y %y (%y) body: %y", method, rest.getURL(), path, body);
+                return rest.doRequest(method, path, body, \info);
+            } catch (hash<ExceptionInfo> ex) {
+                # handle rate limit errors immediately
+                if (info."response-headers".status_code == 429
+                    && (info."response-headers"."x-ratelimit-remaining" == "0")
+                    && (*softfloat r = info."response-headers"."x-ratelimit-reset")) {
+                    int lt = r.toInt(); softint us = (r - lt) * 1000000;
+                    date reset = localtime(lt, us);
+                    date diff = reset - now_us();
+                    # do something if the rate limit expiry time is in the future
+                    if (diff > 0s) {
+                        if (diff > 1m) {
+                            throw "RATE-LIMIT-ERROR", sprintf("the reset time: %y is more than 1 minute in the "
+                                "future (%y)", reset, diff);
+                        }
+                        warn("RATE LIMIT: connection sleeping for: %y", diff);
+                        usleep(diff);
+                        continue;
+                    }
+                }
+                if (retry(ex, \retries)) {
+                    continue;
+                }
+                rethrow;
+            }
+        }
+    }
+
+    #! Returns True if the error indicates that the operation should be retried
+    private bool retry(hash<ExceptionInfo> ex, reference<int> retries) {
+        if (RetrySet{ex.err}) {
+            if (++retries == MaxIoRetries) {
+                error("maximum retries exceeded (%d)", retries);
+                return False;
+            }
+            warn("technical error making REST call: %s: %s; retrying", ex.err, ex.desc);
+            return True;
+        }
+        return False;
     }
 }
 }
