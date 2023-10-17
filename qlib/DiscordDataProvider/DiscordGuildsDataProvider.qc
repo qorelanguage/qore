@@ -122,8 +122,8 @@ public class DiscordGuildsDataProvider inherits DiscordDataProviderBase {
 
         hash<auto> info;
         try {
-            guilds = cast<*hash<string, hash<auto>>>(map {$1.id: $1},
-                rest.get("users/@me/guilds", NOTHING, \info).body) ?? {};
+            guilds = cast<*hash<string, hash<auto>>>(map {$1.id: $1}, doRestCommand("GET", "users/@me/guilds",
+                NOTHING, \info).body) ?? {};
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             *hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};

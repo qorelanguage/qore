@@ -78,7 +78,7 @@ public class DiscordUserInfoGetDataProvider inherits DiscordDataProviderBase {
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         hash<auto> info;
         try {
-            return rest.get("users/@me", NOTHING, \info).body;
+            return doRestCommand("GET", "users/@me", NOTHING, \info).body;
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             *hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};

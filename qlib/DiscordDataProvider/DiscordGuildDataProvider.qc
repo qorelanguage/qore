@@ -67,7 +67,7 @@ public class DiscordGuildDataProvider inherits DiscordDataProviderBase {
         checkOptions("CONSTRUCTOR-ERROR", DiscordDataProvider::ConstructorOptions, options);
         rest = DiscordDataProvider::getRestConnection(options);
 
-        guild = getGuild(rest, options.id);
+        guild = getGuild(options.id);
     }
 
     #! Creates the object from a REST connection
@@ -89,26 +89,6 @@ public class DiscordGuildDataProvider inherits DiscordDataProviderBase {
     #! Return data provider summary info
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
-    }
-
-    #! Retrieves info for the given guild; must be accessible to the calling user
-    static hash<auto> getGuild(DiscordRestClient rest, string id) {
-        # get guild info; note that users cannot request info for a specific guild directly (AFAIK), only bots can for
-        # some reason; so we request all guilds accessible for the user and try to find the one we want
-        *hash<auto> guilds;
-        hash<auto> info;
-        try {
-            guilds = map {$1.id: $1}, rest.get("users/@me/guilds").body;
-        } catch (hash<ExceptionInfo> ex) {
-            # ensure that any error response body is included in the exception
-            *hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
-            rethrow ex.err, ex.desc, ex.arg + ex_arg;
-        }
-
-        *hash<auto> guild = guilds{id};
-        throw "GUILD-ERROR", sprintf("guild %y is not accessible to this user; accessible guilds: %y", id,
-            keys guilds);
-        return guild;
     }
 
     #! Register a new child data provider for Discord guilds

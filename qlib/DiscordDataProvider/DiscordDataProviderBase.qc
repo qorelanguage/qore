@@ -57,8 +57,28 @@ public class DiscordDataProviderBase inherits DataProvider::AbstractDataProvider
         LoggerWrapper::setLogger(logger);
     }
 
+    #! Retrieves info for the given guild; must be accessible to the calling user
+    private hash<auto> getGuild(string id) {
+        # get guild info; note that users cannot request info for a specific guild directly (AFAIK), only bots can for
+        # some reason; so we request all guilds accessible for the user and try to find the one we want
+        *hash<auto> guilds;
+        hash<auto> info;
+        try {
+            guilds = map {$1.id: $1}, doRestCommand("GET", "users/@me/guilds", NOTHING, \info).body;
+        } catch (hash<ExceptionInfo> ex) {
+            # ensure that any error response body is included in the exception
+            *hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
+            rethrow ex.err, ex.desc, ex.arg + ex_arg;
+        }
+
+        *hash<auto> guild = guilds{id};
+        throw "GUILD-ERROR", sprintf("guild %y is not accessible to this user; accessible guilds: %y", id,
+            keys guilds);
+        return guild;
+    }
+
     #! Makes a REST call and returns the response; handles rate limit responses
-    hash<auto> doRestCommand(string method, string path, auto body, reference<hash<auto>> info) {
+    private hash<auto> doRestCommand(string method, string path, auto body, reference<hash<auto>> info) {
         int retries = 0;
         while (True) {
             try {

@@ -62,7 +62,7 @@ public class DiscordGuildGetDataProvider inherits DiscordDataProviderBase {
     constructor(*hash<auto> options) {
         checkOptions("CONSTRUCTOR-ERROR", DiscordDataProvider::ConstructorOptions, options);
         rest = DiscordDataProvider::getRestConnection(options);
-        guild = DiscordGuildDataProvider::getGuild(rest, options.id);
+        guild = getGuild(options.id);
     }
 
     #! Creates the object from a REST connection
