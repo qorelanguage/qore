@@ -353,6 +353,9 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
 */
 public class GoogleCalendarRestConnection inherits GoogleRestConnection {
     public {
+        #! Default Discord REST API URL
+        const DefaultConnectionUrl = "gcal://www.googleapis.com";
+
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "cls": Class::forName("GoogleCalendarRestConnection"),
@@ -380,6 +383,21 @@ public class GoogleCalendarRestConnection inherits GoogleRestConnection {
     #! returns \c "gcal"
     string getType() {
         return "gcal";
+    }
+
+    #! Can be called to set or clear a closure or call reference to be called when options are automatically updated
+    /** The closure or call reference must have the following signature:
+        <tt><update_options(hash<auto> options)</tt>
+    */
+    setUpdateOptionsCode(*code update_options) {
+        UpdateOptionsInterface::setUpdateOptionsCode(update_options);
+        # update the URL immediately if necessary
+        if (update_options && opts.url != DefaultConnectionUrl) {
+            doUpdateOptions(self, {
+                "url": opts.url = DefaultConnectionUrl,
+            });
+            real_url = GoogleRestClient::DefaultUrl;
+        }
     }
 }
 }
