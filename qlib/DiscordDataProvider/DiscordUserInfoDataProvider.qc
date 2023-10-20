@@ -29,7 +29,7 @@ public class DiscordUserInfoGetDataProvider inherits DiscordDataProviderBase {
     public {
         #! Provider info
         static hash<DataProviderInfo> ProviderInfo = <DataProviderInfo>{
-            "name": "get",
+            "name": "user-info",
             "desc": "Discord API for retrieving the current user",
             "type": "DiscordUserInfoGetDataProvider",
             "constructor_options": DiscordDataProvider::ConstructorOptions,
