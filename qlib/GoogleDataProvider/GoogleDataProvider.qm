@@ -60,9 +60,9 @@ module GoogleDataProvider {
         # register all supported actions
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GoogleDataProvider::CalendarAppName,
-            "path": "/calendar/calendars/{calendar}/events/quickAdd",
+            "path": "/calendar/calendars/{Calendar}/events/quickAdd",
             "path_vars": {
-                "calendar": "The calendar to add the event to",
+                "Calendar": "The calendar to add the event to",
             },
             "action": "quick-add-event",
             "display_name": "Add Event From Text",
@@ -74,9 +74,9 @@ module GoogleDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GoogleDataProvider::CalendarAppName,
-            "path": "/calendar/calendars/{calendar}/events/insert",
+            "path": "/calendar/calendars/{Calendar}/events/insert",
             "path_vars": {
-                "calendar": "The calendar to add the event to",
+                "Calendar": "The calendar to add the event to",
             },
             "action": "create-event",
             "display_name": "Create Event",
@@ -87,9 +87,9 @@ module GoogleDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GoogleDataProvider::CalendarAppName,
-            "path": "/calendar/calendars/{calendar}/events/update",
+            "path": "/calendar/calendars/{Calendar}/events/update",
             "path_vars": {
-                "calendar": "The calendar to update the event in",
+                "Calendar": "The calendar to update the event in",
             },
             "action": "update-event",
             "display_name": "Update Event",
@@ -100,9 +100,9 @@ module GoogleDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GoogleDataProvider::CalendarAppName,
-            "path": "/calendar/calendars/{calendar}/events/delete",
+            "path": "/calendar/calendars/{Calendar}/events/delete",
             "path_vars": {
-                "calendar": "The calendar to delete the event from",
+                "Calendar": "The calendar to delete the event from",
             },
             "action": "delete-event",
             "display_name": "Delete Event",

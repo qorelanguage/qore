@@ -135,7 +135,13 @@ public hashdecl QuickOptionInfo {
     #! Data type of the option
     string type;
 
-    #! Description of the option
+    #! Display name of the option
+    string display_name;
+
+    #! Short description of the option in plain text
+    string short_desc;
+
+    #! Description of the option with markdown rendering
     string desc;
 
     #! Is the option required or not?
@@ -434,6 +440,42 @@ public class DataProviderActionCatalog {
     */
     static *list<hash<DataProviderActionInfo>> getAllActions() {
         return top_actionmap.values();
+    }
+
+    #! Returns the action definition for the given application and action
+    /** @param app the app name
+        @param action the action name
+
+        @return the action definition for the given application name and action or @ref nothing if not present
+
+        @see getAppActionEx()
+    */
+    static *hash<DataProviderActionInfo> getAppAction(string app, string action) {
+        return app_actionmap{app}{action};
+    }
+
+    #! Returns the application definition for the given application name
+    /** @param app the app name
+        @param action the action name
+
+        @return the action definition for the given application name and action; throws an exception if the app is not
+        registered
+
+        @throw APP-ERROR the given application is not registered
+        @throw ACTION-ERROR the given action is not registered
+
+        @see getAppAction()
+    */
+    static hash<DataProviderActionInfo> getAppActionEx(string app, string action) {
+        *hash<string, hash<DataProviderActionInfo>> actionmap = app_actionmap{app};
+        if (!actionmap) {
+            throw "APP-ACTION-ERROR", sprintf("application %y is not registered", app);
+        }
+        if (*hash<DataProviderActionInfo> rv = actionmap{action}) {
+            return rv;
+        }
+        throw "ACTION-ERROR", sprintf("application %y has no action %y (known actions: %y)", app, action,
+            keys actionmap);
     }
 
     #! Searches for application actions whose descriptions match a regular expression pattern
