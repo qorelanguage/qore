@@ -114,66 +114,91 @@ module ServiceNowRestDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": ServiceNowRestDataProvider::AppName,
-            "path": "/tables/{Table}",
+            "path": "/tables/{table}",
             "action": "create-record",
             "display_name": "Create Record",
             "short_desc": "Create a record in a ServiceNow table",
             "desc": "Create a record in a ServiceNow table using ServiceNow's REST API",
             "action_code": DPAT_CREATE,
             "path_vars": {
-                "Table": "The name of the ServiceNow table, ex: `incident`",
+                "table": <DataProviderPathVarInfo>{
+                    "display_name": "Table",
+                    "short_desc": "The name of the ServiceNow table",
+                    "desc": "The name of the ServiceNow table, ex: `incident`",
+                    "example_value": "incident",
+                },
             },
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": ServiceNowRestDataProvider::AppName,
-            "path": "/tables/{Table}",
+            "path": "/tables/{table}",
             "action": "find-single-record",
             "display_name": "Find Single Record",
             "short_desc": "Find a specific record in ServiceNow",
             "desc": "Find a specific record in a ServiceNow table using ServiceNow's REST API",
             "action_code": DPAT_FIND_SINGLE,
             "path_vars": {
-                "Table": "The name of the ServiceNow table, ex: `incident`",
+                "table": <DataProviderPathVarInfo>{
+                    "display_name": "Table",
+                    "short_desc": "The name of the ServiceNow table",
+                    "desc": "The name of the ServiceNow table, ex: `incident`",
+                    "example_value": "incident",
+                },
             },
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": ServiceNowRestDataProvider::AppName,
-            "path": "/tables/{Table}",
+            "path": "/tables/{table}",
             "action": "find-records",
             "display_name": "Find Records",
             "short_desc": "Find records in ServiceNow",
             "desc": "Find records in a ServiceNow table using ServiceNow's REST API",
             "action_code": DPAT_FIND,
             "path_vars": {
-                "Table": "The name of the ServiceNow table, ex: `incident`",
+                "table": <DataProviderPathVarInfo>{
+                    "display_name": "Table",
+                    "short_desc": "The name of the ServiceNow table",
+                    "desc": "The name of the ServiceNow table, ex: `incident`",
+                    "example_value": "incident",
+                },
             },
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": ServiceNowRestDataProvider::AppName,
-            "path": "/tables/{Table}",
+            "path": "/tables/{table}",
             "action": "update-records",
             "display_name": "Update Records",
             "short_desc": "Update records in ServiceNow",
             "desc": "Update records in a ServiceNow table using ServiceNow's REST API",
             "action_code": DPAT_UPDATE,
             "path_vars": {
-                "Table": "The name of the ServiceNow table, ex: `incident`",
+                "table": <DataProviderPathVarInfo>{
+                    "display_name": "Table",
+                    "short_desc": "The name of the ServiceNow table",
+                    "desc": "The name of the ServiceNow table, ex: `incident`",
+                    "example_value": "incident",
+                },
             },
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": ServiceNowRestDataProvider::AppName,
-            "path": "/tables/{Table}",
+            "path": "/tables/{table}",
             "action": "delete-records",
             "display_name": "Delete Records",
             "short_desc": "Delete records in ServiceNow",
             "desc": "Delete records in a ServiceNow table using ServiceNow's REST API",
             "action_code": DPAT_DELETE,
             "path_vars": {
-                "Table": "The name of the ServiceNow table, ex: `incident`",
+                "table": <DataProviderPathVarInfo>{
+                    "display_name": "Table",
+                    "short_desc": "The name of the ServiceNow table",
+                    "desc": "The name of the ServiceNow table, ex: `incident`",
+                    "example_value": "incident",
+                },
             },
         });
     };

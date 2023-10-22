@@ -398,7 +398,11 @@ public class DataProviderTest inherits QUnit::Test {
             "short_desc": short_desc,
             "desc": desc,
             "path_vars": {
-                "test": "test",
+                "test": <DataProviderPathVarInfo>{
+                    "display_name": "test",
+                    "short_desc": "test",
+                    "desc": "test",
+                },
             },
             "action_code": DPAT_API,
         });

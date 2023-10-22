@@ -61,66 +61,91 @@ module CdsRestDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": CdsRestDataProvider::DynamicsAppName,
-            "path": "/{Table}",
+            "path": "/{table}",
             "action": "create-record",
             "display_name": "Create Record",
             "short_desc": "Create a record in a Dynamics table",
             "desc": "Create a record in a Dynamics table using the Dynamics REST API",
             "action_code": DPAT_CREATE,
             "path_vars": {
-                "Table": "The name of the Dynamics table, ex: `account`",
+                "table": <DataProviderPathVarInfo>{
+                    "display_name": "Table",
+                    "short_desc": "The name of the Dynamics table",
+                    "desc": "The name of the Dynamics table, ex: `account`",
+                    "example_value": "account",
+                },
             },
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": CdsRestDataProvider::DynamicsAppName,
-            "path": "/{Table}",
+            "path": "/{table}",
             "action": "find-single-record",
             "display_name": "Find Single Record",
             "short_desc": "Find a specific record in Dynamics",
             "desc": "Find a specific record in a Dynamics table using the Dynamics REST API",
             "action_code": DPAT_FIND_SINGLE,
             "path_vars": {
-                "Table": "The name of the Dynamics table, ex: `account`",
+                "table": <DataProviderPathVarInfo>{
+                    "display_name": "Table",
+                    "short_desc": "The name of the Dynamics table",
+                    "desc": "The name of the Dynamics table, ex: `account`",
+                    "example_value": "account",
+                },
             },
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": CdsRestDataProvider::DynamicsAppName,
-            "path": "/{Table}",
+            "path": "/{table}",
             "action": "find-records",
             "display_name": "Find Records",
             "short_desc": "Find records in Dynamics",
             "desc": "Find records in a Dynamics table using the Dynamics REST API",
             "action_code": DPAT_FIND,
             "path_vars": {
-                "Table": "The name of the Dynamics table, ex: `account`",
+                "table": <DataProviderPathVarInfo>{
+                    "display_name": "Table",
+                    "short_desc": "The name of the Dynamics table",
+                    "desc": "The name of the Dynamics table, ex: `account`",
+                    "example_value": "account",
+                },
             },
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": CdsRestDataProvider::DynamicsAppName,
-            "path": "/{Table}",
+            "path": "/{table}",
             "action": "update-records",
             "display_name": "Update Records",
             "short_desc": "Update records in Dynamics",
             "desc": "Update records in a Dynamics table using the Dynamics REST API",
             "action_code": DPAT_UPDATE,
             "path_vars": {
-                "Table": "The name of the Dynamics table, ex: `account`",
+                "table": <DataProviderPathVarInfo>{
+                    "display_name": "Table",
+                    "short_desc": "The name of the Dynamics table",
+                    "desc": "The name of the Dynamics table, ex: `account`",
+                    "example_value": "account",
+                },
             },
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": CdsRestDataProvider::DynamicsAppName,
-            "path": "/{Table}",
+            "path": "/{table}",
             "action": "delete-records",
             "display_name": "Delete Records",
             "short_desc": "Delete records in Dynamics",
             "desc": "Delete records in a Dynamics table using the Dynamics REST API",
             "action_code": DPAT_DELETE,
             "path_vars": {
-                "Table": "The name of the Dynamics table, ex: `account`",
+                "table": <DataProviderPathVarInfo>{
+                    "display_name": "Table",
+                    "short_desc": "The name of the Dynamics table",
+                    "desc": "The name of the Dynamics table, ex: `account`",
+                    "example_value": "account",
+                },
             },
         });
     };

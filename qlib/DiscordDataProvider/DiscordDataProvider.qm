@@ -72,13 +72,18 @@ module DiscordDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": DiscordDataProvider::AppName,
-            "path": "/guilds-by-name/{Server Name}/get",
+            "path": "/guilds-by-name/{guild}/get",
             "action": "guild-info",
-            "display_name": "Get guild info",
+            "display_name": "Get server info",
             "short_desc": "Get info about a Discord server accessible to the user",
             "desc": "Get info about a Discord server accessible to the user",
             "path_vars": {
-                "Server Name": "The name of the Discord server",
+                "guild": <DataProviderPathVarInfo>{
+                    "display_name": "Server Name",
+                    "short_desc": "The name of the Discord server",
+                    "desc": "The name of the Discord server (also called a \"guild\")",
+                    "example_value": "My Server",
+                },
             },
             "action_code": DPAT_API,
         });

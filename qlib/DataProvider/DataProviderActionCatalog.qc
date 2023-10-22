@@ -155,6 +155,24 @@ public hashdecl QuickOptionInfo {
 
     #! List of allowed values (enum)
     *softlist<hash<AllowedValueInfo>> allowed_values;
+
+    #! An optional example value for the option
+    *string example_value;
+}
+
+#! DataProvider path var info
+public hashdecl DataProviderPathVarInfo {
+    #! The display name for the action
+    string display_name;
+
+    #! Action short description, plain text formatting
+    string short_desc;
+
+    #! Action long description, markdown formatting
+    string desc;
+
+    #! An optional example value for the option
+    *string example_value;
 }
 
 #! DataProvider action definition
@@ -176,9 +194,9 @@ public hashdecl DataProviderActionInfo {
     string path;
 
     #! Description of any path variables
-    /** Keys are path variables, values are string descriptions with markdown formatting
+    /** Keys are path variables, values provide info about the path variable
     */
-    *hash<string, string> path_vars;
+    *hash<string, hash<DataProviderPathVarInfo>> path_vars;
 
     #! The display name for the action
     string display_name;
@@ -298,7 +316,7 @@ public class DataProviderActionCatalog {
         # check that all path variables are defined
         if (action.path_vars) {
             softlist<string> vars = (action.path =~ x/\{([^\}]*)}/g);
-            if (*hash<string, string> pvc = (action.path_vars - vars)) {
+            if (*hash<string, hash<DataProviderPathVarInfo>> pvc = (action.path_vars - vars)) {
                 throw "ACTION-ERROR", sprintf("action has definitions for nonexistent path variables: %y", keys pvc);
             }
             if (vars) {

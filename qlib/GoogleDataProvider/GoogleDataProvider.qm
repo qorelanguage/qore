@@ -60,9 +60,14 @@ module GoogleDataProvider {
         # register all supported actions
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GoogleDataProvider::CalendarAppName,
-            "path": "/calendar/calendars/{Calendar}/events/quickAdd",
+            "path": "/calendar/calendars/{calendar}/events/quickAdd",
             "path_vars": {
-                "Calendar": "The calendar to add the event to",
+                "calendar": <DataProviderPathVarInfo>{
+                    "display_name": "Calendar",
+                    "short_desc": "The calendar to add the event to",
+                    "desc": "The calendar to add the event to",
+                    "example_value": "primary",
+                },
             },
             "action": "quick-add-event",
             "display_name": "Add Event From Text",
@@ -74,9 +79,14 @@ module GoogleDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GoogleDataProvider::CalendarAppName,
-            "path": "/calendar/calendars/{Calendar}/events/insert",
+            "path": "/calendar/calendars/{calendar}/events/insert",
             "path_vars": {
-                "Calendar": "The calendar to add the event to",
+                "calendar": <DataProviderPathVarInfo>{
+                    "display_name": "Calendar",
+                    "short_desc": "The calendar to add the event to",
+                    "desc": "The calendar to add the event to",
+                    "example_value": "primary",
+                },
             },
             "action": "create-event",
             "display_name": "Create Event",
@@ -87,9 +97,14 @@ module GoogleDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GoogleDataProvider::CalendarAppName,
-            "path": "/calendar/calendars/{Calendar}/events/update",
+            "path": "/calendar/calendars/{calendar}/events/update",
             "path_vars": {
-                "Calendar": "The calendar to update the event in",
+                "calendar": <DataProviderPathVarInfo>{
+                    "display_name": "Calendar",
+                    "short_desc": "The calendar to add the event to",
+                    "desc": "The calendar to add the event to",
+                    "example_value": "primary",
+                },
             },
             "action": "update-event",
             "display_name": "Update Event",
@@ -100,9 +115,14 @@ module GoogleDataProvider {
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GoogleDataProvider::CalendarAppName,
-            "path": "/calendar/calendars/{Calendar}/events/delete",
+            "path": "/calendar/calendars/{calendar}/events/delete",
             "path_vars": {
-                "Calendar": "The calendar to delete the event from",
+                "calendar": <DataProviderPathVarInfo>{
+                    "display_name": "Calendar",
+                    "short_desc": "The calendar to add the event to",
+                    "desc": "The calendar to add the event to",
+                    "example_value": "primary",
+                },
             },
             "action": "delete-event",
             "display_name": "Delete Event",
