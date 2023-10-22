@@ -143,6 +143,146 @@ public const DCT_GUILD_FORUM = 15;
 public const DCT_GUILD_MEDIA = 16;
 #/@}
 
+/** @defgroup discord_permissions Discord Permission Constants
+    These constants should be combined in a bitfield when setting Discord permissions
+*/
+#/@{
+#! Allows creation of instant invites (channel type: T, V, S)
+public const DP_CREATE_INSTANT_INVITE = (1 << 0);
+
+#! Allows kicking members (channel type: all)
+public const DP_KICK_MEMBERS = (1 << 1);
+
+#! Allows banning members (channel type: all)
+public const DP_BAN_MEMBERS = (1 << 2);
+
+#! Allows all permissions and bypasses channel permission overwrites (channel type: all)
+public const DP_ADMINISTRATOR = (1 << 3);
+
+#! Allows management and editing of channels (channel type: T, V, S)
+public const DP_MANAGE_CHANNELS = (1 << 4);
+
+#! Allows management and editing of the guild (channel type: all)
+public const DP_MANAGE_GUILD = (1 << 5);
+
+#! Allows for the addition of reactions to messages (channel type: T, V, S)
+public const DP_ADD_REACTIONS = (1 << 6);
+
+#! Allows for viewing of audit logs (channel type: all)
+public const DP_VIEW_AUDIT_LOG = (1 << 7);
+
+#! Allows for using priority speaker in a voice channel (channel type: V)
+public const DP_PRIORITY_SPEAKER = (1 << 8);
+
+#! Allows the user to go live (channel type: V, S)
+public const DP_STREAM = (1 << 9);
+
+#! Allows guild members to view a channel, which includes reading messages in text channels and joining voice channels (channel type: T, V, S)
+public const DP_VIEW_CHANNEL = (1 << 10);
+
+#! Allows for sending messages in a channel and creating threads in a forum (does not allow sending messages in threads) (channel type: T, V, S)
+public const DP_SEND_MESSAGES = (1 << 11);
+
+#! Allows for sending of /tts messages (channel type: T, V, S)
+public const DP_SEND_TTS_MESSAGES = (1 << 12);
+
+#! Allows for deletion of other users messages (channel type: T, V, S)
+public const DP_MANAGE_MESSAGES = (1 << 13);
+
+#! Links sent by users with this permission will be auto-embedded (channel type: T, V, S)
+public const DP_EMBED_LINKS = (1 << 14);
+
+#! Allows for uploading images and files (channel type: T, V, S)
+public const DP_ATTACH_FILES = (1 << 15);
+
+#! Allows for reading of message history (channel type: T, V, S)
+public const DP_READ_MESSAGE_HISTORY = (1 << 16);
+
+#! Allows for using the @everyone tag to notify all users in a channel, and the @here tag to notify all online users in a channel (channel type: T, V, S)
+public const DP_MENTION_EVERYONE = (1 << 17);
+
+#! Allows the usage of custom emojis from other servers (channel type: T, V, S)
+public const DP_USE_EXTERNAL_EMOJIS = (1 << 18);
+
+#! Allows for viewing guild insights (channel type: all)
+public const DP_VIEW_GUILD_INSIGHTS = (1 << 19);
+
+#! Allows for joining of a voice channel (channel type: V, S)
+public const DP_CONNECT = (1 << 20);
+
+#! Allows for speaking in a voice channel (channel type: V)
+public const DP_SPEAK = (1 << 21);
+
+#! Allows for muting members in a voice channel (channel type: V, S)
+public const DP_MUTE_MEMBERS = (1 << 22);
+
+#! Allows for deafening of members in a voice channel (channel type: V)
+public const DP_DEAFEN_MEMBERS = (1 << 23);
+
+#! Allows for moving of members between voice channels (channel type: V, S)
+public const DP_MOVE_MEMBERS = (1 << 24);
+
+#! Allows for using voice-activity-detection in a voice channel (channel type: V)
+public const DP_USE_VAD = (1 << 25);
+
+#! Allows for modification of own nickname (channel type: all)
+public const DP_CHANGE_NICKNAME = (1 << 26);
+
+#! Allows for modification of other users nicknames (channel type: all)
+public const DP_MANAGE_NICKNAMES = (1 << 27);
+
+#! Allows management and editing of roles (channel type: T, V, S)
+public const DP_MANAGE_ROLES = (1 << 28);
+
+#! Allows management and editing of webhooks (channel type: T, V, S)
+public const DP_MANAGE_WEBHOOKS = (1 << 29);
+
+#! Allows management and editing of emojis, stickers, and soundboard sounds (channel type: all)
+public const DP_MANAGE_GUILD_EXPRESSIONS = (1 << 30);
+
+#! Allows members to use application commands, including slash commands and context menu commands. (channel type: T, V, S)
+public const DP_USE_APPLICATION_COMMANDS = (1 << 31);
+
+#! Allows for requesting to speak in stage channels. (This permission is under active development and may be changed or removed.) (channel type: S)
+public const DP_REQUEST_TO_SPEAK = (1 << 32);
+
+#! Allows for creating, editing, and deleting scheduled events (channel type: V, S)
+public const DP_MANAGE_EVENTS = (1 << 33);
+
+#! Allows for deleting and archiving threads, and viewing all private threads (channel type: T)
+public const DP_MANAGE_THREADS = (1 << 34);
+
+#! Allows for creating public and announcement threads (channel type: T)
+public const DP_CREATE_PUBLIC_THREADS = (1 << 35);
+
+#! Allows for creating private threads (channel type: T)
+public const DP_CREATE_PRIVATE_THREADS = (1 << 36);
+
+#! Allows the usage of custom stickers from other servers (channel type: T, V, S)
+public const DP_USE_EXTERNAL_STICKERS = (1 << 37);
+
+#! Allows for sending messages in threads (channel type: T)
+public const DP_SEND_MESSAGES_IN_THREADS = (1 << 38);
+
+#! Allows for using Activities (applications with the EMBEDDED flag) in a voice channel (channel type: V)
+public const DP_USE_EMBEDDED_ACTIVITIES = (1 << 39);
+
+#! Allows for timing out users to prevent them from sending or reacting to messages in chat and threads, and from speaking in voice and stage channels (channel type: all)
+public const DP_MODERATE_MEMBERS = (1 << 40);
+
+#! Allows for viewing role subscription insights (channel type: all)
+public const DP_VIEW_CREATOR_MONETIZATION_ANALYTICS = (1 << 41);
+
+#! Allows for using soundboard in a voice channel (channel type: V)
+public const DP_USE_SOUNDBOARD = (1 << 42);
+
+#! Allows the usage of custom soundboard sounds from other servers (channel type: V)
+public const DP_USE_EXTERNAL_SOUNDS = (1 << 45);
+
+#! Allows sending voice messages (channel type: T, V, S)
+public const DP_SEND_VOICE_MESSAGES = (1 << 46);
+#/@}
+
 #! this class provides the REST client API for communication with Discord servers
 /** You must use an OAuth2 token by setting the \c token and \c oauth2_refresh_token options; the following options
     need to be set as well:
@@ -171,16 +311,14 @@ public class DiscordRestClient inherits RestClient::RestClient {
 
         #! Default OAuth2 auth args
         const DefaultAuthArgs = {
-            /** permissions:
-                - Read Messages/View Channels
-                - Send Messages
-                - Create Public Threads
-                - Create Private Threads
-                - Send Messages in Threads
-                - Attach Files
-                - Add Reactions
-            */
-            "permissions": 377957157952,
+            "permissions": DP_ADMINISTRATOR
+                | DP_VIEW_CHANNEL
+                | DP_SEND_MESSAGES
+                | DP_CREATE_PUBLIC_THREADS
+                | DP_CREATE_PRIVATE_THREADS
+                | DP_SEND_MESSAGES_IN_THREADS
+                | DP_ATTACH_FILES
+                | DP_ADD_REACTIONS,
         };
 
         #! Default "data" option value
