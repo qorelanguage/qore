@@ -2536,9 +2536,9 @@ Mapper mapv(DataMap);
 
         # get source record value
         auto v;
-        if (exists m.constant)
+        if (exists m.constant) {
             v = m.constant;
-        else if (exists m.index) {
+        } else if (exists m.index) {
             if (do_list) {
                 v = map m.index + count + $#, xrange(list_size);
             } else {
@@ -2604,7 +2604,8 @@ Mapper mapv(DataMap);
                 submapper_options += getOptionsFromTemplate(m.submapper_options, rec);
             }
             if (info_log) {
-                info_log("field %y retrieving submapper %y (opts: %y auto input: %y)", key, m.submapper, submapper_options, m.submapper_auto_input ?? False);
+                info_log("field %y retrieving submapper %y (opts: %y auto input: %y)", key, m.submapper,
+                    submapper_options, m.submapper_auto_input ?? False);
             }
             if (input_log) {
                 submapper_options.input_log = input_log;
@@ -2771,7 +2772,8 @@ Mapper mapv(DataMap);
                 string k = m.ostruct[off];
                 auto oh = ch{k};
                 if (exists oh && oh.typeCode() != NT_HASH)
-                    throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y", getFieldName(key), k, oh.type());
+                    throw "INVALID-OUTPUT", sprintf("field %y cannot overwrite element %y with type %y",
+                        getFieldName(key), k, oh.type());
                 ch{k} = ah(oh, vc, off + 1);
                 return ch;
             };
