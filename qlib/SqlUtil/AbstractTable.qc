@@ -7136,8 +7136,12 @@ string sql = table.getAlignSqlString(table2);
                 };
                 return new SqlUtilDateType(native_type, nullable, type_options);
 
-            case "string":
+            case "string": {
+                if (max_size > 0 && !type_options."string.max_size_chars") {
+                    type_options."string.max_size_chars" = max_size;
+                }
                 return new SqlUtilStringType(native_type, nullable, type_options);
+            }
 
             default:
                 return new SqlUtilColumnDataType(native_type, (nullable ? "*" : "") + qore_type, type_options);
