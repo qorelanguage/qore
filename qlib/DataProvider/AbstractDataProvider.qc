@@ -61,6 +61,9 @@ public hashdecl DataProviderOptionInfo {
     softlist<AbstractDataProviderType> type;
 
     #! Required flag
+    /** @note This attribute is ignored for cases when multiple combinations of options may be valid such as for
+        data provider constructor options
+    */
     bool required = False;
 
     #! The option description
@@ -74,6 +77,11 @@ public hashdecl DataProviderOptionInfo {
 
     #! List of allowed values (enum)
     *softlist<hash<AllowedValueInfo>> allowed_values;
+
+    #! Any optional example value for the option
+    /** This value must be in the one of the types in the \c type list
+    */
+    auto example_value;
 }
 
 #! Data provider summary info
@@ -632,6 +640,15 @@ public hashdecl DataProviderInfo {
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
     *hash<string, hash<DataProviderOptionInfo>> constructor_options;
+
+    #! Required constructor option combinations
+    /** If set it indicates that there are multiple possibilities for the set of required options for the data
+        provider's hash constructor (if any); the format of this string is the required option names separated by
+        commas (\c ","); multiple possibilities must be separated by pipe chars (\c "|""); ex:
+        \c "client_id,client_secret,tenant|token";if this option is set, then the \c required attribute of options is
+        ignored
+    */
+    *string required_constructor_options;
 
     #! Create options supported by the data provider
     /** @note this is a static attribute; it is the same for all data providers of the same type
@@ -2364,14 +2381,28 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         return checkOptions("SEND-MESSAGE-OPTION-ERROR", getSendMessageOptions(), send_message_options);
     }
 
-    #! processes options passed to the constructor
-    private processConstructorOptions(*hash<string, hash<DataProviderOptionInfo>> option_desc, *hash<auto> options) {
-        self += checkOptions("CONSTRUCTOR-OPTION-ERROR", option_desc, options);
+    #! Processes options passed to the constructor
+    private processConstructorOptions(*hash<string, hash<DataProviderOptionInfo>> option_desc, *hash<auto> options,
+            *string required_options) {
+        self += checkOptions("CONSTRUCTOR-OPTION-ERROR", option_desc, options, required_options);
     }
 
-    #! verifies options according to the option
+    #! Verifies options according to the option
+    /**
+        @param err The error code in case of any errors; this is the exception code (\c err) that will be raised
+        @param option_desc Description of the options
+        @param uoptions the options provided
+        @param required_options If provided, it indicates that there are multiple possibilities for the set of
+        required options; the format of this string is the required option names separated by commas (\c ",");
+        multiple possibilities must be separated by pipe chars (\c "|""); ex: client_id,client_secret,tenant|token;
+        if this option is passed, then the \c required attribute of options is ignored
+
+        @return All options after processing
+
+        @note The error code passed as \c err is thrown if any errors are detected
+    */
     private *hash<auto> checkOptions(string err, *hash<string, hash<DataProviderOptionInfo>> option_desc,
-            *hash<auto> uoptions) {
+            *hash<auto> uoptions, *string required_options) {
         # to ensure that the return value has type "hash<auto>"
         hash<auto> options += uoptions;
         if (!option_desc && options) {
@@ -2388,7 +2419,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                 if (exists i.value.default_value) {
                     options{i.key} = i.value.default_value;
                     continue;
-                } else if (i.value.required) {
+                } else if (!required_options && i.value.required) {
                     error(err, "missing required option %y%s", i.key,
                         i.value.desc ? sprintf(" (%s)", i.value.desc) : "");
                 }
@@ -2432,7 +2463,46 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                 }
             }
         }
+        # verify required options if "required_options" is set
+        if (required_options) {
+            verifyRequiredOptions(err, options, required_options);
+        }
         return options;
+    }
+
+    #! Verifies options in case multiple combinations of options are supported
+    /**
+        @param err The error code in case of any errors; this is the exception code (\c err) that will be raised
+        @param options The options provided
+        @param required_options The format of this string is the required option names separated by commas (\c ",");
+        multiple possibilities must be separated by pipe chars (\c "|""); ex: client_id,client_secret,tenant|token
+
+        @note The error code passed as \c err is thrown if any errors are detected
+    */
+    private verifyRequiredOptions(string err, *hash<auto> options, string required_options) {
+        list<string> req_list = required_options.split("|");
+        bool ok;
+        list<string> missing;
+        foreach string req in (req_list) {
+            list<string> req_opt = req.split(",");
+            # check which options are missing
+            *hash<auto> have = options{req_opt};
+            if (have.size() == req_opt.size()) {
+                ok = True;
+                break;
+            }
+            if (req_list.size() == 1) {
+                missing = keys ((map {$1: True}, req_opt) - keys have);
+            }
+        }
+        if (!ok) {
+            if (missing) {
+                throw err, sprintf("missing required options %y; options provided: %y", missing, options);
+            } else {
+                throw err, sprintf("missing required options %s; options provided: %y",
+                    (foldl $1 + " OR " + $2, (map sprintf("%y", $1), req_list)), options);
+            }
+        }
     }
 
     #! processes search parameter expressions

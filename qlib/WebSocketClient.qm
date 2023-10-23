@@ -1503,6 +1503,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
             "supports_messages": MSG_Async,
             "children_can_support_apis": True,
             "constructor_options": ConstructorOptions,
+            "required_constructor_options": RequiredConstructorOptions,
             "desc": "Allows sending and receiving WebSocket messages to and from a WebSocket server",
         };
 
@@ -1586,6 +1587,9 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
             },
         };
 
+        #! Required constructor option combinations
+        const RequiredConstructorOptions = "url|wsclient";
+
         #! Registered API classes
         const ApiClasses = {
             "wait-for-message": Class::forName("WebSocketClientWaitForMessageDataProvider"),
@@ -1611,7 +1615,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+        hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options, RequiredConstructorOptions);
         report_pings = remove copts.report_pings;
         if (copts.wsclient) {
             client = copts.wsclient;
