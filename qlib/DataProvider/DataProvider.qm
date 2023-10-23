@@ -38,7 +38,7 @@
 %requires(reexport) MapperUtil
 
 module DataProvider {
-    version = "2.7.3";
+    version = "2.7.5";
     desc = "user module for data access and introspection";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -212,6 +212,11 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     processing large volumes of data.
 
     @section dataprovider_relnotes Release Notes
+
+    @subsection dataprovider_v2_7_5 DataProvider v2.7.5
+    - fixed conversion of soft binary, bool, float, int, and number "or nothing" types from an empty string to
+      @ref NOTHING
+      (<a href="https://github.com/qorelanguage/qore/issues/4836">issue 4836</a>)
 
     @subsection dataprovider_v2_7_4 DataProvider v2.7.4
     - added \c allowed_values to field data info

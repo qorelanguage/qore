@@ -55,14 +55,19 @@ public class QoreNumberDataTypeBase inherits QoreDataType {
     */
     auto acceptsValue(auto value) {
         # try to convert from a string
-        if (value.typeCode() == NT_STRING && soft_type) {
-            if (options."number.format") {
-                return parse_number(value, options."number.format");
+        if (value.typeCode() == NT_STRING) {
+            # issue #4836: "" -> NOTHING
+            if (!value.val()) {
+                remove value;
+            } else if (soft_type) {
+                if (options."number.format") {
+                    return parse_number(value, options."number.format");
+                }
+                if (value !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
+                    throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot be parsed by type %y; the input data "
+                        "contains non-numeric text", value, getName());
+                return number(value);
             }
-            if (value !~ /^([-+])?[0-9]+(\.[0-9]+)?+$/)
-                throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot be parsed by type %y; the input data "
-                    "contains non-numeric text", value, getName());
-            return number(value);
         }
         return QoreDataType::acceptsValue(value);
     }
