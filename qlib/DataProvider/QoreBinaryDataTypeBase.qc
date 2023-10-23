@@ -45,8 +45,13 @@ public class QoreBinaryDataTypeBase inherits QoreDataType {
     */
     auto acceptsValue(auto value) {
         # try to convert from a string
-        if (value.typeCode() == NT_STRING && soft_type) {
-            return binary(value);
+        if (value.typeCode() == NT_STRING) {
+            # issue #4836: "" -> NOTHING
+            if (!value.val()) {
+                remove value;
+            } else if (soft_type) {
+                return binary(value);
+            }
         }
         return QoreDataType::acceptsValue(value);
     }

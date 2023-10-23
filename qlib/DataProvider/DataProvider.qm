@@ -222,6 +222,11 @@ $env:QORE_DATA_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
       foreign module initialization
       (<a href="https://github.com/qorelanguage/qore/issues/4816">issue 4816</a>)
 
+    @subsection dataprovider_v2_7_5 DataProvider v2.7.5
+    - fixed conversion of soft binary, bool, float, int, and number "or nothing" types from an empty string to
+      @ref NOTHING
+      (<a href="https://github.com/qorelanguage/qore/issues/4836">issue 4836</a>)
+
     @subsection dataprovider_v2_7_4 DataProvider v2.7.4
     - added \c allowed_values to field data info
       (<a href="https://github.com/qorelanguage/qore/issues/4762">issue 4762</a>)
