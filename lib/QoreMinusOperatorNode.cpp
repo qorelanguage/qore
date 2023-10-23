@@ -140,8 +140,9 @@ int QoreMinusOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse
     if (QoreTypeInfo::isType(rightTypeInfo, NT_NOTHING)) {
         returnTypeInfo = leftTypeInfo;
         QoreStringNode* edesc = new QoreStringNode("subtracting NOTHING from ");
-        QoreTypeInfo::getThisType(parse_context.typeInfo, *edesc);
-        edesc->concat(" always results in the same value");
+        QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
+        edesc->concat(" is a noop; the result of the operation is always the same value on the left-hand side of "
+            "the subtraction operator (-)");
         qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
             edesc);
     } else {
@@ -178,6 +179,13 @@ int QoreMinusOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse
                     || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))) {
                 returnTypeInfo = autoHashTypeInfo;
             } else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo)) {
+                QoreStringNode* edesc = new QoreStringNode("subtracting ");
+                QoreTypeInfo::getThisType(rightTypeInfo, *edesc);
+                edesc->concat(" from ");
+                QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
+                edesc->concat(" is an invalid operation and always returns NOTHING");
+                qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION,
+                    "INVALID-OPERATION", edesc);
                 // only return type nothing if both types are available and return a single type
                 returnTypeInfo = nothingTypeInfo;
             }

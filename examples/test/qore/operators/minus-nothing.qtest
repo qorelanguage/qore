@@ -6,7 +6,7 @@
 %require-types
 %strict-args
 
-%disable-warning invalid-operation
+#%disable-warning invalid-operation
 
 %requires ../../../../qlib/QUnit.qm
 
