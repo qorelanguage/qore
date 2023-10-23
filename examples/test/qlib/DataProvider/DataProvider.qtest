@@ -1479,8 +1479,15 @@ public class DataProviderTest inherits QUnit::Test {
         {
             QoreSoftNumberOrNothingDataType num2({"number.format": ".,"});
             assertEq(1234.56n, num2.acceptsValue("1.234,56"));
-            assertEq(NOTHING, num2.acceptsValue());
-            assertEq(NOTHING, num2.acceptsValue(NULL));
+            assertNothing(num2.acceptsValue());
+            assertNothing(num2.acceptsValue(NULL));
+        }
+
+        {
+            QoreSoftNumberOrNothingDataType num2();
+            assertNothing(num2.acceptsValue(""));
+            assertNothing(num2.acceptsValue());
+            assertNothing(num2.acceptsValue(NULL));
         }
 
         {
@@ -1523,6 +1530,7 @@ public class DataProviderTest inherits QUnit::Test {
         {
             QoreSoftBinaryOrNothingDataType bin1();
             assertEq(<3132>, bin1.acceptsValue("12"));
+            assertNothing(bin1.acceptsValue(""));
             assertNothing(bin1.acceptsValue());
             assertNothing(bin1.acceptsValue(NULL));
         }
@@ -1568,8 +1576,9 @@ public class DataProviderTest inherits QUnit::Test {
         {
             QoreSoftIntOrNothingDataType int2();
             assertEq(1234, int2.acceptsValue("1234"));
-            assertEq(NOTHING, int2.acceptsValue());
-            assertEq(NOTHING, int2.acceptsValue(NULL));
+            assertNothing(int2.acceptsValue(""));
+            assertNothing(int2.acceptsValue());
+            assertNothing(int2.acceptsValue(NULL));
         }
 
         {
@@ -1620,8 +1629,9 @@ public class DataProviderTest inherits QUnit::Test {
         {
             QoreSoftBoolOrNothingDataType bool1();
             assertEq(True, bool1.acceptsValue("1234"));
-            assertEq(NOTHING, bool1.acceptsValue());
-            assertEq(NOTHING, bool1.acceptsValue(NULL));
+            assertNothing(bool1.acceptsValue(""));
+            assertNothing(bool1.acceptsValue());
+            assertNothing(bool1.acceptsValue(NULL));
         }
 
         {
@@ -1665,8 +1675,9 @@ public class DataProviderTest inherits QUnit::Test {
         {
             QoreSoftFloatOrNothingDataType float1();
             assertEq(1234.0, float1.acceptsValue("1234"));
-            assertEq(NOTHING, float1.acceptsValue());
-            assertEq(NOTHING, float1.acceptsValue(NULL));
+            assertNothing(float1.acceptsValue(""));
+            assertNothing(float1.acceptsValue());
+            assertNothing(float1.acceptsValue(NULL));
         }
 
         {
@@ -1715,8 +1726,8 @@ public class DataProviderTest inherits QUnit::Test {
             {
                 QoreSoftDateOrNothingDataType date2(date_opts);
                 assertEq(2019-09-13T05:00:00Z, date2.acceptsValue("13.09.2019"));
-                assertEq(NOTHING, date2.acceptsValue());
-                assertEq(NOTHING, date2.acceptsValue(NULL));
+                assertNothing(date2.acceptsValue());
+                assertNothing(date2.acceptsValue(NULL));
             }
         }
 
@@ -1753,8 +1764,8 @@ public class DataProviderTest inherits QUnit::Test {
         {
             QoreStringOrNothingDataType str2();
             assertThrows("RUNTIME-TYPE-ERROR", \str2.acceptsValue(), 123);
-            assertEq(NOTHING, str2.acceptsValue());
-            assertEq(NOTHING, str2.acceptsValue(NULL));
+            assertNothing(str2.acceptsValue());
+            assertNothing(str2.acceptsValue(NULL));
 
             AbstractDataProviderType type1 = str2.getSoftType();
             assertEq("*softstring", type1.getName());
@@ -1772,8 +1783,8 @@ public class DataProviderTest inherits QUnit::Test {
         {
             QoreSoftStringOrNothingDataType str2();
             assertEq("123", str2.acceptsValue(123));
-            assertEq(NOTHING, str2.acceptsValue());
-            assertEq(NOTHING, str2.acceptsValue(NULL));
+            assertNothing(str2.acceptsValue());
+            assertNothing(str2.acceptsValue(NULL));
         }
 
         {
@@ -1788,8 +1799,8 @@ public class DataProviderTest inherits QUnit::Test {
             QoreHashDataType hash2(new Type("*hash<string, bool>"));
             assertTrue(BoolType.isEqual(hash2.getFieldType("xxx").getValueType()));
             assertThrows("RUNTIME-TYPE-ERROR", \hash2.acceptsValue(), {"a": 1});
-            assertEq(NOTHING, hash2.acceptsValue());
-            assertEq(NOTHING, hash2.acceptsValue(NULL));
+            assertNothing(hash2.acceptsValue());
+            assertNothing(hash2.acceptsValue(NULL));
 
             hash<DataTypeInfo> info = hash2.getInfo();
             assertEq("*hash<string, bool>", info.name);

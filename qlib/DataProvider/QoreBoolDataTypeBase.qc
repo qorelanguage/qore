@@ -45,13 +45,18 @@ public class QoreBoolDataTypeBase inherits QoreDataType {
     */
     auto acceptsValue(auto value) {
         # try to convert from a string
-        if (soft_type && value.typeCode() == NT_STRING) {
-            # check for valid integer values
-            if (value !~ /^([-+])?[0-9]+$/) {
-                throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot by parsed by type %y; the input data contains "
-                    "non-integer text", value, getName());
+        if (value.typeCode() == NT_STRING) {
+            # issue #4836: "" -> NOTHING
+            if (!value.val()) {
+                remove value;
+            } else if (soft_type) {
+                # check for valid integer values
+                if (value !~ /^([-+])?[0-9]+$/) {
+                    throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot by parsed by type %y; the input data "
+                        "contains non-integer text", value, getName());
+                }
+                return boolean(value);
             }
-            return boolean(value);
         }
 
         return QoreDataType::acceptsValue(value);
@@ -64,7 +69,8 @@ public class QoreBoolDataTypeBase inherits QoreDataType {
         if (soft_type) {
             return self;
         }
-        return new QoreBoolDataTypeBase(base_type_hash{NT_NOTHING} ? SoftBoolOrNothingType : SoftBoolType, getOptions());
+        return new QoreBoolDataTypeBase(base_type_hash{NT_NOTHING} ? SoftBoolOrNothingType : SoftBoolType,
+            getOptions());
     }
 }
 }
