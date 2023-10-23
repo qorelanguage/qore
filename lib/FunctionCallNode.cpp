@@ -787,10 +787,6 @@ int StaticMethodCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
 
         // check class capabilities against parse options
         if (qore_program_private::parseAddDomain(parse_context.pgm, qc->getDomain())) {
-
-printd(0, "program opts: %s\n", pstr->c_str());
-printd(0, "class opts: %s\n", cstr->c_str());
-
             parseException(*loc, "INVALID-METHOD", "class '%s' implements capabilities that are not allowed by " \
                 "current parse options", qc->getName());
             return -1;
