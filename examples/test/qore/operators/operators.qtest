@@ -1070,9 +1070,9 @@ class Test inherits QUnit::Test {
         assertEq(NOTHING, True - False);
         assertEq(NOTHING, NULL - {});
         assertEq(NOTHING, <bead> - True);
-        assertEq(NOTHING, True - NOTHING);
+        assertEq(True, True - NOTHING);
         assertEq(NOTHING, False - NULL);
-        assertEq(NOTHING, NULL - NOTHING);
+        assertEq(NULL, NULL - NOTHING);
     }
 
     multiplication() {

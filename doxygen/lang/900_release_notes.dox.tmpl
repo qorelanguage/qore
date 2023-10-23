@@ -24,6 +24,10 @@
       - @ref Qore::active_exception() "active_exception()"
     - Reflection is now allowed in module initialization and deletion closures
 
+    @subsection qore_2_0_compatibility Fixes That Can Affect Backwards-Compatibility
+    - subtracting @ref NOTHING from any value will result in the same value; previously this would result in
+      @ref NOTHING
+
     @subsection qore_2_0_0_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
       - fixed a bug converting arguments to fit the Swagger schema to avoid spurious and very difficult to debug type
@@ -31,6 +35,8 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4825">issue 4825</a>)
       - fixed a bug where any additionalProperties would cause all properties to be accepted
         (<a href="https://github.com/qorelanguage/qore/issues/4823">issue 4823</a>)
+    - fixed a bug where a hash subtracted by @ref NOTHING resulted in @ref NOTHING instead of the same hash
+      (<a href="https://github.com/qorelanguage/qore/issues/4834">issue 4834</a>)
 
     @section qore_1_19_2 Qore 1.19.2
 
@@ -51,7 +57,6 @@
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
       - set the column size in the type when creating types for \c VARCHAR columns
         (<a href="https://github.com/qorelanguage/qore/issues/4832">issue 4832</a>)
-
     - fixed a bug setting the local time zone on macOS Sonoma
       (<a href="https://github.com/qorelanguage/qore/issues/4818">issue 4818</a>)
     - fixed a bug where %Qore could characters with the incorrect character encoding to strings while processing HTTP
