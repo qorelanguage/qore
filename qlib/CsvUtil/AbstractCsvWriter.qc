@@ -372,65 +372,76 @@ public namespace CsvUtil {
                 if (m_out_by_idx{type} && j < m_out_by_idx{type}.size()) {
                     # get correct input value
                     i = m_out_by_idx{type}[j];
-                    hash<auto> spec = m_specs{type}{m_out_by_name{type}[j]};
+                    string column_name = m_out_by_name{type}[j];
+                    hash<auto> spec = m_specs{type}{column_name};
                     switch (spec.type) {
                         case "bool": {
                             if (values[i].typeCode() != NT_BOOLEAN)
-                                throw errname, sprintf("Line (%d), Column (%d) does not contain a boolean value: %y", lineNo, j, values[i]);
+                                throw errname, sprintf("Line (%d), Column (%d) %y: does not contain a boolean "
+                                    "value: %y", lineNo, j, column_name, values[i]);
                             values[i] = values[i] ? "true": "false";
                             break;
                         }
                         case "*bool": {
                             if (!values[i].empty() && values[i].typeCode() != NT_BOOLEAN)
-                                throw errname, sprintf("Line (%d), Column (%d) does not contain a boolean value: %y", lineNo, j, values[i]);
+                                throw errname, sprintf("Line (%d), Column (%d) %y: does not contain a boolean "
+                                    "value: %y", lineNo, j, column_name, values[i]);
                             values[i] = values[i] ? "true": "false";
                             break;
                         }
                         case "int": {
                             if (int(values[i]) != values[i])
-                                throw errname, sprintf("Line (%d), Column (%d) does not contain an integer value %n vs %n", lineNo, j, int(values[i]), values[i]);
+                                throw errname, sprintf("Line (%d), Column (%d) %y: does not contain an integer "
+                                    "value %y vs %y", lineNo, j, column_name, int(values[i]), values[i]);
                             numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "*int": {
                             if (!values[i].empty() && int(values[i]) != values[i])
-                                throw errname, sprintf("Line (%d), Column (%d) does not contain an integer value %n vs %n", lineNo, j, int(values[i]), values[i]);
+                                throw errname, sprintf("Line (%d), Column (%d) %y: does not contain an integer "
+                                    "value %y vs %y", lineNo, j, column_name, int(values[i]), values[i]);
                             numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "float": {
                             if (float(values[i]) != values[i])
-                                throw errname, sprintf("Line (%d), Column (%d) does not contain a float value %n vs %n", lineNo, j, float(values[i]), values[i]);
+                                throw errname, sprintf("Line (%d), Column (%d) %y: does not contain a float "
+                                    "value %y vs %y", lineNo, j, column_name, float(values[i]), values[i]);
                             numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "*float": {
                             if (!values[i].empty() && float(values[i]) != values[i])
-                                throw errname, sprintf("Line (%d), Column (%d) does not contain a float value %n vs %n", lineNo, j, float(values[i]), values[i]);
+                                throw errname, sprintf("Line (%d), Column (%d) %y: does not contain a float "
+                                    "value %y vs %y", lineNo, j, column_name, float(values[i]), values[i]);
                             numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "number": {
                             if (number(values[i]) != values[i])
-                                throw errname, sprintf("Line (%d), Column (%d) does not contain a number value %n vs %n", lineNo, j, number(values[i]), values[i]);
+                                throw errname, sprintf("Line (%d), Column (%d) %y: does not contain a number "
+                                    "value %y vs %y", lineNo, j, column_name, number(values[i]), values[i]);
                             numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "*number": {
                             if (!values[i].empty() && number(values[i]) != values[i])
-                                throw errname, sprintf("Line (%d), Column (%d) does not contain a number value %n vs %n", lineNo, j, number(values[i]), values[i]);
+                                throw errname, sprintf("Line (%d), Column (%d) %y: does not contain a number "
+                                    "value %y vs %y", lineNo, j, number(values[i]), values[i]);
                             numFmt = spec.format ?? number_format;
                             break;
                         }
                         case "date": {
                             if (values[i].typeCode() != NT_DATE)
-                                throw errname, sprintf("Line (%d), Column (%d) does not contain a date value (%s), %y", lineNo, j, values[i].type(), values[i]);
+                                throw errname, sprintf("Line (%d), Column (%d) %y: does not contain a date "
+                                    "value (%s), %y", lineNo, j, column_name, values[i].type(), values[i]);
                             dateFmt = spec.format ?? date_format;
                             break;
                         }
                         case "*date": {
                             if (!values[i].empty() && values[i].typeCode() != NT_DATE)
-                                throw errname, sprintf("Line (%d), Column (%d) does not contain a date value (%s)", lineNo, j, values[i].type());
+                                throw errname, sprintf("Line (%d), Column (%d) %y: does not contain a date "
+                                    "value (%s)", lineNo, j, column_name, values[i].type());
                             dateFmt = spec.format ?? date_format;
                             break;
                         }
@@ -462,13 +473,15 @@ public namespace CsvUtil {
             @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
         writeLine(string type, hash<auto> values) {
-            if (!m_specs{type})
-                throw errname, sprintf("Type '%s' not defined header in AbstractCsvWriter instance to bind the hash key", type);
+            if (!m_specs{type}) {
+                # issue #4838: automatically set headers from the input data
+                m_specs{type} = map {$1.key: NOTHING}, values.pairIterator();
+            }
             list<auto> line;
-            foreach string i in (m_specs{type}.keyIterator()) { # (m_out_by_name{type}) {
+            foreach string i in (keys m_specs{type}) { # (m_out_by_name{type}) {
                 if (!values.hasKey(i))
-                    if (exists m_specs{type}{i}.default) {
-                        push line, m_specs{type}{i}.default;
+                    if (exists m_specs{type}{i}."default") {
+                        push line, m_specs{type}{i}."default";
                     } else {
                         push line, NOTHING;
                     }
