@@ -34,14 +34,20 @@ QoreString QoreMinusOperatorNode::minus_str("- operator expression");
 
 QoreValue QoreMinusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     ValueEvalRefHolder lh(left, xsink);
-    if (*xsink)
+    if (*xsink) {
         return QoreValue();
+    }
     ValueEvalRefHolder rh(right, xsink);
-    if (*xsink)
+    if (*xsink) {
         return QoreValue();
+    }
 
     qore_type_t lt = lh->getType();
     qore_type_t rt = rh->getType();
+
+    if (rt == NT_NOTHING) {
+        return lh.takeReferencedValue();
+    }
 
     // issue #3157: try to handle timeout - date and vice-versa specially
     if (check_timeout_date_variant && lt == NT_INT && rt == NT_DATE) {
@@ -130,41 +136,59 @@ int QoreMinusOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse
         return **xsink ? -1 : 0;
     }
 
-    // issue #3157: try to handle timeout + date specially
-    if (QoreTypeInfo::equal(leftTypeInfo, timeoutTypeInfo)
-        && QoreTypeInfo::parseReturns(rightTypeInfo, NT_DATE)) {
-        check_timeout_date_variant = true;
-    } else if (QoreTypeInfo::equal(rightTypeInfo, timeoutTypeInfo)
-        && QoreTypeInfo::parseReturns(leftTypeInfo, NT_DATE)) {
-        check_date_timeout_variant = true;
-    }
+    // issue #4834: if the rhs is NOTHING, then return the type of the lhs and raise a warning
+    if (QoreTypeInfo::isType(rightTypeInfo, NT_NOTHING)) {
+        returnTypeInfo = leftTypeInfo;
+        QoreStringNode* edesc = new QoreStringNode("subtracting NOTHING from ");
+        QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
+        edesc->concat(" is a noop; the result of the operation is always the same value on the left-hand side of "
+            "the subtraction operator (-)");
+        qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION, "INVALID-OPERATION",
+            edesc);
+    } else {
+        // issue #3157: try to handle timeout + date specially
+        if (QoreTypeInfo::equal(leftTypeInfo, timeoutTypeInfo)
+            && QoreTypeInfo::parseReturns(rightTypeInfo, NT_DATE)) {
+            check_timeout_date_variant = true;
+        } else if (QoreTypeInfo::equal(rightTypeInfo, timeoutTypeInfo)
+            && QoreTypeInfo::parseReturns(leftTypeInfo, NT_DATE)) {
+            check_date_timeout_variant = true;
+        }
 
-    // if either side is a date, then the return type is date (highest priority)
-    if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE)
-        || QoreTypeInfo::isType(rightTypeInfo, NT_DATE)) {
-        returnTypeInfo = dateTypeInfo;
-    // otherwise we have to make sure types are known on both sides of the expression
-    } else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
-        if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER)
-                || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER)) {
-            returnTypeInfo = numberTypeInfo;
-        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT)
-                || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT)) {
-            returnTypeInfo = floatTypeInfo;
-        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT)
-                || QoreTypeInfo::isType(rightTypeInfo, NT_INT)) {
-            returnTypeInfo = bigIntTypeInfo;
-        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH)
-            && (QoreTypeInfo::isType(rightTypeInfo, NT_STRING)
-                || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))) {
-            returnTypeInfo = leftTypeInfo;
-        } else if (QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT)
+        // if either side is a date, then the return type is date (highest priority)
+        if (QoreTypeInfo::isType(leftTypeInfo, NT_DATE)
+            || QoreTypeInfo::isType(rightTypeInfo, NT_DATE)) {
+            returnTypeInfo = dateTypeInfo;
+        // otherwise we have to make sure types are known on both sides of the expression
+        } else if (QoreTypeInfo::hasType(leftTypeInfo) && QoreTypeInfo::hasType(rightTypeInfo)) {
+            if (QoreTypeInfo::isType(leftTypeInfo, NT_NUMBER)
+                    || QoreTypeInfo::isType(rightTypeInfo, NT_NUMBER)) {
+                returnTypeInfo = numberTypeInfo;
+            } else if (QoreTypeInfo::isType(leftTypeInfo, NT_FLOAT)
+                    || QoreTypeInfo::isType(rightTypeInfo, NT_FLOAT)) {
+                returnTypeInfo = floatTypeInfo;
+            } else if (QoreTypeInfo::isType(leftTypeInfo, NT_INT)
+                    || QoreTypeInfo::isType(rightTypeInfo, NT_INT)) {
+                returnTypeInfo = bigIntTypeInfo;
+            } else if (QoreTypeInfo::isType(leftTypeInfo, NT_HASH)
                 && (QoreTypeInfo::isType(rightTypeInfo, NT_STRING)
-                || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))) {
-            returnTypeInfo = autoHashTypeInfo;
-        } else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo)) {
-            // only return type nothing if both types are available and return a single type
-            returnTypeInfo = nothingTypeInfo;
+                    || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))) {
+                returnTypeInfo = leftTypeInfo;
+            } else if (QoreTypeInfo::isType(leftTypeInfo, NT_OBJECT)
+                    && (QoreTypeInfo::isType(rightTypeInfo, NT_STRING)
+                    || QoreTypeInfo::isType(rightTypeInfo, NT_LIST))) {
+                returnTypeInfo = autoHashTypeInfo;
+            } else if (QoreTypeInfo::returnsSingle(leftTypeInfo) && QoreTypeInfo::returnsSingle(rightTypeInfo)) {
+                QoreStringNode* edesc = new QoreStringNode("subtracting ");
+                QoreTypeInfo::getThisType(rightTypeInfo, *edesc);
+                edesc->concat(" from ");
+                QoreTypeInfo::getThisType(leftTypeInfo, *edesc);
+                edesc->concat(" is an invalid operation and always returns NOTHING");
+                qore_program_private::makeParseWarning(getProgram(), *loc, QP_WARN_INVALID_OPERATION,
+                    "INVALID-OPERATION", edesc);
+                // only return type nothing if both types are available and return a single type
+                returnTypeInfo = nothingTypeInfo;
+            }
         }
     }
 

@@ -1,0 +1,80 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%new-style
+%enable-all-warnings
+%require-types
+%strict-args
+
+#%disable-warning invalid-operation
+
+%requires ../../../../qlib/QUnit.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    constructor() : QUnit::Test("minus nothing", "1.0", \ARGV) {
+        addTestCase("minus nothing", \minusNothingTest());
+        set_return_value(main());
+    }
+
+    minusNothingTest() {
+        {
+            hash<auto> h = {"a": 1};
+            hash<auto> h1 = h;
+            assertEq(h, h1 - NOTHING);
+            h1 -= NOTHING;
+            assertEq(h, h1);
+        }
+
+        {
+            list<auto> l = ("a",);
+            list<auto> l1 = l;
+            assertEq(l, l1 - NOTHING);
+        }
+
+        {
+            int i = 10;
+            int i1 = i;
+            assertEq(i, i1 - NOTHING);
+            i1 -= NOTHING;
+            assertEq(i, i1);
+        }
+
+        {
+            float f = 10.0;
+            float f1 = f;
+            assertEq(f, f1 - NOTHING);
+            f1 -= NOTHING;
+            assertEq(f, f1);
+        }
+
+        {
+            number n = 10n;
+            number n1 = n;
+            assertEq(n, n1 - NOTHING);
+            n1 -= NOTHING;
+            assertEq(n, n1);
+        }
+
+        {
+            date d = now_us();
+            date d1 = d;
+            assertEq(d, d1 - NOTHING);
+            d1 -= NOTHING;
+            assertEq(d, d1);
+        }
+
+        {
+            bool b = True;
+            bool b1 = b;
+            assertEq(b, b1 - NOTHING);
+        }
+
+        {
+            binary b = <ab>;
+            binary b1 = b;
+            assertEq(b, b1 - NOTHING);
+        }
+    }
+}
