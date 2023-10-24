@@ -43,42 +43,74 @@ public class FixedLengthReadDataProvider inherits DataProvider::AbstractDataProv
         #! Constructor options
         const ConstructorOptions = {
             "path": <DataProviderOptionInfo>{
+                "display_name": "Input Path",
+                "short_desc": "The path to the input file",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the path to the fixed-length data; mutually exclusive with \"stream\"; resolved with a call "
-                    "to FileLocationHandler::getBinaryStreamFromLocation()",
+                "desc": "The path to the fixed-length data; mutually exclusive with \"stream\"; resolved with a call "
+                    "to "
+                    "[FileLocationHandler::getBinaryStreamFromLocation()](https://qoretechnologies.com/manual/qorus/"
+                    "current/qore/modules/FileLocationHandler/html/"
+                    "class_file_location_handler_1_1_file_location_handler.html#a29c2338efc901a6b8f24542505e2a094)",
             },
             "stream": <DataProviderOptionInfo>{
+                "display_name": "Input Stream",
+                "short_desc": "An input stream object for fixed-length data",
                 "type": AbstractDataProviderType::get(new Type("InputStream")),
-                "desc": "the input stream for fixed-length data; mutually exclusive with \"path\"",
+                "desc": "The input stream for fixed-length data; mutually exclusive with \"path\"",
             },
             "spec": <DataProviderOptionInfo>{
+                "display_name": "Record Descriptions",
+                "short_desc": "The fixed-length record specification hash",
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "the fixed-length record specification hash",
+                "desc": "The fixed-length record specification hash",
                 "required": True,
             },
             "date_format": <DataProviderOptionInfo>{
+                "display_name": "Date Format",
+                "short_desc": "The default mask for date value input parsing",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the default global date format for `date` fields",
+                "desc": "The default date format for parsing `date` fields; see "
+                    "[Date Mask Format](https://qoretechnologies.com/manual/qorus/current/qore/lang/html/"
+                    "group__date__and__time__functions.html#date_mask) for more information on this option "
+                    "(ex: `DD/MM/YYYY HH:mm:SS`)",
+                "example_value": "DD/MM/YYYY HH:mm:SS",
             },
             "encoding": <DataProviderOptionInfo>{
+                "display_name": "Input Character Encoding",
+                "short_desc": "The Character encoding for the input file",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the encoding for strings",
+                "desc": "Character encoding for the input file (and output data)",
+                "default_value": "UTF-8",
             },
             "eol": <DataProviderOptionInfo>{
+                "display_name": "End Of Line Chars",
+                "short_desc": "The end of line / record character(s)",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the end of line characters",
+                "desc": "The end of line character(s); if not specified, then the end-of-line characters will be "
+                    "auto detected",
             },
             "ignore_empty": <DataProviderOptionInfo>{
+                "display_name": "Ignore Empty Lines",
+                "short_desc": "If true, empty lines will be ignored",
                 "type": AbstractDataProviderType::get(SoftBoolType),
-                "desc": "if `true` then empty lines are ignored",
+                "desc": "If `true`, empty lines will be ignored",
             },
             "number_format": <DataProviderOptionInfo>{
+                "display_name": "Number Format",
+                "short_desc": "The default number format for parsing int, float, and number fields",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the default global number format for `float` or `number` fields",
+                "desc": "The default format for `int`, `float`, and `number` fields as a string giving the thousands "
+                    "separator character followed by the decimal separator character (ex: `.,` for "
+                    "continental-European-style numbers)",
+                "example_value": ".,",
             },
             "timezone": <DataProviderOptionInfo>{
+                "display_name": "Timezone Region",
+                "short_desc": "The timezone region to use when parsing dates",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "a string giving a time zone region name or an integer offset in seconds east of UTC",
+                "desc": "The timezone region to use when parsing dates (ex: `Europe/Prague`); see "
+                    "[TZ indentifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for valid values",
+                "example_value": "Europe/Prague",
             },
         };
 

@@ -44,58 +44,83 @@ public class FixedLengthWriteDataProvider inherits DataProvider::AbstractDataPro
         #! Constructor options
         const ConstructorOptions = {
             "path": <DataProviderOptionInfo>{
+                "display_name": "Output Path",
+                "short_desc": "Where to write the output file",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the path to the fixed-length data; mutually exclusive with \"stream\"; the output location "
-                    "is handled by a call to FileLocationHandler::getOutputStreamForLocation()",
+                "desc": "The path to the fixed-length data; mutually exclusive with \"stream\"; the output location "
+                    "is handled by a call to [FileLocationHandler::getOutputStreamForLocation()]("
+                    "https://qoretechnologies.com/manual/qorus/current/qore/modules/FileLocationHandler/html/"
+                    "class_file_location_handler_1_1_file_location_handler.html#a9d1ca411ea23126280b9d2e4b4b3ede9",
             },
             "stream": <DataProviderOptionInfo>{
+                "display_name": "Output Stream",
+                "short_desc": "An output stream object for the fixed-length data",
                 "type": AbstractDataProviderType::get(new Type("OutputStream")),
                 "desc": "an output stream for fixed-length data; mutually exclusive with \"path\"",
             },
             "spec": <DataProviderOptionInfo>{
+                "display_name": "Record Descriptions",
+                "short_desc": "The fixed-length record specification hash",
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "the fixed-length record specification hash",
+                "desc": "The fixed-length record specification hash",
                 "required": True,
             },
             "date_format": <DataProviderOptionInfo>{
+                "display_name": "Date Format",
+                "short_desc": "The default mask for date value output formatting",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the default global date format for `date` fields",
+                "desc": "The default mask for `date` value output formatting; see "
+                    "[Date Formatting Codes](https://qoretechnologies.com/manual/qorus/current/qore/lang/html/"
+                    "group__date__and__time__functions.html#date_formatting) for more information",
+                "example_value": "YYYY-MM-DD HH:mm:SS.xx",
             },
             "encoding": <DataProviderOptionInfo>{
+                "display_name": "Character Encoding",
+                "short_desc": "The output character encoding",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the encoding for strings",
+                "desc": "The output character encoding for the data",
+                "default_value": "UTF-8",
             },
             "eol": <DataProviderOptionInfo>{
+                "display_name": "End Of Line Chars",
+                "short_desc": "The end of line / record character(s)",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the end of line characters",
+                "desc": "The end of line / record character(s); if not present, the current platform standard will be "
+                    "used",
             },
             "file_flags": <DataProviderOptionInfo>{
+                "display_name": "File Flags",
+                "short_desc": "Additional writer file open flags",
                 "type": AbstractDataProviderType::get(SoftIntType),
-                "desc": "additional writer file open flags; `O_WRONLY | O_CREAT` is used by default; use `O_EXCL` to "
+                "desc": "Additional writer file open flags; `O_WRONLY | O_CREAT` is used by default; use `O_EXCL` to "
                     "ensure not to overwrite the target or `O_TRUNC` to replace any existing file or `O_APPEND` to "
                     "append to an existing file",
             },
-            "ignore_empty": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(SoftBoolType),
-                "desc": "if `true` then empty lines are ignored",
-            },
             "number_format": <DataProviderOptionInfo>{
+                "display_name": "Output Number Format",
+                "short_desc": "The default output format for 'int', 'float', and 'number' fields",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the default global number format for `float` or `number` fields",
-            },
-            "timezone": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
-                "desc": "a string giving a time zone region name or an integer offset in seconds east of UTC",
+                "desc": "The default output format for `int`, `float`, and `number` fields; it is a number format "
+                    "string with 1 to 3 fields as follows: "
+                    "*<thousands_separator>*[*<decimal_separator>*[*<decimals>*]]; ex: `\".,3\"` (= `.` for the "
+                    "thousands separator, `,` for the decimal separator, and 3 digits after the decimal place)",
+                "example_value": ".,3",
             },
             "truncate": <DataProviderOptionInfo>{
+                "display_name": "Truncate Long Fields",
+                "short_desc": "Truncate field values automatically",
                 "type": AbstractDataProviderType::get(SoftBoolType),
-                "desc": "controls whether to truncate an output field value if its bigger than its specified "
+                "desc": "Controls whether to truncate an output field value if it's bigger than its specified "
                     "`length`; the default is `false`",
+                "default_value": False,
             },
             "tab2space": <DataProviderOptionInfo>{
+                "display_name": "Convert Tabs to Spaces",
+                "short_desc": "Convert tabs to spaces automatically",
                 "type": AbstractDataProviderType::get(SoftIntType),
-                "desc": "Controls whether to replace tabs with spaces and its value determines how many spaces to "
+                "desc": "Controls whether to replace tabs with spaces, and its value determines how many spaces to "
                     "output in place of one tab character",
+                "example_value": 4,
             },
         };
 

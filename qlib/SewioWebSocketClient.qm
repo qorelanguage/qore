@@ -244,8 +244,10 @@ public class SewioWebSocketConnection inherits WebSocketClient::WebSocketConnect
             "cls": Class::forName("SewioWebSocketConnection"),
             "options": WebSocketConnectionObject::ConnectionScheme.options + {
                 "apikey": <ConnectionOptionInfo>{
+                    "display_name": "API Key",
+                    "short_desc": "The Sewio RTLS Studio API key",
                     "type": "string",
-                    "desc": "the Sewio RTLS Studio API key",
+                    "desc": "The Sewio RTLS Studio API key",
                 },
             },
             "required_options": foldl $1 + "," + $2, SewioWebSocketClient::RequiredOptions,

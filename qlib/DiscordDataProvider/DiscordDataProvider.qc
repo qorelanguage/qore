@@ -41,27 +41,39 @@ public class DiscordDataProvider inherits DiscordDataProviderBase {
         #! Constructor options
         const ConstructorOptions = {
             "restclient": <DataProviderOptionInfo>{
+                "display_name": "REST Client",
+                "short_desc": "The DiscordRestClient to use for the connection",
                 "type": AbstractDataProviderType::get(new Type("DiscordRestClient")),
-                "desc": "The DiscordRestClient object",
+                "desc": "The `DiscordRestClient` object to use for the connection",
             },
             "restclient_options": <DataProviderOptionInfo>{
+                "display_name": "REST Client Options",
+                "short_desc": "Options for the DiscordRestClient constructor",
                 "type": AbstractDataProviderTypeMap."*hash",
                 "desc": "Options to the DiscordRestClient constructor; only used if a DiscordRestClient object is "
                     "created for a call",
             },
             "oauth2_client_id": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client ID",
+                "short_desc": "Sets the OAuth2 client ID",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The OAuth2 client ID",
             },
             "oauth2_client_secret": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client Secret",
+                "short_desc": "Sets the OAuth2 client secret",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The OAuth2 client secret",
             },
             "oauth2_refresh_token": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Refresh Token",
+                "short_desc": "Sets the OAuth2 refresh token",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The OAuth2 refresh token, if known",
             },
             "token": <DataProviderOptionInfo>{
+                "display_name": "Authorization Token",
+                "short_desc": "Set an authorization token to be included in requests",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The OAuth2 token, if known",
             },

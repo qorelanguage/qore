@@ -123,6 +123,20 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
             @see @ref UpdateOptionsInterface
         */
         const CF_UPDATE_OPTIONS = "update-options";
+
+        #! Default option description
+        const DefaultDescription = "n/a; update connection to use the `AbstractConnectionWithInfo` class instead";
+
+        #! Connection info keys mapped 1:1 to DataProviderOptionInfo keys
+        const CommonConnectionKeys = (
+            "allowed_values",
+            "default_value",
+            "desc",
+            "display_name",
+            "example_value",
+            "short_desc",
+            "sensitive",
+        );
     }
 
     #! creates the AbstractConnection object
@@ -386,8 +400,10 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
             *hash<auto> def = getDefaultOptions();
             options = map {
                 $1.key: <ConnectionOptionInfo>{
+                    "display_name": $1.key,
+                    "short_desc": DefaultDescription,
                     "type": "any",
-                    "desc": "n/a; update connection to use the `AbstractConnectionWithInfo` class instead",
+                    "desc": DefaultDescription,
                     "default_value": def{$1.key},
                 },
             }, opt.pairIterator();
@@ -606,6 +622,24 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         up = False;
         status = err;
     }
+
+    /*
+    #! Returns a ConnectionOptionInfo hash from a DataProviderOptionInfo hash
+    static hash<ConnectionOptionInfo> getConnectionOptionInfo(hash<DataProviderOptionInfo> dinfo) {
+        hash<ConnectionOptionInfo> rv = cast<hash<ConnectionOptionInfo>>(dinfo{CommonConnectionKeys});
+        rv.type = dinfo.type[0].getBaseTypeName();
+        rv.type =~ s/<.*>//;
+        return rv;
+    }
+
+    #! Returns a hash of ConnectionOptionInfo hashes from a hash of DataProviderOptionInfo hashes
+    static hash<string, hash<ConnectionOptionInfo>> getConnectionOptionInfo(
+                hash<string, hash<DataProviderOptionInfo>> dinfo) {
+        return cast<hash<string, hash<ConnectionOptionInfo>>>(map {
+            $1.key: AbstractConnection::getConnectionOptionInfo($1.value)
+        }, dinfo.pairIterator());
+    }
+    */
 
     #! returns a data provider object for the connection and subtype passed as an argument
     /** @param subtype the subtype of data provider supported, in case the connection can return multiple data providers

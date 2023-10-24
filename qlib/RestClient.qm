@@ -1937,9 +1937,11 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             "cls": Class::forName("RestConnection"),
             "options": HttpConnection::ConnectionScheme.options + {
                 "content_encoding": <ConnectionOptionInfo>{
+                    "display_name": "Compression",
+                    "short_desc": "Sets data compression / encoding",
                     "type": "string",
-                    "desc": "this sets the send encoding (if the `send_encoding` option is not set) and the "
-                        "response encoding to request",
+                    "desc": "Sets the data compression / send encoding (if the `send_encoding` option is not set) "
+                        "and the response encoding used",
                     "allowed_values": (
                         <AllowedValueInfo>{
                             "value": "gzip",
@@ -1957,8 +1959,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     ),
                 },
                 "data": <ConnectionOptionInfo>{
+                    "display_name": "Data Serialization",
+                    "short_desc": "Sets how data is serialized",
                     "type": "string",
-                    "desc": "data serialization options",
+                    "desc": "Sets how data is serialized in requests",
                     "allowed_values": (
                         <AllowedValueInfo>{
                             "value": "auto",
@@ -1989,44 +1993,62 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     "default_value": "auto",
                 },
                 "headers": <ConnectionOptionInfo>{
+                    "display_name": "HTTP Headers",
+                    "short_desc": "Sets headers to send in each request",
                     "type": "hash",
-                    "desc": "an optional hash of headers to send with every request, these can also be "
+                    "desc": "Sets an optional hash of headers to send with every request, these can also be "
                         "overridden in request method calls",
                 },
                 "oauth2_app": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Application",
+                    "short_desc": "Sets a hint to external programs for the OAuth2 config",
                     "type": "string",
                     "desc": "This is a hint to external programs processing OAuth2 requests to external "
                         "configuration for the OAuth2 configuration",
                 },
                 "oauth2_auth_args": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Authorization Args",
+                    "short_desc": "Optional arguments for authentication requests for the authorization_code grant type",
                     "type": "hash",
                     "desc": "Optional arguments for authentication requests for the `authorization_code` grant type; "
                         "ignored if the `token` option is set.  Note that the `authorization_code` grant type "
                         "requires external user authorization to acquire an access token",
                 },
                 "oauth2_auth_url": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Auth URL",
+                    "short_desc": "Sets the OAuth2 authorization URL for the authorization_code grant type",
                     "type": "string",
                     "desc": "The OAuth2 authorization URL for the `authorization_code` grant type; ignored "
                         "if the `token` option is set.  Note that the `authorization_code` grant type requires "
                         "external user authorization to acquire an access token",
                 },
                 "oauth2_auto_refresh": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Auto Refresh",
+                    "short_desc": "Sets if OAuth2 tokens should be automatically refreshed",
                     "type": "bool",
                     "desc": "If OAuth2 tokens should be automatically refreshed",
                     "default_value": True,
                 },
                 "oauth2_client_id": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Client ID",
+                    "short_desc": "Sets the OAuth2 client ID",
                     "type": "string",
-                    "desc": "The OAuth2 client ID; ignored if the `token` option is set",
+                    "desc": "The OAuth2 client ID; ignored for logins if the `token` option is set (but possibly "
+                        "used when refreshing tokens)",
                 },
                 "oauth2_client_secret": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Client Secret",
+                    "short_desc": "Sets the OAuth2 client secret",
                     "type": "string",
-                    "desc": "the OAuth2 client secret; ignored if the `token` option is set",
+                    "desc": "Sets the OAuth2 client secret; ignored for logins if the `token` option is set (but "
+                        "possibly used when refreshing tokens)",
                     "sensitive": True,
                 },
                 "oauth2_grant_type": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Grant Type",
+                    "short_desc": "Sets the OAuth2 grant type",
                     "type": "string",
-                    "desc": "The OAuth2 grant type; ignored if the `token` option is set",
+                    "desc": "The OAuth2 grant type; ignored for logins if the `token` option is set",
                     "allowed_values": (
                         <AllowedValueInfo>{
                             "value": "authorization_code",
@@ -2050,11 +2072,17 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     ),
                 },
                 "oauth2_pkce": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 PKCE",
+                    "short_desc": "Sets a hint to external applications to use PKCE (Proof Key Code Exchange) with "
+                        "the authorization code flow",
                     "type": "bool",
-                    "desc": "Use PKCE (Proof Key Code Exchange) when using the OAuth2 `authorization_code` flow",
+                    "desc": "Sets a hint to external applications to use PKCE (Proof Key Code Exchange) with "
+                        "the `authorization_code` flow",
                     "default_value": False,
                 },
                 "oauth2_redirect_url": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Redirect URL",
+                    "short_desc": "The OAuth2 redirect URL for the authorization code grant type",
                     "type": "string",
                     "desc": "The OAuth2 redirect URL for the `authorization_code` grant type; ignored "
                         "if the `token` option is set.  Note that the `authorization_code` grant type requires "
@@ -2064,31 +2092,43 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     "default_value": "auto",
                 },
                 "oauth2_refresh_token": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Refresh Token",
+                    "short_desc": "Sets the OAuth2 refresh token",
                     "type": "string",
-                    "desc": "the OAuth2 refresh token, if any (complements option `token`)",
+                    "desc": "Sets the OAuth2 refresh token, if any (complements option `token`)",
                     "sensitive": True,
                 },
                 "oauth2_scopes": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Scopes",
+                    "short_desc": "List of OAuth2 scopes to request",
                     "type": "list",
-                    "desc": "Space-separated string of OAuth2 scopes to request; ignored if the `token` option is set",
+                    "desc": "List of OAuth2 scope strings to request; ignored if the `token` option is set",
                 },
                 "oauth2_token_url": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Token URL",
+                    "short_desc": "The token URL for OAuth2 flows",
                     "type": "string",
-                    "desc": "The token URL for OAuth2 flows; ignored if the `token` option is set",
+                    "desc": "The token URL for OAuth2 flows; ignored for logins if the `token` option is set",
                 },
                 "password": <ConnectionOptionInfo>{
+                    "display_name": "Password",
+                    "short_desc": "The password for authentication",
                     "type": "string",
                     "desc": "The password for authentication; only used if no username or password is set in the URL "
                         "and if the `username` option is also used; conflicts with the `token` option",
                     "sensitive": True,
                 },
                 "ping_method": <ConnectionOptionInfo>{
+                    "display_name": "Ping Method",
+                    "short_desc": "The HTTP method to use for pings",
                     "type": "string",
                     "desc": "The HTTP method to use for an advanced ping; this and `ping_path` must be set to make "
                         "an HTTP request as a part of the socket polling ping operation; must be a valid HTTP method "
                         "name",
                 },
                 "ping_path": <ConnectionOptionInfo>{
+                    "display_name": "Ping Path",
+                    "short_desc": "The URI path to use for pings",
                     "type": "string",
                     "desc": "The URI path to use for an advanced ping; this and `ping_method` must be made to make "
                         "an HTTP request as a part of the socket polling ping operation.  If the value for this "
@@ -2096,18 +2136,24 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                         "client, otherwise the value is appended to the connection path for the REST client.",
                 },
                 "ping_headers": <ConnectionOptionInfo>{
+                    "display_name": "Ping Headers",
+                    "short_desc": "Any HTTP headers to send with pings",
                     "type": "hash",
                     "desc": "Any HTTP headers to send when performing an advanced ping operation; ignored if either "
                         "one of `ping_method` and `ping_path` are not set",
                 },
                 "ping_body": <ConnectionOptionInfo>{
+                    "display_name": "Ping Body",
+                    "short_desc": "The message body to send with pings",
                     "type": "any",
                     "desc": "Any message body to send when performing an advanced ping operation; ignored if either "
                         "one of `ping_method` and `ping_path` are not set or if `ping_method` is `GET`",
                 },
                 "send_encoding": <ConnectionOptionInfo>{
+                    "display_name": "Send Compression",
+                    "short_desc": "Sets the compression algorithm to use when sending messages",
                     "type": "string",
-                    "desc": "this sets the send encoding",
+                    "desc": "Sets the compression algorithm to use when sending messages",
                     "allowed_values": (
                         <AllowedValueInfo>{
                             "value": "gzip",
@@ -2125,43 +2171,59 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     ),
                 },
                 "swagger": <ConnectionOptionInfo>{
+                    "display_name": "Swagger Schema",
+                    "short_desc": "Sets the location of a Swagger schema to use for the connection",
                     "type": "file-as-string",
-                    "desc": "the location of a Swagger schema to use for message validation; processed with "
+                    "desc": "Sets the location of a Swagger schema to use for message validation; processed with "
                         "`FileLocationHandler::getTextFileFromLocation()` "
                         "(ex: `file:///path/to/swagger-schema.json`); conflicts with `validator`",
                     "freeform": True,
                 },
                 "swagger_base_path": <ConnectionOptionInfo>{
+                    "display_name": "Override Schema Base Path",
+                    "short_desc": "Overrides the base path for REST / Swagger schemas",
                     "type": "string",
-                    "desc": "in case a REST validator is used, the base path in the schema can be overridden "
+                    "desc": "In case a REST validator is used, the base path in the schema can be overridden "
                         "with this option (applies to any REST validator; not just Swagger validators)",
                 },
                 "swagger_lax_parsing": <ConnectionOptionInfo>{
+                    "display_name": "Swagger Lax Parsing",
+                    "short_desc": "Sets lax parsing for Swagger schemas",
                     "type": "bool",
-                    "desc": "try to parse invalid Swagger schemas",
+                    "desc": "Try to parse invalid Swagger schemas; this option is not recommended; it will not parse "
+                        "all bad Swagger schemas; schemas should be corrected instead of setting this option",
                 },
                 "token": <ConnectionOptionInfo>{
+                    "display_name": "Authorization Token",
+                    "short_desc": "Set an authorization token to be included in requests",
                     "type": "string",
-                    "desc": "Any bearer token to use for the connection; will be passed as "
-                        "`Authorization: Bearer ...` in request headers; this option cannot be used with username "
+                    "desc": "Any authorization token to use for the connection; will be passed as "
+                        "`Authorization: Bearer ...` (assuming that `token_type` is `Bearer`) in request headers; "
+                        "this option cannot be used with username "
                         "and password options or authentication information in the URL; if this option is set then "
-                        "OAuth2 options are ignored",
+                        "most OAuth2 options are ignored for logins",
                     "sensitive": True,
                 },
                 "token_type": <ConnectionOptionInfo>{
+                    "display_name": "Authorization Token Type",
+                    "short_desc": "The type of authorization token",
                     "type": "string",
-                    "desc": "The type of `token` to use for the `Authentication` header; ignored if no `token` "
+                    "desc": "The type of `token` to use for the `Authorization` header; ignored if no `token` "
                         "option is set",
                     "default_value": "Bearer",
                 },
                 "username": <ConnectionOptionInfo>{
+                    "display_name": "Username",
+                    "short_desc": "Sets the username for authentication",
                     "type": "string",
                     "desc": "The username for authentication; only used if no username or password is set in the URL "
                         "and if the `password` option is also used; conflicts with the `token` option",
                 },
                 "validator": <ConnectionOptionInfo>{
+                    "display_name": "Schema Validator",
+                    "short_desc": "Sets a schema validator object",
                     "type": "any",
-                    "desc": "an `AbstractRestSchemaValidator` object for REST message validation; conflicts with "
+                    "desc": "Sets an `AbstractRestSchemaValidator` object for REST message validation; conflicts with "
                         "`swagger`",
                 },
             },

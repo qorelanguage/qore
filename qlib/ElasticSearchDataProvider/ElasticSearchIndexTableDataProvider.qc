@@ -62,21 +62,39 @@ public class ElasticSearchIndexTableDataProvider inherits ElasticSearchDataProvi
             "supports_create": True,
             "create_options": {
                 "if_seq_no": <DataProviderOptionInfo>{
+                    "display_name": "Only If Sequence",
+                    "short_desc": "Only perform the operation if the document has this sequence number",
                     "type": AbstractDataProviderTypeMap."int",
                     "desc": "Only perform the operation if the document has this sequence number",
                 },
                 "if_primary_term": <DataProviderOptionInfo>{
+                    "display_name": "Only If Primary Term",
+                    "short_desc": "Only perform the operation if the document has this primary term",
                     "type": AbstractDataProviderTypeMap."int",
                     "desc": "Only perform the operation if the document has this primary term",
                 },
                 "op_type": <DataProviderOptionInfo>{
+                    "display_name": "Create Operation Type",
+                    "short_desc": "Create or index the document",
                     "type": AbstractDataProviderTypeMap."string",
-                    "desc": "Set to create to only index the document if it does not already exist (put if absent). If a "
+                    "desc": "Set to create or only index the document if it does not already exist (put if absent). If a "
                         "document with the specified `_id` already exists, the indexing operation will fail. Same as "
                         "using the `<index>/_create` endpoint. Valid values: `index`, `create`. If document id is "
                         "specified, it defaults to `index`. Otherwise, it defaults to `create`",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "index",
+                            "desc": "Index the document",
+                        },
+                        <AllowedValueInfo>{
+                            "value": "create",
+                            "desc": "Create the document",
+                        },
+                    ),
                 },
                 "pipeline": <DataProviderOptionInfo>{
+                    "display_name": "Pipeline",
+                    "short_desc": "ID of the pipeline to use to preprocess incoming documents",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "ID of the pipeline to use to preprocess incoming documents. If the index has a default "
                         "ingest pipeline specified, then setting the value to _none disables the default ingest pipeline "
@@ -84,56 +102,102 @@ public class ElasticSearchIndexTableDataProvider inherits ElasticSearchDataProvi
                         "of this parameter",
                 },
                 "refresh": <DataProviderOptionInfo>{
+                    "display_name": "Refresh Shards",
+                    "short_desc": "Indicates if shards should be refreshed after this operation",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "If `true`, Elasticsearch refreshes the affected shards to make this operation visible to "
                         "search, if `wait_for` then wait for a refresh to make this operation visible to search, if "
                         "`false` do nothing with refreshes. Valid values: `true`, `false`, `wait_for`",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "true",
+                            "desc": "Refresh shards to make this operation visible to searches",
+                        },
+                        <AllowedValueInfo>{
+                            "value": "false",
+                            "desc": "Do nothing with refreshes",
+                        },
+                        <AllowedValueInfo>{
+                            "value": "wait_for",
+                            "desc": "Wait for a refresh to make this operation visible to searches",
+                        },
+                    ),
                 },
                 "routing": <DataProviderOptionInfo>{
+                    "display_name": "Shard Routing",
+                    "short_desc": "Custom value used to route operations to a specific shard",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "Custom value used to route operations to a specific shard",
                 },
                 "timeout": <DataProviderOptionInfo>{
+                    "display_name": "Response Timeout",
+                    "short_desc": "Period to wait for a response",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "Period to wait for a response (ex: `1m`). If no response is received before the "
                         "timeout expires, the request fails and returns an error",
                 },
                 "version": <DataProviderOptionInfo>{
+                    "display_name": "Version Control",
+                    "short_desc": "Explicit version number for concurrency control",
                     "type": AbstractDataProviderTypeMap."int",
                     "desc": "Explicit version number for concurrency control. The specified version must match the "
                         "current version of the document for the request to succeed",
                 },
                 "version_type": <DataProviderOptionInfo>{
+                    "display_name": "Version Type",
+                    "short_desc": "Specific version type",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "Specific version type: `external`, `external_gte`",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "external",
+                            "desc": "external",
+                        },
+                        <AllowedValueInfo>{
+                            "value": "external_gte",
+                            "desc": "external_gte",
+                        },
+                    ),
                 },
                 "wait_for_active_shards": <DataProviderOptionInfo>{
+                    "display_name": "Wait For Active Shards",
+                    "short_desc": "The number of shard copies that must be active before proceeding",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "The number of shard copies that must be active before proceeding with the operation. Set to "
                         "`all` or any positive integer up to the total number of shards in the index (number_of_replicas+1)",
                 },
                 "require_alias": <DataProviderOptionInfo>{
+                    "display_name": "Require Alias",
+                    "short_desc": "If true, the destination must be an index alias",
                     "type": SoftBoolDataProviderStringType,
                     "desc": "If `true`, the destination must be an index alias",
                 },
             },
             "search_options": {
                 "if_seq_no": <DataProviderOptionInfo>{
+                    "display_name": "Only If Sequence",
+                    "short_desc": "Only perform the operation if the document has this sequence number",
                     "type": AbstractDataProviderTypeMap."int",
                     "desc": "Only perform the operation if the document has this sequence number\n"
                         "(update only)",
                 },
                 "if_primary_term": <DataProviderOptionInfo>{
+                    "display_name": "Only If Primary Term",
+                    "short_desc": "Only perform the operation if the document has this primary term",
                     "type": AbstractDataProviderTypeMap."int",
                     "desc": "Only perform the operation if the document has this primary term\n"
                         "(update only)",
                 },
                 "lang": <DataProviderOptionInfo>{
+                    "display_name": "Script Language",
+                    "short_desc": "The script language",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "The script language\n"
                         "(update only)",
                 },
                 "operator": <DataProviderOptionInfo>{
+                    "display_name": "Boolean Operator",
+                    "short_desc": "And or Or logic for searches",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "Boolean logic used to interpret text in the query value. Valid values are:\n"
                         "- `or` (Default): For example, a query value of `capital of Hungary` is interpreted as "
@@ -153,53 +217,87 @@ public class ElasticSearchIndexTableDataProvider inherits ElasticSearchDataProvi
                     ),
                 },
                 "require_alias": <DataProviderOptionInfo>{
+                    "display_name": "Require Alias",
+                    "short_desc": "If true the destination must be an index alias",
                     "type": SoftBoolDataProviderStringType,
                     "desc": "If `true`, the destination must be an index alias\n"
                         "(update only)",
                 },
                 "refresh": <DataProviderOptionInfo>{
+                    "display_name": "Refresh Shards",
+                    "short_desc": "Indicates if shards should be refreshed after this operation",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "If `true`, Elasticsearch refreshes the affected shards to make this operation visible to "
                         "search, if `wait_for` then wait for a refresh to make this operation visible to search, if "
-                        "`false` do nothing with refreshes. Valid values: `true`, `false`, `wait_for`\n"
-                        "(update only)",
+                        "`false` do nothing with refreshes. Valid values: `true`, `false`, `wait_for`",
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "value": "true",
+                            "desc": "Refresh shards to make this operation visible to searches",
+                        },
+                        <AllowedValueInfo>{
+                            "value": "false",
+                            "desc": "Do nothing with refreshes",
+                        },
+                        <AllowedValueInfo>{
+                            "value": "wait_for",
+                            "desc": "Wait for a refresh to make this operation visible to searches",
+                        },
+                    ),
                 },
                 "retry_on_conflict": <DataProviderOptionInfo>{
+                    "display_name": "Conflict Retries",
+                    "short_desc": "How many retries should be made after a conflict?",
                     "type": AbstractDataProviderTypeMap."int",
                     "desc": "Specify how many times should the operation be retried when a conflict occurs\n"
                         "(update only)",
                 },
                 "routing": <DataProviderOptionInfo>{
+                    "display_name": "Shard Routing",
+                    "short_desc": "Custom value used to route operations to a specific shard",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "Custom value used to route operations to a specific shard\n"
                         "(update only)",
                 },
                 "_source": <DataProviderOptionInfo>{
+                    "display_name": "Source Retrieval",
+                    "short_desc": "Specify how or if source retrieval should be performed",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "Set to `false` to disable source retrieval (default: `true`). You can also specify a "
                         "comma-separated list of the fields you want to retrieve\n"
                         "(update only)",
                 },
                 "_source_excludes": <DataProviderOptionInfo>{
+                    "display_name": "Source excludes",
+                    "short_desc": "The source fields to exclude",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "Specify the source fields you want to exclude\n"
                         "(update only)",
                 },
                 "_source_includes": <DataProviderOptionInfo>{
+                    "display_name": "Source Includes",
+                    "short_desc": "The source fields to include",
                     "type": AbstractDataProviderTypeMap."string",
-                    "desc": "Specify the source fields you want to exclude\n"
+                    "desc": "Specify the source fields you want to include\n"
                         "(update only)",
                 },
                 "timeout": <DataProviderOptionInfo>{
+                    "display_name": "Response Timeout",
+                    "short_desc": "Period to wait for a response",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "Period to wait for a response (ex: `1m` = 1 minute). If no response is received before "
                         "the timeout expires, the request fails and returns an error",
+                    "example_value": "1m",
                 },
                 "version": <DataProviderOptionInfo>{
+                    "display_name": "Version Number",
+                    "short_desc": "Explicit version number for concurrency control",
                     "type": AbstractDataProviderTypeMap."string",
-                    "desc": "",
+                    "desc": "Explicit version number for concurrency control",
                 },
                 "wait_for_active_shards": <DataProviderOptionInfo>{
+                    "display_name": "Wait For Active Shards",
+                    "short_desc": "The number of shard copies that must be active before proceeding",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "The number of shard copies that must be active before proceeding with the operation. "
                         "Set to `all` or any positive integer up to the total number of shards in the index "

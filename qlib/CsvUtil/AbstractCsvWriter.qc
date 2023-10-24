@@ -476,6 +476,8 @@ public namespace CsvUtil {
             if (!m_specs{type}) {
                 # issue #4838: automatically set headers from the input data
                 m_specs{type} = map {$1.key: NOTHING}, values.pairIterator();
+                # write headers if enabled
+                writeHeaders();
             }
             list<auto> line;
             foreach string i in (keys m_specs{type}) { # (m_out_by_name{type}) {
@@ -496,9 +498,11 @@ public namespace CsvUtil {
         /**
             @param iterator an iterator to stream data into file
 
-            The iterator has to return @ref list or @ref hash from the @ref Qore::AbstractIterator::getValue() "getValue()" method.
+            The iterator has to return @ref list or @ref hash from the
+            @ref Qore::AbstractIterator::getValue() "getValue()" method
 
-            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when @ref Qore::AbstractIterator::getValue() "getValue()" does not return list or hash
+            @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints or when
+            @ref Qore::AbstractIterator::getValue() "getValue()" does not return list or hash
          */
         write(Qore::AbstractIterator iterator) {
             while (iterator.next()) {
@@ -511,7 +515,8 @@ public namespace CsvUtil {
                         writeLine(row);
                         break;
                     default:
-                        throw errname, sprintf("Iterator's getValue returned %s, expected list or hash", row.type());
+                        throw errname, sprintf("Iterator's getValue() method returned %y, expected \"list\" or "
+                            "\"hash\"", row.type());
                 }
             }
         }

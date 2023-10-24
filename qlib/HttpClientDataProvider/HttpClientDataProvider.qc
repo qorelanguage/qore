@@ -40,27 +40,37 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
         #! Constructor arguments
         const ConstructorOptions = {
             "assume_encoding": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "Assume Character Encoding",
+                "short_desc": "Sets the character encoding to assume if 'charset' is missing",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "Assumes the given encoding if the server does not send a `charset` value",
             },
             "connect_timeout": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
+                "display_name": "Connect Timeout",
+                "short_desc": "The connect timeout in milliseconds",
+                "type": AbstractDataProviderTypeMap."int",
                 "desc": "The connection timeout to use in milliseconds (default: 45 seconds)",
                 "default_value": 45000,
             },
             "error_passthru": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "display_name": "Error Passthrough",
+                "short_desc": "If errors should be returned as normal responses",
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `True` then HTTP status codes indicating errors will not cause an "
                     "`HTTP-CLIENT-RECEIVE-ERROR` exception to be raised, rather such responses will be "
                     "passed through to the caller like any other response",
                 "default_value": False,
             },
             "headers": <DataProviderOptionInfo>{
+                "display_name": "HTTP Headers",
+                "short_desc": "Sets HTTP headers to include in each request",
                 "type": AbstractDataProviderTypeMap."hash",
-                "desc": "headers to add in each outgoing request",
+                "desc": "Sets HTTP headers to include in each outgoing request",
             },
             "http_version": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "HTTP Version",
+                "short_desc": "HTTP version to use",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
                 "default_value": "1.1",
                 "allowed_values": (
@@ -74,32 +84,44 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
                 ),
             },
             "max_redirects": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
-                "desc": "Maximum redirects to support",
+                "display_name": "Max Redirects",
+                "short_desc": "Sets the maximum HTTP redirects to support",
+                "type": AbstractDataProviderTypeMap."int",
+                "desc": "Sets the maximum HTTP redirects to support in a single request",
             },
             "pre_encoded_urls": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "display_name": "Pre-Encoded URLs",
+                "short_desc": "If true then URLs are assumed to be preencoded",
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "if `true` then all URI paths in URLs are assumed to be already "
                     "[percent encoded](https://en.wikipedia.org/wiki/Percent-encoding); if this flag is set and "
                     "any unencoded characters are sent in a URL with a new request, an exception is raised",
                 "default_value": False,
             },
             "proxy": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "HTTP Proxy",
+                "short_desc": "The HTTP proxy to use",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The proxy URL to use",
             },
             "redirect_passthru": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "display_name": "Redirect Passthrough",
+                "short_desc": "If true then redirect responses are returned to the caller",
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "if `True` then redirect responses will be passed to the caller instead of processed",
                 "default_value": False,
             },
             "ssl_cert_der": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "display_name": "SSL Certificate DER",
+                "short_desc": "Indicates if X.509 certificate data is in DER format",
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `True` then the data represented by `ssl_cert_location` will be assumed to be in binary "
                     "DER format",
                 "default_value": False,
             },
             "ssl_cert_location": <DataProviderOptionInfo>{
+                "display_name": "SSL Certificate Location",
+                "short_desc": "The location of the X.509 client certificate to use",
                 "type": AbstractDataProviderType::get(StringType, NOTHING, {
                     DTT_FromFile: True,
                     DTT_FromLocation: True,
@@ -107,12 +129,16 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
                 "desc": "A path or location to an X.509 client certificate file",
             },
             "ssl_key_der": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "display_name": "SSL Key DER",
+                "short_desc": "Indicates if X.509 private key data is in DER format",
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `True` then the data represented by `ssl_key_location` will be assumed to be in binary "
                     "DER format",
                 "default_value": False,
             },
             "ssl_key_location": <DataProviderOptionInfo>{
+                "display_name": "SSL Key Location",
+                "short_desc": "The location of the private key file",
                 "type": AbstractDataProviderType::get(StringType, NOTHING, {
                     DTT_FromFile: True,
                     DTT_FromLocation: True,
@@ -120,22 +146,30 @@ public class HttpClientDataProvider inherits AbstractDataProvider {
                 "desc": "A path or location to a private key file for the X.509 client certificate",
             },
             "ssl_key_password": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "SSL Key Password",
+                "short_desc": "The password to the private key",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The password to the private key given with `ssl_key_path` (text PEM format only)",
                 "sensitive": True,
             },
             "ssl_verify_cert": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "display_name": "SSL Verify Certificate",
+                "short_desc": "If true then server certificates will be verified",
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "if `True` then the server's certificate will only be accepted if it's verified",
                 "default_value": False,
             },
             "timeout": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
+                "display_name": "I/O Timeout",
+                "short_desc": "The maximum time an individual I/O operation can take in milliseconds",
+                "type": AbstractDataProviderTypeMap."int",
                 "desc": "Transfer timeout to use in milliseconds (default: 45 seconds)",
                 "default_value": 45000,
             },
             "url": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "URL",
+                "short_desc": "The URL to connect to",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "A URL for an HTTP or HTTPS connection",
                 "required": True,
             },

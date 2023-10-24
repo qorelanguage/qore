@@ -219,8 +219,10 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
             "cls": Class::forName("GoogleRestConnection"),
             "options": RestConnection::ConnectionScheme.options + {
                 "api_profile": <ConnectionOptionInfo>{
+                    "display_name": "API Profile",
+                    "short_desc": "Sets the Google service API profile",
                     "type": "string",
-                    "desc": "the API profile according to the Google API in use; this option will set the REST "
+                    "desc": "Sets the API profile according to the Google API in use; this option will set the REST "
                         "options if they are not already set (`oauth2_scopes`, `ping_body`, `ping_headers`, and "
                         "`ping_method`); valid "
                         "values:\n"

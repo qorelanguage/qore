@@ -98,40 +98,59 @@ public class SalesforceRestObjectDataProvider inherits SalesforceRestDataProvide
         hash<DataProviderInfo> rv = SalesforceRestDataProvider::ProviderInfo - "constructor_options" + <DataProviderInfo>{
             "search_options": {
                 "columns": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
+                    "display_name": "Columns",
+                    "short_desc": "Columns to include in output",
+                    "type": AbstractDataProviderTypeMap."any",
                     "desc": "column argument for the SOQL select expression",
                 },
                 "scope": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(StringType),
-                    "desc": "the scope to use for the query",
+                    "display_name": "Scope",
+                    "short_desc": "Query scope",
+                    "type": AbstractDataProviderTypeMap."string",
+                    "desc": "The scope to use for the query",
                 },
                 "limit": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(IntType),
+                    "display_name": "Limit",
+                    "short_desc": "The maximum number of records to return",
+                    "type": AbstractDataProviderTypeMap."int",
                     "desc": "the maximum number of records to return",
                 },
                 "offset": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(IntType),
-                    "desc": "the offset number in records to return",
+                    "display_name": "Offset",
+                    "short_desc": "The offset in the record list for records to return",
+                    "type": AbstractDataProviderTypeMap."int",
+                    "desc": "The offset in the record list for records to return",
                 },
                 "groupby": <DataProviderOptionInfo>{
+                    "display_name": "Group By",
+                    "short_desc": "Field(s) to group results by",
                     "type": new QoreListDataType(new Type("softlist<auto>")),
-                    "desc": "group by argument for the SOQL select expression",
+                    "desc": "Field(s) to group results by in case there are aggregate expressions in the query; group "
+                        "by argument for the SOQL select expression",
                 },
                 "having": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(AutoHashType),
-                    "desc": "having argument for the SOQL select expression",
+                    "display_name": "Having Clause",
+                    "short_desc": "A 'having' clause for the select expression",
+                    "type": AbstractDataProviderTypeMap."hash",
+                    "desc": "A `having` clause for the SOQL select expression",
                 },
                 "orderby": <DataProviderOptionInfo>{
+                    "display_name": "Order By",
+                    "short_desc": "Fields to order the query result by",
                     "type": new QoreListDataType(new Type("softlist<string>")),
-                    "desc": "order by argument for the SOQL select expression",
+                    "desc": "Sets the order by argument for the SOQL select expression",
                 },
                 "forview": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(SoftBoolType),
-                    "desc": "uses FOR VIEW with the query to update the view date",
+                    "display_name": "Use For View",
+                    "short_desc": "Uses FOR VIEW with the query",
+                    "type": AbstractDataProviderTypeMap."softbool",
+                    "desc": "Uses `FOR VIEW` with the query to update the view date",
                 },
                 "forreference": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(SoftBoolType),
-                    "desc": "uses FOR REFERENCE with the query to update the reference date",
+                    "display_name": "Use For Reference",
+                    "short_desc": "Uses FOR REFERENCE with the query",
+                    "type": AbstractDataProviderTypeMap."softbool",
+                    "desc": "Uses `FOR REFERENCE` with the query to update the reference date",
                 },
             },
             "expressions": AbstractDataProvider::GenericExpressions{
@@ -155,8 +174,10 @@ public class SalesforceRestObjectDataProvider inherits SalesforceRestDataProvide
             },
             "upsert_options": {
                 "extidfield": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(StringType),
-                    "desc": "the name of the external ID field in the new record data",
+                    "display_name": "External ID Field",
+                    "short_desc": "Sets the name of the external ID field",
+                    "type": AbstractDataProviderTypeMap."string",
+                    "desc": "Sets the name of the external ID field in the new record data",
                     "required": True,
                 },
             },

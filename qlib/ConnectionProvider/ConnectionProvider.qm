@@ -30,7 +30,7 @@
 %new-style
 %strict-args
 
-%requires Util
+%requires(reexport) Util
 %requires Logger
 %requires(reexport) DataProvider
 %requires reflection

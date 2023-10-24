@@ -813,9 +813,9 @@ ws.setEventQueue();
         } else {
             http_opts."timeout" = timeout_ms;
         }
-        # remove the "token" option and use it if the Authentication header is not set
-        if ((*string token = remove http_opts.token) && !http_opts.headers.Authentication) {
-            http_opts.headers.Authentication = sprintf("%s %s", http_opts.token_type ?? "Bearer", token);
+        # remove the "token" option and use it if the Authorization header is not set
+        if ((*string token = remove http_opts.token) && !http_opts.headers.Authorization) {
+            http_opts.headers.Authorization = sprintf("%s %s", http_opts.token_type ?? "Bearer", token);
         }
         # unconditionally remove any "token_type" option
         remove http_opts.token_type;
@@ -1335,8 +1335,10 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
             "cls": Class::forName("WebSocketConnectionObject"),
             "options": HttpConnection::ConnectionScheme.options + {
                 "data": <ConnectionOptionInfo>{
+                    "display_name": "Data Serialization",
+                    "short_desc": "Sets the data serialization option",
                     "type": "string",
-                    "desc": "Data serialization options",
+                    "desc": "Sets the data serialization option",
                     "allowed_values": (
 %ifndef NoJson
                         <AllowedValueInfo>{
@@ -1358,17 +1360,23 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
                     "default_value": "none",
                 },
                 "token": <ConnectionOptionInfo>{
+                    "display_name": "Authorization Token",
+                    "short_desc": "Set an authorization token",
                     "type": "string",
                     "desc": "Any token to use for the initial HTTP request to authenticate with the server",
                     "sensitive": True,
                 },
                 "token_type": <ConnectionOptionInfo>{
+                    "display_name": "Authorization Token Type",
+                    "short_desc": "The type of authorization token",
                     "type": "string",
-                    "desc": "The type of `token` to use for the `Authentication` header; ignored if no `token` "
+                    "desc": "The type of `token` to use for the `Authorization` header; ignored if no `token` "
                         "option is set",
                     "default_value": "Bearer",
                 },
                 "version": <ConnectionOptionInfo>{
+                    "display_name": "WebSocket Version",
+                    "short_desc": "Sets the WebSocket protocol version",
                     "type": "int",
                     "desc": "The WebSocket protocol version to use in the client",
                     "allowed_values": (
@@ -1510,10 +1518,14 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         #! Constructor options
         const ConstructorOptions = {
             "connect_timeout": <DataProviderOptionInfo>{
+                "display_name": "Connect Timeout",
+                "short_desc": "Connect timeout in milliseconds",
                 "type": AbstractDataProviderTypeMap."int",
-                "desc": "connection timeout to use in milliseconds",
+                "desc": "Connection timeout to use in milliseconds",
             },
             "data": <DataProviderOptionInfo>{
+                "display_name": "Data Serialization",
+                "short_desc": "Data serialization for string messages",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "data serialization to use:\n"
 %ifndef NoJson
@@ -1530,58 +1542,107 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                     "none"
 %endif
                     ,
+                "allowed_values": (
+%ifndef NoJson
+                    <AllowedValueInfo>{
+                        "value": "json",
+                        "desc": "Use JSON serialization",
+                    },
+%endif
+%ifndef NoYaml
+                    <AllowedValueInfo>{
+                        "value": "jyaml",
+                        "desc": "Use YAML serialization",
+                    },
+%endif
+                    <AllowedValueInfo>{
+                        "value": "none",
+                        "desc": "Use no data serialization",
+                    },
+                ),
             },
             "headers": <DataProviderOptionInfo>{
+                "display_name": "Request Headers",
+                "short_desc": "HTTP headers to send in the request",
                 "type": AbstractDataProviderTypeMap."hash",
-                "desc": "headers to add in each outgoing request",
+                "desc": "HTTP headers to add in the initial connection request",
             },
             "http_version": <DataProviderOptionInfo>{
+                "display_name": "HTTP Version",
+                "short_desc": "HTTP version to use",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
                 "default_value": "1.1",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "value": "1.0",
+                        "desc": "Use HTTP version \"1.0\"",
+                    }, <AllowedValueInfo>{
+                        "value": "1.1",
+                        "desc": "Use HTTP version \"1.1\" (the default)",
+                    },
+                ),
             },
             "logger": <DataProviderOptionInfo>{
+                "display_name": "Logger",
+                "short_desc": "The logger to use",
                 "type": AbstractDataProviderType::get(new Type("Logger::LoggerInterface")),
                 "desc": "Any logger to use for information about data provider operations",
             },
             "max_redirects": <DataProviderOptionInfo>{
+                "display_name": "Max HTTP Redirects",
+                "short_desc": "Maximum HTTP redirects to support",
                 "type": AbstractDataProviderTypeMap."int",
-                "desc": "maximum redirects to support",
+                "desc": "Maximum HTTP redirects to support",
             },
             "proxy": <DataProviderOptionInfo>{
+                "display_name": "HTTP Proxy",
+                "short_desc": "The HTTP proxy to use",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "proxy URL to use",
+                "desc": "The proxy URL to use",
             },
             "report_pings": <DataProviderOptionInfo>{
+                "display_name": "Report Pings",
+                "short_desc": "Raise events for pings",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Raise events for ping message from clients",
                 "default_value": False,
             },
+            "timeout": <DataProviderOptionInfo>{
+                "display_name": "I/O Timeout",
+                "short_desc": "Maximum time a single I/O operation can take in milliseconds",
+                "type": AbstractDataProviderTypeMap."int",
+                "desc": "Maximum time a single I/O operation can take in milliseconds",
+            },
             "token": <DataProviderOptionInfo>{
+                "display_name": "Authorization Token",
+                "short_desc": "Set an authorization token to be included in requests",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "Any bearer token to use for the connection; will be passed as "
-                    "`Authorization: Bearer ...` in request headers; this option cannot be used with username "
-                    "and password options or authentication information in the URL; if this option is set then "
-                    "OAuth2 options are ignored",
+                    "`Authorization: Bearer ...`  (assuming that `token_type` is `Bearer`) in request headers; this "
+                    "option cannot be used with username and password options or authentication information in the "
+                    "URL; if this option is set then OAuth2 options are ignored for login",
                 "sensitive": True,
             },
             "token_type": <DataProviderOptionInfo>{
+                "display_name": "Authorization Token Type",
+                "short_desc": "The type of authorization token",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The type of `token` to use for the `Authentication` header; ignored if no `token` "
+                "desc": "The type of `token` to use for the `Authorization` header; ignored if no `token` "
                     "option is set",
                 "default_value": "Bearer",
             },
-            "timeout": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderTypeMap."int",
-                "desc": "transfer timeout to use in milliseconds",
-            },
             "url": <DataProviderOptionInfo>{
+                "display_name": "URL",
+                "short_desc": "The URL to connect to",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "A URL for a WebSocket connection; either this or the `wsclient` option must be provided",
             },
             "wsclient": <DataProviderOptionInfo>{
+                "display_name": "WebSocket Client",
+                "short_desc": "The WebSocketClientWithSerialization object",
                 "type": AbstractDataProviderType::get(new Type("WebSocketClientWithSerialization")),
-                "desc": "A WebSocketClientWithSerialization for the connection; either this or the `url` option must "
+                "desc": "A `WebSocketClientWithSerialization` for the connection; either this or the `url` option must "
                     "be provided; if this option is provided, then all other options except `report_pings` are "
                     "ignored",
             },

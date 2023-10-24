@@ -265,28 +265,42 @@ public class ServiceNowTableDataProvider inherits ServiceNowRestDataProviderBase
             "supports_children": False,
             "search_options": {
                 "columns": <DataProviderOptionInfo>{
+                    "display_name": "Columns",
+                    "short_desc": "Columns to include in the output of the query",
                     "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
-                    "desc": "'select' argument for the query expression",
+                    "desc": "Columns to include in the output of the query; `select` argument for the query expression",
                 },
                 "limit": <DataProviderOptionInfo>{
+                    "display_name": "Limit",
+                    "short_desc": "The maximum number of records to return",
                     "type": AbstractDataProviderType::get(IntType),
-                    "desc": "the maximum number of records to return",
+                    "desc": "The maximum number of records to return",
                 },
                 "offset": <DataProviderOptionInfo>{
+                    "display_name": "Offset",
+                    "short_desc": "The offset in the record list for records to return",
                     "type": AbstractDataProviderType::get(IntType),
-                    "desc": "the offset in the record list for records to return",
+                    "desc": "The offset in the record list for records to return",
                 },
                 "groupby": <DataProviderOptionInfo>{
+                    "display_name": "Group By",
+                    "short_desc": "Field(s) to group results by",
                     "type": new QoreListDataType(new Type("softlist<auto>")),
-                    "desc": "'GROUPBY' argument for the query expression",
+                    "desc": "Field(s) to group results by in case there are aggregate expressions in the query; the "
+                        "`GROUPBY` argument for the query expression",
                 },
                 "orderby": <DataProviderOptionInfo>{
+                    "display_name": "Order By",
+                    "short_desc": "Fields to order the query result by",
                     "type": new QoreListDataType(new Type("softlist<string>")),
-                    "desc": "'ORDERBY' argument for the query expression",
+                    "desc": "Fields to order the query result by; the `ORDERBY` argument for the query expression",
                 },
                 "orderbydesc": <DataProviderOptionInfo>{
+                    "display_name": "Order By Descending",
+                    "short_desc": "Fields to order the query result in descending order by",
                     "type": new QoreListDataType(new Type("softlist<string>")),
-                    "desc": "'ORDERBYDESC' argument for the query expression",
+                    "desc": "Fields to order the query result in descending order by; the `ORDERBYDESC` argument for "
+                        "the query expression",
                 },
             },
         };

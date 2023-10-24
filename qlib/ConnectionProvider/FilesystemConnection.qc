@@ -40,9 +40,11 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
             "cls": Class::forName("FilesystemConnection"),
             "options": {
                 "readonly": <ConnectionOptionInfo>{
+                    "display_name": "Read-Only",
+                    "short_desc": "Sets the read-only flag on the connection",
                     "type": "bool",
-                    "desc": "does not mark the connection as down if the directory is read only; use for example "
-                        "if the connection should point to a read-only base directory; interface directories "
+                    "desc": "Does not mark the connection as down if the filesystem location is read only; use for "
+                        "example if the connection should point to a read-only base directory; interface directories "
                         "should normally be writable",
                     "default_value": False,
                 },

@@ -89,20 +89,24 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         #! Constructor options
         const ConstructorOptions = {
             "datasource": <DataProviderOptionInfo>{
+                "display_name": "Datasource",
+                "short_desc": "The datasource connection string to use (or an 'AbstractDatasource' object)",
                 "type": (
                     AbstractDataProviderType::get(StringType),
                     AbstractDataProviderType::get(new Type("AbstractDatasource")),
                 ),
-                "desc": "the datasource connection string or an abstract datasource object; in case a connection "
+                "desc": "The datasource connection string or an `AbstractDatasource` object; in case a connection "
                     "string is given, then the \"table\" option also needs to be given as a string",
             },
             "table": <DataProviderOptionInfo>{
+                "display_name": "Table",
+                "short_desc": "The name of the table to use (or an 'AbstractTable' object)",
                 "type": (
                     AbstractDataProviderType::get(StringType),
                     AbstractDataProviderType::get(new Type("AbstractTable")),
                 ),
                 "required": True,
-                "desc": "the table name or table object; if a table string is provided, then the \"datasource\" "
+                "desc": "The table name or table object; if a table string is provided, then the \"datasource\" "
                     "option must also be provided",
             },
         };
@@ -119,10 +123,12 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         */
         const CreateOptions = {
             "returning": <DataProviderOptionInfo>{
+                "display_name": "Returning",
+                "short_desc": "Indication of any output values to return",
                 "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
-                "desc": "a string (giving the output name) or a hash describing the return parameters for an insert; "
-                    "a hash will have the following keys: 'key': (required) the column name to return, and 'type' "
-                    "(optional) the data type for the output placeholder buffer (ex: 'number')",
+                "desc": "A string (giving the output name) or a hash describing the return parameters for an insert; "
+                    "a hash will have the following keys: `key`: (required) the column name to return, and `type` "
+                    "(optional) the data type for the output placeholder buffer (ex: `number`)",
             },
         };
 
@@ -136,18 +142,45 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         */
         const UpsertOptions = {
             "upsert_strategy": <DataProviderOptionInfo>{
+                "display_name": "Upsert Strategy",
+                "short_desc": "The upsert strategy to use",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "providers the upsert strategy; 'UpsertInsertFirst': try to insert first, if it fails, try "
-                    "updating; 'UpsertUpdateFirst': try to update first, if it fails, try inserting; "
-                    "'UpsertSelectFirst': try to select first, if it fails, insert, if it succeeds, update if "
-                    "necessary; 'UpsertInsertOnly': only insert, never update, 'UpsertUpdateOnly': only update, "
-                    "never insert; 'UpsertAuto' (the default) use the most efficient upsert for the underlying DB",
+                "desc": "Indicates the upsert strategy to use",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "value": "UpsertInsertFirst",
+                        "desc": "Try to insert first, if it fails, try updating",
+                    },
+                    <AllowedValueInfo>{
+                        "value": "UpsertUpdateFirst",
+                        "desc": "Try to update first, if it fails, try inserting",
+                    },
+                    <AllowedValueInfo>{
+                        "value": "UpsertSelectFirst",
+                        "desc": "Try to select first, if it fails, insert, if it succeeds, update if necessary",
+                    },
+                    <AllowedValueInfo>{
+                        "value": "UpsertInsertOnly",
+                        "desc": "Only insert, never update",
+                    },
+                     <AllowedValueInfo>{
+                        "value": "UpsertUpdateOnly",
+                        "desc": "Only update, never insert",
+                    },
+                     <AllowedValueInfo>{
+                        "value": "UpsertAuto",
+                        "desc": "Use the most efficient upsert for the underlying DB",
+                    },
+                ),
+                "default_value": "UpsertAuto",
             },
             "omit_update": <DataProviderOptionInfo>{
+                "display_name": "Omit Columns In Update",
+                "short_desc": "Ignore the given columns when updating",
                 "type": AbstractDataProviderType::get(new Type("softlist<string>")),
-                "desc": "allows for an asymmetrical upsert where a set of column values is inserted, but a smaller "
-                    "set is updated in case the unique key values are present in the target table; the value of this "
-                    "option should be set to the columns to omit in the update clause",
+                "desc": "Allows for an asymmetrical upsert where the complete set of column values is inserted, but "
+                    "a smaller set is updated in case the unique key values are present in the target table; the "
+                    "value of this option should be set to the columns to omit in the update clause",
             },
         };
 
@@ -177,32 +210,47 @@ public class DbTableDataProvider inherits AbstractDataProvider {
         */
         const SearchOptions = {
             "columns": <DataProviderOptionInfo>{
+                "display_name": "Columns",
+                "short_desc": "Columns to include in the output of the query",
                 "type": AbstractDataProviderType::get(AbstractDataProviderType::anyType),
-                "desc": "column argument for the select expression",
+                "desc": "Columns to include in the output of the query",
             },
             "limit": <DataProviderOptionInfo>{
+                "display_name": "Limit",
+                "short_desc": "The maximum number of records to return",
                 "type": AbstractDataProviderType::get(IntType),
-                "desc": "the maximum number of records to return",
+                "desc": "The maximum number of records to return",
             },
             "offset": <DataProviderOptionInfo>{
+                "display_name": "Offset",
+                "short_desc": "The offset in the record list for records to return",
                 "type": AbstractDataProviderType::get(IntType),
-                "desc": "the offset number in records to return",
+                "desc": "The offset in the record list for records to return",
             },
             "groupby": <DataProviderOptionInfo>{
+                "display_name": "Group By",
+                "short_desc": "Field(s) to group results by",
                 "type": new QoreListDataType(new Type("softlist<auto>")),
-                "desc": "group by argument for the select expression",
+                "desc": "Field(s) to group results by in case there are aggregate expressions in the query; the "
+                    "`GROUPBY` argument for the query expression",
             },
             "having": <DataProviderOptionInfo>{
+                "display_name": "Having Clause",
+                "short_desc": "A 'having' clause for the select expression",
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "having argument for the select expression",
+                "desc": "A `having` clause for the select expression",
             },
             "orderby": <DataProviderOptionInfo>{
+                "display_name": "Order By",
+                "short_desc": "Fields to order the query result by",
                 "type": new QoreListDataType(new Type("softlist<string>")),
-                "desc": "order by argument for the select expression",
+                "desc": "Fields to order the query result by; the `ORDERBY` argument for the query expression",
             },
             "forupdate": <DataProviderOptionInfo>{
+                "display_name": "For Update",
+                "short_desc": "Uses 'FOR UPDATE' with the query to lock records selected",
                 "type": AbstractDataProviderType::get(SoftBoolType),
-                "desc": "uses FOR UPDATE with the query to lock records selected",
+                "desc": "Uses `FOR UPDATE` with the query to lock records selected",
             },
         };
 

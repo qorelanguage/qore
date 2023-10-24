@@ -54,7 +54,7 @@ hash<auto> specs = {
     "type2": {
         "col3": {"length": 1, "type": "string"},
         "col4": {"length": 3, "type": "string"},
-        "col5": {"length": 8, "type": "date", "format": "DDMMYYYY", "timezone": "Europe/Prague"},
+        "col5": {"length": 8, "type": "date", "format": "DDMMYYYY"},
     },
 };
 

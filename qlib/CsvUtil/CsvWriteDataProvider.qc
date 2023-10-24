@@ -44,76 +44,144 @@ public class CsvWriteDataProvider inherits DataProvider::AbstractDataProvider {
         #! Constructor options
         const ConstructorOptions = {
             "path": <DataProviderOptionInfo>{
+                "display_name": "CSV Output Path",
+                "short_desc": "Where to write the CSV output file",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the location for the output CSV data file; mutually exclusive with \"stream\"; the output "
-                    "location is handled by a call to FileLocationHandler::getOutputStreamForLocation()",
+                "desc": "The location for the output CSV data file; mutually exclusive with \"stream\"; the output "
+                    "location is handled by a call to [FileLocationHandler::getOutputStreamForLocation()]("
+                    "https://qoretechnologies.com/manual/qorus/current/qore/modules/FileLocationHandler/html/"
+                    "class_file_location_handler_1_1_file_location_handler.html#a9d1ca411ea23126280b9d2e4b4b3ede9)",
             },
             "stream": <DataProviderOptionInfo>{
+                "display_name": "Output Stream",
+                "short_desc": "An output stream object for the CSV data",
                 "type": AbstractDataProviderType::get(new Type("OutputStream")),
-                "desc": "an output stream for CSV data; mutually exclusive with \"path\"",
+                "desc": "An output stream for CSV data; mutually exclusive with \"path\"",
             },
             "block": <DataProviderOptionInfo>{
+                "display_name": "Block Size",
+                "short_desc": "The block size when generating bulk output",
                 "type": AbstractDataProviderType::get(SoftIntType),
-                "desc": "the block size when generating bulk output",
+                "desc": "The block size when generating bulk output",
             },
             "datamap": <DataProviderOptionInfo>{
+                "display_name": "Output Field Name Map",
+                "short_desc": "Maps data key names to output field names",
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "a hash mapping actual data key names to the output field names, for use in case the data "
-                    "field names differ; does not have to include every data or output key; keys not present will be "
-                    "assumed to be mapped 1:1",
+                "desc": "Sets a hash mapping actual data key names to the output field names, for use in case the "
+                    "data field names differ; does not have to include every data or output key; keys not present "
+                    "will be assumed to be mapped 1:1",
             },
             "date_format": <DataProviderOptionInfo>{
+                "display_name": "Date Format",
+                "short_desc": "The default mask for date value output formatting",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the default mask for date value formatting",
+                "desc": "The default mask for date value output formatting; see "
+                    "[Date Formatting Codes](https://qoretechnologies.com/manual/qorus/current/qore/lang/html/"
+                    "group__date__and__time__functions.html#date_formatting) for more information",
             },
             "encoding": <DataProviderOptionInfo>{
+                "display_name": "Character Encoding",
+                "short_desc": "The output character encoding",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the character encoding for the data",
+                "desc": "The output character encoding for the data",
+                "default_value": "UTF-8",
             },
             "eol": <DataProviderOptionInfo>{
+                "display_name": "End Of Line Chars",
+                "short_desc": "The end of line / record character(s)",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the end of line / record character(s)",
+                "desc": "The end of line / record character(s); if not present, the current platform standard will be "
+                    "used",
             },
             "fields": <DataProviderOptionInfo>{
+                "display_name": "Field Descriptions",
+                "short_desc": "A hash describing the CSV fields to output",
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "describes the data to be output",
+                "desc": "Sets a hash describing the CSV fields to output; keys are field names, values are "
+                    "[field types](https://qoretechnologies.com/manual/qorus/current/qore/modules/CsvUtil/html/"
+                    "class_csv_util_1_1_abstract_csv_iterator.html#abstractcsviterator_option_field_types) "
+                    "or a hash with the following keys:\n"
+                    "- `type`: a [field type string](https://qoretechnologies.com/manual/qorus/current/qore/modules/"
+                        "CsvUtil/html/class_csv_util_1_1_abstract_csv_iterator.html"
+                        "#abstractcsviterator_option_field_types)\n"
+                    "- `format`: when ysed with type `date`, a [date format](https://qoretechnologies.com/manual/"
+                        "qorus/current/qore/lang/html/group__date__and__time__functions.html#date_formatting), when "
+                        "used with type `int`, `float`, or `number`, it is a number format string with 1 to 3 "
+                        "fields as follows: *<thousands_separator>*[*<decimal_separator>*[*<decimals>*]]; ex: "
+                        "`\".,3\"` (= `.` for the thousands separator, `,` for the decimal separator, and 3 digits "
+                        "after the decimal place)"
             },
             "headers": <DataProviderOptionInfo>{
+                "display_name": "Header Names",
+                "short_desc": "List of field / header names for the data output",
                 "type": AbstractDataProviderType::get(new Type("softlist<string>")),
-                "desc": "list of field header / column names for the data iterated",
+                "desc": "List of field / header names for the data output",
             },
             "header_reorder": <DataProviderOptionInfo>{
+                "display_name": "Enforce Header Order",
+                "short_desc": "If true, then the output data will be reordered in the order of `headers`",
                 "type": AbstractDataProviderType::get(SoftBoolType),
-                "desc": "if `true` (the default) then if `headers` are provided, then data fields are reordered to "
+                "desc": "If `true` (the default) then if `headers` are provided, then data fields are reordered to "
                     "follow headers",
+                "default_value": True,
+            },
+            "number_format": <DataProviderOptionInfo>{
+                "display_name": "Output Number Format",
+                "short_desc": "The default output format for 'int', 'float', and 'number' fields",
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "The default output format for `int`, `float`, and `number` fields; it is a number format "
+                    "string with 1 to 3 fields as follows: "
+                    "*<thousands_separator>*[*<decimal_separator>*[*<decimals>*]]; ex: `\".,3\"` (= `.` for the "
+                    "thousands separator, `,` for the decimal separator, and 3 digits after the decimal place)",
+                "example_value": ".,3",
             },
             "optimal_quotes": <DataProviderOptionInfo>{
+                "display_name": "Optimal Quotes",
+                "short_desc": "Quote output fields only when necessary",
                 "type": AbstractDataProviderType::get(SoftBoolType),
-                "desc": "set to `false` to disable optimal quoting; when optimal quoting is disabled, all fields are "
+                "desc": "Set to `false` to disable optimal quoting; when optimal quoting is disabled, all fields are "
                     "quoted regardless of type or content, when it is enabled, then fields are quoted only if they "
                     "require quoting (i.e. they contain a quote or separator character); the default is `true`",
+                "default_value": True,
             },
             "quote": <DataProviderOptionInfo>{
+                "display_name": "Quote Char(s)",
+                "short_desc": "The quote character(s)",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the quote character to quote fields (default: `\"`)",
+                "desc": "The quote character to quote fields (default: `\"`)",
+                "default_value": "\"",
             },
             "quote_escape": <DataProviderOptionInfo>{
+                "display_name": "Quote Escape Char(s)",
+                "short_desc": "The escape character(s) for quotes in a field",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "escape character(s) used for `quote` (default: `\\`)",
+                "desc": "The escape character(s) used for `quote` (default: `\\`)",
+                "default_value": "\\",
             },
             "separator": <DataProviderOptionInfo>{
+                "display_name": "Field Separator",
+                "short_desc": "The field separator character(s)",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "string separating fields in the data (default: `,`)",
+                "desc": "The string separating fields in the output data (default: `,`)",
+                "default_value": ",",
             },
             "verify_columns": <DataProviderOptionInfo>{
+                "display_name": "Verify Columns",
+                "short_desc": "Verifies input data to ensure it has the expected structure",
                 "type": AbstractDataProviderType::get(SoftBoolType),
-                "desc": "if `true` (the default is `false`) then if a line is parsed with a different column count "
-                    "than other lines, a `CSVFILEWRITER-DATA-ERROR` exception is thrown",
+                "desc": "If `true` (the default is `false`) then if a line is parsed with a different column count "
+                    "than other lines, a `CSVFILEWRITER-DATA-ERROR` exception is thrown.\n\n"
+                    "Note that enabling this option will incurr a performance penalty",
+                "default_value": False,
             },
             "write_headers": <DataProviderOptionInfo>{
+                "display_name": "Output Headers",
+                "short_desc": "Include headers as the first output record",
                 "type": AbstractDataProviderType::get(SoftBoolType),
-                "desc": "set to `false` to suppress the output of headers; the default is `true`, meaning to output "
+                "desc": "Set to `false` to suppress the output of headers; the default is `true`, meaning to output "
                     "headers if they are present",
+                "default_value": True,
             },
         };
 

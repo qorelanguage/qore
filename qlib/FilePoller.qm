@@ -691,47 +691,66 @@ public class FilePollerDataProviderBase inherits DataProvider::AbstractDataProvi
         #! Constructor options
         const ConstructorOptions = {
             "path": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "File Polling Directory",
+                "short_desc": "Source directory for file polling",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "A path giving the location of the directory to poll",
                 "required": True,
             },
 
             "mask": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
-                "desc": "The glob mask to use; will be treated as a regex if `regex` is `true`",
+                "display_name": "Polling Mask",
+                "short_desc": "The polling mask to use to match files to poll",
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "The polling mask to use; will be treated as a regex if `regex` is `true`, otherwise the "
+                    "value is a glob mask",
                 "default_value": "*",
             },
 
             "poll_interval": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
+                "display_name": "Poll Interval",
+                "short_desc": "The poll interval in seconds",
+                "type": AbstractDataProviderTypeMap."int",
                 "desc": "The interval in seconds between polling for files",
                 "default_value": 10,
             },
 
             "regex": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "display_name": "Regular Expression Match",
+                "short_desc": "If true then the 'mask' argument is treated as a regular expression",
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `true` then `mask` is treated as a regular expression instead of a glob pattern",
             },
 
             "reopt": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
+                "display_name": "Regular Expression Options",
+                "short_desc": "A bitfield of regular expression options",
+                "type": AbstractDataProviderTypeMap."int",
                 "desc": "A bitfield of regular expression options (`1` = ignore case, `2` = treat EOL as a regular "
                     "character); ignored if `regex` is not `true`",
             },
 
             "minage": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
+                "display_name": "Minimum Polling Age",
+                "short_desc": "The minimum age of files to poll in seconds",
+                "type": AbstractDataProviderTypeMap."int",
                 "desc": "An integer giving the minimum file age in seconds before the file will be polled; this is "
-                    "meant to work around non-atomic file transfer operations",
+                    "meant to work around non-atomic file transfer operations.\n\n"
+                    "If this option is necessary, set it to a value that is larger than the longest time it should "
+                    "take to transfer a file",
             },
 
             "sort_desc": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "display_name": "Sort Descending",
+                "short_desc": "Sort files in descending order",
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Sort descending; if not given then an ascending sort is assumed if a `sort_type` is given",
             },
 
             "sort_type": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "Sort Type",
+                "short_desc": "Field to sort files on",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "Either `name` or `date` for the data to use for sorting",
             },
         };

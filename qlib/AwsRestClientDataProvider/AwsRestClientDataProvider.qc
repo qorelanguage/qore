@@ -40,7 +40,9 @@ public class AwsRestClientDataProvider inherits AwsRestClientDataProviderBase {
         #! Constructor arguments
         const ConstructorOptions = RestClientDataProvider::ConstructorOptions + {
             "data": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "Data Serialization",
+                "short_desc": "The data serialization to use",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "Data serialization options are limited to `json` with this object",
                 "allowed_values": (
                     <AllowedValueInfo>{
@@ -51,30 +53,43 @@ public class AwsRestClientDataProvider inherits AwsRestClientDataProviderBase {
                 "default_value": "json",
             },
             "aws_keyid": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "AWS Key ID",
+                "short_desc": "The AWS key ID",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "AWS key ID",
             },
             "aws_secret": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "AWS Secret",
+                "short_desc": "The AWS secret access key value",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The AWS secret access key value",
                 "sensitive": True,
             },
             "aws_region": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "AWS Region",
+                "short_desc": "The AWS region to use",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The AWS region to use (ex: `us-east-1`)",
             },
             "aws_service": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "AWS Service",
+                "short_desc": "The AWS service to use",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The AWS service to use (ex: `iam`)",
+                "example_value": "iam",
             },
             "aws_s3": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(BoolType),
+                "display_name": "AWS S3",
+                "short_desc": "Flag for use with AWS S3",
+                "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Set to `True` to flag this object for use with AWS S3, which requires special "
                     "message encoding",
                 "default_value": False,
             },
             "aws_token": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
+                "display_name": "AWS Token",
+                "short_desc": "A temporary session token",
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "A temporary session token from AWS Security Token Service for this HTTP session",
             },
         };

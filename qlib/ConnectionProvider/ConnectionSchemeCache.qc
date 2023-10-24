@@ -26,28 +26,25 @@
 
 #! Contains all public definitions in the ConnectionProvider module
 public namespace ConnectionProvider {
-#! Allowed value hash
-public hashdecl AllowedValueInfo {
-    #! The value
-    auto value;
-
-    #! Description for the value
-    string desc;
-}
-
 #! Connection option information
 public hashdecl ConnectionOptionInfo {
+    #! Option display name
+    string display_name;
+
+    #! Option short description in plain text
+    string short_desc;
+
+    #! Description with markdown formatting
+    string desc;
+
     #! Option value type
     string type;
-
-    #! Description
-    string desc;
 
     #! Is the value sensitive? (password or other authentication info)
     bool sensitive = False;
 
     #! List of allowed values (enum)
-    *softlist<hash<AllowedValueInfo>> allowed_values;
+    *softlist<hash<Util::AllowedValueInfo>> allowed_values;
 
     #! Any default value
     auto default_value;
@@ -57,6 +54,9 @@ public hashdecl ConnectionOptionInfo {
 
     #! Modifier for the "file-as-string" type; can a freeform location option be returned?
     bool freeform = False;
+
+    #! Optional example option value
+    auto example_value;
 }
 
 #! Connection provider information

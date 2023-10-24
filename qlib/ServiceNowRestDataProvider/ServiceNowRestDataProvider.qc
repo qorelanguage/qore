@@ -43,38 +43,54 @@ public class ServiceNowRestDataProvider inherits ServiceNowRestDataProviderBase 
         #! Constructor options
         const ConstructorOptions = {
             "api": <DataProviderOptionInfo>{
+                "display_name": "API Version",
+                "short_desc": "The ServiceNow API version to use",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the ServiceNow API version to use",
+                "desc": "The ServiceNow API version to use",
             },
             "snrestclient": <DataProviderOptionInfo>{
+                "display_name": "REST Client",
+                "short_desc": "The ServiceNowRestClient object",
                 "type": AbstractDataProviderType::get(new Type("ServiceNowRestClient")),
-                "desc": "the ServiceNowRestClient object",
+                "desc": "The ServiceNowRestClient object",
             },
             "snrestclient_options": <DataProviderOptionInfo>{
+                "display_name": "REST Client Options",
+                "short_desc": "Options to the ServiceNowRestClient constructor",
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "options to the ServiceNowRestClient constructor; only used if a ServiceNowRestClient object "
+                "desc": "Options to the ServiceNowRestClient constructor; only used if a ServiceNowRestClient object "
                     "is created for a call",
             },
             "client_id": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client ID",
+                "short_desc": "Sets the OAuth2 client ID",
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "the client ID (required if 'client_secret' provided)",
             },
             "client_secret": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client Secret",
+                "short_desc": "Sets the OAuth2 client secret",
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "the client secret (required if 'client_id' provided)",
             },
-            "username": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
-                "desc": "the username (required if 'password' provided)",
-            },
             "password": <DataProviderOptionInfo>{
+                "display_name": "Password",
+                "short_desc": "The password for authentication",
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "the password (required if 'username' provided)",
             },
             "url": <DataProviderOptionInfo>{
+                "display_name": "ServiceNow URL",
+                "short_desc": "The URL to the ServiceNow instance",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the URL to the ServiceNow server; overrides any URL in the schema or in any RestClient object "
-                    "passed as an option",
+                "desc": "The URL to the ServiceNow instance; overrides any URL in any REST cient object passed as an "
+                    "option",
+            },
+            "username": <DataProviderOptionInfo>{
+                "display_name": "Username",
+                "short_desc": "Sets the username for authentication",
+                "type": AbstractDataProviderType::get(StringType),
+                "desc": "the username (required if 'password' provided)",
             },
         };
 

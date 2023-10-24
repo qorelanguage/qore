@@ -39,6 +39,8 @@ public class GoogleCalendarEventsUpdateDataProvider inherits GoogleDataProviderB
             "type": "GoogleCalendarEventsUpdateDataProvider",
             "constructor_options": GoogleDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
+                    "display_name": "Calendar ID",
+                    "short_desc": "The calendar ID",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "The calendar ID",
                 },

@@ -60,24 +60,33 @@ public class SwaggerDataProvider inherits SwaggerDataProviderCommon {
         #! Constructor options
         const ConstructorOptions = {
             "lax_parsing": <DataProviderOptionInfo>{
+                "display_name": "Swagger Lax Parsing",
+                "short_desc": "Sets lax parsing for Swagger schemas",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `True` then common errors in Swagger schemas will be ignored; some Swagger schemas with "
-                    "errors will be able to be used",
+                    "errors will be able to be used; this option is not recommended; it will not parse "
+                    "all bad Swagger schemas; schemas should be corrected instead of setting this option",
             },
             "restclient": <DataProviderOptionInfo>{
+                "display_name": "REST Client",
+                "short_desc": "The REST client object to use",
                 "type": AbstractDataProviderType::get(new Type("RestClient"), NOTHING, {
                     DTT_ClientOnly: True,
                 }),
-                "desc": "the RestClient object",
+                "desc": "The REST client object to use",
             },
             "restclient_options": <DataProviderOptionInfo>{
+                "display_name": "REST Client Options",
+                "short_desc": "The options to use when creating a REST client",
                 "type": AbstractDataProviderType::get(AutoHashType, NOTHING, {
                     DTT_ClientOnly: True,
                 }),
-                "desc": "options to the RestClient constructor; only used if a RestClient object is created for a "
+                "desc": "Options to the RestClient constructor; only used if a RestClient object is created for a "
                     "call",
             },
             "schema": <DataProviderOptionInfo>{
+                "display_name": "Schema Location",
+                "short_desc": "The Swagger schema object or source URL",
                 "type": (
                     AbstractDataProviderType::get(StringType, NOTHING, {
                         DTT_FromFile: True,
@@ -85,14 +94,16 @@ public class SwaggerDataProvider inherits SwaggerDataProviderCommon {
                     }),
                     AbstractDataProviderType::get(new Type("SwaggerSchema")),
                 ),
-                "desc": "the Swagger schema object or source URL",
+                "desc": "The Swagger schema object or source URL",
                 "required": True,
             },
             "url": <DataProviderOptionInfo>{
+                "display_name": "URL",
+                "short_desc": "The URL to connect to",
                 "type": AbstractDataProviderType::get(StringType, NOTHING, {
                     DTT_ClientOnly: True,
                 }),
-                "desc": "the URL to the REST server; overrides any URL in the schema or in any RestClient object "
+                "desc": "The URL to the REST server; overrides any URL in the schema or in any RestClient object "
                     "passed as an option",
             },
         };

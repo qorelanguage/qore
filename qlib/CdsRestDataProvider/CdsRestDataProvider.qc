@@ -43,32 +43,47 @@ public class CdsRestDataProvider inherits CdsRestDataProviderBase {
         #! Constructor options
         const ConstructorOptions = {
             "api": <DataProviderOptionInfo>{
+                "display_name": "API Version",
+                "short_desc": "Sets the API version to use",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the CDS API version to use",
+                "desc": "Sets the CDS API version to use",
+                "default_value": CdsRestClient::DefaultApiVersion,
             },
             "cdsrestclient_options": <DataProviderOptionInfo>{
+                "display_name": "REST Client Options",
+                "short_desc": "Sets options to the REST client constructor",
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "options to the CdsRestClient constructor",
+                "desc": "Sets options to the REST client constructor",
             },
             "client_id": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client ID",
+                "short_desc": "Sets the OAuth2 client ID",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the client ID (required if 'client_secret' provided)",
+                "desc": "Sets the OAuth2 client ID (required if 'client_secret' provided)",
             },
             "client_secret": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client Secret",
+                "short_desc": "Sets the OAuth2 client secret",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the client secret (required if 'client_id' provided)",
+                "desc": "Sets the OAuth2 client secret (required if 'client_id' provided)",
             },
             "scope": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Scope",
+                "short_desc": "The OAuth2 scope string",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the scope string",
+                "desc": "The OAuth2 scope string",
             },
             "tenant": <DataProviderOptionInfo>{
+                "display_name": "Tenant",
+                "short_desc": "The tenant ID of the CDS server instance",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the tenant string",
+                "desc": "The tenant ID of the CDS server instance",
             },
             "url": <DataProviderOptionInfo>{
+                "display_name": "URL",
+                "short_desc": "The URL to the CDS server instance",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the URL to the CDS server",
+                "desc": "The URL to the CDS server instance",
                 "required": True,
             },
         };

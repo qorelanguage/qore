@@ -43,12 +43,16 @@ public class FtpClientDataProvider inherits AbstractDataProvider {
         #! Constructor arguments
         const ConstructorOptions = {
             "timeout": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(IntType),
-                "desc": "I/O timeout to use in milliseconds",
+                "display_name": "I/O Timeout",
+                "short_desc": "The maximum time an individual I/O operation can take in milliseconds",
+                "type": AbstractDataProviderTypeMap."int",
+                "desc": "Transfer timeout to use in milliseconds",
             },
             "url": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
-                "desc": "A URL for an FTP or FTPS connection",
+                "display_name": "URL",
+                "short_desc": "The URL to connect to",
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "A URL for an FTP or FTPS connection; must use an `ftp://` or `ftps://` scheme",
                 "required": True,
             },
         };

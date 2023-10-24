@@ -1035,30 +1035,45 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
         #! Constructor options
         const ConstructorOptions = {
             "atomic_transfer":  <DataProviderOptionInfo>{
+                "display_name": "Atomic File Transfer",
+                "short_desc": "Use an atomic file transfer mechanism",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Use an atomic transfer mechanism with `local_dir` where remote files are first moved to a "
-                    "temporary location and then moved to the final location when they have been fully transferred",
+                    "temporary location and then moved to the final location when they have been fully "
+                    "transferred.\n\n"
+                    "This ensures that files will never be read until they are fully transferred",
                 "default_value": True,
             },
 
             "local_dir": <DataProviderOptionInfo>{
+                "display_name": "Local Directory",
+                "short_desc": "A local directory that will be used to retrieve files",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "A local directory that will be used to retrieve files",
             },
 
             "mask": <DataProviderOptionInfo>{
+                "display_name": "Glob Mask",
+                "short_desc": "The glob mask to use to match files to poll",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The glob mask to use; will be treated as a regex if `regex` is `true`",
+                "desc": "The glob mask to use to match files to poll; will be treated as a regex if `regex` is "
+                    "`true`",
                 "default_value": "*",
             },
 
             "minage": <DataProviderOptionInfo>{
+                "display_name": "Minimum Polling Age",
+                "short_desc": "The minimum age of files to poll in seconds",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "An integer giving the minimum file age in seconds before the file will be polled; this is "
-                    "meant to work around non-atomic file transfer operations",
+                    "meant to work around non-atomic file transfer operations.\n\n"
+                    "If this option is necessary, set it to a value that is larger than the longest time it should "
+                    "take to transfer a file",
             },
 
             "password": <DataProviderOptionInfo>{
+                "display_name": "Password",
+                "short_desc": "Sets the authentication password",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The password for authentication; only used if no username or password is set in the URL "
                     "and if the `username` option is also used",
@@ -1066,39 +1081,53 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
             },
 
             "poll_interval": <DataProviderOptionInfo>{
+                "display_name": "Poll Interval",
+                "short_desc": "The poll interval in seconds",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "The interval in seconds between polling for files",
                 "default_value": 10,
             },
 
             "regex": <DataProviderOptionInfo>{
+                "display_name": "Regular Expression Match",
+                "short_desc": "If true then the 'mask' argument is treated as a regular expression",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `true` then `mask` is treated as a regular expression instead of a glob pattern",
             },
 
             "reopt": <DataProviderOptionInfo>{
+                "display_name": "Regular Expression Options",
+                "short_desc": "A bitfield of regular expression options",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "A bitfield of regular expression options (`1` = ignore case, `2` = treat EOL as a regular "
                     "character); ignored if `regex` is not `true`",
             },
 
             "sort_desc": <DataProviderOptionInfo>{
+                "display_name": "Sort Descending",
+                "short_desc": "Sort files in descending order",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "Sort descending; if not given then an ascending sort is assumed if a `sort_type` is given",
             },
 
             "sort_type": <DataProviderOptionInfo>{
+                "display_name": "Sort Type",
+                "short_desc": "Field to sort files on",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "Either `name` or `date` for the data to use for sorting",
             },
 
             "url": <DataProviderOptionInfo>{
+                "display_name": "FTP URL",
+                "short_desc": "The URL for the FTP connection",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "A URL for an FTP connection",
                 "required": True,
             },
 
             "username": <DataProviderOptionInfo>{
+                "display_name": "Username",
+                "short_desc": "The username for authentication",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The username for authentication; only used if no username or password is set in the URL "
                     "and if the `password` option is also used",

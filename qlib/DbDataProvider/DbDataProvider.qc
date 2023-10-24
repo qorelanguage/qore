@@ -78,11 +78,13 @@ public class DbDataProvider inherits AbstractDataProvider {
         #! Constructor options
         const ConstructorOptions = {
             "datasource": <DataProviderOptionInfo>{
+                "display_name": "Datasource",
+                "short_desc": "The datasource connection string to use (or an 'AbstractDatasource' object)",
                 "type": (
                     AbstractDataProviderType::get(StringType),
                     AbstractDataProviderType::get(new Type("AbstractDatasource")),
                 ),
-                "desc": "the datasource connection string or an abstract datasource object",
+                "desc": "The datasource connection string or `AbstractDatasource` object",
                 "required": True,
             },
         };
@@ -90,35 +92,51 @@ public class DbDataProvider inherits AbstractDataProvider {
         #! Search options
         const SearchOptions = {
             "sql": <DataProviderOptionInfo>{
+                "display_name": "SQL Query",
+                "short_desc": "The raw SQL query for the select statement",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the raw SQL for the select statement",
+                "desc": "The raw SQL query for the select statement; see "
+                    "[SQL Binding](https://qoretechnologies.com/manual/qorus/current/qore/lang/html/class_qore_1_1_s_q_l_1_1_datasource.html#sql_binding)"
+                    " for more information on placeholders to use in the string for SQL binding",
                 "required": True,
             },
             "args": <DataProviderOptionInfo>{
+                "display_name": "Bind Args",
+                "short_desc": "An optional list of bind arguments for placeholders in the SQL query",
                 "type": AbstractDataProviderType::get(AutoListType),
-                "desc": "any bind arguments for the select statement",
+                "desc": "Any bind arguments for the select statement; see "
+                    "[SQL Binding](https://qoretechnologies.com/manual/qorus/current/qore/lang/html/class_qore_1_1_s_q_l_1_1_datasource.html#sql_binding)"
+                    " for more information on bind arguments",
             },
         };
 
         #! Child provider creation options
         const ChildCreateOptions = {
             "primary_key": <DataProviderOptionInfo>{
+                "display_name": "Primary Key",
+                "short_desc": "Sets the list of column names for the primary key",
                 "type": AbstractDataProviderType::get("softlist<string>"),
-                "desc": "a list of column names for the primary key for the table; use `primary_key_name` to set the "
-                    "name of the primary key constraint manually, otherwise a suitable name will be automatically "
-                    "generated",
+                "desc": "Sets the list of column names for the primary key for the table; use `primary_key_name` to "
+                    "set the name of the primary key constraint manually, otherwise a suitable name will be "
+                    "automatically generated",
             },
             "primary_key_name": <DataProviderOptionInfo>{
+                "display_name": "Primary Key Name",
+                "short_desc": "The name of the primary key constraint",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the name of the primary key constraint; only used if `primary_key` is set",
+                "desc": "The name of the primary key constraint; only used if `primary_key` is set",
             },
             "indexes": <DataProviderOptionInfo>{
+                "display_name": "Indexes",
+                "short_desc": "Sets a hash of indexes keyed by index name",
                 "type": new DbIndexesDataType(),
-                "desc": "a hash of indexes keyed by index name",
+                "desc": "Sets a hash of indexes keyed by index name",
             },
             "foreign_constraints": <DataProviderOptionInfo>{
+                "display_name": "Foreign Constraints",
+                "short_desc": "Sets a hash of foreign constraints keyed by foreign constraint name",
                 "type": new DbForeignConstraintsDataType(),
-                "desc": "a hash of foreign constraints keyed by foreign constraint name",
+                "desc": "Sets a hash of foreign constraints keyed by foreign constraint name",
             },
         };
     }

@@ -1187,8 +1187,11 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
             "cls": Class::forName("SalesforceRestConnection"),
             "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{
+                    "display_name": "API Version",
+                    "short_desc": "The API version to use",
                     "type": "string",
-                    "desc": "the Salesforce API to use; use `auto` (the default) to use the latest API version",
+                    "desc": "The Salesforce API version to use; use `auto` (the default) to use the latest API "
+                        "version",
                     "default_value": SalesforceRestClient::Defaults.api,
                 },
                 "client_id": RestConnection::ConnectionScheme.options.oauth2_client_id + <ConnectionOptionInfo>{
@@ -1203,8 +1206,11 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
                     "default_value": "json",
                 },
                 "instance_url": <ConnectionOptionInfo>{
+                    "display_name": "Instance URL",
+                    "short_desc": "The Salesforce.com instance URL",
                     "type": "string",
-                    "desc": "the Salesforce.com instance URL returned in the OAuth2 login process",
+                    "desc": "The Salesforce.com instance URL returned in the OAuth2 login process (set automatically "
+                        "on login)",
                 },
                 "oauth_url_auth": RestConnection::ConnectionScheme.options.oauth2_auth_url + <ConnectionOptionInfo>{
                     "default_value": SalesforceRestClient::Defaults.oauth_url_auth,
@@ -1213,8 +1219,10 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
                     "default_value": SalesforceRestClient::Defaults.oauth_url_token,
                 },
                 "oauth_url_revoke": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Revocation URL",
+                    "short_desc": "The OAuth logout / revoke token URL",
                     "type": "string",
-                    "desc": "the OAuth logout / revoke token URL",
+                    "desc": "The OAuth logout / revoke token URL",
                     "default_value": SalesforceRestClient::Defaults.oauth_url_revoke,
                 },
                 "oauth2_grant_type": RestConnection::ConnectionScheme.options.oauth2_grant_type

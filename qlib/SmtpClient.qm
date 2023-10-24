@@ -1309,12 +1309,16 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
             "cls": Class::forName("SmtpConnection"),
             "options": HttpConnection::ConnectionScheme.options + {
                 "password": <ConnectionOptionInfo>{
+                    "display_name": "Password",
+                    "short_desc": "The password to use for authentication",
                     "type": "string",
                     "desc": "The password for authentication; only used if no username or password is set in the URL "
                         "and if the `username` option is also used",
                     "sensitive": True,
                 },
                 "security": <ConnectionOptionInfo>{
+                    "display_name": "Security Type",
+                    "short_desc": "Sets the type of security to use",
                     "type": "string",
                     "desc": "Sets the security option for the object; note that this option, if set to any value "
                         "other than `default` will override any security implied by the URL scheme",
@@ -1333,6 +1337,8 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
                     ),
                 },
                 "username": <ConnectionOptionInfo>{
+                    "display_name": "Username",
+                    "short_desc": "The username to use for authentication",
                     "type": "string",
                     "desc": "The username for authentication; only used if no username or password is set in the URL "
                         "and if the `password` option is also used",
@@ -1471,8 +1477,16 @@ public class SmtpClientDataProvider inherits DataProvider::AbstractDataProvider 
         #! Constructor options
         const ConstructorOptions = {
             "url": <DataProviderOptionInfo>{
-                "type": AbstractDataProviderType::get(StringType),
-                "desc": "A URL for an SMTP server",
+                "display_name": "URL",
+                "short_desc": "The SMTP URL to connect to",
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "A URL for an SMTP server; supported schemes are:\n"
+                    "- `esmtp://`\n"
+                    "- `esmtps://`\n"
+                    "- `esmtptls://`\n"
+                    "- `smtp://`\n"
+                    "- `smtps://`\n"
+                    "- `smtptls://`\n",
                 "required": True,
             },
         };

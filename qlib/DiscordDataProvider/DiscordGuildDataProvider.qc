@@ -34,8 +34,10 @@ public class DiscordGuildDataProvider inherits DiscordDataProviderBase {
             "type": "DiscordGuildDataProvider",
             "constructor_options": DiscordDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
+                    "display_name": "Server ID",
+                    "short_desc": "The ID of the server or guild",
                     "type": AbstractDataProviderTypeMap."string",
-                    "desc": "The guild ID",
+                    "desc": "The ID of the server or guild",
                 },
             },
             "supports_children": True,

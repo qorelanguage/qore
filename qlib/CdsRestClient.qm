@@ -342,13 +342,17 @@ public class CdsRestConnection inherits RestClient::RestConnection {
             "cls": Class::forName("CdsRestConnection"),
             "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{
+                    "display_name": "API Version",
+                    "short_desc": "Sets the API version for CDS",
                     "type": "string",
-                    "desc": "the API version for CDS",
+                    "desc": "Sets the API version for CDS",
                     "default_value": CdsRestClient::DefaultApiVersion,
                 },
                 "api_profile": <ConnectionOptionInfo>{
+                    "display_name": "API Profile",
+                    "short_desc": "Sets the API profile for the CDS API to use",
                     "type": "string",
-                    "desc": "the API profile according to the CDS API in use; this option will set the REST "
+                    "desc": "Sets the API profile according to the CDS API in use; this option will set the REST "
                         "options if they are not already set (`oauth2_scopes`, `ping_body`, `ping_headers`, and "
                         "`ping_method`); valid "
                         "values:\n"
@@ -392,8 +396,10 @@ public class CdsRestConnection inherits RestClient::RestConnection {
                     "default_value": "auto",
                 },
                 "tenant": <ConnectionOptionInfo>{
+                    "display_name": "Tenant ID",
+                    "short_desc": "Sets the tenant ID to use",
                     "type": "string",
-                    "desc": "the tenant ID",
+                    "desc": "Sets the tenant ID to use",
                 },
             },
             "required_options": "client_id,client_secret,tenant",

@@ -406,6 +406,8 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
             "cls": Class::forName("DiscordRestConnection"),
             "options": RestConnection::ConnectionScheme.options + {
                 "api": <ConnectionOptionInfo>{
+                    "display_name": "API Version",
+                    "short_desc": "The API version to use",
                     "type": "int",
                     "desc": "The default API version to use",
                     "default_value": DiscordRestClient::DefaultApi,

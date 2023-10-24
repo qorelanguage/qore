@@ -360,15 +360,19 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             "has_record": exists record_type,
             "request_options": {
                 "hdr": hash<DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(AutoHashType),
+                    "display_name": "HTTP Headers",
+                    "short_desc": "HTTP headers to send in each request",
+                    "type": AbstractDataProviderTypeMap."hash",
                     "required": False,
-                    "desc": "headers to send in the request",
+                    "desc": "HTTP headers to send in each request",
                 },
             },
             "search_options": {
                 "limit": <DataProviderOptionInfo>{
-                    "type": AbstractDataProviderType::get(IntType),
-                    "desc": "the maximum number of records to return",
+                    "display_name": "Limit",
+                    "short_desc": "The maximum number of records to return",
+                    "type": AbstractDataProviderTypeMap."int",
+                    "desc": "The maximum number of records to return",
                 },
             },
         };

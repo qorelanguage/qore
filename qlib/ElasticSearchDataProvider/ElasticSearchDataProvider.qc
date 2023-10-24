@@ -62,17 +62,24 @@ public class ElasticSearchDataProvider inherits ElasticSearchDataProviderBase {
         #! Constructor options
         const ConstructorOptions = {
             "restclient": <DataProviderOptionInfo>{
+                "display_name": "REST Client",
+                "short_desc": "The REST client for accessing the ElasticSearch server",
                 "type": AbstractDataProviderType::get(new Type("RestClient")),
-                "desc": "the RestClient object",
+                "desc": "The REST client for accessing the ElasticSearch server",
             },
             "url": <DataProviderOptionInfo>{
+                "display_name": "URL",
+                "short_desc": "The URL to the ElasticSearch server",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "the URL to the REST server; overrides any URL in any RestClient object passed as an option",
+                "desc": "The URL to the ElasticSearch REST server; overrides any URL in any RestClient object passed "
+                    "as an option",
             },
             "restclient_options": <DataProviderOptionInfo>{
+                "display_name": "REST Client Options",
+                "short_desc": "Options to any REST client created",
                 "type": AbstractDataProviderTypeMap."*hash",
-                "desc": "options to the RestClient constructor; only used if a RestClient object is created for a "
-                    "call",
+                "desc": "Options to the `RestClient` constructor; only used if a `RestClient` object is created for "
+                    "a call to the ElasticSearch server",
             },
         };
     }

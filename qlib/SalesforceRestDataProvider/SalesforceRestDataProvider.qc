@@ -43,49 +43,65 @@ public class SalesforceRestDataProvider inherits SalesforceRestDataProviderBase 
         #! Constructor options
         const ConstructorOptions = {
             "client_id": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client ID",
+                "short_desc": "Sets the Salesforce consumer key",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the Salesforce.com consumer key",
-                "required": False,
+                "desc": "the Salesforce consumer key / OAuth2 client ID",
             },
             "client_secret": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client Secret",
+                "short_desc": "Sets the Salesforce consumer secret",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the Salesforce.com consumer secret",
-                "required": False,
+                "desc": "the Salesforce.com consumer secret / OAuth2 client secret",
             },
             "username": <DataProviderOptionInfo>{
+                "display_name": "Username",
+                "short_desc": "Sets the username for authentication",
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "the Salesforce.com account username",
-                "required": False,
             },
             "password": <DataProviderOptionInfo>{
+                "display_name": "Password",
+                "short_desc": "The password for authentication",
                 "type": AbstractDataProviderType::get(StringType),
                 "desc": "the Salesforce.com account password",
-                "required": False,
             },
             "salesforcerestclient": <DataProviderOptionInfo>{
+                "display_name": "REST Client",
+                "short_desc": "The REST client to use",
                 "type": AbstractDataProviderType::get(new Type("SalesforceRestClient")),
-                "desc": "the SalesforceRestClient object",
+                "desc": "The `SalesforceRestClient` object to use",
             },
             "api": <DataProviderOptionInfo>{
+                "display_name": "API Version",
+                "short_desc": "The Salesforce API version to use",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "the Salesforce.com API version to use (\"auto\" = latest version available)",
+                "desc": "The Salesforce API version to use (\"auto\" = latest version available)",
             },
             "oauth_url_auth": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Auth URL",
+                "short_desc": "The OAuth2 auth URL",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "URL for logging in, overrides the default value",
+                "desc": "The URL for logging in, overrides the default value",
             },
             "oauth_url_token": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Token URL",
+                "short_desc": "The OAuth2 token URL",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "URL for token acquisition, overrides the default value, used when logging in",
+                "desc": "The URL for token acquisition, overrides the default value, used when logging in",
             },
             "oauth_url_revoke": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Revoke URL",
+                "short_desc": "The OAuth2 token revoke URL",
                 "type": AbstractDataProviderType::get(StringType),
-                "desc": "URL for token revocation, overrides the default value, used when logging out",
+                "desc": "The URL for token revocation, overrides the default value, used when logging out",
             },
             "salesforcerestclient_options": <DataProviderOptionInfo>{
+                "display_name": "REST Client Options",
+                "short_desc": "Options when creating a REST client",
                 "type": AbstractDataProviderType::get(AutoHashType),
-                "desc": "options to the SalesforceRestClient constructor; only used if a SalesforceRestClient object "
-                    "is created for a call",
+                "desc": "Options to the SalesforceRestClient constructor; only used if a `SalesforceRestClient` "
+                    "object is created for a call",
             },
         };
 

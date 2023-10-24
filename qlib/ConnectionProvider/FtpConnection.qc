@@ -41,12 +41,16 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
             "cls": Class::forName("FtpConnection"),
             "options": HttpConnection::ConnectionScheme.options + {
                 "password": <ConnectionOptionInfo>{
+                    "display_name": "Password",
+                    "short_desc": "Sets the password for authentication",
                     "type": "string",
                     "desc": "The password for authentication; only used if no username or password is set in the URL "
                         "and if the `username` option is also used",
                     "sensitive": True,
                 },
                 "username": <ConnectionOptionInfo>{
+                    "display_name": "Username",
+                    "short_desc": "Sets the username for authentication",
                     "type": "string",
                     "desc": "The username for authentication; only used if no username or password is set in the URL "
                         "and if the `password` option is also used",

@@ -36,6 +36,8 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProviderB
             "type": "GoogleCalendarEventsInsertDataProvider",
             "constructor_options": GoogleDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
+                    "display_name": "Calendar ID",
+                    "short_desc": "The calendar ID",
                     "type": AbstractDataProviderTypeMap."string",
                     "desc": "The calendar ID",
                 },

@@ -30,16 +30,22 @@ public class FileDataProviderBase inherits DataProvider::AbstractDataProvider {
         #! Constructor options
         const ConstructorOptions = {
             "lock": <DataProviderOptionInfo>{
+                "display_name": "Enforce Sandbox",
+                "short_desc": "Do not allot access to files outside the root directory",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `True` and `root` is set, then no files may be accessed outside of `root`",
             },
             "readonly": <DataProviderOptionInfo>{
+                "display_name": "Enforce Read-Only",
+                "short_desc": "Enforce read-only operations",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `True` then only read operations will be permitted",
             },
             "root": <DataProviderOptionInfo>{
+                "display_name": "Root Directory",
+                "short_desc": "The root directory for relative paths",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "Any root directory for relative paths",
+                "desc": "Any root directory for relative paths or for sandboxing access",
             },
         };
     }

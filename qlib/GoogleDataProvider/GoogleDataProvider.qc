@@ -40,29 +40,44 @@ public class GoogleDataProvider inherits GoogleDataProviderBase {
         #! Constructor options
         const ConstructorOptions = {
             "restclient": <DataProviderOptionInfo>{
+                "display_name": "REST Client",
+                "short_desc": "The Google REST client to use",
                 "type": AbstractDataProviderType::get(new Type("GoogleRestClient")),
-                "desc": "The GoogleRestClient object",
+                "desc": "The `GoogleRestClient` object to use",
             },
             "restclient_options": <DataProviderOptionInfo>{
+                "display_name": "REST Client Options",
+                "short_desc": "Google REST client options to use when creating a new client",
                 "type": AbstractDataProviderTypeMap."*hash",
-                "desc": "Options to the GoogleRestClient constructor; only used if a GoogleRestClient object is "
+                "desc": "Options to the `GoogleRestClient` constructor; only used if a `GoogleRestClient` object is "
                     "created for a call",
             },
             "oauth2_client_id": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client ID",
+                "short_desc": "Sets the OAuth2 client ID",
                 "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The OAuth2 client ID",
+                "desc": "Sets the OAuth2 client ID",
             },
             "oauth2_client_secret": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client Secret",
+                "short_desc": "Sets the OAuth2 client secret",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The OAuth2 client secret",
             },
             "oauth2_refresh_token": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Refresh Token",
+                "short_desc": "Sets the OAuth2 refresh token",
                 "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The OAuth2 refresh token, if known",
+                "desc": "The OAuth2 refresh token, if known; complements option `token`",
             },
             "token": <DataProviderOptionInfo>{
+                "display_name": "Authorization Token",
+                "short_desc": "Set an authorization token to be included in requests",
                 "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The OAuth2 token, if known",
+                "desc": "Any authorization token to use for the connection; will be passed as "
+                    "`Authorization: Bearer ...` (assuming that `token_type` is `Bearer`) in request headers; "
+                    "this option cannot be used with `username` and `password` options or authentication information "
+                    "in the URL; if this option is set then most OAuth2 options are ignored for logins",
             },
         };
     }

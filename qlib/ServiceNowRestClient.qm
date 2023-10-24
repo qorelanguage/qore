@@ -309,6 +309,8 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
             "cls": Class::forName("ServiceNowRestConnection"),
             "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{
+                    "display_name": "API Version",
+                    "short_desc": "The API version to use",
                     "type": "string",
                     "desc": "the API version for ServiceNow; if not set the latest version is used",
                     "default_value": ServiceNowRestClient::DefaultApiVersion,

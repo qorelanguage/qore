@@ -63,28 +63,38 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
             "cls": Class::forName("HttpConnection"),
             "options": {
                 "assume_encoding": <ConnectionOptionInfo>{
+                    "display_name": "Assume Character Encoding",
+                    "short_desc": "Sets the character encoding to assume if 'charset' is missing",
                     "type": "string",
-                    "desc": "assumes the given encoding if the server does not send a `charset` value",
+                    "desc": "Assumes the given encoding if the server does not send a `charset` value",
                 },
                 "connect_timeout": <ConnectionOptionInfo>{
+                    "display_name": "Connect Timeout",
+                    "short_desc": "The connect timeout in milliseconds",
                     "type": "int",
-                    "desc": "connection timeout to use in milliseconds (default: 45 seconds)",
+                    "desc": "The connection timeout to use in milliseconds (default: 45 seconds)",
                     "default_value": 45000,
                 },
                 "error_passthru": <ConnectionOptionInfo>{
+                    "display_name": "Error Passthrough",
+                    "short_desc": "If errors should be returned like normal successful responses",
                     "type": "bool",
-                    "desc": "if `True` then HTTP status codes indicating errors will not cause an "
+                    "desc": "If `True` then HTTP status codes indicating errors will not cause an "
                         "`HTTP-CLIENT-RECEIVE-ERROR` exception to be raised, rather such responses will be "
                         "passed through to the caller like any other response",
                     "default_value": False,
                 },
                 "headers": <ConnectionOptionInfo>{
+                    "display_name": "HTTP Headers",
+                    "short_desc": "Sets HTTP headers to include in each request",
                     "type": "hash",
-                    "desc": "headers to add in each outgoing request",
+                    "desc": "Sets HTTP headers to include in each outgoing request",
                 },
                 "http_version": <ConnectionOptionInfo>{
+                    "display_name": "HTTP Version",
+                    "short_desc": "The HTTP version to use",
                     "type": "string",
-                    "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
+                    "desc": "The HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
                     "default_value": "1.1",
                     "allowed_values": (
                         <AllowedValueInfo>{
@@ -98,57 +108,79 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                     ),
                 },
                 "max_redirects": <ConnectionOptionInfo>{
+                    "display_name": "Max Redirects",
+                    "short_desc": "Sets the maximum HTTP redirects to support",
                     "type": "int",
-                    "desc": "maximum redirects to support",
+                    "desc": "Sets the maximum HTTP redirects to support in a single request",
                 },
                 "pre_encoded_urls": <ConnectionOptionInfo>{
+                    "display_name": "Pre-Encoded URLs",
+                    "short_desc": "If true then URLs are assumed to be preencoded",
                     "type": "bool",
-                    "desc": "if `true` then all URI paths in URLs are assumed to be already "
+                    "desc": "If `true` then all URI paths in URLs are assumed to be already "
                         "[percent encoded](https://en.wikipedia.org/wiki/Percent-encoding); if this flag is set and "
                         "any unencoded characters are sent in a URL with a new request, an exception is raised",
                 },
                 "proxy": <ConnectionOptionInfo>{
+                    "display_name": "HTTP Proxy",
+                    "short_desc": "The HTTP proxy to use",
                     "type": "string",
-                    "desc": "proxy URL to use",
+                    "desc": "The HTTP proxy URL to use",
                 },
                 "redirect_passthru": <ConnectionOptionInfo>{
+                    "display_name": "Redirect Passthrough",
+                    "short_desc": "If true then redirect responses are returned to the caller",
                     "type": "bool",
-                    "desc": "if `True` then redirect responses will be passed to the caller instead of processed",
+                    "desc": "If `True` then redirect responses will be passed to the caller instead of processed",
                     "default_value": False,
                 },
                 "ssl_cert_data": <ConnectionOptionInfo>{
+                    "display_name": "SSL Certificate Data",
+                    "short_desc": "X.509 certificate data",
                     "type": "data",
-                    "desc": "the X.509 certificate data in PEM format (string) or in DER format (binary); if this "
+                    "desc": "The X.509 certificate data in PEM format (string) or in DER format (binary); if this "
                         "option is set, then `ssl_cert_path` is ignored",
                 },
                 "ssl_cert_path": <ConnectionOptionInfo>{
+                    "display_name": "SSL Certificate Location",
+                    "short_desc": "The location of the X.509 client certificate to use",
                     "type": "string",
-                    "desc": "a path to an X.509 client certificate file in PEM format",
+                    "desc": "The location of a X.509 client certificate file in PEM format",
                     "subst_env_vars": True,
                 },
                 "ssl_key_password": <ConnectionOptionInfo>{
+                    "display_name": "SSL Key Password",
+                    "short_desc": "The password to the private key",
                     "type": "string",
-                    "desc": "the password to the private key given with `ssl_key_path`",
+                    "desc": "The password to the private key given with `ssl_key_path`",
                     "sensitive": True,
                 },
                 "ssl_key_data": <ConnectionOptionInfo>{
+                    "display_name": "SSL Key Data",
+                    "short_desc": "X.509 private key data",
                     "type": "data",
-                    "desc": "the X.509 private key data in PEM format (string) or in DER format (binary); if this "
+                    "desc": "The X.509 private key data in PEM format (string) or in DER format (binary); if this "
                         "option is set, then `ssl_key_path` is ignored",
                 },
                 "ssl_key_path": <ConnectionOptionInfo>{
+                    "display_name": "SSL Key Location",
+                    "short_desc": "The location of the private key file",
                     "type": "string",
-                    "desc": "a path to a private key file in PEM format for the X.509 client certificate",
+                    "desc": "The location to a private key file in PEM format for the X.509 client certificate",
                     "subst_env_vars": True,
                 },
                 "ssl_verify_cert": <ConnectionOptionInfo>{
+                    "display_name": "SSL Verify Certificate",
+                    "short_desc": "If true then server certificates will be verified",
                     "type": "bool",
                     "desc": "if `True` then the server's certificate will only be accepted if it's verified",
                     "default_value": False,
                 },
                 "timeout": <ConnectionOptionInfo>{
+                    "display_name": "I/O Timeout",
+                    "short_desc": "The maximum time an individual I/O operation can take in milliseconds",
                     "type": "int",
-                    "desc": "transfer timeout to use in milliseconds (default: 45 seconds)",
+                    "desc": "The transfer timeout to use in milliseconds (default: 45 seconds)",
                     "default_value": 45000,
                 },
             },

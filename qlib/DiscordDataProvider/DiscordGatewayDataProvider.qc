@@ -41,21 +41,29 @@ public class DiscordGatewayDataProvider inherits DataProvider::AbstractDataProvi
         #! Constructor options
         const ConstructorOptions = {
             "intents": <DataProviderOptionInfo>{
+                "display_name": "Intents",
+                "short_desc": "The intent bitfield for gateway events",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "The intent bitfield for gateway events",
                 "default_value": DI_GUILD_MESSAGES | DI_DIRECT_MESSAGES | DI_MESSAGE_CONTENT,
                 "required": True,
             },
             "token": <DataProviderOptionInfo>{
+                "display_name": "Token",
+                "short_desc": "The bot token for the gateway",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The bot token for the gateway",
                 "required": True,
             },
             "wsclient": <DataProviderOptionInfo>{
+                "display_name": "WebSocket Client",
+                "short_desc": "The DiscordWebSocketClient object",
                 "type": AbstractDataProviderType::get(new Type("DiscordWebSocketClient")),
                 "desc": "The DiscordWebSocketClient object",
             },
             "wsclient_options": <DataProviderOptionInfo>{
+                "display_name": "WebSocket Client Options",
+                "short_desc": "Options to the DiscordWebSocketClient constructor",
                 "type": AbstractDataProviderTypeMap."*hash",
                 "desc": "Options to the DiscordWebSocketClient constructor; only used if a DiscordWebSocketClient "
                     "object is created",

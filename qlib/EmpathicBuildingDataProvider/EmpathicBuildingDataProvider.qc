@@ -47,22 +47,31 @@ public class EmpathicBuildingDataProvider inherits EmpathicBuildingDataProviderB
         #! Constructor options
         const ConstructorOptions = {
             "restclient": <DataProviderOptionInfo>{
+                "display_name": "REST Client",
+                "short_desc": "The REST client to use",
                 "type": AbstractDataProviderType::get(new Type("RestClient")),
-                "desc": "The RestClient object",
+                "desc": "The REST client to use to communicate with the EmpathicBuilding server",
             },
             "url": <DataProviderOptionInfo>{
+                "display_name": "EmpathicBuilding URL",
+                "short_desc": "The URL to the EmpathicBuilding server",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The URL to the REST server; overrides any URL in any RestClient object passed as an option",
+                "desc": "The URL to the EmpathicBuilding server; overrides any URL in any REST client object passed "
+                    "as an option",
                 "default_value": "https://eu-api.empathicbuilding.com",
             },
             "restclient_options": <DataProviderOptionInfo>{
+                "display_name": "REST Client Options",
+                "short_desc": "Options to the REST client constructor",
                 "type": AbstractDataProviderTypeMap."*hash",
-                "desc": "Options to the RestClient constructor; only used if a RestClient object is created for a "
+                "desc": "Options to the REST client constructor; only used if a REST client object is created for a "
                     "call",
             },
             "token": <DataProviderOptionInfo>{
+                "display_name": "Authorization Token",
+                "short_desc": "Sets a gateway authorization token to be included in requests",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "A gateway token to use for authentication to the server",
+                "desc": "Sets a gateway authorization token to be included in requests",
                 "sensitive": True,
             },
         };

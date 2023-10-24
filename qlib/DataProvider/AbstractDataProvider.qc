@@ -46,17 +46,17 @@ public const UpsertResultUnchanged = "unchanged";
 public const UpsertResultDeleted = "deleted";
 #/@}
 
-#! Allowed value hash
-public hashdecl AllowedValueInfo {
-    #! The value
-    auto value;
-
-    #! Description for the value
-    string desc;
-}
-
 #! Data provider option info
 public hashdecl DataProviderOptionInfo {
+    #! Option display name
+    string display_name;
+
+    #! Option short description in plain text
+    string short_desc;
+
+    #! The option description
+    string desc;
+
     #! The option value type or types
     softlist<AbstractDataProviderType> type;
 
@@ -66,9 +66,6 @@ public hashdecl DataProviderOptionInfo {
     */
     bool required = False;
 
-    #! The option description
-    string desc;
-
     #! Any default value
     auto default_value;
 
@@ -76,7 +73,7 @@ public hashdecl DataProviderOptionInfo {
     bool sensitive = False;
 
     #! List of allowed values (enum)
-    *softlist<hash<AllowedValueInfo>> allowed_values;
+    *softlist<hash<Util::AllowedValueInfo>> allowed_values;
 
     #! Any optional example value for the option
     /** This value must be in the one of the types in the \c type list
@@ -1015,16 +1012,22 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         */
         const GenericRecordSearchOptions = {
             "columns": <DataProviderOptionInfo>{
+                "display_name": "Columns",
+                "short_desc": "Columns to include in output",
                 "type": AbstractDataProviderTypeMap."any",
-                "desc": "allows a subset of fields to be output in searches",
+                "desc": "Allows a subset of fields to be output in searches",
             },
             "limit": <DataProviderOptionInfo>{
+                "display_name": "Limit",
+                "short_desc": "The maximum number of records to return",
                 "type": AbstractDataProviderType::get(IntType),
-                "desc": "the maximum number of records to return",
+                "desc": "The maximum number of records to return",
             },
             "offset": <DataProviderOptionInfo>{
+                "display_name": "Offset",
+                "short_desc": "The offset in the record list for records to return",
                 "type": AbstractDataProviderType::get(IntType),
-                "desc": "the offset number in records to return",
+                "desc": "The offset in the record list for records to return",
             },
         };
     }

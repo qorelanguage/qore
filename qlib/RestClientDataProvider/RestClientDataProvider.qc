@@ -43,19 +43,23 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
         #! Constructor arguments
         const ConstructorOptions = {
             "assume_encoding": <DataProviderOptionInfo>{
+                "display_name": "Assume Character Encoding",
+                "short_desc": "Sets the character encoding to assume if 'charset' is missing",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "Assumes the given encoding if the server does not send a `charset` value",
             },
             "connect_timeout": <DataProviderOptionInfo>{
+                "display_name": "Connect Timeout",
+                "short_desc": "The connect timeout in milliseconds",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "The connection timeout to use in milliseconds (default: 45 seconds)",
                 "default_value": 45000,
             },
             "content_encoding": <DataProviderOptionInfo>{
+                "display_name": "Compression",
+                "short_desc": "Sets the compression to use when sending messages",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "Sets the send encoding (if the `send_encoding` option is not set) and the "
-                        "response encoding to request"
-                    "Sets the send encoding (if the `send_encoding` option is not set) and the requested response "
+                "desc": "Sets the send encoding (if the `send_encoding` option is not set) and the requested response "
                     "encoding (note that only outgoing message bodies over `1024` bytes in size are compressed)",
                 "default_value": "gzip",
                 "allowed_values": (
@@ -75,6 +79,8 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
                 ),
             },
             "data": <DataProviderOptionInfo>{
+                "display_name": "Data Serialization",
+                "short_desc": "Determines how message bodies are serialized",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "Determines how message bodies are serialized",
                 "default_value": "auto",
@@ -108,17 +114,23 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
                 ),
             },
             "error_passthru": <DataProviderOptionInfo>{
+                "display_name": "Error Passthrough",
+                "short_desc": "If errors should be returned like normal successful responses",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `True` then REST status codes indicating errors will not cause an "
-                    "`REST-CLIENT-RECEIVE-ERROR` exception to be raised, rather such responses will be "
+                    "`REST-CLIENT-RECEIVE-ERROR` exception to be raised, rather, such responses will be "
                     "passed through to the caller like any other response",
                 "default_value": False,
             },
             "headers": <DataProviderOptionInfo>{
+                "display_name": "HTTP Headers",
+                "short_desc": "Sets HTTP headers to include in each request",
                 "type": AbstractDataProviderTypeMap."hash",
-                "desc": "An optional hash of headers to send with every request"
+                "desc": "Sets HTTP headers to include in each outgoing request",
             },
             "http_version": <DataProviderOptionInfo>{
+                "display_name": "HTTP Version",
+                "short_desc": "The HTTP version to use",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "HTTP version to use (`1.0` or `1.1`, defaults to `1.1`)",
                 "default_value": "1.1",
@@ -133,42 +145,60 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
                 ),
             },
             "max_redirects": <DataProviderOptionInfo>{
+                "display_name": "Max Redirects",
+                "short_desc": "Sets the maximum HTTP redirects to support",
                 "type": AbstractDataProviderTypeMap."int",
-                "desc": "Maximum redirects to support",
+                "desc": "Sets the maximum HTTP redirects to support in a single request",
             },
             "no_charset": <DataProviderOptionInfo>{
+                "display_name": "Supress Charset",
+                "short_desc": "If true no charset will be added to the 'Content-Type' header",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `True` no charset will be added to the `Content-Type` header",
             },
             "oauth2_auth_args": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Authorization Args",
+                "short_desc": "Optional arguments for authentication requests for the authorization_code grant type",
                 "type": AbstractDataProviderTypeMap."hash",
                 "desc": "Optional arguments for authentication requests for the `authorization_code` grant type; "
-                    "ignored if the `token` option is set.  Note that the `authorization_code` grant type "
+                    "ignored for logins if the `token` option is set.  Note that the `authorization_code` grant type "
                     "requires external user authorization to acquire an access token",
             },
             "oauth2_auth_url": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Auth URL",
+                "short_desc": "Sets the OAuth2 authorization URL for the authorization_code grant type",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The OAuth2 authorization URL for the `authorization_code` grant type; ignored "
+                "desc": "The OAuth2 authorization URL for the `authorization_code` grant type; ignored for logins "
                     "if the `token` option is set.  Note that the `authorization_code` grant type requires "
                     "external user authorization to acquire an access token",
             },
             "oauth2_auto_refresh": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Auto Refresh",
+                "short_desc": "Sets if OAuth2 tokens should be automatically refreshed",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If OAuth2 tokens should be automatically refreshed",
                 "default_value": True,
             },
             "oauth2_client_id": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client ID",
+                "short_desc": "Sets the OAuth2 client ID",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The OAuth2 client ID; ignored if the `token` option is set",
+                "desc": "The OAuth2 client ID; ignored for logins if the `token` option is set (but possibly "
+                    "used when refreshing tokens)",
             },
             "oauth2_client_secret": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client Secret",
+                "short_desc": "Sets the OAuth2 client secret",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "the OAuth2 client secret; ignored if the `token` option is set",
+                "desc": "Sets the OAuth2 client secret; ignored for logins if the `token` option is set (but "
+                    "possibly used when refreshing tokens)",
                 "sensitive": True,
             },
             "oauth2_grant_type": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Grant Type",
+                "short_desc": "Sets the OAuth2 grant type",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The OAuth2 grant type; ignored if the `token` option is set",
+                "desc": "The OAuth2 grant type; ignored for logins if the `token` option is set",
                 "allowed_values": (
                     <AllowedValueInfo>{
                         "value": "authorization_code",
@@ -192,8 +222,10 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
                 ),
             },
             "oauth2_redirect_url": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Redirect URL",
+                "short_desc": "The OAuth2 redirect URL for the authorization code grant type",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The OAuth2 redirect URL for the `authorization_code` grant type; ignored "
+                "desc": "The OAuth2 redirect URL for the `authorization_code` grant type; ignored for logins "
                     "if the `token` option is set.  Note that the `authorization_code` grant type requires "
                     "external user authorization to acquire an access token; the special value `auto` (the "
                     "default) is meant to be interpreted by servers that implement OAuth2 authorization code "
@@ -201,25 +233,35 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
                 "default_value": "auto",
             },
             "oauth2_refresh_token": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Refresh Token",
+                "short_desc": "Sets the OAuth2 refresh token",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "the OAuth2 refresh token, if any (complements option `token`)",
                 "sensitive": True,
             },
             "oauth2_scopes": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Scopes",
+                "short_desc": "List of OAuth2 scopes to request",
                 "type": AbstractDataProviderTypeMap."list",
                 "desc": "Space-separated string of OAuth2 scopes to request; ignored if the `token` option is set",
             },
             "oauth2_token_url": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Token URL",
+                "short_desc": "The token URL for OAuth2 flows",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The token URL for OAuth2 flows; ignored if the `token` option is set",
+                "desc": "The token URL for OAuth2 flows; ignored for logins if the `token` option is set",
             },
             "password": <DataProviderOptionInfo>{
+                "display_name": "Password",
+                "short_desc": "The password for authentication",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The password for authentication; only used if no username or password is set in the URL "
                     "and if the `username` option is also used; conflicts with the `token` option",
                 "sensitive": True,
             },
             "pre_encoded_urls": <DataProviderOptionInfo>{
+                "display_name": "Pre-Encoded URLs",
+                "short_desc": "If true then URLs are assumed to be preencoded",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "if `true` then all URI paths in URLs are assumed to be already "
                     "[percent encoded](https://en.wikipedia.org/wiki/Percent-encoding); if this flag is set and "
@@ -227,18 +269,23 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
                 "default_value": False,
             },
             "proxy": <DataProviderOptionInfo>{
+                "display_name": "HTTP Proxy",
+                "short_desc": "The HTTP proxy to use",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The proxy URL to use",
             },
             "redirect_passthru": <DataProviderOptionInfo>{
+                "display_name": "Redirect Passthrough",
+                "short_desc": "If true then redirect responses are returned to the caller",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "if `True` then redirect responses will be passed to the caller instead of processed",
                 "default_value": False,
             },
             "send_encoding": <DataProviderOptionInfo>{
+                "display_name": "Send Compression",
+                "short_desc": "Sets the compression algorithm to use when sending messages",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "Sets the send encoding (if the `send_encoding` option is not set) and the requested response "
-                    "encoding (note that only outgoing message bodies over `1024` bytes in size are compressed)",
+                "desc": "Sets the compression / send encoding algorithm to use when sending messages",
                 "allowed_values": (
                     <AllowedValueInfo>{
                         "value": "gzip",
@@ -256,12 +303,16 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
                 ),
             },
             "ssl_cert_der": <DataProviderOptionInfo>{
+                "display_name": "SSL Certificate DER",
+                "short_desc": "Indicates if X.509 certificate data is in DER format",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `True` then the data represented by `ssl_cert_location` will be assumed to be in binary "
                     "DER format",
                 "default_value": False,
             },
             "ssl_cert_location": <DataProviderOptionInfo>{
+                "display_name": "SSL Certificate Location",
+                "short_desc": "The location of the X.509 client certificate to use",
                 "type": AbstractDataProviderType::get(StringType, NOTHING, {
                     DTT_FromFile: True,
                     DTT_FromLocation: True,
@@ -269,12 +320,16 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
                 "desc": "A path or location to an X.509 client certificate file",
             },
             "ssl_key_der": <DataProviderOptionInfo>{
+                "display_name": "SSL Key DER",
+                "short_desc": "Indicates if X.509 private key data is in DER format",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "If `True` then the data represented by `ssl_key_location` will be assumed to be in binary "
                     "DER format",
                 "default_value": False,
             },
             "ssl_key_location": <DataProviderOptionInfo>{
+                "display_name": "SSL Key Location",
+                "short_desc": "The location of the private key file",
                 "type": AbstractDataProviderType::get(StringType, NOTHING, {
                     DTT_FromFile: True,
                     DTT_FromLocation: True,
@@ -282,16 +337,22 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
                 "desc": "A path or location to a private key file for the X.509 client certificate",
             },
             "ssl_key_password": <DataProviderOptionInfo>{
+                "display_name": "SSL Key Password",
+                "short_desc": "The password to the private key",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The password to the private key given with `ssl_key_path` (text PEM format only)",
                 "sensitive": True,
             },
             "ssl_verify_cert": <DataProviderOptionInfo>{
+                "display_name": "SSL Verify Certificate",
+                "short_desc": "If true then server certificates will be verified",
                 "type": AbstractDataProviderTypeMap."bool",
                 "desc": "if `True` then the server's certificate will only be accepted if it's verified",
                 "default_value": False,
             },
             "swagger": <DataProviderOptionInfo>{
+                "display_name": "Swagger Schema",
+                "short_desc": "Sets the location of a Swagger schema to use for the connection",
                 "type": AbstractDataProviderType::get(StringType, NOTHING, {
                     DTT_FromFile: True,
                     DTT_FromLocation: True,
@@ -299,39 +360,54 @@ public class RestClientDataProvider inherits RestClientDataProviderBase {
                 "desc": "A Swagger 2.0 schema location or file data for the REST connection",
             },
             "swagger_lax_parsing": <DataProviderOptionInfo>{
+                "display_name": "Swagger Lax Parsing",
+                "short_desc": "Sets lax parsing for Swagger schemas",
                 "type": AbstractDataProviderTypeMap."bool",
-                "desc": "try to parse invalid Swagger schemas",
+                "desc": "Try to parse invalid Swagger schemas; this option is not recommended; it will not parse "
+                    "all bad Swagger schemas; schemas should be corrected instead of setting this option",
             },
             "timeout": <DataProviderOptionInfo>{
+                "display_name": "I/O Timeout",
+                "short_desc": "The maximum time an individual I/O operation can take in milliseconds",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "Transfer timeout to use in milliseconds (default: 45 seconds)",
                 "default_value": 45000,
             },
             "token": <DataProviderOptionInfo>{
+                "display_name": "Authorization Token",
+                "short_desc": "Set an authorization token to be included in requests",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "Any bearer token to use for the connection; will be passed as "
-                    "`Authorization: Bearer ...` in request headers; this option cannot be used with username "
-                    "and password options or authentication information in the URL; if this option is set then "
-                    "OAuth2 options are ignored",
+                    "`Authorization: Bearer ...` (assuming that `token_type` is `Bearer`) in request headers; this "
+                    "option cannot be used with the `username` and `password` options or authentication information "
+                    "in the URL; if this option is set then OAuth2 options are ignored",
                 "sensitive": True,
             },
             "token_type": <DataProviderOptionInfo>{
+                "display_name": "Authorization Token Type",
+                "short_desc": "The type of authorization token",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The type of `token` to use for the `Authentication` header; ignored if no `token` "
                     "option is set",
                 "default_value": "Bearer",
             },
             "url": <DataProviderOptionInfo>{
+                "display_name": "URL",
+                "short_desc": "The URL to connect to",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "A URL for a REST / HTTP/S connection",
                 "required": True,
             },
             "username": <DataProviderOptionInfo>{
+                "display_name": "Username",
+                "short_desc": "Sets the username for authentication",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The username for authentication; only used if no username or password is set in the URL "
                     "and if the `password` option is also used; conflicts with the `token` option",
             },
             "validator_base_path": <DataProviderOptionInfo>{
+                "display_name": "Override Schema Base Path",
+                "short_desc": "Override  the base path in any REST schema",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "In case a REST validator is used, the base path in the schema can be overridden with this "
                     "option",

@@ -216,8 +216,10 @@ public class SewioRestConnection inherits RestClient::RestConnection {
             "cls": Class::forName("SewioRestConnection"),
             "options": RestConnection::ConnectionScheme.options + {
                 "data": <ConnectionOptionInfo>{
+                    "display_name": "Data Serialization",
+                    "short_desc": "Data serialization can only be 'json'",
                     "type": "string",
-                    "desc": "data serialization options are limited to `json` with this object",
+                    "desc": "Data serialization options are limited to `json` with this object",
                     "allowed_values": (
                         <AllowedValueInfo>{
                             "value": "json",
@@ -227,8 +229,10 @@ public class SewioRestConnection inherits RestClient::RestConnection {
                     "default_value": "json",
                 },
                 "send_encoding": <ConnectionOptionInfo>{
+                    "display_name": "Send Compression",
+                    "short_desc": "The compression algorithm to use when sending messages",
                     "type": "string",
-                    "desc": "this sets the send encoding",
+                    "desc": "Sets the compression algorithm to use when sending messages",
                     "allowed_values": (
                         <AllowedValueInfo>{
                             "value": "gzip",
@@ -247,8 +251,10 @@ public class SewioRestConnection inherits RestClient::RestConnection {
                     "default_value": SewioRestClient::DefaultSendEncoding,
                 },
                 "apikey": <ConnectionOptionInfo>{
+                    "display_name": "API Key",
+                    "short_desc": "The Sewio RTLS Studio API key",
                     "type": "string",
-                    "desc": "the Sewio RTLS Studio API key",
+                    "desc": "The Sewio RTLS Studio API key",
                 },
             },
             "required_options": foldl $1 + "," + $2, SewioRestClient::RequiredOptions,
