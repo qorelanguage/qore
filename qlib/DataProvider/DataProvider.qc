@@ -246,7 +246,7 @@ public class DataProvider {
 
         @par Example:
         @code{.py}
-DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/password@db}/my_table");
+DbDataProvider db = DataProvider::getFactoryObjectFromString("db{datasource=oracle:user/password@db}/my_table");
         @endcode
 
         @throw PROVIDER-ERROR the given provider factory or child provider is unknown
@@ -264,7 +264,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromString("db{oracle:user/pas
 
         @par Example:
         @code{.py}
-DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{oracle:user/password@db}/my_table");
+DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasource=oracle:user/password@db}/my_table");
         @endcode
 
         @throw PROVIDER-ERROR the given provider factory or child provider is unknown
