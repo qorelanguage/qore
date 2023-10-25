@@ -237,7 +237,19 @@ public class AbstractDataField inherits Qore::Serializable {
 
     #! Returns the short description, if any
     *string getShortDescription() {
-        return getDescription();
+        return AbstractDataField::getShortDescription(getDescription());
+    }
+
+    #! Converts a long description into a short description
+    static *string getShortDescription(*string desc) {
+        if (!exists desc) {
+            return;
+        }
+        # convert backquotes to single quotes
+        desc =~ s/`/'/g;
+        # end after the first sentence, if any
+        desc =~ s/\.\s+[A-Z].*//;
+        return desc;
     }
 
     #! Converts a technical name into a display name

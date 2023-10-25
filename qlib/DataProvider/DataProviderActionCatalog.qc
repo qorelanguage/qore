@@ -158,6 +158,9 @@ public hashdecl ActionOptionInfo {
 
     #! An optional example value for the option
     *string example_value;
+
+    #! If the option should be preselected
+    bool preselected;
 }
 
 #! DataProvider path var info
@@ -271,6 +274,9 @@ public class DataProviderActionCatalog {
 
         #! Scheme map; keys are connection schemes
         static hash<string, list<hash<DataProviderActionInfo>>> smap;
+
+        #! Default description
+        const DefaultDescription = "no description provided";
     }
 
     #! Registers a data provider application
@@ -605,6 +611,29 @@ public class DataProviderActionCatalog {
                 ($1.short_desc.upr().find(substr) >= 0) || ($1.desc.upr().find(substr) >= 0);
         }
         return map $1, top_actionmap.values(), ($1.short_desc.find(substr) >= 0) || ($1.desc.find(substr) >= 0);
+    }
+
+    #! Converts field definitions into option descriptions
+    static hash<string, hash<ActionOptionInfo>> getActionOptionFromFields(hash<auto> fields,
+            *hash<auto> additional_fields) {
+        hash<string, hash<ActionOptionInfo>> rv;
+        foreach hash<auto> i in (fields.pairIterator()) {
+            hash<ActionOptionInfo> info = <ActionOptionInfo>{
+                "display_name": i.value.display_name ?? AbstractDataField::getDisplayName(i.key),
+                "short_desc": i.value.short_desc ?? AbstractDataField::getShortDescription(i.value.desc),
+                "desc": i.value.desc ?? DefaultDescription,
+                "type": i.value.type.getBaseTypeName(),
+            };
+            info += i.value{"default_value", "required", "sensitive", "example_value"} + additional_fields;
+            if (i.value.allowed_values) {
+                info.allowed_values = map (
+                    "value": $1,
+                    "desc": DefaultDescription,
+                ), i.value.allowed_values;
+            }
+            rv{i.key} = info;
+        }
+        return rv;
     }
 
     #! Returns a normalized path to ensure that comparisons always work
