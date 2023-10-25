@@ -130,8 +130,8 @@ public const ActionNameMap = {
     DPAT_DELETE: "DELETE",
 };
 
-#! Data provider quick option definition
-public hashdecl QuickOptionInfo {
+#! Data provider action option definition
+public hashdecl ActionOptionInfo {
     #! Data type of the option
     string type;
 
@@ -222,12 +222,12 @@ public hashdecl DataProviderActionInfo {
     #! Convenience options that can be provided without a data provider
     /** For API calls and messages only
     */
-    *hash<string, hash<QuickOptionInfo>> convenience_options;
+    *hash<string, hash<ActionOptionInfo>> convenience_options;
 
     #! Advanced options that can be provided without a data provider
     /** For API calls and messages only
     */
-    *hash<string, hash<QuickOptionInfo>> advanced_options;
+    *hash<string, hash<ActionOptionInfo>> advanced_options;
 }
 
 #! DataProvider action and application catalog class
