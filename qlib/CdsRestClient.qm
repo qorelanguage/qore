@@ -339,6 +339,9 @@ public class CdsRestConnection inherits RestClient::RestConnection {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Microsoft CDS REST Server",
+            "short_desc": "A connection to a Microsoft CDS (Common Data Services) REST server",
+            "desc": "A connection to a Microsoft CDS (Common Data Services) REST server",
             "cls": Class::forName("CdsRestConnection"),
             "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{

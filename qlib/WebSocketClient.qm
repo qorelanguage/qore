@@ -1332,6 +1332,9 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "WebSocket Connection",
+            "short_desc": "A connection to a WebSocket server service",
+            "desc": "A connection to a WebSocket server service",
             "cls": Class::forName("WebSocketConnectionObject"),
             "options": HttpConnection::ConnectionScheme.options + {
                 "data": <ConnectionOptionInfo>{

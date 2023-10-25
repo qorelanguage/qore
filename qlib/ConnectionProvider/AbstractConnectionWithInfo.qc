@@ -63,8 +63,7 @@ public class AbstractConnectionWithInfo inherits AbstractConnection {
 
     #! returns default options
     *hash<auto> getDefaultOptions() {
-        return map {$1.key: $1.value.default_value}, getConnectionSchemeInfo().options.pairIterator(),
-            exists $1.value.default_value;
+        return ConnectionSchemeCache::getDefaultOptionValues(getConnectionSchemeInfo());
     }
 
     #! Returns the ConnectionSchemeInfo hash for this object

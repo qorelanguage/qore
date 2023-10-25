@@ -31,7 +31,13 @@ public hashdecl DataFieldInfo {
     #! the name of the field
     string name;
 
-    #! the description of the field, if available
+    #! The display name of the field
+    string display_name;
+
+    #! The short description of the field in plain text
+    string short_desc;
+
+    #! the description of the field, if available, with markdown formatting
     *string desc;
 
     #! the default value for the field
@@ -184,6 +190,8 @@ public class AbstractDataField inherits Qore::Serializable {
     hash<DataFieldInfo> getInputInfo() {
         return <DataFieldInfo>{
             "name": getName(),
+            "display_name": getDisplayName(),
+            "short_desc": getShortDescription(),
             "desc": getDescription(),
             "type": getType().getInputInfo(),
         };
@@ -193,6 +201,8 @@ public class AbstractDataField inherits Qore::Serializable {
     hash<DataFieldInfo> getInfo() {
         return <DataFieldInfo>{
             "name": getName(),
+            "display_name": getDisplayName(),
+            "short_desc": getShortDescription(),
             "desc": getDescription(),
             "default_value": default_value,
             "allowed_values": allowed_values,
@@ -218,6 +228,41 @@ public class AbstractDataField inherits Qore::Serializable {
     */
     AbstractDataField getOrNothingType() {
         return self;
+    }
+
+    #! Returns the display name of the field
+    string getDisplayName() {
+        return AbstractDataField::getDisplayName(getName());
+    }
+
+    #! Returns the short description, if any
+    *string getShortDescription() {
+        return getDescription();
+    }
+
+    #! Converts a technical name into a display name
+    static string getDisplayName(string name) {
+        # convert name to display name
+        bool wb;
+        string display_name;
+        for (int i = 0, int e = name.length(); i < e; ++i) {
+            string c = name[i];
+            if (!i || wb) {
+                display_name += c.upr();
+                wb = False;
+                continue;
+            }
+            if (c == "." || c == " ") {
+                display_name += " ";
+                wb = True;
+                continue;
+            }
+            if (c =~ /[a-z]/ && display_name =~ /[^ ][A-Z]$/ && i > 1) {
+                splice display_name, -1, 0, " ";
+            }
+            display_name += c;
+        }
+        return display_name;
     }
 
     #! returns the name of the field

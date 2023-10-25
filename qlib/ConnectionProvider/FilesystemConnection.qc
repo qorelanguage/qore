@@ -37,6 +37,9 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Filesystem Connection",
+            "short_desc": "A connection to the local filesystem",
+            "desc": "A connection to the local filesystem",
             "cls": Class::forName("FilesystemConnection"),
             "options": {
                 "readonly": <ConnectionOptionInfo>{

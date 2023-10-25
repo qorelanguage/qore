@@ -139,15 +139,19 @@ public class GoogleCalendarEventsGetRequestType inherits DataProvider::HashDataT
         const Fields = {
             # query parameters
             "id": {
+                "display_name": "Event ID",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The event ID",
             },
             "maxAttendees": {
+                "display_name": "Max Attendees",
+                "short_desc": "Max number of attendees to include in the response",
                 "type": AbstractDataProviderTypeMap."*int",
                 "desc": "The maximum number of attendees to include in the response. If there are more than the "
                     "specified number of attendees, only the participant is returned",
             },
             "timeZone": {
+                "display_name": "Time Zone",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Time zone used in the response. The default is the time zone of the calendar",
             },
@@ -156,8 +160,7 @@ public class GoogleCalendarEventsGetRequestType inherits DataProvider::HashDataT
 
     #! Creates the object
     constructor(string name = "GoogleCalendarEventsGetRequestType") : HashDataType(name) {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

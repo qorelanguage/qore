@@ -29,19 +29,23 @@ public class HttpClientCallWithMethodRequestDataType inherits HashDataType {
         #! Field descriptions
         const Fields = {
             "method": {
+                "display_name": "HTTP Method",
                 "type": StringType,
                 "desc": "The HTTP method to use",
                 "required": True,
             },
             "body": {
+                "display_name": "Message Body",
                 "type": DataOrNothingType,
                 "desc": "The message body",
             },
             "path": {
+                "display_name": "Request Path",
                 "type": StringType,
                 "desc": "The URI path",
             },
             "hdr": {
+                "display_name": "HTTP Headers",
                 "type": AutoHashOrNothingType,
                 "desc": "Any headers to include in the request",
             },
@@ -50,8 +54,7 @@ public class HttpClientCallWithMethodRequestDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

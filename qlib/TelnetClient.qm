@@ -25,7 +25,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.5
+%requires qore >= 2.0
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
@@ -980,6 +980,9 @@ public class TelnetConnection inherits ConnectionProvider::AbstractConnectionWit
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Telnet Connection",
+            "short_desc": "A connection to a telnet server",
+            "desc": "A connection to a telnet server",
             "cls": Class::forName("TelnetConnection"),
         };
     }

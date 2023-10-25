@@ -29,36 +29,44 @@ public class HttpClientCallResponseDataType inherits HashDataType {
         #! Field descriptions
         const Fields = {
             "request-headers": {
+                "display_name": "Request Headers",
                 "type": HashType,
                 "desc": "A hash of request headers with keys in the original case as sent (ex: `Content-Type`)",
             },
             "request-uri": {
+                "display_name": "Request URI",
                 "type": StringType,
                 "desc": "The request URI string sent (ex: `GET /services/async/38.0/job HTTP/1.1`)",
             },
             "response-body": {
+                "display_name": "Response Body",
                 "type": DataOrNothingType,
                 "desc": "Any message body sent in the response",
             },
             "response-headers": {
+                "display_name": "Response Headers",
                 "type": HashType,
                 "desc": "A hash of processed response headers with keys all converted to lower case letters "
                     "(ex: `content-type`)",
             },
             "response-headers-raw": {
+                "display_name": "Raw Response Headers",
                 "type": HashType,
                 "desc": "The raw, unprocessed response headers with keys in the original case as received "
                     "(ex: `Content-Type`)",
             },
             "response-uri": {
+                "display_name": "Response URI",
                 "type": StringType,
                 "desc": "The HTTP response URI (ex: `HTTP/1.l 200 OK`)",
             },
             "status-code": {
+                "display_name": "HTTP Status Code",
                 "type": IntType,
                 "desc": "The HTTP status code provided in the response",
             },
             "status-message": {
+                "display_name": "HTTP Status Message",
                 "type": StringType,
                 "desc": "The HTTP status message provided in the response",
             },
@@ -67,8 +75,7 @@ public class HttpClientCallResponseDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

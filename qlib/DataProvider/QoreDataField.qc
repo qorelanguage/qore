@@ -38,8 +38,14 @@ public namespace DataProvider {
 #! describes a data type based on a hashdecl
 public class QoreDataField inherits AbstractDataField {
     private {
-        #! name of the field
+        #! Name of the field
         string name;
+
+        #! Display name of the field
+        string display_name;
+
+        #! Short description of the field
+        *string short_desc;
 
         #! description of the field
         *string desc;
@@ -49,9 +55,33 @@ public class QoreDataField inherits AbstractDataField {
     }
 
     #! creates the field from the arguments
+    constructor(hash<auto> h) {
+        checkString(True, h, "name", "desc");
+        checkString(False, h, "display_name", "short_desc");
+        if (h.type instanceof Qore::Reflection::Type) {
+            type = AbstractDataProviderType::get(h.type);
+        } else if (h.type instanceof AbstractDataProviderType) {
+            type = h.type;
+        } else {
+            throw "QORE-DATA-FIELD-ERROR", sprintf("missing or invalid key \"type\"; expecting type \"Type\" or "
+                "\"AbstractDataProviderType\"; got %y instead", h.type.fullType());
+        }
+        name = h.name;
+        desc = h.desc;
+        display_name = h.display_name ?? name;
+        short_desc = h.short_desc ?? desc;
+        if (exists h.default_value) {
+            setDefaultValue(h.default_value);
+        }
+        if (exists h.allowed_values) {
+            setAllowedValues(h.allowed_values);
+        }
+    }
+
+    #! creates the field from the arguments
     constructor(string name, *string desc, Type type, auto default_value, *softlist<auto> allowed_values) {
-        self.name = name;
-        self.desc = desc;
+        self.name = display_name = name;
+        self.desc = short_desc = desc;
         self.type = AbstractDataProviderType::get(type);
         if (exists default_value) {
             setDefaultValue(default_value);
@@ -64,8 +94,8 @@ public class QoreDataField inherits AbstractDataField {
     #! creates the field from the arguments
     constructor(string name, *string desc, AbstractDataProviderType type, auto default_value,
             *softlist<auto> allowed_values) {
-        self.name = name;
-        self.desc = desc;
+        self.name = display_name = name;
+        self.desc = short_desc = desc;
         self.type = type;
         if (exists default_value) {
             setDefaultValue(default_value);
@@ -78,6 +108,16 @@ public class QoreDataField inherits AbstractDataField {
     #! returns the name of the field
     string getName() {
         return name;
+    }
+
+    #! Returns the display name of the field
+    string getDisplayName() {
+        return display_name;
+    }
+
+    #! Returns the short description, if any
+    *string getShortDescription() {
+        return short_desc;
     }
 
     #! returns the description, if any
@@ -137,6 +177,16 @@ public class QoreDataField inherits AbstractDataField {
         QoreDataField rv = copy();
         rv.type = new_type;
         return rv;
+    }
+
+    #! Checks for string values in a hash
+    private static checkString(bool required, hash<auto> h, ...) {
+        foreach string key in (argv) {
+            if (h{key}.typeCode() != NT_STRING && (required || exists h{key})) {
+                throw "QORE-DATA-FIELD-ERROR", sprintf("missing or invalid key %y; expecting type \"string\"; got %y "
+                    "instead (value: %y)", key, h{key}.fullType(), h{key});
+            }
+        }
     }
 }
 }

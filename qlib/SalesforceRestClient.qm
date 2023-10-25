@@ -1184,6 +1184,9 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Salesforce REST Connection",
+            "short_desc": "A connection to a Salesforce instance with the REST API",
+            "desc": "A connection to a Salesforce instance with the REST API",
             "cls": Class::forName("SalesforceRestConnection"),
             "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{

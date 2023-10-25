@@ -30,15 +30,18 @@ public class DiscordMessageCreatePayloadDataType inherits HashDataType {
         #! Field descriptions
         const Fields = DiscordMessageDataType::Fields - "mentions" + {
             "mentions": {
+                "display_name": "User Mentions",
                 # array of user objects, with an additional partial member field
                 "type": AbstractDataProviderTypeMap."*list",
                 "desc": "Users specifically mentioned in the message",
             },
             "guild_id": {
+                "display_name": "Server ID",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "ID of the guild the message was sent in - unless it is an ephemeral message",
             },
             "member": {
+                "display_name": "Message Author Properties",
                 "type": AbstractDataProviderTypeMap."*hash",
                 "desc": "Member properties for this message's author. Missing for ephemeral messages and messages "
                     "from webhooks",
@@ -48,8 +51,7 @@ public class DiscordMessageCreatePayloadDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 
@@ -59,6 +61,7 @@ public class DiscordMessageCreateEventDataType inherits DiscordGatewayEventBaseD
         #! Field descriptions
         const Fields = {
             "d": {
+                "display_name": "Message Data",
                 "type": new DiscordMessageCreatePayloadDataType(),
                 "desc": "The message create information",
             },
@@ -67,8 +70,7 @@ public class DiscordMessageCreateEventDataType inherits DiscordGatewayEventBaseD
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

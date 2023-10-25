@@ -442,6 +442,9 @@ public class AwsRestConnection inherits RestClient::RestConnection {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "AWS REST Connection",
+            "short_desc": "A connection to AWS cloud REST API services",
+            "desc": "A connection to AWS cloud REST API services",
             "cls": Class::forName("AwsRestConnection"),
             "options": RestConnection::ConnectionScheme.options + {
                 "data": <ConnectionOptionInfo>{

@@ -30,36 +30,41 @@ public class DiscordGuildDataType inherits HashDataType {
         #! Field descriptions
         const Fields = {
             "id": {
+                "display_name": "Server ID",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The ID of the guild",
+                "desc": "The ID of the server (guild)",
             },
             "name": {
+                "display_name": "Server Name",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The name of the guild",
+                "desc": "The name of the server (guild)",
             },
             "icon": {
+                "display_name": "Icon Hash",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Icon hash",
             },
             "owner": {
+                "display_name": "User Owned?",
                 "type": AbstractDataProviderTypeMap."*bool",
-                "desc": "Does the user own this guild?",
+                "desc": "Does the user own this server (guild)?",
             },
             "permissions": {
+                "display_name": "Server Permissions",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Permission bitfield as a string",
             },
             "features": {
+                "display_name": "Server Features",
                 "type": new ListDataType("DiscordGuildFeatures", StringType, True),
-                "desc": "List of enabled guild features",
+                "desc": "List of enabled server (guild) features",
             },
         };
     }
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

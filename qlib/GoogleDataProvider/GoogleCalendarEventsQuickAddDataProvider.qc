@@ -143,6 +143,8 @@ public class GoogleCalendarEventsQuickAddRequestType inherits HashDataType {
         const Fields = {
             # query args
             "sendUpdates": {
+                "display_name": "Send Updates",
+                "short_desc": "Guests who should receive notifications about the event update",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Guests who should receive notifications about the event update (for example, title changes, "
                     "etc.).\n"
@@ -158,6 +160,8 @@ public class GoogleCalendarEventsQuickAddRequestType inherits HashDataType {
                 ),
             },
             "text": {
+                "display_name": "Event Text",
+                "short_desc": "The text describing the event to be created",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The text describing the event to be created; ex: `Appointment at Somewhere on June 3rd "
                     "10am-10:25am`",
@@ -167,8 +171,7 @@ public class GoogleCalendarEventsQuickAddRequestType inherits HashDataType {
 
     #! Creates the object
     constructor() : HashDataType("GoogleCalendarEventsQuickAddRequestType") {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

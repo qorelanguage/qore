@@ -187,18 +187,35 @@ public class HashDataType inherits QoreDataType {
         return QoreDataType::isAssignableFrom(t);
     }
 
+    #! Adds a set of fields from a hash
+    /** @param new_fields a hash keyed by field name where values are hashes that can be processed by
+        @ref QoreDataField::constructor(hash<auto>)
+
+        @since DataProvider 3.0
+    */
+    HashDataType addQoreFields(hash<auto> new_fields) {
+        foreach hash<auto> i in (new_fields.pairIterator()) {
+            if (fields{i.key}) {
+                throw "ADD-QORE-FIELDS-ERROR", sprintf("field %y already exists in hash %y", i.key, name);
+            }
+            if (i.value.typeCode() != NT_HASH) {
+                throw "ADD-QORE-FIELDS-ERROR", sprintf("field %y to be added has a value of type %y; expecting \"hash\"",
+                    i.value.fullType());
+            }
+            if (!exists i.value.name) {
+                i.value.name = i.key;
+            }
+            QoreDataField field(i.value);
+            fields{i.key} = field;
+            postProcessAddedField(field);
+        }
+        return self;
+    }
+
     #! adds a field to the type
     HashDataType addField(AbstractDataField field) {
         fields{field.getName()} = field;
-        # do not allow unnamed fields if any fields are added manually and no default other field type has been set
-        # manually
-        if (default_other_field_type && !manual_default_other_field_type) {
-            remove default_other_field_type;
-        }
-        if (type == AutoHashType && exists field.getDefaultValue()) {
-            type = AutoHashOrNothingType;
-            soft_type = True;
-        }
+        postProcessAddedField(field);
         return self;
     }
 
@@ -251,6 +268,22 @@ public class HashDataType inherits QoreDataType {
             rv.name = "*" + name;
         }
         return rv;
+    }
+
+    #! Post process added fields
+    /** do not allow unnamed fields if any fields are added manually and no default other field type has been set
+        manually
+
+        @since DataProvider 3.0
+    */
+    private postProcessAddedField(AbstractDataField field) {
+        if (default_other_field_type && !manual_default_other_field_type) {
+            remove default_other_field_type;
+        }
+        if (type == AutoHashType && exists field.getDefaultValue()) {
+            type = AutoHashOrNothingType;
+            soft_type = True;
+        }
     }
 }
 }

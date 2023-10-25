@@ -33,30 +33,39 @@ public class GoogleCalendarType inherits DataProvider::HashDataType {
         #! Field descriptions
         const Fields = {
             "kind": {
+                "display_name": "Collection Type",
+                "short_desc": "Type of the resource",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "Type of the resource (`calendar#calendarListEntry`)",
             },
             "etag": {
+                "display_name": "Object Version",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "A hash that indicates a specific version of the object definition",
             },
             "id": {
+                "display_name": "Calendar ID",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "Identifier of the calendar",
             },
             "summary": {
+                "display_name": "Calendar Title",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "Title of the calendar",
             },
             "description": {
+                "display_name": "Calendar Description",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Description of the calendar",
             },
             "timeZone": {
+                "display_name": "Time Zone",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The time zone of the calendar",
             },
             "conferenceProperties": {
+                "display_name": "Conference Properties",
+                "short_desc": "The types of conference solutions supported for this calendar",
                 "type": AbstractDataProviderTypeMap."*hash",
                 "desc": "The types of conference solutions that are supported for this calendar.\n"
                     "The possible values are:\n"
@@ -65,6 +74,7 @@ public class GoogleCalendarType inherits DataProvider::HashDataType {
                     "- `hangoutsMeet`",
             },
             "location": {
+                "display_name": "Location",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Geographic location of the calendar as free-form text",
             },
@@ -73,8 +83,7 @@ public class GoogleCalendarType inherits DataProvider::HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

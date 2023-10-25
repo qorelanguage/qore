@@ -306,6 +306,9 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "ServiceNow REST Connection",
+            "short_desc": "A connection to a ServiceNow instance using the REST API",
+            "desc": "A connection to a ServiceNow instance using the REST API",
             "cls": Class::forName("ServiceNowRestConnection"),
             "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{

@@ -206,8 +206,8 @@ public class ConnectionProviderTest inherits QUnit::Test {
             HttpConnection h("foo", "bar", "http://localhost", {}, opts);
             assertEq(False, exists h);
         } catch (hash<ExceptionInfo> ex) {
-            assertEq("CONNECTION-ERROR", ex.err);
-            assertEq(True, ex.desc =~ /unknown option/);
+            assertEq("CONNECTION-OPTION-ERROR", ex.err);
+            assertRegex("has unknown option", ex.desc);
         }
 
         IgnoreOptionsConnection h("foo", "bar", "http://localhost", {}, opts);

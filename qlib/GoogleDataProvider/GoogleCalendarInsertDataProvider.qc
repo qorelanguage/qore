@@ -114,10 +114,12 @@ public class GoogleCalendarInsertRequestType inherits DataProvider::HashDataType
         const Fields = {
             # query parameters
             "summary": {
+                "display_name": "Calendar Title",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "Title of the calendar",
             },
             "timeZone": {
+                "display_name": "Time Zone",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The time zone of the calendar",
             },
@@ -126,8 +128,7 @@ public class GoogleCalendarInsertRequestType inherits DataProvider::HashDataType
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

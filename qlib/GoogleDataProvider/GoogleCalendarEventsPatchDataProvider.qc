@@ -137,12 +137,14 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProviderBa
 }
 
 #! Google event patch request data type
-public class GoogleCalendarEventsPatchRequestType inherits GoogleCalendarEventsGetRequestType {
+public class GoogleCalendarEventsPatchRequestType inherits HashDataType {
     public {
         #! Field descriptions
         const Fields = {
             # query args
             "conferenceDataVersion": {
+                "display_name": "Conference Data Version",
+                "short_desc": "Version number of conference data supported by the API client",
                 "type": AbstractDataProviderTypeMap."*int",
                 "desc": "Version number of conference data supported by the API client. Version `0` assumes no "
                     "conference data support and ignores conference data in the event's body. Version `1` enables "
@@ -154,12 +156,9 @@ public class GoogleCalendarEventsPatchRequestType inherits GoogleCalendarEventsG
                     1,
                 ),
             },
-            "maxAttendees": {
-                "type": AbstractDataProviderTypeMap."*int",
-                "desc": "The maximum number of attendees to include in the response. If there are more than the "
-                    "specified number of attendees, only the participant is returned. Optional",
-            },
             "sendUpdates": {
+                "display_name": "Send Updates",
+                "short_desc": "Guests who should receive notifications about the event update",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Guests who should receive notifications about the event update (for example, title changes, "
                     "etc.).\n"
@@ -175,6 +174,8 @@ public class GoogleCalendarEventsPatchRequestType inherits GoogleCalendarEventsG
                 ),
             },
             "supportsAttachments": {
+                "display_name": "Supports Attachments?",
+                "short_desc": "Whether API client performing operation supports event attachments",
                 "type": SoftBoolDataProviderStringType,
                 "desc": "Whether API client performing operation supports event attachments. Optional. The default "
                     "is `False`",
@@ -184,9 +185,8 @@ public class GoogleCalendarEventsPatchRequestType inherits GoogleCalendarEventsG
     }
 
     #! Creates the object
-    constructor() : GoogleCalendarEventsGetRequestType("GoogleCalendarEventsPatchRequestType") {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+    constructor() : HashDataType("GoogleCalendarEventsPatchRequestType") {
+        addQoreFields(Fields);
     }
 }
 }

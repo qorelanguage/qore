@@ -116,12 +116,16 @@ public class GoogleCalendarListRequestType inherits DataProvider::HashDataType {
         const Fields = {
             # query parameters
             "maxResults": {
+                "display_name": "Max Results",
+                "short_desc": "Maximum number of entries returned on one result page",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "Maximum number of entries returned on one result page. By default the value is 100 entries. "
                     "The page size can never be larger than 250 entries",
                 "default_value": 100,
             },
             "minAccessRole": {
+                "display_name": "Min Access Role",
+                "short_desc": "The minimum access role for the user in the returned entries",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The minimum access role for the user in the returned entries. Optional. The default is no "
                     "restriction\n"
@@ -138,20 +142,25 @@ public class GoogleCalendarListRequestType inherits DataProvider::HashDataType {
                 ),
             },
             "pageToken": {
+                "display_name": "Page Token",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Token specifying which result page to return",
             },
             "showDeleted": {
+                "display_name": "Show Deleted?",
                 "type": SoftBoolDataProviderStringType,
                 "desc": "Whether to include deleted calendar list entries in the result",
                 "default_value": False,
             },
             "showHidden": {
+                "display_name": "Show Hidden?",
                 "type": SoftBoolDataProviderStringType,
                 "desc": "Whether to show hidden entries",
                 "default_value": False,
             },
             "syncToken": {
+                "display_name": "Sync Token",
+                "short_desc": "Token obtained from the nextSyncToken field returned in the last results",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Token obtained from the nextSyncToken field returned on the last page of results from the "
                     "previous list request. It makes the result of this list request contain only entries that have "
@@ -169,8 +178,7 @@ public class GoogleCalendarListRequestType inherits DataProvider::HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 
@@ -180,33 +188,38 @@ public class GoogleCalendarListResponseType inherits DataProvider::HashDataType 
         #! Field descriptions
         const Fields = {
             "kind": {
+                "display_name": "Collection Type",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The type of the collection",
             },
             "etag": {
+                "display_name": "Object Version",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "A hash that indicates a specific version of the object definition",
             },
             "nextPageToken": {
+                "display_name": "Next Page Token",
+                "short_desc": "Token used to access the next page of this result",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Token used to access the next page of this result. Omitted if no further results are "
                     "available, in which case `nextSyncToken` is provided",
             },
             "nextSyncToken": {
+                "display_name": "Next Sync Token",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "A synchronization token for the data",
             },
             "items": {
+                "display_name": "Calendar Items",
                 "type": new ListDataType("*GoogleCalendarListElementType", new GoogleCalendarListElementType(), True),
-                "desc": "response items",
+                "desc": "Response items",
             }
         };
     }
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

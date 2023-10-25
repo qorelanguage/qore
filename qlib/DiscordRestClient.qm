@@ -403,6 +403,9 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
 
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Discord REST Connection",
+            "short_desc": "A connection to the Discord REST API",
+            "desc": "A connection to the Discord REST API",
             "cls": Class::forName("DiscordRestConnection"),
             "options": RestConnection::ConnectionScheme.options + {
                 "api": <ConnectionOptionInfo>{

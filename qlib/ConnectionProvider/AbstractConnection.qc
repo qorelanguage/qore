@@ -408,7 +408,12 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
                 },
             }, opt.pairIterator();
         }
+        string cname = self.className();
+        string desc = sprintf("%s connection", cname);
         return <ConnectionSchemeInfo>{
+            "display_name": sprintf("%s Connection", cname),
+            "short_desc": desc,
+            "desc": desc,
             "cls": Class::getClass(self),
             "options": options,
         };
@@ -754,101 +759,17 @@ scheme://user:pass@hostname:port/path
 
     #! performs options validation in the constructor
     /** @param options a hash with options from the constructor
+        @param check_required check that all required options are set
+
         @return validated option hash
 
         This method can be overloaded in connections where are options created dynamically for example
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    private hash<auto> validateOptions(hash<auto> options) {
-        hash<ConnectionSchemeInfo> scheme_info = getConnectionSchemeInfo();
-
-        options = getDefaultOptions() + options;
-        if (options) {
-            # check for unknown options
-            *hash<auto> unknown_opts = options - (keys scheme_info.options);
-            if (unknown_opts) {
-                throw "CONNECTION-ERROR", sprintf("connection %y (type %y url %y) has unknown option%s %y (known "
-                    "options: %y)", name, urlh.protocol, url, unknown_opts.size() == 1 ? "" : "s", unknown_opts,
-                    keys scheme_info.options);
-            }
-            foreach hash<auto> i in (options.pairIterator()) {
-                hash<ConnectionOptionInfo> info = scheme_info.options{i.key};
-                if (!exists i.value) {
-                    if (exists info.default_value) {
-                        options{i.key} = info.default_value;
-                    }
-                    continue;
-                }
-                string type = info.type;
-                if (type == "int") {
-                    type = Type::Int;
-                } else if (type == "file-as-string") {
-                    type = Type::String;
-                }
-                string vtype = i.value.type();
-                if (type != "any" && type != "auto" && vtype != type) {
-                    if (type == Type::Int && i.value.intp()) {
-                        options{i.key} = i.value.toInt();
-                        continue;
-                    }
-                    if (type == "bool" && vtype == "string") {
-                        options{i.key} = parse_boolean(i.value);
-                        continue;
-                    }
-                    throw "CONNECTION-OPTION-ERROR",
-                        sprintf("connection %y (type %y url %y) option %y was passed with type %s (%y); expecting %y",
-                            name, urlh.protocol, url, i.key, i.value.type(), i.value, type);
-                }
-                if (info.subst_env_vars) {
-                    options{i.key} = substitute_env_vars(i.value);
-                }
-                # verify against allowed values
-                if (info.allowed_values) {
-                    bool ok;
-                    foreach hash<AllowedValueInfo> v in (info.allowed_values) {
-                        if (v.value == options{i.key}) {
-                            ok = True;
-                            break;
-                        }
-                    }
-                    if (!ok) {
-                        throw "CONNECTION-OPTION-ERROR",
-                            sprintf("connection %y (type %y url %y) option %y was passed with value %y, but allowed "
-                                "values are: %y", name, urlh.protocol, url, i.key, i.value, (map $1.value,
-                                info.allowed_values));
-                    }
-                }
-            }
-        }
-        # check for required options
-        if (scheme_info.required_options) {
-            list<string> req_list = scheme_info.required_options.split("|");
-            bool ok;
-            list<string> missing;
-            foreach string req in (req_list) {
-                list<string> req_opt = req.split(",");
-                # check which options are missing
-                *hash<auto> have = options{req_opt};
-                if (have.size() == req_opt.size()) {
-                    ok = True;
-                    break;
-                }
-                if (req_list.size() == 1) {
-                    missing = keys ((map {$1: True}, req_opt) - keys have);
-                }
-            }
-            if (!ok) {
-                if (missing) {
-                    throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %y; options provided: %y",
-                        missing, options);
-                } else {
-                    throw "CONNECTION-OPTION-ERROR", sprintf("missing required options %s; options provided: %y",
-                        (foldl $1 + " OR " + $2, (map sprintf("%y", $1), req_list)), options);
-                }
-            }
-        }
-        return options;
+    private hash<auto> validateOptions(hash<auto> options, bool check_required = True) {
+        return ConnectionSchemeCache::validateConnectionOptions(name, getConnectionSchemeInfo(), options,
+            check_required);
     }
 
     #! Common construtor implementation

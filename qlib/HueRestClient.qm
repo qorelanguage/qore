@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 1.19
+%requires qore >= 2.0
 
 # require type definitions everywhere
 %require-types
@@ -175,6 +175,9 @@ public class HueRestConnection inherits RestClient::RestConnection {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Philips Hue REST Connection",
+            "short_desc": "A connection to the Philips Hue REST API",
+            "desc": "A connection to the Philips Hue REST API",
             "cls": Class::forName("HueRestConnection"),
             "options": RestConnection::ConnectionScheme.options + {
                 "oauth2_auth_url": RestConnection::ConnectionScheme.options.oauth2_auth_url

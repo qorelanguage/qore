@@ -30,14 +30,17 @@ public class DiscordGatewayEventBaseDataType inherits HashDataType {
         #! Field descriptions
         const Fields = {
             "op": {
+                "display_name": "Gateway Opcode",
                 "type": AbstractDataProviderTypeMap."int",
                 "desc": "Gateway opcode, which indicates the payload type",
             },
             "s": {
+                "display_name": "Event Sequence",
                 "type": AbstractDataProviderTypeMap."*int",
                 "desc": "Sequence number of event used for resuming sessions and heartbeating",
             },
             "t": {
+                "display_name": "Event Name",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The event name",
             },
@@ -46,8 +49,7 @@ public class DiscordGatewayEventBaseDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

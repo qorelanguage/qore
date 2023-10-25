@@ -61,6 +61,20 @@ public hashdecl ConnectionOptionInfo {
 
 #! Connection provider information
 public hashdecl ConnectionSchemeInfo {
+    #! Connection type / scheme display name
+    string display_name;
+
+    #! Connection type / scheme short description in plain text
+    string short_desc;
+
+    #! Connection type / scheme description with markdown formatting
+    string desc;
+
+    #! Connection scheme set; scheme -> True
+    /** The first scheme is the "default" scheme for display
+    */
+    hash<string, bool> schemes;
+
     #! The connection class
     Class cls;
 
@@ -318,6 +332,152 @@ public class ConnectionSchemeCache {
             throw "SCHEME-ERROR", sprintf("connection provider scheme %y is not registered", scheme);
         }
         return rv;
+    }
+
+    #! Returns default option values for the given connection scheme
+    /** @param scheme The connection scheme name
+
+        @return A hash of default options
+
+        @throw SCHEME-ERROR unknown / unsupported scheme
+
+        @since ConnectionProvider 2.0
+    */
+    static *hash<auto> getDefaultOptionValues(string scheme) {
+        return ConnectionSchemeCache::getDefaultOptionValues(ConnectionSchemeCache::getSchemeEx(scheme));
+    }
+
+    #! Returns default option values for the given connection scheme
+    /** @param scheme_info The connection scheme
+
+        @return A hash of default options
+
+        @since ConnectionProvider 2.0
+    */
+    static *hash<auto> getDefaultOptionValues(hash<ConnectionSchemeInfo> scheme_info) {
+        return map {$1.key: $1.value.default_value}, scheme_info.options.pairIterator(),
+            exists $1.value.default_value;
+    }
+
+    #! Checks and returns options
+    /** @param conn_name The connection name, for error reporting only
+        @param scheme The connection scheme name
+        @param options The options to validate
+        @param check_required Check required options?
+
+        @return Options after validation
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+
+        @since ConnectionProvider 2.0
+    */
+    static hash<auto> validateConnectionOptions(string conn_name, string scheme, hash<auto> options,
+            bool check_required = True) {
+        return ConnectionSchemeCache::validateConnectionOptions(conn_name, ConnectionSchemeCache::getSchemeEx(scheme),
+            options, check_required);
+    }
+
+    #! Checks and returns options
+    /** @param conn_name The connection name, for error reporting only
+        @param scheme_info The connection scheme
+        @param options The options to validate
+        @param check_required Check required options?
+
+        @return Options after validation
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+
+        @since ConnectionProvider 2.0
+    */
+    static hash<auto> validateConnectionOptions(string conn_name, hash<ConnectionSchemeInfo> scheme_info,
+            hash<auto> options, bool check_required = True) {
+        options = ConnectionSchemeCache::getDefaultOptionValues(scheme_info) + options;
+        if (options) {
+            # check for unknown options
+            *hash<auto> unknown_opts = options - (keys scheme_info.options);
+            if (unknown_opts) {
+                throw "CONNECTION-OPTION-ERROR", sprintf("connection %y (type %y) has unknown option%s %y (known "
+                    "options: %y)", conn_name, scheme_info.display_name, unknown_opts.size() == 1 ? "" : "s",
+                    unknown_opts, keys scheme_info.options);
+            }
+            foreach hash<auto> i in (options.pairIterator()) {
+                hash<ConnectionOptionInfo> info = scheme_info.options{i.key};
+                if (!exists i.value) {
+                    if (exists info.default_value) {
+                        options{i.key} = info.default_value;
+                    }
+                    continue;
+                }
+                string type = info.type;
+                if (type == "int") {
+                    type = Type::Int;
+                } else if (type == "file-as-string") {
+                    type = Type::String;
+                }
+                string vtype = i.value.type();
+                if (type != "any" && type != "auto" && vtype != type) {
+                    if (type == Type::Int && i.value.intp()) {
+                        options{i.key} = i.value.toInt();
+                        continue;
+                    }
+                    if (type == "bool" && vtype == "string") {
+                        options{i.key} = parse_boolean(i.value);
+                        continue;
+                    }
+                    throw "CONNECTION-OPTION-ERROR",
+                        sprintf("connection %y (type %y) option %y was passed with type %s (%y); expecting %y",
+                            conn_name, scheme_info.display_name, i.key, i.value.fullType(), i.value, type);
+                }
+                if (info.subst_env_vars) {
+                    options{i.key} = substitute_env_vars(i.value);
+                }
+                # verify against allowed values
+                if (info.allowed_values) {
+                    bool ok;
+                    foreach hash<AllowedValueInfo> v in (info.allowed_values) {
+                        if (v.value == options{i.key}) {
+                            ok = True;
+                            break;
+                        }
+                    }
+                    if (!ok) {
+                        throw "CONNECTION-OPTION-ERROR",
+                            sprintf("connection %y (type %y) option %y was passed with value %y, but allowed "
+                                "values are: %y", conn_name, scheme_info.display_name, i.key, i.value,
+                                (map $1.value, info.allowed_values));
+                    }
+                }
+            }
+        }
+        # check for required options
+        if (check_required && scheme_info.required_options) {
+            list<string> req_list = scheme_info.required_options.split("|");
+            bool ok;
+            list<string> missing;
+            foreach string req in (req_list) {
+                list<string> req_opt = req.split(",");
+                # check which options are missing
+                *hash<auto> have = options{req_opt};
+                if (have.size() == req_opt.size()) {
+                    ok = True;
+                    break;
+                }
+                if (req_list.size() == 1) {
+                    missing = keys ((map {$1: True}, req_opt) - keys have);
+                }
+            }
+            if (!ok) {
+                if (missing) {
+                    throw "CONNECTION-OPTION-ERROR", sprintf("connection %y (type %y) missing required options %y; "
+                        "options provided: %y", conn_name, scheme_info.display_name, missing, options);
+                } else {
+                    throw "CONNECTION-OPTION-ERROR", sprintf("connection %y (type %y) missing required options %s; "
+                        "options provided: %y", conn_name, scheme_info.display_name,
+                        (foldl $1 + " OR " + $2, (map sprintf("%y", $1), req_list)), options);
+                }
+            }
+        }
+        return options;
     }
 
     #! Try to load the given module

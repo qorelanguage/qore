@@ -38,6 +38,10 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "FTP Connection",
+            "short_desc": "A connection to an FTP server",
+            "desc": "A connection to an FTP server with the `ftp` or `ftps` (secure, not to be confused with sftp) "
+                "protocols",
             "cls": Class::forName("FtpConnection"),
             "options": HttpConnection::ConnectionScheme.options + {
                 "password": <ConnectionOptionInfo>{

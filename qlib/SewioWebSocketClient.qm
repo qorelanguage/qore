@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.5
+%requires qore >= 2.0
 
 # require type definitions everywhere
 %require-types
@@ -241,6 +241,9 @@ public class SewioWebSocketConnection inherits WebSocketClient::WebSocketConnect
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Sewio WebSocket Connection",
+            "short_desc": "A connection to Sewio WebSocket services",
+            "desc": "A connection to Sewio WebSocket services",
             "cls": Class::forName("SewioWebSocketConnection"),
             "options": WebSocketConnectionObject::ConnectionScheme.options + {
                 "apikey": <ConnectionOptionInfo>{

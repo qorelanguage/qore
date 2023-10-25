@@ -30,10 +30,13 @@ public class GoogleCalendarListElementType inherits GoogleCalendarType {
         #! Field descriptions
         const Fields = {
             "summaryOverride": {
+                "display_name": "Summary Override",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The summary that the authenticated user has set for this calendar",
             },
             "colorId": {
+                "display_name": "Calendar Color Code",
+                "short_desc": "The color of the calendar",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The color of the calendar. This is an ID referring to an entry in the calendar section of "
                     "the colors definition (see the colors endpoint). This property is superseded by the "
@@ -41,30 +44,39 @@ public class GoogleCalendarListElementType inherits GoogleCalendarType {
                     "properties",
             },
             "foregroundColor": {
+                "display_name": "Foreground Color Code",
+                "short_desc": "The foreground color of the calendar in the hexadecimal format",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The foreground color of the calendar in the hexadecimal format `#ffffff`. This property "
                     "supersedes the index-based colorId property. To set or change this property, you need to "
                     "specify `colorRgbFormat=true` in the parameters of the insert, update and patch methods",
             },
             "backgroundColor": {
+                "display_name": "Background Color Code",
+                "short_desc": "The background color of the calendar in the hexadecimal format",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The background color of the calendar in the hexadecimal format `#ffffff`. This property "
                     "supersedes the index-based colorId property. To set or change this property, you need to "
                     "specify `colorRgbFormat=true` in the parameters of the insert, update and patch methods",
             },
             "selected": {
+                "display_name": "Visible?",
                 "type": AbstractDataProviderTypeMap."*bool",
                 "desc": "Whether the calendar content shows up in the calendar UI",
             },
             "deleted": {
+                "display_name": "Deleted?",
                 "type": AbstractDataProviderTypeMap."*bool",
                 "desc": "Whether this calendar list entry has been deleted from the calendar list",
             },
             "primary": {
+                "display_name": "Primary Calendar?",
                 "type": AbstractDataProviderTypeMap."*bool",
                 "desc": "Whether the calendar is the primary calendar of the authenticated user",
             },
             "accessRole": {
+                "display_name": "Access Role",
+                "short_desc": "The effective access role that the authenticated user has on the calendar",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The effective access role that the authenticated user has on the calendar. Read-only. "
                     "Possible values are:\n"
@@ -77,6 +89,7 @@ public class GoogleCalendarListElementType inherits GoogleCalendarType {
                         "writer role with the additional ability to see and manipulate ACLs",
             },
             "defaultReminders": {
+                "display_name": "Default Reminders",
                 "type": AbstractDataProviderTypeMap."*list",
                 "desc": "The default reminders that the authenticated user has for this calendar",
             },
@@ -85,8 +98,7 @@ public class GoogleCalendarListElementType inherits GoogleCalendarType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

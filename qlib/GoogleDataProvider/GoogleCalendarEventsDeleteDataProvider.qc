@@ -137,11 +137,12 @@ public class GoogleCalendarEventsDeleteDataProvider inherits GoogleDataProviderB
 }
 
 #! Google calendar event delete request data type
-public class GoogleCalendarEventsDeleteRequestType inherits GoogleCalendarEventsGetRequestType {
+public class GoogleCalendarEventsDeleteRequestType inherits HashDataType {
     private {
         #! Field descriptions
         const Fields = {
             "id": {
+                "display_name": "Event ID",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The event ID to delete",
             },
@@ -149,9 +150,8 @@ public class GoogleCalendarEventsDeleteRequestType inherits GoogleCalendarEvents
     }
 
     #! Creates the object
-    constructor() : GoogleCalendarEventsGetRequestType("GoogleCalendarEventsDeleteRequestType") {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+    constructor() : HashDataType("GoogleCalendarEventsDeleteRequestType") {
+        addQoreFields(Fields);
     }
 }
 }

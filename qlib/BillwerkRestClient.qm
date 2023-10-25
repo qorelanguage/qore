@@ -270,6 +270,9 @@ public class BillwerkRestConnection inherits RestClient::RestConnection {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Billwerk Connection",
+            "short_desc": "A connection to Billwerk with the REST API",
+            "desc": "A connection to Billwerk with the REST API",
             "cls": Class::forName("BillwerkRestConnection"),
             "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "client_id": RestConnection::ConnectionScheme.options.oauth2_client_id + <ConnectionOptionInfo>{

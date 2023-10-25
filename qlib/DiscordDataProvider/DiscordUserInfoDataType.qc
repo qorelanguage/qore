@@ -30,42 +30,52 @@ public class DiscordUserInfoDataType inherits HashDataType {
         #! Field descriptions
         const Fields = {
             "id": {
+                "display_name": "User ID",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The user ID",
             },
             "avatar": {
+                "display_name": "Avatar Hash",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The user's avatar hash",
             },
             "discriminator": {
+                "display_name": "User Tag",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The user's Discord-tag",
             },
             "public_flags": {
+                "display_name": "Public Flags",
                 "type": AbstractDataProviderTypeMap."*int",
                 "desc": "The public flags on a user's account",
             },
             "flags": {
+                "display_name": "Flags",
                 "type": AbstractDataProviderTypeMap."*int",
                 "desc": "The flags on a user's account",
             },
             "banner": {
+                "display_name": "Banner Hash",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The user's banner hash",
             },
             "accent_color": {
+                "display_name": "Accent Color Code",
                 "type": AbstractDataProviderTypeMap."*int",
                 "desc": "The user's banner color encoded as an integer representation of hexadecimal color code",
             },
             "mfa_enabled": {
+                "display_name": "MFA Enabled?",
                 "type": AbstractDataProviderTypeMap."*bool",
                 "desc": "Whether the user has multi-factor authentication enabled on their account",
             },
             "locale": {
+                "display_name": "Locale",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "The user's chosen language option",
             },
             "premium_type": {
+                "display_name": "Nitro Subscription Code",
                 "type": AbstractDataProviderTypeMap."*int",
                 "desc": "The type of Nitro subscription on a user's account",
             },
@@ -74,8 +84,7 @@ public class DiscordUserInfoDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

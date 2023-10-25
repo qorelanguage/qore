@@ -1934,6 +1934,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
 
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "REST Connection",
+            "short_desc": "A connection to a REST server",
+            "desc": "A connection to a REST server",
             "cls": Class::forName("RestConnection"),
             "options": HttpConnection::ConnectionScheme.options + {
                 "content_encoding": <ConnectionOptionInfo>{

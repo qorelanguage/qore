@@ -646,6 +646,9 @@ public class DiscordWebSocketConnection inherits WebSocketClient::WebSocketConne
 
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Discord WebSocket Connection",
+            "short_desc": "A connection to Discord WebSocket server services",
+            "desc": "A connection to Discord WebSocket server services",
             "cls": Class::forName("DiscordWebSocketConnection"),
             "options": WebSocketConnectionObject::ConnectionScheme.options,
         };

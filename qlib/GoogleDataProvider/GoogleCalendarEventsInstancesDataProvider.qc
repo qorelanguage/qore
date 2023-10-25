@@ -139,6 +139,8 @@ public class GoogleCalendarEventsInstancesRequestType inherits GoogleCalendarEve
         const Fields = {
             # query parameters
             "maxResults": {
+                "display_name": "Max Results",
+                "short_desc": "Maximum number of events returned on one result page",
                 "type": AbstractDataProviderTypeMap."*int",
                 "desc": "Maximum number of events returned on one result page. The number of events in the resulting "
                     "page may be less than this value, or none at all, even if there are more events matching the "
@@ -146,14 +148,18 @@ public class GoogleCalendarEventsInstancesRequestType inherits GoogleCalendarEve
                     "default the value is `250` events. The page size can never be larger than `2500` events",
             },
             "originalStart": {
+                "display_name": "Original Start Time",
                 "type": SoftTimestampDataProviderStringType,
                 "desc": "The original start time of the instance in the result. Optional",
             },
             "pageToken": {
+                "display_name": "Page Token",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Token specifying which result page to return",
             },
             "showDeleted": {
+                "display_name": "Show Deleted?",
+                "short_desc": "Whether to include deleted events in the result",
                 "type": SoftBoolDataProviderStringType,
                 "desc": "Whether to include deleted events (with status equals `cancelled`) in the result. Cancelled "
                     "instances of recurring events (but not the underlying recurring event) will still be included "
@@ -163,12 +169,16 @@ public class GoogleCalendarEventsInstancesRequestType inherits GoogleCalendarEve
                 "default_value": False,
             },
             "timeMax": {
+                "display_name": "Max Time",
+                "short_desc": "Upper bound (exclusive) for an event's start time to filter by",
                 "type": SoftTimestampDataProviderStringType,
                 "desc": "Upper bound (exclusive) for an event's start time to filter by. The default is not to "
                     "filter by start time. Resolution to the second. If `timeMin` is set, `timeMax` must be greater "
                     "than `timeMin`",
             },
             "timeMin": {
+                "display_name": "Min Time",
+                "short_desc": "Lower bound (exclusive) for an event's end time to filter by",
                 "type": SoftTimestampDataProviderStringType,
                 "desc": "Lower bound (exclusive) for an event's end time to filter by. The default is not to filter "
                     "by end time. Resolution to the second. If `timeMax` is set, `timeMin` must be smaller than "
@@ -179,8 +189,7 @@ public class GoogleCalendarEventsInstancesRequestType inherits GoogleCalendarEve
 
     #! Creates the object
     constructor() : GoogleCalendarEventsGetRequestType("GoogleCalendarEventsInstancesRequestType") {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

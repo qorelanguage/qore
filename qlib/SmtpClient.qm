@@ -1306,6 +1306,9 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "SMTP Connection",
+            "short_desc": "A connection to an SMTP server",
+            "desc": "A connection to an SMTP server",
             "cls": Class::forName("SmtpConnection"),
             "options": HttpConnection::ConnectionScheme.options + {
                 "password": <ConnectionOptionInfo>{

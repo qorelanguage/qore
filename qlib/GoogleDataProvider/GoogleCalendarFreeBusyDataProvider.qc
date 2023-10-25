@@ -135,23 +135,30 @@ public class GoogleCalendarFreeBusyRequestType inherits DataProvider::HashDataTy
         #! Field descriptions
         const Fields = {
             "timeMin": {
+                "display_name": "Min Time",
                 "type": SoftTimestampDataProviderStringType,
                 "desc": "The end of the interval for the query",
             },
             "timeMax": {
+                "display_name": "Max Time",
                 "type": SoftTimestampDataProviderStringType,
                 "desc": "The start of the interval for the query",
             },
             "timeZone": {
+                "display_name": "Time Zone",
                 "type": AbstractDataProviderTypeMap."*string",
                 "desc": "Time zone used in the response. The default is UTC",
             },
             "groupExpansionMax": {
+                "display_name": "Max Calendars in Group",
+                "short_desc": "Max number of calendar identifiers to be provided for a single group",
                 "type": AbstractDataProviderTypeMap."*int",
                 "desc": "Maximal number of calendar identifiers to be provided for a single group. Optional. An "
                     "error is returned for a group with more members than this value. Maximum value is `100`",
             },
             "calendarExpansionMax": {
+                "display_name": "Max Calendars",
+                "short_desc": "Max number of calendars for which FreeBusy information is to be provided",
                 "type": AbstractDataProviderTypeMap."*int",
                 "desc": "Maximal number of calendars for which FreeBusy information is to be provided. Optional. "
                     "Maximum value is `50`",
@@ -161,8 +168,7 @@ public class GoogleCalendarFreeBusyRequestType inherits DataProvider::HashDataTy
 
     #! Creates the object
     constructor() : HashDataType("GoogleCalendarFreeBusyRequestType") {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 
@@ -172,10 +178,12 @@ public class GoogleCalendarBusyPeriodDataType inherits DataProvider::HashDataTyp
         #! Field descriptions
         const Fields = {
             "start": {
+                "display_name": "Date Time",
                 "type": AbstractDataProviderTypeMap."softdate",
                 "desc": "The (inclusive) start of the time period",
             },
             "end": {
+                "display_name": "End Time",
                 "type": AbstractDataProviderTypeMap."softdate",
                 "desc": "The (exclusive) end of the time period",
             },
@@ -184,8 +192,7 @@ public class GoogleCalendarBusyPeriodDataType inherits DataProvider::HashDataTyp
 
     #! Creates the object
     constructor() : HashDataType("GoogleCalendarFreeBusyDataType") {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 
@@ -195,10 +202,12 @@ public class GoogleCalendarFreeBusyDataType inherits DataProvider::HashDataType 
         #! Field descriptions
         const Fields = {
             "errors": {
+                "display_name": "Errors",
                 "type": new ListDataType("GoogleCalendarGroupErrorType", AutoHashType, True),
                 "desc": "Optional error(s) (if computation for the group failed)",
             },
             "busy": {
+                "display_name": "Busy List",
                 "type": new ListDataType("GoogleCalendarGroupCalendarBusyType",
                     new GoogleCalendarBusyPeriodDataType(), True),
                 "desc": "List of time ranges during which this calendar should be regarded as busy",
@@ -208,8 +217,7 @@ public class GoogleCalendarFreeBusyDataType inherits DataProvider::HashDataType 
 
     #! Creates the object
     constructor() : HashDataType("GoogleCalendarFreeBusyDataType") {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 
@@ -227,22 +235,27 @@ public class GoogleCalendarFreeBusyResponseType inherits DataProvider::HashDataT
         #! Field descriptions
         const Fields = {
             "kind": {
+                "display_name": "Collection Type",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The type of the collection",
             },
             "timeMax": {
+                "display_name": "Max Time",
                 "type": AbstractDataProviderTypeMap."softdate",
                 "desc": "The start of the interval for the query",
             },
             "timeMin": {
+                "display_name": "Min Time",
                 "type": AbstractDataProviderTypeMap."softdate",
                 "desc": "The end of the interval for the query",
             },
             "groups": {
+                "display_name": "Groups",
                 "type": AbstractDataProviderTypeMap."*hash",
                 "desc": "Expansion of groups",
             },
             "calendars": {
+                "display_name": "Calendars",
                 "type": new GoogleCalendarFreeBusyBaseDataType(),
                 "desc": "List of free/busy information for calendars",
             },
@@ -251,8 +264,7 @@ public class GoogleCalendarFreeBusyResponseType inherits DataProvider::HashDataT
 
     #! Creates the object
     constructor() : HashDataType("GoogleCalendarFreeBusyResponseType") {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

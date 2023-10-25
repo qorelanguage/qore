@@ -219,10 +219,15 @@ public hashdecl DataProviderActionInfo {
     */
     *string action_val;
 
-    #! Quick options that can be provided without a data provider
+    #! Convenience options that can be provided without a data provider
     /** For API calls and messages only
     */
-    *hash<string, hash<QuickOptionInfo>> quick_options;
+    *hash<string, hash<QuickOptionInfo>> convenience_options;
+
+    #! Advanced options that can be provided without a data provider
+    /** For API calls and messages only
+    */
+    *hash<string, hash<QuickOptionInfo>> advanced_options;
 }
 
 #! DataProvider action and application catalog class

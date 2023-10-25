@@ -137,7 +137,7 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProviderB
 }
 
 #! Google calender event insert request data type
-public class GoogleCalendarEventsInsertRequestType inherits GoogleCalendarEventsGetRequestType {
+public class GoogleCalendarEventsInsertRequestType inherits HashDataType {
     public {
         #! Field descriptions
         const Fields = GoogleCalendarEventsPatchRequestType::Fields
@@ -149,9 +149,8 @@ public class GoogleCalendarEventsInsertRequestType inherits GoogleCalendarEvents
     }
 
     #! Creates the object
-    constructor() : GoogleCalendarEventsGetRequestType("GoogleCalendarEventsInsertRequestType") {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value,
-            $1.value.allowed_values)), Fields.pairIterator();
+    constructor() : HashDataType("GoogleCalendarEventsInsertRequestType") {
+        addQoreFields(Fields);
     }
 }
 }

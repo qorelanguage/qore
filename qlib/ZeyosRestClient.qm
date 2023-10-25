@@ -274,6 +274,9 @@ public class ZeyosRestConnection inherits RestClient::RestConnection {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "ZeyOS Connection",
+            "short_desc": "A connection to a ZeyOS instance with the REST API",
+            "desc": "A connection to a ZeyOS instance with the REST API",
             "cls": Class::forName("ZeyosRestConnection"),
             "options": RestConnection::ConnectionScheme.options + {
                 "appsecret": <ConnectionOptionInfo>{

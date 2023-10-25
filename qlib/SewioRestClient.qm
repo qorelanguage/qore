@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 1.19
+%requires qore >= 2.0
 
 # require type definitions everywhere
 %require-types
@@ -213,6 +213,9 @@ public class SewioRestConnection inherits RestClient::RestConnection {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Sewio REST Connection",
+            "short_desc": "A connection to the Sewio REST API",
+            "desc": "A connection to the Sewio REST API",
             "cls": Class::forName("SewioRestConnection"),
             "options": RestConnection::ConnectionScheme.options + {
                 "data": <ConnectionOptionInfo>{

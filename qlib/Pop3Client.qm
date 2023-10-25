@@ -1029,6 +1029,9 @@ public class Pop3Connection inherits ConnectionProvider::AbstractConnectionWithI
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "POP3 Connection",
+            "short_desc": "A connection a POP3 server",
+            "desc": "A connection a POP3 server",
             "cls": Class::forName("Pop3Connection"),
         };
     }
