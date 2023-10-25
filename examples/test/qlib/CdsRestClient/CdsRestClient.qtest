@@ -207,7 +207,7 @@ class CdsTest inherits QUnit::Test {
             assertEq(True, crc instanceof CdsRestConnection);
         }
 
-        assertThrows("CONNECTION-ERROR", sub () {
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
             CdsRestConnection crc("test", "test", url, {"monitor": True}, {"x": 1});
         });
 

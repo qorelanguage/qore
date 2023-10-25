@@ -273,7 +273,7 @@ class ServiceNowTest inherits QUnit::Test {
         assertFalse(ping.ok);
         assertEq("SOCKET-CONNECT-ERROR", ping.ex.err);
 
-        assertThrows("CONNECTION-ERROR", sub () {
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
             ServiceNowRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
         });
 

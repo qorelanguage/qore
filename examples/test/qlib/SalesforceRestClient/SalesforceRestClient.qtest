@@ -217,7 +217,7 @@ class SalesforceTest inherits QUnit::Test {
         SalesforceRestConnection swsc("test", "test", url, {}, sfopts);
         assertEq(True, swsc instanceof SalesforceRestConnection);
 
-        assertThrows("CONNECTION-ERROR", sub () {
+        assertThrows("CONNECTION-OPTION-ERROR", sub () {
             SalesforceRestConnection swsc1("test", "test", url, {"monitor": True}, {"x": 1});
         });
 

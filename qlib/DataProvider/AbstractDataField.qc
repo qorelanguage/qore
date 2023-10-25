@@ -35,7 +35,7 @@ public hashdecl DataFieldInfo {
     string display_name;
 
     #! The short description of the field in plain text
-    string short_desc;
+    *string short_desc;
 
     #! the description of the field, if available, with markdown formatting
     *string desc;
