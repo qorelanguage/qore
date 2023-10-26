@@ -84,6 +84,9 @@ public hashdecl ConnectionSchemeInfo {
     #! Connection options: name -> option info
     *hash<string, hash<ConnectionOptionInfo>> options;
 
+    #! URL provided automatically?
+    bool auto_url = False;
+
     #! Required option string
     /** format is required option names separated by commas (\c ","); if there are multiple possibilities, they should
         be separated by pipe chars (\c "|""); ex: client_id,client_secret,tenant|token
@@ -394,6 +397,7 @@ public class ConnectionSchemeCache {
     */
     static hash<auto> validateConnectionOptions(string conn_name, hash<ConnectionSchemeInfo> scheme_info,
             hash<auto> options, bool check_required = True) {
+        hash<auto> orig_options = options;
         options = ConnectionSchemeCache::getDefaultOptionValues(scheme_info) + options;
         if (options) {
             # check for unknown options
@@ -472,11 +476,11 @@ public class ConnectionSchemeCache {
             if (!ok) {
                 if (missing) {
                     throw "CONNECTION-OPTION-ERROR", sprintf("connection %y (type %y) missing required options %y; "
-                        "options provided: %y", conn_name, scheme_info.display_name, missing, options);
+                        "options provided: %y", conn_name, scheme_info.display_name, missing, orig_options);
                 } else {
                     throw "CONNECTION-OPTION-ERROR", sprintf("connection %y (type %y) missing required options %s; "
                         "options provided: %y", conn_name, scheme_info.display_name,
-                        (foldl $1 + " OR " + $2, (map sprintf("%y", $1), req_list)), options);
+                        (foldl $1 + " OR " + $2, (map sprintf("%y", $1), req_list)), orig_options);
                 }
             }
         }

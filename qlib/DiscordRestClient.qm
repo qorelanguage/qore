@@ -407,6 +407,7 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
             "short_desc": "A connection to the Discord REST API",
             "desc": "A connection to the Discord REST API",
             "cls": Class::forName("DiscordRestConnection"),
+            "auto_url": True,
             "schemes": {
                 "discord": True,
             },
