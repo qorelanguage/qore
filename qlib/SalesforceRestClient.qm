@@ -1191,6 +1191,9 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
             "schemes": {
                 "sfrests": True,
             },
+            "base_scheme_map": {
+                "https": "sfrests",
+            },
             "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{
                     "display_name": "API Version",

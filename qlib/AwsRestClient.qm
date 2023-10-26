@@ -449,6 +449,9 @@ public class AwsRestConnection inherits RestClient::RestConnection {
             "schemes": {
                 "awsrests": True,
             },
+            "base_scheme_map": {
+                "https": "awsrests",
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "data": <ConnectionOptionInfo>{
                     "display_name": "Data Serialization",

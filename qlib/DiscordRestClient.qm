@@ -410,6 +410,9 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
             "schemes": {
                 "discord": True,
             },
+            "base_scheme_map": {
+                "https": "discord",
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "api": <ConnectionOptionInfo>{
                     "display_name": "API Version",

@@ -249,6 +249,10 @@ public class SewioWebSocketConnection inherits WebSocketClient::WebSocketConnect
                 "sewiowss": True,
                 "sewiows": True,
             },
+            "base_scheme_map": {
+                "https": "sewiowss",
+                "http": "sewiows",
+            },
             "options": WebSocketConnectionObject::ConnectionScheme.options + {
                 "apikey": <ConnectionOptionInfo>{
                     "display_name": "API Key",

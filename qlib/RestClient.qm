@@ -1942,6 +1942,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                 "rests": True,
                 "rest": True,
             },
+            "base_scheme_map": {
+                "https": "rests",
+                "http": "rest",
+            },
             "options": HttpConnection::ConnectionScheme.options + {
                 "content_encoding": <ConnectionOptionInfo>{
                     "display_name": "Compression",

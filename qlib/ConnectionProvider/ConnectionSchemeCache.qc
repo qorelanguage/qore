@@ -75,6 +75,9 @@ public hashdecl ConnectionSchemeInfo {
     */
     hash<string, bool> schemes;
 
+    #! Base URL scheme map; base scheme -> connection scheme
+    hash<string, string> base_scheme_map;
+
     #! The connection class
     Class cls;
 

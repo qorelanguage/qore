@@ -182,6 +182,9 @@ public class HueRestConnection inherits RestClient::RestConnection {
             "schemes": {
                 "hue": True,
             },
+            "base_scheme_map": {
+                "https": "hue",
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "oauth2_auth_url": RestConnection::ConnectionScheme.options.oauth2_auth_url
                 + <ConnectionOptionInfo>{

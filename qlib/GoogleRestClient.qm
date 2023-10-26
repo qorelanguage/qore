@@ -23,7 +23,7 @@
 */
 
 # minimum qore version
-%requires qore >= 1.19
+%requires qore >= 2.0
 
 # require type definitions everywhere
 %require-types
@@ -223,6 +223,9 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
             "schemes": {
                 "grests": True,
             },
+            "base_scheme_map": {
+                "https": "grests",
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "api_profile": <ConnectionOptionInfo>{
                     "display_name": "API Profile",
@@ -374,6 +377,9 @@ public class GoogleCalendarRestConnection inherits GoogleRestConnection {
             "required_options": GoogleRestConnection::ConnectionScheme.required_options,
             "schemes": {
                 "gcal": True,
+            },
+            "base_scheme_map": {
+                "https": "gcal",
             },
         };
     }

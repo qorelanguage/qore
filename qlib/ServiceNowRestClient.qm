@@ -313,6 +313,9 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
             "schemes": {
                 "snrests": True,
             },
+            "base_scheme_map": {
+                "https": "snrests",
+            },
             "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{
                     "display_name": "API Version",

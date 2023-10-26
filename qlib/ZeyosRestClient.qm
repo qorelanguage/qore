@@ -281,6 +281,9 @@ public class ZeyosRestConnection inherits RestClient::RestConnection {
             "schemes": {
                 "zeyosrests": True,
             },
+            "base_scheme_map": {
+                "https": "zeyosrests",
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "appsecret": <ConnectionOptionInfo>{
                     "display_name": "Zeyos App Secret",

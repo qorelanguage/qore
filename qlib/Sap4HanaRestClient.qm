@@ -257,6 +257,9 @@ public class Sap4HanaRestConnection inherits RestClient::RestConnection {
             "schemes": {
                 "sap4haharests": True,
             },
+            "base_scheme_map": {
+                "https": "sap4haharests",
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "apikey": <ConnectionOptionInfo>{
                     "display_name": "API Key",

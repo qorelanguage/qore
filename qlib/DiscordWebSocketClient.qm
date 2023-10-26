@@ -653,6 +653,9 @@ public class DiscordWebSocketConnection inherits WebSocketClient::WebSocketConne
             "schemes": {
                 "discordwss": True,
             },
+            "base_scheme_map": {
+                "wss": "discordwss",
+            },
             "options": WebSocketConnectionObject::ConnectionScheme.options,
         };
 

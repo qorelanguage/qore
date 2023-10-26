@@ -221,6 +221,10 @@ public class SewioRestConnection inherits RestClient::RestConnection {
                 "sewiorests": True,
                 "sewiorest": True,
             },
+            "base_scheme_map": {
+                "https": "sewiorests",
+                "http": "sewiorest",
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "data": <ConnectionOptionInfo>{
                     "display_name": "Data Serialization",
