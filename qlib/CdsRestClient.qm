@@ -631,6 +631,8 @@ class DynamicsRestConnection inherits CdsRestConnection {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Microsoft Dynamics REST Server",
+            "short_desc": "A connection to a Microsoft Dynamics REST server",
             "cls": Class::forName("DynamicsRestConnection"),
             "options": CdsRestConnection::ConnectionScheme.options - "api_profile",
         };
