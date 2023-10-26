@@ -984,6 +984,9 @@ public class TelnetConnection inherits ConnectionProvider::AbstractConnectionWit
             "short_desc": "A connection to a telnet server",
             "desc": "A connection to a telnet server",
             "cls": Class::forName("TelnetConnection"),
+            "schemes": {
+                "telnet": True,
+            },
         };
     }
 

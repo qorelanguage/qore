@@ -43,6 +43,10 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
             "desc": "A connection to an FTP server with the `ftp` or `ftps` (secure, not to be confused with sftp) "
                 "protocols",
             "cls": Class::forName("FtpConnection"),
+            "schemes": {
+                "ftps": True,
+                "ftp": True,
+            },
             "options": HttpConnection::ConnectionScheme.options + {
                 "password": <ConnectionOptionInfo>{
                     "display_name": "Password",

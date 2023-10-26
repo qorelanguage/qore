@@ -416,6 +416,9 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
             "desc": desc,
             "cls": Class::getClass(self),
             "options": options,
+            "schemes": {
+                getType(): True,
+            },
         };
     }
 

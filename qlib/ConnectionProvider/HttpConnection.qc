@@ -64,6 +64,10 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
             "short_desc": "A connection to a HTTP server",
             "desc": "A connectioas to a HTTP server",
             "cls": Class::forName("HttpConnection"),
+            "schemes": {
+                "https": True,
+                "http": True,
+            },
             "options": {
                 "assume_encoding": <ConnectionOptionInfo>{
                     "display_name": "Assume Character Encoding",

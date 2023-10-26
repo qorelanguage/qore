@@ -41,6 +41,10 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
             "short_desc": "A connection to the local filesystem",
             "desc": "A connection to the local filesystem",
             "cls": Class::forName("FilesystemConnection"),
+            "schemes": {
+                "file": True,
+                "dir": True,
+            },
             "options": {
                 "readonly": <ConnectionOptionInfo>{
                     "display_name": "Read-Only",
@@ -53,6 +57,44 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
                 },
             },
         };
+
+        #! Data provider subtypes supported
+        const DataProviderSubtypeMap = {
+            "filepoller": {
+                "module": "FilePoller",
+                "class": "FileDelayedPollerDataProvider",
+                "option_class": "FilePollerDataProviderBase",
+                "options": "ConstructorOptions",
+            },
+            "csvread": {
+                "module": "CsvUtil",
+                "class": "CsvReadDataProvider",
+                "options": "ConstructorOptions",
+            },
+            "csvwrite": {
+                "module": "CsvUtil",
+                "class": "CsvWriteDataProvider",
+                "options": "ConstructorOptions",
+            },
+            "fixedlengthread": {
+                "module": "FixedLengthUtil",
+                "class": "FixedLengthReadDataProvider",
+                "options": "ConstructorOptions",
+            },
+            "fixedlengthwrite": {
+                "module": "FixedLengthUtil",
+                "class": "FixedLengthWriteDataProvider",
+                "options": "ConstructorOptions",
+            },
+        };
+    }
+
+    private {
+        #! Data provider subtype info
+        static hash<string, *hash<string, hash<DataProviderOptionInfo>>> subtype_info;
+
+        #! Data provider subtype lock
+        static Mutex subtype_lck();
     }
 
     #! creates the FilesystemConnection object
@@ -111,6 +153,43 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
         load_module("FileDataProvider");
     }
 
+    #! Verifies that subtype info has been loaded from external modules
+    /** @since ConnectionProvider 2.0
+    */
+    private checkSubtypeInfo() {
+        if (!subtype_info) {
+            loadSubtypeInfo();
+        }
+    }
+
+    #! Returns a hash of supported data provider subtypes
+    /** @return a hash of supported data provider subtypes
+
+        @since ConnectionProvider 2.0
+    */
+    private *hash<string, *hash<string, hash<DataProviderOptionInfo>>> getDataProviderSubtypesImpl() {
+        if (subtype_info) {
+            return subtype_info;
+        }
+        loadSubtypeInfo();
+        return subtype_info;
+    }
+
+    #! Loads subtype info from external modules
+    private loadSubtypeInfo() {
+        subtype_lck.lock();
+        on_exit subtype_lck.unlock();
+        # check again inside the lock
+        if (subtype_info) {
+            return;
+        }
+        foreach hash<auto> i in (DataProviderSubtypeMap.pairIterator()) {
+            load_module(i.value."module");
+            Class cls = Class::forName(i.value."option_class" ?? i.value."class");
+            subtype_info{i.key} = cls.getConstant(i.value."options").getValue();
+        }
+    }
+
     #! returns a data provider object for connection subtype passed as an argument
     /** @param subtype the subtype of data provider supported, in case the connection can return multiple data
         providers
@@ -121,17 +200,25 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
         @throw DATA-PROVIDER-ERROR the given subtype is not valid
     */
     private AbstractDataProvider getDataProviderImpl(string subtype, *hash<auto> constructor_options) {
-        if (subtype != "filepoller") {
-            throw "DATA-PROVIDER-ERROR", sprintf("%y is an invalid subtype; expecting \"filepoller\"", subtype);
+        *hash<auto> conf = DataProviderSubtypeMap{subtype};
+        if (!conf) {
+            throw "DATA-PROVIDER-ERROR", sprintf("ftp connections do not support data provider subtype %y; supported "
+                "subtypes: %y", subtype, getDataProviderSubtypes());
         }
-        if (opts.readonly) {
-            throw "DATA-PROVIDER-ERROR", "cannot return a FilePollerDataProvider for readonly file connections";
+        if (opts.readonly && subtype =~ /write/i) {
+            throw "DATA-PROVIDER-ERROR", sprintf("cannot return a %s data provider for readonly file connections",
+                conf."class");
         }
-        load_module("FilePoller");
-        return create_object("FileDelayedPollerDataProvider", {
-            "path": urlh.path,
-            "readonly": opts.readonly,
-        } + constructor_options);
+        checkSubtypeInfo();
+        constructor_options = {} + constructor_options;
+        if (subtype_info{subtype}.path && !constructor_options.path) {
+            constructor_options.path = urlh.path;
+        }
+        if (subtype_info{subtype}.readonly && !exists constructor_options.readonly) {
+            constructor_options.readonly = True;
+        }
+        hash<auto> opts = getSubtypeOptions(subtype_info{subtype}, constructor_options);
+        return create_object(conf."class", opts);
     }
 
     #! Returns a hash of data provider constructor option info, if applicable

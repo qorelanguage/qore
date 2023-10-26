@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.0
+%requires qore >= 2.0
 
 %requires Util
 
@@ -37,7 +37,7 @@
 %enable-all-warnings
 
 module CsvUtil {
-    version = "1.10.1";
+    version = "1.11";
     desc = "user module for working with CSV files";
     author = "Petr Vanek <petr@yarpen.cz>, David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -46,6 +46,40 @@ module CsvUtil {
         # register the data provider factories
         DataProvider::registerFactory(new CsvReadDataProviderFactory());
         DataProvider::registerFactory(new CsvWriteDataProviderFactory());
+
+        # register the data provider application
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": CsvUtil::AppName,
+            "display_name": "CSV Files",
+            "short_desc": "Read and write CSV file data",
+            "desc": "Read and write CSV file data",
+            "scheme": "file",
+            "logo": CsvLogo,
+            "logo_file_name": "generic-csv-logo.svg",
+            "logo_mime_type": MimeTypeSvg,
+        });
+
+        # register all supported actions
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": CsvUtil::AppName,
+            "path": "/",
+            "action": "read",
+            "subtype": "csvread",
+            "display_name": "Read CSV Data",
+            "short_desc": "Read CSV file data from the local filesystem",
+            "desc": "Read CSV file data from the local filesystem",
+            "action_code": DPAT_FIND,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": CsvUtil::AppName,
+            "path": "/",
+            "action": "write",
+            "subtype": "csvwrite",
+            "display_name": "Write CSV Data",
+            "short_desc": "Write CSV file data to the local filesystem",
+            "desc": "Write CSV file data to the local filesystem",
+            "action_code": DPAT_CREATE,
+        });
     };
 }
 
@@ -253,6 +287,10 @@ while (i.next()) {
 
     @section csvutil_relnotes Release Notes
 
+    @subsection csvutil_v1_11 Version 1.11
+    - added support for data provider application actions
+      (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
+
     @subsection csvutil_v1_10_1 Version 1.10.1
     - fixed the CSV writer to automatically detect headers
       (<a href="https://github.com/qorelanguage/qore/issues/4838">issue 4838</a>)
@@ -356,26 +394,51 @@ while (i.next()) {
 
 #! the CsvUtil namespace contains all the objects in the CsvUtil module
 public namespace CsvUtil {
-    #! Unix end of line character sequence (for new OS X too)
-    public const EOL_UNIX = "\n";
-    #! MS DOS/Windows end of line character sequence
-    public const EOL_WIN = "\r\n";
-    #! Old (pre-OSX) Macintosh end of line character sequence
-    public const EOL_MACINTOSH = "\r";
+#! CSV app name
+public const AppName = "Csv";
 
-    # helper list of end of line values
-    const EOLS = (EOL_UNIX, EOL_WIN, EOL_MACINTOSH, );
+#! Unix end of line character sequence (for new OS X too)
+public const EOL_UNIX = "\n";
+#! MS DOS/Windows end of line character sequence
+public const EOL_WIN = "\r\n";
+#! Old (pre-OSX) Macintosh end of line character sequence
+public const EOL_MACINTOSH = "\r";
 
-    #! Record type when non matching any type
-    public const CSV_TYPE_UNKNOWN = "<unknown>";
-    #! Record type when multi-type is disabled
-    public const CSV_TYPE_SINGLE = "<single>";
+# helper list of end of line values
+const EOLS = (EOL_UNIX, EOL_WIN, EOL_MACINTOSH, );
 
-    #! global option to force "*string" fields with no value to return an empty string when parsing rather than @ref nothing for backwards compatibility with very early versions of CsvUtil
-    our bool global_compat_force_empty_string;
+#! Record type when non matching any type
+public const CSV_TYPE_UNKNOWN = "<unknown>";
+#! Record type when multi-type is disabled
+public const CSV_TYPE_SINGLE = "<single>";
 
-    #! sets the \c global_compat_force_empty_string variable to force "*string" fields with no value to return an empty string when parsing rather than @ref nothing for backwards compatibility with very early versions of CsvUtil
-    public sub csvutil_set_global_compat_force_empty_string(softbool val) {
-        global_compat_force_empty_string = val;
-    }
+#! global option to force "*string" fields with no value to return an empty string when parsing rather than @ref nothing for backwards compatibility with very early versions of CsvUtil
+our bool global_compat_force_empty_string;
+
+#! sets the \c global_compat_force_empty_string variable to force "*string" fields with no value to return an empty string when parsing rather than @ref nothing for backwards compatibility with very early versions of CsvUtil
+public sub csvutil_set_global_compat_force_empty_string(softbool val) {
+    global_compat_force_empty_string = val;
+}
 } # CsvUtil namespace
+
+namespace Priv {
+const CsvLogo = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
+<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">
+<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 200 200\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;\">
+    <g transform=\"matrix(1,0,0,1,-4.56842,141.723)\">
+        <g id=\"g3\">
+            <g id=\"text3\">
+                <g transform=\"matrix(120,0,0,120,0,0)\">
+                    <path d=\"M0.51,-0.026C0.51,-0.015 0.503,-0.009 0.49,-0.006C0.445,0.003 0.389,0.007 0.324,0.007C0.251,0.007 0.191,-0.014 0.146,-0.056C0.089,-0.109 0.06,-0.191 0.06,-0.302L0.06,-0.441C0.06,-0.552 0.089,-0.634 0.146,-0.687C0.191,-0.729 0.251,-0.75 0.324,-0.75C0.369,-0.75 0.425,-0.745 0.492,-0.734C0.503,-0.733 0.508,-0.728 0.508,-0.721L0.508,-0.67C0.508,-0.663 0.504,-0.659 0.496,-0.659L0.493,-0.659C0.421,-0.665 0.365,-0.668 0.325,-0.668C0.209,-0.668 0.151,-0.592 0.151,-0.441L0.151,-0.302C0.151,-0.151 0.209,-0.075 0.325,-0.075C0.371,-0.075 0.426,-0.078 0.49,-0.083L0.494,-0.083C0.505,-0.083 0.51,-0.078 0.51,-0.067L0.51,-0.026Z\" style=\"fill-rule:nonzero;\"/>
+                </g>
+                <g transform=\"matrix(120,0,0,120,65.4,0)\">
+                    <path d=\"M0.5,-0.193C0.5,-0.06 0.418,0.007 0.253,0.007C0.201,0.007 0.146,0.002 0.087,-0.007C0.074,-0.009 0.068,-0.015 0.068,-0.025L0.068,-0.065C0.068,-0.076 0.074,-0.081 0.085,-0.081L0.088,-0.081C0.134,-0.077 0.189,-0.075 0.253,-0.075C0.354,-0.075 0.405,-0.114 0.405,-0.193C0.405,-0.218 0.396,-0.239 0.379,-0.258C0.363,-0.275 0.332,-0.298 0.285,-0.327L0.188,-0.386C0.096,-0.442 0.05,-0.504 0.05,-0.573C0.05,-0.691 0.13,-0.75 0.289,-0.75C0.354,-0.75 0.412,-0.746 0.463,-0.738C0.474,-0.736 0.48,-0.73 0.48,-0.721L0.48,-0.678C0.48,-0.667 0.474,-0.662 0.463,-0.662L0.461,-0.662C0.402,-0.666 0.345,-0.668 0.289,-0.668C0.236,-0.668 0.199,-0.661 0.177,-0.648C0.154,-0.634 0.142,-0.609 0.142,-0.573C0.142,-0.536 0.178,-0.496 0.251,-0.452L0.343,-0.397C0.448,-0.335 0.5,-0.267 0.5,-0.193Z\" style=\"fill-rule:nonzero;\"/>
+                </g>
+                <g transform=\"matrix(120,0,0,120,128.4,0)\">
+                    <path d=\"M0.609,-0.726C0.609,-0.723 0.609,-0.721 0.608,-0.72L0.424,-0.069C0.409,-0.018 0.375,0.007 0.322,0.007C0.269,0.007 0.235,-0.018 0.22,-0.069L0.035,-0.72C0.034,-0.721 0.034,-0.723 0.034,-0.726C0.034,-0.737 0.04,-0.743 0.052,-0.743L0.11,-0.743C0.119,-0.743 0.125,-0.738 0.128,-0.728L0.302,-0.091C0.306,-0.077 0.313,-0.07 0.322,-0.07C0.331,-0.07 0.337,-0.077 0.341,-0.091L0.516,-0.728C0.519,-0.738 0.524,-0.743 0.533,-0.743L0.592,-0.743C0.603,-0.743 0.609,-0.737 0.609,-0.726Z\" style=\"fill-rule:nonzero;\"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>";
+}

@@ -179,6 +179,9 @@ public class HueRestConnection inherits RestClient::RestConnection {
             "short_desc": "A connection to the Philips Hue REST API",
             "desc": "A connection to the Philips Hue REST API",
             "cls": Class::forName("HueRestConnection"),
+            "schemes": {
+                "hue": True,
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "oauth2_auth_url": RestConnection::ConnectionScheme.options.oauth2_auth_url
                 + <ConnectionOptionInfo>{

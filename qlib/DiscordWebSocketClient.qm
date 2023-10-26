@@ -650,6 +650,9 @@ public class DiscordWebSocketConnection inherits WebSocketClient::WebSocketConne
             "short_desc": "A connection to Discord WebSocket server services",
             "desc": "A connection to Discord WebSocket server services",
             "cls": Class::forName("DiscordWebSocketConnection"),
+            "schemes": {
+                "discordwss": True,
+            },
             "options": WebSocketConnectionObject::ConnectionScheme.options,
         };
 

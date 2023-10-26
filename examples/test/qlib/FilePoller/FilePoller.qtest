@@ -10,6 +10,7 @@
 %requires ../../../../qlib/QUnit.qm
 %requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/FilePoller.qm
 
 %exec-class FilePollerTest
@@ -78,6 +79,12 @@ public class FilePollerTest inherits QUnit::Test {
             logger = new Logger("test", level);
         }
         logger.addAppender(new StdoutAppender());
+
+        {
+            FilesystemConnection fc("x", "x", "file:///tmp");
+            AbstractDataProvider prov = fc.getDataProvider("filepoller");
+            assertEq("filepoller", prov.getName());
+        }
 
         TmpDir dir("FilePollerDataProvider-");
 

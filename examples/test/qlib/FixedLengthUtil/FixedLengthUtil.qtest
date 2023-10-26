@@ -7,7 +7,9 @@
 %strict-args
 
 %requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/FixedLengthUtil
 
 %exec-class Test
@@ -193,6 +195,18 @@ class Test inherits QUnit::Test {
     }
 
     dataProviderTest() {
+        {
+            FilesystemConnection fc("x", "x", "file:///tmp");
+            AbstractDataProvider prov = fc.getDataProvider("fixedlengthread", {"spec": {"a": {}}});
+            assertRegex("^stream ", prov.getName());
+        }
+        {
+            TmpFile tmp();
+            FilesystemConnection fc("x", "x", "file://" + tmp.path);
+            AbstractDataProvider prov = fc.getDataProvider("fixedlengthwrite", {"spec": {"a": {}}});
+            assertRegex("^stream ", prov.getName());
+        }
+
         list<hash<auto>> rows;
         list<hash<auto>> rows2;
         {

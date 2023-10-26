@@ -245,6 +245,10 @@ public class SewioWebSocketConnection inherits WebSocketClient::WebSocketConnect
             "short_desc": "A connection to Sewio WebSocket services",
             "desc": "A connection to Sewio WebSocket services",
             "cls": Class::forName("SewioWebSocketConnection"),
+            "schemes": {
+                "sewiowss": True,
+                "sewiows": True,
+            },
             "options": WebSocketConnectionObject::ConnectionScheme.options + {
                 "apikey": <ConnectionOptionInfo>{
                     "display_name": "API Key",
@@ -295,7 +299,7 @@ public class SewioWebSocketConnection inherits WebSocketClient::WebSocketConnect
         # rename "dbglog" to "debuglog" for SewioWebSocketClient object
         if (rtopts.dbglog)
             rtopts.debuglog = remove rtopts.dbglog;
-        SewioWebSocketClient ws(rtopts.callback, ("url": url) + rtopts.("log", "errlog", "debuglog") + opts);
+        SewioWebSocketClient ws(rtopts.callback, {"url": url} + rtopts{"log", "errlog", "debuglog"} + opts);
         if (connect)
             ws.connect();
         return ws;

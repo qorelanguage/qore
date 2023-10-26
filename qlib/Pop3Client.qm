@@ -1033,6 +1033,10 @@ public class Pop3Connection inherits ConnectionProvider::AbstractConnectionWithI
             "short_desc": "A connection a POP3 server",
             "desc": "A connection a POP3 server",
             "cls": Class::forName("Pop3Connection"),
+            "schemes": {
+                "pop3s": True,
+                "pop3": True,
+            },
         };
     }
 

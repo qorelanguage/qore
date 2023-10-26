@@ -1310,6 +1310,14 @@ public class SmtpConnection inherits ConnectionProvider::AbstractConnectionWithI
             "short_desc": "A connection to an SMTP server",
             "desc": "A connection to an SMTP server",
             "cls": Class::forName("SmtpConnection"),
+            "schemes": {
+                "esmtptls": True,
+                "esmtps": True,
+                "esmtp": True,
+                "smtptls": True,
+                "smtps": True,
+                "smtp": True,
+            },
             "options": HttpConnection::ConnectionScheme.options + {
                 "password": <ConnectionOptionInfo>{
                     "display_name": "Password",

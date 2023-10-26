@@ -217,6 +217,10 @@ public class SewioRestConnection inherits RestClient::RestConnection {
             "short_desc": "A connection to the Sewio REST API",
             "desc": "A connection to the Sewio REST API",
             "cls": Class::forName("SewioRestConnection"),
+            "schemes": {
+                "sewiorests": True,
+                "sewiorest": True,
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "data": <ConnectionOptionInfo>{
                     "display_name": "Data Serialization",

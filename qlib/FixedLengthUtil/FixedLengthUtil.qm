@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.0
+%requires qore >= 2.0
 
 %requires Util
 %requires(reexport) DataProvider
@@ -35,7 +35,7 @@
 %strict-args
 
 module FixedLengthUtil {
-    version = "1.5";
+    version = "1.6";
     desc    = "user module for working with files with fixed length lines";
     author  = "Jiri Vaclavik <jiri.vaclavik@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -44,6 +44,40 @@ module FixedLengthUtil {
         # register the data provider factories
         DataProvider::registerFactory(new FixedLengthReadDataProviderFactory());
         DataProvider::registerFactory(new FixedLengthWriteDataProviderFactory());
+
+        # register the data provider application
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": FixedLengthUtil::AppName,
+            "display_name": "Fixed-Length Files",
+            "short_desc": "Read and write fixed-length file data",
+            "desc": "Read and write fixed-length file data",
+            "scheme": "file",
+            "logo": FixedLengthLogo,
+            "logo_file_name": "generic-fixedlength-logo.svg",
+            "logo_mime_type": MimeTypeSvg,
+        });
+
+        # register all supported actions
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": FixedLengthUtil::AppName,
+            "path": "/",
+            "action": "read",
+            "subtype": "fixedlengthread",
+            "display_name": "Read Fixed-Length Data",
+            "short_desc": "Read fixed-length file data from the local filesystem",
+            "desc": "Read fixed-length file data from the local filesystem",
+            "action_code": DPAT_FIND,
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": FixedLengthUtil::AppName,
+            "path": "/",
+            "action": "write",
+            "subtype": "fixedlengthwrite",
+            "display_name": "Write Fixed-Length Data",
+            "short_desc": "Write fixed-length file data to the local filesystem",
+            "desc": "Write fixed-length file data to the local filesystem",
+            "action_code": DPAT_CREATE,
+        });
     };
 }
 
@@ -277,6 +311,10 @@ w.write(data);
 
     @section fixedlengthutil_relnotes Release Notes
 
+    @subsection fixedlengthutil_v1_6 Version 1.6
+    - added support for data provider application actions
+      (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
+
     @subsection fixedlengthutil_v1_5 Version 1.5
     - updated with initial support for generic expressions
       (<a href="https://github.com/qorelanguage/qore/issues/4538">issue 4538</a>)
@@ -310,6 +348,9 @@ w.write(data);
 
 #! The FixedLengthUtil namespace contains all the definitions in the FixedLengthUtil module
 public namespace FixedLengthUtil {
+#! FixedLength app name
+public const AppName = "FixedLength";
+
 #! Unix end of line character sequence (for new OS X too)
 public const EOL_UNIX = "\n";
 #! MS DOS/Windows end of line character sequence
@@ -323,4 +364,23 @@ const EOLS = {
     EOL_WIN: True,
     EOL_MACINTOSH: True,
 };
+}
+
+namespace Priv {
+const FixedLengthLogo = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
+<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">
+<svg width=\"100%\" height=\"100%\" viewBox=\"0 0 200 200\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" xmlns:serif=\"http://www.serif.com/\" style=\"fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;\">
+    <g transform=\"matrix(1,0,0,1,-2.00787,164.04)\">
+        <g id=\"g3\">
+            <g id=\"text3\">
+                <g transform=\"matrix(180,0,0,180,0,0)\">
+                    <path d=\"M0.496,-0.367C0.496,-0.354 0.489,-0.347 0.476,-0.347L0.169,-0.347L0.169,-0.02C0.169,-0.007 0.162,-0 0.149,-0L0.098,-0C0.085,-0 0.078,-0.007 0.078,-0.02L0.078,-0.564C0.078,-0.688 0.149,-0.75 0.291,-0.75C0.379,-0.75 0.444,-0.748 0.486,-0.744C0.493,-0.743 0.496,-0.738 0.496,-0.73L0.496,-0.68C0.496,-0.672 0.492,-0.668 0.485,-0.668L0.292,-0.668C0.241,-0.668 0.208,-0.66 0.191,-0.645C0.176,-0.631 0.169,-0.604 0.169,-0.564L0.169,-0.425L0.476,-0.425C0.489,-0.425 0.496,-0.418 0.496,-0.405L0.496,-0.367Z\" style=\"fill-rule:nonzero;\"/>
+                </g>
+                <g transform=\"matrix(180,0,0,180,99.18,0)\">
+                    <path d=\"M0.496,-0.016C0.496,-0.008 0.493,-0.003 0.486,-0.002C0.447,0.004 0.382,0.007 0.291,0.007C0.225,0.007 0.176,-0.003 0.144,-0.024C0.1,-0.053 0.078,-0.104 0.078,-0.179L0.078,-0.723C0.078,-0.736 0.085,-0.743 0.098,-0.743L0.149,-0.743C0.162,-0.743 0.169,-0.736 0.169,-0.723L0.169,-0.179C0.169,-0.139 0.176,-0.112 0.191,-0.099C0.208,-0.083 0.241,-0.075 0.292,-0.075L0.485,-0.075C0.492,-0.075 0.496,-0.071 0.496,-0.063L0.496,-0.016Z\" style=\"fill-rule:nonzero;\"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>";
 }

@@ -446,6 +446,9 @@ public class AwsRestConnection inherits RestClient::RestConnection {
             "short_desc": "A connection to AWS cloud REST API services",
             "desc": "A connection to AWS cloud REST API services",
             "cls": Class::forName("AwsRestConnection"),
+            "schemes": {
+                "awsrests": True,
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "data": <ConnectionOptionInfo>{
                     "display_name": "Data Serialization",

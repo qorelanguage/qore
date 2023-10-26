@@ -1938,6 +1938,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             "short_desc": "A connection to a REST server",
             "desc": "A connection to a REST server",
             "cls": Class::forName("RestConnection"),
+            "schemes": {
+                "rests": True,
+                "rest": True,
+            },
             "options": HttpConnection::ConnectionScheme.options + {
                 "content_encoding": <ConnectionOptionInfo>{
                     "display_name": "Compression",

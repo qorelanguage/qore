@@ -254,6 +254,9 @@ public class Sap4HanaRestConnection inherits RestClient::RestConnection {
             "short_desc": "A connection to SAP S/4 Hana REST API services",
             "desc": "A connection to SAP S/4 Hana REST API services",
             "cls": Class::forName("Sap4HanaRestConnection"),
+            "schemes": {
+                "sap4haharests": True,
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "apikey": <ConnectionOptionInfo>{
                     "display_name": "API Key",

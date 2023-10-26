@@ -1336,6 +1336,10 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
             "short_desc": "A connection to a WebSocket server service",
             "desc": "A connection to a WebSocket server service",
             "cls": Class::forName("WebSocketConnectionObject"),
+            "schemes": {
+                "wss": True,
+                "ws": True,
+            },
             "options": HttpConnection::ConnectionScheme.options + {
                 "data": <ConnectionOptionInfo>{
                     "display_name": "Data Serialization",

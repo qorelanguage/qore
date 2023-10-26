@@ -220,6 +220,9 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
             "short_desc": "A connection to Google cloud REST API services",
             "desc": "A connection to Google cloud REST API services",
             "cls": Class::forName("GoogleRestConnection"),
+            "schemes": {
+                "grests": True,
+            },
             "options": RestConnection::ConnectionScheme.options + {
                 "api_profile": <ConnectionOptionInfo>{
                     "display_name": "API Profile",
@@ -369,6 +372,9 @@ public class GoogleCalendarRestConnection inherits GoogleRestConnection {
             "cls": Class::forName("GoogleCalendarRestConnection"),
             "options": GoogleRestConnection::ConnectionScheme.options - "api_profile",
             "required_options": GoogleRestConnection::ConnectionScheme.required_options,
+            "schemes": {
+                "gcal": True,
+            },
         };
     }
 

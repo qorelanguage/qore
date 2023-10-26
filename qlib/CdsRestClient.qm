@@ -406,6 +406,9 @@ public class CdsRestConnection inherits RestClient::RestConnection {
                 },
             },
             "required_options": "client_id,client_secret,tenant",
+            "schemes": {
+                "cdsrests": True,
+            },
         };
 
         #! options required to support the OAuth2 authorization code grant flow
@@ -458,9 +461,9 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         } + urlh{"username", "password"} + self.opts;
     }
 
-    #! returns \c "cdsrest"
+    #! returns \c "cdsrests"
     string getType() {
-        return "cdsrest";
+        return "cdsrests";
     }
 
     #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
@@ -635,6 +638,9 @@ class DynamicsRestConnection inherits CdsRestConnection {
             "short_desc": "A connection to a Microsoft Dynamics REST server",
             "cls": Class::forName("DynamicsRestConnection"),
             "options": CdsRestConnection::ConnectionScheme.options - "api_profile",
+            "schemes": {
+                "dynamics": True,
+            },
         };
     }
 
