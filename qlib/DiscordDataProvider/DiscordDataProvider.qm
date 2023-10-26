@@ -64,7 +64,7 @@ module DiscordDataProvider {
             "app": DiscordDataProvider::AppName,
             "path": "/user-info",
             "action": "user-info",
-            "display_name": "Get user info",
+            "display_name": "Get User Info",
             "short_desc": "Get info about the current user",
             "desc": "Get info about the current user",
             "action_code": DPAT_API,
@@ -74,7 +74,7 @@ module DiscordDataProvider {
             "app": DiscordDataProvider::AppName,
             "path": "/guilds-by-name/{guild}/get",
             "action": "guild-info",
-            "display_name": "Get server info",
+            "display_name": "Get Server Info",
             "short_desc": "Get info about a Discord server accessible to the user",
             "desc": "Get info about a Discord server accessible to the user",
             "path_vars": {
