@@ -185,6 +185,20 @@ GoogleRestClient rest(opts);
             : RestClient(GoogleRestClient::getOptions(opts), True) {
     }
 
+    #! Returns @ref True if the response was related to an authorization token error
+    /** @return @ref True if the response was related to an authorization token error
+    */
+    bool isAuthTokenError(int status_code, hash<auto> headers, bool body_decoded, *string body_content_type,
+            auto body) {
+        if (status_code != 401) {
+            return False;
+        }
+        if (!body_decoded) {
+            return body =~ /Invalid Credentials/;
+        }
+        return body.error.errors[0].message == "Invalid Credentials";
+    }
+
     #! returns options for @ref GoogleRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
         if (*string prof = opts.api_profile) {
@@ -374,7 +388,17 @@ public class GoogleCalendarRestConnection inherits GoogleRestConnection {
             "short_desc": "A connection to the Google Calendar cloud REST API",
             "desc": "A connection to the Google Calendar cloud REST API",
             "cls": Class::forName("GoogleCalendarRestConnection"),
-            "options": GoogleRestConnection::ConnectionScheme.options - "api_profile",
+            "options": GoogleRestConnection::ConnectionScheme.options + {
+                "api_profile": GoogleRestConnection::ConnectionScheme.options.api_profile + <ConnectionOptionInfo>{
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "desc": "Set REST client options for the Google calendar API",
+                            "value": "calendar",
+                        },
+                    ),
+                    "default_value": "calendar",
+                },
+            },
             "required_options": GoogleRestConnection::ConnectionScheme.required_options,
             "auto_url": True,
             "schemes": {
@@ -421,6 +445,11 @@ public class GoogleCalendarRestConnection inherits GoogleRestConnection {
             });
             real_url = GoogleRestClient::DefaultUrl;
         }
+    }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
     }
 }
 }

@@ -79,6 +79,13 @@ public class HttpBasedConnection inherits AbstractConnectionWithInfo {
     */
     private setRealUrl(string url) {
         string scheme = (url =~ x/^([^:]+)/)[0];
+        hash<ConnectionSchemeInfo> info = getConnectionSchemeInfo();
+        *hash<auto> rmap = map {$1.value: $1.key}, info.base_scheme_map.pairIterator();
+        if (*string real_scheme = rmap{scheme}) {
+            real_url = regex_subst(url, "^" + scheme, real_scheme);
+            return;
+        }
+
         bool ssl;
         # remove type if possible
         string type = getType();

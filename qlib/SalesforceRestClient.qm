@@ -42,7 +42,7 @@
 %requires(reexport) ConnectionProvider >= 1.4
 
 module SalesforceRestClient {
-    version = "2.0";
+    version = "2.0.1";
     desc = "user module for calling Salesforce.com REST services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -152,6 +152,9 @@ rc.bulkJobClose(h.id);
     functionality and a more detailed example of code using this module.
 
     @section salesforcerestclientrelnotes Release Notes
+
+    @subsection salesforcerestclientv2_0_1 SalesforceRestClient v2.0.1
+    - fixed OAuth2 refresh token handling
 
     @subsection salesforcerestclientv2_0 SalesforceRestClient v2.0
     - updated to use the generic OAuth2 support in the RestClient class
@@ -324,6 +327,12 @@ public class SalesforceRestClient inherits RestClient::RestClient {
             "oauth_url_revoke": "https://login.salesforce.com/services/oauth2/revoke",
             "api": "auto",
             "oauth2_grant_type": "password",
+            "oauth2_scopes": (
+                "full",
+                "api",
+                "id",
+                "refresh_token",
+            ),
         };
 
         #! default send encoding
@@ -375,6 +384,9 @@ public class SalesforceRestClient inherits RestClient::RestClient {
 
         #! The instance URL
         string instance_url;
+
+        #! The identity service URL
+        string id_service_url;
 
         #! hash of APIs retrieved from GET /services/data; keyed by API version string; values: \c "label", \c "url"
         hash<string, hash<auto>> api_hash;
@@ -462,9 +474,12 @@ SalesforceRestClient rest({"url": "http://localhost:8001/rest"});
         if (opts.instance_url) {
             instance_url = opts.instance_url;
         }
+        if (opts.id_service_url) {
+            id_service_url = opts.id_service_url;
+        }
 
         if (!do_not_connect) {
-            if (!token || !instance_url) {
+            if (!token || !instance_url || !id_service_url) {
                 loginIntern();
             } else {
                 setApi();
@@ -1039,7 +1054,24 @@ sfrest.logout();
         # set the URL to the Salesforce.com URL for REST API calls
         setURL(instance_url + ah.url);
 
-        debug("SalesforceRestClient: API set to %y (%y) URL: %y", api_used, ah, getURL());
+        debug("SalesforceRestClient: API set to %y %y URL: %y", api_used, ah, getURL());
+    }
+
+    #! Returns @ref True if the response was related to an authorization token error
+    /** @return @ref True if the response was related to an authorization token error
+    */
+    bool isAuthTokenError(int status_code, hash<auto> headers, bool body_decoded, *string body_content_type,
+            auto body) {
+        if (status_code != 403) {
+            return False;
+        }
+        if (body == "Bad_OAuth_Token") {
+            return True;
+        }
+        if (!body_decoded) {
+            return body =~ /token validity expired/;
+        }
+        return body.error_description == "token validity expired";
     }
 
     #! returns a date string for use with Salesforce.com Bulk REST API requests
@@ -1079,6 +1111,10 @@ sfrest.logout();
         if (h.instance_url != instance_url) {
             instance_url = h.instance_url;
             debug("SalesforceRestClient: set instance URL to %y from OAuth2 response", h.instance_url);
+        }
+        if (h.id != id_service_url) {
+            id_service_url = h.id;
+            debug("SalesforceRestClient: set ID Service URL to %y from OAuth2 response", h.id);
         }
 
         setApi();
@@ -1139,6 +1175,10 @@ sfrest.logout();
             if (h.instance_url != instance_url) {
                 new_opts.instance_url = h.instance_url;
                 instance_url = h.instance_url;
+            }
+            if (h.id != id_service_url) {
+                new_opts.id_service_url = h.id;
+                id_service_url = h.id;
             }
             if (h.instance_url != getURL()) {
                 new_opts.url = h.instance_url;
@@ -1214,6 +1254,13 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
                 "data": RestConnection::ConnectionScheme.options."data" + <ConnectionOptionInfo>{
                     "default_value": "json",
                 },
+                "id_service_url": <ConnectionOptionInfo>{
+                    "display_name": "ID Service URL",
+                    "short_desc": "The Salesforce.com identity service URL",
+                    "type": "string",
+                    "desc": "The Salesforce.com identity service URL returned in the OAuth2 login process (set "
+                        "automatically on login)",
+                },
                 "instance_url": <ConnectionOptionInfo>{
                     "display_name": "Instance URL",
                     "short_desc": "The Salesforce.com instance URL",
@@ -1250,7 +1297,7 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
                     "default_value": "GET",
                 },
                 "ping_path": RestConnection::ConnectionScheme.options."ping_path" + <ConnectionOptionInfo>{
-                    "default_value": "/services/data",
+                    "default_value": "auto",
                 },
                 "username": RestConnection::ConnectionScheme.options."username" + <ConnectionOptionInfo>{
                     "desc": "the Salesforce.com username (will override any username in the URL)",
@@ -1361,6 +1408,9 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
             if (resp.instance_url != real_opts.instance_url) {
                 new_opts.instance_url = resp.instance_url;
             }
+            if (resp.id != real_opts.id_service_url) {
+                new_opts.id_service_url = resp.id;
+            }
             if (resp.instance_url != real_opts.url) {
                 new_opts.url = resp.instance_url;
                 # use sfrest:// as scheme
@@ -1404,6 +1454,13 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
         return ConnectionScheme;
     }
 
+    #! Returns the ping path from the \c ping_path option
+    private *string getPingPath() {
+        return opts.ping_path == "auto"
+            ? (real_opts.id_service_url ?? "https://login.salesforce.com/id/unknown/unknown")
+            : opts.ping_path;
+    }
+
     #! Called to start a non-blocking polling ping operation on the remote REST server
     /**
         @return a socket poll operation object that will allow the connection goal to be reached with polling
@@ -1415,10 +1472,16 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
             return HttpBasedConnection::startPollConnect();
         }
 
+        hash<auto> poll_opts = real_opts + {"data": "json"};
+        if (poll_opts.ping_path == "auto") {
+            poll_opts.ping_path = real_opts.id_service_url;
+        }
+
         SalesforceRestClient rc = getPollImpl();
         rc.setSerialization("json");
+
         # returns a RestClient option without connecting and without retrieving any external schemas with I/O
-        return new SalesforceRestPingPollOperation(rc, real_opts + {"data": "json"});
+        return new SalesforceRestPingPollOperation(rc, poll_opts);
     }
 }
 

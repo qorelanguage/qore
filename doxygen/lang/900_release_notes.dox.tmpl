@@ -64,6 +64,8 @@
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
       - set the column size in the type when creating types for \c VARCHAR columns
         (<a href="https://github.com/qorelanguage/qore/issues/4832">issue 4832</a>)
+    - fixed a bug where the HTTP connection path would be silently overwritten when processing redirects
+      (<a href="https://github.com/qorelanguage/qore/issues/4841">issue 4841</a>)
     - fixed a bug setting the local time zone on macOS Sonoma
       (<a href="https://github.com/qorelanguage/qore/issues/4818">issue 4818</a>)
     - fixed a bug where %Qore could characters with the incorrect character encoding to strings while processing HTTP

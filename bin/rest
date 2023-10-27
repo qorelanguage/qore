@@ -64,6 +64,8 @@ class RestCmd {
             "client_secret": "client_secret=s",
             "fullex":        "E,full-exception",
             "sendenc":       "e,send-encoding:s",
+            "ping":          "g,ping=s",
+            "poll_ping":     "G,poll-ping=s",
             "grant_type":    "grant-type=s",
             "header":        "H,header=s@",
             "oauth2":        "O=s@",
@@ -103,11 +105,21 @@ class RestCmd {
     constructor() {
         GetOpt g(Opts);
         opt = g.parse3(\ARGV);
-        if (opt.help || (!ARGV[0] && !opt."list")) {
+        if (opt.help || (!ARGV[0] && !opt."list" && !opt.ping && !opt.poll_ping)) {
             usage();
         }
 
         hash<auto> opts;
+
+        if (opt.ping) {
+            doPing(opt.ping);
+            thread_exit;
+        }
+
+        if (opt.poll_ping) {
+            doPollPing(opt.poll_ping);
+            thread_exit;
+        }
 
         hash<auto> swagger_opts;
         if (opt.lax) {
@@ -428,6 +440,49 @@ class RestCmd {
         }
     }
 
+    private doPing(string ping) {
+        try {
+            AbstractConnection conn = get_connection(ping);
+            conn.setLogger(getLogger());
+            hash<auto> info = conn.ping();
+            if (opt.verbose) {
+                printf("%N\n", info);
+            } else {
+                printf("%y\n", info.info);
+            }
+            thread_exit;
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "CONNECTION-ERROR") {
+                stderr.printf("%s: %s\n", ex.err, ex.desc);
+                exit(1);
+            }
+            rethrow;
+        }
+    }
+
+    private doPollPing(string ping) {
+        try {
+            AbstractConnection conn = get_connection(ping);
+            Logger logger = getLogger();
+            conn.setLogger(logger);
+
+            TestPollingConnectionMonitor monitor(logger);
+            on_exit delete monitor;
+
+            monitor.add(conn);
+
+            hash<auto> info = monitor.waitForResult();
+            printf("ping result: %y\n", info.result);
+            thread_exit;
+        } catch (hash<ExceptionInfo> ex) {
+            if (ex.err == "CONNECTION-ERROR") {
+                stderr.printf("%s: %s\n", ex.err, ex.desc);
+                exit(1);
+            }
+            rethrow;
+        }
+    }
+
     private Logger getLogger() {
         LoggerLevel level;
         if (opt.verbose > 1) {
@@ -535,6 +590,8 @@ class RestCmd {
  -E, --full-exception       show full exception output
  -e, --send-encoding[=ARG]  set compression in outgoing request
                             [ARG=gzip,deflate,bzip2,identity]
+ -G, --poll-ping=ARG        ping the given connection with with I/O polling and exit
+ -g, --ping=ARG             ping the given connection and exit
  -H, --header=ARG           send header with request
  -i, --ignore-errors        ignore HTTP errors and show the literal response in all cases
  -K, --keypass=ARG          password to use for key for client certificate
@@ -567,5 +624,34 @@ class RestCmd {
     static error(string fmt) {
         stderr.printf("%s: ERROR: %s\n", get_script_name(), vsprintf(fmt, argv));
         exit(1);
+    }
+}
+
+class TestPollingConnectionMonitor inherits PollingConnectionMonitor {
+    private {
+        Queue msgq();
+    }
+
+    constructor(*Logger logger) : PollingConnectionMonitor(logger) {
+        ping_timeout = 5s;
+    }
+
+    hash<auto> waitForResult() {
+        return msgq.get();
+    }
+
+    private handlePingSuccess(string name, date delta, *bool oldok) {
+        PollingConnectionMonitor::handlePingSuccess(name, delta, oldok);
+        msgq.push({"name": name, "result": "OK"});
+    }
+
+    private handlePingFailed(string name, date delta, hash<ExceptionInfo> ex) {
+        PollingConnectionMonitor::handlePingFailed(name, delta, ex);
+        msgq.push({"name": name, "result": "error", "ex": ex});
+    }
+
+    private handlePingTimeout(string name, date delta) {
+        PollingConnectionMonitor::handlePingTimeout(name, delta);
+        msgq.push({"name": name, "result": "timeout"});
     }
 }

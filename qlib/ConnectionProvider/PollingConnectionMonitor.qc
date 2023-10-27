@@ -30,7 +30,14 @@ public namespace ConnectionProvider {
 /** @since ConnectionProvider 1.7
 */
 public class PollingConnectionMonitor inherits LoggerWrapper {
-    public {}
+    public {
+        #! Polling event map
+        const PollEventMap = {
+            SOCK_POLLIN: "read",
+            SOCK_POLLOUT: "write",
+            SOCK_POLLIN | SOCK_POLLOUT: "read and write",
+        };
+    }
 
     private {
         #! Lock for atomic actions
@@ -312,7 +319,12 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                         } else if (i.value.spop) {
                             try {
                                 *hash<SocketPollInfo> info = i.value.spop.continuePoll();
-                                log(LoggerLevel::DEBUG, "%y: got ping info: %y", i.key, info);
+                                log(LoggerLevel::DEBUG, "%y: state: %y: got ping info: %y", i.key,
+                                    i.value.spop.getState(), info ? {
+                                        "events": PollEventMap{info.events} ?? "unknown",
+                                        "socket": sprintf("%s %s", info.socket.className(),
+                                            info.socket.uniqueHash()[0..8]),
+                                    } : NOTHING);
                                 if (!info) {
                                     *bool oldok = c.last_check ? c.up : NOTHING;
                                     c.last_check = i.value.start;
@@ -333,7 +345,10 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                     }
 
                     timeout_ms = min ? (min - now).durationMilliseconds() : -1;
-                    log(LoggerLevel::DEBUG, "timeout: %d poll_list: %y", timeout_ms, poll_list);
+                    log(LoggerLevel::DEBUG, "timeout: %d poll_list: %y", timeout_ms, (map $1 + {
+                        "events": PollEventMap{$1.events} ?? "unknown",
+                        "socket": sprintf("%s %s", $1.socket.className(), $1.socket.uniqueHash()[0..8]),
+                    }, poll_list));
                 }
                 # ignore return value, all active ping operations are sent in each poll call
                 Socket::poll(poll_list, timeout_ms);
@@ -387,8 +402,8 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
         } else {
             try {
                 cache{name}.spop = cache{name}.conn.startPollConnect();
-                log(LoggerLevel::DEBUG, "%y: starting connect ping; poll state: %y", name,
-                    cache{name}.spop.getState());
+                log(LoggerLevel::DEBUG, "%y: starting connect ping to %y; poll state: %y", name,
+                    cache{name}.conn.getUrl(), cache{name}.spop.getState());
             } catch (hash<ExceptionInfo> ex) {
                 log(LoggerLevel::ERROR, "%y: error handling ping restart: %s", name, get_exception_string(ex));
             }

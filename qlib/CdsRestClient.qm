@@ -343,6 +343,12 @@ public class CdsRestConnection inherits RestClient::RestConnection {
             "short_desc": "A connection to a Microsoft CDS (Common Data Services) REST server",
             "desc": "A connection to a Microsoft CDS (Common Data Services) REST server",
             "cls": Class::forName("CdsRestConnection"),
+            "schemes": {
+                "cdsrests": True,
+            },
+            "base_scheme_map": {
+                "https": "cdsrests",
+            },
             "options": RestConnection::ConnectionScheme.options - (keys OAuth2DifferentOptionMap) + {
                 "api": <ConnectionOptionInfo>{
                     "display_name": "API Version",
@@ -406,9 +412,6 @@ public class CdsRestConnection inherits RestClient::RestConnection {
                 },
             },
             "required_options": "client_id,client_secret,tenant",
-            "schemes": {
-                "cdsrests": True,
-            },
         };
 
         #! options required to support the OAuth2 authorization code grant flow
@@ -566,6 +569,20 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         return rv;
     }
 
+    #! Returns @ref True if the response was related to an authorization token error
+    /** @return @ref True if the response was related to an authorization token error
+    */
+    bool isAuthTokenError(int status_code, hash<auto> headers, bool body_decoded, *string body_content_type,
+            auto body) {
+        if (status_code != 401) {
+            return False;
+        }
+        if (!body_decoded) {
+            return body =~ /invalid_grant/;
+        }
+        return body.error == "invalid_grant";
+    }
+
     #! Sets the auth code feature if supported
     private checkAuthCodeFeature() {
         if (opts{OAuth2AuthRequestOptions}.size() == OAuth2AuthRequestOptions.size()) {
@@ -666,6 +683,11 @@ class DynamicsRestConnection inherits CdsRestConnection {
     #! returns \c "dynamics"
     string getType() {
         return "dynamics";
+    }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
     }
 }
 }
