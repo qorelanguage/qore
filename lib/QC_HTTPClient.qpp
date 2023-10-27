@@ -423,7 +423,7 @@ nothing HTTPClient::disconnect() {
       - \c response-uri: a string giving the response line (ex: <tt>HTTP/1.1 200 OK</tt>)
       - \c headers-raw: a hash of raw response headers received
       - \c charset: the character encoding used in the response
-      - [\c body-content-type]: the Content-Type for the response body (if any)
+      - [\c body-content-type]: the MIME \c Content-Type for the response body (if any)
       - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
         each header in the response message, plus the following %Qore-provided keys:
         - \c http_version: the HTTP version in the response URI
@@ -482,7 +482,7 @@ AbstractPollOperation HTTPClient::startPollSendRecv(string method, *string path,
 
     @par Example:
     @code{.py}
-hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
+hash<auto> msg = httpclient.send(body, "POST", "/path", {"Content-Type": "application/x-yaml"});
     @endcode
 
     @param body The message body to send; note that sending an HTTP message bosdy with a \c GET request is not
@@ -499,16 +499,16 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request
     headers and other information about the HTTP request; this hash contains the following keys:
-    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of
+    - \c [accept-charset]: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of
       \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to
       the first requested character encoding in the list
-    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in
+    - \c [charset]: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in
       this key
-    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c [body-content-type]: the MIME \c Content-Type for the response body (if any)
     - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
     - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
-    - \c request-body: the raw message body in the request (before any content encoding)
-    - \c response-body: the raw message body in the response (after any content decoding)
+    - \c [request-body]: the raw message body in the request (before any content encoding)
+    - \c [response-body]: the raw message body in the response (after any content decoding)
     - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
       each header in the response message, plus the following %Qore-provided keys:
       - \c http_version: the HTTP version in the response URI
@@ -560,7 +560,7 @@ hash<auto> HTTPClient::send(string body, string method, *string path, *hash<auto
 
     @par Example:
     @code{.py}
-hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"application/x-yaml"));
+hash<auto> msg = httpclient.send(body, "POST", "/path", {"Content-Type": "application/x-yaml"});
     @endcode
 
     @param body The message body to send; pass @ref nothing (no value) to send no body
@@ -569,14 +569,18 @@ hash<auto> msg = httpclient.send(body, "POST", "/path", ("Content-Type":"applica
     @param headers An optional hash of headers to include in the message; values are converted to strings; a list is converted to a string of comma-separated values; headers that differ only in case will be overwritten by the last header in the hash with a matching name with a case-insensitive search
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
-    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
-    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
-    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c [accept-charset]: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of
+      \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to
+      the first requested character encoding in the list
+    - \c [charset]: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in
+      this key
+    - \c [body-content-type]: the MIME \c Content-Type for the response body (if any)
     - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
     - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
-    - \c request-body: the raw message body in the request (before any content encoding)
-    - \c response-body: the raw message body in the response (after any content decoding)
-    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+    - \c [request-body]: the raw message body in the request (before any content encoding)
+    - \c [response-body]: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+      each header in the response message, plus the following %Qore-provided keys:
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
@@ -621,7 +625,7 @@ hash<auto> HTTPClient::send(*binary body, string method, *string path, *hash<aut
 
     @par Example:
     @code{.py}
-hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
+hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", {"Content-Type": "application/x-yaml"});
     @endcode
 
     @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent or simply @ref nothing which will close the chunked message
@@ -631,14 +635,18 @@ hash<auto> msg = httpclient.sendWithSendCallback(callback, "POST", "/path", ("Co
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
-    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
-    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
-    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c [accept-charset]: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of
+      \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to
+      the first requested character encoding in the list
+    - \c [charset]: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in
+      this key
+    - \c [body-content-type]: the MIME \c Content-Type for the response body (if any)
     - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
     - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
-    - \c request-body: the raw message body in the request (before any content encoding)
-    - \c response-body: the raw message body in the response (after any content decoding)
-    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+    - \c [request-body]: the raw message body in the request (before any content encoding)
+    - \c [response-body]: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+      each header in the response message, plus the following %Qore-provided keys:
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
@@ -688,7 +696,7 @@ hash<auto> HTTPClient::sendWithSendCallback(code scb, string method, *string pat
 
     @par Example:
     @code{.py}
-httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", {"Content-Type": "application/x-yaml"});
     @endcode
 
     @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
@@ -711,14 +719,18 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
-    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
-    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
-    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c [accept-charset]: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of
+      \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to
+      the first requested character encoding in the list
+    - \c [charset]: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in
+      this key
+    - \c [body-content-type]: the MIME \c Content-Type for the response body (if any)
     - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
     - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
-    - \c request-body: the raw message body in the request (before any content encoding)
-    - \c response-body: the raw message body in the response (after any content decoding)
-    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+    - \c [request-body]: the raw message body in the request (before any content encoding)
+    - \c [response-body]: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+      each header in the response message, plus the following %Qore-provided keys:
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
@@ -762,7 +774,7 @@ nothing HTTPClient::sendWithRecvCallback(code rcb, string body, string method, *
 
     @par Example:
     @code{.py}
-httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-Type":"application/x-yaml"));
+httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", {"Content-Type": "application/x-yaml"});
     @endcode
 
     @param rcb The receive callback for the data received; first this method is called with a hash of the message headers, and then with any message body; if a chunked HTTP message is received, then the callback is called once for each chunk; when the message has been received, then the receive callback is called with a hash representing any trailer data received in a chunked transfer or @ref nothing if the data was received in a normal message body or if there was no trailer data in a chunked transfer.  The argument to this callback is always a hash; data calls have the following keys:
@@ -785,14 +797,18 @@ httpclient.sendWithRecvCallback(rcv_callback, data, "POST", "/path", ("Content-T
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
-    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
-    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
-    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c [accept-charset]: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of
+      \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to
+      the first requested character encoding in the list
+    - \c [charset]: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in
+      this key
+    - \c [body-content-type]: the MIME \c Content-Type for the response body (if any)
     - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
     - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
-    - \c request-body: the raw message body in the request (before any content encoding)
-    - \c response-body: the raw message body in the response (after any content decoding)
-    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+    - \c [request-body]: the raw message body in the request (before any content encoding)
+    - \c [response-body]: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+      each header in the response message, plus the following %Qore-provided keys:
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
@@ -838,7 +854,7 @@ code rcb = sub (hash<auto> h) {
     if (h.hdr."x-logme")
         log("X-Logme: %y", h.hdr."x-logme");
 };
-httpclient.send(output_stream, data, "POST", "/path", ("Content-Type":"application/x-yaml"), NOTHING, NOTHING, NOTHING, rcb);
+httpclient.send(output_stream, data, "POST", "/path", {"Content-Type": "application/x-yaml"}, NOTHING, NOTHING, NOTHING, rcb);
     @endcode
 
     @param os The @ref OutputStream to write the response body to
@@ -914,7 +930,7 @@ code rcb = sub (hash<auto> h) {
 code tcb = *hash<auto> sub () {
     return {"X-Content-Done": "true"};
 };
-httpclient.sendChunked(output_stream, input_stream, "POST", "/path", ("Content-Type":"application/x-yaml"), NOTHING, NOTHING, NOTHING, rcb, tcb);
+httpclient.sendChunked(output_stream, input_stream, "POST", "/path", {"Content-Type": "application/x-yaml"}, NOTHING, NOTHING, NOTHING, rcb, tcb);
     @endcode
 
     @param os The @ref OutputStream to write the response body to
@@ -983,7 +999,7 @@ nothing HTTPClient::sendChunked(Qore::OutputStream[OutputStream] os, Qore::Input
 
     @par Example:
     @code{.py}
-httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Content-Type":"application/x-yaml"));
+httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", {"Content-Type": "application/x-yaml"});
     @endcode
 
     @param scb The callback giving the chunked HTTP data to send; this callback must return either a string or a binary value each time it is called to give the chunked data to send; when all data has been sent, then a hash of message trailers can be sent or simply @ref nothing which will close the chunked message
@@ -1007,14 +1023,18 @@ httpclient.sendWithCallbacks(send_callback, rcv_callback, "POST", "/path", ("Con
     @param timeout_ms the timeout in milliseconds for the socket I/O operations; 0 means use the default timeout value
     @param getbody If this argument is @ref True, then the object will try to receive a message body even if no \c "Content-Length" header is present in the response. Use this only with broken servers that send message bodies without a \c "Content-Length" header.
     @param info An optional reference to an lvalue that will be used as an output variable giving a hash of request headers and other information about the HTTP request; this hash contains the following keys:
-    - \c accept-charset: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to the first requested character encoding in the list
-    - \c charset: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in this key
-    - \c body-content-type: the outgoing message body MIME \c Content-Type value
+    - \c [accept-charset]: this key will be set to an appropriate value from any \c "Accept-Charset" header; if any of
+      \c "*", \c "utf8", or \c "utf-8" are present, then this will be set to \c "utf8", otherwise it will be set to
+      the first requested character encoding in the list
+    - \c [charset]: if there is a \c "charset" declaration in the \c "Content-Type" header, the value is returned in
+      this key
+    - \c [body-content-type]: the MIME \c Content-Type for the response body (if any)
     - \c headers: a hash of outgoing HTTP request headers (returned as sent, without any case conversions)
     - \c request-uri: the request URI string sent (ex: \c "GET /services/async/38.0/job HTTP/1.1")
-    - \c request-body: the raw message body in the request (before any content encoding)
-    - \c response-body: the raw message body in the response (after any content decoding)
-    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for each header in the response message, plus the following %Qore-provided keys:
+    - \c [request-body]: the raw message body in the request (before any content encoding)
+    - \c [response-body]: the raw message body in the response (after any content decoding)
+    - \c response-headers: a hash of incoming HTTP headers in the response with keys converted to all lower case for
+      each header in the response message, plus the following %Qore-provided keys:
       - \c http_version: the HTTP version in the response URI
       - \c status_code: the HTTP status code of the response
       - \c status_message: the HTTP status message of the response
