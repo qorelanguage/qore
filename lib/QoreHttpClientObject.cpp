@@ -741,6 +741,8 @@ struct qore_httpclient_priv {
     // always generate a Host header pointing to the host hosting the resource, not the proxy
     // (RFC 2616 is not totally clear on this, but other clients do it this way)
     DLLLOCAL QoreStringNode* getHostHeaderValueUnlocked(const con_info& connection) {
+        //printd(5, "getHostHeaderValueUnlocked() connection %s:%d\n", connection.host.c_str(), connection.port);
+
         // RFC 7230 section 5.5: "if the connection's incoming TCP port number
         //   differs from the default port for the effective request URI's
         //   scheme, then a colon (":") and the incoming port number (in
@@ -981,8 +983,8 @@ struct qore_httpclient_priv {
         return nh.release();
     }
 
-    DLLLOCAL QoreHashNode* setProxyHeaders(ExceptionSink* xsink, QoreHashNode* headers, bool& use_proxy_connect,
-            const char*& proxy_path) const {
+    DLLLOCAL QoreHashNode* setProxyHeaders(ExceptionSink* xsink, const con_info& connection, QoreHashNode* headers,
+            bool& use_proxy_connect, const char*& proxy_path) const {
         ReferenceHolder<QoreHashNode> proxy_headers(xsink);
         // use CONNECT if we need to make an HTTPS connection from the proxy
         if (!proxy_connection.ssl && connection.ssl) {
@@ -1719,7 +1721,8 @@ HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation(E
     }
 
     if (client->http_priv->proxy_connection.has_url()) {
-        proxy_headers = client->http_priv->setProxyHeaders(xsink, *request_headers, use_proxy_connect, proxy_path);
+        proxy_headers = client->http_priv->setProxyHeaders(xsink, connection, *request_headers, use_proxy_connect,
+            proxy_path);
         if (proxy_headers) {
             assert(use_proxy_connect);
             assert(proxy_path);
@@ -1752,6 +1755,8 @@ HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation(E
     }
     set_non_block = true;
 
+    connection = client->http_priv->connection;
+
     request_headers = client->http_priv->getRequestHeaders(xsink, headers, enc, data && size, false, keep_alive,
         host_override);
     if (*xsink) {
@@ -1759,7 +1764,8 @@ HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation(E
     }
 
     if (!client->http_priv->proxy_connected && client->http_priv->proxy_connection.has_url()) {
-        proxy_headers = client->http_priv->setProxyHeaders(xsink, *request_headers, use_proxy_connect, proxy_path);
+        proxy_headers = client->http_priv->setProxyHeaders(xsink, connection, *request_headers, use_proxy_connect,
+            proxy_path);
         if (proxy_headers) {
             assert(use_proxy_connect);
             assert(proxy_path);
@@ -1846,8 +1852,9 @@ QoreHashNode* HttpClientConnectSendRecvPollOperation::continuePoll(ExceptionSink
     }
 
     while (true) {
-        //printd(5, "HttpClientConnectSendRecvPollOperation::continuePoll() this: %p %s xsink: %d poll_state: %d\n",
-        //    this, getStateImpl(), (bool)*xsink, (bool)poll_state);
+        //printd(5, "HttpClientConnectSendRecvPollOperation::continuePoll() this: %p %s xsink: %d poll_state: %d "
+        //    "connection: %s:%d\n", this, getStateImpl(), (bool)*xsink, (bool)poll_state, connection.host.c_str(),
+        //    connection.port);
 
         if (state == SPS_CONNECTING) {
             int rc = checkContinuePoll(xsink);
@@ -1966,6 +1973,9 @@ QoreHashNode* HttpClientConnectSendRecvPollOperation::continuePoll(ExceptionSink
 }
 
 int HttpClientConnectSendRecvPollOperation::connectOrSend(ExceptionSink* xsink) {
+    //printd(5, "HttpClientConnectSendRecvPollOperation::connectOrSend() this: %p connection: %s:%d\n", this,
+    //    connection.host.c_str(), connection.port);
+
     assert(client->http_priv->msock->m.trylock());
 
     if (!client->http_priv->msock->socket->isOpen()) {
@@ -2112,6 +2122,7 @@ int HttpClientConnectSendRecvPollOperation::processResponse(ExceptionSink* xsink
         return 0;
     }
 
+    //printd(5, "HttpClientConnectSendRecvPollOperation::processResponse() this: %p calling responseDone()\n", this);
     return responseDone(xsink);
 }
 
@@ -2266,6 +2277,8 @@ int HttpClientConnectSendRecvPollOperation::redirect(ExceptionSink* xsink) {
     info->setKeyValue(tmp.c_str(), mess ? mess->refSelf() : 0, xsink);
     assert(!*xsink);
 
+    //printd(5, "HttpClientConnectSendRecvPollOperation::redirect() this: %p redirecting to: '%s'\n", this, location);
+
     return connectOrSend(xsink);
 }
 
@@ -2311,6 +2324,8 @@ int HttpClientConnectSendRecvPollOperation::startSend(ExceptionSink* xsink) {
                 request_headers->setKeyValue("Host", client->http_priv->getHostHeaderValueUnlocked(connection),
                     xsink);
                 assert(!*xsink);
+                //printd(5, "HttpClientConnectSendRecvPollOperation::startSend() this: %p set host: %s\n", this,
+                //    request_headers->getKeyValue("Host").get<QoreStringNode>()->c_str());
             }
 
             QoreString pathstr(spriv->enc);
@@ -2318,6 +2333,8 @@ int HttpClientConnectSendRecvPollOperation::startSend(ExceptionSink* xsink) {
             if (*xsink) {
                 return -1;
             }
+            //printd(5, "HttpClientConnectSendRecvPollOperation::startSend() this: %p %s %s\n", this, method.c_str(),
+            //    pathstr.c_str());
             QoreString hdr(spriv->enc);
             spriv->getSendHttpMessageHeaders(hdr, *info, method.c_str(),
                 pathstr.c_str(), client->http_priv->http11 ? "1.1" : "1.0", *request_headers, size,
@@ -3088,7 +3105,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     const char* proxy_path = nullptr;
     ReferenceHolder<QoreHashNode> proxy_headers(xsink);
     if (!proxy_connected && proxy_connection.has_url()) {
-        proxy_headers = setProxyHeaders(xsink, *nh, use_proxy_connect, proxy_path);
+        proxy_headers = setProxyHeaders(xsink, this_connection, *nh, use_proxy_connect, proxy_path);
         if (*xsink) {
             return nullptr;
         }
@@ -3211,7 +3228,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             }
 
             if (proxy_connection.has_url()) {
-                proxy_headers = setProxyHeaders(xsink, *nh, use_proxy_connect, proxy_path);
+                proxy_headers = setProxyHeaders(xsink, this_connection, *nh, use_proxy_connect, proxy_path);
                 if (*xsink) {
                     return nullptr;
                 }
