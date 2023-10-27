@@ -105,6 +105,7 @@ private:
     const void* data = nullptr;
     size_t size = 0;
     const QoreEncoding* enc = nullptr;
+    con_info connection;
 
     ReferenceHolder<QoreHashNode> request_headers;
     ReferenceHolder<QoreHashNode> proxy_headers;
@@ -337,7 +338,7 @@ struct qore_httpclient_priv {
         socketpath = con.path;
     }
 
-    DLLLOCAL void setSocketPath() {
+    DLLLOCAL void setSocketPath(const con_info& connection) {
         setSocketPathIntern(proxy_connection.has_url() ? proxy_connection : connection);
         //printd(5, "setSocketPath() '%s'\n", socketpath.c_str());
     }
@@ -393,7 +394,7 @@ struct qore_httpclient_priv {
     }
 
     // returns -1 if an exception was thrown, 0 for OK
-    DLLLOCAL int connect_unlocked(ExceptionSink* xsink) {
+    DLLLOCAL int connect_unlocked(ExceptionSink* xsink, const con_info& connection) {
         assert(!msock->socket->isOpen());
         bool connect_ssl = proxy_connection.has_url()
             ? proxy_connection.ssl
@@ -470,7 +471,7 @@ struct qore_httpclient_priv {
     // FIXME: redirects reset the connection URL for all further connections - they need to reset it only for the next
     // connection
     // issue #3474: process redirect messages correctly
-    DLLLOCAL int redirectUrlUnlocked(const char* str, ExceptionSink* xsink) {
+    DLLLOCAL int redirectUrlUnlocked(const char* str, con_info& connection, ExceptionSink* xsink) {
         QoreURL url(str);
         if (!url.isValid()) {
             xsink->raiseException("HTTP-CLIENT-URL-ERROR", "redirect location '%s' cannot be parsed", str);
@@ -512,7 +513,7 @@ struct qore_httpclient_priv {
         }
 
         if (!proxy_connection.has_url()) {
-            setSocketPath();
+            setSocketPath(connection);
         }
 
         return 0;
@@ -555,7 +556,7 @@ struct qore_httpclient_priv {
         }
 
         if (!proxy_connection.has_url()) {
-            setSocketPath();
+            setSocketPath(connection);
         }
 
         return 0;
@@ -596,7 +597,7 @@ struct qore_httpclient_priv {
                 proxy_connection.port = default_port;
         }
 
-        setSocketPath();
+        setSocketPath(connection);
         return 0;
     }
 
@@ -734,12 +735,12 @@ struct qore_httpclient_priv {
 
     DLLLOCAL QoreStringNode* getHostHeaderValue() {
         AutoLocker al(msock->m);
-        return getHostHeaderValueUnlocked();
+        return getHostHeaderValueUnlocked(connection);
     }
 
     // always generate a Host header pointing to the host hosting the resource, not the proxy
     // (RFC 2616 is not totally clear on this, but other clients do it this way)
-    DLLLOCAL QoreStringNode* getHostHeaderValueUnlocked() {
+    DLLLOCAL QoreStringNode* getHostHeaderValueUnlocked(const con_info& connection) {
         // RFC 7230 section 5.5: "if the connection's incoming TCP port number
         //   differs from the default port for the effective request URI's
         //   scheme, then a colon (":") and the incoming port number (in
@@ -761,15 +762,16 @@ struct qore_httpclient_priv {
         return str.release();
     }
 
-    DLLLOCAL QoreHashNode* sendMessageAndGetResponse(const char* mname, const char* meth, const char* mpath,
-        const QoreHashNode& nh, const QoreStringNode* body, const void* data, unsigned size,
-        const ResolvedCallReferenceNode* send_callback, InputStream* is, size_t max_chunk_size,
-        const ResolvedCallReferenceNode* trailer_callback, QoreHashNode* info, bool with_connect, int timeout_ms,
-        int& code, bool& aborted, bool path_already_encoded, ExceptionSink* xsink);
+    DLLLOCAL QoreHashNode* sendMessageAndGetResponse(con_info& connection, const char* mname,
+            const char* meth, const char* mpath,
+            const QoreHashNode& nh, const QoreStringNode* body, const void* data, unsigned size,
+            const ResolvedCallReferenceNode* send_callback, InputStream* is, size_t max_chunk_size,
+            const ResolvedCallReferenceNode* trailer_callback, QoreHashNode* info, bool with_connect, int timeout_ms,
+            int& code, bool& aborted, bool path_already_encoded, ExceptionSink* xsink);
 
     // called locked
-    DLLLOCAL const char* getMsgPath(ExceptionSink* xsink, const char* mpath, QoreString &pstr,
-            bool already_encoded = false) {
+    DLLLOCAL const char* getMsgPath(ExceptionSink* xsink, const con_info& connection, const char* mpath,
+            QoreString& pstr, bool already_encoded = false) {
         pstr.clear();
 
         // use default path if no path is set
@@ -1710,6 +1712,8 @@ HttpClientConnectSendRecvPollOperation::HttpClientConnectSendRecvPollOperation(E
     }
     set_non_block = true;
 
+    connection = client->http_priv->connection;
+
     if (client->http_priv->msock->socket->isOpen()) {
         client->http_priv->disconnect_unlocked();
     }
@@ -2240,7 +2244,7 @@ int HttpClientConnectSendRecvPollOperation::redirect(ExceptionSink* xsink) {
         return -1;
     }
 
-    if (client->http_priv->redirectUrlUnlocked(location, xsink)) {
+    if (client->http_priv->redirectUrlUnlocked(location, connection, xsink)) {
         assert(*xsink);
         const char* msg = mess && !mess->empty() ? mess->c_str() : "<no message>";
         xsink->appendLastDescription(": while setting URL for redirect location '%s' (code %d: message: '%s')",
@@ -2304,12 +2308,13 @@ int HttpClientConnectSendRecvPollOperation::startSend(ExceptionSink* xsink) {
         } else {
             // set host field automatically if not overridden
             if (!host_override) {
-                request_headers->setKeyValue("Host", client->http_priv->getHostHeaderValueUnlocked(), xsink);
+                request_headers->setKeyValue("Host", client->http_priv->getHostHeaderValueUnlocked(connection),
+                    xsink);
                 assert(!*xsink);
             }
 
             QoreString pathstr(spriv->enc);
-            client->http_priv->getMsgPath(xsink, path.c_str(), pathstr, path_already_encoded);
+            client->http_priv->getMsgPath(xsink, connection, path.c_str(), pathstr, path_already_encoded);
             if (*xsink) {
                 return -1;
             }
@@ -2378,7 +2383,7 @@ void QoreHttpClientObject::static_init() {
 }
 
 QoreHttpClientObject::QoreHttpClientObject() : http_priv(new qore_httpclient_priv(priv)) {
-    http_priv->setSocketPath();
+    http_priv->setSocketPath(http_priv->connection);
 }
 
 QoreHttpClientObject::~QoreHttpClientObject() {
@@ -2856,7 +2861,7 @@ QoreStringNode* QoreHttpClientObject::getSafeProxyURL()  {
 void QoreHttpClientObject::clearProxyURL() {
     SafeLocker sl(priv->m);
     http_priv->proxy_connection.clear();
-    http_priv->setSocketPath();
+    http_priv->setSocketPath(http_priv->connection);
 }
 
 QoreStringNode* QoreHttpClientObject::getUsername() const {
@@ -2919,7 +2924,7 @@ int QoreHttpClientObject::connect(ExceptionSink* xsink) {
     }
 
     http_priv->disconnect_unlocked();
-    return http_priv->connect_unlocked(xsink);
+    return http_priv->connect_unlocked(xsink, http_priv->connection);
 }
 
 void QoreHttpClientObject::disconnect() {
@@ -2927,7 +2932,8 @@ void QoreHttpClientObject::disconnect() {
     http_priv->disconnect_unlocked();
 }
 
-QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname, const char* meth, const char* mpath,
+QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(con_info& connection, const char* mname,
+        const char* meth, const char* mpath,
         const QoreHashNode& nh, const QoreStringNode* body, const void* data, unsigned size,
         const ResolvedCallReferenceNode* send_callback, InputStream* is, size_t max_chunk_size,
         const ResolvedCallReferenceNode* trailer_callback, QoreHashNode* info, bool with_connect, int timeout_ms,
@@ -2938,7 +2944,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     }
 
     QoreString pathstr(msock->socket->getEncoding());
-    const char* msgpath = with_connect ? mpath : getMsgPath(xsink, mpath, pathstr, path_already_encoded);
+    const char* msgpath = with_connect ? mpath : getMsgPath(xsink, connection, mpath, pathstr, path_already_encoded);
     if (*xsink) {
         return nullptr;
     }
@@ -2950,7 +2956,7 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
             return nullptr;
         }
 
-        if (connect_unlocked(xsink)) {
+        if (connect_unlocked(xsink, connection)) {
             // if we have an info hash then write the request-uri key for reporting/logging purposes
             if (info)
                 info->setKeyValue("request-uri", new QoreStringNodeMaker("%s %s HTTP/%s", meth,
@@ -2969,8 +2975,9 @@ QoreHashNode* qore_httpclient_priv::sendMessageAndGetResponse(const char* mname,
     // do not exit immediately if the transfer was aborted with a streaming send unless the socket was already closed
     if (rc && (!send_callback || !aborted || !msock->socket->isOpen())) {
         assert(*xsink);
-        if (rc == QSE_NOT_OPEN)
+        if (rc == QSE_NOT_OPEN) {
             disconnect_unlocked();
+        }
         return nullptr;
     }
 
@@ -3040,12 +3047,15 @@ void check_headers(const char* str, int len, bool &multipart, QoreHashNode& ans,
 QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const char* mname, const char* meth,
         const char* mpath, const QoreHashNode* headers, const QoreStringNode* msg_body, const void* data,
         unsigned size, const ResolvedCallReferenceNode* send_callback, bool getbody, QoreHashNode* info,
-        int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream *os,
+        int timeout_ms, const ResolvedCallReferenceNode* recv_callback, QoreObject* obj, OutputStream* os,
         InputStream* is, size_t max_chunk_size, const ResolvedCallReferenceNode* trailer_callback) {
     assert(!(data && send_callback));
     assert(!(data && is));
     assert(!(is && send_callback));
     assert(!info || info->is_unique());
+
+    // issue #4841: do not override the connection path when sending
+    con_info this_connection = connection;
 
     bool bodyp = false;
     meth = checkMethod(xsink, meth, bodyp);
@@ -3110,7 +3120,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     while (true) {
         // set host field automatically if not overridden
         if (!host_override) {
-            nh->setKeyValue("Host", getHostHeaderValueUnlocked(), xsink);
+            nh->setKeyValue("Host", getHostHeaderValueUnlocked(this_connection), xsink);
         }
 
         if (info) {
@@ -3124,12 +3134,13 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
         //    proxy_path ? proxy_path : "n/a", mpath, use_proxy_connect);
         // send HTTP message and get response header
         if (use_proxy_connect) {
-            ans = sendMessageAndGetResponse(mname, meth, proxy_path, *(*proxy_headers), nullptr, nullptr, 0, nullptr,
-                nullptr, 0, nullptr, info, true, timeout_ms, code, send_aborted, false, xsink);
+            ans = sendMessageAndGetResponse(this_connection, mname, meth, proxy_path,
+                *(*proxy_headers), nullptr, nullptr, 0, nullptr, nullptr, 0, nullptr, info, true, timeout_ms, code,
+                send_aborted, false, xsink);
         } else {
-            ans = sendMessageAndGetResponse(mname, meth, mpath, *(*nh), msg_body, data, size, send_callback, is,
-                max_chunk_size, trailer_callback, info, false, timeout_ms, code, send_aborted, path_already_encoded,
-                xsink);
+            ans = sendMessageAndGetResponse(this_connection, mname, meth, mpath, *(*nh),
+                msg_body, data, size, send_callback, is, max_chunk_size, trailer_callback, info, false, timeout_ms,
+                code, send_aborted, path_already_encoded, xsink);
         }
 
         if (!ans)
@@ -3160,8 +3171,9 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             const QoreStringNode* mess = ans->getKeyValue("status_message").get<QoreStringNode>();
 
             const QoreStringNode* loc = get_string_header_node(xsink, **ans, "location");
-            if (*xsink)
+            if (*xsink) {
                 return nullptr;
+            }
             const char* location = loc && !loc->empty() ? loc->c_str() : 0;
             if (!location) {
                 sl.unlock();
@@ -3187,7 +3199,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                 break;
             }
 
-            if (redirectUrlUnlocked(location, xsink)) {
+            if (redirectUrlUnlocked(location, this_connection, xsink)) {
                 sl.unlock();
                 const char* msg = mess ? mess->c_str() : "<no message>";
                 xsink->appendLastDescription(": while setting URL for redirect location '%s' (code %d: "
@@ -3237,7 +3249,7 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
             proxy_path = nullptr;
 
             // set client target for SNI
-            msock->socket->priv->client_target = connection.host;
+            msock->socket->priv->client_target = this_connection.host;
 
             if (msock->socket->upgradeClientToSSL(msock->cert ? msock->cert->getData() : nullptr,
                 msock->pk ? msock->pk->getData() : nullptr, xsink)) {
