@@ -56,21 +56,39 @@ struct con_info {
     bool ssl = false,
         is_unix = false;
 
+    DLLLOCAL con_info(const con_info& old) : port(old.port), host(old.host), path(old.path),
+            unix_urlencoded_path(old.unix_urlencoded_path), username(old.username), password(old.password),
+            ssl(old.ssl), is_unix(old.is_unix) {
+    }
+
     DLLLOCAL con_info(int n_port = 0) : port(n_port) {
+    }
+
+    DLLLOCAL con_info& operator=(const con_info& other) {
+        port = other.port;
+        host = other.host;
+        path = other.path;
+        unix_urlencoded_path = other.unix_urlencoded_path;
+        username = other.username;
+        password = other.password;
+        ssl = other.ssl;
+        is_unix = other.is_unix;
+
+        return (*this);
     }
 
     DLLLOCAL bool has_url() const {
         return !host.empty();
     }
 
-    DLLLOCAL int set_url(QoreURL &url, bool &port_set, ExceptionSink *xsink) {
+    DLLLOCAL int set_url(QoreURL& url, bool& port_set, ExceptionSink* xsink) {
         port = 0;
         if (url.getPort()) {
             port = url.getPort();
             port_set = true;
         }
 
-        host = url.getHost() ? url.getHost()->getBuffer() : "";
+        host = url.getHost() ? url.getHost()->c_str() : "";
 
         // check if hostname is really a local port number (for a URL string like: "8080")
         if (!url.getPort() && !host.empty()) {
@@ -84,11 +102,11 @@ struct con_info {
         }
 
         const QoreString *tmp = url.getPath();
-        path = tmp ? tmp->getBuffer() : "";
+        path = tmp ? tmp->c_str() : "";
         tmp = url.getUserName();
-        username = tmp ? tmp->getBuffer() : "";
+        username = tmp ? tmp->c_str() : "";
         tmp = url.getPassword();
-        password = tmp ? tmp->getBuffer() : "";
+        password = tmp ? tmp->c_str() : "";
 
         if (username.empty() && !password.empty()) {
             xsink->raiseException("HTTP-CLIENT-URL-ERROR", "invalid authorization credentials: password set without "
@@ -169,7 +187,7 @@ struct con_info {
         return pstr;
     }
 
-    DLLLOCAL void setUserPassword(const char *user, const char *pass) {
+    DLLLOCAL void setUserPassword(const char* user, const char* pass) {
         assert(user && pass);
         username = user;
         password = pass;
@@ -195,9 +213,9 @@ struct con_info {
 DLLLOCAL extern method_map_t method_map;
 DLLLOCAL extern strcase_set_t header_ignore;
 
-DLLLOCAL void do_redirect_event(Queue *event_queue, int64 id, const QoreStringNode *loc, const QoreStringNode *msg);
-DLLLOCAL void do_event(Queue *event_queue, int64 id, int event);
-DLLLOCAL void check_headers(const char *str, int len, bool &multipart, QoreHashNode &ans, const QoreEncoding *enc,
+DLLLOCAL void do_redirect_event(Queue *event_queue, int64 id, const QoreStringNode* loc, const QoreStringNode* msg);
+DLLLOCAL void do_event(Queue* event_queue, int64 id, int event);
+DLLLOCAL void check_headers(const char* str, int len, bool& multipart, QoreHashNode& ans, const QoreEncoding* enc,
     ExceptionSink *xsink);
 
 #endif

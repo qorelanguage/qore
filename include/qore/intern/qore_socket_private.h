@@ -3564,7 +3564,7 @@ struct qore_socket_private {
 
     // returns true if the connection should be closed, false if not
     DLLLOCAL bool convertHeaderToHash(QoreHashNode* h, char* p, int flags = 0, QoreHashNode* info = nullptr,
-        bool* chunked = nullptr, const char* headers_raw_key = "headers-raw") {
+            bool* chunked = nullptr, const char* headers_raw_key = "headers-raw") {
         bool close = !(flags & CHF_HTTP11);
         // socket encoding
         const char* senc = nullptr;
