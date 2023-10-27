@@ -446,9 +446,9 @@ class RestCmd {
             conn.setLogger(getLogger());
             hash<auto> info = conn.ping();
             if (opt.verbose) {
-                printf("%N\n", info);
+                printf("ping result: %N\n", info);
             } else {
-                printf("%y\n", info.info);
+                printf("ping result: %y\n", info.info);
             }
             thread_exit;
         } catch (hash<ExceptionInfo> ex) {
