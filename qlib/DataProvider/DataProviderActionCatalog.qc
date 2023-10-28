@@ -351,6 +351,10 @@ public class DataProviderActionCatalog {
             throw "ACTION-ERROR", sprintf("application %y not registered (action %y)", action.app, action);
         }
         if (*hash<DataProviderActionInfo> act = app_actionmap{action.app}{action.action}) {
+            # ignore duplicates to cover injection scenarios
+            if (action == act) {
+                return;
+            }
             throw "ACTION-ERROR", sprintf("action with application %y, action %y already registered: %y", act.app,
                 act.action, act);
         }
