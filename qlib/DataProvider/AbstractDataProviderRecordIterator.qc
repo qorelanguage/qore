@@ -363,18 +363,19 @@ public class AbstractDataProviderRecordIterator inherits AbstractIterator {
     #! Returns @ref True if the iterator supports bulk operation
     /** @return @ref True if the iterator supports bulk operation
 
-        @note This base class method returns @ref False by default
+        @note This base class method returns @ref True by default and simulates a bulk iterator
     */
     bool supportsBulkApi() {
-        return False;
+        return True;
     }
 
     #! Returns the bulk data interface if supported
     /** @return the bulk data interface if supported
 
-        @note This base class method returns @ref NOTHING by default
+        @note This base class method returns @ref DefaultBulkRecordIterface by default
     */
     *AbstractDataProviderBulkRecordInterface getBulkApi() {
+        return new DefaultBulkRecordIterface(1000, self);
     }
 
     #! Returns the record description, if available
