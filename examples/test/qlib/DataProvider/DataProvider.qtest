@@ -60,6 +60,7 @@ class TestRecordProcessor inherits AbstractDataProcessor {
     public {
         string pfx;
         list<hash<auto>> recs;
+        list<hash<auto>> raw_recs;
         *hash<auto> crec;
         *bool raise_error;
     }
@@ -84,7 +85,8 @@ class TestRecordProcessor inherits AbstractDataProcessor {
             throw "ERROR", "error";
         }
         hash<auto> new_rec = (map {pfx + "-" + $1.key: $1.value}, rec.pairIterator()) + crec;
-        recs += new_rec;
+        raw_recs += new_rec;
+        recs += map $1, new_rec.contextIterator();
         enqueue(new_rec);
     }
 
@@ -954,8 +956,8 @@ public class DataProviderTest inherits QUnit::Test {
 
             pipe.submit(record_provider);
             pipe.waitDone();
-            assertEq({"B-A-a": (1, 2), "B-A-b": ("one", "two"), "B-A0": 1, "A1": 1}, record_processorA1.recs[0]);
-            assertEq({"A-B-a": (1, 2), "A-B-b": ("one", "two"), "A-B1": 1, "B0": 1}, record_processorB0.recs[0]);
+            assertEq({"B-A-a": (1, 2), "B-A-b": ("one", "two"), "B-A0": 1, "A1": 1}, record_processorA1.raw_recs[0]);
+            assertEq({"A-B-a": (1, 2), "A-B-b": ("one", "two"), "A-B1": 1, "B0": 1}, record_processorB0.raw_recs[0]);
 
             hash<PipelineInfo> info = pipe.getInfo();
             assertEq(2, info.record_count);
@@ -984,8 +986,8 @@ public class DataProviderTest inherits QUnit::Test {
 
             pipe1.submit(record_provider);
             pipe1.waitDone();
-            assertEq({"B-A-a": (1, 2), "B-A-b": ("one", "two"), "B-A0": 1, "A1": 1}, record_processorA1.recs[0]);
-            assertEq({"A-B-a": (1, 2), "A-B-b": ("one", "two"), "A-B1": 1, "B0": 1}, record_processorB0.recs[0]);
+            assertEq({"B-A-a": (1, 2), "B-A-b": ("one", "two"), "B-A0": 1, "A1": 1}, record_processorA1.raw_recs[0]);
+            assertEq({"A-B-a": (1, 2), "A-B-b": ("one", "two"), "A-B1": 1, "B0": 1}, record_processorB0.raw_recs[0]);
 
             info = pipe1.getInfo();
             assertEq(2, info.record_count);
@@ -1031,8 +1033,8 @@ public class DataProviderTest inherits QUnit::Test {
 
             pipe2.submit(record_provider);
             pipe2.waitDone();
-            assertEq({"B-A-a": (1, 2), "B-A-b": ("one", "two"), "B-A0": 1, "A1": 1}, record_processorA1.recs[0]);
-            assertEq({"A-B-a": (1, 2), "A-B-b": ("one", "two"), "A-B1": 1, "B0": 1}, record_processorB0.recs[0]);
+            assertEq({"B-A-a": (1, 2), "B-A-b": ("one", "two"), "B-A0": 1, "A1": 1}, record_processorA1.raw_recs[0]);
+            assertEq({"A-B-a": (1, 2), "A-B-b": ("one", "two"), "A-B1": 1, "B0": 1}, record_processorB0.raw_recs[0]);
 
             info = pipe2.getInfo();
             assertEq(2, info.record_count);
@@ -1520,12 +1522,12 @@ public class DataProviderTest inherits QUnit::Test {
             pipe.waitDone();
             assertEq((
                 {
-                    "x-a": 1,
-                    "x-b": 2,
+                    "x-a": (1,),
+                    "x-b": (2,),
                 },
                 {
-                    "y-a": 1,
-                    "y-b": 2,
+                    "y-a": (1,),
+                    "y-b": (2,),
                 },
             ), proc2.recs);
         }
