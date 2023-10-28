@@ -57,6 +57,9 @@
       - Fixed a bug where file rotate could result in logging exceptions; removed explicit atomic lock operations and
         implemented low-level atomic file handling instead
         (<a href="https://github.com/qorelanguage/qore/issues/4842">issue 4842</a>)
+    - <a href="../../modules/Mapper/html/index.html">Mapper</a>
+      - fixed a bug handling the \c trunc option in mappers when bulk processing
+        (<a href="https://github.com/qorelanguage/qore/issues/4845">issue 4845</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a>
       - fixed a bug where the OAUth2 refresh token was sometimes dropped when an access token was acquired
         (<a href="https://github.com/qorelanguage/qore/issues/4821">issue 4821</a>)

@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 1.0
+%requires qore >= 1.19.2
 
 # require type definitions everywhere
 %require-types
@@ -41,7 +41,7 @@
 %requires(reexport) DataProvider
 
 module Mapper {
-    version = "1.6.1";
+    version = "1.6.2";
     desc = "user module providing basic data mapping infrastructure";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -309,6 +309,10 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     runtime options duplicate existing functionality and are confusing and error-prone to use.
 
     @section mapperrelnotes Release Notes
+
+    @subsection mapperv1_6_2 Mapper v1.6.2
+    - fixed a bug handling the \c trunc option in mappers when bulk processing
+      (<a href="https://github.com/qorelanguage/qore/issues/4845">issue 4845</a>)
 
     @subsection mapperv1_6_1 Mapper v1.6.1
     - fixed @ref Mapper::Mapper::mapAuto() "Mapper::mapAuto()" to accept an iterator argument
@@ -2730,10 +2734,11 @@ Mapper mapv(DataMap);
         # check maximum length
         if ((*int maxlen = m.field.getOptionValue("string.max_size_chars")) > 0) {
             if (v_is_list) {
-                if (m.trunc)
-                    map v[$1] = truncateField(key, $1, $#, v.size(), maxlen), v, $1.size() > maxlen;
-                else
+                if (m.trunc) {
+                    map v[$#] = truncateField(key, $1, $#, v.size(), maxlen), v, $1.size() > maxlen;
+                } else {
                     map fieldLengthError(key, $1, $#, v.size(), maxlen, getrec(rec, $#)), v, $1.size() > maxlen;
+                }
             } else {
                 if (v.size() > maxlen) {
                     # truncate the string if necessary
@@ -2862,9 +2867,10 @@ Mapper mapv(DataMap);
 
     #! called to truncate fields when processing hashes of lists
     private string truncateField(string k, string val, int ix, int sze, int maxlen) {
-        if (info_log)
+        if (info_log) {
             info_log("field %y = %y%s input length %d truncating to %d bytes",
-                    getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen);
+                getFieldName(k), val, (sze > 0 ? sprintf(" element %d/%d", ix + 1, sze) : ""), val.size(), maxlen);
+        }
         return trunc_str(val, maxlen, global_transform_opts."string.encoding");
     }
 
