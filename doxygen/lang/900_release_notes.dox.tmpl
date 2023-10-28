@@ -51,6 +51,10 @@
       - fixed conversion of soft binary, bool, float, int, and number "or nothing" types from an empty string to
         @ref NOTHING
         (<a href="https://github.com/qorelanguage/qore/issues/4836">issue 4836</a>)
+    - <a href="../../modules/Logger/html/index.html">Logger</a>
+      - Fixed a bug where file rotate could result in logging exceptions; removed explicit atomic lock operations and
+        implemented low-level atomic file handling instead
+        (<a href="https://github.com/qorelanguage/qore/issues/4842">issue 4842</a>)
     - <a href="../../modules/RestClient/html/index.html">RestClient</a>
       - fixed a bug where the OAUth2 refresh token was sometimes dropped when an access token was acquired
         (<a href="https://github.com/qorelanguage/qore/issues/4821">issue 4821</a>)

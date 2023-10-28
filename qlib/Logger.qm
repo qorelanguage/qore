@@ -33,7 +33,7 @@
 %requires Util
 
 module Logger {
-    version = "0.5";
+    version = "0.6";
     desc = "user module implementing Log4q logger library";
     author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
@@ -204,6 +204,11 @@ module Logger {
     }
     # wait till finished
     @endcode
+
+    @subsection logger_v0_6 v0.6
+    - Fixed a bug where file rotate could result in logging exceptions; removed explicit atomic lock operations and
+      implemented low-level atomic file handling instead
+      (<a href="https://github.com/qorelanguage/qore/issues/4842">issue 4842</a>)
 
     @subsection logger_v0_5 v0.5
     - added @ref Logger::LoggerInterface "LoggerInterface" and @ref Logger::LoggerWrapper "LoggerWrapper" classes
@@ -1674,11 +1679,15 @@ public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
     public {
         #! reopen event
         const EVENT_REOPEN = 1001;
+
+        #! Default open flags
+        const DEFAULT_OPEN_FLAGS = O_CREAT | O_APPEND | O_WRONLY;
     }
 
     private {
         File file;
         string fileName;
+        *string encoding;
     }
 
     #! Creates the object
@@ -1692,6 +1701,7 @@ public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
             : LoggerAppenderWithLayout(name, layout) {
         file = new File(encoding);
         fileName = filename;
+        self.encoding = encoding;
     }
 
     #! Returns the file object for the appender
@@ -1727,34 +1737,27 @@ public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
     }
 
     openFile() {
-        file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY);
+        file.open2(fileName, DEFAULT_OPEN_FLAGS);
     }
 
     closeFile() {
+        closeFileStatic(file);
+    }
+
+    static closeFileStatic(File file) {
         try {
             file.close();
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err != "ILLEGAL-EXPRESSION") {
-                # catch unclosable stdxxx errors, TODO: file.isTTY() does the same job ?
+                # catch unclosable stdxxx errors
                 rethrow;
             }
         }
     }
 
     reopen() {
-        closeFile();
-        openFile();
-    }
-
-    #! Returns an object that can be used to ensure atomic operations for appender operations
-    private *object ensureAtomicOperations(int type) {
-        switch (type) {
-            case EVENT_REOPEN:
-                return new AutoWriteLock(lock);
-
-            case EVENT_LOG:
-                return new AutoReadLock(lock);
-        }
+        # issue #4842: reopen atomically without closing
+        file.open2(fileName, DEFAULT_OPEN_FLAGS);
     }
 }
 
@@ -1845,17 +1848,6 @@ public class AbstractLoggerAppenderFileRotate inherits public LoggerAppenderFile
 
     #! Abstract method to get count of rotation objects
     public abstract int getCount();
-
-    #! Returns an object that can be used to ensure atomic operations for appender operations
-    private *object ensureAtomicOperations(int type) {
-        switch (type) {
-            case EVENT_ROTATE:
-                return new AutoWriteLock(lock);
-
-            case EVENT_LOG:
-                return new AutoReadLock(lock);
-        }
-    }
 }
 
 #! Implements appender writing to a file with file rotation support
@@ -1961,8 +1953,9 @@ public class LoggerAppenderFileRotate inherits public AbstractLoggerAppenderFile
         return res;
     }
 
-    #! Implements filename rotation; handles the open and rotate events directly; passes all other events to the subclass for handling
-    /**
+    #! Implements filename rotation; handles the open and rotate events directly
+    /** All other events are handled by subclasses
+
         @param type the event type
         @param params event parameters
     */
@@ -1988,8 +1981,11 @@ public class LoggerAppenderFileRotate inherits public AbstractLoggerAppenderFile
                         rename(fn[i-1], fn[i]);
                         i--;
                     }
-                    file.close();
+                    # issue #4842: rotate atomically
+                    File f(encoding);
+                    # first rename old file
                     rename(fileName, fn[0]);
+                    # reopen file atomically
                     file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY | O_TRUNC);
                 }
                 break;
@@ -2132,10 +2128,11 @@ public class LoggerAppenderFileRing inherits public AbstractLoggerAppenderFileRo
                 break;
             case EVENT_ROTATE:
                 if (patternData.count > 0) {
-                    file.close();
+                    # issue #4842: rotate atomically
                     patternData.index = (patternData.index + 1) % patternData.count;
                     patternData.timestamp = now_us();
                     fileName = format(patternData);
+                    # create new file and reopen atomically
                     file.open2(fileName, O_CREAT | O_APPEND | O_WRONLY | O_TRUNC);
                 }
                 break;
@@ -2202,7 +2199,7 @@ public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, priva
         \c "/var/run/log/archive/20180120102030/MyLogger.log".
     */
     constructor(*string name, LoggerLayout layout, string filename, string archive = DEFAULT_ARCHIVE_PATTERN,
-        *string encoding): LoggerAppenderFile(name, layout, filename, encoding), LoggerPattern(filename) {
+            *string encoding): LoggerAppenderFile(name, layout, filename, encoding), LoggerPattern(filename) {
         fileName = format(NOTHING);  # no dynamic vars as timestamp
         setPattern(archive);
     }
@@ -2267,9 +2264,9 @@ public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, priva
             case EVENT_ARCHIVE:
                 mkdir_ex(dirname(params), 0777, True);
                 if (isOpen()) {
-                    file.close();
+                    # issue #4842: do not close the file here, allow it to be reopened atomically
                     rename(fileName, params);
-                    LoggerAppenderFile::processEventImpl(EVENT_OPEN, NOTHING);
+                    LoggerAppenderFile::processEventImpl(EVENT_OPEN);
                 } else {
                     rename(fileName, params);
                 }
@@ -2314,17 +2311,6 @@ public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, priva
             "timestamp": now_us(),
             "filename": fileName,
         });
-    }
-
-    #! Returns an object that can be used to ensure atomic operations for appender operations
-    private *object ensureAtomicOperations(int type) {
-        switch (type) {
-            case EVENT_ARCHIVE:
-                return new AutoWriteLock(lock);
-
-            case EVENT_LOG:
-                return new AutoReadLock(lock);
-        }
     }
 }
 
