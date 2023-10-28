@@ -136,6 +136,7 @@ int typed_hash_decl_private::parseCheckHashDeclInitialization(const QoreProgramL
 int typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLocation* loc,
         const typed_hash_decl_private& hd, const char* context, bool& needs_runtime_check, bool strict_check) const {
     int err = 0;
+    unsigned possible_matches = 0;
     for (auto& i : hd.members.member_list) {
         HashDeclMemberInfo* m = members.find(i.first);
         if (!m) {
@@ -153,8 +154,10 @@ int typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLocat
             qore_type_result_e res = QoreTypeInfo::parseAccepts(m->getTypeInfo(), i.second->getTypeInfo(),
                 may_not_match);
 
-            if (res && (res == QTI_IDENT || (!strict_check || !may_not_match)))
+            if (res && (res == QTI_IDENT || !strict_check || !may_not_match)) {
+                ++possible_matches;
                 continue;
+            }
 
             if ((res == QTI_WILDCARD || res == QTI_AMBIGUOUS || res == QTI_NEAR) && may_not_match) {
                 parse_error(*loc, "hashdecl '%s' initializer value for key '%s' from hashdecl '%s' from %s has " \
@@ -166,14 +169,21 @@ int typed_hash_decl_private::parseCheckHashDeclAssignment(const QoreProgramLocat
                     err = -1;
                 }
             } else {
-                parse_error(*loc, "hashdecl '%s' initializer value for key '%s' from hashdecl '%s' from %s has " \
-                    "incompatible type '%s'; expecting '%s'", name.c_str(), i.first, hd.name.c_str(), context,
-                    QoreTypeInfo::getName(i.second->getTypeInfo()), QoreTypeInfo::getName(m->getTypeInfo()));
-                if (!err) {
-                    err = -1;
+                if (strict_check) {
+                    parse_error(*loc, "hashdecl '%s' initializer value for key '%s' from hashdecl '%s' from %s has " \
+                        "incompatible type '%s'; expecting '%s'", name.c_str(), i.first, hd.name.c_str(), context,
+                        QoreTypeInfo::getName(i.second->getTypeInfo()), QoreTypeInfo::getName(m->getTypeInfo()));
+                    if (!err) {
+                        err = -1;
+                    }
                 }
             }
         }
+    }
+    if (!err && !possible_matches) {
+        parse_error(*loc, "hashdecl '%s' cannot be assigned from hashdecl '%s' as there are no common keys with " \
+            "compatible types", name.c_str(), hd.name.c_str());
+        err = -1;
     }
     return err;
 }

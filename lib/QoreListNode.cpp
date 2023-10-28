@@ -156,6 +156,19 @@ int qore_list_private::parseCheckComplexListInitialization(const QoreProgramLoca
                         }
                     }
                 }
+                case NT_PARSE_LIST: {
+                    const type_vec_t& value_types = exp.get<const QoreParseListNode>()->getValueTypes();
+                    for (unsigned i = 0, e = value_types.size(); i < e; ++i) {
+                        const QoreTypeInfo* eti = value_types[i];
+                        if (!QoreTypeInfo::parseAccepts(typeInfo, eti)) {
+                            parse_error(*loc, "cannot %s 'list<%s>' from a list typed with incompatible value type "
+                                "'%s' in list element %d (starting from 1)",
+                                context_action, QoreTypeInfo::getName(typeInfo), QoreTypeInfo::getName(eti),
+                                i + 1);
+                            return -1;
+                        }
+                    }
+                }
             }
         } else if (!QoreTypeInfo::parseAccepts(typeInfo, vti2)) {
             parse_error(*loc, "cannot %s 'list<%s>' from a list typed with incompatible value type '%s'",
