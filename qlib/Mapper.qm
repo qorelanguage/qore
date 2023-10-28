@@ -2370,6 +2370,15 @@ Mapper mapv(DataMap);
 
             count += rec_list_size;
 
+            if (output) {
+                dh = dh{keys output};
+
+# XXX DEBUG DELETEME
+if (info_log) {
+    info_log("bulk output fields: %y", keys output);
+}
+            }
+
             return dh;
         } # else no input, no work, not even for constant mappers
     }
@@ -2379,17 +2388,23 @@ Mapper mapv(DataMap);
         return get_thread_data(_Mapper_Thread_Key);
     }
 
-    #! processes the input record and returns a hash of the mapped values where the keys in the hash returned are the target field names; the order of the fields in the hash returned is the same order as the keys in the map hash.
-    /** @param rec the record to translate
+    #! processes the input record and returns a hash of the mapped values
+    /** The keys in the hash returned are the target field names; the order of the fields in the hash returned is the
+        same order as the keys in the map hash, unless there is an output description, in which case the output fields
+        are in that order
 
-        @return a hash of field values in the target format based on the input data and processed according to the logic in the map hash
+        @param rec the record to translate
+
+        @return a hash of field values in the target format based on the input data and processed according to the
+        logic in the map hash
 
         @throw MISSING-INPUT a field marked mandatory is missing
         @throw STRING-TOO-LONG a field value exceeds the maximum value and the 'trunc' key is not set
         @throw INVALID-NUMBER the field is marked as numeric but the input value contains non-numeric data
 
         @note
-        - each time this method is executed successfully, the record count is updated (see @ref getCount() and @ref resetCount())
+        - each time this method is executed successfully, the record count is updated (see @ref getCount() and
+          @ref resetCount())
         - this is the same as mapData() except no output logging is performed
     */
     private hash<auto> mapDataIntern(hash<auto> rec, *bool do_log_output) {
@@ -2444,6 +2459,10 @@ Mapper mapv(DataMap);
 
         # increment record count
         ++count;
+
+        if (output) {
+            h = h{keys output};
+        }
 
         return h;
     }

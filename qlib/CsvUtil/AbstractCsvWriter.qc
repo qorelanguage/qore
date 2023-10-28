@@ -361,7 +361,8 @@ public namespace CsvUtil {
         writeLine(string type, list<auto> values) {
             lineNo++;
             if (checkElementCounts && m_specs{type} && values.size() != m_specs{type}.size())
-                throw errname, sprintf("Line (%d), Header size (%d) and line size (%d) are different (enforced by the \"verify_columns\" option)", lineNo, m_specs{type}.size(), values.size());
+                throw errname, sprintf("Line (%d), Header size (%d) and line size (%d) are different (enforced by "
+                    "the \"verify_columns\" option)", lineNo, m_specs{type}.size(), values.size());
 
             list<auto> rawValues = ();
             for(int j = 0; j < values.size(); j++) {
@@ -468,26 +469,27 @@ public namespace CsvUtil {
         #! Write a line for a specific record from a hash to the output
         /**
             @param type record type
-            @param values a hash of values.
+            @param values a hash of values
 
             @throw CSVFILEWRITER-DATA-ERROR when the data does not fit defined column constraints
          */
         writeLine(string type, hash<auto> values) {
             if (!m_specs{type}) {
                 # issue #4838: automatically set headers from the input data
-                m_specs{type} = map {$1.key: NOTHING}, values.pairIterator();
+                m_specs{type} = map {$1: NOTHING}, keys values;
+                m_out_by_name{type} = keys values;
                 # write headers if enabled
                 writeHeaders();
             }
             list<auto> line;
             foreach string i in (keys m_specs{type}) { # (m_out_by_name{type}) {
-                if (!values.hasKey(i))
+                if (!values.hasKey(i)) {
                     if (exists m_specs{type}{i}."default") {
                         push line, m_specs{type}{i}."default";
                     } else {
                         push line, NOTHING;
                     }
-                else {
+                } else {
                     push line, values{i};
                 }
             }

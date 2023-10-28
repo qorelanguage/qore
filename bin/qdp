@@ -57,6 +57,7 @@ class QdpCmd {
             "modules": "m,module=s@",
             "subtype": "s,subtype=s",
             "verbose": "v,verbose:i+",
+            "exp": "x,expressions",
             "help": "h,help",
         };
 
@@ -536,7 +537,7 @@ class QdpCmd {
     }
 
     static search(AbstractDataProvider provider) {
-        *hash<auto> where_cond = QdpCmd::getHash("search");
+        *hash<auto> where_cond = QdpCmd::getSearchExpression("search");
         *hash<auto> search_options = QdpCmd::getHash("search options");
         AbstractDataProviderRecordIterator i;
         if (opts.bulk) {
@@ -561,7 +562,7 @@ class QdpCmd {
 
     static update(AbstractDataProvider provider) {
         hash<auto> set = QdpCmd::getHash("update 'set'", True);
-        *hash<auto> where_cond = QdpCmd::getHash("update 'where'", True);
+        *hash<auto> where_cond = QdpCmd::getSearchExpression("update 'where'", True);
         int rec_count = provider.updateRecords(set, where_cond);
         printf("%d record%s updated\n", rec_count, rec_count == 1 ? "" : "s");
     }
@@ -586,7 +587,7 @@ class QdpCmd {
     }
 
     static del(AbstractDataProvider provider) {
-        *hash<auto> where_cond = QdpCmd::getHash("delete");
+        *hash<auto> where_cond = QdpCmd::getSearchExpression("delete");
         int rec_count = provider.deleteRecords(where_cond);
         printf("%d record%s deleted\n", rec_count, rec_count == 1 ? "" : "s");
     }
@@ -604,7 +605,7 @@ class QdpCmd {
 
     static doRequestSearch(AbstractDataProvider provider) {
         hash<auto> req = QdpCmd::getHash("request", True);
-        hash<auto> where_cond = QdpCmd::getHash("request-search", True);
+        hash<auto> where_cond = QdpCmd::getSearchExpression("request-search", True);
         *hash<auto> options = QdpCmd::getHash("request-options");
         AbstractDataProviderRecordIterator i = provider.requestSearchRecords(req, where_cond, options);
         map printf("%y\n", $1), i;
@@ -664,12 +665,21 @@ class QdpCmd {
         }
     }
 
+    static *hash<auto> getSearchExpression(string action, *bool required) {
+        *hash<auto> rv = QdpCmd::getHash(action, required);
+        if (opts.exp && rv.size() == 2 && rv."exp".typeCode() == NT_STRING && rv.hasKey("args")) {
+            return cast<hash<DataProviderExpression>>(rv);
+        }
+        return rv;
+    }
+
     static *hash<auto> getHash(string action, *bool required) {
         auto arg = shift ARGV;
         if (exists arg) {
             arg = parse_to_qore_value(arg);
             if (exists arg && arg.typeCode() != NT_HASH) {
-                QdpCmd::error("invalid %s argument %y; expecting type \"hash\"; got type %y instead", action, arg, arg.type());
+                QdpCmd::error("invalid %s argument %y; expecting type \"hash\"; got type %y instead", action, arg,
+                    arg.type());
             }
         }
         if (required && !exists arg) {
@@ -851,6 +861,7 @@ class QdpCmd {
  -s,--subtype=ARG          use Data Provider subtype when creating from a connection
  -t,--list-types           list known data provider types and exit
  -v,--verbose[=ARG]        show more output
+ -x,--expressions          create search expressions when searching
  -h,--help                 this help text
 ", get_script_name());
         exit(1);
