@@ -39,7 +39,7 @@ public class DbSelectRecordIterator inherits AbstractDbRecordIterator {
         - \c args (optional): a list of bind arguments to \a sql
     */
     constructor(AbstractDatasource ds, *hash<auto> where_cond, hash<auto> select_options)
-        : AbstractDbRecordIterator(!ds.currentThreadInTransaction(),
+            : AbstractDbRecordIterator(!ds.currentThreadInTransaction(),
             DbSelectRecordIterator::prepareStatement(ds.getSQLStatement(), select_options)) {
         self.where_cond = where_cond;
     }

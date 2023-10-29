@@ -87,5 +87,14 @@ public class AbstractDbRecordIterator inherits AbstractDataProviderRecordIterato
     *hash<string, AbstractDataField> getRecordType() {
         return DbDataProvider::getRecordTypeFromDescribeHash(stmt.describe());
     }
+
+    #! Returns the bulk data interface
+    /** @return the bulk data interface
+
+        @note This object cannot be used after this call
+    */
+    *AbstractDataProviderBulkRecordInterface getBulkApi() {
+        return new DbSelectBulkRecordInterface(block_size, remove release_transaction, remove stmt);
+    }
 }
 }

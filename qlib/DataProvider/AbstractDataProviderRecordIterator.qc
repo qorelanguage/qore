@@ -360,6 +360,21 @@ public hash<SearchOperatorInfo> sub dp_op_not(hash<auto> arg) {
     not support native search / filtering APIs
 */
 public class AbstractDataProviderRecordIterator inherits AbstractIterator {
+    public {
+        #! Default block size
+        const DefaultBlockSize = 1000;
+    }
+
+    private {
+        #! Block size for bulk iteration
+        int block_size = DefaultBlockSize;
+    }
+
+    #! Creates the object and optionally sets the bulk iteration block size
+    constructor(int block_size = DefaultBlockSize) {
+        self.block_size = block_size;
+    }
+
     #! Returns @ref True if the iterator supports bulk operation
     /** @return @ref True if the iterator supports bulk operation
 
@@ -375,7 +390,7 @@ public class AbstractDataProviderRecordIterator inherits AbstractIterator {
         @note This base class method returns @ref DefaultBulkRecordIterface by default
     */
     *AbstractDataProviderBulkRecordInterface getBulkApi() {
-        return new DefaultBulkRecordIterface(1000, self);
+        return new DefaultBulkRecordIterface(block_size, self);
     }
 
     #! Returns the record description, if available

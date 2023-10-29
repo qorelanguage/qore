@@ -76,7 +76,8 @@ public class DefaultRecordIterator inherits AbstractDataProviderRecordIterator {
                         ++count;
                         continue;
                     }
-                } else if (exists search_options.limit && search_options.limit >= 0 && count == search_options.limit) {
+                } else if (exists search_options.limit && search_options.limit >= 0 &&
+                    count == search_options.limit) {
                     return False;
                 }
                 ++count;

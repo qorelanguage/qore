@@ -60,6 +60,17 @@ public class DbSelectBulkRecordInterface inherits AbstractDataProviderBulkRecord
         }
     }
 
+    #! Creates the iterator
+    /** @param block_size The number of records in a read block; must be a positive number
+        @param release_transaction Should the transaction be release in the destructor
+        @param stmt The SQL statement to iterate; must be already prepared
+    */
+    constructor(int block_size, bool release_transaction, AbstractSQLStatement stmt) {
+        self.block_size = block_size;
+        self.release_transaction = release_transaction;
+        self.stmt = stmt;
+    }
+
     #! rolls back the transaction if a transaction lock was acquired in the constructor and keepTransactionLock() was not called
     destructor() {
         if (release_transaction) {

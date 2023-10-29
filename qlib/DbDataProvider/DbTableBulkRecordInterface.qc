@@ -44,7 +44,7 @@ public class DbTableBulkRecordInterface inherits AbstractDataProviderBulkRecordI
         @param search_options search options; assumed to have already been processed for validity before this call
     */
     constructor(int block_size, AbstractTable table, *hash<auto> where_cond, *hash<auto> search_options)
-        : AbstractDataProviderBulkRecordInterface(block_size) {
+            : AbstractDataProviderBulkRecordInterface(block_size) {
         self.table = table;
         # release the transaction with a rollback in the destructor by default if we do not already have a transaction
         # lock
