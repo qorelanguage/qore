@@ -105,10 +105,15 @@ bool <int>::strp() [flags=CONSTANT] {
 /** @param fmt the format string has the following format:\n
     <em>\<thousands_separator\></em><tt>[</tt><em>\<decimal_separator\>[\<decimals\>]</em><tt>]</tt>\n
     where:\n
-    - \a thousands_separator and \a decimal_separator are single characters defining the thousands and decimal separator characters respectively, and
-    - \a decimals is one or more digits defining how may decimals should appear after the decimal point - if this is non-zero then the decimals will all be \c "0"; a negative number means to round that number of digits before the decimal place
+    - \a thousands_separator and \a decimal_separator are single characters defining the thousands and decimal
+      separator characters respectively, and
+    - \a decimals is one or more digits defining how may decimals should appear after the decimal point - if this is
+      non-zero then the decimals will all be \c "0"; a negative number means to round that number of digits before the
+      decimal place
+    - if \a thousands_separator is the special character \c !, then no thousands separator character will be output
 
-    @return a string of the integer according to a format string; if the format string does not follow the given format, then the number without formatting is returned
+    @return a string of the integer according to a format string; if the format string does not follow the given
+    format, then the number without formatting is returned
 
     @par Example:
     @code{.py}
@@ -123,7 +128,9 @@ string nstr = i.format(".,3"); # returns "-48.392.093.894,000"
     - @ref <float>::format(int, string, string)
     - @ref <number>::format(int, string, string)
 
-    @since %Qore 0.8.6
+    @since
+    - %Qore 0.8.6
+    - %Qore 2.0 implemented support for supressing the thousands separator with the \c ! character
  */
 string <int>::format(string fmt) [flags=CONSTANT] {
    SimpleRefHolder<QoreStringNode> rv(new QoreStringNode(fmt->getEncoding()));
@@ -132,9 +139,13 @@ string <int>::format(string fmt) [flags=CONSTANT] {
 }
 
 //! Returns a formatted string of the integer according to format arguments
-/** @param prec the number of digits after the decimal point; a negative value means to round that number of digits before the decimal place, note that a positive value here will result in the given number of zeros appearing after the decimal place
-    @param decimal_sep a single character that defines the decimal separator; an empty string means no decimal separator
-    @param thousands_sep a single character that defines the thousands and further separators every three digits before the decimal point; an empty string means no thousands separator
+/** @param prec the number of digits after the decimal point; a negative value means to round that number of digits
+    before the decimal place, note that a positive value here will result in the given number of zeros appearing after
+    the decimal place
+    @param decimal_sep a single character that defines the decimal separator; an empty string means no decimal
+    separator
+    @param thousands_sep a single character that defines the thousands and further separators every three digits
+    before the decimal point; an empty string means no thousands separator
 
     @return a string representing the integer according to the format arguments as described above
 

@@ -65,14 +65,14 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
         exp = -exp;
         str.insert("0.", len);
         dp = len + 1;
-        //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: " QLLD " dp: " QLLD " len: " QLLD "\n", this, str.getBuffer(), exp, dp, len);
+        //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: " QLLD " dp: " QLLD " len: " QLLD "\n", this, str.c_str(), exp, dp, len);
         if (exp)
             str.insertch('0', len + 2, exp);
         } else {
             // get remaining length of string (how many characters were added)
             size_t rlen = str.size() - len;
 
-            //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: " QLLD " rlen: " QLLD "\n", this, str.getBuffer(), exp, rlen);
+            //printd(5, "qore_number_private::getAsString() this: %p str: '%s' exp: " QLLD " rlen: " QLLD "\n", this, str.c_str(), exp, rlen);
 
             // assert that we have added at least 1 character
             assert(rlen > 0);
@@ -89,7 +89,7 @@ void qore_number_private::getAsString(QoreString& str, bool round, int base) con
     } else
         str.concat(buf);
 
-    //printd(5, "qore_number_private::getAsString() this: %p returning '%s'\n", this, str.getBuffer());
+    //printd(5, "qore_number_private::getAsString() this: %p returning '%s'\n", this, str.c_str());
 }
 
 void qore_number_private::applyRoundingHeuristic(QoreString& str, size_t dp, size_t last,
@@ -132,7 +132,7 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, size_t dp, siz
 
         // mark position of the last significant digit
         pos = i - 2;
-        //printd(5, "qore_number_private::applyRoundingHeuristic('%s') set pos: %lld ('%c') dp: %lld\n", str.getBuffer(), pos, str[pos], dp);
+        //printd(5, "qore_number_private::applyRoundingHeuristic('%s') set pos: %lld ('%c') dp: %lld\n", str.c_str(), pos, str[pos], dp);
 
         // reset count
         cnt = 0;
@@ -140,7 +140,7 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, size_t dp, siz
 
     // round the number for display
     if (cnt > (unsigned)round_threshold_1) {
-        //printd(5, "ROUND BEFORE: (pos: %d dp: %d cnt: %d has_e: %d e: %c) %s\n", pos, dp, cnt, has_e, has_e ? str[pos + cnt + 4] : 'x', str.getBuffer());
+        //printd(5, "ROUND BEFORE: (pos: %d dp: %d cnt: %d has_e: %d e: %c) %s\n", pos, dp, cnt, has_e, has_e ? str[pos + cnt + 4] : 'x', str.c_str());
         // if rounding right after the decimal point, then remove the decimal point
         if (pos == (qore_offset_t)dp)
             --pos;
@@ -155,7 +155,7 @@ void qore_number_private::applyRoundingHeuristic(QoreString& str, size_t dp, siz
         // rounding down is easy; the truncation is enough
         if (lc == '9') // round up
             roundUp(str, pos);
-        //printd(5, "ROUND AFTER: %s\n", str.getBuffer());
+        //printd(5, "ROUND AFTER: %s\n", str.c_str());
     }
 }
 
@@ -186,28 +186,34 @@ int qore_number_private::formatNumberString(QoreString& num, const QoreString& f
     size_t fl = fmt.length();
     if (fmt.empty()) {
         printd(5, "qore_number_private::formatNumberString() invalid format string: '%s' for number: '%s'\n",
-            fmt.getBuffer(), num.getBuffer());
+            fmt.c_str(), num.c_str());
         return 0;
     }
 
     // get thousands separator character
     QoreString tsep;
-    if (tsep.concat(fmt, 0, 1, xsink))
+    if (tsep.concat(fmt, 0, 1, xsink)) {
         return -1;
+    }
+    if (tsep == "?") {
+        tsep.clear();
+    }
 
     // decimal separator
     QoreString dsep;
     // number of digits after the decimal separator
     int prec = 0;
     if (fl > 2) {
-        if (dsep.concat(fmt, 1, 1, xsink))
+        if (dsep.concat(fmt, 1, 1, xsink)) {
             return -1;
+        }
         // get byte offset of start of decimal precision number
         qore_offset_t i = fmt.getByteOffset(2, xsink);
-        if (*xsink)
+        if (*xsink) {
             return -1;
+        }
         assert(i >= 2);
-        prec = atoi(fmt.getBuffer() + i);
+        prec = atoi(fmt.c_str() + i);
     }
 
     return formatNumberStringIntern(num, prec, dsep, tsep, xsink);
@@ -252,8 +258,8 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
     // non-zero flag: if any digits are non-zero
     bool nonzero = false;
 
-    //printd(5, "qore_number_private::formatNumberString() tsep: '%s' dsep: '%s' prec: %d '%s'\n", tsep.getBuffer(),
-    //  dsep.getBuffer(), prec, num.getBuffer());
+    //printd(5, "qore_number_private::formatNumberString() tsep: '%s' dsep: '%s' prec: %d '%s'\n", tsep.c_str(),
+    //  dsep.c_str(), prec, num.c_str());
 
     // start of digits before the decimal point
     qore_offset_t ds = num[0] == '-' ? 1 : 0;
@@ -307,7 +313,7 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
         }
         // now substitute decimal point if necessary
         else if (prec > 0 && (dsep.strlen() != 1 || dsep[0] != '.'))
-            num.replace(dp, 1, dsep.getBuffer());
+            num.replace(dp, 1, dsep.c_str());
     } else {
         dp = num.size();
         if ((prec < 0) && (prec != QORE_NUM_ALL_DIGITS) && doRound(num, dp, prec))
@@ -331,19 +337,22 @@ int qore_number_private::formatNumberStringIntern(QoreString& num, int prec, con
         }
     }
 
-    // now insert thousands separator
-    // work backwards from the decimal point
-    qore_offset_t i = dp - 3;
-    while (i > ds) {
-        num.replace(i, 0, tsep.getBuffer());
-        i -= 3;
+    if (!tsep.empty()) {
+        // now insert thousands separator
+        // work backwards from the decimal point
+        qore_offset_t i = dp - 3;
+        while (i > ds) {
+            num.replace(i, 0, tsep.c_str());
+            i -= 3;
+        }
     }
 
-    //printd(0, "qore_number_private::formatNumberString() ok '%s'\n", num.getBuffer());
+    //printd(0, "qore_number_private::formatNumberString() ok '%s'\n", num.c_str());
 
     // remove minus sign if negative -0(.0*)
-    if (ds && !nonzero)
+    if (ds && !nonzero) {
         num.trim_leading('-');
+    }
 
     //assert(false); xxx
     return 0;
@@ -360,7 +369,7 @@ QoreNumberNode::QoreNumberNode(const QoreValue n) : SimpleValueQoreNode(NT_NUMBE
     }
 
     if (t == NT_STRING) {
-        priv = new qore_number_private(n.get<const QoreStringNode>()->getBuffer());
+        priv = new qore_number_private(n.get<const QoreStringNode>()->c_str());
         return;
     }
 
@@ -617,7 +626,7 @@ QoreNumberNode* QoreNumberNode::toNumber(const QoreValue n) {
         return new QoreNumberNode(n.getAsFloat());
 
     if (t == NT_STRING)
-        return new QoreNumberNode(n.get<const QoreStringNode>()->getBuffer());
+        return new QoreNumberNode(n.get<const QoreStringNode>()->c_str());
 
     if (t == NT_INT)
         return new QoreNumberNode(n.getAsBigInt());

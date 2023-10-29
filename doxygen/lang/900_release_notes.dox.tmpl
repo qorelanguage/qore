@@ -22,6 +22,11 @@
         (<a href="https://github.com/qorelanguage/qore/issues/4820">issue 4820</a>)
     - New functions
       - @ref Qore::active_exception() "active_exception()"
+    - The thousands separator can be supressed using the special character \c ! in
+      - @ref <float>::format(string)
+      - @ref <int>::format(string)
+      - @ref <number>::format(string)
+      - @ref Qore::format_number(string, softfloat) "format_number(string, softfloat)"
     - Reflection is now allowed in module initialization and deletion closures
 
     @subsection qore_2_0_compatibility Fixes That Can Affect Backwards-Compatibility
