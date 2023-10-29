@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore DiscordDataProvider module definition
 
-/** DiscordMessageCreateEventDataType.qc Copyright 2023 Qore Technologies, s.r.o.
+/** DiscordGuildUserDataType.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,47 +24,17 @@
 
 #! Contains all public definitions in the DiscordDataProvider module
 public namespace DiscordDataProvider {
-#! Discord message create payload data type
-public class DiscordMessageCreatePayloadDataType inherits HashDataType {
-    public {
-        #! Field descriptions
-        const Fields = DiscordMessageDataType::Fields + {
-            "mentions": {
-                "display_name": "User Mentions",
-                "type": new ListDataType("DiscordGuildUserList", DiscordGuildUserDataType, True),
-                "desc": "Users specifically mentioned in the message",
-            },
-            "guild_id": {
-                "display_name": "Server ID",
-                "type": AbstractDataProviderTypeMap."*string",
-                "short_desc": "ID of the guild the message was sent in",
-                "desc": "ID of the guild the message was sent in - unless it is an ephemeral message",
-            },
-            "member": {
-                "display_name": "Message Author Properties",
-                "type": DiscordGuildMemberDataType.getOrNothingType(),
-                "short_desc": "Member properties for this message's author",
-                "desc": "Member properties for this message's author. Missing for ephemeral messages and messages "
-                    "from webhooks",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor() {
-        addQoreFields(Fields);
-    }
-}
-
-#! Discord user info data type
-public class DiscordMessageCreateEventDataType inherits DiscordGatewayEventBaseDataType {
+#! Discord user data type
+public class DiscordGuildUserDataType inherits DiscordUserDataType {
     public {
         #! Field descriptions
         const Fields = {
-            "d": {
-                "display_name": "Message Data",
-                "type": new DiscordMessageCreatePayloadDataType(),
-                "desc": "The message create information",
+            "member": {
+                "display_name": "Guild Member",
+                "short_desc": "Member properties for this message's author",
+                "desc": "Member properties for this message's author. Missing for ephemeral messages and messages "
+                    "from webhooks",
+                "type": DiscordGuildMemberDataType,
             },
         };
     }
@@ -74,4 +44,7 @@ public class DiscordMessageCreateEventDataType inherits DiscordGatewayEventBaseD
         addQoreFields(Fields);
     }
 }
+
+#! Discord guild user data type constant
+public const DiscordGuildUserDataType = new DiscordGuildUserDataType();
 }

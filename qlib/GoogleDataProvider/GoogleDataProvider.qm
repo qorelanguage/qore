@@ -75,6 +75,12 @@ module GoogleDataProvider {
             "desc": "Quickly add an event to a calendar from text; ex: 'Lunch at the Burger Bar from 12:30-13:30 "
                 "tomorrow'",
             "action_code": DPAT_API,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                GoogleCalendarEventsQuickAddRequestType::Fields{"text",}, {"preselected": True}
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                GoogleCalendarEventsQuickAddRequestType::Fields - "text"
+            ),
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{

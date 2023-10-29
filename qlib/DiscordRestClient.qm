@@ -283,6 +283,43 @@ public const DP_USE_EXTERNAL_SOUNDS = (1 << 45);
 public const DP_SEND_VOICE_MESSAGES = (1 << 46);
 #/@}
 
+/** @defgroup discord_message_types Discord Message Types
+*/
+#/@{
+#! this message has been published to subscribed channels (via Channel Following)
+public const DMT_CROSSPOSTED = 1 << 0;
+
+#! this message originated from a message in another channel (via Channel Following)
+public const DMT_IS_CROSSPOST = 1 << 1;
+
+#! do not include any embeds when serializing this message
+public const DMT_SUPPRESS_EMBEDS = 1 << 2;
+
+#! the source message for this crosspost has been deleted (via Channel Following)
+public const DMT_SOURCE_MESSAGE_DELETED = 1 << 3;
+
+#! this message came from the urgent message system
+public const DMT_URGENT = 1 << 4;
+
+#! this message has an associated thread, with the same id as the message
+public const DMT_HAS_THREAD = 1 << 5;
+
+#! this message is only visible to the user who invoked the Interaction
+public const DMT_EPHEMERAL = 1 << 6;
+
+#! this message is an Interaction Response and the bot is "thinking"
+public const DMT_LOADING = 1 << 7;
+
+#! this message failed to mention some roles and add their members to the thread
+public const DMT_FAILED_TO_MENTION_SOME_ROLES_IN_THREAD = 1 << 8;
+
+#! this message will not trigger push and desktop notifications
+public const DMT_SUPPRESS_NOTIFICATIONS = 1 << 12;
+
+#! this message is a voice message
+public const DMT_IS_VOICE_MESSAGE = 1 << 13;
+#/@}
+
 #! this class provides the REST client API for communication with Discord servers
 /** You must use an OAuth2 token by setting the \c token and \c oauth2_refresh_token options; the following options
     need to be set as well:

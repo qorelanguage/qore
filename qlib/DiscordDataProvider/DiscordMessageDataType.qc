@@ -71,8 +71,7 @@ public class DiscordMessageDataType inherits HashDataType {
             },
             "mentions": {
                 "display_name": "User Mentions",
-                # array of user objects
-                "type": AbstractDataProviderTypeMap."*list",
+                "type": new ListDataType("DiscordUserList", DiscordUserDataType, True),
                 "desc": "Users specifically mentioned in the message",
             },
             "mention_roles": {

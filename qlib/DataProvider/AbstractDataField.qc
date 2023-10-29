@@ -127,6 +127,9 @@ public class AbstractDataField inherits Qore::Serializable {
     #! Sets allowed values for enum types
     setAllowedValues(list<auto> allowed_values) {
         AbstractDataProviderType type = getType();
+        if (allowed_values[0] instanceof hash<AllowedValueInfo>) {
+            allowed_values = map $1.value, allowed_values;
+        }
         # check that the value can be assigned to the type
         self.allowed_values = map type.acceptsValue($1), allowed_values;
         # NOTE: requires that values can be converted to a string hash key to simulate a set

@@ -154,9 +154,19 @@ public class GoogleCalendarEventsQuickAddRequestType inherits HashDataType {
                     "- `none`: No notifications are sent. For calendar migration tasks, consider using the "
                         "`Events.import` method instead",
                 "allowed_values": (
-                    "all",
-                    "externalOnly",
-                    "none",
+                    <AllowedValueInfo>{
+                        "value": "all",
+                        "desc": "Notifications are sent to all guests",
+                    },
+                    <AllowedValueInfo>{
+                        "value": "externalOnly",
+                        "desc": "Notifications are sent to non-Google Calendar guests only",
+                    },
+                    <AllowedValueInfo>{
+                        "value": "none",
+                        "desc": "No notifications are sent. For calendar migration tasks, consider using the "
+                            "`Events.import` method instead",
+                    },
                 ),
             },
             "text": {
@@ -165,6 +175,7 @@ public class GoogleCalendarEventsQuickAddRequestType inherits HashDataType {
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The text describing the event to be created; ex: `Appointment at Somewhere on June 3rd "
                     "10am-10:25am`",
+                "example_value": "Lunch tomorrow at the Burger Bar from 12:30-13:30",
             },
         };
     }
