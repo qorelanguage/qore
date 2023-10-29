@@ -112,7 +112,8 @@ public class QoreDataField inherits AbstractDataField {
 
     #! Returns the display name of the field
     string getDisplayName() {
-        return display_name;
+        # display_name can be NOTHING if it's been deserialized from a previous version of the class
+        return display_name ?? name;
     }
 
     #! Returns the short description, if any

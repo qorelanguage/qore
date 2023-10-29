@@ -1323,6 +1323,10 @@ Mapper mapv(DataMap);
         if (output_nullable) {
             setNullableOutput();
         }
+        # ensure output field order in the same order as the output type
+        if (output) {
+            mapo = mapo{keys output};
+        }
 
         mapd = mapc;
         if (identh) {
@@ -2323,7 +2327,7 @@ Mapper mapv(DataMap);
             if (crec) {
                 # expand crec to have the same number of rows as rec in any key
                 # that has already got a list value in crec. This is to avoid
-                # situations that crec changes the number of rows really inserted.
+                # situations where crec changes the number of rows really inserted
                 foreach hash<auto> i in (crec.pairIterator()) {
                     if (i.value.typeCode() != NT_LIST &&
                         (exists rec{i.key} &&
@@ -2372,11 +2376,6 @@ Mapper mapv(DataMap);
 
             if (output) {
                 dh = dh{keys output};
-
-# XXX DEBUG DELETEME
-if (info_log) {
-    info_log("bulk output fields: %y", keys output);
-}
             }
 
             return dh;
@@ -2459,11 +2458,6 @@ if (info_log) {
 
         # increment record count
         ++count;
-
-        if (output) {
-            h = h{keys output};
-        }
-
         return h;
     }
 
