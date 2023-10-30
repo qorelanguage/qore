@@ -375,6 +375,12 @@ public hashdecl ConnectionDataInfo {
     #! the connection name
     string name;
 
+    #! the display name
+    string display_name;
+
+    #! the connection short description in plain text
+    string short_desc;
+
     #! the connection description
     string desc;
 
