@@ -1031,19 +1031,35 @@ ws.setEventQueue();
     }
 
     private logDebug(string fmt, ...) {
-        logArgs(LoggerLevel::DEBUG, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+        try {
+            logArgs(LoggerLevel::DEBUG, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+        } catch (hash<ExceptionInfo> ex) {
+            stderr.printf("WebSocketClient cannog log: %s: %s: DEBUG msg: %s", ex.err, ex.desc, vsprintf(fmt, argv));
+        }
     }
 
     private logInfo(string fmt, ...) {
-        logArgs(LoggerLevel::INFO, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+        try {
+            logArgs(LoggerLevel::INFO, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+        } catch (hash<ExceptionInfo> ex) {
+            stderr.printf("WebSocketClient cannog log: %s: %s: INFO msg: %s", ex.err, ex.desc, vsprintf(fmt, argv));
+        }
     }
 
     private logWarn(string fmt, ...) {
-        logArgs(LoggerLevel::WARN, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+        try {
+            logArgs(LoggerLevel::WARN, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+        } catch (hash<ExceptionInfo> ex) {
+            stderr.printf("WebSocketClient cannog log: %s: %s: WARN msg: %s", ex.err, ex.desc, vsprintf(fmt, argv));
+        }
     }
 
     private logError(string fmt, ...) {
-        logArgs(LoggerLevel::ERROR, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+        try {
+            logArgs(LoggerLevel::ERROR, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+        } catch (hash<ExceptionInfo> ex) {
+            stderr.printf("WebSocketClient cannog log: %s: %s: ERROR msg: %s", ex.err, ex.desc, vsprintf(fmt, argv));
+        }
     }
 
     private sendClose(int code, *string txtmsg) {

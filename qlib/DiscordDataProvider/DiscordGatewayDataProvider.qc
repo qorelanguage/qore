@@ -109,6 +109,11 @@ public class DiscordGatewayDataProvider inherits DataProvider::AbstractDataProvi
         }
     }
 
+    #! Returns information about the connection
+    hash<auto> getInfo() {
+        return ws ? ws.getInfo() : {};
+    }
+
     #! Called when all observers have been added to the object
     /** This method is meant to trigger event generation
     */

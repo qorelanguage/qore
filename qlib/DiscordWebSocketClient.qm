@@ -356,6 +356,31 @@ DiscordWebSocketClient ws();
         stopHeartbeatThread();
     }
 
+    #! Returns performance statistics for the socket
+    /** @par Example:
+        @code{.py}
+hash<auto> h = ws.getInfo();
+        @endcode
+
+        @return a hash with the following keys:
+        - \c api: the API in use
+        - \c cid: the current CID
+        - \c heartbeat_tid: the heartbeat TID
+        - \c session_id: the current session ID
+        - \c last_sequence: the last sequence number received
+        - \c resume_gateway_url: the gate URL for resumes
+    */
+    hash<auto> getInfo() {
+        return {
+            "api": api,
+            "cid": cid,
+            "heartbeat_tid": hb_tid,
+            "session_id": session_id,
+            "last_sequence": last_sequence,
+            "resume_gateway_url": resume_gateway_url,
+        };
+    }
+
     #! Processes options for the DiscordWebSocketClient constructor
     static hash<auto> getOptions(*hash<auto> opts) {
         if (!opts.url) {
@@ -401,8 +426,8 @@ DiscordWebSocketClient ws();
     #! Handles deserialized event data
     private handleEventData(auto msgdata) {
         if (msgdata.typeCode() != NT_HASH) {
-            throw "DISCORD-ERROR", sprintf("unexpected payload data type %y (value %y); expecting \"hash\"",
-                msgdata.fullType(), msgdata);
+            logError("unexpected payload data type %y (value %y); expecting \"hash\"", msgdata.fullType(), msgdata);
+            return;
         }
         *int op = msgdata.op;
         if (!exists op) {
