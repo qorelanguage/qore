@@ -456,8 +456,7 @@ public class CdsRestConnection inherits RestClient::RestConnection {
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    constructor(string name, string description, string url,
-            hash<auto> attributes = {}, hash<auto> options = {})
+    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : RestConnection(name, description, url, attributes, CdsRestConnection::getOptions(url, options)) {
     }
 
@@ -479,7 +478,8 @@ public class CdsRestConnection inherits RestClient::RestConnection {
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
     */
-    constructor(hash<auto> config, *hash<auto> attr) : RestConnection(config, attr) {
+    constructor(hash<auto> config, *hash<auto> attr)
+            : RestConnection(config + {"opts": CdsRestConnection::getOptions(config.url, config.opts)}, attr) {
     }
 
     #! returns \c "cdsrests"
