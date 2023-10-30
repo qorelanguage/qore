@@ -93,6 +93,9 @@ public class ConnectionProviderTest inherits QUnit::Test {
         assertEq(False, hc.locked, "connection is unlocked by default");
         assertEq(True, hc.children_can_support_apis);
         assertEq(False, hc.children_can_support_transactions);
+        assertEq(url, hc.url);
+        assertEq("name", hc.name);
+        assertEq("desc", hc.desc);
 
         hash<ConnectionSchemeInfo> scheme_info = hc.getConnectionSchemeInfo();
         assertFalse(scheme_info.options.firstValue().freeform);
@@ -309,7 +312,7 @@ class TestSslServer {
         }
     }
 
-    *string wait() {
+    *auto wait() {
         return q.get();
     }
 

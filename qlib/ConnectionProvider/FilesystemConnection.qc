@@ -111,25 +111,29 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {},
             *Logger logger)
             : AbstractConnectionWithInfo(name, description, url, attributes, options, logger) {
-        # the URL hash is parsed with parse_url() which will put a string in the
-        # "host" key if it does not look like an absolute path, in which case "host"
-        # needs to be prepended back to the path
-        if (urlh.host)
-            urlh.path = (remove urlh.host) + urlh.path;
+        setupFsOpts();
+    }
 
-        urlh.path = substitute_env_vars(urlh.path);
+    #! creates the FilesystemConnection object
+    /** @param config with the following keys:
+        - name (required string): the connection name
+        - display_name (optional string): the display name
+        - short_desc (optional string): a short description in plain text
+        - desc (optional string): a long description with markdown formatting
+        - url (required string): the connection URL
+        - opts (optional hash): connection options
+        - logger (optional LoggerInterface object): logger for the connection
+        @param attr optional connection attributes
+        - monitor (optional bool): should the connection be monitored? Default: True
+        - enabled (optional bool): is the connection enabled? Default: True
+        - locked (optional bool): is the connection locked? Default: False
+        - debug_data (optional bool): debug data? Default: False
+        - tags (optional hash): tags for the connection; no default value
 
-        if (!absolute_path(urlh.path)) {
-%ifdef Windows
-            # here we have to guess where the "root" is
-            urlh.path = "c:\\" + urlh.path;
-%else
-            urlh.path = "/" + urlh.path;
-%endif
-        }
-
-        # sanitize / normalize the path
-        urlh.path = normalize_dir(urlh.path);
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+    */
+    constructor(hash<auto> config, *hash<auto> attr) : AbstractConnectionWithInfo(config, attr) {
+        setupFsOpts();
     }
 
     #! returns \c "file"
@@ -151,6 +155,29 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
     */
     AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
         load_module("FileDataProvider");
+    }
+
+    #! Common constructor initialization
+    private setupFsOpts() {
+        # the URL hash is parsed with parse_url() which will put a string in the
+        # "host" key if it does not look like an absolute path, in which case "host"
+        # needs to be prepended back to the path
+        if (urlh.host)
+            urlh.path = (remove urlh.host) + urlh.path;
+
+        urlh.path = substitute_env_vars(urlh.path);
+
+        if (!absolute_path(urlh.path)) {
+%ifdef Windows
+            # here we have to guess where the "root" is
+            urlh.path = "c:\\" + urlh.path;
+%else
+            urlh.path = "/" + urlh.path;
+%endif
+        }
+
+        # sanitize / normalize the path
+        urlh.path = normalize_dir(urlh.path);
     }
 
     #! Verifies that subtype info has been loaded from external modules

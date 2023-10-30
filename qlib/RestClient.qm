@@ -2319,21 +2319,29 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
             : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
-        real_opts = {"url": real_url} + opts;
-        if (urlh.username.val() && !opts.username) {
-            real_opts.username = urlh.username;
-        }
-        if (urlh.password.val() && !opts.password) {
-            real_opts.password = urlh.password;
-        }
+        setupRest();
+    }
 
-        # setup feature list appropriately
-        if (opts.oauth2_grant_type) {
-            features{CF_UPDATE_OPTIONS} = True;
-        }
-        if (opts.oauth2_grant_type == "authorization_code") {
-            checkAuthCodeFeature();
-        }
+    #! creates the RestConnection connection object
+    /** @param config with the following keys:
+        - name (required string): the connection name
+        - display_name (optional string): the display name
+        - short_desc (optional string): a short description in plain text
+        - desc (optional string): a long description with markdown formatting
+        - url (required string): the connection URL
+        - opts (optional hash): connection options
+        - logger (optional LoggerInterface object): logger for the connection
+        @param attr optional connection attributes
+        - monitor (optional bool): should the connection be monitored? Default: True
+        - enabled (optional bool): is the connection enabled? Default: True
+        - locked (optional bool): is the connection locked? Default: False
+        - debug_data (optional bool): debug data? Default: False
+        - tags (optional hash): tags for the connection; no default value
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+    */
+    constructor(hash<auto> config, *hash<auto> attr) : HttpBasedConnection(config, attr) {
+        setupRest();
     }
 
     #! Returns the OAuth2 option name for this connection
@@ -2537,6 +2545,25 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             "logger": logger,
             "update_options": update_options,
         });
+    }
+
+    #! Common REST client initialization
+    private setupRest() {
+        real_opts = {"url": real_url} + opts;
+        if (urlh.username.val() && !opts.username) {
+            real_opts.username = urlh.username;
+        }
+        if (urlh.password.val() && !opts.password) {
+            real_opts.password = urlh.password;
+        }
+
+        # setup feature list appropriately
+        if (opts.oauth2_grant_type) {
+            features{CF_UPDATE_OPTIONS} = True;
+        }
+        if (opts.oauth2_grant_type == "authorization_code") {
+            checkAuthCodeFeature();
+        }
     }
 
     #! Returns the value of a URL option or throws an exception if not set

@@ -881,13 +881,13 @@ class qdx {
             if (check_str()) {
                 return;
             }
-            if (str =~ /\s*=~\s*s\//) {
+            if (str =~ /^\s*=~\s*s\//) {
                 str =~ s/\s*=~\s*s\///g;
                 regex = 2;
                 continue;
             }
 
-            if (str =~ /\s*[\!=]~\s*[mx]?\//) {
+            if (str =~ /^\s*[\!=]~\s*[mx]?\//) {
                 str =~ s/\s*[\!=]~\s*[mx]?\///g;
                 regex = 1;
                 continue;
@@ -921,7 +921,7 @@ class qdx {
                 bracket_stack += c;
             } else if (c == "}") {
                 if (bracket_stack.last() != "{") {
-                    throw "BRACKET-ERROR", sprintf("mismatched bracket in input");
+                    throw "BRACKET-ERROR", sprintf("mismatched bracket in input: %y", bracket_stack.last());
                 }
                 pop bracket_stack;
                 if (end == EC_BRACKET && !bracket_stack) {

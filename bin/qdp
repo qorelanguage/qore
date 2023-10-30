@@ -985,6 +985,7 @@ class ConsoleAppender inherits LoggerAppenderWithLayout {
 
 class InputHelper {
     public {
+        AbstractDataProvider provider;
         # message map
         hash<string, hash<DataProviderMessageInfo>> mmap;
 
@@ -996,14 +997,16 @@ class InputHelper {
         const Prompt = "> ";
 
         const Commands = {
+            "exit": True,
             "help": True,
             "history": True,
-            "exit": True,
+            "info": True,
             "quit": True,
         };
     }
 
     constructor(AbstractDataProvider provider) {
+        self.provider = provider;
         mmap = provider.getMessageTypes();
 
 %ifndef NoLinenoise
@@ -1060,6 +1063,10 @@ class InputHelper {
 
             if (line == 'help' || line == '?') {
                 printf("commands:\n  help\n  quit\n  history\n");
+                continue;
+            }
+            if (line == "info") {
+                printf("connected to: %y: %s\n", provider.getName(), provider.getDesc());
                 continue;
             }
 %ifndef NoLinenoise

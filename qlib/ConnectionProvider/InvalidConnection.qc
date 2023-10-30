@@ -62,7 +62,32 @@ public class InvalidConnection inherits AbstractConnection {
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {},
             *Logger logger) : AbstractConnection(name, description, url, attributes, options, logger) {
         if (attributes.error.val()) {
-            self.error = attributes.error;
+            error = attributes.error;
+        }
+        up = False;
+    }
+
+    #! creates the invalid connection object
+    /** @param config with the following keys:
+        - name (required string): the connection name
+        - display_name (optional string): the display name
+        - short_desc (optional string): a short description in plain text
+        - desc (optional string): a long description with markdown formatting
+        - url (required string): the connection URL
+        - opts (optional hash): connection options
+        - logger (optional LoggerInterface object): logger for the connection
+        @param attr optional connection attributes
+        - monitor (optional bool): should the connection be monitored? Default: True
+        - enabled (optional bool): is the connection enabled? Default: True
+        - locked (optional bool): is the connection locked? Default: False
+        - debug_data (optional bool): debug data? Default: False
+        - tags (optional hash): tags for the connection; no default value
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+    */
+    constructor(hash<auto> config, *hash<auto> attr) : AbstractConnection(config, attr) {
+        if (attr.error.val()) {
+            error = attr.error;
         }
         up = False;
     }

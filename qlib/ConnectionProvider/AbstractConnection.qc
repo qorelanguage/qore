@@ -33,13 +33,19 @@ public namespace ConnectionProvider {
 */
 public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapper {
     public {
-        #! connection name
+        #! Connection name
         string name;
 
-        #! connection description
+        #! Display name
+        string display_name;
+
+        #! Connection short description in plain text
+        *string short_desc;
+
+        #! Connection description with markdown formatting
         string desc;
 
-        #! connection URL (potentially with password info)
+        #! Connection URL (potentially with password info)
         string url;
 
         #! "safe" URL (password information removed)
@@ -165,7 +171,12 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
             "monitor": monitor,
             "enabled": enabled ?? opt_enabled ?? True,
         };
-        constructorInit(name, desc, url, attributes, opts ?? {});
+        constructorInit({
+            "name": name,
+            "desc": desc,
+            "url": url,
+            "opts": opts,
+        }, attributes);
     }
 
     #! creates the AbstractConnection object
@@ -185,11 +196,38 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         - \c locked (bool), default \c False
         - \c tags (hash), no default value
 
-        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {},
             *LoggerInterface logger) : LoggerWrapper(logger) {
-        constructorInit(name, description, url, attributes, options);
+        constructorInit({
+            "name": name,
+            "desc": description,
+            "url": url,
+            "opts": options,
+        }, attributes);
+    }
+
+    #! creates the AbstractConnection object
+    /** @param config with the following keys:
+        - name (required string): the connection name
+        - display_name (optional string): the display name
+        - short_desc (optional string): a short description in plain text
+        - desc (optional string): a long description with markdown formatting
+        - url (required string): the connection URL
+        - opts (optional hash): connection options
+        - logger (optional LoggerInterface object): logger for the connection
+        @param attr optional connection attributes
+        - monitor (optional bool): should the connection be monitored? Default: True
+        - enabled (optional bool): is the connection enabled? Default: True
+        - locked (optional bool): is the connection locked? Default: False
+        - debug_data (optional bool): debug data? Default: False
+        - tags (optional hash): tags for the connection; no default value
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+    */
+    constructor(hash<auto> config, *hash<auto> attr) {
+        constructorInit(config, attr);
     }
 
     #! Returns the connection name
@@ -631,7 +669,45 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         status = err;
     }
 
-    /*
+    #! gets a string option value
+    static *string getString(hash<auto> opts, string key, *bool required) {
+        *string v = AbstractConnection::getOptionType(opts, key, NT_STRING, Type::String, required);
+        if (v === "") {
+            if (required) {
+                throw "CONNECTION-OPTION-ERROR", sprintf("required string option %y is %y", key, v);
+            }
+            return;
+        }
+        return v;
+    }
+
+    #! gets a hash option value
+    static *hash<auto> getHash(hash<auto> opts, string key, *bool required) {
+        return AbstractConnection::getOptionType(opts, key, NT_HASH, Type::Hash, required);
+    }
+
+    #! gets a boolean option value
+    static *bool getBool(hash<auto> opts, string key, *bool required) {
+        return AbstractConnection::getOptionType(opts, key, NT_BOOLEAN, Type::Boolean, required);
+    }
+
+    #! gets a hash option value
+    static auto getOptionType(hash<auto> opts, string key, int type_code, string type_name, *bool required) {
+        auto v = opts{key};
+        if (!exists v) {
+            if (!required) {
+                return;
+            }
+            throw "CONNECTION-OPTION-ERROR", sprintf("missing required %s option %y in option argument", type_name,
+                key);
+        }
+        if (v.typeCode() != type_code) {
+            throw "CONNECTION-OPTION-ERROR", sprintf("required option %y was passed as a %s (%y); expecting %y", key,
+                v.type(), v, type_name);
+        }
+        return v;
+    }
+
     #! Returns a ConnectionOptionInfo hash from a DataProviderOptionInfo hash
     static hash<ConnectionOptionInfo> getConnectionOptionInfo(hash<DataProviderOptionInfo> dinfo) {
         hash<ConnectionOptionInfo> rv = cast<hash<ConnectionOptionInfo>>(dinfo{CommonConnectionKeys});
@@ -647,7 +723,6 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
             $1.key: AbstractConnection::getConnectionOptionInfo($1.value)
         }, dinfo.pairIterator());
     }
-    */
 
     #! returns a data provider object for the connection and subtype passed as an argument
     /** @param subtype the subtype of data provider supported, in case the connection can return multiple data providers
@@ -776,28 +851,54 @@ scheme://user:pass@hostname:port/path
     }
 
     #! Common construtor implementation
-    /**
+    /** @param config with the following keys:
+        - name (required string): the connection name
+        - display_name (optional string): the display name
+        - short_desc (optional string): a short description in plain text
+        - desc (optional string): a long description with markdown formatting
+        - url (required string): the connection URL
+        - opts (optional hash): connection options
+        - logger (optional LoggerInterface object): logger for the connection
+        @param attr optional connection attributes
+        - monitor (optional bool): should the connection be monitored?
+        - enabled (optional bool): is the connection enabled?
+        - locked (optional bool): is the connection locked?
+        - debug_data (optional bool): debug data?
+        - tags (optional hash): tags for the connection
+
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
-    private:internal constructorInit(string name, string description, string url, hash<auto> attributes,
-            hash<auto> options) {
+    private:internal constructorInit(hash<auto> config, *hash<auto> attr) {
+        # string name, string description, string url, hash<auto> attributes, hash<auto> options) {
         # metadata
-        self.name = name;
-        desc = description;
+        name = getString(config, "name", True);
+        display_name = getString(config, "display_name") ?? AbstractDataField::getDisplayName(name);
+        desc = getString(config, "desc") ?? AbstractDataProviderType::DefaultDesc;
+        short_desc = getString(config, "short_desc") ?? AbstractDataField::getShortDescription(desc);
 
         # url handling
-        self.url = url;
+        url = getString(config, "url", True);
         urlh = parseUrl(self.url);
         safe_url = getSafeUrl(self.urlh);
 
         # attributes
-        monitor = attributes.monitor ?? True;
-        enabled = attributes.enabled ?? True;
-        locked = attributes.locked ?? False;
-        debug_data = attributes.debug_data ?? False;
-        tags = attributes.tags ?? {};
+        monitor = getBool(attr, "monitor") ?? True;
+        enabled = getBool(attr, "enabled") ?? True;
+        locked = getBool(attr, "locked") ?? False;
+        debug_data = getBool(attr, "debug_data") ?? False;
+        tags = getHash(attr, "tags") ?? {};
 
-        opts = validateOptions(options);
+        # set logger, if any
+        if (config.logger) {
+            if (config.logger instanceof LoggerInterface) {
+                setLogger(config.logger);
+            } else {
+                throw "CONNECTION-OPTION-ERROR", sprintf("constructor option \"logger\" is type %y; expecting a "
+                    "\"LoggerInterface\" object", config.logger.fullType());
+            }
+        }
+
+        opts = validateOptions(getHash(config, "opts") ?? {});
         orig_opts = opts;
         setChildCapabilities();
     }

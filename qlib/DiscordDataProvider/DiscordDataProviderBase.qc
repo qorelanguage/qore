@@ -57,6 +57,20 @@ public class DiscordDataProviderBase inherits DataProvider::AbstractDataProvider
         LoggerWrapper::setLogger(logger);
     }
 
+    #! Wait for a given period of time
+    static threadWait(date wait_period) {
+%ifdef PO_NO_PROCESS_CONTROL
+        # workaround to wait in a context without process control
+        Mutex m();
+        Condition c();
+        m.lock();
+        on_exit m.unlock();
+        c.wait(m, wait_period);
+%else
+        usleep(wait_period);
+%endif
+    }
+
     #! Retrieves info for the given guild; must be accessible to the calling user
     private hash<auto> getGuild(string id) {
         # get guild info; note that users cannot request info for a specific guild directly (AFAIK), only bots can for
@@ -99,7 +113,7 @@ public class DiscordDataProviderBase inherits DataProvider::AbstractDataProvider
                                 "future (%y)", reset, diff);
                         }
                         warn("RATE LIMIT: connection sleeping for: %y", diff);
-                        usleep(diff);
+                        threadWait(diff);
                         continue;
                     }
                 }
