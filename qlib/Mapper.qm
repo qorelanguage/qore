@@ -2734,7 +2734,7 @@ Mapper mapv(DataMap);
             if (v_is_list || (do_list && tc == NT_LIST)) {
                 softlist<auto> v0;
                 if (exists default_value) {
-                    v0 = map (direct_types{$1.typeCode() || !exists $1}
+                    v0 = map ((direct_types{$1.typeCode()} || !exists $1 || $1 === NULL)
                         ? $1
                         : mapFieldType(key, m, type, $1, getrec(rec, $#), v)) ?? default_value,
                         v;
@@ -2745,7 +2745,7 @@ Mapper mapv(DataMap);
                         v;
                 }
                 v = v0;
-            } else if (!exists v && exists default_value) {
+            } else if ((!exists v || v === NULL) && exists default_value) {
                 v = default_value;
             } else if (!direct_types{tc}) {
                 v = mapFieldType(key, m, type, v, rec) ?? default_value;
@@ -2753,7 +2753,7 @@ Mapper mapv(DataMap);
         } else if (exists default_value) {
             # apply default value if it hasn't already been applied
             if (v_is_list) {
-                map v[$#] = default_value, v, !exists $1;
+                map v[$#] = default_value, v, !exists $1 || $1 === NULL;
             } else if (!exists v) {
                 v = default_value;
             }
