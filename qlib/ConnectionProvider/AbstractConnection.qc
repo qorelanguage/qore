@@ -331,9 +331,10 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     */
     hash<ConnectionInfo> getInfo(*hash<auto> opts) {
         hash<ConnectionInfo> h = cast<hash<ConnectionInfo>>(self{
-            "name", "desc", "url", "monitor", "last_check", "updated", "status", "up", "loopback", "enabled",
-            "locked", "debug_data", "tags", "children_can_support_apis", "children_can_support_records",
-            "children_can_support_observers", "children_can_support_messages", "children_can_support_transactions",
+            "name", "display_name", "short_desc", "desc", "url", "monitor", "last_check", "updated", "status", "up",
+            "loopback", "enabled", "locked", "debug_data", "tags", "children_can_support_apis",
+            "children_can_support_records", "children_can_support_observers", "children_can_support_messages",
+            "children_can_support_transactions",
         } + {
             "type": getType(),
             "url_hash": urlh,

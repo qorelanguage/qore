@@ -282,7 +282,13 @@ public hashdecl ConnectionInfo {
     #! the connection name
     string name;
 
-    #! the connection description
+    #! the display name
+    string display_name;
+
+    #! the connection short description in plain text
+    string short_desc;
+
+    #! the connection description in markdown
     string desc;
 
     #! the date/time value of the last connection check (or @ref nothing if not checked)
