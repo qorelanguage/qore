@@ -311,6 +311,8 @@ m.mapData(input1);           # output record hash date_begin = start_date = time
     @section mapperrelnotes Release Notes
 
     @subsection mapperv1_6_2 Mapper v1.6.2
+    - fixed a bug handling default values for output fields with required (not-null) types
+      (<a href="https://github.com/qorelanguage/qore/issues/4847">issue 4847</a>)
     - fixed a bug handling the \c trunc option in mappers when bulk processing
       (<a href="https://github.com/qorelanguage/qore/issues/4845">issue 4845</a>)
 
@@ -2710,8 +2712,11 @@ Mapper mapv(DataMap);
                 delete v;
         }
 
+        # apply default value when checking the value against field's type
+        auto default_value = m.field.getDefaultValue();
+        *AbstractDataProviderType type;
         if (m.field.hasType()) {
-            *AbstractDataProviderType type = m.field.getType();
+            type = m.field.getType();
             if (m.output_key_path) {
                 foreach string elem in (m.output_key_path[1..]) {
                     type = type.getFieldType(elem);
@@ -2720,25 +2725,38 @@ Mapper mapv(DataMap);
                     }
                 }
             }
-            if (type) {
-                *hash<string, bool> direct_types = type.getDirectTypeHash();
-                # note: v_is_list implies do_list
-                if (v_is_list || (do_list && v.typeCode() == NT_LIST)) {
-                    map
-                        v[$#] = mapFieldType(key, m, type, $1, getrec(rec, $#), v),
-                        v,
-                        !direct_types{$1.typeCode()};
-                } else if (!direct_types{v.typeCode()}) {
-                    v = mapFieldType(key, m, type, v, rec);
-                }
-            }
         }
-
-        if (exists (auto default_value = m.field.getDefaultValue())) {
+        # apply type and default value together
+        if (type) {
+            *hash<string, bool> direct_types = type.getDirectTypeHash();
+            # note: v_is_list implies do_list
+            int tc = v.typeCode();
+            if (v_is_list || (do_list && tc == NT_LIST)) {
+                softlist<auto> v0;
+                if (exists default_value) {
+                    v0 = map (direct_types{$1.typeCode() || !exists $1}
+                        ? $1
+                        : mapFieldType(key, m, type, $1, getrec(rec, $#), v)) ?? default_value,
+                        v;
+                } else {
+                    v0 = map (direct_types{$1.typeCode()}
+                        ? $1
+                        : mapFieldType(key, m, type, $1, getrec(rec, $#), v)),
+                        v;
+                }
+                v = v0;
+            } else if (!exists v && exists default_value) {
+                v = default_value;
+            } else if (!direct_types{tc}) {
+                v = mapFieldType(key, m, type, v, rec) ?? default_value;
+            }
+        } else if (exists default_value) {
+            # apply default value if it hasn't already been applied
             if (v_is_list) {
                 map v[$#] = default_value, v, !exists $1;
-            } else if (!exists v)
+            } else if (!exists v) {
                 v = default_value;
+            }
         }
 
         #printf("k: %y (okp: %y) type: %y maxlen: %y size: %y\n", key, m.output_key_path, m.field.getTypeName(),
