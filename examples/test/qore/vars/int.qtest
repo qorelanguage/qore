@@ -28,6 +28,7 @@ class IntTest inherits QUnit::Test {
     }
 
     formatTests() {
+        assertEq("1521", 1521.format("?,0"));
         assertEq("1,001", 1001.format(","));
         assertEq("1,001", 1001.format(",."));
         assertEq("1.001", 1001.format("."));

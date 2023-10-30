@@ -19,6 +19,10 @@ public class FormatNumberTest inherits QUnit::Test {
     }
 
     formatNumberTestMethod() {
+        assertEq("1521", format_number("?,0", 1521));
+        assertEq("1521", format_number("?,0", 1521.0));
+        assertEq("1521", format_number("?,0", 1521n));
+
         assertEq("-48.392.093.894,235", format_number(".,3", -48392093894.2349));
         assertEq("32.000", format_number(".,0", 32000.1239));
         assertEq("32.001", format_number(".", 32000.998));

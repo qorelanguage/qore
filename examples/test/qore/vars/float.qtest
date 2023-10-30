@@ -42,6 +42,7 @@ class FloatTest inherits QUnit::Test {
     }
 
     formatTests() {
+        assertEq("1521", 1521.0.format("?,0"));
         assertEq("1001.33", 1001.3299999.format(""));
         assertEq("1,001", 1001.3299999.format(","));
         assertEq("1,001", 1001.3299999.format(",."));

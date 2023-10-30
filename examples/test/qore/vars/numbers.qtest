@@ -135,6 +135,7 @@ public class NumbersTest inherits QUnit::Test {
     }
 
     formatTests() {
+        assertEq("1521", 1521n.format("?,0"));
         assertEq("1001.3299999", 1001.3299999n.format("").substr(0, 12));
         assertEq("1,001", 1001.3299999n.format(","));
         assertEq("1,001", 1001.3299999n.format(",."));
