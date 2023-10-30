@@ -630,10 +630,15 @@ public class DataProviderActionCatalog {
             };
             info += i.value{"default_value", "required", "sensitive", "example_value"} + additional_fields;
             if (i.value.allowed_values) {
-                info.allowed_values = map <AllowedValueInfo>{
-                    "value": $1,
-                    "desc": DefaultDescription,
-                }, i.value.allowed_values;
+                if (i.value.allowed_values instanceof list<hash<AllowedValueInfo>>
+                    || i.value.allowed_values instanceof hash<AllowedValueInfo>) {
+                    info.allowed_values = i.value.allowed_values;
+                } else {
+                    info.allowed_values = map <AllowedValueInfo>{
+                        "value": $1,
+                        "desc": DefaultDescription,
+                    }, i.value.allowed_values;
+                }
             }
             rv{i.key} = info;
         }
