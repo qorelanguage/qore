@@ -474,8 +474,8 @@ class qdx {
 
             # see if we have a function or method declaration that spans multiple lines
             bool fcall = (line =~ /\w+\s?(\(|\))/);
-            if (fcall || (!fcall && line =~ /[{}]/
-                && line !~ /(namespace|class|struct|public|private|private:internal|private:hierarchy) /)) {
+            if (fcall || (!fcall && line =~ /[{}]/ && line =~ /[\(\)]/
+                && line !~ /(namespace|class|struct|public|private|private:internal|private:hierarchy|const) /)) {
                 # copy of line to check it without parens in quotes
                 string line_copy = line;
                 line_copy =~ s/"(?:[^"\\]|\\.)*"/""/g;
@@ -495,7 +495,7 @@ class qdx {
                 int ctot = (ocb - ccb);
                 int octot = ctot;
 
-                #printf("l: %y lc: %y ctot: %d\n", line, line_copy, ctot);
+                #printf("l: %y lc: %y fcall: %y tot: %y ctot: %y\n", line, line_copy, fcall, tot, ctot);
 
                 if (tot > 0
                     || (!tot && !ctot && !ocb && !ccb && line_copy && line_copy !~ /;\s*(#.*)?$/)

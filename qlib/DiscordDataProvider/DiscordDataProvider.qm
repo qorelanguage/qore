@@ -100,8 +100,13 @@ module DiscordDataProvider {
     services.
 
     This data provider provides Discord API access to:
-    - calendarList:
-      - <b><tt>@ref DiscordDataProvider::DiscordCalendarListListDataProvider "calendar/calendarList/list"</tt></b>
+    - guild (server) info (by ID and name):
+      - <b><tt>@ref DiscordDataProvider::DiscordGuildGetDataProvider "guilds/{id}/get"</tt></b>
+      - <b><tt>@ref DiscordDataProvider::DiscordGuildGetDataProvider "guilds-by-name/{name}/get"</tt></b>
+    - user info:
+      - <b><tt>@ref DiscordDataProvider::DiscordUserInfoGetDataProvider "user-info"</tt></b>
+    - Discord WebSocket gateway events:
+      - <b><tt>@ref DiscordDataProvider::DiscordGatewayDataProvider "discordws"
 
     To use this data provider, you will need a connection that has already executed the OAuth2 authorization code flow
     and acquired a token to communicate with the Discord API.
@@ -112,10 +117,20 @@ module DiscordDataProvider {
 
     @section discorddataprovider_examples Discord Data Provider Examples
 
-    These examples are with \c qdp, the command-line interface to the Data Provider API.
+    These examples are with \c qdp, the command-line interface to the Data Provider API, and additionally assume that
+    there is an available connection called \c discord, which has been fully authorized with OAuth2 to access Discord
+    on behalf of the user.
 
-    @par API Example: Retrieve Metadata for All Calendars
-    @verbatim qdp Discord-conn/calendar/calendarList/list dor
+    @par API Example: Retrieve Information for a Guild by Name
+    @verbatim qdp discord/guilds-by-name/"My Server"/get dor
+    @endverbatim
+
+    @par API Example: Retrieve Information About the Current User
+    @verbatim qdp discord/user-info dor
+    @endverbatim
+
+    @par API Example: Communicate with the Discord Gateway API
+    @verbatim qdp -s discordws discord/discordws ix
     @endverbatim
 
     @section Discorddataprovider_relnotes Release Notes

@@ -53,7 +53,7 @@ module FileDataProvider {
             "display_name": "Local Filesystem",
             "short_desc": "Access to the local filesystem",
             "desc": "Access to the local filesystem",
-            "scheme": "filesystem",
+            "scheme": "file",
             "logo": FileLogo,
             "logo_file_name": "generic-filesystem-logo.svg",
             "logo_mime_type": MimeTypeSvg,
