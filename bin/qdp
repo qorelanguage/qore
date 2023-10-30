@@ -667,8 +667,32 @@ class QdpCmd {
 
     static *hash<auto> getSearchExpression(string action, *bool required) {
         *hash<auto> rv = QdpCmd::getHash(action, required);
-        if (opts.exp && rv.size() == 2 && rv."exp".typeCode() == NT_STRING && rv.hasKey("args")) {
-            return cast<hash<DataProviderExpression>>(rv);
+        if (opts.exp && rv.size() == 2 && rv.exp.typeCode() == NT_STRING && rv.hasKey("args")) {
+            return QdpCmd::getExpression(rv.exp, rv.args);
+        }
+        return rv;
+    }
+
+    static hash<DataProviderExpression> getExpression(string exp, auto args) {
+        return <DataProviderExpression>{
+            "exp": exp,
+            "args": QdpCmd::getExpressionArgs(args),
+        };
+    }
+
+    static *softlist<auto> getExpressionArgs(auto args) {
+        if (!exists args) {
+            return;
+        }
+        list<auto> rv = ();
+        foreach auto arg in (args) {
+            if (arg.size() == 2 && arg.exp.typeCode() == NT_STRING && arg.hasKey("args")) {
+                rv += QdpCmd::getExpression(arg.exp, arg.args);
+            } else if (arg.field.typeCode() == NT_STRING) {
+                rv += cast<hash<DataProviderFieldReference>>(arg);
+            } else {
+                rv += arg;
+            }
         }
         return rv;
     }
