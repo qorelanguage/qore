@@ -695,7 +695,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     #! gets a hash option value
     static auto getOptionType(hash<auto> opts, string key, int type_code, string type_name, *bool required) {
         auto v = opts{key};
-        if (!exists v) {
+        if (!exists v || v === NULL) {
             if (!required) {
                 return;
             }
