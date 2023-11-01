@@ -211,7 +211,7 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                 "added to the polling connection monitor", name);
         }
         string cmd;
-        AutoLock al(m);
+        RecursiveAutoLock al(m);
         if (*hash<PollInfo> info = cache{name}) {
             # if the connection has already been added, then ignore
             if (info.conn == conn) {
@@ -244,7 +244,7 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
         bool stopped;
 
         {
-            AutoLock al(m);
+            RecursiveAutoLock al(m);
             if (remove cache{name}) {
                 rv = True;
                 sendCmd(IO_REMOVE);
@@ -471,5 +471,24 @@ hashdecl PollInfo {
 
     # other data stored alongside the connection
     *hash<auto> other;
+}
+
+class RecursiveAutoLock {
+    private {
+        Mutex m;
+    }
+
+    constructor(Mutex m) {
+        if (!m.lockOwner()) {
+            m.lock();
+            self.m = m;
+        }
+    }
+
+    destructor() {
+        if (m) {
+            m.unlock();
+        }
+    }
 }
 }
