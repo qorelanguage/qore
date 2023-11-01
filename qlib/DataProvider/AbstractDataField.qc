@@ -257,7 +257,8 @@ public class AbstractDataField inherits Qore::Serializable {
 
     #! Converts a technical name into a display name
     static string getDisplayName(string name) {
-        # convert name to display name
+        # convert dashes and underscores to spaces
+        name =~ s/[-_]/ /g;
         bool wb;
         string display_name;
         for (int i = 0, int e = name.length(); i < e; ++i) {
