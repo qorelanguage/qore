@@ -441,6 +441,33 @@ public class DataProviderActionCatalog {
         return smap{scheme};
     }
 
+    #! Returns a hash of all actions for the given application
+    /** @param app the data provider application
+
+        @return a hash of actions keyed by action name for the given application
+
+        @see getActionHashEx()
+    */
+    static *hash<string, hash<DataProviderActionInfo>> getActionHash(string app) {
+        return app_actionmap{app};
+    }
+
+    #! Returns a hash of all actions for the given application
+    /** @param app the data provider application
+
+        @return a hash of actions keyed by action name for the given application
+
+        @throw APP-ERROR the given application is not registered
+
+        @see getActionHash()
+    */
+    static *hash<string, hash<DataProviderActionInfo>> getActionHashEx(string app) {
+        if (*hash<string, hash<DataProviderActionInfo>> rv = app_actionmap{app}) {
+            return rv;
+        }
+        throw "APP-ERROR", sprintf("application %y is not registered", app);
+    }
+
     #! Returns all actions for the given application
     /** @param app the data provider application
 

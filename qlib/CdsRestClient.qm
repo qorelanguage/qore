@@ -446,21 +446,6 @@ public class CdsRestConnection inherits RestClient::RestConnection {
     }
 
     #! creates the CdsRestConnection object
-    /** @param name the name of the connection
-        @param description connection description
-        @param url connection URL (potentially with password info)
-        @param attributes various attributes. See below
-        @param options see the class documentation for valid options
-
-        See @ref ConnectionProvider::AbstractConnection::constructor() for \c attributes and \c options reference.
-
-        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
-    */
-    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : RestConnection(name, description, url, attributes, CdsRestConnection::getOptions(url, options)) {
-    }
-
-    #! creates the CdsRestConnection object
     /** @param config with the following keys:
         - name (required string): the connection name
         - display_name (optional string): the display name
@@ -628,8 +613,8 @@ public class CdsRestConnection inherits RestClient::RestConnection {
         return ConnectionScheme;
     }
 
-    #! returns options for @ref GoogleRestConnection::constructor()
-    private static hash<auto> getOptions(string url, hash<auto> orig_opts) {
+    #! returns options for @ref CdsRestConnection::constructor()
+    private static hash<auto> getOptions(string url, *hash<auto> orig_opts) {
         # to enusure opts are hash<auto>
         hash<auto> opts += orig_opts;
 
@@ -665,14 +650,25 @@ public class CdsRestConnection inherits RestClient::RestConnection {
     }
 }
 
-class DynamicsRestConnection inherits CdsRestConnection {
+#! For REST connections to Microsoft Dynamics
+public class DynamicsRestConnection inherits CdsRestConnection {
     public {
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "display_name": "Microsoft Dynamics REST Server",
             "short_desc": "A connection to a Microsoft Dynamics REST server",
             "cls": Class::forName("DynamicsRestConnection"),
-            "options": CdsRestConnection::ConnectionScheme.options - "api_profile",
+            "options": CdsRestConnection::ConnectionScheme.options + {
+                "api_profile": CdsRestConnection::ConnectionScheme.options.api_profile + <ConnectionOptionInfo>{
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "desc": "Set REST client options for the Dynamics API",
+                            "value": "dynamics",
+                        },
+                    ),
+                    "default_value": "dynamics",
+                },
+            },
             "schemes": {
                 "dynamics": True,
             },
@@ -682,20 +678,27 @@ class DynamicsRestConnection inherits CdsRestConnection {
         };
     }
 
-    #! creates the GoogleRestConnection object
-    /** @param name the name of the connection
-        @param description connection description
-        @param url this aargument is ignored; the default Google API is always used
-        @param attributes various attributes. See below
-        @param options connection options
+    #! creates the CdsRestConnection object
+    /** @param config with the following keys:
+        - name (required string): the connection name
+        - display_name (optional string): the display name
+        - short_desc (optional string): a short description in plain text
+        - desc (optional string): a long description with markdown formatting
+        - url (required string): the connection URL
+        - opts (optional hash): connection options
+        - logger (optional LoggerInterface object): logger for the connection
+        @param attr optional connection attributes
+        - monitor (optional bool): should the connection be monitored? Default: True
+        - enabled (optional bool): is the connection enabled? Default: True
+        - locked (optional bool): is the connection locked? Default: False
+        - debug_data (optional bool): debug data? Default: False
+        - tags (optional hash): tags for the connection; no default value
 
-        See @ref ConnectionProvider::AbstractConnection::constructor() for \c attributes and \c options reference.
-
-        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
     */
-    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : CdsRestConnection(name, description, url, attributes,
-                CdsRestConnection::getOptions(url, options + {"api_profile": "dynamics"})) {
+    constructor(hash<auto> config, *hash<auto> attr)
+            : CdsRestConnection(config + {"opts": CdsRestConnection::getOptions(config.url, config.opts
+                + {"api_profile": "dynamics"})}, attr) {
     }
 
     #! returns \c "dynamics"

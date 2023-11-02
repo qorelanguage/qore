@@ -672,7 +672,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     }
 
     #! gets a string option value
-    static *string getString(hash<auto> opts, string key, *bool required) {
+    static *string getString(*hash<auto> opts, string key, *bool required) {
         *string v = AbstractConnection::getOptionType(opts, key, NT_STRING, Type::String, required);
         if (v === "") {
             if (required) {
@@ -684,17 +684,17 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     }
 
     #! gets a hash option value
-    static *hash<auto> getHash(hash<auto> opts, string key, *bool required) {
+    static *hash<auto> getHash(*hash<auto> opts, string key, *bool required) {
         return AbstractConnection::getOptionType(opts, key, NT_HASH, Type::Hash, required);
     }
 
     #! gets a boolean option value
-    static *bool getBool(hash<auto> opts, string key, *bool required) {
+    static *bool getBool(*hash<auto> opts, string key, *bool required) {
         return AbstractConnection::getOptionType(opts, key, NT_BOOLEAN, Type::Boolean, required);
     }
 
     #! gets a hash option value
-    static auto getOptionType(hash<auto> opts, string key, int type_code, string type_name, *bool required) {
+    static auto getOptionType(*hash<auto> opts, string key, int type_code, string type_name, *bool required) {
         auto v = opts{key};
         if (!exists v || v === NULL) {
             if (!required) {
