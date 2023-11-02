@@ -118,6 +118,12 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     - added support for returning data provider subtypes
       (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
 
+    @subsection connectionprovider_1_11 ConnectionProvider 1.11
+    - do not change the connection status based on whether or not a connection can be made
+      (<a href="https://github.com/qorelanguage/qore/issues/4852">issue 4852</a>)
+    - allow connections to be added, updated, and removed while already holding the connection lock
+      (<a href="https://github.com/qorelanguage/qore/issues/4849">issue 4849</a>)
+
     @subsection connectionprovider_1_10 ConnectionProvider 1.10
     - assume connections are up until they are proven to be down
       (<a href="https://github.com/qorelanguage/qore/issues/4789">issue 4789</a>)
