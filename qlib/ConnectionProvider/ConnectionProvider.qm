@@ -479,31 +479,31 @@ public hashdecl ConfigInfo {
 /** As returned by @ref ConnectionProvider::AbstractConnection::ping() "AbstractConnection::ping()"
 */
 public hashdecl PingInfo {
+    #! the name of the connection
     string name;
-    #!< the name of the connection
 
+    #! the description
     string desc;
-    #!< the description
 
+    #! the options set on the connection
     *hash opts;
-    #!< the options set on the connection
 
+    #! a safe version of the URL (without passwords)
     string url;
-    #!< a safe version of the URL (without passwords)
 
+    #! a boolean value giving the result of the ping
     bool ok;
-    #!< a boolean value giving the result of the ping
 
+    #! a @ref relative_dates "relative date/time value" giving the elapsed time of the ping operation
     date time;
-    #!< a @ref relative_dates "relative date/time value" giving the elapsed time of the ping operation
 
+    #! a string giving the result of the ping (\c "OK" or an error message)
     string info;
-    #!< a string giving the result of the ping (\c "OK" or an error message)
 
+    #! an optional free-form hash giving additional info regarding ping operation or the remote system
     *hash ping_info;
-    #!< an optional free-form hash giving additional info regarding ping operation or the remote system
 
-    #!< if an exception occured, all exception info will be returned here
+    #! if an exception occured, all exception info will be returned here
     *hash<ExceptionInfo> ex;
 }
 
