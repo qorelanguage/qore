@@ -50,7 +50,7 @@
 %requires(reexport) FileLocationHandler
 
 module Swagger {
-    version = "2.2.0";
+    version = "2.2.1";
     desc = "Swagger module providing functionality for Swagger 2.0 schema definitions";
     author = "Ondrej Musil <ondrej.musil@qoretechnologies.com>, David Nichols <david.nichols@qoretechnologies.com>";
     url = "http://qore.org";
@@ -149,6 +149,10 @@ RestHandler handler(NOTHING, swagger);
     @endcode
 
     @section swagger_relnotes Swagger Module Release Notes
+
+    @subsection swagger_2_2_1 Swagger v2.2.1
+    - fixed support of nullable object properties
+      (<a href="https://github.com/qorelanguage/qore/issues/4854">issue 4854</a>)
 
     @subsection swagger_2_2 Swagger v2.2
     - implemented lax mode parsing for Swagger schemas with common errors to work
@@ -3944,6 +3948,9 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
          */
         hash<string, SchemaObject> properties;
 
+        #! extention to allow properties to be nullable
+        hash<string, bool> nullable_properties;
+
         #! See https://tools.ietf.org/html/draft-fge-json-schema-validation-00#section-5.4.4.
         /**
             MUST be a bool or an object. If it is an object, it MUST also be
@@ -4107,6 +4114,9 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                         throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'properties' field is not a hash of "
                             "Schema Objects", name);
                     properties{k} = SchemaObject::newSchemaObject(k, val, swagger);
+                    if (!properties{k}.nullable && val."x-nullable") {
+                        nullable_properties{k} = True;
+                    }
                 }
             }
         }
@@ -4220,7 +4230,8 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
             }
             str += "})";
         } else if (additionalProperties instanceof SchemaObject) {
-            string ptype = get_qore_type(additionalProperties.name, additionalProperties.type, additionalProperties.format, additionalProperties.items);
+            string ptype = get_qore_type(additionalProperties.name, additionalProperties.type,
+                additionalProperties.format, additionalProperties.items);
             if (decl)
                 str = sprintf("hash<string, %s> %s()", ptype, name);
             else
@@ -4267,6 +4278,13 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                 name, prop, type);
     }
 
+    private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
+            string name, nothing v, reference<nothing> value) {
+        if (type != "null" && type != "any" && !nullable)
+            throw "SCHEMA-VALIDATION-ERROR", sprintf("Parameter %y for path %y and method %y is null, but the "
+                "expected type is %y", name, path, method, type);
+    }
+
     #! validates a schema object against a value
     private checkIntern(bool serialize, bool request, string type, *string format, string path, string method,
             string name, hash<auto> v, reference<hash<auto>> value) {
@@ -4294,7 +4312,13 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                         throw "SCHEMA-VALIDATION-ERROR", sprintf("property %y is not valid for object %y", key, name);
                     }
                 }
-                prop.check(serialize, request, path, method, key, \value{key});
+                if (exists value{key} || !nullable_properties{key}) {
+                    nv{key} += value{key};
+                    prop.check(serialize, request, path, method, key, \nv{key});
+                }
+            }
+            if (nv) {
+                value = nv;
             }
         }
         # check for missing required properties
