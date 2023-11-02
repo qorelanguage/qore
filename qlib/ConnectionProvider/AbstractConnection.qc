@@ -370,24 +370,25 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     object get(bool connect = True, *hash<auto> rtopts) {
         if (!connect) {
             object o = getImpl(False, rtopts);
-            if (post_processing)
+            if (post_processing) {
                 post_processing(self, o);
+            }
             return o;
         }
 
         on_exit
             last_check = now_us();
 
+        # issue #4852: do not change the connection status based on whether or not a connection can be made
+
         try {
             object o = getImpl(True, rtopts);
-            if (post_processing)
+            if (post_processing) {
                 post_processing(self, o);
-            up = True;
-            status = "OK";
+            }
             return o;
         } catch (hash<ExceptionInfo> ex) {
             status = sprintf("%s: %s", ex.err, ex.desc);
-            up = False;
             rethrow;
         }
     }
