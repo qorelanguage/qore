@@ -1,0 +1,408 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! @file NetSuiteRestClient.qm Qore user module for calling Oracle NetSuite REST services
+
+/*  NetSuiteRestClient.qm Copyright (C) 2020 - 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum qore version
+%requires qore >= 2.0
+
+# require type definitions everywhere
+%require-types
+
+# enable all warnings
+%enable-all-warnings
+
+# don't use "$" for vars, members, and methods, assume local variable scope
+%new-style
+
+# do not ignore argument errors
+%strict-args
+
+%requires(reexport) Mime >= 1.3
+%requires(reexport) RestClient >= 1.3.1
+%requires(reexport) ConnectionProvider >= 1.4
+
+module NetSuiteRestClient {
+    version = "1.0";
+    desc = "user module for calling Oracle NetSuite REST API services";
+    author = "David Nichols <david@qore.org>";
+    url = "https://qore.org";
+    license = "MIT";
+    init = sub () {
+        ConnectionSchemeCache::registerScheme("netsuite", NetSuiteRestConnection::ConnectionScheme);
+    };
+}
+
+/** @mainpage NetSuiteRestClient Module
+
+    @tableofcontents
+
+    @section netsuiterestclientintro NetSuiteRestClient Introduction
+
+    The %NetSuiteRestClient module provides an API for calling Oracle NetSuite REST API services.
+
+    To use this module, use \c "%requires NetSuiteRestClient" in your code.
+
+    All the public symbols in the module are defined in the NetSuiteRestClient namespace.
+
+    The main classes are:
+    - @ref NetSuiteRestClient::NetSuiteRestClient "NetSuiteRestClient":
+      this class provides the REST client API for communuication with the NetSuite REST
+      API; it also automates authentication and authorization to the target
+    - @ref NetSuiteRestClient::NetSuiteRestConnection "NetSuiteRestConnection":
+      provides a REST connection object to Oracle NetSuite cloud services (based on the
+      @ref connectionproviderintro "ConnectionProvider" module)
+
+    @par Example:
+    @code{.py}
+#!/usr/bin/env qore
+
+%new-style
+%strict-args
+%require-types
+%enable-all-warnings
+
+%requires NetSuiteRestClient
+%requires ConnectionProvider
+
+NetSuiteRestClient rest = get_connection("my-netsuite-connection");
+hash<auto> ans = rest.get("/some/uri/path");
+printf("%N\n", ans.body);
+    @endcode
+
+    @section NetSuiterestclientrelnotes Release Notes
+
+    @subsection NetSuiterestclientv1_0 NetSuiteRestClient v1.0
+    - the initial version of the %NetSuiteRestClient module
+*/
+
+#! the NetSuiteRestClient namespace contains all the objects in the NetSuiteRestClient module
+public namespace NetSuiteRestClient {
+#! this class provides the REST client API for communication with NetSuite servers
+/** You must use an OAuth2 token by setting the \c token and \c oauth2_refresh_token options; the following options
+    need to be set as well:
+    - \c oauth2_client_id: the OAuth2 client ID
+    - \c oauth2_client_secret: the OAuth2 client secret
+
+    Then an external program has to guide the user through using the authorization_grant flow to get a token to use;
+    this module does not implement that flow.
+*/
+public class NetSuiteRestClient inherits RestClient::RestClient {
+    public {
+        #! Default REST URL
+        const DefaultUrl = "https://$accountid.suitetalk.api.netsuite.com/services/rest/record";
+
+        #! Default authorization request URL
+        const DefaultAuthUrl = "https://$accountid.netsuite.com/app/login/oauth2/authorize.nl";
+
+        #! Default OAuth2 grant type
+        const DefaultGrantType = "authorization_code";
+
+        #! Default token request URL
+        const DefaultTokenUrl = "https://$accountid.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/token";
+
+        #! Default token logout / deauthorize URL
+        const DefaultLogoutUrl = "https://$accountid.suitetalk.api.netsuite.com/services/rest/auth/oauth2/v1/logout";
+
+        #! Default OAuth2 scopes
+        const DefaultOAuth2Scopes = ("rest_webservices",);
+
+        #! Default constructor options
+        const DefaultOptions = {
+            "oauth2_auth_url": "auto",
+            "oauth2_grant_type": DefaultGrantType,
+            "oauth2_token_url": "auto",
+            "oauth2_logout_url": "auto",
+            "oauth2_scopes": DefaultOAuth2Scopes,
+        };
+
+        #! Default NetSuite ping method
+        const DefaultNetSuitePingMethod= "GET";
+
+        #! Default NetSuite ping headers
+        const DefaultNetSuitePingHeaders = {
+            "Accept": MimeTypeJson,
+        };
+    }
+
+    private {
+        #! NetSuite account ID; can be auto-discovered
+        string account_id;
+
+        #! The OAuth2 logout / token deauthorization URL
+        string oauth2_logout_url;
+    }
+
+    #! creates the object with the given options
+    /**
+        @par Example:
+        @code{.py}
+NetSuiteRestClient rest(opts);
+        @endcode
+
+        @param opts valid options are all the options for the @ref RestClient::RestClient "RestClient" class; note
+        that the URL is set by default if not provided (see @ref DefaultUrl)
+        @param do_not_connect if \c False (the default), then a connection will be immediately established to the
+        remote server
+
+        @throw RESTCLIENT-ERROR invalid option passed to constructor, unsupported data serialization, etc
+    */
+    constructor(hash<auto> opts, *softbool do_not_connect) : RestClient(NetSuiteRestClient::getOptions(opts), True) {
+        if (opts.account_id) {
+            account_id = opts.account_id;
+        }
+        if (!do_not_connect) {
+            if (!token || !account_id) {
+                loginIntern();
+            }
+        }
+    }
+
+    #! Checks if a login is necessary; if so, then the login is performed
+    private checkLogin(*reference<hash<auto>> info) {
+        if (oauth2_grant_type && (!token || !account_id)) {
+            loginIntern(\info);
+        }
+    }
+
+    #! Sets options from the OAuth2 login response on the local object
+    /** @since %SalesforceRestClient 2.0
+    */
+    private setOAuth2LoginInfo(hash<auto> h) {
+        RestClient::setOAuth2LoginInfo(h);
+        if (h.company != account_id) {
+            account_id = h.company;
+            debug("NetSuiteRestClient: set account ID to %y from OAuth2 response", h.company);
+        }
+    }
+
+    #! Perform OAuth2 authentication
+    /** @since %RestClient 2.0
+    */
+    private hash<auto> oauth2Auth(hash<auto> login, *reference<hash<auto>> info) {
+        if (login.client_id && login.client_secret) {
+            # use basic auth for client info
+            clearUserPassword();
+            # restore the username and password on exit
+            on_exit if (username && self.password) {
+                setUserPassword(username, self.password);
+            }
+            setUserPassword(remove login.client_id, remove login.client_secret);
+            return RestClient::oauth2AuthIntern(login, \info);
+        }
+        return RestClient::oauth2Auth(login, \info);
+    }
+
+    #! Returns options to update after an OAuth2 login
+    /** @since %SalesforceRestClient 2.0
+    */
+    private *hash<auto> getUpdateOptionsAfterLogin(hash<auto> h) {
+        *hash<auto> new_opts = RestClient::getUpdateOptionsAfterLogin(h);
+        if (h.company) {
+            if (h.company != account_id) {
+                new_opts.account_id = account_id = h.company;
+            }
+            string new_oauth2_auth_url = replace(DefaultAuthUrl, "$accountid", account_id + ".app");
+            if (oauth2_auth_url != new_oauth2_auth_url) {
+                new_opts.oauth2_auth_url = oauth2_auth_url = new_oauth2_auth_url;
+            }
+            string new_oauth2_token_url = replace(DefaultTokenUrl, "$accountid", account_id);
+            if (oauth2_token_url != new_oauth2_token_url) {
+                new_opts.oauth2_token_url = oauth2_token_url = new_oauth2_token_url;
+            }
+            string new_oauth2_logout_url = replace(DefaultLogoutUrl, "$accountid", account_id);
+            if (oauth2_logout_url != new_oauth2_logout_url) {
+                new_opts.oauth2_token_url = oauth2_token_url = new_oauth2_token_url;
+            }
+
+            string new_url = replace(DefaultUrl, "$accountid", account_id);
+            if (new_url != getURL()) {
+                new_opts.url = new_url;
+                # use netsuite:// as scheme
+                new_opts.url =~ s/^https:/netsuite:/;
+            }
+        }
+        return new_opts;
+    }
+
+    #! returns options for @ref NetSuiteRestClient::NetSuiteRestClient::constructor()
+    private static hash<auto> getOptions(hash<auto> opts) {
+        return DefaultOptions + opts;
+    }
+}
+
+#! Class for NetSuite REST connections; returns @ref NetSuiteRestClient objects
+/** This class implements all options of @ref RestClient::RestClientConnection "RestClientConnection";  in addition,
+    this class provides the following default values for the following options:
+    - \c oauth2_auth_url: \c auto
+    - \c oauth2_grant_type: \c authorization_code
+    - \c oauth2_token_url: \c auto
+
+    @see @ref NetSuiteRestClient::NetSuiteRestClient::constructor() for more information on the above options
+*/
+public class NetSuiteRestConnection inherits RestClient::RestConnection {
+    public {
+        #! Default URL
+        const DefaultUrl = "netsuite://auto-detected";
+
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Oracle NetSuite REST Connection",
+            "short_desc": "A connection to the Oracle NetSuite REST API",
+            "desc": "A connection to the Oracle NetSuite REST API",
+            "cls": Class::forName("NetSuiteRestConnection"),
+            "auto_url": True,
+            "schemes": {
+                "netsuite": True,
+            },
+            "base_scheme_map": {
+                "https": "netsuite",
+            },
+            "options": RestConnection::ConnectionScheme.options + {
+                "account_id": <ConnectionOptionInfo>{
+                    "display_name": "NetSuite Account ID",
+                    "short_desc": "The NetSuite account ID or company ID",
+                    "type": "string",
+                    "desc": "The NetSuite account ID or company ID; if not provided, its value is auto-determined",
+                },
+                "oauth2_auth_url": RestConnection::ConnectionScheme.options.oauth2_auth_url
+                        + <ConnectionOptionInfo>{
+                    "default_value": "auto",
+                },
+                "oauth2_grant_type": RestConnection::ConnectionScheme.options.oauth2_grant_type
+                        + <ConnectionOptionInfo>{
+                    "default_value": NetSuiteRestClient::DefaultGrantType,
+                },
+                "oauth2_logout_url": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Logout URL",
+                    "short_desc": "The logout / deauthorize URL for OAuth2 tokens",
+                    "type": "string",
+                    "desc": "The logout / deauthorize URL for OAuth2 tokens",
+                    "default_value": "auto",
+                },
+                "oauth2_scopes": RestConnection::ConnectionScheme.options.oauth2_scopes
+                        + <ConnectionOptionInfo>{
+                    "default_value": NetSuiteRestClient::DefaultOAuth2Scopes,
+                },
+                "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url
+                    + <ConnectionOptionInfo>{
+                    "default_value": "auto",
+                },
+            },
+            "required_options": "token|oauth2_auth_url,oauth2_grant_type,oauth2_token_url,"
+                "oauth2_client_id,oauth2_client_secret",
+        };
+    }
+
+    #! creates the NetSuiteRestConnection object
+    /** @param config with the following keys:
+        - name (required string): the connection name
+        - display_name (optional string): the display name
+        - short_desc (optional string): a short description in plain text
+        - desc (optional string): a long description with markdown formatting
+        - url (required string): the connection URL
+        - opts (optional hash): connection options
+        - logger (optional LoggerInterface object): logger for the connection
+        @param attr optional connection attributes
+        - monitor (optional bool): should the connection be monitored? Default: True
+        - enabled (optional bool): is the connection enabled? Default: True
+        - locked (optional bool): is the connection locked? Default: False
+        - debug_data (optional bool): debug data? Default: False
+        - tags (optional hash): tags for the connection; no default value
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+    */
+    constructor(hash<auto> config, *hash<auto> attr) : RestConnection(config, attr) {
+    }
+
+    #! returns \c "netsuite"
+    string getType() {
+        return "netsuite";
+    }
+
+    #! Returns the OAuth2 authorization URL or throws an exception if not set
+    /*  @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
+        is to return a full URL
+    */
+    string getAuthUrl(*bool allow_relative) {
+        return opts.oauth2_auth_url == "auto"
+            ? replace(NetSuiteRestClient::DefaultAuthUrl, "$accountid",
+                (opts.account_id ? opts.account_id + ".app" : "system"))
+            : getUrlOption("oauth2_auth_url", allow_relative);
+    }
+
+    #! Returns the OAuth2 token URL or throws an exception if not set
+    /*  @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
+        is to return a full URL
+    */
+    string getTokenUrl(*bool allow_relative) {
+        if (opts.oauth2_token_url == "auto" && opts.account_id) {
+            return replace(NetSuiteRestClient::DefaultTokenUrl, "$accountid", opts.account_id);
+        }
+        return getUrlOption("oauth2_token_url", allow_relative);
+    }
+
+%ifdef HaveNetSuiteDataProvider
+    #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
+    /** @return @ref True as this connection returns a data provider with the @ref getDataProvider() method
+
+        @see @ref getDataProvider()
+    */
+    bool hasDataProvider() {
+        return True;
+    }
+
+    #! returns a data provider object for this connection
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return a data provider object for this connection
+    */
+    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
+        # to avoid circular dependencies, this object loads the NetSuiteDataProvider and creates the data provider
+        # object dynamically
+        load_module("NetSuiteDataProvider");
+        return create_object("NetSuiteDataProvider", get());
+    }
+%endif
+
+    #! Sets child data provider capabilities
+    private setChildCapabilities() {
+        #children_can_support_records = True;
+        #children_can_support_apis = True;
+    }
+
+    #! returns a @ref NetSuiteRestClient object
+    /** @param connect if @ref True "True", then the connection is returned already connected
+        @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
+
+        @return a @ref NetSuiteRestClient object
+    */
+    private NetSuiteRestClient getImpl(bool connect = True, *hash<auto> rtopts) {
+        return new NetSuiteRestClient(getConnectionOptions(), !connect);
+    }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
+}
+}

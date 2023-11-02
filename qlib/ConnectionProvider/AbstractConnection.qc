@@ -61,7 +61,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         hash<auto> urlh;
 
         #! date/time of last check/ping
-        date last_check;
+        *date last_check;
 
         #! status string; in case of a connection error this string will be the error string
         string status = "not checked";

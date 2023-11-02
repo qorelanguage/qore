@@ -55,6 +55,7 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DiscordWebSocketClient.qm \
 	qlib/GoogleRestClient.qm \
 	qlib/HueRestClient.qm \
+	qlib/NetSuiteRestClient.qm \
 	qlib/ServiceNowRestClient.qm \
 	qlib/FilePoller.qm \
 	qlib/FreetdsSqlUtil.qm \

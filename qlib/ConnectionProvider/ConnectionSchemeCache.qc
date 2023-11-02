@@ -131,6 +131,8 @@ public class ConnectionSchemeCache {
             # provided by the jni module
             "mqtt": "MqttDataProvider",
 
+            "netsuite": "NetSuiteRestClient",
+
             "pop3": "Pop3Client",
             "pop3s": "Pop3Client",
 

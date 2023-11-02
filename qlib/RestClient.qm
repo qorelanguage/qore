@@ -1616,18 +1616,25 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     #! Perform OAuth2 authentication
     /** @since %RestClient 2.0
     */
-    private hash<auto> oauth2Auth(hash<auto> login, *reference<hash<auto>> info, *bool no_path) {
-        # clear connection path for login call
-        *string path = getConnectionPath();
-        on_exit setConnectionPath(path);
-        setConnectionPath();
-
+    private hash<auto> oauth2Auth(hash<auto> login, *reference<hash<auto>> info) {
         # do not send a basic auth header in the request
         clearUserPassword();
         # restore the username and password on exit
         on_exit if (username && self.password) {
             setUserPassword(username, self.password);
         }
+
+        return oauth2AuthIntern(login, \info);
+    }
+
+    #! Perform OAuth2 authentication
+    /** @since %RestClient 2.0
+    */
+    private hash<auto> oauth2AuthIntern(hash<auto> login, *reference<hash<auto>> info) {
+        # clear connection path for login call
+        *string path = getConnectionPath();
+        on_exit setConnectionPath(path);
+        setConnectionPath();
 
         # remove tokens and Authorization header
         remove token;
@@ -1673,8 +1680,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         on_error debug("OAuth2: POST to %y failed: %s: %s request: %y headers: %y body: %y response: %y headers: %y "
             "body: %y", url, $1.err, $1.desc, info."request-uri", info.headers, info."request-body",
             info."response-uri", info."response-headers-raw", info."response-body");
-        return RestClient::doRequestIntern("POST", url, login,
-            \info, NOTHING, getOAuth2AuthHeaders()).body;
+        return RestClient::doRequestIntern("POST", url, login, \info, NOTHING, getOAuth2AuthHeaders()).body;
     }
 
     #! Returns headers to use with OAuth2 authorization / token requests
