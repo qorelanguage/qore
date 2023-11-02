@@ -35,7 +35,7 @@
 %requires(reexport) DataProvider
 
 module ConnectionProvider {
-    version = "1.10";
+    version = "1.11";
     desc    = "API for pluggable connection providers to Qore";
     author  = "David Nichols <david.nichols@qoretechnologies.com>";
     url     = "http://qore.org";
@@ -112,6 +112,12 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
     @endverbatim
 
     @section connectionproviderrelnotes Release Notes
+
+    @subsection connectionprovider_1_11 ConnectionProvider 1.11
+    - do not change the connection status based on whether or not a connection can be made
+      (<a href="https://github.com/qorelanguage/qore/issues/4852">issue 4852</a>)
+    - allow connections to be added, updated, and removed while already holding the connection lock
+      (<a href="https://github.com/qorelanguage/qore/issues/4849">issue 4849</a>)
 
     @subsection connectionprovider_1_10 ConnectionProvider 1.10
     - assume connections are up until they are proven to be down
