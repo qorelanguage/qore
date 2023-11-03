@@ -2418,8 +2418,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         }
         # check types and required keys
         foreach hash<auto> i in (option_desc.pairIterator()) {
-            # NOTE: treat the case when the key is present and the value is missing as if they key were not there
-            bool present = exists i.value;
+            # NOTE: treat the case when the key is present and the value is missing as if the key were not there
+            bool present = exists options{i.key};
             if (!present) {
                 if (exists i.value.default_value) {
                     options{i.key} = i.value.default_value;
@@ -2440,8 +2440,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     break;
                 } catch (hash<ExceptionInfo> ex) {
                     if (ex.err == "RUNTIME-TYPE-ERROR") {
-                        err = sprintf("option %y of type %y cannot be assigned a value of type %y: %s: %s", i.key,
-                            type.getName(), options{i.key}.type(), ex.err, ex.desc);
+                        err = sprintf("option %y of type %y cannot be assigned a value of type %y (value %y): %s: %s",
+                            i.key, type.getName(), options{i.key}.type(), options{i.key}, ex.err, ex.desc);
                         continue;
                     }
                     rethrow;
