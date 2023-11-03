@@ -2418,7 +2418,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         }
         # check types and required keys
         foreach hash<auto> i in (option_desc.pairIterator()) {
-            bool present = options.hasKey(i.key);
+            # NOTE: treat the case when the key is present and the value is missing as if they key were not there
+            bool present = exists i.value;
             if (!present) {
                 if (exists i.value.default_value) {
                     options{i.key} = i.value.default_value;

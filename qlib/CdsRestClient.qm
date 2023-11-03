@@ -379,7 +379,7 @@ public class CdsRestConnection inherits RestClient::RestConnection {
                         },
                         /*
                         <AllowedValueInfo>{
-                            "desc": "Set REST client options for the Dynamics 365 API",
+                            "desc": "Set REST client options for the Dynamics 365 Business Central API",
                             "value": "dynamics-business-central",
                         },
                         */
