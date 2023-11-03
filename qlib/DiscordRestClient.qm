@@ -596,11 +596,11 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
     setUpdateOptionsCode(*code update_options) {
         UpdateOptionsInterface::setUpdateOptionsCode(update_options);
         # update the URL immediately if necessary
-        if (update_options && opts.url != DefaultConnectionUrl) {
+        if (update_options && url != DefaultConnectionUrl) {
             doUpdateOptions(self, {
-                "url": opts.url = DefaultConnectionUrl,
+                "url": url = DefaultConnectionUrl,
             });
-            real_url = DiscordRestClient::DefaultUrl;
+            real_opts.url = real_url = DiscordRestClient::DefaultUrl;
         }
     }
 

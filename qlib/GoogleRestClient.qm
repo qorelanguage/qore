@@ -356,6 +356,7 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
 
     #! returns options for @ref GoogleRestConnection::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
+        hash<auto> rv += opts;
         if (*string prof = opts.api_profile) {
             *hash<auto> conf = (GoogleRestClient::ApiProfiles{prof} - ("encode_chars",));
             if (!exists conf) {
@@ -363,9 +364,9 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
                     keys GoogleRestClient::ApiProfiles);
             }
             # set ping options
-            map opts{$1.key} = $1.value, conf.pairIterator(), !opts.hasKey($1.key);
+            map rv{$1.key} = $1.value, conf.pairIterator(), !opts.hasKey($1.key);
         }
-        return opts;
+        return rv;
     }
 
     #! Sets child data provider capabilities
@@ -481,11 +482,11 @@ public class GoogleCalendarRestConnection inherits GoogleRestConnection {
     setUpdateOptionsCode(*code update_options) {
         UpdateOptionsInterface::setUpdateOptionsCode(update_options);
         # update the URL immediately if necessary
-        if (update_options && opts.url != DefaultConnectionUrl) {
+        if (update_options && url != DefaultConnectionUrl) {
             doUpdateOptions(self, {
-                "url": opts.url = DefaultConnectionUrl,
+                "url": url = DefaultConnectionUrl,
             });
-            real_url = GoogleRestClient::DefaultUrl;
+            real_opts.url = real_url = GoogleRestClient::DefaultUrl;
         }
     }
 
