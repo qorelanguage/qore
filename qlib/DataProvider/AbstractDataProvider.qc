@@ -52,7 +52,7 @@ public hashdecl DataProviderOptionInfo {
     string display_name;
 
     #! Option short description in plain text
-    string short_desc;
+    *string short_desc;
 
     #! The option description
     string desc;
@@ -85,6 +85,12 @@ public hashdecl DataProviderOptionInfo {
 public hashdecl DataProviderSummaryInfo {
     #! The name of the data provider
     string name;
+
+    #! Data provider display name
+    string display_name;
+
+    #! Data provider short description in plain text
+    *string short_desc;
 
     #! The description of the data provider; supports markdown
     string desc;
@@ -452,6 +458,17 @@ public hashdecl DataProviderInfo {
     */
     string name;
 
+    #! Data provider display name
+    string display_name;
+
+    #! Data provider short description in plain text
+    *string short_desc;
+
+    #! A markdown description of the data provider
+    /** @note this is a dynamic attribute; it differs for different data providers of the same type
+    */
+    *string desc;
+
     #! The name of the provider type
     /** @note this is a static attribute; it is the same for all data providers of the same type
     */
@@ -741,11 +758,6 @@ public hashdecl DataProviderInfo {
         - the \a handler keys are not returned as they are only valid at runtime
     */
     hash<string, hash<MapperRuntimeKeyInfo>> mapper_keys = Mapper::MapperKeyInfo;
-
-    #! A markdown description of the data provider
-    /** @note this is a dynamic attribute; it differs for different data providers of the same type
-    */
-    *string desc;
 
     #! A list of child data providers in this data provider
     /** @note this is a dynamic attribute; it differs for different data providers of the same type
@@ -1058,6 +1070,12 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         if (!rv.name) {
             rv.name = getName();
         }
+        if (!rv.display_name) {
+            rv.display_name = getDisplayName();
+        }
+        if (!rv.short_desc) {
+            rv.short_desc = getShortDesc() ?? "no description available";
+        }
         if (!rv.desc) {
             rv.desc = getDesc() ?? "no description available";
         }
@@ -1079,10 +1097,28 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         if (!info.name) {
             info.name = getName();
         }
+        if (!info.display_name) {
+            info.display_name = getDisplayName();
+        }
+        if (!info.short_desc) {
+            info.short_desc = getShortDesc() ?? "no description available";
+        }
         if (!info.desc) {
             info.desc = getDesc() ?? "no description available";
         }
         return cast<hash<DataProviderSummaryInfo>>(info{DataProviderSummaryInfoKeys});
+    }
+
+    #! Returns the data provider display name
+    string getDisplayName() {
+        hash<DataProviderInfo> info = getStaticInfoImpl();
+        return info.display_name ?? AbstractDataField::getDisplayName(info.name ?? getName());
+    }
+
+    #! Returns the data provider short description
+    *string getShortDesc() {
+        hash<DataProviderInfo> info = getStaticInfoImpl();
+        return info.short_desc ?? AbstractDataField::getShortDescription(info.desc ?? getDesc());
     }
 
     #! Returns the data provider description
