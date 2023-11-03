@@ -67,6 +67,38 @@ public class Observable {
 
     #! The method registers the given observer
     /** @param observer the observer to be registered
+        @param event_ids event IDs for notifications; if empty, the observer is notified for all events
+
+        @throw EVENT-ERROR type error; additional argument is not a string event ID
+    */
+    registerObserverArgs(Observer observer, *list<auto> event_ids) {
+        hash<ObserverEventInfo> info = <ObserverEventInfo>{
+            "observer": observer,
+        };
+        if (event_ids) {
+            info = registerObserverEventsArgs(info, event_ids);
+        }
+        observer_map{observer.uniqueHash()} = info;
+    }
+
+    #! The method registers the given observer
+    /** @param observer the observer to be registered
+        @param event_ids event IDs for notifications; if empty, the observer is notified for all events
+
+        @note this variant is meant for observer objects implemented in other languages
+    */
+    registerObserverArgs(object observer, *list<auto> event_ids) {
+        hash<ObserverEventInfo> info = <ObserverEventInfo>{
+            "observer": observer instanceof Observer ? observer : new ObserverWrapper(observer),
+        };
+        if (event_ids) {
+            info = registerObserverEventsArgs(info, event_ids);
+        }
+        observer_map{observer.uniqueHash()} = info;
+    }
+
+    #! The method registers the given observer
+    /** @param observer the observer to be registered
         @param filter the filter object for events
         @param ... event IDs for notifications; if no additional arguments are passed, then the observer is
         notified for all events
@@ -99,6 +131,42 @@ public class Observable {
         };
         if (argv) {
             info = registerObserverEventsArgs(info, argv);
+        }
+        observer_map{observer.uniqueHash()} = info;
+    }
+
+    #! The method registers the given observer
+    /** @param observer the observer to be registered
+        @param filter the filter object for events
+        @param event_ids event IDs for notifications; if empty, the observer is notified for all events
+
+        @throw EVENT-ERROR type error; additional argument is not a string event ID
+    */
+    registerObserverWithFilterArgs(Observer observer, AbstractEventFilter filter, *list<auto> event_ids) {
+        hash<ObserverEventInfo> info = <ObserverEventInfo>{
+            "observer": observer,
+            "filter": filter,
+        };
+        if (event_ids) {
+            info = registerObserverEventsArgs(info, event_ids);
+        }
+        observer_map{observer.uniqueHash()} = info;
+    }
+
+    #! The method registers the given observer
+    /** @param observer the observer to be registered
+        @param filter the filter object for events
+        @param event_ids event IDs for notifications; if empty, the observer is notified for all events
+
+        @note this variant is meant for observer objects implemented in other languages
+    */
+    registerObserverWithFilter(object observer, AbstractEventFilter filter, list<auto> event_ids) {
+        hash<ObserverEventInfo> info = <ObserverEventInfo>{
+            "observer": new ObserverWrapper(observer),
+            "filter": filter,
+        };
+        if (event_ids) {
+            info = registerObserverEventsArgs(info, event_ids);
         }
         observer_map{observer.uniqueHash()} = info;
     }
@@ -163,7 +231,7 @@ public class DelayedObservable inherits Observable {
 }
 
 #! This abstract class can be used to filter events that are raised on an Observer
-public class AbstractEventFilter {
+public class AbstractEventFilter inherits Qore::Serializable {
     #! If this returns @ref True, then the event is raised
     abstract bool filter(string event_id, hash<auto> event);
 }
