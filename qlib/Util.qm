@@ -202,6 +202,12 @@ namespace Init {
 public namespace Util {
 #! Allowed value hash
 public hashdecl AllowedValueInfo {
+    #! A display name for the allowed value
+    *string display_name;
+
+    #! A short description in plain text for the value
+    *string short_desc;
+
     #! The value
     auto value;
 
