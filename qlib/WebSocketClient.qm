@@ -68,7 +68,7 @@ module WebSocketClient {
             "display_name": "WebSocket Messaging",
             "short_desc": "Send and receive WebSocket messages",
             "desc": "Send and receive WebSocket messages",
-            "scheme": "ws",
+            "scheme": "wss",
             "logo": WebSocketsLogo,
             "logo_file_name": "generic-websockets-logo.svg",
             "logo_mime_type": MimeTypeSvg,
