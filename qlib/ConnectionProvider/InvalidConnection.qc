@@ -60,11 +60,12 @@ public class InvalidConnection inherits AbstractConnection {
             - \c error a custom error string
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {},
-            *Logger logger) : AbstractConnection(name, description, url, attributes, options, logger) {
+            *Logger logger) : AbstractConnection(name, description, url, attributes, NOTHING, logger) {
         if (attributes.error.val()) {
             error = attributes.error;
         }
         up = False;
+        orig_opts = options;
     }
 
     #! creates the invalid connection object
@@ -85,11 +86,12 @@ public class InvalidConnection inherits AbstractConnection {
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
     */
-    constructor(hash<auto> config, *hash<auto> attr) : AbstractConnection(config, attr) {
+    constructor(hash<auto> config, *hash<auto> attr) : AbstractConnection(config - "opts", attr) {
         if (attr.error.val()) {
             error = attr.error;
         }
         up = False;
+        orig_opts = config.opts;
     }
 
     #! Parse the URL to a hash
