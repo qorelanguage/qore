@@ -234,7 +234,11 @@ class MyConnection inherits AbstractConnection {
         const URL = "sql://pgsql:user/pass@db%host:1234";
     }
 
-    constructor() : AbstractConnection("name", "desc", URL, {"locked": True}) {
+    constructor() : AbstractConnection({
+        "name": "name",
+        "desc": "desc",
+        "url": URL,
+    }, {"locked": True}) {
     }
 
     private hash<auto> parseUrl(string url) {

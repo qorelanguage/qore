@@ -220,7 +220,7 @@ ServiceNowRestClient rest({
         setConnectionPath(uri_path_pfx);
 
         if (!do_not_connect) {
-            if (oauth2_client_id && !token) {
+            if (oauth2_grant_type && opts.oauth2_grant_type != "none" && !token) {
                 loginIntern();
             } else {
                 connect();
@@ -278,18 +278,13 @@ ServiceNowRestClient rest({
 
     #! returns options for @ref ServiceNowRestClient::ServiceNowRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
-        if (opts.client_id && opts.client_secret) {
-            opts += {
-                "oauth2_auth_url": opts.oauth2_auth_url ?? OAuth2AuthUriPathSuffix,
-                "oauth2_token_url": opts.oauth2_token_url ?? OAuth2TokenUriPathSuffix,
-                "oauth2_grant_type": opts.oauth2_grant_type ?? OAuth2DefaultGrantType,
-                "oauth2_client_id": opts.client_id,
-                "oauth2_client_secret": opts.client_secret,
-            };
-        } else {
-            opts -= "oauth2_grant_type";
-        }
-        return opts;
+        return opts + {
+            "oauth2_auth_url": opts.oauth2_auth_url ?? OAuth2AuthUriPathSuffix,
+            "oauth2_token_url": opts.oauth2_token_url ?? OAuth2TokenUriPathSuffix,
+            "oauth2_grant_type": opts.oauth2_grant_type ?? OAuth2DefaultGrantType,
+            "oauth2_client_id": opts.client_id,
+            "oauth2_client_secret": opts.client_secret,
+        };
     }
 }
 
@@ -335,6 +330,12 @@ public class ServiceNowRestConnection inherits RestClient::RestConnection {
                     "default_value": ServiceNowRestClient::OAuth2AuthUriPathSuffix,
                 },
                 "oauth2_grant_type": RestConnection::ConnectionScheme.options.oauth2_grant_type + <ConnectionOptionInfo>{
+                    "allowed_values": RestConnection::ConnectionScheme.options.oauth2_grant_type.allowed_values + (
+                        <AllowedValueInfo>{
+                            "value": "none",
+                            "desc": "no OAuth2 grant flow used",
+                        },
+                    ),
                     "default_value": ServiceNowRestClient::OAuth2DefaultGrantType,
                 },
                 "oauth2_token_url": RestConnection::ConnectionScheme.options.oauth2_token_url + <ConnectionOptionInfo>{

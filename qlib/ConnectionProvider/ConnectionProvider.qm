@@ -353,6 +353,11 @@ public hashdecl ConnectionInfo {
     #! Data provider subtype information
     *hash<string, *hash<string, hash<DataProviderOptionInfo>>> dataprovider_subtypes;
 
+    #! @ref True if the connection requires OAuth2 authorization before it can be used
+    /** @ref False if already authorized, or the connection does not support authorization
+    */
+    bool needs_auth;
+
     #! if the connection supports the data provider API
     bool has_provider = False;
 
@@ -445,6 +450,11 @@ public hashdecl ConnectionDataInfo {
 
     #! Data provider subtype information
     *hash<string, *hash<string, hash<auto>>> dataprovider_subtypes;
+
+    #! @ref True if the connection requires OAuth2 authorization before it can be used
+    /** @ref False if already authorized, or the connection does not support authorization
+    */
+    bool needs_auth;
 
     #! if the connection supports the data provider API
     bool has_provider = False;

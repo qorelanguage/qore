@@ -712,7 +712,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         setupAuth(opts);
 
         if (!do_not_connect) {
-            if (oauth2_grant_type && !token) {
+            if (oauth2_grant_type && oauth2_grant_type != "none" && !token) {
                 loginIntern();
             } else {
                 connect();
@@ -1243,14 +1243,14 @@ hash<auto> ans = rest.del("/orders/1");
     /** @since %RestClient 2.0
     */
     bool usingOAuth2() {
-        return oauth2_grant_type.val();
+        return oauth2_grant_type.val() && oauth2_grant_type != "none";
     }
 
     #! Returns True if the client requires an OAuth2 token
     /** @since %RestClient 2.0
     */
     bool requiresOAuth2Token() {
-        return oauth2_grant_type && !exists token;
+        return oauth2_grant_type && oauth2_grant_type != "none" && !exists token;
     }
 
     #! Sets a token for authentication
@@ -1350,7 +1350,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             return doRequestIntern(m, path, body, \info, decode_errors, hdr);
         } catch (hash<ExceptionInfo> ex) {
             # in case of a 401 error, try to get a new token
-            if (oauth2_grant_type && oauth2_auto_refresh
+            if (oauth2_grant_type && oauth2_grant_type != "none" && oauth2_auto_refresh
                 && ((now_us() - token_timestamp) > MinimumTokenRefresh) && isAuthTokenError(info."response-code",
                     info."response-headers", decode_errors, info."body-content-type", info."response-body")) {
                 on_error {
@@ -1556,7 +1556,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     */
     private checkOAuth2Options(hash<auto> opts) {
         *string grant_type = opts.oauth2_grant_type;
-        if (!exists grant_type) {
+        if (!exists grant_type || grant_type == "none") {
             return;
         }
         *list<string> req_opts = OAuth2GrantOptions{grant_type};
@@ -1790,7 +1790,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
     #! Checks if a login is necessary; if so, then the login is performed
     private checkLogin(*reference<hash<auto>> info) {
-        if (oauth2_grant_type && !token) {
+        if (oauth2_grant_type && oauth2_grant_type != "none" && !token) {
             loginIntern(\info);
         }
     }
@@ -2350,6 +2350,17 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         setupRest();
     }
 
+    #! Returns True if the connection requires OAuth2 authorization before it can be used
+    /** @return @ref True if the connection requires OAuth2 authorization, @ref False if already authorized, or the
+        connection does not support authorization
+
+        @since RestClient 2.2
+    */
+    bool needsAuth() {
+        return opts.oauth2_grant_type == "authorization_code" && !opts.token
+            && (!opts.oauth2_refresh_token || !opts.oauth2_auto_refresh);
+    }
+
     #! Returns the OAuth2 option name for this connection
     /** @since %RestClient 2.0
     */
@@ -2553,7 +2564,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         });
     }
 
-    #! Common REST client initialization
+    #! Common REST client initialization\
+    /** @since RestClient 2.2.0
+    */
     private setupRest() {
         real_opts = {"url": real_url} + opts;
         if (urlh.username.val() && !opts.username) {
@@ -2564,11 +2577,63 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         }
 
         # setup feature list appropriately
-        if (opts.oauth2_grant_type) {
+        if (opts.oauth2_grant_type && opts.oauth2_grant_type != "none") {
             features{CF_UPDATE_OPTIONS} = True;
         }
         if (opts.oauth2_grant_type == "authorization_code") {
             checkAuthCodeFeature();
+        }
+
+        # check if the connection can theoretically communicate, if not, sets the connection as down
+        checkCanConnect();
+    }
+
+    #! Checks if the connection can theoretically communicate, if not, sets the connection as down
+    /** Connections are assumed to be up when created; this method call is made during constructor initialization and
+        should set the \c up flag to @ref False and set the \c status key appropriately in case the connection has an
+        incomplete or invalid configuration
+
+        @since RestClient 2.2.0
+    */
+    private checkCanConnect() {
+        try {
+            if (opts.oauth2_grant_type && opts.oauth2_grant_type != "none") {
+                *list<string> req_opts = RestClient::OAuth2GrantOptions{opts.oauth2_grant_type};
+                if (!req_opts) {
+                    throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y is unknown; known grant types: %y",
+                        opts.oauth2_grant_type, keys RestClient::OAuth2GrantOptions);
+                }
+
+                if (*list<string> missing = keys ((map {$1: True}, req_opts) - keys opts)) {
+                    throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y requires the following options to be "
+                        "set: %y; from these the following are not set on this connection: %y",
+                        opts.oauth2_grant_type, req_opts, missing);
+                }
+
+                switch (opts.oauth2_grant_type) {
+                    case "authorization_code": {
+                        if (!opts.token && (!opts.oauth2_refresh_token || !opts.oauth2_auto_refresh)) {
+                            getAuthorizationCodeRequest();
+                        }
+                        break;
+                    }
+
+                    case "password": {
+                        if (!opts.username && !urlh.username) {
+                            throw "OAUTH2-ERROR", "the 'password' OAuth2 grant type requires a username and "
+                                "password; no username is set for the current connection";
+                        }
+                        if (!opts.password && !urlh.password) {
+                            throw "OAUTH2-ERROR", "the 'password' OAuth2 grant type requires a username and "
+                                "password; no password is set for the current connection";
+                        }
+                        break;
+                    }
+                }
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            up = False;
+            status = ex.desc;
         }
     }
 

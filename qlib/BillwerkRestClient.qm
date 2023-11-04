@@ -211,7 +211,7 @@ BillwerkRestClient billwerk(
         }
 
         if (!do_not_connect) {
-            if (!token) {
+            if (oauth2_grant_type && !token) {
                 loginIntern();
             } else {
                 connect();
@@ -223,6 +223,13 @@ BillwerkRestClient billwerk(
     static hash<auto> getOptions(hash<auto> options) {
         # the "{}" is to ensure that "new_options" stays "hash<auto>"
         hash<auto> new_options = {} + options;
+        # rename client_id and client_secret
+        if (new_options.client_id) {
+            new_options.oauth2_client_id = remove new_options.client_id;
+        }
+        if (new_options.client_secret) {
+            new_options.oauth2_client_secret = remove new_options.client_secret;
+        }
 
         # remove username and password from URL
         hash<UrlInfo> url_info = parse_url(options.url);
@@ -238,19 +245,10 @@ BillwerkRestClient billwerk(
         if (!exists options.no_charset) {
             new_options.no_charset = True;
         }
-        new_options.oauth2_token_url = AuthPath;
-        if (options.client_id && options.client_secret) {
-            if ((url_info.username && url_info.password)
-                || (options.username && options.password)) {
-                    new_options.oauth2_grant_type = "password";
-            } else {
-                new_options.oauth2_grant_type = "client_credentials";
-            }
-            new_options += {
-                "oauth2_client_id": options.client_id,
-                "oauth2_client_secret": options.client_secret,
-            };
+        if (!new_options.oauth2_token_url) {
+            new_options.oauth2_token_url = AuthPath;
         }
+
         return new_options;
     }
 }

@@ -287,16 +287,12 @@ CdsRestClient rest({
         opts.url += opts.tenant;
         return opts + {
             "data": "json",
-        } + ((opts.client_id && opts.client_secret)
-            ? {
-                "oauth2_auth_url": opts.oauth2_auth_url ?? "auto",
-                "oauth2_token_url": opts.oauth2_token_url ?? "auto",
-                "oauth2_grant_type": opts.oauth2_grant_type ?? "authorization_code",
-                "oauth2_client_id": opts.client_id,
-                "oauth2_client_secret": opts.client_secret,
-            }
-            : NOTHING
-        );
+            "oauth2_auth_url": opts.oauth2_auth_url ?? "auto",
+            "oauth2_token_url": opts.oauth2_token_url ?? "auto",
+            "oauth2_grant_type": opts.oauth2_grant_type ?? "authorization_code",
+            "oauth2_client_id": opts.client_id,
+            "oauth2_client_secret": opts.client_secret,
+        };
     }
 
     #! sends the outgoing HTTP message and recodes the response to data

@@ -155,6 +155,8 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         @param safe_url "safe" URL (password information removed); if not set this will be set automatically by
         calling @ref getSafeUrl()
         @param enabled enabled/disabled flag
+
+        @note use constructor(hash<auto> config, *hash<auto> attr instead
     */
     deprecated
     constructor(string name,
@@ -197,9 +199,11 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         - \c tags (hash), no default value
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+
+        @note use constructor(hash<auto> config, *hash<auto> attr instead
     */
-    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {},
-            *LoggerInterface logger) : LoggerWrapper(logger) {
+    deprecated constructor(string name, string description, string url, hash<auto> attributes = {},
+            hash<auto> options = {}, *LoggerInterface logger) : LoggerWrapper(logger) {
         constructorInit({
             "name": name,
             "desc": description,
@@ -239,6 +243,24 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         return name;
     }
 
+    #! Returns the connection display name
+    /** @return the connection display name
+
+        @since %ConnectionProvider 2.0
+    */
+    string getDisplayName() {
+        return display_name;
+    }
+
+    #! Returns the connection short description
+    /** @return the connection short description
+
+        @since %ConnectionProvider 2.0
+    */
+    string getShortDescription() {
+        return short_desc;
+    }
+
     #! Returns the connection description
     /** @return the connection description
 
@@ -264,6 +286,18 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     */
     string getSafeUrl() {
         return safe_url;
+    }
+
+    #! Returns True if the connection requires OAuth2 authorization before it can be used
+    /** @return @ref True if the connection requires OAuth2 authorization, @ref False if already authorized, or the
+        connection does not support authorization
+
+        This base class method returns @ref False by default
+
+        @since %ConnectionProvider 2.0
+    */
+    bool needsAuth() {
+        return False;
     }
 
     #! returns a hash with the results of the ping operation
@@ -341,6 +375,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
             "has_provider": hasDataProvider(),
             "features": getFeatures(),
             "dataprovider_subtypes": getDataProviderSubtypes(),
+            "needs_auth": needsAuth(),
         });
         if (!opts.with_passwords) {
             h.url = safe_url;

@@ -337,14 +337,12 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                                 if (!info) {
                                     *bool oldok = c.last_check ? c.up : NOTHING;
                                     c.last_check = i.value.start;
-                                    c.up = True;
                                     handlePingSuccess(i.key, now_us() - i.value.start, oldok);
                                 } else {
                                     poll_list += info;
                                 }
                             } catch (hash<ExceptionInfo> ex) {
                                 c.last_check = i.value.start;
-                                c.up = False;
                                 handlePingFailed(i.key, now_us() - i.value.start, ex);
                             }
                         }
