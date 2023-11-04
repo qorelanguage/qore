@@ -113,6 +113,15 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
         stop();
     }
 
+    #! Returns information about the object
+    hash<auto> getInfo() {
+        return {
+            "autostart": autostart,
+            "connections": keys cache,
+            "io_tid": tid,
+        };
+    }
+
     #! Set autostart flag
     setAutostart(bool autostart = True) {
         self.autostart = autostart;

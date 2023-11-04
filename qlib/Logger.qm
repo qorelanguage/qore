@@ -485,7 +485,7 @@ public class LoggerEventParameter {
     /**
         @param func function to be called with optional arguments followed
     */
-    constructor(code func) {
+    constructor(code func, ...) {
         callable = func;
         args = argv;
     }
@@ -2530,7 +2530,7 @@ public class LoggerInterface inherits Qore::Serializable {
         the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    abstract log(LoggerLevel level, string message);
+    abstract log(LoggerLevel level, string message, ...);
 
     #! Logs a message using the provided logging level
     /**
@@ -2539,7 +2539,7 @@ public class LoggerInterface inherits Qore::Serializable {
         the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    abstract log(int level, string message);
+    abstract log(int level, string message, ...);
 
     #! Logs a message using the provided logging level
     /**
@@ -2548,7 +2548,7 @@ public class LoggerInterface inherits Qore::Serializable {
         the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    abstract log(string level, string message);
+    abstract log(string level, string message, ...);
 
     #! Logs a message using the provided logging level and a single argument for any format string arguments
     /**
@@ -2779,8 +2779,8 @@ public class LoggerWrapper inherits LoggerInterface {
         the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    log(LoggerLevel level, string message) {
-        *LoggerInterface logger = self.logger;
+    log(LoggerLevel level, string message, ...) {
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(level, message, argv);
         }
@@ -2793,8 +2793,8 @@ public class LoggerWrapper inherits LoggerInterface {
         the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    log(int level, string message) {
-        *LoggerInterface logger = self.logger;
+    log(int level, string message, ...) {
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(level, message, argv);
         }
@@ -2807,8 +2807,8 @@ public class LoggerWrapper inherits LoggerInterface {
         the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    log(string level, string message) {
-        *LoggerInterface logger = self.logger;
+    log(string level, string message, ...) {
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(level, message, argv);
         }
@@ -2824,7 +2824,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param args any format string arguments to the log message
     */
     logArgs(LoggerLevel level, string message, *softlist<auto> args) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(level, message, args);
         }
@@ -2840,7 +2840,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param args any format string arguments to the log message
     */
     logArgs(int level, string message, *softlist<auto> args) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(level, message, args);
         }
@@ -2856,7 +2856,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param args any format string arguments to the log message
     */
     logArgs(string level, string message, *softlist<auto> args) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(level, message, args);
         }
@@ -2867,7 +2867,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param event the event to log
     */
     logEvent(LoggerEvent event) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logEvent(event);
         }
@@ -2881,7 +2881,7 @@ public class LoggerWrapper inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     trace(string message, ...) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(LoggerLevel::getLevelTrace(), message, argv);
         }
@@ -2895,7 +2895,7 @@ public class LoggerWrapper inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     debug(string message, ...) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(LoggerLevel::getLevelDebug(), message, argv);
         }
@@ -2909,7 +2909,7 @@ public class LoggerWrapper inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     info(string message, ...) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(LoggerLevel::getLevelInfo(), message, argv);
         }
@@ -2923,7 +2923,7 @@ public class LoggerWrapper inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     warn(string message, ...) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(LoggerLevel::getLevelWarn(), message, argv);
         }
@@ -2937,7 +2937,7 @@ public class LoggerWrapper inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     error(string message, ...) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(LoggerLevel::getLevelError(), message, argv);
         }
@@ -2951,7 +2951,7 @@ public class LoggerWrapper inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     fatal(string message, ...) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.logArgs(LoggerLevel::getLevelFatal(), message, argv);
         }
@@ -2970,7 +2970,7 @@ public class LoggerWrapper inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     assertLog(bool assertion, string message, ...) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.assertLogArgs(assertion, message, argv);
         }
@@ -2984,7 +2984,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param value the value of the variable
     */
     traceVar(string var_name, auto value) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.traceVar(var_name, value);
         }
@@ -2998,7 +2998,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param value the value of the variable
     */
     debugVar(string var_name, auto value) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.debugVar(var_name, value);
         }
@@ -3009,7 +3009,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param level the log level to check
     */
     bool isEnabledFor(LoggerLevel level) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.isEnabledFor(level);
         }
@@ -3020,7 +3020,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param level the log level to check
     */
     bool isEnabledFor(int level) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.isEnabledFor(level);
         }
@@ -3031,7 +3031,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param level the log level to check
     */
     bool isEnabledFor(string level) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.isEnabledFor(level);
         }
@@ -3039,7 +3039,7 @@ public class LoggerWrapper inherits LoggerInterface {
 
     #! Checks whether this Logger is enabled for the TRACE Level
     bool isTraceEnabled() {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.isTraceEnabled();
         }
@@ -3047,7 +3047,7 @@ public class LoggerWrapper inherits LoggerInterface {
 
     #! Checks whether this Logger is enabled for the DEBUG Level
     bool isDebugEnabled() {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.isDebugEnabled();
         }
@@ -3055,7 +3055,7 @@ public class LoggerWrapper inherits LoggerInterface {
 
     #! Checks whether this Logger is enabled for the INFO Level
     bool isInfoEnabled() {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.isInfoEnabled();
         }
@@ -3063,7 +3063,7 @@ public class LoggerWrapper inherits LoggerInterface {
 
     #! Checks whether this Logger is enabled for the WARN Level
     bool isWarnEnabled() {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.isWarnEnabled();
         }
@@ -3071,7 +3071,7 @@ public class LoggerWrapper inherits LoggerInterface {
 
     #! Checks whether this Logger is enabled for the ERROR Level
     bool isErrorEnabled() {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.isErrorEnabled();
         }
@@ -3079,7 +3079,7 @@ public class LoggerWrapper inherits LoggerInterface {
 
     #! Checks whether this Logger is enabled for the FATAL Level
     bool isFatalEnabled() {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.isFatalEnabled();
         }
@@ -3090,7 +3090,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param level if nothing then inherits level from parent
     */
     setLevel(*LoggerLevel level) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.setLevel(level);
         }
@@ -3101,7 +3101,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param level the logging level as a string
     */
     setLevel(string level) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.setLevel(level);
         }
@@ -3112,7 +3112,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @param level the logging level to set
     */
     setLevel(int level) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             logger.setLevel(level);
         }
@@ -3123,7 +3123,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @return current \c LoggerLevel
     */
     *LoggerLevel decLevel() {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.decLevel();
         }
@@ -3134,7 +3134,7 @@ public class LoggerWrapper inherits LoggerInterface {
         @return current \c LoggerLevel
     */
     *LoggerLevel incLevel() {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.incLevel();
         }
@@ -3146,10 +3146,15 @@ public class LoggerWrapper inherits LoggerInterface {
         @throw LOGGER-ERROR if cannot get effective level from hierarchy
     */
     *LoggerLevel getLevel(bool effective = True) {
-        *LoggerInterface logger = self.logger;
+        *LoggerInterface logger = getLogger();
         if (logger) {
             return logger.getLevel(effective);
         }
+    }
+
+    #! Returns the logger interface for logging
+    private *LoggerInterface getLogger() {
+        return self.logger;
     }
 }
 
@@ -3447,7 +3452,7 @@ public class Logger inherits LoggerInterface {
         the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    public log(LoggerLevel level, string message) {
+    public log(LoggerLevel level, string message, ...) {
         logIntern(level, message, argv, getLocation(), True);
     }
 
@@ -3458,7 +3463,7 @@ public class Logger inherits LoggerInterface {
         the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    public log(int level, string message) {
+    public log(int level, string message, ...) {
         logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
     }
 
@@ -3469,7 +3474,7 @@ public class Logger inherits LoggerInterface {
         the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    public log(string level, string message) {
+    public log(string level, string message, ...) {
         logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
     }
 
