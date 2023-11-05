@@ -53,10 +53,9 @@ module ServiceNowRestDataProvider {
             "short_desc": "ServiceNow® cloud APIs; ServiceNow is a trademark of ServiceNow, Inc.",
             "desc": "ServiceNow® cloud APIs; ServiceNow is a trademark of ServiceNow, Inc.",
             "scheme": "snrests",
-            "oauth2_auth_code": True,
             # NOTE: the logo is an SVG with "SN" in the middle - not the ServiceNow logo
             "logo": ServiceNowWhiteLogo,
-            "logo_file_name": "servicenow-logo.svg",
+            "logo_file_name": "sn.svg",
             "logo_mime_type": MimeTypeSvg,
         });
 

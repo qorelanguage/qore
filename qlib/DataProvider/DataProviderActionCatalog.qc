@@ -45,15 +45,11 @@ public hashdecl DataProviderAppInfo {
     #! Connection scheme for the application
     /** This is the connection scheme for the \c ConnectionProvider module and indicates that the given connection
         type produces a data provider which will be the base data provider for application actions
-    */
-    string scheme;
 
-    #! Indicates if the application supports the OAuth2 authorization code flow
-    /** This means that the \c scheme attribute must be defined and the connection configuration supports the flow
-
-        @note The OAuth2 client ID and client secret must be provided externally to use the authorization code flow
+        If missing it implies that the data provider will be implicitly provided by the context where the action is
+        used
     */
-    bool oauth2_auth_code = False;
+    *string scheme;
 
     #! The application logo
     /** Must be an SVG or PNG; all logos must be square, and PNG must be 200x200 px
@@ -242,7 +238,6 @@ public class DataProviderActionCatalog {
             "display_name": True,
             "short_desc": True,
             "desc": True,
-            "scheme": True,
             "logo": True,
             "logo_file_name": True,
             "logo_mime_type": True,
@@ -653,7 +648,9 @@ public class DataProviderActionCatalog {
                 "display_name": i.value.display_name ?? AbstractDataField::getDisplayName(i.key),
                 "short_desc": i.value.short_desc ?? AbstractDataField::getShortDescription(i.value.desc),
                 "desc": i.value.desc ?? DefaultDescription,
-                "type": i.value.type.getBaseTypeName(),
+                "type": i.value.type instanceof AbstractDataProviderType
+                    ? i.value.type.getBaseTypeName()
+                    : i.value.type.getName(),
             };
             info += i.value{"default_value", "required", "sensitive", "example_value"} + additional_fields;
             if (i.value.allowed_values) {
