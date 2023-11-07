@@ -313,6 +313,7 @@ public class GoogleCalendarEventsListRequestType inherits DataProvider::HashData
     }
 }
 
+/*
 #! Google date/time object
 public class GoogleCalendarDateTimeHashType inherits DataProvider::HashDataType {
     private {
@@ -443,6 +444,7 @@ public const GoogleCalendarTimeHashType = new GoogleCalendarTimeHashType();
 
 #! Google calendar time hash "or nothing" type
 public const GoogleCalendarTimeHashOrNothingType = new GoogleCalendarTimeHashOrNothingType();
+*/
 
 #! Create calendar events request data type
 public class GoogleCalendarEventsListResponseType inherits DataProvider::HashDataType {

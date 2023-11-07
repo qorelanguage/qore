@@ -483,10 +483,11 @@ public class GoogleCalendarRestConnection inherits GoogleRestConnection {
         UpdateOptionsInterface::setUpdateOptionsCode(update_options);
         # update the URL immediately if necessary
         if (update_options && url != DefaultConnectionUrl) {
+            # NOTE: do not update the URL or real URL values here, or the external update will fail, because it will
+            # beleive that no changes are necessary
             doUpdateOptions(self, {
-                "url": url = DefaultConnectionUrl,
+                "url": DefaultConnectionUrl,
             });
-            real_opts.url = real_url = GoogleRestClient::DefaultUrl;
         }
     }
 

@@ -203,7 +203,9 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
         if (autostart && !tid) {
             startIntern();
         }
-        restartPing(name, True);
+        if (*hash<ExceptionInfo> ex = restartPing(name, True)) {
+            failedToStartPing(name, ex);
+        }
         sendCmd(IO_ADD);
     }
 
@@ -370,6 +372,12 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
         }
     }
 
+    #! Could not start ping
+    private failedToStartPing(string name, hash<ExceptionInfo> ex) {
+        # error already logged
+        cache{name}.conn.handlePingFailed(0s, ex);
+    }
+
     #! Handles a successful ping
     private handlePingSuccess(string name, date delta, *bool oldok) {
         log(LoggerLevel::INFO, "%y (poll state %y): successful ping (duration: %y)", name,
@@ -390,8 +398,12 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
     private handlePingTimeout(string name, date delta) {
         if (cache{name}.spop) {
             handlePingTimeoutIntern(name, delta);
+            restartPing(name);
+        } else {
+            if (*hash<ExceptionInfo> ex = restartPing(name)) {
+                failedToStartPing(name, ex);
+            }
         }
-        restartPing(name);
     }
 
     #! Handles a ping timeout
@@ -403,7 +415,10 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
     }
 
     #! Restarts a ping operation
-    private restartPing(string name, *bool force_restart) {
+    /** @return an exception object if the ping could not be started
+    */
+    private *hash<ExceptionInfo> restartPing(string name, *bool force_restart) {
+        *hash<ExceptionInfo> rv;
         if (!force_restart && cache{name}.spop) {
             delete cache{name}.spop;
         } else {
@@ -413,9 +428,11 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                     cache{name}.conn.getUrl(), cache{name}.spop.getState());
             } catch (hash<ExceptionInfo> ex) {
                 log(LoggerLevel::ERROR, "%y: error handling ping restart: %s", name, get_exception_string(ex));
+                rv = ex;
             }
         }
         cache{name}.start = now_us();
+        return rv;
     }
 
     private *bool processCommands() {

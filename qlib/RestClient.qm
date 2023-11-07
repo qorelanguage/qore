@@ -133,7 +133,7 @@ printf("%N\n", ans.body);
       (<a href="https://github.com/qorelanguage/qore/issues/4820">issue 4820</a>)
 
     @subsection restclientv2_1_1 RestClient v2.1.1
-    - fixed a bug where the OAUth2 refresh token was sometimes dropped when an access token was acquired
+    - fixed a bug where the OAuth2 refresh token was sometimes dropped when an access token was acquired
       (<a href="https://github.com/qorelanguage/qore/issues/4821">issue 4821</a>)
     - fixed a bug returning the token URL
       (<a href="https://github.com/qorelanguage/qore/issues/4809">issue 4809</a>)
@@ -2606,14 +2606,15 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
 
                 if (*list<string> missing = keys ((map {$1: True}, req_opts) - keys opts)) {
                     throw "OAUTH2-ERROR", sprintf("OAuth2 grant type %y requires the following options to be "
-                        "set: %y; from these the following are not set on this connection: %y",
+                        "set: %y; the following are not set on this connection: %y",
                         opts.oauth2_grant_type, req_opts, missing);
                 }
 
                 switch (opts.oauth2_grant_type) {
                     case "authorization_code": {
                         if (!opts.token && (!opts.oauth2_refresh_token || !opts.oauth2_auto_refresh)) {
-                            getAuthorizationCodeRequest();
+                            throw "OAUTH2-ERROR", sprintf("connection %y uses OAuth2 grant type %y but is not yet "
+                                "authorized to communicate with the server", name, opts.oauth2_grant_type);
                         }
                         break;
                     }
@@ -2632,6 +2633,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                 }
             }
         } catch (hash<ExceptionInfo> ex) {
+            info("connection %y cannot connect: %s: %s", name, ex.err, ex.desc);
             up = False;
             status = ex.desc;
         }
