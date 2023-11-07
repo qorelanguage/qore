@@ -138,6 +138,11 @@ public class ListDataType inherits QoreDataType {
         return value;
     }
 
+    #! Updates the element type
+    updateElementType(AbstractDataProviderType element_type) {
+        self.element_type = element_type;
+    }
+
     #! Returns the underlying %Qore type for this type
     private Type getQoreType(Type element_type, bool or_nothing) {
         return new Type(sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName()));

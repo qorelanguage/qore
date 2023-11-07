@@ -54,7 +54,7 @@ public class GoogleCalendarEventsQuickAddDataProvider inherits GoogleDataProvide
         const RequestType = new GoogleCalendarEventsQuickAddRequestType();
 
         #! Response type
-        const ResponseType = new GoogleCalendarEventsElementType();
+        const ResponseType = GoogleCalendarEventsElementType;
 
         #! Query args
         const QueryArgs = ("sendUpdates", "text");

@@ -167,6 +167,11 @@ public class QoreDataField inherits AbstractDataField {
         return getNewFieldType(type.getOrNothingType());
     }
 
+    #! Updates the field type
+    updateFieldType(AbstractDataProviderType type) {
+        self.type = type;
+    }
+
     #! returns a field with the new type
     /** @return a field with the new type
     */

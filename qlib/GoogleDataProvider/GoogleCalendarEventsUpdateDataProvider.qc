@@ -57,7 +57,7 @@ public class GoogleCalendarEventsUpdateDataProvider inherits GoogleDataProviderB
         const RequestType = new GoogleCalendarEventsUpdateRequestType();
 
         #! Response type
-        const ResponseType = new GoogleCalendarEventsElementType();
+        const ResponseType = GoogleCalendarEventsElementType;
 
         #! Query args
         const QueryArgs = ("conferenceDataVersion", "maxAttendees", "sendUpdates", "supportsAttachments");

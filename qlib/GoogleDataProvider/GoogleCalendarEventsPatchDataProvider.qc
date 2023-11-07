@@ -54,7 +54,7 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProviderBa
         const RequestType = new GoogleCalendarEventsPatchRequestType();
 
         #! Response type
-        const ResponseType = new GoogleCalendarEventsElementType();
+        const ResponseType = GoogleCalendarEventsElementType;
 
         #! Query args
         const QueryArgs = ("conferenceDataVersion", "maxAttendees", "sendUpdates", "supportsAttachments");
@@ -181,7 +181,7 @@ public class GoogleCalendarEventsPatchRequestType inherits HashDataType {
                     "is `False`",
             },
         } + map {$1.key: $1.value + {"type": $1.value.type.getOrNothingType()}},
-            GoogleCalendarEventsElementType::Fields.pairIterator(), $1.value.updatable;
+            GoogleCalendarEventsElementType.getFields().pairIterator(), $1.value.updatable;
     }
 
     #! Creates the object

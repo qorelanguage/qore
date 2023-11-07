@@ -54,7 +54,7 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProviderB
         const RequestType = new GoogleCalendarEventsInsertRequestType();
 
         #! Response type
-        const ResponseType = new GoogleCalendarEventsElementType();
+        const ResponseType = GoogleCalendarEventsElementType;
 
         #! Query args
         const QueryArgs = GoogleCalendarEventsPatchDataProvider::QueryArgs;
@@ -145,7 +145,7 @@ public class GoogleCalendarEventsInsertRequestType inherits HashDataType {
                 "type": ($1.key == "end" || $1.key == "start")
                     ? $1.value.type
                     : $1.value.type.getOrNothingType()
-            }}, GoogleCalendarEventsElementType::Fields.pairIterator(), $1.value.updatable;
+            }}, GoogleCalendarEventsElementType.getFields().pairIterator(), $1.value.updatable;
     }
 
     #! Creates the object

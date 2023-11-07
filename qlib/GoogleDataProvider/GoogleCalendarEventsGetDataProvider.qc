@@ -54,7 +54,7 @@ public class GoogleCalendarEventsGetDataProvider inherits GoogleDataProviderBase
         const RequestType = new GoogleCalendarEventsGetRequestType();
 
         #! Response type
-        const ResponseType = new GoogleCalendarEventsElementType();
+        const ResponseType = GoogleCalendarEventsElementType;
     }
 
     private {
