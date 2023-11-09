@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
 /** GoogleCalendarFreeBusyDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
@@ -22,19 +22,19 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
 #! The Google calendar free/busy API data provider
 /** Returns Free/Busy information for the given calendar
 */
-public class GoogleCalendarFreeBusyDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarFreeBusyDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "freeBusy",
             "desc": "Google calendar free/busy query API data provider",
             "type": "GoogleCalendarFreeBusyDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "display_name": "Calendar ID",
                     "short_desc": "The calendar ID",
@@ -67,13 +67,13 @@ public class GoogleCalendarFreeBusyDataProvider inherits GoogleDataProviderBase 
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
         id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }

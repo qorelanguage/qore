@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
 /** GoogleCalendarListListDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
@@ -22,19 +22,19 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
 #! The Google calendarList list API data provider
 /** This API allows the caller to list all calendars for the user
 */
-public class GoogleCalendarListListDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarListListDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "list",
             "desc": "Google calendarList list API data provider",
             "type": "GoogleCalendarListListDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions,
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions,
             "supports_request": True,
         };
 
@@ -45,19 +45,16 @@ public class GoogleCalendarListListDataProvider inherits GoogleDataProviderBase 
 
         #! Request type
         const RequestType = new GoogleCalendarListRequestType();
-
-        #! Response type
-        const ResponseType = new GoogleCalendarListResponseType();
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProvider::GoogleDataProviderBase(rest) {
     }
 
     #! Returns the data provider name
@@ -100,7 +97,7 @@ public class GoogleCalendarListListDataProvider inherits GoogleDataProviderBase 
     /** @return the response type for this response message
     */
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryCalendarApiName, "CalendarList");
     }
 
     #! Returns data provider static info
@@ -148,13 +145,13 @@ public class GoogleCalendarListRequestType inherits DataProvider::HashDataType {
             },
             "showDeleted": {
                 "display_name": "Show Deleted?",
-                "type": SoftBoolDataProviderStringType,
+                "type": SoftBoolOrNothingDataProviderStringType,
                 "desc": "Whether to include deleted calendar list entries in the result",
                 "default_value": False,
             },
             "showHidden": {
                 "display_name": "Show Hidden?",
-                "type": SoftBoolDataProviderStringType,
+                "type": SoftBoolOrNothingDataProviderStringType,
                 "desc": "Whether to show hidden entries",
                 "default_value": False,
             },
@@ -173,47 +170,6 @@ public class GoogleCalendarListRequestType inherits DataProvider::HashDataType {
                     "client should clear its storage and perform a full synchronization without any `syncToken`.\n"
                     "The default is to return all entries",
             },
-        };
-    }
-
-    #! Creates the object
-    constructor() {
-        addQoreFields(Fields);
-    }
-}
-
-#! Google calendarList list response data type
-public class GoogleCalendarListResponseType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "kind": {
-                "display_name": "Collection Type",
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "The type of the collection",
-            },
-            "etag": {
-                "display_name": "Object Version",
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "A hash that indicates a specific version of the object definition",
-            },
-            "nextPageToken": {
-                "display_name": "Next Page Token",
-                "short_desc": "Token used to access the next page of this result",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Token used to access the next page of this result. Omitted if no further results are "
-                    "available, in which case `nextSyncToken` is provided",
-            },
-            "nextSyncToken": {
-                "display_name": "Next Sync Token",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "A synchronization token for the data",
-            },
-            "items": {
-                "display_name": "Calendar Items",
-                "type": new ListDataType("*GoogleCalendarListElementType", new GoogleCalendarListElementType(), True),
-                "desc": "Response items",
-            }
         };
     }
 

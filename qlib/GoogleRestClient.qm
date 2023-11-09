@@ -333,27 +333,6 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
         return "grest";
     }
 
-    #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
-    /** @return @ref True as this connection returns a data provider with the @ref getDataProvider() method
-
-        @see @ref getDataProvider()
-    */
-    bool hasDataProvider() {
-        return True;
-    }
-
-    #! returns a data provider object for this connection
-    /** @param constructor_options any additional constructor options for the data provider
-
-        @return a data provider object for this connection
-    */
-    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
-        # to avoid circular dependencies, this object loads the GoogleDataProvider and creates the data provider
-        # object dynamically
-        load_module("GoogleDataProvider");
-        return create_object("GoogleDataProvider", get());
-    }
-
     #! returns options for @ref GoogleRestConnection::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
         hash<auto> rv += opts;
@@ -473,6 +452,18 @@ public class GoogleCalendarRestConnection inherits GoogleRestConnection {
     #! returns \c "gcal"
     string getType() {
         return "gcal";
+    }
+
+    #! returns a data provider object for this connection
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return a data provider object for this connection
+    */
+    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
+        # to avoid circular dependencies, this object loads the GoogleDataProvider and creates the data provider
+        # object dynamically
+        load_module("GoogleCalendarDataProvider");
+        return create_object("GoogleCalendarBaseDataProvider", get());
     }
 
     #! Can be called to set or clear a closure or call reference to be called when options are automatically updated

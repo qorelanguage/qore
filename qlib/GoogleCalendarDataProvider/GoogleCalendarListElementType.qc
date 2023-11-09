@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
-/** GoogleCalendarEventsElementType.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarListElementType.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,9 +22,9 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
-#! Google calendar event data type
-const GoogleCalendarEventsElementType =
-    GoogleDataProviderBase::getTypeForSchema(GoogleDataProviderBase::GoogleDiscoveryApiName, "Event");
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
+#! Google calenderList element type
+const GoogleCalendarListElementType =
+    GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryCalendarApiName, "CalendarListEntry");
 }

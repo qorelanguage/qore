@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
-/** GoogleCalendarEventsGetDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarDeleteDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,19 +22,19 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
-#! The Google calendar event get API data provider
-/** This API allows the caller to get a calendar event
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
+#! The Google calendar delete API data provider
+/** Deletes the given calendar
 */
-public class GoogleCalendarEventsGetDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarDeleteDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "get",
-            "desc": "Google calendar events get API data provider",
-            "type": "GoogleCalendarEventsGetDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
+            "name": "delete",
+            "desc": "Google calendar delete API data provider",
+            "type": "GoogleCalendarDeleteDataProvider",
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "display_name": "Calendar ID",
                     "short_desc": "The calendar ID",
@@ -51,10 +51,10 @@ public class GoogleCalendarEventsGetDataProvider inherits GoogleDataProviderBase
         });
 
         #! Request type
-        const RequestType = new GoogleCalendarEventsGetRequestType();
+        const RequestType = AbstractDataProviderTypeMap."nothing";
 
         #! Response type
-        const ResponseType = GoogleCalendarEventsElementType;
+        const ResponseType = AbstractDataProviderTypeMap."nothing";
     }
 
     private {
@@ -67,13 +67,13 @@ public class GoogleCalendarEventsGetDataProvider inherits GoogleDataProviderBase
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
         id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -85,7 +85,8 @@ public class GoogleCalendarEventsGetDataProvider inherits GoogleDataProviderBase
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google calendar events %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
+        return sprintf("Google data %s provider for calendar `%s` for `%s`", ProviderInfo.name, id,
+            rest.getSafeURL());
     }
 
     #! Makes a request and returns the response
@@ -95,16 +96,10 @@ public class GoogleCalendarEventsGetDataProvider inherits GoogleDataProviderBase
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string query_args;
-        foreach hash<auto> i in (req.pairIterator()) {
-            # this handles list key values by repeating the expression in the output
-            map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", i.key, $1))), i.value;
-        }
         hash<auto> info;
         try {
-            hash<auto> rv = rest.get("/calendar/v3/calendars/" + id + "/events/" + req.id + query_args, NOTHING,
-                \info).body;
-            return ResponseType.acceptsValue(rv);
+            rest.del("/calendar/v3/calendars/" + id, req, \info);
+            # this method returns no value when successfully executed
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -129,38 +124,6 @@ public class GoogleCalendarEventsGetDataProvider inherits GoogleDataProviderBase
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-
-#! Google calendar event get request data type
-public class GoogleCalendarEventsGetRequestType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            # query parameters
-            "id": {
-                "display_name": "Event ID",
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "The event ID",
-            },
-            "maxAttendees": {
-                "display_name": "Max Attendees",
-                "short_desc": "Max number of attendees to include in the response",
-                "type": AbstractDataProviderTypeMap."*int",
-                "desc": "The maximum number of attendees to include in the response. If there are more than the "
-                    "specified number of attendees, only the participant is returned",
-            },
-            "timeZone": {
-                "display_name": "Time Zone",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Time zone used in the response. The default is the time zone of the calendar",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor(string name = "GoogleCalendarEventsGetRequestType") : HashDataType(name) {
-        addQoreFields(Fields);
     }
 }
 }

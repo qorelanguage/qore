@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
 /** GoogleCalendarEventsPatchDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
@@ -22,19 +22,19 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
 #! The Google calendar event patch API data provider
 /** This API allows the caller to patch a calendar event
 */
-public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "patch",
             "desc": "Google calendar events patch calender event API data provider",
             "type": "GoogleCalendarEventsPatchDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "display_name": "Calendar ID",
                     "short_desc": "The calendar ID",
@@ -53,9 +53,6 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProviderBa
         #! Request type
         const RequestType = new GoogleCalendarEventsPatchRequestType();
 
-        #! Response type
-        const ResponseType = GoogleCalendarEventsElementType;
-
         #! Query args
         const QueryArgs = ("conferenceDataVersion", "maxAttendees", "sendUpdates", "supportsAttachments");
     }
@@ -70,13 +67,13 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProviderBa
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
         id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -108,7 +105,7 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProviderBa
         try {
             hash<auto> rv = rest.patch("/calendar/v3/calendars/" + id + "/events/" + req.id + query_args,
                 req, \info).body;
-            return ResponseType.acceptsValue(rv);
+            return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -127,7 +124,7 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProviderBa
     /** @return the response type for this response message
     */
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return new GoogleCalendarEventsElementType();
     }
 
     #! Returns data provider static info
@@ -138,55 +135,13 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProviderBa
 
 #! Google event patch request data type
 public class GoogleCalendarEventsPatchRequestType inherits HashDataType {
-    public {
-        #! Field descriptions
-        const Fields = {
-            # query args
-            "conferenceDataVersion": {
-                "display_name": "Conference Data Version",
-                "short_desc": "Version number of conference data supported by the API client",
-                "type": AbstractDataProviderTypeMap."*int",
-                "desc": "Version number of conference data supported by the API client. Version `0` assumes no "
-                    "conference data support and ignores conference data in the event's body. Version `1` enables "
-                    "support for copying of `ConferenceData` as well as for creating new conferences using the "
-                    "`createRequest` field of `conferenceData`. The default is `0`. Acceptable values are `0` to "
-                    "`1`, inclusive",
-                "allowed_values": (
-                    0,
-                    1,
-                ),
-            },
-            "sendUpdates": {
-                "display_name": "Send Updates",
-                "short_desc": "Guests who should receive notifications about the event update",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Guests who should receive notifications about the event update (for example, title changes, "
-                    "etc.).\n"
-                    "Acceptable values are:\n"
-                    "- `all`: Notifications are sent to all guests\n"
-                    "- `externalOnly`: Notifications are sent to non-Google Calendar guests only\n"
-                    "- `none`: No notifications are sent. For calendar migration tasks, consider using the "
-                        "`Events.import` method instead",
-                "allowed_values": (
-                    "all",
-                    "externalOnly",
-                    "none",
-                ),
-            },
-            "supportsAttachments": {
-                "display_name": "Supports Attachments?",
-                "short_desc": "Whether API client performing operation supports event attachments",
-                "type": SoftBoolDataProviderStringType,
-                "desc": "Whether API client performing operation supports event attachments. Optional. The default "
-                    "is `False`",
-            },
-        } + map {$1.key: $1.value + {"type": $1.value.type.getOrNothingType()}},
-            GoogleCalendarEventsElementType.getFields().pairIterator(), $1.value.updatable;
-    }
-
     #! Creates the object
     constructor() : HashDataType("GoogleCalendarEventsPatchRequestType") {
-        addQoreFields(Fields);
+        #addQoreFields(fields);
+        map addField($1), (
+            GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "events/patch")
+                .getFields() - "calendarId"
+        ).iterator();
     }
 }
 }

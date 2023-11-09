@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
-/** GoogleCalendarDeleteDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarGetDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,19 +22,17 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
-#! The Google calendar delete API data provider
-/** Deletes the given calendar
-*/
-public class GoogleCalendarDeleteDataProvider inherits GoogleDataProviderBase {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
+#! Data provider API for retrieving a specific calendar
+public class GoogleCalendarGetDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "delete",
-            "desc": "Google calendar delete API data provider",
-            "type": "GoogleCalendarDeleteDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
+            "name": "get",
+            "desc": "Google calendar API for retrieving a specific calendar",
+            "type": "GoogleCalendarGetDataProvider",
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "display_name": "Calendar ID",
                     "short_desc": "The calendar ID",
@@ -52,9 +50,6 @@ public class GoogleCalendarDeleteDataProvider inherits GoogleDataProviderBase {
 
         #! Request type
         const RequestType = AbstractDataProviderTypeMap."nothing";
-
-        #! Response type
-        const ResponseType = AbstractDataProviderTypeMap."nothing";
     }
 
     private {
@@ -67,13 +62,13 @@ public class GoogleCalendarDeleteDataProvider inherits GoogleDataProviderBase {
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
         id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -85,8 +80,7 @@ public class GoogleCalendarDeleteDataProvider inherits GoogleDataProviderBase {
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for calendar `%s` for `%s`", ProviderInfo.name, id,
-            rest.getSafeURL());
+        return sprintf("Google data %s provider for calendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
     }
 
     #! Makes a request and returns the response
@@ -96,10 +90,13 @@ public class GoogleCalendarDeleteDataProvider inherits GoogleDataProviderBase {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        if (cal) {
+            return cal;
+        }
         hash<auto> info;
         try {
-            rest.del("/calendar/v3/calendars/" + id, req, \info);
-            # this method returns no value when successfully executed
+            hash<auto> rv = rest.get("/calendar/v3/calendars/" + id, NOTHING, \info).body;
+            return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -118,7 +115,7 @@ public class GoogleCalendarDeleteDataProvider inherits GoogleDataProviderBase {
     /** @return the response type for this response message
     */
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryCalendarApiName, "Calendar");
     }
 
     #! Returns data provider static info

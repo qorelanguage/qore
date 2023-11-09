@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
-/** GoogleDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarBaseDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,18 +22,18 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
-#! Google calendar application name
-public const CalendarAppName = "GoogleCalendar";
-#! The Google data provider class
-public class GoogleDataProvider inherits GoogleDataProviderBase {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
+#! The parent class for Google calendar REST APIs
+public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "GoogleDataProvider",
-            "supports_children": True,
+            "name": "calendar",
+            "desc": "Google calendar base data provider; parent provider for APIs related to calendars",
+            "type": "GoogleCalendarBaseDataProvider",
             "constructor_options": ConstructorOptions,
+            "supports_children": True,
             "children_can_support_apis": True,
         };
 
@@ -80,66 +80,39 @@ public class GoogleDataProvider inherits GoogleDataProviderBase {
                     "in the URL; if this option is set then most OAuth2 options are ignored for logins",
             },
         };
+
+        #! Provider summary info
+        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
+            AbstractDataProvider::DataProviderSummaryInfoKeys
+        });
     }
 
     private {
         const ChildMap = {
-            "calendar": Class::forName("GoogleDataProvider::GoogleCalendarBaseDataProvider"),
+            "calendarList": Class::forName("GoogleCalendarDataProvider::GoogleCalendarListDataProvider"),
+            "calendars": Class::forName("GoogleCalendarDataProvider::GoogleCalendarsDataProvider"),
+            "insert": Class::forName("GoogleCalendarDataProvider::GoogleCalendarInsertDataProvider"),
         };
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(copts);
+        checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
     }
 
-    #! Creates the object from a GoogleRestClient
-    constructor(GoogleRestClient rest) : GoogleDataProviderBase(rest) {
-        rest.setConnectionPath("/");
-        self.rest = rest;
-    }
-
-    #! Returns a GoogleRestClient connection from the options
-    static GoogleRestClient::GoogleRestClient getRestConnection(*hash<auto> options) {
-        GoogleRestClient rest;
-        if (options.restclient) {
-            rest = options.restclient;
-        } else {
-            if (!options.oauth2_client_id) {
-                throw "CONSTRUCTOR-ERROR", "no 'restclient' or 'oauth2_client_id' option passed; "
-                    "cannot create REST client to Google instance without authentication information";
-            }
-            if (!options.oauth2_client_secret) {
-                throw "CONSTRUCTOR-ERROR", "no 'restclient', 'oauth2_client_secret' option passed; "
-                    "cannot create REST client to Google instance without authentication information";
-            }
-            if (!options.token) {
-                throw "CONSTRUCTOR-ERROR", "no 'restclient', 'token' option passed; "
-                    "cannot create REST client to Google instance without authentication information";
-            }
-
-            hash<auto> opts;
-            opts += options.restclient_options + options{
-                "oauth2_client_id",
-                "oauth2_client_secret",
-                "token",
-                "oauth2_refresh_token",
-            };
-            rest = new GoogleRestClient(opts);
-        }
-        rest.setConnectionPath("/");
-        return rest;
+    #! Creates the object from a REST connection
+    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProvider::GoogleDataProviderBase(rest) {
     }
 
     #! Returns the data provider name
     string getName() {
-        return "google";
+        return ProviderInfo.name;
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google REST API data provider for `%s`", rest.getSafeURL());
+        return sprintf("Google data %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
     }
 
     #! Return data provider summary info
@@ -159,7 +132,7 @@ public class GoogleDataProvider inherits GoogleDataProviderBase {
 
         @see getChildProviderEx()
     */
-    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
+    private *GoogleDataProvider::GoogleDataProviderBase getChildProviderImpl(string name) {
         *Class cls = ChildMap{name};
         if (!cls) {
             return;
@@ -168,61 +141,8 @@ public class GoogleDataProvider inherits GoogleDataProviderBase {
     }
 
     #! Returns data provider static info
-    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-
-#! Boolean string type for query parameters
-public const SoftBoolStringType = new SoftBoolStringType();
-
-#! Boolean data provider string type for query parameters
-public const SoftBoolDataProviderStringType = AbstractDataProviderType::get(SoftBoolStringType);
-
-#! Boolean string type
-public class SoftBoolStringType inherits Qore::Reflection::Type {
-    #! Creates the object
-    constructor() : Type("*softstring") {
-    }
-
-    #! Returns the value after any conversions by the type
-    auto acceptsValue(auto value) {
-        return parse_boolean(value) ? "true" : "false";
-    }
-
-    #! Returns the default value for the type or NOTHING if the type has no default value
-    auto getDefaultValue() {
-        return "false";
-    }
-}
-
-#! Data provider type for timestamps in API arguments
-const SoftTimestampDataProviderStringType = new SoftTimestampDataProviderStringType();
-
-#! Timestamp string type
-public class SoftTimestampDataProviderStringType inherits DataProvider::QoreSoftStringOrNothingDataType {
-    #! Creates the object
-    constructor() {
-    }
-
-    #! Returns the value after any conversions by the type
-    auto acceptsValue(auto value) {
-        return exists value ? date(value).format("YYYY-MM-DDTHH:mm:SSZ") : NOTHING;
-    }
-}
-
-#! Data provider type for timestamps in API arguments
-const SoftDateDataProviderStringType = new SoftDateDataProviderStringType();
-
-#! Date string type
-public class SoftDateDataProviderStringType inherits DataProvider::QoreSoftStringOrNothingDataType {
-    #! Creates the object
-    constructor() {
-    }
-
-    #! Returns the value after any conversions by the type
-    auto acceptsValue(auto value) {
-        return exists value ? date(value).format("YYYY-MM-DD") : NOTHING;
     }
 }
 }

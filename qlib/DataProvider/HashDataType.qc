@@ -200,11 +200,13 @@ public class HashDataType inherits QoreDataType {
             }
             if (i.value.typeCode() != NT_HASH) {
                 throw "ADD-QORE-FIELDS-ERROR", sprintf("field %y to be added has a value of type %y; expecting \"hash\"",
-                    i.value.fullType());
+                    i.key, i.value.fullType());
             }
             if (!exists i.value.name) {
                 i.value.name = i.key;
             }
+            on_error rethrow $1.err, sprintf("%s (while adding field %y to type %y from hash: %y)", $1.desc, i.key,
+                name, i.value);
             QoreDataField field(i.value);
             fields{i.key} = field;
             postProcessAddedField(field);

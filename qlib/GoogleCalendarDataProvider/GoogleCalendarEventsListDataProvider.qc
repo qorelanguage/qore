@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
 /** GoogleCalendarEventsListDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
@@ -22,19 +22,19 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
 #! The Google calendar events list API data provider
 /** This API allows the caller to list calendar events for the user
 */
-public class GoogleCalendarEventsListDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarEventsListDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "list",
             "desc": "Google calendar events list API data provider",
             "type": "GoogleCalendarEventsListDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "display_name": "Calendar ID",
                     "short_desc": "The calendar ID",
@@ -52,9 +52,6 @@ public class GoogleCalendarEventsListDataProvider inherits GoogleDataProviderBas
 
         #! Request type
         const RequestType = new GoogleCalendarEventsListRequestType();
-
-        #! Response type
-        const ResponseType = new GoogleCalendarEventsListResponseType();
     }
 
     private {
@@ -67,13 +64,13 @@ public class GoogleCalendarEventsListDataProvider inherits GoogleDataProviderBas
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
         id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -103,7 +100,7 @@ public class GoogleCalendarEventsListDataProvider inherits GoogleDataProviderBas
         hash<auto> info;
         try {
             hash<auto> rv = rest.get("/calendar/v3/calendars/" + id + "/events" + query_args, NOTHING, \info).body;
-            return ResponseType.acceptsValue(rv);
+            return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -122,7 +119,7 @@ public class GoogleCalendarEventsListDataProvider inherits GoogleDataProviderBas
     /** @return the response type for this response message
     */
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryCalendarApiName, "Events");
     }
 
     #! Returns data provider static info
@@ -227,7 +224,7 @@ public class GoogleCalendarEventsListRequestType inherits DataProvider::HashData
             "showDeleted": {
                 "display_name": "Show Deleted?",
                 "short_desc": "Whether to include deleted events in the result",
-                "type": SoftBoolDataProviderStringType,
+                "type": SoftBoolOrNothingDataProviderStringType,
                 "desc": "Whether to include deleted events (with status equals `cancelled`) in the result. Cancelled "
                     "instances of recurring events (but not the underlying recurring event) will still be included "
                     "if `showDeleted` and `singleEvents` are both `False`. If `showDeleted` and `singleEvents` are "
@@ -237,14 +234,14 @@ public class GoogleCalendarEventsListRequestType inherits DataProvider::HashData
             },
             "showHiddenInvitations": {
                 "display_name": "Show Hidden Invitations?",
-                "type": SoftBoolDataProviderStringType,
+                "type": SoftBoolOrNothingDataProviderStringType,
                 "desc": "Whether to include hidden invitations in the result",
                 "default_value": False,
             },
             "singleEvents": {
                 "display_name": "Single Events?",
                 "short_desc": "Whether to expand recurring events",
-                "type": SoftBoolDataProviderStringType,
+                "type": SoftBoolOrNothingDataProviderStringType,
                 "desc": "Whether to expand recurring events into instances and only return single one-off events and "
                     "instances of recurring events, but not the underlying recurring events themselves",
                 "default_value": False,
@@ -314,138 +311,6 @@ public class GoogleCalendarEventsListRequestType inherits DataProvider::HashData
 }
 
 /*
-#! Google date/time object
-public class GoogleCalendarDateTimeHashType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "date": {
-                "display_name": "Date",
-                "short_desc": "The date for all-day events",
-                "type": AbstractDataProviderTypeMap."*softdate",
-                "desc": "The date, in the format `yyyy-mm-dd`, if this is an all-day event",
-            },
-            "dateTime": {
-                "display_name": "Date and Time",
-                "type": AbstractDataProviderTypeMap."*softdate",
-                "desc": "The time, as a combined date-time value",
-            },
-            "timeZone": {
-                "display_name": "Time Zone",
-                "short_desc": "The time zone in which the time is specified",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The time zone in which the time is specified, formatted as an IANA Time Zone Database name, "
-                    "e.g. `Europe/Zurich`",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor() : HashDataType(AutoHashOrNothingType, "GoogleCalendarDateTimeHashType") {
-        addQoreFields(Fields);
-    }
-}
-
-#! Timestamp string type for query parameters
-public const GoogleCalendarDateTimeHashType = new GoogleCalendarDateTimeHashType();
-
-public class GoogleCalendarSourceHashBaseType inherits HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "title": {
-                "display_name": "Source Title",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Title of the source; for example a title of a web page or an email subject",
-
-            },
-            "url": {
-                "display_name": "URL",
-                "short_desc": "URL of the source pointing to a resource",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "URL of the source pointing to a resource. The URL scheme must be HTTP or HTTPS",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor(bool or_nothing) : HashDataType(or_nothing ? AutoHashOrNothingType : AutoHashType,
-            "GoogleCalendarSourceHashType") {
-        addQoreFields(Fields);
-    }
-}
-
-public class GoogleCalendarSourceHashType inherits GoogleCalendarSourceHashBaseType {
-    constructor() : GoogleCalendarSourceHashBaseType(False) {
-    }
-}
-
-public class GoogleCalendarSourceHashOrNothingType inherits GoogleCalendarSourceHashBaseType {
-    constructor() : GoogleCalendarSourceHashBaseType(True) {
-    }
-}
-
-#! Google calendar source type
-public const GoogleCalendarSourceHashType = new GoogleCalendarSourceHashType();
-
-#! Google calendar source "or nothing" type
-public const GoogleCalendarSourceHashOrNothingType = new GoogleCalendarSourceHashOrNothingType();
-
-#! Base type for Google calendar time hash types
-public class GoogleCalendarTimeHashBaseType inherits HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "date": {
-                "display_name": "Date",
-                "short_desc": "The date for all-day events",
-                "type": SoftDateDataProviderStringType,
-                "desc": "The date, in the format `yyyy-mm-dd`, if this is an all-day event",
-
-            },
-            "dateTime": {
-                "display_name": "Date and Time",
-                "short_desc": "The time, as a combined date-time value",
-                "type": SoftTimestampDataProviderStringType,
-                "desc": "The time, as a combined date-time value (formatted according to RFC3339). A time zone "
-                    "offset is required unless a time zone is explicitly specified in `timeZone`",
-            },
-            "timeZone": {
-                "display_name": "Time Zone",
-                "short_desc": "The time zone region in which the time is specified",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The time zone in which the time is specified. (Formatted as an IANA Time Zone Database "
-                    "name, e.g. `Europe/Zurich`.) For recurring events this field is required and specifies the time "
-                    "zone in which the recurrence is expanded. For single events this field is optional and "
-                    "indicates a custom time zone for the event start/end",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor(bool or_nothing) : HashDataType(or_nothing ? AutoHashOrNothingType : AutoHashType,
-            "GoogleCalendarTimeHashType") {
-        addQoreFields(Fields);
-    }
-}
-
-public class GoogleCalendarTimeHashType inherits GoogleCalendarTimeHashBaseType {
-    constructor() : GoogleCalendarTimeHashBaseType(False) {
-    }
-}
-
-public class GoogleCalendarTimeHashOrNothingType inherits GoogleCalendarTimeHashBaseType {
-    constructor() : GoogleCalendarTimeHashBaseType(True) {
-    }
-}
-
-#! Google calendar time hash type
-public const GoogleCalendarTimeHashType = new GoogleCalendarTimeHashType();
-
-#! Google calendar time hash "or nothing" type
-public const GoogleCalendarTimeHashOrNothingType = new GoogleCalendarTimeHashOrNothingType();
-*/
-
 #! Create calendar events request data type
 public class GoogleCalendarEventsListResponseType inherits DataProvider::HashDataType {
     public {
@@ -528,4 +393,5 @@ public class GoogleCalendarEventsListResponseType inherits DataProvider::HashDat
         addQoreFields(Fields);
     }
 }
+*/
 }

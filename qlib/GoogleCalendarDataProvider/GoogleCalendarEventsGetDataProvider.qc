@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
-/** GoogleCalendarEventsQuickAddDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarEventsGetDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,19 +22,19 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
-#! The Google calendar event quickAdd API data provider
-/** This API allows the caller to quickadd a calendar event
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
+#! The Google calendar event get API data provider
+/** This API allows the caller to get a calendar event
 */
-public class GoogleCalendarEventsQuickAddDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarEventsGetDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "quickAdd",
-            "desc": "Google calendar events quickadd calender event API data provider",
-            "type": "GoogleCalendarEventsQuickAddDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
+            "name": "get",
+            "desc": "Google calendar events get API data provider",
+            "type": "GoogleCalendarEventsGetDataProvider",
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "display_name": "Calendar ID",
                     "short_desc": "The calendar ID",
@@ -51,13 +51,7 @@ public class GoogleCalendarEventsQuickAddDataProvider inherits GoogleDataProvide
         });
 
         #! Request type
-        const RequestType = new GoogleCalendarEventsQuickAddRequestType();
-
-        #! Response type
-        const ResponseType = GoogleCalendarEventsElementType;
-
-        #! Query args
-        const QueryArgs = ("sendUpdates", "text");
+        const RequestType = new GoogleCalendarEventsGetRequestType();
     }
 
     private {
@@ -70,13 +64,13 @@ public class GoogleCalendarEventsQuickAddDataProvider inherits GoogleDataProvide
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
         id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -99,16 +93,15 @@ public class GoogleCalendarEventsQuickAddDataProvider inherits GoogleDataProvide
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
         string query_args;
-        foreach hash<auto> i in (req{QueryArgs}.pairIterator()) {
+        foreach hash<auto> i in (req.pairIterator()) {
             # this handles list key values by repeating the expression in the output
             map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", i.key, $1))), i.value;
-            remove req{i.key};
         }
         hash<auto> info;
         try {
-            hash<auto> rv = rest.post("/calendar/v3/calendars/" + id + "/events/quickAdd" + query_args,
-                NOTHING, \info).body;
-            return ResponseType.acceptsValue(rv);
+            hash<auto> rv = rest.get("/calendar/v3/calendars/" + id + "/events/" + req.id + query_args, NOTHING,
+                \info).body;
+            return (getResponseTypeImpl()).acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -127,7 +120,7 @@ public class GoogleCalendarEventsQuickAddDataProvider inherits GoogleDataProvide
     /** @return the response type for this response message
     */
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return new GoogleCalendarEventsElementType();
     }
 
     #! Returns data provider static info
@@ -136,52 +129,34 @@ public class GoogleCalendarEventsQuickAddDataProvider inherits GoogleDataProvide
     }
 }
 
-#! Google event quickAdd request data type
-public class GoogleCalendarEventsQuickAddRequestType inherits HashDataType {
-    public {
+#! Google calendar event get request data type
+public class GoogleCalendarEventsGetRequestType inherits DataProvider::HashDataType {
+    private {
         #! Field descriptions
         const Fields = {
-            # query args
-            "sendUpdates": {
-                "display_name": "Send Updates",
-                "short_desc": "Guests who should receive notifications about the event update",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Guests who should receive notifications about the event update (for example, title changes, "
-                    "etc.).\n"
-                    "Acceptable values are:\n"
-                    "- `all`: Notifications are sent to all guests\n"
-                    "- `externalOnly`: Notifications are sent to non-Google Calendar guests only\n"
-                    "- `none`: No notifications are sent. For calendar migration tasks, consider using the "
-                        "`Events.import` method instead",
-                "allowed_values": (
-                    <AllowedValueInfo>{
-                        "value": "all",
-                        "desc": "Notifications are sent to all guests",
-                    },
-                    <AllowedValueInfo>{
-                        "value": "externalOnly",
-                        "desc": "Notifications are sent to non-Google Calendar guests only",
-                    },
-                    <AllowedValueInfo>{
-                        "value": "none",
-                        "desc": "No notifications are sent. For calendar migration tasks, consider using the "
-                            "`Events.import` method instead",
-                    },
-                ),
-            },
-            "text": {
-                "display_name": "Event Text",
-                "short_desc": "The text describing the event to be created",
+            # query parameters
+            "id": {
+                "display_name": "Event ID",
                 "type": AbstractDataProviderTypeMap."string",
-                "desc": "The text describing the event to be created; ex: `Appointment at Somewhere on June 3rd "
-                    "10am-10:25am`",
-                "example_value": "Lunch tomorrow at the Burger Bar from 12:30-13:30",
+                "desc": "The event ID",
+            },
+            "maxAttendees": {
+                "display_name": "Max Attendees",
+                "short_desc": "Max number of attendees to include in the response",
+                "type": AbstractDataProviderTypeMap."*int",
+                "desc": "The maximum number of attendees to include in the response. If there are more than the "
+                    "specified number of attendees, only the participant is returned",
+            },
+            "timeZone": {
+                "display_name": "Time Zone",
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "Time zone used in the response. The default is the time zone of the calendar",
             },
         };
     }
 
     #! Creates the object
-    constructor() : HashDataType("GoogleCalendarEventsQuickAddRequestType") {
+    constructor(string name = "GoogleCalendarEventsGetRequestType") : HashDataType(name) {
         addQoreFields(Fields);
     }
 }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProviderFactory class definition
+#! Qore GoogleCalendarDataProviderFactory class definition
 
-/** GoogleDataProviderFactory.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarDataProviderFactory.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,18 +22,18 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
 #! The Google data provider factory: \c google
-public class GoogleDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {
+public class GoogleCalendarDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {
     private {
         #! Data provider type info
-        static Class cls = new Class("GoogleDataProvider");
+        static Class cls = new Class("GoogleCalendarDataProvider");
 
         #! Factory info
         const FactoryInfo = <DataProviderFactoryInfo>{
-            "name": "google",
-            "desc": "Google REST API data provider factory",
+            "name": "gcal",
+            "desc": "Google calendar REST API data provider factory",
             "children_can_support_apis": True,
         };
     }
@@ -49,7 +49,7 @@ public class GoogleDataProviderFactory inherits DataProvider::AbstractDataProvid
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
     private hash<DataProvider::DataProviderInfo> getProviderInfoImpl() {
-        return GoogleDataProvider::ProviderInfo;
+        return GoogleCalendarDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object

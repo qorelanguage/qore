@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
 /** GoogleCalendarsDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
@@ -22,10 +22,10 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
 #! The parent class for REST APIs related to specific Google calendars
-public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarsDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -33,7 +33,7 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
             "desc": "Google calendars data provider; parent provider for REST APIs related to specific Google "
                 "calendars",
             "type": "GoogleCalendarsDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions,
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
         };
@@ -54,12 +54,12 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProvider::GoogleDataProviderBase(rest) {
     }
 
     #! Returns the data provider name
@@ -95,7 +95,7 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProviderBase {
 
         @see getChildProviderEx()
     */
-    private *GoogleDataProviderBase getChildProviderImpl(string name) {
+    private *GoogleDataProvider::GoogleDataProviderBase getChildProviderImpl(string name) {
         if (getAllCalendars(){name}) {
             return new GoogleCalendarDataProvider(rest, name);
         }

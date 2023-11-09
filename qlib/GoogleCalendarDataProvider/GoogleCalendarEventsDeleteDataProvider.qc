@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
-/** GoogleCalendarEventsInsertDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarEventsDeleteDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,19 +22,19 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
-#! The Google calendar event insert API data provider
-/** This API allows the caller to insert a calendar event
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
+#! The Google calendar event delete API data provider
+/** This API allows the caller to delete a calendar event
 */
-public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarEventsDeleteDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "insert",
-            "desc": "Google calendar events insert calender event API data provider",
-            "type": "GoogleCalendarEventsInsertDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
+            "name": "delete",
+            "desc": "Google calendar events delete calender event API data provider",
+            "type": "GoogleCalendarEventsDeleteDataProvider",
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "display_name": "Calendar ID",
                     "short_desc": "The calendar ID",
@@ -50,14 +50,8 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProviderB
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
 
-        #! Request type
-        const RequestType = new GoogleCalendarEventsInsertRequestType();
-
         #! Response type
-        const ResponseType = GoogleCalendarEventsElementType;
-
-        #! Query args
-        const QueryArgs = GoogleCalendarEventsPatchDataProvider::QueryArgs;
+        const ResponseType = AbstractDataProviderTypeMap."nothing";
     }
 
     private {
@@ -70,13 +64,13 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProviderB
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
         id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -98,17 +92,12 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProviderB
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string query_args;
-        foreach hash<auto> i in (req{QueryArgs}.pairIterator()) {
-            # this handles list key values by repeating the expression in the output
-            map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", i.key, $1))), i.value;
-            remove req{i.key};
-        }
+        hash<auto> req_info = prepareRequest(req, {"calendarId": id});
         hash<auto> info;
         try {
-            hash<auto> rv = rest.post("/calendar/v3/calendars/" + id + "/events" + query_args,
-                req, \info).body;
-            return ResponseType.acceptsValue(rv);
+            rest.del("/calendar/v3/calendars/" + req_info.path.calendarId + "/events/" + req_info.path.eventId
+                + req_info.query, NOTHING, \info);
+            # this API returns no value when successful
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -120,7 +109,8 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProviderB
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "events/delete",
+            "calendarId");
     }
 
     #! Returns the description of a response message, if this object represents a response message
@@ -133,24 +123,6 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProviderB
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-
-#! Google calender event insert request data type
-public class GoogleCalendarEventsInsertRequestType inherits HashDataType {
-    public {
-        #! Field descriptions
-        const Fields = GoogleCalendarEventsPatchRequestType::Fields
-            + map {$1.key: $1.value + {
-                "type": ($1.key == "end" || $1.key == "start")
-                    ? $1.value.type
-                    : $1.value.type.getOrNothingType()
-            }}, GoogleCalendarEventsElementType.getFields().pairIterator(), $1.value.updatable;
-    }
-
-    #! Creates the object
-    constructor() : HashDataType("GoogleCalendarEventsInsertRequestType") {
-        addQoreFields(Fields);
     }
 }
 }

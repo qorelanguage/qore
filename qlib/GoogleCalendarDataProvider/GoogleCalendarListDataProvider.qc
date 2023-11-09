@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
 /** GoogleCalendarListDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
@@ -22,17 +22,17 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
 #! The parent class for Google calendarList REST APIs
-public class GoogleCalendarListDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarListDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "calendarList",
             "desc": "Google calendarList data provider; parent provider for APIs related to calendarLists",
             "type": "GoogleCalendarListDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions,
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
         };
@@ -45,18 +45,18 @@ public class GoogleCalendarListDataProvider inherits GoogleDataProviderBase {
 
     private {
         const ChildMap = {
-            "list": Class::forName("GoogleDataProvider::GoogleCalendarListListDataProvider"),
+            "list": Class::forName("GoogleCalendarDataProvider::GoogleCalendarListListDataProvider"),
         };
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProvider::GoogleDataProviderBase(rest) {
     }
 
     #! Returns the data provider name
@@ -86,7 +86,7 @@ public class GoogleCalendarListDataProvider inherits GoogleDataProviderBase {
 
         @see getChildProviderEx()
     */
-    private *GoogleDataProviderBase getChildProviderImpl(string name) {
+    private *GoogleDataProvider::GoogleDataProviderBase getChildProviderImpl(string name) {
         *Class cls = ChildMap{name};
         if (!cls) {
             return;

@@ -45,7 +45,7 @@ public class DiscordUserInfoGetDataProvider inherits DiscordDataProviderBase {
         const RequestType = AbstractDataProviderTypeMap."nothing";
 
         #! Response type
-        const ResponseType = new DiscordUserInfoDataType();
+        const ResponseType = new DiscordUserDataType();
     }
 
     #! Creates the object from constructor options

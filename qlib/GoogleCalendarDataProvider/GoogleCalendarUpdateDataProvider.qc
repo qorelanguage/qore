@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
-/** GoogleCalendarEventsUpdateDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GoogleCalendarUpdateDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,22 +22,22 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
-#! The Google calendar event update API data provider
-/** This API allows the caller to update a calendar event
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
+#! The Google calendar update API data provider
+/** This API allows the caller to update a calendar
 
     Note that this API works like a `patch` operation; if any fields are missing in the request, they are first set
     based on a fetch of the current attributes.
 */
-public class GoogleCalendarEventsUpdateDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarUpdateDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "update",
-            "desc": "Google calendar events update calender event API data provider",
-            "type": "GoogleCalendarEventsUpdateDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
+            "desc": "Google calendar update calender API data provider",
+            "type": "GoogleCalendarUpdateDataProvider",
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "display_name": "Calendar ID",
                     "short_desc": "The calendar ID",
@@ -54,13 +54,7 @@ public class GoogleCalendarEventsUpdateDataProvider inherits GoogleDataProviderB
         });
 
         #! Request type
-        const RequestType = new GoogleCalendarEventsUpdateRequestType();
-
-        #! Response type
-        const ResponseType = GoogleCalendarEventsElementType;
-
-        #! Query args
-        const QueryArgs = ("conferenceDataVersion", "maxAttendees", "sendUpdates", "supportsAttachments");
+        const RequestType = new GoogleCalendarPatchRequestType();
     }
 
     private {
@@ -73,13 +67,13 @@ public class GoogleCalendarEventsUpdateDataProvider inherits GoogleDataProviderB
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
         id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -91,7 +85,7 @@ public class GoogleCalendarEventsUpdateDataProvider inherits GoogleDataProviderB
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google calendar events %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
+        return sprintf("Google data %s provider for calendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
     }
 
     #! Makes a request and returns the response
@@ -101,27 +95,20 @@ public class GoogleCalendarEventsUpdateDataProvider inherits GoogleDataProviderB
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string query_args;
-        foreach hash<auto> i in (req{QueryArgs}.pairIterator()) {
-            # this handles list key values by repeating the expression in the output
-            map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", i.key, $1))), i.value;
-            remove req{i.key};
-        }
         hash<auto> info;
         try {
             # we get the current values to make the update in case any values are missing
             {
-                list<string> fields = keys (RequestType.getFields() - QueryArgs);
+                list<string> fields = keys RequestType.getFields();
                 if (req.size() < fields.size()) {
-
-                    hash<auto> event = rest.get("/calendar/v3/calendars/" + id + "/events/" + req.id, NOTHING,
-                        \info).body;
-                    map req{$1.key} = $1.value, event{fields}.pairIterator(), !req.hasKey($1.key);
+                    if (!cal) {
+                        cal = rest.get("/calendar/v3/calendars/" + id, NOTHING, \info).body;
+                    }
+                    map req{$1.key} = $1.value, cal{fields}.pairIterator(), !req.hasKey($1.key);
                 }
             }
-            hash<auto> rv = rest.put("/calendar/v3/calendars/" + id + "/events/" + req.id + query_args,
-                req, \info).body;
-            return ResponseType.acceptsValue(rv);
+
+            return rest.put("/calendar/v3/calendars/" + id, req, \info).body;
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -140,25 +127,12 @@ public class GoogleCalendarEventsUpdateDataProvider inherits GoogleDataProviderB
     /** @return the response type for this response message
     */
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return new GoogleCalendarType();
     }
 
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-
-#! Google event update request data type
-public class GoogleCalendarEventsUpdateRequestType inherits HashDataType {
-    public {
-        #! Field descriptions
-        const Fields = GoogleCalendarEventsPatchRequestType::Fields;
-    }
-
-    #! Creates the object
-    constructor() : HashDataType("GoogleCalendarEventsUpdateRequestType") {
-        addQoreFields(Fields);
     }
 }
 }

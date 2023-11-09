@@ -58,6 +58,7 @@ public class QoreDataField inherits AbstractDataField {
     constructor(hash<auto> h) {
         checkString(True, h, "name", "desc");
         checkString(False, h, "display_name", "short_desc");
+        checkHash(False, h, "attr");
         if (h.type instanceof Qore::Reflection::Type) {
             type = AbstractDataProviderType::get(h.type);
         } else if (h.type instanceof AbstractDataProviderType) {
@@ -75,6 +76,9 @@ public class QoreDataField inherits AbstractDataField {
         }
         if (exists h.allowed_values) {
             setAllowedValues(h.allowed_values);
+        }
+        if (h.attr) {
+            attr += h.attr;
         }
     }
 
@@ -190,6 +194,16 @@ public class QoreDataField inherits AbstractDataField {
         foreach string key in (argv) {
             if (h{key}.typeCode() != NT_STRING && (required || exists h{key})) {
                 throw "QORE-DATA-FIELD-ERROR", sprintf("missing or invalid key %y; expecting type \"string\"; got %y "
+                    "instead (value: %y)", key, h{key}.fullType(), h{key});
+            }
+        }
+    }
+
+    #! Checks for hash values in a hash
+    private static checkHash(bool required, hash<auto> h, ...) {
+        foreach string key in (argv) {
+            if (h{key}.typeCode() != NT_HASH && (required || exists h{key})) {
+                throw "QORE-DATA-FIELD-ERROR", sprintf("missing or invalid key %y; expecting type \"hash\"; got %y "
                     "instead (value: %y)", key, h{key}.fullType(), h{key});
             }
         }

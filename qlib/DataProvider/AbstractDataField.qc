@@ -48,6 +48,9 @@ public hashdecl DataFieldInfo {
 
     #! type info
     hash<DataTypeInfo> type;
+
+    #! User-defined attributes set on the field
+    *hash<auto> attr;
 }
 
 #! describes a data type based on a hashdecl
@@ -63,6 +66,9 @@ public class AbstractDataField inherits Qore::Serializable {
         /** only supported for types that convert to a string
         */
         hash<string, bool> allowed_values_map;
+
+        #! User-defined custom attributes set on the field
+        hash<auto> attr;
     }
 
     #! returns True if this field's type can be assigned from values of the argument type
@@ -197,6 +203,7 @@ public class AbstractDataField inherits Qore::Serializable {
             "short_desc": getShortDescription(),
             "desc": getDescription(),
             "type": getType().getInputInfo(),
+            "attr": getAttributes(),
         };
     }
 
@@ -210,6 +217,7 @@ public class AbstractDataField inherits Qore::Serializable {
             "default_value": default_value,
             "allowed_values": allowed_values,
             "type": getType().getInfo(),
+            "attr": getAttributes(),
         };
     }
 
@@ -241,6 +249,24 @@ public class AbstractDataField inherits Qore::Serializable {
     #! Returns the short description, if any
     *string getShortDescription() {
         return AbstractDataField::getShortDescription(getDescription());
+    }
+
+    #! Returns custom attributes set on the type
+    *hash<auto> getAttributes() {
+        return attr;
+    }
+
+    #! Sets custom attributes
+    setAttributes(hash<auto> attr) {
+        self.attr += attr;
+    }
+
+    #! Replaces all custom attributes
+    replaceAttributes(*hash<auto> attr) {
+        remove self.attr;
+        if (attr) {
+            self.attr += attr;
+        }
     }
 
     #! Converts a long description into a short description

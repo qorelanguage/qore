@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
 /** GoogleCalendarDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
@@ -22,17 +22,17 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
 #! The parent class for Google calendar REST APIs
-public class GoogleCalendarDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "calendar",
             "desc": "Google calendar data provider; parent provider for APIs related to calendars",
             "type": "GoogleCalendarDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "display_name": "Calendar ID",
                     "short_desc": "The calendar ID",
@@ -58,12 +58,12 @@ public class GoogleCalendarDataProvider inherits GoogleDataProviderBase {
         *hash<auto> cal;
 
         const DefaultChildMap = {
-            "delete": Class::forName("GoogleDataProvider::GoogleCalendarDeleteDataProvider"),
-            "events": Class::forName("GoogleDataProvider::GoogleCalendarEventsDataProvider"),
-            "freeBusy": Class::forName("GoogleDataProvider::GoogleCalendarFreeBusyDataProvider"),
-            "get": Class::forName("GoogleDataProvider::GoogleCalendarGetDataProvider"),
-            "patch": Class::forName("GoogleDataProvider::GoogleCalendarPatchDataProvider"),
-            "update": Class::forName("GoogleDataProvider::GoogleCalendarUpdateDataProvider"),
+            "delete": Class::forName("GoogleCalendarDataProvider::GoogleCalendarDeleteDataProvider"),
+            "events": Class::forName("GoogleCalendarDataProvider::GoogleCalendarEventsDataProvider"),
+            "freeBusy": Class::forName("GoogleCalendarDataProvider::GoogleCalendarFreeBusyDataProvider"),
+            "get": Class::forName("GoogleCalendarDataProvider::GoogleCalendarGetDataProvider"),
+            "patch": Class::forName("GoogleCalendarDataProvider::GoogleCalendarPatchDataProvider"),
+            "update": Class::forName("GoogleCalendarDataProvider::GoogleCalendarUpdateDataProvider"),
         };
 
         static hash<string, Reflection::Class> childMap = DefaultChildMap;
@@ -71,13 +71,14 @@ public class GoogleCalendarDataProvider inherits GoogleDataProviderBase {
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
         id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal)
+            : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -127,7 +128,7 @@ public class GoogleCalendarDataProvider inherits GoogleDataProviderBase {
 
         @see getChildProviderEx()
     */
-    private *GoogleDataProviderBase getChildProviderImpl(string name) {
+    private *GoogleDataProvider::GoogleDataProviderBase getChildProviderImpl(string name) {
         *Class cls = childMap{name};
         if (!cls) {
             return;

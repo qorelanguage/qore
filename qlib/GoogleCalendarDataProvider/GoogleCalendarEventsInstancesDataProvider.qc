@@ -1,5 +1,5 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleDataProvider module definition
+#! Qore GoogleCalendarDataProvider module definition
 
 /** GoogleCalendarEventsInstancesDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
@@ -22,19 +22,19 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleDataProvider module
-public namespace GoogleDataProvider {
+#! Contains all public definitions in the GoogleCalendarDataProvider module
+public namespace GoogleCalendarDataProvider {
 #! The Google calendar event instances API data provider
 /** This API allows the caller to get instances of a recurring calendar event
 */
-public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProviderBase {
+public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "instances",
             "desc": "Google calendar events get instances of a recurring event API data provider",
             "type": "GoogleCalendarEventsInstancesDataProvider",
-            "constructor_options": GoogleDataProvider::ConstructorOptions + {
+            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
                 "id": <DataProviderOptionInfo>{
                     "display_name": "Calendar ID",
                     "short_desc": "The calendar ID",
@@ -52,9 +52,6 @@ public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProvid
 
         #! Request type
         const RequestType = new GoogleCalendarEventsInstancesRequestType();
-
-        #! Response type
-        const ResponseType = new GoogleCalendarEventsListResponseType();
     }
 
     private {
@@ -67,13 +64,13 @@ public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProvid
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProvider::getRestConnection(options);
+        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
+        rest = GoogleDataProviderBase::getRestConnection(options);
         id = options.id;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -104,7 +101,7 @@ public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProvid
         try {
             hash<auto> rv = rest.get("/calendar/v3/calendars/" + id + "/events/" + req.id + "/instances" + query_args,
                 NOTHING, \info).body;
-            return ResponseType.acceptsValue(rv);
+            return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -123,7 +120,7 @@ public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProvid
     /** @return the response type for this response message
     */
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryCalendarApiName, "Events");
     }
 
     #! Returns data provider static info
@@ -160,7 +157,7 @@ public class GoogleCalendarEventsInstancesRequestType inherits GoogleCalendarEve
             "showDeleted": {
                 "display_name": "Show Deleted?",
                 "short_desc": "Whether to include deleted events in the result",
-                "type": SoftBoolDataProviderStringType,
+                "type": SoftBoolOrNothingDataProviderStringType,
                 "desc": "Whether to include deleted events (with status equals `cancelled`) in the result. Cancelled "
                     "instances of recurring events (but not the underlying recurring event) will still be included "
                     "if `showDeleted` and `singleEvents` are both `False`. If `showDeleted` and `singleEvents` are "

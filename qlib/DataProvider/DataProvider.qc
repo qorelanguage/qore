@@ -46,7 +46,7 @@ public class DataProvider {
             "fixedlengthwrite": "FixedLengthUtil",
             "ftpclient": "FtpClientDataProvider",
             "ftppoller": "FtpPoller",
-            "google": "GoogleDataProvider",
+            "gcal": "GoogleCalendarDataProvider",
             "httpclient": "HttpClientDataProvider",
 
             # provided by the jni module
