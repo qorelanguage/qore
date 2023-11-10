@@ -157,7 +157,6 @@ MewsRestClient rest(opts);
 
     #! Checks if a login is necessary; if so, then the login is performed
     private checkLogin(*reference<hash<auto>> info) {
-        return False;
     }
 
 
@@ -177,6 +176,15 @@ MewsRestClient rest(opts);
 */
 public class MewsRestConnection inherits RestClient::RestConnection {
     public {
+        #! REST options not supported by this class
+        const MewsUnsupportedRestOptions = (
+            "data",
+            "password",
+            "token",
+            "token_type",
+            "username",
+        ) + map $1, keys RestConnection::ConnectionScheme.options, $1 =~ /^oauth/;
+
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "display_name": "Mews REST Connection",
@@ -190,7 +198,7 @@ public class MewsRestConnection inherits RestClient::RestConnection {
             "base_scheme_map": {
                 "https": "mews",
             },
-            "options": RestConnection::ConnectionScheme.options{MewsRestOptions} + {
+            "options": RestConnection::ConnectionScheme.options - MewsUnsupportedRestOptions + {
                 "client_token": <ConnectionOptionInfo>{
                     "display_name": "Mews Client Token",
                     "short_desc": "The Mews client token for access to the given Mews instance",
@@ -232,28 +240,6 @@ public class MewsRestConnection inherits RestClient::RestConnection {
     #! returns \c "mews"
     string getType() {
         return "mews";
-    }
-
-    #! Returns the OAuth2 authorization URL or throws an exception if not set
-    /*  @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
-        is to return a full URL
-    */
-    string getAuthUrl(*bool allow_relative) {
-        return opts.oauth2_auth_url == "auto"
-            ? replace(MewsRestClient::DefaultAuthUrl, "$accountid",
-                (opts.account_id ? opts.account_id + ".app" : "system"))
-            : getUrlOption("oauth2_auth_url", allow_relative);
-    }
-
-    #! Returns the OAuth2 token URL or throws an exception if not set
-    /*  @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
-        is to return a full URL
-    */
-    string getTokenUrl(*bool allow_relative) {
-        if (opts.oauth2_token_url == "auto" && opts.account_id) {
-            return replace(MewsRestClient::DefaultTokenUrl, "$accountid", opts.account_id);
-        }
-        return getUrlOption("oauth2_token_url", allow_relative);
     }
 
 %ifdef HaveMewsDataProvider

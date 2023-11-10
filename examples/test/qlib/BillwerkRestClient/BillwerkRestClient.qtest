@@ -97,9 +97,10 @@ class BillwerkTest inherits QUnit::Test {
 
         try {
             billwerkRestClient = new BillwerkRestClient({
-                "url": "http://test1:test2@localhost:" + port,
+                "url": "http://localhost:" + port,
                 "client_id": "a",
                 "client_secret": "b",
+                "token": "token",
             });
         } catch (hash<ExceptionInfo> ex) {
             if (ex.err == "REST-RESPONSE-ERROR" || ex.err == "DESERIALIZATION-ERROR") {

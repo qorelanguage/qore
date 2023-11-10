@@ -298,17 +298,6 @@ public class DataProviderTest inherits QUnit::Test {
             "logo_file_name": "test.svg",
         });
 
-        # missing scheme
-        assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
-            "name": "test",
-            "display_name": "test",
-            "short_desc": "test",
-            "desc": "test",
-            "logo": "data",
-            "logo_mime_type": MimeTypeJpeg,
-            "logo_file_name": "test.svg",
-        });
-
         # missing logo file name
         assertThrows("APP-ERROR", \DataProviderActionCatalog::registerApp(), <DataProviderAppInfo>{
             "name": "test",

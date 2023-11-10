@@ -15,12 +15,13 @@
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/GoogleRestClient.qm
 %requires ../../../../qlib/GoogleDataProvider
+%requires ../../../../qlib/GoogleCalendarDataProvider
 
 %exec-class GoogleDataProviderTest
 
 public class GoogleDataProviderTest inherits QUnit::Test {
     private {
-        GoogleDataProvider gdp;
+        GoogleDataProviderBase gdp;
 
         # command-line options
         const MyOpts = Opts + {
