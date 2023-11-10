@@ -43,7 +43,8 @@ DOX_SRC_SPLIT_MODULES = \
     qlib/FileLocationHandler \
     qlib/RestClientDataProvider \
     qlib/ElasticSearchDataProvider \
-    qlib/EmpathicBuildingDataProvider
+    qlib/EmpathicBuildingDataProvider \
+    qlib/GoogleDataProvider
 
 DOX_MODULES = qlib/DatasourceProvider.qm \
 	qlib/DebugCmdLine.qm \
@@ -103,7 +104,7 @@ DOX_SPLIT_MODULES = \
     qlib/FtpClientDataProvider \
     qlib/HttpClientDataProvider \
     qlib/AwsRestClientDataProvider \
-    qlib/GoogleDataProvider \
+    qlib/GoogleCalendarDataProvider \
     qlib/DiscordDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
@@ -124,6 +125,7 @@ DiscordDataProvider_modverdir = $(modverdir)/DiscordDataProvider
 FileDataProvider_modverdir = $(modverdir)/FileDataProvider
 FtpClientDataProvider_modverdir = $(modverdir)/FtpClientDataProvider
 GoogleDataProvider_modverdir = $(modverdir)/GoogleDataProvider
+GoogleCalendarDataProvider_modverdir = $(modverdir)/GoogleCalendarDataProvider
 HttpClientDataProvider_modverdir = $(modverdir)/HttpClientDataProvider
 ElasticSearchDataProvider_modverdir = $(modverdir)/ElasticSearchDataProvider
 EmpathicBuildingDataProvider_modverdir = $(modverdir)/EmpathicBuildingDataProvider
@@ -146,6 +148,7 @@ dist_DiscordDataProvider_modver_DATA = $(wildcard qlib/DiscordDataProvider/*.q[c
 dist_FileDataProvider_modver_DATA = $(wildcard qlib/FileDataProvider/*.q[cm])
 dist_FtpClientDataProvider_modver_DATA = $(wildcard qlib/FtpClientDataProvider/*.q[cm])
 dist_GoogleDataProvider_modver_DATA = $(wildcard qlib/GoogleDataProvider/*.q[cm])
+dist_GoogleCalendarDataProvider_modver_DATA = $(wildcard qlib/GoogleCalendarDataProvider/*.q[cm])
 dist_HttpClientDataProvider_modver_DATA = $(wildcard qlib/HttpClientDataProvider/*.q[cm])
 dist_ElasticSearchDataProvider_modver_DATA = $(wildcard qlib/ElasticSearchDataProvider/*.q[cm])
 dist_EmpathicBuildingDataProvider_modver_DATA = $(wildcard qlib/EmpathicBuildingDataProvider/*.q[cm])
@@ -1120,6 +1123,9 @@ doxygen/qlib/Doxyfile.SqlUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 doxygen/qlib/Doxyfile.DbDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/DbDataProvider:doxygen/qlib/DbDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tSqlUtil.tag=../../SqlUtil/html $< $@
+
+doxygen/qlib/Doxyfile.GoogleDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/GoogleDataProvider:doxygen/qlib/GoogleDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html -tGoogleRestClient.tag=../../GoogleRestClient/html $< $@
 
 doxygen/qlib/Doxyfile.Logger: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 	$(QDX) -M=qlib/Logger.qm:doxygen/qlib/Logger.qm $< $@

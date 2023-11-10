@@ -962,6 +962,9 @@ qore_user_module("qlib/AwsRestClientDataProvider" "RestClient;DataProvider;RestC
 qore_user_module("qlib/GoogleDataProvider" "GoogleRestClient;RestClient;DataProvider")
 qore_user_module("qlib/DiscordDataProvider" "DiscordRestClient;RestClient;DataProvider")
 
+# base 9 modules
+qore_user_module("qlib/GoogleCalendarDataProvider" "GoogleDataProvider;GoogleRestClient;RestClient;DataProvider")
+
 # print info
 message(STATUS "")
 message(STATUS "Implicit link libraries and flags detected for C++: ${CMAKE_CXX_IMPLICIT_LINK_LIBRARIES}")
