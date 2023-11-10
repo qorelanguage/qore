@@ -694,7 +694,7 @@ public class Mapper inherits DataProvider::AbstractDataProcessor {
         #! a boolean flag that indicates that an input provider that supports both the record API and the request/response API should use the request search API to provide records
         bool input_request_search;
 
-        #! supresses the output field if the input field is missing and the output is optional
+        #! suppresses the output field if the input field is missing and the output is optional
         bool ignore_missing_input;
 
         #! disable bulk operations when there is a hash of lists as input when calling mapAuto
@@ -2790,7 +2790,7 @@ Mapper mapv(DataMap);
                 error2("MISSING-INPUT", "field %y is marked as mandatory but is missing in the input row: %y",
                     getFieldName(key), rec);
         } else if (ignore_missing_input && !exists v && missing) {
-            # supressing output for field
+            # suppressing output for field
             if (m.output_key_path) {
                 removeHashOutputKey(\h, m.output_key_path, 0);
             } else {

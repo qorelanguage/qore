@@ -128,6 +128,8 @@ public class ConnectionSchemeCache {
             "jsonrpc": "JsonRpcClient",
             "jsonrpcs": "JsonRpcClient",
 
+            "mews": "MewsRestClient",
+
             # provided by the jni module
             "mqtt": "MqttDataProvider",
 
