@@ -48,7 +48,7 @@ module MewsRestClient {
     url = "https://qore.org";
     license = "MIT";
     init = sub () {
-        ConnectionSchemeCache::registerScheme("mews", MewsRestConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("mewsrest", MewsRestConnection::ConnectionScheme);
     };
 }
 
@@ -153,8 +153,11 @@ MewsRestClient rest(opts);
         if (*string client = getString(opts, "client")) {
             self.client = client;
         }
-        if (getConnectionPath() == "/") {
-            setConnectionPath(DefaultUriPathPrefix);
+        {
+            *string cp = getConnectionPath();
+            if (!cp.val() || cp == "/") {
+                setConnectionPath(DefaultUriPathPrefix);
+            }
         }
         if (!do_not_connect) {
             connect();
@@ -187,11 +190,16 @@ MewsRestClient rest(opts);
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
     */
     hash<auto> doMewsRequest(string path, *hash<auto> body, *reference<hash<auto>> info, *hash<auto> hdr) {
-        return doRequest("POST", path, {
+        return doRequest("POST", path, getMewsRequestBody(body), \info, NOTHING, hdr);
+    }
+
+    #! Returns a request body to be used with a MEWS POST request
+    hash<auto> getMewsRequestBody(*hash<auto> body) {
+        return {
             "ClientToken": client_token,
             "AccessToken": access_token,
             "Client": client,
-        } + body, \info, NOTHING, hdr);
+        } + body;
     }
 
     #! Checks if a login is necessary; if so, then the login is performed
@@ -200,6 +208,13 @@ MewsRestClient rest(opts);
 
     #! returns options for @ref MewsRestClient::MewsRestClient::constructor()
     private static hash<auto> getOptions(hash<auto> opts) {
+        if (!opts.swagger && !opts.validator) {
+            string path = dirname(get_module_hash().MewsRestClient.filename)
+                + "/MewsRestDataProvider/mews-swagger-2.0.yaml";
+            if (is_file(path)) {
+                opts.swagger = path;
+            }
+        }
         return opts + {"data": "json"};
     }
 }
@@ -245,10 +260,10 @@ public class MewsRestConnection inherits RestClient::RestConnection {
             "cls": Class::forName("MewsRestConnection"),
             "auto_url": True,
             "schemes": {
-                "mews": True,
+                "mewsrest": True,
             },
             "base_scheme_map": {
-                "https": "mews",
+                "https": "mewsrest",
             },
             "options": RestConnection::ConnectionScheme.options - MewsUnsupportedRestOptions + {
                 "access_token": <ConnectionOptionInfo>{
@@ -313,7 +328,6 @@ public class MewsRestConnection inherits RestClient::RestConnection {
         return "mews";
     }
 
-%ifdef HaveMewsDataProvider
     #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
     /** @return @ref True as this connection returns a data provider with the @ref getDataProvider() method
 
@@ -331,10 +345,9 @@ public class MewsRestConnection inherits RestClient::RestConnection {
     DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
         # to avoid circular dependencies, this object loads the MewsDataProvider and creates the data provider
         # object dynamically
-        load_module("MewsDataProvider");
-        return create_object("MewsDataProvider", get());
+        load_module("MewsRestDataProvider");
+        return create_object("MewsRestDataProvider", get());
     }
-%endif
 
     private auto getPingBody() {
         if (opts.ping_body == "auto") {

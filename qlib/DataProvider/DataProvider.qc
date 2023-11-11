@@ -48,6 +48,7 @@ public class DataProvider {
             "ftppoller": "FtpPoller",
             "gcal": "GoogleCalendarDataProvider",
             "httpclient": "HttpClientDataProvider",
+            "mewsrest": "MewsRestDataProvider",
 
             # provided by the jni module
             "mqtt": "MqttDataProvider",
@@ -635,6 +636,7 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
                     }
                 }
             }
+
         }
     }
 

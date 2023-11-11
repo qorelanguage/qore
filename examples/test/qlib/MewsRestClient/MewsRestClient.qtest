@@ -113,6 +113,11 @@ public class Main inherits QUnit::Test {
         }
     }
 
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--conn=ARG", "set Mews connection name", OptionColumn);
+    }
+
     private error(string fmt) {
         throw "OPTION-ERROR", sprintf("%s: ERROR: %s", get_script_name(), vsprintf(fmt, argv));
     }

@@ -106,7 +106,8 @@ DOX_SPLIT_MODULES = \
     qlib/HttpClientDataProvider \
     qlib/AwsRestClientDataProvider \
     qlib/GoogleCalendarDataProvider \
-    qlib/DiscordDataProvider
+    qlib/DiscordDataProvider \
+    qlib/MewsRestDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -130,6 +131,7 @@ GoogleCalendarDataProvider_modverdir = $(modverdir)/GoogleCalendarDataProvider
 HttpClientDataProvider_modverdir = $(modverdir)/HttpClientDataProvider
 ElasticSearchDataProvider_modverdir = $(modverdir)/ElasticSearchDataProvider
 EmpathicBuildingDataProvider_modverdir = $(modverdir)/EmpathicBuildingDataProvider
+MewsRestDataProvider_modverdir = $(modverdir)/MewsRestDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
@@ -153,6 +155,7 @@ dist_GoogleCalendarDataProvider_modver_DATA = $(wildcard qlib/GoogleCalendarData
 dist_HttpClientDataProvider_modver_DATA = $(wildcard qlib/HttpClientDataProvider/*.q[cm])
 dist_ElasticSearchDataProvider_modver_DATA = $(wildcard qlib/ElasticSearchDataProvider/*.q[cm])
 dist_EmpathicBuildingDataProvider_modver_DATA = $(wildcard qlib/EmpathicBuildingDataProvider/*.q[cm])
+dist_MewsRestDataProvider_modver_DATA = $(wildcard qlib/MewsRestDataProvider/*.{q[cm],yaml})
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)

@@ -962,6 +962,7 @@ qore_user_module("qlib/SalesforceRestDataProvider" "RestClient;SalesforceRestCli
 qore_user_module("qlib/AwsRestClientDataProvider" "RestClient;DataProvider;RestClientDataProvider")
 qore_user_module("qlib/GoogleDataProvider" "GoogleRestClient;RestClient;DataProvider")
 qore_user_module("qlib/DiscordDataProvider" "DiscordRestClient;RestClient;DataProvider")
+qore_user_module("qlib/MewsRestDataProvider" "MewsRestClient;RestClient;DataProvider")
 
 # base 9 modules
 qore_user_module("qlib/GoogleCalendarDataProvider" "GoogleDataProvider;GoogleRestClient;RestClient;DataProvider")

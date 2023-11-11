@@ -1736,9 +1736,16 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         # use {} + ... here to ensure that hdr stays "hash<auto>"
         hdr = {} + headers + hdr;
 
+        # we need to prepend any connection path to the path before validation to ensure correct matches
         # must get the path from the HTTPClient object if not given in the request
-        if (!path.val() && (*string p = getConnectionPath())) {
-            path = p;
+        if ((*string p = getConnectionPath()).val()) {
+            if (p =~ /\/$/) {
+                splice p, -1, 1;
+            }
+            if (path.val() && path[0] != "/") {
+                path = "/" + path;
+            }
+            path = p + path;
         }
 
         hash<RestRequestClientInfo> req = validator.processRequest(method, path, body, hdr, sct);
