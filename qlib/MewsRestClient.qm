@@ -108,13 +108,11 @@ public namespace MewsRestClient {
 */
 public class MewsRestClient inherits RestClient::RestClient {
     public {
-        #! Default Mews ping method
-        const DefaultMewsPingMethod= "GET";
+        #! Connector REST API path prefix
+        const DefaultUriPathPrefix = "api/connector/v1";
 
-        #! Default Mews ping headers
-        const DefaultMewsPingHeaders = {
-            "Accept": MimeTypeJson,
-        };
+        #! Default client value
+        const DefaultClient = sprintf("Qore %s", Qore::VersionString);
     }
 
     private {
@@ -123,6 +121,9 @@ public class MewsRestClient inherits RestClient::RestClient {
 
         #! Mews access token
         string access_token;
+
+        #! Mews client values
+        string client = DefaultClient;
     }
 
     #! creates the object with the given options
@@ -132,8 +133,7 @@ public class MewsRestClient inherits RestClient::RestClient {
 MewsRestClient rest(opts);
         @endcode
 
-        @param opts valid options are all the options for the @ref RestClient::RestClient "RestClient" class; note
-        that the URL is set by default if not provided (see @ref DefaultUrl)
+        @param opts valid options are all the options for the @ref RestClient::RestClient "RestClient" class
         @param do_not_connect if \c False (the default), then a connection will be immediately established to the
         remote server
 
@@ -150,15 +150,53 @@ MewsRestClient rest(opts);
         } else {
             throw "RESTCLIENT-ERROR", "missing 'access_token' option";
         }
+        if (*string client = getString(opts, "client")) {
+            self.client = client;
+        }
+        if (getConnectionPath() == "/") {
+            setConnectionPath(DefaultUriPathPrefix);
+        }
         if (!do_not_connect) {
             connect();
         }
     }
 
+    #! Makes a POST request to the server with the required tokens and returns the response
+    /** @param path the URI path to add (will be appended to any root path given in the constructor)
+        @param body an optional message body to be included in the request; this will have the \c AccessToken,
+        \c ClientToken, as well as the \c Client value added to it automatically before sending with JSON
+        serialization
+        @param info an optional reference to a hash that will be used as an output variable giving a hash of request
+        headers and other information about the HTTP request
+
+        @return A hash of headers received from the HTTP server with all key names converted to lower-case; if any
+        message body is included in the response, it will be deserialized to %Qore data and assigned to the value of
+        the \c "body" key
+
+       @throw REST-RESPONSE-ERROR if this exception is thrown by the @ref Qore::HTTPClient::send() call in case of an
+        HTTP response code < 100 or >= 300, the message body is still deserialized if possible and the response
+        information can be retrieved in the \a info hash output keys as follows:
+        - \c "response-code": the HTTP response code given
+        - \c "response-headers": a hash of processed response headers
+        - \c "response-headers-raw": a hash of raw unprocessed response headers
+        - \c "response-body": the decoded response body
+        .
+        Note that this exception is not raised for HTTP status codes indicating an error if the \c error_passthru
+        option is set to @ref True "True"
+
+        Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
+    */
+    hash<auto> doMewsRequest(string path, *hash<auto> body, *reference<hash<auto>> info, *hash<auto> hdr) {
+        return doRequest("POST", path, {
+            "ClientToken": client_token,
+            "AccessToken": access_token,
+            "Client": client,
+        } + body, \info, NOTHING, hdr);
+    }
+
     #! Checks if a login is necessary; if so, then the login is performed
     private checkLogin(*reference<hash<auto>> info) {
     }
-
 
     #! returns options for @ref MewsRestClient::MewsRestClient::constructor()
     private static hash<auto> getOptions(hash<auto> opts) {
@@ -185,6 +223,20 @@ public class MewsRestConnection inherits RestClient::RestConnection {
             "username",
         ) + map $1, keys RestConnection::ConnectionScheme.options, $1 =~ /^oauth/;
 
+        #! Default Mews ping body
+        const DefaultMewsPingBody= "auto";
+
+        #! Default Mews ping method
+        const DefaultMewsPingMethod= "POST";
+
+        #! Default Mews ping headers
+        const DefaultMewsPingHeaders = {
+            "Accept": MimeTypeJson,
+        };
+
+        #! Defualt Mews ping path
+        const DefaultMewsPingPath = "configuration/get";
+
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "display_name": "Mews REST Connection",
@@ -199,17 +251,36 @@ public class MewsRestConnection inherits RestClient::RestConnection {
                 "https": "mews",
             },
             "options": RestConnection::ConnectionScheme.options - MewsUnsupportedRestOptions + {
+                "access_token": <ConnectionOptionInfo>{
+                    "display_name": "Mews Account Token",
+                    "short_desc": "The Mews account token for access to the given Mews instance",
+                    "type": "string",
+                    "desc": "The Mews account token for access to the given Mews instance",
+                },
+                "client": <ConnectionOptionInfo>{
+                    "display_name": "Mews Client",
+                    "short_desc": "The Mews client value for requests",
+                    "type": "string",
+                    "desc": "The Mews client value for requests",
+                    "default_value": MewsRestClient::DefaultClient,
+                },
                 "client_token": <ConnectionOptionInfo>{
                     "display_name": "Mews Client Token",
                     "short_desc": "The Mews client token for access to the given Mews instance",
                     "type": "string",
                     "desc": "The Mews client token for access to the given Mews instance",
                 },
-                "access_token": <ConnectionOptionInfo>{
-                    "display_name": "Mews Account Token",
-                    "short_desc": "The Mews account token for access to the given Mews instance",
-                    "type": "string",
-                    "desc": "The Mews account token for access to the given Mews instance",
+                "ping_body": RestConnection::ConnectionScheme.options.ping_body + <ConnectionOptionInfo>{
+                    "default_value": DefaultMewsPingBody,
+                },
+                "ping_headers": RestConnection::ConnectionScheme.options.ping_headers + <ConnectionOptionInfo>{
+                    "default_value": DefaultMewsPingHeaders,
+                },
+                "ping_method": RestConnection::ConnectionScheme.options.ping_method + <ConnectionOptionInfo>{
+                    "default_value": DefaultMewsPingMethod,
+                },
+                "ping_path": RestConnection::ConnectionScheme.options.ping_path + <ConnectionOptionInfo>{
+                    "default_value": DefaultMewsPingPath,
                 },
             },
             "required_options": "client_token,access_token",
@@ -264,6 +335,17 @@ public class MewsRestConnection inherits RestClient::RestConnection {
         return create_object("MewsDataProvider", get());
     }
 %endif
+
+    private auto getPingBody() {
+        if (opts.ping_body == "auto") {
+            return {
+                "ClientToken": opts.client_token,
+                "AccessToken": opts.access_token,
+                "Client": opts.client,
+            };
+        }
+        return opts.ping_body;
+    }
 
     #! Sets child data provider capabilities
     private setChildCapabilities() {

@@ -31,7 +31,7 @@ public namespace ConnectionProvider {
 
     @deprecated use AbstractConnectionWithInfo instead
 */
-public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapper {
+public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapper, OptionHelper {
     public {
         #! Connection name
         string name;
@@ -704,45 +704,6 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     handlePingFailed(date delta, string err) {
         up = False;
         status = err;
-    }
-
-    #! gets a string option value
-    static *string getString(*hash<auto> opts, string key, *bool required) {
-        *string v = AbstractConnection::getOptionType(opts, key, NT_STRING, Type::String, required);
-        if (v === "") {
-            if (required) {
-                throw "CONNECTION-OPTION-ERROR", sprintf("required string option %y is %y", key, v);
-            }
-            return;
-        }
-        return v;
-    }
-
-    #! gets a hash option value
-    static *hash<auto> getHash(*hash<auto> opts, string key, *bool required) {
-        return AbstractConnection::getOptionType(opts, key, NT_HASH, Type::Hash, required);
-    }
-
-    #! gets a boolean option value
-    static *bool getBool(*hash<auto> opts, string key, *bool required) {
-        return AbstractConnection::getOptionType(opts, key, NT_BOOLEAN, Type::Boolean, required);
-    }
-
-    #! gets a hash option value
-    static auto getOptionType(*hash<auto> opts, string key, int type_code, string type_name, *bool required) {
-        auto v = opts{key};
-        if (!exists v || v === NULL) {
-            if (!required) {
-                return;
-            }
-            throw "CONNECTION-OPTION-ERROR", sprintf("missing required %s option %y in option argument", type_name,
-                key);
-        }
-        if (v.typeCode() != type_code) {
-            throw "CONNECTION-OPTION-ERROR", sprintf("required option %y was passed as a %s (%y); expecting %y", key,
-                v.type(), v, type_name);
-        }
-        return v;
     }
 
     #! Returns a ConnectionOptionInfo hash from a DataProviderOptionInfo hash

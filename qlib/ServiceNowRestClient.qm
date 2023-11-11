@@ -258,24 +258,6 @@ ServiceNowRestClient rest({
         }
     }
 
-    #! gets a string option
-    static string getString(hash<auto> opts, string key) {
-        auto v = opts{key};
-        if (!exists v || v == "") {
-            ServiceNowRestClient::raiseError("missing required option %y in option argument", key);
-        }
-        if (v.typeCode() != NT_STRING) {
-            ServiceNowRestClient::raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key,
-                v.type(), v);
-        }
-        return v;
-    }
-
-    #! throws an exception due to an error
-    static raiseError(string fmt, ...) {
-        throw "SERVICENOWRESTCLIENT-ERROR", vsprintf(fmt, argv);
-    }
-
     #! returns options for @ref ServiceNowRestClient::ServiceNowRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
         return opts + {

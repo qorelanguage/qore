@@ -193,19 +193,6 @@ Sap4HanaRestClient rest({"url": "https://sandbox.api.sap.com/s4hanacloud/sap/opu
         }
     }
 
-    #! gets a string option
-    static string getString(hash<auto> opts, string key) {
-        auto v = opts{key};
-        if (!exists v || v == "") {
-            Sap4HanaRestClient::raiseError("missing required option %y in option argument", key);
-        }
-        if (v.typeCode() != NT_STRING) {
-            Sap4HanaRestClient::raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key,
-                v.type(), v);
-        }
-        return v;
-    }
-
     #! throws an exception due to an error
     static raiseError(string fmt, ...) {
         throw "SAP4HANARESTCLIENT-ERROR", vsprintf(fmt, argv);

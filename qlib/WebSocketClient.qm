@@ -339,7 +339,7 @@ public const MESSAGE_WS_PONG = "pong";
     - \c PO_NO_PROCESS_CONTROL: in this case the \c "yield" option is required in
       @ref WebSocketClient::WebSocketClient::constructor() "WebSocketClient::constructor()"
 */
-public class WebSocketClient inherits Logger::LoggerWrapper {
+public class WebSocketClient inherits Logger::LoggerWrapper, ConnectionProvider::OptionHelper {
     public {
         #! default socket I/O operation timeout: 15 seconds
         const DefaultTimeout = 15s;
@@ -1146,21 +1146,6 @@ ws.setEventQueue();
     #! throws an exception due to an error
     private raiseError(string fmt, ...) {
         throw "WEBSOCKET-ERROR", vsprintf(fmt, argv);
-    }
-
-    #! gets a string option
-    private *string getString(hash<auto> opts, string key, *bool required, *string default_value) {
-        auto v = opts{key};
-        if (required && (!exists v || v == "")) {
-            if (default_value.val()) {
-                return default_value;
-            }
-            raiseError("missing required option %y in option argument; got: %y", key, v);
-        }
-        if (v.typeCode() != NT_STRING) {
-            raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key, v.fullType(), v);
-        }
-        return v;
     }
 }
 

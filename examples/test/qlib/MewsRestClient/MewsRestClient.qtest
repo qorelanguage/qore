@@ -23,7 +23,7 @@
 
 public class Main inherits QUnit::Test {
     private {
-        MewsRestConnection grc;
+        MewsRestConnection mrc;
         Logger logger;
 
         # command-line options
@@ -91,20 +91,20 @@ public class Main inherits QUnit::Test {
     }
 
     pollTest() {
-        if (!grc) {
+        if (!mrc) {
             testSkip("no connection");
         }
 
         {
             # first test a standard ping
-            hash<PingInfo> ping = grc.ping(True);
+            hash<PingInfo> ping = mrc.ping(True);
             assertTrue(ping.ok);
             assertEq("OK", ping.info);
 
             TestPollingConnectionMonitor monitor(logger);
             on_exit delete monitor;
 
-            monitor.add(grc);
+            monitor.add(mrc);
             hash<auto> info = monitor.waitForResult();
             on_error if (info.ex) {
                 printf("%s\n", get_exception_string(info.ex));
@@ -119,15 +119,23 @@ public class Main inherits QUnit::Test {
 
     private setupConnection() {
         *string conn_name = m_options.conn ?? ENV.MEWS_CONNECTION;
-        if (!conn_name.val()) {
-            error("missing -c,--connection option or MEWS_CONNECTION environment variable");
+        if (conn_name.val()) {
+            AbstractConnection conn = get_connection(conn_name);
+            if (!(conn instanceof MewsRestConnection)) {
+                error("connection %y is type %y; expecting \"MewsRestConnection\"", conn_name, conn.className());
+            }
+            mrc = conn;
+        } else {
+            mrc = new MewsRestConnection({
+                "url": "https://api.mews-demo.com",
+                "name": "demo",
+                "desc": "Connection to demo environment",
+                "opts": {
+                    "access_token": "C66EF7B239D24632943D115EDE9CB810-EA00F8FD8294692C940F6B5A8F9453D",
+                    "client_token": "E0D439EE522F44368DC78E1BFB03710C-D24FB11DBE31D4621C4817E028D9E1D",
+                },
+            });
         }
-
-        AbstractConnection conn = get_connection(conn_name);
-        if (!(conn instanceof MewsRestConnection)) {
-            error("connection %y is type %y; expecting \"MewsRestConnection\"", conn_name, conn.className());
-        }
-        grc = conn;
     }
 }
 

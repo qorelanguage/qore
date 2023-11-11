@@ -213,11 +213,7 @@ CdsRestClient rest({
         if (!oauth2_client_id || !oauth2_client_secret) {
             raiseError("missing the \"client_id\" and \"client_secret\" options");
         }
-        if (opts.tenant) {
-            tenant = getString(opts, "tenant");
-        } else {
-            raiseError("missing the \"tenant\" option");
-        }
+        tenant = getString(opts, "tenant", True);
 
         if (oauth2_token_url == "auto") {
             oauth2_token_url = OAuth2BaseUrl + tenant + OAuth2TokenUriPathSuffix;
@@ -226,11 +222,7 @@ CdsRestClient rest({
             oauth2_auth_url = OAuth2BaseUrl + tenant + OAuth2AuthUriPathSuffix;
         }
 
-        string version;
-        if (opts.api) {
-            version = getString(opts, "api");
-        }
-        api = version ?? DefaultApiVersion;
+        api = getString(opts, "api", True, DefaultApiVersion);
         uri_path_pfx = RequestUriPathPrefix + api;
 
         setConnectionPath(uri_path_pfx);
@@ -247,19 +239,6 @@ CdsRestClient rest({
     #! returns the CDS REST API version currently in use
     string getApi() {
         return api;
-    }
-
-    #! gets a string option
-    static string getString(hash<auto> opts, string key) {
-        auto v = opts{key};
-        if (!exists v || v == "") {
-            CdsRestClient::raiseError("missing required option %y in option argument", key);
-        }
-        if (v.typeCode() != NT_STRING) {
-            CdsRestClient::raiseError("required option %y was passed as a %s (%y); expecting \"string\"", key,
-                v.type(), v);
-        }
-        return v;
     }
 
     #! throws an exception due to an error

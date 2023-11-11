@@ -299,7 +299,8 @@ public hashdecl AuthCodeInfo {
 }
 
 #! this class provides the REST client API
-public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, ConnectionProvider::UpdateOptionsInterface {
+public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, ConnectionProvider::UpdateOptionsInterface,
+        ConnectionProvider::OptionHelper {
     public {
         #! Data serialization support mapping codes to MIME types and de/serialization functions
         const DataSerializationSupport = {
@@ -2456,12 +2457,17 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         @see supportsPollingApi()
     */
     Qore::AbstractPollOperation startPollConnect() {
-        if (!real_opts.ping_method || !exists real_opts.ping_path) {
+        *string ping_path;
+        if (!real_opts.ping_method || !exists (ping_path = getPingPath())) {
             return HttpBasedConnection::startPollConnect();
         }
+        auto ping_body = getPingBody();
 
         # returns a RestClient option without connecting and without retrieving any external schemas with I/O
-        return new RestPingPollOperation(getPollImpl(), real_opts);
+        return new RestPingPollOperation(getPollImpl(), real_opts + {
+            "ping_path": ping_path,
+            "ping_body": ping_body,
+        });
     }
 
     #! processes options for the constructor
@@ -2709,13 +2715,17 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
     }
 
     #! performs the internal ping
-    /** By default this creates a new connection only; override in child classes to implement additional ping logic
+    /** Uses the ping options to make a request to the server
     */
     private pingImpl() {
         RestClient client = get();
         *string ping_path;
         if (!opts.ping_method || !exists (ping_path = getPingPath())) {
             return;
+        }
+        auto ping_body;
+        if (opts.ping_method != "GET") {
+            ping_body = getPingBody();
         }
 
         if (ping_path =~ /^http/) {
@@ -2726,8 +2736,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         }
 
         hash<auto> info;
-        hash<auto> h = client.doRequest(opts.ping_method, ping_path,
-            opts.ping_method != "GET" ? opts.ping_body : NOTHING, \info, NOTHING, opts.ping_headers);
+        hash<auto> h = client.doRequest(opts.ping_method, ping_path, ping_body, \info, NOTHING, opts.ping_headers);
         if ((h.status_code / 100) != 2) {
             throw "REST-PING-ERROR", sprintf("%y returned from %y", info."response-uri", info."request-uri");
         }
@@ -2736,6 +2745,11 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
     #! Returns the ping path from the \c ping_path option
     private *string getPingPath() {
         return opts.ping_path;
+    }
+
+    #! Returns the ping body from the \c ping_body option
+    private auto getPingBody() {
+        return opts.ping_body;
     }
 
     #! Returns a list of connection-defined features

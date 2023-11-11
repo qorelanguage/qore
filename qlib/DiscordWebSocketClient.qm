@@ -606,21 +606,6 @@ hash<auto> h = ws.getInfo();
         }
     }
 
-    #! Gets an integer option
-    private *int getInt(hash<auto> opts, string key, *bool required, *int default_value) {
-        auto v = opts{key};
-        if (required && (!exists v)) {
-            if (exists default_value) {
-                return default_value;
-            }
-            raiseError("missing required option %y in option argument; got: %y", key, v);
-        }
-        if (v.typeCode() != NT_INT) {
-            raiseError("required option %y was passed as a %s (%y); expecting \"int\"", key, v.fullType(), v);
-        }
-        return v;
-    }
-
     #! Common constructor code
     private constructorInit(hash<auto> opts) {
         token = getString(opts, "token", True);
