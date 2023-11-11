@@ -291,9 +291,12 @@ public const LM_ACCEPT_INVALID_BODY_PARAMS = (1 << 3);
 #! parse option: add consumes application/x-www-form-urlencoded to API endpoint if formData is used in params
 public const LM_AUTO_FORM_DATA             = (1 << 4);
 
+#! parse option: object properties with reference types are automatucally optional
+public const LM_OPTIONAL_PROPERTIES        = (1 << 5);
+
 #! parse options: all options
 public const LM_ALL = (LM_IGNORE_MISSING_REQUIRED | LM_LAX_COLLECTIONFORMAT | LM_IGNORE_INVALID_REQUIRED
-    | LM_ACCEPT_INVALID_BODY_PARAMS | LM_AUTO_FORM_DATA);
+    | LM_ACCEPT_INVALID_BODY_PARAMS | LM_AUTO_FORM_DATA | LM_OPTIONAL_PROPERTIES);
 #/@}
 
 #! Valid integer type formats
@@ -4144,7 +4147,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
                         throw "INVALID-FIELD-FORMAT", sprintf("Schema Object %y: 'properties' field is not a hash of "
                             "Schema Objects", name);
                     properties{k} = SchemaObject::newSchemaObject(k, val, swagger);
-                    if (!properties{k}.nullable && val."x-nullable") {
+                    if (!properties{k}.nullable && (val."x-nullable" || (opt_flags & LM_OPTIONAL_PROPERTIES))) {
                         nullable_properties{k} = True;
                     }
                 }

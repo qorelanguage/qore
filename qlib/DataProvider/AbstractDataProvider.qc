@@ -2581,7 +2581,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         foreach hash<auto> i in (h.pairIterator()) {
             if (!rec{i.key}) {
                 list<string> f = map regex_subst($1, "\\\\.", ".", RE_Global), i.key.splitRegex("(?<!\\\\)\\.");
-                if (rec && !rec{f[0]}) {
+                if (rec && !rec{f[0]} && !searchAcceptsForeignField(f[0])) {
                     error("INVALID-FIELD", "field %y is not a defined field; valid fields: %y", f[0], keys rec);
                 }
                 rv{i.key} = i.value;
@@ -2597,6 +2597,11 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                 : i.value;
         }
         return rv;
+    }
+
+    #! Allows data providers to accept foreign or virtual field names
+    bool searchAcceptsForeignField(string field) {
+        return False;
     }
 
     #! thrown an exception

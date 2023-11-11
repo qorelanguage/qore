@@ -42,7 +42,7 @@ public class MewsRestTablesDataProvider inherits MewsRestDataProviderBase {
     private {
         const ChildMap = {
             "orderitems": Class::forName("MewsRestDataProvider::MewsRestOrderItemsTableDataProvider"),
-            #"payments": Class::forName("MewsRestDataProvider::MewsRestPaymentsTableDataProvider"),
+            "payments": Class::forName("MewsRestDataProvider::MewsRestPaymentsTableDataProvider"),
         };
     }
 

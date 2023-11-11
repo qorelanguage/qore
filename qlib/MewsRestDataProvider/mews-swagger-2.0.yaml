@@ -37169,6 +37169,7 @@ definitions:
         x-nullable: true
       Data:
         $ref: '#/definitions/PaymentData'
+        x-nullable: true
       EnterpriseId:
         format: uuid
         type: string
@@ -37236,13 +37237,16 @@ definitions:
     properties:
       CreditCard:
         $ref: '#/definitions/PaymentCreditCardData'
+        x-nullable: true
       Discriminator:
         readOnly: true
         x-nullable: true
       External:
         $ref: '#/definitions/PaymentExternalData'
+        x-nullable: true
       Invoice:
         $ref: '#/definitions/PaymentInvoiceData'
+        x-nullable: true
     type: object
   PaymentDataDiscriminator:
     enum:
