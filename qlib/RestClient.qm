@@ -1500,6 +1500,24 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         return h;
     }
 
+    #! Preprocesses the request body before serialization
+    /** The default is to return the request body unchanged
+
+        @since %RestClient 2.2
+    */
+    auto preprocessRequestBody(auto request_body) {
+        return request_body;
+    }
+
+    #! Preprocesses the request body type before checking a request
+    /** The default is to do nothing
+
+        @since %RestClient 2.2
+    */
+    preprocessRequestBodyType(*AbstractDataProviderType body_type) {
+        # this method intentoinally left empty
+    }
+
     #! Sets options from the OAuth2 login response on the local object
     /** @since %RestClient 2.0
     */
@@ -1748,6 +1766,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             path = p + path;
         }
 
+        body = preprocessRequestBody(body);
         hash<RestRequestClientInfo> req = validator.processRequest(method, path, body, hdr, sct);
         if (exists body) {
             body = req.body;

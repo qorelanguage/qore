@@ -100,7 +100,7 @@ public class MewsRestDataProvider inherits MewsRestDataProviderBase {
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
+        return ("api",) + keys ChildMap;
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -109,6 +109,9 @@ public class MewsRestDataProvider inherits MewsRestDataProviderBase {
         @see getChildProviderEx()
     */
     private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
+        if (name == "api") {
+            return sdp.getChildProviderPath("api/connector/v1");
+        }
         *Class cls = ChildMap{name};
         if (!cls) {
             return;

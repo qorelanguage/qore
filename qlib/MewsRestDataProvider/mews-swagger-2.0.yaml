@@ -27820,9 +27820,9 @@ definitions:
     properties:
       NextAction:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/NextActionType'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/NextAction'
         title: NextAction
@@ -28340,9 +28340,9 @@ definitions:
         type: string
       AssigneeData:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/BillAssigneeDataDiscriminator'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/BillCompanyData'
               - $ref: '#/definitions/BillCustomerData'
@@ -28403,9 +28403,9 @@ definitions:
         x-nullable: true
       OwnerData:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/BillAssigneeDataDiscriminator'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/BillCompanyData'
               - $ref: '#/definitions/BillCustomerData'
@@ -29719,6 +29719,8 @@ definitions:
       Name:
         minLength: 1
         type: string
+      NchClassifications:
+        $ref: '#/definitions/CompanyClassifications'
       Notes:
         type: string
         x-nullable: true
@@ -32937,9 +32939,9 @@ definitions:
         $ref: '#/definitions/Bill'
       BillFiscalMachineData:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/BillFiscalMachineDataDiscriminator'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/ItalianFiscalMachineData'
         title: BillFiscalMachineData
@@ -32951,9 +32953,9 @@ definitions:
         x-nullable: true
       PayloadData:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/FiscalMachinePayloadDataDiscriminator'
-          value:
+          Value:
             oneOf:
               - type: string
         title: PayloadData
@@ -36603,9 +36605,9 @@ definitions:
         type: string
       Data:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/OrderItemTypeOld'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/RebateOrderItemData'
               - $ref: '#/definitions/ProductOrderItemData'
@@ -37398,9 +37400,9 @@ definitions:
         x-nullable: true
       Data:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/PaymentType'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/PaymentCardPaymentData'
               - $ref: '#/definitions/InvoicePaymentData'
@@ -38010,9 +38012,9 @@ definitions:
         $ref: '#/definitions/ExtendedAmount'
       Pricing:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/ProductPricing'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/ExtendedAmount'
               - $ref: '#/definitions/RelativeProductPrice'
@@ -40629,9 +40631,9 @@ definitions:
         x-nullable: true
       Data:
         properties:
-          discriminator:
+          Discriminator:
             type: string
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/SpaceData'
               - additionalProperties: false
@@ -40913,9 +40915,9 @@ definitions:
     properties:
       Data:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/ResourceDataDiscriminator'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/SpaceData'
               - additionalProperties: false
@@ -41899,9 +41901,9 @@ definitions:
     properties:
       Data:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/ResourceDataDiscriminator'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/SpaceData'
               - additionalProperties: false
@@ -42616,9 +42618,9 @@ definitions:
     properties:
       Data:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/RuleActionDiscriminator'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/RuleActionProductData'
         title: Data
@@ -42816,9 +42818,9 @@ definitions:
         type: string
       Data:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/ServiceType'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/BookableServiceData'
               - $ref: '#/definitions/AdditionalServiceData'
@@ -43893,9 +43895,9 @@ definitions:
         x-nullable: true
       Strategy:
         properties:
-          discriminator:
+          Discriminator:
             $ref: '#/definitions/TaxRateStrategyDiscriminator'
-          value:
+          Value:
             oneOf:
               - $ref: '#/definitions/RelativeTaxRateStrategy'
               - $ref: '#/definitions/FlatTaxRateStrategy'

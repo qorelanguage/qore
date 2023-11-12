@@ -41,8 +41,42 @@ public class MewsRestTablesDataProvider inherits MewsRestDataProviderBase {
 
     private {
         const ChildMap = {
+            "accountnotes": Class::forName("MewsRestDataProvider::MewsRestAccountNotesTableDataProvider"),
+            "accountingcategories":
+                Class::forName("MewsRestDataProvider::MewsRestAccountingCategoriesTableDataProvider"),
+            "addresses": Class::forName("MewsRestDataProvider::MewsRestAddressesTableDataProvider"),
+            "agecategories": Class::forName("MewsRestDataProvider::MewsRestAgeCategoriesTableDataProvider"),
+            "availabilityadjustments":
+                Class::forName("MewsRestDataProvider::MewsRestAvailabilityAdjustmentsTableDataProvider"),
+            "availabilityblocks":
+                Class::forName("MewsRestDataProvider::MewsRestAvailabilityBlocksTableDataProvider"),
+            "bills": Class::forName("MewsRestDataProvider::MewsRestBillsTableDataProvider"),
+            "businesssegments":
+                Class::forName("MewsRestDataProvider::MewsRestBusinessSegmentsTableDataProvider"),
+            "cancellationpolicies":
+                Class::forName("MewsRestDataProvider::MewsRestCancellationPoliciesTableDataProvider"),
+            "companies":
+                Class::forName("MewsRestDataProvider::MewsRestCompaniesTableDataProvider"),
+            "countries":
+                Class::forName("MewsRestDataProvider::MewsRestCountriesTableDataProvider"),
+            "customers":
+                Class::forName("MewsRestDataProvider::MewsRestCustomersTableDataProvider"),
+            "enterprises":
+                Class::forName("MewsRestDataProvider::MewsRestEnterprisesTableDataProvider"),
+            "exchangerates":
+                Class::forName("MewsRestDataProvider::MewsRestExchangeRatesTableDataProvider"),
+            "languages":
+                Class::forName("MewsRestDataProvider::MewsRestLanguagesTableDataProvider"),
             "orderitems": Class::forName("MewsRestDataProvider::MewsRestOrderItemsTableDataProvider"),
+            "outletitems": Class::forName("MewsRestDataProvider::MewsRestOutletItemsTableDataProvider"),
+            "outlets": Class::forName("MewsRestDataProvider::MewsRestOutletsTableDataProvider"),
             "payments": Class::forName("MewsRestDataProvider::MewsRestPaymentsTableDataProvider"),
+            "products": Class::forName("MewsRestDataProvider::MewsRestProductsTableDataProvider"),
+            "rates": Class::forName("MewsRestDataProvider::MewsRestRatesTableDataProvider"),
+            "reservations": Class::forName("MewsRestDataProvider::MewsRestReservationsTableDataProvider"),
+            "services": Class::forName("MewsRestDataProvider::MewsRestServicesTableDataProvider"),
+            "taxations": Class::forName("MewsRestDataProvider::MewsRestTaxationsTableDataProvider"),
+            "vouchers": Class::forName("MewsRestDataProvider::MewsRestVouchersTableDataProvider"),
         };
     }
 

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore MewsRestDataProvider module definition
 
-/** MewsRestOrderItemsTableDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** MewsRestCustomersTableDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,13 +24,13 @@
 
 #! contains all public definitions in the MewsRestDataProvider module
 public namespace MewsRestDataProvider {
-#! The MewsRestOrderItemsTableDataProvider data provider class
-public class MewsRestOrderItemsTableDataProvider inherits MewsRestTableDataProvider {
+#! The MewsRestCustomersTableDataProvider data provider class
+public class MewsRestCustomersTableDataProvider inherits MewsRestTableDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "MewsRestOrderItemsTableDataProvider",
-            "desc": "Mews order items data",
+            "type": "MewsRestCustomersTableDataProvider",
+            "desc": "Mews customers data",
             "has_record": True,
             "supports_read": True,
             "supports_bulk_read": True,
@@ -45,37 +45,40 @@ public class MewsRestOrderItemsTableDataProvider inherits MewsRestTableDataProvi
         const ComparisonFields = {
             "CreatedUtc": True,
             "UpdatedUtc": True,
-            "ChargedUtc": True,
-            "ConsumedUtc": True,
-            "CanceledUtc": True,
-            "ClosedUtc": True,
         };
 
         #! Fields supporting list equality comparisons
         const EqualityListFields = {
-            "EnterpriseId": True,
-            "OrderItemId": True,
-            "ServiceOrderId": True,
-            "ServiceId": True,
-            "BillId": True,
-            "State": True,
-            "AccountingState": True,
-            "Type": True,
+            "ChainId": True,
+            "CustomerId": True,
+            "Email": True,
+            "FirstName": True,
+            "LastName": True,
+            "LoyaltyCode": True,
+            "ActivityState": True,
         };
 
-        #! Fields supporting equality comparisons
-        const EqualityFields = {
-            "Currency": True,
+        #! Extent fields supported
+        const Extent = {
+            "Customers": True,
+            "Documents": True,
+            "Addresses": True,
+        };
+
+        #! Default extent
+        const DefaultExtent = {
+            "Customers": True,
         };
 
         #! Table API config
         const TableApiConfig = <MewsTableApiConfig>{
-            "table": "orderitems",
-            "path": "api/connector/v1/orderItems/getAll/POST",
-            "body_key": "OrderItems",
+            "table": "customers",
+            "path": "api/connector/v1/customers/getAll/POST",
+            "body_key": "Customers",
             "comparison_fields": ComparisonFields,
             "equality_list_fields": EqualityListFields,
-            "equality_fields": EqualityFields,
+            "extent": Extent,
+            "default_extent": DefaultExtent,
         };
 
         #! Constructor options

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore MewsRestDataProvider module definition
 
-/** MewsRestOrderItemsTableDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** MewsRestOutletItemsTableDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,13 +24,13 @@
 
 #! contains all public definitions in the MewsRestDataProvider module
 public namespace MewsRestDataProvider {
-#! The MewsRestOrderItemsTableDataProvider data provider class
-public class MewsRestOrderItemsTableDataProvider inherits MewsRestTableDataProvider {
+#! The MewsRestOutletItemsTableDataProvider data provider class
+public class MewsRestOutletItemsTableDataProvider inherits MewsRestTableDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "MewsRestOrderItemsTableDataProvider",
-            "desc": "Mews order items data",
+            "type": "MewsRestOutletItemsTableDataProvider",
+            "desc": "Mews outlet items data",
             "has_record": True,
             "supports_read": True,
             "supports_bulk_read": True,
@@ -43,24 +43,14 @@ public class MewsRestOrderItemsTableDataProvider inherits MewsRestTableDataProvi
 
         #! Fields supporting >= and <= operators
         const ComparisonFields = {
-            "CreatedUtc": True,
-            "UpdatedUtc": True,
-            "ChargedUtc": True,
             "ConsumedUtc": True,
-            "CanceledUtc": True,
             "ClosedUtc": True,
+            "UpdatedUtc": True,
         };
 
         #! Fields supporting list equality comparisons
         const EqualityListFields = {
             "EnterpriseId": True,
-            "OrderItemId": True,
-            "ServiceOrderId": True,
-            "ServiceId": True,
-            "BillId": True,
-            "State": True,
-            "AccountingState": True,
-            "Type": True,
         };
 
         #! Fields supporting equality comparisons
@@ -70,9 +60,9 @@ public class MewsRestOrderItemsTableDataProvider inherits MewsRestTableDataProvi
 
         #! Table API config
         const TableApiConfig = <MewsTableApiConfig>{
-            "table": "orderitems",
-            "path": "api/connector/v1/orderItems/getAll/POST",
-            "body_key": "OrderItems",
+            "table": "outletitems",
+            "path": "api/connector/v1/outletItems/getAll/POST",
+            "body_key": "OutletItems",
             "comparison_fields": ComparisonFields,
             "equality_list_fields": EqualityListFields,
             "equality_fields": EqualityFields,

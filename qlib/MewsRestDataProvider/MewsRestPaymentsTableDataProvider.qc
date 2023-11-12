@@ -35,6 +35,7 @@ public class MewsRestPaymentsTableDataProvider inherits MewsRestTableDataProvide
             "supports_read": True,
             "supports_bulk_read": True,
             "supports_search_expressions": True,
+            "supports_native_search": True,
             "constructor_options": ConstructorOptions,
             "search_options": SearchOptions,
             "expressions": Expressions,
@@ -51,7 +52,7 @@ public class MewsRestPaymentsTableDataProvider inherits MewsRestTableDataProvide
 
         #! Fields supporting list equality comparisons
         const EqualityListFields = {
-            "EnterpriseIds": True,
+            "EnterpriseId": True,
             "PaymentId": True,
             "BillId": True,
             "AccountingState": True,

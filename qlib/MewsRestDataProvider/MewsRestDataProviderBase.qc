@@ -32,8 +32,8 @@ public class MewsRestDataProviderBase inherits DataProvider::AbstractDataProvide
     }
 
     private {
-        MewsRestClient rest;
-        SwaggerDataProvider sdp;
+        MewsRestClient::MewsRestClient rest;
+        SwaggerDataProvider::SwaggerDataProvider sdp;
     }
 
     #! Creates the object
@@ -41,14 +41,18 @@ public class MewsRestDataProviderBase inherits DataProvider::AbstractDataProvide
     }
 
     #! Creates the object from a REST connection
-    constructor(MewsRestClient::MewsRestClient rest) {
+    constructor(MewsRestClient::MewsRestClient rest, *SwaggerDataProvider::SwaggerDataProvider sdp) {
         self.rest = rest;
-        AbstractRestSchemaValidator v = rest.getValidator();
-        if (!(v instanceof SwaggerSchema)) {
-            throw "MEWS-CLIENT-ERROR", sprintf("The MewsRestClient object has no Swagger schema; validator used: %y",
-                v.className());
+        if (sdp) {
+            self.sdp = sdp;
+        } else {
+            AbstractRestSchemaValidator v = rest.getValidator();
+            if (!(v instanceof SwaggerSchema)) {
+                throw "MEWS-CLIENT-ERROR", sprintf("The MewsRestClient object has no Swagger schema; validator "
+                    "used: %y", v.className());
+            }
+            self.sdp = new SwaggerDataProvider(cast<SwaggerSchema>(v), rest);
         }
-        sdp = new SwaggerDataProvider(cast<SwaggerSchema>(v), rest);
     }
 
     #! Accepts a LoggerInterface object for logging (or clears it)

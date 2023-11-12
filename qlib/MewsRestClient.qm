@@ -191,16 +191,36 @@ MewsRestClient rest(opts);
         Other exceptions can be thrown by the @ref Qore::HTTPClient::send() call used to make the HTTP request.
     */
     hash<auto> doMewsRequest(string path, *hash<auto> body, *reference<hash<auto>> info, *hash<auto> hdr) {
-        return doRequest("POST", path, getMewsRequestBody(body), \info, NOTHING, hdr);
+        return RestClient::doRequest("POST", path, body, \info, NOTHING, hdr);
     }
 
-    #! Returns a request body to be used with a MEWS POST request
-    hash<auto> getMewsRequestBody(*hash<auto> body) {
-        return {
-            "ClientToken": client_token,
-            "AccessToken": access_token,
-            "Client": client,
-        } + body;
+    #! Adds authorization keys to the request body
+    auto preprocessRequestBody(auto body) {
+        if (!exists body || body.typeCode() == NT_HASH) {
+            return {
+                "ClientToken": client_token,
+                "AccessToken": access_token,
+                "Client": client,
+            } + body;
+        }
+        return body;
+    }
+
+    #! Adds default values for the required keys in the request body
+    preprocessRequestBodyType(*AbstractDataProviderType body_type) {
+        if (!body_type) {
+            return;
+        }
+        *hash<string, AbstractDataField> fields = body_type.getFields();
+        if ((*AbstractDataField f = fields.ClientToken) && !exists f.getDefaultValue()) {
+            f.setDefaultValue(client_token);
+        }
+        if ((*AbstractDataField f = fields.AccessToken) && !exists f.getDefaultValue()) {
+            f.setDefaultValue(access_token);
+        }
+        if ((*AbstractDataField f = fields.Client) && !exists f.getDefaultValue()) {
+            f.setDefaultValue(client);
+        }
     }
 
     #! Checks if a login is necessary; if so, then the login is performed

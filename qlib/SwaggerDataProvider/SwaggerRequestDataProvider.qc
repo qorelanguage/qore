@@ -121,8 +121,10 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         *AbstractParameterObject body = op.body ?? pio.body;
         if (body) {
             RecursiveSearchHelper rsh();
-            rv.addField(getFieldFromSchema("body", "REST request body argument", cast<BodyParameter>(body).schema,
-                body.required ?? False));
+            AbstractDataField body_field = getFieldFromSchema("body", "REST request body argument",
+                cast<BodyParameter>(body).schema, body.required ?? False);
+            rest.preprocessRequestBodyType(body_field.getType());
+            rv.addField(body_field);
             if (!required && body.required) {
                 required = True;
             }

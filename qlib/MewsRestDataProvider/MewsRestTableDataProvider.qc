@@ -43,6 +43,18 @@ hashdecl MewsTableApiConfig {
 
     #! Set of fields that can support list equality checks in requests
     hash<string, bool> equality_list_fields;
+
+    #! Supported extent
+    hash<string, bool> extent;
+
+    #! Default extent
+    hash<string, bool> default_extent;
+
+    #! Maximum time difference for searches
+    date max_delta = 3M;
+
+    #! Does not support the "Limitation" option
+    bool no_limitation;
 }
 
 #! The MewsRestTableDataProvider data provider class
@@ -148,7 +160,6 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
                 }
             }
         }
-
         return new DefaultRecordIterator(new ListIterator(l), NOTHING, search_options, record_type);
     }
 
@@ -182,11 +193,17 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
     }
 
     private hash<auto> getSearchRequest(int limit, reference<*hash<auto>> where_cond, *hash<auto> search_options) {
-        hash<auto> req.Limitation.Count = limit;
+        hash<auto> req;
+        if (!config.no_limitation) {
+            req.Limitation.Count = limit;
+        }
         if (where_cond) {
             processSearchArgs(\req, where_cond);
         }
-        return rest.getMewsRequestBody(req);
+        if (config.default_extent && !req.Extent) {
+            req.Extent = config.default_extent;
+        }
+        return req;
     }
 
     private processSearchArgs(reference<hash<auto>> req, hash<auto> exp) {
@@ -217,7 +234,8 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
 
     #! Allows data providers to accept foreign or virtual field names
     bool searchAcceptsForeignField(string field) {
-        return config.equality_list_fields{field} || config.equality_fields{field};
+        return config.equality_list_fields{field} || config.equality_fields{field}
+            || (field == "Extent" && config.extent);
     }
 
     private processEqualityArgs(reference<hash<auto>> req, hash<auto> exp) {
@@ -232,6 +250,10 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
         if (!field) {
             throw "EXPRESSION-ERROR", sprintf("expecting a field reference as one of the arguments to the %y "
                 "operator; got %y instead", exp.exp, exp.args);
+        }
+        if (field == "Extent" && config.extent) {
+            processExtent(\req, val);
+            return;
         }
         if (!val.strp()) {
             throw "EXPRESSION-ERROR", sprintf("expecting a plain value as one of the arguments to the %y "
@@ -250,6 +272,19 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
             req{field} = val;
         } else {
             throw "EXPRESSION-ERROR", sprintf("field %y cannot be used with the %y operator", field, exp.exp);
+        }
+    }
+
+    private processExtent(reference<hash<auto>> req, auto val) {
+        foreach auto v in (val) {
+            if (v.typeCode() != NT_STRING) {
+                throw "EXPRESSION-ERROR", sprintf("expecting a string or list of strings for the \"Extent\" value; "
+                    "got type %y (value: %y) instead; valid Extents: %y", v.fullType(), v, keys config.extent);
+            }
+            if (!config.extent{v}) {
+                throw "EXPRESSION-ERROR", sprintf("invalid Extent %y; valid Extents: %y", v, keys config.extent);
+            }
+            req.Extent{v} = True;
         }
     }
 
@@ -272,28 +307,28 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
             case DP_SEARCH_OP_GT:
                 req{field}.StartUtc = val - 1s;
                 if (!req{field}.EndUtc) {
-                    req{field}.EndUtc = val + 3M;
+                    req{field}.EndUtc = val + config.max_delta;
                 }
                 break;
 
             case DP_SEARCH_OP_GE:
                 req{field}.StartUtc = val;
                 if (!req{field}.EndUtc) {
-                    req{field}.EndUtc = val + 3M;
+                    req{field}.EndUtc = val + config.max_delta;
                 }
                 break;
 
             case DP_SEARCH_OP_LT:
                 req{field}.EndUtc = val + 1s;
                 if (!req{field}.StartUtc) {
-                    req{field}.StartUtc = val - 3M;
+                    req{field}.StartUtc = val - config.max_delta;
                 }
                 break;
 
             case DP_SEARCH_OP_LE:
                 req{field}.EndUtc = val;
                 if (!req{field}.StartUtc) {
-                    req{field}.StartUtc = val - 3M;
+                    req{field}.StartUtc = val - config.max_delta;
                 }
                 break;
         }

@@ -691,7 +691,7 @@ class QdpCmd {
             } else if (arg.field.typeCode() == NT_STRING) {
                 rv += cast<hash<DataProviderFieldReference>>(arg);
             } else {
-                rv += arg;
+                push rv, arg;
             }
         }
         return rv;
