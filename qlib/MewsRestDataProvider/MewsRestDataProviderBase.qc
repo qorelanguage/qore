@@ -52,12 +52,16 @@ public class MewsRestDataProviderBase inherits DataProvider::AbstractDataProvide
                     "used: %y", v.className());
             }
             self.sdp = new SwaggerDataProvider(cast<SwaggerSchema>(v), rest);
+            if (logger) {
+                self.sdp.setLogger(logger);
+            }
         }
     }
 
     #! Accepts a LoggerInterface object for logging (or clears it)
     setLogger(*LoggerInterface logger) {
         rest.setLogger(logger);
+        sdp.setLogger(logger);
         LoggerWrapper::setLogger(logger);
     }
 

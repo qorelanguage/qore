@@ -74,12 +74,23 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
         #! Supported Expressions
         const Expressions = (AbstractDataProvider::GenericExpressions{
             DP_OP_AND,
-            DP_SEARCH_OP_EQ,
             DP_SEARCH_OP_GE,
             DP_SEARCH_OP_LE,
             DP_SEARCH_OP_GT,
             DP_SEARCH_OP_LT,
-        });
+        }) + {
+            DP_SEARCH_OP_EQ: <DataProviderExpressionInfo>{
+                "type": DET_Operator,
+                "label": DP_SEARCH_OP_EQ,
+                "name": "equals (=)",
+                "desc": "a value for equality comparisons; the type of the value should correspond to the field "
+                    "type",
+                "symbol": "==",
+                "args": (DataProviderSignatureAnyType, DataProviderSignatureAnyType),
+                "varargs": True,
+                "return_type": AbstractDataProviderTypeMap."bool",
+            },
+        };
 
         #! Search options
         const SearchOptions = {
@@ -107,6 +118,12 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
 
         #! Record info for the table
         hash<string, AbstractDataField> record_type;
+
+        #! Comparison ...Start fields
+        hash<string, bool> comp_start;
+
+        #! Comparison ...End fields
+        hash<string, bool> comp_end;
     }
 
     #! Creates the object from constructor options
@@ -142,6 +159,8 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
         *list<auto> l;
         while (True) {
             hash<auto> res = prov.doRequest({"body": req});
+            *list<auto> bdata = res.body{config.body_key};
+            debug("records retrieved: %d (total: %d limit: %d)", bdata.size(), l.size() + bdata.size(), limit);
             if (!res.body{config.body_key}) {
                 break;
             }
@@ -183,6 +202,11 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
 
     #! Retrieve the record information
     private setRecordTypeIntern() {
+        if (config.comparison_fields) {
+            comp_start = map {$1 + "Start": True}, keys config.comparison_fields;
+            comp_end = map {$1 + "End": True}, keys config.comparison_fields;
+        }
+
         # get data provider for the call
         AbstractDataProvider prov = sdp.getChildProviderPath(config.path);
 
@@ -235,6 +259,7 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
     #! Allows data providers to accept foreign or virtual field names
     bool searchAcceptsForeignField(string field) {
         return config.equality_list_fields{field} || config.equality_fields{field}
+            || comp_start{field} || comp_end{field}
             || (field == "Extent" && config.extent);
     }
 
@@ -255,23 +280,32 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
             processExtent(\req, val);
             return;
         }
-        if (!val.strp()) {
-            throw "EXPRESSION-ERROR", sprintf("expecting a plain value as one of the arguments to the %y "
-                "operator; got type %s (%y) instead", exp.exp, val.fullType(), val);
-        }
-        if (val.typeCode() != NT_STRING) {
-            val = val.toString();
-        }
         if (config.equality_list_fields{field}) {
             string name = field + "s";
-            if (!req{name}) {
-                req{name} = ();
-            }
-            req{name} += val;
+            softlist<softstring> l = val;
+            req{name} += l;
         } else if (config.equality_fields{field}) {
-            req{field} = val;
+            softstring v = val;
+            req{field} = v;
         } else {
-            throw "EXPRESSION-ERROR", sprintf("field %y cannot be used with the %y operator", field, exp.exp);
+            # check for timestamp Start or End
+            if (comp_start{field}) {
+                string ts = field.substr(0, -5);
+                # treat as >=
+                req{ts}.StartUtc = val;
+                if (!req{ts}.EndUtc) {
+                    req{ts}.EndUtc = val + config.max_delta;
+                }
+            } else if (comp_end{field}) {
+                string ts = field.substr(0, -3);
+                # treat as <
+                req{ts}.EndUtc = val + 1s;
+                if (!req{ts}.StartUtc) {
+                    req{ts}.StartUtc = val - config.max_delta;
+                }
+            } else {
+                throw "EXPRESSION-ERROR", sprintf("field %y cannot be used with the %y operator", field, exp.exp);
+            }
         }
     }
 

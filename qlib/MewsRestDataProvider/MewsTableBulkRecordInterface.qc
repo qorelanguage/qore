@@ -88,9 +88,10 @@ public class MewsTableBulkRecordInterface inherits DataProvider::AbstractDataPro
         }
         hash<auto> res = prov.doRequest({"body": req});
         *list<auto> bdata = res.body{key};
+        count += bdata.size();
+        prov.debug("bulk records retrieved: %d (total: %d limit: %d cursor: %y)", bdata.size(), count,
+            search_options.limit, res.body.Cursor);
         if (search_options.limit) {
-            count += bdata.size();
-
             int remaining = search_options.limit - count;
             if (!remaining) {
                 done = True;

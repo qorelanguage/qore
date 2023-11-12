@@ -116,7 +116,11 @@ public class MewsRestDataProvider inherits MewsRestDataProviderBase {
         if (!cls) {
             return;
         }
-        return cls.newObject(rest);
+        AbstractDataProvider rv = cls.newObject(rest);
+        if (logger) {
+            rv.setLogger(logger);
+        }
+        return rv;
     }
 
     #! Returns data provider static info

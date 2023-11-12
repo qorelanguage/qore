@@ -49,12 +49,6 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProvider::
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
-
-        #! Request type
-        const RequestType = new GoogleCalendarEventsPatchRequestType();
-
-        #! Query args
-        const QueryArgs = ("conferenceDataVersion", "maxAttendees", "sendUpdates", "supportsAttachments");
     }
 
     private {
@@ -95,16 +89,11 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProvider::
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string query_args;
-        foreach hash<auto> i in (req{QueryArgs}.pairIterator()) {
-            # this handles list key values by repeating the expression in the output
-            map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", i.key, $1))), i.value;
-            remove req{i.key};
-        }
+        hash<auto> req_info = prepareRequest(req, {"calendarId": id});
         hash<auto> info;
         try {
-            hash<auto> rv = rest.patch("/calendar/v3/calendars/" + id + "/events/" + req.id + query_args,
-                req, \info).body;
+            hash<auto> rv = rest.patch("/calendar/v3/calendars/" + req_info.path.calendarId + "/events/"
+                + req_info.path.eventId + req_info.query, req_info.body, \info).body;
             return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
@@ -117,7 +106,8 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProvider::
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "events/patch",
+            "calendarId");
     }
 
     #! Returns the description of a response message, if this object represents a response message
@@ -130,18 +120,6 @@ public class GoogleCalendarEventsPatchDataProvider inherits GoogleDataProvider::
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-
-#! Google event patch request data type
-public class GoogleCalendarEventsPatchRequestType inherits HashDataType {
-    #! Creates the object
-    constructor() : HashDataType("GoogleCalendarEventsPatchRequestType") {
-        #addQoreFields(fields);
-        map addField($1), (
-            GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "events/patch")
-                .getFields() - "calendarId"
-        ).iterator();
     }
 }
 }

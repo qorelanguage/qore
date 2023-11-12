@@ -49,9 +49,6 @@ public class GoogleCalendarPatchDataProvider inherits GoogleDataProvider::Google
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
-
-        #! Request type
-        const RequestType = new GoogleCalendarPatchRequestType();
     }
 
     private {
@@ -106,7 +103,8 @@ public class GoogleCalendarPatchDataProvider inherits GoogleDataProvider::Google
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "calendar/patch",
+            "calendarId");
     }
 
     #! Returns the description of a response message, if this object represents a response message
@@ -119,17 +117,6 @@ public class GoogleCalendarPatchDataProvider inherits GoogleDataProvider::Google
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-
-#! Google calendar patch request type
-public class GoogleCalendarPatchRequestType inherits DataProvider::HashDataType {
-    #! Creates the object
-    constructor() {
-        hash<auto> fields = map {$1.key: $1.value.getInfo() + {"type": AbstractDataProviderTypeMap."*string"}},
-            GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryCalendarApiName, "Calendar").getFields()
-            {"description", "location", "summary", "timeZone"}.pairIterator();
-        addQoreFields(fields);
     }
 }
 }

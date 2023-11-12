@@ -49,12 +49,6 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProvider:
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
-
-        #! Request type
-        const RequestType = new GoogleCalendarEventsInsertRequestType();
-
-        #! Query args
-        const QueryArgs = GoogleCalendarEventsPatchDataProvider::QueryArgs;
     }
 
     private {
@@ -73,7 +67,8 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProvider:
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal)
+            : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -95,16 +90,11 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProvider:
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string query_args;
-        foreach hash<auto> i in (req{QueryArgs}.pairIterator()) {
-            # this handles list key values by repeating the expression in the output
-            map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", i.key, $1))), i.value;
-            remove req{i.key};
-        }
+        hash<auto> req_info = prepareRequest(req, {"calendarId": id});
         hash<auto> info;
         try {
-            hash<auto> rv = rest.post("/calendar/v3/calendars/" + id + "/events" + query_args,
-                req, \info).body;
+            hash<auto> rv = rest.post("/calendar/v3/calendars/" + req_info.path.calendarId + "/events"
+                + req_info.query, req_info.body, \info).body;
             return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
@@ -117,7 +107,8 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProvider:
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "events/insert",
+            "calendarId");
     }
 
     #! Returns the description of a response message, if this object represents a response message
@@ -130,27 +121,6 @@ public class GoogleCalendarEventsInsertDataProvider inherits GoogleDataProvider:
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-
-#! Google calender event insert request data type
-public class GoogleCalendarEventsInsertRequestType inherits HashDataType {
-    #! Creates the object
-    constructor() : HashDataType("GoogleCalendarEventsInsertRequestType") {
-        /*
-        hash<auto> fields = new GoogleCalendarEventsPatchRequestType().getFields()
-            + map {$1.key: $1.value.getInfo() + {
-                "type": ($1.key == "end" || $1.key == "start")
-                    ? $1.value.type
-                    : $1.value.type.getOrNothingType()
-            }}, (new GoogleCalendarEventsElementType()).getFields().pairIterator(), $1.value.updatable;
-
-        addQoreFields(fields);
-        */
-        map addField($1), (
-            GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "events/insert")
-                .getFields() - "calendarId"
-        ).iterator();
     }
 }
 }

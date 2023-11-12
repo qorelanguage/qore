@@ -52,9 +52,6 @@ public class GoogleCalendarUpdateDataProvider inherits GoogleDataProvider::Googl
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
-
-        #! Request type
-        const RequestType = new GoogleCalendarPatchRequestType();
     }
 
     private {
@@ -85,7 +82,8 @@ public class GoogleCalendarUpdateDataProvider inherits GoogleDataProvider::Googl
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for calendar `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
+        return sprintf("Google data %s provider for calendar `%s` for `%s`", ProviderInfo.name, id,
+            rest.getSafeURL());
     }
 
     #! Makes a request and returns the response
@@ -95,20 +93,12 @@ public class GoogleCalendarUpdateDataProvider inherits GoogleDataProvider::Googl
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        hash<auto> req_info = prepareRequest(req, {"calendarId": id}, True);
         hash<auto> info;
         try {
-            # we get the current values to make the update in case any values are missing
-            {
-                list<string> fields = keys RequestType.getFields();
-                if (req.size() < fields.size()) {
-                    if (!cal) {
-                        cal = rest.get("/calendar/v3/calendars/" + id, NOTHING, \info).body;
-                    }
-                    map req{$1.key} = $1.value, cal{fields}.pairIterator(), !req.hasKey($1.key);
-                }
-            }
-
-            return rest.put("/calendar/v3/calendars/" + id, req, \info).body;
+            hash<auto> rv = rest.put("/calendar/v3/calendars/" + req_info.path.calendarId
+                + req_info.query, req_info.body, \info).body;
+            return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -116,11 +106,17 @@ public class GoogleCalendarUpdateDataProvider inherits GoogleDataProvider::Googl
         }
     }
 
+    #! Used to set attributes in the request body that are not set in the request
+    private hash<auto> backfillRequestBody(hash<auto> req_info) {
+        return rest.get("/calendar/v3/calendars/" + req_info.path.calendarId).body;
+    }
+
     #! Returns the description of a successful request message, if any
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "calendar/update",
+            "calendarId");
     }
 
     #! Returns the description of a response message, if this object represents a response message

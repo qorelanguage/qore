@@ -33,6 +33,7 @@ public class MewsRestClientDataProviderTest inherits QUnit::Test {
 
     constructor() : Test("MewsRestClientDataProvider Test", "1.0", \ARGV, MyOpts) {
         addTestCase("test", \mainTest());
+        addTestCase("action", \actionTest());
 
         try {
             setupConnection();
@@ -49,9 +50,12 @@ public class MewsRestClientDataProviderTest inherits QUnit::Test {
     }
 
     setUp() {
-        Logger logger("test", LoggerLevel::getLevelInfo());
+        Logger logger("test", m_options.verbose > 3 ? LoggerLevel::getLevelDebug() : LoggerLevel::getLevelInfo());
         if (m_options.verbose > 2) {
             logger.addAppender(new StdoutAppender());
+        }
+        if (mews) {
+            mews.setLogger(logger);
         }
     }
 
@@ -81,6 +85,39 @@ public class MewsRestClientDataProviderTest inherits QUnit::Test {
         assertEq(Type::List, q.firstValue().type());
         assertEq(1, q.firstValue().lsize());
         assertNothing(i.getValue());
+    }
+
+    actionTest() {
+        if (!mrc) {
+            testSkip("no connection");
+        }
+
+        hash<DataProviderActionInfo> action = DataProviderActionCatalog::getAppAction("Mews", "get-order-items");
+        AbstractDataProvider prov = mews.getChildProviderPath(action.path[1..]);
+        assertEq("orderitems", prov.getName());
+
+        *hash<auto> rec = prov.searchSingleRecord({}, {"limit": 1});
+        assertEq(Type::Hash, rec.type());
+
+        action = DataProviderActionCatalog::getAppAction("Mews", "get-payments");
+        prov = mews.getChildProviderPath(action.path[1..]);
+        assertEq("payments", prov.getName());
+
+        rec = prov.searchSingleRecord({"ClosedUtcStart": 2021-11-01}, {"limit": 1});
+        assertEq(Type::Hash, rec.type());
+
+        action = DataProviderActionCatalog::getAppAction("Mews", "get-customers");
+        prov = mews.getChildProviderPath(action.path[1..]);
+        assertEq("customers", prov.getName());
+
+        list<string> cust_ids = (
+            "690c3038-0dcc-469c-8143-fff4642c99e5",
+            "0d7b9156-2c79-43fd-995b-fff1dcc83501",
+        );
+        *list<auto> recs = map $1, prov.searchRecords({
+            "CustomerId": cust_ids,
+        });
+        assertEq(2, recs.size());
     }
 
     private usageIntern() {

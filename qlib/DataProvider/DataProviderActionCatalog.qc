@@ -153,7 +153,7 @@ public hashdecl ActionOptionInfo {
     *softlist<hash<AllowedValueInfo>> allowed_values;
 
     #! An optional example value for the option
-    *string example_value;
+    *auto example_value;
 
     #! If the option should be preselected
     bool preselected;

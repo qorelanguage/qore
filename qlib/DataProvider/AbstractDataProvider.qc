@@ -2116,9 +2116,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                 "args": value.arg.op && value.arg.arg
                     ? <DataProviderExpression>{
                         "exp": getExpression(role, value.arg.op, info.expressions).label,
-                        "args": (<DataProviderFieldReference>{"field": key},) + value.arg.arg,
+                        "args": (<DataProviderFieldReference>{"field": key}, value.arg.arg),
                     }
-                    : (<DataProviderFieldReference>{"field": key}, ) + value.arg,
+                    : (<DataProviderFieldReference>{"field": key}, value.arg),
             };
         } else {
             rv = getEqualityComparisonExpression(role, info, key, value);
@@ -2142,7 +2142,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         }
         return <DataProviderExpression>{
             "exp": "=",
-            "args": (<DataProviderFieldReference>{"field": key},) + value,
+            "args": (<DataProviderFieldReference>{"field": key}, value),
         };
     }
 
