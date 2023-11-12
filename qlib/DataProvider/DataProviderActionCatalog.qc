@@ -157,6 +157,14 @@ public hashdecl ActionOptionInfo {
 
     #! If the option should be preselected
     bool preselected;
+
+    #! Option location for record-based data providers
+    /** values:
+        - \c where: in the where clause
+        - \c options: in the options argument
+        - \c set: in the set argument for update statements
+    */
+    *string loc;
 }
 
 #! DataProvider path var info

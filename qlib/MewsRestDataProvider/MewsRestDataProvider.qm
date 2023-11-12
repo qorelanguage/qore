@@ -76,6 +76,7 @@ module MewsRestDataProvider {
                     "desc": "The earliest date and time of the closed date; i.e. `ClosedUtc` >= <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                     "preselected": True,
                 },
                 "ClosedUtcEnd": <ActionOptionInfo>{
@@ -84,6 +85,7 @@ module MewsRestDataProvider {
                     "desc": "The upper limit of the closed date (and time) range; i.e. `ClosedUtc` < <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                     "preselected": True,
                 },
             },
@@ -94,6 +96,7 @@ module MewsRestDataProvider {
                     "desc": "The earliest date and time of the updated date; i.e. `CreatedUtc` >= <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "CreatedUtcEnd": <ActionOptionInfo>{
                     "display_name": "Updated Date End",
@@ -101,6 +104,7 @@ module MewsRestDataProvider {
                     "desc": "The upper limit of the created date (and time) range; i.e. `CreatedUtc` < <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "UpdatedUtcStart": <ActionOptionInfo>{
                     "display_name": "Updated Date Start",
@@ -108,6 +112,7 @@ module MewsRestDataProvider {
                     "desc": "The earliest date and time of the updated date; i.e. `UpdatedUtc` >= <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "UpdatedUtcEnd": <ActionOptionInfo>{
                     "display_name": "Updated Date End",
@@ -115,6 +120,7 @@ module MewsRestDataProvider {
                     "desc": "The upper limit of the updated date (and time) range; i.e. `UpdatedUtc` < <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "ChargedUtcStart": <ActionOptionInfo>{
                     "display_name": "Charged Date Start",
@@ -122,6 +128,7 @@ module MewsRestDataProvider {
                     "desc": "The earliest date and time of the charged date; i.e. `ChargedUtc` >= <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "ChargedUtcEnd": <ActionOptionInfo>{
                     "display_name": "Charged Date End",
@@ -129,6 +136,7 @@ module MewsRestDataProvider {
                     "desc": "The upper limit of the charged date (and time) range; i.e. `ChargedUtc` < <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "ConsumedUtcStart": <ActionOptionInfo>{
                     "display_name": "Consumed Date Start",
@@ -136,6 +144,7 @@ module MewsRestDataProvider {
                     "desc": "The earliest date and time of the consumed date; i.e. `ConsumedUtc` >= <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "ConsumedUtcEnd": <ActionOptionInfo>{
                     "display_name": "Updated Date End",
@@ -143,6 +152,7 @@ module MewsRestDataProvider {
                     "desc": "The upper limit of the consumed date (and time) range; i.e. `UpdatedUtc` < <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "CanceledUtcStart": <ActionOptionInfo>{
                     "display_name": "Canceled Date Start",
@@ -150,6 +160,7 @@ module MewsRestDataProvider {
                     "desc": "The earliest date and time of the canceled date; i.e. `CanceledUtc` >= <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "CanceledUtcEnd": <ActionOptionInfo>{
                     "display_name": "Canceled Date End",
@@ -157,6 +168,7 @@ module MewsRestDataProvider {
                     "desc": "The upper limit of the canceled date (and time) range; i.e. `CanceledUtc` < <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "EnterpriseId": <ActionOptionInfo>{
                     "display_name": "Enterprise ID",
@@ -164,6 +176,7 @@ module MewsRestDataProvider {
                     "desc": "The enterprise ID(s) for the search",
                     "type": "list",
                     "example_value": ("851df8c8-90f2-4c4a-8e01-a4fc46b25178",),
+                    "loc": "where",
                 },
                 "OrderItemId": <ActionOptionInfo>{
                     "display_name": "Order Item ID",
@@ -171,6 +184,7 @@ module MewsRestDataProvider {
                     "desc": "The order item ID(s) for the search",
                     "type": "list",
                     "example_value": ("62f15146-9597-4169-9d05-b0b5011f0b1d",),
+                    "loc": "where",
                 },
                 "ServiceOrderId": <ActionOptionInfo>{
                     "display_name": "Service Order ID",
@@ -178,6 +192,7 @@ module MewsRestDataProvider {
                     "desc": "The service order ID(s) for the search",
                     "type": "list",
                     "example_value": ("44fa5fa0-2f98-46d8-9bd8-b0b5011f0a5f",),
+                    "loc": "where",
                 },
                 "ServiceId": <ActionOptionInfo>{
                     "display_name": "Service ID",
@@ -185,6 +200,7 @@ module MewsRestDataProvider {
                     "desc": "The service ID(s) for the search",
                     "type": "list",
                     "example_value": ("f38cac87-196b-4a5a-9c45-b046006ba01b",),
+                    "loc": "where",
                 },
                 "BillId": <ActionOptionInfo>{
                     "display_name": "Bill ID",
@@ -192,6 +208,7 @@ module MewsRestDataProvider {
                     "desc": "The bill ID(s) for the search",
                     "type": "list",
                     "example_value": ("dfd04d00-02b1-4843-ab7e-b0b5012055c1",),
+                    "loc": "where",
                 },
                 "AccountingState": <ActionOptionInfo>{
                     "display_name": "Accounting State",
@@ -199,6 +216,7 @@ module MewsRestDataProvider {
                     "desc": "The accounting state(s) for the search; `Open`, `Closed`, `Inactive`, or `Canceled`",
                     "type": "list",
                     "example_value": ("Closed",),
+                    "loc": "where",
                 },
                 "Type": <ActionOptionInfo>{
                     "display_name": "Order Item Type",
@@ -206,6 +224,7 @@ module MewsRestDataProvider {
                     "desc": "The order item type(s) for the search",
                     "type": "list",
                     "example_value": ("Deposit",),
+                    "loc": "where",
                 },
                 "Currency": <ActionOptionInfo>{
                     "display_name": "Currency",
@@ -213,6 +232,7 @@ module MewsRestDataProvider {
                     "desc": "The currency code that amounts should be reported in",
                     "type": "string",
                     "example_value": "EUR",
+                    "loc": "where",
                 },
             },
         });
@@ -233,6 +253,7 @@ module MewsRestDataProvider {
                     "type": "date",
                     "example_value": now(),
                     "preselected": True,
+                    "loc": "where",
                 },
                 "ClosedUtcEnd": <ActionOptionInfo>{
                     "display_name": "Closed Date End",
@@ -241,6 +262,7 @@ module MewsRestDataProvider {
                     "type": "date",
                     "example_value": now(),
                     "preselected": True,
+                    "loc": "where",
                 },
             },
             "advanced_options": {
@@ -250,6 +272,7 @@ module MewsRestDataProvider {
                     "desc": "The earliest date and time of the updated date; i.e. `CreatedUtc` >= <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "CreatedUtcEnd": <ActionOptionInfo>{
                     "display_name": "Updated Date End",
@@ -257,6 +280,7 @@ module MewsRestDataProvider {
                     "desc": "The upper limit of the created date (and time) range; i.e. `CreatedUtc` < <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "UpdatedUtcStart": <ActionOptionInfo>{
                     "display_name": "Updated Date Start",
@@ -264,6 +288,7 @@ module MewsRestDataProvider {
                     "desc": "The earliest date and time of the updated date; i.e. `UpdatedUtc` >= <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "UpdatedUtcEnd": <ActionOptionInfo>{
                     "display_name": "Updated Date End",
@@ -271,6 +296,7 @@ module MewsRestDataProvider {
                     "desc": "The upper limit of the updated date (and time) range; i.e. `UpdatedUtc` < <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "ChargedUtcStart": <ActionOptionInfo>{
                     "display_name": "Charged Date Start",
@@ -278,6 +304,7 @@ module MewsRestDataProvider {
                     "desc": "The earliest date and time of the charged date; i.e. `ChargedUtc` >= <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "ChargedUtcEnd": <ActionOptionInfo>{
                     "display_name": "Charged Date End",
@@ -285,6 +312,7 @@ module MewsRestDataProvider {
                     "desc": "The upper limit of the charged date (and time) range; i.e. `ChargedUtc` < <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "SettlementUtcStart": <ActionOptionInfo>{
                     "display_name": "Settlement Date Start",
@@ -292,6 +320,7 @@ module MewsRestDataProvider {
                     "desc": "The earliest date and time of the settlement date; i.e. `SettlementUtc` >= <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "SettlementUtcEnd": <ActionOptionInfo>{
                     "display_name": "Settlement Date End",
@@ -299,6 +328,7 @@ module MewsRestDataProvider {
                     "desc": "The upper limit of the settlement date (and time) range; i.e. `SettlementUtc` < <this date>",
                     "type": "date",
                     "example_value": now(),
+                    "loc": "where",
                 },
                 "EnterpriseId": <ActionOptionInfo>{
                     "display_name": "Enterprise ID",
@@ -306,6 +336,7 @@ module MewsRestDataProvider {
                     "desc": "The enterprise ID(s) for the search",
                     "type": "list",
                     "example_value": ("851df8c8-90f2-4c4a-8e01-a4fc46b25178",),
+                    "loc": "where",
                 },
                 "PaymentId": <ActionOptionInfo>{
                     "display_name": "Payment ID",
@@ -313,6 +344,7 @@ module MewsRestDataProvider {
                     "desc": "One or more payment ID(s) for the search",
                     "type": "list",
                     "example_value": ("97972551-daf6-4024-9992-b0b501206c37",),
+                    "loc": "where",
                 },
                 "BillId": <ActionOptionInfo>{
                     "display_name": "Bill ID",
@@ -320,6 +352,7 @@ module MewsRestDataProvider {
                     "desc": "The bill ID(s) for the search",
                     "type": "list",
                     "example_value": ("dfd04d00-02b1-4843-ab7e-b0b5012055c1",),
+                    "loc": "where",
                 },
                 "AccountingState": <ActionOptionInfo>{
                     "display_name": "Accounting State",
@@ -327,6 +360,7 @@ module MewsRestDataProvider {
                     "desc": "The accounting state(s) for the search; `Open`, `Closed`, `Inactive`, or `Canceled`",
                     "type": "list",
                     "example_value": ("Closed",),
+                    "loc": "where",
                 },
                 "State": <ActionOptionInfo>{
                     "display_name": "Payment State",
@@ -335,6 +369,7 @@ module MewsRestDataProvider {
                         "`Verifying`",
                     "type": "list",
                     "example_value": ("Charged",),
+                    "loc": "where",
                 },
                 "Currency": <ActionOptionInfo>{
                     "display_name": "Currency",
@@ -342,6 +377,7 @@ module MewsRestDataProvider {
                     "desc": "The currency code that amounts should be reported in",
                     "type": "string",
                     "example_value": "EUR",
+                    "loc": "where",
                 },
                 "Type": <ActionOptionInfo>{
                     "display_name": "Payment Type",
@@ -349,6 +385,7 @@ module MewsRestDataProvider {
                     "desc": "The payment type(s) for the search",
                     "type": "list",
                     "example_value": ("CreditCardPayment",),
+                    "loc": "where",
                 },
             },
         });
@@ -369,6 +406,7 @@ module MewsRestDataProvider {
                     "type": "list",
                     "example_value": ("690c3038-0dcc-469c-8143-fff4642c99e5",),
                     "preselected": True,
+                    "loc": "where",
                 },
             },
             "advanced_options": {
@@ -378,6 +416,7 @@ module MewsRestDataProvider {
                     "desc": "Limit the search to the given chain ID(s)",
                     "type": "list",
                     "example_value": ("8ddea57b-6a5c-4eec-8c4c-24467dce118e",),
+                    "loc": "where",
                 },
                 "Email": <ActionOptionInfo>{
                     "display_name": "EMail Address",
@@ -385,6 +424,7 @@ module MewsRestDataProvider {
                     "desc": "Search for customers with the given email address(es)",
                     "type": "list",
                     "example_value": ("smith@gmail.com",),
+                    "loc": "where",
                 },
                 "FirstName": <ActionOptionInfo>{
                     "display_name": "First Name",
@@ -392,6 +432,7 @@ module MewsRestDataProvider {
                     "desc": "Search for customers with the given first name(s)",
                     "type": "list",
                     "example_value": ("John",),
+                    "loc": "where",
                 },
                 "LastName": <ActionOptionInfo>{
                     "display_name": "Last Name",
@@ -399,12 +440,14 @@ module MewsRestDataProvider {
                     "desc": "Search for customers with the given last name(s)",
                     "type": "list",
                     "example_value": ("Smith",),
+                    "loc": "where",
                 },
                 "LoyaltyCode": <ActionOptionInfo>{
                     "display_name": "Loyalty Code",
                     "short_desc": "Search for customers with the given loyalty code(s)",
                     "desc": "Search for customers with the given loyalty code(s)",
                     "type": "list",
+                    "loc": "where",
                 },
                 "ActivityState": <ActionOptionInfo>{
                     "display_name": "Activity State",
@@ -412,6 +455,7 @@ module MewsRestDataProvider {
                     "desc": "Search for customers with the given activity state(s) (`Active` or `Deleted`)",
                     "type": "list",
                     "example_value": ("Active",),
+                    "loc": "where",
                 },
             },
         });

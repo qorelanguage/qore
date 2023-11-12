@@ -115,8 +115,11 @@ public class GoogleRestClient inherits RestClient::RestClient {
         #! Default Google REST API URL
         const DefaultUrl = "https://www.googleapis.com";
 
-        #! Default addition auth request arguments
-        const DefaultAuthArgs = {"access_type": "offline"};
+        #! Default additional auth request arguments to ensure we get a refresh token with every auth action
+        const DefaultAuthArgs = {
+            "access_type": "offline",
+            "prompt": "consent",
+        };
 
         #! Default authorization request URL
         const DefaultAuthUrl = "https://accounts.google.com/o/oauth2/v2/auth";
