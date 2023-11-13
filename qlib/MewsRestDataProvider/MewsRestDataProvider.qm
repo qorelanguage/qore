@@ -234,6 +234,14 @@ module MewsRestDataProvider {
                     "example_value": "EUR",
                     "loc": "where",
                 },
+                "limit": <ActionOptionInfo>{
+                    "display_name": "Record Limit",
+                    "short_desc": "Maximum number of records to return",
+                    "desc": "Maximum number of records to return",
+                    "type": "int",
+                    "example_value": 100,
+                    "loc": "options",
+                },
             },
         });
 
@@ -386,6 +394,14 @@ module MewsRestDataProvider {
                     "type": "list",
                     "example_value": ("CreditCardPayment",),
                     "loc": "where",
+                },
+                "limit": <ActionOptionInfo>{
+                    "display_name": "Record Limit",
+                    "short_desc": "Maximum number of records to return",
+                    "desc": "Maximum number of records to return",
+                    "type": "int",
+                    "example_value": 100,
+                    "loc": "options",
                 },
             },
         });

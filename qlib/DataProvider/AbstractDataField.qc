@@ -112,8 +112,9 @@ public class AbstractDataField inherits Qore::Serializable {
 
         @throw TYPE-OPTION-ERROR invalid option or invalid option type
     */
-    setOption(string opt, auto value) {
+    AbstractDataField setOption(string opt, auto value) {
         getType().setOption(opt, value);
+        return self;
     }
 
     #! sets the given options on the field's type
@@ -121,8 +122,9 @@ public class AbstractDataField inherits Qore::Serializable {
 
         @throw TYPE-OPTION-ERROR option value has an invalid type
     */
-    setOptions(hash<auto> options) {
+    AbstractDataField setOptions(hash<auto> options) {
         getType().setOptions(options);
+        return self;
     }
 
     #! returns the type name
@@ -131,7 +133,7 @@ public class AbstractDataField inherits Qore::Serializable {
     }
 
     #! Sets allowed values for enum types
-    setAllowedValues(list<auto> allowed_values) {
+    AbstractDataField setAllowedValues(list<auto> allowed_values) {
         AbstractDataProviderType type = getType();
         if (allowed_values[0] instanceof hash<AllowedValueInfo>) {
             allowed_values = map $1.value, allowed_values;
@@ -140,12 +142,14 @@ public class AbstractDataField inherits Qore::Serializable {
         self.allowed_values = map type.acceptsValue($1), allowed_values;
         # NOTE: requires that values can be converted to a string hash key to simulate a set
         allowed_values_map = map {$1: True}, self.allowed_values;
+        return self;
     }
 
     #! sets the default value for the field
-    setDefaultValue(auto default_value) {
+    AbstractDataField setDefaultValue(auto default_value) {
         # check that the value can be assigned to the type
         self.default_value = getType().acceptsValue(default_value);
+        return self;
     }
 
     #! get default value, if any
@@ -257,8 +261,9 @@ public class AbstractDataField inherits Qore::Serializable {
     }
 
     #! Sets custom attributes
-    setAttributes(hash<auto> attr) {
+    AbstractDataField setAttributes(hash<auto> attr) {
         self.attr += attr;
+        return self;
     }
 
     #! Replaces all custom attributes
