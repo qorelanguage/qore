@@ -345,9 +345,9 @@ public class MewsRestConnection inherits RestClient::RestConnection {
     constructor(hash<auto> config, *hash<auto> attr) : RestConnection(config, attr) {
     }
 
-    #! returns \c "mews"
+    #! returns \c "mewsrest"
     string getType() {
-        return "mews";
+        return "mewsrest";
     }
 
     #! returns @ref True as this connection returns a data provider with the @ref getDataProvider() method
