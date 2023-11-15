@@ -1062,11 +1062,17 @@ class InputHelper {
 %endif
 
             if (line == 'help' || line == '?') {
-                printf("commands:\n  help\n  quit\n  history\n");
+                printf("commands:\n  help\n  info\n  quit\n  history\n");
                 continue;
             }
             if (line == "info") {
                 printf("connected to: %y: %s\n", provider.getName(), provider.getDesc());
+                print("messages:\n");
+                map (printf("+ %y: ", $1.key), QdpCmd::showType($1.value.type)),
+                    provider.getMessageTypes().pairIterator();
+                print("events:\n");
+                map (printf("+ %y: ", $1.key), QdpCmd::showType($1.value.type)),
+                    provider.getEventTypes().pairIterator();
                 continue;
             }
 %ifndef NoLinenoise

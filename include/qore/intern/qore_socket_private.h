@@ -1916,8 +1916,7 @@ struct qore_socket_private {
 #ifdef DEBUG
             buf = 0;
 #endif
-            if (!rc)
-                close();
+            // do not close the socket here, as the error may be related to a timeout
         }
 
         return rc;

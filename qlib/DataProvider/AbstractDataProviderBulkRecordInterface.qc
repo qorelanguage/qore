@@ -64,8 +64,6 @@ public class AbstractDataProviderBulkRecordInterface {
     /** @return a hash of lists (or constant values) according to the block size or @ref nothing if no more data is
         available
 
-        @throw INVALID-ITERATOR the iterator is not pointing at a valid element
-
         @note
         - This call moves the internal record pointer forward, therefore multiple calls of this methods will
           return different results as long as data is available

@@ -291,7 +291,6 @@ class SocketTest inherits QUnit::Test {
             if (s4.bind("127.0.0.1:0", True)) {
                 throw "SOCKET-BIND-ERROR", strerror();
             }
-            s4.listen();
             int port2 = s4.getSocketInfo().port;
             s4.close();
             s4.shutdown();
@@ -299,13 +298,23 @@ class SocketTest inherits QUnit::Test {
             spop = s2.startPollConnect(target);
             assertEq("connect", spop.getGoal());
             assertEq("connecting", spop.getState());
-
-            assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+            {
+                on_error printf("target %y\n", target);
+                assertThrows("SOCKET-CONNECT-ERROR", sub () {
+                    while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                        Socket::poll((info,), 1s);
+                    }
+                });
+            }
 
             spop = s2.startPollConnectSsl(target);
             assertEq("connect-ssl", spop.getGoal());
             assertEq("connecting", spop.getState());
-            assertThrows("SOCKET-CONNECT-ERROR", \spop.continuePoll());
+            assertThrows("SOCKET-CONNECT-ERROR", sub () {
+                while (*hash<SocketPollInfo> info = spop.continuePoll()) {
+                    Socket::poll((info,), 1s);
+                }
+            });
 
             {
                 msg = get_random_string();
@@ -478,7 +487,7 @@ class SocketTest inherits QUnit::Test {
         assertEq(s2, new_list[1].socket);
 
         s1.close();
-        assertThrows("DESCRIPTOR-NOT-OPEN", \Socket::poll(), (poll_list, 0s));
+        assertThrows("SOCKET-NOT-OPEN", \Socket::poll(), (poll_list, 0s));
 
         new_list = poll_list;
         remove new_list[0].socket;

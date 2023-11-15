@@ -1304,7 +1304,7 @@ public class AbstractHttpRequestHandler {
         AbstractAuthenticator object is passed, then by default no authentication will be required
         @param n_stream if @ref True "True" then stream (i.e. HTTP chunked) requests and responses are handled and
         getStreamRequestImpl() will be used to return a valid AbstractStreamRequest object to handle requests
-      */
+    */
     constructor(*AbstractAuthenticator n_auth, softbool n_stream = False) {
         auth = n_auth;
         stream = n_stream;
@@ -1776,14 +1776,13 @@ public class AbstractUrlHandler inherits HttpServer::AbstractHttpRequestHandler 
     }
 
     #! creates the object based on the URL root and optional authenticator
-    /** @param n_url_root the root part of the URL path without the leading \c "/"
+    /** @param url_root the root part of the URL path without the leading \c "/"
         @param auth the authentication object to use to authenticate connections (see AbstractAuthenticator); if no
         AbstractAuthenticator object is passed, then by default no authentication will be required
      */
-    constructor(string n_url_root, *AbstractAuthenticator auth) : AbstractHttpRequestHandler(auth) {
-        if (n_url_root =~ /\//)
-            n_url_root = n_url_root.substr(1);
-        url_root = n_url_root;
+    constructor(string url_root, *AbstractAuthenticator auth) : AbstractHttpRequestHandler(auth) {
+        url_root =~ s/^\/.+//;
+        self.url_root = url_root;
     }
 
     #! returns the relative path anchored from the url_root if possible
