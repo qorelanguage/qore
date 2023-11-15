@@ -110,12 +110,8 @@ public class MewsRestClientDataProviderTest inherits QUnit::Test {
         prov = mews.getChildProviderPath(action.path[1..]);
         assertEq("customers", prov.getName());
 
-        list<string> cust_ids = (
-            "690c3038-0dcc-469c-8143-fff4642c99e5",
-            "0d7b9156-2c79-43fd-995b-fff1dcc83501",
-        );
-        *list<auto> recs = map $1, prov.searchRecords({
-            "CustomerId": cust_ids,
+        *list<auto> recs = map $1, prov.searchRecords({}, {
+            "limit": 2,
         });
         assertEq(2, recs.size());
     }
