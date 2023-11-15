@@ -1862,7 +1862,7 @@ struct qore_socket_private {
 
         qore_offset_t rc;
         if (!ssl) {
-            if (timeout != -1 && !isDataAvailable(timeout, meth, xsink)) {
+            if (timeout >= 0 && !isDataAvailable(timeout, meth, xsink)) {
                 if (*xsink) {
                     return -1;
                 }
@@ -1871,9 +1871,7 @@ struct qore_socket_private {
             }
 
             while (true) {
-#ifdef DEBUG
                 errno = 0;
-#endif
                 rc = ::recv(sock, rbuf, DEFAULT_SOCKET_BUFSIZE, flags);
                 if (rc == QORE_SOCKET_ERROR) {
                     sock_get_error();
@@ -1916,7 +1914,11 @@ struct qore_socket_private {
 #ifdef DEBUG
             buf = 0;
 #endif
-            // do not close the socket here, as the error may be related to a timeout
+            // only close the socket if the error is not EAGAIN or EINPROGRESS
+            if (!rc && isOpen() && errno != EAGAIN && errno != EINPROGRESS) {
+                se_closed("Socket", meth, xsink);
+                close();
+            }
         }
 
         return rc;
