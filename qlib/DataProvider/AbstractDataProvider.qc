@@ -929,8 +929,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                 },
                 "impl": auto sub (hash<auto> rec, hash<DataProviderExpression> exp) {
                     auto arg0 = AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[0]);
-                    return arg0 > AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1])
-                        && arg0 < AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[2]);
+                    return arg0 > AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1][0])
+                        && arg0 < AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1][1]);
                 },
             },
             DP_SEARCH_OP_IN: {

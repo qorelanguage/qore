@@ -376,6 +376,11 @@ int SSLSocketHelper::setIntern(const char* mname, int sd, X509* cert, EVP_PKEY* 
     // set the socket file descriptor
     SSL_set_fd(ssl, sd);
 
+#ifdef SSL_OP_IGNORE_UNEXPECTED_EOF
+    // treat EOF as a normal shutdown
+    SSL_set_options(ssl, SSL_OP_IGNORE_UNEXPECTED_EOF);
+#endif
+
     // set verification mode
     if (qs.ssl_verify_mode != SSL_VERIFY_NONE) {
         setVerifyMode(qs.ssl_verify_mode, qs.ssl_accept_all_certs, qs.client_target);
@@ -1635,6 +1640,7 @@ QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeo
 
     std::vector<pollfd> fds;
     fds.reserve(poll_list->size());
+
     ConstListIterator li(poll_list);
     while (li.next()) {
         const QoreValue v = li.getValue();
@@ -1673,7 +1679,7 @@ QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeo
             }
         }
         if (fd < 0) {
-            xsink->raiseException("DESCRIPTOR-NOT-OPEN", "element %zu/%zu (starting from 1) references a " \
+            xsink->raiseException("SOCKET-NOT-OPEN", "element %zu/%zu (starting from 1) references a " \
                 "pollable object that is not open", li.index() + 1, poll_list->size());
             return nullptr;
         }
@@ -1702,34 +1708,37 @@ QoreListNode* qore_socket_private::poll(const QoreListNode* poll_list, int timeo
         if (rc == -1 && errno == EINTR) {
             continue;
         }
-        break;
-    }
-    if (rc < 0) {
-        qore_socket_error(xsink, "SOCKET-POLL-ERROR", "poll(2) returned an error");
-    }
+        if (rc < 0) {
+            qore_socket_error(xsink, "SOCKET-POLL-ERROR", "poll(2) returned an error");
+            break;
+        }
 
-    // scan results for errors
-    for (unsigned i = 0; i < poll_list->size(); ++i) {
-        int events = 0;
-        if (fds[i].revents & (POLLHUP | POLLERR | POLLNVAL)) {
-            events = SOCK_POLLERR;
-        } else {
-            if (fds[i].revents & POLLIN) {
-                events |= SOCK_POLLIN;
+        // scan results for errors
+        for (unsigned i = 0; i < poll_list->size(); ++i) {
+            int events = 0;
+            if (fds[i].revents & (POLLHUP | POLLERR | POLLNVAL)) {
+                events = SOCK_POLLERR;
+            } else {
+                if (fds[i].revents & POLLIN) {
+                    events |= SOCK_POLLIN;
+                }
+                if (fds[i].revents & POLLOUT) {
+                    events |= SOCK_POLLOUT;
+                }
             }
-            if (fds[i].revents & POLLOUT) {
-                events |= SOCK_POLLOUT;
+            if (events) {
+                const QoreHashNode* orig = poll_list->retrieveEntry(i).get<const QoreHashNode>();
+
+                ReferenceHolder<QoreHashNode> entry(new QoreHashNode(hashdeclSocketPollInfo, xsink), xsink);
+                assert(!*xsink);
+                entry->setKeyValue("events", events, xsink);
+                entry->setKeyValue("socket", orig->getKeyValue("socket").refSelf(), xsink);
+                rv->push(entry.release(), xsink);
+                assert(!*xsink);
             }
         }
-        if (events) {
-            const QoreHashNode* orig = poll_list->retrieveEntry(i).get<const QoreHashNode>();
-
-            ReferenceHolder<QoreHashNode> entry(new QoreHashNode(hashdeclSocketPollInfo, xsink), xsink);
-            assert(!*xsink);
-            entry->setKeyValue("events", events, xsink);
-            entry->setKeyValue("socket", orig->getKeyValue("socket").refSelf(), xsink);
-            rv->push(entry.release(), xsink);
-            assert(!*xsink);
+        if (*xsink || rv->size()) {
+            break;
         }
     }
 

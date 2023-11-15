@@ -449,7 +449,7 @@ WebSocketClient ws(\event(), {
 
     #! Returns a "safe" URL, without any password info
     string getSafeUrl() {
-        return hc.getSafeURL();
+        return hc.getSafeURL() ?? "";
     }
 
     #! returns the unique connection ID
@@ -957,7 +957,7 @@ ws.setEventQueue();
             return WSEDC_BREAK;
         }
 
-        logDebug("received msg (%s: %d bytes): %s", WSOPMap.(h.op) ?? sprintf("unknown opcode %y", h.op),
+        logDebug("received msg (%s: %d bytes): %s", WSOPMap{h.op} ?? sprintf("unknown opcode %y", h.op),
             h.msg.size(), h.msg ? sprintf("type: %s: %y", h.msg.type(), h.msg) : "n/a");
 
         if (h.masked) {
@@ -1257,7 +1257,17 @@ class MyObserver inherits Observer {
 
     #! Handles processed messages
     private handleEvent(binary buf) {
-        logWarn("ignoring binary WebSocket event data message: %y", buf);
+        if (serialization == "none") {
+            try {
+                handleEventData(buf);
+            } catch (hash<ExceptionInfo> ex) {
+                logError("error handling binary WebSocket event data message: %s", get_exception_string(ex));
+                return;
+            }
+        } else {
+            logWarn("ignoring binary WebSocket event data message: %y; cannot handle when serialization is %y", buf,
+                serialization);
+        }
     }
 
     #! Got a pong message

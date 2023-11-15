@@ -472,7 +472,7 @@ const NameToSignal = (
    "SIGXCPU": SIGXCPU,
    "SIGXFSZ": SIGXFSZ,
    "SIGXRES": SIGXRES,
-   );
+);
 
 //! maps signal numbers (as a string key) to the symbolic name for the signal
 const SignalToName = (
