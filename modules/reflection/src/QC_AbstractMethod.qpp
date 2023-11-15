@@ -78,10 +78,23 @@ void QoreReflectionMethod::setType(const QoreClass* cls, const char* name, metho
     if (!m) {
         const char* typestr;
         switch (type) {
-            case MT_Normal: typestr = "normal "; break;
-            case MT_Static: typestr = "static "; break;
-            case MT_None: typestr = ""; break;
-            default: assert(false); break;
+            case MT_Normal:
+                typestr = "normal ";
+                break;
+
+            case MT_Static:
+                typestr = "static ";
+                break;
+
+            case MT_None:
+                typestr = "";
+                break;
+
+            case MT_Pseudo:
+            default:
+                typestr = "invalid ";
+                assert(false);
+                break;
         }
         xsink->raiseException("UNKNOWN-METHOD", "cannot resolve %smethod '%s' in class '%s'", typestr, name, cls->getName());
     } else {
