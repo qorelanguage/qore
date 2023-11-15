@@ -113,7 +113,6 @@ public class ConnectionSchemeCache {
             "discordws": "DiscordWebSocketClient",
             "discordwss": "DiscordWebSocketClient",
 
-            "ebrest": "EmpathicBuildingDataProvider",
             "ebrests": "EmpathicBuildingDataProvider",
 
             "esrest": "ElasticSearchDataProvider",

@@ -43,6 +43,9 @@ module EmpathicBuildingDataProvider {
     url = "http://qore.org";
     license = "MIT";
     init = sub () {
+        # register connection scheme
+        ConnectionSchemeCache::registerScheme("ebrests", EmpathicBuildingRestConnection::ConnectionScheme);
+
         # register the data provider factory
         DataProvider::registerFactory(new EmpathicBuildingDataProviderFactory());
 

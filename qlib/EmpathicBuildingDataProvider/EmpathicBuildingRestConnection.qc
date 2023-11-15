@@ -26,19 +26,21 @@
 public namespace EmpathicBuildingDataProvider {
 #! EmpathicBuilding REST connection
 public class EmpathicBuildingRestConnection inherits RestClient::RestConnection {
-    #! creates the EmpathicBuildingRestConnection object
-    /** @param name the name of the connection
-        @param description connection description
-        @param url connection URL (potentially with password info)
-        @param attributes various attributes. See below
-        @param options connection options
-
-        See @ref AbstractConnection::constructor() for \c attributes and \c options reference.
-
-        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
-    */
-    constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : RestConnection(name, description, url, attributes, options) {
+    public {
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Haltian Empathic Building REST Connection",
+            "short_desc": "A connection to a Haltian Empathic Building REST server",
+            "desc": "A connection to a Haltian Empathic Building REST server",
+            "cls": Class::forName("EmpathicBuildingRestConnection"),
+            "schemes": {
+                "ebrests": True,
+            },
+            "base_scheme_map": {
+                "https": "ebrests",
+            },
+            "options": RestConnection::ConnectionScheme.options,
+        };
     }
 
     #! creates the EmpathicBuildingRestConnection object
@@ -62,9 +64,9 @@ public class EmpathicBuildingRestConnection inherits RestClient::RestConnection 
     constructor(hash<auto> config, *hash<auto> attr) : RestConnection(config, attr) {
     }
 
-    #! returns \c "esrest"
+    #! returns \c "ebrests"
     string getType() {
-        return "ebrest";
+        return "ebrests";
     }
 
     #! returns a data provider object for this connection
