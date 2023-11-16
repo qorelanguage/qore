@@ -1909,7 +1909,8 @@ int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, vo
 
 int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf, int size, int timeout_ms,
         SslAction action, bool do_timeout) {
-    //printd(5, "SSLSocketHelper::doSSLRW() %s size: %d timeout_ms: %d read: %d do_timeout: %d\n", mname, size, timeout_ms, read, do_timeout);
+    //printd(5, "SSLSocketHelper::doSSLRW() %s size: %d timeout_ms: %d read: %d do_timeout: %d\n", mname, size,
+    //    timeout_ms, read, do_timeout);
     assert(xsink);
     assert(size);
     SSLSocketReferenceHelper ssrh(this);
@@ -1932,8 +1933,9 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
             if (rc <= 0) {
                 // we set SSL_MODE_AUTO_RETRY so there should never be any need to retry
                 // issue 1729: only return 0 when reading, indicating that the remote closed the connection
-                if (!sslError(xsink, mname, get_action_method(action), action == WRITE ? true : false))
+                if (!sslError(xsink, mname, get_action_method(action), action == WRITE ? true : false)) {
                     rc = 0;
+                }
             }
             return rc;
         }
@@ -1941,8 +1943,9 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
 
     // set non blocking
     OptionalNonBlockingHelper nbh(qs, true, xsink);
-    if (*xsink)
+    if (*xsink) {
         return -1;
+    }
 
     int rc;
     while (true) {
@@ -1957,28 +1960,43 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
             case PEEK:
                 rc = SSL_peek(ssl, buf, size);
                 break;
+            default:
+                assert(false);
         }
 
-        if (rc > 0)
+        if (rc > 0) {
             break;
+        }
 
         int err = SSL_get_error(ssl, rc);
 
         if (err == SSL_ERROR_WANT_READ) {
+            if (!timeout_ms) {
+                rc = QSE_TIMEOUT;
+                break;
+            }
             if (!qs.isSocketDataAvailable(timeout_ms, mname, xsink)) {
-                if (*xsink)
+                if (*xsink) {
                     return -1;
-                if (do_timeout)
+                }
+                if (do_timeout && timeout_ms) {
                     se_timeout("Socket", mname, timeout_ms, xsink);
+                }
                 rc = QSE_TIMEOUT;
                 break;
             }
         } else if (err == SSL_ERROR_WANT_WRITE) {
+            if (!timeout_ms) {
+                rc = QSE_TIMEOUT;
+                break;
+            }
             if (!qs.isWriteFinished(timeout_ms, mname, xsink)) {
-                if (*xsink)
+                if (*xsink) {
                     return -1;
-                if (do_timeout)
+                }
+                if (do_timeout && timeout_ms) {
                     se_timeout("Socket", mname, timeout_ms, xsink);
+                }
                 rc = QSE_TIMEOUT;
                 break;
             }
@@ -1987,12 +2005,12 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
             if (action != WRITE) {
                 rc = 0;
             } else {
-                if (!sslError(xsink, mname, "SSL_write"))
+                if (!sslError(xsink, mname, "SSL_write")) {
                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the socket was closed by the "
                         "remote host while calling SSL_write()", mname);
+                }
                 rc = QSE_SSL_ERR;
             }
-
             break;
         } else if (err == SSL_ERROR_SYSCALL) {
             if (!sslError(xsink, mname, get_action_method(action), action == WRITE)) {
@@ -2005,8 +2023,9 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
                         "openssl library reported an I/O error while calling %s()", mname, get_action_method(action));
 #ifdef ECONNRESET
                     // close the socket if connection reset received
-                    if (qs.isOpen() && sock_get_error() == ECONNRESET)
+                    if (qs.isOpen() && sock_get_error() == ECONNRESET) {
                         qs.close();
+                    }
 #endif
                 } else {
                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
@@ -2015,18 +2034,20 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
             }
 
             rc = !*xsink ? 0 : QSE_SSL_ERR;
-            //rc = QSE_SSL_ERR;
             break;
         } else {
-            //printd(5, "SSLSocketHelper::doSSLRW(buf: %p, size: %d, to: %d) rc: %d err: %d\n", buf, size, timeout_ms, rc, err);
+            //printd(5, "SSLSocketHelper::doSSLRW(buf: %p, size: %d, to: %d) rc: %d err: %d\n", buf, size, timeout_ms,
+            //    rc, err);
             // always throw an exception if an error occurs while writing
-            if (!sslError(xsink, mname, get_action_method(action), action == WRITE))
+            if (!sslError(xsink, mname, get_action_method(action), action == WRITE)) {
                 rc = 0;
+            }
             break;
         }
     }
 
-    //printd(5, "SSLSocketHelper::doSSLRW(buf: %p, size: %d, to: %d, read: %d) rc: %d\n", buf, size, timeout_ms, (int)read, rc);
+    //printd(5, "SSLSocketHelper::doSSLRW(buf: %p, size: %d, to: %d, read: %d) rc: %d\n", buf, size, timeout_ms,
+    //    (int)read, rc);
     return rc;
 }
 
@@ -2092,8 +2113,13 @@ DLLLOCAL OptionalNonBlockingHelper::~OptionalNonBlockingHelper() {
     }
 }
 
-int SSLSocketHelper::read(const char* mname, char* buf, int size, int timeout_ms, ExceptionSink* xsink) {
-    return doSSLRW(xsink, mname, buf, size, timeout_ms, READ);
+int SSLSocketHelper::read(ExceptionSink* xsink, const char* mname, char* buf, int size, int timeout_ms,
+        bool suppress_exception) {
+    int rc = doSSLRW(xsink, mname, buf, size, timeout_ms, READ, true);
+    if (suppress_exception && *xsink) {
+        xsink->clear();
+    }
+    return rc;
 }
 
 // returns true if an error was raised or the connection was closed, false if not

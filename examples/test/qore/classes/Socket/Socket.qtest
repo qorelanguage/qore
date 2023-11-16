@@ -144,6 +144,7 @@ class SocketTest inherits QUnit::Test {
     constructor() : QUnit::Test("Socket test", "1.0", \ARGV, MyOpts) {
         process_command_line();
 
+        addTestCase("send binary test", \sendBinaryTest());
         addTestCase("send close test", \sendCloseTest());
         addTestCase("poll test", \pollTest());
         addTestCase("tls13 test", \tls13Test());
@@ -165,6 +166,66 @@ class SocketTest inherits QUnit::Test {
         s0.setCertificate(TestCert);
         s0.setPrivateKey(TestCert);
         s0.acceptSSL();
+    }
+
+    sendBinaryTest() {
+        {
+            Socket s0();
+            Socket s1();
+
+            if (s0.bind("127.0.0.1:0", True)) {
+                throw "SOCKET-BIND-ERROR", strerror();
+            }
+            s0.listen();
+            int port = s0.getSocketInfo().port;
+
+            s1.connect("127.0.0.1:" + port);
+            binary b = get_random_bytes(128 * 1024);
+
+            Socket s2 = s0.accept(1ms);
+
+            s1.send(b);
+
+            binary b0 = s2.recvBinary(-1, 0);
+            assertEq(b, b0);
+        }
+        {
+            Queue q();
+            background sub () {
+                Socket s0();
+
+                if (s0.bind("127.0.0.1:0", True)) {
+                    throw "SOCKET-BIND-ERROR", strerror();
+                }
+                s0.listen();
+                int port = s0.getSocketInfo().port;
+
+                s0.setCertificate(TestCert);
+                s0.setPrivateKey(TestCert);
+                q.push(port);
+
+                Socket s2 = s0.acceptSSL(1ms);
+                assertTrue(s2.isDataAvailable(2s));
+                binary b0 = s2.recvBinary(-1, 0);
+                q.push(b0);
+
+                b0 = get_random_bytes(128 * 1024);
+                s2.send(b0, 5s);
+                assertEq(b0, q.get(2s));
+            }();
+
+            Socket s1();
+
+            s1.connectSSL("127.0.0.1:" + q.get(2s));
+
+            binary b = get_random_bytes(128 * 1024);
+            s1.send(b, 5s);
+            assertEq(b, q.get(2s));
+
+            assertTrue(s1.isDataAvailable(2s));
+            b = s1.recvBinary(-1, 0);
+            q.push(b);
+        }
     }
 
     sendCloseTest() {

@@ -104,7 +104,8 @@ public:
     // returns 0 for success
     DLLLOCAL int shutdown(ExceptionSink* xsink);
     // read with optional timeout in milliseconds
-    DLLLOCAL int read(const char* mname, char* buf, int size, int timeout_ms, ExceptionSink* xsink);
+    DLLLOCAL int read(ExceptionSink* xsink, const char* mname, char* buf, int size, int timeout_ms,
+            bool suppress_exception = false);
     // returns 0 for success
     DLLLOCAL int write(const char* mname, const void* buf, int size, int timeout_ms, ExceptionSink* xsink);
 

@@ -1835,7 +1835,7 @@ struct qore_socket_private {
 
     // buffered reads for high performance
     DLLLOCAL qore_offset_t brecv(ExceptionSink* xsink, const char* meth, char*& buf, size_t bs, int flags,
-            int timeout, bool do_event = true) {
+            int timeout, bool do_event = true, bool suppress_exception = false) {
         assert(xsink);
         // must be checked if open/connected before this function is called
         assert(sock != QORE_INVALID_SOCKET);
@@ -1866,7 +1866,9 @@ struct qore_socket_private {
                 if (*xsink) {
                     return -1;
                 }
-                se_timeout("Socket", meth, timeout, xsink);
+                if (!suppress_exception) {
+                    se_timeout("Socket", meth, timeout, xsink);
+                }
                 return QSE_TIMEOUT;
             }
 
@@ -1875,25 +1877,31 @@ struct qore_socket_private {
                 rc = ::recv(sock, rbuf, DEFAULT_SOCKET_BUFSIZE, flags);
                 if (rc == QORE_SOCKET_ERROR) {
                     sock_get_error();
-                    if (errno == EINTR)
+                    if (errno == EINTR) {
                         continue;
+                    }
 #ifdef ECONNRESET
                     if (errno == ECONNRESET) {
-                        se_closed("Socket", meth, xsink);
+                        if (!suppress_exception) {
+                            se_closed("Socket", meth, xsink);
+                        }
                         close();
                     } else
 #endif
-                        qore_socket_error(xsink, "SOCKET-RECV-ERROR", "error in recv()", meth);
+                        if (!suppress_exception) {
+                            qore_socket_error(xsink, "SOCKET-RECV-ERROR", "error in recv()", meth);
+                        }
                     break;
                 }
                 //printd(5, "qore_socket_private::brecv(%d, %p, %ld, %d) rc: %ld errno: %d\n", sock, buf, bs, flags,
                 //    rc, errno);
                 // try again if we were interrupted by a signal
-                if (rc >= 0)
+                if (rc >= 0) {
                     break;
+                }
             }
         } else {
-            rc = ssl->read(meth, rbuf, DEFAULT_SOCKET_BUFSIZE, timeout, xsink);
+            rc = ssl->read(xsink, meth, rbuf, DEFAULT_SOCKET_BUFSIZE, timeout, suppress_exception);
         }
 
         //printd(5, "qore_socket_private::brecv(%d, %p, %ld, %d) rc: %ld errno: %d\n", sock, buf, bs, flags, rc, errno);
@@ -1908,12 +1916,10 @@ struct qore_socket_private {
             }
 
             // register event
-            if (do_event)
+            if (do_event) {
                 do_read_event(rc, rc);
+            }
         } else {
-#ifdef DEBUG
-            buf = 0;
-#endif
             // only close the socket if no data was recevied and the error is not EAGAIN or EINPROGRESS
             if (!rc && isOpen() && errno != EAGAIN && errno != EINPROGRESS) {
                 close();
@@ -2094,15 +2100,15 @@ struct qore_socket_private {
         if (sock == QORE_INVALID_SOCKET) {
             se_not_open("Socket", "recv", xsink, "recvAll");
             rc = QSE_NOT_OPEN;
-            return 0;
+            return nullptr;
         }
         if (in_op >= 0) {
             if (in_op == q_gettid()) {
                 se_in_op("Socket", "recv", xsink);
-                return 0;
+                return nullptr;
             }
             se_in_op_thread("Socket", "recv", xsink);
-            return 0;
+            return nullptr;
         }
 
         PrivateQoreSocketThroughputHelper th(this, false);
@@ -2112,8 +2118,10 @@ struct qore_socket_private {
         // perform first read with timeout
         char* buf;
         rc = brecv(xsink, "recv", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
-        if (rc <= 0)
-            return 0;
+        //printd(5, "qore_socket_private::brecv(to: %d) initial: rc=" QSD "\n", timeout, rc);
+        if (rc <= 0) {
+            return nullptr;
+        }
 
         str->concat(buf, rc);
 
@@ -2123,14 +2131,11 @@ struct qore_socket_private {
         // keep reading data until no more data is available without a timeout
         if (isDataAvailable(0, "recv", xsink)) {
             do {
-                rc = brecv(xsink, "recv", buf, DEFAULT_SOCKET_BUFSIZE, 0, 0, false);
-                //printd(5, "qore_socket_private::recv(to: %d) rc=" QSD " rd=" QSD "\n", timeout, rc, str->size());
+                rc = brecv(xsink, "recv", buf, DEFAULT_SOCKET_BUFSIZE, 0, 0, false, true);
+                //printd(5, "qore_socket_private::brecv(to: 0) rc=" QSD " rd=" QSD "\n", rc, str->size());
                 // if the remote end has closed the connection, return what we have
-                if (!rc)
+                if (rc <= 0) {
                     break;
-                if (rc < 0) {
-                    th.finalize(str->size());
-                    return 0;
                 }
                 str->concat(buf, rc);
 
@@ -2204,11 +2209,13 @@ struct qore_socket_private {
         if (source > 0) {
             do_data_event(QORE_EVENT_SOCKET_DATA_READ, source, **b);
         }
-        printd(5, "qore_socket_private::recvBinary() received " QSD " byte(s), bufsize=" QSD ", blen=" QSD "\n", b->size(), bufsize, b->size());
+        printd(5, "qore_socket_private::recvBinary() received " QSD " byte(s), bufsize=" QSD ", blen=" QSD "\n",
+            b->size(), bufsize, b->size());
         return b.release();
     }
 
-    DLLLOCAL BinaryNode* recvBinaryAll(ExceptionSink* xsink, int timeout, qore_offset_t& rc, int source = QORE_SOURCE_SOCKET) {
+    DLLLOCAL BinaryNode* recvBinaryAll(ExceptionSink* xsink, int timeout, qore_offset_t& rc,
+            int source = QORE_SOURCE_SOCKET) {
         assert(xsink);
         if (sock == QORE_INVALID_SOCKET) {
             se_not_open("Socket", "recvBinary", xsink, "recvBinaryAll");
@@ -2232,8 +2239,10 @@ struct qore_socket_private {
         // perform first read with timeout
         char* buf;
         rc = brecv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, timeout, false);
-        if (rc <= 0)
-            return 0;
+        //printd(5, "qore_socket_private::brecv(to: %d) initial: rc=" QSD "\n", timeout, rc);
+        if (rc <= 0) {
+            return nullptr;
+        }
 
         b->append(buf, rc);
 
@@ -2241,28 +2250,25 @@ struct qore_socket_private {
         do_read_event(rc, rc);
 
         // keep reading data until no more data is available without a timeout
-        if (isDataAvailable(0, "recvBinary", xsink)) {
-            do {
-                rc = brecv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, 0, false);
-                // if the remote end has closed the connection, return what we have
-                if (!rc)
-                    break;
-                if (rc < 0) {
-                    th.finalize(b->size());
-                    return 0;
-                }
+        while (isDataAvailable(0, "recvBinary", xsink)) {
+            rc = brecv(xsink, "recvBinary", buf, DEFAULT_SOCKET_BUFSIZE, 0, 0, false, true);
+            //printd(5, "qore_socket_private::brecv(to: 0) rc=" QSD " rd=" QSD "\n", rc, b->size());
+            // if the remote end has closed the connection, return what we have
+            if (rc <= 0) {
+                break;
+            }
 
-                b->append(buf, rc);
+            b->append(buf, rc);
 
-                // register event
-                do_read_event(rc, b->size());
-            } while (isDataAvailable(0, "recvBinary", xsink));
+            // register event
+            do_read_event(rc, b->size());
         }
 
         th.finalize(b->size());
 
-        if (*xsink)
+        if (*xsink) {
             return nullptr;
+        }
 
         if (source > 0) {
             do_data_event(QORE_EVENT_SOCKET_DATA_READ, source, **b);
@@ -2272,7 +2278,8 @@ struct qore_socket_private {
         return b.release();
     }
 
-    DLLLOCAL void recvToOutputStream(OutputStream *os, int64 size, int64 timeout, ExceptionSink *xsink, QoreThreadLock* l, int source = QORE_SOURCE_SOCKET) {
+    DLLLOCAL void recvToOutputStream(OutputStream *os, int64 size, int64 timeout, ExceptionSink *xsink,
+            QoreThreadLock* l, int source = QORE_SOURCE_SOCKET) {
         if (sock == QORE_INVALID_SOCKET) {
             se_not_open("Socket", "recvToOutputStream", xsink);
             return;
