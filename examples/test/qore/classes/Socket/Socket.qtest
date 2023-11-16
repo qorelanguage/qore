@@ -144,6 +144,7 @@ class SocketTest inherits QUnit::Test {
     constructor() : QUnit::Test("Socket test", "1.0", \ARGV, MyOpts) {
         process_command_line();
 
+        addTestCase("send close test", \sendCloseTest());
         addTestCase("poll test", \pollTest());
         addTestCase("tls13 test", \tls13Test());
         addTestCase("connection ID", \connectionIdTest());
@@ -164,6 +165,28 @@ class SocketTest inherits QUnit::Test {
         s0.setCertificate(TestCert);
         s0.setPrivateKey(TestCert);
         s0.acceptSSL();
+    }
+
+    sendCloseTest() {
+        Socket s0();
+        Socket s1();
+
+        if (s0.bind("127.0.0.1:0", True)) {
+            throw "SOCKET-BIND-ERROR", strerror();
+        }
+        s0.listen();
+        int port = s0.getSocketInfo().port;
+
+        s1.connect("127.0.0.1:" + port);
+        string str = get_random_string(256);
+
+        Socket s2 = s0.accept(1ms);
+
+        s1.send(str);
+        s1.close();
+
+        string str0 = s2.recv(-1);
+        assertEq(str, str0);
     }
 
     pollTest() {

@@ -1916,7 +1916,6 @@ struct qore_socket_private {
 #endif
             // only close the socket if no data was recevied and the error is not EAGAIN or EINPROGRESS
             if (!rc && isOpen() && errno != EAGAIN && errno != EINPROGRESS) {
-                se_closed("Socket", meth, xsink);
                 close();
             }
         }
