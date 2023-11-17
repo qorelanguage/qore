@@ -155,7 +155,7 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
             *hash<auto> search_options) {
         AbstractDataProvider prov = sdp.getChildProviderPath(config.path);
         int limit = min(search_options.limit ?? MaxRecords, MaxRecords);
-        hash<auto> req = getSearchRequest(limit, \where_cond, search_options);
+        *hash<auto> req = getSearchRequest(limit, \where_cond, search_options);
         *list<auto> l;
         while (True) {
             hash<auto> res = prov.doRequest({"body": req});
@@ -216,7 +216,7 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
             .getElementType().getFields();
     }
 
-    private hash<auto> getSearchRequest(int limit, reference<*hash<auto>> where_cond, *hash<auto> search_options) {
+    private *hash<auto> getSearchRequest(int limit, reference<*hash<auto>> where_cond, *hash<auto> search_options) {
         hash<auto> req;
         if (!config.no_limitation) {
             req.Limitation.Count = limit;

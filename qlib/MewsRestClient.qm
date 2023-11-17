@@ -206,23 +206,6 @@ MewsRestClient rest(opts);
         return body;
     }
 
-    #! Adds default values for the required keys in the request body
-    preprocessRequestBodyType(*AbstractDataProviderType body_type) {
-        if (!body_type) {
-            return;
-        }
-        *hash<string, AbstractDataField> fields = body_type.getFields();
-        if ((*AbstractDataField f = fields.ClientToken) && !exists f.getDefaultValue()) {
-            f.setDefaultValue(client_token);
-        }
-        if ((*AbstractDataField f = fields.AccessToken) && !exists f.getDefaultValue()) {
-            f.setDefaultValue(access_token);
-        }
-        if ((*AbstractDataField f = fields.Client) && !exists f.getDefaultValue()) {
-            f.setDefaultValue(client);
-        }
-    }
-
     #! Checks if a login is necessary; if so, then the login is performed
     private checkLogin(*reference<hash<auto>> info) {
     }

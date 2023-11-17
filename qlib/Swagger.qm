@@ -3639,7 +3639,7 @@ public class OtherParameter inherits AbstractParameterObject, SchemaBase {
                         case NT_LIST:
                             break;
                         default:
-                            value = (value,);
+                            value = exists value ? (value,) : ();
                             break;
                     }
                     break;

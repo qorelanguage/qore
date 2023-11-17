@@ -1509,15 +1509,6 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         return request_body;
     }
 
-    #! Preprocesses the request body type before checking a request
-    /** The default is to do nothing
-
-        @since %RestClient 2.2
-    */
-    preprocessRequestBodyType(*AbstractDataProviderType body_type) {
-        # this method intentoinally left empty
-    }
-
     #! Sets options from the OAuth2 login response on the local object
     /** @since %RestClient 2.0
     */

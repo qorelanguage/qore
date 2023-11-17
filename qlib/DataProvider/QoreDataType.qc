@@ -39,6 +39,9 @@ public class QoreDataType inherits AbstractDataProviderType {
         #! flag for "or nothing" types
         bool or_nothing_type;
 
+        #! Default value for type
+        auto default_value;
+
         #! hash of base types where no translations are performed; keys are type codes, not names
         /** @note
             - this hash wil not contain the primary type code for the type if such values might undergo translation in
@@ -84,7 +87,7 @@ public class QoreDataType inherits AbstractDataProviderType {
     }
 
     #! creates the type
-    constructor(Type type, *hash<auto> options, *hash<auto> tags) {
+    constructor(Type type, *hash<auto> options, *hash<auto> tags, auto default_value) {
         self.type = type;
         base_type_hash{type.getBaseTypeCode()} = True;
         if (type.isOrNothingType()) {
@@ -108,6 +111,8 @@ public class QoreDataType inherits AbstractDataProviderType {
             accept_type_hash -= "null";
             blacklist_type_hash{NT_NULL} = True;
         }
+
+        self.default_value = default_value;
     }
 
     #! returns the type name
@@ -135,6 +140,34 @@ public class QoreDataType inherits AbstractDataProviderType {
         return base_type_hash;
     }
 
+    #/! Returns @ref True if this type has a default value
+    /** @par Example:
+        @code{.py}
+    bool b = t.canConvertToScalar();
+        @endcode
+
+        @return @ref True if this type has a default value
+
+        @since DataProvider 3.0
+    */
+    bool hasDefaultValue() {
+        return exists default_value ? True : type.hasDefaultValue();
+    }
+
+    #//! Returns the default value for the type or @ref nothing if the type has no default value
+    /** @par Example:
+        @code{.py}
+    auto v = t.getDefaultValue();
+        @endcode
+
+        @return the default value for the type or @ref nothing if the type has no default value
+
+        @since DataProvider 3.0
+    */
+    auto getDefaultValue() {
+        return exists default_value ? default_value : type.getDefaultValue();
+    }
+
     #! returns the subtype (for lists or hashes) if there is only one
     *AbstractDataProviderType getElementType() {
         if (*Type elementType = type.getElementType()) {
@@ -153,6 +186,9 @@ public class QoreDataType inherits AbstractDataProviderType {
         if (blacklist_type_hash && blacklist_type_hash{value.typeCode()}) {
             throw "RUNTIME-TYPE-ERROR", sprintf("type %y does not accept values of type %y", getName(),
                 value.type());
+        }
+        if ((!exists value || value == NULL) && exists default_value) {
+            return default_value;
         }
         return type.acceptsValue(value);
     }
@@ -189,7 +225,7 @@ public class QoreDataType inherits AbstractDataProviderType {
             # check if a soft type exists
             *Type soft_type = SoftTypeMap{type.getName()};
             if (soft_type) {
-                return new QoreDataType(soft_type, options);
+                return new QoreDataType(soft_type, options, tags, default_value);
             }
         }
         return self;

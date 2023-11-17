@@ -1679,14 +1679,14 @@ public class DataProviderTest inherits QUnit::Test {
 
         {
             AbstractDataProviderType type = DataProvider::getType("/qore/ftp/event");
-            assertEq(AutoHashType, type.getValueType());
+            assertEq("*hash<auto>", type.getValueType().getName());
             type = DataProvider::getType("qore/ftp/event");
             {
                 AbstractDataProviderType t = Serializable::deserialize(type.serialize());
                 assertEq("FtpPollerFileEventInfoDataType", t.className());
                 assertEq("data", t.getField("data").getType().getValueType().getName());
             }
-            assertEq(AutoHashType, type.getValueType());
+            assertEq("*hash<auto>", type.getValueType().getName());
             assertNothing(DataProvider::getType("xxx"));
             assertThrows("PROVIDER-ERROR", \DataProvider::getTypeEx(), "xxx");
             type = DataProvider::getType("/qore/ftp/event/filepath");

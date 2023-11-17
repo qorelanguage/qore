@@ -56,7 +56,7 @@ public class QoreDataField inherits AbstractDataField {
 
     #! creates the field from the arguments
     constructor(hash<auto> h) {
-        checkString(True, h, "name", "desc");
+        checkString(False, h, "name", "desc");
         checkString(False, h, "display_name", "short_desc");
         checkHash(False, h, "attr");
         if (h.type instanceof Qore::Reflection::Type) {
@@ -133,6 +133,11 @@ public class QoreDataField inherits AbstractDataField {
     #! returns the type of the field
     AbstractDataProviderType getType() {
         return type;
+    }
+
+    #! get default value, if any
+    auto getDefaultValue() {
+        return default_value ?? type.getDefaultValue();
     }
 
     #! adds a string to the description

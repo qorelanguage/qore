@@ -226,6 +226,15 @@ public hashdecl DataProviderActionInfo {
     */
     *string action_val;
 
+    #! Values to add to any "where" argument for record-based actions
+    *hash<auto> where_add;
+
+    #! Values to add to any "options" argument for record-based actions
+    *hash<auto> options_add;
+
+    #! Values to add to any "set" argument for record-based actions
+    *hash<auto> set_add;
+
     #! Convenience options that can be provided without a data provider
     /** For API calls and messages only
     */

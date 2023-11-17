@@ -28349,6 +28349,17 @@ definitions:
         title: AssigneeData
         x-deprecated: true
         x-nullable: true
+      AssociatedAccountIds:
+        items:
+          format: uuid
+          type: string
+        type: array
+        x-nullable: true
+      AssociatedAccountData:
+        items:
+          type: object
+        type: array
+        x-nullable: true
       CompanyDetails:
         $ref: '#/definitions/BillCompanyData'
         x-nullable: true
@@ -38496,6 +38507,8 @@ definitions:
       Name:
         type: string
         x-nullable: true
+      Options:
+        $ref: '#/definitions/RateOptions'
       ServiceId:
         format: uuid
         type: string
@@ -38976,6 +38989,9 @@ definitions:
   RateResult:
     additionalProperties: false
     properties:
+      AvailabilityBlockAssignments:
+        $ref: '#/definitions/AvailabilityBlockAssignment'
+        x-nullable: true
       Cursor:
         format: uuid
         type: string
@@ -40371,7 +40387,6 @@ definitions:
           format: uuid
           type: string
         maxItems: 1000
-        minItems: 1
         type: array
       States:
         items:
@@ -40385,7 +40400,6 @@ definitions:
       - Client
       - ClientToken
       - Limitation
-      - ServiceIds
     type: object
   ReservationServiceOrderResult:
     additionalProperties: false

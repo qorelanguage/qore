@@ -154,7 +154,7 @@ public class AbstractDataField inherits Qore::Serializable {
 
     #! get default value, if any
     auto getDefaultValue() {
-        return default_value;
+        return default_value ?? getType().getDefaultValue();
     }
 
     #! Get allowed values

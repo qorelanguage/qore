@@ -53,20 +53,20 @@ public class HashDataType inherits QoreDataType {
     }
 
     #! creates the object and assigns the name as the type
-    constructor(string name = AutoHashType.getName(), *hash<auto> options, *hash<auto> tags)
-            : QoreDataType(AutoHashType, options, tags) {
+    constructor(string name = AutoHashType.getName(), *hash<auto> options, *hash<auto> tags, auto default_value)
+            : QoreDataType(AutoHashType, options, tags, default_value) {
         self.name = name;
     }
 
     #! creates the object and assigns the name as the given name or the base type's name
-    constructor(Type base_type, *string name, *hash<auto> options, *hash<auto> tags)
-            : QoreDataType(base_type, options, tags) {
+    constructor(Type base_type, *string name, *hash<auto> options, *hash<auto> tags, auto default_value)
+            : QoreDataType(base_type, options, tags, default_value) {
         self.name = name ?? base_type.getName();
     }
 
     #! creates the object from the given record description and assigns the name as the type
     constructor(string name = AutoHashType.getName(), hash<string, AbstractDataField> fields, *hash<auto> options,
-            *hash<auto> tags) : QoreDataType(AutoHashType, options, tags) {
+            *hash<auto> tags, auto default_value) : QoreDataType(AutoHashType, options, tags, default_value) {
         self.name = name;
         self.fields = fields;
     }
@@ -117,8 +117,14 @@ public class HashDataType inherits QoreDataType {
         foreach AbstractDataField field in (fields.iterator()) {
             string key = field.getName();
             auto val = remove value_copy{key};
-            if (!exists val && !field.isMandatory()) {
-                continue;
+            if (!exists val) {
+                if (exists (auto dv = field.getDefaultValue())) {
+                    value{key} = dv;
+                    continue;
+                }
+                if (!field.isMandatory()) {
+                    continue;
+                }
             }
             try {
                 value{key} = field.acceptsValue(val);
@@ -210,6 +216,10 @@ public class HashDataType inherits QoreDataType {
             QoreDataField field(i.value);
             fields{i.key} = field;
             postProcessAddedField(field);
+
+            if (exists (auto fv = field.getDefaultValue())) {
+                default_value{i.key} = fv;
+            }
         }
         return self;
     }
@@ -238,9 +248,9 @@ public class HashDataType inherits QoreDataType {
         if (soft_type) {
             return self;
         }
-        HashDataType rv(type, name, options);
+        HashDataType rv(type, name, options, tags, default_value);
         if (manual_default_other_field_type) {
-            rv.setDefaultOtherFieldType(default_other_field_type);
+            rv.setDefaultOtherFieldType(default_other_field_type.getSoftType());
         }
         map rv.addField($1.getSoftType()), getFields().iterator();
         rv.soft_type = True;
@@ -282,9 +292,11 @@ public class HashDataType inherits QoreDataType {
         if (default_other_field_type && !manual_default_other_field_type) {
             remove default_other_field_type;
         }
-        if (type == AutoHashType && exists field.getDefaultValue()) {
-            type = AutoHashOrNothingType;
-            soft_type = True;
+        if (exists (auto val = field.getDefaultValue())) {
+            if (type == AutoHashType) {
+                type = AutoHashOrNothingType;
+            }
+            default_value{field.getName()} = val;
         }
     }
 }

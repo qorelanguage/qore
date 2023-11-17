@@ -104,9 +104,10 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
             AbstractDataProviderType type = response_field.getType();
             *hash<string, AbstractDataField> rv = type.getFields();
             # if we have a list of hashes, then return the list element type
-            if (type.getBaseTypeCode() == NT_LIST && (rv = type.getElementType().getFields())) {
-                return rv;
+            if (type.getBaseTypeCode() == NT_LIST) {
+                rv = type.getElementType().getFields();
             }
+            return rv;
         }
     }
 
@@ -122,10 +123,7 @@ public class SwaggerRequestDataProvider inherits SwaggerDataProviderBase {
         if (body) {
             RecursiveSearchHelper rsh();
             AbstractDataField body_field = getFieldFromSchema("body", "REST request body argument",
-                cast<BodyParameter>(body).schema, body.required ?? False);
-            if (rest) {
-                rest.preprocessRequestBodyType(body_field.getType());
-            }
+                cast<BodyParameter>(body).schema, body.required ?? False, rest);
             rv.addField(body_field);
             if (!required && body.required) {
                 required = True;

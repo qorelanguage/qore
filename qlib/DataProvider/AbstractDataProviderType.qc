@@ -309,6 +309,37 @@ public class AbstractDataProviderType inherits Qore::Serializable {
         return thistype.isAssignableFrom(t);
     }
 
+    #/! Returns @ref True if this type has a default value
+    /** @par Example:
+        @code{.py}
+    bool b = t.hasDefaultValue();
+        @endcode
+
+        @return @ref True if this type has a default value
+
+        @note The base class method always returns @ref False
+
+        @since DataProvider 3.0
+    */
+    bool hasDefaultValue() {
+        return False;
+    }
+
+    #//! Returns the default value for the type or @ref nothing if the type has no default value
+    /** @par Example:
+        @code{.py}
+    auto v = t.getDefaultValue();
+        @endcode
+
+        @return the default value for the type or @ref nothing if the type has no default value
+
+        @note The base class method always returns @ref NOTHING
+
+        @since DataProvider 3.0
+    */
+    auto getDefaultValue() {
+    }
+
     #! Returns True if this type is a list
     bool isList() {
         *Type thistype = getValueType();

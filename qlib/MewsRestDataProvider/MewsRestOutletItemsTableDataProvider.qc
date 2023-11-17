@@ -51,6 +51,7 @@ public class MewsRestOutletItemsTableDataProvider inherits MewsRestTableDataProv
         #! Fields supporting list equality comparisons
         const EqualityListFields = {
             "EnterpriseId": True,
+            "Id": True,
         };
 
         #! Fields supporting equality comparisons

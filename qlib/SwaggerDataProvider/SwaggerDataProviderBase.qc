@@ -84,13 +84,14 @@ public class SwaggerDataProviderBase inherits SwaggerDataProviderCommon {
     }
 
     #! Returns a field definition from the Swagger parameter
-    private AbstractDataField getFieldFromSchema(string name, *string desc, SchemaObject schema, bool required = True) {
-        return getFieldFromSchemaIntern(name, name, desc, schema, required);
+    private AbstractDataField getFieldFromSchema(string name, *string desc, SchemaObject schema,
+            bool required = True, *RestClient rest) {
+        return getFieldFromSchemaIntern(name, name, desc, schema, required, rest);
     }
 
     #! Returns a field definition from the Swagger parameter
     private AbstractDataField getFieldFromSchemaIntern(string path, string name, *string desc, SchemaObject schema,
-            bool required = True) {
+            bool required = True, *RestClient rest, auto default_value) {
         if (schema.desc) {
             if (desc) {
                 desc += ": " + schema.desc;
@@ -101,15 +102,21 @@ public class SwaggerDataProviderBase inherits SwaggerDataProviderCommon {
         if (schema.type == "object") {
             # check for recursive field definitions
             RecursiveFieldHelper rfh(self, "schema", path);
-            return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getSchemaDataType(path, schema, required),
-                NOTHING, keys schema.enum));
+            return rfh.get() ?? rfh.set(new QoreDataField({
+                "name": name,
+                "desc": desc,
+                "type": getSchemaDataType(path, schema, required, rest),
+                "allowed_values": keys schema.enum,
+                "default_value": default_value,
+            }));
         }
         return getFieldFromParameter(path, name, schema.type, schema.format, schema.items, desc, required,
-            keys schema.enum);
+            keys schema.enum, default_value);
     }
 
     #! Returns the data type for the given schema
-    private AbstractDataProviderType getSchemaDataType(string path, SchemaObject schema, bool required = True) {
+    private AbstractDataProviderType getSchemaDataType(string path, SchemaObject schema, bool required = True,
+            *RestClient rest) {
         # check for recursive type definitions
         RecursiveTypeHelper rth(self, schema.uniqueHash());
         if (*AbstractDataProviderType t = rth.get()) {
@@ -120,10 +127,18 @@ public class SwaggerDataProviderBase inherits SwaggerDataProviderCommon {
             return AbstractDataProviderType::get((schema.required ? "" : "*") + "string");
         }
 
+        auto def_body;
+        if (rest) {
+            def_body = rest.preprocessRequestBody();
+            if (exists def_body && def_body.typeCode() != NT_HASH) {
+                remove def_body;
+            }
+        }
+
         HashDataType type(required ? AutoHashType : AutoHashOrNothingType);
         rth.set(type);
         map type.addField(getFieldFromSchemaIntern(path + "/" + $1.key, $1.key, NOTHING, $1.value,
-            exists schema.required{$1.key})), schema.properties.pairIterator();
+            exists schema.required{$1.key}, NOTHING, def_body{$1.key})), schema.properties.pairIterator();
         if (schema.additionalProperties) {
             on_error printf("schema: %N\n", schema);
             type.setDefaultOtherFieldType(getType(path + "/" + schema.additionalProperties.type,
@@ -139,11 +154,16 @@ public class SwaggerDataProviderBase inherits SwaggerDataProviderCommon {
 
     #! Returns a field from a Swagger parameter
     private AbstractDataField getFieldFromParameter(string path, string name, string type, *string format,
-            *SchemaObject arrayItems, *string desc, bool required, *list<auto> allowed_values) {
+            *SchemaObject arrayItems, *string desc, bool required, *list<auto> allowed_values, auto default_value) {
         # check for recursive field definitions
         RecursiveFieldHelper rfh(self, "field", path);
-        return rfh.get() ?? rfh.set(new QoreDataField(name, desc, getType(path, type, format, arrayItems, required),
-            NOTHING, allowed_values));
+        return rfh.get() ?? rfh.set(new QoreDataField({
+            "name": name,
+            "desc": desc,
+            "type": getType(path, type, format, arrayItems, required),
+            "allowed_values": allowed_values,
+            "default_value": default_value,
+        }));
     }
 
     #! Returns the data type corresponding to the values
