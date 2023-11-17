@@ -151,7 +151,7 @@ public class QoreDataType inherits AbstractDataProviderType {
         @since DataProvider 3.0
     */
     bool hasDefaultValue() {
-        return exists default_value ? True : type.hasDefaultValue();
+        return exists default_value;
     }
 
     #//! Returns the default value for the type or @ref nothing if the type has no default value
@@ -165,7 +165,7 @@ public class QoreDataType inherits AbstractDataProviderType {
         @since DataProvider 3.0
     */
     auto getDefaultValue() {
-        return exists default_value ? default_value : type.getDefaultValue();
+        return default_value;
     }
 
     #! returns the subtype (for lists or hashes) if there is only one
