@@ -318,34 +318,50 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
                     date now = now_us();
                     # process poll info hashes
                     *date min;
-                    foreach hash<auto> i in (cache.pairIterator()) {
-                        date delta = i.value.spop ? ping_timeout : ping_repeat;
-                        date trigger = i.value.start + delta;
-                        AbstractConnection c = i.value.conn;
-                        if (trigger <= now) {
-                            c.last_check = i.value.start;
-                            c.up = False;
-                            handlePingTimeout(i.key, delta);
+                    foreach string key in (keys cache) {
+                        *hash<auto> value = cache{key};
+                        if (!value) {
+                            # removed from cache while the lock was unlocked
                             continue;
-                        } else if (i.value.spop) {
+                        }
+                        date delta = value.spop ? ping_timeout : ping_repeat;
+                        date trigger = value.start + delta;
+                        AbstractConnection c = value.conn;
+                        if (trigger <= now) {
+                            c.last_check = value.start;
+                            c.up = False;
+                            handlePingTimeout(key, delta);
+                            continue;
+                        } else if (value.spop) {
                             try {
-                                *hash<SocketPollInfo> info = i.value.spop.continuePoll();
-                                log(LoggerLevel::DEBUG, "%y: state: %y: got ping info: %y", i.key,
-                                    i.value.spop.getState(), info ? {
+                                *hash<SocketPollInfo> info;
+                                {
+                                    # to avoid deadlocks with external code, such as with option update code,
+                                    # we run with this unlocked
+                                    m.unlock();
+                                    on_exit m.lock();
+                                    info = value.spop.continuePoll();
+                                }
+                                if (value != cache{key}) {
+                                    # removed / redefined in cache, ignore
+                                    continue;
+                                }
+                                log(LoggerLevel::DEBUG, "%y: state: %y: got ping info: %y", key,
+                                    value.spop.getState(), info ? {
                                         "events": PollEventMap{info.events} ?? "unknown",
                                         "socket": sprintf("%s %s", info.socket.className(),
                                             info.socket.uniqueHash()[0..8]),
                                     } : NOTHING);
                                 if (!info) {
                                     *bool oldok = c.last_check ? c.up : NOTHING;
-                                    c.last_check = i.value.start;
-                                    handlePingSuccess(i.key, now_us() - i.value.start, oldok);
+                                    c.last_check = value.start;
+                                    handlePingSuccess(key, now_us() - value.start, oldok);
                                 } else {
                                     poll_list += info;
                                 }
                             } catch (hash<ExceptionInfo> ex) {
-                                c.last_check = i.value.start;
-                                handlePingFailed(i.key, now_us() - i.value.start, ex);
+                                c.last_check = value.start;
+                                handlePingFailed(key, now_us() - value.start, ex);
                             }
                         }
                         if (!min || trigger < min) {

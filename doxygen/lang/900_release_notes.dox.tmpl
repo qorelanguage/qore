@@ -57,6 +57,8 @@
 
     @subsection qore_1_19_2_bug_fixes Bug Fixes in Qore
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - fixed a deadlock issue with connection updates in code using this module
+        (<a href="https://github.com/qorelanguage/qore/issues/4860">issue 4860</a>)
       - do not change the connection status based on whether or not a connection can be made
         (<a href="https://github.com/qorelanguage/qore/issues/4852">issue 4852</a>)
       - allow connections to be added, updated, and removed while already holding the connection lock

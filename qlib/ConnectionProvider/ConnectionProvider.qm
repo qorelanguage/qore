@@ -119,6 +119,8 @@ $env:QORE_CONNECTION_PROVIDERS="MyConnectionProvider;OtherConnectionProvider"
       (<a href="https://github.com/qorelanguage/qore/issues/4766">issue 4766</a>)
 
     @subsection connectionprovider_1_11 ConnectionProvider 1.11
+    - fixed a deadlock issue with connection updates in code using this module
+      (<a href="https://github.com/qorelanguage/qore/issues/4860">issue 4860</a>)
     - do not change the connection status based on whether or not a connection can be made
       (<a href="https://github.com/qorelanguage/qore/issues/4852">issue 4852</a>)
     - allow connections to be added, updated, and removed while already holding the connection lock
