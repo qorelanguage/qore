@@ -4302,6 +4302,7 @@ public class SchemaObject inherits ObjectBase, SchemaBase {
         */
         # check properties in this schema definition
         if (!additionalProperties && type != "any") {
+            hash<auto> nv;
             foreach string key in (keys value) {
                 *SchemaObject prop = properties{key};
                 if (!prop) {
