@@ -71,12 +71,20 @@ public class MewsRestTablesDataProvider inherits MewsRestDataProviderBase {
             "outletitems": Class::forName("MewsRestDataProvider::MewsRestOutletItemsTableDataProvider"),
             "outlets": Class::forName("MewsRestDataProvider::MewsRestOutletsTableDataProvider"),
             "payments": Class::forName("MewsRestDataProvider::MewsRestPaymentsTableDataProvider"),
+            "preauthorizations": Class::forName("MewsRestDataProvider::MewsRestPreauthorizationsTableDataProvider"),
             "products": Class::forName("MewsRestDataProvider::MewsRestProductsTableDataProvider"),
             "rates": Class::forName("MewsRestDataProvider::MewsRestRatesTableDataProvider"),
             "reservations": Class::forName("MewsRestDataProvider::MewsRestReservationsTableDataProvider"),
+            "resources": Class::forName("MewsRestDataProvider::MewsRestResourcesTableDataProvider"),
+            "resourceblocks": Class::forName("MewsRestDataProvider::MewsRestResourceBlocksTableDataProvider"),
+            "resourcefeatures": Class::forName("MewsRestDataProvider::MewsRestResourceFeaturesTableDataProvider"),
+            "resourcecategories": Class::forName("MewsRestDataProvider::MewsRestResourceCategoriesTableDataProvider"),
+            "restrictions": Class::forName("MewsRestDataProvider::MewsRestRestrictionsTableDataProvider"),
             "services": Class::forName("MewsRestDataProvider::MewsRestServicesTableDataProvider"),
             "taxations": Class::forName("MewsRestDataProvider::MewsRestTaxationsTableDataProvider"),
+            "taxenvironments": Class::forName("MewsRestDataProvider::MewsRestTaxEnvironmentsTableDataProvider"),
             "vouchers": Class::forName("MewsRestDataProvider::MewsRestVouchersTableDataProvider"),
+            "vouchercodes": Class::forName("MewsRestDataProvider::MewsRestVoucherCodesTableDataProvider"),
         };
     }
 

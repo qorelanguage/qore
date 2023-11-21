@@ -41191,7 +41191,6 @@ definitions:
         $ref: '#/definitions/ResourceCategoryType'
     required:
       - Capacity
-      - Classification
       - Descriptions
       - EnterpriseId
       - ExtraCapacity
@@ -41591,7 +41590,6 @@ definitions:
         minLength: 1
         type: string
     required:
-      - Classification
       - CreatedUtc
       - Descriptions
       - Id
