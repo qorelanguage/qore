@@ -107,7 +107,6 @@ public class HttpBasedConnection inherits AbstractConnectionWithInfo {
             real_url = regex_subst(url, "^" + scheme, real_scheme);
             return;
         }
-
         bool ssl;
         # remove type if possible
         string type = getType();

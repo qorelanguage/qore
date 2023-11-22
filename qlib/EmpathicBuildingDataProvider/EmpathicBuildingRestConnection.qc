@@ -87,5 +87,10 @@ public class EmpathicBuildingRestConnection inherits RestClient::RestConnection 
     private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
         return new RestClient(getConnectionOptions(), !connect);
     }
+
+    #! Returns the connection scheme for this class
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
 }
 }
