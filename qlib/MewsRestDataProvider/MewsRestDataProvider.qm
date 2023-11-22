@@ -486,42 +486,50 @@ module MewsRestDataProvider {
 
     @htmlonly
     <div class="image">
-      <img src="elastic-logo.svg" alt="MewsRest Logo" style="width:40%;">
+      <img src="mews-logo-white.svg" alt="Mews Logo" style="width:40%;">
     </div>
     @endhtmlonly
 
-    The %MewsRestDataProvider module provides a @ref dataproviderintro "data provider" API for MewsRest
-    instances and data.  It provides introspection into the configuration and document attributes as well as APIs and
-    a record-based data provider to use MewsRest indices as DB table-like objects as well.
+    The %MewsRestDataProvider module provides a @ref dataproviderintro "data provider" API for Mews cloud
+    instances and data.
 
     This data provider provides MewsRest API access to:
-    - documents: <b><tt>document/{@ref MewsRestDataProvider::MewsRestDocumentCreateDataProvider "create",
-      @ref MewsRestDataProvider::MewsRestDocumentReadDataProvider "read",
-      @ref MewsRestDataProvider::MewsRestDocumentUpdateDataProvider "update",
-      @ref MewsRestDataProvider::MewsRestDocumentDeleteDataProvider "delete"}</tt></b>
-    - indexes: <b><tt>index/{@ref MewsRestDataProvider::MewsRestIndexCreateDataProvider "create",
-      @ref MewsRestDataProvider::MewsRestIndexReadDataProvider "read",
-      @ref MewsRestDataProvider::MewsRestIndexReadAllDataProvider "read-all",
-      @ref MewsRestDataProvider::MewsRestIndexDeleteDataProvider "delete",
-      @ref MewsRestDataProvider::MewsRestIndexSearchDataProvider "search"}</tt></b>
-    - pipelines: <b><tt>pipeline/{@ref MewsRestDataProvider::MewsRestPipelineCreateDataProvider "create",
-      @ref MewsRestDataProvider::MewsRestPipelineReadDataProvider "read",
-      @ref MewsRestDataProvider::MewsRestPipelineReadAllDataProvider "read-all",
-      @ref MewsRestDataProvider::MewsRestPipelineUpdateDataProvider "update",
-      @ref MewsRestDataProvider::MewsRestPipelineDeleteDataProvider "delete"}</tt></b>
-
-    Furthermore it provides a record interface to MewsRest indexes supporting record creating, searching,
-    updating, and deleting documents (where an MewsRest document is treated as a record) through the following
-    path:
-    - <b><tt>indexes/</tt><i>@ref MewsRestDataProvider::MewsRestIndexTableDataProvider "index_name"</i></b>
-
-    These data provides represent a single index with a record-like interface; each document (record) will be returned
-    with read-only \c _id and \c _score fields as well.  Searches are performed with \c match; for flexible search
-    criteria, use the API-driven search
-    (@ref MewsRestDataProvider::MewsRestIndexSearchDataProvider "MewsRestIndexSearchDataProvider")
-
-    In this way MewsRest can be used for easy data integration and searches as well as for the manipulation of
-    document content and pipelines from the Data Provider API.
+    - Data as read-only tables:
+      - @ref MewsRestDataProvider::MewsRestAccountNotesTableDataProvider "tables/accountnotes"
+      - @ref MewsRestDataProvider::MewsRestAccountingCategoriesTableDataProvider "tables/accountingcategories"
+      - @ref MewsRestDataProvider::MewsRestAddressesTableDataProvider "tables/addresses"
+      - @ref MewsRestDataProvider::MewsRestAgeCategoriesTableDataProvider "tables/agecategories"
+      - @ref MewsRestDataProvider::MewsRestAvailabilityAdjustmentsTableDataProvider "tables/availabilityadjustments"
+      - @ref MewsRestDataProvider::MewsRestAvailabilityBlocksTableDataProvider "tables/availabilityblocks"
+      - @ref MewsRestDataProvider::MewsRestBillsTableDataProvider "tables/bills"
+      - @ref MewsRestDataProvider::MewsRestBusinessSegmentsTableDataProvider "tables/businesssegments"
+      - @ref MewsRestDataProvider::MewsRestCancellationPoliciesTableDataProvider "tables/cancellationpolicies"
+      - @ref MewsRestDataProvider::MewsRestCompaniesTableDataProvider "tables/companies"
+      - @ref MewsRestDataProvider::MewsRestCountriesTableDataProvider "tables/countries"
+      - @ref MewsRestDataProvider::MewsRestCustomersTableDataProvider "tables/customers"
+      - @ref MewsRestDataProvider::MewsRestEnterprisesTableDataProvider "tables/enterprises"
+      - @ref MewsRestDataProvider::MewsRestExchangeRatesTableDataProvider "tables/exchangerates"
+      - @ref MewsRestDataProvider::MewsRestLanguagesTableDataProvider "tables/languages"
+      - @ref MewsRestDataProvider::MewsRestOrderItemsTableDataProvider "tables/orderitems"
+      - @ref MewsRestDataProvider::MewsRestOutletItemsTableDataProvider "tables/outletitems"
+      - @ref MewsRestDataProvider::MewsRestOutletsTableDataProvider "tables/outlets"
+      - @ref MewsRestDataProvider::MewsRestPaymentsTableDataProvider "tables/payments"
+      - @ref MewsRestDataProvider::MewsRestPreauthorizationsTableDataProvider "tables/preauthorizations"
+      - @ref MewsRestDataProvider::MewsRestProductsTableDataProvider "tables/products"
+      - @ref MewsRestDataProvider::MewsRestRatesTableDataProvider "tables/rates"
+      - @ref MewsRestDataProvider::MewsRestReservationsTableDataProvider "tables/reservations"
+      - @ref MewsRestDataProvider::MewsRestResourceBlocksTableDataProvider "tables/resourceblocks"
+      - @ref MewsRestDataProvider::MewsRestResourceCategoriesTableDataProvider "tables/resourcecategories"
+      - @ref MewsRestDataProvider::MewsRestResourceFeaturesTableDataProvider "tables/resourcefeatures"
+      - @ref MewsRestDataProvider::MewsRestResourcesTableDataProvider "tables/resources"
+      - @ref MewsRestDataProvider::MewsRestRestrictionsTableDataProvider "tables/restrictions"
+      - @ref MewsRestDataProvider::MewsRestServicesTableDataProvider "tables/services"
+      - @ref MewsRestDataProvider::MewsRestTaxEnvironmentsTableDataProvider "tables/taxenvironments"
+      - @ref MewsRestDataProvider::MewsRestTaxationsTableDataProvider "tables/taxations"
+      - @ref MewsRestDataProvider::MewsRestVoucherCodesTableDataProvider "tables/vouchercodes"
+      - @ref MewsRestDataProvider::MewsRestVouchersTableDataProvider "tables/vouchers"
+    - API endpoints under:
+      - @ref SwaggerDataProvider::SwaggerRequestDataProvider "api"
 
     @section mewsrestdataprovider_factory MewsRest Data Provider Factory
 
@@ -531,67 +539,23 @@ module MewsRestDataProvider {
 
     These examples are with \c qdp, the command-line interface to the Data Provider API.
 
-    @par API Example: List All Pipelines
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/pipeline/read-all'
+    @par Record-Based Example: List Payments
+    @verbatim qdp mews/tables/payments se ClosedUtcStart=2023-11-01
     @endverbatim
 
-    @par API Example: Create a Pipeline
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/pipeline/create' \
-      pipeline=my-pipeline,description="my pipeline",processors='{html_strip={field=content}}'
+    @par Record-Based Example: List Open Accounting Items
+    @verbatim qdp mews/tables/orderitems se {}
     @endverbatim
 
-    @par API Example: Delete a Pipeline
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/pipeline/delete' pipeline=my-pipeline
+    @par Record-Based Example: List Customers
+    @verbatim qdp mews/tables/customers se {}
     @endverbatim
 
-    @par API Example: List All Indices
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/index/read-all'
-    @endverbatim
-
-    @par API Example: Create an Index
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/index/create' \
-      index=my-index,mappings={properties={content={type=text}}}'
-    @endverbatim
-
-    @par API Example: Delete an Index
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/index/delete' index=my-index
-    @endverbatim
-
-    @par API Example: Search an Index
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/index/search' \
-      index=my-index,'query={match={content=target-string}}'
-    @endverbatim
-
-    @par API Example: Create a Document / Ingest Content
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/document/create' \
-      index=my-index,pipeline=my-pipeline,content="<h2>my HTML content</h2>",refresh=true
-    @endverbatim
-
-    @par API Example: Delete a Document
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/document/delete' \
-      index=my-index,id=oE1jYokB_lAyoyNWRDP9
-    @endverbatim
-
-    @par Record-Based Example: Search an Index
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/indexes/my-index' \
-      content=target-string
-    @endverbatim
-
-    @par Record-Based Example: Create a Document / Ingest Content
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/indexes/my-index' create \
-      content="<h2>my HTML content</h2>" pipeline=my-pipeline,refresh=true
-    @endverbatim
-
-    @par Record-Based Example: Delete a Document
-    @verbatim qdp 'mewsrest{url=https://elastic:password@my-server.local:9200}/indexes/my-index' delete \
-      _id=oE1jYokB_lAyoyNWRDP9
+    @par API Example: Create a Preauthorization Payment
+    @verbatim qdp mews/api/paymentRequests/add/POST dor body='{PaymentRequests=({AccountId=362b6d02-f3ff-4174-b046-b0bd00948d45,Amount={Currency=EUR,Value=14},Type=Preauthorization,Reason=Prepayment,ExpirationUtc=2023-11-22,Description=test},)}'
     @endverbatim
 
     @section mewsrestdataprovider_relnotes Release Notes
-
-    @subsection mewsrestdataprovider_v1_1 MewsRestDataProvider v1.1
-    - added support for the data provider action catalog API
-      (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
 
     @subsection mewsrestdataprovider_v1_0 MewsRestDataProvider v1.0
     - initial release of the module

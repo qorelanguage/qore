@@ -1033,8 +1033,9 @@ dist_qoredata_DATA = doxygen/Doxyfile.in \
     doxygen/DataProvider-Full.svg \
     doxygen/elastic-logo.svg \
     doxygen/Haltian-EmpathicBuilding.svg \
-    doxygen/SqlUtil-Full.svg \
+    doxygen/mews-logo-white.svg \
     doxygen/Qore-Q.ico \
+    doxygen/SqlUtil-Full.svg \
     doxygen/header_template.html \
     doxygen/footer_template.html
 
@@ -1184,11 +1185,15 @@ doxygen/qlib/Doxyfile.FsUtil: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
 
 # to provide the graphic file
 doxygen/qlib/Doxyfile.ElasticSearchDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/ElasticSearchDataProvider:doxygen/qlib/ElasticSearchDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html -X=doxygen/ -E=elastic-logo.svg $< $@
+	$(QDX) -M=qlib/ElasticSearchDataProvider:doxygen/qlib/ElasticSearchDataProvider -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html -X=doxygen/ -E=elastic-logo.svg $< $@
 
 # to provide the graphic file
 doxygen/qlib/Doxyfile.EmpathicBuildingDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
-	$(QDX) -M=qlib/EmpathicBuildingDataProvider:doxygen/qlib/EmpathicBuildingDataProvider.qm -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html -X=doxygen/ -E=Haltian-EmpathicBuilding.svg $< $@
+	$(QDX) -M=qlib/EmpathicBuildingDataProvider:doxygen/qlib/EmpathicBuildingDataProvider -tDataProvider.tag=../../DataProvider/html -tRestClient.tag=../../RestClient/html -X=doxygen/ -E=Haltian-EmpathicBuilding.svg $< $@
+
+# to provide the graphic file
+doxygen/qlib/Doxyfile.MewsRestDataProvider: doxygen/qlib/Doxyfile.tmpl $(QDX_DEP)
+	$(QDX) -M=qlib/MewsRestDataProvider:doxygen/qlib/MewsRestDataProvider -tDataProvider.tag=../../DataProvider/html -tSwaggerDataProvider.tag=../../SwaggerDataProvider/html -tRestClient.tag=../../RestClient/html -tMewsRestClient.tag=../../MewsRestClient/html -X=doxygen/ -E=mews-logo-white.svg $< $@
 
 doxygen/modules/Doxyfile.astparser: doxygen/modules/Doxyfile.in
 	sed -e s/@QORE_MOD_NAME@/astparser/ \
