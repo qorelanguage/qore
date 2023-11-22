@@ -34,7 +34,7 @@ public class MewsRestDataProviderFactory inherits DataProvider::AbstractDataProv
         const FactoryInfo = <DataProviderFactoryInfo>{
             "name": "mewsrest",
             "desc": "Mews REST API data provider factory",
-            #"children_can_support_apis": True,
+            "children_can_support_apis": True,
             "children_can_support_records": True,
         };
     }

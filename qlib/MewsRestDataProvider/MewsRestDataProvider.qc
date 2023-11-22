@@ -35,7 +35,7 @@ public class MewsRestDataProvider inherits MewsRestDataProviderBase {
             "type": "MewsRestDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
-            #"children_can_support_apis": True,
+            "children_can_support_apis": True,
             "children_can_support_records": True,
             #"children_can_support_observers": False,
         };
