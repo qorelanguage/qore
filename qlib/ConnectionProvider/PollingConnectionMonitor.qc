@@ -70,9 +70,6 @@ public class PollingConnectionMonitor inherits LoggerWrapper {
         #! I/O thread command: quit
         const IO_QUIT = "quit";
 
-        #! I/O thread command: quit and remove all connection
-        const IO_QUIT_REMOVE_ALL = "quit-remove-all";
-
         #! Default ping timeout duration
         const DefaultPingTimeout = 30s;
 
