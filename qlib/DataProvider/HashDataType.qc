@@ -249,7 +249,7 @@ public class HashDataType inherits QoreDataType {
             return self;
         }
         HashDataType rv(type, name, options, tags, default_value);
-        if (manual_default_other_field_type) {
+        if (manual_default_other_field_type && default_other_field_type) {
             rv.setDefaultOtherFieldType(default_other_field_type.getSoftType());
         }
         map rv.addField($1.getSoftType()), getFields().iterator();
