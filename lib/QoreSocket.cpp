@@ -2025,8 +2025,6 @@ int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, vo
             rc = SOCK_POLLOUT;
             break;
         } else if (err == SSL_ERROR_ZERO_RETURN) {
-            // close the local socket
-            qs.close();
             // here we allow the remote side to disconnect and return 0 the first time just like regular recv()
             if (action != WRITE) {
                 rc = 0;
@@ -2036,10 +2034,11 @@ int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, vo
                         "remote host while calling SSL_write()", mname);
                 rc = QSE_SSL_ERR;
             }
+            // close the local socket unconditionally
+            qs.close();
 
             break;
         } else if (err == SSL_ERROR_SYSCALL) {
-            qs.close();
             if (!sslError(xsink, mname, get_action_method(action), action == WRITE)) {
                 if (!rc) {
                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
@@ -2053,6 +2052,8 @@ int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, vo
                         "error code %d in %s() but the error queue is empty", mname, rc, get_action_method(action));
                 }
             }
+            // close the local socket unconditionally
+            qs.close();
             assert(*xsink);
             rc = QSE_SSL_ERR;
             break;
@@ -2180,9 +2181,10 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
                 }
                 rc = QSE_SSL_ERR;
             }
+            // close the socket unconditionally
+            qs.close();
             break;
         } else if (err == SSL_ERROR_SYSCALL) {
-            qs.close();
             if (!sslError(xsink, mname, get_action_method(action), action == WRITE)) {
                 /*
                 if (!rc) {
@@ -2197,10 +2199,12 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
                         "error code %d in %s() but the error queue is empty", mname, rc, get_action_method(action));
                 }
             }
-
+            // close the socket unconditionally
+            qs.close();
             rc = !*xsink ? 0 : QSE_SSL_ERR;
             break;
         } else if (err == SSL_ERROR_SSL) {
+            // close the socket unconditionally
             qs.close();
             xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the " \
                 "openssl library reported a fatal I/O error while calling %s()", mname, get_action_method(action));

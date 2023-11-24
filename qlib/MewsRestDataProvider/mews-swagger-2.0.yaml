@@ -43662,6 +43662,8 @@ definitions:
         format: uuid
         type: string
         x-nullable: true
+      SurchargeTaxCode:
+        x-nullable: true
     required:
       - SurchargeFees
     type: object
