@@ -1524,7 +1524,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     # handles an incoming request - do not call externally; this method is called by the listeners when a request is received
     # don't reimplement this method; fix/enhance it in the module
     final handleRequest(HttpListener listener, Socket s, reference<hash<auto>> cx, hash<auto> hdr, bool head = False,
-            HttpPersistentHandlerInfo phi, hash<auto> info, reference<bool> dedicated) {
+            HttpPersistentHandlerInfo phi, hash<auto> info, reference<bool> dedicated, reference<bool> dedicated_external) {
         if (!http_methods{hdr.method}) {
             string err = sprintf("unknown / unsupported HTTP method %n", hdr.method);
             string str = sprintf("%s: received from %s via %s", err, info.address_desc, listener.getListenerSocketInfo().address_desc);
@@ -1620,7 +1620,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             if (handler && hdr.expect) {
                 if (hdr.expect == "100-continue") {
                     hash<HttpResponseInfo> resp = handler.handleExpectHeader(cx, hdr);
-                    sendReply(listener, s, handler, resp, \cx, hdr, head, \dedicated);
+                    sendReply(listener, s, handler, resp, \cx, hdr, head, \dedicated, \dedicated_external);
                 } else {
                     string etxt = sprintf("unrecognized 'Expect' header: %y", hdr.expect);
                     string str = sprintf("%s: received from %s via %s (header: %y)", etxt,
@@ -1729,7 +1729,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 }
             }
 
-            sendReply(listener, s, handler, rv, \cx, hdr, head, \dedicated);
+            sendReply(listener, s, handler, rv, \cx, hdr, head, \dedicated, \dedicated_external);
         } catch (hash<ExceptionInfo> ex) {
             string desc = !debug
                 ? sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc)
@@ -1756,7 +1756,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
     # sends a reply to a request
     # don't reimplement this method; fix/enhance it in the module
     final sendReply(HttpListener listener, Socket s, *HttpServer::AbstractHttpRequestHandler handler, hash<auto> rv,
-            reference<hash> cx, hash<auto> hdr, bool head, reference<bool> dedicated) {
+            reference<hash> cx, hash<auto> hdr, bool head, reference<bool> dedicated,
+            reference<bool> dedicated_external) {
         if (exists rv.close)
             cx.close = boolean(rv.close);
 
@@ -1837,7 +1838,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             cx.user_state += rv.user_state;
         }
 
-        if (rv.code == 101) {
+        if (rv."code" == 101) {
             if (rv.close)
                 listener.logError("cid %d: 101 Switching Protocols returned from handler %y, but the connection "
                     "close flag is set", cx.id, cx.handler_name);
@@ -1848,8 +1849,9 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             } else {
                 if (listener.registerDedicatedSocket(cx.id, handler, \dedicated)) {
                     on_exit cx.close = True;
+                    AbstractHttpSocketHandlerInterface sockhandler = cast<HttpServer::AbstractHttpSocketHandlerInterface>(handler);
                     try {
-                        cast<HttpServer::AbstractHttpSocketHandlerInterface>(handler).start(listener.getID(), cx, hdr, s);
+                        dedicated_external = sockhandler.start(listener.getID(), cx + {"listener": listener}, hdr, s);
                     } catch (hash<ExceptionInfo> ex) {
                         if (ex.err == "SOCKET-NOT-OPEN") {
                             listener.logError("cid %d: dedicated socket handler %y: socket closed by remote", cx.id,
@@ -1862,8 +1864,12 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                                 cx.handler_name, desc);
                         }
                     }
-                    listener.removeDedicatedSocket(cx.id, handler);
-                    listener.log("cid %d: stopped dedicated socket handler: %y", cx.id, cx.handler_name);
+                    if (dedicated_external) {
+                        listener.log("cid %d: dedicated socket handler %y managed externally", cx.id, cx.handler_name);
+                    } else {
+                        listener.removeDedicatedSocket(cx.id);
+                        listener.log("cid %d: stopped dedicated socket handler: %y", cx.id, cx.handler_name);
+                    }
                 } else
                     listener.logError("cid %d: cannot start dedicated socket handler %y because the listener is "
                         "shutting down", cx.id, cx.handler_name);
@@ -2510,10 +2516,11 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
     # thread for handling communication per connection
     private connectionThread(Socket s) {
         bool dedicated;
+        bool dedicated_external;
         on_exit {
             if (!dedicated) {
                 cThreads.dec();
-            } else {
+            } else if (!dedicated_external) {
                 dThreads.dec();
             }
         }
@@ -2665,7 +2672,8 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
                     cx."client-cert" = s.getRemoteCertificate();
                 }
 
-                serv.handleRequest(self, s, \cx, hdr, hdr.method == "HEAD", phi, info, \dedicated);
+                serv.handleRequest(self, s, \cx, hdr, hdr.method == "HEAD", phi, info, \dedicated,
+                    \dedicated_external);
 
                 #log("DBG cid %d: cx.close: %y", cx.id, cx.close);
 
@@ -2685,16 +2693,20 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         }
 
         #log("cid %d: closing connection (status: %s)", cx.id, s.isOpen() ? "open" : "closed");
-        s.shutdown();
-        s.close();
+        if (!dedicated_external) {
+            s.shutdown();
+            s.close();
+        }
     }
 
-    bool registerDedicatedSocket(softstring id, HttpServer::AbstractHttpSocketHandlerInterface h, reference<bool> dedicated) {
+    bool registerDedicatedSocket(softstring id, HttpServer::AbstractHttpSocketHandlerInterface h,
+            reference<bool> dedicated) {
         m.lock();
         on_exit m.unlock();
 
-        if (exit)
+        if (exit) {
             return False;
+        }
 
         # handover counter value and set dedicated flag
         dThreads.inc();
@@ -2707,11 +2719,19 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         return True;
     }
 
-    removeDedicatedSocket(softstring id, HttpServer::AbstractHttpSocketHandlerInterface h) {
+    removeExternalDedicatedSocket(softstring id) {
+        removeDedicatedSocket(id, True);
+    }
+
+    removeDedicatedSocket(softstring id, *bool managed_externally) {
         m.lock();
         on_exit m.unlock();
 
         remove shh{id};
+
+        if (managed_externally) {
+            dThreads.dec();
+        }
     }
 }
 }

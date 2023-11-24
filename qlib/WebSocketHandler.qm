@@ -535,7 +535,7 @@ public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler, Lo
         @param hdr a hash of headers in the request
         @param sock the @ref Qore::Socket "Socket" object for the dedicated connection to the client
     */
-    startImpl(softstring lid, hash<auto> cx, hash<auto> hdr, Qore::Socket sock) {
+    bool startImpl(softstring lid, hash<auto> cx, hash<auto> hdr, Qore::Socket sock) {
         logDebug("WebSocketHandler::startImpl() cid: %y from %s:%d", cx.id, cx."peer-info".hostname_desc,
             cx."peer-info".port);
 
@@ -716,6 +716,7 @@ public class WebSocketHandler inherits HttpServer::AbstractHttpSocketHandler, Lo
             }
         }
         #logDebug("WebSocketHandler::startImpl() exiting, cid: %y", cx.id);
+        return False;
     }
 
     #! Flushes I/O in the connection queue

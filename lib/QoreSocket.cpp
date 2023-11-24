@@ -2186,12 +2186,7 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
             break;
         } else if (err == SSL_ERROR_SYSCALL) {
             if (!sslError(xsink, mname, get_action_method(action), action == WRITE)) {
-                /*
-                if (!rc) {
-                    xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
-                        "an EOF condition that violates the SSL protocol while calling %s()", mname,
-                        get_action_method(action));
-                } else */ if (rc == -1) {
+                if (rc == -1) {
                     xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the " \
                         "openssl library reported an I/O error while calling %s()", mname, get_action_method(action));
                 } else if (rc) {

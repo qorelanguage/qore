@@ -817,6 +817,19 @@ public class AbstractLogger {
 
 #! this abstract class defines the public interface of the private HttpListener class defined in the HttpServer module
 public class HttpListenerInterface inherits AbstractLogger {
+    #! method to log a response message
+    /** @param cx the call context
+        @param rv the response hash
+    */
+    logResponse(hash<auto> cx, hash<auto> rv) {
+        # no implementation in the base class
+    }
+
+    #! Removes a dedicated socket handler from the listener
+    removeExternalDedicatedSocket(softstring id) {
+        throw "UNIMPLEMENTED";
+    }
+
     #! adds user-defined data to be returned in the \c "uctx" context key when serving requests from this listener
     /** @param uctx user-defined data to be returned in the \c "uctx" context key when serving requests from this
         listener
@@ -828,14 +841,6 @@ public class HttpListenerInterface inherits AbstractLogger {
         context hash is removed entirely
     */
     abstract auto removeUserThreadContext(*string k);
-
-    #! method to log a response message
-    /** @param cx the call context
-        @param rv the response hash
-    */
-    logResponse(hash<auto> cx, hash<auto> rv) {
-        # no implementation in the base class
-    }
 }
 
 #! abstract base class for external authentication
@@ -1831,6 +1836,21 @@ public class AbstractHttpSocketHandlerInterface {
         Mutex m();
     }
 
+    #! Returns a closure that can be used to confirm that the connection has been closed
+    code setExternallyManaged(softstring lid, hash<auto> cx, Socket s) {
+        # get local vars that will be bound in the closure
+        HttpServer::HttpListenerInterface listener = cx.listener;
+        int cid = cx.id;
+
+        # return a closure to confirm that the connection has been closed
+        return sub () {
+            handlerStopped(lid);
+            listener.removeExternalDedicatedSocket(cid);
+            s.shutdown();
+            s.close();
+        };
+    }
+
     #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
     /** This method should not return until the connection is closed or the stop() method is called
 
@@ -1863,22 +1883,17 @@ public class AbstractHttpSocketHandlerInterface {
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
         @param hdr a hash of headers in the request
         @param s the @ref Qore::Socket "Socket" object for the dedicated connection
+
+        @return True if externally managed
     */
-    start(softstring lid, hash<auto> cx, hash<auto> hdr, Socket s) {
+    bool start(softstring lid, hash<auto> cx, hash<auto> hdr, Socket s) {
         {
             m.lock();
             on_exit m.unlock();
             ++lh{lid};
         }
-        on_exit {
-            m.lock();
-            on_exit m.unlock();
-            if (!--lh{lid}) {
-                delete lh{lid};
-                delete lsh{lid};
-            }
-        }
-        startImpl(lid, cx, hdr, s);
+        on_error handlerStopped(lid);
+        return startImpl(lid, cx, hdr, s);
     }
 
     #! called from the HTTP server when the socket should be closed due to an HTTP listener being stopped
@@ -1914,6 +1929,16 @@ public class AbstractHttpSocketHandlerInterface {
         stopImpl();
     }
 
+    #! Called when the handler stops
+    private handlerStopped(softstring lid) {
+        m.lock();
+        on_exit m.unlock();
+        if (!--lh{lid}) {
+            delete lh{lid};
+            delete lsh{lid};
+        }
+    }
+
     #! called from the HTTP server after the handleRequest() method indicates that a dedicated connection should be established
     /** This method should not return until the connection is closed or the stop() (and therefore stopImpl()) method
         is called
@@ -1933,8 +1958,10 @@ public class AbstractHttpSocketHandlerInterface {
         - \c root_path: the root URL path matched if the request was matched by a URL prefix
         @param hdr a hash of headers in the request
         @param s the @ref Qore::Socket "Socket" object for the dedicated connection
+
+        @return True if externally managed
      */
-    private abstract startImpl(softstring lid, hash<auto> cx, hash<auto> hdr, Socket s);
+    private abstract bool startImpl(softstring lid, hash<auto> cx, hash<auto> hdr, Socket s);
 
     #! called from the HTTP server when the socket should be closed because the listener is stopping
     /** The start() method for all connections handled by the given listener should return as soon as possible after
