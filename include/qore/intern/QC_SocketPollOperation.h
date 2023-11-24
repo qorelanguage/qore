@@ -199,6 +199,12 @@ private:
     size_t size;
 };
 
+class SocketRecvDataPollOperation : public SocketRecvPollOperationBase {
+public:
+    // "data" must be passed already referenced
+    DLLLOCAL SocketRecvDataPollOperation(ExceptionSink* xsink, QoreSocketObject* sock, bool to_string);
+};
+
 class SocketRecvUntilBytesPollOperation : public SocketRecvPollOperationBase {
 public:
     // "data" must be passed already referenced

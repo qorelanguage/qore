@@ -43,6 +43,9 @@
 #include "qore/intern/qore_socket_private.h"
 #include "qore/intern/QoreClassIntern.h"
 
+// maximum number of non-blocking network operations before returning
+constexpr unsigned max_nonblock_ops = 10;
+
 void se_in_op(const char* cname, const char* meth, ExceptionSink* xsink) {
     assert(xsink);
     xsink->raiseException("SOCKET-IN-CALLBACK", "calls to %s::%s() cannot be made from a callback on an operation on "
@@ -1196,7 +1199,7 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
         return -1;
     }
 
-    // do not allow more than 10 loops at a time
+    // do not allow more than max_nonblock_ops loops at a time
     unsigned loop = 0;
 
     while (true) {
@@ -1206,6 +1209,7 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
             rc = sock->ssl->doNonBlockingIo(xsink, "send", const_cast<char*>(data + sent), size - sent,
                 SslAction::WRITE, real_io);
             if (*xsink) {
+                assert(!real_io);
                 return -1;
             }
             if (!rc) {
@@ -1213,8 +1217,8 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
                 if (sent == size) {
                     break;
                 }
-                // do not allow more than 10 loops at a time
-                if (++loop >= 10) {
+                // do not allow more than max_nonblock_ops loops at a time
+                if (++loop >= max_nonblock_ops) {
                     return SOCK_POLLOUT;
                 }
                 // do another send
@@ -1233,8 +1237,8 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
                 if (sent == size) {
                     break;
                 }
-                // do not allow more than 10 loops at a time
-                if (++loop >= 10) {
+                // do not allow more than max_nonblock_ops loops at a time
+                if (++loop >= max_nonblock_ops) {
                     return SOCK_POLLOUT;
                 }
                 // do another send
@@ -1242,8 +1246,8 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
             }
             sock_get_error();
             if (errno == EINTR) {
-                // do not allow more than 10 loops at a time
-                if (++loop >= 10) {
+                // do not allow more than max_nonblock_ops loops at a time
+                if (++loop >= max_nonblock_ops) {
                     return SOCK_POLLOUT;
                 }
                 continue;
@@ -1256,6 +1260,160 @@ int SocketSendPollState::continuePoll(ExceptionSink* xsink) {
                 return SOCK_POLLOUT;
             }
             xsink->raiseErrnoException("SOCKET-SEND-ERROR", errno, "error while executing Socket::send()");
+            return -1;
+        }
+    }
+    return 0;
+}
+
+SocketRecvPacketPollState::SocketRecvPacketPollState(ExceptionSink* xsink, qore_socket_private* sock) : sock(sock),
+        bin(new BinaryNode) {
+    // first take any data in the socket buffer
+    if (sock->buflen) {
+        if (bin->writeTo(0, sock->rbuf + sock->bufoffset, sock->buflen)) {
+            xsink->outOfMemory();
+            return;
+        }
+        sock->buflen = 0;
+        sock->bufoffset = 0;
+        //printd(5, "SocketRecvPacketPollState::SocketRecvPacketPollState() wrote %d bytes of memory from buffer to "
+        //    "bin\n", (int)bin->size());
+    }
+}
+
+/** returns:
+    - SOCK_POLLIN = wait for read and call this again
+    - SOCK_POLLOUT = wait for write and call this again
+    - 0 = done
+    - < 0 = error (exception raised)
+*/
+int SocketRecvPacketPollState::continuePoll(ExceptionSink* xsink) {
+    if (io) {
+        return 0;
+    }
+
+    OptionalNonBlockingHelper nbh(*sock, true, xsink);
+    if (*xsink) {
+        return -1;
+    }
+
+    unsigned loop = 0;
+
+    size_t realsize = bin->size();
+
+    while (true) {
+        // ensure space in the binary object to write the socket data
+        if (bin->preallocate(realsize + DEFAULT_SOCKET_BUFSIZE)) {
+            xsink->outOfMemory();
+            return -1;
+        }
+
+        ssize_t rc;
+        if (sock->ssl) {
+            size_t real_io = 0;
+            rc = sock->ssl->doNonBlockingIo(xsink, "read",
+                reinterpret_cast<void*>(const_cast<char*>(reinterpret_cast<const char*>(bin->getPtr()) + realsize)),
+                DEFAULT_SOCKET_BUFSIZE, SslAction::READ, real_io);
+            if (*xsink) {
+                assert(!real_io);
+                bin->setSize(realsize);
+                // if we have received data, we must return it
+                if (realsize) {
+                    xsink->clear();
+                    io = true;
+                    return 0;
+                }
+                return -1;
+            }
+            if (!rc) {
+                if (real_io) {
+                    realsize += real_io;
+                }
+                bin->setSize(realsize);
+                // unconditionally done if the socket is closed
+                if (!sock->isOpen()) {
+                    io = true;
+                    return 0;
+                }
+                // done if we have performed max_nonblock_ops loops
+                if (++loop >= max_nonblock_ops) {
+                    if (realsize) {
+                        io = true;
+                        return 0;
+                    }
+                    return SOCK_POLLIN;
+                }
+                // otherwise continue reading
+                continue;
+            } else {
+                assert(!real_io);
+            }
+            bin->setSize(realsize);
+            if (realsize) {
+                io = true;
+                return 0;
+            }
+            return rc;
+        } else {
+            //printd(5, "SocketRecvPacketPollState::continuePoll() calling recv\n");
+            rc = ::recv(sock->sock,
+#ifdef _Q_WINDOWS
+                const_cast<char*>(reinterpret_cast<const char*>(bin->getPtr()) + received),
+#else
+                reinterpret_cast<void*>(const_cast<char*>(reinterpret_cast<const char*>(bin->getPtr()) + realsize)),
+#endif
+                DEFAULT_SOCKET_BUFSIZE, 0);
+            //printd(5, "SocketRecvPacketPollState::continuePoll() rc: %d errno: %d bin: %d)\n", rc, errno,
+            //    (int)realsize);
+            if (rc >= 0) {
+                if (rc) {
+                    realsize += rc;
+                }
+                bin->setSize(realsize);
+                // done if we have received no data ((rc == 0) => EOF)
+                if (!rc) {
+                    sock->close();
+                    io = true;
+                    return 0;
+                }
+                // done if we have done max_nonblock_ops loops
+                if (++loop >= max_nonblock_ops) {
+                    //printd(5, "SocketRecvPacketPollState::continuePoll() DONE bin: %d)\n", (int)bin->size());
+                    io = true;
+                    return 0;
+                }
+                // do another recv
+                continue;
+            }
+            bin->setSize(realsize);
+            sock_get_error();
+            if (errno == EINTR) {
+                // do not allow more than max_nonblock_ops loops at a time
+                if (++loop >= max_nonblock_ops) {
+                    if (realsize) {
+                        //printd(5, "SocketRecvPacketPollState::continuePoll() DONE (I/O) bin: %d)\n",
+                        //    (int)bin->size());
+                        io = true;
+                        return 0;
+                    }
+                    //printd(5, "SocketRecvPacketPollState::continuePoll() waiting\n");
+                    return SOCK_POLLIN;
+                }
+                continue;
+            }
+            if (errno == EAGAIN
+#ifdef EWOULDBLOCK
+                || errno == EWOULDBLOCK
+#endif
+            ) {
+                if (realsize) {
+                    //printd(5, "SocketRecvPacketPollState::continuePoll() DONE (block) bin: %d)\n", (int)bin->size());
+                    io = true;
+                    return 0;
+                }
+                return SOCK_POLLIN;
+            }
+            xsink->raiseErrnoException("SOCKET-RECV-ERROR", errno, "error while executing Socket::recv()");
             return -1;
         }
     }
@@ -1284,7 +1442,7 @@ SocketRecvPollState::SocketRecvPollState(ExceptionSink* xsink, qore_socket_priva
             sock->bufoffset += size;
         }
         //printd(5, "SocketRecvPollState::SocketRecvPollState(size: %zu) wrote %d bytes of memory from buffer to "
-        //    "bin (remaining %d bytes in buffer)\n", size, received, sock->buflen);
+        //    "bin (remaining %d bytes in buffer)\n", size, (int)received, sock->buflen);
     }
 }
 
@@ -1322,7 +1480,7 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
                     bin->setSize(size);
                     break;
                 }
-                if (++loop >= 10) {
+                if (++loop >= max_nonblock_ops) {
                     return SOCK_POLLIN;
                 }
                 // do another read
@@ -1348,8 +1506,8 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
                     bin->setSize(size);
                     break;
                 }
-                // do not allow more than 10 loops at a time
-                if (++loop >= 10) {
+                // do not allow more than max_nonblock_ops loops at a time
+                if (++loop >= max_nonblock_ops) {
                     return SOCK_POLLIN;
                 }
                 // do another recv
@@ -1357,8 +1515,8 @@ int SocketRecvPollState::continuePoll(ExceptionSink* xsink) {
             }
             sock_get_error();
             if (errno == EINTR) {
-                // do not allow more than 10 loops at a time
-                if (++loop >= 10) {
+                // do not allow more than max_nonblock_ops loops at a time
+                if (++loop >= max_nonblock_ops) {
                     return SOCK_POLLIN;
                 }
                 continue;
@@ -1460,8 +1618,8 @@ int SocketRecvUntilBytesPollState::doRecv(ExceptionSink* xsink) {
             }
             sock_get_error();
             if (errno == EINTR) {
-                // do not allow more than 10 loops at a time
-                if (++loop >= 10) {
+                // do not allow more than max_nonblock_ops loops at a time
+                if (++loop >= max_nonblock_ops) {
                     return SOCK_POLLIN;
                 }
                 continue;
@@ -1825,7 +1983,8 @@ DLLLOCAL int SSL_write_ex(SSL* ssl, const void* buf, size_t num, size_t* written
 */
 int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, void* buf, size_t size,
         SslAction action, size_t& real_io) {
-    //printd(5, "SSLSocketHelper::doNonBlockingIo() %s size: %ld timeout_ms: %d action: %d\n", mname, size, action);
+    //printd(5, "SSLSocketHelper::doNonBlockingIo() %s size: %ld action: %s\n", mname, size,
+    //    get_action_method(action));
     assert(xsink);
     assert(size);
     assert(!real_io);
@@ -1846,12 +2005,19 @@ int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, vo
                 break;
         }
 
+        //printd(5, "SSLSocketHelper::doNonBlockingIo() %s size: %ld action: %s rc: %d real_io: %ld\n", mname, size,
+        //    get_action_method(action), rc, real_io);
+
         if (rc > 0) {
             rc = 0;
             break;
         }
 
         int err = SSL_get_error(ssl, rc);
+
+        //printd(5, "SSLSocketHelper::doNonBlockingIo() %s size: %ld action: %s err: %d\n", mname, size,
+        //    get_action_method(action), err);
+
         if (err == SSL_ERROR_WANT_READ) {
             rc = SOCK_POLLIN;
             break;
@@ -1859,6 +2025,8 @@ int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, vo
             rc = SOCK_POLLOUT;
             break;
         } else if (err == SSL_ERROR_ZERO_RETURN) {
+            // close the local socket
+            qs.close();
             // here we allow the remote side to disconnect and return 0 the first time just like regular recv()
             if (action != WRITE) {
                 rc = 0;
@@ -1871,6 +2039,7 @@ int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, vo
 
             break;
         } else if (err == SSL_ERROR_SYSCALL) {
+            qs.close();
             if (!sslError(xsink, mname, get_action_method(action), action == WRITE)) {
                 if (!rc) {
                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
@@ -1879,19 +2048,19 @@ int SSLSocketHelper::doNonBlockingIo(ExceptionSink* xsink, const char* mname, vo
                 } else if (rc == -1) {
                     xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the " \
                         "openssl library reported an I/O error while calling %s()", mname, get_action_method(action));
-#ifdef ECONNRESET
-                    // close the socket if connection reset received
-                    if (qs.isOpen() && sock_get_error() == ECONNRESET) {
-                        qs.close();
-                    }
-#endif
                 } else {
                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
                         "error code %d in %s() but the error queue is empty", mname, rc, get_action_method(action));
                 }
             }
-
-            rc = !*xsink ? 0 : QSE_SSL_ERR;
+            assert(*xsink);
+            rc = QSE_SSL_ERR;
+            break;
+        } else if (err == SSL_ERROR_SSL) {
+            qs.close();
+            xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the " \
+                "openssl library reported a fatal I/O error while calling %s()", mname, get_action_method(action));
+            rc = QSE_SSL_ERR;
             break;
         } else {
             //printd(5, "SSLSocketHelper::doNonBlockingIo(buf: %p size: %ld) rc: %d err: %d\n", buf, size, rc, err);
@@ -2013,21 +2182,17 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
             }
             break;
         } else if (err == SSL_ERROR_SYSCALL) {
+            qs.close();
             if (!sslError(xsink, mname, get_action_method(action), action == WRITE)) {
+                /*
                 if (!rc) {
                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
                         "an EOF condition that violates the SSL protocol while calling %s()", mname,
                         get_action_method(action));
-                } else if (rc == -1) {
+                } else */ if (rc == -1) {
                     xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the " \
                         "openssl library reported an I/O error while calling %s()", mname, get_action_method(action));
-#ifdef ECONNRESET
-                    // close the socket if connection reset received
-                    if (qs.isOpen() && sock_get_error() == ECONNRESET) {
-                        qs.close();
-                    }
-#endif
-                } else {
+                } else if (rc) {
                     xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the openssl library reported " \
                         "error code %d in %s() but the error queue is empty", mname, rc, get_action_method(action));
                 }
@@ -2035,6 +2200,11 @@ int SSLSocketHelper::doSSLRW(ExceptionSink* xsink, const char* mname, void* buf,
 
             rc = !*xsink ? 0 : QSE_SSL_ERR;
             break;
+        } else if (err == SSL_ERROR_SSL) {
+            qs.close();
+            xsink->raiseErrnoException("SOCKET-SSL-ERROR", sock_get_error(), "error in Socket::%s(): the " \
+                "openssl library reported a fatal I/O error while calling %s()", mname, get_action_method(action));
+            rc = QSE_SSL_ERR;
         } else {
             //printd(5, "SSLSocketHelper::doSSLRW(buf: %p, size: %d, to: %d) rc: %d err: %d\n", buf, size, timeout_ms,
             //    rc, err);
@@ -2139,8 +2309,9 @@ bool SSLSocketHelper::sslError(ExceptionSink* xsink, const char* mname, const ch
 void SSLSocketHelper::handleErrorIntern(ExceptionSink* xsink, int e, const char* mname, const char* func,
         bool always_error) {
     if (e == SSL_ERROR_ZERO_RETURN) {
+        // the remote end has closed the connection, so we close this end as well
+        qs.close();
         if (always_error) {
-            qs.close();
             xsink->raiseException("SOCKET-SSL-ERROR", "error in Socket::%s(): the %s() call could not be " \
                 "completed because the TLS/SSL connection was terminated (err: %d)", mname, func, e);
         }
@@ -2410,6 +2581,15 @@ AbstractPollState* QoreSocket::startRecvUntilBytes(ExceptionSink* xsink, const c
     }
 
     return new SocketRecvUntilBytesPollState(xsink, priv, pattern, size);
+}
+
+AbstractPollState* QoreSocket::startRecvPacket(ExceptionSink* xsink) {
+    if (priv->sock == QORE_INVALID_SOCKET) {
+        se_not_open("Socket", "startRecvPacket", xsink);
+        return nullptr;
+    }
+
+    return new SocketRecvPacketPollState(xsink, priv);
 }
 
 #if 0
@@ -4029,6 +4209,21 @@ int SocketRecvPollOperationBase::initIntern(ExceptionSink* xsink) {
 
     set_non_block = true;
     return 0;
+}
+
+SocketRecvDataPollOperation::SocketRecvDataPollOperation(ExceptionSink* xsink, QoreSocketObject* sock, bool to_string)
+        : SocketRecvPollOperationBase(sock, to_string) {
+    AutoLocker al(sock->priv->m);
+
+    if (initIntern(xsink)) {
+        return;
+    }
+
+    poll_state.reset(sock->priv->socket->startRecvPacket(xsink));
+    if (*xsink) {
+        sock->priv->clearNonBlock();
+        set_non_block = false;
+    }
 }
 
 SocketRecvPollOperation::SocketRecvPollOperation(ExceptionSink* xsink, ssize_t size, QoreSocketObject* sock, bool to_string)

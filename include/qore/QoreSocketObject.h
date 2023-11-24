@@ -51,6 +51,7 @@ class QoreSocketObject : public AbstractPollableIoObjectBase {
     friend class SocketSendPollOperation;
     friend class SocketRecvPollOperationBase;
     friend class SocketRecvPollOperation;
+    friend class SocketRecvDataPollOperation;
     friend class SocketRecvUntilBytesPollOperation;
     friend class SocketUpgradeClientSslPollOperation;
     friend class HttpClientConnectPollOperation;
@@ -125,6 +126,16 @@ public:
         @since %Qore 1.12
     */
     DLLEXPORT AbstractPollState* startRecvUntilBytes(ExceptionSink* xsink, const char* pattern, size_t size);
+
+    //! Starts a non-blocking receive packet operation on a connected socket
+    /**
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return a socket poll state object or nullptr in case of an exception or an immediate receive
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT AbstractPollState* startRecvPacket(ExceptionSink* xsink);
 
     DLLEXPORT int connect(const char* name, int timeout_ms, ExceptionSink* xsink = nullptr);
     DLLEXPORT int connectINET(const char* host, int port, int timeout_ms, ExceptionSink* xsink = nullptr);

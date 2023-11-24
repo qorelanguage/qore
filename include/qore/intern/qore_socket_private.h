@@ -402,6 +402,31 @@ private:
     size_t received = 0;
 };
 
+class SocketRecvPacketPollState : public AbstractPollState {
+public:
+    DLLLOCAL SocketRecvPacketPollState(ExceptionSink* xsink, qore_socket_private* sock);
+
+    /** returns:
+        - SOCK_POLLIN = wait for read and call this again
+        - SOCK_POLLOUT = wait for write and call this again
+        - 0 = done
+        - < 0 = error (exception raised)
+    */
+    DLLLOCAL virtual int continuePoll(ExceptionSink* xsink);
+
+    //! Returns the data read
+    DLLLOCAL virtual QoreValue takeOutput() {
+        QoreValue rv = bin.release();
+        bin = nullptr;
+        return rv;
+    }
+
+private:
+    qore_socket_private* sock;
+    SimpleRefHolder<BinaryNode> bin;
+    bool io = false;
+};
+
 class SocketRecvUntilBytesPollState : public AbstractPollState {
 public:
     DLLLOCAL SocketRecvUntilBytesPollState(ExceptionSink* xsink, qore_socket_private* sock, const char* bytes,

@@ -65,7 +65,7 @@ public:
 
     //! returns false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
     /** @return false unless perl-boolean-evaluation is enabled, in which case it returns false only when empty
-        */
+    */
     DLLEXPORT virtual bool getAsBoolImpl() const;
 
     //! concatenate the verbose string representation of the value to an existing QoreString

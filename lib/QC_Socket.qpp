@@ -675,6 +675,29 @@ AbstractPollOperation Socket::startPollRecvBinary(int size) {
     return rv.release();
 }
 
+//! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object for receiving data in non-blocking mode
+/** @return an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode; data
+    will be read until the connection would block or at most 640KB of data has been read
+
+    The @ref Qore::AbstractPollOperation::getOutput() "AbstractPollOperation::getOutput()" call will return a binary
+    object after a successful poll for inbound socket data; whatever data can be read will be returned
+
+    @since %Qore 2.0
+*/
+AbstractPollOperation Socket::startPollRecvData() {
+    s->ref();
+    ReferenceHolder<SocketPollOperationBase> poller(new SocketRecvDataPollOperation(xsink, s, false), xsink);
+    ReferenceHolder<QoreObject> rv(new QoreObject(QC_SOCKETPOLLOPERATION, getProgram(), *poller), xsink);
+    poller->setSelf(*rv);
+    poller.release();
+
+    if (!*xsink) {
+        rv->setValue("sock", self->objectRefSelf(), xsink);
+        rv->setValue("goal", new QoreStringNode("received"), xsink);
+    }
+    return rv.release();
+}
+
 //! Returns an @ref Qore::AbstractPollOperation "AbstractPollOperation" object to read data in non-blocking mode
 /** @param pattern the pattern to use to signify the end of the socket data to read
 

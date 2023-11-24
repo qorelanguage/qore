@@ -186,7 +186,10 @@ class SocketTest inherits QUnit::Test {
 
             s1.send(b);
 
-            binary b0 = s2.recvBinary(-1, 0);
+            binary b0;
+            while (b0.size() != b.size()) {
+                b0 += s2.recvBinary(-1);
+            }
             assertEq(b, b0);
         }
         {
@@ -369,6 +372,136 @@ class SocketTest inherits QUnit::Test {
                     new_list = Socket::poll(poll_list, 1s);
                 }
                 assertEq(bigmsg, spop_recv.getOutput());
+            }
+
+            {
+                SocketPollOperation spop_send = s3.startPollSend(bigmsg);
+                SocketPollOperation spop_recv = s2.startPollRecvData();
+                binary bmsg;
+                while (True) {
+                    poll_list = ();
+                    *hash<SocketPollInfo> info_send = s3 ? spop_send.continuePoll() : NOTHING;
+                    #printf("send info: %y\n", info_send);
+                    if (info_send) {
+                        poll_list += info_send;
+                    } else {
+                        #printf("closing send socket\n");
+                        delete s3;
+                    }
+                    while (True) {
+                        *hash<SocketPollInfo> info_recv = spop_recv.continuePoll();
+                        #printf("recv info: %y (s3: %y)\n", info_recv, exists s3);
+                        if (info_recv) {
+                            if (s3) {
+                                poll_list += info_recv;
+                            }
+                        } else {
+                            binary b = spop_recv.getOutput();
+                            #printf("got %d bytes\n", b.size());
+                            bmsg += b;
+                            if (!s2.isOpen()) {
+                                break;
+                            }
+                            spop_recv = s2.startPollRecvData();
+                            continue;
+                        }
+                        break;
+                    }
+                    if (!poll_list) {
+                        break;
+                    }
+                    #printf("poll list: %N\n", poll_list);
+                    new_list = Socket::poll(poll_list, 1s);
+                }
+                assertEq(bigmsg.size(), bmsg.size());
+                assertEq(bigmsg.toSHA512(), bmsg.toSHA512());
+            }
+
+            {
+                Queue q();
+                background sub () {
+                    Socket ssl();
+                    # bind on a random free port
+                    ssl.bind(0);
+                    ssl.listen();
+
+                    q.push(ssl.getSocketInfo().port);
+
+                    ssl.setCertificate(TestCert);
+                    ssl.setPrivateKey(TestCert);
+
+                    Socket receiver = ssl.acceptSSL();
+
+                    list<hash<SocketPollInfo>> recv_poll_list;
+
+                    SocketPollOperation spop_recv = receiver.startPollRecvData();
+                    binary bmsg;
+                    while (True) {
+                        *hash<SocketPollInfo> info_recv;
+                        try {
+                            info_recv = spop_recv.continuePoll();
+                        } catch (hash<ExceptionInfo> ex) {
+                            if (ex.err == "SOCKET-SSL-ERROR" && ex.desc =~ /EOF/) {
+                                break;
+                            }
+                            rethrow;
+                        }
+                        #printf("TID %d: recv info: %y\n", gettid(), info_recv);
+                        if (info_recv) {
+                            recv_poll_list = (info_recv,);
+                        } else {
+                            binary b = spop_recv.getOutput();
+                            #/*
+                            #printf("TID %d: got %d bytes\n", gettid(), b.size());
+                            if (b.size()) {
+                                bmsg += b;
+                                #printf("TID %d: got %d bytes (bmsg: %d)\n", gettid(), b.size(), bmsg.size());
+                                if (bmsg.size() == bigmsg.size()) {
+                                    break;
+                                }
+                            #} else {
+                            #    printf("errno: %d %s (open: %y bin: %d <=> %d)\n", errno(), strerror(),
+                            #        receiver.isOpen(), bmsg.size(), bigmsg.size());
+                            }
+                            if (!receiver.isOpen()) {
+                                break;
+                            }
+                            spop_recv = receiver.startPollRecvData();
+                            continue;
+                        }
+                        if (!recv_poll_list) {
+                            break;
+                        }
+                        #printf("TID %d: errno: %d (%s) bin: %d <=> %d recv_poll_list: %N\n", gettid(), errno(),
+                        #    strerror(), bmsg.size(), bigmsg.size(), recv_poll_list);
+                        Socket::poll(recv_poll_list, 1m);
+                    }
+                    q.push(bmsg);
+                }();
+
+                Socket sender();
+                port = q.get();
+                sender.connectSSL("localhost:" + port);
+
+                SocketPollOperation spop_send = sender.startPollSend(bigmsg);
+                while (True) {
+                    poll_list = ();
+                    *hash<SocketPollInfo> info_send = sender ? spop_send.continuePoll() : NOTHING;
+                    #printf("send info: %y\n", info_send);
+                    if (info_send) {
+                        poll_list += info_send;
+                    } else {
+                        break;
+                    }
+                    if (!poll_list) {
+                        break;
+                    }
+                    #printf("poll list: %N\n", poll_list);
+                    new_list = Socket::poll(poll_list, 1s);
+                }
+                binary bmsg = q.get();
+                assertEq(bigmsg.size(), bmsg.size());
+                assertEq(bigmsg.toSHA512(), bmsg.toSHA512());
             }
 
             Socket s4();

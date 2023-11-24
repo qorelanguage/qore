@@ -93,6 +93,11 @@ AbstractPollState* QoreSocketObject::startRecvUntilBytes(ExceptionSink* xsink, c
     return priv->socket->startRecvUntilBytes(xsink, pattern, size);
 }
 
+AbstractPollState* QoreSocketObject::startRecvPacket(ExceptionSink* xsink) {
+    AutoLocker al(priv->m);
+    return priv->socket->startRecvPacket(xsink);
+}
+
 /*
 int QoreSocketObject::startAccept(ExceptionSink* xsink) {
     AutoLocker al(priv->m);
