@@ -281,15 +281,17 @@ bool qore_object_private::scanMembers(RSetHelper& rsh) {
     return false;
 }
 
-QoreHashNode* qore_object_private::copyData(ExceptionSink* xsink) const {
-   QoreSafeVarRWReadLocker sl(rml);
+QoreHashNode* qore_object_private::copyData(ExceptionSink* xsink, bool throw_exception) const {
+    QoreSafeVarRWReadLocker sl(rml);
 
-   if (status == OS_DELETED) {
-      makeAccessDeletedObjectException(xsink, theclass->getName());
-      return 0;
-   }
+    if (status == OS_DELETED) {
+        if (throw_exception) {
+            makeAccessDeletedObjectException(xsink, theclass->getName());
+        }
+        return nullptr;
+    }
 
-   return data->copy();
+    return data->copy();
 }
 
 void qore_object_private::merge(qore_object_private& o, AutoVLock& vl, SafeDerefHelper& sdh, ExceptionSink* xsink) {
@@ -1578,9 +1580,14 @@ int QoreObject::getAsString(QoreString& str, int foff, ExceptionSink* xsink) con
         return 0;
     }
 
-    QoreHashNodeHolder h(copyData(xsink), xsink);
-    if (*xsink)
+    QoreHashNodeHolder h(priv->copyData(xsink, false), xsink);
+    if (*xsink) {
         return -1;
+    }
+    if (!h) {
+        // object has been deleted
+        return Nothing.getAsString(str, foff, xsink);
+    }
 
     if (foff == FMT_YAML_SHORT) {
         str.sprintf("{<%s object>", getClassName());

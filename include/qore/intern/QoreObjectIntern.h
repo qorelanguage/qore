@@ -220,7 +220,7 @@ public:
     DLLLOCAL void mergeIntern(ExceptionSink* xsink, const QoreHashNode* h, bool& check_recursive,
         const qore_class_private* class_ctx, SafeDerefHelper& sdh, const QoreHashNode* new_internal_data = nullptr);
 
-    DLLLOCAL QoreHashNode* copyData(ExceptionSink* xsink) const;
+    DLLLOCAL QoreHashNode* copyData(ExceptionSink* xsink, bool throw_exception = true) const;
 
     DLLLOCAL int getLValue(const char* key, LValueHelper& lvh, const qore_class_private* class_ctx, bool for_remove,
             ExceptionSink* xsink);
