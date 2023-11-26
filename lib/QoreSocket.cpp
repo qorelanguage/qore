@@ -1401,16 +1401,15 @@ int SocketRecvPacketPollState::continuePoll(ExceptionSink* xsink) {
                 }
                 continue;
             }
+            if (realsize) {
+                io = true;
+                return 0;
+            }
             if (errno == EAGAIN
 #ifdef EWOULDBLOCK
                 || errno == EWOULDBLOCK
 #endif
             ) {
-                if (realsize) {
-                    //printd(5, "SocketRecvPacketPollState::continuePoll() DONE (block) bin: %d)\n", (int)bin->size());
-                    io = true;
-                    return 0;
-                }
                 return SOCK_POLLIN;
             }
             xsink->raiseErrnoException("SOCKET-RECV-ERROR", errno, "error while executing Socket::recv()");

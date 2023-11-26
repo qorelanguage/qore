@@ -2373,7 +2373,13 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
                 shh_copy = remove shh;
             }
 
-            map $1.stop(id), shh_copy.iterator();
+            foreach AbstractHttpSocketHandlerInterface handler in (shh_copy.iterator()) {
+                try {
+                    handler.stop(id);
+                } catch (hash<ExceptionInfo> ex) {
+                    logError("error stopping handler on listener %d: %s: %s", id, ex.err, ex.desc);
+                }
+            }
         }
 
         # wait for all dedicated connection threads to terminate
@@ -2520,7 +2526,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         on_exit {
             if (!dedicated) {
                 cThreads.dec();
-            } else if (!dedicated_external) {
+            } else {
                 dThreads.dec();
             }
         }
@@ -2728,10 +2734,6 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         on_exit m.unlock();
 
         remove shh{id};
-
-        if (managed_externally) {
-            dThreads.dec();
-        }
     }
 }
 }
