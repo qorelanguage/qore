@@ -136,6 +136,7 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
     constructor() : QUnit::Test("Object test", "1.0") {
         issue_3596 = new Issue3596_1();
 
+        addTestCase("deleted object output test", \deletedObjectOutputTest());
         addTestCase("object perm test", \objPermTest());
         addTestCase("issue 3596", \issue3596Test());
         addTestCase("instanceof Test", \instanceofTest());
@@ -144,6 +145,15 @@ object sub test3() { return create_object_args(\"PrivTest\", 1);}
         addTestCase("inheritance", \inheritance());
         addTestCase("weak refs", \weakRefTest());
         set_return_value(main());
+    }
+
+    deletedObjectOutputTest() {
+        Mutex m();
+        hash<auto> h = {
+            "m": m,
+        };
+        delete m;
+        assertEq("{m: null}", sprintf("%y", h));
     }
 
     objPermTest() {
