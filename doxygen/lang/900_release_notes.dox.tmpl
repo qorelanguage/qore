@@ -99,9 +99,11 @@
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
       - fixed support of nullable object properties
         (<a href="https://github.com/qorelanguage/qore/issues/4854">issue 4854</a>)
+    - fixed a bug where %Qore would crash if an @ref on_error "on_error statement" referred to the active exception
+      when erroneously called after a @ref thread_exit "thread_exit statement"
+      (<a href="https://github.com/qorelanguage/qore/issues/4864">issue 4864</a>)
     - fixed a bug where the HTTP connection path would be silently overwritten when processing redirects
       (<a href="https://github.com/qorelanguage/qore/issues/4841">issue 4841</a>)
-
     - fixed a bug setting the local time zone on macOS Sonoma
       (<a href="https://github.com/qorelanguage/qore/issues/4818">issue 4818</a>)
     - fixed a bug where %Qore could characters with the incorrect character encoding to strings while processing HTTP
