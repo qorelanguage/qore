@@ -8,6 +8,7 @@
 
 %requires reflection
 %requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/FsUtil.qm
 %requires ../../../../qlib/QUnit.qm
 
 %exec-class ExceptionTest
@@ -18,12 +19,21 @@ class ExceptionTest inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("Exception test", "1.0") {
+        addTestCase("on_error thread_exit test", \onErrorThreadExitTest());
         addTestCase("rethrow test", \rethrowTest());
         addTestCase("return test", \returnTest());
         addTestCase("Test simple try/catch block", \testSimpleTryCatch());
         addTestCase("Test rethrow", \testRethrow());
         addTestCase("misc tests", \miscTests());
         set_return_value(main());
+    }
+
+    onErrorThreadExitTest() {
+        TmpFile tmp();
+        tmp.file.write("on_error printf(\"OOPS: %y\n\", $1); thread_exit;");
+        tmp.file.close();
+        int rc = system("qore " + tmp.path);
+        assertEq(0, rc);
     }
 
     rethrowTest() {
