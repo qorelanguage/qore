@@ -229,7 +229,7 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
     if (obe) {
         ExceptionSink obe_xsink;
         int nrc = 0;
-        bool error = *xsink;
+        bool error = xsink->isException();
         for (block_list_t::iterator i = popBlock(), e = on_block_exit_list.end(); i != e; ++i) {
             enum obe_type_e type = (*i).first;
             if (type == OBE_Unconditional || (!error && type == OBE_Success) || (error && type == OBE_Error)) {
