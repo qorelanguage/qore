@@ -259,7 +259,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
             // check how many days in the given month
             int dom = qore_date_info::getLastDayOfMonth(month, year);
             xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid day of the month: %d; " \
-                "%04d-%02 has %d days", str, day, year, month, dom);
+                "%04d-%02d has %d days", str, day, year, month, dom);
             set(n_zone, year, month, day, 0, 0, 0, 0);
             return;
         } else if (day > 28) {
@@ -267,7 +267,7 @@ void qore_absolute_time::set(const char* str, const AbstractQoreZoneInfo* n_zone
             int dom = qore_date_info::getLastDayOfMonth(month, year);
             if (day > dom) {
                 xsink->raiseException("INVALID-DATE", "date '%s' provides an invalid day of the month: %d; " \
-                    "%04d-%02 has %d days", str, day, year, month, dom);
+                    "%04d-%02d has %d days", str, day, year, month, dom);
                 set(n_zone, year, month, day, 0, 0, 0, 0);
                 return;
             }
