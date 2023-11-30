@@ -73,6 +73,24 @@ module EmpathicBuildingDataProvider {
             "short_desc": "Post measurements to an EmpathicBuilding instance",
             "desc": "Post measurements to an EmpathicBuilding instance",
             "action_code": DPAT_API,
+            "convenience_options": {
+                "data": <ActionOptionInfo>{
+                    "display_name": "Measurement Data",
+                    "short_desc": "Measurement data to post in EmpathicBuilding",
+                    "desc": "Measurement data to post in EmpathicBuilding",
+                    "type": "list",
+                    "example_value": ({
+                        "type": "reservation",
+                        "vendor_id": "9977",
+                        "name": "EK1-0-C-246",
+                        "events": ({
+                            "start": 2023-11-29T15:00:00,
+                            "end": 2023-11-29T16:00:00,
+                            "subject": "Booking",
+                        },),
+                    },),
+                },
+            }
         });
     };
 }
