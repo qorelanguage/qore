@@ -58,7 +58,7 @@ module EmpathicBuildingDataProvider {
             "display_name": "Haltian Empathic Building",
             "short_desc": "Haltian Empathic Building server",
             "desc": "Haltian Empathic Building server",
-            "scheme": "ebrest",
+            "scheme": "ebrests",
             "logo": EmpathicBuildingLogo,
             "logo_file_name": "empathicbuilding-logo.svg",
             "logo_mime_type": MimeTypeSvg,
