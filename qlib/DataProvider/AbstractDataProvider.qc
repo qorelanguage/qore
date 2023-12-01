@@ -1762,7 +1762,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
 
         @since DataProvider 3.0
     */
-    data getExampleResponseData() {
+    auto getExampleResponseData() {
         checkRequest();
         return getExampleResponseDataImpl();
     }
@@ -3353,7 +3353,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
 
         @since DataProvider 3.0
     */
-    private data getExampleResponseDataImpl() {
+    private auto getExampleResponseDataImpl() {
         return getResponseTypeImpl().getExampleValue();
     }
 
