@@ -355,7 +355,8 @@ public class DiscordRestClient inherits RestClient::RestClient {
                 | DP_CREATE_PRIVATE_THREADS
                 | DP_SEND_MESSAGES_IN_THREADS
                 | DP_ATTACH_FILES
-                | DP_ADD_REACTIONS,
+                | DP_ADD_REACTIONS
+                | DP_READ_MESSAGE_HISTORY,
         };
 
         #! Default "data" option value

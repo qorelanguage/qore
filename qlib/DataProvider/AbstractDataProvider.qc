@@ -1743,6 +1743,70 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         return getMessageTypesImpl();
     }
 
+    #! Returns example data for a request message
+    /** @return example data for a request message
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+
+        @since DataProvider 3.0
+    */
+    auto getExampleRequestData() {
+        checkRequest();
+        return getExampleRequestDataImpl();
+    }
+
+    #! Returns example data for a successful request message
+    /** @return example data for a successful request message
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+
+        @since DataProvider 3.0
+    */
+    data getExampleResponseData() {
+        checkRequest();
+        return getExampleResponseDataImpl();
+    }
+
+    #! Returns example data for the error message with the given error code
+    /** @param error_code the error code for the response; must be a known error code, or an \c UNKNOWN-ERROR-RESPONSE
+        exception is thrown
+        @return example data for the error message with the given error code
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+        @throw UNKNOWN-ERROR-RESPONSE the error response given is not known
+
+        @since DataProvider 3.0
+    */
+    auto getExampleErrorResponseData(string error_code) {
+        checkRequest();
+        return getExampleErrorResponseDataImpl(error_code);
+    }
+
+    #! Returns example data for the given observable event
+    /** @param event_id the event ID of the event
+
+        @return example data for the given observable event
+
+        @throw INVALID-OPERATION the data provider does not support the observer pattern / event API
+        @throw INVALID-EVENT the event_id is not valid
+
+        @since DataProvider 3.0
+    */
+    auto getExampleEventData(string event_id) {
+        checkObservable();
+        return getExampleEventDataImpl(event_id);
+    }
+
+    #! Returns example data for the record type
+    /** @return example data for the record type
+
+        @since DataProvider 3.0
+    */
+    hash<auto> getExampleRecordData() {
+        checkRead();
+        return getExampleRecordDataImpl();
+    }
+
     #! Return data provider summary info
     /** @note This creates an AbstractDataProvider object for each child; for cases when this is expensive, this
         method must be overridden / reimplemented in the child class for performance reasons
@@ -2955,6 +3019,17 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         return getStaticInfoImpl().schema_type;
     }
 
+    #! Generates example data for the given fields
+    /** @param fields the fields to generate data for
+
+        @return example data for the given fields
+
+        @since DataProvider 3.0
+    */
+    private hash<auto> generateExampleData(hash<string, AbstractDataField> fields) {
+        return map {$1.key: $1.value.getExampleValue()}, fields.pairIterator();
+    }
+
     #! Returns the description of the record type, if any
     /** @param search_options to be included and processed by validateSearchOptions() if
         \a recordRequiresSearchOptions() is @ref True for this provider, otherwise any value provided in this argument
@@ -3260,6 +3335,63 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             "this indicates a bug in the implementation of the data provider; please report this bug to the author "
             "of the data provider",
             getName(), self.className());
+    }
+
+    #! Returns example data for a request message
+    /** @return example data for a request message
+
+        @since DataProvider 3.0
+    */
+    private auto getExampleRequestDataImpl() {
+        return getRequestTypeImpl().getExampleValue();
+    }
+
+    #! Returns example data for a successful request message
+    /** @return example data for a successful request message
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+
+        @since DataProvider 3.0
+    */
+    private data getExampleResponseDataImpl() {
+        return getResponseTypeImpl().getExampleValue();
+    }
+
+    #! Returns example data for the error message with the given error code
+    /** @param error_code the error code for the response; must be a known error code, or an \c UNKNOWN-ERROR-RESPONSE
+        exception is thrown
+        @return example data for the error message with the given error code
+
+        @throw INVALID-OPERATION the data provider does not support the request API
+        @throw UNKNOWN-ERROR-RESPONSE the error response given is not known
+
+        @since DataProvider 3.0
+    */
+    private auto getExampleErrorResponseDataImpl(string error_code) {
+        return getErrorResponseTypeImpl(error_code).getExampleValue();
+    }
+
+    #! Returns example data for the given observable event
+    /** @param event_id the event ID of the event
+
+        @return example data for the given observable event
+
+        @throw INVALID-OPERATION the data provider does not support the observer pattern / event API
+        @throw INVALID-EVENT the event_id is not valid
+
+        @since DataProvider 3.0
+    */
+    private auto getExampleEventDataImpl(string event_id) {
+        return getEventInfoImpl(event_id).type.getExampleValue();
+    }
+
+    #! Returns example data for the record type
+    /** @return example data for the record type
+
+        @since DataProvider 3.0
+    */
+    private hash<auto> getExampleRecordDataImpl() {
+        return generateExampleData(getRecordTypeImpl());
     }
 
     #! Returns the data provider name

@@ -49,9 +49,6 @@ public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProvid
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
-
-        #! Request type
-        const RequestType = new GoogleCalendarEventsInstancesRequestType();
     }
 
     private {
@@ -92,15 +89,13 @@ public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProvid
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string query_args;
-        foreach hash<auto> i in (req.pairIterator()) {
-            # this handles list key values by repeating the expression in the output
-            map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", i.key, $1))), i.value;
-        }
+        hash<auto> req_info = prepareRequest(req, {
+            "calendarId": id,
+        });
         hash<auto> info;
         try {
-            hash<auto> rv = rest.get("/calendar/v3/calendars/" + id + "/events/" + req.id + "/instances" + query_args,
-                NOTHING, \info).body;
+            hash<auto> rv = rest.get("/calendar/v3/calendars/" + req_info.path.calendarId + "/events/" +
+                req_info.path.eventId + "/instances" + req_info.query, NOTHING, \info).body;
             return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
@@ -113,7 +108,9 @@ public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProvid
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "events/instances",
+            "calendarId");
+        #return RequestType;
     }
 
     #! Returns the description of a response message, if this object represents a response message
@@ -126,67 +123,6 @@ public class GoogleCalendarEventsInstancesDataProvider inherits GoogleDataProvid
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-
-#! Google calendar event instances request data type
-public class GoogleCalendarEventsInstancesRequestType inherits GoogleCalendarEventsGetRequestType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            # query parameters
-            "maxResults": {
-                "display_name": "Max Results",
-                "short_desc": "Maximum number of events returned on one result page",
-                "type": AbstractDataProviderTypeMap."*int",
-                "desc": "Maximum number of events returned on one result page. The number of events in the resulting "
-                    "page may be less than this value, or none at all, even if there are more events matching the "
-                    "query. Incomplete pages can be detected by a non-empty `nextPageToken` field in the response. By "
-                    "default the value is `250` events. The page size can never be larger than `2500` events",
-            },
-            "originalStart": {
-                "display_name": "Original Start Time",
-                "type": SoftTimestampDataProviderStringType,
-                "desc": "The original start time of the instance in the result. Optional",
-            },
-            "pageToken": {
-                "display_name": "Page Token",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Token specifying which result page to return",
-            },
-            "showDeleted": {
-                "display_name": "Show Deleted?",
-                "short_desc": "Whether to include deleted events in the result",
-                "type": SoftBoolOrNothingDataProviderStringType,
-                "desc": "Whether to include deleted events (with status equals `cancelled`) in the result. Cancelled "
-                    "instances of recurring events (but not the underlying recurring event) will still be included "
-                    "if `showDeleted` and `singleEvents` are both `False`. If `showDeleted` and `singleEvents` are "
-                    "both `True`, only single instances of deleted events (but not the underlying recurring events) "
-                    "are returned",
-                "default_value": False,
-            },
-            "timeMax": {
-                "display_name": "Max Time",
-                "short_desc": "Upper bound (exclusive) for an event's start time to filter by",
-                "type": SoftTimestampDataProviderStringType,
-                "desc": "Upper bound (exclusive) for an event's start time to filter by. The default is not to "
-                    "filter by start time. Resolution to the second. If `timeMin` is set, `timeMax` must be greater "
-                    "than `timeMin`",
-            },
-            "timeMin": {
-                "display_name": "Min Time",
-                "short_desc": "Lower bound (exclusive) for an event's end time to filter by",
-                "type": SoftTimestampDataProviderStringType,
-                "desc": "Lower bound (exclusive) for an event's end time to filter by. The default is not to filter "
-                    "by end time. Resolution to the second. If `timeMax` is set, `timeMin` must be smaller than "
-                    "`timeMax`",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor() : GoogleCalendarEventsGetRequestType("GoogleCalendarEventsInstancesRequestType") {
-        addQoreFields(Fields);
     }
 }
 }

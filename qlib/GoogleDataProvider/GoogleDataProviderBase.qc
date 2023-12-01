@@ -78,7 +78,7 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         - \c path: a hash of path params
         - \c query: a string of query params prefixed by "?"
     */
-    *hash<auto> prepareRequest(auto req, *hash<string, string> implicit_path_args, *bool backfill_request_body) {
+    *hash<auto> prepareRequest(auto req, *hash<string, softstring> implicit_path_args, *bool backfill_request_body) {
         AbstractDataProviderType request_type = getRequestTypeImpl();
 
         hash<auto> rv;
@@ -91,7 +91,8 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
                     auto val = remove req{name};
                     if (exists val) {
                         # this handles list key values by repeating the expression in the output
-                        map (rv.query += ((rv.query ? "&" : "?") + sprintf("%s=%s", name, $1))), val;
+                        map (rv.query += ((rv.query ? "&" : "?")
+                            + sprintf("%s=%s", name, getQueryValue(name, field.getType(), $1)))), val;
                     }
                 }
             } else if (loc == "path") {
@@ -118,7 +119,20 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         if (backfill_request_body && rv.body.size() < body_keys.size()) {
             map rv.body{$1.key} = $1.value, backfillRequestBody(rv).pairIterator(), !rv.body.hasKey($1.key);
         }
+
         return rv;
+    }
+
+    string getQueryValue(string key, AbstractDataProviderType type, auto val) {
+        switch (type.getBaseTypeCode()) {
+            case NT_BOOLEAN: return val ? "true" : "false";
+            default:
+                if (!val.strp()) {
+                    throw "QUERY-ERROR", sprintf("query arg %y cannot be serialized to a string from type %y; arg "
+                        "requires type %y", key, val.fullType(), type.getName());
+                }
+        }
+        return val.toString();
     }
 
     #! Used to set attributes in the request body that are not set in the request
@@ -169,7 +183,7 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         if (*AbstractDataProviderType rv = requests{rpath}.request_type) {
             return rv;
         }
-        # create new type without implicit args
+        # create new type without implicit / path args
         if (argv && (*AbstractDataProviderType rv = requests{path}.request_type)) {
             hash<string, bool> fmap = map {$1: True}, argv;
             HashDataType nrv();

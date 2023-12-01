@@ -555,6 +555,10 @@ public class DataProviderTest inherits QUnit::Test {
         HashDataType t8("t8");
         t8.addField(new QoreDataField("type", "desc", str));
 
+        assertEq(NT_STRING, t1.getField("a").getType().getBaseTypeCode());
+
+        assertEq({"a": "example string"}, t1.getExampleValue());
+
         assertFalse(t1.isAssignableFrom(t2));
         assertTrue(t3.isAssignableFrom(t1));
         assertTrue(t3.isAssignableFrom(t2));

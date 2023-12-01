@@ -274,6 +274,15 @@ public class AbstractDataField inherits Qore::Serializable {
         }
     }
 
+    #! Returns any example value for the field, otherwise return example data from the type
+    /** @return if a default value exists, it is returned first, then the example value for the type, if any
+
+        @since DataProvider 3.0
+    */
+    auto getExampleValue() {
+        return default_value ?? getType().getExampleValue();
+    }
+
     #! Converts a long description into a short description
     static *string getShortDescription(*string desc) {
         if (!exists desc) {

@@ -52,6 +52,9 @@ public class QoreDataField inherits AbstractDataField {
 
         #! field type
         AbstractDataProviderType type;
+
+        #! Example value for the field
+        auto example_value;
     }
 
     #! creates the field from the arguments
@@ -76,6 +79,9 @@ public class QoreDataField inherits AbstractDataField {
         }
         if (exists h.allowed_values) {
             setAllowedValues(h.allowed_values);
+        }
+        if (exists h.example_value) {
+            example_value = type.acceptsValue(h.example_value);
         }
         if (h.attr) {
             attr += h.attr;
@@ -135,11 +141,6 @@ public class QoreDataField inherits AbstractDataField {
         return type;
     }
 
-    #! get default value, if any
-    auto getDefaultValue() {
-        return default_value ?? type.getDefaultValue();
-    }
-
     #! adds a string to the description
     /** @param separator string to add first if there is already a description
         @param new_desc the new string to add to the description
@@ -179,6 +180,16 @@ public class QoreDataField inherits AbstractDataField {
     #! Updates the field type
     updateFieldType(AbstractDataProviderType type) {
         self.type = type;
+    }
+
+    #! Returns any example value for the field, if present
+    /** @return any example value for the field, otherwise the default value for the field, otherwise the example
+        value for the type
+
+        @since DataProvider 3.0
+    */
+    auto getExampleValue() {
+        return example_value ?? default_value ?? AbstractDataField::getExampleValue();
     }
 
     #! returns a field with the new type

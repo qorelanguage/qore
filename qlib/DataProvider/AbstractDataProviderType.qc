@@ -494,6 +494,53 @@ public class AbstractDataProviderType inherits Qore::Serializable {
         return self;
     }
 
+    #! Returns any example value for type, if any
+    /** @since DataProvider 3.0
+    */
+    auto getExampleValue() {
+        if (*hash<string, AbstractDataField> fields = getFields()) {
+            return map {$1.key: $1.value.getExampleValue()}, fields.pairIterator();
+        }
+        int t = getBaseTypeCode();
+        if (t != NT_ALL && isOrNothingType()) {
+            return;
+        }
+        switch (getBaseTypeCode()) {
+            case NT_INT: return 100;
+            case NT_STRING: return "example string";
+            case NT_BOOLEAN: return True;
+            case NT_FLOAT: return 3.1415927;
+            case NT_NUMBER: return 3.1415927n;
+            case NT_DATE: return now_us();
+            case NT_BINARY: return <abcd>;
+            case NT_LIST: {
+                if (self.hasCallableMethod("getElementType")) {
+                    *AbstractDataProviderType etype = cast<object>(self).getElementType();
+                    if (etype) {
+                        return map etype.getExampleValue(), xrange(3);
+                    }
+                }
+                return (1, 2, 3);
+            }
+            case NT_HASH: {
+                *AbstractDataProviderType etype;
+                if (self.hasCallableMethod("getElementType")) {
+                    etype = cast<object>(self).getElementType();
+                } else if (self.hasCallableMethod("getDefaultOtherElementType")) {
+                    etype = cast<object>(self).getDefaultOtherElementType();
+                }
+                if (etype) {
+                    return map {$1: etype.getExampleValue()}, ("one", "two");
+                }
+                return {"a": 1, "b": 2};
+            }
+            case NT_ALL: return "any value";
+            case NT_NOTHING: return;
+        }
+        throw "DATA-ERROR", sprintf("do not have example data for type %y (base type %y)", getName(),
+            getBaseTypeName());
+    }
+
     #! Returns the type name
     abstract string getName();
 

@@ -49,9 +49,6 @@ public class GoogleCalendarEventsListDataProvider inherits GoogleDataProvider::G
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
-
-        #! Request type
-        const RequestType = new GoogleCalendarEventsListRequestType();
     }
 
     private {
@@ -70,7 +67,8 @@ public class GoogleCalendarEventsListDataProvider inherits GoogleDataProvider::G
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal)
+            : GoogleDataProvider::GoogleDataProviderBase(rest) {
         self.id = id;
         self.cal = cal;
     }
@@ -92,14 +90,13 @@ public class GoogleCalendarEventsListDataProvider inherits GoogleDataProvider::G
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string query_args;
-        foreach hash<auto> i in (req.pairIterator()) {
-            # this handles list key values by repeating the expression in the output
-            map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", i.key, $1))), i.value;
-        }
+        hash<auto> req_info = prepareRequest(req, {
+            "calendarId": id,
+        });
         hash<auto> info;
         try {
-            hash<auto> rv = rest.get("/calendar/v3/calendars/" + id + "/events" + query_args, NOTHING, \info).body;
+            hash<auto> rv = rest.get("/calendar/v3/calendars/" + req_info.path.calendarId + "/events" +
+                req_info.query, NOTHING, \info).body;
             return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
@@ -112,7 +109,8 @@ public class GoogleCalendarEventsListDataProvider inherits GoogleDataProvider::G
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "events/list",
+            "calendarId");
     }
 
     #! Returns the description of a response message, if this object represents a response message
@@ -127,271 +125,4 @@ public class GoogleCalendarEventsListDataProvider inherits GoogleDataProvider::G
         return ProviderInfo;
     }
 }
-
-#! Google calender events list request data type
-public class GoogleCalendarEventsListRequestType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            # query parameters
-            "eventTypes": {
-                "display_name": "Event Types",
-                "short_desc": "Event types to return",
-                "type": AbstractDataProviderType::get(new Type("*softlist<string>")),
-                "desc": "Event types to return. Optional. Possible values are:\n"
-                    "- `default`\n"
-                    "- `focusTime`\n"
-                    "- `outOfOffice`\n"
-                    "- `workingLocation`\n"
-                    "Currently, these are the only allowed values for this field:\n"
-                    "- `default`, `focusTime`, `outOfOffice`\n"
-                    "- `default`, `focusTime`, `outOfOffice`, `workingLocation`\n"
-                    "- `workingLocation`",
-                "allowed_values": (
-                    "default",
-                    "focusTime",
-                    "outOfOffice",
-                    "workingLocation",
-                ),
-                "default_value": ("default", "focusTime", "outOfOffice"),
-            },
-            "iCalUID": {
-                "display_name": "iCal Event ID",
-                "short_desc": "Sets an event ID in the iCalendar format to be provided in the response",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Specifies an event ID in the iCalendar format to be provided in the response. Optional. Use "
-                    "this if you want to search for an event by its iCalendar ID",
-            },
-            "maxAttendees": {
-                "display_name": "Max Attendees",
-                "short_desc": "Max number of attendees to include in the response",
-                "type": AbstractDataProviderTypeMap."*int",
-                "desc": "The maximum number of attendees to include in the response. If there are more than the "
-                    "specified number of attendees, only the participant is returned",
-            },
-            "maxResults": {
-                "display_name": "Max Results",
-                "short_desc": "Max number of events returned on one result page",
-                "type": AbstractDataProviderTypeMap."*int",
-                "desc": "Maximum number of events returned on one result page. The number of events in the resulting "
-                    "page may be less than this value, or none at all, even if there are more events matching the "
-                    "query. Incomplete pages can be detected by a non-empty `nextPageToken` field in the response. By "
-                    "default the value is `250` events. The page size can never be larger than `2500` events",
-            },
-            "orderBy": {
-                "display_name": "Order By",
-                "short_desc": "The order of the events returned in the result",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The order of the events returned in the result. The default is an unspecified, stable "
-                    "order.\n"
-                    "Acceptable values are:\n"
-                    "- `startTime`: Order by the start date/time (ascending). This is only available when querying "
-                        "single events (i.e. the parameter `singleEvents` is `True`)\n"
-                    "- `updated`: Order by last modification time (ascending)",
-                "allowed_values": (
-                    "startTime",
-                    "updated",
-                ),
-            },
-            "pageToken": {
-                "display_name": "Page Token",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Token specifying which result page to return",
-            },
-            "privateExtendedProperty": {
-                "display_name": "Private Extended Property",
-                "short_desc": "Extended properties constraint to match",
-                "type": AbstractDataProviderType::get(new Type("*softlist<string>")),
-                "desc": "Extended properties constraint specified as propertyName=value. Matches only private "
-                    "properties. This parameter might be repeated multiple times to return events that match all "
-                    "given constraints",
-            },
-            "q": {
-                "display_name": "Free Text Query",
-                "short_desc": "Free text search terms to find events",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Free text search terms to find events that match these terms in the following fields: "
-                    "`summary`, `description`, `location`, attendee's `displayName`, attendee's `email`",
-            },
-            "sharedExtendedProperty": {
-                "display_name": "Shared Extended Property",
-                "short_desc": "Extended properties constraint to match",
-                "type": AbstractDataProviderType::get(new Type("*softlist<string>")),
-                "desc": "Extended properties constraint specified as propertyName=value. Matches only shared "
-                    "properties. This parameter might be repeated multiple times to return events that match all "
-                    "given constraints",
-            },
-            "showDeleted": {
-                "display_name": "Show Deleted?",
-                "short_desc": "Whether to include deleted events in the result",
-                "type": SoftBoolOrNothingDataProviderStringType,
-                "desc": "Whether to include deleted events (with status equals `cancelled`) in the result. Cancelled "
-                    "instances of recurring events (but not the underlying recurring event) will still be included "
-                    "if `showDeleted` and `singleEvents` are both `False`. If `showDeleted` and `singleEvents` are "
-                    "both `True`, only single instances of deleted events (but not the underlying recurring events) "
-                    "are returned",
-                "default_value": False,
-            },
-            "showHiddenInvitations": {
-                "display_name": "Show Hidden Invitations?",
-                "type": SoftBoolOrNothingDataProviderStringType,
-                "desc": "Whether to include hidden invitations in the result",
-                "default_value": False,
-            },
-            "singleEvents": {
-                "display_name": "Single Events?",
-                "short_desc": "Whether to expand recurring events",
-                "type": SoftBoolOrNothingDataProviderStringType,
-                "desc": "Whether to expand recurring events into instances and only return single one-off events and "
-                    "instances of recurring events, but not the underlying recurring events themselves",
-                "default_value": False,
-            },
-            "syncToken": {
-                "display_name": "Sync Token",
-                "short_desc": "Token obtained from the last results",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Token obtained from the `nextSyncToken` field returned on the last page of results from the "
-                    "previous list request. It makes the result of this list request contain only entries that have "
-                    "changed since then. All events deleted since the previous list request will always be in the "
-                    "result set and it is not allowed to set `showDeleted` to False.\n\n"
-                    "There are several query parameters that cannot be specified together with `nextSyncToken` to "
-                    "ensure consistency of the client state.\n\n"
-                    "These are:\n"
-                    "- `iCalUID`\n"
-                    "- `orderBy`\n"
-                    "- `privateExtendedProperty`\n"
-                    "- `q`\n"
-                    "- `sharedExtendedProperty`\n"
-                    "- `timeMin`\n"
-                    "- `timeMax`\n"
-                    "- `updatedMin`\n\n"
-                    "All other query parameters should be the same as for the initial synchronization to avoid "
-                    "undefined behavior. If the `syncToken` expires, the server will respond with a `410 GONE` "
-                    "response code and the client should clear its storage and perform a full synchronization "
-                    "without any syncToken.\n"
-                    "The default is to return all entries",
-            },
-            "timeMax": {
-                "display_name": "Max Time",
-                "short_desc": "Upper bound (exclusive) for an event's start time to filter by",
-                "type": SoftTimestampDataProviderStringType,
-                "desc": "Upper bound (exclusive) for an event's start time to filter by. The default is not to "
-                    "filter by start time. Resolution to the second. If `timeMin` is set, `timeMax` must be greater "
-                    "than `timeMin`",
-            },
-            "timeMin": {
-                "display_name": "Min Time",
-                "short_desc": "Lower bound (exclusive) for an event's end time to filter by",
-                "type": SoftTimestampDataProviderStringType,
-                "desc": "Lower bound (exclusive) for an event's end time to filter by. The default is not to filter "
-                    "by end time. Resolution to the second. If `timeMax` is set, `timeMin` must be smaller than "
-                    "`timeMax`",
-            },
-            "timeZone": {
-                "display_name": "Time Zone",
-                "short_desc": "Time zone used in the response",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Time zone used in the response. The default is the time zone of the calendar",
-            },
-            "updatedMin": {
-                "display_name": "Minimum Update Time",
-                "short_desc": "Lower bound for an event's last modification time to filter by",
-                "type": SoftTimestampDataProviderStringType,
-                "desc": "Lower bound for an event's last modification time to filter by. When specified, entries "
-                    "deleted since this time will always be included regardless of `showDeleted`. The default is not "
-                    "to filter by last modification time",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor() : HashDataType("GoogleCalendarEventsListRequestType") {
-        addQoreFields(Fields);
-    }
-}
-
-/*
-#! Create calendar events request data type
-public class GoogleCalendarEventsListResponseType inherits DataProvider::HashDataType {
-    public {
-        #! Field descriptions
-        const Fields = {
-            "kind": {
-                "display_name": "Collecton Type",
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "The type of the collection",
-            },
-            "etag": {
-                "display_name": "Object Version",
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "A hash that indicates a specific version of the object definition",
-            },
-            "summary": {
-                "display_name": "Calendar Title",
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "Title of the calendar",
-            },
-            "description": {
-                "display_name": "Calendar Description",
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "Description of the calendar",
-            },
-            "updated": {
-                "display_name": "Last Updated",
-                "type": AbstractDataProviderTypeMap."softdate",
-                "desc": "Last modification time of the calendar",
-            },
-            "timeZone": {
-                "display_name": "Time Zone",
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "The time zone of the calendar",
-            },
-            "accessRole": {
-                "display_name": "Access Role",
-                "short_desc": "The user's access role for this calendar",
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "The user's access role for this calendar. Read-only. Possible values are:\n"
-                    "- `none`: The user has no access\n"
-                    "- `freeBusyReader`: The user has read access to free/busy information\n"
-                    "- `reader`: The user has read access to the calendar. Private events will appear to users with "
-                        "reader access, but event details will be hidden\n"
-                    "- `writer`: The user has read and write access to the calendar. Private events will appear to "
-                        "users with writer access, and event details will be visible\n"
-                    "- `owner`: The user has ownership of the calendar. This role has all of the permissions of the "
-                        "writer role with the additional ability to see and manipulate ACLs",
-            },
-            "defaultReminders":{
-                "display_name": "Default Reminders",
-                "short_desc": "The default reminders on the calendar for the authenticated user",
-                "type": AbstractDataProviderTypeMap."list",
-                "desc": "The default reminders on the calendar for the authenticated user. These reminders apply to "
-                    "all events on this calendar that do not explicitly override them (i.e. do not have "
-                    "`reminders.useDefault` set to `True`)",
-            },
-            "nextPageToken": {
-                "display_name": "Next Page Token",
-                "short_desc": "Token used to access the next page of this result",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Token used to access the next page of this result. Omitted if no further results are "
-                    "available, in which case `nextSyncToken` is provided",
-            },
-            "nextSyncToken": {
-                "display_name": "Next Sync Token",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "A synchronization token for the data",
-            },
-            "items": {
-                "display_name": "Event Items",
-                "type": new ListDataType("*GoogleCalendarEvents", GoogleCalendarEventsElementType, True),
-                "desc": "Response items",
-            }
-        };
-    }
-
-    #! Creates the object
-    constructor() : HashDataType("GoogleCalendarEventsListResponseType") {
-        addQoreFields(Fields);
-    }
-}
-*/
 }
