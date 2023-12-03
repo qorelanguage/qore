@@ -38,7 +38,7 @@ public class Observable {
 
         @throw EVENT-ERROR type error; additional argument is not a string event ID
     */
-    registerObserver(Observer observer) {
+    registerObserver(Observer observer, ...) {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
             "observer": observer,
         };
@@ -55,7 +55,7 @@ public class Observable {
 
         @note this variant is meant for observer objects implemented in other languages
     */
-    registerObserver(object observer) {
+    registerObserver(object observer, ...) {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
             "observer": observer instanceof Observer ? observer : new ObserverWrapper(observer),
         };
@@ -105,7 +105,7 @@ public class Observable {
 
         @throw EVENT-ERROR type error; additional argument is not a string event ID
     */
-    registerObserverWithFilter(Observer observer, AbstractEventFilter filter) {
+    registerObserverWithFilter(Observer observer, AbstractEventFilter filter, ...) {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
             "observer": observer,
             "filter": filter,
@@ -124,7 +124,7 @@ public class Observable {
 
         @note this variant is meant for observer objects implemented in other languages
     */
-    registerObserverWithFilter(object observer, AbstractEventFilter filter) {
+    registerObserverWithFilter(object observer, AbstractEventFilter filter, ...) {
         hash<ObserverEventInfo> info = <ObserverEventInfo>{
             "observer": new ObserverWrapper(observer),
             "filter": filter,

@@ -1769,8 +1769,8 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
     }
 
     #! The method registers the given observer
-    registerObserver(object observer) {
-        client.registerObserver(observer);
+    registerObserver(object observer, ...) {
+        client.registerObserverArgs(observer, argv);
     }
 
     #! The method deregisters the given observer
