@@ -1117,26 +1117,24 @@ ws.setEventQueue();
         }
 
         if (rh.status_code != 101) {
-            raiseError("HTTP server at URL %y returned status code '%d %s' to our request; "
-                "expecting '101 Switching Protocols'",
-                hc.getURL(), rh.status_code, rh.status_message);
+            raiseError("HTTP server at URL %y returned status code '%d %s' to our request; expecting '101 Switching "
+                "Protocols'", hc.getURL(), rh.status_code, rh.status_message);
         }
 
         if (!rh."sec-websocket-accept") {
-            raiseError("HTTP server at URL %y did not return the Sec-WebSocket-Accept response "
-                "header (headers returned: %y)", hc.getURL(), rh);
+            raiseError("HTTP server at URL %y did not return the Sec-WebSocket-Accept response header (headers "
+                "returned: %y)", hc.getURL(), rh);
         }
 
         {
             string expected_key = ws_get_response_key(key);
             if (rh."sec-websocket-accept" != expected_key) {
-                raiseError("HTTP server at URL %y returned an invalid value in the "
-                    "Sec-WebSocket-Accept response header: %y; expecting %y", hc.getURL(), rh."sec-websocket-accept",
-                    expected_key);
+                raiseError("HTTP server at URL %y returned an invalid value in the Sec-WebSocket-Accept response "
+                    "header: %y; expecting %y", hc.getURL(), rh."sec-websocket-accept", expected_key);
             }
         }
 
-        logDebug("connected websocket connection: %y", hc.isOpen());
+        logInfo("Connected to %y (open: %y)", hc.getURL(), hc.isOpen());
         stop = 0;
         cid = seq.next();
 
@@ -1245,7 +1243,7 @@ class MyObserver inherits Observer {
         try {
             handleEventData(deserializeData(buf));
         } catch (hash<ExceptionInfo> ex) {
-            logError("error handling WebSocket event data message: %s", get_exception_string(ex));
+            logError("error handling WebSocket event data message: %s (message: %y)", get_exception_string(ex), buf);
             return;
         }
     }

@@ -78,7 +78,7 @@ cond.signal();
 m.unlock();
     @endcode
 
-    @throw CONDITION-SIGNAL-ERROR This exception should never be thrown - it indicates a low-level error in executing
+    @throw CONDITION-SIGNAL-ERROR This exception should never be thrown; it indicates a low-level error in executing
     the method
  */
 nothing Condition::signal() {
@@ -99,8 +99,8 @@ cond.broadcast();
 m.unlock();
     @endcode
 
-    @throw CONDITION-BROADCAST-ERROR This exception should never be thrown - it indicates a low-level error in
-    executing the method
+    @throw CONDITION-SIGNAL-ERROR This exception should never be thrown; it indicates a low-level error in executing
+    the method
  */
 nothing Condition::broadcast() {
     if (c->broadcast()) {
@@ -135,7 +135,7 @@ while (some_value > 0) {
 printf("finally some_value is 0\n");
     @endcode
 
-    @throw CONDITION-WAIT-ERROR This exception should never be thrown - it indicates a low-level error in executing
+    @throw CONDITION-SIGNAL-ERROR This exception should never be thrown; it indicates a low-level error in executing
     the method
  */
 int Condition::wait(AbstractSmartLock[AbstractSmartLock] lock, timeout timeout_ms = 0) {

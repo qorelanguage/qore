@@ -332,6 +332,12 @@ public class DiscordWebSocketClient inherits WebSocketClientWithSerialization {
 
         #! API version
         int api = DefaultApi;
+
+        #! Max reconnect retries
+        const MaxReconnectRetries = 5;
+
+        #! Reconnect error delay
+        const ReconnectDelay = 2s;
     }
 
     #! creates the object and optionally sets logging targets
@@ -417,9 +423,9 @@ hash<auto> h = ws.getInfo();
     #! Starts a reconnect action
     private startReconnect() {
 %ifdef PO_NO_THREAD_CONTROL
-                start_thread(\handleReconnectInline());
+        start_thread(\handleReconnectInline());
 %else
-                start_thread ? start_thread(\handleReconnectInline()) : background handleReconnectInline();
+        start_thread ? start_thread(\handleReconnectInline()) : background handleReconnectInline();
 %endif
     }
 
@@ -494,23 +500,45 @@ hash<auto> h = ws.getInfo();
         stopHeartbeatThread();
         disconnect();
 
+        logInfo("Reconnect to %y", resume_gateway_url);
         url = setupUrl(resume_gateway_url);
         string http_url = url;
         http_url =~ s/^ws/http/;
         hc.setURL(http_url);
 
         # connect to the new gateway
-        connect();
+        {
+            int retries = 0;
+            while (True) {
+                hash<auto> info;
+                try {
+                    connect(NOTHING, \info);
+                    sendData({
+                        "op": DOP_RESUME,
+                        "d": {
+                            "token": token,
+                            "session_id": session_id,
+                            "seq": last_sequence,
+                        },
+                    });
+                } catch (hash<ExceptionInfo> ex) {
+                    if (++retries == MaxReconnectRetries) {
+                        logError("reconnect %d: failed (%s: %s); max retries exhausted", retries, ex.err, ex.desc);
+                        rethrow;
+                    }
+                    logError("reconnect %d: failed to connect to WebSocket server: %s: %s; sleeping for %y and "
+                        "retrying", retries, ex.err, ex.desc);
+                    # use a Mutex and Condition variable to delay, because sleep() is protected with
+                    # PO_NO_PROCESS_CONTROL
+                    Mutex m();
+                    Condition sleep_cond();
+                    AutoLock al(m);
+                    sleep_cond.wait(m, ReconnectDelay);
+                }
+            }
+        }
 
         startHeartbeatThread();
-        sendData({
-            "op": DOP_RESUME,
-            "d": {
-                "token": token,
-                "session_id": session_id,
-                "seq": last_sequence,
-            },
-        });
     }
 
     #! Handle a message by raising a data event
