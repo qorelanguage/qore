@@ -3391,6 +3391,11 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         @since DataProvider 3.0
     */
     private hash<auto> getExampleRecordDataImpl() {
+        try {
+            return searchFirstRecord({});
+        } catch (hash<ExceptionInfo> ex) {
+            error("Failed to retrieve example row: %s: %s; returning generated data", ex.err, ex.desc);
+        }
         return generateExampleData(getRecordTypeImpl());
     }
 
