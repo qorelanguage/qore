@@ -257,7 +257,6 @@ class RestCmd {
                         conn.className());
                     exit(1);
                 }
-                rest = conn.get();
                 if (!exists body) {
                     stderr.printf("ERROR: missing request path\n");
                     exit(1);
@@ -265,6 +264,7 @@ class RestCmd {
                 request_path = body;
                 body = shift ARGV;
 
+                rest = conn.get(False);
                 # if the request path is a full URL, override the connection URL
                 if (request_path =~ /^http/) {
                     rest.setURL(request_path);

@@ -31,6 +31,7 @@ public class ConnectionProviderTest inherits QUnit::Test {
     }
 
     constructor() : Test("ConnectionProvider Test", "1.0") {
+        addTestCase("url", \urlTest());
         addTestCase("cache test", \cacheTest());
         addTestCase("ftp", \ftpConnectionTest());
         addTestCase("http", \httpConnectionTest());
@@ -41,6 +42,18 @@ public class ConnectionProviderTest inherits QUnit::Test {
 
         # Return for compatibility with a test harness that checks the return value
         set_return_value(main());
+    }
+
+    urlTest() {
+        # URLs with control characters must be invalid
+        assertThrows("CONNECTION-URL-ERROR", sub () {new HttpConnection("x", "x", "https://test\aserver");});
+        assertThrows("CONNECTION-URL-ERROR", sub () {new HttpConnection("x", "x", "https://test\bserver");});
+        assertThrows("CONNECTION-URL-ERROR", sub () {new HttpConnection("x", "x", "https://test\nserver");});
+        assertThrows("CONNECTION-URL-ERROR", sub () {new HttpConnection("x", "x", "https://test\rserver");});
+        # URLs with trailing newlines / CRs are automatically trimmed
+        assertNothing((sub () {new HttpConnection("x", "x", "https://testserver\r");})());
+        assertNothing((sub () {new HttpConnection("x", "x", "https://testserver\r\n");})());
+        assertNothing((sub () {new HttpConnection("x", "x", "https://testserver\n");})());
     }
 
     cacheTest() {

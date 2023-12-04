@@ -157,6 +157,9 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         @param enabled enabled/disabled flag
 
         @note use constructor(hash<auto> config, *hash<auto> attr instead
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+        @throw CONNECTION-URL-ERROR URL is invalid, because it contains control characters
     */
     deprecated
     constructor(string name,
@@ -199,6 +202,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         - \c tags (hash), no default value
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+        @throw CONNECTION-URL-ERROR URL is invalid, because it contains control characters
 
         @note use constructor(hash<auto> config, *hash<auto> attr instead
     */
@@ -229,6 +233,7 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         - tags (optional hash): tags for the connection; no default value
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+        @throw CONNECTION-URL-ERROR URL is invalid, because it contains control characters
     */
     constructor(hash<auto> config, *hash<auto> attr) {
         constructorInit(config, attr);
@@ -865,6 +870,7 @@ scheme://user:pass@hostname:port/path
         - tags (optional hash): tags for the connection
 
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+        @throw CONNECTION-URL-ERROR URL is invalid, because it contains control characters
     */
     private:internal constructorInit(hash<auto> config, *hash<auto> attr) {
         # string name, string description, string url, hash<auto> attributes, hash<auto> options) {
@@ -876,6 +882,13 @@ scheme://user:pass@hostname:port/path
 
         # url handling
         url = getString(config, "url", True);
+        # remove trailing newlines from the URL
+        url =~ s/[\n\r]+$//;
+        # check for control characters
+        if (url =~ /[\x00-\x1f]/) {
+            throw "CONNECTION-URL-ERROR", sprintf("Connection url %y is invalid, because it contains control "
+                "characters", url);
+        }
         urlh = parseUrl(self.url);
         safe_url = getSafeUrl(self.urlh);
 
@@ -891,7 +904,7 @@ scheme://user:pass@hostname:port/path
             if (config.logger instanceof LoggerInterface) {
                 setLogger(config.logger);
             } else {
-                throw "CONNECTION-OPTION-ERROR", sprintf("constructor option \"logger\" is type %y; expecting a "
+                throw "CONNECTION-OPTION-ERROR", sprintf("Connection option \"logger\" is type %y; expecting a "
                     "\"LoggerInterface\" object", config.logger.fullType());
             }
         }

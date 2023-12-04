@@ -368,7 +368,7 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, Connec
         const AcceptMap = map {$1: True}, AcceptList;
 
         #! RestClient Version
-        const Version = "2.0";
+        const Version = "2.2";
 
         #! RestClient Version String
         const VersionString = sprintf("Qore-RestClient/%s", RestClient::Version);
