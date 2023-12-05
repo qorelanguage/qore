@@ -355,6 +355,12 @@ public class WebSocketClient inherits Logger::LoggerWrapper, ConnectionProvider:
             "8": True,
             "13": True,
         };
+
+        #! Max reconnect retries; negative numbers = infinite
+        const MaxReconnectRetries = -1;
+
+        #! Reconnect retry delay
+        const ReconnectDelay = 2s;
     }
 
     private {
@@ -366,6 +372,8 @@ public class WebSocketClient inherits Logger::LoggerWrapper, ConnectionProvider:
         code raw_callback;
         code pong_callback;
         timeout timeout_ms = DefaultTimeout;
+        #! Reconnect flag
+        bool reconnect;
         #! TID of the event thread
         int tid;
         #! unique websocket connection ID; -1 when not connected
@@ -420,6 +428,7 @@ WebSocketClient ws(\event(), {
         - \c raw_callback: an optional @ref closure "closure" or @ref call_reference "call reference" for
           receiving raw WebSocket messages before processing; takes a single <tt>hash&lt;WsMsgInfo&gt;</tt>
           argument and must return one of the following values: @ref WSClientRawCallbackReturnCodes
+        - \c reconnect: try to reconnect when the connection is closed or lost (default @ref False)
         - \c yield: an options @ref closure "closure" or @ref call_reference "call reference" for yielding the
             current thread's execution to another thread (default value: @ref Qore::Threads::thread_yield());
             required if @ref Qore::PO_NO_PROCESS_CONTROL is set in the current execution context
@@ -462,7 +471,7 @@ WebSocketClient ws(\event(), {
         return WsSchemes;
     }
 
-    #! connects to the websocket server
+    #! Connects to the websocket server
     /** @par Example:
         @code{.py}
 sub event(*data msg) {
@@ -506,6 +515,11 @@ ws.connect();
         option hash
     */
     hash<auto> connect(*hash<auto> opts, *reference<hash<auto>> info) {
+        return connectIntern(opts, \info);
+    }
+
+    #! Connects to the websocket server
+    private hash<auto> connectIntern(*hash<auto> opts, *reference<hash<auto>> info, *bool reconnect) {
         if (opts.hdr && opts.hdr.typeCode() != NT_HASH) {
             raiseError("option hash to WebSocketClient::connect() 'hdr' key not assigned to a hash; type "
                 "received: %y", opts.hdr.fullType());
@@ -518,12 +532,14 @@ ws.connect();
             disconnectUnlocked();
         }
 
-        hash<auto> h = connectUnlocked(opts.hdr, \info);
+        hash<auto> h = connectUnlocked(opts.hdr, \info, reconnect);
         c.inc();
         on_error {
             remove tid;
             c.dec();
         }
+
+        stop = 0;
 %ifdef PO_NO_THREAD_CONTROL
         tid = start_thread(\eventLoop());
 %else
@@ -540,8 +556,18 @@ ws.connect();
         return hc.isOpen();
     }
 
-    #! disconnect with the given @ref closecodes "close code"
+    #! Disconnect with the given @ref closecodes "close code"
     disconnect(int cmd = WSCC_GoingAway) {
+        # do not reconnect if an explicit disconnect is called
+        if (reconnect) {
+            reconnect = False;
+        }
+
+        disconnectIntern(cmd);
+    }
+
+    #! Disconnect with the given @ref closecodes "close code"
+    private disconnectIntern(int cmd = WSCC_GoingAway) {
         m.lock();
         on_exit m.unlock();
 
@@ -736,6 +762,9 @@ ws.setEventQueue();
 
     #! Common constructor code
     private constructorInit(hash<auto> opts) {
+        if (opts.reconnect) {
+            reconnect = True;
+        }
         # set logger, if any
         logger = remove opts.logger;
 
@@ -831,25 +860,29 @@ ws.setEventQueue();
             c.waitForZero();
             cid = -1;
             remove tid;
+            # reset stop flag
+            stop = 0;
         }
     }
 
     #! Handles processed messages
-    private handleEvent(string buf) {
+    private int handleEvent(string buf) {
         if (callback) {
             callback(buf);
         } else {
             logWarn("ignoring TEXT message: %y", buf);
         }
+        return WSEDC_CONTINUE;
     }
 
     #! Handles processed messages
-    private handleEvent(binary buf) {
+    private int handleEvent(binary buf) {
         if (callback) {
             callback(buf);
         } else {
             logWarn("ignoring BINARY message: %y", buf);
         }
+        return WSEDC_CONTINUE;
     }
 
     #! Handles raw messages
@@ -885,7 +918,7 @@ ws.setEventQueue();
             }
             if (stop) {
                 sendClose(stop);
-                logDebug("event loop stopping on user request");
+                logDebug("Event loop stopping on user request (%y)", stop);
                 break;
             }
 
@@ -931,13 +964,80 @@ ws.setEventQueue();
             # issue #3225 catch and log any exeptions in the closing callback
             closingConnection();
         } catch (hash<ExceptionInfo> ex) {
-            logError("exception in closing WebSocketClient callback: %s", get_exception_string(ex));
+            logError("Exception in closing WebSocketClient callback: %s", get_exception_string(ex));
         }
         if (hc.isOpen()) {
             hc.shutdown();
             hc.close();
         }
-        logDebug("disconnected websocket connection");
+        #logDebug("Disconnected websocket connection");
+
+        if (reconnect && !stop && self) {
+            c.inc();
+            on_error c.dec();
+%ifdef PO_NO_THREAD_CONTROL
+            start_thread(\doReconnect());
+%else
+            tid = start_thread ? start_thread(\doReconnect()) : background doReconnect();
+%endif
+        }
+    }
+
+    #! Handles reconnections
+    private doReconnect() {
+        on_exit c.dec();
+
+        reconnectPreamble();
+
+        # connect to the new gateway
+        {
+            int retries = 0;
+            while (True) {
+                hash<auto> info;
+                try {
+                    reestablishConnection(\info);
+                    break;
+                } catch (hash<ExceptionInfo> ex) {
+                    ++retries;
+                    if (MaxReconnectRetries > 0 && (retries == MaxReconnectRetries)) {
+                        logError("reconnect %d: failed (%s: %s); max retries exhausted", retries, ex.err, ex.desc);
+                        rethrow;
+                    }
+                    logInfo("reconnect %d: failed to connect to WebSocket server: %s: %s; sleeping for %y and "
+                        "retrying", retries, ex.err, ex.desc, ReconnectDelay);
+                    # use a Mutex and Condition variable to delay, because sleep() is protected with
+                    # PO_NO_PROCESS_CONTROL
+                    Mutex m();
+                    Condition sleep_cond();
+                    {
+                        AutoLock al(m);
+                        sleep_cond.wait(m, ReconnectDelay);
+                    }
+                }
+            }
+        }
+
+        reconnectPostamble();
+    }
+
+    #! Executes before a reconnect
+    private reconnectPreamble() {
+        # disconnect if still connected
+        disconnectIntern();
+        # log connect with WS URL
+        string wsurl = hc.getURL();
+        wsurl =~ s/^http/ws/;
+        logInfo("Reconnect to %y", wsurl);
+    }
+
+    #! Connects to the server when reconnecting
+    private reestablishConnection(reference<hash<auto>> info) {
+        connectIntern(NOTHING, \info, True);
+    }
+
+    #! Executes after a reconnect
+    private reconnectPostamble() {
+        # intentionally empty
     }
 
     #! Handles WebSocket protocol messages
@@ -1002,11 +1102,9 @@ ws.setEventQueue();
             } else {
                 buf += h.msg;
             }
-            handleEvent(remove buf);
-            return WSEDC_CONTINUE;
+            return handleEvent(remove buf);
         } else if (h.op == WSOP_Text || h.op == WSOP_Binary) {
-            handleEvent(h.msg);
-            return WSEDC_CONTINUE;
+            return handleEvent(h.msg);
         } else if (h.op == WSOP_Pong) {
             receivedPong(h.msg);
             return WSEDC_CONTINUE;
@@ -1030,36 +1128,29 @@ ws.setEventQueue();
         hc.send2(ws_encode_message(h.msg ?? "heartbeat", WSOP_Pong, True), timeout_ms);
     }
 
-    private logDebug(string fmt, ...) {
+    private logArgs(LoggerLevel level, string message, *softlist<auto> args) {
         try {
-            logArgs(LoggerLevel::DEBUG, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
+            LoggerWrapper::logArgs(level, sprintf("WebSocketClient %s: ", cid) + message, args);
         } catch (hash<ExceptionInfo> ex) {
-            stderr.printf("WebSocketClient cannog log: %s: %s: DEBUG msg: %s", ex.err, ex.desc, vsprintf(fmt, argv));
+            stderr.printf("WebSocketClient cannot log: %s: %s: %s msg: %s", ex.err, ex.desc, level.getStr(),
+                vsprintf(message, args));
         }
+    }
+
+    private logDebug(string fmt, ...) {
+        logArgs(LoggerLevel::DEBUG, fmt, argv);
     }
 
     private logInfo(string fmt, ...) {
-        try {
-            logArgs(LoggerLevel::INFO, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
-        } catch (hash<ExceptionInfo> ex) {
-            stderr.printf("WebSocketClient cannog log: %s: %s: INFO msg: %s", ex.err, ex.desc, vsprintf(fmt, argv));
-        }
+        logArgs(LoggerLevel::INFO, fmt, argv);
     }
 
     private logWarn(string fmt, ...) {
-        try {
-            logArgs(LoggerLevel::WARN, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
-        } catch (hash<ExceptionInfo> ex) {
-            stderr.printf("WebSocketClient cannog log: %s: %s: WARN msg: %s", ex.err, ex.desc, vsprintf(fmt, argv));
-        }
+        logArgs(LoggerLevel::WARN, fmt, argv);
     }
 
     private logError(string fmt, ...) {
-        try {
-            logArgs(LoggerLevel::ERROR, sprintf("WebSocketClient %s: ", cid) + fmt, argv);
-        } catch (hash<ExceptionInfo> ex) {
-            stderr.printf("WebSocketClient cannog log: %s: %s: ERROR msg: %s", ex.err, ex.desc, vsprintf(fmt, argv));
-        }
+        logArgs(LoggerLevel::ERROR, fmt, argv);
     }
 
     private sendClose(int code, *string txtmsg) {
@@ -1090,7 +1181,7 @@ ws.setEventQueue();
         }
     }
 
-    private hash<auto> connectUnlocked(*hash<auto> hdr0, *reference<hash<auto>> info) {
+    private hash<auto> connectUnlocked(*hash<auto> hdr0, *reference<hash<auto>> info, *bool reconnect) {
         # in case hdr0 is hash<string, int> or similar
         hash<auto> hdr = {
             "User-Agent": DefaultUserAgent,
@@ -1110,7 +1201,8 @@ ws.setEventQueue();
         hash<auto> rh;
         {
             on_error {
-                logError("error connecting to %s: %N", url, info);
+                logArgs(reconnect ? LoggerLevel::DEBUG : LoggerLevel::ERROR, "error connecting to %s: %N",
+                    (url, info));
                 rethrow $1.err, sprintf("%s: info: %y", $1.desc, info{"request-uri", "response-uri"});
             }
             rh = hc.send(NOTHING, "GET", NOTHING, hdr, NOTHING, \info);
@@ -1190,6 +1282,7 @@ class MyObserver inherits Observer {
         - \c raw_callback: an optional @ref closure "closure" or @ref call_reference "call reference" for
           receiving raw WebSocket messages before processing; takes a single <tt>hash&lt;WsMsgInfo&gt;</tt>
           argument and must return one of the following values: @ref WSClientRawCallbackReturnCodes
+        - \c reconnect: try to reconnect when the connection is closed or lost (default @ref False)
         - \c yield: an options @ref closure "closure" or @ref call_reference "call reference" for yielding the
             current thread's execution to another thread (default value: @ref Qore::Threads::thread_yield());
             required if @ref Qore::PO_NO_PROCESS_CONTROL is set in the current execution context
@@ -1239,33 +1332,34 @@ class MyObserver inherits Observer {
     }
 
     #! Handles processed messages
-    private handleEvent(string buf) {
+    private int handleEvent(string buf) {
         try {
-            handleEventData(deserializeData(buf));
+            return handleEventData(deserializeData(buf));
         } catch (hash<ExceptionInfo> ex) {
             logError("error handling WebSocket event data message: %s (message: %y)", get_exception_string(ex), buf);
-            return;
+            return WSEDC_CONTINUE;
         }
     }
 
     #! Handles deserialized event data
-    private handleEventData(auto msgdata) {
+    private int handleEventData(auto msgdata) {
         notifyObservers(EVENT_WS_DATA, {"data": msgdata});
+        return WSEDC_CONTINUE;
     }
 
     #! Handles processed messages
-    private handleEvent(binary buf) {
+    private int handleEvent(binary buf) {
         if (serialization == "none") {
             try {
-                handleEventData(buf);
+                return handleEventData(buf);
             } catch (hash<ExceptionInfo> ex) {
                 logError("error handling binary WebSocket event data message: %s", get_exception_string(ex));
-                return;
             }
         } else {
             logWarn("ignoring binary WebSocket event data message: %y; cannot handle when serialization is %y", buf,
                 serialization);
         }
+        return WSEDC_CONTINUE;
     }
 
     #! Got a pong message
@@ -1375,6 +1469,13 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
                     ),
                     "default_value": "none",
                 },
+                "reconnect": <ConnectionOptionInfo>{
+                    "display_name": "Reconnect?",
+                    "short_desc": "Try to reconnect when the connection is closed or lost",
+                    "type": "bool",
+                    "desc": "Try to reconnect when the connection is closed or lost",
+                    "default_value": False,
+                },
                 "token": <ConnectionOptionInfo>{
                     "display_name": "Authorization Token",
                     "short_desc": "Set an authorization token",
@@ -1481,6 +1582,7 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
     /** @param connect if @ref True "True", then @ref WebSocketClient::connect() is called
         @param rtopts supports the following runtime options in getImpl():
         - \c "logger": a @ref Logger::LoggerInterface "LoggerInterface" object for internal logging
+        - \c "reconnect": try to reconnect when the connection is closed or lost (default @ref False)
         - \c "start_thread": a closure to start a new thread (signature:
           @verbatim int sub start_thread(code callable) {}@endverbatim)
         - \c "yield": a closure to yield current thread execution
@@ -1492,7 +1594,7 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
         if (rtopts) {
             rtopts = {} + rtopts;
         }
-        hash<auto> opts = {"url": url} + rtopts{"logger", "yield", "start_thread"} + self.opts;
+        hash<auto> opts = {"url": url} + rtopts{"logger", "reconnect", "yield", "start_thread"} + self.opts;
         if (!opts.logger && logger) {
             opts.logger = logger;
         }
@@ -1637,6 +1739,13 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 "short_desc": "The HTTP proxy to use",
                 "type": AbstractDataProviderTypeMap."string",
                 "desc": "The proxy URL to use",
+            },
+            "reconnect": <DataProviderOptionInfo>{
+                "display_name": "Reconnect?",
+                "short_desc": "Automatically reconnect when the connection is closed or lost",
+                "type": AbstractDataProviderTypeMap."bool",
+                "desc": "Automatically reconnect when the connection is closed or lost",
+                "default_value": False,
             },
             "report_pings": <DataProviderOptionInfo>{
                 "display_name": "Report Pings",

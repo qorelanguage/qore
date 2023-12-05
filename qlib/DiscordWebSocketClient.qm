@@ -332,12 +332,6 @@ public class DiscordWebSocketClient inherits WebSocketClientWithSerialization {
 
         #! API version
         int api = DefaultApi;
-
-        #! Max reconnect retries
-        const MaxReconnectRetries = 5;
-
-        #! Reconnect error delay
-        const ReconnectDelay = 2s;
     }
 
     #! creates the object and optionally sets logging targets
@@ -422,6 +416,9 @@ hash<auto> h = ws.getInfo();
 
     #! Starts a reconnect action
     private startReconnect() {
+        c.inc();
+        on_error c.dec();
+
 %ifdef PO_NO_THREAD_CONTROL
         start_thread(\handleReconnectInline());
 %else
@@ -430,10 +427,10 @@ hash<auto> h = ws.getInfo();
     }
 
     #! Handles deserialized event data
-    private handleEventData(auto msgdata) {
+    private int handleEventData(auto msgdata) {
         if (msgdata.typeCode() != NT_HASH) {
             logError("unexpected payload data type %y (value %y); expecting \"hash\"", msgdata.fullType(), msgdata);
-            return;
+            return WSEDC_CONTINUE;
         }
         *int op = msgdata.op;
         if (!exists op) {
@@ -443,6 +440,7 @@ hash<auto> h = ws.getInfo();
             last_sequence = msgdata.s;
         }
         logDebug("received %y: (%s) %y", OpMap{op}, msgdata.t ?? "n/a", msgdata.d);
+        int rc = WSEDC_CONTINUE;
         switch (op) {
             case DOP_HELLO:
                 handleHello(msgdata.d);
@@ -452,7 +450,7 @@ hash<auto> h = ws.getInfo();
                 if (msgdata.t == "READY") {
                     handleReadyMessage(msgdata.d);
                 } else {
-                    handleMessage(msgdata);
+                    rc = handleMessage(msgdata);
                 }
                 break;
 
@@ -461,13 +459,21 @@ hash<auto> h = ws.getInfo();
                 break;
 
             case DOP_RECONNECT:
-                handleReconnect();
+                startReconnect();
+                rc = WSEDC_BREAK;
+                break;
+
+            case DOP_INVALID_SESSION:
+                logError("Session has been invalidated (%y); starting reconnect", OpMap{op});
+                startReconnect();
+                rc = WSEDC_BREAK;
                 break;
 
             default:
                 throw "DISCORD-ERROR", sprintf("do not know how to handle opcode %d (%s)", op,
                     OpMap{op} ?? "unknown");
         }
+        return rc;
     }
 
     #! Handle a READY message
@@ -483,70 +489,50 @@ hash<auto> h = ws.getInfo();
     #! Handle a Reconnect
     private handleReconnectInline() {
         try {
-            handleReconnect();
+            doReconnect();
         } catch (hash<ExceptionInfo> ex) {
             logError("failed to handle inline reconnect: %s", get_exception_string(ex));
         }
     }
 
-    #! Handle a Reconnect
-    private handleReconnect() {
-        if (!session_id) {
-            throw "DISCORD-ERROR", "Reconnect message received, but no session_id is present";
-        }
-        if (!session_id || !resume_gateway_url) {
-            throw "DISCORD-ERROR", "Reconnect message received, but no resume_gateway_url is present";
-        }
+    #! Executes before a reconnect
+    private reconnectPreamble() {
         stopHeartbeatThread();
         disconnect();
+
+        if (!resume_gateway_url) {
+            throw "DISCORD-ERROR", "Reconnect message received, but no resume_gateway_url is present";
+        }
 
         logInfo("Reconnect to %y", resume_gateway_url);
         url = setupUrl(resume_gateway_url);
         string http_url = url;
         http_url =~ s/^ws/http/;
         hc.setURL(http_url);
+    }
 
-        # connect to the new gateway
-        {
-            int retries = 0;
-            while (True) {
-                hash<auto> info;
-                try {
-                    connect(NOTHING, \info);
-                    sendData({
-                        "op": DOP_RESUME,
-                        "d": {
-                            "token": token,
-                            "session_id": session_id,
-                            "seq": last_sequence,
-                        },
-                    });
-                } catch (hash<ExceptionInfo> ex) {
-                    if (++retries == MaxReconnectRetries) {
-                        logError("reconnect %d: failed (%s: %s); max retries exhausted", retries, ex.err, ex.desc);
-                        rethrow;
-                    }
-                    logError("reconnect %d: failed to connect to WebSocket server: %s: %s; sleeping for %y and "
-                        "retrying", retries, ex.err, ex.desc);
-                    # use a Mutex and Condition variable to delay, because sleep() is protected with
-                    # PO_NO_PROCESS_CONTROL
-                    Mutex m();
-                    Condition sleep_cond();
-                    AutoLock al(m);
-                    sleep_cond.wait(m, ReconnectDelay);
-                }
-            }
+    #! Connects to the server when reconnecting
+    private doReconnect(reference<hash<auto>> info) {
+        connectIntern(NOTHING, \info, True);
+        if (session_id && last_sequence) {
+            sendResume();
+        } else {
+            sendIdentify();
         }
+    }
 
+    #! Executes after a reconnect
+    private reconnectPostamble() {
+        # restart the heartbeat thread
         startHeartbeatThread();
     }
 
     #! Handle a message by raising a data event
-    private handleMessage(hash<auto> msg) {
+    private int handleMessage(hash<auto> msg) {
         if (msg.d) {
             msg.d = convertData(msg.d);
         }
-        WebSocketClientWithSerialization::handleEventData(msg);
+        return WebSocketClientWithSerialization::handleEventData(msg);
     }
 
     #! Handle a HELLO message
@@ -558,6 +544,11 @@ hash<auto> h = ws.getInfo();
         heartbeat_interval = hbi;
         startHeartbeatThread();
 
+        sendIdentify();
+    }
+
+    #! Send an Identify message
+    private sendIdentify() {
         # send Indentify message
         sendData({
             "op": DOP_IDENTIFY,
@@ -569,6 +560,18 @@ hash<auto> h = ws.getInfo();
                     "device": "Qore",
                 },
                 "intents": intents,
+            },
+        });
+    }
+
+    #! Send a resume message
+    private sendResume() {
+        sendData({
+            "op": DOP_RESUME,
+            "d": {
+                "token": token,
+                "session_id": session_id,
+                "seq": last_sequence,
             },
         });
     }

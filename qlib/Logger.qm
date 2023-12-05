@@ -3748,7 +3748,8 @@ public class LoggerRoot inherits Logger {
 /** Useful for tests and development, for example
 */
 public class StdoutAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("stdout", new LoggerLayoutPattern("%d{YYYY-MM-DD HH:mm:SS.xx} T%t [%p]: %m%n")) {
+    constructor() : LoggerAppenderWithLayout("stdout",
+            new LoggerLayoutPattern("%d{YYYY-MM-DD HH:mm:SS.xx} T%t [%p]: %m%n")) {
         open();
     }
 
