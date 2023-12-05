@@ -481,16 +481,16 @@ int64 qore_absolute_time::getRelativeMicroseconds() const {
 }
 
 void qore_absolute_time::getAsString(QoreString &str) const {
-   qore_time_info i;
-   get(i);
+    qore_time_info i;
+    get(i);
 
-   str.sprintf("%04d-%02d-%02d %02d:%02d:%02d.%06d", i.year, i.month, i.day, i.hour, i.minute, i.second, i.us);
-   const char *wday = days[qore_date_info::getDayOfWeek(i.year, i.month, i.day)].abbr;
-   str.sprintf(" %s ", wday);
-   concatOffset(i.utcoffset, str);
-   // only concat zone name if it's not the same as the offset just output
-   if (*i.zname != '+' && *i.zname != '-')
-      str.sprintf(" (%s)", i.zname);
+    str.sprintf("%04d-%02d-%02d %02d:%02d:%02d.%06d", i.year, i.month, i.day, i.hour, i.minute, i.second, i.us);
+    const char *wday = days[qore_date_info::getDayOfWeek(i.year, i.month, i.day)].abbr;
+    str.sprintf(" %s ", wday);
+    concatOffset(i.utcoffset, str);
+    // only concat zone name if it exists and is not the same as the offset just output
+    if (*i.zname && *i.zname != '+' && *i.zname != '-')
+        str.sprintf(" (%s)", i.zname);
 }
 
 qore_absolute_time &qore_absolute_time::operator+=(const qore_relative_time &dt) {

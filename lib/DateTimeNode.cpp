@@ -39,13 +39,15 @@ DateTimeNode::DateTimeNode(qore_date_private* n_priv) : SimpleValueQoreNode(NT_D
 DateTimeNode::DateTimeNode(bool r) : SimpleValueQoreNode(NT_DATE), DateTime(r) {
 }
 
-DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo* zone, const QoreValue v) : SimpleValueQoreNode(NT_DATE), DateTime(zone, v) {
+DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo* zone, const QoreValue v)
+        : SimpleValueQoreNode(NT_DATE), DateTime(zone, v) {
 }
 
 DateTimeNode::DateTimeNode(const QoreValue v) : SimpleValueQoreNode(NT_DATE), DateTime(v) {
 }
 
-DateTimeNode::DateTimeNode(int y, int mo, int d, int h, int mi, int s, short ms, bool r) : SimpleValueQoreNode(NT_DATE), DateTime(y, mo, d, h, mi, s, ms, r) {
+DateTimeNode::DateTimeNode(int y, int mo, int d, int h, int mi, int s, short ms, bool r)
+        : SimpleValueQoreNode(NT_DATE), DateTime(y, mo, d, h, mi, s, ms, r) {
 }
 
 DateTimeNode::DateTimeNode(int64 seconds) : SimpleValueQoreNode(NT_DATE), DateTime(seconds) {
@@ -57,10 +59,12 @@ DateTimeNode::DateTimeNode(int64 seconds, int ms) : SimpleValueQoreNode(NT_DATE)
 DateTimeNode::DateTimeNode(const char* date) : SimpleValueQoreNode(NT_DATE), DateTime(date) {
 }
 
-DateTimeNode::DateTimeNode(const char* date, ExceptionSink* xsink) : SimpleValueQoreNode(NT_DATE), DateTime(date, xsink) {
+DateTimeNode::DateTimeNode(const char* date, ExceptionSink* xsink) : SimpleValueQoreNode(NT_DATE),
+        DateTime(date, xsink) {
 }
 
-DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo* zone, const char* date) : SimpleValueQoreNode(NT_DATE), DateTime(zone, date) {
+DateTimeNode::DateTimeNode(const AbstractQoreZoneInfo* zone, const char* date) : SimpleValueQoreNode(NT_DATE),
+        DateTime(zone, date) {
 }
 
 DateTimeNode::DateTimeNode(struct tm* tms) : SimpleValueQoreNode(NT_DATE), DateTime(tms) {
