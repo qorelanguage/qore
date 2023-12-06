@@ -36,6 +36,10 @@ public class DiscordGatewayDataProvider inherits DataProvider::AbstractDataProvi
             "type": "DiscordGatewayDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_observable": True,
+            "supports_connections": True,
+            "supports_auto_reconnect": True,
+            "connection_event": EVENT_WS_CONNECTED,
+            "disconnection_event": EVENT_WS_CLOSED,
         };
 
         #! Constructor options
@@ -160,6 +164,22 @@ public class DiscordGatewayDataProvider inherits DataProvider::AbstractDataProvi
             ws = new DiscordWebSocketClient(opts);
         }
         return ws;
+    }
+
+    #! Returns connection info
+    /** @return the connection hash; see @ref WebSocketClient::getConnectionInfo() for information about the \c info
+        key
+
+        @since DataProvider 3.0
+    */
+    private *hash<DataProviderConnectionInfo> getConnectionInfoImpl() {
+        return <DataProviderConnectionInfo>{
+            "connected": ws.isOpen(),
+            "reconnecting": ws.isReconnecting(),
+            "auto_reconnect": ws.getReconnect(),
+            "url": ws.getUrl(),
+            "info": ws.getConnectionInfo(),
+        };
     }
 
     #! Returns a hash of all supported event types

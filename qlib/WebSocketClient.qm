@@ -574,6 +574,7 @@ ws.connect();
         tid = start_thread ? start_thread(\eventLoop()) : background eventLoop();
 %endif
 
+        logDebug("WS I/O thread started with TID %d", tid);
         return h;
     }
 
@@ -641,6 +642,7 @@ ws.connect();
             # wait for the event thread to terminate
             c.waitForZero();
         }
+        hc.disconnect();
     }
 
     #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
@@ -977,6 +979,8 @@ ws.setEventQueue();
             if (self) {
                 c.dec();
             }
+
+            logDebug("WS I/O thread with TID %d terminating", gettid());
         }
 
         # data buffer for fragmented frames
@@ -1078,11 +1082,12 @@ ws.setEventQueue();
             } catch (hash<ExceptionInfo> ex) {
                 ++retries;
                 if (MaxReconnectRetries > 0 && (retries == MaxReconnectRetries)) {
-                    logError("reconnect %d: failed (%s: %s); max retries exhausted", retries, ex.err, ex.desc);
+                    logError("Reconnect %d: failed (%s: %s); max retries exhausted", retries, ex.err, ex.desc);
                     rethrow;
                 }
-                logInfo("reconnect %d: failed to connect to WebSocket server: %s: %s; sleeping for %y and "
+                logInfo("Reconnect %d: failed to connect to WebSocket server: %s: %s; sleeping for %y and "
                     "retrying", retries, ex.err, ex.desc, ReconnectDelay);
+
                 # Use the Mutex and Condition variable to delay, because sleep() is protected with
                 # PO_NO_PROCESS_CONTROL
                 AutoLock al(m);
@@ -1090,7 +1095,7 @@ ws.setEventQueue();
             }
         }
         if (stop) {
-            logInfo("reconnect %d: interrupted by disconnect request", retries);
+            logInfo("Reconnect %d: interrupted by disconnect request", retries);
         }
 
         reconnectPostamble();
@@ -1398,9 +1403,9 @@ class MyObserver inherits Observer {
         return serialization;
     }
 
-    #! Performs the HTTP socket connection to the WebSocket server
-    private hash<auto> connectUnlocked(*hash<auto> hdr0, *reference<hash<auto>> info, *bool reconnect) {
-        hash<auto> rv = WebSocketClient::connectUnlocked(hdr0, \info, reconnect);
+    #! Connects to the websocket server
+    private hash<auto> connectIntern(*hash<auto> opts, *reference<hash<auto>> info, *bool reconnect) {
+        hash<auto> rv = WebSocketClient::connectIntern(opts, \info, reconnect);
         notifyObservers(EVENT_WS_CONNECTED, {});
         return rv;
     }
