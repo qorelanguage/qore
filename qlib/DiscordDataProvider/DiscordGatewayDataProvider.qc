@@ -110,7 +110,7 @@ public class DiscordGatewayDataProvider inherits DataProvider::AbstractDataProvi
     }
 
     #! Returns information about the connection
-    hash<auto> getInfo() {
+    hash<auto> getWebSocketInfo() {
         return ws ? ws.getInfo() : {};
     }
 
@@ -128,7 +128,7 @@ public class DiscordGatewayDataProvider inherits DataProvider::AbstractDataProvi
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Discord WebSocket API data provider for `%s`", ws.getSafeURL());
+        return sprintf("Discord WebSocket API data provider for `%s`", ws.getSafeUrl());
     }
 
     #! Accepts a LoggerInterface object for logging (or clears it)
@@ -155,6 +155,7 @@ public class DiscordGatewayDataProvider inherits DataProvider::AbstractDataProvi
                 "intents",
             } + {
                 "logger": logger,
+                "reconnect": True,
             };
             ws = new DiscordWebSocketClient(opts);
         }

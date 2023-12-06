@@ -69,8 +69,9 @@ class WebSocketClientTest inherits QUnit::Test {
     public {
         HttpServer mServer;
         MyWsHandler wsHandler();
-        int port;
         int responseSize;
+        # listener info
+        hash<auto> linfo;
 
         Logger logger;
 
@@ -82,6 +83,7 @@ class WebSocketClientTest inherits QUnit::Test {
     }
 
     constructor() : Test("WebSocketClientTest", "1.0") {
+        addTestCase("reconnect test", \reconnectTest());
         addTestCase("data provider test", \dataProviderTest());
         addTestCase("WebSocketClient tests", \webSocketClientTests());
         addTestCase("connection tests", \connectionTests());
@@ -97,17 +99,79 @@ class WebSocketClientTest inherits QUnit::Test {
         mServer = new HttpServer(http_opts);
         mServer.setHandler("ws-handler", "", NOTHING, wsHandler);
         mServer.setDefaultHandler("ws-handler", wsHandler);
-        port = mServer.addListener(<HttpListenerOptionInfo>{"service": 0}).port;
+        linfo = mServer.addListener(<HttpListenerOptionInfo>{"service": 0});
 
         set_return_value(main());
 
         mServer.stop();
     }
 
+    reconnectTest() {
+        MyObserver observer();
+        WebSocketClientDelayedDataProvider prov({
+            "url": "ws://localhost:" + linfo.port,
+            "data": "none",
+            "logger": logger,
+            "reconnect": True,
+        });
+        prov.registerObserver(observer);
+        prov.observersReady();
+
+        prov.sendMessage(MESSAGE_WS_PING, "hb");
+
+        observer.wait(EVENT_WS_PONG);
+        assertEq(2, observer.l.size());
+        assertEq(EVENT_WS_CONNECTED, observer.getFirstMessageId());
+        assertEq(EVENT_WS_PONG, observer.getLastMessageId());
+
+        assertTrue(prov.isConnected());
+        hash<DataProviderConnectionInfo> cinfo = prov.getConnectionInfo();
+        assertTrue(cinfo.connected);
+        assertFalse(cinfo.reconnecting);
+        assertGe(0, cinfo.info.cid);
+        assertEq(1, cinfo.info.num_connects);
+        assertEq(linfo.port, cinfo.info.peer.port);
+
+        # stop the listener
+        mServer.stopListenerID(linfo.id);
+
+        # check reconnecting status
+        assertFalse(prov.isConnected());
+
+        cinfo = prov.getConnectionInfo();
+        assertFalse(cinfo.connected);
+        assertTrue(cinfo.reconnecting);
+        assertNothing(cinfo.info.peer);
+        assertNothing(cinfo.info.socket);
+
+        # clear the observer's event list
+        observer.clear();
+
+        # restart listener on the same port
+        linfo = mServer.addListener(<HttpListenerOptionInfo>{"service": linfo.port});
+
+        # wait for reconnect
+        observer.wait(EVENT_WS_CONNECTED);
+
+        cinfo = prov.getConnectionInfo();
+        assertTrue(cinfo.connected);
+        assertFalse(cinfo.reconnecting);
+        assertGt(0, cinfo.info.cid);
+        assertEq(2, cinfo.info.num_connects);
+        assertEq(linfo.port, cinfo.info.peer.port);
+
+        # redo ping test
+        prov.sendMessage(MESSAGE_WS_PING, "hb");
+
+        observer.wait(EVENT_WS_PONG);
+        assertEq(2, observer.l.size());
+        assertEq(EVENT_WS_PONG, observer.getLastMessageId());
+    }
+
     dataProviderTest() {
         MyObserver observer();
         WebSocketClientDelayedDataProvider prov({
-            "url": "ws://localhost:" + port,
+            "url": "ws://localhost:" + linfo.port,
             "data": "none",
             "logger": logger,
         });
@@ -116,9 +180,10 @@ class WebSocketClientTest inherits QUnit::Test {
 
         prov.sendMessage(MESSAGE_WS_PING, "hb");
 
-        observer.wait();
-        assertEq(1, observer.l.size());
-        assertEq(EVENT_WS_PONG, observer.l[0].id);
+        observer.wait(EVENT_WS_PONG);
+        assertEq(2, observer.l.size());
+        assertEq(EVENT_WS_CONNECTED, observer.getFirstMessageId());
+        assertEq(EVENT_WS_PONG, observer.getLastMessageId());
 
         AbstractDataProvider child = prov.getChildProvider("wait-for-message");
         prov.sendMessage(MESSAGE_WS_DATA, "hi");
@@ -143,7 +208,7 @@ class WebSocketClientTest inherits QUnit::Test {
         };
         responseSize = Data.size();
         hash<auto> opts = {
-            "url": "ws://localhost:" + port,
+            "url": "ws://localhost:" + linfo.port,
             "logger": logger,
         };
         WebSocketClient wsc(cb, opts);
@@ -200,17 +265,40 @@ class MyObserver inherits Observer {
         }
     }
 
-    wait() {
+    wait(*string msg) {
         date start = now_us();
 
         m.lock();
         on_exit m.unlock();
 
-        while (!l) {
+        bool found;
+        while (!found) {
             cond.wait(m, 1s);
             if ((now_us() - start) > 5s) {
-                throw "ERROR", "no data received in timeout";
+                throw "ERROR", sprintf("no matching data received in timeout; msg: %y l: %y", msg, l);
+            }
+            if (!msg.val()) {
+                if (l) {
+                    found = True;
+                }
+            } else if (l.last().id == msg) {
+                found = True;
             }
         }
+    }
+
+    *string getFirstMessageId() {
+        return l[0].id;
+    }
+
+    *string getLastMessageId() {
+        return l.last().id;
+    }
+
+    clear() {
+        m.lock();
+        on_exit m.unlock();
+
+        l = ();
     }
 }

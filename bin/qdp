@@ -261,12 +261,18 @@ class QdpCmd {
     }
 
     static event(AbstractDataProvider provider) {
-        string event = QdpCmd::getString("event", True);
+        *string event = QdpCmd::getString("event");
+        if (!exists event) {
+            QdpCmd::error("missing required event argument; valid events: %y", keys provider.getEventTypes());
+        }
         QdpCmd::showType(event, provider.getEventInfo(event));
     }
 
     static exampleEvent(AbstractDataProvider provider) {
-        string event = QdpCmd::getString("event", True);
+        *string event = QdpCmd::getString("event");
+        if (!exists event) {
+            QdpCmd::error("missing required event argument; valid events: %y", keys provider.getEventTypes());
+        }
         printf("%N\n", provider.getExampleEventData(event));
     }
 
@@ -430,8 +436,12 @@ class QdpCmd {
 
     static interactive(AbstractDataProvider provider) {
         provider.checkObservable();
-        provider.checkMessages();
-        MyObserver observer();
+        {
+            on_error rethrow $1.err, sprintf("%s (try using \"listen\" instead)", $1.desc);
+            provider.checkMessages();
+        }
+        hash<DataProviderInfo> info = provider.getInfo();
+        MyObserver observer(info);
         Observable observable = cast<Observable>(provider);
 
         ix = True;
@@ -491,13 +501,17 @@ class QdpCmd {
     }
 
     static message(AbstractDataProvider provider) {
-        string message = QdpCmd::getString("message", True);
+        *string message = QdpCmd::getString("message");
+        if (!exists message) {
+            QdpCmd::error("missing required message argument; valid messages: %y", keys provider.getMessageTypes());
+        }
         QdpCmd::showType(message, provider.getMessageInfo(message));
     }
 
     static listen(AbstractDataProvider provider) {
         provider.checkObservable();
-        MyObserver observer();
+        hash<DataProviderInfo> info = provider.getInfo();
+        MyObserver observer(info);
         Observable observable = cast<Observable>(provider);
 
         # print a message
@@ -980,21 +994,59 @@ class Term {
 }
 
 class MyObserver inherits Observer {
+    public {}
+
+    private {
+        hash<DataProviderInfo> info;
+        TermIOS t();
+    }
+
+    constructor(hash<DataProviderInfo> info) {
+        self.info = info;
+        # get current terminal attributes for stdin
+        stdin.getTerminalAttributes(t);
+    }
+
     update(string event_id, hash<auto> data_) {
-        string eventstr = sprintf("%N", data_);
-        string msg = sprintf("< %s received event %y:\n< %s\n", now_us().format("YYYY-MM-DD HH:mm:SS.xx"), event_id,
-            eventstr);
-%ifndef NoLinenoise
-        msg =~ s/\n/\015\012/g;
-%endif
-        if (QdpCmd::ix) {
-            stdout.print("\r");
+        string msg = sprintf("received event %y:", event_id);
+        if (!data_) {
+            msg += " no data";
         }
-        stdout.print(msg);
+        log("<", msg);
+        if (data_) {
+            log("<", "data: %N", data_);
+        }
+        if (info.connection_event == event_id) {
+            log("<", "connected to server");
+        } else if (info.disconnection_event == event_id) {
+            if (info.supports_auto_reconnect) {
+                log("<", "disconnected from server; trying to reconnect...");
+            } else {
+                log("<", "disconnected from server; auto_reconnect not enabled; exiting");
+                # restore original terminal attributes
+                stdin.setTerminalAttributes(TCSADRAIN, t);
+                exit(0);
+            }
+        }
         if (QdpCmd::ix) {
             stdout.print("> ");
         }
         stdout.sync();
+    }
+
+    log(string inout, string fmt, ...) {
+        if (QdpCmd::ix) {
+            stdout.print("\r");
+        }
+        fmt = sprintf("%s %s ", inout, now_us().format("YYYY-MM-DD HH:mm:SS.xx")) + fmt;
+        string msg = vsprintf(fmt, argv);
+%ifndef NoLinenoise
+        msg =~ s/\n/\015\012/g;
+%endif
+        stdout.print(msg + "\n");
+        if (QdpCmd::ix) {
+            stdout.print("\r");
+        }
     }
 }
 
@@ -1072,7 +1124,6 @@ class InputHelper {
     destructor() {
 %ifndef NoLinenoise
         Linenoise::history_save(path);
-
 %endif
     }
 
@@ -1098,7 +1149,16 @@ class InputHelper {
                 continue;
             }
             if (line == "info") {
-                printf("connected to: %y: %s\n", provider.getName(), provider.getDesc());
+                string msg = sprintf("using: %y: %s", provider.getName(), provider.getDesc());
+                *hash<DataProviderConnectionInfo> cinfo = provider.getConnectionInfo();
+                if (cinfo.url) {
+                    msg += sprintf(" (%s connected: %y auto reconnect: %y)", cinfo.url, cinfo.connected,
+                        cinfo.auto_reconnect);
+                }
+                print(msg + "\n");
+                if (cinfo.info) {
+                    printf("info: %N\n", cinfo.info);
+                }
                 print("messages:\n");
                 map (printf("+ %y: ", $1.key), QdpCmd::showType($1.value.type)),
                     provider.getMessageTypes().pairIterator();

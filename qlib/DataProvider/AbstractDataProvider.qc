@@ -165,6 +165,16 @@ public hashdecl DataProviderSummaryInfo {
     */
     string supports_messages = MSG_None;
 
+    #! Does the data provider support connections and connection status reporting?
+    /** @since DataProvider 3.0
+    */
+    bool supports_connections = False;
+
+    #! Does the data provider support automatic reconnection?
+    /** @since DataProvider 3.0
+    */
+    bool supports_auto_reconnect = False;
+
     #! Can any child data providers offer API services (request - response data providers)?
     /** @since DataProvider 2.7
     */
@@ -619,6 +629,16 @@ public hashdecl DataProviderInfo {
     */
     string supports_messages = MSG_None;
 
+    #! Does the data provider support connections and connection status reporting?
+    /** @since DataProvider 3.0
+    */
+    bool supports_connections = False;
+
+    #! Does the data provider support automatic reconnection?
+    /** @since DataProvider 3.0
+    */
+    bool supports_auto_reconnect = False;
+
     #! Can any child data providers offer API services (request - response data providers)?
     /** @since DataProvider 2.6
     */
@@ -759,10 +779,38 @@ public hashdecl DataProviderInfo {
     */
     hash<string, hash<MapperRuntimeKeyInfo>> mapper_keys = Mapper::MapperKeyInfo;
 
+    #! Connection event for event-based connection-capable data providers
+    /** @since DataProvider 3.0
+    */
+    *string connection_event;
+
+    #! Disconnection event for event-based connection-capable data providers
+    /** @since DataProvider 3.0
+    */
+    *string disconnection_event;
+
     #! A list of child data providers in this data provider
     /** @note this is a dynamic attribute; it differs for different data providers of the same type
     */
     *list<string> children;
+}
+
+#! Data provider connection info
+public hashdecl DataProviderConnectionInfo {
+    #! Is the underlying transport connected?
+    bool connected;
+
+    #! Is a reconnect in progress?
+    bool reconnecting;
+
+    #! Is auto reconnect supported?
+    bool auto_reconnect;
+
+    #! Any target URL if available
+    *string url;
+
+    #! Additional data-provider-dependent connection information
+    *hash<auto> info;
 }
 
 #! The AbstractDataProvider class
@@ -1807,6 +1855,15 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         return getExampleRecordDataImpl();
     }
 
+    #! Returns connection info if the data provider supports connections, otherwise returns @ref NOTHING
+    /** @return connection info if the data provider supports connections, otherwise returns @ref NOTHING
+
+        @since DataProvider 3.0
+    */
+    *hash<DataProviderConnectionInfo> getConnectionInfo() {
+        return getConnectionInfoImpl();
+    }
+
     #! Return data provider summary info
     /** @note This creates an AbstractDataProvider object for each child; for cases when this is expensive, this
         method must be overridden / reimplemented in the child class for performance reasons
@@ -2668,70 +2725,6 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         return False;
     }
 
-    #! thrown an exception
-    private error(string err, string fmt, ...) {
-        string desc_name;
-        # the getName() method cannot be run in the constructor before the object has been created and the name set
-        try {
-            desc_name = sprintf("%y (%y)", getName(), self.className());
-        } catch (hash<ExceptionInfo> ex) {
-            # this block intentionally left blank
-        }
-        if (!desc_name) {
-            desc_name = sprintf("class %y", self.className());
-        }
-        throw err, sprintf("data provider %s: %s", desc_name, vsprintf(fmt, argv));
-    }
-
-    #! Returns the first record matching the search options
-    /** @param where_cond the search criteria
-        @param search_options the search options after processing by validateSearchOptions()
-
-        @note This default method returns immediately as soon as the first matching record is found
-    */
-    private *hash<auto> searchFirstRecordImpl(hash<auto> where_cond,
-            *hash<auto> search_options) {
-        # scans the whole data set to find a single record
-        AbstractDataProviderRecordIterator i = searchRecordsImpl(where_cond, search_options);
-        if (i.next()) {
-            return i.getValue();
-        }
-    }
-
-    #! Returns a single record matching the search options
-    /** @param where_cond the search criteria
-        @param search_options the search options after processing by validateSearchOptions()
-
-        @throw MULTIPLE-RECORDS-ERROR multiple records found
-
-        @note This default methods searches the entire data set for a matching record
-    */
-    private *hash<auto> searchSingleRecordImpl(hash<auto> where_cond,
-            *hash<auto> search_options) {
-        # scans the whole data set to find a single record
-        *list<*hash<auto>> records = map $1, searchRecordsImpl(where_cond, search_options);
-        if (records.lsize() > 1) {
-            error("MULTIPLE-RECORDS-ERROR", "%d records found for search: %y", records.size(), where_cond);
-        }
-        return records[0];
-    }
-
-    #! Returns a list of child data provider names, if any
-    /** @return a list of child data provider names, if any
-
-        This base class method returns @ref nothing
-    */
-    private *list<string> getChildProviderNamesImpl() {
-        # this method intentionally left empty
-    }
-
-    #! Returns the given child provider or @ref nothing if the given child is unknown
-    /** @return the given child provider or @ref nothing if the given child is unknown
-    */
-    private *AbstractDataProvider getChildProviderImpl(string name) {
-        # this method intentionally left empty
-    }
-
     #! Returns the description of the record type, if any
     /** @param search_options to be included and processed by validateSearchOptions() if
         \a recordRequiresSearchOptions() is @ref True for this provider, otherwise any value provided in this argument
@@ -3017,6 +3010,79 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     */
     *object getSchemaType() {
         return getStaticInfoImpl().schema_type;
+    }
+
+    #! thrown an exception
+    private error(string err, string fmt, ...) {
+        string desc_name;
+        # the getName() method cannot be run in the constructor before the object has been created and the name set
+        try {
+            desc_name = sprintf("%y (%y)", getName(), self.className());
+        } catch (hash<ExceptionInfo> ex) {
+            # this block intentionally left blank
+        }
+        if (!desc_name) {
+            desc_name = sprintf("class %y", self.className());
+        }
+        throw err, sprintf("data provider %s: %s", desc_name, vsprintf(fmt, argv));
+    }
+
+    #! Returns the first record matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @note This default method returns immediately as soon as the first matching record is found
+    */
+    private *hash<auto> searchFirstRecordImpl(hash<auto> where_cond,
+            *hash<auto> search_options) {
+        # scans the whole data set to find a single record
+        AbstractDataProviderRecordIterator i = searchRecordsImpl(where_cond, search_options);
+        if (i.next()) {
+            return i.getValue();
+        }
+    }
+
+    #! Returns a single record matching the search options
+    /** @param where_cond the search criteria
+        @param search_options the search options after processing by validateSearchOptions()
+
+        @throw MULTIPLE-RECORDS-ERROR multiple records found
+
+        @note This default methods searches the entire data set for a matching record
+    */
+    private *hash<auto> searchSingleRecordImpl(hash<auto> where_cond,
+            *hash<auto> search_options) {
+        # scans the whole data set to find a single record
+        *list<*hash<auto>> records = map $1, searchRecordsImpl(where_cond, search_options);
+        if (records.lsize() > 1) {
+            error("MULTIPLE-RECORDS-ERROR", "%d records found for search: %y", records.size(), where_cond);
+        }
+        return records[0];
+    }
+
+    #! Returns a list of child data provider names, if any
+    /** @return a list of child data provider names, if any
+
+        This base class method returns @ref nothing
+    */
+    private *list<string> getChildProviderNamesImpl() {
+        # intentionally empty
+    }
+
+    #! Returns the given child provider or @ref nothing if the given child is unknown
+    /** @return the given child provider or @ref nothing if the given child is unknown
+    */
+    private *AbstractDataProvider getChildProviderImpl(string name) {
+        # intentionally empty
+    }
+
+    #! Returns connection info if the data provider supports connections, otherwise returns @ref NOTHING
+    /** @return connection info if the data provider supports connections, otherwise returns @ref NOTHING
+
+        @since DataProvider 3.0
+    */
+    private *hash<DataProviderConnectionInfo> getConnectionInfoImpl() {
+        # intentionally empty
     }
 
     #! Generates example data for the given fields

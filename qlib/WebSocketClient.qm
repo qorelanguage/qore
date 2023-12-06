@@ -291,16 +291,32 @@ public const WSC_Break = 2;
 public const WsDefaultPort = 80;
 
 #! WebSocket data event constant
+/** The event data has the following key:
+    - \c data: the message data
+*/
 public const EVENT_WS_DATA = "ws-data-event";
 
 #! WebSocket ping event constant
+/** The event data has the following key:
+    - \c data: the message data
+*/
 public const EVENT_WS_PING = "ws-ping-event";
 
 #! WebSocket pong event constant
+/** The event data has the following key:
+    - \c data: the message data
+*/
 public const EVENT_WS_PONG = "ws-pong-event";
 
 #! WebSocket connection closed event constant
+/** This event has no data
+*/
 public const EVENT_WS_CLOSED = "ws-closed-event";
+
+#! WebSocket connected event type
+/** This event has no data
+*/
+public const EVENT_WS_CONNECTED = "ws-connected-event";
 
 #! WebSocket data message type
 /** Sends a WebSocket message to the remote end; the message will be serialized according to the serialization option
@@ -365,6 +381,7 @@ public class WebSocketClient inherits Logger::LoggerWrapper, ConnectionProvider:
 
     private {
         Mutex m();
+        Condition sleep_cond();
         HTTPClient hc;
         int stop = 0;
         Counter c();
@@ -373,7 +390,7 @@ public class WebSocketClient inherits Logger::LoggerWrapper, ConnectionProvider:
         code pong_callback;
         timeout timeout_ms = DefaultTimeout;
         #! Reconnect flag
-        bool reconnect;
+        bool reconnect = False;
         #! TID of the event thread
         int tid;
         #! unique websocket connection ID; -1 when not connected
@@ -382,6 +399,9 @@ public class WebSocketClient inherits Logger::LoggerWrapper, ConnectionProvider:
         *code yield;
         #! callable value to start a new thread; must take a callable object as a parameter and return an integer TID
         *code start_thread;
+
+        #! Total number of connections made
+        int num_connects;
 
         #! protocol version level (8 or 13)
         softint ws_ver;
@@ -448,7 +468,10 @@ WebSocketClient ws(\event(), {
 
     #! disconnects the connection and stops the event thread if connected
     destructor() {
-        disconnect();
+        if (reconnect) {
+            reconnect = False;
+        }
+        disconnectIntern(WSCC_GoingAway, True);
     }
 
     #! returns the URL given in the constructor
@@ -469,6 +492,11 @@ WebSocketClient ws(\event(), {
     #! returns a hash of URL scheme information for URL schemes supported by this object
     hash<auto> getSchemes() {
         return WsSchemes;
+    }
+
+    #! Returns the value of the reconnect flag
+    bool getReconnect() {
+        return reconnect;
     }
 
     #! Connects to the websocket server
@@ -545,6 +573,7 @@ ws.connect();
 %else
         tid = start_thread ? start_thread(\eventLoop()) : background eventLoop();
 %endif
+
         return h;
     }
 
@@ -566,13 +595,51 @@ ws.connect();
         disconnectIntern(cmd);
     }
 
+    #! Returns @ref True if the client is reconnecting
+    bool isReconnecting() {
+        return num_connects && !isOpen();
+    }
+
+    #! Returns information about the current connection
+    /** @returns a hash with the following keys:
+        - \c cid: the WebSocket client connection ID
+        - \c num_connects: how many times has the client connected to the server
+        - \c peer: information about the connected server socket (see
+          @ref Qore::Socket::getPeerInfo() "Socket::getPeerInfo()")
+        - \c socket: information about the connected local socket (see
+          @ref Qore::Socket::getSocketInfo() "Socket::getSocketInfo()")
+    */
+    *hash<auto> getConnectionInfo() {
+        # use += to keep "hash<auto>"
+        hash<auto> rv += {
+            "cid": cid,
+            "num_connects": num_connects,
+        };
+        try {
+            rv += {
+                "peer": hc.getPeerInfo(),
+                "socket": hc.getSocketInfo(),
+            };
+        } catch (hash<ExceptionInfo> ex) {
+            # ignore exceptions when not connected and return NOTHING
+        }
+        return rv;
+    }
+
     #! Disconnect with the given @ref closecodes "close code"
-    private disconnectIntern(int cmd = WSCC_GoingAway) {
-        m.lock();
-        on_exit m.unlock();
+    private disconnectIntern(int cmd = WSCC_GoingAway, *bool destroy) {
+        AutoLock al(m);
 
         if (hc.isOpen()) {
             disconnectUnlocked(cmd);
+        } else if (destroy && tid && tid != gettid() && c.getCount()) {
+            # wait for reconnect thread to stop if deleting when disconnected and reconnecting
+            stop = -1;
+            # wake up any sleeping threads
+            sleep_cond.broadcast();
+            delete al;
+            # wait for the event thread to terminate
+            c.waitForZero();
         }
     }
 
@@ -857,6 +924,9 @@ ws.setEventQueue();
         # cannot wait for the event thread to terminate, as there would be a deadlock
         if (tid != gettid()) {
             stop = cmd;
+            # wake up any sleeping threads
+            sleep_cond.broadcast();
+            # wait for the event thread to terminate
             c.waitForZero();
             cid = -1;
             remove tid;
@@ -970,16 +1040,25 @@ ws.setEventQueue();
             hc.shutdown();
             hc.close();
         }
-        #logDebug("Disconnected websocket connection");
 
-        if (reconnect && !stop && self) {
+        if (!self) {
+            return;
+        }
+        if (reconnect && !stop) {
             c.inc();
             on_error c.dec();
 %ifdef PO_NO_THREAD_CONTROL
-            start_thread(\doReconnect());
+            tid = start_thread(\doReconnect());
 %else
             tid = start_thread ? start_thread(\doReconnect()) : background doReconnect();
 %endif
+            logInfo("Disconnected websocket connection; starting reconnect in TID %d", tid);
+        } else {
+            if (stop) {
+                logInfo("Disconnected websocket connection on external request");
+            } else {
+                logInfo("Disconnected websocket connection; reconnect flag not set");
+            }
         }
     }
 
@@ -990,31 +1069,28 @@ ws.setEventQueue();
         reconnectPreamble();
 
         # connect to the new gateway
-        {
-            int retries = 0;
-            while (True) {
-                hash<auto> info;
-                try {
-                    reestablishConnection(\info);
-                    break;
-                } catch (hash<ExceptionInfo> ex) {
-                    ++retries;
-                    if (MaxReconnectRetries > 0 && (retries == MaxReconnectRetries)) {
-                        logError("reconnect %d: failed (%s: %s); max retries exhausted", retries, ex.err, ex.desc);
-                        rethrow;
-                    }
-                    logInfo("reconnect %d: failed to connect to WebSocket server: %s: %s; sleeping for %y and "
-                        "retrying", retries, ex.err, ex.desc, ReconnectDelay);
-                    # use a Mutex and Condition variable to delay, because sleep() is protected with
-                    # PO_NO_PROCESS_CONTROL
-                    Mutex m();
-                    Condition sleep_cond();
-                    {
-                        AutoLock al(m);
-                        sleep_cond.wait(m, ReconnectDelay);
-                    }
+        int retries = 0;
+        while (!stop) {
+            hash<auto> info;
+            try {
+                reestablishConnection(\info);
+                break;
+            } catch (hash<ExceptionInfo> ex) {
+                ++retries;
+                if (MaxReconnectRetries > 0 && (retries == MaxReconnectRetries)) {
+                    logError("reconnect %d: failed (%s: %s); max retries exhausted", retries, ex.err, ex.desc);
+                    rethrow;
                 }
+                logInfo("reconnect %d: failed to connect to WebSocket server: %s: %s; sleeping for %y and "
+                    "retrying", retries, ex.err, ex.desc, ReconnectDelay);
+                # Use the Mutex and Condition variable to delay, because sleep() is protected with
+                # PO_NO_PROCESS_CONTROL
+                AutoLock al(m);
+                sleep_cond.wait(m, ReconnectDelay);
             }
+        }
+        if (stop) {
+            logInfo("reconnect %d: interrupted by disconnect request", retries);
         }
 
         reconnectPostamble();
@@ -1181,6 +1257,7 @@ ws.setEventQueue();
         }
     }
 
+    #! Performs the HTTP socket connection to the WebSocket server
     private hash<auto> connectUnlocked(*hash<auto> hdr0, *reference<hash<auto>> info, *bool reconnect) {
         # in case hdr0 is hash<string, int> or similar
         hash<auto> hdr = {
@@ -1227,6 +1304,7 @@ ws.setEventQueue();
         }
 
         logInfo("Connected to %y (open: %y)", hc.getURL(), hc.isOpen());
+        ++num_connects;
         stop = 0;
         cid = seq.next();
 
@@ -1320,6 +1398,13 @@ class MyObserver inherits Observer {
         return serialization;
     }
 
+    #! Performs the HTTP socket connection to the WebSocket server
+    private hash<auto> connectUnlocked(*hash<auto> hdr0, *reference<hash<auto>> info, *bool reconnect) {
+        hash<auto> rv = WebSocketClient::connectUnlocked(hdr0, \info, reconnect);
+        notifyObservers(EVENT_WS_CONNECTED, {});
+        return rv;
+    }
+
     #! Connects and starts receiving messages
     private start() {
         hash<auto> info;
@@ -1360,6 +1445,12 @@ class MyObserver inherits Observer {
                 serialization);
         }
         return WSEDC_CONTINUE;
+    }
+
+    #! Got a ping message
+    private handlePing(hash<auto> h) {
+        WebSocketClient::handlePing(h);
+        notifyObservers(EVENT_WS_PING, {"data": h.msg});
     }
 
     #! Got a pong message
@@ -1648,10 +1739,14 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
             "supports_children": True,
             "supports_observable": True,
             "supports_messages": MSG_Async,
+            "supports_connections": True,
+            "supports_auto_reconnect": True,
             "children_can_support_apis": True,
             "constructor_options": ConstructorOptions,
             "required_constructor_options": RequiredConstructorOptions,
             "desc": "Allows sending and receiving WebSocket messages to and from a WebSocket server",
+            "connection_event": EVENT_WS_CONNECTED,
+            "disconnection_event": EVENT_WS_CLOSED,
         };
 
         #! Constructor options
@@ -1747,13 +1842,6 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 "desc": "Automatically reconnect when the connection is closed or lost",
                 "default_value": False,
             },
-            "report_pings": <DataProviderOptionInfo>{
-                "display_name": "Report Pings",
-                "short_desc": "Raise events for pings",
-                "type": AbstractDataProviderTypeMap."bool",
-                "desc": "Raise events for ping message from clients",
-                "default_value": False,
-            },
             "timeout": <DataProviderOptionInfo>{
                 "display_name": "I/O Timeout",
                 "short_desc": "Maximum time a single I/O operation can take in milliseconds",
@@ -1789,8 +1877,7 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
                 "short_desc": "The WebSocketClientWithSerialization object",
                 "type": AbstractDataProviderType::get(new Type("WebSocketClientWithSerialization")),
                 "desc": "A `WebSocketClientWithSerialization` for the connection; either this or the `url` option must "
-                    "be provided; if this option is provided, then all other options except `report_pings` are "
-                    "ignored",
+                    "be provided; if this option is provided, then all other options are ignored",
             },
         };
 
@@ -1807,9 +1894,6 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         #! The web socket client itself
         WebSocketClientWithSerialization client;
 
-        #! report pings
-        bool report_pings;
-
         #! Mutex for wait for message child data provider handling
         Mutex m();
 
@@ -1823,7 +1907,6 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options, RequiredConstructorOptions);
-        report_pings = remove copts.report_pings;
         if (copts.wsclient) {
             client = copts.wsclient;
             if (copts.logger) {
@@ -1896,6 +1979,27 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
         client.observersReady();
     }
 
+    #! Returns True if the object is currently connected
+    bool isConnected() {
+        return client.isOpen();
+    }
+
+    #! Returns connection info
+    /** @return the connection hash; see @ref WebSocketClient::getConnectionInfo() for information about the \c info
+        key
+
+        @since DataProvider 3.0
+    */
+    private *hash<DataProviderConnectionInfo> getConnectionInfoImpl() {
+        return <DataProviderConnectionInfo>{
+            "connected": client.isOpen(),
+            "reconnecting": client.isReconnecting(),
+            "auto_reconnect": client.getReconnect(),
+            "url": client.getUrl(),
+            "info": client.getConnectionInfo(),
+        };
+    }
+
     #! Returns a list of child data provider names
     /** @return a list of child data provider names
     */
@@ -1924,6 +2028,10 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
     */
     private hash<string, hash<DataProviderMessageInfo>> getEventTypesImpl() {
         return {
+            EVENT_WS_CONNECTED: <DataProviderMessageInfo>{
+                "desc": "The event signaling that the channel has been connected",
+                "type": new HashDataType(),
+            },
             EVENT_WS_DATA: <DataProviderMessageInfo>{
                 "desc": "A data event; data will be deserialized according to the serialization option",
                 "type": new WebSocketClientEventDataType(),
@@ -2048,6 +2156,7 @@ public class WebSocketClientDataProvider inherits WebSocketClientDataProviderBas
         string safe_url = client.getSafeUrl();
         safe_url =~ s/^http/ws/;
         rv.desc = sprintf("WebSocket client to URL %y", safe_url);
+        rv.supports_auto_reconnect = client.getReconnect();
         return rv;
     }
 }
@@ -2082,6 +2191,7 @@ public class WebSocketClientDelayedDataProvider inherits WebSocketClientDataProv
         string safe_url = client.getSafeUrl();
         safe_url =~ s/^http/ws/;
         rv.desc = sprintf("WebSocket client to URL %y", safe_url);
+        rv.supports_auto_reconnect = client.getReconnect();
         return rv;
     }
 }

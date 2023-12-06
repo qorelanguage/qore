@@ -368,6 +368,9 @@ public hashdecl HttpServerOptionInfo {
     #! Debug flag
     bool debug = False;
 
+    #! Do not allow the last listener to be stopped
+    bool protect_last_listener = False;
+
     #! Headers to add in responses
     hash<auto> hdr = {
         "X-Powered-By": "Qore/" + Qore::VersionString,
@@ -508,6 +511,9 @@ public class HttpServer inherits HttpServer::AbstractLogger {
 
         #! logger
         *LoggerInterface logger;
+
+        #! Do not allow last listener to be stopped
+        bool protect_last_listener = False;
     }
     #! @endcond
 
@@ -563,6 +569,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         http_server_string = opts.name;
         debug = opts.debug;
         hdr = opts.hdr;
+        protect_last_listener = opts.protect_last_listener ?? False;
         logger = opts.logger ?? new Logger(http_server_string, LoggerLevel::getLevelInfo());
     }
 
@@ -572,6 +579,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         http_server_string = opts.name;
         debug = opts.debug;
         hdr = opts.hdr;
+        protect_last_listener = opts.protect_last_listener;
         logger = opts.logger ?? new Logger(http_server_string, LoggerLevel::getLevelInfo());
     }
 
@@ -883,14 +891,17 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         on_exit lm.exit();
 
         *int id = smap{bind};
-        if (!id)
+        if (!id) {
             id = nmap{bind};
+        }
 
-        if (!id)
+        if (!id) {
             throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with name or bind address %y", bind);
+        }
 
-        if (elements smap == 1)
+        if (protect_last_listener && (elements smap == 1)) {
             throw "HTTP-SERVER-ERROR", "cannot stop last listener";
+        }
 
         listeners{id}.stop();
     }
@@ -905,11 +916,13 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         lm.enter();
         on_exit lm.exit();
 
-        if (!listeners.hasKey(id))
+        if (!listeners.hasKey(id)) {
             throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
+        }
 
-        if (smap.size() == 1)
+        if (protect_last_listener && (smap.size() == 1)) {
             throw "HTTP-SERVER-ERROR", "cannot stop last listener";
+        }
 
         listeners{id}.stop();
     }
@@ -928,7 +941,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
             throw "INVALID-LISTENER-ERROR", sprintf("there is no listener with ID %d", id);
         }
 
-        if (smap.size() == 1) {
+        if (protect_last_listener && (smap.size() == 1)) {
             throw "HTTP-SERVER-ERROR", "cannot stop last listener";
         }
 
