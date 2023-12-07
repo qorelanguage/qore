@@ -498,7 +498,7 @@ hash<auto> h = ws.getInfo();
     #! Executes before a reconnect
     private reconnectPreamble() {
         stopHeartbeatThread();
-        disconnect();
+        disconnectIntern();
 
         if (!resume_gateway_url) {
             throw "DISCORD-ERROR", "Reconnect message received, but no resume_gateway_url is present";
