@@ -384,17 +384,29 @@ public class WebSocketClient inherits Logger::LoggerWrapper, ConnectionProvider:
         Condition sleep_cond();
         HTTPClient hc;
         int stop = 0;
-        Counter c();
+
         code callback;
         code raw_callback;
         code pong_callback;
         timeout timeout_ms = DefaultTimeout;
+
         #! Reconnect flag
         bool reconnect = False;
-        #! TID of the event thread
+
+        #! TID of the event thread; only changed in the log
+        /** Threads can wait for it to be cleared using tid_waiting and tid_cond
+        */
         int tid;
-        #! unique websocket connection ID; -1 when not connected
+
+        #! Event thread waiting count
+        int tid_waiting;
+
+        #! Event thread condition variable
+        Condition tid_cond();
+
+        #! Unique websocket connection ID; -1 when not connected
         int cid = -1;
+
         #! callable object to yield the current thread's execution
         *code yield;
         #! callable value to start a new thread; must take a callable object as a parameter and return an integer TID
@@ -409,6 +421,7 @@ public class WebSocketClient inherits Logger::LoggerWrapper, ConnectionProvider:
         #! URL string
         string url;
 
+        #! Connection sequence
         static Sequence seq();
 
         #! Event disposition code: continue processing event loop
@@ -546,38 +559,6 @@ ws.connect();
         return connectIntern(opts, \info);
     }
 
-    #! Connects to the websocket server
-    private hash<auto> connectIntern(*hash<auto> opts, *reference<hash<auto>> info, *bool reconnect) {
-        if (opts.hdr && opts.hdr.typeCode() != NT_HASH) {
-            raiseError("option hash to WebSocketClient::connect() 'hdr' key not assigned to a hash; type "
-                "received: %y", opts.hdr.fullType());
-        }
-
-        m.lock();
-        on_exit m.unlock();
-
-        if (hc.isOpen()) {
-            disconnectUnlocked();
-        }
-
-        hash<auto> h = connectUnlocked(opts.hdr, \info, reconnect);
-        c.inc();
-        on_error {
-            remove tid;
-            c.dec();
-        }
-
-        stop = 0;
-%ifdef PO_NO_THREAD_CONTROL
-        tid = start_thread(\eventLoop());
-%else
-        tid = start_thread ? start_thread(\eventLoop()) : background eventLoop();
-%endif
-
-        logDebug("WS I/O thread started with TID %d", tid);
-        return h;
-    }
-
     #! returns @ref True "True" if the connection is currently open and active, @ref False "False" if not
     bool isOpen() {
         m.lock();
@@ -627,22 +608,51 @@ ws.connect();
         return rv;
     }
 
+    #! Connects to the websocket server
+    private hash<auto> connectIntern(*hash<auto> opts, *reference<hash<auto>> info, *bool reconnect) {
+        if (opts.hdr && opts.hdr.typeCode() != NT_HASH) {
+            raiseError("option hash to WebSocketClient::connect() 'hdr' key not assigned to a hash; type "
+                "received: %y", opts.hdr.fullType());
+        }
+
+        m.lock();
+        on_exit m.unlock();
+
+        if (hc.isOpen()) {
+            disconnectUnlocked();
+        }
+
+        hash<auto> h = connectUnlocked(opts.hdr, \info, reconnect);
+        on_error {
+            clearTid();
+        }
+
+%ifdef PO_NO_THREAD_CONTROL
+        updateTid(start_thread(\eventLoop()));
+%else
+        updateTid(start_thread ? start_thread(\eventLoop()) : background eventLoop());
+%endif
+
+        logDebug("WS I/O thread started with TID %d", tid);
+        return h;
+    }
+
     #! Disconnect with the given @ref closecodes "close code"
     private disconnectIntern(int cmd = WSCC_GoingAway, *bool destroy) {
         AutoLock al(m);
 
         if (hc.isOpen()) {
             disconnectUnlocked(cmd);
-        } else if (destroy && tid && tid != gettid() && c.getCount()) {
+        } else if (destroy && tid && tid != gettid()) {
             # wait for reconnect thread to stop if deleting when disconnected and reconnecting
-            stop = -1;
+            stop = WSCC_GoingAway;
             # wake up any sleeping threads
             sleep_cond.broadcast();
-            delete al;
             # wait for the event thread to terminate
-            c.waitForZero();
+            waitTidCleared();
+            hc.shutdown();
+            hc.close();
         }
-        hc.disconnect();
     }
 
     #! Removes any warning @ref Qore::Thread::Queue "Queue" object from the Socket
@@ -929,12 +939,11 @@ ws.setEventQueue();
             # wake up any sleeping threads
             sleep_cond.broadcast();
             # wait for the event thread to terminate
-            c.waitForZero();
+            waitTidCleared();
             cid = -1;
-            remove tid;
-            # reset stop flag
-            stop = 0;
         }
+        hc.shutdown();
+        hc.close();
     }
 
     #! Handles processed messages
@@ -942,7 +951,7 @@ ws.setEventQueue();
         if (callback) {
             callback(buf);
         } else {
-            logWarn("ignoring TEXT message: %y", buf);
+            logWarn("Ignoring TEXT message: %y", buf);
         }
         return WSEDC_CONTINUE;
     }
@@ -952,7 +961,7 @@ ws.setEventQueue();
         if (callback) {
             callback(buf);
         } else {
-            logWarn("ignoring BINARY message: %y", buf);
+            logWarn("Ignoring BINARY message: %y", buf);
         }
         return WSEDC_CONTINUE;
     }
@@ -973,14 +982,37 @@ ws.setEventQueue();
         }
     }
 
+    private updateTid(int tid) {
+        self.tid = tid;
+    }
+
+    #! Clears the tid and stop variables and wakes up any waiting threads
+    private clearTid() {
+        remove tid;
+        stop = 0;
+        if (tid_waiting) {
+            tid_cond.broadcast();
+        }
+    }
+
+    private waitTidCleared() {
+        while (tid) {
+            ++tid_waiting;
+            tid_cond.wait(m);
+            --tid_waiting;
+        }
+    }
+
     private eventLoop() {
         on_exit {
             # issue #4697: went out of scope in event loop
             if (self) {
-                c.dec();
-            }
+                m.lock();
+                on_exit m.unlock();
+                clearTid();
 
-            logDebug("WS I/O thread with TID %d terminating", gettid());
+                logDebug("WS I/O thread with TID %d terminating", gettid());
+            }
         }
 
         # data buffer for fragmented frames
@@ -1049,8 +1081,7 @@ ws.setEventQueue();
             return;
         }
         if (reconnect && !stop) {
-            c.inc();
-            on_error c.dec();
+            int tid;
 %ifdef PO_NO_THREAD_CONTROL
             tid = start_thread(\doReconnect());
 %else
@@ -1068,8 +1099,6 @@ ws.setEventQueue();
 
     #! Handles reconnections
     private doReconnect() {
-        on_exit c.dec();
-
         reconnectPreamble();
 
         # connect to the new gateway
@@ -1142,7 +1171,7 @@ ws.setEventQueue();
             h.msg.size(), h.msg ? sprintf("type: %s: %y", h.msg.type(), h.msg) : "n/a");
 
         if (h.masked) {
-            logError("unmasked client frame received");
+            logError("Unmasked client frame received");
             sendClose(WSCC_ProtocolError);
             return WSEDC_BREAK;
         }
@@ -1236,7 +1265,7 @@ ws.setEventQueue();
 
     private sendClose(int code, *string txtmsg) {
         if (!WSCCMap{code}) {
-            logError("WebSocketClient::sendClose(): invalid close code %d received; expecting one of: %y", code,
+            logError("Attempt to send invalid close code %d; expecting one of: %y", code,
                 (map $1.toInt(), keys WSCCMap));
             code = WSCC_InternalServerError;
         }
@@ -1310,7 +1339,6 @@ ws.setEventQueue();
 
         logInfo("Connected to %y (open: %y)", hc.getURL(), hc.isOpen());
         ++num_connects;
-        stop = 0;
         cid = seq.next();
 
         return rh;
@@ -1416,7 +1444,7 @@ class MyObserver inherits Observer {
         try {
             connect(NOTHING, \info);
         } catch (hash<ExceptionInfo> ex) {
-            logError("failed to connect to WebSocket server: %s", get_exception_string(ex));
+            logError("Failed to connect to WebSocket server: %s", get_exception_string(ex));
             rethrow;
         }
     }
@@ -1426,7 +1454,7 @@ class MyObserver inherits Observer {
         try {
             return handleEventData(deserializeData(buf));
         } catch (hash<ExceptionInfo> ex) {
-            logError("error handling WebSocket event data message: %s (message: %y)", get_exception_string(ex), buf);
+            logError("Error handling WebSocket event data message: %s (message: %y)", get_exception_string(ex), buf);
             return WSEDC_CONTINUE;
         }
     }
@@ -1443,10 +1471,10 @@ class MyObserver inherits Observer {
             try {
                 return handleEventData(buf);
             } catch (hash<ExceptionInfo> ex) {
-                logError("error handling binary WebSocket event data message: %s", get_exception_string(ex));
+                logError("Wrror handling binary WebSocket event data message: %s", get_exception_string(ex));
             }
         } else {
-            logWarn("ignoring binary WebSocket event data message: %y; cannot handle when serialization is %y", buf,
+            logWarn("Ignoring binary WebSocket event data message: %y; cannot handle when serialization is %y", buf,
                 serialization);
         }
         return WSEDC_CONTINUE;

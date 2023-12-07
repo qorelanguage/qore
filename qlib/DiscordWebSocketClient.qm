@@ -393,12 +393,12 @@ hash<auto> h = ws.getInfo();
     private int handleMessage(hash<WsMsgInfo> h, reference<data> buf) {
         if (h.op == WSOP_Close) {
             if (!h.close) {
-                logDebug("server sent OpClose without code; closing immediately");
+                logDebug("Server sent OpClose without code; closing immediately");
                 return WSEDC_BREAK;
             }
             # check for Discord close codes
             bool reconnect = CloseReconnectMap{h.close} ?? False;
-            logDebug("client sent WSOP_Close code %d (%s): %s; reconnect: %y", h.close,
+            logDebug("Client sent WSOP_Close code %d (%s): %s; reconnect: %y", h.close,
                 WSCCMap{h.close} ?? CloseDescMap{h.close}, h.msg, reconnect);
             sendClose(h.close, h.msg);
             if (reconnect) {
@@ -416,9 +416,6 @@ hash<auto> h = ws.getInfo();
 
     #! Starts a reconnect action
     private startReconnect() {
-        c.inc();
-        on_error c.dec();
-
 %ifdef PO_NO_THREAD_CONTROL
         start_thread(\handleReconnectInline());
 %else
@@ -429,7 +426,7 @@ hash<auto> h = ws.getInfo();
     #! Handles deserialized event data
     private int handleEventData(auto msgdata) {
         if (msgdata.typeCode() != NT_HASH) {
-            logError("unexpected payload data type %y (value %y); expecting \"hash\"", msgdata.fullType(), msgdata);
+            logError("Unexpected payload data type %y (value %y); expecting \"hash\"", msgdata.fullType(), msgdata);
             return WSEDC_CONTINUE;
         }
         *int op = msgdata.op;
@@ -439,7 +436,7 @@ hash<auto> h = ws.getInfo();
         if (msgdata.s) {
             last_sequence = msgdata.s;
         }
-        logDebug("received %y: (%s) %y", OpMap{op}, msgdata.t ?? "n/a", msgdata.d);
+        logDebug("Received %y: (%s) %y", OpMap{op}, msgdata.t ?? "n/a", msgdata.d);
         int rc = WSEDC_CONTINUE;
         switch (op) {
             case DOP_HELLO:
@@ -491,7 +488,7 @@ hash<auto> h = ws.getInfo();
         try {
             doReconnect();
         } catch (hash<ExceptionInfo> ex) {
-            logError("failed to handle inline reconnect: %s", get_exception_string(ex));
+            logError("Failed to reconnect: %s", get_exception_string(ex));
         }
     }
 
