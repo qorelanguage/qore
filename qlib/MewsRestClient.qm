@@ -217,7 +217,13 @@ MewsRestClient rest(opts);
                 + "/MewsRestDataProvider/mews-swagger-2.0.yaml";
             if (is_file(path)) {
                 opts.swagger = path;
-                opts.swagger_lax_parsing = LM_OPTIONAL_PROPERTIES;
+                # the Mews Swagger file has been heavily corrected and updated but still needs compat flags to be
+                # usable
+                # - LM_OPTIONAL_REF_PROPERTIES: many properties set by references are missing in the data and must be
+                #   treated as optional
+                # - LM_ACCEPT_ALL_PROPERTIES: the API is often updated with new properties that are not in the schema;
+                #   this is to ensure that API calls will still work when the server returns unexpected data
+                opts.swagger_lax_parsing = LM_OPTIONAL_REF_PROPERTIES | LM_ACCEPT_ALL_PROPERTIES;
             }
         }
         return opts + {"data": "json"};

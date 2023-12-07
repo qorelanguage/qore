@@ -1051,7 +1051,7 @@ class MyObserver inherits Observer {
 }
 
 class ConsoleAppender inherits LoggerAppenderWithLayout {
-    constructor() : LoggerAppenderWithLayout("console", new LoggerLayoutPattern("%d T%t [%p]: %m%n")) {
+    constructor() : LoggerAppenderWithLayout("console", new LoggerLayoutPattern("%d{YYYY-MM-DD HH:mm:SS.xx} T%t [%p]: %m%n")) {
         open();
     }
 

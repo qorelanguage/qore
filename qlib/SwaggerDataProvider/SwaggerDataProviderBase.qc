@@ -139,7 +139,9 @@ public class SwaggerDataProviderBase inherits SwaggerDataProviderCommon {
         rth.set(type);
         map type.addField(getFieldFromSchemaIntern(path + "/" + $1.key, $1.key, NOTHING, $1.value,
             exists schema.required{$1.key}, NOTHING, def_body{$1.key})), schema.properties.pairIterator();
-        if (schema.additionalProperties) {
+        if (schema.additionalProperties === True) {
+            type.setDefaultOtherFieldType(AbstractDataProviderTypeMap."auto");
+        } else if (schema.additionalProperties) {
             on_error printf("schema: %N\n", schema);
             type.setDefaultOtherFieldType(getType(path + "/" + schema.additionalProperties.type,
                 schema.additionalProperties.type, schema.additionalProperties.format,

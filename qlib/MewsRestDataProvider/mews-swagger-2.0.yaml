@@ -32309,6 +32309,9 @@ definitions:
       AccountingEnvironmentCode:
         type: string
         x-nullable: true
+      AccountingEditableHistoryInterval:
+        type: string
+        x-nullable: true
       Address:
         $ref: '#/definitions/OldAddress'
       AddressId:
@@ -32358,6 +32361,9 @@ definitions:
       Name:
         minLength: 1
         type: string
+      OperationalEditableHistoryInterval:
+        type: string
+        x-nullable: true
       Phone:
         format: tel
         type: string
