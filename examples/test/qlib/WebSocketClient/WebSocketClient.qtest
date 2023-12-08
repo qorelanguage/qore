@@ -114,6 +114,7 @@ class WebSocketClientTest inherits QUnit::Test {
             "logger": logger,
             "reconnect": True,
         });
+        on_error delete prov;
         prov.registerObserver(observer);
         prov.observersReady();
 
@@ -165,6 +166,29 @@ class WebSocketClientTest inherits QUnit::Test {
 
         observer.wait(EVENT_WS_PONG);
         assertEq(2, observer.l.size());
+        assertEq(EVENT_WS_PONG, observer.getLastMessageId());
+
+        # clear the observer's event list
+        observer.clear();
+
+        # reconnect on the client side
+        prov.reconnect();
+
+        # wait for reconnect
+        observer.wait(EVENT_WS_CONNECTED);
+
+        cinfo = prov.getConnectionInfo();
+        assertTrue(cinfo.connected);
+        assertFalse(cinfo.reconnecting);
+        assertGt(0, cinfo.info.cid);
+        assertEq(3, cinfo.info.num_connects);
+        assertEq(linfo.port, cinfo.info.peer.port);
+
+        # redo ping test
+        prov.sendMessage(MESSAGE_WS_PING, "hb");
+
+        observer.wait(EVENT_WS_PONG);
+        assertEq(3, observer.l.size());
         assertEq(EVENT_WS_PONG, observer.getLastMessageId());
     }
 

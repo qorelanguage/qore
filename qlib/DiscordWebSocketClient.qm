@@ -397,30 +397,17 @@ hash<auto> h = ws.getInfo();
                 return WSEDC_BREAK;
             }
             # check for Discord close codes
-            bool reconnect = CloseReconnectMap{h.close} ?? False;
-            logDebug("Client sent WSOP_Close code %d (%s): %s; reconnect: %y", h.close,
+            bool reconnect = CloseReconnectMap{h.close} ?? True;
+            logDebug("Server sent WSOP_Close code %d (%s): %y; reconnect: %y", h.close,
                 WSCCMap{h.close} ?? CloseDescMap{h.close}, h.msg, reconnect);
             sendClose(h.close, h.msg);
-            if (reconnect) {
-                startReconnect();
+            if (!reconnect) {
+                reconnect = False;
             }
             return WSEDC_BREAK;
         }
 
-        int rc = WebSocketClientWithSerialization::handleMessage(h, \buf);
-        if (rc == WSEDC_BREAK) {
-            startReconnect();
-        }
-        return rc;
-    }
-
-    #! Starts a reconnect action
-    private startReconnect() {
-%ifdef PO_NO_THREAD_CONTROL
-        start_thread(\handleReconnectInline());
-%else
-        start_thread ? start_thread(\handleReconnectInline()) : background handleReconnectInline();
-%endif
+        return WebSocketClientWithSerialization::handleMessage(h, \buf);
     }
 
     #! Handles deserialized event data
@@ -456,13 +443,11 @@ hash<auto> h = ws.getInfo();
                 break;
 
             case DOP_RECONNECT:
-                startReconnect();
                 rc = WSEDC_BREAK;
                 break;
 
             case DOP_INVALID_SESSION:
                 logError("Session has been invalidated (%y); starting reconnect", OpMap{op});
-                startReconnect();
                 rc = WSEDC_BREAK;
                 break;
 
@@ -481,15 +466,6 @@ hash<auto> h = ws.getInfo();
 
     #! Handle a Heartbeat ACK
     private handleHeartbeatAck() {
-    }
-
-    #! Handle a Reconnect
-    private handleReconnectInline() {
-        try {
-            doReconnect();
-        } catch (hash<ExceptionInfo> ex) {
-            logError("Failed to reconnect: %s", get_exception_string(ex));
-        }
     }
 
     #! Executes before a reconnect

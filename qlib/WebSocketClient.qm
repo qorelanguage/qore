@@ -421,6 +421,9 @@ public class WebSocketClient inherits Logger::LoggerWrapper, ConnectionProvider:
         #! URL string
         string url;
 
+        #! Flag for a user-initiated reconnect
+        bool do_reconnect;
+
         #! Connection sequence
         static Sequence seq();
 
@@ -567,6 +570,32 @@ ws.connect();
         return hc.isOpen();
     }
 
+    #! Initiate a server reconnect immediately
+    /** @return True if the reconnect was started
+    */
+    bool reconnect() {
+        AutoLock al(m);
+
+        if (!tid) {
+            return False;
+        }
+
+        if (!reconnect) {
+            reconnect = True;
+        }
+
+        # check if already reconnecting
+        if (!stop && !do_reconnect) {
+            do_reconnect = True;
+            # wake up any sleeping threads
+            sleep_cond.broadcast();
+        }
+        # wait for the event thread to terminate
+        waitTidCleared();
+
+        return True;
+    }
+
     #! Disconnect with the given @ref closecodes "close code"
     disconnect(int cmd = WSCC_GoingAway) {
         # do not reconnect if an explicit disconnect is called
@@ -645,13 +674,11 @@ ws.connect();
             disconnectUnlocked(cmd);
         } else if (destroy && tid && tid != gettid()) {
             # wait for reconnect thread to stop if deleting when disconnected and reconnecting
-            stop = WSCC_GoingAway;
+            stop = cmd;
             # wake up any sleeping threads
             sleep_cond.broadcast();
             # wait for the event thread to terminate
             waitTidCleared();
-            hc.shutdown();
-            hc.close();
         }
     }
 
@@ -934,7 +961,7 @@ ws.setEventQueue();
     private disconnectUnlocked(int cmd = WSCC_GoingAway) {
         # disconnect only if possible; in case this method is called from the destructor from the event thread, we
         # cannot wait for the event thread to terminate, as there would be a deadlock
-        if (tid != gettid()) {
+        if (tid && (tid != gettid())) {
             stop = cmd;
             # wake up any sleeping threads
             sleep_cond.broadcast();
@@ -942,8 +969,6 @@ ws.setEventQueue();
             waitTidCleared();
             cid = -1;
         }
-        hc.shutdown();
-        hc.close();
     }
 
     #! Handles processed messages
@@ -990,6 +1015,7 @@ ws.setEventQueue();
     private clearTid() {
         remove tid;
         stop = 0;
+        do_reconnect = False;
         if (tid_waiting) {
             tid_cond.broadcast();
         }
@@ -1024,7 +1050,13 @@ ws.setEventQueue();
             }
             if (stop) {
                 sendClose(stop);
-                logDebug("Event loop stopping on user request (%y)", stop);
+                logInfo("WS I/O thread stopping on user request (stop code %y: %y)", stop,
+                    WSCCMap{stop} ?? "unknown");
+                break;
+            }
+            if (do_reconnect) {
+                sendClose(WSCC_NormalClosure);
+                logInfo("WS I/O thread for an externally-initiated reconnect");
                 break;
             }
 
@@ -1044,6 +1076,8 @@ ws.setEventQueue();
                         continue;
                     }
                     if (state == WSC_Break) {
+                        logInfo("WS I/O thread stopping due to event (stop code %y: %y)", stop,
+                            stop ? (WSCCMap{stop} ?? "unknown") : "none");
                         break;
                     }
                 }
@@ -1051,6 +1085,8 @@ ws.setEventQueue();
                 if (disp == WSEDC_CONTINUE) {
                     continue;
                 } else if (disp == WSEDC_BREAK) {
+                    logInfo("WS I/O thread stopping due to message (stop code %y: %y)", stop,
+                        stop ? (WSCCMap{stop} ?? "unknown") : "none");
                     break;
                 }
 
@@ -1081,13 +1117,7 @@ ws.setEventQueue();
             return;
         }
         if (reconnect && !stop) {
-            int tid;
-%ifdef PO_NO_THREAD_CONTROL
-            tid = start_thread(\doReconnect());
-%else
-            tid = start_thread ? start_thread(\doReconnect()) : background doReconnect();
-%endif
-            logInfo("Disconnected websocket connection; starting reconnect in TID %d", tid);
+            startReconnect();
         } else {
             if (stop) {
                 logInfo("Disconnected websocket connection on external request");
@@ -1097,37 +1127,52 @@ ws.setEventQueue();
         }
     }
 
+    #! Starts a reconnect
+    private startReconnect() {
+        int tid;
+%ifdef PO_NO_THREAD_CONTROL
+        tid = start_thread(\doReconnect());
+%else
+        tid = start_thread ? start_thread(\doReconnect()) : background doReconnect();
+%endif
+        logInfo("Disconnected websocket connection; starting reconnect in TID %d", tid);
+    }
+
     #! Handles reconnections
     private doReconnect() {
-        reconnectPreamble();
+        try {
+            reconnectPreamble();
 
-        # connect to the new gateway
-        int retries = 0;
-        while (!stop) {
-            hash<auto> info;
-            try {
-                reestablishConnection(\info);
-                break;
-            } catch (hash<ExceptionInfo> ex) {
-                ++retries;
-                if (MaxReconnectRetries > 0 && (retries == MaxReconnectRetries)) {
-                    logError("Reconnect %d: failed (%s: %s); max retries exhausted", retries, ex.err, ex.desc);
-                    rethrow;
+            # connect to the new gateway
+            int retries = 0;
+            while (!stop) {
+                hash<auto> info;
+                try {
+                    reestablishConnection(\info);
+                    break;
+                } catch (hash<ExceptionInfo> ex) {
+                    ++retries;
+                    if (MaxReconnectRetries > 0 && (retries == MaxReconnectRetries)) {
+                        logError("Reconnect %d: failed (%s: %s); max retries exhausted", retries, ex.err, ex.desc);
+                        rethrow;
+                    }
+                    logInfo("Reconnect %d: failed to connect to WebSocket server: %s: %s; sleeping for %y and "
+                        "retrying", retries, ex.err, ex.desc, ReconnectDelay);
+
+                    # Use the Mutex and Condition variable to delay, because sleep() is protected with
+                    # PO_NO_PROCESS_CONTROL
+                    AutoLock al(m);
+                    sleep_cond.wait(m, ReconnectDelay);
                 }
-                logInfo("Reconnect %d: failed to connect to WebSocket server: %s: %s; sleeping for %y and "
-                    "retrying", retries, ex.err, ex.desc, ReconnectDelay);
-
-                # Use the Mutex and Condition variable to delay, because sleep() is protected with
-                # PO_NO_PROCESS_CONTROL
-                AutoLock al(m);
-                sleep_cond.wait(m, ReconnectDelay);
             }
-        }
-        if (stop) {
-            logInfo("Reconnect %d: interrupted by disconnect request", retries);
-        }
+            if (stop) {
+                logInfo("Reconnect %d: interrupted by disconnect request", retries);
+            }
 
-        reconnectPostamble();
+            reconnectPostamble();
+        } catch (hash<ExceptionInfo> ex) {
+            logError("Failed to reconnect: %s", get_exception_string(ex));
+        }
     }
 
     #! Executes before a reconnect
@@ -1154,20 +1199,20 @@ ws.setEventQueue();
     private int handleMessage(hash<WsMsgInfo> h, reference<data> buf) {
         if (h.op == WSOP_Close) {
             if (!h.close) {
-                logDebug("server sent OpClose without code; closing immediately");
+                logDebug("Server sent OpClose without code; closing immediately");
                 return WSEDC_BREAK;
             }
-            logDebug("client sent WSOP_Close code %d (%s): %s", h.close, WSCCMap{h.close}, h.msg);
+            logDebug("Server sent WSOP_Close code %d (%s): %y", h.close, WSCCMap{h.close}, h.msg);
             sendClose(h.close, h.msg);
             return WSEDC_BREAK;
         }
 
         if (h.op == WSCC_GoingAway) {
-            logDebug("server sent WSOP_GoingAway; closing immediately");
+            logDebug("Server sent WSOP_GoingAway; closing immediately");
             return WSEDC_BREAK;
         }
 
-        logDebug("received msg (%s: %d bytes): %s", WSOPMap{h.op} ?? sprintf("unknown opcode %y", h.op),
+        logDebug("Received msg (%s: %d bytes): %s", WSOPMap{h.op} ?? sprintf("unknown opcode %y", h.op),
             h.msg.size(), h.msg ? sprintf("type: %s: %y", h.msg.type(), h.msg) : "n/a");
 
         if (h.masked) {
@@ -2015,6 +2060,11 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
     #! Returns True if the object is currently connected
     bool isConnected() {
         return client.isOpen();
+    }
+
+    #! Initiate a reconnect action on the client
+    reconnect() {
+        client.reconnect();
     }
 
     #! Returns connection info

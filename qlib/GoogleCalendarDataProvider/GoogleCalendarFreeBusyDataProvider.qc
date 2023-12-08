@@ -95,13 +95,11 @@ public class GoogleCalendarFreeBusyDataProvider inherits GoogleDataProvider::Goo
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        hash<auto> req_info = prepareRequest(req, {"calendarId": id});
         hash<auto> info;
-        req.items = ({
-            "id": id,
-        },);
         try {
-            hash<auto> rv = rest.post("/calendar/v3/freeBusy", req, \info).body;
-            return ResponseType.acceptsValue(rv);
+            hash<auto> rv = rest.post("/calendar/v3/freeBusy", req + {"items": ({"id": id})}, \info).body;
+            return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -113,14 +111,14 @@ public class GoogleCalendarFreeBusyDataProvider inherits GoogleDataProvider::Goo
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "freebusy/query");
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
+        return GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryCalendarApiName, "FreeBusy");
     }
 
     #! Returns data provider static info

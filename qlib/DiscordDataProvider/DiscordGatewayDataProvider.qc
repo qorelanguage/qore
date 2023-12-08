@@ -97,6 +97,11 @@ public class DiscordGatewayDataProvider inherits DataProvider::AbstractDataProvi
         delete ws;
     }
 
+    #! Reconnects with the gateway immediately
+    bool reconnect() {
+        return ws.reconnect();
+    }
+
     #! This method is called when an event is raised
     /**
         @param event_id unique ID identifying an event type or class
