@@ -577,7 +577,9 @@ hash<auto> h = ws.getInfo();
         }
 
         heartbeat_cnt.waitForZero();
+        AutoLock al(heartbeat_lock);
         remove hb_tid;
+        remove hb_stop;
     }
 
     private heartbeatThread() {
