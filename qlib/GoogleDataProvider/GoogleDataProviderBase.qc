@@ -258,6 +258,7 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         if (*string ref = info.response."$ref") {
             unresolved.addResponseTypeReference(key, ref, info.required);
         }
+        request_type.checkConvertOrNothing();
         return {
             "request_type": request_type,
         };

@@ -97,6 +97,20 @@ public class HashDataType inherits QoreDataType {
         return name;
     }
 
+    #! Convert to an "or-nothing" type if all fields are optional
+    checkConvertOrNothing() {
+        if (type.isOrNothingType()) {
+            return;
+        }
+        foreach AbstractDataField field in (fields.iterator()) {
+            if (!field.getType().isOrNothingType() && !exists field.getDefaultValue()) {
+                return;
+            }
+        }
+        # convert to *hash<auto>
+        type = type.getOrNothingType();
+    }
+
     #! Returns the value if the value can be assigned to the type
     /** @param input_value the value to assign to the type
 

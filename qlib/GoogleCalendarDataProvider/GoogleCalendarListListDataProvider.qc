@@ -42,9 +42,6 @@ public class GoogleCalendarListListDataProvider inherits GoogleDataProvider::Goo
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
-
-        #! Request type
-        const RequestType = new GoogleCalendarListRequestType();
     }
 
     #! Creates the object from constructor options
@@ -74,11 +71,11 @@ public class GoogleCalendarListListDataProvider inherits GoogleDataProvider::Goo
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        string query_args;
-        map (query_args += ((query_args ? "&" : "?") + sprintf("%s=%s", $1.key, $1.value))), req.pairIterator();
+        *hash<auto> req_info = prepareRequest(req);
         hash<auto> info;
         try {
-            return rest.get("/calendar/v3/users/me/calendarList" + query_args, NOTHING, \info).body;
+            hash<auto> rv = rest.get("/calendar/v3/users/me/calendarList" + req_info.query, NOTHING, \info).body;
+            return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -90,7 +87,7 @@ public class GoogleCalendarListListDataProvider inherits GoogleDataProvider::Goo
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "calendarList/list");
     }
 
     #! Returns the description of a response message, if this object represents a response message

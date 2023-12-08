@@ -42,9 +42,6 @@ public class GoogleCalendarInsertDataProvider inherits GoogleDataProvider::Googl
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
-
-        #! Request type
-        const RequestType = new GoogleCalendarInsertRequestType();
     }
 
     #! Creates the object from constructor options
@@ -74,9 +71,11 @@ public class GoogleCalendarInsertDataProvider inherits GoogleDataProvider::Googl
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        hash<auto> req_info = prepareRequest(req);
         hash<auto> info;
         try {
-            return rest.post("/calendar/v3/calendars", req, \info).body;
+            hash<auto> rv = rest.post("/calendar/v3/calendars", req_info.body, \info).body;
+            return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
@@ -88,7 +87,7 @@ public class GoogleCalendarInsertDataProvider inherits GoogleDataProvider::Googl
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return RequestType;
+        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "calendars/insert");
     }
 
     #! Returns the description of a response message, if this object represents a response message

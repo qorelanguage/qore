@@ -49,12 +49,6 @@ public class GoogleCalendarFreeBusyDataProvider inherits GoogleDataProvider::Goo
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
-
-        #! Request type
-        const RequestType = new GoogleCalendarFreeBusyRequestType();
-
-        #! Response type
-        const ResponseType = new GoogleCalendarFreeBusyResponseType();
     }
 
     private {
@@ -98,7 +92,7 @@ public class GoogleCalendarFreeBusyDataProvider inherits GoogleDataProvider::Goo
         hash<auto> req_info = prepareRequest(req, {"calendarId": id});
         hash<auto> info;
         try {
-            hash<auto> rv = rest.post("/calendar/v3/freeBusy", req + {"items": ({"id": id})}, \info).body;
+            hash<auto> rv = rest.post("/calendar/v3/freeBusy", req + {"items": ({"id": id},)}, \info).body;
             return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
@@ -118,151 +112,12 @@ public class GoogleCalendarFreeBusyDataProvider inherits GoogleDataProvider::Goo
     /** @return the response type for this response message
     */
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryCalendarApiName, "FreeBusy");
+        return GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryCalendarApiName, "FreeBusyResponse");
     }
 
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
-    }
-}
-
-#! Google calendar free/busy query request type
-public class GoogleCalendarFreeBusyRequestType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "timeMin": {
-                "display_name": "Min Time",
-                "type": SoftTimestampDataProviderStringType,
-                "desc": "The end of the interval for the query",
-            },
-            "timeMax": {
-                "display_name": "Max Time",
-                "type": SoftTimestampDataProviderStringType,
-                "desc": "The start of the interval for the query",
-            },
-            "timeZone": {
-                "display_name": "Time Zone",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Time zone used in the response. The default is UTC",
-            },
-            "groupExpansionMax": {
-                "display_name": "Max Calendars in Group",
-                "short_desc": "Max number of calendar identifiers to be provided for a single group",
-                "type": AbstractDataProviderTypeMap."*int",
-                "desc": "Maximal number of calendar identifiers to be provided for a single group. Optional. An "
-                    "error is returned for a group with more members than this value. Maximum value is `100`",
-            },
-            "calendarExpansionMax": {
-                "display_name": "Max Calendars",
-                "short_desc": "Max number of calendars for which FreeBusy information is to be provided",
-                "type": AbstractDataProviderTypeMap."*int",
-                "desc": "Maximal number of calendars for which FreeBusy information is to be provided. Optional. "
-                    "Maximum value is `50`",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor() : HashDataType("GoogleCalendarFreeBusyRequestType") {
-        addQoreFields(Fields);
-    }
-}
-
-#! Google calendar busy period data type
-public class GoogleCalendarBusyPeriodDataType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "start": {
-                "display_name": "Date Time",
-                "type": AbstractDataProviderTypeMap."softdate",
-                "desc": "The (inclusive) start of the time period",
-            },
-            "end": {
-                "display_name": "End Time",
-                "type": AbstractDataProviderTypeMap."softdate",
-                "desc": "The (exclusive) end of the time period",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor() : HashDataType("GoogleCalendarFreeBusyDataType") {
-        addQoreFields(Fields);
-    }
-}
-
-#! Google calendar free/busy data type
-public class GoogleCalendarFreeBusyDataType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "errors": {
-                "display_name": "Errors",
-                "type": new ListDataType("GoogleCalendarGroupErrorType", AutoHashType, True),
-                "desc": "Optional error(s) (if computation for the group failed)",
-            },
-            "busy": {
-                "display_name": "Busy List",
-                "type": new ListDataType("GoogleCalendarGroupCalendarBusyType",
-                    new GoogleCalendarBusyPeriodDataType(), True),
-                "desc": "List of time ranges during which this calendar should be regarded as busy",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor() : HashDataType("GoogleCalendarFreeBusyDataType") {
-        addQoreFields(Fields);
-    }
-}
-
-#! Google calendar free/busy data type
-public class GoogleCalendarFreeBusyBaseDataType inherits DataProvider::HashDataType {
-    #! Creates the object
-    constructor() : HashDataType(AutoHashOrNothingType, "GoogleCalendarFreeBusyBaseDataType") {
-        setDefaultOtherFieldType(new GoogleCalendarFreeBusyDataType());
-    }
-}
-
-#! Google calendar free/busy query request type
-public class GoogleCalendarFreeBusyResponseType inherits DataProvider::HashDataType {
-    private {
-        #! Field descriptions
-        const Fields = {
-            "kind": {
-                "display_name": "Collection Type",
-                "type": AbstractDataProviderTypeMap."string",
-                "desc": "The type of the collection",
-            },
-            "timeMax": {
-                "display_name": "Max Time",
-                "type": AbstractDataProviderTypeMap."softdate",
-                "desc": "The start of the interval for the query",
-            },
-            "timeMin": {
-                "display_name": "Min Time",
-                "type": AbstractDataProviderTypeMap."softdate",
-                "desc": "The end of the interval for the query",
-            },
-            "groups": {
-                "display_name": "Groups",
-                "type": AbstractDataProviderTypeMap."*hash",
-                "desc": "Expansion of groups",
-            },
-            "calendars": {
-                "display_name": "Calendars",
-                "type": new GoogleCalendarFreeBusyBaseDataType(),
-                "desc": "List of free/busy information for calendars",
-            },
-        };
-    }
-
-    #! Creates the object
-    constructor() : HashDataType("GoogleCalendarFreeBusyResponseType") {
-        addQoreFields(Fields);
     }
 }
 }
