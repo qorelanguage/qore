@@ -27,7 +27,7 @@ public namespace GoogleCalendarDataProvider {
 #! The Google calendar event delete API data provider
 /** This API allows the caller to delete a calendar event
 */
-public class GoogleCalendarEventsDeleteDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
+public class GoogleCalendarEventsDeleteDataProvider inherits GoogleCalendarApiDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -49,9 +49,6 @@ public class GoogleCalendarEventsDeleteDataProvider inherits GoogleDataProvider:
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
-
-        #! Response type
-        const ResponseType = AbstractDataProviderTypeMap."nothing";
     }
 
     private {
@@ -70,59 +67,26 @@ public class GoogleCalendarEventsDeleteDataProvider inherits GoogleDataProvider:
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleDataProvider::GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal) : GoogleCalendarApiDataProvider(rest) {
         self.id = id;
         self.cal = cal;
-    }
-
-    #! Returns the data provider name
-    string getName() {
-        return ProviderInfo.name;
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return sprintf("Google calendar events %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
-    }
-
-    #! Makes a request and returns the response
-    /** @param req the request to serialize and make according to the request type
-        @param request_options the request options; will be processed by validateRequestOptions()
-
-        @return the response to the request
-    */
-    private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        hash<auto> req_info = prepareRequest(req, {"calendarId": id});
-        hash<auto> info;
-        try {
-            rest.del("/calendar/v3/calendars/" + req_info.path.calendarId + "/events/" + req_info.path.eventId
-                + req_info.query, NOTHING, \info);
-            # this API returns no value when successful
-        } catch (hash<ExceptionInfo> ex) {
-            # ensure that any error response body is included in the exception
-            hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
-            rethrow ex.err, ex.desc, ex.arg + ex_arg;
-        }
-    }
-
-    #! Returns the description of a successful request message, if any
-    /** @return the request type for this provider
-    */
-    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        return GoogleDataProviderBase::getRequestTypeForSchema(GoogleDiscoveryCalendarApiName, "events/delete",
-            "calendarId");
-    }
-
-    #! Returns the description of a response message, if this object represents a response message
-    /** @return the response type for this response message
-    */
-    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return ResponseType;
     }
 
     #! Returns data provider static info
     hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
+    }
+
+    #! Returns the request path in the Google Discovery API Schema
+    private string getRequestLabel() {
+        return "events/delete";
+    }
+
+    #! Returns any data provider path arg values for this data provider
+    private *hash<string, string> getPathArgs() {
+        return {
+            "calendarId": id,
+        };
     }
 }
 }

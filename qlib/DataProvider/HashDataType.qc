@@ -64,6 +64,13 @@ public class HashDataType inherits QoreDataType {
         self.name = name ?? base_type.getName();
     }
 
+    #! creates the object and assigns the name as the given name or the base type's name
+    constructor(Type base_type, *string name, hash<string, AbstractDataField> fields, *hash<auto> options,
+            *hash<auto> tags, auto default_value) : QoreDataType(base_type, options, tags, default_value) {
+        self.name = name ?? base_type.getName();
+        self.fields = fields;
+    }
+
     #! creates the object from the given record description and assigns the name as the type
     constructor(string name = AutoHashType.getName(), hash<string, AbstractDataField> fields, *hash<auto> options,
             *hash<auto> tags, auto default_value) : QoreDataType(AutoHashType, options, tags, default_value) {
@@ -154,8 +161,8 @@ public class HashDataType inherits QoreDataType {
                         try {
                             value{i.key} = default_other_field_type.acceptsValue(i.value);
                         } catch (hash<ExceptionInfo> ex) {
-                            rethrow "RUNTIME-TYPE-ERROR", sprintf("error in type %y default field %y: %s: %s", getName(),
-                                i.key, ex.err, ex.desc);
+                            rethrow "RUNTIME-TYPE-ERROR", sprintf("error in type %y default field %y: %s: %s",
+                                getName(), i.key, ex.err, ex.desc);
                         }
                     }
                 } else {
@@ -219,8 +226,8 @@ public class HashDataType inherits QoreDataType {
                 throw "ADD-QORE-FIELDS-ERROR", sprintf("field %y already exists in hash %y", i.key, name);
             }
             if (i.value.typeCode() != NT_HASH) {
-                throw "ADD-QORE-FIELDS-ERROR", sprintf("field %y to be added has a value of type %y; expecting \"hash\"",
-                    i.key, i.value.fullType());
+                throw "ADD-QORE-FIELDS-ERROR", sprintf("field %y to be added has a value of type %y; expecting "
+                    "\"hash\"", i.key, i.value.fullType());
             }
             if (!exists i.value.name) {
                 i.value.name = i.key;

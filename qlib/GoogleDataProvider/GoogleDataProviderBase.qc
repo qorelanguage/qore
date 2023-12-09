@@ -47,7 +47,8 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         #! output schema cache; API -> schema name -> type
         static hash<string, hash<string, AbstractDataProviderType>> output_schema_map;
 
-        #! schema cache; API -> request path -> type
+        #! schema cache; API -> request path ->
+        #   {request_type -> type, response_type -> type, http_method -> string, path -> string}
         static hash<string, hash<auto>> request_map;
 
         #! schema cache lock
@@ -81,6 +82,20 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
     *hash<auto> prepareRequest(auto req, *hash<string, softstring> implicit_path_args, *bool backfill_request_body) {
         AbstractDataProviderType request_type = getRequestTypeImpl();
 
+        return prepareRequestIntern(request_type, req, implicit_path_args, backfill_request_body);
+    }
+
+    #! Prepares a request with a request type created from the Discovery API
+    /** @param req The incoming request data
+        @param implicit_path_args any implicit path args
+
+        @return a hash with the following keys:
+        - \c body: a hash of body params
+        - \c path: a hash of path params
+        - \c query: a string of query params prefixed by "?"
+    */
+    *hash<auto> prepareRequestIntern(AbstractDataProviderType request_type, auto req,
+            *hash<string, softstring> implicit_path_args, *bool backfill_request_body) {
         hash<auto> rv;
         hash<string, bool> body_keys;
         foreach AbstractDataField field in (request_type.getFields().values()) {
@@ -114,7 +129,8 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
             rv.path += implicit_path_args;
         }
         if (req) {
-            throw "GOOGLE-REQUEST-ERROR", sprintf("request has invalid keys: %y", req);
+            throw "GOOGLE-REQUEST-ERROR", sprintf("%s request has invalid keys: %y; known keys: %y",
+                request_type.getName(), req, keys request_type.getFields());
         }
         if (backfill_request_body && rv.body.size() < body_keys.size()) {
             map rv.body{$1.key} = $1.value, backfillRequestBody(rv).pairIterator(), !rv.body.hasKey($1.key);
@@ -172,26 +188,62 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         return rest;
     }
 
-    #! Returns a data type for the given request
+    #! Returns the path for the given API
+    static string getPathForSchema(string api, string path) {
+        hash<auto> requests = GoogleDataProviderBase::getRequestInfo(api);
+        *hash<auto> info = requests{path};
+        if (!info) {
+            throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y", api,
+                path, keys requests);
+        }
+        return info.path;
+    }
+
+    #! Returns the HTTP method for the given API
+    static string getMethodForSchema(string api, string path) {
+        hash<auto> requests = GoogleDataProviderBase::getRequestInfo(api);
+        *hash<auto> info = requests{path};
+        if (!info) {
+            throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y", api,
+                path, keys requests);
+        }
+        return info.http_method;
+    }
+
+    #! Returns a response data type for the given API
+    static DataProvider::AbstractDataProviderType getResponseTypeForSchema(string api, string path) {
+        hash<auto> requests = GoogleDataProviderBase::getRequestInfo(api);
+        *hash<auto> info = requests{path};
+        if (!info) {
+            throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y", api,
+                path, keys requests);
+        }
+        return info.response_type ?? AbstractDataProviderTypeMap."nothing";
+    }
+
+    #! Returns a request data type for the given API
     static DataProvider::AbstractDataProviderType getRequestTypeForSchema(string api, string path, ...) {
+        return GoogleDataProviderBase::getRequestTypeForSchemaArgs(api, path, argv);
+    }
+
+    #! Returns a data type for the given request
+    static DataProvider::AbstractDataProviderType getRequestTypeForSchemaArgs(string api, string path,
+            *list<auto> args) {
         hash<auto> requests = GoogleDataProviderBase::getRequestInfo(api);
 
         string rpath = path;
-        if (argv) {
-            rpath += "-" + (foldl $1 + "-" + $2, argv);
+        if (args) {
+            rpath += "-" + (foldl $1 + "-" + $2, args);
         }
         if (*AbstractDataProviderType rv = requests{rpath}.request_type) {
             return rv;
         }
         # create new type without implicit / path args
-        if (argv && (*AbstractDataProviderType rv = requests{path}.request_type)) {
-            hash<string, bool> fmap = map {$1: True}, argv;
-            HashDataType nrv();
-            map nrv.addField($1), rv.getFields().iterator(), !fmap{$1.getName()};
-            requests{rpath} = nrv;
-            return nrv;
+        if (args && (*AbstractDataProviderType rv = requests{path}.request_type)) {
+            return request_map{api}{rpath}.request_type = new HashDataType(rv.getValueType(), rv.getName(),
+                rv.getFields() - args);
         }
-        throw "SCHEMA-ERROR", sprintf("Google API %y has unknown request path %y; known request paths: %y", api,
+        throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y", api,
             path, keys requests);
     }
 
@@ -233,7 +285,10 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         # resolve all unresolved types
         requests = unresolved.resolveRequests(api, requests, input_schema_map, output_schema_map);
 
-        # save and return the schema info
+        # save URL info
+        info_map{api} = api_info{"basePath", "description", "title"};
+
+        # save the schema info
         return request_map{api} = requests;
     }
 
@@ -253,14 +308,17 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         map request_type.addField(GoogleDataProviderBase::makeFieldFromProperty(request_type, $1.key, $1.value,
             unresolved, True)), info.parameters.pairIterator(), !$1.value."deprecated";
         if (*string ref = info.request."$ref") {
-            unresolved.addRequestTypeReference(key, request_type, ref, info.required);
+            unresolved.addRequestTypeReference(key, ref, info.required);
+        } else {
+            request_type.checkConvertOrNothing();
         }
         if (*string ref = info.response."$ref") {
             unresolved.addResponseTypeReference(key, ref, info.required);
         }
-        request_type.checkConvertOrNothing();
         return {
             "request_type": request_type,
+            "http_method": info.httpMethod,
+            "path": info.path,
         };
     }
 
@@ -484,10 +542,9 @@ class TypeResolverHelper {
         list<hash<auto>> responses;
     }
 
-    addRequestTypeReference(string key, HashDataType type, string ref, *bool required) {
+    addRequestTypeReference(string key, string ref, *bool required) {
         requests += {
             "key": key,
-            "type": type,
             "ref": ref,
             "required": required,
         };
@@ -545,15 +602,15 @@ class TypeResolverHelper {
         }
 
         foreach hash<auto> h in (requests) {
-            req{h.key}.request = h.type;
             AbstractDataProviderType type = getType(h.ref, input_schema_map{api}, h.required);
             if (*hash<string, AbstractDataField> fields = type.getFields()) {
-                map req{h.key}.request.addField($1), fields.iterator();
+                map req{h.key}.request_type.addField($1), fields.iterator();
             }
+            req{h.key}.request_type.checkConvertOrNothing();
         }
 
         foreach hash<auto> h in (responses) {
-            req{h.key}.response = getType(h.ref, output_schema_map{api}, h.required);
+            req{h.key}.response_type = getType(h.ref, output_schema_map{api}, h.required);
         }
         return req;
     }
