@@ -220,8 +220,20 @@ int QorePlusOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
             parse_context.typeInfo = QoreTypeInfo::isOutputIdentical(leftTypeInfo, rightTypeInfo)
                 ? leftTypeInfo
                 : listTypeInfo;
+        } else if (is_list_left) {
+            const QoreTypeInfo* elementTypeInfo = QoreTypeInfo::getElementType(leftTypeInfo);
+            if (QoreTypeInfo::equal(elementTypeInfo, rightTypeInfo)) {
+                returnTypeInfo = leftTypeInfo;
+            } else {
+                returnTypeInfo = listTypeInfo;
+            }
         } else {
-            returnTypeInfo = listTypeInfo;
+            const QoreTypeInfo* elementTypeInfo = QoreTypeInfo::getElementType(rightTypeInfo);
+            if (QoreTypeInfo::equal(elementTypeInfo, leftTypeInfo)) {
+                returnTypeInfo = rightTypeInfo;
+            } else {
+                returnTypeInfo = listTypeInfo;
+            }
         }
     }
     // otherwise only set return type if return types on both sides are known at parse time and neither can be a list

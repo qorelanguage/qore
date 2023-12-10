@@ -25,102 +25,47 @@
 #! Contains all public definitions in the GoogleCalendarDataProvider module
 public namespace GoogleCalendarDataProvider {
 #! The parent class for Google calendar REST APIs
-public class GoogleCalendarDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
-    public {
-        #! Provider info
-        const ProviderInfo = <DataProviderInfo>{
-            "name": "calendar",
-            "desc": "Google calendar data provider; parent provider for APIs related to calendars",
-            "type": "GoogleCalendarDataProvider",
-            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions + {
-                "id": <DataProviderOptionInfo>{
-                    "display_name": "Calendar ID",
-                    "short_desc": "The calendar ID",
-                    "type": AbstractDataProviderTypeMap."string",
-                    "desc": "The calendar ID",
-                },
-            },
-            "supports_children": True,
-            "children_can_support_apis": True,
-        };
-
-        #! Provider summary info
-        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
-            AbstractDataProvider::DataProviderSummaryInfoKeys
-        });
-    }
-
+public class GoogleCalendarDataProvider inherits GoogleDataProvider::GoogleApiParentDataProvider {
     private {
-        #! The calendar's ID
-        string id;
-
-        #! The calendar's metadata
-        *hash<auto> cal;
-
-        const DefaultChildMap = {
-            "delete": Class::forName("GoogleCalendarDataProvider::GoogleCalendarDeleteDataProvider"),
-            "events": Class::forName("GoogleCalendarDataProvider::GoogleCalendarEventsDataProvider"),
-            "freeBusy": Class::forName("GoogleCalendarDataProvider::GoogleCalendarFreeBusyDataProvider"),
-            "get": Class::forName("GoogleCalendarDataProvider::GoogleCalendarGetDataProvider"),
-            "patch": Class::forName("GoogleCalendarDataProvider::GoogleCalendarPatchDataProvider"),
-            "update": Class::forName("GoogleCalendarDataProvider::GoogleCalendarUpdateDataProvider"),
-        };
-
-        static hash<string, Reflection::Class> childMap = DefaultChildMap;
-    }
-
-    #! Creates the object from constructor options
-    constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProviderBase::getRestConnection(options);
-        id = options.id;
+        static hash<string, Reflection::Class> childMap;
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest, string id, *hash<auto> cal)
-            : GoogleDataProvider::GoogleDataProviderBase(rest) {
-        self.id = id;
-        self.cal = cal;
-    }
-
-    #! Returns the data provider name
-    string getName() {
-        return ProviderInfo.name;
-    }
-
-    #! Returns the data provider description
-    *string getDesc() {
-        return sprintf("Google data %s provider for `%s` for `%s`", ProviderInfo.name, id, rest.getSafeURL());
+    constructor(GoogleRestClient::GoogleRestClient rest, string id)
+            : GoogleDataProvider::GoogleApiParentDataProvider(rest, GoogleDiscoveryCalendarApiName, "calendars", {
+                "calendarId": id,
+            }, "events", "acl") {
     }
 
     #! Return data provider summary info
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
+        *list<hash<DataProvider::DataProviderSummaryInfo>> rv =
+            GoogleApiParentDataProvider::getChildProviderSummaryInfo();
+        map rv += $1.getConstant("ProviderSummaryInfo").getValue(), childMap.iterator();
+        return rv;
     }
 
     #! Register a new child data provider for Google calendars
     static registerChild(string pathname, Reflection::Class cls) {
-        if (childMap{pathname}) {
+        if (childMap{pathname} || pathname == "events") {
             throw "GOOGLE-CALENDAR-CHILD-ERROR", sprintf("child %y already registered", pathname);
         }
-
         childMap{pathname} = cls;
-
         ImplicitModuleTransaction::add(sub () { GoogleCalendarDataProvider::deregisterChild(pathname); });
     }
 
     #! Deregister the named child data provider
     private static deregisterChild(string pathname) {
-        if (!DefaultChildMap{pathname}) {
-            remove childMap{pathname};
-        }
+        remove childMap{pathname};
     }
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys childMap;
+        *list<string> rv = GoogleApiParentDataProvider::getChildProviderNamesImpl();
+        map rv += $1, keys childMap;
+        return rv;
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -128,17 +73,13 @@ public class GoogleCalendarDataProvider inherits GoogleDataProvider::GoogleDataP
 
         @see getChildProviderEx()
     */
-    private *GoogleDataProvider::GoogleDataProviderBase getChildProviderImpl(string name) {
-        *Class cls = childMap{name};
-        if (!cls) {
-            return;
+    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
+        if (*GoogleDataProviderBase rv = GoogleApiParentDataProvider::getChildProviderImpl(name)) {
+            return rv;
         }
-        return cls.newObject(rest, id, cal);
-    }
-
-    #! Returns data provider static info
-    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
-        return ProviderInfo;
+        if (*Class cls = childMap{name}) {
+            return cls.newObject(rest, path_args);
+        }
     }
 }
 }

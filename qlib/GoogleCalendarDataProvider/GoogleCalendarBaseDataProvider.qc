@@ -25,7 +25,7 @@
 #! Contains all public definitions in the GoogleCalendarDataProvider module
 public namespace GoogleCalendarDataProvider {
 #! The parent class for Google calendar REST APIs
-public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
+public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleApiParentDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -89,20 +89,24 @@ public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleD
 
     private {
         const ChildMap = {
-            "calendarList": Class::forName("GoogleCalendarDataProvider::GoogleCalendarListDataProvider"),
+            #"calendarList": Class::forName("GoogleCalendarDataProvider::GoogleCalendarListDataProvider"),
             "calendars": Class::forName("GoogleCalendarDataProvider::GoogleCalendarsDataProvider"),
-            "insert": Class::forName("GoogleCalendarDataProvider::GoogleCalendarInsertDataProvider"),
+            #"insert": Class::forName("GoogleCalendarDataProvider::GoogleCalendarInsertDataProvider"),
         };
     }
 
     #! Creates the object from constructor options
-    constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
+    constructor(*hash<auto> options)
+            : GoogleApiParentDataProvider(
+                GoogleDiscoveryCalendarApiName, "calendars", NOTHING, "calendarList", "colors", "freebusy", "settings"
+            ) {
+        options = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         rest = GoogleDataProviderBase::getRestConnection(options);
     }
 
     #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProvider::GoogleDataProviderBase(rest) {
+    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleApiParentDataProvider(rest,
+            GoogleDiscoveryCalendarApiName, "calendars", NOTHING, "calendarList", "colors", "freebusy", "settings") {
     }
 
     #! Returns the data provider name
@@ -117,14 +121,19 @@ public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleD
 
     #! Return data provider summary info
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+        *list<hash<DataProvider::DataProviderSummaryInfo>> rv =
+            GoogleApiParentDataProvider::getChildProviderSummaryInfo();
+        map rv += $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+        return rv;
     }
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
+        *list<string> rv = GoogleApiParentDataProvider::getChildProviderNamesImpl();
+        map rv += $1, keys ChildMap;
+        return rv;
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -132,12 +141,13 @@ public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleD
 
         @see getChildProviderEx()
     */
-    private *GoogleDataProvider::GoogleDataProviderBase getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
-        if (!cls) {
-            return;
+    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
+        if (*GoogleDataProviderBase rv = GoogleApiParentDataProvider::getChildProviderImpl(name)) {
+            return rv;
         }
-        return cls.newObject(rest);
+        if (*Class cls = ChildMap{name}) {
+            return cls.newObject(rest);
+        }
     }
 
     #! Returns data provider static info

@@ -24,66 +24,56 @@
 
 #! Contains all public definitions in the GoogleDataProvider module
 public namespace GoogleDataProvider {
-#! The Google data provider base class
+#! The Google generic API data provider class
 public class GoogleApiDataProvider inherits GoogleDataProviderBase {
     private {
+        #! The Google API name (ex: "calendar")
         string api;
-        string request_label;
+
+        #! resource and action (ex: "events/get")
+        string resource_action;
+
+        #! Any path args associated with this data provider
+        *hash<auto> path_args;
+
+        #! The action name
+        string name;
+
+        #! Data provider description
+        string desc;
+
+        #! The resource name
+        string category;
+
+        #! Data provider type name
+        string type;
     }
 
     #! Creates the object
-    constructor() {
-        api = getApi();
-        request_label = getRequestLabel();
-    }
+    constructor(GoogleRestClient::GoogleRestClient rest, string api, string resource_action, *hash<auto> path_args)
+            : GoogleDataProviderBase(rest) {
+        self.api = api;
+        self.resource_action = resource_action;
+        self.path_args = path_args;
 
-    #! Creates the object
-    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProviderBase(rest) {
-        api = getApi();
-        request_label = getRequestLabel();
+        (category, name) = (resource_action =~ x/([^\/]+)\/([^\/]+)/);
+        desc = sprintf("Google %s %s provider for `%s`", api, resource_action, rest.getSafeURL());
+        type = sprintf("Google%s%s%sDataProvider", cap(api), cap(category), cap(name));
     }
 
     #! Returns the data provider name
     string getName() {
-        return getStaticInfoImpl().name;
+        return name;
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google %s %s provider for `%s`", api, request_label, rest.getSafeURL());
+        return desc;
     }
 
     #! Prepares information for an API request
     private *hash<auto> prepareRequestForSchema(auto req) {
-        hash<auto> requests = getRequestInfo(api);
-        *hash<auto> info = requests{request_label};
-        if (!info) {
-            throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y", api,
-                request_label, keys requests);
-        }
-
-        *hash<string, string> path_args = getPathArgs();
-        AbstractDataProviderType request_type = path_args ? getRequestTypeImpl() : info.request_type;
-
-        *hash<auto> req_info = prepareRequestIntern(request_type, req, path_args, backfillRequestBody());
-
-        string path = info.path;
-        foreach string var in (path =~ x/\{([^\}]*)}/g) {
-            if (exists (*string value = path_args{var} ?? req_info.path{var})) {
-                path = replace(path, "{" + var + "}", value);
-            } else {
-                throw "GOOGLE-REQUEST-ERROR", sprintf("%s API %s requires missing path arg %y; path args: %y",
-                    api, request_label, var, path_args);
-            }
-        }
-
-        if (req_info.query) {
-            path += req_info.query;
-        }
-
-        return req_info + {
-            "pathstr": info_map{api}.basePath + path,
-        };
+        return prepareRequestForSchema(api, resource_action, req);
     }
 
     #! Makes a request and returns the response
@@ -96,7 +86,7 @@ public class GoogleApiDataProvider inherits GoogleDataProviderBase {
         hash<auto> req_info = prepareRequestForSchema(req);
         hash<auto> info;
         try {
-            *hash<auto> rv = rest.doRequest(getMethodForSchema(api, request_label), req_info.pathstr, req_info.body,
+            *hash<auto> rv = rest.doRequest(getMethodForSchema(api, resource_action), req_info.pathstr, req_info.body,
                 \info).body;
             return getResponseTypeImpl().acceptsValue(rv);
         } catch (hash<ExceptionInfo> ex) {
@@ -110,30 +100,77 @@ public class GoogleApiDataProvider inherits GoogleDataProviderBase {
     /** @return the request type for this provider
     */
     private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
-        *hash<string, string> path_args = getPathArgs();
-        return GoogleDataProviderBase::getRequestTypeForSchemaArgs(api, request_label, keys path_args);
+        return GoogleDataProviderBase::getRequestTypeForSchemaArgs(api, resource_action, keys path_args);
     }
 
     #! Returns the description of a response message, if this object represents a response message
     /** @return the response type for this response message
     */
     private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
-        return GoogleDataProviderBase::getResponseTypeForSchema(api, request_label);
-    }
-
-    #! Returns any data provider path arg values for this data provider
-    private *hash<string, string> getPathArgs() {
+        return GoogleDataProviderBase::getResponseTypeForSchema(api, resource_action);
     }
 
     #! If the request body should be populated with missing values
-    private bool backfillRequestBody() {
-        return False;
+    private bool needsBackfillRequestBody() {
+        return name == "update";
     }
 
-    #! Returns the Google API label (ex: \c "calendar")
-    private abstract string getApi();
+    #! Used to set attributes in the request body that are not set in the request
+    private hash<auto> backfillRequestBody(auto req) {
+        string get_action = category + "/get";
+        hash<auto> req_info = prepareRequestForSchema(api, get_action, req, True);
 
-    #! Returns the Google API request label (ex: \c "events/insert")
-    private abstract string getRequestLabel();
+        hash<auto> info;
+        try {
+            return rest.doRequest("GET", req_info.pathstr, NOTHING, \info).body;
+        } catch (hash<ExceptionInfo> ex) {
+            # ensure that any error response body is included in the exception
+            *hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
+            rethrow ex.err, ex.desc, ex.arg + ex_arg;
+        }
+    }
+
+    #! Prepares information for an API request
+    private *hash<auto> prepareRequestForSchema(string api, string resource_action, auto req, *bool in_backfill) {
+        hash<auto> requests = getRequestInfo(api);
+        *hash<auto> info = requests{resource_action};
+        if (!info) {
+            throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y",
+                api, resource_action, keys requests);
+        }
+
+        AbstractDataProviderType request_type = path_args ? getRequestTypeImpl() : info.request_type;
+
+        *hash<auto> req_info = prepareRequestIntern(request_type, req, path_args,
+            in_backfill ? False : needsBackfillRequestBody());
+
+        string path = info.path;
+        foreach string var in (path =~ x/\{([^\}]*)}/g) {
+            if (exists (*string value = path_args{var} ?? req_info.path{var})) {
+                path = replace(path, "{" + var + "}", value);
+            } else {
+                throw "GOOGLE-REQUEST-ERROR", sprintf("%s API %s requires missing path arg %y; path args: %y",
+                    api, resource_action, var, path_args);
+            }
+        }
+
+        if (req_info.query) {
+            path += req_info.query;
+        }
+
+        return req_info + {
+            "pathstr": info_map{api}.basePath + path,
+        };
+    }
+
+    #! Returns data provider static info
+    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
+        return <DataProviderInfo>{
+            "name": name,
+            "desc": desc,
+            "type": type,
+            "supports_request": True,
+        };
+    }
 }
 }

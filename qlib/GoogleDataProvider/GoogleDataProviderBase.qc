@@ -85,6 +85,11 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         return prepareRequestIntern(request_type, req, implicit_path_args, backfill_request_body);
     }
 
+    #! If the request body should be populated with missing values
+    private bool needsBackfillRequestBody() {
+        return False;
+    }
+
     #! Prepares a request with a request type created from the Discovery API
     /** @param req The incoming request data
         @param implicit_path_args any implicit path args
@@ -94,10 +99,11 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         - \c path: a hash of path params
         - \c query: a string of query params prefixed by "?"
     */
-    *hash<auto> prepareRequestIntern(AbstractDataProviderType request_type, auto req,
+    *hash<auto> prepareRequestIntern(AbstractDataProviderType request_type, auto req0,
             *hash<string, softstring> implicit_path_args, *bool backfill_request_body) {
         hash<auto> rv;
         hash<string, bool> body_keys;
+        auto req = req0;
         foreach AbstractDataField field in (request_type.getFields().values()) {
             string name = field.getName();
             *string loc = field.getAttributes().location;
@@ -133,7 +139,7 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
                 request_type.getName(), req, keys request_type.getFields());
         }
         if (backfill_request_body && rv.body.size() < body_keys.size()) {
-            map rv.body{$1.key} = $1.value, backfillRequestBody(rv).pairIterator(), !rv.body.hasKey($1.key);
+            map rv.body{$1.key} = $1.value, backfillRequestBody(req0).pairIterator(), !rv.body.hasKey($1.key);
         }
 
         return rv;
@@ -151,8 +157,13 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         return val.toString();
     }
 
+    #! Returns the given word capitalized
+    static string cap(string word) {
+        return word[0].upr() + word[1..];
+    }
+
     #! Used to set attributes in the request body that are not set in the request
-    private hash<auto> backfillRequestBody(hash<auto> req_info) {
+    private hash<auto> backfillRequestBody(auto req) {
         throw "UNIMPLEMENTED", sprintf("must be overridden in class %y", self.className());
     }
 
@@ -226,6 +237,15 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         return GoogleDataProviderBase::getRequestTypeForSchemaArgs(api, path, argv);
     }
 
+    #! Returns a hash of all non-subscription methods for the given resource
+    static *hash<string, bool> getMethodsForResource(string api, string resource, *hash<auto> path_args) {
+        # make sure API is cached
+        GoogleDataProviderBase::getRequestInfo(api);
+        return map {$1.key: True}, info_map{api}.resources{resource}.methods.pairIterator(),
+            ($1.value.response."$ref" != "Channel") && (!path_args
+                || ($1.value.parameterOrder && ((keys path_args) == $1.value.parameterOrder[0..path_args.size() - 1])));
+    }
+
     #! Returns a data type for the given request
     static DataProvider::AbstractDataProviderType getRequestTypeForSchemaArgs(string api, string path,
             *list<auto> args) {
@@ -240,8 +260,9 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         }
         # create new type without implicit / path args
         if (args && (*AbstractDataProviderType rv = requests{path}.request_type)) {
-            return request_map{api}{rpath}.request_type = new HashDataType(rv.getValueType(), rv.getName(),
-                rv.getFields() - args);
+            HashDataType nt(rv.getValueType(), rv.getName(), rv.getFields() - args);
+            nt.checkConvertOrNothing();
+            return request_map{api}{rpath}.request_type = nt;
         }
         throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y", api,
             path, keys requests);
@@ -284,9 +305,6 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         );
         # resolve all unresolved types
         requests = unresolved.resolveRequests(api, requests, input_schema_map, output_schema_map);
-
-        # save URL info
-        info_map{api} = api_info{"basePath", "description", "title"};
 
         # save the schema info
         return request_map{api} = requests;

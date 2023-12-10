@@ -117,11 +117,14 @@ public class GoogleDataProviderTest inherits QUnit::Test {
             assertEq(desc, h.description);
         }
 
-        # test the freeBusy calendar API
-        prov = gdp.getChildProviderPath("calendars/primary/freeBusy");
+        # test the free/busy calendar API
+        prov = gdp.getChildProviderPath("freebusy/query");
         {
             date now = now_us();
             hash<auto> req = {
+                "items": ({
+                    "id": "primary",
+                },),
                 "timeMin": date(now.format("YYYY-MM-DDT00:00:00Z")),
                 "timeMax": date((now + 1D).format("YYYY-MM-DDT00:00:00Z")),
             };

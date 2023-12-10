@@ -28,7 +28,7 @@ public namespace GoogleCalendarDataProvider {
 public class GoogleCalendarDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {
     private {
         #! Data provider type info
-        static Class cls = new Class("GoogleCalendarDataProvider");
+        static Class cls = new Class("GoogleCalendarBaseDataProvider");
 
         #! Factory info
         const FactoryInfo = <DataProviderFactoryInfo>{
@@ -49,7 +49,7 @@ public class GoogleCalendarDataProviderFactory inherits DataProvider::AbstractDa
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
     private hash<DataProvider::DataProviderInfo> getProviderInfoImpl() {
-        return GoogleCalendarDataProvider::ProviderInfo;
+        return GoogleCalendarBaseDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object
