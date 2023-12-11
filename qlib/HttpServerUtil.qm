@@ -34,7 +34,7 @@
 %enable-all-warnings
 
 module HttpServerUtil {
-    version = "1.1";
+    version = "1.2";
     desc = "HttpServerUtil class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -93,6 +93,9 @@ module HttpServerUtil {
       infrastructure for implementing SOAP server-side services using the HttpServer module
 
     @section httpserverutil_relnotes HttpServerUtil Module Release Notes
+
+    @subsection httputil1_2 HttpServerUtil 1.2
+    - allow handlers to remove thread-local auth information after requests have been handled
 
     @subsection httputil1_1 HttpServerUtil 1.1
     - implemented support for reloading X.509 certificate information without manually restarting listeners
@@ -163,7 +166,7 @@ module HttpServerUtil {
  */
 public namespace HttpServer {
 #! version of the HttpServer's implementation
-public const HttpServerVersion = "1.1";
+public const HttpServerVersion = "1.2";
 
 #! default HTTP server string
 public const HttpServerString = sprintf("Qore-HTTP-Server/%s", HttpServerVersion);
@@ -1002,6 +1005,15 @@ public class AbstractAuthenticator {
             listener.logError(str);
         }
         return do401(NOTHING, cx);
+    }
+
+    #! Called after a request has been handled to allow the authenticator to remove any thread-local auth information
+    /** The base class method does nothing
+
+        @since HttpServerUtil 1.2
+    */
+    endRequest() {
+        # intentionally empty
     }
 }
 
