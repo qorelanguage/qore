@@ -1413,6 +1413,9 @@ public class WebSocketClientWithSerialization inherits WebSocketClient, DataProv
     private {
         #! data serialization option: none, json, or yaml
         string serialization;
+
+        #! Flag to raise ping events
+        bool raise_ping_events;
     }
 
     #! Creates the WebSocket client object from the arguments
@@ -1435,6 +1438,7 @@ class MyObserver inherits Observer {
         @param opts an option hash for the @ref Qore::HTTPClient::constructor(hash<auto>) "HTTPClient constructor"
         plus the following keys:
         - \c logger: an optional @ref Logger::LoggerInterface "LoggerInterface" object for internal logging
+        - \c raise_ping_events: if @ref True then events will be raised when pings are received
         - \c raw_callback: an optional @ref closure "closure" or @ref call_reference "call reference" for
           receiving raw WebSocket messages before processing; takes a single <tt>hash&lt;WsMsgInfo&gt;</tt>
           argument and must return one of the following values: @ref WSClientRawCallbackReturnCodes
@@ -1453,6 +1457,9 @@ class MyObserver inherits Observer {
         serialization = getString(opts, "data", True, "none");
         if (!DataSerializationSupport{serialization}) {
             unsupportedSerialization();
+        }
+        if (opts.raise_ping_events) {
+            raise_ping_events = True;
         }
     }
 
@@ -1528,7 +1535,9 @@ class MyObserver inherits Observer {
     #! Got a ping message
     private handlePing(hash<auto> h) {
         WebSocketClient::handlePing(h);
-        notifyObservers(EVENT_WS_PING, {"data": h.msg});
+        if (raise_ping_events) {
+            notifyObservers(EVENT_WS_PING, {"data": h.msg});
+        }
     }
 
     #! Got a pong message
@@ -1643,6 +1652,13 @@ public class WebSocketConnectionObject inherits ConnectionProvider::AbstractConn
                     "short_desc": "Try to reconnect when the connection is closed or lost",
                     "type": "bool",
                     "desc": "Try to reconnect when the connection is closed or lost",
+                    "default_value": False,
+                },
+                "raise_ping_events": <ConnectionOptionInfo>{
+                    "display_name": "Raise Ping Events?",
+                    "short_desc": "Raise events for WebSocket pings?",
+                    "type": "bool",
+                    "desc": "Raise events for WebSocket pings?",
                     "default_value": False,
                 },
                 "token": <ConnectionOptionInfo>{

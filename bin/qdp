@@ -1074,7 +1074,7 @@ class InputHelper {
         hash<string, hash<DataProviderMessageInfo>> mmap;
 
 %ifndef NoLinenoise
-        string path;
+        static string path;
         const HistoryFile = ".qdp-history";
 %endif
 
@@ -1142,6 +1142,11 @@ class InputHelper {
             stdout.print(Prompt);
             stdout.sync();
             line = trim(stdin.readLine());
+%endif
+
+%ifndef NoLinenoise
+                # save history
+                Linenoise::history_save(InputHelper::path);
 %endif
 
             if (line == 'help' || line == '?') {
