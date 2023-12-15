@@ -504,14 +504,18 @@ public class RestClient inherits Qore::HTTPClient, Logger::LoggerWrapper, Connec
         string oauth2_client_secret;
         #! OAuth2 scope
         *softlist<string> oauth2_scopes;
-        #! OAuth2 extra args
+        #! OAuth2 extra auth args
         *hash<auto> oauth2_auth_args;
+        #! OAuth2 extra token args
+        *hash<auto> oauth2_token_args;
         #! OAuth2 auth URL
         string oauth2_auth_url;
         #! OAuth2 redirect URL
         string oauth2_redirect_url;
         #! OAuth2 token URL
         string oauth2_token_url;
+        #! Alternate OAuth2 token URL
+        string oauth2_alt_token_url;
         #! The token type, if any
         string token_type;
         #! Any token set for the connection; will be passed as a bearer token (Authorization: Bearer ...)
@@ -567,6 +571,8 @@ RestClient rest({"url": "http://localhost:8001/rest"});
           message headers
         - \c logger: any logger to use for the object
         - \c max_redirects: The maximum number of redirects before throwing an exception (the default is 5)
+        - \c oauth2_alt_token_url: Alternate token URL; if this is set then the token request is made to this URL
+          with the \c oauth2_token_url value as an argument in the request
         - \c oauth2_auto_refresh: If OAuth2 tokens should be automatically refreshed
           (default \c True)
         - \c oauth2_auth_args: Extra arguments for OAuth2 authentication requests to \c oauth2_auth_url for the
@@ -592,6 +598,9 @@ RestClient rest({"url": "http://localhost:8001/rest"});
           that implement OAuth2 authorization code client handling
         - \c oauth2_refresh_token: An OAuth2 refresh token (complements option \c token)
         - \c oauth2_scopes: A list of OAuth2 scopes to request; ignored if the \c token option is set
+        - \c oauth2_token_args: Extra arguments for OAuth2 token requests to \c oauth2_token_url; if this option is
+          set as well as \c oauth2_alt_token_url, then the \c oauth2_token_url value will be added to this as well
+          when the request is made to the \c oauth2_alt_token_url
         - \c oauth2_token_url: The token URL OAuth2 flows; ignored if the \c token option is set
         - \c password: The password for authentication; only used if no username or password is set in the URL and if
           the \c username option is also used
@@ -692,11 +701,13 @@ RestClient rest({"url": "http://localhost:8001/rest"});
             oauth2_auto_refresh = parse_boolean(opts.oauth2_auto_refresh);
         }
         if (opts.oauth2_auth_args) {
-            if (opts.oauth2_auth_args.typeCode() != NT_HASH) {
-                throw "RESTCLIENT-ERROR", sprintf("option \"oauth2_auth_args\" expects a hash when set; got type %y "
-                    "instead", opts.oauth2_auth_args.fullType());
-            }
-            oauth2_auth_args = opts.oauth2_auth_args;
+            oauth2_auth_args = getHash(opts, "oauth2_auth_args", True);
+        }
+        if (opts.oauth2_alt_token_url) {
+            oauth2_alt_token_url = opts.oauth2_alt_token_url;
+        }
+        if (opts.oauth2_token_args) {
+            oauth2_token_args = getHash(opts, "oauth2_token_args", True);
         }
         if (opts.oauth2_scopes) {
             oauth2_scopes = opts.oauth2_scopes;
@@ -744,6 +755,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
             "password": password,
             "token": token,
             "token_type": token_type,
+            "oauth2_alt_token_url": oauth2_alt_token_url,
             "oauth2_auth_args": oauth2_auth_args,
             "oauth2_auth_url": oauth2_auth_url,
             "oauth2_auto_refresh": oauth2_auto_refresh,
@@ -754,6 +766,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
             "oauth2_redirect_url": oauth2_redirect_url,
             "oauth2_refresh_token": refresh_token,
             "oauth2_scopes": oauth2_scopes,
+            "oauth2_token_args": oauth2_token_args,
             "oauth2_token_url": oauth2_token_url,
         };
     }
@@ -1358,25 +1371,9 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
                     rethrow;
                 };
 
-                if (refresh_token) {
-                    # error details already logged
-                    debug("RestClient: authorization error; using refresh_token to acquire a new token");
-                    # get a new token with the refresh token
-                    oauth2Auth(getOAuth2RefreshInfo(), \info);
-                    if (token && update_options) {
-                        hash<auto> new_opts = {
-                            "token": token,
-                            "token_type": token_type,
-                        };
-                        if (refresh_token) {
-                            new_opts.oauth2_refresh_token = refresh_token;
-                        }
-                        doUpdateOptions(self, new_opts);
-                    }
-                } else {
-                    # try to get a new token
-                    loginIntern(\info);
-                }
+                # error details already logged
+                debug("RestClient: authorization error; using refresh_token to acquire a new token");
+                getNewTokenIntern();
                 # try request again
                 return doRequestIntern(m, path, body, \info, decode_errors, hdr);
             }
@@ -1392,6 +1389,58 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     bool isAuthTokenError(int status_code, hash<auto> headers, bool body_decoded, *string body_content_type,
             auto body) {
         return status_code == 401;
+    }
+
+    #! Get a new token from the server either with an OAuth2 token request or using the refresh token
+    /** @return The response from the token call
+
+        @throw AUTH-CONFIG-ERROR The RestClient is not configured for token retrieval
+
+        The \ oauth2_grant_type option must be set on the client, or an exception will be thrown
+
+        @throw AUTH-CONFIG-ERROR cannot retrieve an OAuth2 token without OAuth2 option configuration
+
+        @since RestClient 2.2
+    */
+    hash<auto> getNewToken() {
+        if (!oauth2_grant_type) {
+            throw "AUTH-CONFIG-ERROR", "Not all of 'oauth2_grant_type', 'oauth2_token_url', 'oauth2_client_id' are "
+                "set; cannot request a new token";
+        }
+        return getNewTokenIntern();
+    }
+
+    #! Get a new token from the server
+    /**
+        @since RestClient 2.2
+    */
+    private hash<auto> getNewTokenIntern(*reference<hash<auto>> info) {
+        if (refresh_token) {
+            return refreshTokenIntern(\info);
+        }
+        # try to get a new token
+        return loginIntern(\info);
+    }
+
+    #! Gets a new token using the refresh token
+    /** @return the response from the refresh token call
+
+        @since RestClient 2.2
+    */
+    private hash<auto> refreshTokenIntern(*reference<hash<auto>> info) {
+        # get a new token with the refresh token
+        hash<auto> rv = oauth2Auth(getOAuth2RefreshInfo(), \info);
+        if (token && update_options) {
+            hash<auto> new_opts = {
+                "token": token,
+                "token_type": token_type,
+            };
+            if (refresh_token) {
+                new_opts.oauth2_refresh_token = refresh_token;
+            }
+            doUpdateOptions(self, new_opts);
+        }
+        return rv;
     }
 
     #! Makes a REST request and returns the result
@@ -1617,7 +1666,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         on_exit if (username && self.password) {
             setUserPassword(username, self.password);
         }
-        return startPollSendRecv("POST", oauth2_token_url, request_body, {
+        return startPollSendRecv("POST", oauth2_alt_token_url ?? oauth2_token_url, request_body, {
             "Content-Type": MimeTypeFormUrlEncoded,
             "Accept": MimeTypeJson + "," + MimeTypeFormUrlEncoded,
         });
@@ -1641,6 +1690,15 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     /** @since %RestClient 2.0
     */
     private hash<auto> oauth2AuthIntern(hash<auto> login, *reference<hash<auto>> info) {
+        if (oauth2_token_args) {
+            login += oauth2_token_args;
+            if (oauth2_alt_token_url) {
+                if (!login.oauth2_token_url) {
+                    login.oauth2_token_url = oauth2_token_url;
+                };
+            }
+        }
+
         # clear connection path for login call
         *string path = getConnectionPath();
         on_exit setConnectionPath(path);
@@ -1662,6 +1720,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
 
         # save URL in case the token URL is on a completely different server
         string orig_url = getURL();
+        # use oauth2_alt_token_url if it's set
+        string oauth2_token_url = oauth2_alt_token_url ?? self.oauth2_token_url;
         bool set_url = oauth2_token_url =~ /^http/;
         # set the full URL if the token URL is possibly on another server
         if (set_url) {
@@ -1713,6 +1773,9 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
             "client_secret": oauth2_client_secret,
             "grant_type": grant_type,
         };
+        if (oauth2_alt_token_url) {
+            login.oauth2_token_url = oauth2_token_url;
+        }
         if (oauth2_scopes) {
             login += {
                 "scope": foldl $1 + " " + $2, oauth2_scopes,
@@ -1909,9 +1972,6 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     - \c "http_version": HTTP version to use (\c "1.0" or \c "1.1", defaults to \c "1.1")
     - \c "max_redirects": maximum redirects to support
     - \c "oauth2_app": An OAuth2 app name for external programs handling OAuth2 calls for this client
-    - \c "oauth2_auth_args": Extra arguments for OAuth2 authentication requests to \c oauth2_auth_url for the
-      \c authentication_code grant type.  Note that the \c authorization_code grant type requires external user
-      authorization to acquire an access token
     - \c "oauth2_auth_url": The OAuth2 authorization URL for the \c authorization_code grant type; ignored if the
       \c token option is set.  Note that the \c authorization_code grant type requires external user authorization to
       acquire an access token
@@ -1934,6 +1994,9 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
       that implement OAuth2 authorization code client handling
     - \c "oauth2_refresh_token": An OAuth2 refresh token (complements option \c "token")
     - \c "oauth2_scopes": A list of OAuth2 scopes to request; ignored if the \c token option is set
+    - \c "oauth2_token_args": Extra arguments for OAuth2 authentication requests to \c oauth2_token_url; if this
+      option is set as well as \c oauth2_alt_token_url, then the \c oauth2_token_url value will be added to this as
+      well when the request is made to the \c oauth2_alt_token_url
     - \c "oauth2_token_url": The token URL for OAuth2 flows; ignored if the \c token option is set
     - \c "password": The password for authentication; only used if no username or password is set in the URL and if
       the \c username option is also used
@@ -2051,6 +2114,13 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     "desc": "Sets an optional hash of headers to send with every request, these can also be "
                         "overridden in request method calls",
                 },
+                "oauth2_alt_token_url": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Alternate Token URL",
+                    "short_desc": "An alternate token URL which will be used to wrap the call to get the token",
+                    "type": "string",
+                    "desc": "An alternate token URL which will be used to wrap the call to get the token; if this is "
+                        "set, then it takes precedence over `oauth2_token_url`",
+                },
                 "oauth2_app": <ConnectionOptionInfo>{
                     "display_name": "OAuth2 Application",
                     "short_desc": "Sets a hint to external programs for the OAuth2 config",
@@ -2155,6 +2225,14 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
                     "short_desc": "List of OAuth2 scopes to request",
                     "type": "list",
                     "desc": "List of OAuth2 scope strings to request; ignored if the `token` option is set",
+                },
+                "oauth2_token_args": <ConnectionOptionInfo>{
+                    "display_name": "OAuth2 Token Refresh Args",
+                    "short_desc": "Optional extra arguments for token requests",
+                    "type": "hash",
+                    "desc": "Optional extra arguments for token refresh requests; if this option is set as well as "
+                        "`oauth2_alt_token_url`, then the `oauth2_token_url` value will be added to this as well "
+                        "when the request is made to the `oauth2_alt_token_url`",
                 },
                 "oauth2_token_url": <ConnectionOptionInfo>{
                     "display_name": "OAuth2 Token URL",
@@ -2298,6 +2376,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
 
         #! All OAuth2 options
         const OAuth2Options = (
+            "oauth2_alt_token_url",
             "oauth2_app",
             "oauth2_auto_refresh",
             "oauth2_auth_args",
@@ -2308,6 +2387,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             "oauth2_redirect_url",
             "oauth2_refresh_token",
             "oauth2_scopes",
+            "oauth2_token_args",
             "oauth2_token_url",
             "password",
             "username",
@@ -2342,7 +2422,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         @throw CONNECTION-OPTION-ERROR missing or invalid connection option
     */
     constructor(string name, string description, string url, hash<auto> attributes = {}, hash<auto> options = {})
-            : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(options)) {
+            : HttpBasedConnection(name, description, url, attributes, RestConnection::processOptions(name, options)) {
         setupRest();
     }
 
@@ -2435,6 +2515,13 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         return (real_opts - "url") + new_opts;
     }
 
+    #! Returns headers to use with OAuth2 authorization / token requests
+    /** @since %RestClient 2.2
+    */
+    *hash<auto> getOAuth2AuthHeaders() {
+        return RestClient::OAuth2AuthHeaders;
+    }
+
     #! returns a data provider object for this connection
     /** @param constructor_options any additional constructor options for the data provider
 
@@ -2490,7 +2577,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
     #! processes options for the constructor
     /** In particular it parses any string as a value of the \c "headers" option to return a hash
     */
-    static hash<auto> processOptions(*hash<auto> opts) {
+    static hash<auto> processOptions(string name, *hash<auto> opts) {
+        on_error rethrow $1.err, sprintf("Connection %y: %s", name, $1.desc);
         hash<auto> rv = {} + opts;
         switch (opts.headers.typeCode()) {
             case NT_NOTHING:
@@ -2499,9 +2587,8 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
             case NT_STRING: {
                 auto v = parse_to_qore_value(opts.headers);
                 if (v.typeCode() != NT_HASH) {
-                    throw "REST-CONNECTION-ERROR", sprintf("\"headers\" option string parsed to type %y "
-                        "(value: %y); expecting \"hash\"",
-                        v.type(), v);
+                    throw "REST-CONNECTION-ERROR", sprintf("\"headers\" option string parsed to "
+                        "type %y (value: %y); expecting \"hash\"", v.type(), v);
                 }
                 v = map {$1.key: $1.value.toString()}, v.pairIterator();
                 rv.headers = v;
@@ -2576,7 +2663,17 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         @since %RestClient 2.0
     */
     string getTokenUrl(*bool allow_relative) {
-        return getUrlOption("oauth2_token_url", allow_relative);
+        string url_opt = getOAuth2OptionName("oauth2_alt_token_url");
+        *string uri = opts{url_opt};
+        if (!uri) {
+            url_opt = getOAuth2OptionName("oauth2_token_url");
+            uri = opts{url_opt};
+            if (!uri) {
+                throw "OAUTH2-AUTH-ERROR", sprintf("neither \"oauth2_alt_token_url\" nor \"oauth2_token_url\" is set on "
+                    "connection %y", name);
+            }
+        }
+        return getUrlOptionIntern(uri, allow_relative);
     }
 
     #! Returns options for creating a new connection
@@ -2675,6 +2772,17 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         if (!uri) {
             throw "OAUTH2-AUTH-ERROR", sprintf("no %y option is set on connection %y", url_opt, name);
         }
+        return getUrlOptionIntern(uri, allow_relative);
+    }
+
+    #! Returns the value of a URL option
+    /*  @param uri the URL value
+        @param allow_relative if @ref True then a relative URL (path only) can be returned; the default (@ref False)
+        is to return a full URL
+
+        @since %RestClient 2.2
+    */
+    private string getUrlOptionIntern(string uri, *bool allow_relative) {
         if (!allow_relative && uri !~ /^http/) {
             string url = real_url;
             if (url !~ /\/$/) {

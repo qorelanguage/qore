@@ -1418,6 +1418,13 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
         return rv;
     }
 
+    #! Returns headers to use with OAuth2 authorization / token requests
+    /** @since %SalesforceRestClient 2.0.1
+    */
+    *hash<auto> getOAuth2AuthHeaders() {
+        return {"Accept": MimeTypeJson};
+    }
+
     #! Processes OAuth2 login responses and returns updated options
     private *hash<auto> processOAuth2TokenResponseImpl(hash<auto> resp) {
         # if the request was made with Accept: text/xml, the top-level key will be "OAuth"

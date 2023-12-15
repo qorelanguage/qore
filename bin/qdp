@@ -1020,7 +1020,7 @@ class MyObserver inherits Observer {
             log("<", "connected to server");
         } else if (info.disconnection_event == event_id) {
             if (info.supports_auto_reconnect) {
-                log("<", "disconnected from server; trying to reconnect...");
+                log("<", "disconnected from server%s", QdpCmd::ix ? "; trying to reconnect..." : "");
             } else {
                 log("<", "disconnected from server; auto_reconnect not enabled; exiting");
                 # restore original terminal attributes
