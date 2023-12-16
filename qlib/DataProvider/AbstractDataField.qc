@@ -284,14 +284,18 @@ public class AbstractDataField inherits Qore::Serializable {
     }
 
     #! Converts a long description into a short description
-    static *string getShortDescription(*string desc) {
+    static *string getShortDescription(*string desc, *int maxlen) {
         if (!exists desc) {
             return;
         }
         # convert backquotes to single quotes
         desc =~ s/`/'/g;
-        # end after the first sentence, if any
-        desc =~ s/\.\s+[A-Z].*//;
+        # end after the first sentence or newline, if any
+        desc =~ s/[\.;\n].*//s;
+        trim desc;
+        if (maxlen > 0) {
+            splice desc, maxlen;
+        }
         return desc;
     }
 
