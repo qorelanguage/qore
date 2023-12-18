@@ -710,6 +710,14 @@ public namespace RestSchemaValidator {
             const NullSchemaHashStr = "<null rest schema>";
         }
 
+        #! Creates the object without a logger
+        constructor() {
+        }
+
+        #! Creates the object with the given logger
+        constructor(Logger::LoggerInterface logger) : AbstractRestSchemaValidator(logger) {
+        }
+
         #! returns @ref True if the provider manages the URI path
         /** This method returns @ref False
         */
@@ -838,8 +846,8 @@ public namespace RestSchemaValidator {
                     ctl = (ct,);
                     if (!DataSerializationSupport{ct}) {
                         log(LoggerLevel::ERROR, "error serializing response with unsupported "
-                            "Content-Type %y required by the REST handler response: failed with response body: "
-                            "%N", ct, response_body);
+                            "Content-Type %y required by the REST handler response: failed with response body: %N",
+                            ct, response_body);
                         throw "ACCEPT-ERROR", sprintf("cannot serialize response; you claim to accept only: %y; "
                             "types supported: %y (required by REST response handler); discarding response: %y",
                             content_types, keys DataSerializationSupport, response_body),
@@ -881,7 +889,8 @@ public namespace RestSchemaValidator {
                 }
                 # rethrow last exception if the response cannot be serialized
                 if (!ok) {
-                    throw ex.err, ex.desc, ex.arg;
+                    throw "ACCEPT-ERROR", sprintf("error serializing response; tried: %y; last error: %s: %s", ctl,
+                        ex.err, ex.desc), ex.arg;
                 }
             }
 

@@ -686,7 +686,7 @@ RestClient rest({"url": "http://localhost:8001/rest"});
                     validator.setBasePath(opts.swagger_base_path);
                 }
             } else {
-                validator = new NullRestSchemaValidator();
+                validator = new NullRestSchemaValidator(logger);
             }
         }
         if (validator.managesUriPath()) {
@@ -730,6 +730,12 @@ RestClient rest({"url": "http://localhost:8001/rest"});
                 connect();
             }
         }
+    }
+
+    #! Accepts a LoggerInterface object for logging (or clears it)
+    setLogger(*LoggerInterface logger) {
+        LoggerWrapper::setLogger(logger);
+        validator.setLogger(logger);
     }
 
     #! Sets OAuth2 options
@@ -1712,7 +1718,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         AbstractRestSchemaValidator v;
         if (!(validator instanceof NullRestSchemaValidator)) {
             v = remove self.validator;
-            validator = new NullRestSchemaValidator();
+            validator = new NullRestSchemaValidator(logger);
         }
         on_exit if (v) {
             validator = v;
@@ -2448,6 +2454,14 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         setupRest();
     }
 
+    #! Accepts a LoggerInterface object for logging (or clears it)
+    setLogger(*LoggerInterface logger) {
+        LoggerWrapper::setLogger(logger);
+        if (real_opts.validator instanceof AbstractRestSchemaValidator) {
+            real_opts.validator.setLogger(logger);
+        }
+    }
+
     #! Returns True if the connection requires OAuth2 authorization before it can be used
     /** @return @ref True if the connection requires OAuth2 authorization, @ref False if already authorized, or the
         connection does not support authorization
@@ -2478,7 +2492,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         if (real_opts.validator instanceof AbstractRestSchemaValidator) {
             new_opts.validator = real_opts.validator;
         } else {
-            new_opts.validator = new NullRestSchemaValidator();
+            new_opts.validator = new NullRestSchemaValidator(logger);
         }
         return getImpl(False, new_opts);
     }
