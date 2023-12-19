@@ -665,10 +665,25 @@ public class DataProviderActionCatalog {
                 "display_name": i.value.display_name ?? AbstractDataField::getDisplayName(i.key),
                 "short_desc": i.value.short_desc ?? AbstractDataField::getShortDescription(i.value.desc),
                 "desc": i.value.desc ?? DefaultDescription,
-                "type": i.value.type instanceof AbstractDataProviderType
-                    ? i.value.type.getBaseTypeName()
-                    : i.value.type.getName(),
             };
+            auto type = i.value.type;
+            if (type.typeCode() == NT_LIST) {
+                type = type[0];
+            }
+            switch (type.typeCode()) {
+                case NT_OBJECT:
+                    info.type = type instanceof AbstractDataProviderType
+                        ? type.getBaseTypeName()
+                        : type.getName();
+                    break;
+
+                case NT_STRING:
+                    info.type = type;
+                    break;
+
+                default:
+                    throw "OPTION-ERROR", sprintf("Cannot set option type from \"type\" option with type %y", type);
+            }
             info += i.value{"default_value", "required", "sensitive", "example_value"} + additional_fields;
             if (i.value.allowed_values) {
                 if (i.value.allowed_values instanceof list<hash<AllowedValueInfo>>

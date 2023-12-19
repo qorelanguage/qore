@@ -122,6 +122,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
                 "type": AbstractDataProviderType::get(SoftBoolType),
                 "desc": "if `true` then the object will parse the header names from the first header row, in this "
                     "case if `header_lines` is not set explicitly, it will be assumed to be `1`",
+                "default_value": False,
             },
             "header_reorder": <DataProviderOptionInfo>{
                 "display_name": "Enforce Header Order",

@@ -126,18 +126,6 @@ f2:3,00:5:25,34";
     }
 
     dataProviderTest() {
-        {
-            FilesystemConnection fc("x", "x", "file:///tmp");
-            AbstractDataProvider prov = fc.getDataProvider("csvread");
-            assertRegex("^stream ", prov.getName());
-        }
-        {
-            TmpFile tmp();
-            FilesystemConnection fc("x", "x", "file://" + tmp.path);
-            AbstractDataProvider prov = fc.getDataProvider("csvwrite");
-            assertRegex("^stream ", prov.getName());
-        }
-
         list<hash<auto>> rows;
         {
             CsvReadDataProvider dp;

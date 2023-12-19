@@ -66,26 +66,6 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
                 "option_class": "FilePollerDataProviderBase",
                 "options": "ConstructorOptions",
             },
-            "csvread": {
-                "module": "CsvUtil",
-                "class": "CsvReadDataProvider",
-                "options": "ConstructorOptions",
-            },
-            "csvwrite": {
-                "module": "CsvUtil",
-                "class": "CsvWriteDataProvider",
-                "options": "ConstructorOptions",
-            },
-            "fixedlengthread": {
-                "module": "FixedLengthUtil",
-                "class": "FixedLengthReadDataProvider",
-                "options": "ConstructorOptions",
-            },
-            "fixedlengthwrite": {
-                "module": "FixedLengthUtil",
-                "class": "FixedLengthWriteDataProvider",
-                "options": "ConstructorOptions",
-            },
         };
     }
 
@@ -155,6 +135,10 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
     */
     AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
         load_module("FileDataProvider");
+        return create_object("FileDataProvider", {
+            "root": urlh.path ?? "/",
+            "readonly": False,
+        } + constructor_options);
     }
 
     #! Common constructor initialization
@@ -229,8 +213,8 @@ public class FilesystemConnection inherits AbstractConnectionWithInfo {
     private AbstractDataProvider getDataProviderImpl(string subtype, *hash<auto> constructor_options) {
         *hash<auto> conf = DataProviderSubtypeMap{subtype};
         if (!conf) {
-            throw "DATA-PROVIDER-ERROR", sprintf("ftp connections do not support data provider subtype %y; supported "
-                "subtypes: %y", subtype, getDataProviderSubtypes());
+            throw "DATA-PROVIDER-ERROR", sprintf("file connections do not support data provider subtype %y; "
+                "supported subtypes: %y", subtype, keys getDataProviderSubtypes());
         }
         if (opts.readonly && subtype =~ /write/i) {
             throw "DATA-PROVIDER-ERROR", sprintf("cannot return a %s data provider for readonly file connections",

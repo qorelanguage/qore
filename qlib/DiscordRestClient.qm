@@ -619,8 +619,8 @@ public class DiscordRestConnection inherits RestClient::RestConnection {
     private AbstractDataProvider getDataProviderImpl(string subtype, *hash<auto> constructor_options) {
         *hash<auto> conf = DataProviderSubtypeMap{subtype};
         if (!conf) {
-            throw "DATA-PROVIDER-ERROR", sprintf("ftp connections do not support data provider subtype %y; supported "
-                "subtypes: %y", subtype, getDataProviderSubtypes());
+            throw "DATA-PROVIDER-ERROR", sprintf("discord connections do not support data provider subtype %y; "
+                "supported subtypes: %y", subtype, keys getDataProviderSubtypes());
         }
         checkSubtypeInfo();
         hash<auto> opts = getSubtypeOptions(subtype_info{subtype}, constructor_options);

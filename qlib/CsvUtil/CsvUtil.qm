@@ -53,7 +53,6 @@ module CsvUtil {
             "display_name": "CSV Files",
             "short_desc": "Read and write CSV file data",
             "desc": "Read and write CSV file data",
-            "scheme": "file",
             "logo": CsvWhiteLogo,
             "logo_file_name": "generic-csv-logo.svg",
             "logo_mime_type": MimeTypeSvg,
@@ -69,6 +68,15 @@ module CsvUtil {
             "short_desc": "Read CSV file data from the local filesystem",
             "desc": "Read CSV file data from the local filesystem",
             "action_code": DPAT_FIND,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                CsvReadDataProvider::ConstructorOptions{"path", "header_names"}, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                CsvReadDataProvider::ConstructorOptions - ("path", "header_names")
+            ),
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": CsvUtil::AppName,
@@ -79,6 +87,15 @@ module CsvUtil {
             "short_desc": "Write CSV file data to the local filesystem",
             "desc": "Write CSV file data to the local filesystem",
             "action_code": DPAT_CREATE,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                CsvWriteDataProvider::ConstructorOptions{"path",}, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                CsvWriteDataProvider::ConstructorOptions - ("path",)
+            ),
         });
     };
 }

@@ -181,7 +181,7 @@ public class FtpConnection inherits AbstractConnectionWithInfo {
         *hash<auto> conf = DataProviderSubtypeMap{subtype};
         if (!conf) {
             throw "DATA-PROVIDER-ERROR", sprintf("ftp connections do not support data provider subtype %y; supported "
-                "subtypes: %y", subtype, getDataProviderSubtypes());
+                "subtypes: %y", subtype, keys getDataProviderSubtypes());
         }
         checkSubtypeInfo();
         hash<auto> opts = getSubtypeOptions(subtype_info{subtype}, constructor_options);

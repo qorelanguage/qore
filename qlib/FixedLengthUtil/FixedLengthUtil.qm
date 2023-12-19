@@ -51,7 +51,6 @@ module FixedLengthUtil {
             "display_name": "Fixed-Length Files",
             "short_desc": "Read and write fixed-length file data",
             "desc": "Read and write fixed-length file data",
-            "scheme": "file",
             "logo": FixedLengthWhiteLogo,
             "logo_file_name": "generic-fixedlength-logo.svg",
             "logo_mime_type": MimeTypeSvg,
@@ -67,6 +66,15 @@ module FixedLengthUtil {
             "short_desc": "Read fixed-length file data from the local filesystem",
             "desc": "Read fixed-length file data from the local filesystem",
             "action_code": DPAT_FIND,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FixedLengthReadDataProvider::ConstructorOptions{"path", "spec"}, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FixedLengthReadDataProvider::ConstructorOptions - ("path", "spec")
+            ),
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": FixedLengthUtil::AppName,
@@ -77,6 +85,15 @@ module FixedLengthUtil {
             "short_desc": "Write fixed-length file data to the local filesystem",
             "desc": "Write fixed-length file data to the local filesystem",
             "action_code": DPAT_CREATE,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FixedLengthWriteDataProvider::ConstructorOptions{"path", "spec"}, {
+                    "preselected": True,
+                    "required": True,
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                FixedLengthWriteDataProvider::ConstructorOptions - ("path", "spec")
+            ),
         });
     };
 }
