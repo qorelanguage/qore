@@ -468,6 +468,7 @@ public class Main inherits QUnit::Test {
                 "ping_path": "/api_yaml",
                 "ping_body": VALUE_YAML.output,
                 "swagger": "file://" + tmp.path,
+                "encode_chars": "+",
             });
 
             hash<ConnectionInfo> cinfo = rc.getInfo();

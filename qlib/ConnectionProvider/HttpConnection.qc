@@ -71,6 +71,12 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                     "desc": "connection timeout to use in milliseconds (default: 45 seconds)",
                     "default_value": 45000,
                 },
+                "encode_chars": <ConnectionOptionInfo>{
+                    "display_name": "Encode URL Characters",
+                    "short_desc": "A set of additional characters to subject to percent encoding in URLs",
+                    "type": "string",
+                    "desc": "A set of additional characters to subject to percent encoding in URLs",
+                },
                 "error_passthru": <ConnectionOptionInfo>{
                     "type": "bool",
                     "desc": "if `True` then HTTP status codes indicating errors will not cause an "
