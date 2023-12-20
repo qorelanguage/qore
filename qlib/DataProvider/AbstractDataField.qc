@@ -325,6 +325,18 @@ public class AbstractDataField inherits Qore::Serializable {
         return display_name;
     }
 
+    #! Converts a display name into a technical name
+    static string getNameFromDisplayName(string display_name) {
+        string name = display_name;
+        # convert the name to all lower case
+        name =~ tr/A-Z/a-z/;
+        # convert spaces to dashes
+        name =~ s/\s+/-/g;
+        # remove all punctuation and special characters
+        name =~ s/[-!@#\$%\^&*\(\)_=\+\{\}\[\]|\\;':",\.\/<>\?`~]//g;
+        return name;
+    }
+
     #! returns the name of the field
     abstract string getName();
 

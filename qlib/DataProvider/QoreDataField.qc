@@ -59,6 +59,9 @@ public class QoreDataField inherits AbstractDataField {
 
     #! creates the field from the arguments
     constructor(hash<auto> h) {
+        if (!h.name && h.display_name) {
+            h.name = AbstractDataField::getNameFromDisplayName(h.display_name);
+        }
         checkString(False, h, "name", "desc");
         checkString(False, h, "display_name", "short_desc");
         checkHash(False, h, "attr");
@@ -72,8 +75,8 @@ public class QoreDataField inherits AbstractDataField {
         }
         name = h.name;
         desc = h.desc;
-        display_name = h.display_name ?? name;
-        short_desc = h.short_desc ?? desc;
+        display_name = h.display_name ?? AbstractDataField::getDisplayName(name);
+        short_desc = h.short_desc ?? AbstractDataField::getShortDescription(desc);
         if (exists h.default_value) {
             setDefaultValue(h.default_value);
         }

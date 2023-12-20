@@ -793,6 +793,9 @@ public hashdecl DataProviderInfo {
     /** @note this is a dynamic attribute; it differs for different data providers of the same type
     */
     *list<string> children;
+
+    #! Any optional provider-specific information
+    *hash<auto> info;
 }
 
 #! Data provider connection info
@@ -1136,6 +1139,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         if (!rv.messages && rv.supports_messages != MSG_None) {
             rv.messages = getMessageTypes();
         }
+        if (!rv.info) {
+            rv.info = getAdditionalInfo();
+        }
         return rv;
     }
 
@@ -1158,12 +1164,16 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     }
 
     #! Returns the data provider display name
+    /** @since DataProvider 3.0
+    */
     string getDisplayName() {
         hash<DataProviderInfo> info = getStaticInfoImpl();
         return info.display_name ?? AbstractDataField::getDisplayName(info.name ?? getName());
     }
 
     #! Returns the data provider short description
+    /** @since DataProvider 3.0
+    */
     *string getShortDesc() {
         hash<DataProviderInfo> info = getStaticInfoImpl();
         return info.short_desc ?? AbstractDataField::getShortDescription(info.desc ?? getDesc());
@@ -1172,6 +1182,12 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     #! Returns the data provider description
     *string getDesc() {
         return getStaticInfoImpl().desc;
+    }
+
+    #! Returns additional provider-specific information
+    /** @since DataProvider 3.0
+    */
+    *hash<auto> getAdditionalInfo() {
     }
 
     #! Creates the given record in the data provider

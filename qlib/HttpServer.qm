@@ -1725,7 +1725,11 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                             head);
                         return;
                     }
-                    listener.log("authenticated with user %y", cx.user);
+                    if (exists cx.user) {
+                        listener.log("authenticated with user %y", cx.user);
+                    } else {
+                        listener.log("authenticated without a user context");
+                    }
                 } else {
                     listener.log("no authentication required");
                 }

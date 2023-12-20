@@ -250,6 +250,17 @@ public namespace CsvUtil {
                 throw errname, sprintf("\"header_names\" is True but a resolve rule is specified (%y)", m_specs);
         }
 
+        #! Returns configuration information about the object
+        hash<auto> getInfo() {
+            return self{
+                "separator", "quote", "headerLines", "headerNames", "ignoreEmptyLines", "ignoreWhitespace",
+                "checkElementCounts", "extendedRecord", "compat_force_empty_string", "read_ahead",
+            } + (timezone
+                ? {
+                    "timezone": timezone.region(),
+                } : NOTHING);
+        }
+
         #! process common options and and assing internal fields
         private processCommonOptions(*hash<auto> opts, int C_OPTx) {
             foreach hash<auto> i in (opts.pairIterator()) {

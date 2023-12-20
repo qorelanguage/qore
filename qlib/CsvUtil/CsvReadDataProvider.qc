@@ -231,13 +231,6 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
         i = new CsvIterator(stream, opts.encoding, opts);
     }
 
-    #! Returns the object name
-    string getName() {
-        return i instanceof CsvFileIterator
-            ? i.getFileName()
-            : sprintf("stream %s", self.uniqueHash());
-    }
-
     #! Creates the object from constructor options
     constructor(*hash<auto> options) {
         *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
@@ -256,6 +249,18 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
         }
         # create a dummy interator with no input
         i = new CsvIterator(new StringInputStream(""), copts.encoding, copts{CsvIterationOptionList});
+    }
+
+    #! Returns the object name
+    string getName() {
+        return i instanceof CsvFileIterator
+            ? i.getFileName()
+            : sprintf("stream %s", self.uniqueHash());
+    }
+
+    #! Returns additional data-provider-specific info
+    *hash<auto> getAdditionalInfo() {
+        return i.getInfo();
     }
 
     #! Returns an iterator for zero or more records matching the search options
