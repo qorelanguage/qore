@@ -86,7 +86,7 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits EmpathicBui
                 event.time = clock_getmillis();
             } else {
                 # convert to milliseconds since the epoch
-                event.time = req.event.getEpochSeconds() * 1000 + req.event.milliseconds();
+                event.time = event.time.getEpochSeconds() * 1000 + event.time.milliseconds();
             }
             foreach hash<auto> e in (\event.events) {
                 e.start = e.start.getEpochSeconds() * 1000 + e.start.milliseconds();
