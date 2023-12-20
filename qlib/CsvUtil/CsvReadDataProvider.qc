@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! the CsvUtil namespace. All classes used in the CsvUtil module should be inside this namespace
+#! The primary CsvUtil namespace; all classes used in the CsvUtil module should be inside this namespace
 public namespace CsvUtil {
 #! Provides a data provider for reading CSV files
 /** Supports generic record search operators and options

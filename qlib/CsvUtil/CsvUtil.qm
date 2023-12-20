@@ -68,14 +68,18 @@ module CsvUtil {
             "short_desc": "Read CSV file data from the local filesystem",
             "desc": "Read CSV file data from the local filesystem",
             "action_code": DPAT_FIND,
+            "cls": "CsvUtil::CsvReadDataProvider",
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
                 CsvReadDataProvider::ConstructorOptions{"path", "header_names"}, {
                     "preselected": True,
                     "required": True,
+                    "loc": "constructor",
                 }
             ),
             "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
-                CsvReadDataProvider::ConstructorOptions - ("path", "header_names")
+                CsvReadDataProvider::ConstructorOptions - ("path", "header_names"), {
+                    "loc": "constructor",
+                }
             ),
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -87,14 +91,18 @@ module CsvUtil {
             "short_desc": "Write CSV file data to the local filesystem",
             "desc": "Write CSV file data to the local filesystem",
             "action_code": DPAT_CREATE,
+            "cls": "CsvUtil::CsvWriteDataProvider",
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
                 CsvWriteDataProvider::ConstructorOptions{"path",}, {
                     "preselected": True,
                     "required": True,
+                    "loc": "constructor",
                 }
             ),
             "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
-                CsvWriteDataProvider::ConstructorOptions - ("path",)
+                CsvWriteDataProvider::ConstructorOptions - ("path",), {
+                    "loc": "constructor",
+                }
             ),
         });
     };

@@ -66,14 +66,18 @@ module FixedLengthUtil {
             "short_desc": "Read fixed-length file data from the local filesystem",
             "desc": "Read fixed-length file data from the local filesystem",
             "action_code": DPAT_FIND,
+            "cls": "FixedLengthUtil::FixedLengthReadDataProvider",
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
                 FixedLengthReadDataProvider::ConstructorOptions{"path", "spec"}, {
                     "preselected": True,
                     "required": True,
+                    "loc": "constructor",
                 }
             ),
             "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
-                FixedLengthReadDataProvider::ConstructorOptions - ("path", "spec")
+                FixedLengthReadDataProvider::ConstructorOptions - ("path", "spec"), {
+                    "loc": "constructor",
+                }
             ),
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -85,14 +89,18 @@ module FixedLengthUtil {
             "short_desc": "Write fixed-length file data to the local filesystem",
             "desc": "Write fixed-length file data to the local filesystem",
             "action_code": DPAT_CREATE,
+            "cls": "FixedLengthUtil::FixedLengthWriteDataProvider",
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
                 FixedLengthWriteDataProvider::ConstructorOptions{"path", "spec"}, {
                     "preselected": True,
                     "required": True,
+                    "loc": "constructor",
                 }
             ),
             "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
-                FixedLengthWriteDataProvider::ConstructorOptions - ("path", "spec")
+                FixedLengthWriteDataProvider::ConstructorOptions - ("path", "spec"), {
+                    "loc": "constructor",
+                }
             ),
         });
     };

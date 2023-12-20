@@ -26,6 +26,9 @@
 public namespace DataProvider {
 #! Application information hash
 /** Note that action paths are relative from the data provider created from the connection and optionally the subtype
+
+    If both \c scheme and \c action.cls are missing, it implies that the data provider will be implicitly provided by
+    the context where the action is used
 */
 public hashdecl DataProviderAppInfo {
     #! Unique application name
@@ -45,9 +48,6 @@ public hashdecl DataProviderAppInfo {
     #! Connection scheme for the application
     /** This is the connection scheme for the \c ConnectionProvider module and indicates that the given connection
         type produces a data provider which will be the base data provider for application actions
-
-        If missing it implies that the data provider will be implicitly provided by the context where the action is
-        used
     */
     *string scheme;
 
@@ -158,11 +158,12 @@ public hashdecl ActionOptionInfo {
     #! If the option should be preselected
     bool preselected;
 
-    #! Option location for record-based data providers
+    #! Option location for record-based data providers and data providers provided by a class
     /** values:
         - \c where: in the where clause
         - \c options: in the options argument
         - \c set: in the set argument for update statements
+        - \c constructor: option to be used in the class constructor
     */
     *string loc;
 }
@@ -225,6 +226,13 @@ public hashdecl DataProviderActionInfo {
         - @ref DPAT_SEND_MESSAGE: this is the message type
     */
     *string action_val;
+
+    #! The DataProvider class
+    /** This is for the case when there is no application \c scheme and the application is not implied by the context.
+
+        It is an error to supply both application \c scheme and \c cls.
+    */
+    *string cls;
 
     #! Values to add to any "where" argument for record-based actions
     *hash<auto> where_add;
@@ -361,6 +369,10 @@ public class DataProviderActionCatalog {
         *hash<DataProviderAppInfo> app = appcache{action.app};
         if (!app) {
             throw "ACTION-ERROR", sprintf("application %y not registered (action %y)", action.app, action);
+        }
+        if (app.scheme && exists action.cls) {
+            throw "ACTION-ERROR", sprintf("application %y has scheme %y and action has cls %y; it is not allowed to "
+                "provide an action class when the application has a scheme", action.app, app.scheme, action.cls);
         }
         if (*hash<DataProviderActionInfo> act = app_actionmap{action.app}{action.action}) {
             # ignore duplicates to cover injection scenarios
