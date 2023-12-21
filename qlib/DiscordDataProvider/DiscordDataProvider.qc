@@ -143,7 +143,19 @@ public class DiscordDataProvider inherits DiscordDataProviderBase {
 
     #! Return data provider summary info
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+        *list<hash<DataProvider::DataProviderSummaryInfo>> rv;
+        #return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+        foreach Class cls in (ChildMap.iterator()) {
+            try {
+                rv += cls.getConstant("ProviderSummaryInfo").getValue();
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err != "UNKNOWN-CONSTANT") {
+                    rethrow;
+                }
+            }
+            rv += cls.getStaticMember("ProviderSummaryInfo").getValue();
+        }
+        return rv;
     }
 
     #! Returns a list of child data provider names, if any
