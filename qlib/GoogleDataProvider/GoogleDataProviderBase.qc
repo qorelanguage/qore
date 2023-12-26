@@ -175,15 +175,15 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         } else {
             if (!options.oauth2_client_id) {
                 throw "CONSTRUCTOR-ERROR", "no 'restclient' or 'oauth2_client_id' option passed; "
-                    "cannot create REST client to Google instance without authentication information";
+                    "cannot create REST client to Google without authentication information";
             }
             if (!options.oauth2_client_secret) {
                 throw "CONSTRUCTOR-ERROR", "no 'restclient', 'oauth2_client_secret' option passed; "
-                    "cannot create REST client to Google instance without authentication information";
+                    "cannot create REST client to Google without authentication information";
             }
             if (!options.token) {
                 throw "CONSTRUCTOR-ERROR", "no 'restclient', 'token' option passed; "
-                    "cannot create REST client to Google instance without authentication information";
+                    "cannot create REST client to Google without authentication information";
             }
 
             hash<auto> opts;
@@ -237,11 +237,37 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         return GoogleDataProviderBase::getRequestTypeForSchemaArgs(api, path, argv);
     }
 
+    #! Check the given path for resources
+    static checkResource(string api, list<string> resource_path) {
+        GoogleDataProviderBase::getRequestInfo(api);
+        string path;
+        hash<auto> h = info_map{api}.resources;
+        foreach string seg in (resource_path) {
+            if (!h{seg}) {
+                throw "GOOGLE-API-ERROR", sprintf("API %y resource %y is invalid at \"%s/%s\"; known resources at "
+                    "this level: %y", api, resource_path.join("/"), path, seg, keys h);
+            }
+            if (!path) {
+                path = seg;
+            } else {
+                path += "/" + seg;
+            }
+            if ($# != resource_path.size() - 1) {
+                h = h{seg}.resources;
+            }
+        }
+    }
+
     #! Returns a hash of all non-subscription methods for the given resource
-    static *hash<string, bool> getMethodsForResource(string api, string resource, *hash<auto> path_args) {
+    static *hash<string, bool> getMethodsForResource(string api, list<string> resource_path, *hash<auto> path_args) {
         # make sure API is cached
         GoogleDataProviderBase::getRequestInfo(api);
-        return map {$1.key: True}, info_map{api}.resources{resource}.methods.pairIterator(),
+        hash<auto> h = info_map{api}.resources;
+        int size = resource_path.size();
+        if (size > 1) {
+            map h = h{$1}.resources, resource_path[0..(size - 2)];
+        }
+        return map {$1.key: True}, h{resource_path.last()}.methods.pairIterator(),
             ($1.value.response."$ref" != "Channel") && (!path_args
                 || ($1.value.parameterOrder && ((keys path_args) == $1.value.parameterOrder[0..path_args.size() - 1])));
     }

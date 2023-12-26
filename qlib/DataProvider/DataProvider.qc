@@ -47,6 +47,7 @@ public class DataProvider {
             "ftpclient": "FtpClientDataProvider",
             "ftppoller": "FtpPoller",
             "gcal": "GoogleCalendarDataProvider",
+            "gmail": "GmailDataProvider",
             "httpclient": "HttpClientDataProvider",
             "mewsrest": "MewsRestDataProvider",
 

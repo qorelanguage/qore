@@ -350,6 +350,7 @@ Pop3Client pop3("pop3s://pop.gmail.com", {
             if (!username.val()) {
                 throw "POP3-URL-ERROR", sprintf("Missing username option for POP3 connection: %y", url);
             }
+            user = username;
             if (password.val()) {
                 if (token.val()) {
                     throw "POP3-CONFIG-ERROR", sprintf("Cannot provide both a password and a token for login for "

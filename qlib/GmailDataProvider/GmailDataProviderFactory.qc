@@ -1,6 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
+#! Qore GmailDataProviderFactory class definition
 
-/*  Pop3ClientDataProviderFactory.qc Copyright (C) 2023 Qore Technologies s.r.o.
+/** GmailDataProviderFactory.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -21,39 +22,38 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Main module namespace
-public namespace Pop3ClientDataProvider {
-#! The pop3client data provider factory
-public class Pop3ClientDataProviderFactory inherits AbstractDataProviderFactory {
+#! Contains all public definitions in the GmailDataProvider module
+public namespace GmailDataProvider {
+#! The Google data provider factory: \c gmail
+public class GmailDataProviderFactory inherits DataProvider::AbstractDataProviderFactory {
     private {
         #! Data provider type info
-        static Class cls = new Class("Pop3ClientDataProvider");
+        static Class cls = new Class("GmailBaseDataProvider");
 
         #! Factory info
         const FactoryInfo = <DataProviderFactoryInfo>{
-            "name": "pop3",
-            "desc": "POP3 client data provider factory",
+            "name": "gmail",
+            "desc": "Gmail REST API data provider factory",
             "children_can_support_apis": True,
-            #"children_can_support_observers": True,
         };
     }
 
     #! Returns static factory information without \a provider_info
     /** @return static factory information without \a provider_info which is provided by @ref getProviderInfo()
     */
-    private hash<DataProviderFactoryInfo> getInfoImpl() {
+    private hash<DataProvider::DataProviderFactoryInfo> getInfoImpl() {
         return FactoryInfo;
     }
 
     #! Returns static provider information
     /** @note the \c name and \c children attributes are not returned as they are dynamic attributes
     */
-    private hash<DataProviderInfo> getProviderInfoImpl() {
-        return Pop3ClientDataProvider::ProviderInfo;
+    private hash<DataProvider::DataProviderInfo> getProviderInfoImpl() {
+        return GmailBaseDataProvider::ProviderInfo;
     }
 
     #! Returns the class for the data provider object
-    private Class getClassImpl() {
+    private Qore::Reflection::Class getClassImpl() {
         return cls;
     }
 }

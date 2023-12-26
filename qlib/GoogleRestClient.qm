@@ -50,6 +50,7 @@ module GoogleRestClient {
     init = sub () {
         ConnectionSchemeCache::registerScheme("grests", GoogleRestConnection::ConnectionScheme);
         ConnectionSchemeCache::registerScheme("gcal", GoogleCalendarRestConnection::ConnectionScheme);
+        ConnectionSchemeCache::registerScheme("gmail", GmailRestConnection::ConnectionScheme);
     };
 }
 
@@ -591,12 +592,8 @@ public class GmailRestConnection inherits GoogleRestConnection {
     DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
         # to avoid circular dependencies, this object loads the GoogleDataProvider and creates the data provider
         # object dynamically
-        load_module("Pop3ClientDataProvider");
-        return create_object("Pop3ClientDataProvider", {
-            "url": "pop3s://pop.gmail.com",
-            "username": opts.username,
-            "token": opts.token,
-        });
+        load_module("GmailDataProvider");
+        return create_object("GmailBaseDataProvider", get());
     }
 
     #! Can be called to set or clear a closure or call reference to be called when options are automatically updated

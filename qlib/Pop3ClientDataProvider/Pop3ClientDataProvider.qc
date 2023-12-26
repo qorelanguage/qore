@@ -33,7 +33,7 @@ public class Pop3ClientDataProvider inherits Pop3ClientDataProviderBase {
             "constructor_options": ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
-            "children_can_support_observers": True,
+            #"children_can_support_observers": True,
         };
     }
 

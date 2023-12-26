@@ -26,12 +26,58 @@
 public namespace GoogleDataProvider {
 #! The Google data provider base class
 public class GoogleApiParentDataProvider inherits GoogleDataProviderBase {
+    public {
+        #! Constructor options
+        const ConstructorOptions = {
+            "restclient": <DataProviderOptionInfo>{
+                "display_name": "REST Client",
+                "short_desc": "The Google REST client to use",
+                "type": AbstractDataProviderType::get(new Type("GoogleRestClient")),
+                "desc": "The `GoogleRestClient` object to use",
+            },
+            "restclient_options": <DataProviderOptionInfo>{
+                "display_name": "REST Client Options",
+                "short_desc": "Google REST client options to use when creating a new client",
+                "type": AbstractDataProviderTypeMap."*hash",
+                "desc": "Options to the `GoogleRestClient` constructor; only used if a `GoogleRestClient` object is "
+                    "created for a call",
+            },
+            "oauth2_client_id": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client ID",
+                "short_desc": "Sets the OAuth2 client ID",
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "Sets the OAuth2 client ID",
+            },
+            "oauth2_client_secret": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Client Secret",
+                "short_desc": "Sets the OAuth2 client secret",
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "The OAuth2 client secret",
+            },
+            "oauth2_refresh_token": <DataProviderOptionInfo>{
+                "display_name": "OAuth2 Refresh Token",
+                "short_desc": "Sets the OAuth2 refresh token",
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "The OAuth2 refresh token, if known; complements option `token`",
+            },
+            "token": <DataProviderOptionInfo>{
+                "display_name": "Authorization Token",
+                "short_desc": "Set an authorization token to be included in requests",
+                "type": AbstractDataProviderTypeMap."*string",
+                "desc": "Any authorization token to use for the connection; will be passed as "
+                    "`Authorization: Bearer ...` (assuming that `token_type` is `Bearer`) in request headers; "
+                    "this option cannot be used with `username` and `password` options or authentication information "
+                    "in the URL; if this option is set then most OAuth2 options are ignored for logins",
+            },
+        };
+    }
+
     private {
         #! The Google API name (ex: "calendar")
         string api;
 
-        #! The resource name
-        string resource;
+        #! The resource path name
+        list<string> resource_path;
 
         #! Data provider description
         string desc;
@@ -46,35 +92,42 @@ public class GoogleApiParentDataProvider inherits GoogleDataProviderBase {
         hash<string, bool> methods;
 
         #! Path groups under this parent
-        *hash<string, bool> subpaths;
+        *hash<string, list<string>> subpaths;
     }
 
     #! Creates the object
-    constructor(GoogleRestClient::GoogleRestClient rest, string api, string resource, *hash<auto> path_args, ...)
+    constructor(GoogleRestClient::GoogleRestClient rest, string api, string resource, *hash<auto> path_args,
+            *string path_prefix, ...)
             : GoogleDataProviderBase(rest) {
         self.api = api;
-        self.resource = resource;
+        resource_path = resource.split("/");
         self.path_args = path_args;
-        subpaths = map {$1: True}, argv;
-        desc = sprintf("Google %s %s provider for `%s`", api, resource, rest.getSafeURL());
-        type = sprintf("Google%s%sDataProvider", cap(api), cap(resource));
-        methods = getMethodsForResource(api, resource, path_args);
+        if (argv) {
+            setSubpaths(path_prefix, argv);
+        }
+        desc = sprintf("Google %s %s provider for `%s`", api, resource_path.last(), rest.getSafeURL());
+        type = sprintf("Google%s%sDataProvider", cap(api), cap(resource_path.last()));
+        methods = getMethodsForResource(api, resource_path, path_args);
+        check();
     }
 
     #! Creates the object
-    constructor(string api, string resource, *hash<auto> path_args, ...) {
+    constructor(string api, string resource, *hash<auto> path_args, *string path_prefix, ...) {
         self.api = api;
-        self.resource = resource;
+        resource_path = resource.split("/");
         self.path_args = path_args;
-        subpaths = map {$1: True}, argv;
-        desc = sprintf("Google %s %s provider", api, resource);
-        type = sprintf("Google%s%sDataProvider", cap(api), cap(resource));
-        methods = getMethodsForResource(api, resource, path_args);
+        if (argv) {
+            setSubpaths(path_prefix, argv);
+        }
+        desc = sprintf("Google %s %s provider", api, resource_path.last());
+        type = sprintf("Google%s%sDataProvider", cap(api), cap(resource_path.last()));
+        methods = getMethodsForResource(api, resource_path, path_args);
+        check();
     }
 
     #! Returns the data provider name
     string getName() {
-        return resource;
+        return resource_path.last();
     }
 
     #! Returns the data provider description
@@ -85,21 +138,23 @@ public class GoogleApiParentDataProvider inherits GoogleDataProviderBase {
     #! Return data provider summary info
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         string api = cap(self.api);
-        string resource = cap(self.resource);
+        string resource = cap(self.resource_path.last());
 
         *list<hash<DataProvider::DataProviderSummaryInfo>> rv = map <DataProviderSummaryInfo>{
             "name": $1,
             "desc": sprintf("Google %s events/%s provider for `%s`", self.api, $1, rest.getSafeURL()),
-            "type": sprintf("Google%s%s%sDataProvider", api, resource, cap($1)),
+            "type": sprintf("Google%s%s%sDataProvider", api, resource_path.last(), cap($1)),
             "supports_request": True,
         }, keys methods;
         if (subpaths) {
-            rv += map GoogleApiParentDataProvider::getSummaryInfo(self.api, $1), keys subpaths;
+            rv += map GoogleApiParentDataProvider::getSummaryInfo(self.api, $1.key, $1.value),
+                subpaths.pairIterator();
         }
         return rv;
     }
 
-    static hash<DataProvider::DataProviderSummaryInfo> getSummaryInfo(string api, string resource) {
+    static hash<DataProvider::DataProviderSummaryInfo> getSummaryInfo(string api, string resource,
+            list<string> resource_path) {
         string desc = sprintf("Google %s %s provider", api, resource);
         string type = sprintf("Google%s%sDataProvider", GoogleDataProviderBase::cap(api),
             GoogleDataProviderBase::cap(resource));
@@ -110,6 +165,28 @@ public class GoogleApiParentDataProvider inherits GoogleDataProviderBase {
             "supports_children": True,
             "children_can_support_apis": True,
         };
+    }
+
+    #! Sets subpaths
+    private setSubpaths(*string path_prefix, *list<auto> args) {
+        if (path_prefix) {
+            if (path_prefix !~ /\/$/) {
+                path_prefix += "/";
+            }
+        }
+        foreach string arg in (args) {
+            list<string> resource_path = (path_prefix + arg).split("/");
+            checkResource(api, resource_path);
+            subpaths{arg} = resource_path;
+        }
+    }
+
+    #! Check the data provider
+    private check() {
+        if (!methods && !subpaths) {
+            throw "GOOGLE-API-ERROR", sprintf("API %y resource %y has no methods and no subpaths", api,
+                resource_path.join("/"));
+        }
     }
 
     #! Returns a list of child data provider names, if any
@@ -130,17 +207,17 @@ public class GoogleApiParentDataProvider inherits GoogleDataProviderBase {
     */
     private *GoogleDataProvider::GoogleDataProviderBase getChildProviderImpl(string name) {
         if (methods{name}) {
-            return new GoogleApiDataProvider(rest, api, resource + "/" + name, path_args);
+            return new GoogleApiDataProvider(rest, api, resource_path.join("/") + "/" + name, path_args);
         }
-        if (subpaths{name}) {
-            return new GoogleApiParentDataProvider(rest, api, name, path_args);
+        if (exists (*list<string> resource_path = subpaths{name})) {
+            return new GoogleApiParentDataProvider(rest, api, resource_path.join("/"), path_args);
         }
     }
 
     #! Returns data provider static info
     private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return <DataProviderInfo>{
-            "name": resource,
+            "name": resource_path.last(),
             "desc": desc,
             "type": type,
             "supports_children": True,

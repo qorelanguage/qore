@@ -34,12 +34,12 @@
 %enable-all-warnings
 
 %requires(reexport) DataProvider
-%requires(reexport) GmaildataProvider
+%requires(reexport) GoogleDataProvider
 %requires(reexport) GoogleRestClient
 
 module GmailDataProvider {
     version = "1.0";
-    desc = "user module providing a data provider API for Gmail REST cloud services";
+    desc = "User module providing a data provider API for Gmail REST cloud services";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
     license = "MIT";
@@ -112,10 +112,10 @@ module GmailDataProvider {
 #! Contains all public definitions in the GmailDataProvider module
 public namespace GmailDataProvider {
 #! Gmail application name
-public const CalendarAppName = "Gmail";
+public const AppName = "Gmail";
 
 #! Discovery API name
-public const GoogleDiscoveryCalendarApiName = "calendar";
+public const GoogleDiscoveryGmailApiName = "gmail";
 }
 
 namespace Priv {

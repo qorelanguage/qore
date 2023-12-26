@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleCalendarDataProvider module definition
+#! Qore GmailDataProvider module definition
 
-/** GoogleCalendarBaseDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** GmailBaseDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,16 +22,16 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleCalendarDataProvider module
-public namespace GoogleCalendarDataProvider {
-#! The parent class for Google calendar REST APIs
-public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleApiParentDataProvider {
+#! Contains all public definitions in the GmailDataProvider module
+public namespace GmailDataProvider {
+#! The parent class for Gmail REST APIs
+public class GmailBaseDataProvider inherits GoogleDataProvider::GoogleApiParentDataProvider {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "calendar",
-            "desc": "Google calendar base data provider; parent provider for APIs related to calendars",
-            "type": "GoogleCalendarBaseDataProvider",
+            "name": "gmail",
+            "desc": "Gmail base data provider; parent provider for APIs related to calendars",
+            "type": "GmailBaseDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
@@ -45,24 +45,22 @@ public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleA
 
     private {
         const ChildMap = {
-            "calendars": Class::forName("GoogleCalendarDataProvider::GoogleCalendarsDataProvider"),
+            #"messages": Class::forName("GmailDataProvider::GmailsDataProvider"),
         };
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options)
-            : GoogleApiParentDataProvider(
-                GoogleDiscoveryCalendarApiName, "calendars", NOTHING, NOTHING, "calendarList", "colors", "freebusy",
-                "settings"
-            ) {
+            : GoogleApiParentDataProvider(GoogleDiscoveryGmailApiName, "gmail", {"userId": "me"}, "users",
+                "drafts", "history", "messages", "labels", "settings", "threads") {
         options = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         rest = GoogleDataProviderBase::getRestConnection(options);
     }
 
     #! Creates the object from a REST connection
     constructor(GoogleRestClient::GoogleRestClient rest) : GoogleApiParentDataProvider(rest,
-            GoogleDiscoveryCalendarApiName, "calendars", NOTHING, NOTHING, "calendarList", "colors", "freebusy",
-            "settings") {
+            GoogleDiscoveryGmailApiName, "gmail", {"userId": "me"}, "users", "drafts", "history", "messages",
+                "labels", "settings", "threads") {
     }
 
     #! Returns the data provider name

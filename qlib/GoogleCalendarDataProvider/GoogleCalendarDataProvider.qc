@@ -34,7 +34,7 @@ public class GoogleCalendarDataProvider inherits GoogleDataProvider::GoogleApiPa
     constructor(GoogleRestClient::GoogleRestClient rest, string id)
             : GoogleDataProvider::GoogleApiParentDataProvider(rest, GoogleDiscoveryCalendarApiName, "calendars", {
                 "calendarId": id,
-            }, "events", "acl") {
+            }, NOTHING, "events", "acl") {
     }
 
     #! Return data provider summary info

@@ -44,6 +44,7 @@ module Pop3ClientDataProvider {
         # register the data provider factory
         DataProvider::registerFactory(new Pop3ClientDataProviderFactory());
 
+        /*
         DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
             "name": Pop3ClientDataProvider::AppName,
             "display_name": "POP3",
@@ -55,7 +56,7 @@ module Pop3ClientDataProvider {
             "logo_mime_type": MimeTypeSvg,
         });
 
-       # register all supported actions
+        # register all supported actions
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": Pop3ClientDataProvider::AppName,
             "path": "/list/{id}/get",
@@ -73,6 +74,7 @@ module Pop3ClientDataProvider {
             "desc": "Retrieve an email",
             "action_code": DPAT_API,
         });
+        */
     };
 }
 

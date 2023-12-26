@@ -94,20 +94,22 @@ DOX_MODULES = qlib/DatasourceProvider.qm \
     qlib/AwsRestClient.qm
 
 DOX_SPLIT_MODULES = \
-	qlib/FixedLengthUtil \
+    qlib/AwsRestClientDataProvider \
     qlib/BulkSqlUtil \
 	qlib/CsvUtil \
-    qlib/SwaggerDataProvider \
-    qlib/SalesforceRestDataProvider \
     qlib/CdsRestDataProvider \
-    qlib/ServiceNowRestDataProvider \
+    qlib/DiscordDataProvider \
     qlib/FileDataProvider \
+	qlib/FixedLengthUtil \
     qlib/FtpClientDataProvider \
     qlib/HttpClientDataProvider \
-    qlib/AwsRestClientDataProvider \
+    qlib/GmailDataProvider \
     qlib/GoogleCalendarDataProvider \
-    qlib/DiscordDataProvider \
-    qlib/MewsRestDataProvider
+    qlib/MewsRestDataProvider \
+    qlib/Pop3ClientDataProvider \
+    qlib/SalesforceRestDataProvider \
+    qlib/ServiceNowRestDataProvider \
+    qlib/SwaggerDataProvider
 
 SqlUtil_modverdir = $(modverdir)/SqlUtil
 ConnectionProvider_modverdir = $(modverdir)/ConnectionProvider
@@ -127,11 +129,13 @@ DiscordDataProvider_modverdir = $(modverdir)/DiscordDataProvider
 FileDataProvider_modverdir = $(modverdir)/FileDataProvider
 FtpClientDataProvider_modverdir = $(modverdir)/FtpClientDataProvider
 GoogleDataProvider_modverdir = $(modverdir)/GoogleDataProvider
+GmailDataProvider_modverdir = $(modverdir)/GmailDataProvider
 GoogleCalendarDataProvider_modverdir = $(modverdir)/GoogleCalendarDataProvider
 HttpClientDataProvider_modverdir = $(modverdir)/HttpClientDataProvider
 ElasticSearchDataProvider_modverdir = $(modverdir)/ElasticSearchDataProvider
 EmpathicBuildingDataProvider_modverdir = $(modverdir)/EmpathicBuildingDataProvider
 MewsRestDataProvider_modverdir = $(modverdir)/MewsRestDataProvider
+Pop3ClientDataProvider_modverdir = $(modverdir)/Pop3ClientDataProvider
 
 dist_SqlUtil_modver_DATA = $(wildcard qlib/SqlUtil/*.q[cm])
 dist_ConnectionProvider_modver_DATA = $(wildcard qlib/ConnectionProvider/*.q[cm])
@@ -151,11 +155,13 @@ dist_DiscordDataProvider_modver_DATA = $(wildcard qlib/DiscordDataProvider/*.q[c
 dist_FileDataProvider_modver_DATA = $(wildcard qlib/FileDataProvider/*.q[cm])
 dist_FtpClientDataProvider_modver_DATA = $(wildcard qlib/FtpClientDataProvider/*.q[cm])
 dist_GoogleDataProvider_modver_DATA = $(wildcard qlib/GoogleDataProvider/*.q[cm])
+dist_GmailDataProvider_modver_DATA = $(wildcard qlib/GmailDataProvider/*.q[cm])
 dist_GoogleCalendarDataProvider_modver_DATA = $(wildcard qlib/GoogleCalendarDataProvider/*.q[cm])
 dist_HttpClientDataProvider_modver_DATA = $(wildcard qlib/HttpClientDataProvider/*.q[cm])
 dist_ElasticSearchDataProvider_modver_DATA = $(wildcard qlib/ElasticSearchDataProvider/*.q[cm])
 dist_EmpathicBuildingDataProvider_modver_DATA = $(wildcard qlib/EmpathicBuildingDataProvider/*.q[cm])
 dist_MewsRestDataProvider_modver_DATA = $(wildcard qlib/MewsRestDataProvider/*.{q[cm],yaml})
+dist_Pop3ClientDataProvider_modver_DATA = $(wildcard qlib/Pop3ClientDataProvider/*.{q[cm],yaml})
 
 USER_MODULES = $(DOX_SRC_MODULES) \
 	$(DOX_MODULES)
