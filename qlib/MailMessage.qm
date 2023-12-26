@@ -25,7 +25,7 @@
 */
 
 # minimum qore version
-%requires qore >= 1.0
+%requires qore >= 2.0
 
 # need mime definitions
 %requires Mime >= 1.3
@@ -40,7 +40,7 @@
 %enable-all-warnings
 
 module MailMessage {
-    version = "1.3.3";
+    version = "1.4";
     desc = "defines the MailMessage class and supporting definitions";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -51,9 +51,13 @@ module MailMessage {
 
     @section mailmessageintro MailMessage Module Introduction
 
-    The %MailMessage module provides the MailMessage class for representing represents an email message.  This module is used by the <a href="../../SmtpClient/html/index.html">SmtpClient</a> and <a href="../../Pop3Client/html/index.html">Pop3Client</a> modules.
+    The %MailMessage module provides the MailMessage class for representing represents an email message.  This module
+    is used by the <a href="../../SmtpClient/html/index.html">SmtpClient</a> and
+    <a href="../../Pop3Client/html/index.html">Pop3Client</a> modules.
 
-    To use this module, use \c "%requires MailMessage" in your code.  See the <a href="../../SmtpClient/html/index.html">SmtpClient</a> and <a href="../../Pop3Client/html/index.html">Pop3Client</a> modules for examples of Qore code using this module
+    To use this module, use \c "%requires MailMessage" in your code.  See the
+    <a href="../../SmtpClient/html/index.html">SmtpClient</a> and
+    <a href="../../Pop3Client/html/index.html">Pop3Client</a> modules for examples of Qore code using this module
 
     All the public symbols in the module are defined in the MailMessage namespace
 
@@ -67,12 +71,15 @@ module MailMessage {
 
 %requires MailMessage
 
-my MailMessage::Message msg("Me, Myself, and I <me@email.com>", "My Subject");
+MailMessage::Message msg("Me, Myself, and I <me@email.com>", "My Subject");
 msg.setBody("hello world!");
 msg.addTO("My Best Friend <you@friend.com>");
     @endcode
 
     @section mailmessage_relnotes MailMessage Release Notes
+
+    @subsection mailmessage_v1_4 MailMessage 1.4
+    - Added the @ref MailMessage::MailMessage::getInfo() "MailMessage::getInfo()" method
 
     @subsection mailmessage_v1_3_3 MailMessage 1.3.3
     - various fixes from downstream to MailMessage data handling
@@ -130,1063 +137,1193 @@ msg.addTO("My Best Friend <you@friend.com>");
     - Part: used to represent alternate representations of the message body
 */
 public namespace MailMessage {
-    /** @defgroup MessageEncodings Message Encodings
-     */
-    #/@{
-    #! default content transfer encoding depending on attachment type
-    /** The default encodings are as follows per file type:
-        - text data: @ref EncQuotedPrintable
-        - binary data: @ref EncBase64
-     */
-    public const EncDefault = "default";
+#! Message part info
+public hashdecl PartInfo {
+    #! Part name
+    string name;
 
-    #! no content transfer encoding (not recommended as SMTP servers break up long lines automatically)
-    public const EncNone = "none";
+    #! Part MIME type
+    string mime;
 
-    #! base-64 content transfer encoding
-    public const EncBase64 = ContentTransEncBase64;
+    #! Part data
+    data part_data;
 
-    #! "quoted-printable" content transfer encoding
-    public const EncQuotedPrintable = ContentTransEncQuotedPrintable;
+    #! Part headers, if any
+    *hash<auto> headers;
 
-    #! a list of all known content encoding schemes encodings
-    public const Encodings = (
-        EncDefault,
-        EncNone,
-        EncBase64,
-        EncQuotedPrintable,
-    );
-    #/@}
+    #! Part transfer encoding
+    string transfer_encoding;
+}
 
-    #! The %Message class holds the information for a single email %Message
-    /** @par Example:
-        @code{.py}
+#! Message info
+public hashdecl MailMessageInfo {
+    #! The From: address
+    *string from;
+
+    #! The sender's email address
+    *string sender;
+
+    #! The message subject
+    *string subject;
+
+    #! Any To: addresses
+    *list<string> to;
+
+    #! Any CC: addresses
+    *list<string> cc;
+
+    #! Any BCC: addresses
+    *list<string> bcc;
+
+    #! The message body, if any
+    *data body;
+
+    #! The encoding used for the message body, if any
+    *string body_encoding;
+
+    #! The content type of the message body
+    *string body_content_type;
+
+    #! Any message headers
+    *hash<auto> headers;
+
+    #! The important flag
+    *bool important;
+
+    #! The delivery receipt flag
+    *bool delivery_receipt;
+
+    #! The read receipt flag
+    *bool read_receipt;
+
+    #! Any message attachments
+    *list<hash<PartInfo>> attachments;
+
+    #! Any message parts
+    *list<hash<PartInfo>> parts;
+}
+
+/** @defgroup MessageEncodings Message Encodings
+*/
+#/@{
+#! default content transfer encoding depending on attachment type
+/** The default encodings are as follows per file type:
+    - text data: @ref EncQuotedPrintable
+    - binary data: @ref EncBase64
+*/
+public const EncDefault = "default";
+
+#! no content transfer encoding (not recommended as SMTP servers break up long lines automatically)
+public const EncNone = "none";
+
+#! base-64 content transfer encoding
+public const EncBase64 = ContentTransEncBase64;
+
+#! "quoted-printable" content transfer encoding
+public const EncQuotedPrintable = ContentTransEncQuotedPrintable;
+
+#! a list of all known content encoding schemes encodings
+public const Encodings = (
+    EncDefault,
+    EncNone,
+    EncBase64,
+    EncQuotedPrintable,
+);
+#/@}
+
+#! The %Message class holds the information for a single email %Message
+/** @par Example:
+    @code{.py}
 my MailMessage::Message msg("The Sender <sender@email.com>", "My Subject");
 msg.setBody(body);
 msg.addTO("My Best Friend <you@friend.com>");
 @endcode
 
-        Each message must have a body and at least one destination address before it can be sent.
+    Each message must have a body and at least one destination address before it can be sent.
 
-        Set the body text with:
-        - Message::setBody(): set/replace the message body
-        - Message::addBody(): or add a line to the body with
+    Set the body text with:
+    - Message::setBody(): set/replace the message body
+    - Message::addBody(): or add a line to the body with
 
-        Add recipients with:
-        - Message::addTO()
-        - Message::addCC()
-        - Message::addBCC()
+    Add recipients with:
+    - Message::addTO()
+    - Message::addCC()
+    - Message::addBCC()
 
-        Each of the above methods takes email addresses like the sender address in Message::constructor()
+    Each of the above methods takes email addresses like the sender address in Message::constructor()
 
-        To get a text summary of the Message; try:
-        - Message::toString(): returns a multi-line summary of the message for display purposes
-        - Message::toLine(): returns a single line summary of the message for display purposes
+    To get a text summary of the Message; try:
+    - Message::toString(): returns a multi-line summary of the message for display purposes
+    - Message::toLine(): returns a single line summary of the message for display purposes
 
-        Additional header lines (eg: \c "X-SPAM-Status: No") can be added with addHeader(string) or
-        set with setHeader()
+    Additional header lines (eg: \c "X-SPAM-Status: No") can be added with addHeader(string) or
+    set with setHeader()
 
-        For example, to set the messageid:
-        @code{.py}
+    For example, to set the messageid:
+    @code{.py}
 m.addHeader("Message-ID: <20090712.123456789@mail.drei.at>");@endcode
 
-        Other useful methods:
-        - attach(): add attachments
-        - important(): sets the given importance or returns the current setting (depending on the variant used)
-        - receiptDelivery(): sets the delivery receipt or returns the current setting (depending on the variant used)
-        - receiptRead(): sets the read receipt request or returns the setting (depending on the variant used)
+    Other useful methods:
+    - attach(): add attachments
+    - important(): sets the given importance or returns the current setting (depending on the variant used)
+    - receiptDelivery(): sets the delivery receipt or returns the current setting (depending on the variant used)
+    - receiptRead(): sets the read receipt request or returns the setting (depending on the variant used)
+*/
+public class Message {
+    #! @cond nodoc
+    private {
+        # the sender
+        string from;
+        # subject is a header field
+        string subject;
+
+        # additional headers
+        hash headers;      # hash of additional headers except the ones below
+        # message statuses
+        bool importance = False;
+        bool deliveryReceipt = False;
+        bool readReceipt = False;
+
+        # names
+        list<string> to(); # list of names for to (header only) will be prefilled (and overwritten) with the recipients
+        list<string> cc(); # list of cc's
+        list<string> bcc(); # list of bcc's
+
+        # message data itself
+        *data body;
+
+        # message body content transfer encoding
+        string bodyEncoding = EncDefault;
+
+        # message body content type
+        *string bodyContentType;
+
+        # list of Attachments
+        list<Attachment> attachments();
+
+        # list of Parts that are not Attachments (and not the main Message body - could be alternative representations of the body, for example)
+        list<Part> parts();
+
+        string sender;
+
+        # SMTP mode: do not serialize a single "." alone on a line
+        bool smtp_mode = True;
+    }
+    #! @endcond
+
+    public {
+        #! create a different multipart boundary string every time based on the current time
+        string mpboundary = replace(make_base64_string(string(now_us())), "=", "");
+    }
+
+    #! creates a Message object from the arguments given
+    /** This variant of the constructor is designed to be used to create a Message object for sending with the
+        \c SmtpClient class
+
+        Use the Message::addTo() method to add message recipients
+
+        @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
+        @param subject the subject line for the email; the subject will be encoded with
+        <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
+        @param smtp_mode if True then a single "." will not be serialized alone on a line
+
+        @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
     */
-    public class Message {
-        #! @cond nodoc
-        private {
-            # the sender
-            string from;
-            # subject is a header field
-            string subject;
+    constructor(string sender, string subject, bool smtp_mode = True) {
+        *string se = Message::getEmailAddress(sender);
+        if (!exists se)
+            throw "MESSAGE-CONSTRUCTOR-ERROR", sprintf("cannot get email address out of: %y", sender);
 
-            # additional headers
-            hash headers;      # hash of additional headers except the ones below
-            # message statuses
-            bool importance = False;
-            bool deliveryReceipt = False;
-            bool readReceipt = False;
+        # subject
+        if (subject.empty())
+            throw "MESSAGE-CONSTRUCTOR-ERROR", "subject must be not empty string";
 
-            # names
-            list<string> to(); # list of names for to (header only) will be prefilled (and overwritten) with the recipients
-            list<string> cc(); # list of cc's
-            list<string> bcc(); # list of bcc's
+        sender = se;   # used for sending
+        from = sender; # used for displaying
+        self.subject = subject;
+        self.smtp_mode = smtp_mode;
+    }
 
-            # message data itself
-            *data body;
+    #! creates a Message object from raw message text from a received email message
+    /** @param msg the raw message text as received
 
-            # message body content transfer encoding
-            string bodyEncoding = EncDefault;
+        @throw MESSAGE-PARSE-ERROR invalid message data
+    */
+    constructor(string msg) {
+        int pos = 0;
 
-            # message body content type
-            *string bodyContentType;
+        # is this a MIME message?
+        bool mime = False;
+        # content type
+        string ct;
+        # content transfer encoding - default: no encoding
+        string cte = Mime::ContentTransEnc7Bit;
 
-            # list of Attachments
-            list<Attachment> attachments();
+        # first get the message headers
+        while (True) {
+            string hdr = Message::getLine(\msg, \pos);
+            if (hdr.empty())
+                break;
 
-            # list of Parts that are not Attachments (and not the main Message body - could be alternative representations of the body, for example)
-            list<Part> parts();
+            # see if it's a long header field as defined in RFC 2822 section 2.2.3: http://tools.ietf.org/html/rfc2822#section-2.2.3
+            while (msg =~ /^[ \t]/)
+                hdr += " " + trim(Message::getLine(\msg, \pos));
 
-            string sender;
-
-            # SMTP mode: do not serialize a single "." alone on a line
-            bool smtp_mode = True;
-        }
-        #! @endcond
-
-        public {
-            #! create a different multipart boundary string every time based on the current time
-            string mpboundary = replace(make_base64_string(string(now_us())), "=", "");
-        }
-
-        #! creates a Message object from the arguments given
-        /** This variant of the constructor is designed to be used to create a Message object for sending with the
-            \c SmtpClient class
-
-            Use the Message::addTo() method to add message recipients
-
-            @param sender the sender's email address; can be in the format \c "Full Display Name <name@example.com>"
-            @param subject the subject line for the email; the subject will be encoded with
-            <a href="http://tools.ietf.org/html/rfc2047">"Q" encoding</a>
-            @param smtp_mode if True then a single "." will not be serialized alone on a line
-
-            @throw MESSAGE-CONSTRUCTOR-ERROR the sender's email address is not valid; the subject is empty
-         */
-        constructor(string sender, string subject, bool smtp_mode = True) {
-            *string se = Message::getEmailAddress(sender);
-            if (!exists se)
-                throw "MESSAGE-CONSTRUCTOR-ERROR", sprintf("cannot get email address out of: %y", sender);
-
-            # subject
-            if (subject.empty())
-                throw "MESSAGE-CONSTRUCTOR-ERROR", "subject must be not empty string";
-
-            sender = se;   # used for sending
-            from = sender; # used for displaying
-            self.subject = subject;
-            self.smtp_mode = smtp_mode;
-        }
-
-        #! creates a Message object from raw message text from a received email message
-        /** @param msg the raw message text as received
-
-            @throw MESSAGE-PARSE-ERROR invalid message data
-         */
-        constructor(string msg) {
-            int pos = 0;
-
-            # is this a MIME message?
-            bool mime = False;
-            # content type
-            string ct;
-            # content transfer encoding - default: no encoding
-            string cte = Mime::ContentTransEnc7Bit;
-
-            # first get the message headers
-            while (True) {
-                string hdr = Message::getLine(\msg, \pos);
-                if (hdr.empty())
-                    break;
-
-                # see if it's a long header field as defined in RFC 2822 section 2.2.3: http://tools.ietf.org/html/rfc2822#section-2.2.3
-                while (msg =~ /^[ \t]/)
-                    hdr += " " + trim(Message::getLine(\msg, \pos));
-
-                hash h = parseHeader(hdr);
-                string lk = h.firstKey().lwr();
-                if (lk == "mime-version")
-                    mime = True;
-                else if (lk == "content-type")
-                    ct = h.firstValue();
-                else if (lk == "content-transfer-encoding")
-                    cte = h.firstValue();
-                else if (lk == "from") {
-                    from = Message::getEmailAddress(h.firstValue());
-                    sender = h.firstValue();
-                    continue;
-                } else if (lk == "to") {
-                    to += h.firstValue();
-                    continue;
-                } else if (lk == "cc") {
-                    cc += h.firstValue();
-                    continue;
-                } else if (lk == "bcc") {
-                    bcc += h.firstValue();
-                    continue;
-                } else if (lk == "subject") {
-                    subject = h.firstValue();
-                    continue;
-                } else if ((lk == "importance" && h.firstValue() =~ /^high$/i)
-                         || (lk =~ /^(x-)?priority$/ && h.firstValue() =~ /^urgent$/i)) {
-                    importance = True;
-                    continue;
-                } else if (lk == "return-receipt-to") {
-                    # FIXME: we do not check if the return receipt is the same as the sender
-                    deliveryReceipt = True;
-                    continue;
-                } else if (lk == "Disposition-Notification-To") {
-                    # FIXME: we do not check if the read receipt is the same as the sender
-                    readReceipt = True;
-                    continue;
-                }
-
-                headers += h;
+            hash h = parseHeader(hdr);
+            string lk = h.firstKey().lwr();
+            if (lk == "mime-version")
+                mime = True;
+            else if (lk == "content-type")
+                ct = h.firstValue();
+            else if (lk == "content-transfer-encoding")
+                cte = h.firstValue();
+            else if (lk == "from") {
+                from = Message::getEmailAddress(h.firstValue());
+                sender = h.firstValue();
+                continue;
+            } else if (lk == "to") {
+                to += h.firstValue();
+                continue;
+            } else if (lk == "cc") {
+                cc += h.firstValue();
+                continue;
+            } else if (lk == "bcc") {
+                bcc += h.firstValue();
+                continue;
+            } else if (lk == "subject") {
+                subject = h.firstValue();
+                continue;
+            } else if ((lk == "importance" && h.firstValue() =~ /^high$/i)
+                        || (lk =~ /^(x-)?priority$/ && h.firstValue() =~ /^urgent$/i)) {
+                importance = True;
+                continue;
+            } else if (lk == "return-receipt-to") {
+                # FIXME: we do not check if the return receipt is the same as the sender
+                deliveryReceipt = True;
+                continue;
+            } else if (lk == "Disposition-Notification-To") {
+                # FIXME: we do not check if the read receipt is the same as the sender
+                readReceipt = True;
+                continue;
             }
 
-            #printf("mime: %y ct: %y %d headers: %N\n", mime, ct, headers.size(), headers);
+            headers += h;
+        }
 
-            # try and parse the Content-Type header; assume any multipart type is "multipart/mixed"
-            # (http://tools.ietf.org/html/rfc2046#section-5.1.3)
-            if (mime && ct =~ /multipart\//i) {
-                # get message boundary
-                *string boundary = (ct =~ x/boundary="?([^"]+)"?/)[0];
-                if (!boundary)
-                    throw "MESSAGE-PARSE-ERROR", sprintf("cannot parse MIME Content-Type: %y; could not find message boundary", ct);
+        #printf("mime: %y ct: %y %d headers: %N\n", mime, ct, headers.size(), headers);
 
-                hash<MessageInfo> mpb = MultiPartMessage::parseBody(boundary, msg, True);
+        # try and parse the Content-Type header; assume any multipart type is "multipart/mixed"
+        # (http://tools.ietf.org/html/rfc2046#section-5.1.3)
+        if (mime && ct =~ /multipart\//i) {
+            # get message boundary
+            *string boundary = (ct =~ x/boundary="?([^"]+)"?/)[0];
+            if (!boundary)
+                throw "MESSAGE-PARSE-ERROR", sprintf("cannot parse MIME Content-Type: %y; could not find message boundary", ct);
 
-                # reassign message body to
-                msg = mpb.body;
+            hash<MessageInfo> mpb = MultiPartMessage::parseBody(boundary, msg, True);
 
-                # process/decode parts
-                map processPart($1), mpb.part;
-            } else if (ct)
-                bodyContentType = ct;
+            # reassign message body to
+            msg = mpb.body;
 
-            # assign the message body to what's left of the message, if anything
-            if (msg.val()) {
-                data pb = mime_decode_transfer_data(msg, cte, ct);
-                if (body.empty())
-                    body = pb;
-                else
-                    parts += new Part("", ct.val() ? ct : MimeTypeUnknown, pb, cte);
+            # process/decode parts
+            map processPart($1), mpb.part;
+        } else if (ct)
+            bodyContentType = ct;
+
+        # assign the message body to what's left of the message, if anything
+        if (msg.val()) {
+            data pb = mime_decode_transfer_data(msg, cte, ct);
+            if (body.empty())
+                body = pb;
+            else
+                parts += new Part("", ct.val() ? ct : MimeTypeUnknown, pb, cte);
+        }
+    }
+
+    #! Returns information about the message
+    hash<MailMessageInfo> getInfo() {
+        hash<MailMessageInfo> rv();
+        if (from.val()) {
+            rv.from = from;
+        }
+        if (sender.val()) {
+            rv.sender = sender;
+        }
+        if (subject.val()) {
+            rv.subject = subject;
+        }
+        if (sender.val()) {
+            rv.sender = sender;
+        }
+        if (to) {
+            rv.to = to;
+        }
+        if (cc) {
+            rv.cc = cc;
+        }
+        if (bcc) {
+            rv.bcc = bcc;
+        }
+        if (body.val()) {
+            rv.body = body;
+
+            rv.body_encoding = bodyEncoding;
+            if (bodyContentType) {
+                rv.body_content_type = bodyContentType;
             }
         }
+        if (headers) {
+            rv.headers = headers;
+        }
+        if (importance) {
+            rv.important = True;
+        }
+        if (deliveryReceipt) {
+            rv.delivery_receipt = True;
+        }
+        if (readReceipt) {
+            rv.read_receipt = True;
+        }
+        if (attachments) {
+            rv.attachments = map cast<hash<PartInfo>>($1.getInfo()), attachments;
+        }
+        if (parts) {
+            rv.parts = map cast<hash<PartInfo>>($1.getInfo()), parts;
+        }
+        return rv;
+    }
 
-        #! serializes the message to a string that can be sent to an SMTP server, for example
-        /**
-            @throw MESSAGE-ERROR the message is incomplete and cannot be sent
-         */
-        string serialize() {
-            # throws a MESSAGE-ERROR exception if the message cannot be sent
-            checkSendPossible();
+    #! serializes the message to a string that can be sent to an SMTP server, for example
+    /**
+        @throw MESSAGE-ERROR the message is incomplete and cannot be sent
+    */
+    string serialize() {
+        # throws a MESSAGE-ERROR exception if the message cannot be sent
+        checkSendPossible();
 
-            string str = getHeaderString();
+        string str = getHeaderString();
 
-            # is this a multipart msg?
-            if (attachments) {
-                MultiPartMixedMessage mpm(mpboundary);
+        # is this a multipart msg?
+        if (attachments) {
+            MultiPartMixedMessage mpm(mpboundary);
 
-                if (bodyEncoding == EncNone) {
-                    bodyEncoding = ContentTransEnc7Bit;
-                }
-
-                # add the message body with content-disposition: "inline"
-                mpm.addEncodePart(body, bodyEncoding, bodyContentType ? bodyContentType : MimeTypeText, "inline");
-
-                # add attachments
-                map $1.add(mpm), attachments;
-
-                str += mpm.serialize().toString();
-                str += "\r\n";
-            } else {
-                if (bodyEncoding == EncNone) {
-                    str += "\r\n" + body + "\r\n";
-                } else {
-                    str += "\r\n" + mime_encode_transfer_data(body, bodyEncoding) + "\r\n";
-                }
+            if (bodyEncoding == EncNone) {
+                bodyEncoding = ContentTransEnc7Bit;
             }
 
-            # issue #3275: fix encoding of a naked "." on a line which will break the SMTP protocol
-            if (smtp_mode) {
-                str = replace(str, "\r\n.\r\n", "\r\n..\r\n");
-            }
-
-            return str;
-        }
-
-        private processPart(hash<auto> p) {
-            # part content type (default = no encoding)
-            string pct = Mime::ContentTransEnc7Bit;
-            # part content transfer encoding (default: no encoding)
-            string pcte = ContentTransEncBinary;
-            # part content disposition
-            string pcd;
-
-            # process part headers
-            foreach hash<auto> h in (p.hdr.pairIterator()) {
-                if (h.key == "content-transfer-encoding")
-                    pcte = h.value.lwr();
-                else if (h.key == "content-type")
-                    pct = h.value;
-                else if (h.key == "content-disposition")
-                    pcd = h.value;
-            }
-
-            # get the part's name if possible
-            *string pn = (pcd =~ x/filename="?([^"]+)"?/)[0];
-
-            # try to get the filename from the content-type header if necessary
-            if (!pn)
-                pn = (pct =~ x/name="?([^"]+)"?/)[0];
-
-            # convert the content-type string to lower case
-            pct = pct.lwr();
-
-            # get the content type
-            # strip off any additional information from the content-type
-            pct =~ s/;.*$//;
-            if (pct.empty())
-                pct = MimeTypeUnknown;
-
-            #printf("DBG: got part: pcte: %y pct: %y pcd: %y body: %d bytes: %y\n", pcte, pct, pcd, p.body.size(), p.body);
-
-            # if not an attachment, then set as the msg body
-            if (pcd !~ /attachment/i) {
-                if (!body)
-                    body = p.body;
-                else
-                    parts += new Part(pn.val() ? pn : "", pct, p.body, pcte, p.hdr);
-            } else {
-                # generate a name for the part if no filename is available
-                if (!pn)
-                    pn = "unnamed-attachment-" + $#;
-
-                attachments += new Attachment(pn, pct, p.body, pcte, p.hdr);
-            }
-
-            map processPart($1), p.part;
-        }
-
-        #! fetch the email address out of a sender/rcpt string
-        static *string getEmailAddress(string str) {
-            return (str =~ x/([a-zA-Z0-9\-\._\+\ = ]+@[a-zA-Z0-9\-\._]+)/)[0];
-        }
-
-        #! returns @ref True "True" if the string contains an email address, @ref False "False" if not
-        static bool checkEmailAddress(string str) {
-            return !Message::getEmailAddress(str).empty();
-        }
-
-        #! add a recipient to the Message's recipient list
-        /** @param recipient the email address to send the message to
-            @return the list of "To:" addresses
-
-            @throw MESSAGE-ADDTO-ERROR the recipient's email address is invalid
-        */
-        list<string> addTO(string recipient) {
-            if (!Message::checkEmailAddress(recipient))
-                throw "MESSAGE-ADDTO-ERROR", sprintf("cannot determine email address in %y", recipient);
-
-            return to += recipient;
-        }
-
-        #! add a recipient to the Message's cc list
-        /** @param recipient the email address to send the message to (cc)
-            @return the list of "CC:" addresses
-
-            @throw MESSAGE-ADDCC-ERROR the recipient's email address is invalid
-        */
-        list<string> addCC(string recipient) {
-            if (!Message::checkEmailAddress(recipient))
-                throw "MESSAGE-ADDCC-ERROR", sprintf("cannot determine email address in %y", recipient);
-
-            return cc += recipient;
-        }
-
-        #! add a recipient to the Message's bcc list
-        /** @param recipient the email address to send the message to (bcc)
-            @return the list of "BCC:" addresses
-
-            @throw MESSAGE-ADDBCC-ERROR the recipient's email address is invalid
-         */
-        list<string> addBCC(string recipient) {
-            if (!Message::checkEmailAddress(recipient))
-                throw "MESSAGE-ADDBCC-ERROR", sprintf("cannot determine email address in %y", recipient);
-
-            return bcc += recipient;
-        }
-
-        #! returns the sender's address in display format
-        *string getSender() {
-            return from;
-        }
-
-        #! returns the sender's email address
-        *string getFrom() {
-            return sender;
-        }
-
-        #! returns the list of "To:" addresses
-        list<string> getTO() {
-            return to;
-        }
-
-        #! returns the list of "CC:" addresses
-        list<string> getCC() {
-            return cc;
-        }
-
-        #! returns the list of "BCC:" addresses
-        list<string> getBCC() {
-            return bcc;
-        }
-
-        #! returns the subject of the Message
-        string getSubject() {
-            return subject;
-        }
-
-        #! return all the email addresses the message will be sent to, a combination of the "To:", "CC:", and "BCC:" lists
-        list<string> getRecipients() {
-            return cast<list<string>>(select (map getEmailAddress($1), (to + cc + bcc)), exists $1);
-        }
-
-        #! returns @ref True "True" if the message can be sent, @ref False "False" if not
-        /** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists
-            and there must be a message body
-
-            @return @ref True "True" if the message can be sent, @ref False "False" if not
-
-            @see checkSendPossible()
-         */
-        bool sendPossible() {
-            if (to.empty() && cc.empty() && bcc.empty())
-                return False;
-
-            return body.empty() ? False : True;
-        }
-
-        #! throws a \c MESSAGE-ERROR exception if the Message cannot be sent
-        /** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists
-            and there must be a message body
-
-            @see sendPossible()
-
-            @throw MESSAGE-ERROR the message is incomplete and cannot be sent
-         */
-        checkSendPossible() {
-            if (!to && !cc && !bcc)
-                throw "MESSAGE-ERROR", "the Message cannot be sent because there is no target address (To, Cc, and Bcc are all empty)";
-
-            if (!body)
-                throw "MESSAGE-ERROR", "the Message cannot be sent because there is no message body set";
-        }
-
-        #! sets or replaces the Message body
-        /** @param body the Message body to set
-            @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
-            @param content_type the Content-Type for the message body, if any
-
-            @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
-         */
-        setBody(data body, string enc = EncDefault, *string content_type) {
-            bodyEncoding = Message::checkEncoding(body, enc, True);
-            if (content_type)
-                bodyContentType = content_type;
-            self.body = body;
-        }
-
-        #! concatenates a string to the message body
-        /** @param str the string to concatenate to the Message body
-
-            @throw BODY-ERROR cannot concatenate a string to a binary body
-         */
-        addBody(string str) {
-            if (body.typeCode() == NT_BINARY)
-                throw "BODY-ERROR", sprintf("cannot concatenate a string to a binary body");
-            # issue #2360 check if encoding is set
-            if (bodyEncoding == EncDefault)
-                bodyEncoding = EncQuotedPrintable;
-
-            body += str;
-        }
-
-        #! concatenates a binary object to the message body
-        /** @param bin the binary object to concatenate to the Message body
-
-            @throw BODY-ERROR cannot concatenate a binary object to a string body
-         */
-        addBody(binary bin) {
-            if (body.typeCode() == NT_STRING)
-                throw "BODY-ERROR", sprintf("cannot concatenate a binary object to a string body");
-            # issue #2360 check if encoding is set
-            if (bodyEncoding == EncDefault)
-                bodyEncoding = EncBase64;
-            body += bin;
-        }
-
-        #! returns the Message body
-        *data getBody() {
-            return body;
-        }
-
-        #! returns the transfer encoding for the mssage body (see @ref MessageEncodings for possible values)
-        string getBodyTransferEncoding() {
-            return bodyEncoding;
-        }
-
-        #! parses the given string representing a header line and returns a single key - value hash for the header
-        /** @param hdr a string representing a single line in a Message header
-            @param decode decode any Q or B encoded header words (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
-
-            @return a single key - value hash for the header
-
-            @throw HEADER-ERROR no ':' separator character found in header, no key or value found
-         */
-        static hash parseHeader(string hdr, bool decode = True) {
-            trim hdr;
-            int i = hdr.find(":");
-            if (i == -1)
-                throw "HEADER-ERROR", sprintf("no ':' separator character found in header: %y", hdr);
-            if (!i)
-                throw "HEADER-ERROR", sprintf("no header name found in header: %y", hdr);
-            if (i == (hdr.size() - 1))
-                throw "HEADER-ERROR", sprintf("no header value found in header: %y", hdr);
-
-            string val = trim(hdr.substr(i + 1));
-            if (decode)
-                val = mime_decode_header(val);
-            hash rv.(hdr.substr(0, i)) = val;
-            return rv;
-        }
-
-        #! sets/replaces the Message headers
-        /** @param hdr a single string giving a single Message header to set (replaces all message headers with the given string)
-
-            @throw HEADER-ERROR no ':' separator character found in header string
-
-            @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
-         */
-        setHeader(string hdr) {
-            headers = parseHeader(hdr, False);
-        }
-
-        #! sets/replaces the list of Message headers from a list of header strings
-        /** @param hdrs a list of Message header strings to set (replaces all message headers with the given list of strings)
-
-            @throw HEADER-ERROR no ':' separator character found in header string
-
-            @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
-         */
-        setHeader(list hdrs) {
-            headers = {};
-            map headers += parseHeader($1, False), hdrs;
-        }
-
-        #! sets/replaces the list of Message headers from a hash of header info
-        /** @param hdrs a hash of Message headers to set (replaces all message headers with the given hash)
-
-            @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
-         */
-        setHeader(hash hdrs) {
-            headers = hdrs;
-        }
-
-        #! adds a header to the Message
-        /** @param hdr a header to add to the Message
-
-            @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
-         */
-        addHeader(string hdr) {
-            headers += parseHeader(hdr, False);
-        }
-
-        #! adds a list of headers to the Message
-        /** @param hdrs a list of headers to add to the Message
-
-            @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
-         */
-        addHeader(list<auto> hdrs) {
-            headers += map parseHeader($1, False), hdrs;
-        }
-
-        #! adds a hash of headers to the Message
-        /** @param hdrs a hash of headers to add to the Message
-
-            @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
-         */
-        addHeader(hash<auto> hdrs) {
-            headers += hdrs;
-        }
-
-        #! returns the current Message headers as a list of strings
-        softlist getHeader() {
-            return map sprintf("%s: %s", $1, headers.$1), keys headers;
-        }
-
-        #! returns the current Message headers as a hash
-        *hash<auto> getHeaders() {
-            return headers;
-        }
-
-        #! returns the current importance setting
-        /** if this is @ref True "True", then the following headers will be sent:
-            - \c Importance: high
-            - \c X-Priority: 1
-            - \c Priority: Urgent
-         */
-        bool important() {
-            return importance;
-        }
-
-        #! sets the importance setting
-        /** if this is @ref True "True", then the following headers will be sent:
-            - \c Importance: high
-            - \c X-Priority: 1
-            - \c Priority: Urgent
-         */
-        important(softbool i) {
-            importance = i;
-        }
-
-        #! returns the current read delivery receipt setting
-        /** if this is @ref True "True", then the following header will be sent:
-            - \c Return-Receipt-To: <sender's email address>
-          */
-        bool receiptRead() {
-            return deliveryReceipt;
-        }
-
-        #! sets the read delivery receipt setting
-        /** if this is @ref True "True", then the following header will be sent:
-            - \c Return-Receipt-To: <sender's email address>
-          */
-        receiptRead(bool arg) {
-            deliveryReceipt = arg;
-        }
-
-        #! returns the delivery receipt setting
-        /** if this is @ref True "True", then the following header will be sent:
-            - \c Disposition-Notification-To: <sender's email address>
-          */
-        bool receiptDelivery() {
-            return readReceipt;
-        }
-
-        #! sets the delivery receipt setting
-        /** if this is @ref True "True", then the following header will be sent:
-            - \c Disposition-Notification-To: <sender's email address>
-          */
-        receiptDelivery(bool arg) {
-            readReceipt = arg;
-        }
-
-        #! creates an attachment for the Message
-        /** @param name the name of the attachment to be displayed in the message, normally a file name without any path
-            @param mime the mime type for the message
-            @param att the attachment itself
-            @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
-            @param hdr optional headers for the MIME part for the attachment
-
-            @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
-            @throw INVALID-ENCODING the encoding given cannot be used with data given
-         */
-        attach(string name, string mime, data att, string enc = EncBase64, *hash<auto> hdr) {
-            attachments += new MailMessage::Attachment(name, mime, att, enc, hdr);
-        }
-
-        #! adds an Attachment to the Message
-        /** @param att the Attachment to add to the Message
-          */
-        attach(Attachment att) {
-            attachments += att;
-        }
-
-        #! returns a list of Attachment objects for the Message
-        list<Attachment> getAttachments() {
-            return attachments;
-        }
-
-        #! returns a list of non-attachment Part objects for the Message
-        /** these could represent alternative representations of the message body, for example
-         */
-        list<Part> getParts() {
-            return parts;
-        }
-
-        #! encodes a header value according to the parameters
-        /** @param hdr the header to encode (ex: \c "Subject")
-            @param val the value to encode
-            @param eol the End-Of-Line marker for the string
-            @param encode encode non-ASCII values with quoted printable encoding (http://tools.ietf.org/html/rfc2047)
-
-            @return a header string (ex: \c "Subject: =?UTF-8?Q?testing?=\r\n")
-         */
-        static string doHeaderValue(string hdr, string val, string eol = "\r\n", bool encode = True) {
-            if (encode && !val.isDataPrintableAscii())
-                val = mime_encode_header_word_q(val);
-            return sprintf("%s: %s%s", hdr, val, eol);
-        }
-
-        #! returns a string of the message headers
-        /** @param eol the End-Of-Line marker for the string
-            @param encode encode non-ASCII values with quoted printable encoding (http://tools.ietf.org/html/rfc2047)
-
-            @return a string with all the message headers separated by the EOL marker
-         */
-        string getHeaderString(string eol = "\r\n", bool encode = True) {
-            string hdr = Message::doHeaderValue("From", from, eol, encode);
-
-            # To:
-            foreach string l in (to)
-                hdr += Message::doHeaderValue("To", l, eol, encode);
-
-            # CC:
-            foreach string l in (cc)
-                hdr += Message::doHeaderValue("CC", l, eol, encode);
-
-            # BCC:
-            foreach string l in (bcc)
-                hdr += Message::doHeaderValue("BCC", l, eol, encode);
-
-            # add the subject - use "QP" encoding to ensure correct transmission & display of special characters through all SMTP servers
-            hdr += Message::doHeaderValue("Subject", subject, eol, encode);
-
-            # importance
-            if (importance)
-                hdr += sprintf("Importance: high%sX-Priority: 1%sPriority: Urgent%s", eol, eol, eol);
-
-            if (deliveryReceipt)
-                hdr += Message::doHeaderValue("Return-Receipt-To", from, eol, encode);
-
-            if (readReceipt)
-                hdr += Message::doHeaderValue("Disposition-Notification-To", from, eol, encode);
-
-            # make sure that any explicitly-set Content-Type header is overridden by the CT for the body
-            if (headers."Content-Type") {
-                if (bodyContentType)
-                    delete headers."Content-Type";
-                else if (attachments)
-                    bodyContentType = remove headers."Content-Type";
-            }
-
-            # additional headers
-            foreach string k in (keys headers)
-                hdr += Message::doHeaderValue(k, headers{k}, eol, encode);
-
-            # include MIME headers for msg body if necessary
-            if (!attachments && bodyEncoding != EncNone) {
-                hdr += Message::doHeaderValue("MIME-Version", "1.0", eol, encode);
-                if (bodyContentType)
-                    hdr += Message::doHeaderValue("Content-Type", bodyContentType, eol, encode);
-                hdr += Message::doHeaderValue("Content-Transfer-Encoding", bodyEncoding, eol, encode);
-            }
-
-            return hdr;
-        }
-
-        #! returns a multi-line string representing the Message
-        /** @param include_body if @ref True "True" the Message body will be included in the string output
-         */
-        string toString(bool include_body = False) {
-            list<string> attarr();
-            foreach Attachment att in (attachments)
-                attarr += sprintf("%s (%s,%d)", att.getName(), att.getMime(), att.getData().size());
-
-            # sending envelope: from, to, subject
-            list<string> env = getEnvelopeList();
-
-            # the main string
-            string str = sprintf("Message (%s)\n", sendPossible() ? "ok": "unfinished");
-
-            # from/to/subject
-            foreach string l in (env)
-                str += "  " + trim(l) + "\n";
-
-            # important or not...
-            str += sprintf("%s%s%s",
-                            important() ? "  Important\n": "",
-                            receiptDelivery() ? "  ReceiptDelivery\n": "",
-                            receiptRead() ? "  ReceiptRead\n": "");
-
-            # add headers
-            map str += sprintf("  %s: %s\n", $1, headers.$1), keys headers;
+            # add the message body with content-disposition: "inline"
+            mpm.addEncodePart(body, bodyEncoding, bodyContentType ? bodyContentType : MimeTypeText, "inline");
 
             # add attachments
-            if (!attarr.empty()) {
-                str += "  Attachments:\n";
-                foreach string l in (attarr) {
-                    str += "    " + trim(l) + "\n";
-                }
+            map $1.add(mpm), attachments;
+
+            str += mpm.serialize().toString();
+            str += "\r\n";
+        } else {
+            if (bodyEncoding == EncNone) {
+                str += "\r\n" + body + "\r\n";
+            } else {
+                str += "\r\n" + mime_encode_transfer_data(body, bodyEncoding) + "\r\n";
             }
-
-            # the user wants to see the body also...
-            if (include_body) {
-                str += "--\n";
-                if (body.empty())
-                    str += "<empty message body>";
-                else if (body.typeCode() == NT_STRING)
-                    str += trim(body);
-                else
-                    str += sprintf("<binary body: %d bytes>", body.size());
-
-                str += "\n";
-            }
-
-            return str;
         }
 
-        #! returns a single line string summarizing the Message
-        /** @return a single line string summarizing the Message
-         */
-        string toLine() {
-            # sending envelope: from, to, subject
-            list<string> env = getEnvelopeList();
-
-            # the main string
-            string str = sprintf("[Message (%s), %s, %simportant, %sdelivery, %sread",
-                         sendPossible()? "ok": "unfinished",
-                         join(", ", env),
-                         important()? "": "not ",
-                         receiptDelivery()? "": "not ",
-                         receiptRead()? "": "not "
-                );
-
-            # add headers
-            if (headers.val())
-                str += sprintf(", %s", join(", ", (map sprintf("%s: %s", $1, headers.$1), headers.keyIterator())));
-
-            # attachments
-            foreach Attachment att in (attachments)
-                str += sprintf(", %s (%s,%d)", att.getName(), att.getMime(), att.getData().size());
-
-            str += "]";
-
-            return str;
+        # issue #3275: fix encoding of a naked "." on a line which will break the SMTP protocol
+        if (smtp_mode) {
+            str = replace(str, "\r\n.\r\n", "\r\n..\r\n");
         }
 
-        #! checks the data against the encoding and returns the new encoding (if the encoding is @ref EncDefault for example)
-        /** @param data the data to be encoded
-            @param enc the encoding type for the data (see @ref MessageEncodings for possible values)
-            @param noneok if this argument is True, then @ref EncNone may be given as an argument
-
-            @return the new encoding to use in case the input data was @ref EncDefault
-
-            @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
-            @throw INVALID-ENCODING the encoding given cannot be used with data given
-         */
-        static string checkEncoding(data data, string enc, bool noneok = False) {
-            if (enc == EncDefault) {
-                # issue #3275: if the data has a line with a single dot, then encode it with base64 encoding
-                if (data.typeCode() == NT_STRING) {
-                    if (data =~ /^.\r?$/m) {
-                        enc = EncBase64;
-                    } else {
-                        enc = EncQuotedPrintable;
-                    }
-                } else {
-                    enc = EncBase64;
-                }
-            }
-            else if (!noneok && enc == EncNone)
-                throw "INVALID-ENCODING", "\"none\" may not be used; a valid encoding is required in this context";
-            else if (!inlist(enc, Encodings))
-                throw "UNKNOWN-ENCODING", sprintf("%y is not a known encoding; known encodings: %y", enc, Encodings);
-            else if (data.typeCode() == NT_BINARY && enc == EncNone)
-                throw "INVALID-ENCODING", sprintf("%y cannot be used with binary data", enc);
-
-            return enc;
-        }
-
-        #! returns a string of message data according to the encoding passed
-        /** @param data the data to encode
-            @param enc the encoding type for the data (see @ref MessageEncodings for possible values)
-            @param hdr a reference to a hash for header information
-
-            @throw ENCODE-TRANSFER-DATA-ERROR unknown encoding passed
-         */
-        static string encodeTransferData(data data, string enc, reference<hash> hdr) {
-            switch (enc) {
-                case EncBase64: {
-                    hdr."Content-Transfer-Encoding" = enc;
-                    return mime_encode_base64(data, 72);
-                }
-
-                case EncNone:
-                    return data;
-
-                case EncQuotedPrintable: {
-                    hdr."Content-Transfer-Encoding" = enc;
-                    return mime_encode_quoted_printable(data);
-                }
-            }
-
-            throw "ENCODE-TRANSFER-DATA-ERROR", sprintf("unknown Content-Transfer-Encoding: %y", enc);
-        }
-
-        #! returns a string of message data according to the encoding passed
-        static string encodeData(data data, string mime, string disp, string enc) {
-            string str = sprintf("Content-Type: %s\r\nContent-Disposition: %s\r\n", mime, disp);
-            switch (enc) {
-                case EncBase64: {
-                    str += "Content-Transfer-Encoding: base64\r\n\r\n";
-                    str += mime_encode_base64(data, 72);
-                    str += "\r\n";
-                    break;
-                }
-                case EncNone: {
-                    str += "\r\n";
-                    str += data;
-                    str += "\r\n";
-                    break;
-                }
-                case EncQuotedPrintable: {
-                    str += sprintf("Content-Transfer-Encoding: quoted-printable\r\n\r\n");
-                    str += mime_encode_quoted_printable(data);
-                    str += "\r\n";
-                    break;
-                }
-            }
-
-            return str;
-        }
-
-        #! returns the first \c "\r\n" terminated line from the argument, updates the byte position argument
-        /** @param msg the text to process; the first line found will be removed from this argument as well
-            @param pos the byte position to update
-            @return the first \c "\r\n" terminated line from the argument
-
-            @throw MESSAGE-PARSE-ERROR invalid message data
-         */
-        static string getLine(reference<string> msg, reference<int> pos) {
-            int i = msg.find("\r\n");
-            if (i == -1)
-                throw "MESSAGE-PARSE-ERROR", sprintf("cannot find end of line in message at byte position %d", pos);
-
-            pos += i + 2;
-            # get header string
-            string hdr = extract msg, 0, i;
-            # remove \r\n
-            splice msg, 0, 2;
-            trim hdr;
-            return hdr;
-        }
-
-        #! @cond nodoc
-        private list<string> getEnvelopeList() {
-            list<string> env = (sprintf("Sender: '%s'", from), sprintf("Subject: '%s'", subject));
-            # add To addresses
-            map env += sprintf("To: %s", $1), to;
-            # add CC addresses
-            map env += sprintf("CC: %s", $1), cc;
-            # add BCC addresses
-            map env += sprintf("BCC: %s", $1), bcc;
-            return env;
-        }
-        #! @endcond
+        return str;
     }
 
-    #! class representing a MIME part of a Message
-    /** this class wraps all the data for the Part, including:
-        - the part's name if any is known or can be derived
-        - the mime type of the Part (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
-        - the data for the Part; either binary object or as a string
-        - the encoding type for the attachment
+    private processPart(hash<auto> p) {
+        # part content type (default = no encoding)
+        string pct = Mime::ContentTransEnc7Bit;
+        # part content transfer encoding (default: no encoding)
+        string pcte = ContentTransEncBinary;
+        # part content disposition
+        string pcd;
+
+        # process part headers
+        foreach hash<auto> h in (p.hdr.pairIterator()) {
+            if (h.key == "content-transfer-encoding")
+                pcte = h.value.lwr();
+            else if (h.key == "content-type")
+                pct = h.value;
+            else if (h.key == "content-disposition")
+                pcd = h.value;
+        }
+
+        # get the part's name if possible
+        *string pn = (pcd =~ x/filename="?([^"]+)"?/)[0];
+
+        # try to get the filename from the content-type header if necessary
+        if (!pn)
+            pn = (pct =~ x/name="?([^"]+)"?/)[0];
+
+        # convert the content-type string to lower case
+        pct = pct.lwr();
+
+        # get the content type
+        # strip off any additional information from the content-type
+        pct =~ s/;.*$//;
+        if (pct.empty())
+            pct = MimeTypeUnknown;
+
+        #printf("DBG: got part: pcte: %y pct: %y pcd: %y body: %d bytes: %y\n", pcte, pct, pcd, p.body.size(), p.body);
+
+        # if not an attachment, then set as the msg body
+        if (pcd !~ /attachment/i) {
+            if (!body)
+                body = p.body;
+            else
+                parts += new Part(pn.val() ? pn : "", pct, p.body, pcte, p.hdr);
+        } else {
+            # generate a name for the part if no filename is available
+            if (!pn)
+                pn = "unnamed-attachment-" + $#;
+
+            attachments += new Attachment(pn, pct, p.body, pcte, p.hdr);
+        }
+
+        map processPart($1), p.part;
+    }
+
+    #! fetch the email address out of a sender/rcpt string
+    static *string getEmailAddress(string str) {
+        return (str =~ x/([a-zA-Z0-9\-\._\+\ = ]+@[a-zA-Z0-9\-\._]+)/)[0];
+    }
+
+    #! returns @ref True "True" if the string contains an email address, @ref False "False" if not
+    static bool checkEmailAddress(string str) {
+        return !Message::getEmailAddress(str).empty();
+    }
+
+    #! add a recipient to the Message's recipient list
+    /** @param recipient the email address to send the message to
+        @return the list of "To:" addresses
+
+        @throw MESSAGE-ADDTO-ERROR the recipient's email address is invalid
     */
-    public class Part {
-        # no public members
-        public {}
+    list<string> addTO(string recipient) {
+        if (!Message::checkEmailAddress(recipient))
+            throw "MESSAGE-ADDTO-ERROR", sprintf("cannot determine email address in %y", recipient);
 
-        #! @cond nodoc
-        private {
-            string name;
-            string mime;
-            data part_data;
-            #! content-transfer encoding
-            string enc;
-            # any extra headers for the message
-            *hash<auto> headers;
-        }
-
-        # will only be called internally when parsing a Message
-        constructor(string filename, string mimetype, data filedata, string encoding = EncDefault, *hash<auto> hdr) {
-            name = filename;
-            mime = mimetype;
-            part_data = filedata;
-            enc = encoding;
-            # += to keep "hash<auto>"
-            headers += hdr;
-        }
-        #! @endcond
-
-        #! returns the name of the Part
-        string getName() {
-            return name;
-        }
-
-        #! returns the mime type of the Part
-        string getMime() {
-            return mime;
-        }
-
-        #! returns the data of the Part
-        data getData() {
-            return part_data;
-        }
-
-        #! returns the transfer encoding of the Part
-        string getTransferEncoding() {
-            return enc;
-        }
-
-        #! returns any headers for the Part
-        *hash<auto> getHeaders() {
-            return headers;
-        }
-
-        #! adds itself to a multipart/alternative message
-        add(MultiPartAlternativeMessage mpa) {
-             mpa.addEncodePart(part_data, enc, mime);
-        }
+        return to += recipient;
     }
 
-    #! class representing a MIME Attachment for the Message
-    /** this class wraps all the data for the attachment, including:
-        - the attachment's name; ie the file name which will be shown
-        - the mime type of the Attachment (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
-        - the data for the attachment; either binary object or as a string
-        - the encoding type for the attachment
+    #! add a recipient to the Message's cc list
+    /** @param recipient the email address to send the message to (cc)
+        @return the list of "CC:" addresses
 
-        @par Example:
-        @code{.py}
+        @throw MESSAGE-ADDCC-ERROR the recipient's email address is invalid
+    */
+    list<string> addCC(string recipient) {
+        if (!Message::checkEmailAddress(recipient))
+            throw "MESSAGE-ADDCC-ERROR", sprintf("cannot determine email address in %y", recipient);
+
+        return cc += recipient;
+    }
+
+    #! add a recipient to the Message's bcc list
+    /** @param recipient the email address to send the message to (bcc)
+        @return the list of "BCC:" addresses
+
+        @throw MESSAGE-ADDBCC-ERROR the recipient's email address is invalid
+    */
+    list<string> addBCC(string recipient) {
+        if (!Message::checkEmailAddress(recipient))
+            throw "MESSAGE-ADDBCC-ERROR", sprintf("cannot determine email address in %y", recipient);
+
+        return bcc += recipient;
+    }
+
+    #! returns the sender's address in display format
+    *string getSender() {
+        return from;
+    }
+
+    #! returns the sender's email address
+    *string getFrom() {
+        return sender;
+    }
+
+    #! returns the list of "To:" addresses
+    list<string> getTO() {
+        return to;
+    }
+
+    #! returns the list of "CC:" addresses
+    list<string> getCC() {
+        return cc;
+    }
+
+    #! returns the list of "BCC:" addresses
+    list<string> getBCC() {
+        return bcc;
+    }
+
+    #! returns the subject of the Message
+    string getSubject() {
+        return subject;
+    }
+
+    #! return all the email addresses the message will be sent to, a combination of the "To:", "CC:", and "BCC:" lists
+    list<string> getRecipients() {
+        return cast<list<string>>(select (map getEmailAddress($1), (to + cc + bcc)), exists $1);
+    }
+
+    #! returns @ref True "True" if the message can be sent, @ref False "False" if not
+    /** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists
+        and there must be a message body
+
+        @return @ref True "True" if the message can be sent, @ref False "False" if not
+
+        @see checkSendPossible()
+    */
+    bool sendPossible() {
+        if (to.empty() && cc.empty() && bcc.empty())
+            return False;
+
+        return body.empty() ? False : True;
+    }
+
+    #! throws a \c MESSAGE-ERROR exception if the Message cannot be sent
+    /** To be able to send a message, there must be at least one recipient in the "To:" or the "CC:" or the "BCC:" lists
+        and there must be a message body
+
+        @see sendPossible()
+
+        @throw MESSAGE-ERROR the message is incomplete and cannot be sent
+    */
+    checkSendPossible() {
+        if (!to && !cc && !bcc)
+            throw "MESSAGE-ERROR", "the Message cannot be sent because there is no target address (To, Cc, and Bcc are all empty)";
+
+        if (!body)
+            throw "MESSAGE-ERROR", "the Message cannot be sent because there is no message body set";
+    }
+
+    #! sets or replaces the Message body
+    /** @param body the Message body to set
+        @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
+        @param content_type the Content-Type for the message body, if any
+
+        @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
+    */
+    setBody(data body, string enc = EncDefault, *string content_type) {
+        bodyEncoding = Message::checkEncoding(body, enc, True);
+        if (content_type)
+            bodyContentType = content_type;
+        self.body = body;
+    }
+
+    #! concatenates a string to the message body
+    /** @param str the string to concatenate to the Message body
+
+        @throw BODY-ERROR cannot concatenate a string to a binary body
+    */
+    addBody(string str) {
+        if (body.typeCode() == NT_BINARY)
+            throw "BODY-ERROR", sprintf("cannot concatenate a string to a binary body");
+        # issue #2360 check if encoding is set
+        if (bodyEncoding == EncDefault)
+            bodyEncoding = EncQuotedPrintable;
+
+        body += str;
+    }
+
+    #! concatenates a binary object to the message body
+    /** @param bin the binary object to concatenate to the Message body
+
+        @throw BODY-ERROR cannot concatenate a binary object to a string body
+    */
+    addBody(binary bin) {
+        if (body.typeCode() == NT_STRING)
+            throw "BODY-ERROR", sprintf("cannot concatenate a binary object to a string body");
+        # issue #2360 check if encoding is set
+        if (bodyEncoding == EncDefault)
+            bodyEncoding = EncBase64;
+        body += bin;
+    }
+
+    #! returns the Message body
+    *data getBody() {
+        return body;
+    }
+
+    #! returns the transfer encoding for the mssage body (see @ref MessageEncodings for possible values)
+    string getBodyTransferEncoding() {
+        return bodyEncoding;
+    }
+
+    #! parses the given string representing a header line and returns a single key - value hash for the header
+    /** @param hdr a string representing a single line in a Message header
+        @param decode decode any Q or B encoded header words (<a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a>)
+
+        @return a single key - value hash for the header
+
+        @throw HEADER-ERROR no ':' separator character found in header, no key or value found
+    */
+    static hash parseHeader(string hdr, bool decode = True) {
+        trim hdr;
+        int i = hdr.find(":");
+        if (i == -1)
+            throw "HEADER-ERROR", sprintf("no ':' separator character found in header: %y", hdr);
+        if (!i)
+            throw "HEADER-ERROR", sprintf("no header name found in header: %y", hdr);
+        if (i == (hdr.size() - 1))
+            throw "HEADER-ERROR", sprintf("no header value found in header: %y", hdr);
+
+        string val = trim(hdr.substr(i + 1));
+        if (decode)
+            val = mime_decode_header(val);
+        hash rv.(hdr.substr(0, i)) = val;
+        return rv;
+    }
+
+    #! sets/replaces the Message headers
+    /** @param hdr a single string giving a single Message header to set (replaces all message headers with the given string)
+
+        @throw HEADER-ERROR no ':' separator character found in header string
+
+        @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
+    */
+    setHeader(string hdr) {
+        headers = parseHeader(hdr, False);
+    }
+
+    #! sets/replaces the list of Message headers from a list of header strings
+    /** @param hdrs a list of Message header strings to set (replaces all message headers with the given list of strings)
+
+        @throw HEADER-ERROR no ':' separator character found in header string
+
+        @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
+        */
+    setHeader(list hdrs) {
+        headers = {};
+        map headers += parseHeader($1, False), hdrs;
+    }
+
+    #! sets/replaces the list of Message headers from a hash of header info
+    /** @param hdrs a hash of Message headers to set (replaces all message headers with the given hash)
+
+        @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
+    */
+    setHeader(hash hdrs) {
+        headers = hdrs;
+    }
+
+    #! adds a header to the Message
+    /** @param hdr a header to add to the Message
+
+        @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
+    */
+    addHeader(string hdr) {
+        headers += parseHeader(hdr, False);
+    }
+
+    #! adds a list of headers to the Message
+    /** @param hdrs a list of headers to add to the Message
+
+        @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
+    */
+    addHeader(list<auto> hdrs) {
+        headers += map parseHeader($1, False), hdrs;
+    }
+
+    #! adds a hash of headers to the Message
+    /** @param hdrs a hash of headers to add to the Message
+
+        @note headers for importance, delivery receipt and read receipt will be added automatically and should not be included here
+    */
+    addHeader(hash<auto> hdrs) {
+        headers += hdrs;
+    }
+
+    #! returns the current Message headers as a list of strings
+    softlist getHeader() {
+        return map sprintf("%s: %s", $1, headers.$1), keys headers;
+    }
+
+    #! returns the current Message headers as a hash
+    *hash<auto> getHeaders() {
+        return headers;
+    }
+
+    #! returns the current importance setting
+    /** if this is @ref True "True", then the following headers will be sent:
+        - \c Importance: high
+        - \c X-Priority: 1
+        - \c Priority: Urgent
+    */
+    bool important() {
+        return importance;
+    }
+
+    #! sets the importance setting
+    /** if this is @ref True "True", then the following headers will be sent:
+        - \c Importance: high
+        - \c X-Priority: 1
+        - \c Priority: Urgent
+    */
+    important(softbool i) {
+        importance = i;
+    }
+
+    #! returns the current read delivery receipt setting
+    /** if this is @ref True "True", then the following header will be sent:
+        - \c Return-Receipt-To: <sender's email address>
+    */
+    bool receiptRead() {
+        return deliveryReceipt;
+    }
+
+    #! sets the read delivery receipt setting
+    /** if this is @ref True "True", then the following header will be sent:
+        - \c Return-Receipt-To: <sender's email address>
+    */
+    receiptRead(bool arg) {
+        deliveryReceipt = arg;
+    }
+
+    #! returns the delivery receipt setting
+    /** if this is @ref True "True", then the following header will be sent:
+        - \c Disposition-Notification-To: <sender's email address>
+    */
+    bool receiptDelivery() {
+        return readReceipt;
+    }
+
+    #! sets the delivery receipt setting
+    /** if this is @ref True "True", then the following header will be sent:
+        - \c Disposition-Notification-To: <sender's email address>
+    */
+    receiptDelivery(bool arg) {
+        readReceipt = arg;
+    }
+
+    #! creates an attachment for the Message
+    /** @param name the name of the attachment to be displayed in the message, normally a file name without any path
+        @param mime the mime type for the message
+        @param att the attachment itself
+        @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
+        @param hdr optional headers for the MIME part for the attachment
+
+        @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
+        @throw INVALID-ENCODING the encoding given cannot be used with data given
+    */
+    attach(string name, string mime, data att, string enc = EncBase64, *hash<auto> hdr) {
+        attachments += new MailMessage::Attachment(name, mime, att, enc, hdr);
+    }
+
+    #! adds an Attachment to the Message
+    /** @param att the Attachment to add to the Message
+    */
+    attach(Attachment att) {
+        attachments += att;
+    }
+
+    #! returns a list of Attachment objects for the Message
+    list<Attachment> getAttachments() {
+        return attachments;
+    }
+
+    #! returns a list of non-attachment Part objects for the Message
+    /** these could represent alternative representations of the message body, for example
+*/
+    list<Part> getParts() {
+        return parts;
+    }
+
+    #! encodes a header value according to the parameters
+    /** @param hdr the header to encode (ex: \c "Subject")
+        @param val the value to encode
+        @param eol the End-Of-Line marker for the string
+        @param encode encode non-ASCII values with quoted printable encoding (http://tools.ietf.org/html/rfc2047)
+
+        @return a header string (ex: \c "Subject: =?UTF-8?Q?testing?=\r\n")
+    */
+    static string doHeaderValue(string hdr, string val, string eol = "\r\n", bool encode = True) {
+        if (encode && !val.isDataPrintableAscii())
+            val = mime_encode_header_word_q(val);
+        return sprintf("%s: %s%s", hdr, val, eol);
+    }
+
+    #! returns a string of the message headers
+    /** @param eol the End-Of-Line marker for the string
+        @param encode encode non-ASCII values with quoted printable encoding (http://tools.ietf.org/html/rfc2047)
+
+        @return a string with all the message headers separated by the EOL marker
+    */
+    string getHeaderString(string eol = "\r\n", bool encode = True) {
+        string hdr = Message::doHeaderValue("From", from, eol, encode);
+
+        # To:
+        foreach string l in (to)
+            hdr += Message::doHeaderValue("To", l, eol, encode);
+
+        # CC:
+        foreach string l in (cc)
+            hdr += Message::doHeaderValue("CC", l, eol, encode);
+
+        # BCC:
+        foreach string l in (bcc)
+            hdr += Message::doHeaderValue("BCC", l, eol, encode);
+
+        # add the subject - use "QP" encoding to ensure correct transmission & display of special characters through all SMTP servers
+        hdr += Message::doHeaderValue("Subject", subject, eol, encode);
+
+        # importance
+        if (importance)
+            hdr += sprintf("Importance: high%sX-Priority: 1%sPriority: Urgent%s", eol, eol, eol);
+
+        if (deliveryReceipt)
+            hdr += Message::doHeaderValue("Return-Receipt-To", from, eol, encode);
+
+        if (readReceipt)
+            hdr += Message::doHeaderValue("Disposition-Notification-To", from, eol, encode);
+
+        # make sure that any explicitly-set Content-Type header is overridden by the CT for the body
+        if (headers."Content-Type") {
+            if (bodyContentType)
+                delete headers."Content-Type";
+            else if (attachments)
+                bodyContentType = remove headers."Content-Type";
+        }
+
+        # additional headers
+        foreach string k in (keys headers)
+            hdr += Message::doHeaderValue(k, headers{k}, eol, encode);
+
+        # include MIME headers for msg body if necessary
+        if (!attachments && bodyEncoding != EncNone) {
+            hdr += Message::doHeaderValue("MIME-Version", "1.0", eol, encode);
+            if (bodyContentType)
+                hdr += Message::doHeaderValue("Content-Type", bodyContentType, eol, encode);
+            hdr += Message::doHeaderValue("Content-Transfer-Encoding", bodyEncoding, eol, encode);
+        }
+
+        return hdr;
+    }
+
+    #! returns a multi-line string representing the Message
+    /** @param include_body if @ref True "True" the Message body will be included in the string output
+    */
+    string toString(bool include_body = False) {
+        list<string> attarr();
+        foreach Attachment att in (attachments)
+            attarr += sprintf("%s (%s,%d)", att.getName(), att.getMime(), att.getData().size());
+
+        # sending envelope: from, to, subject
+        list<string> env = getEnvelopeList();
+
+        # the main string
+        string str = sprintf("Message (%s)\n", sendPossible() ? "ok": "unfinished");
+
+        # from/to/subject
+        foreach string l in (env)
+            str += "  " + trim(l) + "\n";
+
+        # important or not...
+        str += sprintf("%s%s%s",
+                        important() ? "  Important\n": "",
+                        receiptDelivery() ? "  ReceiptDelivery\n": "",
+                        receiptRead() ? "  ReceiptRead\n": "");
+
+        # add headers
+        map str += sprintf("  %s: %s\n", $1, headers.$1), keys headers;
+
+        # add attachments
+        if (!attarr.empty()) {
+            str += "  Attachments:\n";
+            foreach string l in (attarr) {
+                str += "    " + trim(l) + "\n";
+            }
+        }
+
+        # the user wants to see the body also...
+        if (include_body) {
+            str += "--\n";
+            if (body.empty())
+                str += "<empty message body>";
+            else if (body.typeCode() == NT_STRING)
+                str += trim(body);
+            else
+                str += sprintf("<binary body: %d bytes>", body.size());
+
+            str += "\n";
+        }
+
+        return str;
+    }
+
+    #! returns a single line string summarizing the Message
+    /** @return a single line string summarizing the Message
+    */
+    string toLine() {
+        # sending envelope: from, to, subject
+        list<string> env = getEnvelopeList();
+
+        # the main string
+        string str = sprintf("[Message (%s), %s, %simportant, %sdelivery, %sread",
+                        sendPossible()? "ok": "unfinished",
+                        join(", ", env),
+                        important()? "": "not ",
+                        receiptDelivery()? "": "not ",
+                        receiptRead()? "": "not "
+            );
+
+        # add headers
+        if (headers.val())
+            str += sprintf(", %s", join(", ", (map sprintf("%s: %s", $1, headers.$1), headers.keyIterator())));
+
+        # attachments
+        foreach Attachment att in (attachments)
+            str += sprintf(", %s (%s,%d)", att.getName(), att.getMime(), att.getData().size());
+
+        str += "]";
+
+        return str;
+    }
+
+    #! checks the data against the encoding and returns the new encoding (if the encoding is @ref EncDefault for example)
+    /** @param data the data to be encoded
+        @param enc the encoding type for the data (see @ref MessageEncodings for possible values)
+        @param noneok if this argument is True, then @ref EncNone may be given as an argument
+
+        @return the new encoding to use in case the input data was @ref EncDefault
+
+        @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
+        @throw INVALID-ENCODING the encoding given cannot be used with data given
+    */
+    static string checkEncoding(data data, string enc, bool noneok = False) {
+        if (enc == EncDefault) {
+            # issue #3275: if the data has a line with a single dot, then encode it with base64 encoding
+            if (data.typeCode() == NT_STRING) {
+                if (data =~ /^.\r?$/m) {
+                    enc = EncBase64;
+                } else {
+                    enc = EncQuotedPrintable;
+                }
+            } else {
+                enc = EncBase64;
+            }
+        }
+        else if (!noneok && enc == EncNone)
+            throw "INVALID-ENCODING", "\"none\" may not be used; a valid encoding is required in this context";
+        else if (!inlist(enc, Encodings))
+            throw "UNKNOWN-ENCODING", sprintf("%y is not a known encoding; known encodings: %y", enc, Encodings);
+        else if (data.typeCode() == NT_BINARY && enc == EncNone)
+            throw "INVALID-ENCODING", sprintf("%y cannot be used with binary data", enc);
+
+        return enc;
+    }
+
+    #! returns a string of message data according to the encoding passed
+    /** @param data the data to encode
+        @param enc the encoding type for the data (see @ref MessageEncodings for possible values)
+        @param hdr a reference to a hash for header information
+
+        @throw ENCODE-TRANSFER-DATA-ERROR unknown encoding passed
+    */
+    static string encodeTransferData(data data, string enc, reference<hash> hdr) {
+        switch (enc) {
+            case EncBase64: {
+                hdr."Content-Transfer-Encoding" = enc;
+                return mime_encode_base64(data, 72);
+            }
+
+            case EncNone:
+                return data;
+
+            case EncQuotedPrintable: {
+                hdr."Content-Transfer-Encoding" = enc;
+                return mime_encode_quoted_printable(data);
+            }
+        }
+
+        throw "ENCODE-TRANSFER-DATA-ERROR", sprintf("unknown Content-Transfer-Encoding: %y", enc);
+    }
+
+    #! returns a string of message data according to the encoding passed
+    static string encodeData(data data, string mime, string disp, string enc) {
+        string str = sprintf("Content-Type: %s\r\nContent-Disposition: %s\r\n", mime, disp);
+        switch (enc) {
+            case EncBase64: {
+                str += "Content-Transfer-Encoding: base64\r\n\r\n";
+                str += mime_encode_base64(data, 72);
+                str += "\r\n";
+                break;
+            }
+            case EncNone: {
+                str += "\r\n";
+                str += data;
+                str += "\r\n";
+                break;
+            }
+            case EncQuotedPrintable: {
+                str += sprintf("Content-Transfer-Encoding: quoted-printable\r\n\r\n");
+                str += mime_encode_quoted_printable(data);
+                str += "\r\n";
+                break;
+            }
+        }
+
+        return str;
+    }
+
+    #! returns the first \c "\r\n" terminated line from the argument, updates the byte position argument
+    /** @param msg the text to process; the first line found will be removed from this argument as well
+        @param pos the byte position to update
+        @return the first \c "\r\n" terminated line from the argument
+
+        @throw MESSAGE-PARSE-ERROR invalid message data
+    */
+    static string getLine(reference<string> msg, reference<int> pos) {
+        int i = msg.find("\r\n");
+        if (i == -1)
+            throw "MESSAGE-PARSE-ERROR", sprintf("cannot find end of line in message at byte position %d", pos);
+
+        pos += i + 2;
+        # get header string
+        string hdr = extract msg, 0, i;
+        # remove \r\n
+        splice msg, 0, 2;
+        trim hdr;
+        return hdr;
+    }
+
+    #! @cond nodoc
+    private list<string> getEnvelopeList() {
+        list<string> env = (sprintf("Sender: '%s'", from), sprintf("Subject: '%s'", subject));
+        # add To addresses
+        map env += sprintf("To: %s", $1), to;
+        # add CC addresses
+        map env += sprintf("CC: %s", $1), cc;
+        # add BCC addresses
+        map env += sprintf("BCC: %s", $1), bcc;
+        return env;
+    }
+    #! @endcond
+}
+
+#! class representing a MIME part of a Message
+/** this class wraps all the data for the Part, including:
+    - the part's name if any is known or can be derived
+    - the mime type of the Part (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
+    - the data for the Part; either binary object or as a string
+    - the encoding type for the attachment
+*/
+public class Part {
+    # no public members
+    public {}
+
+    #! @cond nodoc
+    private {
+        string name;
+        string mime;
+        data part_data;
+        #! content-transfer encoding
+        string enc;
+        # any extra headers for the message
+        *hash<auto> headers;
+    }
+
+    # will only be called internally when parsing a Message
+    constructor(string filename, string mimetype, data filedata, string encoding = EncDefault, *hash<auto> hdr) {
+        name = filename;
+        mime = mimetype;
+        part_data = filedata;
+        enc = encoding;
+        # += to keep "hash<auto>"
+        headers += hdr;
+    }
+    #! @endcond
+
+    #! Returns information about the part
+    hash<auto> getInfo() {
+        return <PartInfo>{
+            "name": name,
+            "mime": mime,
+            "part_data": getData(),
+            "headers": getHeaders(),
+            "transfer_encoding": getTransferEncoding(),
+        };
+    }
+
+    #! returns the name of the Part
+    string getName() {
+        return name;
+    }
+
+    #! returns the mime type of the Part
+    string getMime() {
+        return mime;
+    }
+
+    #! returns the data of the Part
+    data getData() {
+        return part_data;
+    }
+
+    #! returns the transfer encoding of the Part
+    string getTransferEncoding() {
+        return enc;
+    }
+
+    #! returns any headers for the Part
+    *hash<auto> getHeaders() {
+        return headers;
+    }
+
+    #! adds itself to a multipart/alternative message
+    add(MultiPartAlternativeMessage mpa) {
+            mpa.addEncodePart(part_data, enc, mime);
+    }
+}
+
+#! class representing a MIME Attachment for the Message
+/** this class wraps all the data for the attachment, including:
+    - the attachment's name; ie the file name which will be shown
+    - the mime type of the Attachment (ex: @ref MimeTypeJpeg ie \c "image/jpeg")
+    - the data for the attachment; either binary object or as a string
+    - the encoding type for the attachment
+
+    @par Example:
+    @code{.py}
 File f();
 f.open2("file.jpg");
 Attachment att("file.jpg", MimeTypeJpeg, f.readBinary(-1));
 f.close();
 msg.attach(att);
-        @endcode
+    @endcode
+*/
+public class Attachment inherits Part {
+    # no public members
+    public {}
+
+    #! creates an Attachment object for a Message object
+    /** @param name the name of the attachment to be displayed in the message, normally a file name without any
+        path
+        @param mime the mime type for the message
+        @param part_data the attachment data itself
+        @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
+        @param hdr optional headers for the MIME part for the attachment
+
+        @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
+        @throw INVALID-ENCODING the encoding given cannot be used with data given
     */
-    public class Attachment inherits Part {
-        # no public members
-        public {}
-
-        #! creates an Attachment object for a Message object
-        /** @param name the name of the attachment to be displayed in the message, normally a file name without any
-            path
-            @param mime the mime type for the message
-            @param part_data the attachment data itself
-            @param enc the encoding type for the message (see @ref MessageEncodings for possible values)
-            @param hdr optional headers for the MIME part for the attachment
-
-            @throw UNKNOWN-ENCODING the message encoding value passed is unknown/unimplemented
-            @throw INVALID-ENCODING the encoding given cannot be used with data given
-         */
-        constructor(string name, string mime, data part_data, string enc = EncBase64, *hash<auto> hdr)
-                : Part(name, mime, part_data, enc, hdr) {
-            self.enc = Message::checkEncoding(part_data, enc);
-        }
-
-        #! adds itself to a multipart/mixed message
-        add(MultiPartMixedMessage mpm) {
-            mpm.addEncodePart(part_data, enc, mime, "attachment", {
-                "Content-Type": "",
-                "Content-Disposition": name,
-            });
-        }
+    constructor(string name, string mime, data part_data, string enc = EncBase64, *hash<auto> hdr)
+            : Part(name, mime, part_data, enc, hdr) {
+        self.enc = Message::checkEncoding(part_data, enc);
     }
+
+    #! adds itself to a multipart/mixed message
+    add(MultiPartMixedMessage mpm) {
+        mpm.addEncodePart(part_data, enc, mime, "attachment", {
+            "Content-Type": "",
+            "Content-Disposition": name,
+        });
+    }
+}
 }

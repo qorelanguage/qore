@@ -57,7 +57,7 @@ public class QoreDataField inherits AbstractDataField {
         auto example_value;
     }
 
-    #! creates the field from the arguments
+    #! creates the field from the argument
     constructor(hash<auto> h) {
         if (!h.name && h.display_name) {
             h.name = AbstractDataField::getNameFromDisplayName(h.display_name);
@@ -91,10 +91,23 @@ public class QoreDataField inherits AbstractDataField {
         }
     }
 
+    #! creates the field from the argument
+    constructor(Qore::Reflection::TypedHashMember mem) {
+        name = mem.getName();
+        if (exists (auto dv = mem.getDefaultValue())) {
+            setDefaultValue(dv);
+        }
+        type = AbstractDataProviderType::get(mem.getType());
+    }
+
     #! creates the field from the arguments
     constructor(string name, *string desc, Type type, auto default_value, *softlist<auto> allowed_values) {
-        self.name = display_name = name;
-        self.desc = short_desc = desc;
+        self.name = name;
+        display_name = AbstractDataField::getDisplayName(name);
+        if (desc) {
+            self.desc = desc;
+            short_desc = AbstractDataField::getShortDescription(desc);
+        }
         self.type = AbstractDataProviderType::get(type);
         if (exists default_value) {
             setDefaultValue(default_value);

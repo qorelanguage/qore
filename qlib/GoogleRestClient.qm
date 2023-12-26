@@ -5,7 +5,7 @@
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation
+    to deal in the Software without restriction, including without limitatiofn
     the rights to use, copy, modify, merge, publish, distribute, sublicense,
     and/or sell copies of the Software, and to permit persons to whom the
     Software is furnished to do so, subject to the following conditions:
@@ -153,6 +153,14 @@ public class GoogleRestClient inherits RestClient::RestClient {
                 ),
                 "ping_method": DefaultGooglePingMethod,
                 "ping_path": "/calendar/v3/users/me/calendarList?maxResults=1",
+                "ping_headers": DefaultGooglePingHeaders,
+            },
+            "gmail": {
+                "oauth2_scopes": (
+                    "https://mail.google.com/",
+                ),
+                "ping_method": DefaultGooglePingMethod,
+                "ping_path": "/gmail/v1/users/me/settings/language",
                 "ping_headers": DefaultGooglePingHeaders,
             },
         };
@@ -381,7 +389,7 @@ public class GoogleRestConnection inherits RestClient::RestConnection {
 */
 public class GoogleCalendarRestConnection inherits GoogleRestConnection {
     public {
-        #! Default Discord REST API URL
+        #! Default Google REST API URL
         const DefaultConnectionUrl = "gcal://www.googleapis.com";
 
         #! Connection entry info
@@ -467,6 +475,128 @@ public class GoogleCalendarRestConnection inherits GoogleRestConnection {
         # object dynamically
         load_module("GoogleCalendarDataProvider");
         return create_object("GoogleCalendarBaseDataProvider", get());
+    }
+
+    #! Can be called to set or clear a closure or call reference to be called when options are automatically updated
+    /** The closure or call reference must have the following signature:
+        <tt><update_options(hash<auto> options)</tt>
+    */
+    setUpdateOptionsCode(*code update_options) {
+        UpdateOptionsInterface::setUpdateOptionsCode(update_options);
+        # update the URL immediately if necessary
+        if (update_options && url != DefaultConnectionUrl) {
+            # NOTE: do not update the URL or real URL values here, or the external update will fail, because it will
+            # beleive that no changes are necessary
+            doUpdateOptions(self, {
+                "url": DefaultConnectionUrl,
+            });
+        }
+    }
+
+    #! Returns the ConnectionSchemeInfo hash for this object
+    private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
+        return ConnectionScheme;
+    }
+}
+
+#! Class for GMail connections; returns @ref GoogleRestClient objects
+/** This class implements all options of @ref GoogleRestConnection except \c "api_profile", which is assumed to be
+    \c "gmail"
+
+    @see @ref GoogleRestClient::GoogleRestClient::constructor() for more information on the above options
+*/
+public class GmailRestConnection inherits GoogleRestConnection {
+    public {
+        #! Default GMail REST API URL
+        const DefaultConnectionUrl = "gmail://www.googleapis.com";
+
+        #! Connection entry info
+        const ConnectionScheme = <ConnectionSchemeInfo>{
+            "display_name": "Gmail REST Connection",
+            "short_desc": "A connection to the Gmail cloud REST API",
+            "desc": "A connection to the Gmail cloud REST API",
+            "cls": Class::forName("GmailRestConnection"),
+            "options": GoogleRestConnection::ConnectionScheme.options + {
+                "api_profile": GoogleRestConnection::ConnectionScheme.options.api_profile + <ConnectionOptionInfo>{
+                    "allowed_values": (
+                        <AllowedValueInfo>{
+                            "desc": "Set REST client options for the Gmail API",
+                            "value": "gmail",
+                        },
+                    ),
+                    "default_value": "gmail",
+                },
+            },
+            "required_options": GoogleRestConnection::ConnectionScheme.required_options,
+            "auto_url": True,
+            "schemes": {
+                "gmail": True,
+            },
+            "base_scheme_map": {
+                "https": "gmail",
+            },
+        };
+    }
+
+    #! creates the GoogleRestConnection object
+    /** @param name the name of the connection
+        @param description connection description
+        @param url this aargument is ignored; the default Google API is always used
+        @param attributes various attributes. See below
+        @param options connection options
+
+        See @ref ConnectionProvider::AbstractConnection::constructor() for \c attributes and \c options reference.
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option
+    */
+    constructor(string name, string description, string url = GoogleRestClient::DefaultUrl,
+            hash<auto> attributes = {}, hash<auto> options = {})
+            : GoogleRestConnection(name, description, url, attributes,
+                GoogleRestConnection::getOptions(options + {"api_profile": "gmail"})) {
+    }
+
+    #! creates the GoogleRestConnection object
+    /** @param config with the following keys:
+        - name (required string): the connection name
+        - display_name (optional string): the display name
+        - short_desc (optional string): a short description in plain text
+        - desc (optional string): a long description with markdown formatting
+        - url (required string): the connection URL
+        - opts (optional hash): connection options
+        - logger (optional LoggerInterface object): logger for the connection
+        @param attr optional connection attributes
+        - monitor (optional bool): should the connection be monitored? Default: True
+        - enabled (optional bool): is the connection enabled? Default: True
+        - locked (optional bool): is the connection locked? Default: False
+        - debug_data (optional bool): debug data? Default: False
+        - tags (optional hash): tags for the connection; no default value
+
+        @throw CONNECTION-OPTION-ERROR missing or invalid connection option or attribute
+    */
+    constructor(hash<auto> config, *hash<auto> attr)
+            : GoogleRestConnection(config
+                + {"opts": GoogleRestConnection::getOptions(config.opts + {"api_profile": "gmail"})}, attr) {
+    }
+
+    #! returns \c "gmail"
+    string getType() {
+        return "gmail";
+    }
+
+    #! returns a data provider object for this connection
+    /** @param constructor_options any additional constructor options for the data provider
+
+        @return a data provider object for this connection
+    */
+    DataProvider::AbstractDataProvider getDataProvider(*hash<auto> constructor_options) {
+        # to avoid circular dependencies, this object loads the GoogleDataProvider and creates the data provider
+        # object dynamically
+        load_module("Pop3ClientDataProvider");
+        return create_object("Pop3ClientDataProvider", {
+            "url": "pop3s://pop.gmail.com",
+            "username": opts.username,
+            "token": opts.token,
+        });
     }
 
     #! Can be called to set or clear a closure or call reference to be called when options are automatically updated

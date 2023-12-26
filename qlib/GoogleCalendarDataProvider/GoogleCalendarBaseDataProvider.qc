@@ -89,9 +89,7 @@ public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleA
 
     private {
         const ChildMap = {
-            #"calendarList": Class::forName("GoogleCalendarDataProvider::GoogleCalendarListDataProvider"),
             "calendars": Class::forName("GoogleCalendarDataProvider::GoogleCalendarsDataProvider"),
-            #"insert": Class::forName("GoogleCalendarDataProvider::GoogleCalendarInsertDataProvider"),
         };
     }
 

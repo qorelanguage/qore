@@ -25,14 +25,15 @@
 # minimum qore version
 %requires qore >= 1.0
 
-# need mime definitions
 %requires Mime >= 1.0
-
-# need MailMessage classes
-%requires MailMessage >= 1.0
-
-# requires the ConnectionProvider module
+%requires Util
+%requires(reexport) MailMessage >= 1.0
 %requires(reexport) ConnectionProvider >= 1.4
+%requires(reexport) Logger
+
+%try-module json
+%define NoJson
+%endtry
 
 # assume local var scope, do not use "$" for vars, members, and method calls
 %new-style
@@ -41,7 +42,7 @@
 %enable-all-warnings
 
 module Pop3Client {
-    version = "1.9";
+    version = "2.0";
     desc = "POP3 client support module";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -58,15 +59,19 @@ module Pop3Client {
 
     @section pop3clientintro Pop3Client Module Introduction
 
-    The %Pop3Client module provides the Pop3Client class for retrieving emails from a <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> server, with or without TLS/SSL encryption.
+    The %Pop3Client module provides the Pop3Client class for retrieving emails from a
+    <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> server, with or without TLS/SSL encryption.
 
-    To use this module, use \c "%requires Pop3Client" in your code.  See examples/pop3.q for an example program using this module.
+    To use this module, use \c "%requires Pop3Client" in your code.  See examples/pop3.q for an example program using
+    this module.
 
     All the public symbols in the module are defined in the Pop3Client namespace.
 
     The main classes are:
-    - @ref Pop3Client::Pop3Client "Pop3Client": provides an interface to a <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> server for retrieving emails
-    - @ref Pop3Client::Pop3Connection "Pop3Connection": provides a connection object to a POP3 server (based on the @ref connectionproviderintro "ConnectionProvider" module)
+    - @ref Pop3Client::Pop3Client "Pop3Client": provides an interface to a
+      <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> server for retrieving emails
+    - @ref Pop3Client::Pop3Connection "Pop3Connection": provides a connection object to a POP3 server (based on the
+      @ref connectionproviderintro "ConnectionProvider" module)
 
     @par Example:
     @code{.py}
@@ -79,24 +84,28 @@ module Pop3Client {
 
 %requires Pop3Client
 
-sub log(string msg) {
-    printf("%y: %s\n", now_ms(), vsprintf(msg, argv));
-}
+Logger logger("console", LoggerLevel::INFO);
+logger.addAppender(new ConsoleAppender());
 
 string url = "pop3s://username:pass@pop.gmail.com";
-Pop3Client pop3(url, \log(), \log());
+Pop3Client pop3(url, {"logger": logger});
 # do not send a QUIT so changes will not be committed
 pop3.noquit(True);
 *hash<auto> h = pop3.getMail();
 printf("Mailbox Summary:\n");
 map printf("%s: From: %s (size: %d bytes, attachments: %d)\n", $1.key, $1.value.msg.getFrom(), $1.value.size, $1.getvalue.msg.getAttachments().size()), h.pairIterator();
-if (!h)
+if (!h) {
     printf("no messages\n");
+}
     @endcode
 
     @note based on http://tools.ietf.org/html/rfc1939 (POP3)
 
     @section pop3client_relnotes Pop3Client Module Release Notes
+
+    @subsection pop3client_v2_0 Pop3Client 2.0
+    - Added a data provider and application actions
+      (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
 
     @subsection pop3client_v1_9 Pop3Client 1.9
     - implemented support for a data provider scheme cache and rich option information for connections
@@ -145,27 +154,58 @@ if (!h)
     All the public symbols in the module are defined in this namespace
 */
 public namespace Pop3Client {
-#! 15 second read timeout
-public const DefaultReadTimeout = 15s;
+#! 15 second I/O timeout
+public const DefaultIoTimeout = 15s;
 
 #! 30 second connect timeout
 public const DefaultConnectTimeout = 30s;
 
-#! This class provides the interface to <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> servers and supports optional TLS/SSL encryption
-/** This class uses a @ref Qore::Thread::Mutex "Mutex" lock in each Pop3Client object to ensure thread serialization to the underlying socket and its internal configuration,
-    so it is safe to access in a multithreaded context.
+#! This class provides the interface to <a href="http://en.wikipedia.org/wiki/Post_Office_Protocol">POP3</a> servers
+/** This class uses a @ref Qore::Thread::Mutex "Mutex" lock in each Pop3Client object to ensure thread serialization
+    to the underlying socket and its internal configuration, so it is safe to access in a multithreaded context.
 
-    Connection to and authentication with the POP3 server is made implicitly by calling a Pop3Client method that requires a connection; it is not necessary to call @ref Pop3Client::Pop3Client::connect() "Pop3Client::connect()" explicitly.
+    Connection to and authentication with the POP3 server is made implicitly by calling a Pop3Client method that
+    requires a connection; it is not necessary to call @ref Pop3Client::Pop3Client::connect() "Pop3Client::connect()"
+    explicitly.
 
-    This class supports automatic recognition and use of APOP authentication (<a href="http://tools.ietf.org/html/rfc1939#page-15">RFC-1939 p15</a>) if an RFC822-compliant msg-id is included in the last part of the login string sent by the POP3 server when connecting.
+    This class supports automatic recognition and use of APOP authentication
+    (<a href="http://tools.ietf.org/html/rfc1939#page-15">RFC-1939 p15</a>) if an RFC822-compliant msg-id is included
+    in the last part of the login string sent by the POP3 server when connecting.
 
     Encrypted connections to POP3 servers are also supported in the following ways:
-    - to connect immediately with a TLS/SSL connection, use the \c "pop3s" protocol (URI scheme) in the URL, or set the TLS/SSL flag manually by calling @ref Pop3Client::Pop3Client::tls(bool) "Pop3Client::tls(bool)".
-    - to connect with an unencrypted connection and then upgrade to an encrypted connection using the \c "STLS" command, set the \c "starttls" flag by calling @ref Pop3Client::Pop3Client::starttls(bool) "Pop3Client::starttls(bool)"
+    - to connect immediately with a TLS/SSL connection, use the \c "pop3s" protocol (URI scheme) in the URL, or set
+      the TLS/SSL flag manually by calling @ref Pop3Client::Pop3Client::tls(bool) "Pop3Client::tls(bool)".
+    - to connect with an unencrypted connection and then upgrade to an encrypted connection using the \c "STLS"
+      command, set the \c "starttls" flag by calling
+      @ref Pop3Client::Pop3Client::starttls(bool) "Pop3Client::starttls(bool)"
 
-    This class will not mark messages for deletion automatically; to mark messages for deletion, call the @ref Pop3Client::Pop3Client::del() "Pop3Client::del()" method with the message ID to delete or a list of message IDs.  Note that some POP3 servers (for example gmail), will mark the messages as read anyway and make them unavailable on the next request after disconnecting even if the messages were not marked for deletion manually.  To avoid this, set the \c "noquit" flag by calling @ref Pop3Client::Pop3Client::noquit(bool) "Pop3Client::noquit(bool)".  This will suppress the \c "QUIT" message when disconnecting which should keep any compiant POP3 server from committing any changes related to the current POP3 session.
+    This class will not mark messages for deletion automatically; to mark messages for deletion, call the
+    @ref Pop3Client::Pop3Client::del() "Pop3Client::del()" method with the message ID to delete or a list of message
+    IDs.  Note that some POP3 servers (for example gmail), will mark the messages as read anyway and make them
+    unavailable on the next request after disconnecting even if the messages were not marked for deletion manually.
+    To avoid this, set the \c "noquit" flag by calling
+    @ref Pop3Client::Pop3Client::noquit(bool) "Pop3Client::noquit(bool)".  This will suppress the \c "QUIT" message
+    when disconnecting which should keep any compiant POP3 server from committing any changes related to the current
+    POP3 session.
 */
-public class Pop3Client {
+public class Pop3Client inherits Logger::LoggerWrapper, ConnectionProvider::OptionHelper {
+    public {
+        #! default POP3 port
+        const POP3Port = 110;
+
+        #! default POP3S port
+        const POP3SPort = 995;
+
+        #! accepted protocols
+        const Protocols = {
+            "pop3": {"tls": False, "port": POP3Port},
+            "pop3s": {"tls": True, "port": POP3SPort},
+        };
+
+        #! For SASL XOAUTH2 logins
+        const CtrlA = chr(1);
+    }
+
     #! @cond nodoc
     private {
         Socket sock();
@@ -175,12 +215,6 @@ public class Pop3Client {
 
         # ensures exclusive access to the object
         Mutex mutex();
-
-        # optional info log closure
-        *code log_info;
-
-        # optional debug log closure
-        *code log_debug;
 
         # "tls" flag
         bool tls = False;
@@ -194,67 +228,73 @@ public class Pop3Client {
         # authentication credentials
         string user;
         string pass;
+        string token;
 
         # logged in flag
         bool logged_in = False;
 
-        # read timeout in milliseconds
-        timeout readTimeout = DefaultReadTimeout;
+        # i/o timeout in milliseconds
+        timeout ioTimeout;
 
         # connect timeout in milliseconds
-        timeout connectTimeout = DefaultConnectTimeout;
+        timeout connectTimeout;
 
         # log password
         bool log_pass = False;
+
+        # sasl flag
+        bool sasl;
 
         const MaxDebugLine = 2048;
     }
     #! @endcond
 
-    public {
-        #! default POP3 port
-        const POP3Port = 110;
-
-        #! default POP3S port
-        const POP3SPort = 995;
-
-        #! accepted protocols
-        const Protocols = {
-            "pop3": {"tls": False, "port": POP3Port},
-            "pop3s": {"tls": True, "port": POP3SPort},
-        };
-    }
-
-    #! creates the Pop3Client object
-    /** @param url the URL of the POP3 server including at least the username, password, and a target host or port on the local system (enclose the address or hostname in square brackets like \c "[ipv6.host.com]" to connect using the IPv6 protocol or use square brackets to delineate an IPv6 address from the port number as in ex: \c "[fe80::21c:42ff:fe00:8]:110"); accepted protocols (URI schemes) are as follows:
+    #! Creates the Pop3Client object
+    /** @param url the URL of the POP3 server including at least the username, password, and a target host or port on
+        the local system (enclose the address or hostname in square brackets like \c "[ipv6.host.com]" to connect
+        using the IPv6 protocol or use square brackets to delineate an IPv6 address from the port number as in
+        ex: \c "[fe80::21c:42ff:fe00:8]:110"); accepted protocols (URI schemes) are as follows:
         - \c "pop3": non-encrypted POP3 connections
         - \c "pop3s": encrypted POP3 connections
         .
-        If no protocol (URI scheme) is given in the URL (ex: \c "pop.gmail.com") then \c "pop3" is assumed; if no port is given, then either @ref POP3Port (for \c "pop3") or @ref POP3SPort (for \c "pop3s") is as the default port number depending on the protocol.
+        If no protocol (URI scheme) is given in the URL (ex: \c "pop.gmail.com") then \c "pop3" is assumed; if no port
+        is given, then either @ref POP3Port (for \c "pop3") or @ref POP3SPort (for \c "pop3s") is as the default port
+        number depending on the protocol.
 
-        @param log an optional closure or call reference for log messages; a single string argument will be passed to this code for logging
-        @param dbglog an optional closure or call reference for debugging/technical log messages; a single string argument will be passed to this code for logging
+        @param opts options for the object; supported options:
+        - \c connect_timeout (int): the connect timeout in milliseconds
+        - \c io_timeout (int): the I/O timeout in milliseconds
+        - \c logger (@ref Logger::LoggerInterface "LoggerInterface"): a logger to use for logging
+        - \c password (string): the password for the connection
+        - \c read_timeout (int): the read timeout in milliseconds
+        - \c tls (bool): execute the \c STLS command after connecting with insecure connections
+        - \c token (string): if set, then SASL XOAUTH2 will be used to send access tokens to the server for login
+        - \c username (string): the username for the connection
 
         @par Example:
         @code{.py}
-Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
+# this will use SASL XOAUTH2 to perform the login
+Pop3Client pop3("pop3s://pop.gmail.com", {
+    "username": "user@gmail.com",
+    "token": "xxx",
+});
         @endcode
 
         @throw PARSE-URL-ERROR the URL given could not be parsed
         @throw POP3-URL-ERROR the protocol given was unknown, no target, username or password in URL
     */
-    constructor(string url, *code log, *code dbglog) {
-        log_info = log;
-        log_debug = dbglog;
+    constructor(string url, *hash<auto> opts) {
+        # set logger, if any
+        logger = remove opts.logger;
 
-        hash hurl = parse_url(url, True);
+        hash<UrlInfo> hurl = parse_url(url, True);
 
         if (!hurl.protocol.val()) {
             if (!hurl.port && hurl.host[0] != "/") {
                 hurl.port = POP3Port;
             }
         } else {
-            *hash conf = Protocols.(hurl.protocol.lwr());
+            *hash<auto> conf = Protocols.(hurl.protocol.lwr());
             if (!exists conf) {
                 throw "POP3-URL-ERROR", sprintf("unknown scheme %y in %y; known schemes: %y", hurl.protocol,
                     get_safe_url(url), keys Protocols);
@@ -265,8 +305,9 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             }
         }
 
-        if (!hurl.host.val())
+        if (!hurl.host.val()) {
             throw "POP3-URL-ERROR", sprintf("no hostname was given in URL %y", get_safe_url(url));
+        }
 
         # if the hostname is an integer, then assume the given port on localhost
         if (hurl.host.val()) {
@@ -281,18 +322,55 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
             connect = hurl.path;
         }
 
-        if (!exists hurl.username) {
-            throw "POP3-URL-ERROR", sprintf("missing username in POP3 URL: %y", get_safe_url(url));
+        *string username = getString(opts, "username");
+        *string password = getString(opts, "password");
+        *string token = getString(opts, "token");
+
+        if (hurl.username) {
+            if (!exists hurl.password) {
+                throw "POP3-URL-ERROR", sprintf("Have username but not password in POP3 URL: %y", url);
+            }
+            if (username.val()) {
+                throw "POP3-URL-ERROR", sprintf("Have username in URL: %y and also as an option: %y",
+                    get_safe_url(url), username);
+            }
+            if (password.val()) {
+                throw "POP3-URL-ERROR", sprintf("Have password in URL: %y and also as an option",
+                    get_safe_url(url));
+            }
+            if (token) {
+                throw "POP3-CONFIG-ERROR", sprintf("Have a username in the URL but a token was also provided as a "
+                    "option; to use a token for SASL XOAUTH2 logins, you must provide the username as an option and "
+                    "not in the URL: "
+                    "%y", get_safe_url(url));
+            }
+            user = hurl.username;
+            pass = hurl.password;
+        } else {
+            if (!username.val()) {
+                throw "POP3-URL-ERROR", sprintf("Missing username option for POP3 connection: %y", url);
+            }
+            if (password.val()) {
+                if (token.val()) {
+                    throw "POP3-CONFIG-ERROR", sprintf("Cannot provide both a password and a token for login for "
+                        "connection: %y", get_safe_url(url));
+                }
+                pass = password;
+            } else if (token.val()) {
+                self.token = token;
+            } else {
+                throw "POP3-URL-ERROR", sprintf("Missing both password and token in POP3 connection: %y", url);
+            }
         }
 
-        if (!exists hurl.password) {
-            throw "POP3-URL-ERROR", sprintf("missing password in POP3 URL: %y", url);
+        connectTimeout = getInt(opts, "connect_timeout", False, DefaultConnectTimeout.durationMilliseconds());
+        ioTimeout = getInt(opts, "io_timeout", False, DefaultIoTimeout.durationMilliseconds());
+
+        if (opts.tls) {
+            starttls = True;
         }
 
-        user = hurl.username;
-        pass = hurl.password;
-
-        logDbg("Pop3Client user: %y server: %y", user, connect);
+        logDbg("user: %y server: %y (%s)", user, connect, token ? "SASL XOAUTH2" : "LOGIN");
     }
 
     #! disconnects if connected and destroys the object
@@ -314,7 +392,7 @@ Pop3Client pop3("pop3s://user@gmail.com:password@pop.gmail.com");
     }
 
     #! log password
-    /** @param pwd if @ref True "True" then log the password in the debug log (if any is set)
+    /** @param pwd if @ref True "True" then the password is logged with a \c DEBUG level if any logger is set
 
         @par Example:
         @code{.py}
@@ -337,15 +415,16 @@ bool b = pop3.logPassword();
     }
 
     #! sets the TLS/SSL flag
-    /** @param n_tls if @ref True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will negotiate a TLS/SSL connection with the server after connecting
+    /** @param tls if @ref True "True" then use TLS/SSL; if the TLS/SSL flag is set then the client will negotiate a
+        TLS/SSL connection with the server after connecting
 
         @par Example:
         @code{.py}
 pop3.tls(True);
         @endcode
     */
-    tls(bool n_tls) {
-        tls = n_tls;
+    tls(bool tls) {
+        self.tls = tls;
     }
 
     #! returns the TLS/SSL flag
@@ -359,16 +438,22 @@ bool b = pop3.tls();
         return tls;
     }
 
-    #! sets the flag for using the \c "STLS" command after connecting (<a href="http://tools.ietf.org/html/rfc2595">RFC 2595</a>); this is only used if the TLS/SSL flag is @ref False "False"
-    /** @param n_starttls if @ref True "True" then issue the \c "STLS" command after making an unencrypted connection; if this  flag is set then the client will negotiate a TLS/SSL connection with the server after making an unencrypted connection
+    #! sets the flag for using the \c "STLS" command after connecting
+    /** @param starttls if @ref True "True" then issue the \c "STLS" command after making an unencrypted connection;
+        if this flag is set then the client will negotiate a TLS/SSL connection with the server after making an
+        unencrypted connection
 
         @par Example:
         @code{.py}
 pop3.starttls(True);
         @endcode
+
+        @note The \c STLS command is only executed with insecure connections
+
+        @see <a href="http://tools.ietf.org/html/rfc2595">RFC 2595</a> for more information about the \c STLS command
     */
-    starttls(bool n_starttls) {
-        starttls = n_starttls;
+    starttls(bool starttls) {
+        self.starttls = starttls;
     }
 
     #! returns the \c "starttls" flag (<a href="http://tools.ietf.org/html/rfc2595">RFC 2595</a>)
@@ -382,22 +467,25 @@ bool b = pop3.starttls();
         return starttls;
     }
 
-    #! sets the \c "noquit" flag
-    /** @param n_noquit if @ref True "True" then no \c "QUIT" command is sent when disconnecting from the POP3 server; this can ensure that no changes are committed to the server (for example with gmail)
+    #! Sets the \c "noquit" flag
+    /** @param noquit if @ref True "True" then no \c "QUIT" command is sent when disconnecting from the POP3 server;
+        this can ensure that no changes are committed to the server (for example with gmail)
 
         @par Example:
         @code{.py}
 pop3.noquit(True);
         @endcode
     */
-    noquit(bool n_noquit) {
-        noquit = n_noquit;
+    noquit(bool noquit) {
+        self.noquit = noquit;
     }
 
-    #! return the \c "noquit" flag; if this flag is @ref True "True", then no \c "QUIT" command is sent to the POP3 server when disconnecting, which can ensure that no changes are committed to the server (for example with gmail)
+    #! Return the \c "noquit" flag; if this flag is @ref True "True", then no \c "QUIT" command is sent to the POP3 server when disconnecting, which can ensure that no changes are committed to the server (for example with gmail)
     /** The \c "noquit" flag is always @ref False "False" unless explicitly set to @ref True "True"
 
-        @return the \c "noquit" flag; if this flag is @ref True "True", then no \c "QUIT" command is sent to the POP3 server when disconnecting, which can ensure that no changes are committed to the server (for example with gmail)
+        @return the \c "noquit" flag; if this flag is @ref True "True", then no \c "QUIT" command is sent to the POP3
+        server when disconnecting, which can ensure that no changes are committed to the server (for example with
+        gmail)
 
         @par Example:
         @code{.py}
@@ -415,9 +503,11 @@ pop3.connect();
         @endcode
 
         @note
-        - It is not necessary to call this method explicitly; connections are made implicitly by calling a method that requires a connection
+        - It is not necessary to call this method explicitly; connections are made implicitly by calling a method that
+          requires a connection
         - For possible exceptions, see %Qore's @ref Qore::Socket::connect() "Socket::connect()" method
-        - This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+        - This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and
+          therefore is subject to thread serialization
 
         @throw POP3-SERVER-ERROR the POP3 server responded with an error message
     */
@@ -427,25 +517,28 @@ pop3.connect();
     }
 
     #! returns a hash of mail messages keyed by message ID or @ref nothing if no messages are available on the server
-    /** @return a hash of mail messages keyed by message ID or @ref nothing if no messages are available on the server; the value of each hash key will have the following keys:
+    /** @return a hash of mail messages keyed by message ID or @ref nothing if no messages are available on the
+        server; the value of each hash key will have the following keys:
         - \c size: the original raw message size in bytes
         - \c msg: a MailMessage::Message object representing the message and any attachments
 
         @par Example:
         @code{.py}
-*hash mh = pop3.getMail();
+*hash<auto> mh = pop3.getMail();
         @endcode
 
         @throw POP3-SERVER-ERROR the POP3 server responded with an error message
     */
-    *hash getMail() {
+    *hash<auto> getMail() {
         AutoLock am(mutex);
-        if (!isConnected())
+        if (!isConnected()) {
             connectIntern();
+        }
 
-        *hash mih = listIntern();
-        if (mih.empty())
+        *hash<auto> mih += listIntern();
+        if (mih.empty()) {
             return;
+        }
 
         # retrieve messages
         foreach string id in (keys mih) {
@@ -456,8 +549,25 @@ pop3.connect();
         return mih;
     }
 
-    #! returns a hash with status information from the \c "STAT" command (<a href="http://tools.ietf.org/html/rfc1939#page-6">http://tools.ietf.org/html/rfc1939#page-6</a>)
-    /** if the object is not already connected, then a connection is made and authenticated to place the connection in the \c "TRANSACTION" state before executing the POP3 command
+    #! Retrieves a particular mail message by its ID
+    /** @param id The message ID to retrieve
+
+        @return the mail message object corresponding to the argument
+
+        @throw POP3-SERVER-ERROR the POP3 server responded with an error message
+    */
+    MailMessage::Message getMessage(string id) {
+        AutoLock am(mutex);
+        if (!isConnected()) {
+            connectIntern();
+        }
+
+        return retrIntern(id);
+    }
+
+    #! Returns a hash with status information from the \c "STAT" command
+    /** If the object is not already connected, then a connection is made and authenticated to place the connection in
+        the \c "TRANSACTION" state before executing the POP3 command
 
         @return a hash with status information from the \c "STAT" command with the following keys:
         - \c num: the number of messages available
@@ -470,20 +580,28 @@ hash<auto> h = pop3.stat();
 
         @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and
+        therefore is subject to thread serialization
+
+        @see <a href="http://tools.ietf.org/html/rfc1939#page-6">http://tools.ietf.org/html/rfc1939#page-6</a> for
+        more information about this command
     */
     hash<auto> stat() {
         AutoLock am(mutex);
-        if (!isConnected())
+        if (!isConnected()) {
             connectIntern();
+        }
 
         return statIntern();
     }
 
-    #! returns a hash with message information from the \c "LIST" command (<a href="http://tools.ietf.org/html/rfc1939#page-6">http://tools.ietf.org/html/rfc1939#page-6</a>)
-    /** if the object is not already connected, then a connection is made and authenticated to place the connection in the \c "TRANSACTION" state before executing the POP3 command
+    #! Returns a hash with message information from the \c "LIST" command
+    /** if the object is not already connected, then a connection is made and authenticated to place the connection in
+        the \c "TRANSACTION" state before executing the POP3 command
 
-        @return @ref nothing "NOTHING" if no messages are available, or a hash with message information from the \c "LIST" command, where each hash key is a unique message ID, and the value of each key is a hash with a single key: \c "size", giving the size of the message in bytes
+        @return @ref nothing "NOTHING" if no messages are available, or a hash with message information from the
+        \c "LIST" command, where each hash key is a unique message ID, and the value of each key is a hash with a
+        single key: \c "size", giving the size of the message in bytes
 
         @par Example:
         @code{.py}
@@ -494,7 +612,11 @@ map printf("%s: %d byte%s\n", $1.getKey(), $1.getValue(), $1.getValue() == 1 ? "
 
         @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and
+        therefore is subject to thread serialization
+
+        @see <a href="http://tools.ietf.org/html/rfc1939#page-6">http://tools.ietf.org/html/rfc1939#page-6</a> for
+        more information about this command
     */
     *hash<auto> list() {
         AutoLock am(mutex);
@@ -505,7 +627,7 @@ map printf("%s: %d byte%s\n", $1.getKey(), $1.getValue(), $1.getValue() == 1 ? "
         return listIntern();
     }
 
-    #! sends a \c "DELE" command (<a href="http://tools.ietf.org/html/rfc1939#page-8">http://tools.ietf.org/html/rfc1939#page-8</a>) to the POP3 server to mark the given message as deleted
+    #! Sends a \c "DELE" command to delete a single message on the server
     /** @param msg the message number to delete
 
         @par Example:
@@ -515,7 +637,11 @@ pop3.del(msgid);
 
         @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and
+        therefore is subject to thread serialization
+
+        @see <a href="http://tools.ietf.org/html/rfc1939#page-8">http://tools.ietf.org/html/rfc1939#page-8</a> for
+        more information about this command
     */
     del(softstring msg) {
         AutoLock am(mutex);
@@ -526,7 +652,7 @@ pop3.del(msgid);
         sendCommand("DELE %s", msg);
     }
 
-    #! sends a \c "DELE" command (<a href="http://tools.ietf.org/html/rfc1939#page-8">http://tools.ietf.org/html/rfc1939#page-8</a>) to the POP3 server to mark the given message as deleted
+    #! Sends a \c "DELE" command to delete one or more messages on the server
     /** @param l the list of message numbers to delete
 
         @par Example:
@@ -534,19 +660,22 @@ pop3.del(msgid);
 pop3.del(msgidlist);
         @endcode
 
-        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and
+        therefore is subject to thread serialization
+
+        @see <a href="http://tools.ietf.org/html/rfc1939#page-8">http://tools.ietf.org/html/rfc1939#page-8</a> for
+        more information about this command
     */
-    del(list l) {
+    del(list<auto> l) {
         AutoLock am(mutex);
         if (!isConnected()) {
             connectIntern();
         }
 
-        foreach softstring msg in (l)
-            sendCommand("DELE %s", msg);
+        map sendCommand("DELE %s", $1), l;
     }
 
-    #! send a \c "NOOP" command (<a href="http://tools.ietf.org/html/rfc1939#page-9">http://tools.ietf.org/html/rfc1939#page-9</a>) to the POP3 server
+    #! send a \c "NOOP" command to the POP3 server
     /** @par Example:
         @code{.py}
 pop3.noop();
@@ -554,7 +683,11 @@ pop3.noop();
 
         @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and
+        therefore is subject to thread serialization
+
+        @see <a href="http://tools.ietf.org/html/rfc1939#page-9">http://tools.ietf.org/html/rfc1939#page-9</a> for
+        more information about this command
     */
     noop() {
         AutoLock am(mutex);
@@ -565,7 +698,7 @@ pop3.noop();
         sendCommand("NOOP");
     }
 
-    #! send a \c "RSET" command (<a href="http://tools.ietf.org/html/rfc1939#page-9">http://tools.ietf.org/html/rfc1939#page-9</a>) to the POP3 server which will unmark messages marked for deletion
+    #! Send a \c "RSET" command to the POP3 server which will unmark messages marked for deletion
     /** @par Example:
         @code{.py}
 pop3.reset();
@@ -573,7 +706,11 @@ pop3.reset();
 
         @throw POP3-SERVER-ERROR the POP3 server responded with an error message
 
-        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and therefore is subject to thread serialization
+        @note This method communicates with the POP3 server with the internal @ref Qore::Socket "Socket" object and
+        therefore is subject to thread serialization
+
+        @see <a href="http://tools.ietf.org/html/rfc1939#page-9">http://tools.ietf.org/html/rfc1939#page-9</a> for
+        more information about this command
     */
     reset() {
         AutoLock am(mutex);
@@ -606,34 +743,34 @@ pop3.disconnect();
         disconnectIntern();
     }
 
-    #! sets the read timeout
+    #! sets the I/o timeout
     /** @par Example:
         @code{.py}
-pop3.setReadTimeout(20s);
+pop3.setIoTimeout(20s);
         @endcode
     */
-    setReadTimeout(timeout to) {
-        readTimeout = to;
+    setIoTimeout(timeout to) {
+        ioTimeout = to;
     }
 
-    #! returns the read timeout as an integer giving milliseconds
+    #! returns the i/o timeout as an integer giving milliseconds
     /** @par Example:
         @code{.py}
-int ms = pop3.getReadTimeoutMs();
+int ms = pop3.getIoTimeoutMs();
         @endcode
     */
-    int getReadTimeoutMs() {
-        return readTimeout;
+    int getIoTimeoutMs() {
+        return ioTimeout;
     }
 
-    #! returns the read timeout as a relative time value
+    #! returns the i/o timeout as a relative time value
     /** @par Example:
         @code{.py}
-date timeout = pop3.getReadTimeoutDate();
+date timeout = pop3.getIoTimeoutDate();
         @endcode
     */
-    date getReadTimeoutDate() {
-        return milliseconds(readTimeout);
+    date getIoTimeoutDate() {
+        return milliseconds(ioTimeout);
     }
 
     #! sets the connect timeout
@@ -699,23 +836,31 @@ pop3.clearWarningQueue();
 pop3.setWarningQueue(5000, 5000, queue, "socket-1");
         @endcode
 
-        @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if exceeded, a socket warning is placed on the warning queue with the following keys:
+        @param warning_ms the threshold in milliseconds for individual socket actions (send, receive, connect), if
+        exceeded, a socket warning is placed on the warning queue with the following keys:
         - \c "type": a string with the constant value \c "SOCKET-OPERATION-WARNING"
         - \c "operation": a string giving the operation that caused the warning (ex: \c "connect")
         - \c "us": an integer giving the number of microseconds for the operation
         - \c "timeout": an integer giving the warning threshold in microseconds
-        - \c "arg": if any \c "arg" argument is passed to the @ref Pop3Client::Pop3Client::setWarningQueue() "Pop3Client::setWarningQueue()" method, it will be included in the warning hash here
-        @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket warning is placed on the warning queue with the following keys:
+        - \c "arg": if any \c "arg" argument is passed to the
+          @ref Pop3Client::Pop3Client::setWarningQueue() "Pop3Client::setWarningQueue()" method, it will be included
+          in the warning hash here
+        @param warning_bs value in bytes per second; if any call has performance below this threshold, a socket
+        warning is placed on the warning queue with the following keys:
         - \c "type": a string with the constant value \c "SOCKET-THROUGHPUT-WARNING"
         - \c "dir": either \c "send" or \c "recv" depending on the direction of the data flow
         - \c "bytes": the amount of bytes sent
         - \c "us": an integer giving the number of microseconds for the operation
         - \c "bytes_sec": a float giving the transfer speed in bytes per second
         - \c "threshold": an integer giving the warning threshold in bytes per second
-        - \c "arg": if any \c "arg" argument is passed to the @ref Pop3Client::Pop3Client::setWarningQueue() "Pop3Client::setWarningQueue()" method, it will be included in the warning hash here
+        - \c "arg": if any \c "arg" argument is passed to the
+          @ref Pop3Client::Pop3Client::setWarningQueue() "Pop3Client::setWarningQueue()" method, it will be included
+          in the warning hash here
         @param queue the @ref Qore::Thread::Queue "Queue" object to receive warning events
-        @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to identify the socket for example)
-        @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
+        @param arg an optional argument to be placed in the \c "arg" key in each warning hash (could be used to
+        identify the socket for example)
+        @param min_ms the minimum transfer time with a resolution of milliseconds for a transfer to be eligible for
+        triggering a warning; transfers that take less than this period of time are not eligible for raising a warning
 
         @throw QUEUE-ERROR the Queue passed has a maximum size set
         @throw SOCKET-SETWARNINGQUEUE-ERROR at least one of \a warning_ms and \a warning_bs must be > 0
@@ -739,9 +884,15 @@ hash<auto> h = pop3.getUsageInfo();
         - \c "bytes_recv": an integer giving the total amount of bytes received
         - \c "us_sent": an integer giving the total number of microseconds spent sending data
         - \c "us_recv": an integer giving the total number of microseconds spent receiving data
-        - \c "arg": (only if warning values have been set with @ref Pop3Client::Pop3Client::setWarningQueue() "Pop3Client::setWarningQueue()") the optional argument for warning hashes
-        - \c "timeout": (only if warning values have been set with @ref Pop3Client::Pop3Client::setWarningQueue() "Pop3Client::setWarningQueue()") the warning timeout in microseconds
-        - \c "min_throughput": (only if warning values have been set with @ref Pop3Client::Pop3Client::setWarningQueue() "Pop3Client::setWarningQueue()") the minimum warning throughput in bytes/sec
+        - \c "arg": (only if warning values have been set with
+          @ref Pop3Client::Pop3Client::setWarningQueue() "Pop3Client::setWarningQueue()") the optional argument for
+          warning hashes
+        - \c "timeout": (only if warning values have been set with
+          @ref Pop3Client::Pop3Client::setWarningQueue() "Pop3Client::setWarningQueue()") the warning timeout in
+          microseconds
+        - \c "min_throughput": (only if warning values have been set with
+          @ref Pop3Client::Pop3Client::setWarningQueue() "Pop3Client::setWarningQueue()") the minimum warning
+          throughput in bytes/sec
 
         @since %Pop3Client 1.3
 
@@ -771,8 +922,8 @@ pop3.clearStats();
 pop3.setEventQueue(queue);
         @endcode
 
-        @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note that
-        the Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
+        @param queue the @ref Qore::Thread::Queue "Queue" object to receive @ref socket_events "socket events"; note
+        thatthe Queue passed cannot have any maximum size set or a QUEUE-ERROR will be thrown
         @param arg an argument that will be included in each event hash in the \a arg key
         @param with_data if @ref True, then the actual raw data transferred / received is also included in the events
 
@@ -786,7 +937,7 @@ pop3.setEventQueue(queue);
         sock.setEventQueue(queue, arg, with_data);
     }
 
-    #! Removes any @ref Qore::Thread::Queue "Queue" object so that @ref socket_events "socket events" are no longer added to the @ref Qore::Thread::Queue "Queue"
+    #! Removes any @ref Qore::Thread::Queue "Queue" object, prohibiting the collection of socket events
     /** @par Example:
         @code{.py}
 pop3.setEventQueue();
@@ -835,11 +986,11 @@ pop3.setEventQueue();
 
     # don't reimplement this method; fix/enhance it in the module
     final private *hash<auto> listIntern() {
-        list l = sendCommandMulti("LIST");
+        list<auto> l = sendCommandMulti("LIST");
         # ignore first line (status line)
         shift l;
         # message info hash
-        hash mih;
+        hash<auto> mih;
         foreach string ml in (l) {
             (string id, softint size) = (ml =~ x/^([0-9]+) ([0-9]+)/);
             mih{id}.size = size;
@@ -863,25 +1014,49 @@ pop3.setEventQueue();
     # gets a trimmed one-line response from the server, throws an exception if an error response is received
     # don't reimplement this method; fix/enhance it in the module
     final private string getResponse() {
-        string r = readLine(readTimeout);
+        string r = readLine(ioTimeout);
         trim r;
         logDbg("read: %y", r.size() ? r : "EOF");
-        if (r !~ /^\+OK/)
-            throw "POP3-SERVER-ERROR", r;
+        if (sasl) {
+            sasl = False;
+            if (r !~ /^\+OK/) {
+%ifndef NoJson
+                string msg = r;
+                msg =~ s/^\s*\+\s*//;
+                hash<auto> err;
+                try {
+                    err = parse_json(parse_base64_string_to_string(msg));
+                } catch (hash<ExceptionInfo> ex) {
+                    logError("Failed to parse error response (msg: %y): %s", r, get_exception_string(ex));
+                    throw "POP3-SERVER-ERROR", sprintf("unable to parse SASL error response from server: %y: %s: %s",
+                        r, ex.err, ex.desc);
+                }
+                throw "POP3-SERVER-ERROR", "SASL error returned from command", err;
+%else
+                throw "POP3-SERVER-ERROR", sprintf("No JSON module available; unable to parse SASL error response "
+                    "from server: %y", r);
+%endif
+            }
+        } else {
+            if (r !~ /^\+OK/) {
+                throw "POP3-SERVER-ERROR", r;
+            }
+        }
         return r;
     }
 
     # gets a trimmed multi-line response from the server, throws an exception if an error response is received
     # don't reimplement this method; fix/enhance it in the module
-    final private list getResponseMulti() {
-        list l = ();
+    final private list<string> getResponseMulti() {
+        list<string> l = ();
         l += getResponse();
         while (True) {
-            string r = readLine(readTimeout);
+            string r = readLine(ioTimeout);
             trim r;
             logDbg("read: %y", r);
-            if (r == ".")
+            if (r == ".") {
                 break;
+            }
             l += r;
         }
         return l;
@@ -894,92 +1069,124 @@ pop3.setEventQueue();
         getResponse();
         string rv;
         while (True) {
-            string r = readLine(readTimeout);
-            if (r == ".\r\n")
+            string r = readLine(ioTimeout);
+            if (r == ".\r\n") {
                 break;
+            }
             rv += r;
         }
         logDbg("read data: %d bytes", rv.size());
         return rv;
     }
 
-    private log(string msg) {
-        if (log_info.val())
-            call_function(log_info, "Pop3Client: " + trim(vsprintf(msg, argv)));
+    private log(string msg, ...) {
+        if (logger) {
+            logArgs(LoggerLevel::INFO, "Pop3Client: " + msg, argv);
+        }
     }
 
-    private logDbg(string msg) {
-        if (log_debug.val()) {
+    private logError(string msg, ...) {
+        if (logger) {
+            logArgs(LoggerLevel::ERROR, "Pop3Client: " + msg, argv);
+        }
+    }
+
+    private logDbg(string msg, ...) {
+        if (logger) {
             msg = vsprintf(msg, argv);
             trim msg;
             if (msg.size() > MaxDebugLine) {
                 splice msg, MaxDebugLine;
                 msg += "...";
             }
-            call_function(log_debug, "Pop3Client: " + msg);
+            logArgs(LoggerLevel::DEBUG, "%s", "Pop3Client: " + msg);
         }
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private sendCommandIntern(string str, bool masked = False) {
-        if (log_debug.val()) {
+    final private sendCommandIntern(string str, *bool masked) {
+        if (logger) {
             if (masked) {
                 string lstr = str;
                 lstr =~ s/(\w+) (.*)/$1 **MASKED** /;
                 logDbg("send: %y", trim(lstr));
-            }
-            else
+            } else
                 logDbg("send: %y", trim(str));
         }
 
-        sock.send(str);
+        sock.send(str, ioTimeout);
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private list sendCommandMulti(string str) {
+    final private list<string> sendCommandMulti(string str, ...) {
         str = vsprintf(str + "\r\n", argv);
         sendCommandIntern(str);
         return getResponseMulti();
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private string sendCommandMultiStr(string str) {
+    final private string sendCommandMultiStr(string str, ...) {
         str = vsprintf(str + "\r\n", argv);
         sendCommandIntern(str);
         return getResponseMultiStr();
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private string sendCommand(string str) {
+    final private string sendCommand(string str, ...) {
         str = vsprintf(str + "\r\n", argv);
         sendCommandIntern(str);
         return getResponse();
     }
 
     # don't reimplement this method; fix/enhance it in the module
-    final private string sendCommandMasked(string str) {
+    final private string sendCommandMasked(string str, ...) {
         str = vsprintf(str + "\r\n", argv);
         sendCommandIntern(str, True);
         return getResponse();
     }
 
     private loginIntern(string r) {
+        # use SASL XOAUTH2 if a token is present
+        if (token.val()) {
+            doSaslXoauth2Login();
+            return;
+        }
         # try to login with APOP if an RFC822-compliant msg-id is included in the last part of the login string
         *string apop = (r =~ x/(<.*>)$/)[0];
         if (apop.val()) {
-            # send APOP command with APOP secret
-            sendCommand("APOP %s %s", user, (apop + pass).toMD5());
-            log("logged in with APOP as %y", user);
+            doApopLogin(apop);
         } else {
-            # login with USER and PASS
-            sendCommand("USER %s", user);
-            if (!log_pass)
-                sendCommandMasked("PASS %s", pass);
-            else
-                sendCommand("PASS %s", pass);
-
-            log("logged in with USER and PASS as %y", user);
+            doLogin();
         }
+    }
+
+    private doApopLogin(string apop) {
+        # send APOP command with APOP secret
+        sendCommand("APOP %s %s", user, (apop + pass).toMD5());
+        log("logged in with APOP as %y", user);
+    }
+
+    private doLogin() {
+        # login with USER and PASS
+        sendCommand("USER %s", user);
+        if (!log_pass) {
+            sendCommandMasked("PASS %s", pass);
+        } else {
+            sendCommand("PASS %s", pass);
+        }
+
+        log("logged in with USER and PASS as %y", user);
+    }
+
+    private doSaslXoauth2Login() {
+        string login = sprintf("user=%s%sauth=Bearer %s%s%s", user, CtrlA, token, CtrlA, CtrlA).toBase64();
+        sasl = True;
+        if (!log_pass) {
+            sendCommandMasked("AUTH XOAUTH2 %s", login);
+        } else {
+            sendCommand("AUTH XOAUTH2 %s", login);
+        }
+        log("logged in with APOP as %y", user);
     }
 
     private doSSLIntern() {
@@ -992,8 +1199,9 @@ pop3.setEventQueue();
         logDbg("connecting to %s (timeout %y)", connect, milliseconds(connectTimeout));
         sock.connect(connect, connectTimeout);
         logDbg("connected to %s", connect);
-        if (tls)
+        if (tls) {
             doSSLIntern();
+        }
         string r = getResponse();
 
         if (!tls && starttls) {
@@ -1030,12 +1238,56 @@ public class Pop3Connection inherits ConnectionProvider::AbstractConnectionWithI
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "display_name": "POP3 Connection",
-            "short_desc": "A connection a POP3 server",
-            "desc": "A connection a POP3 server",
+            "short_desc": "A connection to a POP3 server",
+            "desc": "A connection to a POP3 server for receiving emails",
             "cls": Class::forName("Pop3Connection"),
             "schemes": {
                 "pop3s": True,
                 "pop3": True,
+            },
+            "options": {
+                "connect_timeout": <ConnectionOptionInfo>{
+                    "display_name": "Connect Timeout",
+                    "short_desc": "The connect timeout in milliseconds",
+                    "type": "int",
+                    "desc": "The connect timeout in milliseconds",
+                    "default_value": Pop3Client::DefaultConnectTimeout.durationMilliseconds(),
+                },
+                "io_timeout": <ConnectionOptionInfo>{
+                    "display_name": "I/O Timeout",
+                    "short_desc": "The I/O timeout in milliseconds",
+                    "type": "int",
+                    "desc": "The I/O timeout in milliseconds",
+                    "default_value": Pop3Client::DefaultIoTimeout.durationMilliseconds(),
+                },
+                "password": <ConnectionOptionInfo>{
+                    "display_name": "Password",
+                    "short_desc": "The password for authentication",
+                    "type": "string",
+                    "desc": "The password for authentication; conflicts with the `token` option",
+                    "sensitive": True,
+                },
+                "tls": <ConnectionOptionInfo>{
+                    "display_name": "Secure?",
+                    "short_desc": "Use the STLS command after connecting with insecure connections",
+                    "type": "bool",
+                    "desc": "Use the `STLS` command after connecting with insecure connections",
+                    "sensitive": True,
+                },
+                "token": <ConnectionOptionInfo>{
+                    "display_name": "Authorization Token",
+                    "short_desc": "Set an authorization token for an SASL XOAUTH2 login",
+                    "type": "string",
+                    "desc": "Any authorization token to use for the connection; will be used for SASL XOAUTH2 "
+                        "logins; conflicts with the `password` option",
+                    "sensitive": True,
+                },
+                "username": <ConnectionOptionInfo>{
+                    "display_name": "Username",
+                    "short_desc": "Sets the username for authentication",
+                    "type": "string",
+                    "desc": "The username for authentication; always required",
+                },
             },
         };
     }
@@ -1081,29 +1333,14 @@ public class Pop3Connection inherits ConnectionProvider::AbstractConnectionWithI
         return "pop3";
     }
 
-    #! returns runtime options
-    /** @return a hash with the following keys reflecting support for the corresponding runtime options in getImpl()
-        for connection logging:
-        - \c "log": a closure accepting a single string for logging
-        - \c "dbglog": a closure taking a single string for detailed technical connection logging
-    */
-    *hash<auto> getRuntimeOptions() {
-        return {
-            "log": True,
-            "dbglog": True,
-        };
-    }
-
     #! returns a @ref Pop3Client object
     /** @param connect if @ref True "True", then @ref Pop3Client::Pop3Client::connect() is called
-        @param rtopts supports the following runtime options in getImpl() for connection logging:
-        - \c "log": a closure accepting a single string for logging
-        - \c "dbglog": a closure taking a single string for detailed technical connection logging
+        @param rtopts runtime options for the connection
 
         @return a @ref Pop3Client object
     */
     private Pop3Client getImpl(bool connect = True, *hash<auto> rtopts) {
-        Pop3Client sc(url, rtopts.log, rtopts.dbglog);
+        Pop3Client sc(url, opts + {"logger": logger});
         if (connect) {
             sc.connect();
         }

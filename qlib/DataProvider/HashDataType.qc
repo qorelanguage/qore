@@ -53,29 +53,36 @@ public class HashDataType inherits QoreDataType {
     }
 
     #! creates the object and assigns the name as the type
-    constructor(string name = AutoHashType.getName(), *hash<auto> options, *hash<auto> tags, auto default_value)
-            : QoreDataType(AutoHashType, options, tags, default_value) {
+    constructor(string name = AutoHashType.getName(), *hash<auto> options, *hash<auto> tags,
+            *hash<auto> default_value) : QoreDataType(AutoHashType, options, tags, default_value) {
         self.name = name;
     }
 
     #! creates the object and assigns the name as the given name or the base type's name
-    constructor(Type base_type, *string name, *hash<auto> options, *hash<auto> tags, auto default_value)
+    constructor(Type base_type, *string name, *hash<auto> options, *hash<auto> tags, *hash<auto> default_value)
             : QoreDataType(base_type, options, tags, default_value) {
         self.name = name ?? base_type.getName();
     }
 
     #! creates the object and assigns the name as the given name or the base type's name
     constructor(Type base_type, *string name, hash<string, AbstractDataField> fields, *hash<auto> options,
-            *hash<auto> tags, auto default_value) : QoreDataType(base_type, options, tags, default_value) {
+            *hash<auto> tags, *hash<auto> default_value) : QoreDataType(base_type, options, tags, default_value) {
         self.name = name ?? base_type.getName();
         self.fields = fields;
     }
 
     #! creates the object from the given record description and assigns the name as the type
     constructor(string name = AutoHashType.getName(), hash<string, AbstractDataField> fields, *hash<auto> options,
-            *hash<auto> tags, auto default_value) : QoreDataType(AutoHashType, options, tags, default_value) {
+            *hash<auto> tags, *hash<auto> default_value) : QoreDataType(AutoHashType, options, tags, default_value) {
         self.name = name;
         self.fields = fields;
+    }
+
+    #! creates the object from the given TypedHash
+    constructor(Qore::Reflection::TypedHash t, *hash<auto> options, *hash<auto> tags, *hash<auto> default_value)
+            : QoreDataType(AutoHashType, options, tags, default_value) {
+        name = t.getName();
+        map addField($1), t.getMembers();
     }
 
     #! Sets the default field type for unlisted fields
@@ -249,6 +256,13 @@ public class HashDataType inherits QoreDataType {
     HashDataType addField(AbstractDataField field) {
         fields{field.getName()} = field;
         postProcessAddedField(field);
+        return self;
+    }
+
+    #! adds a field to the type from a typed hash member
+    HashDataType addField(Qore::Reflection::TypedHashMember mem) {
+        fields{mem.getName()} = new QoreDataField(mem);
+        postProcessAddedField(fields{mem.getName()});
         return self;
     }
 

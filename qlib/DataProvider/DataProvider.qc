@@ -53,6 +53,7 @@ public class DataProvider {
             # provided by the jni module
             "mqtt": "MqttDataProvider",
 
+            "pop3": "Pop3ClientDataProvider",
             "restclient": "RestClientDataProvider",
             "salesforcerest": "SalesforceRestDataProvider",
             "sax": "SaxDataProvider",

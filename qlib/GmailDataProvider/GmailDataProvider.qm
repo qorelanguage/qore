@@ -1,0 +1,130 @@
+# -*- mode: qore; indent-tabs-mode: nil -*-
+#! Qore GmailDataProvider module definition
+
+/*  GmailDataProvider.qm Copyright 2023 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+*/
+
+# minimum required Qore version
+%requires qore >= 2.0
+# assume local scope for variables, do not use "$" signs
+%new-style
+# require type definitions everywhere
+%require-types
+# strict argument handling
+%strict-args
+# enable all warnings
+%enable-all-warnings
+
+%requires(reexport) DataProvider
+%requires(reexport) GmaildataProvider
+%requires(reexport) GoogleRestClient
+
+module GmailDataProvider {
+    version = "1.0";
+    desc = "user module providing a data provider API for Gmail REST cloud services";
+    author = "David Nichols <david@qore.org>";
+    url = "http://qore.org";
+    license = "MIT";
+    init = sub () {
+        # register the data provider factory
+        DataProvider::registerFactory(new GmailDataProviderFactory());
+
+        DataProviderActionCatalog::registerApp(<DataProviderAppInfo>{
+            "name": GmailDataProvider::AppName,
+            "display_name": "Gmail",
+            "short_desc": "Gmail services",
+            "desc": "Gmail services",
+            "scheme": "gmail",
+            "logo": GmailLogo,
+            "logo_file_name": "gmail-logo.svg",
+            "logo_mime_type": MimeTypeSvg,
+        });
+
+        # register all supported actions
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": GmailDataProvider::AppName,
+            "path": "/list/{id}/get",
+            "path_vars": {
+                "id": <DataProviderPathVarInfo>{
+                    "display_name": "Message ID",
+                    "short_desc": "The message ID to read",
+                    "desc": "The message ID to read",
+                    "example_value": "msg1",
+                },
+            },
+            "action": "read",
+            "display_name": "Read a Message",
+            "short_desc": "Retrieve an email",
+            "desc": "Retrieve an email",
+            "action_code": DPAT_API,
+        });
+    };
+}
+
+/** @mainpage GmailDataProvider Module
+
+    @tableofcontents
+
+    @section gmaildataproviderintro Introduction to the GmailDataProvider Module
+
+    The %GmailDataProvider module provides a @ref dataproviderintro "data provider" API for Google cloud REST API
+    services.
+
+    This data provider provides Google API access to the Gmail API as defined by Google's Discovery
+    API; some example data providers are listed below:
+
+    To use this data provider, you will need a connection that has already executed the OAuth2 authorization code flow
+    and acquired a token to communicate with the Google API.
+
+    @section gmaildataprovider_factory Gmail Data Provider Factory
+
+    The name of the Gmail data provider factory is <b><tt>gmail</tt></b>.
+
+    @section gmaildataprovider_examples Gmail Data Provider Examples
+
+    These examples are with \c qdp, the command-line interface to the Data Provider API.
+
+
+    @section gmaildataprovider_relnotes Release Notes
+
+    @subsection gmaildataprovider_v1_0 GmailDataProvider v1.0
+    - initial release of the module
+*/
+
+#! Contains all public definitions in the GmailDataProvider module
+public namespace GmailDataProvider {
+#! Gmail application name
+public const CalendarAppName = "Gmail";
+
+#! Discovery API name
+public const GoogleDiscoveryCalendarApiName = "calendar";
+}
+
+namespace Priv {
+#! used in accordance with: https://about.google/brand-resource-center/brand-elements/
+const GmailLogo = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"52 42 88 66\">
+<path fill=\"#4285f4\" d=\"M58 108h14V74L52 59v43c0 3.32 2.69 6 6 6\"/>
+<path fill=\"#34a853\" d=\"M120 108h14c3.32 0 6-2.69 6-6V59l-20 15\"/>
+<path fill=\"#fbbc04\" d=\"M120 48v26l20-15v-8c0-7.42-8.47-11.65-14.4-7.2\"/>
+<path fill=\"#ea4335\" d=\"M72 74V48l24 18 24-18v26L96 92\"/>
+<path fill=\"#c5221f\" d=\"M52 51v8l20 15V48l-5.6-4.2c-5.94-4.45-14.4-.22-14.4 7.2\"/>
+</svg>";
+}
