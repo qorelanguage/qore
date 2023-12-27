@@ -467,17 +467,19 @@ size_t qore_get_unicode_character_width(int ucs) {
 
 static void base64_concat(qore_string_private& str, unsigned char c, size_t& linelen, size_t maxlinelen,
         bool url_encode = false) {
+    c = table64[c];
     if (url_encode) {
-        // ignore maxlinelen when url_encode == true
         if (c == '+') {
-            str.concat("%2B");
-            return;
+            str.concat('-');
+        } else if (c == '/') {
+            str.concat('_');
         } else {
-            str.concat("%2F");
-            return;
+            str.concat(c);
         }
+        // ignore maxlinelen when url_encode == true
+        return;
     }
-    str.concat(table64[c]);
+    str.concat(c);
     ++linelen;
     if (maxlinelen > 0 && linelen == maxlinelen) {
         str.concat("\r\n");
@@ -500,15 +502,17 @@ void qore_string_private::concatBase64(const char* bbuf, size_t size, size_t max
         unsigned char c = p[0] >> 2;
 
         // byte 1: concat 1st 6-bit value
-        base64_concat(*this, c, linelen, maxlinelen);
+        base64_concat(*this, c, linelen, maxlinelen, url_encode);
 
         // byte 1: use remaining 2 bits in low order position
         c = (p[0] & 3) << 4;
 
         // check end
         if ((endbuf - p) == 1) {
-            base64_concat(*this, c, linelen, maxlinelen);
-            concat("==");
+            base64_concat(*this, c, linelen, maxlinelen, url_encode);
+            if (!url_encode) {
+                concat("==");
+            }
             break;
         }
 
@@ -516,14 +520,16 @@ void qore_string_private::concatBase64(const char* bbuf, size_t size, size_t max
         c |= p[1] >> 4;
 
         // concat 2nd 6-bit value
-        base64_concat(*this, c, linelen, maxlinelen);
+        base64_concat(*this, c, linelen, maxlinelen, url_encode);
 
         // byte 2: get 4 low bits
         c = (p[1] & 15) << 2;
 
         if ((endbuf - p) == 2) {
-            base64_concat(*this, c, linelen, maxlinelen);
-            concat('=');
+            base64_concat(*this, c, linelen, maxlinelen, url_encode);
+            if (!url_encode) {
+                concat('=');
+            }
             break;
         }
 
@@ -531,10 +537,10 @@ void qore_string_private::concatBase64(const char* bbuf, size_t size, size_t max
         c |= p[2] >> 6;
 
         // concat 3rd 6-bit value
-        base64_concat(*this, c, linelen, maxlinelen);
+        base64_concat(*this, c, linelen, maxlinelen, url_encode);
 
         // byte 3: concat final 6 bits
-        base64_concat(*this, p[2] & 63, linelen, maxlinelen);
+        base64_concat(*this, p[2] & 63, linelen, maxlinelen, url_encode);
         p += 3;
     }
 }
@@ -2789,18 +2795,15 @@ void QoreString::concatHex(const QoreString* str) {
     concatHex(str->priv->buf, str->priv->len);
 }
 
-// endian-agnostic base64 string -> binary object function
-BinaryNode *QoreString::parseBase64(ExceptionSink* xsink) const {
-    return ::parseBase64(priv->buf, priv->len, xsink);
-}
+static QoreString* binary_to_string(BinaryNode* bin, const QoreEncoding* qe) {
+    SimpleRefHolder<BinaryNode> b(bin);
+    if (!b) {
+        return nullptr;
+    }
 
-QoreString* QoreString::parseBase64ToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
-    SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
-    if (!b)
-        return 0;
-
-    if (b->empty())
+    if (b->empty()) {
         return new QoreStringNode;
+    }
 
     qore_string_private *p = new qore_string_private;
     p->len = b->size() - 1;
@@ -2821,7 +2824,31 @@ QoreString* QoreString::parseBase64ToString(const QoreEncoding* qe, ExceptionSin
     return new QoreString(p);
 }
 
+// endian-agnostic base64 string -> binary object function
+BinaryNode *QoreString::parseBase64(ExceptionSink* xsink) const {
+    return ::parseBase64(priv->buf, priv->len, xsink);
+}
+
+QoreString* QoreString::parseBase64ToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
+    SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
+    return binary_to_string(b.release(), qe);
+}
+
 QoreString* QoreString::parseBase64ToString(ExceptionSink* xsink) const {
+    return parseBase64ToString(QCS_DEFAULT, xsink);
+}
+
+// endian-agnostic base64 URL-encoded string -> binary object function
+BinaryNode *QoreString::parseBase64Url(ExceptionSink* xsink) const {
+    return ::parseBase64Url(priv->buf, priv->len, xsink);
+}
+
+QoreString* QoreString::parseBase64UrlToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
+    SimpleRefHolder<BinaryNode> b(::parseBase64Url(priv->buf, priv->len, xsink));
+    return binary_to_string(b.release(), qe);
+}
+
+QoreString* QoreString::parseBase64UrlToString(ExceptionSink* xsink) const {
     return parseBase64ToString(QCS_DEFAULT, xsink);
 }
 

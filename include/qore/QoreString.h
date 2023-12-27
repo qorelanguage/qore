@@ -350,18 +350,52 @@ public:
 
     //! parses the current string data as base64-encoded data and returns it as a QoreString pointer owned by the caller
     /**
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
         @return a QoreString of the decoded data tagged with the default encoding (0 if an exception occurs), the QoreString pointer is owned by the caller
     */
     DLLEXPORT QoreString* parseBase64ToString(ExceptionSink* xsink) const;
 
     //! parses the current string data as base64-encoded data and returns it as a QoreString pointer owned by the caller
     /**
-         @param enc the encoding to tag the decoded string with
+        @param enc the encoding to tag the decoded string with
         @param xsink if an error occurs, the Qore-language exception information will be added here
         @return a QoreString of the decoded data (0 if an exception occurs), the QoreString pointer is owned by the caller
     */
     DLLEXPORT QoreString* parseBase64ToString(const QoreEncoding* enc, ExceptionSink* xsink) const;
+
+    //! Parses the current string data as base64-URL-encoded data and returns a BinaryNode pointer
+    /** Caller owns the reference count returned; throws a qore-language exception if any errors are encountered
+
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return a pointer to a BinaryNode object of the decoded data, the caller owns the reference count of the
+        object returned (0 if an exception occurs)
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT BinaryNode* parseBase64Url(ExceptionSink* xsink) const;
+
+    //! Parses the current string data as base64-URL-encoded data and returns a QoreString pointer owned by the caller
+    /**
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return a QoreString of the decoded data tagged with the default encoding (0 if an exception occurs), the
+        QoreString pointer is owned by the caller
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT QoreString* parseBase64UrlToString(ExceptionSink* xsink) const;
+
+    //! Parses the current string data as base64-URL-encoded data and returns a QoreString pointer owned by the caller
+    /**
+        @param enc the encoding to tag the decoded string with
+        @param xsink if an error occurs, the Qore-language exception information will be added here
+
+        @return a QoreString of the decoded data (0 if an exception occurs), the QoreString pointer is owned by the caller
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT QoreString* parseBase64UrlToString(const QoreEncoding* enc, ExceptionSink* xsink) const;
 
     //! concatenates hexidecimal digits corresponding to the binary data passed up to byte "len"
     /** hex characters are always in lwoer case
