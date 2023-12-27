@@ -37,50 +37,6 @@ public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleA
             "children_can_support_apis": True,
         };
 
-        #! Constructor options
-        const ConstructorOptions = {
-            "restclient": <DataProviderOptionInfo>{
-                "display_name": "REST Client",
-                "short_desc": "The Google REST client to use",
-                "type": AbstractDataProviderType::get(new Type("GoogleRestClient")),
-                "desc": "The `GoogleRestClient` object to use",
-            },
-            "restclient_options": <DataProviderOptionInfo>{
-                "display_name": "REST Client Options",
-                "short_desc": "Google REST client options to use when creating a new client",
-                "type": AbstractDataProviderTypeMap."*hash",
-                "desc": "Options to the `GoogleRestClient` constructor; only used if a `GoogleRestClient` object is "
-                    "created for a call",
-            },
-            "oauth2_client_id": <DataProviderOptionInfo>{
-                "display_name": "OAuth2 Client ID",
-                "short_desc": "Sets the OAuth2 client ID",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Sets the OAuth2 client ID",
-            },
-            "oauth2_client_secret": <DataProviderOptionInfo>{
-                "display_name": "OAuth2 Client Secret",
-                "short_desc": "Sets the OAuth2 client secret",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The OAuth2 client secret",
-            },
-            "oauth2_refresh_token": <DataProviderOptionInfo>{
-                "display_name": "OAuth2 Refresh Token",
-                "short_desc": "Sets the OAuth2 refresh token",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "The OAuth2 refresh token, if known; complements option `token`",
-            },
-            "token": <DataProviderOptionInfo>{
-                "display_name": "Authorization Token",
-                "short_desc": "Set an authorization token to be included in requests",
-                "type": AbstractDataProviderTypeMap."*string",
-                "desc": "Any authorization token to use for the connection; will be passed as "
-                    "`Authorization: Bearer ...` (assuming that `token_type` is `Bearer`) in request headers; "
-                    "this option cannot be used with `username` and `password` options or authentication information "
-                    "in the URL; if this option is set then most OAuth2 options are ignored for logins",
-            },
-        };
-
         #! Provider summary info
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
@@ -89,16 +45,15 @@ public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleA
 
     private {
         const ChildMap = {
-            #"calendarList": Class::forName("GoogleCalendarDataProvider::GoogleCalendarListDataProvider"),
             "calendars": Class::forName("GoogleCalendarDataProvider::GoogleCalendarsDataProvider"),
-            #"insert": Class::forName("GoogleCalendarDataProvider::GoogleCalendarInsertDataProvider"),
         };
     }
 
     #! Creates the object from constructor options
     constructor(*hash<auto> options)
             : GoogleApiParentDataProvider(
-                GoogleDiscoveryCalendarApiName, "calendars", NOTHING, "calendarList", "colors", "freebusy", "settings"
+                GoogleDiscoveryCalendarApiName, "calendars", NOTHING, NOTHING, "calendarList", "colors", "freebusy",
+                "settings"
             ) {
         options = checkOptions("CONSTRUCTOR-ERROR", ConstructorOptions, options);
         rest = GoogleDataProviderBase::getRestConnection(options);
@@ -106,7 +61,8 @@ public class GoogleCalendarBaseDataProvider inherits GoogleDataProvider::GoogleA
 
     #! Creates the object from a REST connection
     constructor(GoogleRestClient::GoogleRestClient rest) : GoogleApiParentDataProvider(rest,
-            GoogleDiscoveryCalendarApiName, "calendars", NOTHING, "calendarList", "colors", "freebusy", "settings") {
+            GoogleDiscoveryCalendarApiName, "calendars", NOTHING, NOTHING, "calendarList", "colors", "freebusy",
+            "settings") {
     }
 
     #! Returns the data provider name

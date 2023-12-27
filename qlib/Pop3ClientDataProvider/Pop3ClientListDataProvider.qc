@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore GoogleCalendarDataProvider module definition
+#! Qore Pop3ClientListDataProvider class definition
 
-/** GoogleCalendarsDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** Pop3ClientListDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -22,62 +22,52 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-#! Contains all public definitions in the GoogleCalendarDataProvider module
-public namespace GoogleCalendarDataProvider {
-#! The parent class for REST APIs related to specific Google calendars
-public class GoogleCalendarsDataProvider inherits GoogleDataProvider::GoogleDataProviderBase {
+#! Contains all public definitions in the Pop3ClientDataProvider module
+public namespace Pop3ClientDataProvider {
+#! The POP3 message list parent data provider
+public class Pop3ClientListDataProvider inherits Pop3ClientDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "calendars",
-            "desc": "Google calendars data provider; parent provider for REST APIs related to specific Google "
-                "calendars",
-            "type": "GoogleCalendarsDataProvider",
-            "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions,
+            "type": "Pop3ClientListDataProvider",
+            "constructor_options": ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
         };
-
-        #! Provider summary info
-        const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
-            AbstractDataProvider::DataProviderSummaryInfoKeys
-        });
     }
 
     private {
-        #! Calendar list
-        hash<string, bool> calendars;
+        #! Message set
+        *hash<string, bool> msgs;
 
         #! Metadata mutex
         Qore::Thread::Mutex lck();
     }
 
     #! Creates the object from constructor options
-    constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", GoogleCalendarBaseDataProvider::ConstructorOptions, options);
-        rest = GoogleDataProviderBase::getRestConnection(options);
+    constructor(*hash<auto> options) : Pop3ClientDataProviderBase(options) {
     }
 
-    #! Creates the object from a REST connection
-    constructor(GoogleRestClient::GoogleRestClient rest) : GoogleDataProvider::GoogleDataProviderBase(rest) {
+    #! Creates the object from an POP3 connection
+    constructor(Pop3Client pop3) : Pop3ClientDataProviderBase(pop3) {
     }
 
     #! Returns the data provider name
     string getName() {
-        return ProviderInfo.name;
+        return "list";
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Google data %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
+        return "Parent data provider for POP3 messages";
     }
 
     #! Return data provider summary info
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         return map <DataProviderSummaryInfo>{
             "name": $1,
-            "desc": sprintf("Google calendar %y", $1),
-            "type": "GoogleCalendarDataProvider",
+            "desc": sprintf("POP3 message %y", $1),
+            "type": "Pop3ClientMessageDataProvider",
             "supports_children": True,
             "children_can_support_apis": True,
         }, getChildProviderNames();
@@ -87,7 +77,7 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProvider::GoogleData
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys getAllCalendars();
+        return keys getAllMessages();
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -95,9 +85,9 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProvider::GoogleData
 
         @see getChildProviderEx()
     */
-    private *GoogleDataProvider::GoogleDataProviderBase getChildProviderImpl(string name) {
-        if (getAllCalendars(){name}) {
-            return new GoogleCalendarDataProvider(rest, name);
+    private DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
+        if (getAllMessages(){name}) {
+            return new Pop3ClientMessageDataProvider(pop3, name);
         }
     }
 
@@ -106,34 +96,21 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProvider::GoogleData
         return ProviderInfo;
     }
 
-    #! Returns the set of all calendars
-    private hash<string, bool> getAllCalendars() {
-        if (exists calendars) {
-            return calendars;
+    #! Returns the set of all messages
+    private *hash<string, bool> getAllMessages() {
+        if (exists msgs) {
+            return msgs;
         }
 
         lck.lock();
         on_exit lck.unlock();
 
         # check again in the lock
-        if (exists calendars) {
-            return calendars;
+        if (exists msgs) {
+            return msgs;
         }
 
-        hash<auto> info;
-        try {
-            calendars = cast<hash<string, bool>>({
-                "primary": True,
-            } + (
-                map {$1.id: True}, rest.get("/calendar/v3/users/me/calendarList").body.items
-            ));
-        } catch (hash<ExceptionInfo> ex) {
-            # ensure that any error response body is included in the exception
-            *hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
-            rethrow ex.err, ex.desc, ex.arg + ex_arg;
-        }
-
-        return calendars;
+        return msgs = map {$1: True}, keys pop3.list();
     }
 }
 }

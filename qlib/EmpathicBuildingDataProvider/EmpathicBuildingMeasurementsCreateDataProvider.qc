@@ -81,6 +81,7 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits EmpathicBui
         # convert date/time values to milliseconds after the epoch
         # strip types
         softlist req0 = req;
+        hash<string, int> emap;
         foreach hash event in (\req0) {
             if (!event.time) {
                 event.time = clock_getmillis();
@@ -92,9 +93,11 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits EmpathicBui
                 e.start = e.start.getEpochSeconds() * 1000 + e.start.milliseconds();
                 e.end = e.end.getEpochSeconds() * 1000 + e.end.milliseconds();
             }
+            emap{event.name} = event.events.size();
         }
         hash<auto> info;
         try {
+            # this API returns no data
             rest.post("v2/measurements", req0, \info);
             return "OK";
         } catch (hash<ExceptionInfo> ex) {

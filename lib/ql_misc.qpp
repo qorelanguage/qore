@@ -1506,17 +1506,65 @@ string str = parse_base64_string_to_string(base64_string);
 
     @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
 
-    @since the encoding parameter was added in %Qore 0.8.4
-
     @see
     - parse_hex_string()
     - parse_base64_string_to_string()
 
-    @since %Qore 0.8.12 as a replacement for deprecated camel-case parseBase64StringToString()
+    @since
+    - the encoding parameter was added in %Qore 0.8.4
+    - %Qore 0.8.12 as a replacement for deprecated camel-case parseBase64StringToString()
 */
 string parse_base64_string_to_string(string str, *string encoding) [flags=RET_VALUE_ONLY] {
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
    return str->parseBase64ToString(qe, xsink);
+}
+
+//! Parses a base64-url-encoded string and returns a binary object of the decoded data
+/** Base64-URL encoding is defined by <a href="https://datatracker.ietf.org/doc/html/rfc4648">RFC-4648</a>
+
+    @param str the base64-url-encoded input data to decode
+
+    @return a binary object of the decoded data
+
+    @par Example:
+    @code{.py}
+binary bin = parse_base64_url_string(base64_string);
+    @endcode
+
+    @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
+
+    @see
+    - parse_base64_string()
+
+    @since %Qore 2.0
+*/
+binary parse_base64_url_string(string str) [flags=RET_VALUE_ONLY] {
+   return str->parseBase64Url(xsink);
+}
+
+//! Parses a base64-url-encoded string and returns a string of the decoded data
+/** Base64-URL encoding is defined by <a href="https://datatracker.ietf.org/doc/html/rfc4648">RFC-4648</a>
+
+    @param str the base64-url-encoded input data to decode
+    @param encoding the character encoding tag for the string return value; if not present, the @ref default_encoding "default character encoding" is assumed.
+
+    @return a string of the decoded data tagged with the given encoding
+
+    @par Example:
+    @code{.py}
+string str = parse_base64_url_string_to_string(base64_string);
+    @endcode
+
+    @throw BASE64-PARSE-ERROR A syntax error occurred parsing the base64 string (invalid character, etc)
+
+    @see
+    - parse_base64_string_to_string()
+
+    @since %Qore 2.0
+*/
+string parse_base64_url_string_to_string(string str, *string encoding) [flags=RET_VALUE_ONLY] {
+   const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+   return str->parseBase64UrlToString(qe, xsink);
 }
 
 //! Returns a list of hashes describing the currently-loaded %Qore modules

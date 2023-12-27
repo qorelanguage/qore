@@ -2455,6 +2455,52 @@ protected:
     }
 };
 
+class QoreBase64UrlBinaryTypeInfo : public QoreBaseNoConvertTypeInfo {
+public:
+    DLLLOCAL QoreBase64UrlBinaryTypeInfo() : QoreBaseNoConvertTypeInfo("base64urlbinary", q_accept_vec_t {
+            {NT_BINARY, nullptr, true},
+            {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+                    discard(n.assign(n.get<const QoreStringNode>()->parseBase64Url(xsink)), xsink);
+                }
+            },
+            }, q_return_vec_t {{NT_BINARY, true}}) {
+    }
+
+protected:
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
+
+    DLLLOCAL virtual bool hasDefaultValueImpl() const {
+        return true;
+    }
+
+    DLLLOCAL virtual QoreValue getDefaultQoreValueImpl() const {
+        return new BinaryNode();
+    }
+};
+
+class QoreBase64UrlBinaryOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
+public:
+    DLLLOCAL QoreBase64UrlBinaryOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo("*base64urlbinary", q_accept_vec_t {
+            {NT_BINARY, nullptr, true},
+            {NT_STRING, [] (QoreValue& n, ExceptionSink* xsink) {
+                    discard(n.assign(n.get<const QoreStringNode>()->parseBase64Url(xsink)), xsink);
+                }
+            },
+            {NT_NOTHING, nullptr},
+            {NT_NULL, [] (QoreValue& n, ExceptionSink* xsink) { n.assignNothing(); }},
+            }, q_return_vec_t {{NT_HASH}, {NT_NOTHING}}) {
+    }
+
+protected:
+    // returns true if this type could contain an object or a closure
+    DLLLOCAL virtual bool needsScanImpl() const {
+        return false;
+    }
+};
+
 class QoreObjectOrNothingTypeInfo : public QoreBaseOrNothingNoConvertTypeInfo {
 public:
     DLLLOCAL QoreObjectOrNothingTypeInfo() : QoreBaseOrNothingNoConvertTypeInfo("*object", NT_OBJECT) {

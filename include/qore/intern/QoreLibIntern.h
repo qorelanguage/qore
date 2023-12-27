@@ -142,6 +142,7 @@ static inline bool isoctaldigit(const char x) {
 #define NT_SOFTBINARY       -15
 #define NT_HEXBINARY        -16
 #define NT_BASE64BINARY     -17
+#define NT_BASE64URLBINARY  -18
 
 #define NT_SOMETHING    -101 // i.e. "not NOTHING"
 #define NT_DATA         -102 // either QoreStringNode or BinaryNode

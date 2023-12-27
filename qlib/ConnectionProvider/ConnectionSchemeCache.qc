@@ -119,6 +119,7 @@ public class ConnectionSchemeCache {
             "esrests": "ElasticSearchDataProvider",
 
             "gcal": "GoogleRestClient",
+            "gmail": "GoogleRestClient",
             "grests": "GoogleRestClient",
 
             "hue": "HueRestClient",

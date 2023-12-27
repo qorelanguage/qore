@@ -49,7 +49,7 @@ public class OptionHelper inherits Qore::Serializable {
     }
 
     #! Gets an integer option
-    private *int getInt(hash<auto> opts, string key, *bool required, *int default_value) {
+    private *int getInt(*hash<auto> opts, string key, *bool required, *int default_value) {
         auto v = opts{key};
         if (exists v && v.intp()) {
             return opts{key}.toInt();

@@ -244,34 +244,19 @@ QoreStringNode* QoreStringNode::regexSubst(QoreString& match, QoreString& subst,
 
 QoreStringNode* QoreStringNode::parseBase64ToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
     SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
-    if (!b) {
-        return nullptr;
-    }
-
-    if (b->empty()) {
-        return new QoreStringNode;
-    }
-
-    qore_string_private *p = new qore_string_private;
-    p->len = b->size() - 1;
-    p->buf = (char*)b->giveBuffer();
-    p->encoding = qe;
-
-    // free memory allocated to binary object
-    b = nullptr;
-
-    // check for null termination
-    if (p->buf[p->len]) {
-        ++p->len;
-        p->buf = (char*)realloc(p->buf, p->len + 1);
-        p->buf[p->len] = '\0';
-    }
-
-    p->allocated = p->len + 1;
-    return new QoreStringNode(p);
+    return binary_to_string<QoreStringNode>(b.release(), qe);
 }
 
 QoreStringNode* QoreStringNode::parseBase64ToString(ExceptionSink* xsink) const {
+    return parseBase64ToString(QCS_DEFAULT, xsink);
+}
+
+QoreStringNode* QoreStringNode::parseBase64UrlToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
+    SimpleRefHolder<BinaryNode> b(::parseBase64Url(priv->buf, priv->len, xsink));
+    return binary_to_string<QoreStringNode>(b.release(), qe);
+}
+
+QoreStringNode* QoreStringNode::parseBase64UrlToString(ExceptionSink* xsink) const {
     return parseBase64ToString(QCS_DEFAULT, xsink);
 }
 

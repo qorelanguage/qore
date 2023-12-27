@@ -102,7 +102,7 @@ public class DiscordGuildsDataProvider inherits DiscordDataProviderBase {
     }
 
     #! Returns data provider static info
-    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
+    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 

@@ -47,12 +47,14 @@ public class DataProvider {
             "ftpclient": "FtpClientDataProvider",
             "ftppoller": "FtpPoller",
             "gcal": "GoogleCalendarDataProvider",
+            "gmail": "GmailDataProvider",
             "httpclient": "HttpClientDataProvider",
             "mewsrest": "MewsRestDataProvider",
 
             # provided by the jni module
             "mqtt": "MqttDataProvider",
 
+            "pop3": "Pop3ClientDataProvider",
             "restclient": "RestClientDataProvider",
             "salesforcerest": "SalesforceRestDataProvider",
             "sax": "SaxDataProvider",

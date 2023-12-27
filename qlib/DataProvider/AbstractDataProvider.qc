@@ -1904,7 +1904,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
-    /** @return the given child provider or @ref nothing if the given child is unknown
+    /** @param name the name of the child
+
+        @return the given child provider or @ref nothing if the given child is unknown
 
         @throw INVALID-CHILD-PROVIDER unknown child provider
 
@@ -1919,7 +1921,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     }
 
     #! Returns the given child provider or throws an exception if the given child is unknown
-    /** @return the given child provider or throws an exception if the given child is unknown
+    /** @param name the name of the child
+
+        @return the given child provider or throws an exception if the given child is unknown
 
         @throw INVALID-CHILD-PROVIDER unknown child provider
 

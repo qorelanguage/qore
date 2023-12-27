@@ -711,4 +711,34 @@ public:
             QoreString& targ, const QoreEncoding* nccs, ExceptionSink* xsink);
 };
 
+template <typename T>
+DLLLOCAL T* binary_to_string(BinaryNode* bin, const QoreEncoding* qe) {
+    SimpleRefHolder<BinaryNode> b(bin);
+    if (!b) {
+        return nullptr;
+    }
+
+    if (b->empty()) {
+        return new QoreStringNode;
+    }
+
+    qore_string_private *p = new qore_string_private;
+    p->len = b->size() - 1;
+    p->buf = (char*)b->giveBuffer();
+    p->encoding = qe;
+
+    // free binary object
+    b = 0;
+
+    // check for null termination
+    if (p->buf[p->len]) {
+        ++p->len;
+        p->buf = (char*)realloc(p->buf, p->len + 1);
+        p->buf[p->len] = '\0';
+    }
+
+    p->allocated = p->len + 1;
+    return new T(p);
+}
+
 #endif
