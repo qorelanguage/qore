@@ -16,6 +16,7 @@
 
 class StringTest inherits QUnit::Test {
     constructor() : QUnit::Test("String test", "1.0") {
+        addTestCase("Base64 URL test", \testBase64Url());
         addTestCase("split regex", \splitRegexTest());
         addTestCase("non scalar test", \nonScalarTest());
         addTestCase("width test", \testWidth());
@@ -35,6 +36,17 @@ class StringTest inherits QUnit::Test {
         addTestCase("String conversion test", \testConversions());
         addTestCase("trim", \testTrim());
         set_return_value(main());
+    }
+
+    testBase64Url() {
+        string str = "<div dir=\"ltr\"><br><img src=\"test\" alt=\"?\" height=\"1\" width=\"1\"></div>";
+        string base64_url = "PGRpdiBkaXI9Imx0ciI-PGJyPjxpbWcgc3JjPSJ0ZXN0IiBhbHQ9Ij8iIGhlaWdodD0iMSIgd2lkdGg9IjEiPjwvZGl2Pg";
+        string base64 = "PGRpdiBkaXI9Imx0ciI+PGJyPjxpbWcgc3JjPSJ0ZXN0IiBhbHQ9Ij8iIGhlaWdodD0iMSIgd2lkdGg9IjEiPjwvZGl2Pg==";
+
+        assertEq(base64_url, make_base64_url_string(str));
+        assertEq(base64, make_base64_string(str));
+        #assertEq(str, parse_base64_url_string_to_string(base64_url));
+        assertEq(str, parse_base64_string_to_string(base64));
     }
 
     splitRegexTest() {
@@ -437,17 +449,17 @@ class StringTest inherits QUnit::Test {
         assertEq(x, parse_base64_string(b64), "first base64");
         assertEq("aGVsbG8=", make_base64_string("hello"), "make_base64_string()");
         string b64url = make_base64_url_string(x);
-        assertEq(x, parse_base64_string(decode_url(b64)), "first base64-url");
-        assertEq("aGVsbG8=", make_base64_url_string("hello"), "first make_base64_url_string()");
+        assertEq(x, parse_base64_url_string(b64url), "first base64-url");
+        assertEq("aGVsbG8", make_base64_url_string("hello"), "first make_base64_url_string()");
         b64url = x.toBase64Url();
-        assertEq(x, parse_base64_string(decode_url(b64)), "first <string>::toBase64Url()");
-        assertEq("aGVsbG8=", make_base64_url_string("hello"), "second make_base64_url_string()");
+        assertEq(x, parse_base64_url_string(b64url), "first <string>::toBase64Url()");
+        assertEq("aGVsbG8", make_base64_url_string("hello"), "second make_base64_url_string()");
 
         binary b = get_random_bytes(1024);
         b64 = make_base64_string(b);
         assertEq(b, parse_base64_string(b64));
         b64 = make_base64_url_string(b);
-        assertEq(b, parse_base64_string(decode_url(b64)));
+        assertEq(b, parse_base64_url_string(b64));
 
         string hex = make_hex_string(x);
         assertEq(x, parse_hex_string(hex), "first hex");

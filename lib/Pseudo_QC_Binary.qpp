@@ -467,7 +467,9 @@ string <binary>::toBase64(softint maxlinelen = -1) [flags=CONSTANT] {
 }
 
 //! Returns the base64-url-encoded representation of the binary object
-/** @par Example:
+/** Base64-URL encoding is defined by <a href="https://datatracker.ietf.org/doc/html/rfc4648">RFC-4648</a>
+
+    @par Example:
     @code{.py}
 string base64 = bin.toBase64Url();
     @endcode

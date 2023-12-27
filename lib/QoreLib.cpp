@@ -962,7 +962,7 @@ static void concatASCII(QoreString &str, unsigned char c) {
     }
 }
 
-static char getBase64Value(const char* buf, size_t &offset, bool end_ok, ExceptionSink* xsink) {
+static char get_base64_value(ExceptionSink* xsink, const char* buf, size_t &offset, bool end_ok, bool url = false) {
     while (buf[offset] == '\n' || buf[offset] == '\r') {
         ++offset;
     }
@@ -978,11 +978,20 @@ static char getBase64Value(const char* buf, size_t &offset, bool end_ok, Excepti
     if (c >= '0' && c <= '9') {
         return c - '0' + 52;
     }
-    if (c == '+') {
-        return 62;
-    }
-    if (c == '/') {
-        return 63;
+    if (url) {
+        if (c == '-') {
+            return 62;
+        }
+        if (c == '_') {
+            return 63;
+        }
+    } else {
+        if (c == '+') {
+            return 62;
+        }
+        if (c == '/') {
+            return 63;
+        }
     }
 
     if (!c) {
@@ -993,14 +1002,17 @@ static char getBase64Value(const char* buf, size_t &offset, bool end_ok, Excepti
     } else {
         QoreStringNode* desc = new QoreStringNode;
         concatASCII(*desc, c);
-        desc->concat(" is an invalid base64 character");
+        if (url) {
+            desc->concat(" is an invalid base64-url character according to RFC-4648");
+        } else {
+            desc->concat(" is an invalid base64 character");
+        }
         xsink->raiseException("BASE64-PARSE-ERROR", desc);
     }
     return -1;
 }
 
-// see: RFC-1421: http://www.ietf.org/rfc/rfc1421.txt and RFC-2045: http://www.ietf.org/rfc/rfc2045.txt
-BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
+static BinaryNode* parse_base64_intern(ExceptionSink* xsink, const char* buf, int len, bool url) {
     if (!len) {
         return new BinaryNode;
     }
@@ -1011,7 +1023,7 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
     size_t pos = 0;
     while (pos < (size_t)len) {
         // add first 6 bits
-        char b = getBase64Value(buf, pos, true, xsink);
+        char b = get_base64_value(xsink, buf, pos, true, url);
         if (xsink->isEvent()) {
             free(binbuf);
             return nullptr;
@@ -1022,7 +1034,7 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
 
         // get second 6 bits
         ++pos;
-        char c = getBase64Value(buf, pos, false, xsink);
+        char c = get_base64_value(xsink, buf, pos, false, url);
         if (xsink->isEvent()) {
             free(binbuf);
             return nullptr;
@@ -1032,7 +1044,7 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
 
         // check special cases
         ++pos;
-        if (buf[pos] == '=') {
+        if (buf[pos] == '=' || (url && !buf[pos])) {
             break;
         }
 
@@ -1040,7 +1052,7 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
         b = (c & 15) << 4;
 
         // get third 6 bits
-        c = getBase64Value(buf, pos, false, xsink);
+        c = get_base64_value(xsink, buf, pos, false, url);
         if (xsink->isEvent()) {
             free(binbuf);
             return nullptr;
@@ -1050,7 +1062,7 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
 
         // check special cases
         ++pos;
-        if (buf[pos] == '=') {
+        if (buf[pos] == '=' || (url && !buf[pos])) {
             break;
         }
 
@@ -1058,7 +1070,7 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
         b = (c & 3) << 6;
 
         // get fourth 6 bits
-        c = getBase64Value(buf, pos, false, xsink);
+        c = get_base64_value(xsink, buf, pos, false, url);
         if (xsink->isEvent()) {
             free(binbuf);
             return nullptr;
@@ -1068,6 +1080,16 @@ BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
         ++pos;
     }
     return new BinaryNode(binbuf, blen);
+}
+
+// see: RFC-4648: https://datatracker.ietf.org/doc/html/rfc4648#page-7
+BinaryNode* parseBase64Url(const char* buf, int len, ExceptionSink* xsink) {
+    return parse_base64_intern(xsink, buf, len, true);
+}
+
+// see: RFC-1421: http://www.ietf.org/rfc/rfc1421.txt and RFC-2045: http://www.ietf.org/rfc/rfc2045.txt
+BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink) {
+    return parse_base64_intern(xsink, buf, len, false);
 }
 
 int get_nibble(char c, ExceptionSink* xsink) {

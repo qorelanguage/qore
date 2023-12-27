@@ -395,6 +395,9 @@ DLLEXPORT BinaryNode* qore_bunzip2_to_binary(const BinaryNode* bin, ExceptionSin
 //! parses a string of base64-encoded data and returns a BinaryNode
 DLLEXPORT BinaryNode* parseBase64(const char* buf, int len, ExceptionSink* xsink);
 
+//! parses a string of base64-url-encoded data and returns a BinaryNode
+DLLEXPORT BinaryNode* parseBase64Url(const char* buf, int len, ExceptionSink* xsink);
+
 //! parses a string of hex characters and returns a BinaryNode
 DLLEXPORT BinaryNode* parseHex(const char* buf, int len, ExceptionSink* xsink);
 
