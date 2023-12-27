@@ -194,11 +194,23 @@ module GmailDataProvider {
                         "minimum polling period",
                     "default_value": 120,
                 },
+                "delete_messages": <ActionOptionInfo>{
+                    "display_name": "Delete Messages?",
+                    "short_desc": "Delete messages matched?",
+                    "type": "bool",
+                    "desc": "Delete messages matched?",
+                },
                 "retrieve_attachments": <ActionOptionInfo>{
                     "display_name": "Retrieve Attachments?",
                     "short_desc": "Retrieve attachment data automatically?",
                     "type": "bool",
                     "desc": "Retrieve attachment data automatically?",
+                },
+                "start_date": <ActionOptionInfo>{
+                    "display_name": "Start Date",
+                    "short_desc": "Sets the start date and time for matching messages",
+                    "type": "date",
+                    "desc": "Sets the start date and time for matching messages",
                 },
             },
         });

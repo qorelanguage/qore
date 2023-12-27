@@ -559,7 +559,18 @@ class QdpCmd {
     }
 
     static showRecord(*hash<string, AbstractDataField> rec, string offset = "") {
+        QdpCmd::showRecord({}, rec, offset);
+    }
+
+    static showRecord(hash<auto> rmap, *hash<string, AbstractDataField> rec, string offset = "") {
         foreach hash<auto> i in (rec.pairIterator()) {
+            {
+                string u = i.value.uniqueHash();
+                if (rmap{u}) {
+                    return;
+                }
+                rmap{u} = True;
+            }
             AbstractDataProviderType type = i.value.getType();
             if (opts.verbose) {
                 string txt = sprintf("%s%s %s", offset, type.getName(), i.key);
@@ -583,13 +594,13 @@ class QdpCmd {
             if (type.getBaseTypeCode() == NT_LIST && (*AbstractDataProviderType element_type = type.getElementType())
                 && (*hash<string, AbstractDataField> element_rec = element_type.getFields())) {
                 printf(": elements ->\n");
-                QdpCmd::showRecord(element_rec, offset + "  ");
+                QdpCmd::showRecord(rmap, element_rec, offset + "  ");
             } else {
                 print("\n");
             }
             *hash<string, AbstractDataField> fields = type.getFields();
             if (fields) {
-                QdpCmd::showRecord(fields, offset + "  ");
+                QdpCmd::showRecord(rmap, fields, offset + "  ");
             }
         }
     }
@@ -709,14 +720,18 @@ class QdpCmd {
     }
 
     static showType(AbstractDataProviderType type, *string offset) {
+        QdpCmd::showType({}, type, offset);
+    }
+
+    static showType(hash<auto> rmap, AbstractDataProviderType type, *string offset) {
         *hash<string, AbstractDataField> fields = type.getFields();
         if (fields) {
-            QdpCmd::showRecord(fields, offset);
+            QdpCmd::showRecord(rmap, fields, offset);
         } else {
             if (type.getBaseTypeCode() == NT_LIST && (*AbstractDataProviderType element_type = type.getElementType())
                 && (*hash<string, AbstractDataField> element_rec = element_type.getFields())) {
                 printf("%s%s elements ->\n", type.getName(), offset);
-                QdpCmd::showRecord(element_rec, offset + "  ");
+                QdpCmd::showRecord(rmap, element_rec, offset + "  ");
             } else {
                 printf("%s%s%s (%s)\n", offset, type.getName());
             }

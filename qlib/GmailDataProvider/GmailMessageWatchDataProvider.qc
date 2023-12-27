@@ -28,7 +28,8 @@ public namespace GmailDataProvider {
 public const EVENT_EMAIL_MATCHED = "EMAIL-MATCHED";
 
 #! The parent class for Gmail REST APIs
-public class GmailMessageWatchDataProvider inherits GoogleDataProvider::GoogleDataProviderBase, DataProvider::DelayedObservable {
+public class GmailMessageWatchDataProvider inherits GoogleDataProvider::GoogleDataProviderBase,
+        DataProvider::DelayedObservable {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
@@ -96,6 +97,12 @@ public class GmailMessageWatchDataProvider inherits GoogleDataProvider::GoogleDa
         #! Retrieve attachments
         bool retrieve_attachments;
 
+        #! Delete emails after retreiving
+        bool delete_messages;
+
+        #! Start date for scan
+        date start_date;
+
         #! Match query
         string q;
     }
@@ -112,6 +119,12 @@ public class GmailMessageWatchDataProvider inherits GoogleDataProvider::GoogleDa
         }
         if (copts.retrieve_attachments) {
             retrieve_attachments = True;
+        }
+        if (copts.delete_messages) {
+            delete_messages = True;
+        }
+        if (copts.start_date) {
+            start_date = copts.start_date;
         }
 
         q = copts.q;
@@ -194,17 +207,33 @@ public class GmailMessageWatchDataProvider inherits GoogleDataProvider::GoogleDa
 
         string uri = "gmail/v1/users/me/messages?q=" + q;
 
+        int epoch;
+        if (start_date) {
+            epoch = mktime(start_date);
+        }
+
+        AbstractDataProviderType msgtype = GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryGmailApiName,
+            "Message");
+
         while (!stop) {
             # check for matching mail
-
             hash<auto> info;
             try {
-                hash<auto> res = rest.get(uri, NOTHING, \info).body;
+                hash<auto> res;
+                string this_uri = uri;
+                if (epoch) {
+                    this_uri += sprintf(" after:%d", epoch);
+                }
+                LoggerWrapper::info("using URI: %y epoch: %y", this_uri, epoch);
+                res = rest.get(this_uri, NOTHING, \info).body;
                 foreach hash<auto> minfo in (res.messages) {
                     # retrieve each email
                     string msguri = sprintf("gmail/v1/users/me/messages/get?messageId=%s&id=%s", minfo.messageId,
                         minfo.id);
-                    hash<auto> msg = rest.get(msguri, NOTHING, \info).body;
+                    hash<auto> msg = msgtype.acceptsValue(rest.get(msguri, NOTHING, \info).body);
+                    if (msg.internalDate > epoch) {
+                        epoch = msg.internalDate;
+                    }
                     if (retrieve_attachments) {
                         msg.attachments = ();
                         foreach hash<auto> part in (msg.payload.parts) {
@@ -229,7 +258,13 @@ public class GmailMessageWatchDataProvider inherits GoogleDataProvider::GoogleDa
                         }
                     }
                     notifyObservers(EVENT_EMAIL_MATCHED, msg);
+                    if (delete_messages) {
+                        string deluri = sprintf("/gmail/v1/users/me/messages/%s", minfo.messageId);
+                        rest.del(deluri, NOTHING, \info);
+                        LoggerWrapper::info("deleted message %y", minfo.messageId);
+                    }
                 }
+                LoggerWrapper::info("new epoch: %y", epoch);
             } catch (hash<ExceptionInfo> ex) {
                 LoggerWrapper::error("error retrieving emails: %s; polling again in %ds", get_exception_string(ex),
                     poll_secs);
@@ -246,9 +281,34 @@ public class GmailMessageWatchDataProvider inherits GoogleDataProvider::GoogleDa
 public const GmailMessageEventDataType = new GmailMessageEventDataType();
 
 public class GmailMessageEventDataType inherits HashDataType {
-    constructor() : HashDataType() {
+    public {
+        const AttachmentFields = {
+            "hdr": {
+                "display_name": "Headers",
+                "short_desc": "Attachment headers",
+                "desc": "Attachment headers",
+                "type": AbstractDataProviderTypeMap."hash",
+            },
+            "body": {
+                "display_name": "Attachment Body",
+                "short_desc": "Attachment body",
+                "desc": "Attachment body",
+                "type": AbstractDataProviderTypeMap."data",
+            },
+        };
+    }
+    constructor() : HashDataType("GmailWatchMessage") {
         AbstractDataProviderType t = GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryGmailApiName, "Message");
         map addField($1), t.getFields().iterator();
+        HashDataType attachment("GmailAttachment");
+        attachment.addQoreFields(AttachmentFields);
+        addField(new QoreDataField({
+            "name": "attachments",
+            "display_name": "Attachments",
+            "short_desc": "Message attachments",
+            "desc": "Message attachments",
+            "type": new ListDataType("AttachmentList", attachment, True),
+        }));
     }
 }
 }
