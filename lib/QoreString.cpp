@@ -2795,35 +2795,6 @@ void QoreString::concatHex(const QoreString* str) {
     concatHex(str->priv->buf, str->priv->len);
 }
 
-static QoreString* binary_to_string(BinaryNode* bin, const QoreEncoding* qe) {
-    SimpleRefHolder<BinaryNode> b(bin);
-    if (!b) {
-        return nullptr;
-    }
-
-    if (b->empty()) {
-        return new QoreStringNode;
-    }
-
-    qore_string_private *p = new qore_string_private;
-    p->len = b->size() - 1;
-    p->buf = (char*)b->giveBuffer();
-    p->encoding = qe;
-
-    // free binary object
-    b = 0;
-
-    // check for null termination
-    if (p->buf[p->len]) {
-        ++p->len;
-        p->buf = (char*)realloc(p->buf, p->len + 1);
-        p->buf[p->len] = '\0';
-    }
-
-    p->allocated = p->len + 1;
-    return new QoreString(p);
-}
-
 // endian-agnostic base64 string -> binary object function
 BinaryNode *QoreString::parseBase64(ExceptionSink* xsink) const {
     return ::parseBase64(priv->buf, priv->len, xsink);
@@ -2831,7 +2802,7 @@ BinaryNode *QoreString::parseBase64(ExceptionSink* xsink) const {
 
 QoreString* QoreString::parseBase64ToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
     SimpleRefHolder<BinaryNode> b(::parseBase64(priv->buf, priv->len, xsink));
-    return binary_to_string(b.release(), qe);
+    return binary_to_string<QoreString>(b.release(), qe);
 }
 
 QoreString* QoreString::parseBase64ToString(ExceptionSink* xsink) const {
@@ -2845,7 +2816,7 @@ BinaryNode *QoreString::parseBase64Url(ExceptionSink* xsink) const {
 
 QoreString* QoreString::parseBase64UrlToString(const QoreEncoding* qe, ExceptionSink* xsink) const {
     SimpleRefHolder<BinaryNode> b(::parseBase64Url(priv->buf, priv->len, xsink));
-    return binary_to_string(b.release(), qe);
+    return binary_to_string<QoreString>(b.release(), qe);
 }
 
 QoreString* QoreString::parseBase64UrlToString(ExceptionSink* xsink) const {
