@@ -199,58 +199,44 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         return rest;
     }
 
-    #! Returns the path for the given API
-    static string getPathForSchema(string api, string path) {
+    static hash<auto> getRequestInfoForResource(string api, string resource) {
         hash<auto> requests = GoogleDataProviderBase::getRequestInfo(api);
-        *hash<auto> info = requests{path};
+        *hash<auto> info = requests{resource};
         if (!info) {
-            throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y", api,
-                path, keys requests);
+            throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y",
+                api, resource, keys requests);
         }
-        return info.path;
+        return info;
+    }
+
+    #! Returns the path for the given API
+    static string getPathForSchema(string api, string resource) {
+        return GoogleDataProviderBase::getRequestInfoForResource(api, resource).path;
     }
 
     #! Returns the HTTP method for the given API
     static string getMethodForSchema(string api, string path) {
-        hash<auto> requests = GoogleDataProviderBase::getRequestInfo(api);
-        *hash<auto> info = requests{path};
-        if (!info) {
-            throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y", api,
-                path, keys requests);
-        }
-        return info.http_method;
+        return GoogleDataProviderBase::getRequestInfoForResource(api, path).http_method;
     }
 
     #! Returns a response data type for the given API
-    static DataProvider::AbstractDataProviderType getResponseTypeForSchema(string api, string path) {
-        hash<auto> requests = GoogleDataProviderBase::getRequestInfo(api);
-        *hash<auto> info = requests{path};
-        if (!info) {
-            throw "SCHEMA-ERROR", sprintf("Google API %y unknown request path %y requested; known request paths: %y", api,
-                path, keys requests);
-        }
-        return info.response_type ?? AbstractDataProviderTypeMap."nothing";
+    static DataProvider::AbstractDataProviderType getResponseTypeForSchema(string api, string resource) {
+        return GoogleDataProviderBase::getRequestInfoForResource(api, resource).response_type ?? AbstractDataProviderTypeMap."nothing";
     }
 
     #! Returns a request data type for the given API
-    static DataProvider::AbstractDataProviderType getRequestTypeForSchema(string api, string path, ...) {
-        return GoogleDataProviderBase::getRequestTypeForSchemaArgs(api, path, argv);
+    static DataProvider::AbstractDataProviderType getRequestTypeForSchema(string api, string resource, ...) {
+        return GoogleDataProviderBase::getRequestTypeForSchemaArgs(api, resource, argv);
     }
 
     #! Check the given path for resources
     static checkResource(string api, list<string> resource_path) {
         GoogleDataProviderBase::getRequestInfo(api);
-        string path;
         hash<auto> h = info_map{api}.resources;
         foreach string seg in (resource_path) {
             if (!h{seg}) {
-                throw "GOOGLE-API-ERROR", sprintf("API %y resource %y is invalid at \"%s/%s\"; known resources at "
-                    "this level: %y", api, resource_path.join("/"), path, seg, keys h);
-            }
-            if (!path) {
-                path = seg;
-            } else {
-                path += "/" + seg;
+                throw "GOOGLE-API-ERROR", sprintf("API %y resource %y is invalid at %y; known resources at "
+                    "this level: %y", api, resource_path.join("/"), seg, keys h);
             }
             if ($# != resource_path.size() - 1) {
                 h = h{seg}.resources;
@@ -342,6 +328,12 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
         foreach hash<auto> i in (h.methods.pairIterator()) {
             string api_path = api + "/" + i.key;
             rv{api_path} = GoogleDataProviderBase::processRequest(api_path, i.value, unresolved);
+        }
+        if (h.resources) {
+            foreach hash<auto> i in (h.resources.pairIterator()) {
+                string api_path = api + "/" + i.key;
+                rv += GoogleDataProviderBase::processRequests(api_path, i.value, unresolved);
+            }
         }
         return rv;
     }
@@ -464,41 +456,72 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
     private static AbstractDataProviderType makeTypeFromSchemaInfo(string key, hash<auto> info,
             TypeResolverHelper unresolved, *bool for_input) {
         switch (info.type) {
-            case "object": return GoogleDataProviderBase::makeHashFromSchemaInfo(key, info, unresolved, for_input);
-            case "array": return GoogleDataProviderBase::makeListFromSchemaInfo(key, info, unresolved, for_input);
+            case "object":
+                return GoogleDataProviderBase::makeHashFromSchemaInfo(key, info, unresolved, for_input);
+
+            case "array":
+                return GoogleDataProviderBase::makeListFromSchemaInfo(key, info, unresolved, for_input);
+
             case "string": {
                 switch (info.format) {
-                    case "int32":
                     case "int64":
+                    case "uint64":
                         return !info.required
                             ? AbstractDataProviderTypeMap."*softint"
                             : AbstractDataProviderTypeMap."softint";
 
+                    case "google-datetime":
+                    case "date":
                     case "date-time":
                         return !info.required
                             ? AbstractDataProviderTypeMap."*softdate"
                             : AbstractDataProviderTypeMap."softdate";
 
+                    case "byte":
+                        return !info.required
+                            ? AbstractDataProviderTypeMap."*base64urlbinary"
+                            : AbstractDataProviderTypeMap."base64urlbinary";
+
+                    case "google-duration":
+                    case "google-fieldmask":
                     case NOTHING:
                         return !info.required
                             ? AbstractDataProviderTypeMap."*string"
                             : AbstractDataProviderTypeMap."string";
                 }
+                throw "UNKNOWN-FORMAT", sprintf("unknown string format %y", info.format);
             }
-            case "boolean": return for_input ? (
-                    !info.required
-                    ? SoftBoolOrNothingDataProviderStringType
-                    : SoftBoolDataProviderStringType
-                )
-                : (
-                    !info.required
-                    ? SoftBoolOrNothingDataProviderInputType
-                    : SoftBoolDataProviderInputType
-                );
-            case "integer": return !info.required
-                ? AbstractDataProviderTypeMap."*softint"
-                : AbstractDataProviderTypeMap."softint";
-            case "any": return AbstractDataProviderTypeMap."any";
+
+            case "boolean":
+                return for_input ? (
+                        !info.required
+                        ? SoftBoolOrNothingDataProviderStringType
+                        : SoftBoolDataProviderStringType
+                    )
+                    : (
+                        !info.required
+                        ? SoftBoolOrNothingDataProviderInputType
+                        : SoftBoolDataProviderInputType
+                    );
+
+            case "number": {
+                switch (info.format) {
+                    case "float":
+                    case "double":
+                        return !info.required
+                            ? AbstractDataProviderTypeMap."*softfloat"
+                            : AbstractDataProviderTypeMap."softfloat";
+                }
+                throw "UNKNOWN-FORMAT", sprintf("unknown number format %y", info.format);
+            }
+
+            case "integer":
+                return !info.required
+                    ? AbstractDataProviderTypeMap."*softint"
+                    : AbstractDataProviderTypeMap."softint";
+
+            case "any":
+                return AbstractDataProviderTypeMap."any";
 
             default:
                 throw "UNSUPPORTED-TYPE", sprintf("don't know how to process Google REST type %y", info.type);

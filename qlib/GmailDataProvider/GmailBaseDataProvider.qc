@@ -30,11 +30,12 @@ public class GmailBaseDataProvider inherits GoogleDataProvider::GoogleApiParentD
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "gmail",
-            "desc": "Gmail base data provider; parent provider for APIs related to calendars",
+            "desc": "Gmail base data provider; parent provider for gmail APIs",
             "type": "GmailBaseDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
+            "children_can_support_observers": True,
         };
 
         #! Provider summary info
@@ -45,7 +46,7 @@ public class GmailBaseDataProvider inherits GoogleDataProvider::GoogleApiParentD
 
     private {
         const ChildMap = {
-            #"messages": Class::forName("GmailDataProvider::GmailsDataProvider"),
+            "watch": Class::forName("GmailDataProvider::GmailMessageWatchDataProvider"),
         };
     }
 
@@ -105,7 +106,7 @@ public class GmailBaseDataProvider inherits GoogleDataProvider::GoogleApiParentD
     }
 
     #! Returns data provider static info
-    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
+    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }

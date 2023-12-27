@@ -1,0 +1,80 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/RestClient.qm
+%requires ../../../../qlib/GoogleRestClient.qm
+%requires ../../../../qlib/GmailDataProvider
+%requires ../../../../qlib/GmailDataProvider
+
+%exec-class GmailDataProviderTest
+
+public class GmailDataProviderTest inherits QUnit::Test {
+    private {
+        GmailBaseDataProvider gdp;
+
+        # command-line options
+        const MyOpts = Opts + {
+            "conn": "c,connection=s",
+        };
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("GmailDataProviderTest Test", "1.0", \ARGV, MyOpts) {
+        addTestCase("gmail test", \gmailTest());
+
+        try {
+            setupConnection();
+        } catch (hash<ExceptionInfo> ex) {
+            if (m_options.verbose > 2) {
+                printf("%s\n", get_exception_string(ex));
+            } else if (m_options.verbose) {
+                printf("%s: %s\n", ex.err, ex.desc);
+            }
+        }
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    gmailTest() {
+        if (!gdp) {
+            testSkip("no connection");
+        }
+
+        assertEq("gmail", gdp.getName());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--connection=ARG", "set connection name", OptionColumn);
+    }
+
+    private error(string fmt) {
+        throw "OPTION-ERROR", sprintf("%s: ERROR: %s", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    private setupConnection() {
+        *string conn_name = m_options.conn ?? ENV.GMAIL_CONNECTION;
+        if (!conn_name.val()) {
+            error("missing -c,--connection option or GMAIL_CONNECTION environment variable");
+        }
+
+        AbstractConnection conn = get_connection(conn_name);
+        if (!(conn instanceof GmailRestConnection)) {
+            error("connection %y is type %y; expecting \"GmailRestConnection\"", conn_name, conn.className());
+        }
+        gdp = conn.getDataProvider();
+    }
+}

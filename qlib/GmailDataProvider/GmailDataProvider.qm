@@ -61,20 +61,146 @@ module GmailDataProvider {
         # register all supported actions
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GmailDataProvider::AppName,
-            "path": "/list/{id}/get",
-            "path_vars": {
-                "id": <DataProviderPathVarInfo>{
-                    "display_name": "Message ID",
-                    "short_desc": "The message ID to read",
-                    "desc": "The message ID to read",
-                    "example_value": "msg1",
+            "path": "/messages/list",
+            "action": "list",
+            "display_name": "Search for Messages",
+            "short_desc": "Search for messages",
+            "desc": "Search for messages in the account",
+            "action_code": DPAT_API,
+            "convenience_options": {
+                "q": <ActionOptionInfo>{
+                    "display_name": "Search Criteria",
+                    "short_desc": "The gmail search criteria for retrieving the messages",
+                    "desc": "The gmail search criteria for retrieving the messages; ex: `in:inbox to:me@gmail.com "
+                        "subject:hello is:unread`",
+                    "type": "string",
+                    "example_value": "in:inbox to:me@gmail.com subject:hello is:unread",
+                    "required": True,
+                    "preselected": True,
                 },
             },
-            "action": "read",
-            "display_name": "Read a Message",
-            "short_desc": "Retrieve an email",
-            "desc": "Retrieve an email",
+            "advanced_options": {
+                "maxResults": <ActionOptionInfo>{
+                    "display_name": "Max Results",
+                    "short_desc": "The maximum number of results to return",
+                    "desc": "The maximum number of results to return",
+                    "type": "int",
+                    "example_value": 20,
+                },
+                "includeSpamTrash": <ActionOptionInfo>{
+                    "display_name": "Include Spam and Trash?",
+                    "short_desc": "Include the spam and trash folders in the search?",
+                    "desc": "Include the spam and trash folders in the search?",
+                    "type": "bool",
+                    "example_value": False,
+                },
+                "labelIds": <ActionOptionInfo>{
+                    "display_name": "Labels",
+                    "short_desc": "Only return messages with labels that match all of the specified label IDs",
+                    "desc": "Only return messages with labels that match all of the specified label IDs. Messages in "
+                        "a thread might have labels that other messages in the same thread don't have",
+                    "type": "string",
+                    "example_value": "my-label1,my-label2",
+                },
+                "pageToken": <ActionOptionInfo>{
+                    "display_name": "Page Token",
+                    "short_desc": "Page token to retrieve a specific page of results in the list",
+                    "desc": "Page token to retrieve a specific page of results in the list",
+                    "type": "string",
+                    "example_value": "07142542234962330268",
+                },
+            },
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": GmailDataProvider::AppName,
+            "path": "/messages/get",
+            "action": "get",
+            "display_name": "Retrieve a Message",
+            "short_desc": "Retrieve a message",
+            "desc": "Retrieve a message",
             "action_code": DPAT_API,
+            "convenience_options": {
+                "id": <ActionOptionInfo>{
+                    "display_name": "Message ID",
+                    "short_desc": "The ID of the message to retrieve",
+                    "desc": "The ID of the message to retrieve",
+                    "type": "string",
+                    "example_value": "18c6b13f059fc0bd",
+                    "required": True,
+                    "preselected": True,
+                },
+            },
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": GmailDataProvider::AppName,
+            "path": "/messages/attachments/get",
+            "action": "get-attachment",
+            "display_name": "Retrieve an Attachment",
+            "short_desc": "Retrieve an attachment",
+            "desc": "Retrieve an attachment",
+            "action_code": DPAT_API,
+            "convenience_options": {
+                "messageId": <ActionOptionInfo>{
+                    "display_name": "Message ID",
+                    "short_desc": "The ID of the message with the attachment to retrieve",
+                    "desc": "The ID of the message with the attachment to retrieve",
+                    "type": "string",
+                    "example_value": "18c6b13f059fc0bd",
+                    "required": True,
+                    "preselected": True,
+                },
+                "id": <ActionOptionInfo>{
+                    "display_name": "Attachment ID",
+                    "short_desc": "The ID of the attachment to retrieve",
+                    "desc": "The ID of the attachment to retrieve",
+                    "type": "string",
+                    "example_value": "ANGjdJ_XaqhOlujI0Ii_qoqoUvEtPHEBxk8i7wBtFzfrwzlD8XJjboMO8-UEOI5tnD6LNzwECuhU2Kr"
+                        "ihlcUhcfbtA826OgdiAUKVcvPUmxwdldsvrse9SSYTD7U4iyFRUHBp-xguVPKWe7_HggoFiNq8Ei__K-ioSedzakTb1S"
+                        "X929xEfy8HKAfdcsKCvr2D0trir4b1beYCSJFiOGiq1lOhBlii_fPoQQYYU_VIn2JyHk-yguNc5NPtvVq0qQle0zWXfy"
+                        "qyovbuLVdmSmHY6IqtpRoFjdgkJaRUztWgC1TBS27oMSWXhAxCsSJbCLGR_x7N04rZ-BoRzzYGhfk8ckaN5gbisfFDKD"
+                        "23mw1bdbgXEfzCxPiZmiRNbTpMbtD0io0CkBnl9_eJLpuUidY",
+                    "required": True,
+                    "preselected": True,
+                },
+            },
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": GmailDataProvider::AppName,
+            "path": "/watch",
+            "action": "watch",
+            "display_name": "New Emails",
+            "short_desc": "React to new emails",
+            "desc": "React to new emails",
+            "action_code": DPAT_EVENT,
+            "action_val": EVENT_EMAIL_MATCHED,
+            "convenience_options": {
+                "q": <ActionOptionInfo>{
+                    "display_name": "Search Criteria",
+                    "short_desc": "The gmail search criteria for matching messages",
+                    "desc": "The gmail search criteria for matching messages; ex: `in:inbox to:me@gmail.com "
+                        "subject:hello is:unread`",
+                    "type": "string",
+                    "example_value": "in:inbox to:me@gmail.com subject:hello is:unread",
+                    "required": True,
+                    "preselected": True,
+                },
+            },
+            "advanced_options": {
+                "poll_interval": <ActionOptionInfo>{
+                    "display_name": "Poll Interval",
+                    "short_desc": "How often to check for matching emails in seconds",
+                    "type": "int",
+                    "desc": "How often to check for matching emails in seconds; minimum 30; lower numbers will set the "
+                        "minimum polling period",
+                    "default_value": 120,
+                },
+                "retrieve_attachments": <ActionOptionInfo>{
+                    "display_name": "Retrieve Attachments?",
+                    "short_desc": "Retrieve attachment data automatically?",
+                    "type": "bool",
+                    "desc": "Retrieve attachment data automatically?",
+                },
+            },
         });
     };
 }

@@ -1,0 +1,78 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+%allow-injection
+
+%requires ../../../../qlib/Util.qm
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+%requires ../../../../qlib/DataProvider
+%requires ../../../../qlib/ConnectionProvider
+%requires ../../../../qlib/Pop3Client.qm
+%requires ../../../../qlib/Pop3ClientDataProvider
+
+%exec-class Pop3ClientDataProviderTest
+
+public class Pop3ClientDataProviderTest inherits QUnit::Test {
+    private {
+        Pop3ClientDataProvider gdp;
+
+        # command-line options
+        const MyOpts = Opts + {
+            "conn": "c,connection=s",
+        };
+
+        const OptionColumn = 22;
+    }
+
+    constructor() : Test("Pop3ClientDataProviderTest Test", "1.0", \ARGV, MyOpts) {
+        addTestCase("pop3client test", \pop3clientTest());
+
+        try {
+            setupConnection();
+        } catch (hash<ExceptionInfo> ex) {
+            if (m_options.verbose > 2) {
+                printf("%s\n", get_exception_string(ex));
+            } else if (m_options.verbose) {
+                printf("%s: %s\n", ex.err, ex.desc);
+            }
+        }
+
+        # Return for compatibility with test harness that checks return value.
+        set_return_value(main());
+    }
+
+    pop3clientTest() {
+        if (!gdp) {
+            testSkip("no connection");
+        }
+
+        assertEq("pop3client", gdp.getName());
+    }
+
+    private usageIntern() {
+        TestReporter::usageIntern(OptionColumn);
+        printOption("-c,--connection=ARG", "set connection name", OptionColumn);
+    }
+
+    private error(string fmt) {
+        throw "OPTION-ERROR", sprintf("%s: ERROR: %s", get_script_name(), vsprintf(fmt, argv));
+    }
+
+    private setupConnection() {
+        *string conn_name = m_options.conn ?? ENV.POP3CLIENT_CONNECTION;
+        if (!conn_name.val()) {
+            error("missing -c,--connection option or POP3CLIENT_CONNECTION environment variable");
+        }
+
+        AbstractConnection conn = get_connection(conn_name);
+        if (!(conn instanceof Pop3Connection)) {
+            error("connection %y is type %y; expecting \"Pop3Connection\"", conn_name, conn.className());
+        }
+        gdp = conn.getDataProvider();
+    }
+}

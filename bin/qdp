@@ -175,12 +175,24 @@ class QdpCmd {
             *string opts = (name =~ x/({(?:(?>[^{}]*)|(?0))*})/)[0];
             if (opts) {
                 name = replace(name, opts, "");
+            } else {
+                # remove empty options; the above regex does not catch them :(
+                name =~ s/{}//;
             }
-            list<string> path = name.split("/");
-            provider = getDataProvider((shift path) + opts);
-            # set logger on data provider
-            provider.setLogger(getLogger());
-            map provider = provider.getChildProviderEx($1), path;
+            if (name =~ /^@/) {
+                splice name, 0, 1;
+                list<string> path = name.split("/");
+                if (path.size() == 1) {
+                    showActions(name);
+                }
+                provider = getDataProviderForAppAction(path[0], path[1], opts);
+            } else {
+                list<string> path = name.split("/");
+                provider = getDataProvider((shift path) + opts);
+                # set logger on data provider
+                provider.setLogger(getLogger());
+                map provider = provider.getChildProviderEx($1), path;
+            }
         }
 
         string cmd = shift ARGV ?? "list";
@@ -776,6 +788,90 @@ class QdpCmd {
         return arg;
     }
 
+    private showActions(string app) {
+        DataProvider::registerKnownFactories();
+        *hash<string, hash<DataProviderActionInfo>> actions = DataProviderActionCatalog::getActionHash(app);
+        if (!actions) {
+            error("Application %y is unknown; known applications: %y", app, (map $1.name, DataProviderActionCatalog::getAllApps()));
+        }
+        printf("Application %y provides the following actions: %y\n", app, keys actions);
+        exit(0);
+    }
+
+    private AbstractDataProvider getDataProviderForAppAction(string app_name, string action_name, *string opts) {
+        DataProvider::registerKnownFactories();
+        *hash<string, hash<DataProviderActionInfo>> actions = DataProviderActionCatalog::getActionHash(app_name);
+        if (!actions) {
+            error("Application %y is unknown", app_name);
+        }
+        *hash<DataProviderActionInfo> action = actions{action_name};
+        if (!action) {
+            error("Application %y does not provide action %y; available actions: %y", app_name, action_name, keys actions);
+        }
+        *hash<auto> options;
+        if (opts) {
+            options = parse_to_qore_value(opts);
+            if (exists options && options.typeCode() != NT_HASH) {
+                throw "ACTION-ERROR", sprintf("option string for @%s/%s does not parse to type \"hash\"; got "
+                    "type %y instead", app_name, action_name, options.type());
+            }
+        }
+        hash<DataProviderAppInfo> app = DataProviderActionCatalog::getAppEx(app_name);
+
+        string connection;
+        AbstractConnection conn;
+        if (app.scheme.val()) {
+            connection = OptionHelper::getString(options, "connection", True);
+            remove options.connection;
+            conn = get_connection(connection);
+            hash<ConnectionSchemeInfo> scheme_info = ConnectionSchemeCache::getSchemeEx(app.scheme);
+            if (!scheme_info.schemes{string scheme = conn.getType()}) {
+                throw "APP-CONFIG-ERROR", sprintf("app %y action %y: connection %y has scheme %y; expecting %y", app.name,
+                    action.action, connection, scheme, keys scheme_info.schemes);
+            }
+            if (!conn.hasDataProvider()) {
+                throw "APP-CONFIG-ERROR", sprintf("connection %y has no data provider but should be valid for "
+                    "app %y action %y", connection, app.name, action.action);
+            }
+        }
+
+        # check data provider path options
+        foreach hash<auto> i in (action.path_vars.pairIterator()) {
+            if (!options{i.key}.val()) {
+                throw "ACTION-ARG-ERROR", sprintf("app %y action %y: required option %y is missing in \"options\"",
+                    app.name, action.action, i.key);
+            }
+        }
+
+        AbstractDataProvider prov;
+        try {
+            # NOTE: action.subtype may be NOTHING
+            if (conn) {
+                prov = conn.getDataProvider(action.subtype);
+            } else if (action.cls) {
+                hash<auto> constructor_opts;
+                map constructor_opts{$1.key} = remove options{$1.key},
+                    (action.convenience_options + action.advanced_options).pairIterator(),
+                    $1.value.loc == "constructor" && options.hasKey($1.key);
+                prov = Class::forName(action.cls).newObject(constructor_opts);
+            }
+            # set logger on data provider
+            prov.setLogger(getLogger());
+
+            ImpliedArgumentHelper iah(options);
+            foreach string seg in (action.path[1..].split("/")) {
+                if (*string var = (seg =~ x/^\{([^\}]+)\}$/)[0]) {
+                    seg = remove options{var};
+                }
+                prov = prov.getChildProviderEx(seg);
+            }
+        } catch (hash<ExceptionInfo> ex) {
+            rethrow "ACTION-ERROR", sprintf("error acquiring data provider for app %y action: %y: %s: %s", app.name,
+                action.action, ex.err, ex.desc);
+        }
+        return prov;
+    }
+
     private AbstractDataProvider getDataProvider(string name) {
         if (name =~ /{([^}]*)}/) {
             try {
@@ -866,7 +962,10 @@ class QdpCmd {
     }
 
     static usage() {
-        printf("usage: %s [options] <connection>[/child1/child2...] <cmd>
+        printf("usage:
+ %s [options] <connection>[/child1/child2...] <cmd> [args...]
+ %s [options] <factory>{<options>}[/child1/child2...] <cmd> [args...]
+ %s [options] @<app>/<action>[{<options>}] [args...]
   <cmd> = create|delete|dorequest|errors|info|list|record|request|response|reply|rsearch|search|update|upsert (default=list)
     create <new record> (ex create id=123,name=\"my name\")
         create a new record
@@ -933,7 +1032,7 @@ class QdpCmd {
  -v,--verbose[=ARG]        show more output
  -x,--expressions          create search expressions when searching
  -h,--help                 this help text
-", get_script_name());
+", get_script_name(), get_script_name(), get_script_name());
         exit(1);
     }
 

@@ -35,6 +35,7 @@ public class GmailDataProviderFactory inherits DataProvider::AbstractDataProvide
             "name": "gmail",
             "desc": "Gmail REST API data provider factory",
             "children_can_support_apis": True,
+            "children_can_support_observers": True,
         };
     }
 

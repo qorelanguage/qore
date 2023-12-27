@@ -72,6 +72,7 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
    *codeTypeInfo,                 // either closure or callref
    *hexBinaryTypeInfo,
    *base64BinaryTypeInfo,
+   *base64UrlBinaryTypeInfo,
    *softBinaryTypeInfo,           // converts to binary from string and null
    *softBigIntTypeInfo,           // converts to int from float, string, bool, number, and null
    *softFloatTypeInfo,            // converts to float from int, string, bool, number, and null
@@ -106,6 +107,7 @@ DLLEXPORT extern const QoreTypeInfo* anyTypeInfo,
 
    *hexBinaryOrNothingTypeInfo,
    *base64BinaryOrNothingTypeInfo,
+   *base64UrlBinaryOrNothingTypeInfo,
    *softBinaryOrNothingTypeInfo,
    *softBigIntOrNothingTypeInfo,
    *softFloatOrNothingTypeInfo,

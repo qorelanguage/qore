@@ -102,9 +102,7 @@ public class GoogleApiParentDataProvider inherits GoogleDataProviderBase {
         self.api = api;
         resource_path = resource.split("/");
         self.path_args = path_args;
-        if (argv) {
-            setSubpaths(path_prefix, argv);
-        }
+        setSubpaths(path_prefix, argv);
         desc = sprintf("Google %s %s provider for `%s`", api, resource_path.last(), rest.getSafeURL());
         type = sprintf("Google%s%sDataProvider", cap(api), cap(resource_path.last()));
         methods = getMethodsForResource(api, resource_path, path_args);
@@ -116,9 +114,7 @@ public class GoogleApiParentDataProvider inherits GoogleDataProviderBase {
         self.api = api;
         resource_path = resource.split("/");
         self.path_args = path_args;
-        if (argv) {
-            setSubpaths(path_prefix, argv);
-        }
+        setSubpaths(path_prefix, argv);
         desc = sprintf("Google %s %s provider", api, resource_path.last());
         type = sprintf("Google%s%sDataProvider", cap(api), cap(resource_path.last()));
         methods = getMethodsForResource(api, resource_path, path_args);
@@ -174,10 +170,23 @@ public class GoogleApiParentDataProvider inherits GoogleDataProviderBase {
                 path_prefix += "/";
             }
         }
-        foreach string arg in (args) {
-            list<string> resource_path = (path_prefix + arg).split("/");
-            checkResource(api, resource_path);
-            subpaths{arg} = resource_path;
+        if (args) {
+            foreach string arg in (args) {
+                list<string> resource_path = (path_prefix + arg).split("/");
+                checkResource(api, resource_path);
+                subpaths{arg} = resource_path;
+            }
+        } else {
+            GoogleDataProviderBase::getRequestInfo(api);
+            *hash<auto> h = info_map{api}.resources;
+            foreach string seg in (resource_path) {
+                if (!h{seg}) {
+                    throw "GOOGLE-API-ERROR", sprintf("API %y resource %y is invalid at %y; known resources at "
+                        "this level: %y", api, resource_path.join("/"), seg, keys h);
+                }
+                h = h{seg}.resources;
+            }
+            map subpaths{$1} = resource_path + $1, keys h;
         }
     }
 

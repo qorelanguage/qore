@@ -99,6 +99,7 @@ public const DataTypeMap = {
     Type::NullType: Reflection::NullType,
     Type::NothingType: AbstractDataProviderType::nothingType,
     "base64binary": Base64BinaryType,
+    "base64urlbinary": Base64UrlBinaryType,
     "hexbinary": HexBinaryType,
     "data": DataType,
 
@@ -134,6 +135,8 @@ public const DataTypeMap = {
     "*object": ObjectOrNothingType,
     "*date": DateOrNothingType,
     "*data": DataOrNothingType,
+    "*base64binary": Base64BinaryOrNothingType,
+    "*base64urlbinary": Base64UrlBinaryOrNothingType,
     "*hexbinary": HexBinaryOrNothingType,
 };
 

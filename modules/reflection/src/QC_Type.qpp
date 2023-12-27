@@ -267,6 +267,16 @@ const Base64BinaryType = qore(get_type_object(base64BinaryTypeInfo));
 */
 const Base64BinaryOrNothingType = qore(get_type_object(base64BinaryOrNothingTypeInfo));
 
+//! @ref base64urlbinary_type "base64urlbinary type"
+/**
+*/
+const Base64UrlBinaryType = qore(get_type_object(base64UrlBinaryTypeInfo));
+
+//! @ref base64urlbinary_or_nothing_type "*base64urlbinary type"
+/**
+*/
+const Base64UrlBinaryOrNothingType = qore(get_type_object(base64UrlBinaryOrNothingTypeInfo));
+
 //! @ref softbinary_type "softbinary type"
 /**
 */
