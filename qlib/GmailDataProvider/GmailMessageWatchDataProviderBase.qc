@@ -182,7 +182,7 @@ public class GmailMessageWatchDataProviderBase inherits GoogleDataProvider::Goog
         hash<auto> info = setup();
 
         while (!stop) {
-            pollOnce(info);
+            pollOnce(\info);
 
             # wait until next poll
             lck.lock();
@@ -211,7 +211,7 @@ public class GmailMessageWatchDataProviderBase inherits GoogleDataProvider::Goog
     }
 
     #! Perform one poll
-    private *hash<auto> pollOnce(hash<auto> setup) {
+    private *hash<auto> pollOnce(reference<hash<auto>> setup) {
         # check for matching mail
         hash<auto> info;
         try {
@@ -224,50 +224,61 @@ public class GmailMessageWatchDataProviderBase inherits GoogleDataProvider::Goog
             LoggerWrapper::debug("Gmail polling using URI: %y epoch: %y poll_interval: %ds", this_uri, setup.epoch,
                 poll_secs);
             res = rest.get(this_uri, NOTHING, \info).body;
-            if (!res.messages) {
-                LoggerWrapper::debug("Gmail: matched no messages");
-            } else {
-                foreach hash<auto> minfo in (res.messages) {
-                    # retrieve each email
-                    string msguri = sprintf("gmail/v1/users/me/messages/%s", minfo.id);
-                    hash<auto> msg = setup.msgtype.acceptsValue(rest.get(msguri, NOTHING, \info).body);
-                    # internalDate is given as a ms offset from the epoch
-                    int msg_epoch = msg.internalDate / 1000;
-                    if (msg_epoch > setup.epoch) {
-                        setup.epoch = msg_epoch;
-                        epoch_updated = True;
-                    }
-                    if (retrieve_attachments) {
-                        msg.attachments = ();
-                        foreach hash<auto> part in (msg.payload.parts) {
-                            if (*string aid = part.body.attachmentId) {
-                                # parse headers
-                                *hash<auto> hdr = map {$1.name: $1.value}, part.headers;
-                                # retrieve attachment
-                                string atturi = sprintf("gmail/v1/users/me/messages/%s/attachments/%s", minfo.id,
-                                    aid);
-                                hash<auto> att = rest.get(atturi, NOTHING, \info).body;
-                                msg.attachments += getAttachment(att, hdr);
-                            }
+            int match;
+            foreach hash<auto> minfo in (res.messages) {
+                # skip messages already processed
+                if (setup.last_msg{minfo.id}) {
+                    continue;
+                }
+                # retrieve each email
+                string msguri = sprintf("gmail/v1/users/me/messages/%s", minfo.id);
+                hash<auto> msg = setup.msgtype.acceptsValue(rest.get(msguri, NOTHING, \info).body);
+                # internalDate is given as a ms offset from the epoch
+                int msg_epoch = msg.internalDate / 1000;
+                if (msg_epoch > setup.epoch) {
+                    # remove last msg hash
+                    setup.last_msg = {
+                        minfo.id: True,
+                    };
+                    setup.epoch = msg_epoch;
+                    epoch_updated = True;
+                } else if (msg_epoch == setup.epoch) {
+                    setup.last_msg{minfo.id} = True;
+                }
+                if (retrieve_attachments) {
+                    msg.attachments = ();
+                    foreach hash<auto> part in (msg.payload.parts) {
+                        if (*string aid = part.body.attachmentId) {
+                            # parse headers
+                            *hash<auto> hdr = map {$1.name: $1.value}, part.headers;
+                            # retrieve attachment
+                            string atturi = sprintf("gmail/v1/users/me/messages/%s/attachments/%s", minfo.id,
+                                aid);
+                            hash<auto> att = rest.get(atturi, NOTHING, \info).body;
+                            msg.attachments += getAttachment(att, hdr);
                         }
-                        LoggerWrapper::info("Gmail: matched message %y attachments: %d", minfo.id, msg.attachments.size());
-                    } else {
-                        LoggerWrapper::info("Gmail: matched message %y", minfo.id);
                     }
+                    LoggerWrapper::info("Gmail: matched message %y attachments: %d", minfo.id, msg.attachments.size());
+                } else {
+                    LoggerWrapper::info("Gmail: matched message %y", minfo.id);
+                }
 
-                    if (setup.test_mode) {
-                        return msg;
-                    }
-                    messageReceived(msg);
-                    if (delete_messages) {
-                        string deluri = sprintf("/gmail/v1/users/me/messages/%s", minfo.id);
-                        rest.del(deluri, NOTHING, \info);
-                        LoggerWrapper::info("Gmail: deleted matched message %y", minfo.id);
-                    }
+                if (setup.test_mode) {
+                    return msg;
+                }
+                ++match;
+                messageReceived(msg);
+                if (delete_messages) {
+                    string deluri = sprintf("/gmail/v1/users/me/messages/%s", minfo.id);
+                    rest.del(deluri, NOTHING, \info);
+                    LoggerWrapper::info("Gmail: deleted matched message %y", minfo.id);
                 }
                 if (epoch_updated) {
                     LoggerWrapper::debug("Gmail using new epoch: %y", setup.epoch);
                 }
+            }
+            if (!match) {
+                LoggerWrapper::debug("Gmail: matched no messages");
             }
         } catch (hash<ExceptionInfo> ex) {
             if (setup.test_mode) {
