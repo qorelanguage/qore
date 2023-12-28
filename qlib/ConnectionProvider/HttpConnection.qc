@@ -72,7 +72,6 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                     "default_value": 45000,
                 },
                 "encode_chars": <ConnectionOptionInfo>{
-                    "short_desc": "A set of additional characters to subject to percent encoding in URLs",
                     "type": "string",
                     "desc": "A set of additional characters to subject to percent encoding in URLs",
                 },
