@@ -107,8 +107,8 @@ public class GmailMessageWatchDataProviderBase inherits GoogleDataProvider::Goog
     constructor(GoogleRestClient::GoogleRestClient rest,
             hash<string, hash<DataProviderOptionInfo>> constructor_options, *hash<auto> options)
             : GoogleDataProviderBase(rest) {
-        *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", constructor_options, ImpliedArgumentHelper::get()
-            + options);
+        *hash<auto> copts = checkOptions("CONSTRUCTOR-ERROR", constructor_options,
+            ImpliedArgumentHelper::get(){keys constructor_options} + options);
         processOptions(copts);
     }
 

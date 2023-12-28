@@ -48,7 +48,7 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits EmpathicBui
             new EmpathicBuildingMeasurementsCreateRequestDataType());
 
         #! Response type
-        const ResponseType = AbstractDataProviderTypeMap."string";
+        const ResponseType = AbstractDataProviderTypeMap."hash";
     }
 
     #! Creates the object from constructor options
@@ -82,6 +82,7 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits EmpathicBui
         # strip types
         softlist req0 = req;
         hash<string, int> emap;
+        int events;
         foreach hash event in (\req0) {
             if (!event.time) {
                 event.time = clock_getmillis();
@@ -92,6 +93,7 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits EmpathicBui
             foreach hash<auto> e in (\event.events) {
                 e.start = e.start.getEpochSeconds() * 1000 + e.start.milliseconds();
                 e.end = e.end.getEpochSeconds() * 1000 + e.end.milliseconds();
+                ++events;
             }
             emap{event.name} = event.events.size();
         }
@@ -99,7 +101,7 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits EmpathicBui
         try {
             # this API returns no data
             rest.post("v2/measurements", req0, \info);
-            return "OK";
+            return emap;
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
             hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
