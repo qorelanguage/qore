@@ -186,31 +186,93 @@ module GmailDataProvider {
                 },
             },
             "advanced_options": {
-                "poll_interval": <ActionOptionInfo>{
-                    "display_name": "Poll Interval",
-                    "short_desc": "How often to check for matching emails in seconds",
-                    "type": "int",
-                    "desc": "How often to check for matching emails in seconds; minimum 30; lower numbers will set the "
-                        "minimum polling period",
-                    "default_value": 120,
-                },
                 "delete_messages": <ActionOptionInfo>{
                     "display_name": "Delete Messages?",
                     "short_desc": "Delete messages matched?",
-                    "type": "bool",
                     "desc": "Delete messages matched?",
+                    "type": "bool",
+                },
+                "poll_interval": <ActionOptionInfo>{
+                    "display_name": "Poll Interval",
+                    "short_desc": "How often to check for matching emails in seconds",
+                    "desc": "How often to check for matching emails in seconds; lower bound 30; lower numbers will "
+                        "set the minimum polling period",
+                    "default_value": 120,
+                    "type": "int",
                 },
                 "retrieve_attachments": <ActionOptionInfo>{
                     "display_name": "Retrieve Attachments?",
                     "short_desc": "Retrieve attachment data automatically?",
-                    "type": "bool",
                     "desc": "Retrieve attachment data automatically?",
+                    "type": "bool",
                 },
                 "start_date": <ActionOptionInfo>{
                     "display_name": "Start Date",
                     "short_desc": "Sets the start date and time for matching messages",
-                    "type": "date",
                     "desc": "Sets the start date and time for matching messages",
+                    "type": "date",
+                },
+            },
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": GmailDataProvider::AppName,
+            "path": "/watch-attachment",
+            "action": "watch-attachment",
+            "display_name": "New Email Attachments",
+            "short_desc": "React to new email attachments",
+            "desc": "React to new email attachments",
+            "action_code": DPAT_EVENT,
+            "action_val": EVENT_ATTACHMENT_MATCHED,
+            "convenience_options": {
+                "q": <ActionOptionInfo>{
+                    "display_name": "Search Criteria",
+                    "short_desc": "The gmail search criteria for matching messages",
+                    "desc": "The gmail search criteria for matching messages; ex: `in:inbox to:me@gmail.com "
+                        "subject:hello is:unread`",
+                    "type": "string",
+                    "example_value": "in:inbox to:me@gmail.com subject:hello is:unread",
+                    "required": True,
+                    "preselected": True,
+                },
+            },
+            "advanced_options": {
+                "attachment_glob": <ActionOptionInfo>{
+                    "display_name": "Attachment File Pattern",
+                    "short_desc": "An optional filename pattern (glob) for matching attachments",
+                    "desc": "An optional filename pattern (glob) for matching attachments; if not set, then all "
+                        "attachments are reported; if set, then only attachments matching the pattern are reported; "
+                        "by default, the glob pattern is case-insensitive; to make it case-sensitive, set the "
+                        "`ignore_case` option to `false`",
+                    "type": "string",
+                    "example_value": "*.csv",
+                },
+                "delete_messages": <ActionOptionInfo>{
+                    "display_name": "Delete Messages?",
+                    "short_desc": "Delete messages matched?",
+                    "desc": "Delete messages matched? Note that all matched messages will be deleted, even if no "
+                        "attachments match the attachment criteria",
+                    "type": "bool",
+                },
+                "ignore_case": <ActionOptionInfo>{
+                    "display_name": "Ignore Glob Case?",
+                    "short_desc": "Ignore case in globs",
+                    "desc": "Ignore case in globs; ignored if `attachment_glob` is not set",
+                    "type": "bool",
+                    "default_value": True,
+                },
+                "poll_interval": <ActionOptionInfo>{
+                    "display_name": "Poll Interval",
+                    "short_desc": "How often to check for matching emails in seconds",
+                    "desc": "How often to check for matching emails in seconds; lower bound 30; lower numbers will "
+                        "set the minimum polling period",
+                    "type": "int",
+                    "default_value": 120,
+                },
+                "start_date": <ActionOptionInfo>{
+                    "display_name": "Start Date",
+                    "short_desc": "Sets the start date and time for matching messages",
+                    "desc": "Sets the start date and time for matching messages",
+                    "type": "date",
                 },
             },
         });

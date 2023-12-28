@@ -63,8 +63,8 @@ module FixedLengthUtil {
             "action": "read",
             "subtype": "fixedlengthread",
             "display_name": "Read Fixed-Length Data",
-            "short_desc": "Read fixed-length file data from the local filesystem",
-            "desc": "Read fixed-length file data from the local filesystem",
+            "short_desc": "Read fixed-length file data from a specific file location",
+            "desc": "Read fixed-length file data from a specific file location",
             "action_code": DPAT_FIND,
             "cls": "FixedLengthUtil::FixedLengthReadDataProvider",
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
@@ -86,8 +86,8 @@ module FixedLengthUtil {
             "action": "write",
             "subtype": "fixedlengthwrite",
             "display_name": "Write Fixed-Length Data",
-            "short_desc": "Write fixed-length file data to the local filesystem",
-            "desc": "Write fixed-length file data to the local filesystem",
+            "short_desc": "Write fixed-length file data to a specific file location",
+            "desc": "Write fixed-length file data to a specific file location",
             "action_code": DPAT_CREATE,
             "cls": "FixedLengthUtil::FixedLengthWriteDataProvider",
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(

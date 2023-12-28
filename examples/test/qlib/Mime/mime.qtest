@@ -54,6 +54,7 @@ aωb\r
     }
 
     constructor() : Test("MimeTest", "1.0") {
+        addTestCase("text tests", \textTests());
         addTestCase("issue 2936", \issue2936());
         addTestCase("mime type from ext", \mimeTypeTest());
         addTestCase("Printable test", \printableTest());
@@ -66,6 +67,43 @@ aωb\r
 
         # Return for compatibility with test harness that checks return value.
         set_return_value(main());
+    }
+
+    textTests() {
+        assertTrue(is_mime_text(MimeTypeHtml));
+        assertTrue(is_mime_text(MimeTypeCsv));
+        assertTrue(is_mime_text(MimeTypeSoapXml));
+        assertTrue(is_mime_text(MimeTypeFormUrlEncoded));
+        assertTrue(is_mime_text(MimeTypeSvg));
+        assertTrue(is_mime_text("application/x-texinfo"));
+        assertTrue(is_mime_text("application/x-tcl"));
+        assertTrue(is_mime_text("application/x-tex"));
+        assertTrue(is_mime_text("application/x-texinfo"));
+        assertTrue(is_mime_text("application/wsdl+xml"));
+        assertTrue(is_mime_text("application/x-csh"));
+        assertTrue(is_mime_text("application/srgs"));
+
+        assertFalse(is_mime_text(MimeTypeOctetStream));
+        assertFalse(is_mime_text(MimeTypeMultipartFormData));
+        assertFalse(is_mime_text("audio/x-aiff"));
+        assertFalse(is_mime_text("video/x-msvideo"));
+        assertFalse(is_mime_text("application/mac-compactpro"));
+        assertFalse(is_mime_text("application/vnd.wap.wmlc"));
+
+        assertTrue(is_filename_text("file.html"));
+        assertTrue(is_filename_text("file.yaml"));
+        assertTrue(is_filename_text("file.q"));
+        assertTrue(is_filename_text("file.qc"));
+        assertTrue(is_filename_text("file.qm"));
+        assertTrue(is_filename_text("file.java"));
+        assertTrue(is_filename_text("file.py"));
+        assertTrue(is_filename_text("file.sh"));
+
+        assertFalse(is_filename_text("file.pyc"));
+        assertFalse(is_filename_text("file.class"));
+        assertFalse(is_filename_text("file.jar"));
+        assertFalse(is_filename_text("file.dat"));
+        assertFalse(is_filename_text("file"));
     }
 
     issue2936() {

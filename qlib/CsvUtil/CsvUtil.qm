@@ -64,9 +64,9 @@ module CsvUtil {
             "path": "/",
             "action": "read",
             "subtype": "csvread",
-            "display_name": "Read CSV Data",
-            "short_desc": "Read CSV file data from the local filesystem",
-            "desc": "Read CSV file data from the local filesystem",
+            "display_name": "Read CSV File",
+            "short_desc": "Read CSV file data from a specific file location",
+            "desc": "Read CSV file data from a specific file location",
             "action_code": DPAT_FIND,
             "cls": "CsvUtil::CsvReadDataProvider",
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
@@ -77,7 +77,30 @@ module CsvUtil {
                 }
             ),
             "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
-                CsvReadDataProvider::ConstructorOptions - ("path", "header_names"), {
+                CsvReadDataProvider::ConstructorOptions - ("path", "data", "stream", "header_names"), {
+                    "loc": "constructor",
+                }
+            ),
+        });
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": CsvUtil::AppName,
+            "path": "/",
+            "action": "read-data",
+            "subtype": "csvread",
+            "display_name": "Read CSV Inline Data",
+            "short_desc": "Read CSV inline data",
+            "desc": "Read CSV inline data",
+            "action_code": DPAT_FIND,
+            "cls": "CsvUtil::CsvReadDataProvider",
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                CsvReadDataProvider::ConstructorOptions{"data", "header_names"}, {
+                    "preselected": True,
+                    "required": True,
+                    "loc": "constructor",
+                }
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                CsvReadDataProvider::ConstructorOptions - ("path", "data", "strean", "header_names"), {
                     "loc": "constructor",
                 }
             ),
@@ -88,8 +111,8 @@ module CsvUtil {
             "action": "write",
             "subtype": "csvwrite",
             "display_name": "Write CSV Data",
-            "short_desc": "Write CSV file data to the local filesystem",
-            "desc": "Write CSV file data to the local filesystem",
+            "short_desc": "Write CSV file data to a specific file location",
+            "desc": "Write CSV file data to a specific file location",
             "action_code": DPAT_CREATE,
             "cls": "CsvUtil::CsvWriteDataProvider",
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(

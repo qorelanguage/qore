@@ -31,7 +31,7 @@
 %new-style
 
 module Mime {
-    version = "1.5";
+    version = "1.6";
     desc = "Mime module providing MIME-related definitions";
     author = "David Nichols";
     url = "http://qore.org";
@@ -97,6 +97,9 @@ printf("%y: header word b: %y\n", mime_decode_header(mime_encode_header_word_b(s
     @endverbatim
 
     @section mimereleasenotes Release Notes
+
+    @subsection mime_1_6 v1.6
+    - added the @ref Mime::is_mime_text() "is_mime_text()" and @ref Mime::is_filename_text() "is_filename_text()" functions
 
     @subsection mime_1_5 v1.5
     - added a constant for SVG types
@@ -275,6 +278,27 @@ public namespace Mime {
     #! Mime type for SVG files
     public const MimeTypeSvg = "image/svg+xml";
 
+    #! Mime type for Qore sources
+    public const MimeTypeQore = "text/x-qore";
+
+    #! Mime type for Java sources
+    public const MimeTypeJavaSource = "text/x-java-source";
+
+    #! Mime type for Java class files
+    public const MimeTypeJava = "application/java";
+
+    #! Mime type for Java jar files
+    public const MimeTypeJar = "application/java-archive";
+
+    #! Mime type for Python sources
+    public const MimeTypePython = "text/x-python-source";
+
+    #! Mime type for Python compiled code
+    public const MimeTypePythonCode = "application/x-python-code";
+
+    #! Mime type for PHP sources
+    public const MimeTypePhp = "application/x-httpd-php";
+
     #! A map of default mime types per file extension; the hash keys are file extensions in lower-case without the dot (ex: \c "txt")
     /** @showinitializer
      */
@@ -295,7 +319,7 @@ public namespace Mime {
         "cc": MimeTypeText,
         "cdf": "application/x-netcdf",
         "cgm": "image/cgm",
-        "class": MimeTypeUnknown,
+        "class": MimeTypeJava,
         "cpio": "application/x-cpio",
         "cpp": MimeTypeText,
         "cpt": "application/mac-compactpro",
@@ -338,8 +362,8 @@ public namespace Mime {
         "ifb": "text/calendar",
         "iges": "model/iges",
         "igs": "model/iges",
-        "jar": "application/java-archive",
-        "java": MimeTypeText,
+        "jar": MimeTypeJar,
+        "java": MimeTypeJavaSource,
         "jnlp": "application/x-java-jnlp-file",
         "jp2": "image/jp2",
         "jpe": MimeTypeJpeg,
@@ -386,6 +410,7 @@ public namespace Mime {
         "pdf": "application/pdf",
         "pgm": "image/x-portable-graymap",
         "pgn": "application/x-chess-pgn",
+        "php": MimeTypePhp,
         "pic": "image/pict",
         "pict": "image/pict",
         "png": MimeTypePng,
@@ -395,36 +420,38 @@ public namespace Mime {
         "ppm": "image/x-portable-pixmap",
         "ppt": "application/vnd.ms-powerpoint",
         "ps": "application/postscript",
+        "py": MimeTypePython,
+        "pyc": MimeTypePythonCode,
 
         # Qore script
-        "q": MimeTypeText,
+        "q": MimeTypeQore,
 
         # Qore class include file
-        "qc": MimeTypeText,
+        "qc": MimeTypeQore,
 
         # Qorus function definition file
-        "qfd": MimeTypeText,
+        "qfd": MimeTypeQore,
 
         # Qorus class definition file
-        "qclass": MimeTypeText,
+        "qclass": MimeTypeQore,
 
         # Qorus constant definition file
-        "qconst": MimeTypeText,
+        "qconst": MimeTypeQore,
 
         # Qorus job definition
-        "qjob": MimeTypeText,
+        "qjob": MimeTypeQore,
 
         # Qore include file
-        "ql": MimeTypeText,
+        "ql": MimeTypeQore,
 
         # Qore user module source
-        "qm": MimeTypeText,
+        "qm": MimeTypeQore,
 
         # Qorus service definition
-        "qsd": MimeTypeText,
+        "qsd": MimeTypeQore,
 
         # Qorus workflow definition
-        "qwf": MimeTypeText,
+        "qwf": MimeTypeQore,
 
         "qt": "video/quicktime",
         "qti": "image/x-quicktime",
@@ -821,6 +848,31 @@ public namespace Mime {
     /** @defgroup MimeMiscFunctions Misc MIME Functions
      */
     #/@{
+    #! Returns @ref True if the given MIME type is known to provide text content, @ref False if not
+    /** @param mime The MIME type to test
+
+        @return @ref True if the given MIME type is known to provide text content, @ref False if not
+
+        @since Mime 1.6
+    */
+    public bool sub is_mime_text(string mime) {
+        if (mime == MimeTypeFormUrlEncoded) {
+            return True;
+        }
+        return (mime =~ /(text\/|(x-|\/|-|\+)?(xml|yaml|json|tex|latex|postscript|sh|csh|bash|zsh|tcl|shar|srgs))/);
+    }
+
+    #! Returns @ref True if the given filename / path is known to provide text content, @ref False if not
+    /** @param path The filename or path to test
+
+        @return @ref True if the given filename / path is known to provide text content, @ref False if not
+
+        @since Mime 1.6
+    */
+    public bool sub is_filename_text(string path) {
+        return is_mime_text(get_mime_type_from_ext(path));
+    }
+
     #! returns the mime type for the given filename from the extension or the default type if the extension is not present or unknown
     public string sub get_mime_type_from_ext(string path, string def_type = MimeTypeUnknown) {
         *string ext = (path =~ x/\.([a-z0-9]+)$/i)[0];

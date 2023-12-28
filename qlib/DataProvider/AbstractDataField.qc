@@ -333,7 +333,7 @@ public class AbstractDataField inherits Qore::Serializable {
         # convert spaces to dashes
         name =~ s/\s+/-/g;
         # remove all punctuation and special characters
-        name =~ s/[-!@#\$%\^&*\(\)_=\+\{\}\[\]|\\;':",\.\/<>\?`~]//g;
+        name =~ s/[!@#\$%\^&*\(\)_=\+\{\}\[\]|\\;':",\.\/<>\?`~]//g;
         return name;
     }
 

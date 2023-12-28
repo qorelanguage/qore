@@ -45,22 +45,28 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "path": <DataProviderOptionInfo>{
                 "display_name": "CSV Input Path",
                 "short_desc": "The path to the input file",
-                "type": AbstractDataProviderType::get(StringType),
-                "desc": "The location of the CSV data; mutually exclusive with \"stream\"; resolved with a call to "
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "The location of the CSV data; conflicts with `stream` and `data`; resolved with a call to "
                     "[FileLocationHandler::getBinaryStreamFromLocation()](https://qoretechnologies.com/manual/qorus/"
                     "current/qore/modules/FileLocationHandler/html/"
                     "class_file_location_handler_1_1_file_location_handler.html#a29c2338efc901a6b8f24542505e2a094)",
+            },
+            "data": <DataProviderOptionInfo>{
+                "display_name": "Input Data",
+                "short_desc": "CSV data to process",
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "CSV data to process; conflicts with `stream` and `path`",
             },
             "stream": <DataProviderOptionInfo>{
                 "display_name": "Input Stream",
                 "short_desc": "An input stream object for CSV data",
                 "type": AbstractDataProviderType::get(new Type("InputStream")),
-                "desc": "An input stream for CSV data; mutually exclusive with \"path\"",
+                "desc": "An input stream for CSV data; conflicts with `path` and `data`",
             },
             "date_format": <DataProviderOptionInfo>{
                 "display_name": "Date Format",
                 "short_desc": "The default mask for date value input parsing",
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The default date format for parsing `date` fields; see "
                     "[Date Mask Format](https://qoretechnologies.com/manual/qorus/current/qore/lang/html/"
                     "group__date__and__time__functions.html#date_mask) for more information on this option "
@@ -70,21 +76,22 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "encoding": <DataProviderOptionInfo>{
                 "display_name": "Input Character Encoding",
                 "short_desc": "The Character encoding for the input file",
-                "type": AbstractDataProviderType::get(StringType),
-                "desc": "Character encoding for the input file (and output data)",
+                "type": AbstractDataProviderTypeMap."string",
+                "desc": "Character encoding for the input file (and output data; output data only if the `data` "
+                    "option is used)",
                 "default_value": "UTF-8",
             },
             "eol": <DataProviderOptionInfo>{
                 "display_name": "End Of Line Chars",
                 "short_desc": "The end of line / record character(s)",
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The end of line character(s); if not specified, then the end-of-line characters will be "
                     "auto detected",
             },
             "fields": <DataProviderOptionInfo>{
                 "display_name": "Field Descriptions",
                 "short_desc": "A hash describing the CSV fields on input",
-                "type": AbstractDataProviderType::get(AutoHashType),
+                "type": AbstractDataProviderTypeMap."hash",
                 "desc": "The keys are field names as given by the `header_names` or `headers` options (in case "
                     "neither of these options are used, then field names are numbers starting with `0`) and the "
                     "values are "
@@ -113,13 +120,13 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "header_lines": <DataProviderOptionInfo>{
                 "display_name": "Number of Header Lines",
                 "short_desc": "The number of headers lines in the file",
-                "type": AbstractDataProviderType::get(SoftIntType),
+                "type": AbstractDataProviderTypeMap."softint",
                 "desc": "The number of headers lines in the file",
             },
             "header_names": <DataProviderOptionInfo>{
                 "display_name": "Automatically Detect Headers",
                 "short_desc": "If true then headers will be automatically detected from the first header row",
-                "type": AbstractDataProviderType::get(SoftBoolType),
+                "type": AbstractDataProviderTypeMap."softbool",
                 "desc": "if `true` then the object will parse the header names from the first header row, in this "
                     "case if `header_lines` is not set explicitly, it will be assumed to be `1`",
                 "default_value": False,
@@ -127,7 +134,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "header_reorder": <DataProviderOptionInfo>{
                 "display_name": "Enforce Header Order",
                 "short_desc": "If true, then the input data will be reordered in the order of `headers`",
-                "type": AbstractDataProviderType::get(SoftBoolType),
+                "type": AbstractDataProviderTypeMap."softbool",
                 "desc": "If `true` (the default) then if `headers` are provided, then data fields are reordered to "
                     "follow headers",
                 "default_value": True,
@@ -142,19 +149,19 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "ignore_empty": <DataProviderOptionInfo>{
                 "display_name": "Ignore Empty Lines",
                 "short_desc": "If true, empty lines will be ignored",
-                "type": AbstractDataProviderType::get(SoftBoolType),
+                "type": AbstractDataProviderTypeMap."softbool",
                 "desc": "If `true`, empty lines will be ignored",
             },
             "ignore_whitespace": <DataProviderOptionInfo>{
                 "display_name": "Ignore Leading and Trailing Whitespace",
                 "short_desc": "If true, leading and trailing whitespace will be stripped from non-quoted fields",
-                "type": AbstractDataProviderType::get(SoftBoolType),
+                "type": AbstractDataProviderTypeMap."softbool",
                 "desc": "If `true`, leading and trailing whitespace will be stripped from non-quoted fields",
             },
             "number_format": <DataProviderOptionInfo>{
                 "display_name": "Number Format",
                 "short_desc": "The default number format for parsing int, float, and number fields",
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The default format for `int`, `float`, and `number` fields as a string giving the thousands "
                     "separator character followed by the decimal separator character (ex: `.,` for "
                     "continental-European-style numbers)",
@@ -163,21 +170,21 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "quote": <DataProviderOptionInfo>{
                 "display_name": "Quote Char(s)",
                 "short_desc": "The quote character(s)",
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The field quote character (default: `\"`)",
                 "default_value": "\"",
             },
             "separator": <DataProviderOptionInfo>{
                 "display_name": "Field Separator",
                 "short_desc": "The field separator character(s)",
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "the string separating the fields in the file (default: `,`)",
                 "default_value": ",",
             },
             "timezone": <DataProviderOptionInfo>{
                 "display_name": "Timezone Region",
                 "short_desc": "The timezone region to use when parsing dates",
-                "type": AbstractDataProviderType::get(StringType),
+                "type": AbstractDataProviderTypeMap."string",
                 "desc": "The timezone region to use when parsing dates (ex: `Europe/Prague`); see "
                     "[TZ indentifier](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for valid values",
                 "example_value": "Europe/Prague",
@@ -185,14 +192,14 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
             "tolwr": <DataProviderOptionInfo>{
                 "display_name": "Convert Headers to Lower Case",
                 "short_desc": "Convert all header names to lower case",
-                "type": AbstractDataProviderType::get(SoftBoolType),
+                "type": AbstractDataProviderTypeMap."softbool",
                 "desc": "If `true` (default `false`), all header names will be converted to lower case letters",
                 "default_value": False,
             },
             "verify_columns": <DataProviderOptionInfo>{
                 "display_name": "Verify Columns",
                 "short_desc": "Verifies input data to ensure it has the expected structure",
-                "type": AbstractDataProviderType::get(SoftBoolType),
+                "type": AbstractDataProviderTypeMap."softbool",
                 "desc": "if `true` (default `false`), if a line is parsed with a different column or field count "
                     "than other lines, a `CSVFILEITERATOR-DATA-ERROR` exception is raised\n\n"
                     "Note that enabling this option will incurr a performance penalty",
@@ -201,7 +208,7 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
         };
 
         #! CSV iteration option list
-        const CsvIterationOptionList = keys (ConstructorOptions - ("path", "stream"));
+        const CsvIterationOptionList = keys (ConstructorOptions - ("path", "data", "stream"));
     }
 
     private {
@@ -239,8 +246,21 @@ public class CsvReadDataProvider inherits DataProvider::AbstractDataProvider {
                 error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"path\" options; use either one or "
                     "the other");
             }
+            if (copts."data") {
+                error("CONSTRUCTOR-ERROR", "cannot provide both \"path\" and \"data\" options; use either one or "
+                    "the other");
+            }
             i = new CsvIterator(FileLocationHandler::getBinaryStreamFromLocation(copts.path),
                 copts.encoding, copts{CsvIterationOptionList} - "encoding");
+            return;
+        }
+        if (copts."data") {
+            if (copts.stream) {
+                error("CONSTRUCTOR-ERROR", "cannot provide both \"stream\" and \"data\" options; use either one or "
+                    "the other");
+            }
+            i = new CsvIterator(new StringInputStream(copts."data"), copts."data".encoding(),
+                copts{CsvIterationOptionList});
             return;
         }
         if (copts.stream) {
