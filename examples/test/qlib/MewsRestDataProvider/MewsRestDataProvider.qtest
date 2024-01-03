@@ -60,7 +60,7 @@ public class MewsRestClientDataProviderTest inherits QUnit::Test {
     }
 
     mainTest() {
-        if (!mrc) {
+        if (!mews) {
             testSkip("no connection");
         }
 
@@ -88,7 +88,7 @@ public class MewsRestClientDataProviderTest inherits QUnit::Test {
     }
 
     actionTest() {
-        if (!mrc) {
+        if (!mews) {
             testSkip("no connection");
         }
 
