@@ -99,14 +99,18 @@ QoreValue QoreMinusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink
     // do float minus-equals if left side is a float
     qore_type_t vtype = v.getType();
 
-    printd(5, "QoreMinusEqualsOperatorNode::evalImpl() vtype: %d rtype: %d\n", vtype, new_right->getType());
+    //printd(5, "QoreMinusEqualsOperatorNode::evalImpl() vtype: %d rtype: %d\n", vtype, new_right->getType());
 
     if (vtype == NT_NOTHING) {
         // see if the lvalue has a default type
         const QoreTypeInfo* typeInfo = v.getTypeInfo();
-        if (QoreTypeInfo::hasDefaultValue(typeInfo)) {
-            if (v.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo)))
+        if (QoreTypeInfo::isHashType(typeInfo)) {
+            // do nothing
+            return QoreValue();
+        } else if (QoreTypeInfo::hasDefaultValue(typeInfo)) {
+            if (v.assign(QoreTypeInfo::getDefaultQoreValue(typeInfo))) {
                 return QoreValue();
+            }
             vtype = v.getType();
         } else {
             if (new_right->getType() == NT_FLOAT) {
