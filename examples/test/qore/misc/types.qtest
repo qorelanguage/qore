@@ -41,6 +41,7 @@ class Issue3887_Child inherits Issue3887_Base { int test(softlist l) { return 1;
 
 class TypeTest inherits QUnit::Test {
     constructor() : QUnit::Test("TypeTest", "1.0") {
+        addTestCase("-= test", \minusEqualsTest());
         addTestCase("issue 4133 complex types", \issue4133());
         addTestCase("issue 3887", \issue3887());
         addTestCase("hashdecl types", \hashdeclTypeTest());
@@ -65,6 +66,30 @@ class TypeTest inherits QUnit::Test {
         addTestCase("issue 2647", \issue2647());
 
         set_return_value(main());
+    }
+
+    minusEqualsTest() {
+        # issue #4873
+        {
+            *hash<string, bool> h;
+            h -= (1,);
+            assertNothing(h);
+        }
+        {
+            *hash<string, bool> h = {};
+            h -= (1,);
+            assertEq({}, h);
+        }
+        {
+            hash<string, bool> h;
+            h -= (1,);
+            assertNothing(h);
+        }
+        {
+            hash<string, bool> h = {};
+            h -= (1,);
+            assertEq({}, h);
+        }
     }
 
     issue4133() {
