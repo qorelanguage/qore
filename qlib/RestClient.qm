@@ -1369,8 +1369,9 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         } catch (hash<ExceptionInfo> ex) {
             # in case of a 401 error, try to get a new token
             if (oauth2_grant_type && oauth2_grant_type != "none" && oauth2_auto_refresh
-                && ((now_us() - token_timestamp) > MinimumTokenRefresh) && isAuthTokenError(info."response-code",
-                    info."response-headers", decode_errors, info."body-content-type", info."response-body")) {
+                && ((now_us() - token_timestamp) > MinimumTokenRefresh) && info."response-code"
+                && isAuthTokenError(info."response-code", info."response-headers", decode_errors,
+                info."body-content-type", info."response-body")) {
                 on_error {
                     rethrow;
                 };
