@@ -943,8 +943,8 @@ public namespace RestHandler {
                 if (ex.err == "METHOD-DOES-NOT-EXIST") {
                     # try to mask passwords in args
                     string astr = rh.maskData(sprintf("%y", ah));
-                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %s", mn,
-                        name(), astr);
+                    rh.logError("DISPATCH-ERROR: cannot dispatch to unimplemented method %y: class %y, args: %s: %s",
+                        mn, name(), astr, get_exception_string(ex));
                     # see if alternate methods would work
                     list hl = ();
                     # break flag
@@ -960,14 +960,15 @@ public namespace RestHandler {
                         }
                     }
                     if (!brk) {
-                        if (!hl)
+                        if (!hl) {
                             return cast<hash<HttpHandlerResponseInfo>>(RestHandler::make501("REST class %y (%s) does "
                                 "not implement method %y", name(), self.className(),
                                 cx.orig_method ? cx.orig_method : mn));
+                        }
 
                         string ml = foldl $1 + "," + $2, hl;
-                        string desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s)", cx.hdr.method,
-                            name(), self.className());
+                        string desc = sprintf("HTTP method %s is unimplemented in REST class %y (%s::%s())",
+                            cx.hdr.method, name(), self.className(), mn);
                         if (cx.orig_method)
                             desc += sprintf(" REST method %y", cx.orig_method);
                         desc += sprintf(", available methods: %s", ml);
