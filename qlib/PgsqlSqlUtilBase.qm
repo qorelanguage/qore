@@ -2340,10 +2340,10 @@ auto v = c.name;
             return new Indexes(rv);
         }
 
-        private ForeignConstraints getForeignConstraintsImpl(*hash opts) {
-            hash rv;
+        private ForeignConstraints getForeignConstraintsImpl(*hash<auto> opts) {
+            hash<string, PgsqlForeignConstraint> rv;
             # get foreign referential constraints
-            *hash qh = ds.select("select constraint_name, att2.attname source_column, ns.nspname \"schema\", "
+            *hash<auto> qh = ds.select("select constraint_name, att2.attname source_column, ns.nspname \"schema\", "
                 "cl.relname target_table, att.attname target_column from (select con1.conname constraint_name, "
                 "generate_subscripts(con1.conkey, 1) AS rn, unnest(con1.conkey) parent, unnest(con1.confkey) child, "
                 "con1.confrelid, con1.conrelid from pg_class cl join pg_namespace ns on cl.relnamespace = ns.oid "
@@ -2354,22 +2354,21 @@ auto v = c.name;
                 "join pg_namespace ns on cl.relnamespace = ns.oid "
                 "order by att.attnum", name, schema);
             if (qh.constraint_name) {
-                hash ch;
+                hash<auto> ch;
                 foreach hash<auto> row in (qh.contextIterator()) {
-                    reference<hash> c = \ch.(row.constraint_name);
+                    reference<hash<auto>> c = \ch.(row.constraint_name);
                     c.columns.(row.source_column) = columns{row.source_column};
                     c.target.table = row.schema == "public" ? row.target_table : sprintf("%s.%s", row.schema, row.target_table);
                     c.target.columns.(row.target_column) = True;
                 }
 
-                foreach hash c in (ch.pairIterator()) {
+                foreach hash<auto> c in (ch.pairIterator()) {
                     # get a description of the target table's columns
                     Columns targ_columns = getReferencedTableColumnsUnlocked(c.value.target.table, opts.table_cache);
                     ForeignConstraintTarget fct(c.value.target.table, targ_columns.subset(c.value.target.columns.keys()));
-                    rv.(c.key) = new PgsqlForeignConstraint(c.key, new Columns(c.value.columns), fct);
+                    rv{c.key} = new PgsqlForeignConstraint(c.key, new Columns(c.value.columns), fct);
                 }
             }
-
             return new ForeignConstraints(rv);
         }
 

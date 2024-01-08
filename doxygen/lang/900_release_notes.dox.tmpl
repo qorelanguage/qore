@@ -50,6 +50,10 @@
     - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
       - fixed a bug where control characters in URLs were silently accepted
         (<a href="https://github.com/qorelanguage/qore/issues/4866">issue 4866</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
+      - fixed a bug where @ref SqlUtil::AbstractTable::getDropAllConstraintsAndIndexesOnColumnSql()
+        "AbstractTable::getDropAllConstraintsAndIndexesOnColumnSql()" did not work on foreign constraints
+        (<a href="https://github.com/qorelanguage/qore/issues/4875">issue 4875</a>)
     - fixed a bug with the @ref minus_equals_operator "-= operator" and lvalues with
       @ref hash_or_nothing_type "*hash" types
       (<a href="https://github.com/qorelanguage/qore/issues/4873">issue 4873</a>)

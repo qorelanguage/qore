@@ -41,7 +41,7 @@
 %enable-all-warnings
 
 module SqlUtil {
-    version = "1.9.1";
+    version = "1.9.2";
     desc = "user module for working with SQL data";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -115,6 +115,11 @@ module SqlUtil {
       - @ref dba_space_management
 
     @section sqlutil_relnotes Release Notes for the SqlUtil Module
+
+    @subsection sqlutilv1_9_2 SqlUtil v1.9.2
+    - fixed a bug where @ref SqlUtil::AbstractTable::getDropAllConstraintsAndIndexesOnColumnSql()
+      "AbstractTable::getDropAllConstraintsAndIndexesOnColumnSql()" did not work on foreign constraints
+      (<a href="https://github.com/qorelanguage/qore/issues/4875">issue 4875</a>)
 
     @subsection sqlutilv1_9_1 SqlUtil v1.9.1
     - set the column size in the type when creating types for \c VARCHAR columns
@@ -7369,6 +7374,11 @@ AbstractConstraint ix = constraints.uk_jobs;
             return True;
         }
 
+        #! returns @ref True "True" if the constraint references the named column
+        bool hasColumn(string cname) {
+            return h.hasKey(cname);
+        }
+
         #! clears any index base for the constraint
         clearIndex() {
             delete index;
@@ -7597,6 +7607,11 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
             columns = c;
         }
 
+        #! returns @ref True "True" if the constraint references the named column
+        bool hasColumn(string cname) {
+            return columns.hasKey(cname);
+        }
+
         #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not
         bool equal(ForeignConstraintTarget targ) {
             return table != targ.table || (columns.keys() != targ.columns.keys()) ? False : True;
@@ -7612,6 +7627,11 @@ AbstractForeignConstraint ix = fcs.fk_jobs_job_defs;
 
         constructor(string name, Columns cols, ForeignConstraintTarget t) : AbstractColumnConstraint(name, cols) {
             target = t;
+        }
+
+        #! Returns @ref True "True" if the constraint refers to the given target column
+        bool hasTargetColumn(string col) {
+            return target.hasColumn(col);
         }
 
         #! returns @ref True "True" if the argument is equal to the current object, @ref False "False" if not

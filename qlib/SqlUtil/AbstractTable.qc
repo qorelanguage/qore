@@ -1497,7 +1497,8 @@ list l = table.getDropAllConstraintsAndIndexesOnColumnSql("status");
                 on_success if (opt.sql_callback_executed)
                     foreignConstraints.take(fk.getName());
 
-                lst += AbstractDatabase::doCallback(opt, fk.getDropSql(getSqlName()), AbstractDatabase::AC_Drop, "foreign constraint", fk.getName(), getSqlName());
+                lst += AbstractDatabase::doCallback(opt, fk.getDropSql(getSqlName()), AbstractDatabase::AC_Drop,
+                    "foreign constraint", fk.getName(), getSqlName());
             }
         }
 
@@ -7581,8 +7582,9 @@ on_exit printf("SQL> %s\n", sql);
     }
 
     private getForeignConstraintsUnlocked(*hash<auto> opt) {
-        if (foreignConstraints)
+        if (foreignConstraints) {
             return;
+        }
         if (manual) {
             foreignConstraints = new ForeignConstraints();
             return;
@@ -7597,7 +7599,8 @@ on_exit printf("SQL> %s\n", sql);
                 if (!opt.table_cache.hasKey(fk.target.table)) {
                     Table t(ds, fk.target.table);
                     opt.table_cache.add(fk.target.table, t.getTable());
-                    #printf("ERROR: missing %y in table cache (adding fk %y to %y)\n", fk.target.table, fk.getName(), getName());
+                    #printf("ERROR: missing %y in table cache (adding fk %y to %y)\n", fk.target.table, fk.getName(),
+                    #    getName());
                 }
                 opt.table_cache{fk.target.table}.addSourceConstraint(getSqlName(), fk);
             }
