@@ -661,7 +661,8 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
                     load_module("DbDataProvider");
                     return create_object("DbDataProvider", ds);
                 } catch (hash<ExceptionInfo> ex) {
-                    if (ex.err != "NO-FUNCTION" && ex.err != "DATASOURCE-ERROR") {
+                    if (ex.err != "NO-FUNCTION" && ex.err != "DATASOURCE-ERROR"
+                        && ex.err != "DATASOURCE-PARSE-ERROR") {
                         rethrow;
                     }
                 }

@@ -93,12 +93,16 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits EmpathicBui
             foreach hash<auto> e in (\event.events) {
                 e.start = e.start.getEpochSeconds() * 1000 + e.start.milliseconds();
                 e.end = e.end.getEpochSeconds() * 1000 + e.end.milliseconds();
+                if (!e.booking_ref.val()) {
+                    e.booking_ref = UUID::get();
+                }
                 ++events;
             }
             emap{event.name} = event.events.size();
         }
         hash<auto> info;
         try {
+            LoggerWrapper::debug("posting measurements: %y", req0);
             # this API returns no data
             rest.post("v2/measurements", req0, \info);
             return emap;
@@ -145,7 +149,11 @@ public class EmpathicBuildingMeasurementEventType inherits DataProvider::HashDat
             },
             "subject": {
                 "type": StringOrNothingType,
-                "desc": "The optional subject of the meeting",
+                "desc": "The optional subject of the reservation",
+            },
+            "booking_ref": {
+                "type": StringOrNothingType,
+                "desc": "The booking reference for the reservation",
             },
         };
     }
