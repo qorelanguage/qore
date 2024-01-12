@@ -88,7 +88,7 @@ public class DataProvider {
         static hash<string, string> factory_module_map;
 
         #! data provider factory cache lock
-        static Mutex factory_cache_lock();
+        static Gate factory_cache_lock();
 
         #! data provider data type cache
         static DataProviderTypeCache type_cache();
@@ -114,8 +114,8 @@ public class DataProvider {
         @throw PROVIDER-ERROR the given provider has already been registered
     */
     static registerFactory(AbstractDataProviderFactory factory) {
-        factory_cache_lock.lock();
-        on_exit factory_cache_lock.unlock();
+        factory_cache_lock.enter();
+        on_exit factory_cache_lock.exit();
 
         string name = factory.getName();
         if (factory_cache{name}) {
@@ -409,9 +409,9 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
     }
 
     #! Registers all known data provider factories
-    static registerKnownFactories() {
+    static registerKnownFactories(*Logger::LoggerInterface logger) {
         # load known modules
-        map DataProvider::tryLoad($1), FactoryModuleList;
+        map DataProvider::tryLoad($1, logger), FactoryModuleList;
     }
 
     #! Loads data providers from the environment
@@ -584,13 +584,19 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
     }
 
     #! Try to load the given module
-    private static bool tryLoad(string module_str, *bool verbose) {
+    private static bool tryLoad(string module_str, *Logger::LoggerInterface logger) {
         try {
+            if (logger) {
+                logger.info("DataProvider loading module: %y", module_str);
+            }
             load_module(module_str);
             return True;
         } catch (hash<ExceptionInfo> ex) {
-            if (verbose || True) {
-                stderr.printf("module %y: %s\n", module_str, get_exception_string(ex));
+            string err = sprintf("DataProvider load module %y: %s\n", module_str, get_exception_string(ex));
+            if (logger) {
+                logger.error("%s", err);
+            } else {
+                stderr.print(err + "\n");
             }
         }
         return False;
@@ -686,8 +692,8 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
 
     #! Deregisters a factory if an exception occurs during the other module's initialization
     private static deregisterFactory(string name) {
-        factory_cache_lock.lock();
-        on_exit factory_cache_lock.unlock();
+        factory_cache_lock.enter();
+        on_exit factory_cache_lock.exit();
 
         *AbstractDataProviderFactory factory = remove factory_cache{name};
         if (!factory) {
