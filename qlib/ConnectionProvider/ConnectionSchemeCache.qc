@@ -106,6 +106,10 @@ public class ConnectionSchemeCache {
             "billwerkrest": "BillwerkRestClient",
             "billwerkrests": "BillwerkRestClient",
 
+            # provided by the jni module
+            "bltcp": "BusyLightDataProvider",
+            "blssl": "BusyLightDataProvider",
+
             "cdsrests": "CdsRestClient",
             "dynamics": "CdsRestClient",
 
@@ -131,7 +135,8 @@ public class ConnectionSchemeCache {
             "mewsrest": "MewsRestClient",
 
             # provided by the jni module
-            "mqtt": "MqttDataProvider",
+            "mqtttcp": "MqttDataProvider",
+            "mqtssl": "MqttDataProvider",
 
             "netsuite": "NetSuiteRestClient",
 

@@ -32,6 +32,9 @@ public class DataProvider {
     public {
         #! Map of known data provider factory names to modules
         const FactoryMap = {
+            # provided by the jni module
+            "busylight": "BusyLightDataProvider",
+
             "cdsrest": "CdsRestDataProvider",
             "csvread": "CsvUtil",
             "csvwrite": "CsvUtil",
