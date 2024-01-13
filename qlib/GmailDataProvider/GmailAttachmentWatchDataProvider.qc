@@ -125,7 +125,7 @@ public class GmailAttachmentWatchDataProvider inherits GmailMessageWatchDataProv
         return {
             EVENT_ATTACHMENT_MATCHED: <DataProviderMessageInfo>{
                 "desc": "An email attachment has been matched",
-                "type": GmailAttachmentEventDataType,
+                "type": new GmailAttachmentEventDataType(),
             },
         };
     }
@@ -169,8 +169,6 @@ public class GmailAttachmentWatchDataProvider inherits GmailMessageWatchDataProv
         return AbstractDataProvider::getExampleEventDataImpl(event_id);
     }
 }
-
-public const GmailAttachmentEventDataType = new GmailAttachmentEventDataType();
 
 public class GmailAttachmentEventDataType inherits HashDataType {
     public {

@@ -69,7 +69,7 @@ public class GmailMessageWatchDataProvider inherits GmailMessageWatchDataProvide
         return {
             EVENT_EMAIL_MATCHED: <DataProviderMessageInfo>{
                 "desc": "A email has been matched",
-                "type": GmailMessageEventDataType,
+                "type": new GmailMessageEventDataType(),
             },
         };
     }
@@ -103,8 +103,6 @@ public class GmailMessageWatchDataProvider inherits GmailMessageWatchDataProvide
     }
 }
 
-public const GmailMessageEventDataType = new GmailMessageEventDataType();
-
 public class GmailMessageEventDataType inherits HashDataType {
     constructor() : HashDataType("GmailWatchMessage") {
         AbstractDataProviderType t = GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryGmailApiName, "Message");
@@ -114,7 +112,7 @@ public class GmailMessageEventDataType inherits HashDataType {
             "display_name": "Attachments",
             "short_desc": "Message attachments",
             "desc": "Message attachments",
-            "type": new ListDataType("AttachmentList", GmailAttachmentEventDataType, True),
+            "type": new ListDataType("AttachmentList", new GmailAttachmentEventDataType(), True),
         }));
     }
 }

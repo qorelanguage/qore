@@ -552,16 +552,18 @@ public class QUnit::TestCase {
             if (!pos)
                 pos = TestCase::getPos(e);
             if (e.err == "TEST-SKIPPED-EXCEPTION") {
-                string txt = sprintf("Skip %srequested", assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
+                string txt = sprintf("%y: Skip %srequested", now_us().format("IF"),
+                    assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
                 test.addTestResult(self, TestReporter::TEST_SKIPPED, txt, pos, e.desc);
             } else if (e.err == "TEST-EXCEPTION") {
-                string txt = sprintf("Assertion %sfailure", assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
+                string txt = sprintf("%y: Assertion %sfailure", now_us().format("IF"),
+                    assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
                 test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
             }
         } else {
             # show little higher traceback record in this case
             string pos = get_ex_pos(e);
-            string errtxt = sprintf("Unexpected exception: %s", e.err);
+            string errtxt = sprintf("%y: Unexpected exception: %s", now_us().format("IF"), e.err);
             test.addTestResult(self, TestReporter::TEST_ERROR, errtxt, pos, get_exception_string(e));
         }
     }
@@ -799,7 +801,7 @@ public class QUnit::TestReporter {
 
     private printPlaintextSummary() {
         int err = errors();
-        string serrors = sprintf(", %d error", err, err == 1 ? "" : "s");
+        string serrors = sprintf(", %d error%s", err, err == 1 ? "" : "s");
         string sskipped = sprintf(", %d skipped", skipped());
         int succeeded = testCount() - errors() - skipped();
         string ssucceeded = sprintf(", %d succeeded", succeeded);
@@ -810,10 +812,11 @@ public class QUnit::TestReporter {
             assert_str += sprintf(", %d skipped", num_asserts_skip);
         assert_str += ")";
         int cnt = testCount();
-        printf("Ran %d test case%s%s%s%s%s\n", cnt, cnt == 1 ? "" : "s", succeeded > 0 ? ssucceeded : "", errors() > 0 ? serrors : "", skipped() > 0 ? sskipped : "", assert_str);
+        printf("Ran %d test case%s%s%s%s%s\n", cnt, cnt == 1 ? "" : "s", succeeded > 0 ? ssucceeded : "",
+            errors() > 0 ? serrors : "", skipped() > 0 ? sskipped : "", assert_str);
     }
 
-    private printPlaintextOneTest(hash testcase) {
+    private printPlaintextOneTest(hash<auto> testcase) {
         if (m_output == PLAINQUIET && (testcase.result == TEST_SUCCESS)) {
             return;
         }
@@ -1054,11 +1057,13 @@ addTestCase(obj);
 
         string expected;
         string actual;
-        # if values are "soft equal", then they must have different types, so we make the type differences explicit here
+        # if values are "soft equal", then they must have different types, so we make the type differences explicit
+        # here
         if (!soft_comparisons && exp.typeCode() != act.typeCode()) {
             bool done = False;
             # if the values are strings that differ only in encodings, then show the encodings
-            if (exp.typeCode() == NT_STRING && act.typeCode() == NT_STRING && exp.encoding() != act.encoding() && exp.length() == act.length()) {
+            if (exp.typeCode() == NT_STRING && act.typeCode() == NT_STRING && exp.encoding() != act.encoding()
+                && exp.length() == act.length()) {
                 # in case of encoding errors, use exception handling
                 try {
                     string nact = convert_encoding(exp.encoding(), act);
@@ -1312,7 +1317,8 @@ assertRegex("regex string", string_function());
         ++num_asserts;
 
         if (!regex(actual, regex_pattern)) {
-            throw "TEST-EXCEPTION", printUnexpectedData(regex_pattern, actual, NOTHING, NOTHING, QUC_RE), ("name": name, "pos": NOTHING);
+            throw "TEST-EXCEPTION", printUnexpectedData(regex_pattern, actual, NOTHING, NOTHING, QUC_RE),
+                {"name": name, "pos": NOTHING};
         } else {
             assertionOk(name);
         }
@@ -2006,9 +2012,8 @@ fail("Unexpected code executed");
         if (!expectedResult.equals(actualResult)) {
             auto exp = expectedResult instanceof TestResultValue ? expectedResult.m_value : expectedResult.toString();
             auto act = actualResult instanceof TestResultValue ? actualResult.m_value : actualResult.toString();
-            throw "TEST-EXCEPTION", printUnexpectedData (exp, act), ("name": name, "pos": pos);
-        }
-        else {
+            throw "TEST-EXCEPTION", printUnexpectedData (exp, act), {"name": name, "pos": pos};
+        } else {
             assertionOk(name);
         }
         return ret;
