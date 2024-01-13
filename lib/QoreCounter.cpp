@@ -91,15 +91,18 @@ struct qore_counter_private {
         SafeLocker sl(&l);
         ++waiting;
         while (cnt && cnt != Cond_Deleted) {
-            if (!timeout_ms)
-            cond.wait(&l);
-            else
-            if ((rc = cond.wait(&l, timeout_ms)))
-                break;
+            if (!timeout_ms) {
+                cond.wait(&l);
+            } else {
+                if ((rc = cond.wait(&l, timeout_ms))) {
+                    break;
+                }
+            }
         }
         --waiting;
         if (cnt == Cond_Deleted) {
-            xsink->raiseException("COUNTER-ERROR", "cannot execute Counter::waitForZero(); Counter was deleted in another thread while waiting %p", this);
+            xsink->raiseException("COUNTER-ERROR", "cannot execute Counter::waitForZero(); Counter was deleted in "
+                "another thread while waiting %p", this);
             return -1;
         }
         return rc;
