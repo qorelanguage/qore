@@ -544,6 +544,10 @@ public class QUnit::TestCase {
         return (foldl $1 + " <- " + $2, l) ?? "<unknown>";
     }
 
+    string getTimestamp() {
+        return now_us().format("YYYY-MM-DD HH:mm:SS.xx");
+    }
+
     #! handles exceptions raised while running the TestCase
     checkException(QUnit::Test test, hash<auto> e) {
         if (e.err =~ /TEST-.*EXCEPTION/) {
@@ -552,18 +556,18 @@ public class QUnit::TestCase {
             if (!pos)
                 pos = TestCase::getPos(e);
             if (e.err == "TEST-SKIPPED-EXCEPTION") {
-                string txt = sprintf("%s: Skip %srequested", now_us().format("IF"),
+                string txt = sprintf("%s: Skip %srequested", getTimestamp(),
                     assertion_name ? sprintf("of %y ", assertion_name) : NOTHING);
                 test.addTestResult(self, TestReporter::TEST_SKIPPED, txt, pos, e.desc);
             } else if (e.err == "TEST-EXCEPTION") {
-                string txt = sprintf("%s: Assertion %sfailure", now_us().format("IF"),
+                string txt = sprintf("%s: Assertion %sfailure", getTimestamp(),
                     assertion_name ? sprintf("%y ", assertion_name) : NOTHING);
                 test.addTestResult(self, TestReporter::TEST_FAILURE, txt, pos, e.desc);
             }
         } else {
             # show little higher traceback record in this case
             string pos = get_ex_pos(e);
-            string errtxt = sprintf("%s: Unexpected exception: %s", now_us().format("IF"), e.err);
+            string errtxt = sprintf("%s: Unexpected exception: %s", getTimestamp(), e.err);
             test.addTestResult(self, TestReporter::TEST_ERROR, errtxt, pos, get_exception_string(e));
         }
     }

@@ -14,7 +14,7 @@
 %requires ../../../../qlib/ConnectionProvider
 %requires ../../../../qlib/RestClient.qm
 %requires ../../../../qlib/GoogleRestClient.qm
-%requires ../../../../qlib/GmailDataProvider
+%requires ../../../../qlib/GoogleDataProvider
 %requires ../../../../qlib/GmailDataProvider
 
 %exec-class GmailDataProviderTest
