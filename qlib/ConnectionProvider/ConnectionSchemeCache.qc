@@ -136,7 +136,7 @@ public class ConnectionSchemeCache {
 
             # provided by the jni module
             "mqtttcp": "MqttDataProvider",
-            "mqtssl": "MqttDataProvider",
+            "mqttssl": "MqttDataProvider",
 
             "netsuite": "NetSuiteRestClient",
 
