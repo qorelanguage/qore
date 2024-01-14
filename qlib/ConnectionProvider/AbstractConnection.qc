@@ -26,7 +26,20 @@
 /** All public declarations in the %ConnectionProvider module are defined in this namespace
 */
 public namespace ConnectionProvider {
-#! abstract base class for connections
+/** @defgroup PingFlags Ping Flags
+*/
+#/@{
+#! Ping flag: throw exception on error
+public const PF_THROW_EXCEPTION = (1 << 0);
+
+#! Ping flag: automatic / scheduled ping
+/** This should be set internally when calling ping() and can be used by connection classes to selectively disable
+    automatic pings, for example, for metered or rate-limited connections
+*/
+public const PF_AUTOMATIC_PING =  (1 << 1);
+#/@}
+
+#! Abstract base class for connections
 /** this class can be specialized to provide for user-defined connection types
 
     @deprecated use AbstractConnectionWithInfo instead
@@ -113,6 +126,9 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
         #! internal tags (serializable)
         hash<auto> internal_info;
 
+        #! If automatic pings are disabled
+        bool disable_automatic_pings;
+
         #! internal transient tags (non-serializable)
         transient hash<auto> transient_info;
 
@@ -163,13 +179,13 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     */
     deprecated
     constructor(string name,
-                string desc,
-                string url,
-                bool monitor,
-                *hash opts,
-                hash urlh,
-                *string safe_url,
-                *bool enabled) {
+            string desc,
+            string url,
+            bool monitor,
+            *hash opts,
+            hash urlh,
+            *string safe_url,
+            *bool enabled) {
         # remove "enabled" option from option hash, if any
         *bool opt_enabled = remove opts.enabled;
         hash<auto> attributes = {
@@ -310,14 +326,28 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
 
         @return a @ref PingInfo hash
     */
-    hash<PingInfo> ping(bool throw_exception = False) {
-        hash<PingInfo> rv(self{"name", "desc", "opts"});
+    hash<PingInfo> ping(bool throw_exception) {
+        return ping(throw_exception ? PF_THROW_EXCEPTION : 0);
+    }
+
+    #! returns a hash with the results of the ping operation
+    /** @param ping_flags see @ref PingFlags for more information
+
+        @return a @ref PingInfo hash
+
+        @since %ConnectionProvider 2.0
+    */
+    hash<PingInfo> ping(int ping_flags = 0) {
+        hash<PingInfo> rv(self{"name", "desc", "opts"} + {
+            "ping_flags": ping_flags,
+        });
         rv.url = safe_url;
 
         last_check = now_us();
 
-        if (throw_exception)
+        if (ping_flags & PF_THROW_EXCEPTION) {
             return pingIntern(rv);
+        }
 
         try {
             return pingIntern(rv);
@@ -336,7 +366,9 @@ public class AbstractConnection inherits Qore::Serializable, Logger::LoggerWrapp
     #! performs the ping by executing get(); returns a @ref PingInfo hash
     private hash<PingInfo> pingIntern(hash<PingInfo> rv) {
         date start = now_us();
-        pingImpl();
+        if (!(rv.ping_flags & PF_AUTOMATIC_PING) || !disable_automatic_pings) {
+            pingImpl();
+        }
         date delta = now_us() - start;
         handlePingSuccess(delta);
         return rv += {
@@ -911,6 +943,11 @@ scheme://user:pass@hostname:port/path
 
         opts = validateOptions(getHash(config, "opts") ?? {});
         orig_opts = opts;
+
+        if (opts.disable_automatic_pings) {
+            disable_automatic_pings = True;
+        }
+
         setChildCapabilities();
     }
 

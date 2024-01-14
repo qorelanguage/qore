@@ -82,6 +82,12 @@ public class HttpConnection inherits AbstractConnectionWithInfo {
                     "desc": "The connection timeout to use in milliseconds (default: 45 seconds)",
                     "default_value": 45000,
                 },
+                "disable_automatic_pings": <ConnectionOptionInfo>{
+                    "display_name": "Disable Automatic Pings?",
+                    "short_desc": "Disables automatic pings",
+                    "type": "bool",
+                    "desc": "Disables automatic pings; useful for rate-limited or metered connections",
+                },
                 "encode_chars": <ConnectionOptionInfo>{
                     "display_name": "Encode URL Characters",
                     "short_desc": "A set of additional characters to subject to percent encoding in URLs",

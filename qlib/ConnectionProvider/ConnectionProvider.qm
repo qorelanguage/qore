@@ -516,6 +516,9 @@ public hashdecl PingInfo {
     #! a string giving the result of the ping (\c "OK" or an error message)
     string info;
 
+    #! Ping flags used for the ping
+    int ping_flags;
+
     #! an optional free-form hash giving additional info regarding ping operation or the remote system
     *hash ping_info;
 
