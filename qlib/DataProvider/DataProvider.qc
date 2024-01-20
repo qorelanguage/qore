@@ -43,6 +43,10 @@ public class DataProvider {
             "discordws": "DiscordDataProvider",
             "elasticsearch": "ElasticSearchDataProvider",
             "empathicbuilding": "EmpathicBuildingDataProvider",
+
+            # provided by the jni module
+            "excelread": "ExcelDataProvider",
+
             "file": "FileDataProvider",
             "filepoller": "FilePoller",
             "fixedlengthread": "FixedLengthUtil",
