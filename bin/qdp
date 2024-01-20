@@ -864,11 +864,7 @@ class QdpCmd {
             if (conn) {
                 prov = conn.getDataProvider(action.subtype);
             } else if (action.cls) {
-                hash<auto> constructor_opts;
-                map constructor_opts{$1.key} = remove options{$1.key},
-                    (action.convenience_options + action.advanced_options).pairIterator(),
-                    $1.value.loc == "constructor" && options.hasKey($1.key);
-                prov = Class::forName(action.cls).newObject(constructor_opts);
+                prov = DataProviderActionCatalog::getDataProviderForAction(action, \options);
             }
             # set logger on data provider
             prov.setLogger(getLogger());

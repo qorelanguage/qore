@@ -562,6 +562,21 @@ public class DataProviderActionCatalog {
             keys actionmap);
     }
 
+    #! Returns a data provider option for the given action and options
+    /** @param action the action to use to return the data provider
+        @param options a reference to options where constructor options will be taken from
+
+        @return a data provider option for the given action and options
+    */
+    static AbstractDataProvider getDataProviderForAction(hash<DataProviderActionInfo> action,
+            *reference<hash<auto>> options) {
+        hash<auto> constructor_opts;
+        map constructor_opts{$1.key} = remove options{$1.key},
+            (action.convenience_options + action.advanced_options).pairIterator(),
+            $1.value.loc == "constructor" && options.hasKey($1.key);
+        return Class::forName(action.cls).newObject(constructor_opts);
+    }
+
     #! Searches for application actions whose descriptions match a regular expression pattern
     /** @param app The application to search for actions in
         @param regex_pattern A regular expression pattern to match in the \c short_desc and \c desc fields
