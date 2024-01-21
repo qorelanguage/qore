@@ -83,7 +83,8 @@ public class EmpathicBuildingSensorsDataProvider inherits EmpathicBuildingDataPr
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         return map <DataProviderSummaryInfo>{
             "name": $1,
-            "desc": sprintf("Empathic Building org %y loc %y sensor %y", org.id, loc.id, $1),
+            "desc": sprintf("Empathic Building org %y loc %y sensor %y (%s)", org.id, loc.id, $1,
+                EmpathicBuildingSensorDataProvider::getSensorDesc(sensormap{$1})),
             "type": "EmpathicBuildingSensorDataProvider",
             "supports_children": True,
             "children_can_support_apis": True,

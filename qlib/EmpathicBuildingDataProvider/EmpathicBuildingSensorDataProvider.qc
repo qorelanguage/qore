@@ -86,6 +86,12 @@ public class EmpathicBuildingSensorDataProvider inherits EmpathicBuildingDataPro
     #! Returns a description of the sensor
     static string getSensorDesc(hash<auto> sensor) {
         string desc = sensor.name ?? sensor.uuid;
+        if (sensor.type.val()) {
+            desc += sprintf(", type: %y", sensor.type);
+            if (sensor.subtype.val()) {
+                desc += sprintf(" subtype: %y", sensor.subtype);
+            }
+        }
         if (sensor.vendor.val()) {
             desc += sprintf(", vendor: %y", sensor.vendor);
         }
@@ -117,7 +123,7 @@ public class EmpathicBuildingSensorDataProvider inherits EmpathicBuildingDataPro
             sensor.last_communication_time =
                 EmpathicBuildingDataProviderBase::getTimestamp(sensor.last_communication_time);
         }
-        if (sensor.last_communication_time) {
+        if (sensor.last_confirmed_occupation) {
             sensor.last_confirmed_occupation =
                 EmpathicBuildingDataProviderBase::getTimestamp(sensor.last_confirmed_occupation);
         }
