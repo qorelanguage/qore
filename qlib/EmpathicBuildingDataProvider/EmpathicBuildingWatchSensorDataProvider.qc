@@ -36,7 +36,6 @@ public class EmpathicBuildingWatchSensorDataProvider inherits EmpathicBuildingDa
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "watch",
-            "desc": "Empathic Building watch sensor data provider",
             "type": "EmpathicBuildingWatchSensorDataProvider",
             "supports_observable": True,
         };
@@ -110,9 +109,9 @@ public class EmpathicBuildingWatchSensorDataProvider inherits EmpathicBuildingDa
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("EmpathicBuilding data provider for org: `%s` (%s), location `%s` (%s), sensor `%s` (%s) and "
-            "url: `%s`", org.id, org.name, loc.id, loc.name, sensor.id, sensor.name ?? sensor.uuid,
-            rest.getSafeURL());
+        return sprintf("EmpathicBuilding sensor watch data provider for org: `%s` (%s), location `%s` (%s), sensor "
+            "`%s` (%s)", org.id, org.name, loc.id, loc.name, sensor.id,
+            EmpathicBuildingSensorDataProvider::getSensorDesc(sensor));
     }
 
     #! Called when all observers have been added to the object
@@ -163,9 +162,7 @@ public class EmpathicBuildingWatchSensorDataProvider inherits EmpathicBuildingDa
         while (!stop_flag) {
             hash<auto> info;
             try {
-                hash<auto> event = doRestCommand("GET", "v1/organizations/" + org.id + "/locations/" + loc.id
-                    + "/sensors/" + sensor.id, NOTHING, \info).body;
-                event = EmpathicBuildingSensorDataProvider::getSensorData(event);
+                hash<auto> event = getEvent(\info);
                 if (event != last) {
                     notifyObservers(EVENT_EB_SENSOR, event);
                     last = event;
@@ -202,6 +199,34 @@ public class EmpathicBuildingWatchSensorDataProvider inherits EmpathicBuildingDa
     #! Returns data provider static info
     private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
+    }
+
+    #! Returns event data
+    private hash<auto> getEvent(*reference<hash<auto>> info) {
+        hash<auto> event = doRestCommand("GET", "v1/organizations/" + org.id + "/locations/" + loc.id
+            + "/sensors/" + sensor.id, NOTHING, \info).body;
+        return EmpathicBuildingSensorDataProvider::getSensorData(event);
+    }
+
+    #! Returns example data for the given observable event
+    /** @param event_id the event ID of the event
+
+        @return example data for the given observable event
+
+        @throw INVALID-OPERATION the data provider does not support the observer pattern / event API
+        @throw INVALID-EVENT the event_id is not valid
+
+        @since DataProvider 3.0
+    */
+    private auto getExampleEventDataImpl(string event_id) {
+        hash<auto> info;
+        try {
+            return getEvent(\info);
+        } catch (hash<ExceptionInfo> ex) {
+            # ensure that any error response body is included in the exception
+            hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
+            rethrow ex.err, ex.desc, ex.arg + ex_arg;
+        }
     }
 }
 }

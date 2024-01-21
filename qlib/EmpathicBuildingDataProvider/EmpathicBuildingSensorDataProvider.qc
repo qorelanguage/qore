@@ -30,8 +30,6 @@ public class EmpathicBuildingSensorDataProvider inherits EmpathicBuildingDataPro
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
             "name": "sensors",
-            "desc": "Empathic Building sensors data provider; parent provider for APIs related to "
-                "sensors",
             "type": "EmpathicBuildingSensorsDataProvider",
             "supports_request": True,
             "supports_children": True,
@@ -81,9 +79,20 @@ public class EmpathicBuildingSensorDataProvider inherits EmpathicBuildingDataPro
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("EmpathicBuilding data provider for org: `%s` (%s), location `%s` (%s), sensor  `%s` (%s) and "
-            "url: `%s`", org.id, org.name, loc.id, loc.name, sensor.id, sensor.name ?? sensor.uuid,
-            rest.getSafeURL());
+        return sprintf("EmpathicBuilding data provider for org: `%s` (%s), location `%s` (%s), sensor  `%s` (%s)",
+            org.id, org.name, loc.id, loc.name, sensor.id, getSensorDesc(sensor));
+    }
+
+    #! Returns a description of the sensor
+    static string getSensorDesc(hash<auto> sensor) {
+        string desc = sensor.name ?? sensor.uuid;
+        if (sensor.vendor.val()) {
+            desc += sprintf(", vendor: %y", sensor.vendor);
+        }
+        if (sensor.vendor_id.val()) {
+            desc += sprintf(", vendor_id: %y", sensor.vendor_id);
+        }
+        return desc;
     }
 
     #! Converts ms epoch offsets to date/time values
