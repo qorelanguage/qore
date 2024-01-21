@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore EmpathicBuildingDataProvider module definition
 
-/** EmpathicBuildingMeasurementsDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** EmpathicBuildingOrganizationDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,17 +24,18 @@
 
 #! Contains all public definitions in the EmpathicBuildingDataProvider module
 public namespace EmpathicBuildingDataProvider {
-#! The parent class for Empathic Building measurement APIs
-public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingDataProviderBase {
+#! The EmpathicBuilding organization data provider class
+public class EmpathicBuildingOrganizationDataProvider inherits EmpathicBuildingDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "measurements",
-            "desc": "Empathic Building measurements data provider; parent provider for APIs related to measurements",
-            "type": "EmpathicBuildingMeasurementsDataProvider",
-            "constructor_options": EmpathicBuildingDataProvider::ConstructorOptions,
+            "name": "organizations",
+            "desc": "Empathic Building organizations data provider; parent provider for APIs related to "
+                "organizations",
+            "type": "EmpathicBuildingOrganizationsDataProvider",
             "supports_children": True,
             "children_can_support_apis": True,
+            "children_can_support_observers": True,
         };
 
         #! Provider summary info
@@ -44,30 +45,29 @@ public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingD
     }
 
     private {
+        #! Org data
+        hash<auto> org;
+
         const ChildMap = {
-            "create": Class::forName("EmpathicBuildingDataProvider::EmpathicBuildingMeasurementsCreateDataProvider"),
+            "locations": Class::forName("EmpathicBuildingDataProvider::EmpathicBuildingLocationsDataProvider"),
         };
     }
 
-    #! Creates the object from constructor options
-    constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", EmpathicBuildingDataProvider::ConstructorOptions, options);
-        rest = EmpathicBuildingDataProvider::getRestConnection(options);
-    }
-
-    #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest, *Logger::LoggerInterface logger)
+    #! Create the object from the REST connection
+    constructor(RestClient::RestClient rest, *Logger::LoggerInterface logger, hash<auto> org)
             : EmpathicBuildingDataProviderBase(rest, logger) {
+        self.org = org;
     }
 
     #! Returns the data provider name
     string getName() {
-        return ProviderInfo.name;
+        return org.id;
     }
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Empathic Building data %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
+        return sprintf("EmpathicBuilding data provider for org: `%s` (%s); url: `%s`", org.id, org.name,
+            rest.getSafeURL());
     }
 
     #! Return data provider summary info
@@ -92,11 +92,11 @@ public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingD
         if (!cls) {
             return;
         }
-        return cls.newObject(rest, logger);
+        return cls.newObject(rest, logger, org);
     }
 
     #! Returns data provider static info
-    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
+    private hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
         return ProviderInfo;
     }
 }

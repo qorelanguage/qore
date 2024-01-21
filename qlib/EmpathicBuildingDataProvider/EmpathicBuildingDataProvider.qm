@@ -93,6 +93,37 @@ module EmpathicBuildingDataProvider {
                 },
             }
         });
+
+        DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
+            "app": EmpathicBuildingDataProvider::AppName,
+            "path": "/organizations/{org}/locations/{loc}/sensors/{sensor}/watch",
+            "action": "watch-sensor",
+            "display_name": "Sensor Events",
+            "short_desc": "Watch for events on a particular Empathic Building sensor",
+            "desc": "Watch for events on a particular Empathic Building sensor",
+            "action_code": DPAT_EVENT,
+            "action_val": EVENT_EB_SENSOR,
+            "path_vars": {
+                "org": <DataProviderPathVarInfo>{
+                    "display_name": "Organization",
+                    "short_desc": "The ID of the Empathic Building organization",
+                    "desc": "The ID of the Empathic Building organization (ex: `239`)",
+                    "example_value": "239",
+                },
+                "loc": <DataProviderPathVarInfo>{
+                    "display_name": "Location",
+                    "short_desc": "The ID of the Empathic Building location",
+                    "desc": "The ID of the Empathic Building location (ex: `337`)",
+                    "example_value": "337",
+                },
+                "sensor": <DataProviderPathVarInfo>{
+                    "display_name": "Sensor",
+                    "short_desc": "The ID of the Empathic Building sensor",
+                    "desc": "The ID of the Empathic Building sensor (ex: `3241913`)",
+                    "example_value": "3241913",
+                },
+            },
+        });
     };
 }
 
@@ -113,6 +144,7 @@ module EmpathicBuildingDataProvider {
 
     This data provider provides EmpathicBuilding API access to:
     - measurements: <b><tt>measurements/{@ref EmpathicBuildingDataProvider::EmpathicBuildingMeasurementsCreateDataProvider "create"}</tt></b>
+    - sensors: <b><tt>organizations/<i>id</i>/locations/<i>id</i>/sensors/<i>id</i>/watch</tt></b>
 
     In this way EmpathicBuilding can be used for easy data integration from the Data Provider API.
 
@@ -126,6 +158,10 @@ module EmpathicBuildingDataProvider {
 
     @par API Example: Post A Measurement
     @verbatim qdp 'empathicbuilding{url=https://eu-api.haltian.com,token=xxxx}'/measurements/create dor type=reservation,vendor_id=Qorus-Dev,name="Conference room 1 reservation calendar",events='{start=2023-08-30T10:00:00,end=2023-08-30T11:00:00,subject="weekly meeting"}'
+    @endverbatim
+
+    @par Event Example: Watch For Sensor Events
+    @verbatim qdp 'empathicbuilding{url=https://eu-api.haltian.com,token=xxxx}'/organizations/239/locations/337/sensors/3241913/watch listen
     @endverbatim
 
     @section empathicbuildingdataprovider_relnotes Release Notes

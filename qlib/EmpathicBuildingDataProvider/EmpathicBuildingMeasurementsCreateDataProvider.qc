@@ -58,7 +58,8 @@ public class EmpathicBuildingMeasurementsCreateDataProvider inherits EmpathicBui
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest) : EmpathicBuildingDataProviderBase(rest) {
+    constructor(RestClient::RestClient rest, *Logger::LoggerInterface logger)
+            : EmpathicBuildingDataProviderBase(rest, logger) {
     }
 
     #! Returns the data provider name

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore EmpathicBuildingDataProvider module definition
 
-/** EmpathicBuildingMeasurementsDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** EmpathicBuildingSensorsDataProvider.qc Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,17 +24,19 @@
 
 #! Contains all public definitions in the EmpathicBuildingDataProvider module
 public namespace EmpathicBuildingDataProvider {
-#! The parent class for Empathic Building measurement APIs
-public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingDataProviderBase {
+#! The parent class for Empathic Building sensors
+public class EmpathicBuildingSensorsDataProvider inherits EmpathicBuildingDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "measurements",
-            "desc": "Empathic Building measurements data provider; parent provider for APIs related to measurements",
-            "type": "EmpathicBuildingMeasurementsDataProvider",
+            "name": "sensors",
+            "desc": "Empathic Building sensors data provider; parent provider for APIs related to "
+                "sensors",
+            "type": "EmpathicBuildingSensorsDataProvider",
             "constructor_options": EmpathicBuildingDataProvider::ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
+            "children_can_support_observers": True,
         };
 
         #! Provider summary info
@@ -44,20 +46,21 @@ public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingD
     }
 
     private {
-        const ChildMap = {
-            "create": Class::forName("EmpathicBuildingDataProvider::EmpathicBuildingMeasurementsCreateDataProvider"),
-        };
-    }
+        #! Org info
+        hash<auto> org;
 
-    #! Creates the object from constructor options
-    constructor(*hash<auto> options) {
-        checkOptions("CONSTRUCTOR-ERROR", EmpathicBuildingDataProvider::ConstructorOptions, options);
-        rest = EmpathicBuildingDataProvider::getRestConnection(options);
+        #! Loc data
+        hash<auto> loc;
+
+        #! Sensor map
+        hash<string, hash<auto>> sensormap;
     }
 
     #! Creates the object from a REST connection
-    constructor(RestClient::RestClient rest, *Logger::LoggerInterface logger)
+    constructor(RestClient::RestClient rest, *Logger::LoggerInterface logger, hash<auto> org, hash<auto> loc)
             : EmpathicBuildingDataProviderBase(rest, logger) {
+        self.org = org;
+        self.loc = loc;
     }
 
     #! Returns the data provider name
@@ -67,19 +70,31 @@ public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingD
 
     #! Returns the data provider description
     *string getDesc() {
-        return sprintf("Empathic Building data %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
+        return sprintf("EmpathicBuilding data provider for sensors for org: `%s` (%s), location `%s` (%s), and "
+            "url: `%s`", org.id, org.name, loc.id, loc.name, rest.getSafeURL());
+    }
+
+    #! Returns data provider static info
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
     }
 
     #! Return data provider summary info
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+        return map <DataProviderSummaryInfo>{
+            "name": $1,
+            "desc": sprintf("Empathic Building org %y loc %y sensor %y", org.id, loc.id, $1),
+            "type": "EmpathicBuildingSensorDataProvider",
+            "supports_children": True,
+            "children_can_support_apis": True,
+        }, getChildProviderNames();
     }
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
+        return keys getAllSensors();
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -87,17 +102,29 @@ public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingD
 
         @see getChildProviderEx()
     */
-    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
-        if (!cls) {
-            return;
+    private *AbstractDataProvider getChildProviderImpl(string name) {
+        if (*hash<auto> sensor = getAllSensors(){name}) {
+            return new EmpathicBuildingSensorDataProvider(rest, logger, org, loc, sensor);
         }
-        return cls.newObject(rest, logger);
     }
 
-    #! Returns data provider static info
-    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
-        return ProviderInfo;
+    #! Returns access info for all tables
+    private hash<string, hash<auto>> getAllSensors() {
+        if (exists sensormap) {
+            return sensormap;
+        }
+
+        hash<auto> info;
+        try {
+            sensormap = cast<*hash<string, hash<auto>>>(map {$1.id: $1}, doRestCommand("GET", "v1/organizations/"
+                + org.id + "/locations/" + loc.id + "/sensors", NOTHING, \info).body) ?? {};
+        } catch (hash<ExceptionInfo> ex) {
+            # ensure that any error response body is included in the exception
+            *hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
+            rethrow ex.err, ex.desc, ex.arg + ex_arg;
+        }
+
+        return sensormap;
     }
 }
 }

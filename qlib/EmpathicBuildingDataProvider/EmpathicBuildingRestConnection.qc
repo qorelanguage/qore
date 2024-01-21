@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore EmpathicBuildingDataProvider module definition
 
-/*  EmpathicBuildingRestConnection.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
+/*  EmpathicBuildingRestConnection.qc Copyright 2019 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,130 @@
 
 #! Contains all public definitions in the EmpathicBuildingDataProvider module
 public namespace EmpathicBuildingDataProvider {
+public class EmpathicBuildingRestClient inherits RestClient::RestClient {
+    public {
+        #! Login URI path
+        const LoginUriPath = "v1/login";
+
+        #! Token URI path
+        const TokenRefreshUriPath = "v1/token";
+    }
+
+    constructor(*hash<auto> opts, *softbool do_not_connect) : RestClient(opts, do_not_connect) {
+    }
+
+    #! Sets up authentication info
+    private setupAuth(hash<auto> opts) {
+        # set any token
+        if (opts.token) {
+            setToken(opts.token_type ?? "Bearer", opts.token, opts.refresh_token);
+        }
+
+        if (!exists getUsername() && !exists getPassword() && exists opts.username && exists opts.password) {
+            username = opts.username;
+            password = opts.password;
+        }
+        if (*string u = getUsername()) {
+            username = u;
+        }
+        if (*string p = getPassword()) {
+            password = p;
+        }
+
+        # do not send a basic auth header in any request
+        clearUserPassword();
+    }
+
+    #! Gets a new token using the refresh token
+    /** @return the response from the refresh token call
+
+        @since RestClient 2.2
+    */
+    private hash<auto> refreshTokenIntern(*reference<hash<auto>> info) {
+        # restore the old serialization option on exit
+        string old_ds = ds;
+        on_exit setSerialization(old_ds);
+        # use URL form encoding for the message body
+        setSerialization("url");
+
+        # get a new token with the refresh token
+        hash<auto> info;
+        return gotOAuth2LoginInfo(doHaltianTokenRefreshRequest(\info));
+    }
+
+    #! Checks if a login is necessary; if so, then the login is performed
+    private checkLogin(*reference<hash<auto>> info) {
+        if (!token.val() && username.val() && password.val()) {
+            loginIntern(\info);
+        }
+    }
+
+    #! Returns the deserialized response body of a Haltian token refresh request
+    private hash<auto> doHaltianTokenRefreshRequest(*reference<hash<auto>> info) {
+        hash<auto> login = {
+            "refresh_token": refresh_token,
+        };
+
+        string url = TokenRefreshUriPath;
+        on_success debug("OAuth2: POST to %y successful", url);
+        on_error debug("OAuth2: POST to %y failed: %s: %s request: %y headers: %y body: %y response: %y "
+            "headers: %y body: %y", url, $1.err, $1.desc, info."request-uri", info.headers, info."request-body",
+            info."response-uri", info."response-headers-raw", info."response-body");
+        return RestClient::doRequestIntern("POST", url, login, \info).body;
+    }
+
+    #! Returns the deserialized response body of a Haltian authorization / token request
+    private hash<auto> doHaltianLoginRequest(*reference<hash<auto>> info) {
+        hash<auto> login = {
+            "email": username,
+            "password": password,
+        };
+
+        string url = LoginUriPath;
+        on_success debug("OAuth2: POST to %y successful", url);
+        on_error debug("OAuth2: POST to %y failed: %s: %s request: %y headers: %y body: %y response: %y "
+            "headers: %y body: %y", url, $1.err, $1.desc, info."request-uri", info.headers, info."request-body",
+            info."response-uri", info."response-headers-raw", info."response-body");
+        return RestClient::doRequestIntern("POST", url, login, \info).body;
+    }
+
+    #! Returns True if the request error indicates that a refresh operation should be performed
+    private bool needsRefresh(hash<ExceptionInfo> ex, hash<auto> info, bool decode_errors) {
+        return refresh_token.val() || (username.val() && password.val());
+    }
+
+    #! Returns options to update after an OAuth2 login
+    /** @since %RestClient 2.0
+    */
+    private *hash<auto> getUpdateOptionsAfterLogin(hash<auto> h) {
+        hash<auto> new_opts;
+        if (h.token_type && h.token_type != token_type) {
+            new_opts.token_type = h.token_type;
+        }
+        if (h.access_token && h.access_token != token) {
+            new_opts.token = h.access_token;
+        }
+        if (h.refresh_token && h.refresh_token != refresh_token) {
+            new_opts.refresh_token = h.refresh_token;
+        }
+        return new_opts;
+    }
+
+    #! Authenticates with OAuth2 if configured
+    /** @since %RestClient 2.0
+    */
+    private hash<auto> loginIntern(*reference<hash<auto>> info) {
+        # restore the old serialization option on exit
+        string old_ds = ds;
+        on_exit setSerialization(old_ds);
+        # use URL form encoding for the message body
+        setSerialization("url");
+
+        hash<auto> info;
+        return gotOAuth2LoginInfo(doHaltianLoginRequest(\info));
+    }
+}
+
 #! EmpathicBuilding REST connection
 public class EmpathicBuildingRestConnection inherits RestClient::RestConnection {
     public {
@@ -39,7 +163,16 @@ public class EmpathicBuildingRestConnection inherits RestClient::RestConnection 
             "base_scheme_map": {
                 "https": "ebrests",
             },
-            "options": RestConnection::ConnectionScheme.options,
+            "options": (map {$1.key: $1.value}, RestConnection::ConnectionScheme.options.pairIterator(),
+                $1.key !~ /^oauth2_/) + {
+                "refresh_token": <ConnectionOptionInfo>{
+                    "display_name": "Refresh Token",
+                    "short_desc": "Sets the Haltian refresh token",
+                    "type": "string",
+                    "desc": "Sets the Haltian refresh token, if any (complements option `token`)",
+                    "sensitive": True,
+                },
+            },
         };
     }
 
@@ -78,6 +211,11 @@ public class EmpathicBuildingRestConnection inherits RestClient::RestConnection 
         return new EmpathicBuildingDataProvider({"restclient": get()});
     }
 
+    #! Sets features during REST client initialization
+    private setFeatures() {
+        features{CF_UPDATE_OPTIONS} = True;
+    }
+
     #! returns a @ref RestClient::RestClient "RestClient" object
     /** @param connect if @ref True "True", then the connection is returned already connected
         @param rtopts this connection type does not accept any runtime options, so this parameter is ignored
@@ -85,12 +223,24 @@ public class EmpathicBuildingRestConnection inherits RestClient::RestConnection 
         @return a @ref RestClient::RestClient "RestClient" object
     */
     private RestClient getImpl(bool connect = True, *hash<auto> rtopts) {
-        return new RestClient(getConnectionOptions(), !connect);
+        return new EmpathicBuildingRestClient(getConnectionOptions(), !connect);
     }
 
     #! Returns the connection scheme for this class
     private hash<ConnectionSchemeInfo> getConnectionSchemeInfoImpl() {
         return ConnectionScheme;
+    }
+
+    #! Processes login responses and returns updated options
+    private *hash<auto> processOAuth2TokenResponseImpl(hash<auto> resp) {
+        hash<auto> new_opts;
+        if (resp.access_token != real_opts.token) {
+            new_opts.token = resp.access_token;
+        }
+        if (resp.refresh_token && resp.refresh_token != real_opts.refresh_token) {
+            new_opts.refresh_token = resp.refresh_token;
+        }
+        return new_opts;
     }
 }
 }

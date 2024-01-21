@@ -35,6 +35,7 @@ public class EmpathicBuildingDataProviderFactory inherits DataProvider::Abstract
             "name": "empathicbuilding",
             "desc": "Empathic Building API data provider factory",
             "children_can_support_apis": True,
+            "children_can_support_observers": True,
         };
     }
 

@@ -42,6 +42,7 @@ public class EmpathicBuildingDataProvider inherits EmpathicBuildingDataProviderB
             "supports_children": True,
             "constructor_options": ConstructorOptions,
             "children_can_support_apis": True,
+            "children_can_support_observers": True,
         };
 
         #! Constructor options
@@ -80,6 +81,7 @@ public class EmpathicBuildingDataProvider inherits EmpathicBuildingDataProviderB
     private {
         const ChildMap = {
             "measurements": Class::forName("EmpathicBuildingDataProvider::EmpathicBuildingMeasurementsDataProvider"),
+            "organizations": Class::forName("EmpathicBuildingDataProvider::EmpathicBuildingOrganizationsDataProvider"),
         };
     }
 
@@ -90,7 +92,8 @@ public class EmpathicBuildingDataProvider inherits EmpathicBuildingDataProviderB
     }
 
     #! Create the object from the REST connection
-    constructor(RestClient::RestClient rest) : EmpathicBuildingDataProviderBase(rest) {
+    constructor(RestClient::RestClient rest, *Logger::LoggerInterface logger)
+            : EmpathicBuildingDataProviderBase(rest, logger) {
     }
 
     static RestClient::RestClient getRestConnection(*hash<auto> options) {
@@ -156,7 +159,7 @@ public class EmpathicBuildingDataProvider inherits EmpathicBuildingDataProviderB
         if (!cls) {
             return;
         }
-        return cls.newObject(rest);
+        return cls.newObject(rest, logger);
     }
 
     #! Returns data provider static info

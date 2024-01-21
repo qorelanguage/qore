@@ -47,8 +47,11 @@ public class DiscordDataProviderBase inherits DataProvider::AbstractDataProvider
     }
 
     #! Creates the object
-    constructor(DiscordRestClient::DiscordRestClient rest) {
+    constructor(DiscordRestClient::DiscordRestClient rest, *Logger::LoggerInterface logger) {
         self.rest = rest;
+        if (logger) {
+            setLogger(logger);
+        }
     }
 
     #! Accepts a LoggerInterface object for logging (or clears it)

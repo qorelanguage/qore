@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore EmpathicBuildingDataProvider module definition
 
-/** EmpathicBuildingMeasurementsDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** EmpathicBuildingOrganizationsDataProvider.qc Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,17 +24,19 @@
 
 #! Contains all public definitions in the EmpathicBuildingDataProvider module
 public namespace EmpathicBuildingDataProvider {
-#! The parent class for Empathic Building measurement APIs
-public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingDataProviderBase {
+#! The parent class for Empathic Building organizations
+public class EmpathicBuildingOrganizationsDataProvider inherits EmpathicBuildingDataProviderBase {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "measurements",
-            "desc": "Empathic Building measurements data provider; parent provider for APIs related to measurements",
-            "type": "EmpathicBuildingMeasurementsDataProvider",
+            "name": "organizations",
+            "desc": "Empathic Building organizations data provider; parent provider for APIs related to "
+                "organizations",
+            "type": "EmpathicBuildingOrganizationsDataProvider",
             "constructor_options": EmpathicBuildingDataProvider::ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
+            "children_can_support_observers": True,
         };
 
         #! Provider summary info
@@ -44,9 +46,8 @@ public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingD
     }
 
     private {
-        const ChildMap = {
-            "create": Class::forName("EmpathicBuildingDataProvider::EmpathicBuildingMeasurementsCreateDataProvider"),
-        };
+        #! Org map
+        hash<string, hash<auto>> orgmap;
     }
 
     #! Creates the object from constructor options
@@ -70,16 +71,27 @@ public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingD
         return sprintf("Empathic Building data %s provider for `%s`", ProviderInfo.name, rest.getSafeURL());
     }
 
+    #! Returns data provider static info
+    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
+        return ProviderInfo;
+    }
+
     #! Return data provider summary info
     *list<hash<DataProvider::DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
+        return map <DataProviderSummaryInfo>{
+            "name": $1,
+            "desc": sprintf("Empathic Building org %y", $1),
+            "type": "EmpathicBuildingOrganizationDataProvider",
+            "supports_children": True,
+            "children_can_support_apis": True,
+        }, getChildProviderNames();
     }
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
+        return keys getAllOrgs();
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -87,17 +99,29 @@ public class EmpathicBuildingMeasurementsDataProvider inherits EmpathicBuildingD
 
         @see getChildProviderEx()
     */
-    private *DataProvider::AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
-        if (!cls) {
-            return;
+    private *AbstractDataProvider getChildProviderImpl(string name) {
+        if (*hash<auto> org = getAllOrgs(){name}) {
+            return new EmpathicBuildingOrganizationDataProvider(rest, logger, org);
         }
-        return cls.newObject(rest, logger);
     }
 
-    #! Returns data provider static info
-    hash<DataProvider::DataProviderInfo> getStaticInfoImpl() {
-        return ProviderInfo;
+    #! Returns access info for all tables
+    private hash<string, hash<auto>> getAllOrgs() {
+        if (exists orgmap) {
+            return orgmap;
+        }
+
+        hash<auto> info;
+        try {
+            orgmap = cast<*hash<string, hash<auto>>>(map {$1.id: $1}, doRestCommand("GET", "v1/organizations",
+                NOTHING, \info).body) ?? {};
+        } catch (hash<ExceptionInfo> ex) {
+            # ensure that any error response body is included in the exception
+            *hash<auto> ex_arg = info{"request-uri", "response-code", "response-body"};
+            rethrow ex.err, ex.desc, ex.arg + ex_arg;
+        }
+
+        return orgmap;
     }
 }
 }
