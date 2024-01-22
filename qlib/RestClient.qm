@@ -1384,7 +1384,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     }
 
     #! Returns True if the request error indicates that a refresh operation should be performed
-    private bool needsRefresh(hash<ExceptionInfo> ex, hash<auto> info, bool decode_errors) {
+    private bool needsRefresh(hash<ExceptionInfo> ex, *hash<auto> info, bool decode_errors) {
         return oauth2_grant_type && oauth2_grant_type != "none" && oauth2_auto_refresh
             && ((now_us() - token_timestamp) > MinimumTokenRefresh) && info."response-code"
             && isAuthTokenError(info."response-code", info."response-headers", decode_errors,

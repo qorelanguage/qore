@@ -112,7 +112,7 @@ public class EmpathicBuildingRestClient inherits RestClient::RestClient {
     }
 
     #! Returns True if the request error indicates that a refresh operation should be performed
-    private bool needsRefresh(hash<ExceptionInfo> ex, hash<auto> info, bool decode_errors) {
+    private bool needsRefresh(hash<ExceptionInfo> ex, *hash<auto> info, bool decode_errors) {
         return refresh_token.val() || (username.val() && password.val());
     }
 
