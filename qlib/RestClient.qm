@@ -724,11 +724,8 @@ RestClient rest({"url": "http://localhost:8001/rest"});
         setupAuth(opts);
 
         if (!do_not_connect) {
-            if (oauth2_grant_type && oauth2_grant_type != "none" && !token) {
-                loginIntern();
-            } else {
-                connect();
-            }
+            checkLogin();
+            connect();
         }
     }
 
@@ -1328,7 +1325,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         passed to the method, then the body will be serialized according to the serialization rules set in
         @ref RestClient::RestClient::constructor() "RestCde any content encoding)
         - \c request-serialization: the type of message serialization in the request; see
-            @ref DataSerializationOptions for possible values when used with the null REST schema validator
+          @ref DataSerializationOptions for possible values when used with the null REST schema validator
         @param decode_errors decode the message body with HTTP error responses and throw an exception based on the
         message body
         @param hdr any headers to be sent with the request; headers here will override default headers for the
@@ -1549,6 +1546,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     /** @since %RestClient 2.0
     */
     hash<auto> gotOAuth2LoginInfo(hash<auto> h) {
+        debug("login info: %y", h);
         if (h.token_type.typeCode() != NT_STRING || h.access_token.typeCode() != NT_STRING) {
             throw "REST-LOGIN-ERROR", sprintf("OAuth2 response for grant type %y is invalid, needs both "
                 "token_type (%y) and access_token (%y)", oauth2_grant_type, h.token_type, h.access_token);
@@ -1577,8 +1575,8 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
     */
     private setOAuth2LoginInfo(hash<auto> h) {
         setToken(h.token_type, h.access_token, h.refresh_token);
-        debug("RestClient: set OAuth2 auth header: %s %s; refresh_token: %s (%s)", h.token_type, h.access_token,
-            h.refresh_token ?? "n/a", refresh_token ? sprintf("keeping %y", refresh_token) : "no refresh token set");
+        debug("RestClient: set OAuth2 auth header: %s %s; refresh_token: %s", h.token_type, h.access_token,
+            h.refresh_token ?? "n/a");
     }
 
     #! Returns options to update after an OAuth2 login
@@ -1896,6 +1894,7 @@ hash<auto> ans = rest.doRequest("DELETE", "/orders/1");
         hash<auto> h;
 
         try {
+            debug("sending %y: path: %y body: %d bytes hdr: %y", m, path, body.size(), hdr);
             h = send(body, m, path, hdr, False, \info);
             info."response-code" = h.status_code;
             debug("RestClient sent: %y received: %y (%s bytes%s)", info."request-uri", info."response-uri",
@@ -3117,7 +3116,6 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
     }
 
     private gotOAuth2LoginInfo(hash<auto> h) {
-        rc.debug("RestConnection ping: got OAuth2 login response: %y", h);
         rc.gotOAuth2LoginInfo(h);
         doStartPing();
     }

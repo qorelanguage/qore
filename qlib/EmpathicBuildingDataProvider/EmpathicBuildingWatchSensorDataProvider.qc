@@ -84,7 +84,7 @@ public class EmpathicBuildingWatchSensorDataProvider inherits EmpathicBuildingDa
         bool stop_flag;
 
         #! Poll interval in milliseconds
-        timeout poll_interval_ms = PollInterval;
+        timeout poll_interval_ms;
     }
 
     #! Create the object from the REST connection
@@ -94,7 +94,10 @@ public class EmpathicBuildingWatchSensorDataProvider inherits EmpathicBuildingDa
         self.loc = loc;
         self.sensor = sensor;
 
-        printf("sensor: %y\n", sensor);
+        poll_interval_ms = ImpliedArgumentHelper::get().poll_interval_ms ?? PollInterval;
+        if (poll_interval_ms < 0) {
+            throw "POLL-INTERVAL-ARG-ERROR", sprintf("poll_interval_ms %d is negative", poll_interval_ms);
+        }
     }
 
     #! Destroys the object
@@ -110,7 +113,8 @@ public class EmpathicBuildingWatchSensorDataProvider inherits EmpathicBuildingDa
     #! Returns the data provider description
     *string getDesc() {
         return sprintf("EmpathicBuilding sensor watch data provider for org: `%s` (%s), location `%s` (%s), sensor "
-            "`%s` (%s)", org.id, org.name, loc.id, loc.name, sensor.id,
+            "`%s` (%s). This data provider uses a REST `GET` request on each poll to poll for sensor data; a sensor "
+            "event is only raised when the polled data change", org.id, org.name, loc.id, loc.name, sensor.id,
             EmpathicBuildingSensorDataProvider::getSensorDesc(sensor));
     }
 
@@ -174,7 +178,7 @@ public class EmpathicBuildingWatchSensorDataProvider inherits EmpathicBuildingDa
                     loc.id, sensor.id, get_exception_string(ex));
             }
 
-            debug("Sleeping for %d ms until next poll", poll_interval_ms);
+            debug("Sleeping for %gs until next poll", poll_interval_ms / 1000n);
 
             m.lock();
             on_exit m.unlock();

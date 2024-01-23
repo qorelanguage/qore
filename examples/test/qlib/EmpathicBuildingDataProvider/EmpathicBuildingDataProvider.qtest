@@ -78,6 +78,9 @@ public class Main inherits QUnit::Test {
         assertEq("empathicbuilding", prov.getName());
         prov = prov.getChildProviderPath("measurements/create");
         assertEq("create", prov.getName());
+
+        prov = ebrc.getDataProvider().getChildProviderPath("organizations");
+        assertEq("organizations", prov.getName());
     }
 
     connectionTest() {

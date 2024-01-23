@@ -123,6 +123,15 @@ module EmpathicBuildingDataProvider {
                     "example_value": "3241913",
                 },
             },
+            "convenience_options": {
+                "poll_interval_ms": <ActionOptionInfo>{
+                    "display_name": "Poll Interval",
+                    "short_desc": "The poll interval as an integer in milliseconds",
+                    "desc": "The poll interval as an integer in milliseconds",
+                    "type": "int",
+                    "default_value": 10000,
+                },
+            },
         });
     };
 }

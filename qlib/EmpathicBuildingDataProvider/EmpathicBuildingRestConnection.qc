@@ -31,9 +31,29 @@ public class EmpathicBuildingRestClient inherits RestClient::RestClient {
 
         #! Token URI path
         const TokenRefreshUriPath = "v1/token";
+
+        #! Default ping method
+        const DefaultPingMethod= "GET";
+
+        #! Default ping path
+        const DefaultPingPath = "v1/current_time";
+
+        #! Default options
+        const DefaultOptions = {
+            "ping_method": DefaultPingMethod,
+            "ping_path": DefaultPingPath,
+        };
     }
 
-    constructor(*hash<auto> opts, *softbool do_not_connect) : RestClient(opts, do_not_connect) {
+    private {
+        #! Is refresh broken?
+        /** 2024-01-23: all "access_token" values returned by the Haltian server on this date are invalid; only the
+            undocumented "token" response to the login API is working
+        */
+        bool broken_refresh = True;
+    }
+
+    constructor(*hash<auto> opts, *softbool do_not_connect) : RestClient(DefaultOptions + opts, do_not_connect) {
     }
 
     #! Sets up authentication info
@@ -41,6 +61,8 @@ public class EmpathicBuildingRestClient inherits RestClient::RestClient {
         # set any token
         if (opts.token) {
             setToken(opts.token_type ?? "Bearer", opts.token, opts.refresh_token);
+        } else if (opts.refresh_token) {
+            refresh_token = opts.refresh_token;
         }
 
         if (!exists getUsername() && !exists getPassword() && exists opts.username && exists opts.password) {
@@ -70,16 +92,45 @@ public class EmpathicBuildingRestClient inherits RestClient::RestClient {
         # use URL form encoding for the message body
         setSerialization("url");
 
+        # do a normal login if there is no refresh token, or if refresh operations are marked as broken
+        if ((broken_refresh || !refresh_token) && (username.val() && password.val())) {
+            return loginIntern(\info);
+        }
+
         # get a new token with the refresh token
-        hash<auto> info;
-        return gotOAuth2LoginInfo(doHaltianTokenRefreshRequest(\info));
+        try {
+            return gotOAuth2LoginInfo(doHaltianTokenRefreshRequest(\info));
+        } catch (hash<ExceptionInfo> ex) {
+            if (refreshTokenInvalid(ex, info) && username.val() && password.val()) {
+                debug("");
+                return loginIntern(\info);
+            }
+            rethrow;
+        }
+    }
+
+    private bool refreshTokenInvalid(hash<ExceptionInfo> ex, *hash<auto> info) {
+        return info."response-code" == 401;
     }
 
     #! Checks if a login is necessary; if so, then the login is performed
     private checkLogin(*reference<hash<auto>> info) {
-        if (!token.val() && username.val() && password.val()) {
-            loginIntern(\info);
+        if (!token.val()) {
+            if (refresh_token) {
+                refreshTokenIntern(\info);
+            } else if (username.val() && password.val()) {
+                loginIntern(\info);
+            }
         }
+    }
+
+    #! Called when OAuth2 login information has been received
+    hash<auto> gotOAuth2LoginInfo(hash<auto> h) {
+        # prefer "token" to "access_token"
+        if (h.token && h.token != h.access_token) {
+            h.access_token = h.token;
+        }
+        return RestClient::gotOAuth2LoginInfo(h);
     }
 
     #! Returns the deserialized response body of a Haltian token refresh request
@@ -89,8 +140,8 @@ public class EmpathicBuildingRestClient inherits RestClient::RestClient {
         };
 
         string url = TokenRefreshUriPath;
-        on_success debug("OAuth2: POST to %y successful", url);
-        on_error debug("OAuth2: POST to %y failed: %s: %s request: %y headers: %y body: %y response: %y "
+        on_success debug("Haltian: POST to %y successful", url);
+        on_error debug("Haltian: POST to %y failed: %s: %s request: %y headers: %y body: %y response: %y "
             "headers: %y body: %y", url, $1.err, $1.desc, info."request-uri", info.headers, info."request-body",
             info."response-uri", info."response-headers-raw", info."response-body");
         return RestClient::doRequestIntern("POST", url, login, \info).body;
@@ -104,8 +155,8 @@ public class EmpathicBuildingRestClient inherits RestClient::RestClient {
         };
 
         string url = LoginUriPath;
-        on_success debug("OAuth2: POST to %y successful", url);
-        on_error debug("OAuth2: POST to %y failed: %s: %s request: %y headers: %y body: %y response: %y "
+        on_success debug("Haltian: POST to %y successful", url);
+        on_error debug("Haltian: POST to %y failed: %s: %s request: %y headers: %y body: %y response: %y "
             "headers: %y body: %y", url, $1.err, $1.desc, info."request-uri", info.headers, info."request-body",
             info."response-uri", info."response-headers-raw", info."response-body");
         return RestClient::doRequestIntern("POST", url, login, \info).body;
@@ -116,7 +167,7 @@ public class EmpathicBuildingRestClient inherits RestClient::RestClient {
         return refresh_token.val() || (username.val() && password.val());
     }
 
-    #! Returns options to update after an OAuth2 login
+    #! Returns options to update after a login operation
     /** @since %RestClient 2.0
     */
     private *hash<auto> getUpdateOptionsAfterLogin(hash<auto> h) {
@@ -133,9 +184,7 @@ public class EmpathicBuildingRestClient inherits RestClient::RestClient {
         return new_opts;
     }
 
-    #! Authenticates with OAuth2 if configured
-    /** @since %RestClient 2.0
-    */
+    #! Authenticates with a user and password if configured
     private hash<auto> loginIntern(*reference<hash<auto>> info) {
         # restore the old serialization option on exit
         string old_ds = ds;
@@ -165,6 +214,12 @@ public class EmpathicBuildingRestConnection inherits RestClient::RestConnection 
             },
             "options": (map {$1.key: $1.value}, RestConnection::ConnectionScheme.options.pairIterator(),
                 $1.key !~ /^oauth2_/) + {
+                "ping_method": RestConnection::ConnectionScheme.options.ping_method + <ConnectionOptionInfo>{
+                    "default_value": EmpathicBuildingRestClient::DefaultPingMethod,
+                },
+                "ping_path": RestConnection::ConnectionScheme.options.ping_path + <ConnectionOptionInfo>{
+                    "default_value": EmpathicBuildingRestClient::DefaultPingPath,
+                },
                 "refresh_token": <ConnectionOptionInfo>{
                     "display_name": "Refresh Token",
                     "short_desc": "Sets the Haltian refresh token",
