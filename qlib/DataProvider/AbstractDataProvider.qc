@@ -1914,7 +1914,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     */
     *AbstractDataProvider getChildProvider(string name) {
         *AbstractDataProvider child = getChildProviderImpl(name);
-        if (logger && !child.logger) {
+        if (child && logger && !child.logger) {
             child.setLogger(logger);
         }
         return child;
