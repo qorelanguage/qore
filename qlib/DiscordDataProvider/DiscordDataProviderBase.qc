@@ -117,13 +117,15 @@ public class DiscordDataProviderBase inherits DataProvider::AbstractDataProvider
                         }
                         warn("RATE LIMIT: connection sleeping for: %y", diff);
                         threadWait(diff);
-                        continue;
                     }
+                    continue;
                 }
                 if (retry(ex, \retries)) {
                     continue;
                 }
-                rethrow;
+                rethrow ex.err, sprintf("%s (HTTP response code: %y x-ratelimit-remaining: %y x-ratelimit-reset: %y)",
+                    ex.desc, info."response-headers".status_code, info."response-headers"."x-ratelimit-remaining",
+                    info."response-headers"."x-ratelimit-reset");
             }
         }
     }
