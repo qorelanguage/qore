@@ -117,7 +117,7 @@ public class EmpathicBuildingSensorsDataProvider inherits EmpathicBuildingDataPr
 
         hash<auto> info;
         try {
-            sensormap = cast<*hash<string, hash<auto>>>(map {$1.id: $1}, doRestCommand("GET", "v1/organizations/"
+            sensormap = cast<*hash<string, hash<auto>>>(map {($1.vendor_id ? ($1.vendor_id + "-" + $1.id) : $1.id): $1}, doRestCommand("GET", "v1/organizations/"
                 + org.id + "/locations/" + loc.id + "/sensors", NOTHING, \info).body) ?? {};
         } catch (hash<ExceptionInfo> ex) {
             # ensure that any error response body is included in the exception
