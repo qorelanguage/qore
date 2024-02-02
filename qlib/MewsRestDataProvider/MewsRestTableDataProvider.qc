@@ -81,8 +81,10 @@ public class MewsRestTableDataProvider inherits MewsRestDataProviderBase {
         }) + {
             DP_SEARCH_OP_EQ: <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": DP_SEARCH_OP_EQ,
-                "name": "equals (=)",
+                "name": DP_SEARCH_OP_EQ,
+                "display_name": "equals (=)",
+                "short_desc": "a value for equality comparisons; the type of the value should correspond to the "
+                    "field type",
                 "desc": "a value for equality comparisons; the type of the value should correspond to the field "
                     "type",
                 "symbol": "==",

@@ -1474,8 +1474,9 @@ end";
                 COP_CAST: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_CAST,
-                        "name": "cast",
+                        "name": COP_CAST,
+                        "display_name": "cast",
+                        "short_desc": "cast operator",
                         "desc": "cast operator",
                         "symbol": "cast",
                         "args": (
@@ -1528,8 +1529,9 @@ end";
                 COP_YEAR: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_YEAR,
                         "name": COP_YEAR,
+                        "display_name": COP_YEAR,
+                        "short_desc": "returns the year component of a date as a string (ex: 2022)",
                         "desc": "returns the year component of a date as a string (ex: `2022`)",
                         "symbol": COP_YEAR,
                         "args": (
@@ -1546,8 +1548,9 @@ end";
                 COP_YEAR_MONTH: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_YEAR_MONTH,
                         "name": COP_YEAR_MONTH,
+                        "display_name": COP_YEAR_MONTH,
+                        "short_desc": "returns the year and month components of a date as a string (ex: 2022-06)",
                         "desc": "returns the year and month components of a date as a string (ex: `2022-06`)",
                         "symbol": COP_YEAR_MONTH,
                         "args": (
@@ -1564,8 +1567,10 @@ end";
                 COP_YEAR_DAY: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_YEAR_DAY,
                         "name": COP_YEAR_DAY,
+                        "display_name": COP_YEAR_DAY,
+                        "short_desc": "returns the year, month, and day components of a date as a string (ex: "
+                            "2022-06-29)",
                         "desc": "returns the year, month, and day components of a date as a string (ex: `2022-06-29`)",
                         "symbol": COP_YEAR_DAY,
                         "args": (
@@ -1582,8 +1587,10 @@ end";
                 COP_YEAR_HOUR: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_YEAR_HOUR,
                         "name": COP_YEAR_HOUR,
+                        "display_name": COP_YEAR_HOUR,
+                        "short_desc": "returns the year, month, day, and hour components of a date as a string "
+                            "(ex: 2022-06-29 15)",
                         "desc": "returns the year, month, day, and hour components of a date as a string "
                             "(ex: `2022-06-29 15`)",
                         "symbol": COP_YEAR_HOUR,
@@ -1601,8 +1608,10 @@ end";
                 COP_TRUNC_DATE: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_TRUNC_DATE,
                         "name": COP_TRUNC_DATE,
+                        "display_name": COP_TRUNC_DATE,
+                        "short_desc": "truncates the given date to the given resolution; args: date, string code: "
+                            "Y: year, M: month, D: day, H: hour, m: minute, S: second",
                         "desc": "truncates the given date to the given resolution; args: date, string code: Y: year, "
                             "M: month, D: day, H: hour, m: minute, S: second",
                         "symbol": COP_TRUNC_DATE,

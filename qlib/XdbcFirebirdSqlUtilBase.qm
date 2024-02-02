@@ -1024,8 +1024,9 @@ auto v = c.name;
                 COP_AS: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": "as",
                         "name": "as",
+                        "display_name": "as",
+                        "short_desc": "aliases a result; args: expression or value, string label",
                         "desc": "aliases a result; args: expression or value, string label",
                         "symbol": "as",
                         "role": ER_Field,
@@ -1046,8 +1047,9 @@ auto v = c.name;
                 COP_CAST: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_CAST,
-                        "name": "cast",
+                        "name": COP_CAST,
+                        "display_name": "cast",
+                        "short_desc": "cast operator",
                         "desc": "cast operator",
                         "symbol": "cast",
                         "args": (
@@ -1082,8 +1084,9 @@ auto v = c.name;
                 COP_LENGTH: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_LENGTH,
                         "name": COP_LENGTH,
+                        "display_name": COP_LENGTH,
+                        "short_desc": "Returns the length of the argument",
                         "desc": "Returns the length of the argument",
                         "symbol": COP_LENGTH,
                         "args": (
@@ -1099,8 +1102,9 @@ auto v = c.name;
                 OP_IN: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": OP_IN,
                         "name": OP_IN,
+                        "display_name": OP_IN,
+                        "short_desc": "returns True if the first value is in the list of following values",
                         "desc": "returns True if the first value is in the list of following values",
                         "symbol": OP_IN,
                         "args": (

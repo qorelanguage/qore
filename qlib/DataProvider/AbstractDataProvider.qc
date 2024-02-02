@@ -414,15 +414,20 @@ public hashdecl DataProviderExpressionInfo {
     #! The type of expression; see @ref dataprovider_expression_type_codes
     int type;
 
-    #! The label used for the expression
+    #! The technical name or internal label used for the expression
     /** Must correspond to the key used in any expression hash
     */
-    string label;
-
-    #! The display name
     string name;
 
+    #! The display name
+    string display_name;
+
+    #! The short description of the operation
+    string short_desc;
+
     #! The description of the operation
+    /** With markdown formatting
+    */
     string desc;
 
     #! The symbol to use when rendering expressions
@@ -824,8 +829,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_OP_AND: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_OP_AND,
-                    "name": "and (&&)",
+                    "name": DP_OP_AND,
+                    "display_name": "and (&&)",
                     "desc": "logical AND operation supporting logic short-circuiting",
                     "symbol": "&&",
                     "args": (DataProviderSignatureBoolType),
@@ -844,8 +849,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_OP_OR: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_OP_OR,
-                    "name": "or (||)",
+                    "name": DP_OP_OR,
+                    "display_name": "or (||)",
                     "desc": "logical OR operation supporting logic short-circuiting",
                     "symbol": "||",
                     "args": (DataProviderSignatureBoolType),
@@ -864,8 +869,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_SEARCH_OP_EQ: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_SEARCH_OP_EQ,
-                    "name": "equals (=)",
+                    "name": DP_SEARCH_OP_EQ,
+                    "display_name": "equals (=)",
                     "desc": "a value for equality comparisons; the type of the value should correspond to the field "
                         "type",
                     "symbol": "==",
@@ -884,8 +889,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_SEARCH_OP_NE: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_SEARCH_OP_NE,
-                    "name": "not equals (!=)",
+                    "name": DP_SEARCH_OP_NE,
+                    "display_name": "not equals (!=)",
                     "desc": "a value for not-equals comparisons; the type of the value should correspond to the "
                         "field type",
                     "symbol": "!=",
@@ -900,8 +905,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_SEARCH_OP_LT: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_SEARCH_OP_LT,
-                    "name": "less than (<)",
+                    "name": DP_SEARCH_OP_LT,
+                    "display_name": "less than (<)",
                     "desc": "a value for less than comparisons; if the field value is less than the argument, then "
                         "the operation returns true; the type of the value should correspond to the field type",
                     "symbol": "<",
@@ -916,8 +921,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_SEARCH_OP_LE: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_SEARCH_OP_LE,
-                    "name": "less than or equals (<=)",
+                    "name": DP_SEARCH_OP_LE,
+                    "display_name": "less than or equals (<=)",
                     "desc": "a value for less than or equals comparisons; if the field value is less than or equal "
                         "to the argument, then the operation returns true; the type of the value should correspond "
                         "to the field type",
@@ -933,8 +938,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_SEARCH_OP_GT: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_SEARCH_OP_GT,
-                    "name": "greater than (>)",
+                    "name": DP_SEARCH_OP_GT,
+                    "display_name": "greater than (>)",
                     "desc": "a value for less than comparisons; if the field value is less than the argument, then "
                         "the operation returns true; the type of the value should correspond to the field type",
                     "symbol": ">",
@@ -949,8 +954,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_SEARCH_OP_GE: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_SEARCH_OP_GE,
-                    "name": "greater than or equals (>=)",
+                    "name": DP_SEARCH_OP_GE,
+                    "display_name": "greater than or equals (>=)",
                     "desc": "a value for greater than or equals comparisons; if the field value is greater than or "
                         "equal to the argument, then the operation returns true; the type of the value should "
                         "correspond to the field type",
@@ -966,8 +971,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_SEARCH_OP_BETWEEN: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_SEARCH_OP_BETWEEN,
-                    "name": "between",
+                    "name": DP_SEARCH_OP_BETWEEN,
+                    "display_name": "between",
                     "desc": "A list with two elements giving the lower and upper bounds of the field value; the list "
                         "element value types must be equal to the field's type",
                     "symbol": "between",
@@ -987,8 +992,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_SEARCH_OP_IN: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_SEARCH_OP_IN,
-                    "name": "in",
+                    "name": DP_SEARCH_OP_IN,
+                    "display_name": "in",
                     "desc": "A list giving possible values of the field;  if the field's value matches any of the "
                         "values in the list, then the operation returns true; element value types must be equal to "
                         "the field's type",
@@ -1005,8 +1010,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_SEARCH_OP_NOT: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_SEARCH_OP_NOT,
-                    "name": "logical not (!)",
+                    "name": DP_SEARCH_OP_NOT,
+                    "display_name": "logical not (!)",
                     "desc": "This operator reverses the logcal value of the operator expression given as an argument",
                     "symbol": "!",
                     "args": (DataProviderSignatureBoolType,),
@@ -1019,8 +1024,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_SEARCH_OP_REGEX: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": DP_SEARCH_OP_REGEX,
-                    "name": "regular expression match",
+                    "name": DP_SEARCH_OP_REGEX,
+                    "display_name": "regular expression match",
                     "desc": "regular expression operator; the first argument will be processed with the second as a "
                         "regular expression pattern",
                     "symbol": "regex",
@@ -2253,10 +2258,10 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         if (value.typeCode() == NT_HASH && value.op && value.hasKey("arg")) {
             hash<DataProviderExpressionInfo> expinfo = getExpression(role, value.op, info.expressions);
             rv = <DataProviderExpression>{
-                "exp": expinfo.label,
+                "exp": expinfo.name,
                 "args": value.arg.op && value.arg.arg
                     ? <DataProviderExpression>{
-                        "exp": getExpression(role, value.arg.op, info.expressions).label,
+                        "exp": getExpression(role, value.arg.op, info.expressions).name,
                         "args": (<DataProviderFieldReference>{"field": key}, value.arg.arg),
                     }
                     : (<DataProviderFieldReference>{"field": key}, value.arg),
@@ -2393,7 +2398,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         @param expmap the map of supported expressions for this data provider
         @param caps the logic capabilities supported by the data provider for the current operation
         @param expected_type the type the expression should be compatible with
-        @param exp the expression code / label to process
+        @param exp the expression to process
 
         @throw DATA-PROVIDER-EXPRESSION-ERROR the expression has an error; argument mismatch, type error, etc
     */
@@ -2408,7 +2413,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         @param expinfo the definition of the expression to evaluate
         @param caps the logic capabilities supported by the data provider for the current operation
         @param expected_type the type the expression should be compatible with
-        @param exp the expression code / label to process
+        @param exp the expression to process
 
         @throw DATA-PROVIDER-EXPRESSION-ERROR the expression has an error; argument mismatch, type error, etc
     */
@@ -2417,7 +2422,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         # check arguments
         if (exp.args.lsize() > expinfo.args.size() && !expinfo.varargs) {
             throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("value provided for expression %y has too many values "
-                "(%d); only max %d are accepted", expinfo.label, exp.args.lsize(), expinfo.args.size());
+                "(%d); only max %d are accepted", expinfo.name, exp.args.lsize(), expinfo.args.size());
         }
         map AbstractDataProvider::verifyExpressionArgValue(role, caps, expinfo, exp.args, $#), expinfo.args;
         if (exp.args.lsize() > expinfo.args.size()) {
@@ -2427,7 +2432,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
         }
         if (!expected_type.isAssignableFrom(expinfo.return_type)) {
             throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expecting a %y value, but expression %y returns a %y "
-                "value instead", expected_type.getName(), expinfo.label, expinfo.return_type.getName());
+                "value instead", expected_type.getName(), expinfo.name, expinfo.return_type.getName());
         }
     }
 
@@ -2454,7 +2459,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             case ST_Value:
                 if (is_exp || is_ref) {
                     throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y argument %d/%d expects a value; "
-                        "got %y instead", expinfo.label, pos + 1, values.size(),
+                        "got %y instead", expinfo.name, pos + 1, values.size(),
                         is_exp ? "nested expression" : "field reference");
                 }
                 if (!arginfo.type.isAssignableFrom(Type::getType(val))) {
@@ -2465,7 +2470,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             case ST_Field:
                 if (!is_ref) {
                     throw "DATA-PROVIDER-EXPRESSION-ERROR", sprintf("expression %y argument %d/%d expects a field "
-                        "reference; got %y instead", expinfo.label, pos + 1, values.size(),
+                        "reference; got %y instead", expinfo.name, pos + 1, values.size(),
                         is_exp ? "nested expression" : "value");
                 }
                 return;

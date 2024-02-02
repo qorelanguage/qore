@@ -1841,8 +1841,8 @@ auto v = c.name;
                 COP_CAST: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_CAST,
-                        "name": "cast",
+                        "name": COP_CAST,
+                        "display_name": "cast",
                         "desc": "cast operator",
                         "symbol": "cast",
                         "args": (
@@ -1877,8 +1877,8 @@ auto v = c.name;
                 COP_YEAR: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_YEAR,
                         "name": COP_YEAR,
+                        "display_name": COP_YEAR,
                         "desc": "returns the year component of a date as a string (ex: `2022`)",
                         "symbol": COP_YEAR,
                         "args": (
@@ -1895,8 +1895,8 @@ auto v = c.name;
                 COP_YEAR_MONTH: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_YEAR_MONTH,
                         "name": COP_YEAR_MONTH,
+                        "display_name": COP_YEAR_MONTH,
                         "desc": "returns the year and month components of a date as a string (ex: `2022-06`)",
                         "symbol": COP_YEAR_MONTH,
                         "args": (
@@ -1913,8 +1913,8 @@ auto v = c.name;
                 COP_YEAR_DAY: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_YEAR_DAY,
                         "name": COP_YEAR_DAY,
+                        "display_name": COP_YEAR_DAY,
                         "desc": "returns the year, month, and day components of a date as a string (ex: `2022-06-29`)",
                         "symbol": COP_YEAR_DAY,
                         "args": (
@@ -1931,8 +1931,8 @@ auto v = c.name;
                 COP_YEAR_HOUR: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_YEAR_HOUR,
                         "name": COP_YEAR_HOUR,
+                        "display_name": COP_YEAR_HOUR,
                         "desc": "returns the year, month, day, and hour components of a date as a string "
                             "(ex: `2022-06-29 15`)",
                         "symbol": COP_YEAR_HOUR,
@@ -1950,8 +1950,8 @@ auto v = c.name;
                 COP_TRUNC_DATE: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_TRUNC_DATE,
                         "name": COP_TRUNC_DATE,
+                        "display_name": COP_TRUNC_DATE,
                         "desc": "truncates the given date to the given resolution; args: date, string code: Y: year, "
                             "M: month, D: day, H: hour, m: minute, S: second",
                         "symbol": COP_TRUNC_DATE,
@@ -1979,8 +1979,8 @@ auto v = c.name;
                 OP_IN: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": OP_IN,
                         "name": OP_IN,
+                        "display_name": OP_IN,
                         "desc": "returns True if the first value is in the list of following values",
                         "symbol": OP_IN,
                         "args": (
@@ -2065,8 +2065,8 @@ auto v = c.name;
                 COP_SEQ: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_SEQ,
                         "name": COP_SEQ,
+                        "display_name": COP_SEQ,
                         "desc": "returns the next value in the given sequence; args: sequence name",
                         "symbol": COP_SEQ,
                         "args": (
@@ -2081,8 +2081,8 @@ auto v = c.name;
                 COP_SEQ_CURRVAL: {
                     "exp": <DataProviderExpressionInfo>{
                         "type": DET_Operator,
-                        "label": COP_SEQ_CURRVAL,
                         "name": COP_SEQ_CURRVAL,
+                        "display_name": COP_SEQ_CURRVAL,
                         "desc": "returns the current value in the given sequence; args: sequence name",
                         "symbol": COP_SEQ_CURRVAL,
                         "args": (

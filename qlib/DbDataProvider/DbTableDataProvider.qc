@@ -51,9 +51,10 @@ public class DbTableDataProvider inherits AbstractDataProvider {
             "expressions": (AbstractDataProvider::GenericExpressions - DP_SEARCH_OP_REGEX) + {
                 OP_LIKE: <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "name": "like",
-                    "label": OP_LIKE,
+                    "display_name": "like",
+                    "name": OP_LIKE,
                     "symbol": "like",
+                    "short_desc": "The SQL 'like' operator",
                     "desc": "The SQL 'like' operator",
                     "args": (DataProviderSignatureStringType, DataProviderSignatureStringValueType),
                     "return_type": AbstractDataProviderTypeMap."bool",

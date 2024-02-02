@@ -131,8 +131,9 @@ public class ServiceNowTableDataProvider inherits ServiceNowRestDataProviderBase
             QUERY_OP_NOTIN: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": QUERY_OP_NOTIN,
-                    "name": "notin",
+                    "name": QUERY_OP_NOTIN,
+                    "display_name": "notin",
+                    "short_desc": "An expression with the ServiceNow 'notin' operator",
                     "desc": "An expression with the ServiceNow 'notin' operator",
                     "symbol": "NOTIN",
                     "args": (DataProviderSignatureFieldType, DataProviderSignatureStringValueType),
@@ -145,8 +146,9 @@ public class ServiceNowTableDataProvider inherits ServiceNowRestDataProviderBase
             QUERY_OP_LIKE: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": QUERY_OP_LIKE,
-                    "name": "like",
+                    "name": QUERY_OP_LIKE,
+                    "display_name": "like",
+                    "short_desc": "An expression with the ServiceNow 'like' operator",
                     "desc": "An expression with the ServiceNow 'like' operator",
                     "symbol": "LIKE",
                     "args": (DataProviderSignatureFieldType, DataProviderSignatureStringValueType),
@@ -159,8 +161,9 @@ public class ServiceNowTableDataProvider inherits ServiceNowRestDataProviderBase
             QUERY_OP_NOTLIKE: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": QUERY_OP_NOTLIKE,
-                    "name": "notlike",
+                    "name": QUERY_OP_NOTLIKE,
+                    "display_name": "notlike",
+                    "short_desc": "An expression with the ServiceNow 'notlike' operator",
                     "desc": "An expression with the ServiceNow 'notlike' operator",
                     "symbol": "NOTLIKE",
                     "args": (DataProviderSignatureFieldType, DataProviderSignatureStringValueType),
@@ -173,8 +176,9 @@ public class ServiceNowTableDataProvider inherits ServiceNowRestDataProviderBase
             QUERY_OP_STARTSWITH: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": QUERY_OP_STARTSWITH,
-                    "name": "like",
+                    "name": QUERY_OP_STARTSWITH,
+                    "display_name": "like",
+                    "short_desc": "An expression with the ServiceNow 'startswith' operator",
                     "desc": "An expression with the ServiceNow 'startswith' operator",
                     "symbol": "STARTSWITH",
                     "args": (DataProviderSignatureFieldType, DataProviderSignatureStringValueType),
@@ -187,8 +191,9 @@ public class ServiceNowTableDataProvider inherits ServiceNowRestDataProviderBase
             QUERY_OP_ENDSWITH: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": QUERY_OP_ENDSWITH,
-                    "name": "like",
+                    "name": QUERY_OP_ENDSWITH,
+                    "display_name": "like",
+                    "short_desc": "An expression with the ServiceNow 'endswith' operator",
                     "desc": "An expression with the ServiceNow 'endswith' operator",
                     "symbol": "ENDSWITH",
                     "args": (DataProviderSignatureFieldType, DataProviderSignatureStringValueType),
@@ -201,8 +206,9 @@ public class ServiceNowTableDataProvider inherits ServiceNowRestDataProviderBase
             QUERY_OP_ISNOTEMPTY: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
-                    "label": QUERY_OP_ISNOTEMPTY,
-                    "name": "notlike",
+                    "name": QUERY_OP_ISNOTEMPTY,
+                    "display_name": "notlike",
+                    "short_desc": "An expression with the ServiceNow 'isnotempty' operator",
                     "desc": "An expression with the ServiceNow 'isnotempty' operator",
                     "symbol": "ISNOTEMPTY",
                     "args": (DataProviderSignatureFieldType,),
@@ -486,8 +492,8 @@ public class ServiceNowTableDataProvider inherits ServiceNowRestDataProviderBase
 }
 
 namespace Priv {
-hash<DataProviderExpressionInfo> sub sym(hash<DataProviderExpressionInfo> exp, string label) {
-    exp.label = label;
+hash<DataProviderExpressionInfo> sub sym(hash<DataProviderExpressionInfo> exp, string name) {
+    exp.name = name;
     if (exp.args.size() > 1 && exp.args[0] == DataProviderSignatureAnyType) {
         exp.args[0] = DataProviderSignatureFieldType;
     }

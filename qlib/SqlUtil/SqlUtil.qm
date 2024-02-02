@@ -4520,8 +4520,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         OP_LIKE: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": "like",
                 "name": "like",
+                "display_name": "like",
+                "short_desc": "The value to bind as the 'like' value (ex: '%some string%')",
                 "desc": "The value to bind as the 'like' value (ex: '%some string%')",
                 "symbol": "like",
                 "args": (
@@ -4638,8 +4639,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         OP_SUBSTR: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": "substr",
                 "name": "substr",
+                "display_name": "substr",
+                "short_desc": "returns a substring from a string; args: string, int start char, [int length]",
                 "desc": "returns a substring from a string; args: string, int start char, [int length]",
                 "symbol": "substr",
                 "args": (
@@ -4662,8 +4664,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         OP_IN_SELECT: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": "in_select",
                 "name": "in_select",
+                "display_name": "in_select",
+                "short_desc": "check if a value is in a sub-select; args: value, table name for the subselect, "
+                    "subselect query hash",
                 "desc": "check if a value is in a sub-select; args: value, table name for the subselect, subselect "
                     "query hash",
                 "symbol": "in_select",
@@ -4686,8 +4690,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_AS: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": "as",
                 "name": "as",
+                "display_name": "as",
+                "short_desc": "aliases a result; args: expression or value, string label",
                 "desc": "aliases a result; args: expression or value, string label",
                 "symbol": "as",
                 "role": ER_Field,
@@ -4707,8 +4712,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_PREPEND: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_PREPEND,
                 "name": COP_PREPEND,
+                "display_name": COP_PREPEND,
+                "short_desc": "prepends a string to another string; args: string to be prepended, string to prepend "
+                    "to the first string",
                 "desc": "prepends a string to another string; args: string to be prepended, string to prepend to the "
                     "first string",
                 "symbol": COP_PREPEND,
@@ -4727,8 +4734,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_APPEND: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_APPEND,
                 "name": COP_APPEND,
+                "display_name": COP_APPEND,
+                "short_desc": "appends or catenates a string to another string; args: string to be appended, string "
+                    "to append or concatenate to the first string",
                 "desc": "appends or catenates a string to another string; args: string to be appended, string to "
                     "append or concatenate to the first string",
                 "symbol": COP_APPEND,
@@ -4747,8 +4756,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_UPPER: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_UPPER,
                 "name": COP_UPPER,
+                "display_name": COP_UPPER,
+                "short_desc": "converts a string to all upper case; arg: string",
                 "desc": "converts a string to all upper case; arg: string",
                 "symbol": COP_UPPER,
                 "args": (
@@ -4764,8 +4774,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_LOWER: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_LOWER,
                 "name": COP_LOWER,
+                "display_name": COP_LOWER,
+                "short_desc": "converts a string to all lower case; arg: string",
                 "desc": "converts a string to all lower case; arg: string",
                 "symbol": COP_LOWER,
                 "args": (
@@ -4781,8 +4792,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_DISTINCT: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_DISTINCT,
                 "name": COP_DISTINCT,
+                "display_name": COP_DISTINCT,
+                "short_desc": "indicates that only records with distinct values of the given field should be returned",
                 "desc": "indicates that only records with distinct values of the given field should be returned",
                 "symbol": COP_DISTINCT,
                 "role": ER_Field,
@@ -4799,8 +4811,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_MIN: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_MIN,
                 "name": COP_MIN,
+                "display_name": COP_MIN,
+                "short_desc": "Returns the minimum value in the group",
                 "desc": "Returns the minimum value in the group",
                 "symbol": COP_MIN,
                 "role": ER_Field,
@@ -4818,8 +4831,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_MAX: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_MAX,
                 "name": COP_MAX,
+                "display_name": COP_MAX,
+                "short_desc": "Returns the maximum value in the group",
                 "desc": "Returns the maximum value in the group",
                 "symbol": COP_MAX,
                 "role": ER_Field,
@@ -4837,8 +4851,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_AVG: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_AVG,
                 "name": COP_AVG,
+                "display_name": COP_AVG,
+                "short_desc": "Returns the average of the given values in the group",
                 "desc": "Returns the average of the given values in the group",
                 "symbol": COP_AVG,
                 "role": ER_Field,
@@ -4856,8 +4871,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_SUM: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_SUM,
                 "name": COP_SUM,
+                "display_name": COP_SUM,
+                "short_desc": "Returns the sum of the given values",
                 "desc": "Returns the sum of the given values",
                 "symbol": COP_SUM,
                 "role": ER_Field,
@@ -4875,8 +4891,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_COUNT: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_COUNT,
                 "name": COP_COUNT,
+                "display_name": COP_COUNT,
+                "short_desc": "Count the number of rows in the group",
                 "desc": "Count the number of rows in the group",
                 "symbol": COP_COUNT,
                 "role": ER_Field,
@@ -4896,8 +4913,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_MINUS: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_MINUS,
                 "name": COP_MINUS,
+                "display_name": COP_MINUS,
+                "short_desc": "Subtracts one number from another",
                 "desc": "Subtracts one number from another",
                 "symbol": COP_MINUS,
                 "args": (
@@ -4915,8 +4933,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_PLUS: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_PLUS,
                 "name": COP_PLUS,
+                "display_name": COP_PLUS,
+                "short_desc": "Adds two numbers",
                 "desc": "Adds two numbers",
                 "symbol": COP_PLUS,
                 "args": (
@@ -4934,8 +4953,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_DIVIDE: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_DIVIDE,
                 "name": COP_DIVIDE,
+                "display_name": COP_DIVIDE,
+                "short_desc": "Divides one number by another",
                 "desc": "Divides one number by another",
                 "symbol": COP_DIVIDE,
                 "args": (
@@ -4953,8 +4973,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_MULTIPLY: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_MULTIPLY,
                 "name": COP_MULTIPLY,
+                "display_name": COP_MULTIPLY,
+                "short_desc": "Multiplies two numbers",
                 "desc": "Multiplies two numbers",
                 "symbol": COP_MULTIPLY,
                 "args": (
@@ -4972,8 +4993,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_COALESCE: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_COALESCE,
                 "name": COP_COALESCE,
+                "display_name": COP_COALESCE,
+                "short_desc": "Returns the value of the first expression with a value",
                 "desc": "Returns the value of the first expression with a value",
                 "symbol": COP_COALESCE,
                 "args": (
@@ -4990,8 +5012,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_LENGTH: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_LENGTH,
                 "name": COP_LENGTH,
+                "display_name": COP_LENGTH,
+                "short_desc": "Returns the length of the argument",
                 "desc": "Returns the length of the argument",
                 "symbol": COP_LENGTH,
                 "args": (
@@ -5007,8 +5030,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_SEQ: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_SEQ,
                 "name": COP_SEQ,
+                "display_name": COP_SEQ,
+                "short_desc": "returns the next value in the given sequence; args: sequence name",
                 "desc": "returns the next value in the given sequence; args: sequence name",
                 "symbol": COP_SEQ,
                 "args": (
@@ -5024,8 +5048,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_SEQ_CURRVAL: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_SEQ_CURRVAL,
                 "name": COP_SEQ_CURRVAL,
+                "display_name": COP_SEQ_CURRVAL,
+                "short_desc": "returns the current value in the given sequence; args: sequence name",
                 "desc": "returns the current value in the given sequence; args: sequence name",
                 "symbol": COP_SEQ_CURRVAL,
                 "args": (
@@ -5041,8 +5066,10 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_OVER: {
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_OVER,
                 "name": COP_OVER,
+                "display_name": COP_OVER,
+                "short_desc": "returns the output of the SQL window given by the arguments; args: *string partiion "
+                    "by, *string order by",
                 "desc": "returns the output of the SQL window given by the arguments; args: *string partiion by, "
                     "*string order by",
                 "symbol": COP_OVER,
@@ -5093,8 +5120,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_DENSE_RANK: (
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_DENSE_RANK,
                 "name": COP_DENSE_RANK,
+                "display_name": COP_DENSE_RANK,
+                "short_desc": "Returns the rank of a row in an ordered group of rows as a number",
                 "desc": "Returns the rank of a row in an ordered group of rows as a number",
                 "symbol": COP_DENSE_RANK,
                 "args": (),
@@ -5108,8 +5136,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_FIRST_VALUE: (
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_FIRST_VALUE,
                 "name": COP_FIRST_VALUE,
+                "display_name": COP_FIRST_VALUE,
+                "short_desc": "Returns the first value in an ordered group of rows",
                 "desc": "Returns the first value in an ordered group of rows",
                 "symbol": COP_FIRST_VALUE,
                 "args": (
@@ -5125,8 +5154,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_LAST_VALUE: (
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_LAST_VALUE,
                 "name": COP_LAST_VALUE,
+                "display_name": COP_LAST_VALUE,
+                "short_desc": "Returns the last value in an ordered group of rows",
                 "desc": "Returns the last value in an ordered group of rows",
                 "symbol": COP_LAST_VALUE,
                 "args": (
@@ -5142,8 +5172,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_NTILE: (
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_NTILE,
                 "name": COP_NTILE,
+                "display_name": COP_NTILE,
+                "short_desc": "Returns the group number of an ordered group of rows",
                 "desc": "Returns the group number of an ordered group of rows",
                 "symbol": COP_NTILE,
                 "args": (
@@ -5159,8 +5190,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_PERCENT_RANK: (
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_PERCENT_RANK,
                 "name": COP_PERCENT_RANK,
+                "display_name": COP_PERCENT_RANK,
+                "short_desc": "Returns the percent rank of a row in an ordered group of rows",
                 "desc": "Returns the percent rank of a row in an ordered group of rows",
                 "symbol": COP_PERCENT_RANK,
                 "args": (),
@@ -5174,8 +5206,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_RANK: (
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_PERCENT_RANK,
                 "name": COP_PERCENT_RANK,
+                "display_name": COP_PERCENT_RANK,
+                "short_desc": "Returns the row number of a row in an ordered group of rows",
                 "desc": "Returns the row number of a row in an ordered group of rows",
                 "symbol": COP_PERCENT_RANK,
                 "args": (),
@@ -5189,8 +5222,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         COP_ROW_NUMBER: (
             "exp": <DataProviderExpressionInfo>{
                 "type": DET_Operator,
-                "label": COP_ROW_NUMBER,
                 "name": COP_ROW_NUMBER,
+                "display_name": COP_ROW_NUMBER,
+                "short_desc": "Returns the row number of a result set",
                 "desc": "Returns the row number of a result set",
                 "symbol": COP_ROW_NUMBER,
                 "args": (),
