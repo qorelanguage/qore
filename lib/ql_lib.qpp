@@ -320,17 +320,19 @@ int system(string command) [dom=EXTERNAL_PROCESS] {
         _Exit(-1);
         //qore_exit_process(-1);
     }
-    if (pid == -1)
+    if (pid == -1) {
         return -1;
+    }
 
     // wait for child to exit
     int status;
-    //wait(&status);
     while (true) {
-        int rc = waitpid(pid, &status, WUNTRACED);
+        int rc = waitpid(pid, &status, 0);
+#ifdef EINTR
         if (rc == -1 && errno == EINTR) {
             continue;
         }
+#endif
         break;
     }
     return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
