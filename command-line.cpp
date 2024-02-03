@@ -1,4 +1,4 @@
-/*
+ /*
     command-line.cpp
 
     Qore Programming Language
