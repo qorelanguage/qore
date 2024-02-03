@@ -985,8 +985,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                 },
                 "impl": auto sub (hash<auto> rec, hash<DataProviderExpression> exp) {
                     auto arg0 = AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[0]);
-                    return arg0 > AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1][0])
-                        && arg0 < AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1][1]);
+                    return arg0 > AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1])
+                        && arg0 < AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[2]);
                 },
             },
             DP_SEARCH_OP_IN: {
@@ -994,7 +994,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_IN,
                     "display_name": "in",
-                    "desc": "A list giving possible values of the field;  if the field's value matches any of the "
+                    "desc": "A list giving possible values of the field; if the field's value matches any of the "
                         "values in the list, then the operation returns true; element value types must be equal to "
                         "the field's type",
                     "symbol": "in",
@@ -1004,7 +1004,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                 },
                 "impl": auto sub (hash<auto> rec, hash<DataProviderExpression> exp) {
                     return inlist(AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[0]),
-                        AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1]));
+                        AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1..]));
                 },
             },
             DP_SEARCH_OP_NOT: {
