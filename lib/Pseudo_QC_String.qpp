@@ -1073,6 +1073,54 @@ bool <string>::sizep() [flags=CONSTANT] {
     return true;
 }
 
+//! Returns @ref True if the given string starts with the argument
+/** @param chars The characters to check at the beginning of the string
+
+    @return @ref True if the given string starts with the argument
+
+    @since %Qore 2.0
+*/
+bool <string>::startsWith(string chars) [flags=CONSTANT] {
+    // convert pattern encoding to string if necessary
+    TempEncodingHelper temp(chars, str->getEncoding(), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    return str->startsWith(temp->c_str());
+}
+
+//! Returns @ref True if the given string ends with the argument
+/** @param chars The characters to check at the end of the string
+
+    @return @ref True if the given string ends with the argument
+
+    @since %Qore 2.0
+*/
+bool <string>::endsWith(string chars) [flags=CONSTANT] {
+    // convert pattern encoding to string if necessary
+    TempEncodingHelper temp(chars, str->getEncoding(), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    return str->endsWith(temp->c_str());
+}
+
+//! Returns @ref True if the given string contains the argument
+/** @param chars The characters to check in the string
+
+    @return @ref True if the given string contains the argument
+
+    @since %Qore 2.0
+*/
+bool <string>::contains(string chars) [flags=CONSTANT] {
+    // convert pattern encoding to string if necessary
+    TempEncodingHelper temp(chars, str->getEncoding(), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    return str->find(temp->c_str()) >= 0;
+}
+
 //! returns a string for the next line in the string buffer starting at the given offset (or at the beginning if no offset is given)
 /** @par Example:
     @code{.py}

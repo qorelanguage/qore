@@ -366,7 +366,7 @@ public:
         if (ssize > len) {
             return false;
         }
-        return strncmp(str, buf + len - ssize, ssize);
+        return !strncmp(str, buf + len - ssize, ssize);
     }
 
     DLLLOCAL bool isDataPrintableAscii() const {

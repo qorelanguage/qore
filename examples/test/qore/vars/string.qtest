@@ -16,6 +16,7 @@
 
 class StringTest inherits QUnit::Test {
     constructor() : QUnit::Test("String test", "1.0") {
+        addTestCase("pseudo-method test", \testPseudoMethods());
         addTestCase("Base64 URL test", \testBase64Url());
         addTestCase("split regex", \splitRegexTest());
         addTestCase("non scalar test", \nonScalarTest());
@@ -36,6 +37,18 @@ class StringTest inherits QUnit::Test {
         addTestCase("String conversion test", \testConversions());
         addTestCase("trim", \testTrim());
         set_return_value(main());
+    }
+
+    testPseudoMethods() {
+        string str = "hello there";
+        assertTrue(str.startsWith("hel"));
+        assertFalse(str.startsWith("hel0"));
+
+        assertTrue(str.endsWith("ere"));
+        assertFalse(str.endsWith("0ere"));
+
+        assertTrue(str.contains("o t"));
+        assertFalse(str.contains("o t0"));
     }
 
     testBase64Url() {

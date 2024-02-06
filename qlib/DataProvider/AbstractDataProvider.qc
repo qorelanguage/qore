@@ -409,10 +409,36 @@ public const ExpressionTypeCodeMap = {
 #! Maps DataProvider expression type descriptions to integer codes
 public const ExpressionTypeDescMap = map {$1.value: $1.key.toInt()}, ExpressionTypeCodeMap.pairIterator();
 
+/** @defgroup dataprovider_expression_subtype_codes DataProvider Expression Subtype Codes
+
+    @since DataProvider 3.0
+*/
+#/@{
+#! Indicates a generic subtyp
+public const DES_Generic = 1;
+
+#! Indicates a logical operator type
+public const DES_LogicOperator = 2;
+#/@}
+
+#! Maps DataProvider expression subtype codes to descriptions
+public const ExpressionSubtypeCodeMap = {
+    DES_Generic: "generic",
+    DES_LogicOperator: "logic-operator",
+};
+
+#! Maps DataProvider expression subtype descriptions to integer codes
+public const ExpressionSubtypeDescMap = map {$1.value: $1.key.toInt()}, ExpressionSubtypeCodeMap.pairIterator();
+
 #! Data provider signature info
 public hashdecl DataProviderExpressionInfo {
     #! The type of expression; see @ref dataprovider_expression_type_codes
     int type;
+
+    #! The expression subtype
+    /** @ee @ref dataprovider_expression_subtype_codes
+    */
+    int subtype = DES_Generic;
 
     #! The technical name or internal label used for the expression
     /** Must correspond to the key used in any expression hash
@@ -829,6 +855,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_OP_AND: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
+                    "subtype": DES_LogicOperator,
                     "name": DP_OP_AND,
                     "display_name": "and (&&)",
                     "desc": "logical AND operation supporting logic short-circuiting",
@@ -849,6 +876,7 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
             DP_OP_OR: {
                 "exp": <DataProviderExpressionInfo>{
                     "type": DET_Operator,
+                    "subtype": DES_LogicOperator,
                     "name": DP_OP_OR,
                     "display_name": "or (||)",
                     "desc": "logical OR operation supporting logic short-circuiting",
@@ -882,7 +910,6 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     auto arg1 = AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1]);
                     # for backwards compatibility, if the first argument is a field reference, and the second is a
                     # hash
-
                     return arg0 == arg1;
                 },
             },
