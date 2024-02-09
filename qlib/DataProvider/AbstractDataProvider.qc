@@ -490,9 +490,6 @@ public hashdecl DataProviderExpression {
         (hash<DataProviderExpression> values) to be evaluated
     */
     softlist<auto> args;
-
-    #! Reverse the logican value of the expression
-    bool not;
 }
 
 #! Data provider info
