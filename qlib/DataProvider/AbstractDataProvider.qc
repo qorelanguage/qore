@@ -250,7 +250,7 @@ public const ST_Any = 1;
 public const ST_Value = 2;
 
 #! The signature type indicates a string field name when used as an argument, and the type is the field type
-/** in this case the value must always be a string (referring to the field name), and the type is always "any",
+/** In this case the value must always be a string (referring to the field name), and the type is always "any",
     referring to the fact that the final type reflects the field's type, which can be of any supported type
 */
 public const ST_Field = 3;
@@ -490,6 +490,9 @@ public hashdecl DataProviderExpression {
         (hash<DataProviderExpression> values) to be evaluated
     */
     softlist<auto> args;
+
+    #! Reverse the logican value of the expression
+    bool not;
 }
 
 #! Data provider info
