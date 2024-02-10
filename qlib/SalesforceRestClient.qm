@@ -1509,7 +1509,7 @@ public class SalesforceRestConnection inherits RestClient::RestConnection {
         rc.setSerialization("json");
 
         # returns a RestClient option without connecting and without retrieving any external schemas with I/O
-        return new SalesforceRestPingPollOperation(rc, poll_opts);
+        return new SalesforceRestPingPollOperation(self, rc, poll_opts);
     }
 }
 
@@ -1522,8 +1522,8 @@ public class SalesforceRestPingPollOperation inherits RestClient::RestPingPollOp
         const SPS_GET_APIS = "get-apis";
     }
 
-    constructor(RestClient rc, hash<auto> real_opts)
-            : RestPingPollOperation(rc, real_opts + {
+    constructor(RestConnection conn, RestClient rc, hash<auto> real_opts)
+            : RestPingPollOperation(conn, rc, real_opts + {
                 "url": real_opts.instance_url ?? real_opts.url,
             }) {
     }

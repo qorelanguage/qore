@@ -35,6 +35,7 @@
 %new-style
 
 %enable-all-warnings
+%allow-weak-references
 
 %requires Mime >= 1.3
 %requires(reexport) ConnectionProvider >= 1.10
@@ -2049,6 +2050,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         #! real options used when creating an object
         hash<auto> real_opts;
 
+        #! Connections needs authorization?
+        bool needs_auth;
+
         #! Connection entry info
         const ConnectionScheme = <ConnectionSchemeInfo>{
             "display_name": "REST Connection",
@@ -2476,8 +2480,28 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         @since RestClient 2.2
     */
     bool needsAuth() {
-        return opts.oauth2_grant_type == "authorization_code" && !opts.token
-            && (!opts.oauth2_refresh_token || !opts.oauth2_auto_refresh);
+        return needs_auth || (opts.oauth2_grant_type == "authorization_code" && !opts.token
+            && (!opts.oauth2_refresh_token || !opts.oauth2_auto_refresh));
+    }
+
+    #! Flags an authorization failure
+    /**
+        @since RestClient 2.2
+    */
+    authFailure() {
+        if (!needs_auth && opts.oauth2_grant_type == "authorization_code") {
+            needs_auth = True;
+        }
+    }
+
+    #! Flags a successful connection
+    /**
+        @since RestClient 2.2
+    */
+    authSuccess() {
+        if (needs_auth && opts.oauth2_grant_type == "authorization_code") {
+            remove needs_auth;
+        }
     }
 
     #! Returns the OAuth2 option name for this connection
@@ -2532,6 +2556,9 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         *hash<auto> new_opts = processOAuth2TokenResponseImpl(resp);
         if (new_opts && update_options) {
             doUpdateOptions(self, new_opts);
+        }
+        if (needs_auth && (new_opts.token || new_opts.oauth2_refresh_token)) {
+            remove needs_auth;
         }
         return (real_opts - "url") + new_opts;
     }
@@ -2589,7 +2616,7 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         auto ping_body = getPingBody();
 
         # returns a RestClient option without connecting and without retrieving any external schemas with I/O
-        return new RestPingPollOperation(getPollImpl(), real_opts + {
+        return new RestPingPollOperation(self, getPollImpl(), real_opts + {
             "ping_path": ping_path,
             "ping_body": ping_body,
         });
@@ -2891,8 +2918,10 @@ public class RestConnection inherits ConnectionProvider::HttpBasedConnection,
         hash<auto> info;
         hash<auto> h = client.doRequest(opts.ping_method, ping_path, ping_body, \info, NOTHING, opts.ping_headers);
         if ((h.status_code / 100) != 2) {
+            authFailure();
             throw "REST-PING-ERROR", sprintf("%y returned from %y", info."response-uri", info."request-uri");
         }
+        authSuccess();
     }
 
     #! Returns the ping path from the \c ping_path option
@@ -2948,6 +2977,9 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
     }
 
     private {
+        #! The REST connection
+        RestConnection conn;
+
         #! The RestClient object to use for polling I/O
         RestClient rc;
 
@@ -2986,7 +3018,8 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
     }
 
     #! Creates the poller with the REST client and option hash
-    constructor(RestClient rc, hash<auto> real_opts) {
+    constructor(RestConnection conn, RestClient rc, hash<auto> real_opts) {
+        self.conn := conn;
         self.rc = rc;
         self.real_opts = real_opts;
         method = real_opts.ping_method ?? "GET";
@@ -3068,7 +3101,7 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
                     continue;
                 }
 %endif
-
+                conn.authFailure();
                 throw "REST-PING-ERROR", sprintf("%y returned from %y'; response body: %y", resp.info."response-uri",
                     resp.info."request-uri", body);
             }
@@ -3078,7 +3111,8 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
                 string body = resp."response-body"
                     ? resp."response-body".toString(resp.info.charset ?? "ISO-8859-1")
                     : "";
-                if (rc.getToken() && rc.usingOAuth2() && real_opts.oauth2_auto_refresh
+                bool oauth2_token = rc.getToken() && rc.usingOAuth2();
+                if (oauth2_token && real_opts.oauth2_auto_refresh
                     && real_opts.oauth2_refresh_token && !in_refresh && rc.isAuthTokenError(resp."code",
                         resp.info."response-headers", False, resp.info."body-content-type", body)) {
                     doStartRefresh();
@@ -3097,12 +3131,14 @@ public class RestPingPollOperation inherits Qore::AbstractPollOperation {
                     validator.parseResponse(method, path, resp."code", body,
                         resp.info."response-headers" + {"content-type": resp.info."body-content-type"});
                     rc.debug("RestConnection ping: ping successful");
+                    conn.authSuccess();
                     goal_reached = True;
                     state = SPS_COMPLETE;
                     delete poller;
                     break;
                 }
 
+                conn.authFailure();
                 throw "REST-PING-ERROR", sprintf("%y returned from %y; response body: %y", resp.info."response-uri",
                     resp.info."request-uri", body);
             }

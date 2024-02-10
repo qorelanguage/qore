@@ -418,14 +418,6 @@ DiscordRestClient rest(opts);
         }
     }
 
-    #! Returns @ref True if the response was related to an authorization token error
-    /** @return @ref True if the response was related to an authorization token error
-    */
-    bool isAuthTokenError(int status_code, hash<auto> headers, bool body_decoded, *string body_content_type,
-            auto body) {
-        return status_code == 401;
-    }
-
     #! returns options for @ref DiscordRestClient::DiscordRestClient::constructor()
     static hash<auto> getOptions(hash<auto> opts) {
         return DefaultOptions + opts + {"url": DefaultUrl + "/v" + (opts.api ?? DefaultApi)};
