@@ -334,6 +334,12 @@ public const DataProviderSignatureAnyType = <DataProviderSignatureTypeInfo>{
     "type_code": ST_Any,
 };
 
+#! Data provider signature list type
+public const DataProviderSignatureListType = <DataProviderSignatureTypeInfo>{
+    "type": AbstractDataProviderTypeMap."list",
+    "type_code": ST_Any,
+};
+
 #! Data provider signature string value type
 public const DataProviderSignatureStringValueType = <DataProviderSignatureTypeInfo>{
     "type": AbstractDataProviderTypeMap."string",
@@ -1005,15 +1011,15 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "symbol": "between",
                     "args": (
                         DataProviderSignatureAnyType,
-                        DataProviderSignatureAnyType,
-                        DataProviderSignatureAnyType,
+                        DataProviderSignatureListType,
                     ),
                     "return_type": AbstractDataProviderTypeMap."bool",
                 },
                 "impl": auto sub (hash<auto> rec, hash<DataProviderExpression> exp) {
                     auto arg0 = AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[0]);
-                    return arg0 > AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1])
-                        && arg0 < AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[2]);
+                    return arg0 > AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1][0])
+                        && arg0 < AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1][1]);
+
                 },
             },
             DP_SEARCH_OP_IN: {
@@ -1021,17 +1027,14 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_IN,
                     "display_name": "in",
-                    "desc": "A list giving possible values of the field; if the field's value matches any of the "
-                        "values in the list, then the operation returns true; element value types must be equal to "
-                        "the field's type",
+                    "desc": "Returns True if the first argument is found in the second argument",
                     "symbol": "in",
-                    "args": (DataProviderSignatureAnyType),
+                    "args": (DataProviderSignatureAnyType, DataProviderSignatureAnyType),
                     "return_type": AbstractDataProviderTypeMap."bool",
-                    "varargs": True,
                 },
                 "impl": auto sub (hash<auto> rec, hash<DataProviderExpression> exp) {
                     return inlist(AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[0]),
-                        AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1..]));
+                        AbstractDataProvider::evalGenericExpressionValue(rec, exp.args[1]));
                 },
             },
             DP_SEARCH_OP_NOT: {
