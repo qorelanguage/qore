@@ -470,7 +470,7 @@ const RE_MultiLine = PCRE_MULTILINE;
 //! replace all matches globally in the string or extract all occurrences of the pattern(s) in the string, equivalent to <tt>/g</tt>
 const RE_Global = QRE_GLOBAL;
 
-//! extens Posix matches to the full Unicode character set
+//! extends Posix matches to the full Unicode character set
 /** @since %Qore 0.9.4
 */
 const RE_Unicode = PCRE_UCP;

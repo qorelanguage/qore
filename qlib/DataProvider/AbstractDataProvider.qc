@@ -73,6 +73,8 @@ public hashdecl DataProviderOptionInfo {
     bool sensitive = False;
 
     #! List of allowed values (enum)
+    /* In case the option type is a list, then this will provide the discrete values that can appear in the list
+    */
     *softlist<hash<Util::AllowedValueInfo>> allowed_values;
 
     #! Any optional example value for the option
@@ -436,6 +438,34 @@ public const ExpressionSubtypeCodeMap = {
 #! Maps DataProvider expression subtype descriptions to integer codes
 public const ExpressionSubtypeDescMap = map {$1.value: $1.key.toInt()}, ExpressionSubtypeCodeMap.pairIterator();
 
+#! Data provider expression arg info
+public hashdecl DataProviderArgInfo {
+    #! Argument display name
+    string display_name;
+
+    #! Argument short description in plain text
+    *string short_desc;
+
+    #! The argument description
+    string desc;
+
+    #! Any default value
+    auto default_value;
+
+    #! Is the argument value sensitive?
+    bool sensitive = False;
+
+    #! List of allowed values (enum)
+    /* In case the arg type is a list, then this will provide the discrete values that can appear in the list
+    */
+    *softlist<hash<Util::AllowedValueInfo>> allowed_values;
+
+    #! Any optional example value for the argument
+    /** The value must be acceptable by the argument's type
+    */
+    auto example_value;
+}
+
 #! Data provider signature info
 public hashdecl DataProviderExpressionInfo {
     #! The type of expression; see @ref dataprovider_expression_type_codes
@@ -472,6 +502,9 @@ public hashdecl DataProviderExpressionInfo {
 
     #! Argument types
     softlist<hash<DataProviderSignatureTypeInfo>> args;
+
+    #! Argument info
+    *softlist<hash<DataProviderArgInfo>> arg_info;
 
     #! The return type
     AbstractDataProviderType return_type;
@@ -864,7 +897,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "subtype": DES_LogicOperator,
                     "name": DP_OP_AND,
                     "display_name": "and (&&)",
-                    "desc": "logical AND operation supporting logic short-circuiting",
+                    "short_desc": "Returns True if all arguments are True with logic short-circuiting",
+                    "desc": "Returns `True` if all arguments are `True`; supports logic short-circuiting",
                     "symbol": "&&",
                     "args": (DataProviderSignatureBoolType),
                     "varargs": True,
@@ -885,7 +919,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "subtype": DES_LogicOperator,
                     "name": DP_OP_OR,
                     "display_name": "or (||)",
-                    "desc": "logical OR operation supporting logic short-circuiting",
+                    "short_desc": "Returns True if at least one argument is True with logic short-circuiting",
+                    "desc": "Returns `True` if at least one argument is `True`; supports logic short-circuiting",
                     "symbol": "||",
                     "args": (DataProviderSignatureBoolType),
                     "varargs": True,
@@ -905,8 +940,10 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_EQ,
                     "display_name": "equals (=)",
-                    "desc": "a value for equality comparisons; the type of the value should correspond to the field "
-                        "type",
+                    "short_desc": "Returs True if the two arguments are logically equal; types are converted if "
+                        "necessary",
+                    "desc": "Returs `True` if the two arguments are logically equal; types are converted if "
+                        "necessary",
                     "symbol": "==",
                     "args": (DataProviderSignatureAnyType, DataProviderSignatureAnyType),
                     "return_type": AbstractDataProviderTypeMap."bool",
@@ -924,8 +961,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_NE,
                     "display_name": "not equals (!=)",
-                    "desc": "a value for not-equals comparisons; the type of the value should correspond to the "
-                        "field type",
+                    "short_desc": "Returns True if the arguments are not equal",
+                    "desc": "Returns `True` if the arguments are not equal; type conversions are performed",
                     "symbol": "!=",
                     "args": (DataProviderSignatureAnyType, DataProviderSignatureAnyType),
                     "return_type": AbstractDataProviderTypeMap."bool",
@@ -940,8 +977,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_LT,
                     "display_name": "less than (<)",
-                    "desc": "a value for less than comparisons; if the field value is less than the argument, then "
-                        "the operation returns true; the type of the value should correspond to the field type",
+                    "short_desc": "Returns True if the first argument is strictly less than the second argument",
+                    "desc": "Returns `True` if the first argument is strictly less than the second argument; type "
+                        "conversions are performed if necessary",
                     "symbol": "<",
                     "args": (DataProviderSignatureAnyType, DataProviderSignatureAnyType),
                     "return_type": AbstractDataProviderTypeMap."bool",
@@ -956,9 +994,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_LE,
                     "display_name": "less than or equals (<=)",
-                    "desc": "a value for less than or equals comparisons; if the field value is less than or equal "
-                        "to the argument, then the operation returns true; the type of the value should correspond "
-                        "to the field type",
+                    "short_desc": "Returns True if the first argument is less than or equal to the second argument",
+                    "desc": "Returns `True` if the first argument is less than or equal to the second argument; type "
+                        "conversions are performed if necessary",
                     "symbol": "<=",
                     "args": (DataProviderSignatureAnyType, DataProviderSignatureAnyType),
                     "return_type": AbstractDataProviderTypeMap."bool",
@@ -973,8 +1011,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_GT,
                     "display_name": "greater than (>)",
-                    "desc": "a value for less than comparisons; if the field value is less than the argument, then "
-                        "the operation returns true; the type of the value should correspond to the field type",
+                    "short_desc": "Returns True if the first argument is strictly greater than the second argument",
+                    "desc": "Returns `True` if the first argument is strictly greater than the second argument; type "
+                        "conversions are performed if necessary",
                     "symbol": ">",
                     "args": (DataProviderSignatureAnyType, DataProviderSignatureAnyType),
                     "return_type": AbstractDataProviderTypeMap."bool",
@@ -989,9 +1028,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_GE,
                     "display_name": "greater than or equals (>=)",
-                    "desc": "a value for greater than or equals comparisons; if the field value is greater than or "
-                        "equal to the argument, then the operation returns true; the type of the value should "
-                        "correspond to the field type",
+                    "short_desc": "Returns True if the first argument is greater than or equal to the second argument",
+                    "desc": "Returns `True` if the first argument is greater than or equal to the second argument; "
+                        "type conversions are performed if necessary",
                     "symbol": ">=",
                     "args": (DataProviderSignatureAnyType, DataProviderSignatureAnyType),
                     "return_type": AbstractDataProviderTypeMap."bool",
@@ -1006,8 +1045,9 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_BETWEEN,
                     "display_name": "between",
-                    "desc": "A list with two elements giving the lower and upper bounds of the field value; the list "
-                        "element value types must be equal to the field's type",
+                    "short_desc": "Returns True if the first argument is greater than the second and less than the "
+                        "third",
+                    "desc": "Returns `True` if the first argument is greater than the second and less than the third",
                     "symbol": "between",
                     "args": (
                         DataProviderSignatureAnyType,
@@ -1027,7 +1067,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_IN,
                     "display_name": "in",
-                    "desc": "Returns True if the first argument is found in the second argument",
+                    "short_desc": "Returns True if the first argument is found in the second argument",
+                    "desc": "Returns `True` if the first argument is found in the second argument",
                     "symbol": "in",
                     "args": (DataProviderSignatureAnyType, DataProviderSignatureAnyType),
                     "return_type": AbstractDataProviderTypeMap."bool",
@@ -1042,7 +1083,8 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
                     "type": DET_Operator,
                     "name": DP_SEARCH_OP_NOT,
                     "display_name": "logical not (!)",
-                    "desc": "This operator reverses the logcal value of the operator expression given as an argument",
+                    "short_desc": "This operator reverses the logcal value of the argument",
+                    "desc": "This operator reverses the logcal value of the argument",
                     "symbol": "!",
                     "args": (DataProviderSignatureBoolType,),
                     "return_type": AbstractDataProviderTypeMap."bool",
