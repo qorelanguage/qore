@@ -372,6 +372,8 @@ public class AbstractDataProviderType inherits Qore::Serializable {
         if (thistype) {
             string name = thistype.getName();
             name =~ s/\*?(soft)?//;
+            # remove any complex type information
+            name =~ s/<.*>$//;
             return name;
         }
         return "all";
