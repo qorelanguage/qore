@@ -293,10 +293,10 @@ public class HashDataType inherits QoreDataType {
     }
 
     #! returns a description of the type as a hash
-    hash<DataTypeInfo> getInfo() {
-        hash<DataTypeInfo> rv = QoreDataType::getInfo();
+    hash<DataTypeInfo> getInfo(*bool simple) {
+        hash<DataTypeInfo> rv = QoreDataType::getInfo(simple);
         if (!fields && default_other_field_type) {
-            rv.default_field_type_info = default_other_field_type.getInfo();
+            rv.default_field_type_info = default_other_field_type.getInfo(simple);
         }
         return rv;
     }

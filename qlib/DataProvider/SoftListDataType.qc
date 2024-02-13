@@ -75,16 +75,6 @@ public class SoftListDataType inherits ListDataType {
         # this method intentionally left blank
     }
 
-    #! returns a hash of base types accepted by this type; keys are type names
-    hash<string, bool> getAcceptTypeHash() {
-        return accept_type_hash;
-    }
-
-    #! returns a hash of base types returned by this type; keys are type names
-    hash<string, bool> getReturnTypeHash() {
-        return return_type_hash;
-    }
-
     #! returns the value if the value can be assigned to the type
     /** @param value the value to assign to the type
 
@@ -109,19 +99,20 @@ public class SoftListDataType inherits ListDataType {
         string element_type_name = element_type.getName();
         name = sprintf("%ssoftlist<%s>", or_nothing ? "*" : "", element_type_name);
         self.element_type = element_type;
-        accept_type_hash = return_type_hash = {
+        accept_type_hash_simple = accept_type_hash = return_type_hash = return_type_hash_simple = {
             Type::List: True,
         };
         if (or_nothing) {
-            accept_type_hash{Type::NothingType} = True;
-            return_type_hash{Type::NothingType} = True;
+            accept_type_hash_simple{Type::NothingType} = accept_type_hash{Type::NothingType} = True;
+            return_type_hash_simple{Type::NothingType} = return_type_hash{Type::NothingType} = True;
         }
         *Type element_base_type = element_type.getValueType();
         if (element_base_type) {
             accept_type_hash += element_base_type.getAcceptTypeHash();
+            accept_type_hash_simple += element_base_type.getAcceptTypeHash();
         }
         if (accept_type_hash."any") {
-            accept_type_hash = {"any": True};
+            accept_type_hash_simple = accept_type_hash = {"any": True};
         }
     }
 

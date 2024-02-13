@@ -405,14 +405,32 @@ DLLEXPORT QoreValue qore_type_assign_value(const QoreTypeInfo* t, const QoreValu
 DLLEXPORT qore_type_t qore_type_get_base_type(const QoreTypeInfo* t);
 
 //! returns a hash of base types accepted by the type
-/** @since %Qore 0.9.4
+/** @note equivalent to qore_type_get_accept_types(t, false)
+
+    @since %Qore 0.9.4
 */
 DLLEXPORT QoreHashNode* qore_type_get_accept_types(const QoreTypeInfo* t);
 
+//! returns a hash of base types accepted by the type
+/** @param simple if true then only simple types are returned by this call
+
+    @since %Qore 2.0
+*/
+DLLEXPORT QoreHashNode* qore_type_get_accept_types(const QoreTypeInfo* t, bool simple);
+
 //! returns a hash of base types returned by the type
-/** @since %Qore 0.9.4
+/** @note equivalent to qore_type_get_return_types(t, false)
+
+    @since %Qore 0.9.4
 */
 DLLEXPORT QoreHashNode* qore_type_get_return_types(const QoreTypeInfo* t);
+
+//! returns a hash of base types returned by the type
+/** @param simple if true then only simple types are returned by this call
+
+    @since %Qore 2.0
+*/
+DLLEXPORT QoreHashNode* qore_type_get_return_types(const QoreTypeInfo* t, bool simple);
 
 //! returns true if the type's value can be converted to a scalar; the argument may be nullptr meaning no type restrictions
 DLLEXPORT bool qore_type_can_convert_to_scalar(const QoreTypeInfo* ti);

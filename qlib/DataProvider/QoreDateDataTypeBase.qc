@@ -81,7 +81,7 @@ public class QoreDateDataTypeBase inherits QoreDataType {
             # try to convert from the source type
             if (value.typeCode() !== NT_DATE) {
                 # only convert if the type can be converted
-                if (!soft_type || !accept_type_hash{value.type()}) {
+                if (!soft_type || !accept_type_hash_simple{value.type()}) {
                     throw "RUNTIME-TYPE-ERROR", sprintf("type %y cannot be assigned from a value of type %y",
                         getName(), value.type());
                 }

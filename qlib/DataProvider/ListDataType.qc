@@ -98,16 +98,6 @@ public class ListDataType inherits QoreDataType {
         # this method intentionally left blank
     }
 
-    #! returns a hash of base types accepted by this type; keys are type names
-    hash<string, bool> getAcceptTypeHash() {
-        return accept_type_hash;
-    }
-
-    #! returns a hash of base types returned by this type; keys are type names
-    hash<string, bool> getReturnTypeHash() {
-        return return_type_hash;
-    }
-
     #! Returns an "or nothing" type equivalent to the current type
     /** @return an "or nothing" type equivalent to the current type
     */

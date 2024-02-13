@@ -84,8 +84,16 @@ QoreHashNode* qore_type_get_accept_types(const QoreTypeInfo* t) {
     return QoreTypeInfo::getAcceptTypes(t);
 }
 
+QoreHashNode* qore_type_get_accept_types(const QoreTypeInfo* t, bool simple) {
+    return QoreTypeInfo::getAcceptTypes(t, simple);
+}
+
 QoreHashNode* qore_type_get_return_types(const QoreTypeInfo* t) {
     return QoreTypeInfo::getReturnTypes(t);
+}
+
+QoreHashNode* qore_type_get_return_types(const QoreTypeInfo* t, bool simple) {
+    return QoreTypeInfo::getReturnTypes(t, simple);
 }
 
 bool qore_type_is_assignable_from(const QoreTypeInfo* ti1, const QoreTypeInfo* ti2, bool& may_not_match) {
