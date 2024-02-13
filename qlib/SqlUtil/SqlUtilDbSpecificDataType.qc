@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the SqlUtil module
 public namespace SqlUtil {
 #! data type for DB-specific types that are not convertible to other types
@@ -92,12 +81,12 @@ public class SqlUtilDbSpecificDataType inherits DataProvider::AbstractDataProvid
     }
 
     #! returns a hash of types accepted by this type
-    hash<string, bool> getAcceptTypeHash() {
+    hash<string, bool> getAcceptTypeHash(*bool simple) {
         return {"all": True};
     }
 
     #! returns a hash of types returned by this type
-    hash<string, bool> getReturnTypeHash() {
+    hash<string, bool> getReturnTypeHash(*bool simple) {
         return {"all": True};
     }
 }

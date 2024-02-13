@@ -56,6 +56,12 @@ public class QoreDataType inherits AbstractDataProviderType {
         #! hash of base types returned by this type; keys are type names
         *hash<string, bool> return_type_hash;
 
+        #! hash of base types accepted by this type; keys are simple type names
+        *hash<string, bool> accept_type_hash_simple;
+
+        #! hash of base types returned by this type; keys are simple type names
+        *hash<string, bool> return_type_hash_simple;
+
         #! hash of type codes accepted by the base type but not accepted by this type: code -> True
         hash<string, bool> blacklist_type_hash;
 
@@ -95,6 +101,8 @@ public class QoreDataType inherits AbstractDataProviderType {
         }
         accept_type_hash = type.getAcceptTypeHash();
         return_type_hash = type.getReturnTypeHash();
+        accept_type_hash_simple = type.getAcceptTypeHash(True);
+        return_type_hash_simple = type.getReturnTypeHash(True);
 
         soft_type = (type.getName() =~ /^.?soft/);
         or_nothing_type = type.isOrNothingType();
@@ -109,6 +117,7 @@ public class QoreDataType inherits AbstractDataProviderType {
 
         if (self.options."qore.no_null") {
             accept_type_hash -= "null";
+            accept_type_hash_simple -= "null";
             blacklist_type_hash{NT_NULL} = True;
         }
 
@@ -199,18 +208,18 @@ public class QoreDataType inherits AbstractDataProviderType {
     }
 
     #! returns a hash of base types accepted by this type; keys are type names
-    hash<string, bool> getAcceptTypeHash() {
-        return accept_type_hash;
+    hash<string, bool> getAcceptTypeHash(*bool simple) {
+        return simple ? accept_type_hash_simple : accept_type_hash;
     }
 
     #! returns a hash of base types returned by this type; keys are type names
-    hash<string, bool> getReturnTypeHash() {
-        return return_type_hash;
+    hash<string, bool> getReturnTypeHash(*bool simple) {
+        return simple ? return_type_hash_simple : return_type_hash;
     }
 
     #! returns a description of the type as a hash
-    hash<DataTypeInfo> getInfo() {
-        hash<DataTypeInfo> rv = AbstractDataProviderType::getInfo();
+    hash<DataTypeInfo> getInfo(*bool simple) {
+        hash<DataTypeInfo> rv = AbstractDataProviderType::getInfo(simple);
         if ((base_type_hash{NT_HASH} || base_type_hash{NT_ALL}) && !rv.fields) {
             rv.can_manage_fields = True;
         }
@@ -238,10 +247,10 @@ public class QoreDataType inherits AbstractDataProviderType {
         if (!or_nothing_type) {
             QoreDataType rv = self.copy();
             rv.or_nothing_type = True;
-            rv.accept_type_hash{Type::NothingType} = True;
-            rv.return_type_hash{Type::NothingType} = True;
+            rv.accept_type_hash_simple{Type::NothingType} = rv.accept_type_hash{Type::NothingType} = True;
+            rv.return_type_hash_simple{Type::NothingType} = rv.return_type_hash{Type::NothingType} = True;
             if (!options."qore.no_null") {
-                rv.accept_type_hash{Type::NullType} = True;
+                rv.accept_type_hash_simple{Type::NullType} = rv.accept_type_hash{Type::NullType} = True;
             }
             rv.type = type.getOrNothingType();
             return rv;

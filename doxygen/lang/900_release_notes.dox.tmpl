@@ -38,10 +38,16 @@
       - @ref <int>::format(string)
       - @ref <number>::format(string)
       - @ref Qore::format_number(string, softfloat) "format_number(string, softfloat)"
+    - Types can now return hashes with simple types for accept and returning types for compatibility reasons
+      (<a href="https://github.com/qorelanguage/qore/issues/4876">issue 4876</a>)
     - Reflection is now allowed in module initialization and deletion closures
 
     @subsection qore_2_0_compatibility Fixes That Can Affect Backwards-Compatibility
-    - subtracting @ref NOTHING from any value will result in the same value; previously this would result in
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - the \c AbstractDataProviderType::getAcceptTypeHash(*bool) and
+        \c AbstractDataProviderType::getReturnTypeHash(*bool) abstract methods now take an optional argument; classes
+        inheriting this class and reimplementing these methods must add the argument and the logic to respect it
+    - Subtracting @ref NOTHING from any value will result in the same value; previously this would result in
       @ref NOTHING
 
     @subsection qore_2_0_0_bug_fixes Bug Fixes in Qore

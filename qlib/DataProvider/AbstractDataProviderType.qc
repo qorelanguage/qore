@@ -260,17 +260,17 @@ public class AbstractDataProviderType inherits Qore::Serializable {
         - \c fields
         - \c base_type
     */
-    hash<DataTypeInfo> getInputInfo() {
+    hash<DataTypeInfo> getInputInfo(*bool simple) {
         return <DataTypeInfo>{
             "name": getName(),
-            "types_returned": keys getReturnTypeHash(),
+            "types_returned": keys getReturnTypeHash(simple),
             "fields": getFieldInfo(),
             "base_type": getBaseTypeName(),
         };
     }
 
     #! Returns a description of the type as a hash
-    hash<DataTypeInfo> getInfo() {
+    hash<DataTypeInfo> getInfo(*bool simple) {
         return <DataTypeInfo>{
             "name": getName(),
             "desc": getDesc(),
@@ -282,8 +282,8 @@ public class AbstractDataProviderType inherits Qore::Serializable {
                 : NOTHING,
             "base_type": getBaseTypeName(),
             "mandatory": getDirectTypeHash(){NT_NOTHING} ? False : True,
-            "types_accepted": keys getAcceptTypeHash(),
-            "types_returned": keys getReturnTypeHash(),
+            "types_accepted": keys getAcceptTypeHash(simple),
+            "types_returned": keys getReturnTypeHash(simple),
             "fields": getFieldInfo(),
             "tags": tags,
         };
@@ -557,10 +557,10 @@ public class AbstractDataProviderType inherits Qore::Serializable {
     abstract *hash<string, AbstractDataField> getFields();
 
     #! Returns a hash of types accepted by this type; keys are type names
-    abstract hash<string, bool> getAcceptTypeHash();
+    abstract hash<string, bool> getAcceptTypeHash(*bool simple);
 
     #! Returns a hash of types returned by this type; keys are type names
-    abstract hash<string, bool> getReturnTypeHash();
+    abstract hash<string, bool> getReturnTypeHash(*bool simple);
 
     #! Returns the value if the value can be assigned to the type
     /** @param value the value to assign to the type

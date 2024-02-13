@@ -87,7 +87,7 @@ public class QoreStringDataTypeBase inherits QoreDataType {
     auto acceptsValue(auto value) {
         if (exists value && value !== NULL) {
             if (value.typeCode() != NT_STRING) {
-                if (!accept_type_hash{value.type()}) {
+                if (!accept_type_hash_simple{value.type()}) {
                     throw "RUNTIME-TYPE-ERROR", sprintf("value of type %y cannot be converted to type %y",
                         value.type(), getName());
                 }

@@ -716,13 +716,25 @@ const char* QoreTypeSpec::getName() const {
     return QoreTypeInfo::getName(getTypeInfo());
 }
 
-const char* QoreTypeSpec::getSimpleName() const {
+const char* QoreTypeSpec::getTypeName() const {
     switch (typespec) {
         case QTS_CLASS:
             return u.qc->getName();
 
         default:
             return QoreTypeInfo::getName(getTypeInfo());
+    }
+    assert(false);
+    return nullptr;
+}
+
+const char* QoreTypeSpec::getSimpleTypeName() const {
+    switch (typespec) {
+        case QTS_CLASS:
+            return u.qc->getName();
+
+        default:
+            return QoreTypeInfo::getSimpleName(getTypeInfo());
     }
     assert(false);
     return nullptr;

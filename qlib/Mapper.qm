@@ -3199,12 +3199,12 @@ public class AnythingDataType inherits AbstractDataProviderType {
     }
 
     #! returns a hash of base types accepted by this type
-    hash<string, bool> getAcceptTypeHash() {
+    hash<string, bool> getAcceptTypeHash(*bool simple) {
         return {"all": True};
     }
 
     #! returns a hash of base types returned by this type
-    hash<string, bool> getReturnTypeHash() {
+    hash<string, bool> getReturnTypeHash(*bool simple) {
         return {"all": True};
     }
 }

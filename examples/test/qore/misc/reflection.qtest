@@ -223,6 +223,12 @@ class ReflectionTest inherits QUnit::Test {
             Type t1 = t.getOrNothingType();
             assertEq("hash<StatInfo>", t1.getAcceptTypeHash().firstKey());
             assertEq("hash<StatInfo>", t1.getReturnTypeHash().firstKey());
+
+            # check simple type hashes
+            assertEq("hash", t.getAcceptTypeHash(True).firstKey());
+            assertEq("hash", t.getReturnTypeHash(True).firstKey());
+            assertEq("hash", t1.getAcceptTypeHash(True).firstKey());
+            assertEq("hash", t1.getReturnTypeHash(True).firstKey());
         }
         {
             Type t("Mutex");
@@ -246,9 +252,17 @@ class ReflectionTest inherits QUnit::Test {
             Type t1 = t.getOrNothingType();
             assertEq("hash<string, bool>", t1.getAcceptTypeHash().firstKey());
             assertEq("hash<string, bool>", t1.getReturnTypeHash().firstKey());
+
+            # check simple type hashes
+            assertEq(("hash",), keys t.getAcceptTypeHash(True));
+            assertEq(("hash",), keys t.getReturnTypeHash(True));
+            assertEq(("hash",), keys t.getAcceptTypeHash(True));
+            assertEq(("hash",), keys t.getReturnTypeHash(True));
         }
         assertEq(("list<string>",), keys (new Type("list<string>")).getAcceptTypeHash());
         assertEq(("list<string>",), keys (new Type("list<string>")).getReturnTypeHash());
+        assertEq(("list",), keys (new Type("list<string>")).getAcceptTypeHash(True));
+        assertEq(("list",), keys (new Type("list<string>")).getReturnTypeHash(True));
         {
             Type t("reference<string>");
             assertEq(("reference<string>",), keys t.getAcceptTypeHash());

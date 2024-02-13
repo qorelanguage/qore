@@ -579,21 +579,25 @@ int Type::getBaseTypeCode() [flags=CONSTANT] {
 }
 
 //! Returns a hash of types accepted by this type
-/** @return a hash of types accepted by this type
+/** @param simple if @ref True, only simple types are returned in the hash
+
+    @return a hash of types accepted by this type
 
     @since %Qore 0.9.4
 */
-hash<string, bool> Type::getAcceptTypeHash() [flags=CONSTANT] {
-    return qore_type_get_accept_types(t->typeInfo);
+hash<string, bool> Type::getAcceptTypeHash(*bool simple) [flags=CONSTANT] {
+    return qore_type_get_accept_types(t->typeInfo, simple);
 }
 
 //! Returns a hash of types returned by this type
-/** @return a hash of types returned by this type
+/** @param simple if @ref True, only simple types are returned in the hash
+
+    @return a hash of types returned by this type
 
     @since %Qore 0.9.4
 */
-hash<string, bool> Type::getReturnTypeHash() [flags=CONSTANT] {
-    return qore_type_get_return_types(t->typeInfo);
+hash<string, bool> Type::getReturnTypeHash(*bool simple) [flags=CONSTANT] {
+    return qore_type_get_return_types(t->typeInfo, simple);
 }
 
 //! Returns @ref True if values of this type can be converted to a scalar value
