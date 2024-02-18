@@ -433,7 +433,7 @@ public:
 
     DLLLOCAL void issueParseCmd(const QoreProgramLocation* loc, const char* mname, const QoreString& cmd);
 
-    DLLLOCAL void issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink);
+    DLLLOCAL int issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink);
 
     DLLLOCAL void addModule(QoreAbstractModule* m) {
         assert(map.find(m->getName()) == map.end());

@@ -1932,7 +1932,7 @@ void QoreModuleManager::issueParseCmd(const QoreProgramLocation* loc, const char
 }
 
 #define QORE_MAX_MODULE_ERROR_DESC 200
-void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd,
+int QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd,
         ExceptionSink* xsink) {
     // ensure the program is in context
     QoreProgramContextHelper pch(pgm);
@@ -1947,7 +1947,7 @@ void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, con
                 "as a module", mname));
         }
         if (*xsink) {
-            return;
+            return -1;
         }
         assert(mi);
     }
@@ -1971,6 +1971,12 @@ void QoreModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, con
             xsink->appendLastDescription(": module command error from command '%s'", cmd.c_str());
         }
     }
+    return *xsink ? -1 : 0;
+}
+
+int ModuleManager::issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd,
+        ExceptionSink* xsink) {
+    return QMM.issueRuntimeCmd(mname, pgm, cmd, xsink);
 }
 
 QoreHashNode* ModuleManager::getModuleHash() {

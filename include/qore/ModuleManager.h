@@ -209,6 +209,20 @@ public:
     //! adds the standard module directories to the module path (only necessary if the module paths are set up manually, otherwise these paths are added automatically when qore_init() is called)
     DLLEXPORT static void addStandardModulePaths();
 
+    //! Issues a module command for the given module
+    /** If the module was not already loaded in the given QoreProgram, it will be loaded for this call
+
+        @param mname the module to issue the command in
+        @param pgm the QoreProgram for the module and command
+        @param cmd the command to issue
+        @param xsink if any errors are encountered, a Qore-language exception is raised here
+
+        @return -1 if a Qore-language exception was raised, 0 for OK
+
+        @since %Qore 2.0
+    */
+    DLLEXPORT int issueRuntimeCmd(const char* mname, QoreProgram* pgm, const QoreString& cmd, ExceptionSink* xsink);
+
     // not exported in the public API
     DLLLOCAL ModuleManager();
 };
