@@ -699,9 +699,11 @@ public class DataProviderActionCatalog {
             }
             switch (type.typeCode()) {
                 case NT_OBJECT:
-                    info.type = type instanceof AbstractDataProviderType
-                        ? type.getBaseTypeName()
-                        : type.getName();
+                    if (type instanceof AbstractDataProviderType) {
+                        info.type = type.getOptions()."qore.external_name" ?? type.getBaseTypeName();
+                    } else {
+                        info.type = type.getName();
+                    }
                     break;
 
                 case NT_STRING:

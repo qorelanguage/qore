@@ -27,22 +27,41 @@ public namespace DataProvider {
 #! describes a data type based on int types with validation for parsing strings when used with soft types
 public class QoreIntDataTypeBase inherits QoreDataType {
     private {
+        #! supported non-soft options
+        const SupportedOptions = {
+            "number.min": <DataProviderTypeOptionInfo>{
+                "type": Type::Int,
+                "desc": "The minimum value for this type; by default values less than this will be silently "
+                    "converted to this value on assignment",
+            },
+            "number.max": <DataProviderTypeOptionInfo>{
+                "type": Type::Int,
+                "desc": "The maximum value for this type; by default values greater than this will be silently "
+                    "converted to this value on assignment",
+            },
+        };
+
         #! supported soft options
         const SupportedSoftOptions = {
             "number.format": <DataProviderTypeOptionInfo>{
                 "type": Type::String,
-                "desc": "the format string for converting strings to numbers",
+                "desc": "The format string for converting strings to numbers",
             },
         };
     }
 
-    #! creates the object
-    /** @throw TYPE-ERROR invalid type; must be an integer type
+    #! Creates the object
+    /** @throw TYPE-ERROR invalid type; must be an integer type or invalid options
     */
     private constructor(Type type, *hash<auto> options, *hash<auto> tags) : QoreDataType(type, options, tags) {
         if (type.getBaseTypeCode() != NT_INT) {
-            throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(),
+            throw "TYPE-ERROR", sprintf("Cannot create a %s object from type %y", self.className(),
                 type.getName());
+        }
+        if (exists options."number.min" && exists options."number.max"
+            && options."number.min" > options."number.max") {
+            throw "TYPE-ERROR", sprintf("Cannot create type %y with \"number.min\" (%d) > \"number.max\" (%d)",
+                self.className(), options."number.min", options."number.max");
         }
     }
 
@@ -61,23 +80,32 @@ public class QoreIntDataTypeBase inherits QoreDataType {
                 remove value;
             } else if (soft_type) {
                 if (options."number.format") {
-                    return parse_int(value, options."number.format");
+                    value = parse_int(value, options."number.format");
+                } else {
+                    # check for valid integer values
+                    if (value !~ /^([-+])?[0-9]+$/) {
+                        throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot by parsed by type %y; the input data contains "
+                            "non-integer text", value, getName());
+                    }
+                    value = int(value);
                 }
-                # check for valid integer values
-                if (value !~ /^([-+])?[0-9]+$/) {
-                    throw "RUNTIME-TYPE-ERROR", sprintf("value %y cannot by parsed by type %y; the input data contains "
-                        "non-integer text", value, getName());
-                }
-                return int(value);
             }
         }
 
-        return QoreDataType::acceptsValue(value);
+        *int rv = QoreDataType::acceptsValue(value);
+        if (exists rv) {
+            if (exists options."number.min" && rv < options."number.min") {
+                rv = options."number.min";
+            } else if (exists options."number.max" && rv > options."number.max") {
+                rv = options."number.max";
+            }
+        }
+        return rv;
     }
 
     #! returns supported options
     *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
-        return QoreDataType::getSupportedOptions() + (soft_type ? SupportedSoftOptions : NOTHING);
+        return QoreDataType::getSupportedOptions() + SupportedOptions + (soft_type ? SupportedSoftOptions : NOTHING);
     }
 
     #! returns a "soft" type equivalent to the current type
