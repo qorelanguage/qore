@@ -51,6 +51,7 @@ public class DbDataProvider inherits AbstractDataProvider {
             "children_can_support_apis": False,
             "children_can_support_records": True,
             "children_can_support_transactions": True,
+            "children_identical": True,
         };
 
         #! Mapper runtime key info; see details below

@@ -36,6 +36,7 @@ public class GoogleCalendarsDataProvider inherits GoogleDataProvider::GoogleData
             "constructor_options": GoogleCalendarBaseDataProvider::ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
+            "children_identical": True,
         };
 
         #! Provider summary info

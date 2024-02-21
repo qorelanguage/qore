@@ -35,6 +35,7 @@ public class ElasticSearchIndexesDataProvider inherits ElasticSearchDataProvider
             "constructor_options": ElasticSearchDataProvider::ConstructorOptions,
             "supports_children": True,
             "children_can_support_records": True,
+            "children_identical": True,
         };
 
         #! Provider summary info

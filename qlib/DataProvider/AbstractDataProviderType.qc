@@ -143,10 +143,15 @@ public const DataTypeMap = {
 #! Maps Qore type name constant values to AbstractDataProviderType values
 public const AbstractDataProviderTypeMap = (map {$1.key: AbstractDataProviderType::get($1.value)},
     DataTypeMap.pairIterator()) + {
-    "byte": new QoreUnsignedByteDataType(),
-    "*byte": new QoreUnsignedByteOrNothingDataType(),
-    "softbyte": new QoreSoftUnsignedByteDataType(),
-    "*softbyte": new QoreSoftUnsignedByteOrNothingDataType(),
+    "byte": new QoreSignedByteDataType(),
+    "*byte": new QoreSignedByteOrNothingDataType(),
+    "softbyte": new QoreSoftSignedByteDataType(),
+    "*softbyte": new QoreSoftSignedByteOrNothingDataType(),
+
+    "ubyte": new QoreUnsignedByteDataType(),
+    "*ubyte": new QoreUnsignedByteOrNothingDataType(),
+    "softubyte": new QoreSoftUnsignedByteDataType(),
+    "*softubyte": new QoreSoftUnsignedByteOrNothingDataType(),
 };
 
 #! describes type options

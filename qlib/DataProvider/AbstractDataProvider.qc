@@ -201,6 +201,11 @@ public hashdecl DataProviderSummaryInfo {
     /** @since DataProvider 2.8
     */
     bool children_can_support_transactions = False;
+
+    #! Are all children always of the same data provider class that support the same options?
+    /** @since DataProvider 3.0
+    */
+    bool children_identical = False;
 }
 
 #! Data provider message and event info
@@ -733,6 +738,11 @@ public hashdecl DataProviderInfo {
     /** @since DataProvider 2.8
     */
     bool children_can_support_transactions = False;
+
+    #! Are all children always of the same data provider class that support the same options?
+    /** @since DataProvider 3.0
+    */
+    bool children_identical = False;
 
     #! Returns the schema type supported by this data provider
     /**
@@ -3107,6 +3117,20 @@ public class AbstractDataProvider inherits Logger::LoggerWrapper {
     */
     *object getSchemaType() {
         return getStaticInfoImpl().schema_type;
+    }
+
+    #! Returns True if the data provider supports children
+    /** @since DataProvider 3.0
+    */
+    bool supportsChildren() {
+        return getStaticInfoImpl().supports_children;
+    }
+
+    #! Returns True if the data provider's children are all of the same class and all support the same options
+    /** @since DataProvider 3.0
+    */
+    bool childrenIdentical() {
+        return getStaticInfoImpl().children_identical;
     }
 
     #! thrown an exception

@@ -32,7 +32,7 @@ public class QoreUnsignedByteOrNothingDataType inherits QoreIntDataTypeBase {
 
     #! returns the type name
     string getName() {
-        return "*byte";
+        return "*ubyte";
     }
 
     #! Returns a "soft" type equivalent to the current type

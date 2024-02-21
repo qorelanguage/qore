@@ -33,7 +33,7 @@ public class QoreSoftUnsignedByteDataType inherits QoreIntDataTypeBase {
 
     #! returns the type name
     string getName() {
-        return "softbyte";
+        return "softubyte";
     }
 }
 }

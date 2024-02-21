@@ -1853,7 +1853,7 @@ public class DataProviderTest inherits QUnit::Test {
 
         {
             QoreUnsignedByteDataType type();
-            assertEq("byte", type.getName());
+            assertEq("ubyte", type.getName());
             assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), "1");
             assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), NOTHING);
             assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), NULL);
@@ -1861,7 +1861,7 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq(255, type.acceptsValue(23432434));
 
             AbstractDataProviderType type1 = type.getSoftType();
-            assertEq("softbyte", type1.getName());
+            assertEq("softubyte", type1.getName());
             assertEq(0, type1.acceptsValue("-1"));
             assertEq(1, type1.acceptsValue("1"));
             assertEq(255, type1.acceptsValue("1234"));
@@ -1869,7 +1869,7 @@ public class DataProviderTest inherits QUnit::Test {
 
         {
             QoreUnsignedByteOrNothingDataType type();
-            assertEq("*byte", type.getName());
+            assertEq("*ubyte", type.getName());
             assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), "1");
             assertNothing(type.acceptsValue(NOTHING));
             assertNothing(type.acceptsValue(NULL));
@@ -1877,7 +1877,7 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq(255, type.acceptsValue(23432434));
 
             AbstractDataProviderType type1 = type.getSoftType();
-            assertEq("*softbyte", type1.getName());
+            assertEq("*softubyte", type1.getName());
             assertNothing(type1.acceptsValue(NOTHING));
             assertNothing(type1.acceptsValue(NULL));
             assertEq(0, type1.acceptsValue("-1"));
@@ -1895,6 +1895,55 @@ public class DataProviderTest inherits QUnit::Test {
         {
             QoreSoftUnsignedByteOrNothingDataType int2();
             assertEq(255, int2.acceptsValue("1234"));
+            assertNothing(int2.acceptsValue(""));
+            assertNothing(int2.acceptsValue());
+            assertNothing(int2.acceptsValue(NULL));
+        }
+
+        {
+            QoreSignedByteDataType type();
+            assertEq("byte", type.getName());
+            assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), "1");
+            assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), NOTHING);
+            assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), NULL);
+            assertEq(-127, type.acceptsValue(-1000));
+            assertEq(128, type.acceptsValue(23432434));
+
+            AbstractDataProviderType type1 = type.getSoftType();
+            assertEq("softbyte", type1.getName());
+            assertEq(-127, type1.acceptsValue("-1000"));
+            assertEq(1, type1.acceptsValue("1"));
+            assertEq(128, type1.acceptsValue("1234"));
+        }
+
+        {
+            QoreSignedByteOrNothingDataType type();
+            assertEq("*byte", type.getName());
+            assertThrows("RUNTIME-TYPE-ERROR", \type.acceptsValue(), "1");
+            assertNothing(type.acceptsValue(NOTHING));
+            assertNothing(type.acceptsValue(NULL));
+            assertEq(-127, type.acceptsValue(-1000));
+            assertEq(128, type.acceptsValue(23432434));
+
+            AbstractDataProviderType type1 = type.getSoftType();
+            assertEq("*softbyte", type1.getName());
+            assertNothing(type1.acceptsValue(NOTHING));
+            assertNothing(type1.acceptsValue(NULL));
+            assertEq(-127, type1.acceptsValue("-1000"));
+            assertEq(1, type1.acceptsValue("1"));
+            assertEq(128, type1.acceptsValue("1234"));
+        }
+
+        {
+            QoreSoftSignedByteDataType int1({"qore.no_null": True});
+            assertEq(128, int1.acceptsValue("1234"));
+            assertThrows("RUNTIME-TYPE-ERROR", \int1.acceptsValue());
+            assertThrows("RUNTIME-TYPE-ERROR", \int1.acceptsValue(), NULL);
+        }
+
+        {
+            QoreSoftSignedByteOrNothingDataType int2();
+            assertEq(128, int2.acceptsValue("1234"));
             assertNothing(int2.acceptsValue(""));
             assertNothing(int2.acceptsValue());
             assertNothing(int2.acceptsValue(NULL));
@@ -2104,6 +2153,16 @@ public class DataProviderTest inherits QUnit::Test {
             assertEq("123", str2.acceptsValue(123));
             assertNothing(str2.acceptsValue());
             assertNothing(str2.acceptsValue(NULL));
+        }
+
+        {
+            RgbColorDataType rgb();
+            assertEq("rgbcolor", rgb.getName());
+            assertEq({"qore.external_name": "rgbcolor"}, rgb.getOptions());
+            hash<auto> h = {"r": 1, "b": 2, "g": 3, "a": 4};
+            assertEq(h, rgb.acceptsValue(h));
+            h.x = 3;
+            assertThrows("RUNTIME-TYPE-ERROR", \rgb.acceptsValue(), h);
         }
 
         {

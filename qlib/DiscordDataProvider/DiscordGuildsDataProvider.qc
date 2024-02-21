@@ -36,6 +36,7 @@ public class DiscordGuildsDataProvider inherits DiscordDataProviderBase {
             "constructor_options": DiscordDataProvider::ConstructorOptions,
             "supports_children": True,
             "children_can_support_apis": True,
+            "children_identical": True,
         };
 
         #! Provider summary info

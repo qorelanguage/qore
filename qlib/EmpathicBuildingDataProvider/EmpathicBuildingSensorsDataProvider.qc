@@ -37,6 +37,7 @@ public class EmpathicBuildingSensorsDataProvider inherits EmpathicBuildingDataPr
             "supports_children": True,
             "children_can_support_apis": True,
             "children_can_support_observers": True,
+            "children_identical": True,
         };
 
         #! Provider summary info

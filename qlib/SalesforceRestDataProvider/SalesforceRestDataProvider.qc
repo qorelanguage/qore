@@ -38,6 +38,7 @@ public class SalesforceRestDataProvider inherits SalesforceRestDataProviderBase 
             "children_can_support_apis": False,
             "children_can_support_records": True,
             "children_can_support_observers": False,
+            "children_identical": True,
         };
 
         #! Constructor options

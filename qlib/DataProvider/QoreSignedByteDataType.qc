@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
-#! Qore QoreUnsignedByteDataType class definition
+#! Qore QoreSignedByteDataType class definition
 
-/** QoreUnsignedByteDataType.qc Copyright 2023 Qore Technologies, s.r.o.
+/** QoreSignedByteDataType.qc Copyright 2023 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -24,13 +24,13 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
-#! Unsigned byte data type for ints with values from 0 - 255
-public class QoreUnsignedByteDataType inherits QoreIntDataTypeBase {
+#! Signed byte data type for ints with values from -127 - 128
+public class QoreSignedByteDataType inherits QoreIntDataTypeBase {
     public {
         #! Int type options
         const Options = {
-            "number.min": 0,
-            "number.max": 255,
+            "number.min": -127,
+            "number.max": 128,
         };
     }
 
@@ -40,7 +40,7 @@ public class QoreUnsignedByteDataType inherits QoreIntDataTypeBase {
 
     #! returns the type name
     string getName() {
-        return "ubyte";
+        return "byte";
     }
 
     #! Returns a "soft" type equivalent to the current type
@@ -50,7 +50,7 @@ public class QoreUnsignedByteDataType inherits QoreIntDataTypeBase {
         @return a "soft" type equivalent to the current type
     */
     AbstractDataProviderType getSoftType() {
-        return new QoreSoftUnsignedByteDataType();
+        return new QoreSoftSignedByteDataType();
     }
 }
 }
