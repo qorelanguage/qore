@@ -38,7 +38,7 @@
 // FIXME: move to config.h or something like that
 // not more than this number of threads can be running at the same time
 #ifndef MAX_QORE_THREADS
-#define MAX_QORE_THREADS 0x1000
+#define MAX_QORE_THREADS 0x2000
 #endif
 
 class ThreadData;
