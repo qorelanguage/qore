@@ -41,8 +41,8 @@ public class DiscordMessageDataType inherits HashDataType {
             },
             "author": {
                 "display_name": "Author",
-                "type": AbstractDataProviderTypeMap."*hash",
-                "desc": "The author of this message (not guaranteed to be a valid user, see below)",
+                "type": DiscordUserDataType,
+                "desc": "The author of this message (not guaranteed to be a valid user)",
             },
             "content": {
                 "display_name": "Message Content",
@@ -220,4 +220,7 @@ public class DiscordMessageDataType inherits HashDataType {
         addQoreFields(Fields);
     }
 }
+
+#! Discord message data type
+public const DiscordMessageDataType = new DiscordMessageDataType();
 }
