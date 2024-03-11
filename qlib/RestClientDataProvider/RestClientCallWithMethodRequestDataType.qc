@@ -35,6 +35,7 @@ public class RestClientCallWithMethodRequestDataType inherits RestClientCallRequ
                 "type": StringType,
                 "desc": "The REST method to use",
                 "required": True,
+                "default_value": "GET",
                 "allowed_values": (
                     <AllowedValueInfo>{
                         "display_name": "DELETE",

@@ -69,9 +69,13 @@ module RestClientDataProvider {
             "desc": "Make a call to a REST server or a webhook and return the response",
             "action_code": DPAT_API,
             "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
-                RestClientCallWithMethodRequestDataType::Fields{"method", "path", "query_args", "body"}, {
+                RestClientCallWithMethodRequestDataType::Fields{"method",}, {
                     "preselected": True,
                     "required": True,
+                },
+            ) + DataProviderActionCatalog::getActionOptionFromFields(
+                RestClientCallWithMethodRequestDataType::Fields{"path", "query_args", "body"}, {
+                    "preselected": True,
                 },
             ),
             "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(

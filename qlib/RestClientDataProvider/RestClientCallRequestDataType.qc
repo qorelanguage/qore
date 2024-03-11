@@ -40,6 +40,7 @@ public class RestClientCallRequestDataType inherits HashDataType {
                 "display_name": "URI path",
                 "type": StringType,
                 "desc": "The URI path",
+                "default_value": "/",
             },
             "query_args": {
                 "display_name": "Query Arguments",
