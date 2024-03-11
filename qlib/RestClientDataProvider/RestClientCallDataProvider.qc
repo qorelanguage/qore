@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore RestClientDataProvider module definition
 
-/** RestCallDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** RestCallDataProvider.qc Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -42,10 +42,10 @@ public class RestClientCallDataProvider inherits RestClientDataProviderBase {
         });
 
         #! Request type
-        const RequestType = new RestClientCallWithMethodRequestDataType();
+        const RequestType = RestClientCallWithMethodRequestDataType;
 
         #! Response type
-        const ResponseType = new RestClientCallResponseDataType();
+        const ResponseType = RestClientCallResponseDataType;
     }
 
     #! Creates the object from constructor options
@@ -70,7 +70,7 @@ public class RestClientCallDataProvider inherits RestClientDataProviderBase {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return RestClientDataProvider::makeRequest(rest, req.method, req.body, req.path, req.hdr);
+        return RestClientDataProvider::makeRequest(rest, req.method, req.body, getRequestPath(req), req.hdr);
     }
 
     #! Returns the description of a successful request message, if any

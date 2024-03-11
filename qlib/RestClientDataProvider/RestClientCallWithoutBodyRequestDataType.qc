@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** RestCallWithoutBodyRequestDataType.qc Copyright 2023 Qore Technologies, s.r.o.
+/** RestCallWithoutBodyRequestDataType.qc Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,26 +23,23 @@
 
 #! contains all public definitions in the RestClientDataProvider module
 public namespace RestClientDataProvider {
+#! Constant type for REST call requests without a body
+public const RestClientCallWithoutBodyRequestDataType = new RestClientCallWithoutBodyRequestDataType();
+
 #! Data type for REST client call requests with no message bodies
-public class RestClientCallWithoutBodyRequestDataType inherits HashDataType {
+public class RestClientCallWithoutBodyRequestDataType inherits RestClientCallRequestDataType {
     private {
         #! Field descriptions
-        const Fields = {
-            "path": {
-                "type": StringType,
-                "desc": "The URI path",
-            },
-            "hdr": {
-                "type": AutoHashOrNothingType,
-                "desc": "Any headers to include in the request",
-            },
-        };
+        const Fields = RestClientCallRequestDataType::Fields - "body";
     }
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+    }
+
+    #! Returns fields to add
+    private hash<auto> getConstructorFields() {
+        return Fields;
     }
 }
 }

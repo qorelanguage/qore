@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/*  FileDataProviderFactory.qc Copyright (C) 2023 Qore Technologies s.r.o.
+/*  FileDataProviderFactory.qc Copyright (C) 2023 - 2024 Qore Technologies s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore HttpClientDataProvider module definition
 
-/** HttpOptionsDataProvider.qc Copyright 2023 Qore Technologies, s.r.o.
+/** HttpOptionsDataProvider.qc Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

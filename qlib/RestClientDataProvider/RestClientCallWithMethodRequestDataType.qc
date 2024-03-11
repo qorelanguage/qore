@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** RestCallWithMethodRequestDataType.qc Copyright 2023 Qore Technologies, s.r.o.
+/** RestCallWithMethodRequestDataType.qc Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,35 +23,79 @@
 
 #! contains all public definitions in the RestClientDataProvider module
 public namespace RestClientDataProvider {
+#! Constant type for REST call requests with a method
+public const RestClientCallWithMethodRequestDataType = new RestClientCallWithMethodRequestDataType();
+
 #! Data type for REST client call requests with a specific method
-public class RestClientCallWithMethodRequestDataType inherits HashDataType {
-    private {
+public class RestClientCallWithMethodRequestDataType inherits RestClientCallRequestDataType {
+    public {
         #! Field descriptions
-        const Fields = {
+        const Fields = RestClientCallRequestDataType::Fields + {
             "method": {
                 "type": StringType,
                 "desc": "The REST method to use",
                 "required": True,
-            },
-            "body": {
-                "type": DataOrNothingType,
-                "desc": "The message body",
-            },
-            "path": {
-                "type": StringType,
-                "desc": "The URI path",
-            },
-            "hdr": {
-                "type": AutoHashOrNothingType,
-                "desc": "Any headers to include in the request",
+                "allowed_values": (
+                    <AllowedValueInfo>{
+                        "display_name": "DELETE",
+                        "short_desc": "HTTP DELETE method",
+                        "desc": "HTTP `DELETE` method",
+                        "value": "DELETE",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "GET",
+                        "short_desc": "HTTP GET method",
+                        "desc": "HTTP `GET` method",
+                        "value": "GET",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "HEAD",
+                        "short_desc": "HTTP HEAD method",
+                        "desc": "HTTP `HEAD` method",
+                        "value": "HEAD",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "OPTIONS",
+                        "short_desc": "HTTP OPTIONS method",
+                        "desc": "HTTP `OPTIONS` method",
+                        "value": "OPTIONS",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "PATCH",
+                        "short_desc": "HTTP PATCH method",
+                        "desc": "HTTP `PATCH` method",
+                        "value": "PATCH",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "POST",
+                        "short_desc": "HTTP POST method",
+                        "desc": "HTTP `POST` method",
+                        "value": "POST",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "PUT",
+                        "short_desc": "HTTP GET method",
+                        "desc": "HTTP `GET` method",
+                        "value": "GET",
+                    },
+                    <AllowedValueInfo>{
+                        "display_name": "TRACE",
+                        "short_desc": "HTTP TRACE method",
+                        "desc": "HTTP `TRACE` method",
+                        "value": "TRACE",
+                    },
+                ),
             },
         };
     }
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+    }
+
+    #! Returns fields to add
+    private hash<auto> getConstructorFields() {
+        return Fields;
     }
 }
 }

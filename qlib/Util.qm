@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Util.qm Qore user module for generally useful routines
 
-/*  Util.qm Copyright 2014 - 2023 Qore Technologies, s.r.o.
+/*  Util.qm Copyright 2014 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

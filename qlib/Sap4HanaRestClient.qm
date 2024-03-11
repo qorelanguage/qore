@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Sap4HanaRestClient.qm Qore user module for calling Sap4Hana REST services
 
-/*  Sap4HanaRestClient.qm Copyright (C) 2019 - 2023 Qore Technologies, s.r.o.
+/*  Sap4HanaRestClient.qm Copyright (C) 2019 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

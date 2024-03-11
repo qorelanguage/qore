@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file Qdx.qm Qore user module for documentation generation with doxygen
 
-/*  Qdx.qm Copyright 2016 - 2023 Qore Technologies, s.r.o.
+/*  Qdx.qm Copyright 2016 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** RestCallResponseDataType.qc Copyright 2023 Qore Technologies, s.r.o.
+/** RestCallResponseDataType.qc Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,9 @@
 
 #! contains all public definitions in the RestClientDataProvider module
 public namespace RestClientDataProvider {
+#! Constant type for REST call responses
+public const RestClientCallResponseDataType = new RestClientCallResponseDataType();
+
 #! Data type for REST call responses
 public class RestClientCallResponseDataType inherits HashDataType {
     private {
@@ -41,7 +44,7 @@ public class RestClientCallResponseDataType inherits HashDataType {
                 "desc": "The request URI string sent (ex: `GET /services/async/38.0/job HTTP/1.1`)",
             },
             "response-body": {
-                "type": DataOrNothingType,
+                "type": AutoType,
                 "desc": "Any message body sent in the response",
             },
             "response-headers": {
@@ -75,8 +78,7 @@ public class RestClientCallResponseDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(Fields);
     }
 }
 }

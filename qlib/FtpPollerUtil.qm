@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file FtpPollerUtil.qm Qore user module providing definitions for the FtpPoller module
 
-/*  FtpPollerUtil.qm Copyright 2023 Qore Technologies, s.r.o.
+/*  FtpPollerUtil.qm Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore RestClientDataProvider class definition
 
-/** RestClientDataProviderBase.qc Copyright 2023 Qore Technologies, s.r.o.
+/** RestClientDataProviderBase.qc Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -44,6 +44,35 @@ public class RestClientDataProviderBase inherits DataProvider::AbstractDataProvi
     setLogger(*LoggerInterface logger) {
         rest.setLogger(logger);
         LoggerWrapper::setLogger(logger);
+    }
+
+    #! Returns the request path for the given request
+    static string getRequestPath(hash<auto> req) {
+        if (req.query_args) {
+            if (req.path =~ /\?/) {
+                req.path += "&";
+            } else {
+                req.path += "?";
+            }
+            req.path += foldl $1 + "&" + $2,
+                (map sprintf("%s=%s", $1.key, RestClientDataProviderBase::getUriValue($1.value)),
+                    req.query_args.pairIterator());
+        }
+        return req.path;
+    }
+
+    #! Returns the value for the given query argument
+    static string getUriValue(auto v) {
+        switch (v.typeCode()) {
+            case NT_BOOLEAN:
+                return v ? "true" : "false";
+            case NT_LIST:
+                return foldl $1 + "," + $2, (map RestClientDataProviderBase::getUriValue($1), v);
+            case NT_STRING:
+                return v;
+            default:
+                return v.toString();
+        }
     }
 }
 }

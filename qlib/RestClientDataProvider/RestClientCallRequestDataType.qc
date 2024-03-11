@@ -1,6 +1,6 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 
-/** RestCallRequestDataType.qc Copyright 2023 Qore Technologies, s.r.o.
+/** RestCallRequestDataType.qc Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -23,20 +23,32 @@
 
 #! contains all public definitions in the RestClientDataProvider module
 public namespace RestClientDataProvider {
+#! Constant type for REST call requests
+public const RestClientCallRequestDataType = new RestClientCallRequestDataType();
+
 #! Data type for REST call requests
 public class RestClientCallRequestDataType inherits HashDataType {
     private {
         #! Field descriptions
         const Fields = {
             "body": {
+                "display_name": "Body",
                 "type": DataOrNothingType,
                 "desc": "The message body",
             },
             "path": {
+                "display_name": "URI path",
                 "type": StringType,
                 "desc": "The URI path",
             },
+            "query_args": {
+                "display_name": "Query Arguments",
+                "type": AutoHashOrNothingType,
+                "short_desc": "Any query to include in the request",
+                "desc": "Any query to include in the request; these will be added to the URI path in the request",
+            },
             "hdr": {
+                "display_name": "Headers",
                 "type": AutoHashOrNothingType,
                 "desc": "Any headers to include in the request",
             },
@@ -45,8 +57,12 @@ public class RestClientCallRequestDataType inherits HashDataType {
 
     #! Creates the object
     constructor() {
-        map addField(new QoreDataField($1.key, $1.value.desc, $1.value.type, $1.value.default_value)),
-            Fields.pairIterator();
+        addQoreFields(getConstructorFields());
+    }
+
+    #! Returns fields to add
+    private hash<auto> getConstructorFields() {
+        return Fields;
     }
 }
 }

@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore RestClientDataProvider module definition
 
-/*  RestClientDataProvider.qm Copyright 2023 Qore Technologies, s.r.o.
+/*  RestClientDataProvider.qm Copyright 2023 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -68,6 +68,15 @@ module RestClientDataProvider {
             "short_desc": "Make a call to a REST server or webhook",
             "desc": "Make a call to a REST server or a webhook and return the response",
             "action_code": DPAT_API,
+            "convenience_options": DataProviderActionCatalog::getActionOptionFromFields(
+                RestClientCallWithMethodRequestDataType::Fields{"method", "path", "query_args", "body"}, {
+                    "preselected": True,
+                    "required": True,
+                },
+            ),
+            "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
+                RestClientCallWithMethodRequestDataType::Fields{"hdr",}
+            ),
         });
     };
 }

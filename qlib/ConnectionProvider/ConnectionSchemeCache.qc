@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! @file ConnectionSchemeCache.qc module for data access and introspection
 
-/** ConnectionSchemeCache.qc Copyright 2019 - 2023 Qore Technologies, s.r.o.
+/** ConnectionSchemeCache.qc Copyright 2019 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
