@@ -55,6 +55,7 @@ class QdpCmd {
             "listfactories": "f,list-factories",
             "listtypes": "t,list-types",
             "modules": "m,module=s@",
+            "options": "o,options=s",
             "subtype": "s,subtype=s",
             "verbose": "v,verbose:i+",
             "exp": "x,expressions",
@@ -165,6 +166,15 @@ class QdpCmd {
         }
         if (!ARGV[0]) {
             usage();
+        }
+
+        ImpliedArgumentHelper iah;
+        if (opts.options.val()) {
+            auto v = parse_to_qore_value(opts.options);
+            if (v.typeCode() != NT_HASH) {
+                error("options have type %y; expecting \"hash\"", v.fullType());
+            }
+            iah = new ImpliedArgumentHelper(v);
         }
 
         AbstractDataProvider provider;
@@ -1038,6 +1048,7 @@ class QdpCmd {
  -c,--list-connections     list known connections and exit
  -f,--list-factories       list known data provider factories and exit
  -m,--module=ARG           Data Provider modules to load manually
+ -o,--options=ARG          set implied options for a data provider (must parse to a hash in Qore format)
  -s,--subtype=ARG          use Data Provider subtype when creating from a connection
  -t,--list-types           list known data provider types and exit
  -v,--verbose[=ARG]        show more output
