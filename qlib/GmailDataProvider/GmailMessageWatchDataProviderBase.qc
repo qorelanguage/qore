@@ -293,15 +293,23 @@ public class GmailMessageWatchDataProviderBase inherits GoogleDataProvider::Goog
 
     #! Returns attachment data
     private hash<auto> getAttachment(hash<auto> att, *hash<auto> hdr) {
+        string filename;
+        # try to get filename
+        if (hdr."Content-Disposition" && (*string fn =
+            (hdr."Content-Disposition" =~ x/filename="([^"]+)"/)[0])) {
+            filename = fn;
+        }
         # try to determine the content type
         *string content_type = hdr."Content-Type";
         *string encoding;
         data body;
-        if (content_type) {
+        if (content_type.val()) {
             encoding = (content_type =~ x/charset="([^"]+)"/)[0];
             content_type =~ s/;.*//;
+        } else if (filename.val()) {
+            content_type = get_mime_type_from_ext(filename);
         }
-        if (content_type && is_mime_text(content_type)) {
+        if (content_type.val() && is_mime_text(content_type)) {
             body = parse_base64_url_string_to_string(att."data", encoding);
         } else {
             body = parse_base64_url_string(att."data");
@@ -310,16 +318,14 @@ public class GmailMessageWatchDataProviderBase inherits GoogleDataProvider::Goog
             "hdr": hdr,
             "body": body,
         };
+        if (filename.val()) {
+            attachment.filename = filename;
+        }
         if (content_type) {
             attachment.content_type = content_type;
         }
         if (encoding) {
             attachment.encoding = encoding;
-        }
-        # try to get filename
-        if (hdr."Content-Disposition" && (*string filename =
-            (hdr."Content-Disposition" =~ x/filename="([^"]+)"/)[0])) {
-            attachment.filename = filename;
         }
         return attachment;
     }
