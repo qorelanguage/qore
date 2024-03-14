@@ -233,12 +233,10 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
             l += path;
         }
         foreach DataProviderTypeEntry entry in ((type_children + children).iterator()) {
-            *list<string> child_list = entry.listTypes();
-            if (child_list) {
+            if (*list<string> child_list = entry.listTypes()) {
                 l += child_list;
             }
         }
-
         return l;
     }
 
@@ -358,7 +356,7 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
     private:internal setTypeChildren() {
         *hash<string, AbstractDataField> fields = type.getFields();
         if (fields) {
-            type_children = map {$1.key: new DataProviderTypeEntry(path + "/" + name, $1.key, $1.value.getType())},
+            type_children = map {$1.key: new DataProviderTypeEntry(path, $1.key, $1.value.getType())},
                 fields.pairIterator();
             rec_children = map {$1.key: $1.value}, type_children.pairIterator(), $1.value.getType().getFields();
             if (!rec_children) {

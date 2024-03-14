@@ -232,8 +232,10 @@ class CsvHelper {
                     spec_copy{h.value.header} = remove spec_copy{h.key};
             }
             *hash h1 = spec_copy - headers;
-            if (h1)
-                throw errname, sprintf("field specification for record %y refers to the following fields not reflected in the header: %y; known fields: %y", type, keys h1, headers);
+            if (h1) {
+                throw errname, sprintf("field specification for record %y refers to the following fields not "
+                    "reflected in the header: %y; known fields: %y", type, keys h1, headers);
+            }
         }
         list<string> csv_order = ();
         if (headers && tolwr)
