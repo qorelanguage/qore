@@ -51,19 +51,22 @@
       @ref NOTHING
 
     @subsection qore_2_0_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - fixed a bug where control characters in URLs were silently accepted
+        (<a href="https://github.com/qorelanguage/qore/issues/4866">issue 4866</a>)
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+      - fixed a bug where the HTTP server did not disconnect idle connections
+        (<a href="https://github.com/qorelanguage/qore/issues/4878">issue 4878</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
+      - fixed a bug where @ref SqlUtil::AbstractTable::getDropAllConstraintsAndIndexesOnColumnSql()
+        "AbstractTable::getDropAllConstraintsAndIndexesOnColumnSql()" did not work on foreign constraints
+        (<a href="https://github.com/qorelanguage/qore/issues/4875">issue 4875</a>)
     - <a href="../../modules/Swagger/html/index.html">Swagger</a> module
       - fixed a bug converting arguments to fit the Swagger schema to avoid spurious and very difficult to debug type
         errors
         (<a href="https://github.com/qorelanguage/qore/issues/4825">issue 4825</a>)
       - fixed a bug where any additionalProperties would cause all properties to be accepted
         (<a href="https://github.com/qorelanguage/qore/issues/4823">issue 4823</a>)
-    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
-      - fixed a bug where control characters in URLs were silently accepted
-        (<a href="https://github.com/qorelanguage/qore/issues/4866">issue 4866</a>)
-    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
-      - fixed a bug where @ref SqlUtil::AbstractTable::getDropAllConstraintsAndIndexesOnColumnSql()
-        "AbstractTable::getDropAllConstraintsAndIndexesOnColumnSql()" did not work on foreign constraints
-        (<a href="https://github.com/qorelanguage/qore/issues/4875">issue 4875</a>)
     - fixed a bug with the @ref minus_equals_operator "-= operator" and lvalues with
       @ref hash_or_nothing_type "*hash" types
       (<a href="https://github.com/qorelanguage/qore/issues/4873">issue 4873</a>)

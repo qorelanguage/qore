@@ -32,7 +32,7 @@
 %new-style
 
 module HttpServer {
-    version = "1.2";
+    version = "1.3";
     desc = "HttpServer class definition";
     author = "David Nichols <david@qore.org>";
     url = "http://qore.org";
@@ -131,6 +131,10 @@ log("started listener on %s", lh.desc);
     @endcode
 
     @section http_relnotes HttpServer Module Release Notes
+
+    @subsection http1_3 HttpServer 1.3
+    - fixed a bug where idle connections were never disconnected
+      (<a href="https://github.com/qorelanguage/qore/issues/4878">issue 4878</a>)
 
     @subsection http1_2 HttpServer 1.2
     - allow handlers to remove thread-local auth information after requests have been handled
@@ -453,6 +457,9 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         #! listener log option: log sent message body
         const LLO_SEND_BODY = (1 << 3);
         #/@}
+
+        #! Default connection time-to-live
+        const DefaultTtl = 75s;
     }
 
     #! @cond nodoc
@@ -517,6 +524,9 @@ public class HttpServer inherits HttpServer::AbstractLogger {
 
         #! Do not allow last listener to be stopped
         bool protect_last_listener = False;
+
+        #! TTL for connections until they are disconnected
+        date ttl = DefaultTtl;
     }
     #! @endcond
 
@@ -589,6 +599,22 @@ public class HttpServer inherits HttpServer::AbstractLogger {
     #! calls stop() and destroys the object
     destructor() {
         stop();
+    }
+
+    #! Returns the TTL value
+    date getTtl() {
+        return ttl;
+    }
+
+    #! Sets the connection TTL value
+    setTtl(date ttl) {
+        if (ttl <= 0) {
+            throw "TTL-ARG-ERROR", sprintf("TTL value is negative: %y", ttl);
+        }
+        if (ttl.absolute()) {
+            throw "TTL-ARG-ERROR", sprintf("TTL value is an absolute date: %y; it must be relative", ttl);
+        }
+        self.ttl = ttl;
     }
 
     #! add a new supported HTTP method
@@ -2601,6 +2627,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         hash<auto> cx;
 
         try {
+            date start;
             while (!exit) {
                 delete body;
                 delete hdr;
@@ -2610,9 +2637,17 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
                     break;
                 }
 
+                if (!start) {
+                    start = now_us();
+                }
                 if (!s.isDataAvailable(HttpServer::PollTimeout)) {
+                    if ((date delta = now_us() - start) > (date ttl = serv.getTtl())) {
+                        log("Disconnecting idle connection after: %y", ttl);
+                        break;
+                    }
                     continue;
                 }
+                remove start;
 
                 cx = cx_listener;
 
