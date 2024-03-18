@@ -28,7 +28,8 @@
     information.
 */
 
-#include <qore/Qore.h>
+#include "qore/Qore.h"
+#include "qore/intern/qore_program_private.h"
 
 QoreString QoreMinusOperatorNode::minus_str("- operator expression");
 
