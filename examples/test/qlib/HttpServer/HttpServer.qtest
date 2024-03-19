@@ -141,6 +141,7 @@ OKKqgBjNAlYDdPhOy8O8Agk=
     }
 
     constructor() : Test("HttpServerTest", "1.0") {
+        addTestCase("idle test", \idleTest());
         addTestCase("issue 4312", \issue4312());
         addTestCase("issue 3397", \issue3397());
         addTestCase("issue 3116", \issue3116());
@@ -191,6 +192,27 @@ OKKqgBjNAlYDdPhOy8O8Agk=
     tearDown() {
         mClient.disconnect();
         delete mClient;
+    }
+
+    idleTest() {
+        date ttl = mServer.getTtl();
+        on_exit mServer.setTtl(ttl);
+
+        mServer.setTtl(1us);
+
+        assertEq("GET, abc, /abc", mClient.get("/abc"));
+        usleep(2us);
+        assertEq("GET, abc, abc", mClient.get("abc"));
+        usleep(2us);
+        assertEq("GET, abc/test/1/5/t, /abc/test/1/5/t", mClient.get("/abc/test/1/5/t"));
+        usleep(2us);
+        hash<auto> resp = mClient.send("dx123", "POST", "/abc");
+        assertEq(200, resp.status_code);
+        assertEq("POST, dx123, abc, /abc", resp.body);
+        usleep(2us);
+        assertEq("a1, GET, alt1, /alt1", mClient.get("/alt1"));
+        usleep(2us);
+        assertEq("a1, POST, alt1/test, alt1/test", mClient.post("alt1/test", ""));
     }
 
     issue4312() {
