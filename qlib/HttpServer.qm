@@ -30,6 +30,7 @@
 %requires Logger
 
 %new-style
+%allow-weak-references
 
 module HttpServer {
     version = "1.3";
@@ -383,6 +384,9 @@ public hashdecl HttpServerOptionInfo {
         "X-Powered-By": "Qore/" + Qore::VersionString,
     };
 
+    #! Idle disconnect time; the default is 75 seconds
+    date ttl = HttpServer::DefaultTtl;
+
     #! HTTP server logger
     *LoggerInterface logger;
 }
@@ -525,7 +529,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         #! Do not allow last listener to be stopped
         bool protect_last_listener = False;
 
-        #! TTL for connections until they are disconnected
+        #! Idle disconnect (TTL) for connections
         date ttl = DefaultTtl;
     }
     #! @endcond
@@ -584,6 +588,9 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         hdr = opts.hdr;
         protect_last_listener = opts.protect_last_listener ?? False;
         logger = opts.logger ?? new Logger(http_server_string, LoggerLevel::getLevelInfo());
+        if (opts.ttl) {
+            setTtl(opts.ttl);
+        }
     }
 
     #! Creates the server with default options and an empty logger
@@ -594,6 +601,7 @@ public class HttpServer inherits HttpServer::AbstractLogger {
         hdr = opts.hdr;
         protect_last_listener = opts.protect_last_listener;
         logger = opts.logger ?? new Logger(http_server_string, LoggerLevel::getLevelInfo());
+        ttl = opts.ttl;
     }
 
     #! calls stop() and destroys the object
@@ -608,11 +616,12 @@ public class HttpServer inherits HttpServer::AbstractLogger {
 
     #! Sets the connection TTL value
     setTtl(date ttl) {
-        if (ttl <= 0) {
-            throw "TTL-ARG-ERROR", sprintf("TTL value is negative: %y", ttl);
-        }
         if (ttl.absolute()) {
-            throw "TTL-ARG-ERROR", sprintf("TTL value is an absolute date: %y; it must be relative", ttl);
+            throw "TTL-ARG-ERROR", sprintf("Idle disconnect (ttl) value is an absolute date: %y; it must be "
+                "relative", ttl);
+        }
+        if (ttl <= 0us) {
+            throw "TTL-ARG-ERROR", sprintf("Idle disconnect (ttl) value is not greater then zero: %y", ttl);
         }
         self.ttl = ttl;
     }
@@ -2090,8 +2099,8 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         # according to RFC 2616 section 3.7.1 (http://tools.ietf.org/html/rfc2616#section-3.7.1)
         setEncoding("utf-8");
 
-        # save a reference to the server object
-        serv = server;
+        # save a weak reference to the server object
+        serv := server;
 
         # set other params
         self.id = id;
@@ -2640,7 +2649,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
                 if (!start) {
                     start = now_us();
                 }
-                if (!s.isDataAvailable(HttpServer::PollTimeout)) {
+                if (!s.isDataAvailable(min(HttpServer::PollTimeout, serv.getTtl()))) {
                     if ((date delta = now_us() - start) > (date ttl = serv.getTtl())) {
                         log("Disconnecting idle connection after: %y", ttl);
                         break;

@@ -3134,6 +3134,8 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
     }
 
     bool path_already_encoded = false;
+    // only reconnect if we already have an open connection
+    unsigned retries = msock->socket->isOpen() ? 0 : 1;
     while (true) {
         // set host field automatically if not overridden
         if (!host_override) {
@@ -3160,8 +3162,16 @@ QoreHashNode* qore_httpclient_priv::send_internal(ExceptionSink* xsink, const ch
                 code, send_aborted, path_already_encoded, xsink);
         }
 
-        if (!ans)
+        if (!ans) {
+            assert(*xsink);
+            // issue# 4879: reconnect immediately and try again if the socket was closed the first time
+            if (!msock->socket->isOpen() && !retries) {
+                ++retries;
+                xsink->clear();
+                continue;
+            }
             return nullptr;
+        }
 
         if (info) {
             info->setKeyValue("response-headers", ans->refSelf(), xsink);
