@@ -7,7 +7,7 @@
 
     it should offer POSIX style command-line handling on any platform...
 
-    Copyright (C) 2003 - 2022 Qore Technologies, s.r.o.
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -509,7 +509,7 @@ static void show_build_options(const char* arg) {
 }
 
 static void do_version(const char* arg) {
-   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2022 David Nichols\n", qore_target_os, qore_target_arch,
+   printf("QORE for %s %s (%d-bit build), Copyright (C) 2003 - 2024 David Nichols\n", qore_target_os, qore_target_arch,
        qore_target_bits);
 
    printf("version %s", qore_version_string);
