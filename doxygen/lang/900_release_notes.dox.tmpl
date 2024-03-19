@@ -2,6 +2,18 @@
 
     @tableofcontents
 
+    @section qore_1_19_3 Qore 1.19.3
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_19_3_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+      - fixed a bug where the HTTP server did not disconnect idle connections
+        (<a href="https://github.com/qorelanguage/qore/issues/4878">issue 4878</a>)
+    - reconnect HTTP client objects if already connected and a send/receive operation immediately gets disconnected
+      (<a href="https://github.com/qorelanguage/qore/issues/4879">issue 4879</a>)
+
     @section qore_1_19_2 Qore 1.19.2
 
     @par Release Summary
