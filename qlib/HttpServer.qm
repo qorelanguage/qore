@@ -1562,7 +1562,8 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             HttpPersistentHandlerInfo phi, hash<auto> info, reference<bool> dedicated) {
         if (!http_methods{hdr.method}) {
             string err = sprintf("unknown / unsupported HTTP method %n", hdr.method);
-            string str = sprintf("%s: received from %s via %s", err, info.address_desc, listener.getListenerSocketInfo().address_desc);
+            string str = sprintf("%s: received from %s via %s", err, info.address_desc,
+                listener.getListenerSocketInfo().address_desc);
             listener.logError(str);
             cx.close = True;
             sendHttpError(listener, cx, s, 501, err, NOTHING, NOTHING, cx."response-encoding", head);
@@ -1754,10 +1755,17 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
 
                 # manage persistent handler info, if applicable
                 if (!phi.handler) {
-                    if (handler.isPersistent())
+                    if (handler.isPersistent()) {
                         phi.assign(dhh, handler);
-                } else if (!handler.isPersistent())
+                        if (!cx.persistent && !rv.close) {
+                            cx.persistent = True;
+                        }
+                    }
+                } else if (!handler.isPersistent()) {
                     phi.clear();
+                } else if (!cx.persistent && !rv.close) {
+                    cx.persistent = True;
+                }
 
                 if (rv.reply_sent) {
                     return;
@@ -1778,6 +1786,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             }
 
             cx.close = True;
+            remove cx.persistent;
 
             # if there is a pending chunked body that has not yet been read on exit, then read it and discard before sending any response
             on_exit if (s.pendingHttpChunkedBody())
@@ -1804,6 +1813,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
         if (!HttpCodes.(rv.code)) { # if the handler returns an invalid hash
             string str = sprintf("%s handler returned an invalid response rv: %y", cx.handler_name, rv);
             cx.close = True;
+            remove cx.persistent;
 
             sendHttpError(listener, cx, s, 500, str, NOTHING, NOTHING, cx."response-encoding", head);
             return;
@@ -1841,6 +1851,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
             }
             sendHttpError(listener, cx, s, rv.code, rv.body, rv.hasKey("chunked_body") ? rv.chunked_body : NOTHING,
                 rv.hdr, cx."response-encoding", head);
+            remove cx.persistent;
         } else {
             #printf("**** RESPONSE: %d ct: %s (te: %y) encoding: %y: %N\n", rv.code, rv.hdr."Content-Type",
             #    rv.hdr."Transfer-Encoding", cx.encoding, rv.body);
@@ -1902,6 +1913,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                 } else
                     listener.logError("cid %d: cannot start dedicated socket handler %y because the listener is "
                         "shutting down", cx.id, cx.handler_name);
+                }
             }
         }
     }
@@ -2593,6 +2605,7 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
 
         try {
             date start;
+            bool persistent;
             while (!exit) {
                 delete body;
                 delete hdr;
@@ -2605,8 +2618,12 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
                 if (!start) {
                     start = now_us();
                 }
-                if (!s.isDataAvailable(min(HttpServer::PollTimeout, serv.getTtl()))) {
-                    if ((date delta = now_us() - start) > (date ttl = serv.getTtl())) {
+                date poll_interval = HttpServer::PollTimeout;
+                if (!persistent && poll_interval > (date ttl = serv.getTtl())) {
+                    poll_interval = ttl;
+                }
+                if (!s.isDataAvailable(poll_interval)) {
+                    if (!persistent && ((date delta = now_us() - start) > (date ttl = serv.getTtl()))) {
                         log("Disconnecting idle connection after: %y", ttl);
                         break;
                     }
@@ -2618,8 +2635,8 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
                 try {
                     hdr = s.readHTTPHeader(HttpServer::ReadTimeout, \header_info);
                 } catch (hash<ExceptionInfo> ex) {
-                    # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients claiming http 1.1
-                    # protocol compatibility SHOULD only close the connection after
+                    # according to RFC 2616 sec 8.1.2.1 (http://tools.ietf.org/html/rfc2616#section-8.1.2), clients
+                    # claiming http 1.1 protocol compatibility SHOULD only close the connection after
                     # sending a "connection: close" header, but in
                     # case they don't, we simply close the connection silently
                     if (ex.err == "SOCKET-CLOSED") {
@@ -2637,7 +2654,8 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
                     string etxt = sprintf("ERROR reading HTTP header: %s: %s", ex.err, ex.desc);
                     #if (ex.arg)
                     #    etxt += printf(" (%s)", ex.arg);
-                    string str = sprintf("%s: received from %s via %s", etxt, info.address_desc, socket_info.address_desc);
+                    string str = sprintf("%s: received from %s via %s", etxt, info.address_desc,
+                        socket_info.address_desc);
                     logError(str);
                     cx.close = True;
                     serv.sendHttpError(self, cx, s, 400, etxt, NOTHING, NOTHING, NOTHING, False);
@@ -2677,14 +2695,18 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
                 # copy headers to the context var
                 cx.hdr = hdr;
 
-                # the Socket's encoding is set in Socket::readHTTPHeader() according to any charset declaration in the Content-Type
+                # the Socket's encoding is set in Socket::readHTTPHeader() according to any charset declaration in the
+                # Content-Type
                 cx.char_encoding = s.getEncoding();
                 cx."response-encoding" = header_info."accept-charset";
 
                 # check if we need to close the connection
-                # RFC 2068 19.7.1: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not the default behavior
-                # RFC 1945 1.3: Except for experimental applications, current practice requires that the connection be established by the client prior to each request and closed by the server after sending the response.
-                # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit request to keep the connection open: the above rules are followed by Socket::readHTTPHeader()
+                # RFC 2068 19.7.1: Persistent connections in HTTP/1.0 must be explicitly negotiated as they are not
+                # the default behavior
+                # RFC 1945 1.3: Except for experimental applications, current practice requires that the connection be
+                # established by the client prior to each request and closed by the server after sending the response.
+                # so we MUST close the connection when a request is received by an HTTP 1.0 client without an explicit
+                # request to keep the connection open: the above rules are followed by Socket::readHTTPHeader()
                 cx.close = header_info.close;
 
                 {
@@ -2715,6 +2737,12 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
 
                 if (cx.close) {
                     break;
+                } else if (!persistent && cx.persistent) {
+                    log("cid %d: set persistent connection; ignoring idle disconnect", cx.id);
+                    persistent = True;
+                } else if (persistent && !cx.persistent) {
+                    log("cid %d: removed persistent connection; resuming idle disconnect", cx.id);
+                    remove persistent;
                 }
             }
         } catch (hash<ExceptionInfo> ex) {
