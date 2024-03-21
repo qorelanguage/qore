@@ -1910,7 +1910,7 @@ http.setListenerLogOptionsID(0, LLO_RECV_HEADERS|LLO_SEND_HEADERS);
                     }
                     listener.removeDedicatedSocket(cx.id, handler);
                     listener.log("cid %d: stopped dedicated socket handler: %y", cx.id, cx.handler_name);
-                } else
+                } else {
                     listener.logError("cid %d: cannot start dedicated socket handler %y because the listener is "
                         "shutting down", cx.id, cx.handler_name);
                 }
