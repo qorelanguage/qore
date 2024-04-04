@@ -38,6 +38,12 @@ public hashdecl DataProviderTypeEntryInfo {
     #! The name of the entry
     string name;
 
+    #! The display name for the entry
+    string display_name;
+
+    #! A short description for the entry, plain text formatting
+    string short_desc;
+
     #! The description of the entry
     string desc;
 
@@ -111,6 +117,16 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
     #! Returns the name of the entry
     string getName() {
         return name;
+    }
+
+    #! Returns the display name of the entry
+    string getDisplayName() {
+        return type ? type.getDisplayName() : path;
+    }
+
+    #! Returns the short description of the entry
+    string getShortDescription() {
+        return type ? type.getShortDescription() : "type entry group";
     }
 
     #! Returns the description of the entry
@@ -212,6 +228,8 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
     hash<DataProviderTypeEntryInfo> getInfo(*bool rec_children_only) {
         return <DataProviderTypeEntryInfo>{
             "name": name,
+            "display_name": getDisplayName(),
+            "short_desc": getShortDescription(),
             "desc": getDesc(),
             "path": path,
             "has_type": exists type,

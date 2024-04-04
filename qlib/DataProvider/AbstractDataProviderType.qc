@@ -168,6 +168,12 @@ public hashdecl DataTypeInfo {
     #! The name of the type
     string name;
 
+    #! The display name for the type
+    string display_name;
+
+    #! A short description for the type, plain text formatting
+    string short_desc;
+
     #! The description of the type
     string desc;
 
@@ -283,6 +289,8 @@ public class AbstractDataProviderType inherits Qore::Serializable {
     hash<DataTypeInfo> getInfo(*bool simple) {
         return <DataTypeInfo>{
             "name": getName(),
+            "display_name": getDisplayName(),
+            "short_desc": getShortDescription(),
             "desc": getDesc(),
             "supported_options": getSupportedOptions(),
             "options": options
@@ -554,6 +562,24 @@ public class AbstractDataProviderType inherits Qore::Serializable {
         }
         throw "DATA-ERROR", sprintf("do not have example data for type %y (base type %y)", getName(),
             getBaseTypeName());
+    }
+
+    #! Returns the type's display name
+    /** @return the type's display name
+
+        @since DataProvider 3.0
+    */
+    string getDisplayName() {
+        return AbstractDataField::getDisplayName(getName());
+    }
+
+    #! Returns the type's short description
+    /** @return the plain-text short description for the type
+
+        @since DataProvider 3.0
+    */
+    string getShortDescription() {
+        return AbstractDataField::getShortDescription(getDesc());
     }
 
     #! Returns the type name
