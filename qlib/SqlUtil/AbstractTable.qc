@@ -3580,7 +3580,7 @@ hash h = table.upsertFromIterator(i, AbstractTable::UpsertUpdateFirst);
         return upsertFromIteratorIntern(i, upsert_strategy, opt - "commit_block");
     }
 
-    #! A legacy SqlUtik::AbstractTable::upsertFromIterator() wrapper
+    #! A legacy SqlUtil::AbstractTable::upsertFromIterator() wrapper
     deprecated *hash<string, int> upsertFromIteratorNoCommit(Qore::AbstractIterator i,
             int upsert_strategy = AbstractTable::UpsertAuto, *hash<auto> opt) {
         return upsertFromIteratorIntern(i, upsert_strategy, opt - "commit_block");

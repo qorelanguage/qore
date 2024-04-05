@@ -62,6 +62,9 @@ public hashdecl DataProviderTypeEntryInfo {
 
     #! The names of any children
     *list<string> children;
+
+    #! Epheremal ID for types
+    *int epheremal_type_id;
 }
 
 #! the DataProviderTypeEntry class
@@ -92,6 +95,15 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
 
         #! @ref True if this entry is a "parent" type; if the children were added atomically with this entry
         bool parent = False;
+
+        #! Epheremal ID for the type
+        *int epheremal_type_id;
+
+        #! If epheremal IDs should be negative
+        static bool neg;
+
+        #! Sequence for epheremal IDs for types
+        static Sequence seq(1);
     }
 
     #! Creates the entry as a root node
@@ -149,6 +161,11 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
         return parent;
     }
 
+    #! Returns the epheremal type ID
+    *int getEpheremalTypeId() {
+        return epheremal_type_id;
+    }
+
     #! Locks the entry, so it can't be removed or changed
     /** @return the previous lock status
 
@@ -197,6 +214,7 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
 
         self.type = type;
         self.locked = locked;
+        epheremal_type_id = neg ? -seq.next() : seq.next();
         parent = True;
         setTypeChildren();
         return True;
@@ -204,17 +222,21 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
 
     #! Sets or replaces the type for the entry
     /** @param type the type to set for this entry
+        @param id optional epheremal type ID
 
         @return True if a new type was added, False if not
 
         @throw TYPE-LOCK-ERROR type entry cannot be replaced, because it is locked
     */
-    *AbstractDataProviderType setOrReplaceType(AbstractDataProviderType type) {
+    *AbstractDataProviderType setOrReplaceType(AbstractDataProviderType type, *int id) {
         if (locked && type != self.type) {
             throw "TYPE-LOCK-ERROR", sprintf("type entry %y cannot be replaced, because it is locked", path);
         }
         *AbstractDataProviderType rv = self.type;
         self.type = type;
+        if (!rv || type != rv) {
+            epheremal_type_id = id ?? (neg ? -seq.next() : seq.next());
+        }
         parent = True;
         setTypeChildren();
         return rv;
@@ -226,7 +248,7 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
         @return information about this entry
     */
     hash<DataProviderTypeEntryInfo> getInfo(*bool rec_children_only) {
-        return <DataProviderTypeEntryInfo>{
+        hash<DataProviderTypeEntryInfo> rv = <DataProviderTypeEntryInfo>{
             "name": name,
             "display_name": getDisplayName(),
             "short_desc": getShortDescription(),
@@ -238,6 +260,10 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
                 ? keys (rec_children + children)
                 : keys (type_children + children),
         };
+        if (epheremal_type_id) {
+            rv.epheremal_type_id = epheremal_type_id;
+        }
+        return rv;
     }
 
     #! Returns a list of registered data provider type paths
@@ -370,6 +396,25 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
         return children{child} = new DataProviderTypeEntry(path, child);
     }
 
+    #! Sets the start of the sequence for epheremal IDs
+    /** @param n the new sequence start number, if the number is negative, negative IDs will be assigned
+
+        @throw TYPE-ID-ERROR Cannot set the ID start after IDs have already been assigned
+
+        @since DataProvider 3.0
+    */
+    static setEpheremalIdStart(int n) {
+        int c = seq.getCurrent();
+        if (c != 1) {
+            throw "TYPE-ID-ERROR", sprintf("Cannot set sequence start; %d IDs have already been assigned", c);
+        }
+        if (n < 0) {
+            neg = True;
+            n = -n;
+        }
+        seq = new Sequence(n);
+    }
+
     #! Sets up attributes as children
     private:internal setTypeChildren() {
         *hash<string, AbstractDataField> fields = type.getFields();
@@ -397,6 +442,7 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
         }
         self.name = name;
         self.type = type;
+        epheremal_type_id = neg ? -seq.next() : seq.next();
         setTypeChildren();
     }
 }

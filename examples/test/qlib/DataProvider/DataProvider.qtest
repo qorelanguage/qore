@@ -249,6 +249,8 @@ class StringTestType inherits Type {
 
 public class DataProviderTest inherits QUnit::Test {
     constructor() : Test("DataProvider Test", "1.0") {
+        DataProviderTypeEntry::setEpheremalIdStart(-1);
+
         addTestCase("app/action catalog tests", \actionCatalogTests());
         addTestCase("string test", \stringTest());
         addTestCase("data test", \dataTest());
@@ -257,7 +259,7 @@ public class DataProviderTest inherits QUnit::Test {
         addTestCase("type cache test", \typeCacheTest());
         addTestCase("test", \dataProviderTest());
 
-        # Return for compatibility with test harness that checks return value.
+        # Return for compatibility with test harnesses that check the return value.
         set_return_value(main());
     }
 
@@ -1575,6 +1577,7 @@ public class DataProviderTest inherits QUnit::Test {
         assertFalse(type_cache.empty());
         assertThrows("TYPE-ERROR", \type_cache.registerType(), ("test/one", h2));
         hash<DataProviderTypeEntryInfo> type_info = type_cache.getTypeInfo("test/one");
+        assertEq(-1, type_info.epheremal_type_id);
         assertEq("one", type_info.name);
         assertEq("/test/one", type_info.path);
         assertFalse(type_info.locked);
@@ -1586,11 +1589,13 @@ public class DataProviderTest inherits QUnit::Test {
         assertFalse(type_info.locked);
         assertTrue(type_info.has_type);
         assertNothing(type_info.children);
+        assertEq(h1, type_cache.lookupTypeFromId(-1));
 
         type_cache.registerType("test/two", h2);
         assertEq(2, type_cache.size());
         assertThrows("TYPE-ERROR", \type_cache.registerType(), ("test/two", h1));
         type_info = type_cache.getTypeInfo("test/two");
+        assertEq(-2, type_info.epheremal_type_id);
         assertEq("two", type_info.name);
         assertEq("/test/two", type_info.path);
         assertFalse(type_info.locked);
@@ -1602,6 +1607,7 @@ public class DataProviderTest inherits QUnit::Test {
         assertFalse(type_info.locked);
         assertTrue(type_info.has_type);
         assertNothing(type_info.children);
+        assertEq(h2, type_cache.lookupTypeFromId(-2));
 
         type_cache.registerType("test/three", h3, True);
         assertEq(3, type_cache.size());
@@ -1616,6 +1622,7 @@ public class DataProviderTest inherits QUnit::Test {
         assertThrows("PROVIDER-ERROR", \type_cache.getTypeEx(), ("test/xxx"));
         assertThrows("PROVIDER-ERROR", \type_cache.getTypeEx(), ("/test/xxx"));
         type_info = type_cache.getTypeInfo("test/three");
+        assertEq(-3, type_info.epheremal_type_id);
         assertEq("three", type_info.name);
         assertEq("/test/three", type_info.path);
         assertTrue(type_info.locked);
@@ -1627,6 +1634,7 @@ public class DataProviderTest inherits QUnit::Test {
         assertTrue(type_info.locked);
         assertTrue(type_info.has_type);
         assertNothing(type_info.children);
+        assertEq(h3, type_cache.lookupTypeFromId(-3));
 
         HashDataType h2bis();
         assertTrue(type_cache.registerOrReplaceType("test/two", h2bis));

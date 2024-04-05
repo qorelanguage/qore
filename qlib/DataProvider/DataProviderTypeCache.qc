@@ -36,6 +36,9 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         #! Data provider type cache lock
         transient RWLock rwlock();
 
+        #! Map of epheremal type IDs to types
+        hash<string, AbstractDataProviderType> tmap;
+
         #! The size of the cache
         int size = 0;
     }
@@ -68,6 +71,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
 
         if (type_entry.setType(type, locked)) {
             ++size;
+            tmap{type_entry.getEpheremalTypeId()} = type;
         }
 
         if (set_rollback) {
@@ -79,6 +83,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
     #! Register or replaces a data provider type in the cache
     /** @param path a \c "/" separated path for the type; this is the lookup index
         @param type the new data provider type
+        @param id optional epheremal type ID
 
         @return True if the type was replaced or added
 
@@ -87,7 +92,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         @note types are stored based on the path provided which may differ from their type names (which may be generic
         and therefore not suitable for indexing)
     */
-    bool registerOrReplaceType(string path, AbstractDataProviderType type) {
+    bool registerOrReplaceType(string path, AbstractDataProviderType type, *int id) {
         list<string> type_path = DataProvider::getPathList(path);
 
         DataProviderTypeEntry type_entry = root;
@@ -102,9 +107,12 @@ public class DataProviderTypeCache inherits Qore::Serializable {
 
         map type_entry = type_entry.getCreateChild($1), type_path;
 
-        *AbstractDataProviderType old_type = type_entry.setOrReplaceType(type);
+        *AbstractDataProviderType old_type = type_entry.setOrReplaceType(type, id);
         if (!old_type) {
             ++size;
+        }
+        if (!old_type || old_type != type) {
+            tmap{type_entry.getEpheremalTypeId()} = type;
         }
         return old_type != type;
     }
@@ -147,8 +155,18 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         prev.removeChild(node);
         if (type) {
             --size;
+            remove tmap{type_entry.getEpheremalTypeId()};
         }
         return type;
+    }
+
+    #! Returns a type from its epheremal ID
+    /** @param id the epheremal type ID for the type
+
+        @return the type or @ref NOTHING if the ID is unknown
+    */
+    *AbstractDataProviderType lookupTypeFromId(int id) {
+        return tmap{id};
     }
 
     #! Returns the number of types in the cache

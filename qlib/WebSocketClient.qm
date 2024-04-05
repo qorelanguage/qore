@@ -1171,7 +1171,13 @@ ws.setEventQueue();
 
             reconnectPostamble();
         } catch (hash<ExceptionInfo> ex) {
-            logError("Failed to reconnect: %s", get_exception_string(ex));
+            try {
+                logError("Failed to reconnect: %s", get_exception_string(ex));
+            } catch (hash<ExceptionInfo> ex0) {
+                if (ex0.err != "OBJECT-ALREADY-DELETED") {
+                    rethrow;
+                }
+            }
         }
     }
 
