@@ -37,7 +37,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         transient RWLock rwlock();
 
         #! Map of epheremal type IDs to types
-        hash<string, AbstractDataProviderType> tmap;
+        hash<string, DataProviderTypeEntry> tmap;
 
         #! The size of the cache
         int size = 0;
@@ -71,7 +71,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
 
         if (type_entry.setType(type, locked)) {
             ++size;
-            tmap{type_entry.getEpheremalTypeId()} = type;
+            tmap{type_entry.getEpheremalTypeId()} = type_entry;
         }
 
         if (set_rollback) {
@@ -112,7 +112,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
             ++size;
         }
         if (!old_type || old_type != type) {
-            tmap{type_entry.getEpheremalTypeId()} = type;
+            tmap{type_entry.getEpheremalTypeId()} = type_entry;
         }
         return old_type != type;
     }
@@ -164,9 +164,59 @@ public class DataProviderTypeCache inherits Qore::Serializable {
     /** @param id the epheremal type ID for the type
 
         @return the type or @ref NOTHING if the ID is unknown
+
+        @since DataProvider 3.0
     */
     *AbstractDataProviderType lookupTypeFromId(int id) {
+        *DataProviderTypeEntry entry = tmap{id};
+        if (entry) {
+            return entry.getType();
+        }
+    }
+
+    #! Returns a type from its epheremal ID
+    /** @param id the epheremal type ID for the type
+
+        @return the type or @ref NOTHING if the ID is unknown
+
+        @since DataProvider 3.0
+    */
+    *DataProviderTypeEntry lookupTypeEntryFromId(int id) {
         return tmap{id};
+    }
+
+    #! Returns a type from its epheremal ID; throws an exception if the ID is unknown
+    /** @param id the epheremal type ID for the type
+
+        @return the type
+
+        @throw TYPE-ARG-ERROR Unknown type ID
+
+        @since DataProvider 3.0
+    */
+    AbstractDataProviderType lookupTypeFromIdEx(int id) {
+        *AbstractDataProviderType rv = lookupTypeFromId(id);
+        if (!rv) {
+            throw "TYPE-ARG-ERROR", sprintf("Cannot find any type with ID %d", id);
+        }
+        return rv;
+    }
+
+    #! Returns a type from its epheremal ID; throws an exception if the ID is unknown
+    /** @param id the epheremal type ID for the type
+
+        @return the type
+
+        @throw TYPE-ARG-ERROR Unknown type ID
+
+        @since DataProvider 3.0
+    */
+    DataProviderTypeEntry lookupTypeEntryFromIdEx(int id) {
+        *DataProviderTypeEntry rv = lookupTypeEntryFromId(id);
+        if (!rv) {
+            throw "TYPE-ARG-ERROR", sprintf("Cannot find any type with ID %d", id);
+        }
+        return rv;
     }
 
     #! Returns the number of types in the cache
