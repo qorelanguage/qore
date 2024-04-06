@@ -27,9 +27,6 @@ public namespace DataProvider {
 #! describes a data type based on a hash
 public class ListDataType inherits QoreDataType {
     private {
-        #! the name of the type
-        string name;
-
         #! element type
         AbstractDataProviderType element_type;
     }
@@ -46,14 +43,18 @@ public class ListDataType inherits QoreDataType {
     constructor(AbstractDataProviderType element_type, bool or_nothing = False, *hash<auto> options,
             *hash<auto> tags)
             : QoreDataType(ListDataType::getQoreType(element_type.getValueType(), or_nothing), options, tags) {
-        name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
+        if (!name) {
+            name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
+        }
         self.element_type = element_type;
     }
 
     #! creates the object
     constructor(Type element_type, bool or_nothing = False, *hash<auto> options, *hash<auto> tags)
             : QoreDataType(ListDataType::getQoreType(element_type, or_nothing), options, tags) {
-        name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
+        if (!name) {
+            name = sprintf("%slist<%s>", or_nothing ? "*" : "", element_type.getName());
+        }
         self.element_type = AbstractDataProviderType::get(element_type);
     }
 
@@ -72,14 +73,9 @@ public class ListDataType inherits QoreDataType {
         self.element_type = AbstractDataProviderType::get(element_type);
     }
 
-    #! returns the type name
-    string getName() {
-        return name;
-    }
-
     #! Returns the description
     string getDesc() {
-        return sprintf("Qore type %slist<%s>", accept_type_hash{Type::NothingType} ? "*" : "",
+        return desc ?? sprintf("Qore type %slist<%s>", accept_type_hash{Type::NothingType} ? "*" : "",
             element_type ? element_type.getName() : "auto");
     }
 

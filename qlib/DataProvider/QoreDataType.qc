@@ -24,6 +24,21 @@
 
 #! contains all public definitions in the DataProvider module
 public namespace DataProvider {
+#! Name and description info
+public hashdecl NameDescInfo {
+    #! The name of the type
+    string name;
+
+    #! The display name for the type
+    string display_name;
+
+    #! The short plain-text description for the type
+    string short_desc;
+
+    #! The markdown description for the type
+    string desc;
+}
+
 #! describes a data type based on a %Qore data type
 /** @note %Qore "soft" types that do not accept @ref nothing also accept @ref null; to ensure that soft types
     inheriting this class do not accept @ref null, use the \c qore.no_null option in the constructor
@@ -32,6 +47,18 @@ public class QoreDataType inherits AbstractDataProviderType {
     private {
         #! the Qore type
         Type type;
+
+        #! The name of the type; if not set then the name of "type" is used instead
+        string name;
+
+        #! The display name for the type
+        string display_name;
+
+        #! The short plain-text description for the type
+        string short_desc;
+
+        #! The long description for the type in markdown
+        string desc;
 
         #! flag for soft types
         bool soft_type;
@@ -97,7 +124,7 @@ public class QoreDataType inherits AbstractDataProviderType {
     }
 
     #! creates the type
-    constructor(Type type, *hash<auto> options, *hash<auto> tags, auto default_value) {
+    constructor(Type type, *hash<auto> options, *hash<auto> tags, auto default_value, *hash<NameDescInfo> attr) {
         self.type = type;
         base_type_hash{type.getBaseTypeCode()} = True;
         if (type.isOrNothingType()) {
@@ -126,16 +153,38 @@ public class QoreDataType inherits AbstractDataProviderType {
         }
 
         self.default_value = default_value;
+
+        if (attr) {
+            self += attr;
+        }
     }
 
     #! returns the type name
     string getName() {
-        return type.getName();
+        return name ?? type.getName();
+    }
+
+    #! Returns the type's display name
+    /** @return the type's display name
+
+        @since DataProvider 3.0
+    */
+    string getDisplayName() {
+        return display_name ?? AbstractDataField::getDisplayName(getName());
+    }
+
+    #! Returns the type's short description
+    /** @return the plain-text short description for the type
+
+        @since DataProvider 3.0
+    */
+    string getShortDescription() {
+        return short_desc ?? AbstractDataField::getShortDescription(getDesc());
     }
 
     #! Returns the description
     string getDesc() {
-        return sprintf("Qore data type %y", type.getName());
+        return desc ?? sprintf("Qore data type %y", type.getName());
     }
 
     #! returns supported options

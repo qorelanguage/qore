@@ -22,15 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the SqlUtil module
 public namespace SqlUtil {
 #! the data type for Oracle NUMBER columns
@@ -38,11 +29,6 @@ public namespace SqlUtil {
     @since SqlUtil 1.6
 */
 public class AbstractNumericDataType inherits DataProvider::QoreNumberDataTypeBase {
-    private {
-        #! the type name
-        string name;
-    }
-
     #! creates the object
     constructor(string native_type, bool nullable, *hash<auto> options)
         : QoreNumberDataTypeBase(nullable ? SoftNumberOrNothingType : SoftNumberType,
@@ -58,11 +44,6 @@ public class AbstractNumericDataType inherits DataProvider::QoreNumberDataTypeBa
         if (or_nothing_type) {
             base_type_hash{NT_NULL} = True;
         }
-    }
-
-    #! returns the type name
-    string getName() {
-        return name;
     }
 
     #! returns the value if the value can be assigned to the type

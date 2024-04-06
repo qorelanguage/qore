@@ -26,11 +26,6 @@
 public namespace DataProvider {
 #! describes a data type based on a hash
 public class QoreListDataType inherits QoreDataType {
-    private {
-        #! the name of the type
-        string name;
-    }
-
     #! creates the object
     constructor(Type type, *hash<auto> options, *hash<auto> tags) : QoreDataType(type, options, tags) {
         init(type.getName());
@@ -41,11 +36,6 @@ public class QoreListDataType inherits QoreDataType {
         init(name);
     }
 
-    #! returns the type name
-    string getName() {
-        return name;
-    }
-
     #! common constructor initialization
     private init(string name) {
         if (type.getBaseTypeCode() != NT_LIST) {
@@ -53,7 +43,9 @@ public class QoreListDataType inherits QoreDataType {
                 type.getName());
         }
 
-        self.name = name;
+        if (!self.name.val()) {
+            self.name = name;
+        }
     }
 }
 }

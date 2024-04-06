@@ -22,17 +22,6 @@
     DEALINGS IN THE SOFTWARE.
 */
 
-# minimum required Qore version
-%requires qore >= 0.9.4
-# assume local scope for variables, do not use "$" signs
-%new-style
-# require type definitions everywhere
-%require-types
-#! strict argument handling
-%strict-args
-# enable all warnings
-%enable-all-warnings
-
 #! contains all public definitions in the SqlUtil module
 public namespace SqlUtil {
 #! type for date / timestamp columns
@@ -40,11 +29,6 @@ public namespace SqlUtil {
     @since SqlUtil 1.6
 */
 public class SqlUtilIntType inherits DataProvider::QoreIntDataTypeBase {
-    private {
-        #! the type name
-        string name;
-    }
-
     #! creates the object
     constructor(string native_type, bool nullable, *hash<auto> options)
         : QoreIntDataTypeBase(nullable ? SoftIntOrNothingType : SoftIntType, options + {"qore.no_null": True}) {
@@ -52,11 +36,6 @@ public class SqlUtilIntType inherits DataProvider::QoreIntDataTypeBase {
         if (or_nothing_type) {
             base_type_hash{NT_NULL} = True;
         }
-    }
-
-    #! returns the type name
-    string getName() {
-        return name;
     }
 
     #! returns the value if the value can be assigned to the type

@@ -162,8 +162,17 @@ public class DataProviderTypeEntry inherits Qore::Serializable {
     }
 
     #! Returns the epheremal type ID
+    /** @since DataProvider 3.0
+    */
     *int getEpheremalTypeId() {
         return epheremal_type_id;
+    }
+
+    #! Returns the locked status
+    /** @since DataProvider 3.0
+    */
+    bool isLocked() {
+        return locked;
     }
 
     #! Locks the entry, so it can't be removed or changed

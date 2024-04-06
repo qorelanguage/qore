@@ -40,11 +40,6 @@ public namespace SqlUtil {
     @since SqlUtil 1.6
 */
 public class SqlUtilStringType inherits DataProvider::QoreStringDataTypeBase {
-    private {
-        #! the type name
-        string name;
-    }
-
     #! creates the object
     /** we let the DB drive do any encoding conversions
     */
@@ -54,11 +49,6 @@ public class SqlUtilStringType inherits DataProvider::QoreStringDataTypeBase {
         if (or_nothing_type) {
             base_type_hash{NT_NULL} = True;
         }
-    }
-
-    #! returns the type name
-    string getName() {
-        return name;
     }
 
     #! returns supported options

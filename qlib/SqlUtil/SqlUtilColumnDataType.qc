@@ -23,7 +23,7 @@
 */
 
 # minimum required Qore version
-%requires qore >= 0.9.4
+%requires qore >= 2.0
 # assume local scope for variables, do not use "$" signs
 %new-style
 # require type definitions everywhere
@@ -40,11 +40,6 @@ public namespace SqlUtil {
     @since SqlUtil 1.6
 */
 public class SqlUtilColumnDataType inherits DataProvider::QoreDataType {
-    private {
-        #! the type name
-        string name;
-    }
-
     #! creates the object
     constructor(string native_type, string type, *hash<auto> options)
         : QoreDataType(new Type(OptimalQoreSoftDataTypeMap{type} ?? type), options + {"qore.no_null": True}) {
@@ -61,11 +56,6 @@ public class SqlUtilColumnDataType inherits DataProvider::QoreDataType {
         if (or_nothing_type) {
             base_type_hash{NT_NULL} = True;
         }
-    }
-
-    #! returns the type name
-    string getName() {
-        return name;
     }
 
     #! returns the value if the value can be assigned to the type

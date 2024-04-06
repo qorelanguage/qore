@@ -39,6 +39,9 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         #! Map of epheremal type IDs to types
         hash<string, DataProviderTypeEntry> tmap;
 
+        #! Map of path names to types
+        hash<string, DataProviderTypeEntry> trmap;
+
         #! The size of the cache
         int size = 0;
     }
@@ -71,7 +74,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
 
         if (type_entry.setType(type, locked)) {
             ++size;
-            tmap{type_entry.getEpheremalTypeId()} = type_entry;
+            tmap{type_entry.getEpheremalTypeId()} = trmap{type_entry.getPath()} = type_entry;
         }
 
         if (set_rollback) {
@@ -112,7 +115,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
             ++size;
         }
         if (!old_type || old_type != type) {
-            tmap{type_entry.getEpheremalTypeId()} = type_entry;
+            tmap{type_entry.getEpheremalTypeId()} = trmap{type_entry.getPath()} = type_entry;
         }
         return old_type != type;
     }
@@ -152,11 +155,12 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         if (!type || !prev) {
             return;
         }
-        prev.removeChild(node);
         if (type) {
             --size;
             remove tmap{type_entry.getEpheremalTypeId()};
+            remove trmap{type_entry.getPath()};
         }
+        prev.removeChild(node);
         return type;
     }
 
@@ -215,6 +219,65 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         *DataProviderTypeEntry rv = lookupTypeEntryFromId(id);
         if (!rv) {
             throw "TYPE-ARG-ERROR", sprintf("Cannot find any type with ID %d", id);
+        }
+        return rv;
+    }
+
+    #! Returns a type from its path
+    /** @param path the full path for the type
+
+        @return the type or @ref NOTHING if the path is unknown
+
+        @since DataProvider 3.0
+    */
+    *AbstractDataProviderType lookupTypeFromPath(string path) {
+        *DataProviderTypeEntry entry = trmap{path};
+        if (entry) {
+            return entry.getType();
+        }
+    }
+
+    #! Returns a type from its path
+    /** @param path the full path for the type
+
+        @return the type or @ref NOTHING if the path is unknown
+
+        @since DataProvider 3.0
+    */
+    *DataProviderTypeEntry lookupTypeEntryFromPath(string path) {
+        return trmap{path};
+    }
+
+    #! Returns a type from its path; throws an exception if the path is unknown
+    /** @param path the full path for the type
+
+        @return the type
+
+        @throw TYPE-ARG-ERROR Unknown type path
+
+        @since DataProvider 3.0
+    */
+    AbstractDataProviderType lookupTypeFromPathEx(string path) {
+        *AbstractDataProviderType rv = lookupTypeFromPath(path);
+        if (!rv) {
+            throw "TYPE-ARG-ERROR", sprintf("Cannot find any type with path %y", path);
+        }
+        return rv;
+    }
+
+    #! Returns a type from its path; throws an exception if the path is unknown
+    /** @param path the full path for the type
+
+        @return the type
+
+        @throw TYPE-ARG-ERROR Unknown type path
+
+        @since DataProvider 3.0
+    */
+    DataProviderTypeEntry lookupTypeEntryFromPathEx(string path) {
+        *DataProviderTypeEntry rv = lookupTypeEntryFromPath(path);
+        if (!rv) {
+            throw "TYPE-ARG-ERROR", sprintf("Cannot find any type with path %y", path);
         }
         return rv;
     }
