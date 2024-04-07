@@ -69,6 +69,8 @@ public class QoreDataField inherits AbstractDataField {
             type = AbstractDataProviderType::get(h.type);
         } else if (h.type instanceof AbstractDataProviderType) {
             type = h.type;
+        } else if (h.type instanceof hash<DataTypeInfo>) {
+            type = AbstractDataProviderType::get(h.type);
         } else {
             throw "QORE-DATA-FIELD-ERROR", sprintf("missing or invalid key \"type\"; expecting type \"Type\" or "
                 "\"AbstractDataProviderType\"; got %y instead (hash: %y)", h.type.fullType(), h);

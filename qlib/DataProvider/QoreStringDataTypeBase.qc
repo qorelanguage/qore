@@ -65,7 +65,8 @@ public class QoreStringDataTypeBase inherits QoreDataType {
     #! creates the object with the given options
     /** @throw TYPE-ERROR invalid type; must be a string type
     */
-    constructor(Type type, *hash<auto> options, *hash<auto> tags) : QoreDataType(type, options, tags) {
+    constructor(Type type, *hash<auto> options, *hash<auto> tags, *hash<auto> default_value,
+            *hash<NameDescInfo> attr) : QoreDataType(type, options, tags, default_value, attr) {
         if (type.getBaseTypeCode() != NT_STRING) {
             throw "TYPE-ERROR", sprintf("cannot create a %s object from type %y", self.className(),
                 type.getName());

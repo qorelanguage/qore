@@ -177,6 +177,9 @@ public hashdecl DataTypeInfo {
     #! The description of the type
     string desc;
 
+    #! The type path in the type cache, if known
+    *string path;
+
     #! Output: transformation options supported by the type
     *hash<string, hash<DataProviderTypeOptionInfo>> supported_options;
 
@@ -197,6 +200,9 @@ public hashdecl DataTypeInfo {
 
     #! Any fields supported by the type
     hash<string, hash<DataFieldInfo>> fields;
+
+    #! The default value for the type
+    auto default_value;
 
     #! If fields can be added dynamically to the type and if the type will accept any field at runtime
     bool can_manage_fields = False;
@@ -240,10 +246,18 @@ public class AbstractDataProviderType inherits Qore::Serializable {
 
         #! type tags
         *hash<auto> tags;
+
+        #! The type path, if any
+        *string path;
     }
 
     #! creates the type
     constructor() {
+    }
+
+    #! creates the type
+    constructor(string path) {
+        self.path = path;
     }
 
     #! creates the type and sets options
@@ -252,16 +266,33 @@ public class AbstractDataProviderType inherits Qore::Serializable {
 
         @throw TYPE-OPTION-ERROR option value has an invalid type
     */
-    constructor(hash<auto> options, *hash<auto> tags) {
+    constructor(hash<auto> options, *hash<auto> tags, *string path) {
         setOptions(options);
         if (tags) {
             self.tags = tags;
+        }
+        if (path.val()) {
+            self.path = path;
         }
     }
 
     #! Returns the description
     string getDesc() {
         return DefaultDesc;
+    }
+
+    #! Returns the type path in the type cache, if any
+    /** @since DataProvider 3.0
+    */
+    *string getPath() {
+        return path;
+    }
+
+    #! Sets the type path for the type
+    /** @since DataProvider 3.0
+    */
+    setPath(string path) {
+        self.path = path;
     }
 
     #! Returns supported options
@@ -287,7 +318,7 @@ public class AbstractDataProviderType inherits Qore::Serializable {
 
     #! Returns a description of the type as a hash
     hash<DataTypeInfo> getInfo(*bool simple) {
-        return <DataTypeInfo>{
+        hash<DataTypeInfo> rv = <DataTypeInfo>{
             "name": getName(),
             "display_name": getDisplayName(),
             "short_desc": getShortDescription(),
@@ -305,6 +336,13 @@ public class AbstractDataProviderType inherits Qore::Serializable {
             "fields": getFieldInfo(),
             "tags": tags,
         };
+        if (exists (auto v = getDefaultValue())) {
+            rv.default_value = v;
+        }
+        if (path.val()) {
+            rv.path = path;
+        }
+        return rv;
     }
 
     #! Returns information on fields supported
@@ -608,15 +646,16 @@ public class AbstractDataProviderType inherits Qore::Serializable {
     abstract auto acceptsValue(auto value);
 
     #! Returns an appropriate object for the given type
-    static AbstractDataProviderType get(Type type, *hash<auto> options, *hash<auto> tags) {
+    static AbstractDataProviderType get(Type type, *hash<auto> options, *hash<auto> tags,
+            auto default_value, *hash<NameDescInfo> attr) {
         if (type.isTypedHash()) {
-            return new HashDeclDataType(type, options, tags);
+            return new HashDeclDataType(type, options, tags, default_value, attr);
         } else if (type.getBaseTypeCode() == NT_HASH) {
-            return new QoreHashDataType(type, options, tags);
+            return new QoreHashDataType(type, options, tags, default_value, attr);
         } else if (type.getBaseTypeCode() == NT_STRING && !type.isOutputCompatible(BinaryType)) {
-            return new QoreStringDataTypeBase(type, options, tags);
+            return new QoreStringDataTypeBase(type, options, tags, default_value, attr);
         }
-        return new QoreDataType(type, options, tags);
+        return new QoreDataType(type, options, tags, default_value, attr);
     }
 
     #! Returns an appropriate object for the given type
@@ -625,6 +664,35 @@ public class AbstractDataProviderType inherits Qore::Serializable {
     */
     static AbstractDataProviderType get(string typename, *hash<auto> options) {
         return AbstractDataProviderType::get(DataTypeMap{typename} ?? new Type(typename), options);
+    }
+
+    #! Returns an appropriate object for the given type description
+    /** @param info the description of the type
+    */
+    static AbstractDataProviderType get(hash<DataTypeInfo> info) {
+        if (info.path) {
+            #return DataProvider::getTypeCache().lookupTypeFromPathEx(info.path);
+            # FIXME: the call above causes a recursive constant reference error
+            return Class::forName("DataProvider").getStaticMethod("getTypeCache").call()
+                .lookupTypeFromPathEx(info.path);
+        }
+        if (*Type t = DataTypeMap{info.name} ?? DataTypeMap{info.base_type}) {
+            hash<auto> attr = info{"display_name", "short_desc", "desc"};
+            AbstractDataProviderType rv = AbstractDataProviderType::get(t, info.options, info.tags,
+                info.default_value, attr ? cast<hash<NameDescInfo>>(attr) : NOTHING);
+            if (!info.mandatory && !rv.isOrNothingType()) {
+                return rv.getOrNothingType();
+            }
+            if (info.default_field_type_info && (rv instanceof HashDataType)) {
+                HashDataType hdt = cast<HashDataType>(rv);
+                if (!hdt.getDefaultOtherFieldType()) {
+                    hdt.setDefaultOtherFieldType(AbstractDataProviderType::get(info.default_field_type_info));
+                }
+            }
+            return rv;
+        }
+
+        throw "TYPE-ERROR", sprintf("No match for type: %y", info);
     }
 
     #! sets the given option without any validation of the option

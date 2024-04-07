@@ -60,6 +60,11 @@ public class DataProviderTypeCache inherits Qore::Serializable {
     registerType(string path, AbstractDataProviderType type, bool locked = False, *bool set_rollback) {
         list<string> type_path = DataProvider::getPathList(path);
 
+        if (type.getPath().val()) {
+            type = type.copy();
+            type.setPath(path);
+        }
+
         DataProviderTypeEntry type_entry = root;
 
         bool needs_lock = !rwlock.writeLockOwner();
@@ -97,6 +102,11 @@ public class DataProviderTypeCache inherits Qore::Serializable {
     */
     bool registerOrReplaceType(string path, AbstractDataProviderType type, *int id) {
         list<string> type_path = DataProvider::getPathList(path);
+
+        if (type.getPath().val()) {
+            type = type.copy();
+            type.setPath(path);
+        }
 
         DataProviderTypeEntry type_entry = root;
 

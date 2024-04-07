@@ -43,6 +43,9 @@ public hashdecl DataFieldInfo {
     #! the default value for the field
     auto default_value;
 
+    #! Any example value for the field
+    auto example_value;
+
     #! for enum fields; allowed values
     *list<auto> allowed_values;
 
@@ -198,7 +201,8 @@ public class AbstractDataField inherits Qore::Serializable {
     }
 
     #! returns information about the field as an input field
-    /** the \c default_value key is not returned, and the \c type key returns only input information
+    /** the \c default_value and \example_value keys are not returned, and the \c type key returns only input
+        information
     */
     hash<DataFieldInfo> getInputInfo() {
         return <DataFieldInfo>{
@@ -219,6 +223,7 @@ public class AbstractDataField inherits Qore::Serializable {
             "short_desc": getShortDescription(),
             "desc": getDescription(),
             "default_value": default_value,
+            "example_value": getExampleValue(),
             "allowed_values": allowed_values,
             "type": getType().getInfo(),
             "attr": getAttributes(),

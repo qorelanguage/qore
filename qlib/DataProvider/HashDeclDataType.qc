@@ -42,12 +42,14 @@ public class HashDeclDataType inherits QoreDataType {
     }
 
     #! creates the object from the TypedHash
-    constructor(TypedHash hd, *hash<auto> options, *hash<auto> tags) : QoreDataType(hd.getType(), options, tags) {
+    constructor(TypedHash hd, *hash<auto> options, *hash<auto> tags, *hash<auto> default_value,
+            *hash<NameDescInfo> attr) : QoreDataType(hd.getType(), options, tags, default_value, attr) {
         self.hd = hd;
     }
 
     #! creates the object from a TypedHash Type
-    private constructor(Type type, *hash<auto> options, *hash<auto> tags) : QoreDataType(type, options, tags) {
+    private constructor(Type type, *hash<auto> options, *hash<auto> tags, *hash<auto> default_value,
+            *hash<NameDescInfo> attr) : QoreDataType(type, options, tags, default_value, attr) {
         hd = type.getTypedHash();
     }
 
