@@ -231,6 +231,9 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         @since DataProvider 3.0
     */
     *AbstractDataProviderType lookupTypeFromPath(string path) {
+        if (path !~ /^\//) {
+            path = "/" + path;
+        }
         *DataProviderTypeEntry entry = trmap{path};
         if (entry) {
             return entry.getType();
@@ -245,6 +248,9 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         @since DataProvider 3.0
     */
     *DataProviderTypeEntry lookupTypeEntryFromPath(string path) {
+        if (path !~ /^\//) {
+            path = "/" + path;
+        }
         return trmap{path};
     }
 
@@ -310,10 +316,43 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         root.clear();
     }
 
+    #! Returns a list of information for all registered data provider type entries
+    /** @return a list of information for all registered data provider type entries
+
+        @note
+        - Types are stored based on the path provided which may differ from their type names (which may be generic
+          and therefore not suitable for indexing)
+
+        @since DataProvider 3.0
+    */
+    *list<hash<DataProviderTypeEntryInfo>> listRegisteredTypeEntries() {
+        return map $1.getInfo(), trmap.iterator();
+    }
+
     #! Returns a list of registered data provider type paths
-    /**
-        @note types are stored based on the path provided which may differ from their type names (which may be generic
-        and therefore not suitable for indexing)
+    /** @return a list of registered type paths
+
+        @note
+        - Types are stored based on the path provided which may differ from their type names (which may be generic
+          and therefore not suitable for indexing)
+        - This method returns the registered type list immediately from a top-level map
+
+        @since DataProvider 3.0
+    */
+    *list<string> listRegisteredTypes() {
+        return keys trmap;
+    }
+
+    #! Returns a list of registered data provider type paths
+    /** @return a list of type paths for all registered types and all type members
+
+        This method traverses the entire type hierarchy to return all possible types stored in it
+
+        @note
+        - Types are stored based on the path provided which may differ from their type names (which may be generic
+          and therefore not suitable for indexing)
+
+        @see listRegisteredTypes() for a similar method that returns only registered types
     */
     *list<string> listTypes() {
         return root.listTypes();

@@ -1590,6 +1590,8 @@ public class DataProviderTest inherits QUnit::Test {
         assertTrue(type_info.has_type);
         assertNothing(type_info.children);
         assertEq(h1, type_cache.lookupTypeFromId(-1));
+        assertEq(h1, type_cache.lookupTypeFromPath("test/one"));
+        assertEq(h1, type_cache.lookupTypeFromPath("/test/one"));
 
         type_cache.registerType("test/two", h2);
         assertEq(2, type_cache.size());
