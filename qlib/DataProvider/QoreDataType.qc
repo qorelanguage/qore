@@ -171,7 +171,7 @@ public class QoreDataType inherits AbstractDataProviderType {
         @since DataProvider 3.0
     */
     string getDisplayName() {
-        return display_name ?? AbstractDataField::getDisplayName(getName());
+        return display_name ?? path ?? AbstractDataField::getDisplayName(getName());
     }
 
     #! Returns the type's short description

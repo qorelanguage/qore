@@ -521,11 +521,18 @@ DbDataProvider db = DataProvider::getFactoryObjectFromStringUseEnv("db{datasourc
 
     #! Returns a list of strings in a path separated by "/" characters
     static list<string> getPathList(string path) {
+        return DataProvider::getPathList(\path);
+    }
+
+    #! Returns a list of strings in a path separated by "/" characters, normalizes the argument
+    static list<string> getPathList(reference<string> path) {
         # remove leading "/" chars
         path =~ s/^\/+//;
         # combine multiple "/" chars into a single char
         path =~ s/\/+/\//g;
-        return path.split("/");
+        list<string> rv = path.split("/");
+        path = "/" + path;
+        return rv;
     }
 
     #! Sets the \a env_config_locked variable if not already set

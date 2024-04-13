@@ -53,17 +53,22 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         @param set_rollback set rollback code; for use in module registration
 
         @throw PROVIDER-ERROR the given provider has already been registered
+        @throw TYPE-ARG-ERROR the type is already registered under a different path
 
         @note types are stored based on the path provided which may differ from their type names (which may be generic
         and therefore not suitable for indexing)
     */
     registerType(string path, AbstractDataProviderType type, bool locked = False, *bool set_rollback) {
-        list<string> type_path = DataProvider::getPathList(path);
+        list<string> type_path = DataProvider::getPathList(\path);
 
-        if (type.getPath().val()) {
-            type = type.copy();
+        if ((*string p = type.getPath()).val()) {
+            if (p != path) {
+                throw "TYPE-ARG-ERROR", sprintf("Cannot register type %y with new path %y", p, path);
+            }
+        } else {
             type.setPath(path);
         }
+        on_error type.clearPath();
 
         DataProviderTypeEntry type_entry = root;
 
@@ -80,6 +85,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         if (type_entry.setType(type, locked)) {
             ++size;
             tmap{type_entry.getEpheremalTypeId()} = trmap{type_entry.getPath()} = type_entry;
+
         }
 
         if (set_rollback) {
@@ -96,17 +102,22 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         @return True if the type was replaced or added
 
         @throw TYPE-LOCK-ERROR type entry cannot be replaced, because it is locked
+        @throw TYPE-ARG-ERROR the type is already registered under a different path
 
         @note types are stored based on the path provided which may differ from their type names (which may be generic
         and therefore not suitable for indexing)
     */
     bool registerOrReplaceType(string path, AbstractDataProviderType type, *int id) {
-        list<string> type_path = DataProvider::getPathList(path);
+        list<string> type_path = DataProvider::getPathList(\path);
 
-        if (type.getPath().val()) {
-            type = type.copy();
+        if ((*string p = type.getPath()).val()) {
+            if (p != path) {
+                throw "TYPE-ARG-ERROR", sprintf("Cannot register type %y with new path %y", p, path);
+            }
+        } else {
             type.setPath(path);
         }
+        on_error type.clearPath();
 
         DataProviderTypeEntry type_entry = root;
 
@@ -138,7 +149,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
         @throw TYPE-LOCK-ERROR the given type cannot be removed, because it is locked
     */
     *AbstractDataProviderType removeType(string path) {
-        list<string> type_path = DataProvider::getPathList(path);
+        list<string> type_path = DataProvider::getPathList(\path);
 
         DataProviderTypeEntry type_entry = root;
         DataProviderTypeEntry prev;
@@ -471,7 +482,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
             }
         }
 
-        list<string> type_path = DataProvider::getPathList(path);
+        list<string> type_path = DataProvider::getPathList(\path);
         DataProviderTypeEntry type_entry = root;
         foreach string node in (type_path) {
             *DataProviderTypeEntry next_entry = type_entry.getChild(node);
@@ -532,7 +543,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
             rwlock.readUnlock();
         }
 
-        list<string> type_path = DataProvider::getPathList(path);
+        list<string> type_path = DataProvider::getPathList(\path);
         DataProviderTypeEntry type_entry = root;
         foreach string node in (type_path) {
             *DataProviderTypeEntry next_entry = type_entry.getChild(node);
@@ -591,7 +602,7 @@ public class DataProviderTypeCache inherits Qore::Serializable {
     /** @param path a \c "/" separated path for the type; this is the lookup index
     */
     private deregisterType(string path) {
-        list<string> type_path = DataProvider::getPathList(path);
+        list<string> type_path = DataProvider::getPathList(\path);
 
         *DataProviderTypeEntry type_entry = root;
 

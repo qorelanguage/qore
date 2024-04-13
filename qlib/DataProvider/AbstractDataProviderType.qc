@@ -295,6 +295,13 @@ public class AbstractDataProviderType inherits Qore::Serializable {
         self.path = path;
     }
 
+    #! Clears the type path for the type
+    /** @since DataProvider 3.0
+    */
+    clearPath() {
+        remove path;
+    }
+
     #! Returns supported options
     *hash<string, hash<DataProviderTypeOptionInfo>> getSupportedOptions() {
         # this method intentionally left blank
@@ -608,7 +615,7 @@ public class AbstractDataProviderType inherits Qore::Serializable {
         @since DataProvider 3.0
     */
     string getDisplayName() {
-        return AbstractDataField::getDisplayName(getName());
+        return path ?? AbstractDataField::getDisplayName(getName());
     }
 
     #! Returns the type's short description
