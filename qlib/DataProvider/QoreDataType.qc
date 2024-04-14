@@ -311,5 +311,18 @@ public class QoreDataType inherits AbstractDataProviderType {
         }
         return self;
     }
+
+    # assigs the object's members after deserialization
+    private:internal deserializeMembers(hash<auto> members) {
+        self += members;
+        # for type objects serialized before the accept_type_hash_simple attribute was added
+        if (!accept_type_hash_simple) {
+            accept_type_hash_simple = type.getAcceptTypeHash(True);
+        }
+        # for type objects serialized before the return_type_hash_simple attribute was added
+        if (!return_type_hash_simple) {
+            return_type_hash_simple = type.getReturnTypeHash(True);
+        }
+    }
 }
 }
