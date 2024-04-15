@@ -2327,8 +2327,11 @@ bool qore_root_ns_private::parseResolveGlobalVarsAndClassHierarchiesIntern() {
 
         Var* v = tns->var_list.parseFindVar(n.getIdentifier());
         if (v) {
-            parse_error(*loc, "global variable '%s::%s' has been %s this Program object multiple times",
-                tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in");
+            QoreString locstr;
+            v->getParseLocation()->toString(locstr);
+            parse_error(*loc, "global variable '%s::%s' has been %s this Program object multiple times (last "
+                "detinition at %s)",
+                tns->name.c_str(), n.getIdentifier(), v->isRef() ? "imported into" : "declared in", locstr.c_str());
             if (ok) {
                 ok = false;
             }

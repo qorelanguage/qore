@@ -86,6 +86,7 @@ int ScopedRefNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_context
         parse_context.typeInfo, found);
     if (found) {
         //printd(5, "ScopedRefNode::parseInit() '%s' => rv: %s\n", scoped_ref->ostr, rv.getFullTypeName());
+        parse_context.typeInfo = nullptr;
         err = parse_init_value(rv, parse_context);
         val = rv;
         delete this;
