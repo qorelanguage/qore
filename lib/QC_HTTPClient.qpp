@@ -386,7 +386,7 @@ httpclient.connect();
     @ref EVENT_START_SSL, @ref EVENT_SSL_ESTABLISHED
 
     @note For possible exceptions, see the Socket::connect() method (or Socket::connectSSL() for secure connections).
- */
+*/
 nothing HTTPClient::connect() {
     client->connect(xsink);
 }
@@ -397,7 +397,9 @@ nothing HTTPClient::connect() {
     @code{.py}
 httpclient.disconnect();
     @endcode
- */
+
+    This method also sets the persistent connection count to zero
+*/
 nothing HTTPClient::disconnect() {
     client->disconnect();
 }
@@ -2010,6 +2012,8 @@ httpclient.setPersistent();
     The persistent flag is automatically reset to @ref False "False" whenever the connection is closed; it must be
     called manually for every connection to turn off implicit reconnections.
 
+    Each call to this method increments the persistent connection flag.
+
     To turn off the persistent flag manually, call one of:
     - @ref clearPersistent()
     - @ref disconnect()
@@ -2020,11 +2024,15 @@ HTTPClient::setPersistent() {
     client->setPersistent(xsink);
 }
 
-//! Clears the persistent connection flag and reenables implicit reconnections
+//! Decrements the persistent connection count and clears the persistent connection flag when it reaches zero
 /** @par Example:
     @code{.py}
 httpclient.clearPersistent();
     @endcode
+
+    When the persistent connection flag is cleared, implicit reconnections are reenabled.
+
+    Calls to this method when the persistent connection count is already zero are ignored.
 
     @see setPersistent()
 
@@ -2032,6 +2040,24 @@ httpclient.clearPersistent();
 */
 HTTPClient::clearPersistent() {
     client->clearPersistent();
+}
+
+//! Returns @ref True "True" if the persistent flag is set
+/** @return @ref True "True" if the persistent flag is set
+
+    @since Qore 2.0.0
+*/
+bool HTTPClient::isPersistent() [flags=CONSTANT] {
+    return client->isPersistent();
+}
+
+//! Returns the persistent connection count
+/** @return the persistent connection count
+
+    @since Qore 2.0.0
+*/
+int HTTPClient::getPersistentCount() [flags=CONSTANT] {
+    return client->getPersistentCount();
 }
 
 //! set the error passthru status
