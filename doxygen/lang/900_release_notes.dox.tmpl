@@ -11,6 +11,8 @@
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
       - fixed a bug where the HTTP server did not disconnect idle connections
         (<a href="https://github.com/qorelanguage/qore/issues/4878">issue 4878</a>)
+    - allow the persistent flag to be cleared without disconnecting in the @ref Qore::HTTPClient "HTTPClient" class
+      (<a href="https://github.com/qorelanguage/qore/issues/4882">issue 4882</a>)
     - reconnect HTTP client objects if already connected and a send/receive operation immediately gets disconnected
       (<a href="https://github.com/qorelanguage/qore/issues/4879">issue 4879</a>)
 
