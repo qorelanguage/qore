@@ -7,7 +7,60 @@
     @par Release Summary
     Bugfix release; see below for more information
 
+<<<<<<< HEAD
     @subsection qore_1_19_3_bug_fixes Bug Fixes in Qore
+=======
+    @subsection qore_2_0_0_new_features New Features in Qore
+    - New Modules
+      - <a href="../../modules/DiscordDataProvider/html/index.html">DiscordDataProvider</a>
+      - <a href="../../modules/DiscordRestClient/html/index.html">DiscordRestClient</a>
+      - <a href="../../modules/DiscordWebSocketClient/html/index.html">DiscordWebSocketClient</a>
+      - <a href="../../modules/GmailDataProvider/html/index.html">GmailDataProvider</a>
+      - <a href="../../modules/GoogleCalendarDataProvider/html/index.html">GoogleCalendarDataProvider</a>
+      - <a href="../../modules/MewsRestDataProvider/html/index.html">MewsRestDataProvider</a>
+      - <a href="../../modules/Pop3ClientDataProvider/html/index.html">Pop3ClientDataProvider</a>
+      - <a href="../../modules/MewsRestClient/html/index.html">MewsRestClient</a>
+      - <a href="../../modules/NetSuiteRestClient/html/index.html">NetSuiteRestClient</a>
+    - Module Updates
+      - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+        - added support for a data provider action catalog
+          (<a href="https://github.com/qorelanguage/qore/issues/4808">issue 4808</a>)
+      - <a href="../../modules/RestClient/html/index.html">RestClient</a> module
+        - implemented PKCE options for OAuth2 flows
+          (<a href="https://github.com/qorelanguage/qore/issues/4820">issue 4820</a>)
+    - New Methods
+      - @ref Qore::HTTPClient::clearPersistent() "HTTPClient::clearPersistent()"
+      - @ref Qore::HTTPClient::getPersistentCount() "HTTPClient::getPersistentCount()"
+      - @ref Qore::HTTPClient::isPersistent() "HTTPClient::isPersistent()"
+      - @ref Qore::Socket::startPollRecvData() "Socket::startPollRecvData()"
+    - New Functions
+      - @ref Qore::active_exception() "active_exception()"
+    - New Pseudo-Methods
+      - @ref <string>::contains()
+      - @ref <string>::endsWith()
+      - @ref <string>::startsWith()
+    - The thousands separator can be suppressed in number formatting using the special character \c ? in
+      - @ref <float>::format(string)
+      - @ref <int>::format(string)
+      - @ref <number>::format(string)
+      - @ref Qore::format_number(string, softfloat) "format_number(string, softfloat)"
+    - Types can now return hashes with simple types for accept and returning types for compatibility reasons
+      (<a href="https://github.com/qorelanguage/qore/issues/4876">issue 4876</a>)
+    - Reflection is now allowed in module initialization and deletion closures
+
+    @subsection qore_2_0_compatibility Fixes That Can Affect Backwards-Compatibility
+    - <a href="../../modules/DataProvider/html/index.html">DataProvider</a> module
+      - the \c AbstractDataProviderType::getAcceptTypeHash(*bool) and
+        \c AbstractDataProviderType::getReturnTypeHash(*bool) abstract methods now take an optional argument; classes
+        inheriting this class and reimplementing these methods must add the argument and the logic to respect it
+    - Subtracting @ref NOTHING from any value will result in the same value; previously this would result in
+      @ref NOTHING
+
+    @subsection qore_2_0_0_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/ConnectionProvider/html/index.html">ConnectionProvider</a> module
+      - fixed a bug where control characters in URLs were silently accepted
+        (<a href="https://github.com/qorelanguage/qore/issues/4866">issue 4866</a>)
+>>>>>>> 06e09c503 (refs #4882 implemented additional methods for HTTP persistence)
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
       - fixed a bug where the HTTP server did not disconnect idle connections
         (<a href="https://github.com/qorelanguage/qore/issues/4878">issue 4878</a>)

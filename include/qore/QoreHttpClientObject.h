@@ -474,6 +474,16 @@ public:
     */
     DLLEXPORT void clearPersistent();
 
+    //! Returns the value of the persistent connection flag
+    /** @since %Qore 2.0
+    */
+    DLLEXPORT bool isPersistent() const;
+
+    //! Returns the persistent connection count
+    /** @since %Qore 2.0
+    */
+    DLLEXPORT unsigned getPersistentCount() const;
+
     DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
     DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg,
             int64 min_ms = 1000);

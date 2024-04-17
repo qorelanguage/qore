@@ -282,6 +282,9 @@ struct qore_httpclient_priv {
         pre_encoded_urls = false
         ;
 
+    // persistent count
+    unsigned persistent_count = 0;
+
     int default_port = HTTPCLIENT_DEFAULT_PORT,
         max_redirects = HTTPCLIENT_DEFAULT_MAX_REDIRECTS;
 
@@ -428,6 +431,7 @@ struct qore_httpclient_priv {
             msock->socket->close();
             proxy_connected = false;
             persistent = false;
+            persistent_count = 0;
         }
     }
 
@@ -467,12 +471,17 @@ struct qore_httpclient_priv {
         if (!persistent) {
             persistent = true;
         }
+        ++persistent_count;
     }
 
     DLLLOCAL void clearPersistent() {
         AutoLocker al(msock->m);
 
-        if (persistent) {
+        if (!persistent_count) {
+            return;
+        }
+        if (!--persistent_count) {
+            assert(persistent);
             persistent = false;
         }
     }
@@ -3785,6 +3794,14 @@ void QoreHttpClientObject::setPersistent(ExceptionSink* xsink) {
 
 void QoreHttpClientObject::clearPersistent() {
     return http_priv->clearPersistent();
+}
+
+bool QoreHttpClientObject::isPersistent() const {
+    return http_priv->persistent_count ? true : false;
+}
+
+unsigned QoreHttpClientObject::getPersistentCount() const {
+    return http_priv->persistent_count;
 }
 
 void QoreHttpClientObject::clearWarningQueue(ExceptionSink* xsink) {
