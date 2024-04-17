@@ -591,7 +591,7 @@ ws.connect();
             sleep_cond.broadcast();
         }
         # wait for the event thread to terminate
-        waitTidCleared();
+        waitTidCleared(tid);
 
         return True;
     }
@@ -678,7 +678,7 @@ ws.connect();
             # wake up any sleeping threads
             sleep_cond.broadcast();
             # wait for the event thread to terminate
-            waitTidCleared();
+            waitTidCleared(tid);
         }
     }
 
@@ -966,7 +966,7 @@ ws.setEventQueue();
             # wake up any sleeping threads
             sleep_cond.broadcast();
             # wait for the event thread to terminate
-            waitTidCleared();
+            waitTidCleared(tid);
             cid = -1;
         }
     }
@@ -1021,8 +1021,8 @@ ws.setEventQueue();
         }
     }
 
-    private waitTidCleared() {
-        while (tid) {
+    private waitTidCleared(int old_tid) {
+        while (tid && tid != old_tid) {
             ++tid_waiting;
             tid_cond.wait(m);
             --tid_waiting;
@@ -1095,7 +1095,14 @@ ws.setEventQueue();
                 break;
             } catch (hash<ExceptionInfo> ex) {
                 string err = sprintf("%s: %s: %s", get_ex_pos(ex), ex.err, ex.desc);
-                logError(err);
+                try {
+                    logError(err);
+                } catch (hash<ExceptionInfo> ex) {
+                    if (ex.err == "OBJECT-ALREADY-DELETED") {
+                        return;
+                    }
+                    rethrow;
+                }
                 sendClose(WSCC_InternalServerError, err);
                 break;
             }
@@ -1106,7 +1113,14 @@ ws.setEventQueue();
             # issue #3225 catch and log any exeptions in the closing callback
             closingConnection();
         } catch (hash<ExceptionInfo> ex) {
-            logError("Exception in closing WebSocketClient callback: %s", get_exception_string(ex));
+            try {
+                logError("Exception in closing WebSocketClient callback: %s", get_exception_string(ex));
+            } catch (hash<ExceptionInfo> ex) {
+                if (ex.err == "OBJECT-ALREADY-DELETED") {
+                    return;
+                }
+                rethrow;
+            }
         }
         if (hc.isOpen()) {
             hc.shutdown();
@@ -1492,6 +1506,7 @@ class MyObserver inherits Observer {
     #! Connects to the websocket server
     private hash<auto> connectIntern(*hash<auto> opts, *reference<hash<auto>> info, *bool reconnect) {
         hash<auto> rv = WebSocketClient::connectIntern(opts, \info, reconnect);
+        logDebug("Reconnected; raising reconnect event: %y", observer_map);
         notifyObservers(EVENT_WS_CONNECTED, {});
         return rv;
     }
