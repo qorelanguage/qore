@@ -2010,12 +2010,28 @@ httpclient.setPersistent();
     The persistent flag is automatically reset to @ref False "False" whenever the connection is closed; it must be
     called manually for every connection to turn off implicit reconnections.
 
-    To turn off the persistent flag manually, call @ref HTTPClient::disconnect()
+    To turn off the persistent flag manually, call one of:
+    - @ref clearPersistent()
+    - @ref disconnect()
 
     @since Qore 0.8.10
 */
 HTTPClient::setPersistent() {
     client->setPersistent(xsink);
+}
+
+//! Clears the persistent connection flag and reenables implicit reconnections
+/** @par Example:
+    @code{.py}
+httpclient.clearPersistent();
+    @endcode
+
+    @see setPersistent()
+
+    @since Qore 2.0.0
+*/
+HTTPClient::clearPersistent() {
+    client->clearPersistent();
 }
 
 //! set the error passthru status

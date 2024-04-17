@@ -469,6 +469,11 @@ public:
     //! temporarily disables implicit reconnections; must be called when the server is already connected
     DLLEXPORT void setPersistent(ExceptionSink* xsink);
 
+    //! Clears the persistent connection flag and reenables implicit reconnections
+    /** @since %Qore 2.0
+    */
+    DLLEXPORT void clearPersistent();
+
     DLLEXPORT void clearWarningQueue(ExceptionSink* xsink);
     DLLEXPORT void setWarningQueue(ExceptionSink* xsink, int64 warning_ms, int64 warning_bs, Queue* wq, QoreValue arg,
             int64 min_ms = 1000);

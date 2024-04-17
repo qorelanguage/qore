@@ -464,8 +464,17 @@ struct qore_httpclient_priv {
             return;
         }
 
-        if (!persistent)
+        if (!persistent) {
             persistent = true;
+        }
+    }
+
+    DLLLOCAL void clearPersistent() {
+        AutoLocker al(msock->m);
+
+        if (persistent) {
+            persistent = false;
+        }
     }
 
     // FIXME: redirects reset the connection URL for all further connections - they need to reset it only for the next
@@ -3772,6 +3781,10 @@ void QoreHttpClientObject::clearProxyUserPassword() {
 
 void QoreHttpClientObject::setPersistent(ExceptionSink* xsink) {
     return http_priv->setPersistent(xsink);
+}
+
+void QoreHttpClientObject::clearPersistent() {
+    return http_priv->clearPersistent();
 }
 
 void QoreHttpClientObject::clearWarningQueue(ExceptionSink* xsink) {
