@@ -8,7 +8,7 @@ qoredatadir = $(datarootdir)/qore
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = lib modules/astparser modules/reflection
+SUBDIRS = lib modules/astparser modules/reflection modules/logger
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
@@ -486,7 +486,11 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/reflection/src/QC_AbstractClass.h \
 	modules/reflection/src/QC_Class.qpp \
 	modules/reflection/src/QC_AbstractConstant.h \
-	modules/reflection/src/QC_ConstructorMethod.h
+	modules/reflection/src/QC_ConstructorMethod.h \
+    modules/logger/src/qore_logger.h \
+    modules/logger/src/logger-module.cpp \
+    modules/logger/src/QC_LoggerPattern.qpp \
+    modules/logger/src/QC_LoggerPattern.h
 
 include_HEADERS = \
 	include/qore/QoreValue.h \
