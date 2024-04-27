@@ -847,6 +847,8 @@ add_dependencies(install-docs docs)
 add_subdirectory(modules/astparser)
 # reflection module
 add_subdirectory(modules/reflection)
+# logger module
+add_subdirectory(modules/logger)
 
 # HACK: we need to simulate QORE_USER_MODULES_DIR as the versioned one
 #       for qore core qlib modules.
