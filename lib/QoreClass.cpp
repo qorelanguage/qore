@@ -30,7 +30,6 @@
 */
 
 #include <qore/Qore.h>
-#include "qore/intern/Sequence.h"
 #include "qore/intern/QoreClassIntern.h"
 #include "qore/intern/ConstantList.h"
 #include "qore/intern/qore_program_private.h"

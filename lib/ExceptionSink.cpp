@@ -120,6 +120,18 @@ void ExceptionSink::handleWarnings() {
     }
 }
 
+QoreHashNode* ExceptionSink::getExceptionInfo() {
+    QoreException* except = catchException();
+    if (!except) {
+        return nullptr;
+    }
+    ExceptionSink xsink2;
+    ReferenceHolder<QoreHashNode> rv(except->makeExceptionObject(), &xsink2);
+    except->del(&xsink2);
+    xsink2.clear();
+    return rv.release();
+}
+
 void ExceptionSink::clear() {
     priv->clearIntern();
     priv->head = priv->tail = nullptr;

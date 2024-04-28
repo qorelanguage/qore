@@ -41,7 +41,6 @@
 #include "qore/intern/ModuleInfo.h"
 #include "qore/intern/QoreHashNodeIntern.h"
 #include "qore/intern/StatementBlock.h"
-#include "qore/intern/Sequence.h"
 #include "qore/intern/Variable.h"
 
 // to register object types

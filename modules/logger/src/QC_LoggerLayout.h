@@ -1,9 +1,9 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_LoggerLayout.h LoggerLayout class definition */
 /*
-    Sequence.cpp
-
     Qore Programming Language
 
-    Copyright (C) 2003 - 2023 David Nichols
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,19 +28,16 @@
     information.
 */
 
-#include <qore/Qore.h>
+#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLAYOUT_H
 
-Sequence::Sequence(int start) {
-    val = start;
-}
+#define _QORE_MODULE_LOGGER_QC_LOGGERLAYOUT_H
 
-int Sequence::next() {
-    lock();
-    int rc = val++;
-    unlock();
-    return rc;
-}
+//#include "QoreLoggerLayout.h"
 
-int Sequence::getCurrent() const {
-    return val;
-}
+DLLEXPORT extern qore_classid_t CID_LOGGERLAYOUT;
+DLLLOCAL extern QoreClass* QC_LOGGERLAYOUT;
+
+DLLLOCAL void preinitLoggerLayoutClass();
+DLLLOCAL QoreClass* initLoggerLayoutClass(QoreNamespace& ns);
+
+#endif

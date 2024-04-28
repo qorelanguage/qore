@@ -1,5 +1,6 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
 /*
-    Sequence.cpp
+    Sequence.h
 
     Qore Programming Language
 
@@ -28,19 +29,20 @@
     information.
 */
 
-#include <qore/Qore.h>
+#ifndef _QORE_SEQUENCE_H
 
-Sequence::Sequence(int start) {
-    val = start;
-}
+#define _QORE_SEQUENCE_H
 
-int Sequence::next() {
-    lock();
-    int rc = val++;
-    unlock();
-    return rc;
-}
+#include <qore/QoreThreadLock.h>
 
-int Sequence::getCurrent() const {
-    return val;
-}
+class Sequence : public QoreThreadLock {
+public:
+    DLLEXPORT Sequence(int start = 0);
+    DLLEXPORT int next();
+    DLLEXPORT int getCurrent() const;
+
+private:
+    int val;
+};
+
+#endif

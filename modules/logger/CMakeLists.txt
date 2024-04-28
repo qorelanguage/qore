@@ -22,20 +22,29 @@ include_directories(${CMAKE_SOURCE_DIR/include})
 
 # source files
 set(LOGGER_QPP_SRC
+    src/QC_LoggerLevelBase.qpp
     src/QC_LoggerPattern.qpp
+    src/QC_LoggerEvent.qpp
+    src/QC_LoggerLayout.qpp
 )
 
 set(LOGGER_CPP_SRC
     src/logger-module.cpp
+    src/QoreLoggerLevelBase.cpp
     src/QoreLoggerPattern.cpp
+    src/QoreLoggerEvent.cpp
 )
 
 # we need copy header files to avoid doxygen warning about duplicate files *.cpp
 # when src/ dir is in included_directory
 set(LOGGER_H_SRC
     src/qore_logger.h
+    src/QoreLoggerLevelBase.h
     src/QoreLoggerPattern.h
+    src/QC_LoggerLevelBase.h
     src/QC_LoggerPattern.h
+    src/QC_LoggerEvent.h
+    src/QC_LoggerLayout.h
 )
 
 set(QORE_DOX_LOGGER_TMPL_SRC

@@ -489,10 +489,20 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/reflection/src/QC_ConstructorMethod.h \
     modules/logger/src/qore_logger.h \
     modules/logger/src/logger-module.cpp \
-    modules/logger/src/QoreLoggerPattern.cpp.cpp \
-    modules/logger/src/QoreLoggerPattern.cpp.h \
+    modules/logger/src/QoreLoggerLevelBase.cpp \
+    modules/logger/src/QoreLoggerLevelBase.h \
+    modules/logger/src/QC_LoggerLevelBase.qpp \
+    modules/logger/src/QC_LoggerLevelBase.h \
+    modules/logger/src/QoreLoggerPattern.cpp \
+    modules/logger/src/QoreLoggerPattern.h \
     modules/logger/src/QC_LoggerPattern.qpp \
-    modules/logger/src/QC_LoggerPattern.h
+    modules/logger/src/QC_LoggerPattern.h \
+    modules/logger/src/QoreLoggerEvent.cpp \
+    modules/logger/src/QoreLoggerEvent.h \
+    modules/logger/src/QC_LoggerEvent.qpp \
+    modules/logger/src/QC_LoggerEvent.h \
+    modules/logger/src/QC_LoggerLayout.qpp \
+    modules/logger/src/QC_LoggerLayout.h
 
 include_HEADERS = \
 	include/qore/QoreValue.h \
@@ -582,6 +592,7 @@ include_HEADERS = \
 	include/qore/StreamBase.h \
 	include/qore/InputStream.h \
 	include/qore/OutputStream.h \
+	include/qore/Sequence.h \
 	include/qore/Transform.h \
 	include/qore/AbstractException.h \
 	include/qore/QoreStandardException.h \
@@ -631,7 +642,6 @@ noinst_HEADERS = \
 	include/qore/intern/FunctionCallNode.h \
 	include/qore/intern/ScopedRefNode.h \
 	include/qore/intern/SmartMutex.h \
-	include/qore/intern/Sequence.h \
 	include/qore/intern/ScopedObjectCallNode.h \
 	include/qore/intern/NewComplexTypeNode.h \
 	include/qore/intern/RWLock.h \

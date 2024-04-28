@@ -247,7 +247,7 @@ public namespace Logger {
     The set of built-in levels includes \c TRACE, \c DEBUG, \c INFO, \c WARN, \c ERROR and \c FATAL. Log4q also supports
     custom log levels where the \c LoggerLevel class may be subclassed to define a larger level set.
 */
-public class LoggerLevel inherits Qore::Serializable {
+public class LoggerLevel inherits LoggerLevelBase {
     public {
         #! The highest logger level
         const OFF = MAXINT;
@@ -268,12 +268,6 @@ public class LoggerLevel inherits Qore::Serializable {
     }
 
     private:internal {
-        #! Integer level value.
-        int levelCode;
-
-        #! String representation of the level.
-        string levelStr;
-
         #! Contains a list of instantiated levels
         static hash<string, LoggerLevel> levelMap;
 
@@ -298,36 +292,7 @@ public class LoggerLevel inherits Qore::Serializable {
         @param code integer value
         @param str string representation
     */
-    constructor(int code, string str) {
-        levelCode = code;
-        levelStr = str;
-    }
-
-    #! Gets level code value
-    public int getValue() {
-        return levelCode;
-    }
-
-    #! Gets level string
-    public string getStr() {
-        return levelStr;
-    }
-
-    #! Compares logger levels
-    /**
-        @param other the other level to compares
-        @return True if level is greater or equal to the \a other level
-    */
-    public bool isGreaterOrEqual(LoggerLevel other) {
-        return levelCode >= other.getValue();
-    }
-
-    #! Compares two logger levels
-    /**
-        @param other the other level to compares
-    */
-    public bool isEqual(LoggerLevel other) {
-        return levelCode == other.getValue();
+    constructor(int code, string str) : LoggerLevelBase(code, str) {
     }
 
     #! Returns an OFF Level
@@ -483,6 +448,7 @@ public class LoggerEventParameter {
         code callable;
         *list<auto> args;
     }
+
     #! Creates object
     /**
         @param func function to be called with optional arguments followed
@@ -491,6 +457,7 @@ public class LoggerEventParameter {
         callable = func;
         args = argv;
     }
+
     #! Call function with arguments provided
     /**
         In case of user function call consider surpressing exceptions to return value corresponding to expected
@@ -509,7 +476,7 @@ public class LoggerEventParameter {
     an exception then exception instance is passed for formatting. So it should be considered if format string and
     use for example "%y" to get readable data.
 */
-public class LoggerEvent {
+public class LoggerEventOld {
     private:internal {
         #! origin stamp to calculate relative time
         static date startTime = now_us();
@@ -674,12 +641,12 @@ public class LoggerEvent {
 
     #! Returns the time when the application/logger started to calculate relative time
     public static date getStartTime() {
-        return LoggerEvent::startTime;
+        return LoggerEventOld::startTime;
     }
 
     #! Sets the starting time for relative time
     public static setStartTime(date time) {
-        LoggerEvent::startTime = time;
+        LoggerEventOld::startTime = time;
     }
 
     #! Returns the event timestamp as an @ref absolute_dates "absolute date/time value"
@@ -695,7 +662,7 @@ public class LoggerEvent {
         @see @ref getStartTime()
     */
     public date getRelativeTime() {
-        return timeStamp - LoggerEvent::startTime;
+        return timeStamp - LoggerEventOld::startTime;
     }
 
     #! Returns throwable info, if any
@@ -1420,7 +1387,7 @@ public class LoggerPatternOrig {
 /**
     Event data (@ref LoggerEvent) are formatted before the record is passed to the target.
 */
-public class LoggerLayout {
+public class LoggerLayoutOld {
     #! Format event record
     abstract public string format(LoggerEvent event);
 }

@@ -257,6 +257,11 @@ public:
     */
     DLLEXPORT int renamePrependLastException(const char* err, const char* desc_fmt, ...);
 
+    //! Consumes the exception and returns an ExceptionInfo hash for it
+    /** The caller owns the reference returned
+    */
+    DLLEXPORT QoreHashNode* getExceptionInfo();
+
     DLLLOCAL void raiseException(QoreException* e);
     DLLLOCAL void raiseException(const QoreListNode* n);
     DLLLOCAL QoreException* catchException();

@@ -34,8 +34,6 @@
 
 #include "QoreLoggerPattern.h"
 
-DLLLOCAL int check_constructor(const QoreClass* cls, ExceptionSink* xsink);
-
 DLLEXPORT extern qore_classid_t CID_LOGGERPATTERN;
 DLLLOCAL extern QoreClass* QC_LOGGERPATTERN;
 
