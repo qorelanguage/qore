@@ -29,7 +29,10 @@
 
 #include "qore_logger.h"
 
+#include "QC_LoggerLevelBase.h"
 #include "QC_LoggerPattern.h"
+#include "QC_LoggerEvent.h"
+#include "QC_LoggerLayout.h"
 
 #include <string.h>
 
@@ -51,13 +54,19 @@ DLLEXPORT qore_module_delete_t qore_module_delete = logger_module_delete;
 DLLEXPORT qore_license_t qore_module_license = QL_MIT;
 DLLEXPORT char qore_module_license_str[] = "MIT";
 
-QoreNamespace LoggerNS("Logger");
+QoreNamespace LoggerNS("Qore::Logger");
 
 QoreStringNode* logger_module_init() {
+    QoreLoggerEvent::init();
+
     // set up Logger namespace
     QoreClass* cls = initLoggerPatternClass(LoggerNS);
     cls->addBuiltinConstant("ESCAPE_CHAR", new QoreStringNodeMaker(ESCAPE_STR), Public, stringTypeInfo);
     LoggerNS.addSystemClass(cls);
+
+    LoggerNS.addSystemClass(initLoggerLevelBaseClass(LoggerNS));
+    LoggerNS.addSystemClass(initLoggerEventClass(LoggerNS));
+    LoggerNS.addSystemClass(initLoggerLayoutClass(LoggerNS));
 
     return nullptr;
 }

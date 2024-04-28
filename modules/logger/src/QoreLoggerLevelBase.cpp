@@ -1,9 +1,9 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QoreLoggerLevelBase.cpp LoggerLevelBase class definition */
 /*
-    Sequence.cpp
-
     Qore Programming Language
 
-    Copyright (C) 2003 - 2023 David Nichols
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,19 +28,25 @@
     information.
 */
 
-#include <qore/Qore.h>
+#include "qore_logger.h"
+#include "QoreLoggerLevelBase.h"
 
-Sequence::Sequence(int start) {
-    val = start;
+//! Gets level code value
+int64 QoreLoggerLevelBase::getValue() const {
+    return levelCode;
 }
 
-int Sequence::next() {
-    lock();
-    int rc = val++;
-    unlock();
-    return rc;
+//! Gets level string
+QoreStringNode* QoreLoggerLevelBase::getStr() const {
+    return levelStr->stringRefSelf();
 }
 
-int Sequence::getCurrent() const {
-    return val;
+//! Compares logger levels
+bool QoreLoggerLevelBase::isGreaterOrEqual(const QoreLoggerLevelBase* other) const {
+    return levelCode >= other->levelCode;
+}
+
+//! Compares two logger levels
+bool QoreLoggerLevelBase::isEqual(const QoreLoggerLevelBase* other) const {
+    return levelCode == other->levelCode;
 }

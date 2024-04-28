@@ -1,9 +1,9 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QoreLoggerLevelBase.h LoggerLevelBase class definition */
 /*
-    Sequence.cpp
-
     Qore Programming Language
 
-    Copyright (C) 2003 - 2023 David Nichols
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,19 +28,34 @@
     information.
 */
 
-#include <qore/Qore.h>
+#ifndef _QORE_MODULE_LOGGER_LOGGERLEVELBASE_H
 
-Sequence::Sequence(int start) {
-    val = start;
-}
+#define _QORE_MODULE_LOGGER_LOGGERLEVELBASE_H
 
-int Sequence::next() {
-    lock();
-    int rc = val++;
-    unlock();
-    return rc;
-}
+class QoreLoggerLevelBase : public AbstractPrivateData {
+public:
+    DLLLOCAL QoreLoggerLevelBase(int64 code, const QoreStringNode* level) : levelCode(code),
+            levelStr(level->stringRefSelf()) {
+    }
 
-int Sequence::getCurrent() const {
-    return val;
-}
+    //! Gets level code value
+    DLLLOCAL int64 getValue() const;
+
+    //! Gets level string
+    DLLLOCAL QoreStringNode* getStr() const;
+
+    //! Compares logger levels
+    DLLLOCAL bool isGreaterOrEqual(const QoreLoggerLevelBase* other) const;
+
+    //! Compares two logger levels
+    DLLLOCAL bool isEqual(const QoreLoggerLevelBase* other) const;
+
+protected:
+    //! Integer level value.
+    int64 levelCode;
+
+    //! String representation of the level.
+    SimpleRefHolder<QoreStringNode> levelStr;
+};
+
+#endif

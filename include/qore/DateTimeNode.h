@@ -38,6 +38,8 @@
 #include <qore/AbstractQoreNode.h>
 #include <qore/DateTime.h>
 
+DLLEXPORT const AbstractQoreZoneInfo* currentTZ();
+
 class qore_date_private;
 class LocalVar;
 
@@ -282,6 +284,9 @@ public:
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
     DLLEXPORT static DateTimeNode* getDateFromISOWeek(int year, int week, int day, ExceptionSink* xsink);
+
+    //! static "constructor" to create the current time
+    DLLEXPORT static DateTimeNode* makeNow(const AbstractQoreZoneInfo* zone = currentTZ());
 
     //! static "constructor" to create an absolute time, including microseconds
     DLLEXPORT static DateTimeNode* makeAbsolute(const AbstractQoreZoneInfo* n_zone, int n_year, int n_month, int n_day, int n_hour = 0, int n_minute = 0, int n_second = 0, int n_us = 0);

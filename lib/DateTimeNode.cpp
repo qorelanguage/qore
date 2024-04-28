@@ -216,6 +216,12 @@ DateTimeNode* DateTimeNode::unaryMinus() const {
     return rv;
 }
 
+DateTimeNode* DateTimeNode::makeNow(const AbstractQoreZoneInfo* zone) {
+    int us;
+    int64 seconds = q_epoch_us(us);
+    return makeAbsolute(zone, seconds, us);
+}
+
 DateTimeNode* DateTimeNode::makeAbsolute(const AbstractQoreZoneInfo* z, int y, int mo, int d, int h, int mi, int s,
         int u) {
     return new DateTimeNode(new qore_date_private(z, y, mo, d, h, mi, s, u));

@@ -15,7 +15,10 @@ dummy:
 .qpp.cpp:
 	$(LOGGER_QPP) -V $<
 
-GENERATED_SOURCES = QC_LoggerPattern.cpp
+GENERATED_SOURCES = QC_LoggerPattern.cpp \
+    QC_LoggerLevelBase.cpp \
+    QC_LoggerEvent.cpp \
+    QC_LoggerLayout.cpp
 
 CLEANFILES = $(GENERATED_SOURCES)
 if COND_SINGLE_COMPILATION_UNIT
@@ -23,7 +26,9 @@ LOGGER_SOURCES = logger_scu.cpp
 logger_scu.cpp: $(GENERATED_SOURCES)
 else
 LOGGER_SOURCES = logger-module.cpp \
-    QoreLoggerPattern.cpp
+    QoreLoggerLevelBase.cpp \
+    QoreLoggerPattern.cpp \
+    QoreLoggerEvent.cpp
 nodist_logger_la_SOURCES = $(GENERATED_SOURCES)
 endif
 

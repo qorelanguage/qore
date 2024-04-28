@@ -1,9 +1,9 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_LoggerEvent.h LoggerEvent class definition */
 /*
-    Sequence.cpp
-
     Qore Programming Language
 
-    Copyright (C) 2003 - 2023 David Nichols
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -28,19 +28,16 @@
     information.
 */
 
-#include <qore/Qore.h>
+#ifndef _QORE_MODULE_LOGGER_QC_LOGGEREVENT_H
 
-Sequence::Sequence(int start) {
-    val = start;
-}
+#define _QORE_MODULE_LOGGER_QC_LOGGEREVENT_H
 
-int Sequence::next() {
-    lock();
-    int rc = val++;
-    unlock();
-    return rc;
-}
+#include "QoreLoggerEvent.h"
 
-int Sequence::getCurrent() const {
-    return val;
-}
+DLLEXPORT extern qore_classid_t CID_LOGGEREVENT;
+DLLLOCAL extern QoreClass* QC_LOGGEREVENT;
+
+DLLLOCAL void preinitLoggerEventClass();
+DLLLOCAL QoreClass* initLoggerEventClass(QoreNamespace& ns);
+
+#endif

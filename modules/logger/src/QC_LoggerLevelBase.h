@@ -1,9 +1,9 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_LoggerLevelBase.h LoggerLevelBase class definition */
 /*
-    Sequence.cpp
-
     Qore Programming Language
 
-    Copyright (C) 2003 - 2023 David Nichols
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -17,7 +17,7 @@
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO LEVEL SHALL THE
     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
@@ -28,19 +28,16 @@
     information.
 */
 
-#include <qore/Qore.h>
+#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLEVELBASE_H
 
-Sequence::Sequence(int start) {
-    val = start;
-}
+#define _QORE_MODULE_LOGGER_QC_LOGGERLEVELBASE_H
 
-int Sequence::next() {
-    lock();
-    int rc = val++;
-    unlock();
-    return rc;
-}
+#include "QoreLoggerLevelBase.h"
 
-int Sequence::getCurrent() const {
-    return val;
-}
+DLLEXPORT extern qore_classid_t CID_LOGGERLEVELBASE;
+DLLLOCAL extern QoreClass* QC_LOGGERLEVELBASE;
+
+DLLLOCAL void preinitLoggerLevelBaseClass();
+DLLLOCAL QoreClass* initLoggerLevelBaseClass(QoreNamespace& ns);
+
+#endif

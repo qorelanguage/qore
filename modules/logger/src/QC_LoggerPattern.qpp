@@ -51,16 +51,16 @@
 
     The following table covers various modifiers and scenarios:
 
-    | !Format modifier | !left justify | !minimum width | !maximum width | !comment |
-    | %20c             | false         | 20             | none           | Left pad with spaces if the category name is less than 20 characters long |
-    | %-20c            | true          | 20             | none           | Right pad with spaces if the category name is less than 20 characters long |
-    | %.30c            | NA            | none           | 30             | Truncate from the beginning if the category name is longer than 30 characters |
-    | %20.30c          | false         | 20             | 30             | Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
-    | %-20.30c         | true          | 20             | 30             | Right pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
+    |!Format modifier|!Left justify|!Minimum width|!Maximum width|!Comment
+    |%20c            |false        |20             |none         |Left pad with spaces if the category name is less than 20 characters long
+    |%-20c           |true         |20             |none         |Right pad with spaces if the category name is less than 20 characters long
+    |%.30c           |NA           |none           |30           |Truncate from the beginning if the category name is longer than 30 characters
+    |%20.30c         |false        |20             |30           |Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning
+    |%-20.30c        |true         |20             |30           |Right pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning
 
     @since %Qore 2.0
 */
-qclass LoggerPattern [ns=Logger; arg=QoreLoggerPattern* pat];
+qclass LoggerPattern [ns=Qore::Logger; arg=QoreLoggerPattern* pat];
 
 //! Creates the object
 /** @par Example:
