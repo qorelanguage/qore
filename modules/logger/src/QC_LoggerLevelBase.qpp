@@ -32,10 +32,45 @@
 
 #include "QC_LoggerLevelBase.h"
 
+static QoreHashNode* LoggerLevelBase_serializer(const QoreObject& self, const QoreLoggerLevelBase& level,
+        QoreSerializationContext& context, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+
+    rv->setKeyValue("code", level.getValue(), xsink);
+    rv->setKeyValue("str", level.getStr(), xsink);
+
+    return rv.release();
+}
+
+static void LoggerLevelBase_deserializer(QoreObject& self, const QoreHashNode* sdata,
+        QoreDeserializationContext& context, ExceptionSink* xsink) {
+    if (sdata) {
+        QoreValue val = sdata->getKeyValue("code");
+        if (val.getType() != NT_INT) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "LoggerLevelBase serialization key 'code' has type '%s'; "
+                "expecting 'int'", val.getTypeName());
+            return;
+        }
+        int64 code = val.getAsBigInt();
+
+        val = sdata->getKeyValue("str");
+        if (val.getType() != NT_STRING) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "LoggerLevelBase serialization key 'str' has type '%s'; "
+                "expecting 'string'", val.getTypeName());
+            return;
+        }
+
+        self.setPrivate(CID_LOGGERLEVELBASE, new QoreLoggerLevelBase(code, val.get<const QoreStringNode>()));
+        return;
+    }
+
+    xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the LoggerLevelBase class");
+}
+
 //! This is the base class for logger levels
 /** This class stores the integer and string log level values
 */
-qclass LoggerLevelBase [ns=Qore::Logger; arg=QoreLoggerLevelBase* level; vparent=Serializable];
+qclass LoggerLevelBase [ns=Qore::Logger; arg=QoreLoggerLevelBase* level; vparent=Serializable; serializer=reinterpret_cast<q_serializer_t>(LoggerLevelBase_serializer); deserializer=LoggerLevelBase_deserializer];
 
 //! Creates the level with the supplied arguments
 /** @param code integer log level value
