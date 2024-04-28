@@ -55,6 +55,17 @@ QoreRegexSubst::QoreRegexSubst(const QoreString* pstr, int opts, ExceptionSink *
     parseRT(pstr, xsink);
 }
 
+QoreRegexSubst::QoreRegexSubst(const char* pstr, int opts, ExceptionSink *xsink)
+        : QoreRegexBase(PCRE_UTF8 | (int)opts) {
+    if (check_re_options(opts)) {
+        xsink->raiseException("REGEX-OPTION-ERROR", "%d contains invalid option bits", opts);
+    } else {
+        options |= opts;
+    }
+
+    parseRT(pstr, xsink);
+}
+
 QoreRegexSubst::~QoreRegexSubst() {
     //printd(5, "QoreRegexSubst::~QoreRegexSubst() this=%p\n", this);
     delete newstr;
@@ -75,12 +86,16 @@ int QoreRegexSubst::parseRT(const QoreString* pstr, ExceptionSink* xsink) {
     if (*xsink) {
         return -1;
     }
+    return parseRT(t->c_str(), xsink);
+}
 
+// returns 0 for OK, -1 if parse error raised
+int QoreRegexSubst::parseRT(const char* pstr, ExceptionSink* xsink) {
     const char *err;
     int eo;
-    p = pcre_compile(t->c_str(), options, &err, &eo, 0);
+    p = pcre_compile(pstr, options, &err, &eo, 0);
     if (err) {
-        xsink->raiseException("REGEX-COMPILATION-ERROR", (char *)err);
+        xsink->raiseException("REGEX-COMPILATION-ERROR", (char*)err);
         return -1;
     }
     return 0;
@@ -217,7 +232,7 @@ QoreStringNode* QoreRegexSubst::exec(const QoreString* target, const QoreString*
             tstr->concat(ptr, ovector[0] - offset);
         }
 
-        if (concat(*xsink, *tstr, ovector, SUBST_LASTELEM, nstr->c_str(), t->c_str(), rc)) {
+        if (concat(*xsink, *tstr, ovector, SUBST_LASTELEM, nstr ? nstr->c_str() : "", t->c_str(), rc)) {
             assert(*xsink);
             return nullptr;
         }

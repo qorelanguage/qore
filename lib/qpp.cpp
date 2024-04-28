@@ -151,8 +151,8 @@ struct Param {
         val,                    // param default value
         qore;                   // param Qore class name (for objects)
 
-    Param(const std::string& t, const std::string& n,
-          const std::string& v, const std::string& q):type(t), name(n), val(v), qore(q) {
+    Param(const std::string& t, const std::string& n, const std::string& v, const std::string& q)
+            : type(t), name(n), val(v), qore(q) {
     }
 };
 
@@ -572,7 +572,7 @@ int parse_properties(const char* fileName, unsigned lineNumber, std::string& pro
 }
 
 int parse_params_and_flags(const char* fileName, unsigned &lineNumber, strmap_t& flags, paramlist_t& params,
-                           attr_t& attr, std::string& sc, size_t p, const std::string& dn, bool abstract = false) {
+        attr_t& attr, std::string& sc, size_t p, const std::string& dn, bool abstract = false) {
     size_t i = sc.find(')', p);
     if (i == std::string::npos) {
         error("%s:%d: premature EOL reading parameters for %s()\n", fileName, lineNumber, dn.c_str());
@@ -2162,16 +2162,11 @@ protected:
     }
 
 public:
-    FunctionGroupElement(const char* fn, const std::string& n_name,
-                         attr_t n_attr, const paramlist_t& n_params,
-                         const std::string& n_docs,
-                         const std::string& n_return_type,
-                         const strlist_t& n_flags,
-                         const strlist_t& n_dom,
-                         const std::string& n_code, unsigned n_line,
-                         bool n_doconly) : CodeBase(fn, n_name, n_attr,
-                                                  n_params, n_docs,
-                                                  n_return_type, n_flags, n_dom, n_code, n_line, n_doconly) {
+    FunctionGroupElement(const char* fn, const std::string& n_name, attr_t n_attr, const paramlist_t& n_params,
+            const std::string& n_docs, const std::string& n_return_type, const strlist_t& n_flags,
+            const strlist_t& n_dom, const std::string& n_code, unsigned n_line, bool n_doconly)
+            : CodeBase(fn, n_name, n_attr, n_params, n_docs, n_return_type, n_flags, n_dom, n_code, n_line,
+                n_doconly) {
     }
 
     int serializeUnitTest(FILE* fp) const {
@@ -3834,10 +3829,10 @@ public:
         return name.c_str();
     }
 
-    int addMethod(const std::string& mname, attr_t attr, const std::string& return_type,
-                  const paramlist_t& params, const strmap_t& flags, const std::string& code,
-                  const std::string& doc, unsigned line) {
-        log(LL_DETAIL, "adding method %s%s'%s'::'%s'()\n", return_type.c_str(), return_type.empty()? "" : " ", name.c_str(), mname.c_str());
+    int addMethod(const std::string& mname, attr_t attr, const std::string& return_type, const paramlist_t& params,
+            const strmap_t& flags, const std::string& code, const std::string& doc, unsigned line) {
+        log(LL_DETAIL, "adding method %s%s'%s'::'%s'()\n", return_type.c_str(), return_type.empty() ? "" : " ",
+            name.c_str(), mname.c_str());
 
         strlist_t cf;
         strlist_t dom;
@@ -4160,6 +4155,7 @@ protected:
     const char* cpp_open_flag,* dox_open_flag;
     unsigned lineNumber;
     source_t source;
+    // class element map
     cemap_t cemap;
     bool valid, has_class;      // has at least 1 class element
 

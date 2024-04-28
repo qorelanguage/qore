@@ -27,12 +27,14 @@ set(LOGGER_QPP_SRC
 
 set(LOGGER_CPP_SRC
     src/logger-module.cpp
+    src/QoreLoggerPattern.cpp
 )
 
 # we need copy header files to avoid doxygen warning about duplicate files *.cpp
 # when src/ dir is in included_directory
 set(LOGGER_H_SRC
     src/qore_logger.h
+    src/QoreLoggerPattern.h
     src/QC_LoggerPattern.h
 )
 

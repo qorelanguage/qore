@@ -28,9 +28,11 @@
     information.
 */
 
-#ifndef _QORE_INTERN_QC_LOGGERPATTERN_H
+#ifndef _QORE_MODULE_LOGGER_QC_LOGGERPATTERN_H
 
-#define _QORE_INTERN_QC_LOGGERPATTERN_H
+#define _QORE_MODULE_LOGGER_QC_LOGGERPATTERN_H
+
+#include "QoreLoggerPattern.h"
 
 DLLLOCAL int check_constructor(const QoreClass* cls, ExceptionSink* xsink);
 
@@ -39,23 +41,5 @@ DLLLOCAL extern QoreClass* QC_LOGGERPATTERN;
 
 DLLLOCAL void preinitLoggerPatternClass();
 DLLLOCAL QoreClass* initLoggerPatternClass(QoreNamespace& ns);
-
-//! default layout pattern
-#define DEFAULT_PATTERN "%r [%t] %p %c - %m%n"
-//! default date format
-#define DEFAULT_DATE_FORMAT "YYYY-MM-DD HH:mm:SS.u"
-
-class QoreLoggerPattern : public AbstractPrivateData {
-public:
-    //! This hostname
-    static std::string hostname;
-
-    using AbstractPrivateData::deref;
-    DLLLOCAL virtual void deref(ExceptionSink *xsink) {
-        if (ROdereference()) {
-            delete this;
-        }
-    }
-};
 
 #endif

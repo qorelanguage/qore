@@ -22,7 +22,8 @@ if COND_SINGLE_COMPILATION_UNIT
 LOGGER_SOURCES = logger_scu.cpp
 logger_scu.cpp: $(GENERATED_SOURCES)
 else
-LOGGER_SOURCES = logger-module.cpp
+LOGGER_SOURCES = logger-module.cpp \
+    QoreLoggerPattern.cpp
 nodist_logger_la_SOURCES = $(GENERATED_SOURCES)
 endif
 

@@ -40,9 +40,6 @@
 
 #define check_re_options(a) (a & ~(PCRE_CASELESS|PCRE_DOTALL|PCRE_EXTENDED|PCRE_MULTILINE|PCRE_UTF8|PCRE_UCP))
 
-// note that the following constant is > 32 bits
-#define QRE_GLOBAL 0x100000000LL
-
 class QoreRegexBase {
 public:
     DLLLOCAL QoreRegexBase() {

@@ -249,6 +249,7 @@
 #include "QoreSerializable.cpp"
 #include "UnicodeCharacterIterator.cpp"
 #include "QoreEllipsesNode.cpp"
+#include "QoreRegexInterface.cpp"
 #include "ql_thread.cpp"
 #include "ql_time.cpp"
 #include "ql_lib.cpp"

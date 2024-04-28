@@ -12,12 +12,6 @@
 
 %exec-class Test
 
-class LoggerLayoutPattern2 inherits LoggerLayoutPattern {
-    public list getParsedPattern() {
-        return parsedPattern ?? ();
-    }
-}
-
 class Test inherits QUnit::Test {
     private {
         Counter m_counter();
@@ -112,7 +106,7 @@ class Test inherits QUnit::Test {
     }
 
     testLoggerLayout() {
-        LoggerLayoutPattern2 llp("");
+        LoggerLayoutPattern llp("");
         hash<CallStackInfo> csi();
         csi.file = "testfile";
         csi.source = "testsource";
@@ -323,6 +317,7 @@ class Test inherits QUnit::Test {
             ),
         );
         foreach string patt in (keys patterns) {
+            on_error rethrow $1.err, sprintf("%s (pattern %y)", $1.desc, patt);
             llp.setPattern(patt);
             assertEq(patt, llp.getPattern());
             assertEq(patterns{patt}.parsed, llp.getParsedPattern());
@@ -342,9 +337,9 @@ class Test inherits QUnit::Test {
         assertTrue(int(llp.format(lle)) > 0);
 
         hash patternsErr = (
-            "%/AAA": "Wrong pattern starting %/AAA",
-            "%0-9c": "Wrong pattern option starting %0-9c",
-            "%%%": "Wrong pattern starting %",
+            "%/AAA": "Invalid logger pattern starting at %/AAA",
+            "%0-9c": "Invalid logger pattern option starting at %0-9c",
+            "%%%": "Invalid logger pattern starting at %",
         );
         foreach string patt in (keys patternsErr) {
             assertThrows("LOGGER-ERROR", patternsErr{patt}, \llp.setPattern(), (patt));

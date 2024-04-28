@@ -44,10 +44,14 @@ public:
 
     // used at run-time
     DLLLOCAL QoreRegexSubst(const QoreString* pstr, int opts, ExceptionSink* xsink);
+    // pstr must be in UTF-8 encoding
+    DLLLOCAL QoreRegexSubst(const char* pstr, int opts, ExceptionSink* xsink);
 
     DLLLOCAL ~QoreRegexSubst();
 
     DLLLOCAL int parseRT(const QoreString* pstr, ExceptionSink* xsink);
+    // pstr must be in UTF-8 encoding
+    DLLLOCAL int parseRT(const char* pstr, ExceptionSink* xsink);
     DLLLOCAL int parse();
     DLLLOCAL QoreStringNode* exec(const QoreString* target, ExceptionSink* xsink) const;
     DLLLOCAL QoreStringNode* exec(const QoreString* target, const QoreString* newstr, ExceptionSink* xsink) const;
