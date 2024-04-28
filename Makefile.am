@@ -508,6 +508,8 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/reflection/src/QC_ConstructorMethod.h \
     modules/logger/src/qore_logger.h \
     modules/logger/src/logger-module.cpp \
+    modules/logger/src/QoreLoggerPattern.cpp.cpp \
+    modules/logger/src/QoreLoggerPattern.cpp.h \
     modules/logger/src/QC_LoggerPattern.qpp \
     modules/logger/src/QC_LoggerPattern.h
 
@@ -605,7 +607,8 @@ include_HEADERS = \
 	include/qore/QoreXSinkException.h \
 	include/qore/UnicodeCharacterIterator.h \
     include/qore/AbstractPollState.h \
-    include/qore/AbstractPollableIoObjectBase.h
+    include/qore/AbstractPollableIoObjectBase.h \
+    include/qore/QoreRegexInterface.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \

@@ -54,14 +54,10 @@ DLLEXPORT char qore_module_license_str[] = "MIT";
 QoreNamespace LoggerNS("Logger");
 
 QoreStringNode* logger_module_init() {
-    char buf[HOSTNAMEBUFSIZE + 1];
-    if (gethostname(buf, HOSTNAMEBUFSIZE)) {
-        return new QoreStringNodeMaker("gethostname() failed: %s", strerror(errno));
-    }
-    QoreLoggerPattern::hostname = buf;
-
     // set up Logger namespace
-    LoggerNS.addSystemClass(initLoggerPatternClass(LoggerNS));
+    QoreClass* cls = initLoggerPatternClass(LoggerNS);
+    cls->addBuiltinConstant("ESCAPE_CHAR", new QoreStringNodeMaker(ESCAPE_STR), Public, stringTypeInfo);
+    LoggerNS.addSystemClass(cls);
 
     return nullptr;
 }

@@ -1106,8 +1106,7 @@ addTestCase(obj);
                 }
             }
             comp += " (TYPE ERROR)";
-        }
-        else {
+        } else {
             switch (exp.typeCode()) {
                 case NT_BINARY:
                     expected = sprintf("(binary: size %d) <%s>", exp.size(), make_hex_string(exp));
@@ -1117,6 +1116,9 @@ addTestCase(obj);
                     break;
                 case NT_FLOAT:
                     expected = sprintf("(%s) %N (%s)", exp.type(), exp, exp.toString());
+                    break;
+                case NT_STRING:
+                    expected = sprintf("%y (%s size %d)", exp, exp.encoding(), exp.size());
                     break;
                 default:
                     expected = sprintf("%N", exp);
@@ -1133,6 +1135,9 @@ addTestCase(obj);
                         break;
                     case NT_FLOAT:
                         actual = sprintf("(%s) %N (%s)", act.type(), act, act.toString());
+                        break;
+                    case NT_STRING:
+                        actual = sprintf("%y (%s size %d)", act, act.encoding(), act.size());
                         break;
                     default:
                         actual = sprintf("%N", act);

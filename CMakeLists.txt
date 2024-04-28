@@ -655,6 +655,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreSerializable.cpp
     lib/UnicodeCharacterIterator.cpp
     lib/QoreEllipsesNode.cpp
+    lib/QoreRegexInterface.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)

@@ -32,6 +32,8 @@
 
 %requires Util
 
+%requires(reexport) logger
+
 module Logger {
     version = "0.6";
     desc = "user module implementing Log4q logger library";
@@ -1261,7 +1263,7 @@ public class LoggerAppenderNull inherits LoggerAppender {
     | %20.30c          | false         | 20             | 30             | Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
     | %-20.30c         | true          | 20             | 30             | Right pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
 */
-public class LoggerPattern {
+public class LoggerPatternOrig {
     public {
         #! format escape character
         const ESCAPE_CHAR = "%";
@@ -1270,11 +1272,9 @@ public class LoggerPattern {
     private:internal {
         #! pattern
         string origPattern;
-    }
 
-    private {
         #! parsed pattern; list elements may be strings or hashes
-        list<auto> parsedPattern;  # subclass may provide value e.g. for unit tests
+        list<auto> parsedPattern = ();
     }
 
     #! Creates the object
@@ -1322,7 +1322,7 @@ public class LoggerPattern {
                 # now the string is token
                 *list<*string> l = regex_extract(patt, "^([0-9.-]*)([a-zA-Z]+)({[^}]*})?");
                 if (l.size() < 2) {
-                    throw "LOGGER-ERROR", sprintf("Wrong pattern starting %%%s", patt);
+                    throw "LOGGER-ERROR", sprintf("Invalid logger pattern starting at %%%s", patt);
                 }
                 *list<*string> opt;
                 hash<auto> f;
@@ -1338,7 +1338,7 @@ public class LoggerPattern {
                     } else if (opt = (l[0] =~ x/^.([0-9]+)$/) ) {
                         f.maxWidth = int(opt[0]);
                     } else {
-                        throw "LOGGER-ERROR", sprintf("Wrong pattern option starting %%%s", patt);
+                        throw "LOGGER-ERROR", sprintf("Invalid logger pattern option starting at %%%s", patt);
                     }
                 }
                 f.key = l[1];
@@ -1357,6 +1357,11 @@ public class LoggerPattern {
     #! Returns the current pattern
     public string getPattern() {
         return origPattern;
+    }
+
+    #! Returns the parsed pattern list
+    list<auto> getParsedPattern() {
+        return parsedPattern;
     }
 
     #! Formats the event record with the current pattern
