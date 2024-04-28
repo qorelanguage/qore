@@ -158,8 +158,7 @@ int QoreLoggerPattern::setPattern(const QoreStringNode* pattern, ExceptionSink* 
                 }
             }
         }
-        assert(patt->is_unique());
-        patt->set(t5.subst(**patt, xsink));
+        patt = t5.subst(**patt, xsink);
         //printd(5, "setPattern() final '%s' (%d)\n", patt->c_str(), (int)patt->size());
         pp->push(f.release(), xsink);
         assert(!*xsink);
