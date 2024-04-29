@@ -451,7 +451,7 @@ public namespace PgsqlSqlUtilBase {
 
         #! returns a string that can be used to drop the constraint from the database
         string getDropSql(string table_name) {
-            return sprintf("alter table %s drop constraint if exists %s", table_name, name);
+            return sprintf("alter table %s drop constraint if exists %s cascade", table_name, name);
         }
 
         softlist getRenameSql(string table_name, string new_name) {
@@ -473,6 +473,11 @@ public namespace PgsqlSqlUtilBase {
     public class PgsqlCheckConstraint inherits SqlUtil::AbstractCheckConstraint {
         #! creates the constraint from the supplied arguments
         constructor(string n, string n_src) : AbstractCheckConstraint(n, n_src) {
+        }
+
+        #! returns a string that can be used to drop the constraint from the database
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop constraint %s cascade", table_name, name);
         }
 
         #! returns a string that can be used to create the constraint in the database
@@ -706,6 +711,11 @@ string str = col.getRenameSql(t, "new_name");
                 }
             }
         }
+
+        #! returns a string that can be used to drop the constraint from the database
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop constraint %s cascade", table_name, name);
+        }
     }
 
     #! class modeling a unique constraint
@@ -770,6 +780,11 @@ auto v = c.name;
             return sql;
         }
 
+        #! returns a string that can be used to drop the constraint from the database
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop constraint %s cascade", table_name, name);
+        }
+
         #! returns @ref True "True" if the constraint is enabled, @ref False "False" if not
         bool isEnabled() {
             return enabled;
@@ -825,6 +840,11 @@ auto v = c.name;
             # the following is only valid with PostgreSQL 9.2+
             #return sprintf("alter table %s rename constraint %s to %s", table_name, name, new_name);
             return sprintf("alter index %s rename to %s", name, new_name);
+        }
+
+        #! returns a string that can be used to drop the constraint from the database
+        string getDropSql(string table_name) {
+            return sprintf("alter table %s drop constraint %s cascade", table_name, name);
         }
     }
 
