@@ -61,6 +61,8 @@
       - fixed a bug where the HTTP server did not disconnect idle connections
         (<a href="https://github.com/qorelanguage/qore/issues/4878">issue 4878</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
+      - eliminated locking from DML operations
+        (<a href="https://github.com/qorelanguage/qore/issues/4886">issue 4886</a>)
       - fixed a bug where @ref SqlUtil::AbstractTable::getDropAllConstraintsAndIndexesOnColumnSql()
         "AbstractTable::getDropAllConstraintsAndIndexesOnColumnSql()" did not work on foreign constraints
         (<a href="https://github.com/qorelanguage/qore/issues/4875">issue 4875</a>)
