@@ -2962,7 +2962,7 @@ table.insert(row);
         validateOptionsIntern("OPTION-ERROR", getInsertOptions(), \opt);
 
         # issue #3352: do not execute runtime DML while holding the lock
-        {
+        if (!columns) {
             l.lock();
             on_exit l.unlock();
 
@@ -3219,7 +3219,7 @@ int rows = table.insertFromSelect(("id", "name", "created"), source_table, (("co
         string ssql = source.getSelectSql(sh, \args);
 
         # issue #3352: do not execute runtime DML while holding the lock
-        {
+        if (!columns) {
             l.lock();
             on_exit l.unlock();
 
@@ -4083,7 +4083,7 @@ AbstractSQLStatement i = table.getStatement();
             *hash<auto> opt, *bool no_exec, *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
-        sql = getSelectSqlIntern(sh, \args, opt);
+        sql = getSelectSqlStringIntern(sh, \args, opt);
 
         AbstractSQLStatement stmt = ds.getSQLStatement();
         stmt.prepare(sql);
@@ -4130,7 +4130,7 @@ AbstractSQLStatement i = table.getStatement();
         # check data callback options if any
         validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
 
-        sql = getSelectSqlUnlocked(sh, \args, opt);
+        sql = getSelectSqlStringIntern(sh, \args, opt);
 
         if (opt.sqlarg_callback) {
             opt.sqlarg_callback(sql, args);
@@ -4211,7 +4211,7 @@ hash<SqlResultInfo> info = table.selectRowWithInfo(sh);
         # check data callback options if any
         validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
 
-        sql = getSelectSqlUnlocked(sh, \args, opt);
+        sql = getSelectSqlStringIntern(sh, \args, opt);
 
         if (opt.sqlarg_callback)
             opt.sqlarg_callback(sql, args);
@@ -4287,7 +4287,7 @@ hash<SqlResultInfo> info = table.selectRowsWithInfo(sh);
     private *hash<auto> selectIntern(*hash<auto> sh, *reference<string> sql, *hash<auto> opt, *reference<softlist<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
 
-        sql = getSelectSqlUnlocked(sh, \args, opt);
+        sql = getSelectSqlStringIntern(sh, \args, opt);
 
         bool rollback_on_error = False;
         if (sh.forupdate) {
@@ -4402,7 +4402,7 @@ hash<SqlResultInfo> info = table.selectWithInfo(sh);
         validateOptionsIntern("OPTION-ERROR", getSqlDataCallbackOptions(), \opt);
 
         list<auto> args;
-        string sql = getSelectSqlUnlocked(sh, \args, opt);
+        string sql = getSelectSqlStringIntern(sh, \args, opt);
 
         if (opt.sqlarg_callback)
             opt.sqlarg_callback(sql, args);
@@ -4440,9 +4440,8 @@ string sql = table.getSelectSql(sh, \args);
     */
     string getSelectSql(*hash<auto> sh, *reference<list<auto>> args) {
         validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \sh);
-
         args = ();
-        return getSelectSqlIntern(sh, \args);
+        return getSelectSqlStringIntern(sh, \args);
     }
 
     *AbstractUniqueConstraint matchAnyUnique(softlist<auto> cols) {
@@ -4461,22 +4460,20 @@ string sql = table.getSelectSql(sh, \args);
         }
     }
 
-    string getSelectSqlIntern(*hash<auto> qh, reference<list<auto>> args, *hash<auto> opt) {
-        l.lock();
-        on_exit l.unlock();
+    private string getSelectSqlStringIntern(*hash<auto> qh, reference<list<auto>> args, *hash<auto> opt) {
+        if (!columns) {
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+        }
 
-        return getSelectSqlUnlocked(qh, \args, opt);
-    }
-
-    string getSelectSqlUnlocked(*hash<auto> qh, reference<list<auto>> args, *hash<auto> opt) {
         # we first get column & table info in case we are referencing a table through a synonym
         # so the getSelectSqlName() will refer to the proper schema owner
-        getColumnsUnlocked();
-        return getSelectSqlUnlockedIntern(qh, getSelectSqlName(qh), \args, NOTHING, opt);
+        return getSelectSqlStringIntern(qh, getSelectSqlName(qh), \args, NOTHING, opt);
     }
 
     # column & table information must be retrieved before calling this method
-    string getSelectSqlUnlockedIntern(*hash<auto> qh, string from, reference<list<auto>> args,
+    private string getSelectSqlStringIntern(*hash<auto> qh, string from, reference<list<auto>> args,
             *hash<string, bool> subquery_column_map, *hash<auto> opt, *hash<auto> pseudo_column_map) {
         hash<QueryInfo> info = <QueryInfo>{
             "table": self,
@@ -4629,12 +4626,20 @@ string sql = table.getSelectSql(sh, \args);
             string jtn;
 
             if (jt != self) {
-                jt.getPrimaryKey();
-                jt.getForeignConstraints();
+                if (!jt.primaryKey) {
+                    jt.getPrimaryKey();
+                }
+                if (!jt.foreignConstraints) {
+                    jt.getForeignConstraints();
+                }
                 jtn = jh.ta;
             } else {
-                getPrimaryKeyUnlocked();
-                getForeignConstraintsUnlocked();
+                if (!primaryKey) {
+                    getPrimaryKey();
+                }
+                if (!foreignConstraints) {
+                    getForeignConstraints();
+                }
                 jtn = info.query_hash.alias ?? getSqlName();
             }
 
@@ -4705,14 +4710,14 @@ string sql = table.getSelectSql(sh, \args);
                     "args": info.args,
                 };
                 on_success info.args = join_info.args;
-                jel += jt.getWhereClauseIntern(\join_info, jh.cond, an);
+                jel += jt.getWhereClauseListIntern(\join_info, jh.cond, an);
             }
 
             sql += sprintf(" %s join %s%s on (%s)", JopMap{jh.jop}, t.getSelectSqlName(jh.opt),
                 jh.alias ? (" " + jh.alias) : "", (foldl $1 + " and " + $2, jel));
         }
 
-        getSelectWhereSqlUnlocked(\info, \sql);
+        getSelectWhereSqlIntern(\info, \sql);
 
         if (info.query_hash.groupby) {
             list ce = getGroupByListUnlocked(info, coll);
@@ -4720,8 +4725,6 @@ string sql = table.getSelectSql(sh, \args);
         }
 
         if (info.query_hash.having) {
-            getColumnsUnlocked();
-
             list<auto> hl = ();
 
             HashIterator i(info.query_hash.having);
@@ -4765,12 +4768,12 @@ string sql = table.getSelectSql(sh, \args);
                         info.query_hash.limit);
                 }
 
-                doSelectOrderByWithOffsetSqlUnlockedImpl(\info, \sql, coll);
+                doSelectOrderByWithOffsetSqlInternImpl(\info, \sql, coll);
             } else {
-                doSelectOrderBySqlUnlocked(info, \sql, coll);
+                doSelectOrderBySqlIntern(info, \sql, coll);
             }
         } else if (info.query_hash.limit) {
-            doSelectLimitOnlyUnlockedImpl(\info, \sql);
+            doSelectLimitOnlyInternImpl(\info, \sql);
         }
 
         #printf("SQL: %s\nargs: %y\n", sql, args);
@@ -4795,7 +4798,7 @@ string sql = table.getSelectSql(sh, \args);
 
         if (info.query_hash.superquery) {
             validateOptionsIntern("OPTION-ERROR", getSelectOptions(), \info.query_hash.superquery);
-            return getSelectSqlUnlockedIntern(info.query_hash.superquery, sprintf("(%s) subquery", sql), \info.args,
+            return getSelectSqlStringIntern(info.query_hash.superquery, sprintf("(%s) subquery", sql), \info.args,
                 subquery_column_map, opt, (map {$1: True}, keys info.pseudo_column_map));
         }
 
@@ -4837,14 +4840,14 @@ string sql = table.getSelectSql(sh, \args);
     }
 
     private list<auto> getGroupByListUnlocked(hash<QueryInfo> info, list<auto> coll) {
-        return getGroupOrderByListUnlocked(info, "groupby", coll);
+        return getGroupOrderByListIntern(info, "groupby", coll);
     }
 
-    private list<auto> getOrderByListUnlocked(hash<QueryInfo> info, list<auto> coll) {
-        return getGroupOrderByListUnlocked(info, "orderby", coll);
+    private list<auto> getOrderByListIntern(hash<QueryInfo> info, list<auto> coll) {
+        return getGroupOrderByListIntern(info, "orderby", coll);
     }
 
-    private list<auto> getGroupOrderByListUnlocked(hash<QueryInfo> info, string key, list<auto> coll) {
+    private list<auto> getGroupOrderByListIntern(hash<QueryInfo> info, string key, list<auto> coll) {
         list<auto> ce = ();
 
         code do_int = sub (int cv) {
@@ -5050,9 +5053,9 @@ string sql = table.getSelectSql(sh, \args);
         return False;
     }
 
-    private getSelectWhereSqlUnlocked(reference<hash<QueryInfo>> info, reference<string> sql) {
+    private getSelectWhereSqlIntern(reference<hash<QueryInfo>> info, reference<string> sql) {
         if (info.query_hash."where") {
-            sql += getWhereClauseUnlocked(\info, info.query_hash."where");
+            sql += getWhereClauseIntern(\info, info.query_hash."where");
         }
     }
 
@@ -5074,20 +5077,18 @@ string sql = table.getSelectSql(sh, \args);
             "column_operator_map": getColumnOperatorMap(),
         };
         on_success args = info.args;
-        l.lock();
-        on_exit l.unlock();
-        return getWhereClauseUnlocked(\info, info.query_hash."where", cprefix);
+        return getWhereClauseIntern(\info, info.query_hash."where", cprefix);
     }
 
-    private *string getWhereExpressionUnlocked(reference<hash<QueryInfo>> info, hash<DataProviderExpression> cond,
+    private *string getWhereExpressionIntern(reference<hash<QueryInfo>> info, hash<DataProviderExpression> cond,
             *string cprefix) {
-        string sql = getExpressionUnlockedIntern(\info, ER_Search, cond, AbstractDataProviderTypeMap."bool");
+        string sql = getExpressionIntern(\info, ER_Search, cond, AbstractDataProviderTypeMap."bool");
         if (sql) {
             return " where " + sql;
         }
     }
 
-    private *string getExpressionUnlockedIntern(reference<hash<QueryInfo>> info, int role,
+    private *string getExpressionIntern(reference<hash<QueryInfo>> info, int role,
             hash<DataProviderExpression> cond, AbstractDataProviderType expected_type) {
         *hash<auto> exp = info.expression_map{cond.exp};
         if (!exp) {
@@ -5099,13 +5100,17 @@ string sql = table.getSelectSql(sh, \args);
         return exp.code(\info, role, cond.args);
     }
 
-    private *string getWhereClauseUnlocked(reference<hash<QueryInfo>> info, *hash<auto> cond, *string cprefix) {
+    private *string getWhereClauseIntern(reference<hash<QueryInfo>> info, *hash<auto> cond, *string cprefix) {
         if (!cond) {
             return;
         }
-        getColumnsUnlocked();
+        if (!columns) {
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+        }
         if (cond instanceof hash<DataProviderExpression>) {
-            return getWhereExpressionUnlocked(\info, cast<hash<DataProviderExpression>>(cond), cprefix);
+            return getWhereExpressionIntern(\info, cast<hash<DataProviderExpression>>(cond), cprefix);
         }
         if (!exists info.args) {
             info.args = ();
@@ -5119,7 +5124,7 @@ string sql = table.getSelectSql(sh, \args);
                     throw "WHERE-ERROR", sprintf("expected \"hash\" in \"where\" list; got type %y instead",
                         c.fullType());
                 }
-                owl = getWhereClauseIntern(\info, c, cprefix);
+                owl = getWhereClauseListIntern(\info, c, cprefix);
                 if (owl) {
                     wl += "(" + (foldl $1 + " and " + $2, owl) + ")";
                 }
@@ -5128,14 +5133,14 @@ string sql = table.getSelectSql(sh, \args);
                 return " where " + (foldl $1 + " or " + $2, wl);
             }
         } else {
-            wl = getWhereClauseIntern(\info, cond, cprefix);
+            wl = getWhereClauseListIntern(\info, cond, cprefix);
             if (wl) {
                 return " where " + (foldl $1 + " and " + $2, wl);
             }
         }
     }
 
-    private *list<string> getWhereClauseIntern(reference<hash<QueryInfo>> info, *hash<auto> cond, *string cprefix) {
+    private *list<string> getWhereClauseListIntern(reference<hash<QueryInfo>> info, *hash<auto> cond, *string cprefix) {
         if (!cond) {
             return;
         }
@@ -5202,12 +5207,12 @@ string sql = table.getSelectSql(sh, \args);
     }
 
     string getOrClause(reference<hash<QueryInfo>> info, hash<auto> arg) {
-        *list<string> wl = getWhereClauseIntern(\info, arg);
+        *list<string> wl = getWhereClauseListIntern(\info, arg);
         return wl ? ("(" + (foldl $1 + " and " + $2, wl) + ")") : "";
     }
 
-    private doSelectOrderBySqlUnlocked(hash<QueryInfo> info, reference<string> sql, list<auto> coll) {
-        list<auto> ce = getOrderByListUnlocked(info, coll);
+    private doSelectOrderBySqlIntern(hash<QueryInfo> info, reference<string> sql, list<auto> coll) {
+        list<auto> ce = getOrderByListIntern(info, coll);
         sql += " order by " + (foldl $1 + ", " + $2, (
             map $1 + (info.query_hash.desc || info.query_hash.orderbydesc.$1 ? " desc" : ""), ce
         ));
@@ -5678,11 +5683,14 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         @throw UPSERT-ERROR either no unique constraint or index exists or none matching \a row exist
     */
     private hash<string, Columns> getAllUpsertColumns(*hash<auto> row) {
-        l.lock();
-        on_exit l.unlock();
-
-        getColumnsUnlocked();
-        getPrimaryKeyUnlocked();
+        if (!columns) {
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+        }
+        if (!primaryKey) {
+            getPrimaryKey();
+        }
 
         if (!primaryKey.empty()) {
             if ((row && matchUniqueColumns(primaryKey, row)) || !row) {
@@ -5691,7 +5699,9 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         }
 
         # find unique constraints
-        getConstraintsUnlocked();
+        if (!constraints) {
+            getConstraints();
+        }
         foreach AbstractConstraint c in (constraints.iterator()) {
             if (c instanceof AbstractUniqueConstraint) {
                 AbstractUniqueConstraint uc = cast<AbstractUniqueConstraint>(c);
@@ -5702,7 +5712,9 @@ hash<SqlResultInfo> info = table.updateWithInfo({"id": id}, {"name": name});
         }
 
         # find unique indices
-        getIndexesUnlocked();
+        if (!indexes) {
+            getIndexes();
+        }
         foreach AbstractIndex ix in (indexes.iterator()) {
             if (ix.unique && ((row && matchUniqueColumns(ix.columns, row)) || !row)) {
                 return {sprintf("unique index %s", ix.name): ix.columns};
@@ -5968,9 +5980,11 @@ Columns cols = table.describe();
         @return an object of class Columns describing the table
     */
     Columns describe() {
-        l.lock();
-        on_exit l.unlock();
-        getColumnsUnlocked();
+        if (!columns) {
+            l.lock();
+            on_exit l.unlock();
+            getColumnsUnlocked();
+        }
         return columns;
     }
 
@@ -5984,9 +5998,11 @@ Columns cols = table.describe();
         @return an object of class AbstractPrimaryKey describing the primary key of the table
     */
     AbstractPrimaryKey getPrimaryKey() {
-        l.lock();
-        on_exit l.unlock();
-        getPrimaryKeyUnlocked();
+        if (!primaryKey) {
+            l.lock();
+            on_exit l.unlock();
+            getPrimaryKeyUnlocked();
+        }
         return primaryKey;
     }
 
@@ -6001,19 +6017,18 @@ my *AbstractUniqueConstraint uk = table.findUniqueConstraint("uk_table2");
         @return the given AbstractUniqueConstraint object if defined for the table (also includes the primary key)
     */
     *AbstractUniqueConstraint findUniqueConstraint(string name) {
-        l.lock();
-        on_exit l.unlock();
-
-        return findUniqueConstraintUnlocked(name);
-    }
-
-    *AbstractUniqueConstraint findUniqueConstraintUnlocked(string name) {
-        getPrimaryKeyUnlocked();
-        getConstraintsUnlocked();
-        if (!primaryKey.empty() && primaryKey.getName() == name)
+        if (!primaryKey) {
+            getPrimaryKey();
+        }
+        if (!primaryKey.empty() && primaryKey.getName() == name) {
             return primaryKey;
-
-        return constraints.hasKey(name) && constraints{name} instanceof AbstractUniqueConstraint ? constraints{name} : NOTHING;
+        }
+        if (!constraints) {
+            getConstraints();
+        }
+        return constraints.hasKey(name) && constraints{name} instanceof AbstractUniqueConstraint
+            ? constraints{name}
+            : NOTHING;
     }
 
     #! returns an object of class Indexes describing the indexes on the table
@@ -6027,25 +6042,31 @@ Indexes ix = table.getIndexes();
         @return an object of class Indexes describing the indexes on the table
     */
     Indexes getIndexes() {
-        l.lock();
-        on_exit l.unlock();
-        getIndexesUnlocked();
+        if (!indexes) {
+            l.lock();
+            on_exit l.unlock();
+            getIndexesUnlocked();
+        }
         return indexes;
     }
 
     #! returns a ForeignConstraints object describing the foreign constraints that the table has on other tables
     ForeignConstraints getForeignConstraints(*hash<auto> opt) {
-        l.lock();
-        on_exit l.unlock();
-        getForeignConstraintsUnlocked(opt);
+        if (!foreignConstraints) {
+            l.lock();
+            on_exit l.unlock();
+            getForeignConstraintsUnlocked(opt);
+        }
         return foreignConstraints;
     }
 
     #! returns a Constraints object describing the non-foreign constraints on the table
     Constraints getConstraints() {
-        l.lock();
-        on_exit l.unlock();
-        getConstraintsUnlocked();
+        if (!constraints) {
+            l.lock();
+            on_exit l.unlock();
+            getConstraintsUnlocked();
+        }
         return constraints;
     }
 
@@ -6060,9 +6081,11 @@ Triggers trig = table.getTriggers();
         @return an object of class Triggers describing the triggers on the table
     */
     Triggers getTriggers() {
-        l.lock();
-        on_exit l.unlock();
-        getTriggersUnlocked();
+        if (!triggers) {
+            l.lock();
+            on_exit l.unlock();
+            getTriggersUnlocked();
+        }
         return triggers;
     }
 
@@ -6885,19 +6908,22 @@ string sql = table.getAlignSqlString(table2);
 
         list<auto> args;
         hash<auto> cond{cname} = op_in(ids);
-        string sql = getSelectSqlIntern(("where": cond), \args);
+        string sql = getSelectSqlStringIntern(("where": cond), \args);
 
         return ds.vselectRows(sql, args);
     }
 
     private string getPrimaryKeyColumn() {
-        l.lock();
-        on_exit l.unlock();
-        getPrimaryKeyUnlocked();
+        if (!primaryKey) {
+            l.lock();
+            on_exit l.unlock();
+            getPrimaryKeyUnlocked();
+        }
         if (primaryKey.empty())
             throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", getDesc());
         if (primaryKey.size() > 1)
-            throw "PRIMARY-KEY-ERROR", sprintf("%s: has a primary key with %d columns (%y); this method can only be called on tables with a primary key with one column", getDesc(), primaryKey.size(), primaryKey.keys());
+            throw "PRIMARY-KEY-ERROR", sprintf("%s: has a primary key with %d columns (%y); this method can only be "
+                "called on tables with a primary key with one column", getDesc(), primaryKey.size(), primaryKey.keys());
         return primaryKey.firstKey();
     }
 
@@ -6917,14 +6943,14 @@ string sql = table.getAlignSqlString(table2);
         */
     *hash<auto> find(hash<auto> row) {
         Columns cols;
-        {
+        if (!primaryKey) {
             l.lock();
             on_exit l.unlock();
             getPrimaryKeyUnlocked();
-            if (primaryKey.empty())
-                throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", getDesc());
-            cols = primaryKey;
         }
+        if (primaryKey.empty())
+            throw "PRIMARY-KEY-ERROR", sprintf("%s: has no primary key", getDesc());
+        cols = primaryKey;
 
         # make sure all columns of the primary key are included in the row
         foreach string k in (cols.keyIterator()) {
@@ -7756,11 +7782,11 @@ on_exit printf("SQL> %s\n", sql);
     private abstract hash<auto> getTypeMapImpl();
 
     #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-    private abstract doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+    private abstract doSelectOrderByWithOffsetSqlInternImpl(reference<hash<QueryInfo>> info, reference<string> sql,
         list<auto> coll);
 
     #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-    private abstract doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql);
+    private abstract doSelectLimitOnlyInternImpl(reference<hash<QueryInfo>> info, reference<string> sql);
 
     #! db-specific copy actions
     private abstract copyImpl(AbstractTable old);

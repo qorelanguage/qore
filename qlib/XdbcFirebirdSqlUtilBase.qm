@@ -1586,7 +1586,7 @@ string str = table.getSqlValue(date);
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
+        private doSelectLimitOnlyInternImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
             if (!info.query_hash.limit) {
                 return;
             }
@@ -1598,9 +1598,9 @@ string str = table.getSqlValue(date);
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+        private doSelectOrderByWithOffsetSqlInternImpl(reference<hash<QueryInfo>> info, reference<string> sql,
                 list<auto> coll) {
-            doSelectOrderBySqlUnlocked(info, \sql, coll);
+            doSelectOrderBySqlIntern(info, \sql, coll);
 
             # NOTE: we do not bind the variables by value here, because it doesn't work
             sql += sprintf(" offset %d rows", info.query_hash.offset.toInt());
