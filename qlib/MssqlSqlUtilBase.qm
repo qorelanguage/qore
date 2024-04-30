@@ -2128,7 +2128,7 @@ tc.constraint_name, c1.ordinal_position", schema, name);
     }
 
     #! processes a string for use in SQL select statements with "limit" but no "orderby" or "offset"
-    private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
+    private doSelectLimitOnlyInternImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
         if (!info.query_hash.limit) {
             return;
         }
@@ -2141,14 +2141,14 @@ tc.constraint_name, c1.ordinal_position", schema, name);
     }
 
     #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-    private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+    private doSelectOrderByWithOffsetSqlInternImpl(reference<hash<QueryInfo>> info, reference<string> sql,
             list<auto> coll) {
         if (is_sybase) {
             # NOTE Sybase ASE does not support this, but Sybase SQL Anywhere does
             throw "UNIMPLEMENTED", "offset not yet implemented";
         }
 
-        doSelectOrderBySqlUnlocked(info, \sql, coll);
+        doSelectOrderBySqlIntern(info, \sql, coll);
 
         sql += " offset %v rows";
         info.args += info.query_hash.offset.toInt();

@@ -1204,15 +1204,15 @@ string str = table.getSqlValue(date);
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
+        private doSelectLimitOnlyInternImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
            sql += " limit %v";
            info.args += info.query_hash.limit.toInt();
         }
 
         #! processes a string for use in SQL select statements when there is an "order by" and "offset" argument
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+        private doSelectOrderByWithOffsetSqlInternImpl(reference<hash<QueryInfo>> info, reference<string> sql,
                 list<auto> coll) {
-            doSelectOrderBySqlUnlocked(info, \sql, coll);
+            doSelectOrderBySqlIntern(info, \sql, coll);
             if (info.query_hash.limit) {
                 sql += " limit %v";
                 info.args += info.query_hash.limit.toInt();
