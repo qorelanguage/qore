@@ -6030,6 +6030,31 @@ my *AbstractUniqueConstraint uk = table.findUniqueConstraint("uk_table2");
             : NOTHING;
     }
 
+    #! returns the given AbstractUniqueConstraint object if defined for the table (also includes the primary key)
+    /** @par Example:
+        @code{.py}
+my *AbstractUniqueConstraint uk = table.findUniqueConstraint("uk_table2");
+        @endcode
+
+        @param name the name of the unique constraint to find
+
+        @return the given AbstractUniqueConstraint object if defined for the table (also includes the primary key)
+    */
+    private *AbstractUniqueConstraint findUniqueConstraintUnlocked(string name) {
+        if (!primaryKey) {
+            getPrimaryKeyUnlocked();
+        }
+        if (!primaryKey.empty() && primaryKey.getName() == name) {
+            return primaryKey;
+        }
+        if (!constraints) {
+            getConstraintsUnlocked();
+        }
+        return constraints.hasKey(name) && constraints{name} instanceof AbstractUniqueConstraint
+            ? constraints{name}
+            : NOTHING;
+    }
+
     #! returns an object of class Indexes describing the indexes on the table
     /** If there are no indexes on the table then the object returned will be empty (see @ref SqlUtil::Indexes::empty())
 
@@ -7749,6 +7774,7 @@ on_exit printf("SQL> %s\n", sql);
 
     private abstract Columns describeImpl();
     private abstract AbstractPrimaryKey getPrimaryKeyImpl();
+    #! Always called with the lock held
     private abstract Indexes getIndexesImpl();
     private abstract ForeignConstraints getForeignConstraintsImpl(*hash<auto> opt);
     private abstract Constraints getConstraintsImpl();
