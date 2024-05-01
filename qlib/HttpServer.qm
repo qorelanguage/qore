@@ -2032,6 +2032,9 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
         #! accept all certificates
         bool ssl_accept_all_certs = True;
 
+        #! thread waiting on lock
+        int lock_waiting;
+
         const PollInterval = 250ms;
         const ListenQueue = 100;
         const BodyLogLimit = 40;
@@ -2174,6 +2177,9 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
 
         on_error rethrow "REFRESH-CERTIFICATE-ERROR", sprintf("%s: %s", $1.err, $1.desc);
         hash<HttpCertInfo> info = http_get_ssl_objects(opts.cert_loc, opts.key_loc, opts.key_password);
+        # signal to connection thread that it should allow the lock to be acquired by this thread
+        ++lock_waiting;
+        on_exit --lock_waiting;
         setCertificateAndPrivateKey(info.cert, info.key);
     }
 
@@ -2521,6 +2527,10 @@ class HttpListener inherits Qore::Socket, HttpServer::HttpListenerInterface {
             try {
                 r = accept(PollInterval);
                 if (!r) {
+                    # allow another thread to grab the socket lock and do something if necessary
+                    if (lock_waiting) {
+                        thread_yield();
+                    }
                     continue;
                 }
             } catch (hash<ExceptionInfo> ex) {
