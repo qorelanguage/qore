@@ -2,6 +2,19 @@
 
     @tableofcontents
 
+    @section qore_1_19_4 Qore 1.19.4
+
+    @par Release Summary
+    Bugfix release; see below for more information
+
+    @subsection qore_1_19_3_bug_fixes Bug Fixes in Qore
+    - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+      - fixed a deadlock due to lock starvation in the HttpServer regarding reloading HTTP certificate info
+        (<a href="https://github.com/qorelanguage/qore/issues/4887">issue 4887</a>)
+    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
+      - eliminated locking from DML operations
+        (<a href="https://github.com/qorelanguage/qore/issues/4886">issue 4886</a>)
+
     @section qore_1_19_3 Qore 1.19.3
 
     @par Release Summary
@@ -11,9 +24,6 @@
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
       - fixed a bug where the HTTP server did not disconnect idle connections
         (<a href="https://github.com/qorelanguage/qore/issues/4878">issue 4878</a>)
-    - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
-      - eliminated locking from DML operations
-        (<a href="https://github.com/qorelanguage/qore/issues/4886">issue 4886</a>)
     - allow the persistent flag to be cleared without disconnecting in the @ref Qore::HTTPClient "HTTPClient" class
       (<a href="https://github.com/qorelanguage/qore/issues/4882">issue 4882</a>)
     - reconnect HTTP client objects if already connected and a send/receive operation immediately gets disconnected
