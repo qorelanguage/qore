@@ -58,6 +58,8 @@
       - fixed a bug where control characters in URLs were silently accepted
         (<a href="https://github.com/qorelanguage/qore/issues/4866">issue 4866</a>)
     - <a href="../../modules/HttpServer/html/index.html">HttpServer</a> module
+      - fixed a deadlock due to lock starvation in the HttpServer regarding reloading HTTP certificate info
+        (<a href="https://github.com/qorelanguage/qore/issues/4887">issue 4887</a>)
       - fixed a bug where the HTTP server did not disconnect idle connections
         (<a href="https://github.com/qorelanguage/qore/issues/4878">issue 4878</a>)
     - <a href="../../modules/SqlUtil/html/index.html">SqlUtil</a> module
