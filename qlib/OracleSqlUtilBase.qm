@@ -2906,13 +2906,13 @@ auto v = c.name;
             splice sql, i + 5, 0, sprintf(" /*+ first_rows(%d) */", qh.limit);
         }
 
-        private doSelectOrderByWithOffsetSqlUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql,
+        private doSelectOrderByWithOffsetSqlInternImpl(reference<hash<QueryInfo>> info, reference<string> sql,
                 list<auto> coll) {
             # Oracle 12c+ supports limit (fetch) and offset
             softint limit = info.query_hash.limit ?? 0;
             softint offset = info.query_hash.offset ?? 0;
             if (optimizedLimit(info.query_hash)) {
-                doSelectOrderBySqlUnlocked(info, \sql, coll);
+                doSelectOrderBySqlIntern(info, \sql, coll);
 
                 if (info.query_hash.offset) {
                     sql += " offset %v rows";
@@ -2927,7 +2927,7 @@ auto v = c.name;
                 return;
             }
 
-            list<auto> ce = getOrderByListUnlocked(info, coll);
+            list<auto> ce = getOrderByListIntern(info, coll);
             string sort = foldl $1 + ", " + $2, ce;
             # http://www.oracle.com/technetwork/issue-archive/2006/06-sep/o56asktom-086197.html
             # /*+ first_rows(n) */ is an optimizer hint that we want the first rows as fast as possible
@@ -2945,7 +2945,7 @@ auto v = c.name;
         }
 
         #! processes a string for use in SQL select statements when there is a "limit" argument, but no "orderby" or "offset" arguments
-        private doSelectLimitOnlyUnlockedImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
+        private doSelectLimitOnlyInternImpl(reference<hash<QueryInfo>> info, reference<string> sql) {
             if (!info.query_hash.limit)
                 return;
 
