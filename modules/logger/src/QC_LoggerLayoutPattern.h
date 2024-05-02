@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_LoggerLayout.cpp LoggerLayout class definition */
+/** @file QC_LoggerLayoutPattern.h LoggerLayoutPattern class definition */
 /*
     Qore Programming Language
 
@@ -28,17 +28,16 @@
     information.
 */
 
-#include "qore_logger.h"
+#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLAYOUTPATTERN_H
 
-#include "QC_LoggerLayout.h"
+#define _QORE_MODULE_LOGGER_QC_LOGGERLAYOUTPATTERN_H
 
-//! Abstract class that defines the interface for logger layouts
-/** Event data (@ref LoggerEvent) are formatted before the record is passed to the target
-*/
-qclass LoggerLayout [ns=Qore::Logger; arg=QoreLoggerLayout* ll];
+#include "QoreLoggerLayoutPattern.h"
 
-//! Returns a formatted string for an input pattern
-/**
-    Format event record
-*/
-abstract string LoggerLayout::format(LoggerEvent[QoreLoggerEvent] event);
+DLLEXPORT extern qore_classid_t CID_LOGGERLAYOUTPATTERN;
+DLLLOCAL extern QoreClass* QC_LOGGERLAYOUTPATTERN;
+
+DLLLOCAL void preinitLoggerLayoutPatternClass();
+DLLLOCAL QoreClass* initLoggerLayoutPatternClass(QoreNamespace& ns);
+
+#endif

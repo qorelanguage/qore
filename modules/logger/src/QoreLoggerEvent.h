@@ -56,22 +56,22 @@ public:
     }
 
     //! Returns the full qualified classname
-    QoreStringNode* getFullQualifiedClassname() const;
+    DLLLOCAL QoreStringNode* getFullQualifiedClassname() const;
 
     //! Returns the location information for this logging event
-    QoreHashNode* getLocationInfo() const;
+    DLLLOCAL QoreHashNode* getLocationInfo() const;
 
     //! Returns the level of this event
-    QoreObject* getLevel() const;
+    DLLLOCAL QoreObject* getLevel() const;
 
     //! Returns the logger which created the event
-    QoreObject* getLogger() const;
+    DLLLOCAL QoreObject* getLogger() const;
 
     //! Returns the thread id which is related to event
-    int getThreadId() const;
+    DLLLOCAL int getThreadId() const;
 
     //! Returns the category name
-    QoreStringNode* getCategoryName() const;
+    DLLLOCAL QoreStringNode* getCategoryName() const;
 
     using AbstractPrivateData::deref;
     DLLLOCAL virtual void deref(ExceptionSink* xsink) {
