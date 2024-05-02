@@ -18,7 +18,8 @@ dummy:
 GENERATED_SOURCES = QC_LoggerPattern.cpp \
     QC_LoggerLevelBase.cpp \
     QC_LoggerEvent.cpp \
-    QC_LoggerLayout.cpp
+    QC_LoggerLayout.cpp \
+    QC_LoggerLayoutPattern.cpp
 
 CLEANFILES = $(GENERATED_SOURCES)
 if COND_SINGLE_COMPILATION_UNIT
@@ -28,6 +29,7 @@ else
 LOGGER_SOURCES = logger-module.cpp \
     QoreLoggerLevelBase.cpp \
     QoreLoggerPattern.cpp \
+    QoreLoggerLayoutPattern.cpp \
     QoreLoggerEvent.cpp
 nodist_logger_la_SOURCES = $(GENERATED_SOURCES)
 endif

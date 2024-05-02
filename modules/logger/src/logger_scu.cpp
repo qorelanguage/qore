@@ -8,3 +8,5 @@
 #include "QoreLoggerEvent.cpp"
 #include "QC_LoggerEvent.cpp"
 #include "QC_LoggerLayout.cpp"
+#include "QoreLoggerLayoutPattern.cpp"
+#include "QC_LoggerLayoutPattern.cpp"

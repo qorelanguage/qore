@@ -30,6 +30,7 @@
 
 #include "qore_logger.h"
 #include "QC_LoggerPattern.h"
+#include "QC_LoggerLayoutPattern.h"
 
 //! This class implements LoggerPattern functionality
 /**
@@ -111,7 +112,19 @@ list<auto> LoggerPattern::getParsedPattern() {
     @throw LOGGER-ERROR when a key is not resolved
 */
 string LoggerPattern::format(auto data) {
-    return pat->format(data, xsink);
+    // see if 'data' is a LoggerLayoutPattern object for optimized calls
+    ReferenceHolder<QoreLoggerLayoutPattern> llp(xsink);
+    if (data.getType() == NT_OBJECT) {
+        QoreObject* obj = data.get<QoreObject>();
+        // only set the private data object if the class is not overridden
+        if (QC_LOGGERLAYOUTPATTERN->isEqual(*obj->getClass())) {
+            llp = obj->tryGetReferencedPrivateData<QoreLoggerLayoutPattern>(CID_LOGGERLAYOUTPATTERN, xsink);
+            if (*xsink) {
+                return QoreValue();
+            }
+        }
+    }
+    return pat->format(data, *llp, xsink);
 }
 
 //! Returns a formatted string for an input pattern

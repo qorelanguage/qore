@@ -502,7 +502,11 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
     modules/logger/src/QC_LoggerEvent.qpp \
     modules/logger/src/QC_LoggerEvent.h \
     modules/logger/src/QC_LoggerLayout.qpp \
-    modules/logger/src/QC_LoggerLayout.h
+    modules/logger/src/QC_LoggerLayout.h \
+    modules/logger/src/QoreLoggerLayoutPattern.qpp \
+    modules/logger/src/QoreLoggerLayoutPattern.h \
+    modules/logger/src/QC_LoggerLayoutPattern.qpp \
+    modules/logger/src/QC_LoggerLayoutPattern.h
 
 include_HEADERS = \
 	include/qore/QoreValue.h \

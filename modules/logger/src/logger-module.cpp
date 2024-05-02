@@ -33,6 +33,7 @@
 #include "QC_LoggerPattern.h"
 #include "QC_LoggerEvent.h"
 #include "QC_LoggerLayout.h"
+#include "QC_LoggerLayoutPattern.h"
 
 #include <string.h>
 
@@ -56,17 +57,33 @@ DLLEXPORT char qore_module_license_str[] = "MIT";
 
 QoreNamespace LoggerNS("Qore::Logger");
 
+#ifndef HOSTNAMEBUFSIZE
+#define HOSTNAMEBUFSIZE 512
+#endif
+
 QoreStringNode* logger_module_init() {
     QoreLoggerEvent::init();
 
     // set up Logger namespace
     QoreClass* cls = initLoggerPatternClass(LoggerNS);
-    cls->addBuiltinConstant("ESCAPE_CHAR", new QoreStringNodeMaker(ESCAPE_STR), Public, stringTypeInfo);
+    cls->addBuiltinConstant("ESCAPE_CHAR", new QoreStringNode(ESCAPE_STR), Public, stringTypeInfo);
     LoggerNS.addSystemClass(cls);
-
     LoggerNS.addSystemClass(initLoggerLevelBaseClass(LoggerNS));
     LoggerNS.addSystemClass(initLoggerEventClass(LoggerNS));
     LoggerNS.addSystemClass(initLoggerLayoutClass(LoggerNS));
+
+    char buf[HOSTNAMEBUFSIZE + 1];
+    if (gethostname(buf, HOSTNAMEBUFSIZE)) {
+        return new QoreStringNodeMaker("GETHOSTNAME-ERROR: gethostname() failed: %s", strerror(errno));
+    }
+
+    cls = initLoggerLayoutPatternClass(LoggerNS);
+    cls->addBuiltinConstant("DEFAULT_PATTERN", new QoreStringNode(DEFAULT_PATTERN), Public, stringTypeInfo);
+    cls->addBuiltinConstant("DEFAULT_DATE_FORMAT", new QoreStringNode(DEFAULT_DATE_FORMAT), Public,
+        stringTypeInfo);
+    QoreLoggerLayoutPattern::HostName = new QoreStringNode(buf);
+    cls->addBuiltinConstant("HostName", QoreLoggerLayoutPattern::HostName->stringRefSelf(), Public, stringTypeInfo);
+    LoggerNS.addSystemClass(cls);
 
     return nullptr;
 }

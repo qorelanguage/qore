@@ -1230,7 +1230,7 @@ public class LoggerAppenderNull inherits LoggerAppender {
     | %20.30c          | false         | 20             | 30             | Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
     | %-20.30c         | true          | 20             | 30             | Right pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
 */
-public class LoggerPatternOrig {
+public class LoggerPatternOld {
     public {
         #! format escape character
         const ESCAPE_CHAR = "%";
@@ -1424,7 +1424,7 @@ public class LoggerLayoutOld {
         176 [23] INFO  MyLogger - New record created
     @endverbatim
 */
-public class LoggerLayoutPattern inherits LoggerLayout, public LoggerPattern {
+public class LoggerLayoutPatternOld inherits LoggerLayout, public LoggerPattern {
     public {
         #! default layout pattern
         const DEFAULT_PATTERN = "%r [%t] %p %c - %m%n";
@@ -3060,6 +3060,26 @@ public class Logger inherits LoggerInterface {
     constructor(string name, LoggerLevel level) {
         self.name = name;
         currentLevel = level;
+    }
+
+    #! Creates the object
+    /**
+        @param name the name of the object
+        @param level the initial level for the logger
+    */
+    constructor(string name, string level) {
+        self.name = name;
+        currentLevel = LoggerLevel::getLevel(level);
+    }
+
+    #! Creates the object
+    /**
+        @param name the name of the object
+        @param level the initial level for the logger
+    */
+    constructor(string name, int level) {
+        self.name = name;
+        currentLevel = LoggerLevel::getLevel(level);
     }
 
     #! Creates the object with an empty name and the given initial level

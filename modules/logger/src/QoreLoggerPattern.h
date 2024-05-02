@@ -47,9 +47,16 @@
 #define TOKEN_PATTERN_4 "^\\{([^\\}]*)\\}$"
 #define TOKEN_PATTERN_5 "^[-0-9\\.]*[a-z]+(\\{[^\\}]*\\})?"
 
+// forward references
+class QoreLoggerLayoutPattern;
+class QoreLoggerEvent;
+
 class QoreLoggerPattern : public AbstractPrivateData {
 public:
     DLLLOCAL QoreLoggerPattern(QoreObject* self) : self(self) {
+    }
+
+    DLLLOCAL virtual ~QoreLoggerPattern() {
     }
 
     DLLLOCAL int setPattern(const QoreStringNode* pattern, ExceptionSink* xsink);
@@ -72,7 +79,7 @@ public:
         return parsedPattern ? parsedPattern->listRefSelf() : new QoreListNode(autoTypeInfo);
     }
 
-    DLLLOCAL QoreStringNode* format(const QoreValue data, ExceptionSink* xsink) const;
+    DLLLOCAL QoreStringNode* format(const QoreValue data, QoreLoggerLayoutPattern* llp, ExceptionSink* xsink) const;
 
 protected:
     //! parsed pattern; list elements may be strings or hashes
@@ -83,6 +90,10 @@ protected:
 
     //! The QoreObject this private data is associated with
     QoreObject* self;
+
+    DLLLOCAL QoreValue callResolveField(QoreLoggerLayoutPattern* llp, QoreObject* event, QoreLoggerEvent* ev,
+            const QoreValue& data, const QoreStringNode* key, const QoreStringNode* option,
+            ExceptionSink* xsink) const;
 
 private:
     //! pattern

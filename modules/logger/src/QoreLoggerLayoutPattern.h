@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_LoggerLayout.cpp LoggerLayout class definition */
+/** @file QoreLoggerLayoutPattern.h LoggerLayoutPattern class definition */
 /*
     Qore Programming Language
 
@@ -28,17 +28,32 @@
     information.
 */
 
-#include "qore_logger.h"
+#ifndef _QORE_MODULE_LOGGER_LOGGERLAYOUTPATTERN_H
 
-#include "QC_LoggerLayout.h"
+#define _QORE_MODULE_LOGGER_LOGGERLAYOUTPATTERN_H
 
-//! Abstract class that defines the interface for logger layouts
-/** Event data (@ref LoggerEvent) are formatted before the record is passed to the target
-*/
-qclass LoggerLayout [ns=Qore::Logger; arg=QoreLoggerLayout* ll];
+#include "QoreLoggerPattern.h"
+#include "QoreLoggerEvent.h"
 
-//! Returns a formatted string for an input pattern
-/**
-    Format event record
-*/
-abstract string LoggerLayout::format(LoggerEvent[QoreLoggerEvent] event);
+//! default layout pattern
+#define DEFAULT_PATTERN "%r [%t] %p %c - %m%n"
+
+//! default date format
+#define DEFAULT_DATE_FORMAT "YYYY-MM-DD HH:mm:SS.u"
+
+class QoreLoggerLayoutPattern : public QoreLoggerPattern {
+public:
+    static SimpleRefHolder<QoreStringNode> HostName;
+    static SimpleRefHolder<QoreStringNode> LineDelimeter;
+
+    DLLLOCAL QoreLoggerLayoutPattern(QoreObject* self) : QoreLoggerPattern(self) {
+    }
+
+    DLLLOCAL virtual ~QoreLoggerLayoutPattern() {
+    }
+
+    DLLLOCAL QoreValue resolveField(QoreObject* event, QoreLoggerEvent* ev, const QoreStringNode* key,
+            const QoreStringNode* option, ExceptionSink* xsink);
+};
+
+#endif

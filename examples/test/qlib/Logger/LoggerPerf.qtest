@@ -1,0 +1,54 @@
+#!/usr/bin/env qore
+# -*- mode: qore; indent-tabs-mode: nil -*-
+
+%require-types
+%enable-all-warnings
+%new-style
+%strict-args
+
+%requires ../../../../qlib/QUnit.qm
+%requires ../../../../qlib/Logger.qm
+
+%exec-class Test
+
+class Test inherits QUnit::Test {
+    public {
+        const Max = 10000;
+    }
+
+    constructor() : QUnit::Test("Logger", "1.0", \ARGV) {
+        addTestCase("test", \test());
+        set_return_value(main());
+    }
+
+    test() {
+        Logger l("test", LoggerLevel::INFO);
+        TestAppender a();
+        l.addAppender(a);
+
+        for (int i = 0; i < Max; ++i) {
+            l.info("This is a test");
+        }
+
+        assertEq(Max, a.l.size());
+    }
+}
+
+public class TestAppender inherits LoggerAppenderWithLayout {
+    public {
+        list<string> l;
+    }
+
+    constructor() : LoggerAppenderWithLayout("test",
+            new LoggerLayoutPattern("%d{YYYY-MM-DD HH:mm:SS.xx} T%t [%p]: %m")) {
+        open();
+    }
+
+    processEventImpl(int type, auto params) {
+        switch (type) {
+            case EVENT_LOG:
+                l += params;
+                break;
+        }
+    }
+}

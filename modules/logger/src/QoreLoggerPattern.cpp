@@ -30,6 +30,7 @@
 
 #include "qore_logger.h"
 #include "QoreLoggerPattern.h"
+#include "QoreLoggerLayoutPattern.h"
 
 #include <regex>
 
@@ -175,9 +176,27 @@ int QoreLoggerPattern::setPattern(const QoreStringNode* pattern, ExceptionSink* 
     return 0;
 }
 
-QoreStringNode* QoreLoggerPattern::format(const QoreValue data, ExceptionSink* xsink) const {
+QoreStringNode* QoreLoggerPattern::format(const QoreValue data, QoreLoggerLayoutPattern* llp,
+        ExceptionSink* xsink) const {
     SimpleRefHolder<QoreStringNode> res(new QoreStringNode);
     assert(parsedPattern);
+
+    // check if data is a direct instance of LoggerEvent
+    QoreObject* event = nullptr;
+    ReferenceHolder<QoreLoggerEvent> ev(xsink);
+    if (data.getType() == NT_OBJECT) {
+        event = const_cast<QoreObject*>(data.get<QoreObject>());
+        if (event->validInstanceOf(*QC_LOGGEREVENT)) {
+            // only set the private data object if the class is not overridden
+            if (QC_LOGGEREVENT->isEqual(*event->getClass())) {
+                ev = event->tryGetReferencedPrivateData<QoreLoggerEvent>(CID_LOGGEREVENT, xsink);
+                if (*xsink) {
+                    return nullptr;
+                }
+            }
+        }
+    }
+
     ConstListIterator i(parsedPattern);
     while (i.next()) {
         const QoreValue a = i.getValue();
@@ -190,33 +209,25 @@ QoreStringNode* QoreLoggerPattern::format(const QoreValue data, ExceptionSink* x
         }
         assert(a.getType() == NT_HASH);
         const QoreHashNode* ah = a.get<const QoreHashNode>();
-        // call resolveField(data, a.key, a.option);
-        ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
         const QoreValue key = ah->getKeyValue("key");
         assert(key.getType() == NT_STRING);
         const QoreStringNode* keystr = key.get<const QoreStringNode>();
         const QoreValue option = ah->getKeyValue("option");
-        args->push(data.refSelf(), xsink);
-        args->push(key.refSelf(), xsink);
-        args->push(option.refSelf(), xsink);
-        assert(!*xsink);
-        ValueHolder val(self->evalMethod("resolveField", *args, xsink), xsink);
+        assert(!option || option.getType() == NT_STRING);
+        const QoreStringNode* optstr = option ? option.get<const QoreStringNode>() : nullptr;
+        ValueHolder val(callResolveField(llp, event, *ev, data, keystr, optstr, xsink), xsink);
         if (*xsink) {
             return nullptr;
         }
         bool fallback = false;
         if (!val) {
-            // try one char key if key is longer and has no {}, i.e. fix non intuitive case
-            if (keystr->size() > 1 && !option) {
-                if (args->is_unique()) {
-                    ReferenceHolder<QoreListNode> discard(args->splice(1), xsink);
-                } else {
-                    args = new QoreListNode(autoTypeInfo);
-                    args->push(data.refSelf(), xsink);
+            // try one char key if key is longer and has no {}, i.e. fix non-intuitive case
+            if (keystr->size() > 1 && !optstr) {
+                ValueHolder k(keystr->substr(0, 1, xsink), xsink);
+                if (*xsink) {
+                    return nullptr;
                 }
-                args->push(keystr->substr(0, 1, xsink), xsink);
-                assert(!*xsink);
-                val = self->evalMethod("resolveField", *args, xsink);
+                val = callResolveField(llp, event, *ev, data, k->get<const QoreStringNode>(), nullptr, xsink);
                 fallback = (bool)val;
             }
             if (!val) {
@@ -254,4 +265,20 @@ QoreStringNode* QoreLoggerPattern::format(const QoreValue data, ExceptionSink* x
         }
     }
     return res.release();
+}
+
+QoreValue QoreLoggerPattern::callResolveField(QoreLoggerLayoutPattern* llp, QoreObject* event, QoreLoggerEvent* ev,
+        const QoreValue& data, const QoreStringNode* key, const QoreStringNode* option, ExceptionSink* xsink) const {
+    assert(key);
+    if (llp && event && ev) {
+        return llp->resolveField(event, ev, key, option, xsink);
+    }
+
+    // call resolveField(data, a.key, a.option);
+    ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
+    args->push(data.refSelf(), xsink);
+    args->push(key->stringRefSelf(), xsink);
+    args->push(option ? option->stringRefSelf() : nullptr, xsink);
+    assert(!*xsink);
+    return self->evalMethod("resolveField", *args, xsink);
 }

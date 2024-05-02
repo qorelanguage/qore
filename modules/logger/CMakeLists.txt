@@ -26,12 +26,14 @@ set(LOGGER_QPP_SRC
     src/QC_LoggerPattern.qpp
     src/QC_LoggerEvent.qpp
     src/QC_LoggerLayout.qpp
+    src/QC_LoggerLayoutPattern.qpp
 )
 
 set(LOGGER_CPP_SRC
     src/logger-module.cpp
     src/QoreLoggerLevelBase.cpp
     src/QoreLoggerPattern.cpp
+    src/QoreLoggerLayoutPattern.cpp
     src/QoreLoggerEvent.cpp
 )
 
@@ -45,6 +47,7 @@ set(LOGGER_H_SRC
     src/QC_LoggerPattern.h
     src/QC_LoggerEvent.h
     src/QC_LoggerLayout.h
+    src/QC_LoggerLayoutPattern.h
 )
 
 set(QORE_DOX_LOGGER_TMPL_SRC
