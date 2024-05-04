@@ -25,8 +25,12 @@ set(LOGGER_QPP_SRC
     src/QC_LoggerLevelBase.qpp
     src/QC_LoggerPattern.qpp
     src/QC_LoggerEvent.qpp
+    src/QC_LoggerFilter.qpp
     src/QC_LoggerLayout.qpp
     src/QC_LoggerLayoutPattern.qpp
+    src/QC_LoggerAppender.qpp
+    src/QC_LoggerAppenderQueue.qpp
+    src/QC_LoggerAppenderWithLayout.qpp
 )
 
 set(LOGGER_CPP_SRC
@@ -35,6 +39,9 @@ set(LOGGER_CPP_SRC
     src/QoreLoggerPattern.cpp
     src/QoreLoggerLayoutPattern.cpp
     src/QoreLoggerEvent.cpp
+    src/QoreLoggerAppender.cpp
+    src/QoreLoggerAppenderQueue.cpp
+    src/QoreLoggerAppenderWithLayout.cpp
 )
 
 # we need copy header files to avoid doxygen warning about duplicate files *.cpp
@@ -43,11 +50,18 @@ set(LOGGER_H_SRC
     src/qore_logger.h
     src/QoreLoggerLevelBase.h
     src/QoreLoggerPattern.h
+    src/QoreLoggerAppender.h
+    src/QoreLoggerAppenderQueue.h
+    src/QoreLoggerAppenderWithLayout.h
     src/QC_LoggerLevelBase.h
     src/QC_LoggerPattern.h
     src/QC_LoggerEvent.h
+    src/QC_LoggerFilter.h
     src/QC_LoggerLayout.h
     src/QC_LoggerLayoutPattern.h
+    src/QC_LoggerAppender.h
+    src/QC_LoggerAppenderQueue.h
+    src/QC_LoggerAppenderWithLayout.h
 )
 
 set(QORE_DOX_LOGGER_TMPL_SRC

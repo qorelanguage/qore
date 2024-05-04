@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_LoggerLayoutPattern.h LoggerLayoutPattern class definition */
+/** @file QC_LoggerFilter.cpp LoggerFilter class definition */
 /*
     Qore Programming Language
 
@@ -28,17 +28,40 @@
     information.
 */
 
-#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLAYOUTPATTERN_H
+#include "qore_logger.h"
 
-#define _QORE_MODULE_LOGGER_QC_LOGGERLAYOUTPATTERN_H
+#include "QC_LoggerFilter.h"
+#include "QC_LoggerEvent.h"
 
-#include "QC_LoggerLayout.h"
-#include "QoreLoggerLayoutPattern.h"
+class QoreLoggerFilter : public AbstractPrivateData {
+public:
+    DLLLOCAL QoreLoggerFilter() {
+    }
 
-DLLEXPORT extern qore_classid_t CID_LOGGERLAYOUTPATTERN;
-DLLLOCAL extern QoreClass* QC_LOGGERLAYOUTPATTERN;
+    DLLLOCAL virtual ~QoreLoggerFilter() = default;
+};
 
-DLLLOCAL void preinitLoggerLayoutPatternClass();
-DLLLOCAL QoreClass* initLoggerLayoutPatternClass(QoreNamespace& ns);
+//! Abstract class that defines the interface for logger filters
+/** Event data (@ref LoggerEvent) are formatted before the record is passed to the target
+*/
+qclass LoggerFilter [ns=Qore::Logger; arg=QoreLoggerFilter* ll];
 
-#endif
+//! Creates the object
+/**
+*/
+LoggerFilter::constructor() {
+    self->setPrivate(CID_LOGGERFILTER, new QoreLoggerFilter);
+}
+
+//! Performs filtering logic on an event and returns the decision for the event
+/**
+    The method should be overridden to implement a real rule. The default result is @ref NEUTRAL
+
+    @param event the log event
+
+    @return the result of evaluating the event (the default for this method is @ref NEUTRAL)
+*/
+int LoggerFilter::eval(LoggerEvent[QoreLoggerEvent] event) {
+    ReferenceHolder<AbstractPrivateData> holder(event, xsink);
+    return NEUTRAL;
+}

@@ -32,7 +32,7 @@
 
 #define _QORE_MODULE_LOGGER_QC_LOGGERLAYOUT_H
 
-//#include "QoreLoggerLayout.h"
+#include "QC_LoggerEvent.h"
 
 DLLEXPORT extern qore_classid_t CID_LOGGERLAYOUT;
 DLLLOCAL extern QoreClass* QC_LOGGERLAYOUT;

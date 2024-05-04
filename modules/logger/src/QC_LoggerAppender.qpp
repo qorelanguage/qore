@@ -1,0 +1,210 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_LoggerAppender.cpp LoggerAppender class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_logger.h"
+
+#include "QC_LoggerAppender.h"
+#include "QC_LoggerAppenderQueue.h"
+#include "QC_LoggerFilter.h"
+
+//! Abstract class that defines the interface for logger appenders
+/** Event data (@ref LoggerEvent) are formatted before the record is passed to the target
+*/
+qclass LoggerAppender [ns=Qore::Logger; arg=QoreLoggerAppender* a; internal_members=LoggerAppenderQueue q];
+
+//! Creates the object
+/**
+*/
+LoggerAppender::constructor() {
+    self->setPrivate(CID_LOGGERAPPENDER, new QoreLoggerAppender(self));
+}
+
+//! Creates the object
+/**
+    @param name the appender name
+*/
+LoggerAppender::constructor(string name) {
+    self->setPrivate(CID_LOGGERAPPENDER, new QoreLoggerAppender(self, name));
+}
+
+//! Returns the appender name
+/**
+*/
+string LoggerAppender::getName() {
+    return a->getName();
+}
+
+//! Sets the appender queue.
+/**
+    Data are passed to target device synchronously
+    unless queue is assigned. In this case data are queued and
+    dedicated process will process it asynchronously
+
+    @param queue the queue to set
+
+    @throw "LOGGER-ERROR" thrown if appender is opened
+*/
+LoggerAppender::setQueue(*LoggerAppenderQueue[QoreLoggerAppenderQueue] queue) {
+    ReferenceHolder<QoreLoggerAppenderQueue> holder(queue, xsink);
+    a->setQueue(xsink, obj_queue, holder);
+}
+
+//! Returns async queue or @ref nothing when events are processed synchronously
+/**
+*/
+*LoggerAppenderQueue LoggerAppender::getQueue() {
+    return a->getQueue();
+}
+
+//! Opens logging resources
+/**
+    The appender must be opened to accept any logging events
+*/
+LoggerAppender::open() {
+    a->open(xsink);
+}
+
+//! Releases any resources allocated by the appender and closes it
+/**
+*/
+LoggerAppender::close() {
+    a->close(xsink);
+}
+
+//! Returns @ref True if the appender is open and therefore active
+/**
+*/
+bool LoggerAppender::isOpen() {
+    return a->isOpen();
+}
+
+//! Adds a filter to the chain
+/**
+    @param filter the new filter to add
+    @param top if @ref True then the filter is added at the start of the filter chain, if @ref False (the default),
+    the filter is added at the end of the chain
+    @throw "LOGGER-ERROR" thrown if the filter is already in the list
+*/
+LoggerAppender::addFilter(LoggerFilter[QoreLoggerFilter] filter, bool top = False) {
+    ReferenceHolder<QoreLoggerFilter> holder(filter, xsink);
+    a->addFilter(xsink, obj_filter, top);
+}
+
+//! Removes the given filter from the filter chain.
+/**
+    @param filter the filter to remove
+*/
+LoggerAppender::removeFilter(LoggerFilter[QoreLoggerFilter] filter) {
+    ReferenceHolder<QoreLoggerFilter> holder(filter, xsink);
+    a->removeFilter(xsink, obj_filter);
+}
+
+//! Clears the filter chain by removing all filters
+/**
+*/
+LoggerAppender::removeAllFilters() {
+    a->removeAllFilters(xsink);
+}
+
+//! Returns the filter chain as a list
+/**
+    Note that appender filter chain may be modified as internal lock is released when copy of list is returned
+*/
+list<LoggerFilter> LoggerAppender::getFilters() {
+    return a->getFilters();
+}
+
+//! Pushes the given event on the queue or calls @ref processEvent() in case of synchronous processing
+/**
+    @param type the event type
+    @param params parameters for the event according to the event type
+
+    @return @ref True if the event was accepted/processed, @ref False if not
+
+    @see @ref processEvent()
+*/
+private bool LoggerAppender::pushEvent(int type, auto params) {
+    return a->pushEvent(xsink, type, params);
+}
+
+//! Posts the given event to the output queue
+/**
+    Invokes filters; when the event is accepted then it is posted to the queue in case of
+    asynchronous processing, or it is immediately logged by the @ref processEvent() method
+    in case of synchronous processing.
+
+    @see @ref processEvent()
+
+    @param event the event to post
+    @return True if the event has been posted, @ref False if not (filtered out, appender inactive,
+    event not accepted on queue, etc)
+*/
+ bool LoggerAppender::post(LoggerEvent[QoreLoggerEvent] event) {
+    ReferenceHolder<QoreLoggerEvent> holder(event, xsink);
+    return a->post(xsink, obj_event);
+}
+
+//! Processes an event to the physical target
+/**
+    @see @ref serializeImpl()
+
+    @param type see \c "EVENT_xxx" constants
+    @param params processing parameters
+*/
+LoggerAppender::processEvent(int type, auto params) {
+    a->processEvent(type, params, xsink);
+}
+
+//! Processes the event to the physical target
+/**
+    Must be implemented by non-abstract subclasses
+
+    @see @ref serializeImpl()
+
+    @param type see \c "EVENT_xxx" constants
+    @param params processing parameters
+*/
+abstract LoggerAppender::processEventImpl(int type, auto params);
+
+//! Returns an object that can be used to ensure atomic operations for appender operations
+/**
+*/
+private *object LoggerAppender::ensureAtomicOperations(int[doc] type) {
+    // empty body
+}
+
+//! Serializes the given event to put in the queue or write to the target device
+/**
+    The appender implementaion can define any format for serialization. The data are passed
+    to @ref processEvent() method in the \c params argument when \c type is \c EVENT_LOG.
+
+    @return the serialized event
+*/
+abstract private auto LoggerAppender::serializeImpl(LoggerEvent event);

@@ -29,8 +29,9 @@
 */
 
 #include "qore_logger.h"
-#include "QoreLoggerLayoutPattern.h"
 #include "QoreLoggerEvent.h"
+#include "QC_LoggerLayoutPattern.h"
+#include "QC_LoggerPattern.h"
 
 SimpleRefHolder<QoreStringNode> QoreLoggerLayoutPattern::HostName;
 #ifdef _Q_WINDOWS
@@ -40,7 +41,7 @@ SimpleRefHolder<QoreStringNode> QoreLoggerLayoutPattern::LineDelimeter(new QoreS
 #endif
 
 QoreValue QoreLoggerLayoutPattern::resolveField(QoreObject* event, QoreLoggerEvent* ev, const QoreStringNode* key,
-        const QoreStringNode* option, ExceptionSink* xsink) {
+        const QoreStringNode* option, ExceptionSink* xsink) const {
     //printd(5, "QoreLoggerLayoutPattern::resolveField() key: '%s' (%llu) option: %p\n", key->c_str(), key->size(),
     //    option);
     if (key->size() != 1) {
@@ -224,4 +225,10 @@ QoreValue QoreLoggerLayoutPattern::resolveField(QoreObject* event, QoreLoggerEve
         }
     }
     return QoreValue();
+}
+
+//! Format event record
+QoreStringNode* QoreLoggerLayoutPattern::format(ExceptionSink* xsink, const QoreValue data, const QoreObject* event,
+        QoreLoggerEvent* e) const {
+    return QoreLoggerPattern::format(xsink, this, data, event, e);
 }

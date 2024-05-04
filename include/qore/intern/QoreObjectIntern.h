@@ -318,18 +318,7 @@ public:
     }
 
     // must be called in the object write lock
-    DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx) {
-        if (cdmap) {
-            cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
-            if (i != cdmap->end())
-                return i->second;
-        } else
-            cdmap = new cdmap_t;
-
-        QoreHashNode* id = new QoreHashNode(autoTypeInfo);
-        cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
-        return id;
-    }
+    DLLLOCAL QoreHashNode* getCreateInternalData(const qore_class_private* class_ctx);
 
     // issue #3901: perform a shallow copy of private:internal data when executing a copy method
     DLLLOCAL void copyInternalData(const qore_object_private& old) {

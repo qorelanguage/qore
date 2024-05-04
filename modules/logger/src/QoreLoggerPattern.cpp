@@ -31,6 +31,7 @@
 #include "qore_logger.h"
 #include "QoreLoggerPattern.h"
 #include "QoreLoggerLayoutPattern.h"
+#include "QC_LoggerEvent.h"
 
 #include <regex>
 
@@ -176,7 +177,7 @@ int QoreLoggerPattern::setPattern(const QoreStringNode* pattern, ExceptionSink* 
     return 0;
 }
 
-QoreStringNode* QoreLoggerPattern::format(const QoreValue data, QoreLoggerLayoutPattern* llp,
+QoreStringNode* QoreLoggerPattern::format(const QoreValue data, const QoreLoggerLayoutPattern* llp,
         ExceptionSink* xsink) const {
     SimpleRefHolder<QoreStringNode> res(new QoreStringNode);
     assert(parsedPattern);
@@ -197,6 +198,14 @@ QoreStringNode* QoreLoggerPattern::format(const QoreValue data, QoreLoggerLayout
         }
     }
 
+    return format(xsink, llp, data, event, *ev);
+}
+
+QoreStringNode* QoreLoggerPattern::format(ExceptionSink* xsink, const QoreLoggerLayoutPattern* llp,
+        const QoreValue data, const QoreObject* event, QoreLoggerEvent* ev) const {
+    SimpleRefHolder<QoreStringNode> res(new QoreStringNode);
+    assert(parsedPattern);
+
     ConstListIterator i(parsedPattern);
     while (i.next()) {
         const QoreValue a = i.getValue();
@@ -215,7 +224,7 @@ QoreStringNode* QoreLoggerPattern::format(const QoreValue data, QoreLoggerLayout
         const QoreValue option = ah->getKeyValue("option");
         assert(!option || option.getType() == NT_STRING);
         const QoreStringNode* optstr = option ? option.get<const QoreStringNode>() : nullptr;
-        ValueHolder val(callResolveField(llp, event, *ev, data, keystr, optstr, xsink), xsink);
+        ValueHolder val(callResolveField(llp, event, ev, data, keystr, optstr, xsink), xsink);
         if (*xsink) {
             return nullptr;
         }
@@ -227,7 +236,7 @@ QoreStringNode* QoreLoggerPattern::format(const QoreValue data, QoreLoggerLayout
                 if (*xsink) {
                     return nullptr;
                 }
-                val = callResolveField(llp, event, *ev, data, k->get<const QoreStringNode>(), nullptr, xsink);
+                val = callResolveField(llp, event, ev, data, k->get<const QoreStringNode>(), nullptr, xsink);
                 fallback = (bool)val;
             }
             if (!val) {
@@ -267,11 +276,12 @@ QoreStringNode* QoreLoggerPattern::format(const QoreValue data, QoreLoggerLayout
     return res.release();
 }
 
-QoreValue QoreLoggerPattern::callResolveField(QoreLoggerLayoutPattern* llp, QoreObject* event, QoreLoggerEvent* ev,
-        const QoreValue& data, const QoreStringNode* key, const QoreStringNode* option, ExceptionSink* xsink) const {
+QoreValue QoreLoggerPattern::callResolveField(const QoreLoggerLayoutPattern* llp, const QoreObject* event,
+        QoreLoggerEvent* ev, const QoreValue& data, const QoreStringNode* key, const QoreStringNode* option,
+        ExceptionSink* xsink) const {
     assert(key);
     if (llp && event && ev) {
-        return llp->resolveField(event, ev, key, option, xsink);
+        return llp->resolveField(const_cast<QoreObject*>(event), ev, key, option, xsink);
     }
 
     // call resolveField(data, a.key, a.option);

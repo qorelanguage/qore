@@ -1924,11 +1924,12 @@ protected:
                 continue;
             }
             // skip "..." arg which is just for documentation
-            if (ptype == "...")
+            if (ptype == "...") {
                 continue;
-
-            log(LL_CRITICAL, "don't know how to handle argument type '%s' (for arg %s)\n", p.type.c_str(), p.name.c_str());
-            assert(false);
+            }
+            // assume class name with no private data
+            fprintf(fp, "    const QoreObject* %s = get_param_value(args, %d).get<const QoreObject>();\n",
+                p.name.c_str(), i);
         }
     }
 

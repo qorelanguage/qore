@@ -272,25 +272,7 @@ public:
         takeKeyValueIntern(key).discard(xsink);
     }
 
-    DLLLOCAL QoreValue takeKeyValueIntern(const char* key) {
-        assert(key);
-
-        hm_hm_t::iterator i = hm.find(key);
-
-        if (i == hm.end())
-            return QoreValue();
-
-        qhlist_t::iterator li = i->second;
-        hm.erase(i);
-
-        QoreValue rv = (*li)->val;
-        internDeleteKey(li);
-
-        if (needs_scan(rv))
-            incScanCount(-1);
-
-        return rv;
-    }
+    DLLLOCAL QoreValue takeKeyValueIntern(const char* key, qore_object_private* obj = nullptr);
 
     DLLLOCAL QoreValue takeKeyValueIntern(const char* key, bool& exists) {
         assert(key);
