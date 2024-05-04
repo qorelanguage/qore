@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_LoggerLayoutPattern.h LoggerLayoutPattern class definition */
+/** @file QoreLoggerAppenderWithLayout.h LoggerAppenderWithLayout class definition */
 /*
     Qore Programming Language
 
@@ -28,17 +28,43 @@
     information.
 */
 
-#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLAYOUTPATTERN_H
+#ifndef _QORE_MODULE_LOGGER_LOGGERAPPENDERWITHLAYOUT_H
 
-#define _QORE_MODULE_LOGGER_QC_LOGGERLAYOUTPATTERN_H
+#define _QORE_MODULE_LOGGER_LOGGERAPPENDERWITHLAYOUT_H
 
-#include "QC_LoggerLayout.h"
-#include "QoreLoggerLayoutPattern.h"
+// forward references
+class QoreLoggerLayoutPattern;
 
-DLLEXPORT extern qore_classid_t CID_LOGGERLAYOUTPATTERN;
-DLLLOCAL extern QoreClass* QC_LOGGERLAYOUTPATTERN;
+class QoreLoggerAppenderWithLayout : public QoreLoggerAppender {
+public:
+    DLLLOCAL QoreLoggerAppenderWithLayout(QoreObject* self, const QoreObject* layout, ExceptionSink* xsink);
 
-DLLLOCAL void preinitLoggerLayoutPatternClass();
-DLLLOCAL QoreClass* initLoggerLayoutPatternClass(QoreNamespace& ns);
+    DLLLOCAL QoreLoggerAppenderWithLayout(QoreObject* self, const QoreStringNode* n, const QoreObject* layout,
+            ExceptionSink* xsink);
+
+    using QoreLoggerAppender::deref;
+    DLLLOCAL virtual void deref(ExceptionSink* xsink) {
+        if (ROdereference()) {
+            if (layout) {
+                if (llp) {
+                    llp->deref(xsink);
+                }
+                layout->deref(xsink);
+            }
+            QoreLoggerAppender::derefIntern(xsink);
+            delete this;
+        }
+    }
+
+    DLLLOCAL void setLayout(ExceptionSink* xsink, const QoreObject* layout);
+
+    DLLLOCAL QoreObject* getLayout();
+
+    DLLLOCAL QoreValue serializeImpl(ExceptionSink* xsink, const QoreObject* event, QoreLoggerEvent* e);
+
+protected:
+    QoreObject* layout = nullptr;
+    QoreLoggerLayoutPattern* llp = nullptr;
+};
 
 #endif

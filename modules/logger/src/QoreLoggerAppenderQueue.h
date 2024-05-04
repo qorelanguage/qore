@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_LoggerLayoutPattern.h LoggerLayoutPattern class definition */
+/** @file QoreLoggerAppenderQueue.h LoggerAppenderQueue class definition */
 /*
     Qore Programming Language
 
@@ -28,17 +28,33 @@
     information.
 */
 
-#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLAYOUTPATTERN_H
+#ifndef _QORE_MODULE_LOGGER_LOGGERAPPENDERQUEUE_H
 
-#define _QORE_MODULE_LOGGER_QC_LOGGERLAYOUTPATTERN_H
+#define _QORE_MODULE_LOGGER_LOGGERAPPENDERQUEUE_H
 
-#include "QC_LoggerLayout.h"
-#include "QoreLoggerLayoutPattern.h"
+class QoreLoggerAppenderQueue : public AbstractPrivateData {
+public:
+    DLLLOCAL QoreLoggerAppenderQueue(QoreObject* self, QoreObject* qobj, QoreQueue& q) : self(self), qobj(qobj), q(q) {
+    }
 
-DLLEXPORT extern qore_classid_t CID_LOGGERLAYOUTPATTERN;
-DLLLOCAL extern QoreClass* QC_LOGGERLAYOUTPATTERN;
+    //! Adds appender event
+    DLLLOCAL void push(ExceptionSink* xsink, const QoreObject* appender, int64 type, const QoreValue params);
 
-DLLLOCAL void preinitLoggerLayoutPatternClass();
-DLLLOCAL QoreClass* initLoggerLayoutPatternClass(QoreNamespace& ns);
+    //! Processes queue events
+    DLLLOCAL void process(int64 ms, ExceptionSink* xsink);
+
+    //! Returns the queue size
+    DLLLOCAL int64 size() const {
+        return q.size();
+    }
+
+    //! Returns the next event on the queue
+    DLLLOCAL QoreHashNode* getEvent(int64 ms, ExceptionSink* xsink);
+
+protected:
+    QoreObject* self;
+    QoreObject* qobj;
+    QoreQueue& q;
+};
 
 #endif

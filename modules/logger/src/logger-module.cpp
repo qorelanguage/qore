@@ -32,8 +32,12 @@
 #include "QC_LoggerLevelBase.h"
 #include "QC_LoggerPattern.h"
 #include "QC_LoggerEvent.h"
+#include "QC_LoggerFilter.h"
 #include "QC_LoggerLayout.h"
 #include "QC_LoggerLayoutPattern.h"
+#include "QC_LoggerAppender.h"
+#include "QC_LoggerAppenderQueue.h"
+#include "QC_LoggerAppenderWithLayout.h"
 
 #include <string.h>
 
@@ -72,6 +76,12 @@ QoreStringNode* logger_module_init() {
     LoggerNS.addSystemClass(initLoggerEventClass(LoggerNS));
     LoggerNS.addSystemClass(initLoggerLayoutClass(LoggerNS));
 
+    cls = initLoggerFilterClass(LoggerNS);
+    cls->addBuiltinConstant("ACCEPT", ACCEPT, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("NEUTRAL", NEUTRAL, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("DENY", DENY, Public, bigIntTypeInfo);
+    LoggerNS.addSystemClass(cls);
+
     char buf[HOSTNAMEBUFSIZE + 1];
     if (gethostname(buf, HOSTNAMEBUFSIZE)) {
         return new QoreStringNodeMaker("GETHOSTNAME-ERROR: gethostname() failed: %s", strerror(errno));
@@ -84,6 +94,18 @@ QoreStringNode* logger_module_init() {
     QoreLoggerLayoutPattern::HostName = new QoreStringNode(buf);
     cls->addBuiltinConstant("HostName", QoreLoggerLayoutPattern::HostName->stringRefSelf(), Public, stringTypeInfo);
     LoggerNS.addSystemClass(cls);
+
+    preinitLoggerAppenderClass();
+    preinitLoggerAppenderQueueClass();
+
+    cls = initLoggerAppenderClass(LoggerNS);
+    cls->addBuiltinConstant("EVENT_OPEN", EVENT_OPEN, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("EVENT_LOG", EVENT_LOG, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("EVENT_CLOSE", EVENT_CLOSE, Public, bigIntTypeInfo);
+    LoggerNS.addSystemClass(cls);
+
+    LoggerNS.addSystemClass(initLoggerAppenderQueueClass(LoggerNS));
+    LoggerNS.addSystemClass(initLoggerAppenderWithLayoutClass(LoggerNS));
 
     return nullptr;
 }

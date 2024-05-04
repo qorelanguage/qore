@@ -501,12 +501,26 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
     modules/logger/src/QoreLoggerEvent.h \
     modules/logger/src/QC_LoggerEvent.qpp \
     modules/logger/src/QC_LoggerEvent.h \
+    modules/logger/src/QC_LoggerFilter.qpp \
+    modules/logger/src/QC_LoggerFilter.h \
     modules/logger/src/QC_LoggerLayout.qpp \
     modules/logger/src/QC_LoggerLayout.h \
     modules/logger/src/QoreLoggerLayoutPattern.qpp \
     modules/logger/src/QoreLoggerLayoutPattern.h \
     modules/logger/src/QC_LoggerLayoutPattern.qpp \
-    modules/logger/src/QC_LoggerLayoutPattern.h
+    modules/logger/src/QC_LoggerLayoutPattern.h \
+    modules/logger/src/QoreLoggerAppender.qpp \
+    modules/logger/src/QoreLoggerAppender.h \
+    modules/logger/src/QC_LoggerAppender.qpp \
+    modules/logger/src/QC_LoggerAppender.h \
+    modules/logger/src/QoreLoggerAppenderQueue.qpp \
+    modules/logger/src/QoreLoggerAppenderQueue.h \
+    modules/logger/src/QC_LoggerAppenderQueue.qpp \
+    modules/logger/src/QC_LoggerAppenderQueue.h \
+    modules/logger/src/QoreLoggerAppenderWithLayout.qpp \
+    modules/logger/src/QoreLoggerAppenderWithLayout.h \
+    modules/logger/src/QC_LoggerAppenderWithLayout.qpp \
+    modules/logger/src/QC_LoggerAppenderWithLayout.h
 
 include_HEADERS = \
 	include/qore/QoreValue.h \

@@ -53,7 +53,12 @@ public:
     }
 
     DLLLOCAL QoreValue resolveField(QoreObject* event, QoreLoggerEvent* ev, const QoreStringNode* key,
-            const QoreStringNode* option, ExceptionSink* xsink);
+            const QoreStringNode* option, ExceptionSink* xsink) const;
+
+    //! Format event record
+    DLLLOCAL virtual QoreStringNode* format(ExceptionSink* xsink, const QoreValue data, const QoreObject* event,
+            QoreLoggerEvent* e) const;
+
 };
 
 #endif

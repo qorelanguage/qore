@@ -89,7 +89,7 @@ LoggerLayoutPattern::constructor(string pattern = DEFAULT_PATTERN) {
 */
 string LoggerLayoutPattern::format(LoggerEvent[QoreLoggerEvent] event) {
     ReferenceHolder<AbstractPrivateData> holder(event, xsink);
-    return llp->format(obj_event, llp, xsink);
+    return llp->format(xsink, obj_event, obj_event, event);
 }
 
 //! Returns the line delimiter used on the current OS

@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_LoggerLayoutPattern.h LoggerLayoutPattern class definition */
+/** @file QC_LoggerAppenderQueue.h LoggerAppenderQueue class definition */
 /*
     Qore Programming Language
 
@@ -28,17 +28,16 @@
     information.
 */
 
-#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLAYOUTPATTERN_H
+#ifndef _QORE_MODULE_LOGGER_QC_LOGGERAPPENDERQUEUE_H
 
-#define _QORE_MODULE_LOGGER_QC_LOGGERLAYOUTPATTERN_H
+#define _QORE_MODULE_LOGGER_QC_LOGGERAPPENDERQUEUE_H
 
-#include "QC_LoggerLayout.h"
-#include "QoreLoggerLayoutPattern.h"
+#include "QoreLoggerAppenderQueue.h"
 
-DLLEXPORT extern qore_classid_t CID_LOGGERLAYOUTPATTERN;
-DLLLOCAL extern QoreClass* QC_LOGGERLAYOUTPATTERN;
+DLLEXPORT extern qore_classid_t CID_LOGGERAPPENDERQUEUE;
+DLLLOCAL extern QoreClass* QC_LOGGERAPPENDERQUEUE;
 
-DLLLOCAL void preinitLoggerLayoutPatternClass();
-DLLLOCAL QoreClass* initLoggerLayoutPatternClass(QoreNamespace& ns);
+DLLLOCAL void preinitLoggerAppenderQueueClass();
+DLLLOCAL QoreClass* initLoggerAppenderQueueClass(QoreNamespace& ns);
 
 #endif

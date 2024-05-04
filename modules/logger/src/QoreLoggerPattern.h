@@ -79,7 +79,11 @@ public:
         return parsedPattern ? parsedPattern->listRefSelf() : new QoreListNode(autoTypeInfo);
     }
 
-    DLLLOCAL QoreStringNode* format(const QoreValue data, QoreLoggerLayoutPattern* llp, ExceptionSink* xsink) const;
+    DLLLOCAL QoreStringNode* format(const QoreValue data, const QoreLoggerLayoutPattern* llp, ExceptionSink* xsink)
+            const;
+
+    DLLLOCAL QoreStringNode* format(ExceptionSink* xsink, const QoreLoggerLayoutPattern* llp, const QoreValue data,
+            const QoreObject* event, QoreLoggerEvent* e) const;
 
 protected:
     //! parsed pattern; list elements may be strings or hashes
@@ -91,8 +95,8 @@ protected:
     //! The QoreObject this private data is associated with
     QoreObject* self;
 
-    DLLLOCAL QoreValue callResolveField(QoreLoggerLayoutPattern* llp, QoreObject* event, QoreLoggerEvent* ev,
-            const QoreValue& data, const QoreStringNode* key, const QoreStringNode* option,
+    DLLLOCAL QoreValue callResolveField(const QoreLoggerLayoutPattern* llp, const QoreObject* event,
+            QoreLoggerEvent* ev, const QoreValue& data, const QoreStringNode* key, const QoreStringNode* option,
             ExceptionSink* xsink) const;
 
 private:
