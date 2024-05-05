@@ -1282,7 +1282,7 @@ public class LoggerInterface inherits Qore::Serializable {
         the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    abstract log(int level, string message);
+    abstract log(int level, string message, ...);
 
     #! Logs a message using the provided logging level
     /**
@@ -1291,7 +1291,7 @@ public class LoggerInterface inherits Qore::Serializable {
         the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    abstract log(string level, string message);
+    abstract log(string level, string message, ...);
 
     #! Logs a message using the provided logging level and a single argument for any format string arguments
     /**
@@ -1494,7 +1494,7 @@ public class LoggerWrapper inherits LoggerInterface {
         the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    log(int level, string message) {
+    log(int level, string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
             logger.logArgs(level, message, argv);
@@ -1508,7 +1508,7 @@ public class LoggerWrapper inherits LoggerInterface {
         the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    log(string level, string message) {
+    log(string level, string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
             logger.logArgs(level, message, argv);
@@ -2101,7 +2101,7 @@ public class Logger inherits LoggerInterface {
         the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    public log(LoggerLevel level, string message) {
+    public log(LoggerLevel level, string message, ...) {
         logIntern(level, message, argv, getLocation(), True);
     }
 
