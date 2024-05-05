@@ -29,7 +29,7 @@
 
 #include "qore_logger.h"
 
-#include "QC_LoggerLevelBase.h"
+#include "QC_LoggerLevel.h"
 #include "QC_LoggerPattern.h"
 #include "QC_LoggerEvent.h"
 #include "QC_LoggerFilter.h"
@@ -72,7 +72,53 @@ QoreStringNode* logger_module_init() {
     QoreClass* cls = initLoggerPatternClass(LoggerNS);
     cls->addBuiltinConstant("ESCAPE_CHAR", new QoreStringNode(ESCAPE_STR), Public, stringTypeInfo);
     LoggerNS.addSystemClass(cls);
-    LoggerNS.addSystemClass(initLoggerLevelBaseClass(LoggerNS));
+
+    cls = initLoggerLevelClass(LoggerNS);
+    //! The highest logger level
+    cls->addBuiltinConstant("OFF", OFF, Public, bigIntTypeInfo);
+    //! Logger level for fatal errors
+    cls->addBuiltinConstant("FATAL", FATAL, Public, bigIntTypeInfo);
+    //! Logger level for (non-fatal) errors
+    cls->addBuiltinConstant("ERROR", ERROR, Public, bigIntTypeInfo);
+    //! Logger level for warnings
+    cls->addBuiltinConstant("WARN", WARN, Public, bigIntTypeInfo);
+    //! Logger level for informational messages
+    cls->addBuiltinConstant("INFO", INFO, Public, bigIntTypeInfo);
+    //! Logger level for detail messages
+    cls->addBuiltinConstant("DETAIL", DETAIL, Public, bigIntTypeInfo);
+    //! Logger level for debugging messages
+    cls->addBuiltinConstant("DEBUG", DEBUG, Public, bigIntTypeInfo);
+    //! Logger level for trace messages
+    cls->addBuiltinConstant("TRACE", TRACE, Public, bigIntTypeInfo);
+    //! The lowest logger level
+    cls->addBuiltinConstant("ALL", ALL, Public, bigIntTypeInfo);
+
+    // initialize constants
+    QoreLoggerLevel::init();
+
+    {
+        const QoreTypeInfo* llti = cls->getTypeInfo();
+        //! The highest logger level
+        cls->addBuiltinConstant("LevelOff", QoreLoggerLevel::LevelOff->objectRefSelf(), Public, llti);
+        //! Logger level for fatal errors
+        cls->addBuiltinConstant("LevelFatal", QoreLoggerLevel::LevelFatal->objectRefSelf(), Public, llti);
+        //! Logger level for (non-fatal) errors
+        cls->addBuiltinConstant("LevelError", QoreLoggerLevel::LevelError->objectRefSelf(), Public, llti);
+        //! Logger level for warnings
+        cls->addBuiltinConstant("LevelWarn", QoreLoggerLevel::LevelWarn->objectRefSelf(), Public, llti);
+        //! Logger level for informational messages
+        cls->addBuiltinConstant("LevelInfo", QoreLoggerLevel::LevelInfo->objectRefSelf(), Public, llti);
+        //! Logger level for detail messages
+        cls->addBuiltinConstant("LevelDetail", QoreLoggerLevel::LevelDetail->objectRefSelf(), Public, llti);
+        //! Logger level for debugging messages
+        cls->addBuiltinConstant("LevelDebug", QoreLoggerLevel::LevelDebug->objectRefSelf(), Public, llti);
+        //! Logger level for trace messages
+        cls->addBuiltinConstant("LevelTrace", QoreLoggerLevel::LevelTrace->objectRefSelf(), Public, llti);
+        //! The lowest logger level
+        cls->addBuiltinConstant("LevelAll", QoreLoggerLevel::LevelAll->objectRefSelf(), Public, llti);
+    }
+    LoggerNS.addSystemClass(cls);
+
     LoggerNS.addSystemClass(initLoggerEventClass(LoggerNS));
     LoggerNS.addSystemClass(initLoggerLayoutClass(LoggerNS));
 
@@ -115,5 +161,6 @@ void logger_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
 }
 
 void logger_module_delete() {
+    QoreLoggerLevel::del();
 }
 

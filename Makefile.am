@@ -489,10 +489,10 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/reflection/src/QC_ConstructorMethod.h \
     modules/logger_bin/src/qore_logger.h \
     modules/logger_bin/src/logger-module.cpp \
-    modules/logger_bin/src/QoreLoggerLevelBase.cpp \
-    modules/logger_bin/src/QoreLoggerLevelBase.h \
-    modules/logger_bin/src/QC_LoggerLevelBase.qpp \
-    modules/logger_bin/src/QC_LoggerLevelBase.h \
+    modules/logger_bin/src/QoreLoggerLevel.cpp \
+    modules/logger_bin/src/QoreLoggerLevel.h \
+    modules/logger_bin/src/QC_LoggerLevel.qpp \
+    modules/logger_bin/src/QC_LoggerLevel.h \
     modules/logger_bin/src/QoreLoggerPattern.cpp \
     modules/logger_bin/src/QoreLoggerPattern.h \
     modules/logger_bin/src/QC_LoggerPattern.qpp \

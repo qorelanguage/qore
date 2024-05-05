@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QoreLoggerLevelBase.h LoggerLevelBase class definition */
+/** @file QC_LoggerLevel.h LoggerLevel class definition */
 /*
     Qore Programming Language
 
@@ -17,7 +17,7 @@
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO LEVEL SHALL THE
     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
@@ -28,34 +28,16 @@
     information.
 */
 
-#ifndef _QORE_MODULE_LOGGER_LOGGERLEVELBASE_H
+#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLEVEL_H
 
-#define _QORE_MODULE_LOGGER_LOGGERLEVELBASE_H
+#define _QORE_MODULE_LOGGER_QC_LOGGERLEVEL_H
 
-class QoreLoggerLevelBase : public AbstractPrivateData {
-public:
-    DLLLOCAL QoreLoggerLevelBase(int64 code, const QoreStringNode* level) : levelCode(code),
-            levelStr(level->stringRefSelf()) {
-    }
+#include "QoreLoggerLevel.h"
 
-    //! Gets level code value
-    DLLLOCAL int64 getValue() const;
+DLLEXPORT extern qore_classid_t CID_LOGGERLEVEL;
+DLLLOCAL extern QoreClass* QC_LOGGERLEVEL;
 
-    //! Gets level string
-    DLLLOCAL QoreStringNode* getStr() const;
-
-    //! Compares logger levels
-    DLLLOCAL bool isGreaterOrEqual(const QoreLoggerLevelBase* other) const;
-
-    //! Compares two logger levels
-    DLLLOCAL bool isEqual(const QoreLoggerLevelBase* other) const;
-
-protected:
-    //! Integer level value.
-    int64 levelCode;
-
-    //! String representation of the level.
-    SimpleRefHolder<QoreStringNode> levelStr;
-};
+DLLLOCAL void preinitLoggerLevelClass();
+DLLLOCAL QoreClass* initLoggerLevelClass(QoreNamespace& ns);
 
 #endif

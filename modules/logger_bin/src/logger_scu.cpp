@@ -1,8 +1,8 @@
 // logger module single compilation unit
 
 #include "logger-module.cpp"
-#include "QoreLoggerLevelBase.cpp"
-#include "QC_LoggerLevelBase.cpp"
+#include "QoreLoggerLevel.cpp"
+#include "QC_LoggerLevel.cpp"
 #include "QoreLoggerPattern.cpp"
 #include "QC_LoggerPattern.cpp"
 #include "QoreLoggerEvent.cpp"

@@ -177,8 +177,7 @@ private:
         if (i == vector.end()) {
             i = vector.insert(vector.end(), value_type(key, T()));
             created = true;
-        }
-        else {
+        } else {
             created = false;
         }
         return i;

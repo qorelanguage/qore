@@ -31,7 +31,7 @@
 #include "qore_logger.h"
 
 #include "QC_LoggerEvent.h"
-#include "QC_LoggerLevelBase.h"
+#include "QC_LoggerLevel.h"
 
 //! Abstract class that defines the interface for logger events
 /** Event data (@ref LoggerEvent) are formatted before the record is passed to the target
@@ -51,7 +51,7 @@ qclass LoggerEvent [ns=Qore::Logger; arg=QoreLoggerEvent* event];
     @param time_stamp logging event timestamp. Default value is @ref Qore::now_us() "now_us()"
     @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with the logging event
 */
-LoggerEvent::constructor(object logger, LoggerLevelBase[QoreLoggerLevelBase] level, string message,
+LoggerEvent::constructor(object logger, LoggerLevel[QoreLoggerLevel] level, string message,
         *list<auto> msg_args, *hash<CallStackInfo> location_info, *int thread_id, *date time_stamp,
         *hash<ExceptionInfo> throwable) {
     //ReferenceHolder<AbstractPrivateData> hlogger(logger, xsink);
@@ -86,7 +86,7 @@ LoggerEvent::constructor(object logger, LoggerLevelBase[QoreLoggerLevelBase] lev
     @param time_stamp logging event timestamp. Default value is @ref Qore::now_us() "now_us()"
     @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with the logging event
 */
-LoggerEvent::constructor(string fqcn, softstring category, LoggerLevelBase[QoreLoggerLevelBase] level, string message,
+LoggerEvent::constructor(string fqcn, softstring category, LoggerLevel[QoreLoggerLevel] level, string message,
         *list<auto> msg_args, *hash<CallStackInfo> location_info, *int thread_id, *date time_stamp,
         *hash<ExceptionInfo> throwable) {
     ReferenceHolder<AbstractPrivateData> hlevel(level, xsink);
@@ -118,7 +118,7 @@ string LoggerEvent::getFullQualifiedClassname() {
 //! Returns the level of this event
 /**
 */
-LoggerLevelBase LoggerEvent::getLevel() {
+LoggerLevel LoggerEvent::getLevel() {
     return event->getLevel();
 }
 

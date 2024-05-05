@@ -53,7 +53,6 @@ module Logger {
     <a href="https://logging.apache.org/log4j/2.x">log4j</a> library, therefore it
     implements the following primary base classes:
     - @ref Logger::Logger "Logger"
-    - @ref Logger::LoggerLevel "LoggerLevel"
 
     Other classes can be found in the <a href="../../logger/html/index.html">logger</a> module for performance
     reasons, such as:
@@ -63,7 +62,7 @@ module Logger {
     - @ref Qore::Logger::LoggerFilter "LoggerFilter"
     - @ref Qore::Logger::LoggerLayout "LoggerLayout" (abstract)
     - @ref Qore::Logger::LoggerLayoutPattern "LoggerLayoutPattern"
-    - @ref Qore::Logger::LoggerLevelBase "LoggerLevelBase"
+    - @ref Qore::Logger::LoggerLevel "LoggerLevel"
     - @ref Qore::Logger::LoggerPattern "LoggerPattern" (abstract)
 
     Abstract base classes must be subclassed to implement the desired functionality.
@@ -76,7 +75,7 @@ module Logger {
 
     Example:
     @code{.py}
-    Logger l("mylogger", LoggerLevel::getLevelInfo());
+    Logger l("mylogger", LoggerLevel::LevelInfo);
     LoggerAppenderFile laf("myappender", new LoggerLayoutPattern(), "/var/run/log/mylog.log");
     l.addAppender(laf);
     laf.open();
@@ -94,7 +93,7 @@ module Logger {
 
     Example:
     @code{.py}
-    our Logger l("mylogger", LoggerLevel::getLevelInfo());
+    our Logger l("mylogger", LoggerLevel::LevelInfo);
 
     sub run() {
         while (!done) {
@@ -255,187 +254,6 @@ module Logger {
 
 #! The Logger namespace contains all the definitions in the Logger module
 public namespace Logger {
-#! Defines the minimum set of levels recognized by the system.
-/**
-    The set of built-in levels includes \c TRACE, \c DEBUG, \c INFO, \c WARN, \c ERROR and \c FATAL. Log4q also supports
-    custom log levels where the \c LoggerLevel class may be subclassed to define a larger level set.
-*/
-public class LoggerLevel inherits LoggerLevelBase {
-    public {
-        #! The highest logger level
-        const OFF = MAXINT;
-        #! Logger level for fatal errors
-        const FATAL = 50000;
-        #! Logger level for (non-fatal) errors
-        const ERROR = 40000;
-        #! Logger level for warnings
-        const WARN = 30000;
-        #! Logger level for informational messages
-        const INFO = 20000;
-        #! Logger level for debugging messages
-        const DEBUG = 10000;
-        #! Logger level for trace messages
-        const TRACE = 5000;
-        #! The lowest logger level
-        const ALL = MININT;
-    }
-
-    private:internal {
-        #! Contains a list of instantiated levels
-        static hash<string, LoggerLevel> levelMap;
-
-        #! String to int hash
-        const LEVELSTR_TO_LEVEL = {
-            'ALL':   ALL,
-            'TRACE': TRACE,
-            'DEBUG': DEBUG,
-            'INFO':  INFO,
-            'WARN':  WARN,
-            'ERROR': ERROR,
-            'FATAL': FATAL,
-            'OFF':   OFF,
-        };
-
-        #! Int to string hash
-        const LEVEL_TO_LEVEL_STR = map {$1.value: $1.key}, LEVELSTR_TO_LEVEL.pairIterator();
-    }
-
-    #! Creates a new object
-    /**
-        @param code integer value
-        @param str string representation
-    */
-    constructor(int code, string str) : LoggerLevelBase(code, str) {
-    }
-
-    #! Returns an OFF Level
-    public static LoggerLevel getLevelOff() {
-        return LoggerLevel::getLevel(OFF);
-    }
-
-    #! Returns a FATAL Level
-    public static LoggerLevel getLevelFatal() {
-        return LoggerLevel::getLevel(FATAL);
-    }
-
-    #! Returns an ERROR Level
-    public static LoggerLevel getLevelError() {
-        return LoggerLevel::getLevel(ERROR);
-    }
-
-    #! Returns a WARN Level
-    public static LoggerLevel getLevelWarn() {
-        return LoggerLevel::getLevel(WARN);
-    }
-
-    #! Returns an INFO Level
-    public static LoggerLevel getLevelInfo() {
-        return LoggerLevel::getLevel(INFO);
-    }
-
-    #! Returns a DEBUG Level
-    public static LoggerLevel getLevelDebug() {
-        return LoggerLevel::getLevel(DEBUG);
-    }
-
-    #! Returns a TRACE Level
-    public static LoggerLevel getLevelTrace() {
-        return LoggerLevel::getLevel(TRACE);
-    }
-
-    #! Returns an ALL Level
-    public static LoggerLevel getLevelAll() {
-        return LoggerLevel::getLevel(ALL);
-    }
-
-    #! Converts the input argument to a level
-    /**
-        Return value is either instantiated or used the existing one if there is any.
-
-        @param level the input level
-        @param default_level value to return if conversion is not possible.
-
-        @throw LOGGER-ERROR if defaultLevel is nothing and level not found
-    */
-    public static LoggerLevel getLevel(int level, *LoggerLevel default_level) {
-        if (exists LEVEL_TO_LEVEL_STR{level}) {
-            if (!exists levelMap{level}) {
-                levelMap{level} = new LoggerLevel(level, LEVEL_TO_LEVEL_STR{level});
-            }
-            return levelMap{level};
-        } else {
-            if (!exists default_level) {
-                throw "LOGGER-ERROR", "Cannot get valid Level";
-            }
-            return default_level;
-        }
-    }
-
-    #! Returns closest lower logger level
-    /**
-        @param level the logger level
-        @return \c Loggerlevel or \c NOTHING if there is no lower level
-
-        @throw LOGGER-ERROR if level not found
-    */
-    public static *LoggerLevel getNextLowerLevel(int level) {
-        HashIterator hi(LEVELSTR_TO_LEVEL);
-        while (hi.next()) {
-            if (level == hi.getValue()) {
-                if (hi.prev()) {
-                    return LoggerLevel::getLevel(hi.getValue());
-                }
-                break;
-            }
-        }
-        return NOTHING;
-    }
-
-    #! Returns closest higher logger level
-    /**
-        @param level the logger level
-        @return \c Loggerlevel or \c NOTHING if there is no higher level
-
-        @throw LOGGER-ERROR if level not found
-    */
-    public static *LoggerLevel getNextHigherLevel(int level) {
-        HashIterator hi(LEVELSTR_TO_LEVEL);
-        while (hi.next()) {
-            if (level == hi.getValue()) {
-                if (hi.next()) {
-                    return LoggerLevel::getLevel(hi.getValue());
-                }
-                break;
-            }
-        }
-        return NOTHING;
-    }
-
-    #! Converts the input argument to a level.
-    /**
-        Return value is either instantiated or used the existing one if there is any.
-
-        @param level_str the string input level
-        @param default_level value to return if conversion is not possible.
-        @throw LOGGER-ERROR if default_level is nothing and level_str not found
-    */
-    public static LoggerLevel getLevel(string level_str, *LoggerLevel default_level) {
-        level_str = toupper(level_str);
-        if (exists LEVELSTR_TO_LEVEL{level_str}) {
-            int level = LEVELSTR_TO_LEVEL{level_str};
-            if (!exists levelMap{level}) {
-                levelMap{level} = new LoggerLevel(level, level_str);
-            }
-            return levelMap{level};
-        } else {
-            if (!exists default_level) {
-                throw "LOGGER-ERROR", "Cannot get valid Level";
-            }
-            return default_level;
-        }
-    }
-}
-
 #! Implements callable parameter which is evaluated in run-time when event is rendered
 /**
     It may implement logging for stuff which is time consuming to get and would slow program flow in case
@@ -1365,7 +1183,7 @@ public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, priva
     }
 }
 
-#! Implements the filter according event @ref LoggerLevel
+#! Implements the filter according event @ref Qore::Logger::LoggerLevel "LoggerLevel"
 /**
     When @ref Qore::Logger::LoggerEvent::getLevel does not satisfy the filter condition, then
     logging is rejected.
@@ -1375,9 +1193,9 @@ public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, priva
 public class LoggerFilterLevel inherits LoggerFilter {
     private:internal {
         #! min.level
-        LoggerLevel minLevel;
+        Qore::Logger::LoggerLevel minLevel;
         #! max.level
-        LoggerLevel maxLevel;
+        Qore::Logger::LoggerLevel maxLevel;
     }
 
     #! Creates the object
@@ -1385,7 +1203,8 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param min_value the minimum logging level
         @param max_value the maximum logging level
     */
-    constructor(LoggerLevel min_value = LoggerLevel::getLevelInfo(), LoggerLevel max_value = LoggerLevel::getLevelOff()) {
+    constructor(Qore::Logger::LoggerLevel min_value = Qore::Logger::LoggerLevel::LevelInfo,
+            Qore::Logger::LoggerLevel max_value = Qore::Logger::LoggerLevel::LevelOff) {
         setMinLevel(min_value);
         setMaxLevel(max_value);
     }
@@ -1395,7 +1214,7 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param min_value the minimum logging level
         @param max_value the maximum logging level
     */
-    constructor(int min_value, int max_value = LoggerLevel::OFF) {
+    constructor(int min_value, int max_value = Qore::Logger::LoggerLevel::OFF) {
         setMinLevel(min_value);
         setMaxLevel(max_value);
     }
@@ -1423,7 +1242,7 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param value the minimum logging level
     */
     public setMinLevel(int value) {
-        setMinLevel(LoggerLevel::getLevel(value));
+        setMinLevel(Qore::Logger::LoggerLevel::getLevel(value));
     }
 
     #! Sets the minimum logging level
@@ -1431,7 +1250,7 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param value the minimum logging level
     */
     public setMinLevel(string value) {
-        setMinLevel(LoggerLevel::getLevel(value));
+        setMinLevel(Qore::Logger::LoggerLevel::getLevel(value));
     }
 
     #! Returns the minimum logging level
@@ -1452,7 +1271,7 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param value the maximum logging level
     */
     public setMaxLevel(int value) {
-        setMaxLevel(LoggerLevel::getLevel(value));
+        setMaxLevel(Qore::Logger::LoggerLevel::getLevel(value));
     }
 
     #! Sets the maximum logging level
@@ -1460,11 +1279,11 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param value the maximum logging level
     */
     public setMaxLevel(string value) {
-        setMaxLevel(LoggerLevel::getLevel(value));
+        setMaxLevel(Qore::Logger::LoggerLevel::getLevel(value));
     }
 
     #! Returns the maximum logging level
-    public LoggerLevel getMaxLevel() {
+    public Qore::Logger::LoggerLevel getMaxLevel() {
         return maxLevel;
     }
 
@@ -1544,7 +1363,7 @@ public class LoggerInterface inherits Qore::Serializable {
         the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    abstract log(LoggerLevel level, string message);
+    abstract log(Qore::Logger::LoggerLevel level, string message, ...);
 
     #! Logs a message using the provided logging level
     /**
@@ -1572,7 +1391,7 @@ public class LoggerInterface inherits Qore::Serializable {
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
-    abstract logArgs(LoggerLevel level, string message, *softlist<auto> args);
+    abstract logArgs(Qore::Logger::LoggerLevel level, string message, *softlist<auto> args);
 
     #! Logs a message using the provided logging level and a single argument for any format string arguments
     /**
@@ -1690,7 +1509,7 @@ public class LoggerInterface inherits Qore::Serializable {
     /**
         @param level the log level to check
     */
-    abstract bool isEnabledFor(LoggerLevel level);
+    abstract bool isEnabledFor(Qore::Logger::LoggerLevel level);
 
     #! Checks whether this Logger is enabled for a given Level passed as parameter
     /**
@@ -1751,7 +1570,7 @@ public class LoggerWrapper inherits LoggerInterface {
         the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    log(LoggerLevel level, string message) {
+    log(Qore::Logger::LoggerLevel level, string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
             logger.logArgs(level, message, argv);
@@ -1795,7 +1614,7 @@ public class LoggerWrapper inherits LoggerInterface {
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
-    logArgs(LoggerLevel level, string message, *softlist<auto> args) {
+    logArgs(Qore::Logger::LoggerLevel level, string message, *softlist<auto> args) {
         *LoggerInterface logger = self.logger;
         if (logger) {
             logger.logArgs(level, message, args);
@@ -1855,7 +1674,7 @@ public class LoggerWrapper inherits LoggerInterface {
     trace(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelTrace(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelTrace, message, argv);
         }
     }
 
@@ -1869,7 +1688,7 @@ public class LoggerWrapper inherits LoggerInterface {
     debug(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelDebug(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelDebug, message, argv);
         }
     }
 
@@ -1883,7 +1702,7 @@ public class LoggerWrapper inherits LoggerInterface {
     info(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelInfo(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelInfo, message, argv);
         }
     }
 
@@ -1897,7 +1716,7 @@ public class LoggerWrapper inherits LoggerInterface {
     warn(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelWarn(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelWarn, message, argv);
         }
     }
 
@@ -1911,7 +1730,7 @@ public class LoggerWrapper inherits LoggerInterface {
     error(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelError(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelError, message, argv);
         }
     }
 
@@ -1925,7 +1744,7 @@ public class LoggerWrapper inherits LoggerInterface {
     fatal(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelFatal(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelFatal, message, argv);
         }
     }
 
@@ -2207,7 +2026,7 @@ public class Logger inherits LoggerInterface {
         @param level the logging level as a string
     */
     public setLevel(string level) {
-        setLevel(LoggerLevel::getLevel(level));
+        setLevel(Qore::Logger::LoggerLevel::getLevel(level));
     }
 
     #! Sets the logging level
@@ -2215,7 +2034,7 @@ public class Logger inherits LoggerInterface {
         @param level the logging level to set
     */
     public setLevel(int level) {
-        setLevel(LoggerLevel::getLevel(level));
+        setLevel(Qore::Logger::LoggerLevel::getLevel(level));
     }
 
     #! Decrement logger level
@@ -2383,8 +2202,8 @@ public class Logger inherits LoggerInterface {
         the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    public log(int level, string message) {
-        logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
+    public log(int level, string message, ...) {
+        logIntern(Qore::Logger::LoggerLevel::getLevel(level), message, argv, getLocation(), True);
     }
 
     #! Logs a message using the provided logging level
@@ -2394,8 +2213,8 @@ public class Logger inherits LoggerInterface {
         the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    public log(string level, string message) {
-        logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
+    public log(string level, string message, ...) {
+        logIntern(Qore::Logger::LoggerLevel::getLevel(level), message, argv, getLocation(), True);
     }
 
     #! Logs a message using the provided logging level and a single argument for any format string arguments
@@ -2406,7 +2225,7 @@ public class Logger inherits LoggerInterface {
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
-    public logArgs(LoggerLevel level, string message, *softlist<auto> args) {
+    public logArgs(Qore::Logger::LoggerLevel level, string message, *softlist<auto> args) {
         logIntern(level, message, args, getLocation(), True);
     }
 
@@ -2419,7 +2238,7 @@ public class Logger inherits LoggerInterface {
         @param args any format string arguments to the log message
     */
     public logArgs(int level, string message, *softlist<auto> args) {
-        logIntern(LoggerLevel::getLevel(level), message, args, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::getLevel(level), message, args, getLocation(), True);
     }
 
     #! Logs a message using the provided logging level and a single argument for any format string arguments.
@@ -2431,7 +2250,7 @@ public class Logger inherits LoggerInterface {
         @param args any format string arguments to the log message
     */
     public logArgs(string level, string message, *softlist<auto> args) {
-        logIntern(LoggerLevel::getLevel(level), message, args, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::getLevel(level), message, args, getLocation(), True);
     }
 
     #! Logs an already prepared logging event object.
@@ -2460,7 +2279,7 @@ public class Logger inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     public trace(string message, ...) {
-        logIntern(LoggerLevel::getLevelTrace(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::getLevelTrace(), message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the DEBUG level.
@@ -2471,7 +2290,7 @@ public class Logger inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     public debug(string message, ...) {
-        logIntern(LoggerLevel::getLevelDebug(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::getLevelDebug(), message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the INFO level.
@@ -2482,7 +2301,7 @@ public class Logger inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     public info(string message, ...) {
-        logIntern(LoggerLevel::getLevelInfo(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::LevelInfo, message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the WARN level.
@@ -2493,7 +2312,7 @@ public class Logger inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     public warn(string message, ...) {
-        logIntern(LoggerLevel::getLevelWarn(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::LevelWarn, message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the ERROR level.
@@ -2504,7 +2323,7 @@ public class Logger inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     public error(string message, ...) {
-        logIntern(LoggerLevel::getLevelError(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::LevelError, message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the FATAL level.
@@ -2515,7 +2334,7 @@ public class Logger inherits LoggerInterface {
         then it is considered "throwable" information.
     */
     public fatal(string message, ...) {
-        logIntern(LoggerLevel::getLevelFatal(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::LevelFatal, message, argv, getLocation(), True);
     }
 
     #! Performs logging of assertions
@@ -2532,7 +2351,7 @@ public class Logger inherits LoggerInterface {
     */
     public assertLog(bool assertion, string message, ...) {
         if(!assertion) {
-            logIntern(LoggerLevel::getLevelError(), message, argv, getLocation(), True);
+            logIntern(Qore::Logger::LoggerLevel::LevelError, message, argv, getLocation(), True);
         }
     }
 
@@ -2544,7 +2363,7 @@ public class Logger inherits LoggerInterface {
         @param value the value of the variable
     */
     public traceVar(string var_name, auto value) {
-        logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
+        logIntern(Qore::Logger::LoggerLevel::getLevelTrace(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
     }
 
     #! Logs the variable name and value using DEBUG level
@@ -2555,7 +2374,7 @@ public class Logger inherits LoggerInterface {
         @param value the value of the variable
     */
     public debugVar(string var_name, auto value) {
-        logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
+        logIntern(Qore::Logger::LoggerLevel::getLevelDebug(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
     }
 
     #! Checks whether this Logger is enabled for a given Level passed as parameter.
@@ -2584,32 +2403,32 @@ public class Logger inherits LoggerInterface {
 
     #! Checks whether this Logger is enabled for the TRACE Level.
     public bool isTraceEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelTrace());
+        return isEnabledFor(Qore::Logger::LoggerLevel::getLevelTrace());
     }
 
     #! Checks whether this Logger is enabled for the DEBUG Level.
     public bool isDebugEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelDebug());
+        return isEnabledFor(Qore::Logger::LoggerLevel::getLevelDebug());
     }
 
     #! Checks whether this Logger is enabled for the INFO Level.
     public bool isInfoEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelInfo());
+        return isEnabledFor(Qore::Logger::LoggerLevel::LevelInfo);
     }
 
     #! Checks whether this Logger is enabled for the WARN Level.
     public bool isWarnEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelWarn());
+        return isEnabledFor(Qore::Logger::LoggerLevel::LevelWarn);
     }
 
     #! Checks whether this Logger is enabled for the ERROR Level.
     public bool isErrorEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelError());
+        return isEnabledFor(Qore::Logger::LoggerLevel::LevelError);
     }
 
     #! Checks whether this Logger is enabled for the FATAL Level.
     public bool isFatalEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelFatal());
+        return isEnabledFor(Qore::Logger::LoggerLevel::LevelFatal);
     }
 }
 
