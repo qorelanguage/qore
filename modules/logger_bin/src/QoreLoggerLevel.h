@@ -38,23 +38,23 @@
 #include <climits>
 
 //! The highest logger level
-constexpr int64 OFF = LLONG_MAX;
+constexpr int64 QLL_OFF = LLONG_MAX;
 //! Logger level for fatal errors
-constexpr int64 FATAL = 50000;
+constexpr int64 QLL_FATAL = 50000;
 //! Logger level for (non-fatal) errors
-constexpr int64 ERROR = 40000;
+constexpr int64 QLL_ERROR = 40000;
 //! Logger level for warnings
-constexpr int64 WARN = 30000;
+constexpr int64 QLL_WARN = 30000;
 //! Logger level for informational messages
-constexpr int64 INFO = 20000;
+constexpr int64 QLL_INFO = 20000;
 //! Logger level for detail messages
-constexpr int64 DETAIL = 15000;
+constexpr int64 QLL_DETAIL = 15000;
 //! Logger level for debugging messages
-constexpr int64 DEBUG = 10000;
+constexpr int64 QLL_DEBUG = 10000;
 //! Logger level for trace messages
-constexpr int64 TRACE = 5000;
+constexpr int64 QLL_TRACE = 5000;
 //! The lowest logger level
-constexpr int64 ALL = (-LLONG_MAX - 1);
+constexpr int64 QLL_ALL = (-LLONG_MAX - 1);
 
 class QoreLoggerLevel : public AbstractPrivateData {
 public:

@@ -84,3 +84,14 @@ QoreValue QoreLoggerAppenderWithLayout::serializeImpl(ExceptionSink* xsink, cons
     assert(!*xsink);
     return layout->evalMethod("format", *args, xsink);
 }
+
+void QoreLoggerAppenderWithLayout::derefIntern(ExceptionSink* xsink) {
+    if (layout) {
+        if (llp) {
+            llp->deref(xsink);
+        }
+        layout->deref(xsink);
+    }
+    QoreLoggerAppender::derefIntern(xsink);
+}
+

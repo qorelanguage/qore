@@ -134,7 +134,7 @@ protected:
     // Pushes data on the queue
     DLLLOCAL bool pushQueueLocked(ExceptionSink* xsink, int64 type, const QoreValue params);
 
-    DLLLOCAL void derefIntern(ExceptionSink* xsink);
+    DLLLOCAL virtual void derefIntern(ExceptionSink* xsink);
 };
 
 #endif

@@ -193,23 +193,23 @@ QoreObject* QoreLoggerLevel::getLevelAll() {
 
 void QoreLoggerLevel::init() {
     LevelAll = new QoreObject(QC_LOGGERLEVEL, getProgram(),
-        new QoreLoggerLevel(ALL, new QoreStringNode("ALL")));
+        new QoreLoggerLevel(QLL_ALL, new QoreStringNode("ALL")));
     LevelTrace = new QoreObject(QC_LOGGERLEVEL, getProgram(),
-        new QoreLoggerLevel(TRACE, new QoreStringNode("TRACE")));
+        new QoreLoggerLevel(QLL_TRACE, new QoreStringNode("TRACE")));
     LevelDebug = new QoreObject(QC_LOGGERLEVEL, getProgram(),
-        new QoreLoggerLevel(DEBUG, new QoreStringNode("DEBUG")));
+        new QoreLoggerLevel(QLL_DEBUG, new QoreStringNode("DEBUG")));
     LevelDetail = new QoreObject(QC_LOGGERLEVEL, getProgram(),
-        new QoreLoggerLevel(DETAIL, new QoreStringNode("DETAIL")));
+        new QoreLoggerLevel(QLL_DETAIL, new QoreStringNode("DETAIL")));
     LevelInfo = new QoreObject(QC_LOGGERLEVEL, getProgram(),
-        new QoreLoggerLevel(INFO, new QoreStringNode("INFO")));
+        new QoreLoggerLevel(QLL_INFO, new QoreStringNode("INFO")));
     LevelWarn = new QoreObject(QC_LOGGERLEVEL, getProgram(),
-        new QoreLoggerLevel(WARN, new QoreStringNode("WARN")));
+        new QoreLoggerLevel(QLL_WARN, new QoreStringNode("WARN")));
     LevelError = new QoreObject(QC_LOGGERLEVEL, getProgram(),
-        new QoreLoggerLevel(ERROR, new QoreStringNode("ERROR")));
+        new QoreLoggerLevel(QLL_ERROR, new QoreStringNode("ERROR")));
     LevelFatal = new QoreObject(QC_LOGGERLEVEL, getProgram(),
-        new QoreLoggerLevel(FATAL, new QoreStringNode("FATAL")));
+        new QoreLoggerLevel(QLL_FATAL, new QoreStringNode("FATAL")));
     LevelOff = new QoreObject(QC_LOGGERLEVEL, getProgram(),
-        new QoreLoggerLevel(OFF, new QoreStringNode("OFF")));
+        new QoreLoggerLevel(QLL_OFF, new QoreStringNode("OFF")));
 
     lsmap.insert(lsmap_t::value_type("ALL", LevelAll));
     lsmap.insert(lsmap_t::value_type("TRACE", LevelTrace));
@@ -221,15 +221,15 @@ void QoreLoggerLevel::init() {
     lsmap.insert(lsmap_t::value_type("FATAL", LevelFatal));
     lsmap.insert(lsmap_t::value_type("OFF", LevelOff));
 
-    limap.insert(limap_t::value_type(ALL, LevelAll));
-    limap.insert(limap_t::value_type(TRACE, LevelTrace));
-    limap.insert(limap_t::value_type(DEBUG, LevelDebug));
-    limap.insert(limap_t::value_type(DETAIL, LevelDetail));
-    limap.insert(limap_t::value_type(INFO, LevelInfo));
-    limap.insert(limap_t::value_type(WARN, LevelWarn));
-    limap.insert(limap_t::value_type(ERROR, LevelError));
-    limap.insert(limap_t::value_type(FATAL, LevelFatal));
-    limap.insert(limap_t::value_type(OFF, LevelOff));
+    limap.insert(limap_t::value_type(QLL_ALL, LevelAll));
+    limap.insert(limap_t::value_type(QLL_TRACE, LevelTrace));
+    limap.insert(limap_t::value_type(QLL_DEBUG, LevelDebug));
+    limap.insert(limap_t::value_type(QLL_DETAIL, LevelDetail));
+    limap.insert(limap_t::value_type(QLL_INFO, LevelInfo));
+    limap.insert(limap_t::value_type(QLL_WARN, LevelWarn));
+    limap.insert(limap_t::value_type(QLL_ERROR, LevelError));
+    limap.insert(limap_t::value_type(QLL_FATAL, LevelFatal));
+    limap.insert(limap_t::value_type(QLL_OFF, LevelOff));
 }
 
 void QoreLoggerLevel::del() {
