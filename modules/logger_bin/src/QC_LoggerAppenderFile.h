@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QoreLoggerAppenderWithLayout.h LoggerAppenderWithLayout class definition */
+/** @file QC_LoggerAppenderFile.h LoggerAppenderFile class definition */
 /*
     Qore Programming Language
 
@@ -17,7 +17,7 @@
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO LEVEL SHALL THE
     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
@@ -28,32 +28,17 @@
     information.
 */
 
-#ifndef _QORE_MODULE_LOGGER_LOGGERAPPENDERWITHLAYOUT_H
+#ifndef _QORE_MODULE_LOGGER_QC_LOGGERAPPENDERFILE_H
 
-#define _QORE_MODULE_LOGGER_LOGGERAPPENDERWITHLAYOUT_H
+#define _QORE_MODULE_LOGGER_QC_LOGGERAPPENDERFILE_H
 
-// forward references
-class QoreLoggerLayoutPattern;
+#include "QC_LoggerAppenderWithLayout.h"
+#include "QoreLoggerAppenderFile.h"
 
-class QoreLoggerAppenderWithLayout : public QoreLoggerAppender {
-public:
-    DLLLOCAL QoreLoggerAppenderWithLayout(QoreObject* self, const QoreObject* layout, ExceptionSink* xsink);
+DLLEXPORT extern qore_classid_t CID_LOGGERAPPENDERFILE;
+DLLLOCAL extern QoreClass* QC_LOGGERAPPENDERFILE;
 
-    DLLLOCAL QoreLoggerAppenderWithLayout(QoreObject* self, const QoreStringNode* n, const QoreObject* layout,
-            ExceptionSink* xsink);
-
-    DLLLOCAL void setLayout(ExceptionSink* xsink, const QoreObject* layout);
-
-    DLLLOCAL QoreObject* getLayout();
-
-    DLLLOCAL QoreValue serializeImpl(ExceptionSink* xsink, const QoreObject* event, QoreLoggerEvent* e);
-
-protected:
-    QoreObject* layout = nullptr;
-    QoreLoggerLayoutPattern* llp = nullptr;
-
-    using QoreLoggerAppender::derefIntern;
-    DLLLOCAL virtual void derefIntern(ExceptionSink* xsink);
-};
+DLLLOCAL void preinitLoggerAppenderFileClass();
+DLLLOCAL QoreClass* initLoggerAppenderFileClass(QoreNamespace& ns);
 
 #endif

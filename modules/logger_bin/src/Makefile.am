@@ -23,7 +23,8 @@ GENERATED_SOURCES = QC_LoggerPattern.cpp \
     QC_LoggerLayoutPattern.cpp \
     QC_LoggerAppender.cpp \
     QC_LoggerAppenderQueue.cpp \
-    QC_LoggerAppenderWithLayout.cpp
+    QC_LoggerAppenderWithLayout.cpp \
+    QC_LoggerAppenderFile.cpp
 
 CLEANFILES = $(GENERATED_SOURCES)
 if COND_SINGLE_COMPILATION_UNIT
@@ -37,7 +38,8 @@ LOGGER_SOURCES = logger-module.cpp \
     QoreLoggerEvent.cpp \
     QoreLoggerAppender.cpp \
     QoreLoggerAppenderQueue.cpp \
-    QoreLoggerAppenderWithLayout.cpp
+    QoreLoggerAppenderWithLayout.cpp \
+    QoreLoggerAppenderFile.cpp
 nodist_logger_la_SOURCES = $(GENERATED_SOURCES)
 endif
 

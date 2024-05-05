@@ -539,7 +539,11 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
     modules/logger_bin/src/QoreLoggerAppenderWithLayout.qpp \
     modules/logger_bin/src/QoreLoggerAppenderWithLayout.h \
     modules/logger_bin/src/QC_LoggerAppenderWithLayout.qpp \
-    modules/logger_bin/src/QC_LoggerAppenderWithLayout.h
+    modules/logger_bin/src/QC_LoggerAppenderWithLayout.h \
+    modules/logger_bin/src/QoreLoggerAppenderFile.qpp \
+    modules/logger_bin/src/QoreLoggerAppenderFile.h \
+    modules/logger_bin/src/QC_LoggerAppenderFile.qpp \
+    modules/logger_bin/src/QC_LoggerAppenderFile.h
 
 include_HEADERS = \
 	include/qore/QoreValue.h \

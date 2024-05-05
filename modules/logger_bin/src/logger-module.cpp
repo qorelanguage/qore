@@ -38,11 +38,12 @@
 #include "QC_LoggerAppender.h"
 #include "QC_LoggerAppenderQueue.h"
 #include "QC_LoggerAppenderWithLayout.h"
+#include "QC_LoggerAppenderFile.h"
 
 #include <string.h>
 
 QoreStringNode* logger_module_init();
-void logger_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
+void logger_module_ns_init(QoreNamespace* rns, QoreNamespace* qns);
 void logger_module_delete();
 
 // qore module symbols
@@ -75,23 +76,23 @@ QoreStringNode* logger_module_init() {
 
     cls = initLoggerLevelClass(LoggerNS);
     //! The highest logger level
-    cls->addBuiltinConstant("OFF", OFF, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("OFF", QLL_OFF, Public, bigIntTypeInfo);
     //! Logger level for fatal errors
-    cls->addBuiltinConstant("FATAL", FATAL, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("FATAL", QLL_FATAL, Public, bigIntTypeInfo);
     //! Logger level for (non-fatal) errors
-    cls->addBuiltinConstant("ERROR", ERROR, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("ERROR", QLL_ERROR, Public, bigIntTypeInfo);
     //! Logger level for warnings
-    cls->addBuiltinConstant("WARN", WARN, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("WARN", QLL_WARN, Public, bigIntTypeInfo);
     //! Logger level for informational messages
-    cls->addBuiltinConstant("INFO", INFO, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("INFO", QLL_INFO, Public, bigIntTypeInfo);
     //! Logger level for detail messages
-    cls->addBuiltinConstant("DETAIL", DETAIL, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("DETAIL", QLL_DETAIL, Public, bigIntTypeInfo);
     //! Logger level for debugging messages
-    cls->addBuiltinConstant("DEBUG", DEBUG, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("DEBUG", QLL_DEBUG, Public, bigIntTypeInfo);
     //! Logger level for trace messages
-    cls->addBuiltinConstant("TRACE", TRACE, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("TRACE", QLL_TRACE, Public, bigIntTypeInfo);
     //! The lowest logger level
-    cls->addBuiltinConstant("ALL", ALL, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("ALL", QLL_ALL, Public, bigIntTypeInfo);
 
     // initialize constants
     QoreLoggerLevel::init();
@@ -152,6 +153,11 @@ QoreStringNode* logger_module_init() {
 
     LoggerNS.addSystemClass(initLoggerAppenderQueueClass(LoggerNS));
     LoggerNS.addSystemClass(initLoggerAppenderWithLayoutClass(LoggerNS));
+
+    cls = initLoggerAppenderFileClass(LoggerNS);
+    cls->addBuiltinConstant("EVENT_REOPEN", EVENT_REOPEN, Public, bigIntTypeInfo);
+    cls->addBuiltinConstant("DEFAULT_OPEN_FLAGS", DEFAULT_OPEN_FLAGS, Public, bigIntTypeInfo);
+    LoggerNS.addSystemClass(cls);
 
     return nullptr;
 }
