@@ -461,10 +461,7 @@ date d = now_us();
     @note There is no performance penalty for using now_ms() and now_us() versus now(); now() and now_ms() are kept for backwards compatibility
 */
 date now_us() [flags=CONSTANT] {
-   int us;
-   int64 seconds = q_epoch_us(us);
-
-   return DateTimeNode::makeAbsolute(currentTZ(), seconds, us);
+    return DateTimeNode::makeNow();
 }
 
 //! Returns the current UTC date and time with a resolution to the microsecond

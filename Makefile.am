@@ -8,7 +8,7 @@ qoredatadir = $(datarootdir)/qore
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = lib modules/astparser modules/reflection
+SUBDIRS = lib modules/astparser modules/reflection modules/logger_bin
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
@@ -486,7 +486,45 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/reflection/src/QC_AbstractClass.h \
 	modules/reflection/src/QC_Class.qpp \
 	modules/reflection/src/QC_AbstractConstant.h \
-	modules/reflection/src/QC_ConstructorMethod.h
+	modules/reflection/src/QC_ConstructorMethod.h \
+    modules/logger_bin/src/qore_logger.h \
+    modules/logger_bin/src/logger-module.cpp \
+    modules/logger_bin/src/QoreLoggerLevel.cpp \
+    modules/logger_bin/src/QoreLoggerLevel.h \
+    modules/logger_bin/src/QC_LoggerLevel.qpp \
+    modules/logger_bin/src/QC_LoggerLevel.h \
+    modules/logger_bin/src/QoreLoggerPattern.cpp \
+    modules/logger_bin/src/QoreLoggerPattern.h \
+    modules/logger_bin/src/QC_LoggerPattern.qpp \
+    modules/logger_bin/src/QC_LoggerPattern.h \
+    modules/logger_bin/src/QoreLoggerEvent.cpp \
+    modules/logger_bin/src/QoreLoggerEvent.h \
+    modules/logger_bin/src/QC_LoggerEvent.qpp \
+    modules/logger_bin/src/QC_LoggerEvent.h \
+    modules/logger_bin/src/QC_LoggerFilter.qpp \
+    modules/logger_bin/src/QC_LoggerFilter.h \
+    modules/logger_bin/src/QC_LoggerLayout.qpp \
+    modules/logger_bin/src/QC_LoggerLayout.h \
+    modules/logger_bin/src/QoreLoggerLayoutPattern.qpp \
+    modules/logger_bin/src/QoreLoggerLayoutPattern.h \
+    modules/logger_bin/src/QC_LoggerLayoutPattern.qpp \
+    modules/logger_bin/src/QC_LoggerLayoutPattern.h \
+    modules/logger_bin/src/QoreLoggerAppender.qpp \
+    modules/logger_bin/src/QoreLoggerAppender.h \
+    modules/logger_bin/src/QC_LoggerAppender.qpp \
+    modules/logger_bin/src/QC_LoggerAppender.h \
+    modules/logger_bin/src/QoreLoggerAppenderQueue.qpp \
+    modules/logger_bin/src/QoreLoggerAppenderQueue.h \
+    modules/logger_bin/src/QC_LoggerAppenderQueue.qpp \
+    modules/logger_bin/src/QC_LoggerAppenderQueue.h \
+    modules/logger_bin/src/QoreLoggerAppenderWithLayout.qpp \
+    modules/logger_bin/src/QoreLoggerAppenderWithLayout.h \
+    modules/logger_bin/src/QC_LoggerAppenderWithLayout.qpp \
+    modules/logger_bin/src/QC_LoggerAppenderWithLayout.h \
+    modules/logger_bin/src/QoreLoggerAppenderFile.qpp \
+    modules/logger_bin/src/QoreLoggerAppenderFile.h \
+    modules/logger_bin/src/QC_LoggerAppenderFile.qpp \
+    modules/logger_bin/src/QC_LoggerAppenderFile.h
 
 include_HEADERS = \
 	include/qore/QoreValue.h \
@@ -576,13 +614,15 @@ include_HEADERS = \
 	include/qore/StreamBase.h \
 	include/qore/InputStream.h \
 	include/qore/OutputStream.h \
+	include/qore/Sequence.h \
 	include/qore/Transform.h \
 	include/qore/AbstractException.h \
 	include/qore/QoreStandardException.h \
 	include/qore/QoreXSinkException.h \
 	include/qore/UnicodeCharacterIterator.h \
     include/qore/AbstractPollState.h \
-    include/qore/AbstractPollableIoObjectBase.h
+    include/qore/AbstractPollableIoObjectBase.h \
+    include/qore/QoreRegexInterface.h
 
 noinst_HEADERS = \
 	include/qore/minitest.hpp \
@@ -624,7 +664,6 @@ noinst_HEADERS = \
 	include/qore/intern/FunctionCallNode.h \
 	include/qore/intern/ScopedRefNode.h \
 	include/qore/intern/SmartMutex.h \
-	include/qore/intern/Sequence.h \
 	include/qore/intern/ScopedObjectCallNode.h \
 	include/qore/intern/NewComplexTypeNode.h \
 	include/qore/intern/RWLock.h \

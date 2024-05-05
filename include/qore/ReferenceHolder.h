@@ -143,8 +143,9 @@ public:
     DLLLOCAL const T* operator->() const { return p; }
     DLLLOCAL const T* operator*() const { return p; }
     DLLLOCAL void operator=(T* nv) {
-        if (p)
+        if (p) {
             p->deref();
+        }
         p = nv;
     }
     DLLLOCAL T *release() {

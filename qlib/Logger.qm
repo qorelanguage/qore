@@ -32,8 +32,11 @@
 
 %requires Util
 
+# import native code for logger
+%requires(reexport) logger_bin
+
 module Logger {
-    version = "0.6";
+    version = "1.0";
     desc = "user module implementing Log4q logger library";
     author = "Tomas Mandys <tomas.mandys@qoretechnologies.com>";
     url = "http://qore.org";
@@ -50,14 +53,21 @@ module Logger {
     <a href="https://logging.apache.org/log4j/2.x">log4j</a> library, therefore it
     implements the following primary base classes:
     - @ref Logger::Logger "Logger"
-    - @ref Logger::LoggerAppender "LoggerAppender" (abstract)
-    - @ref Logger::LoggerFilter "LoggerFilter"
-    - @ref Logger::LoggerLayout "LoggerLayout" (abstract)
-    - @ref Logger::LoggerPattern "LoggerPattern" (abstract)
+
+    Other classes can be found in the <a href="../../logger/html/index.html">logger</a> module for performance
+    reasons, such as:
+    - @ref Qore::Logger::LoggerAppender "LoggerAppender" (abstract)
+    - @ref Qore::Logger::LoggerAppenderQueue "LoggerAppenderQueue"
+    - @ref Qore::Logger::LoggerAppenderWithLayout "LoggerAppenderWithLayout"
+    - @ref Qore::Logger::LoggerFilter "LoggerFilter"
+    - @ref Qore::Logger::LoggerLayout "LoggerLayout" (abstract)
+    - @ref Qore::Logger::LoggerLayoutPattern "LoggerLayoutPattern"
+    - @ref Qore::Logger::LoggerLevel "LoggerLevel"
+    - @ref Qore::Logger::LoggerPattern "LoggerPattern" (abstract)
 
     Abstract base classes must be subclassed to implement the desired functionality.
 
-    @subsection logger_scenarior Scenarios
+    @subsection logger_scenarios Scenarios
 
     @par One Thread
 
@@ -65,7 +75,7 @@ module Logger {
 
     Example:
     @code{.py}
-    Logger l("mylogger", LoggerLevel::getLevelInfo());
+    Logger l("mylogger", LoggerLevel::LevelInfo);
     LoggerAppenderFile laf("myappender", new LoggerLayoutPattern(), "/var/run/log/mylog.log");
     l.addAppender(laf);
     laf.open();
@@ -77,13 +87,13 @@ module Logger {
     @par Multiple Threads
 
     The user code will log from multiple threads; the events are pushed to a
-    @ref Logger::LoggerAppenderQueue "LoggerAppenderQueue" object. The processing is done in a dedicated thread
+    @ref Qore::Logger::LoggerAppenderQueue "LoggerAppenderQueue" object. The processing is done in a dedicated thread
     when the events are passed to appenders. The user code logging command is non-blocking as it terminates
     immediately when the event is pushed in the queue.
 
     Example:
     @code{.py}
-    our Logger l("mylogger", LoggerLevel::getLevelInfo());
+    our Logger l("mylogger", LoggerLevel::LevelInfo);
 
     sub run() {
         while (!done) {
@@ -205,6 +215,10 @@ module Logger {
     # wait till finished
     @endcode
 
+    @subsection logger_v1_0 v1.0
+    - Split classes into the <a href="../../logger_bin/html/index.html">logger_bin</a> module for performance reasons
+      (<a href="https://github.com/qorelanguage/qore/issues/4884">issue 4884</a>)
+
     @subsection logger_v0_6 v0.6
     - Fixed a bug where file rotate could result in logging exceptions; removed explicit atomic lock operations and
       implemented low-level atomic file handling instead
@@ -226,7 +240,7 @@ module Logger {
       (<a href="https://github.com/qorelanguage/qore/issues/4179">issue 4179</a>)
     - allow file appenders to be reopened
       (<a href="https://github.com/qorelanguage/qore/issues/4171">issue 4171</a>)
-    - enable serialization for @ref Logger::LoggerEvent "LoggerEvent" objects as well as for them to be submitted
+    - enable serialization for LoggerEvent objects as well as for them to be submitted
       directly to @ref Logger::Logger "Logger" objects
       (<a href="https://github.com/qorelanguage/qore/issues/4164">issue 4164</a>)
 
@@ -240,222 +254,6 @@ module Logger {
 
 #! The Logger namespace contains all the definitions in the Logger module
 public namespace Logger {
-#! Defines the minimum set of levels recognized by the system.
-/**
-    The set of built-in levels includes \c TRACE, \c DEBUG, \c INFO, \c WARN, \c ERROR and \c FATAL. Log4q also supports
-    custom log levels where the \c LoggerLevel class may be subclassed to define a larger level set.
-*/
-public class LoggerLevel inherits Qore::Serializable {
-    public {
-        #! The highest logger level
-        const OFF = MAXINT;
-        #! Logger level for fatal errors
-        const FATAL = 50000;
-        #! Logger level for (non-fatal) errors
-        const ERROR = 40000;
-        #! Logger level for warnings
-        const WARN = 30000;
-        #! Logger level for informational messages
-        const INFO = 20000;
-        #! Logger level for debugging messages
-        const DEBUG = 10000;
-        #! Logger level for trace messages
-        const TRACE = 5000;
-        #! The lowest logger level
-        const ALL = MININT;
-    }
-
-    private:internal {
-        #! Integer level value.
-        int levelCode;
-
-        #! String representation of the level.
-        string levelStr;
-
-        #! Contains a list of instantiated levels
-        static hash<string, LoggerLevel> levelMap;
-
-        #! String to int hash
-        const LEVELSTR_TO_LEVEL = {
-            'ALL':   ALL,
-            'TRACE': TRACE,
-            'DEBUG': DEBUG,
-            'INFO':  INFO,
-            'WARN':  WARN,
-            'ERROR': ERROR,
-            'FATAL': FATAL,
-            'OFF':   OFF,
-        };
-
-        #! Int to string hash
-        const LEVEL_TO_LEVEL_STR = map {$1.value: $1.key}, LEVELSTR_TO_LEVEL.pairIterator();
-    }
-
-    #! Creates a new object
-    /**
-        @param code integer value
-        @param str string representation
-    */
-    constructor(int code, string str) {
-        levelCode = code;
-        levelStr = str;
-    }
-
-    #! Gets level code value
-    public int getValue() {
-        return levelCode;
-    }
-
-    #! Gets level string
-    public string getStr() {
-        return levelStr;
-    }
-
-    #! Compares logger levels
-    /**
-        @param other the other level to compares
-        @return True if level is greater or equal to the \a other level
-    */
-    public bool isGreaterOrEqual(LoggerLevel other) {
-        return levelCode >= other.getValue();
-    }
-
-    #! Compares two logger levels
-    /**
-        @param other the other level to compares
-    */
-    public bool isEqual(LoggerLevel other) {
-        return levelCode == other.getValue();
-    }
-
-    #! Returns an OFF Level
-    public static LoggerLevel getLevelOff() {
-        return LoggerLevel::getLevel(OFF);
-    }
-
-    #! Returns a FATAL Level
-    public static LoggerLevel getLevelFatal() {
-        return LoggerLevel::getLevel(FATAL);
-    }
-
-    #! Returns an ERROR Level
-    public static LoggerLevel getLevelError() {
-        return LoggerLevel::getLevel(ERROR);
-    }
-
-    #! Returns a WARN Level
-    public static LoggerLevel getLevelWarn() {
-        return LoggerLevel::getLevel(WARN);
-    }
-
-    #! Returns an INFO Level
-    public static LoggerLevel getLevelInfo() {
-        return LoggerLevel::getLevel(INFO);
-    }
-
-    #! Returns a DEBUG Level
-    public static LoggerLevel getLevelDebug() {
-        return LoggerLevel::getLevel(DEBUG);
-    }
-
-    #! Returns a TRACE Level
-    public static LoggerLevel getLevelTrace() {
-        return LoggerLevel::getLevel(TRACE);
-    }
-
-    #! Returns an ALL Level
-    public static LoggerLevel getLevelAll() {
-        return LoggerLevel::getLevel(ALL);
-    }
-
-    #! Converts the input argument to a level
-    /**
-        Return value is either instantiated or used the existing one if there is any.
-
-        @param level the input level
-        @param default_level value to return if conversion is not possible.
-
-        @throw LOGGER-ERROR if defaultLevel is nothing and level not found
-    */
-    public static LoggerLevel getLevel(int level, *LoggerLevel default_level) {
-        if (exists LEVEL_TO_LEVEL_STR{level}) {
-            if (!exists levelMap{level}) {
-                levelMap{level} = new LoggerLevel(level, LEVEL_TO_LEVEL_STR{level});
-            }
-            return levelMap{level};
-        } else {
-            if (!exists default_level) {
-                throw "LOGGER-ERROR", "Cannot get valid Level";
-            }
-            return default_level;
-        }
-    }
-
-    #! Returns closest lower logger level
-    /**
-        @param level the logger level
-        @return \c Loggerlevel or \c NOTHING if there is no lower level
-
-        @throw LOGGER-ERROR if level not found
-    */
-    public static *LoggerLevel getNextLowerLevel(int level) {
-        HashIterator hi(LEVELSTR_TO_LEVEL);
-        while (hi.next()) {
-            if (level == hi.getValue()) {
-                if (hi.prev()) {
-                    return LoggerLevel::getLevel(hi.getValue());
-                }
-                break;
-            }
-        }
-        return NOTHING;
-    }
-
-    #! Returns closest higher logger level
-    /**
-        @param level the logger level
-        @return \c Loggerlevel or \c NOTHING if there is no higher level
-
-        @throw LOGGER-ERROR if level not found
-    */
-    public static *LoggerLevel getNextHigherLevel(int level) {
-        HashIterator hi(LEVELSTR_TO_LEVEL);
-        while (hi.next()) {
-            if (level == hi.getValue()) {
-                if (hi.next()) {
-                    return LoggerLevel::getLevel(hi.getValue());
-                }
-                break;
-            }
-        }
-        return NOTHING;
-    }
-
-    #! Converts the input argument to a level.
-    /**
-        Return value is either instantiated or used the existing one if there is any.
-
-        @param level_str the string input level
-        @param default_level value to return if conversion is not possible.
-        @throw LOGGER-ERROR if default_level is nothing and level_str not found
-    */
-    public static LoggerLevel getLevel(string level_str, *LoggerLevel default_level) {
-        level_str = toupper(level_str);
-        if (exists LEVELSTR_TO_LEVEL{level_str}) {
-            int level = LEVELSTR_TO_LEVEL{level_str};
-            if (!exists levelMap{level}) {
-                levelMap{level} = new LoggerLevel(level, level_str);
-            }
-            return levelMap{level};
-        } else {
-            if (!exists default_level) {
-                throw "LOGGER-ERROR", "Cannot get valid Level";
-            }
-            return default_level;
-        }
-    }
-}
-
 #! Implements callable parameter which is evaluated in run-time when event is rendered
 /**
     It may implement logging for stuff which is time consuming to get and would slow program flow in case
@@ -481,6 +279,7 @@ public class LoggerEventParameter {
         code callable;
         *list<auto> args;
     }
+
     #! Creates object
     /**
         @param func function to be called with optional arguments followed
@@ -489,6 +288,7 @@ public class LoggerEventParameter {
         callable = func;
         args = argv;
     }
+
     #! Call function with arguments provided
     /**
         In case of user function call consider surpressing exceptions to return value corresponding to expected
@@ -496,304 +296,6 @@ public class LoggerEventParameter {
     */
     public auto call() {
         return call_function_args(callable, args);
-    }
-}
-
-#! Implements an event to be logged
-/**
-    The event data consists of format string and parameters. The output string is rendered at time when
-    logging decision to target is made. Callable parameters are evaluated at this moment as well. It
-    should be considered when callable parameters do not return time persistent value. When callable raises
-    an exception then exception instance is passed for formatting. So it should be considered if format string and
-    use for example "%y" to get readable data.
-*/
-public class LoggerEvent {
-    private:internal {
-        #! origin stamp to calculate relative time
-        static date startTime = now_us();
-
-        #! Fully Qualified Class Name of the calling category class.
-        string fqcn;
-
-        #! Logger reference
-        *Logger logger;
-
-        #! The category (logger) name.
-        string categoryName;
-
-        #! Level of the logging event.
-        LoggerLevel level;
-
-        #! The application supplied message of logging event (not rendered)
-        string messageFmt;
-
-        #! arguments to be rendered
-        *list<auto> messageArgs;
-
-        #! The application supplied message rendered through the rendering mechanism.
-        *string renderedMessage;
-
-        #! related thread id
-        int threadId;
-
-        #! event time stamp
-        date timeStamp;
-
-        #! location information where the logging was performed.
-        *hash<CallStackInfo> locationInfo;
-
-        #! internal representation of throwable
-        *hash<ExceptionInfo> throwableInfo;
-
-        #! unique id
-        int uniqueId;
-
-        #! unique id generator
-        static Sequence sequence(1);
-    }
-
-    #! Instantiates a LoggingEvent from the supplied parameters.
-    /**
-        The category becomes logger name and fqcn logger class name
-
-        @param logger Instance of the Logger class
-        @param level The event level
-        @param message The payload as format for @ref Qore::sprintf() "sprintf()"()
-        @param args The arguments for formatting
-        @param location_info code location related to logging event
-        @param thread_id thread related to the event, Default: @ref Qore::gettid() "gettid()"
-        @param time_stamp logging event timestamp. Default value is @ref Qore::now_us() "now_us()"
-        @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with the logging event
-    */
-    constructor(Logger logger, LoggerLevel level, string message, *list<auto> args,
-            *hash<CallStackInfo> location_info, int thread_id = gettid(), date time_stamp = now_us(),
-            *hash<ExceptionInfo> throwable) {
-        fqcn = get_class_name(logger);
-        self.logger = logger;
-        categoryName = logger.getName();
-        self.level = level;
-        messageFmt = message;
-        messageArgs = args;
-        locationInfo = location_info;
-        threadId = thread_id;
-        timeStamp = time_stamp;
-        if (throwable) {
-            throwableInfo = throwable;
-        }
-    }
-
-    #! Instantiates a LoggingEvent from the supplied parameters.
-    /**
-        @param fqcn name of the caller class.
-        @param category The event category.
-        @param level The event level
-        @param message The payload as format for @ref Qore::sprintf() "sprintf()"()
-        @param args The arguments for formatting
-        @param location_info code location related to logging event
-        @param thread_id thread related to the event, Default: @ref Qore::gettid() "gettid()"
-        @param time_stamp logging event timestamp. Default value is @ref Qore::now_us() "now_us()"
-        @param throwable The throwable @ref Qore::ExceptionInfo "ExceptionInfo" associated with the logging event
-    */
-    constructor(string fqcn, softstring category, LoggerLevel level, string message, *list<auto> args,
-            *hash<CallStackInfo> location_info, int thread_id = gettid(), date time_stamp = now_us(),
-            *hash<ExceptionInfo> throwable) {
-        self.fqcn = fqcn;
-        categoryName = category;
-        self.level = level;
-        messageFmt = message;
-        messageArgs = args;
-        locationInfo = location_info;
-        threadId = thread_id;
-        timeStamp = time_stamp;
-        if (throwable) {
-            throwableInfo = throwable;
-        }
-    }
-
-    #! Returns the full qualified classname
-    public string getFullQualifiedClassname() {
-        return fqcn;
-    }
-
-    #! Returns the location information for this logging event
-    public *hash<CallStackInfo> getLocationInfo() {
-        return locationInfo;
-    }
-
-    #! Returns the level of this event
-    public LoggerLevel getLevel() {
-        return level;
-    }
-
-    #! Returns the logger which created the event
-    public *Logger getLogger() {
-        return logger;
-    }
-
-    #! Returns the thread id which is related to event
-    public int getThreadId() {
-        return threadId;
-    }
-
-    #! Returns the category name
-    public string getCategoryName() {
-        return categoryName;
-    }
-
-    #! Returns the string message for the logging event
-    /**
-        Potential callable references are evaluated.
-        Next the message is rendered using @ref Qore::vsprintf() "vsprintf()" and the result is cached, so
-        the message is rendered only once.
-
-        @return the rendered message
-    */
-    public string getMessage() {
-        if (!exists renderedMessage) {
-            # evaluating of callable parameters (via LoggerEventParameter) may be used to get time consuming stuff
-            # i.e. they are evaluated only when logging is performed
-            list<auto> args2 = ();
-            foreach auto arg in (messageArgs) {
-                if (arg.typeCode() == NT_OBJECT && arg instanceof LoggerEventParameter) {
-                    try {
-                        push args2, cast<LoggerEventParameter>(arg).call();
-                    } catch (hash<ExceptionInfo> ex) {
-                        push args2, ex;
-                    }
-                } else {
-                    push args2, arg;
-                }
-            }
-            # message is considered as printf() format so we process it this way.
-            renderedMessage = vsprintf(messageFmt, args2);
-        }
-        return renderedMessage;
-    }
-
-    #! Returns the time when the application/logger started to calculate relative time
-    public static date getStartTime() {
-        return LoggerEvent::startTime;
-    }
-
-    #! Sets the starting time for relative time
-    public static setStartTime(date time) {
-        LoggerEvent::startTime = time;
-    }
-
-    #! Returns the event timestamp as an @ref absolute_dates "absolute date/time value"
-    public date getTimeStamp() {
-        return timeStamp;
-    }
-
-    #! Returns a relative timestamp for the event
-    /**
-        Returns a @ref relative_dates "relative date/time value" for the amount of time passed
-        from the beginning of execution to the time when the event was constructed.
-
-        @see @ref getStartTime()
-    */
-    public date getRelativeTime() {
-        return timeStamp - LoggerEvent::startTime;
-    }
-
-    #! Returns throwable info, if any
-    public *hash<ExceptionInfo> getThrowableInfo() {
-        return throwableInfo;
-    }
-
-    #! Generates a globally unique integer identifier and associates it to the event
-    public int getUniqueId() {
-        if (!exists uniqueId) {
-            uniqueId = sequence.next();
-        }
-        return uniqueId;
-    }
-}
-
-#! Implements queue serializing async appender events
-/**
-    All async events may be processed by one worker thread dedicated to
-    one or more appenders so the thread posting logging event remains unblocked.
-*/
-public class LoggerAppenderQueue {
-    private:internal {
-        Queue queue();
-    }
-
-    #! Adds appender event
-    /**
-        @param appender a logger appender object
-        @param type see \c EVENT_xxx constants
-        @param params data prepared by @ref LoggerAppender::serializeImpl()
-        @return True if the event was succesfully added to queue
-    */
-    public bool push(LoggerAppender appender, int type, auto params) {
-        try {
-            queue.push({"appender": appender, "type": type, "params": params}, -1);
-        } catch (hash<ExceptionInfo> ex) {
-            return False;
-        }
-        return True;
-    }
-
-    #! Processes queued events
-    /**
-        This method should typically be called in a dedicated thread
-
-        @param ms a timeout value to wait for data to become available on the queue;
-            integers are interpreted as milliseconds; relative date/time values are interpreted
-            literally with a maximum resolution of milliseconds. A value that converts to integer 0 causes
-            the call to time out immediately if the call would otherwise block.
-            If a positive timeout argument is passed, and no data is available in the timeout period
-            then waits up to timeout value, If a negative timeout value is passed as the argument,
-            then the call blocks until data is available on the queue. Default value is 0.
-    */
-    public process(timeout ms = 0) {
-        while (True) {
-            *hash<auto> rec = getEvent(ms);
-            if (!rec) {
-                break;
-            }
-            rec.appender.processEvent(rec.type, rec.params);
-        }
-    }
-
-    #! Returns the current number of events waiting in queue
-    public int size() {
-        return queue.size();
-    }
-
-    #! Returns the next event from queue or @ref nothing if there is no event available within the timeout period
-    /**
-        @param ms a timeout value to wait for data to become available on the queue;
-            integers are interpreted as milliseconds; relative date/time values are interpreted
-            literally with a maximum resolution of milliseconds. A value that converts to integer 0 causes
-            the call to time out immediately if the call would otherwise block.
-            If a positive timeout argument is passed, and no data is available in the timeout period
-            then waits up to timeout value, If a negative timeout value is passed as the argument,
-            then the call blocks until data is available on the queue.
-
-        @return the next event from queue or @ref nothing if there is no event available within the timeout period
-    */
-    private *hash<auto> getEvent(timeout ms) {
-        if (queue.size() > 0 || ms != 0) {
-            try {
-                if (ms == 0) {
-                    return queue.get(-1);
-                } else if (ms > 0) {
-                    return queue.get(ms);
-                } else {
-                    return queue.get(0);
-                }
-            } catch (hash<ExceptionInfo> ex) {
-                switch (ex.err) {
-                    case "QUEUE-TIMEOUT":
-                        break;
-                    default:
-                        rethrow;
-                }
-            }
-        }
     }
 }
 
@@ -828,7 +330,7 @@ public class LoggerAppenderQueueThreadPool inherits LoggerAppenderQueue {
     #! Implements worker thread code
     /**
         @param id unique identifier generated by internal @ref Qore::Thread::Sequence "Sequence"
-        @param appender @ref LoggerAppender instance
+        @param appender @ref Qore::Logger::LoggerAppender "LoggerAppender" instance
         @param events list of events
     */
     private:internal worker(string id, LoggerAppender appender, list<auto> events) {
@@ -960,265 +462,6 @@ public class LoggerAppenderQueueThreadPool inherits LoggerAppenderQueue {
     }
 }
 
-#! Implements passing @ref LoggerEvent to target destination
-/**
-    subclasses will implement e.g. logging to file, to stderr, to database etc.
-    \c LoggerAppender supports sync and async logging.
-
-    The ability to selectively enable or disable logging requests based on level in @ref Logger is
-    extended in the appender via @ref LoggerFilter, which implements filtering on any criteria.
-
-    The appender instance should be closed via @ref close() method explicitely to stop accepting
-    logging events which might arrive later than destructing process has started. This process
-    cannot start by design before all events has been processed as the @ref LoggerEvent instance holds refeence
-    to this appender instance.
-*/
-public class LoggerAppender {
-    public {
-        #! open event
-        const EVENT_OPEN = 1;
-        #! logging event
-        const EVENT_LOG = 2;
-        #! close event
-        const EVENT_CLOSE = 3;
-    }
-
-    private {
-        #! The lock to ensure proper serialization with concurrent access
-        RWLock lock();
-    }
-
-    private:internal {
-        #! An inactive appender won't accept any logging request
-        bool active = False;
-
-        #! filter chain
-        list<LoggerFilter> filters;
-
-        #! Appender name
-        string name;
-
-        #! async queue
-        *LoggerAppenderQueue queue;
-    }
-
-    #! Creates the object
-    /**
-        @param name the appender name
-    */
-    constructor(*string name) {
-        self.name = name ?? "";
-    }
-
-    destructor() {
-        /*
-            Note that we cannot enforce calling the close() method in the destructor potentially generating an
-            event, because the related member object instance (e.g. File) might be already destroyed at the time
-            the event is processed. So such an appander instance should be closed explicitly in user code.
-
-            In any case due to Qore's deterministic GC, File and other objects are deleted automatically when they
-            are no longer referenced
-        */
-    }
-
-    #! Returns the appender name
-    public string getName() {
-        return name;
-    }
-
-    #! Sets the appender queue.
-    /**
-        Data are passed to target device synchronously
-        unless queue is assigned. In this case data are queued and
-        dedicated process will process it asynchronously
-
-        @param queue
-        @throw "LOGGER-ERROR" thrown if appender is opened
-    */
-    public setQueue(*LoggerAppenderQueue queue) {
-        AutoWriteLock awl(lock);
-        if (active) {
-            throw "LOGGER-ERROR", "Appender is opened";
-        }
-        self.queue = queue;
-    }
-
-    #! Returns async queue or @ref nothing when events are processed synchronously
-    public *LoggerAppenderQueue getQueue() {
-        return queue;
-    }
-
-    #! Opens logging resources
-    /**
-        The appender must be opened to accept any logging events
-    */
-    public open() {
-        AutoWriteLock awl(lock);
-        if (!active) {
-            pushEvent(EVENT_OPEN, NOTHING);
-            active = True;
-        }
-    }
-
-    #! Releases any resources allocated by the appender and closes it
-    public close() {
-        AutoWriteLock awl(lock);
-        if (active) {
-            pushEvent(EVENT_CLOSE, NOTHING);
-            active = False;
-        }
-    }
-
-    #! Returns @ref True if the appender is open and therefore active
-    public bool isOpen() {
-        return active;
-    }
-
-    #! Adds a filter to the chain
-    /**
-        @param filter the new filter to add
-        @param top if @ref True then the filter is added at the start of the filter chain, if @ref False (the default),
-        the filter is added at the end of the chain
-        @throw "LOGGER-ERROR" thrown if the filter is already in the list
-    */
-    public addFilter(LoggerFilter filter, bool top = False) {
-        AutoWriteLock awl(lock);
-        if (!filters) {
-            filters = (filter, );
-        } else {
-            if (filters.contains(filter)) {
-                throw "LOGGER-ERROR", "Filter already exists in list";
-            }
-            if (top) {
-                unshift filters, filter;
-            } else {
-                push filters, filter;
-            }
-        }
-    }
-
-    #! Removes the given filter from the filter chain.
-    /**
-        @param filter the filter to remove
-    */
-    public removeFilter(LoggerFilter filter) {
-        AutoWriteLock awl(lock);
-        foreach LoggerFilter f in (filters) {
-            if (f == filter) {
-                splice filters, $#, 1;
-                break;
-            }
-        }
-    }
-
-    #! Clears the filter chain by removing all filters
-    public removeAllFilters() {
-        AutoWriteLock awl(lock);
-        splice filters, 0;
-    }
-
-    #! Returns the filter chain as a list
-    /**
-        Note that appender filter chain may be modified as internal lock is released when copy of list is returned
-    */
-    public list<LoggerFilter> getFilters() {
-        AutoReadLock awl(lock);
-        return filters ?? ();
-    }
-
-    #! Serializes the given event to put in the queue or write to the target device
-    /**
-        The appender implementaion can define any format for serialization. The data are passed
-        to @ref processEvent() method in the \c params argument when \c type is \c EVENT_LOG.
-
-        @return the serialized event
-    */
-    abstract private auto serializeImpl(LoggerEvent event);
-
-    #! Pushes the given event on the queue or calls @ref processEvent() in case of synchronous processing
-    /**
-        @param type the event type
-        @param params parameters for the event according to the event type
-
-        @return @ref True if the event was accepted/processed, @ref False if not
-
-        @see @ref processEvent()
-    */
-    private bool pushEvent(int type, auto params) {
-        if (exists queue) {
-            return queue.push(self, type, params);
-        } else {
-            processEvent(type, params);
-            return True;
-        }
-    }
-
-    #! Posts the given event to the output queue
-    /**
-        Invokes filters; when the event is accepted then it is posted to the queue in case of
-        asynchronous processing, or it is immediately logged by the @ref processEvent() method
-        in case of synchronous processing.
-
-        @see @ref processEvent()
-
-        @param event the event to post
-        @return True if the event has been posted, @ref False if not (filtered out, appender inactive,
-        event not accepted on queue, etc)
-    */
-    public bool post(LoggerEvent event) {
-        if (!active) {
-            return False;
-        }
-        {
-            AutoReadLock arl(lock);
-            foreach LoggerFilter filter in (filters) {
-                int d = filter.eval(event);
-                if (d == LoggerFilter::DENY) {
-                    return False;
-                } else if (d == LoggerFilter::ACCEPT) {
-                    break;
-                }
-            }
-        }
-        auto serialized = serializeImpl(event);
-        if (!exists serialized) {
-            return False;
-        }
-        return pushEvent(EVENT_LOG, serialized);
-    }
-
-    #! Processes an event to the physical target
-    /**
-        @see @ref serializeImpl()
-
-        @param type see \c "EVENT_xxx" constants
-        @param params processing parameters
-    */
-    public processEvent(int type, auto params) {
-        # the following call may return a lock holder object that will be released when the local variable goes
-        # out of scope
-        *object holder = ensureAtomicOperations(type);
-        processEventImpl(type, params);
-        # to avoid an "unreferenced-variable" warning
-        remove holder;
-    }
-
-    #! Processes the event to the physical target
-    /**
-        Must be implemented by non-abstract subclasses
-
-        @see @ref serializeImpl()
-
-        @param type see \c "EVENT_xxx" constants
-        @param params processing parameters
-    */
-    abstract public processEventImpl(int type, auto params);
-
-    #! Returns an object that can be used to ensure atomic operations for appender operations
-    private *object ensureAtomicOperations(int type) {
-    }
-}
-
 #! Implements appender which does nothing
 /**
     All events posted to the appender are silently ignored
@@ -1231,380 +474,6 @@ public class LoggerAppenderNull inherits LoggerAppender {
     }
 
     public processEventImpl(int type, auto params) {
-    }
-}
-
-#! Implements pattern parsing and substitution
-/**
-    The pattern defines fields to be substituted with real values
-
-    The pattern format is:
-
-    @code
-    %[<modifiers>] <word> [{<option>}]
-    modifiers := [0-9.-]*
-    word := [a-zA-Z]+
-    option := [^}]*
-    @endcode
-
-    When a word (i.e. longer than one char) key without curly brackets is not found then in the next step is resolved its first char,
-    e.g. \c "%parchive" the first step tries to resolve \c "parchive" key and if not resolved the second step \c "p" key.
-    To parse in key if single step delimit a word from the next character, use curly brackets, i.e. empty option, e.g. \c "%p{}archive".
-    If a key is not resolved then exception is raised.
-
-    The following table covers various modifiers and scenarios:
-
-    | !Format modifier | !left justify | !minimum width | !maximum width | !comment |
-    | %20c             | false         | 20             | none           | Left pad with spaces if the category name is less than 20 characters long |
-    | %-20c            | true          | 20             | none           | Right pad with spaces if the category name is less than 20 characters long |
-    | %.30c            | NA            | none           | 30             | Truncate from the beginning if the category name is longer than 30 characters |
-    | %20.30c          | false         | 20             | 30             | Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
-    | %-20.30c         | true          | 20             | 30             | Right pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning |
-*/
-public class LoggerPattern {
-    public {
-        #! format escape character
-        const ESCAPE_CHAR = "%";
-    }
-
-    private:internal {
-        #! pattern
-        string origPattern;
-    }
-
-    private {
-        #! parsed pattern; list elements may be strings or hashes
-        list<auto> parsedPattern;  # subclass may provide value e.g. for unit tests
-    }
-
-    #! Creates the object
-    /**
-        @param pattern the logger pattern
-        @throw LOGGER-ERROR when pattern is invalid
-    */
-    constructor(string pattern) {
-        # parse pattern
-        setPattern(pattern);
-    }
-
-    #! Sets the new pattern
-    /**
-        @param value the logger pattern
-        @throw LOGGER-ERROR when pattern is invalid
-    */
-    public setPattern(string value) {
-        string patt = value;
-        # list elements may be strings or hashes
-        list<auto> pp = ();
-        while (patt != "") {
-            int pos = 0;
-            do {
-                pos = bindex(patt, ESCAPE_CHAR, pos);
-                if (pos < 0) {
-                    pos = patt.size();
-                } else {
-                    if (pos >= 0 && patt[pos+1] == ESCAPE_CHAR) {  # %%
-                        splice patt, pos, 1;
-                        pos++;
-                        continue;
-                    }
-                }
-                break;
-            } while (True);
-            if (pos >= patt.size()) {
-                push pp, patt;
-                patt = "";
-            } else {
-                if (pos > 0) {
-                    push pp, substr(patt, 0, pos);
-                }
-                splice patt, 0, pos+1;
-                # now the string is token
-                *list<*string> l = regex_extract(patt, "^([0-9.-]*)([a-zA-Z]+)({[^}]*})?");
-                if (l.size() < 2) {
-                    throw "LOGGER-ERROR", sprintf("Wrong pattern starting %%%s", patt);
-                }
-                *list<*string> opt;
-                hash<auto> f;
-                if (l[0] != "") {
-                    # opt = l[0] =~ x/^([-]?)([^.0-9]*)([.]?)([0-9]+)$/;   does not work in all cases
-                    if (opt = (l[0] =~ x/^([-]?)([0-9]+)\.([0-9]+)$/) ) {
-                        f.leftJustify = opt[0] == "-";
-                        f.minWidth = int(opt[1]);
-                        f.maxWidth = int(opt[2]);
-                    } else if (opt = (l[0] =~ x/^([-]?)([0-9]+)$/) ) {
-                        f.leftJustify = opt[0] == "-";
-                        f.minWidth = int(opt[1]);
-                    } else if (opt = (l[0] =~ x/^.([0-9]+)$/) ) {
-                        f.maxWidth = int(opt[0]);
-                    } else {
-                        throw "LOGGER-ERROR", sprintf("Wrong pattern option starting %%%s", patt);
-                    }
-                }
-                f.key = l[1];
-                if (l.size() == 3) {
-                    f.option = (regex_extract(l[2], "^{([^}]*)}$")[0]) ?? "";
-                }
-                patt = regex_subst(patt, "^[0-9.-]*[a-zA-Z]+({[^}]*})?", "");
-                push pp, f;
-            }
-        }
-
-        origPattern = value;
-        parsedPattern = pp;
-    }
-
-    #! Returns the current pattern
-    public string getPattern() {
-        return origPattern;
-    }
-
-    #! Formats the event record with the current pattern
-    /**
-        @param data is passed to @ref resolveField()
-        @throw LOGGER-ERROR when a key is not resolved
-    */
-    public string format(auto data) {
-        string res = "";
-        foreach auto a in (parsedPattern) {
-            if (a.typeCode() == NT_STRING) {
-                res += a;
-            } else {
-                bool fallback = False;
-                *string val = resolveField(data, a.key, a.option);
-                if (!exists val && a.key.size() > 1 && !exists a.option) {
-                    # try one char key if key is longer and has no {}, i.e. fix non intuitive case
-                    val = resolveField(data, substr(a.key, 0, 1));
-                    fallback = exists val;
-                }
-                if (!exists val) {
-                    throw "LOGGER-ERROR", sprintf("Unknown pattern token %y", a.key);
-                }
-
-                if (exists a.maxWidth) {
-                    val = substr(val, 0, a.maxWidth);
-                }
-                if (exists a.minWidth && val.size() < a.minWidth) {
-                    if (a.leftJustify) {
-                        val += strmul(" ", a.minWidth - val.size());
-                    } else {
-                        val = strmul(" ", a.minWidth - val.size()) + val;
-                    }
-                }
-                res += val;
-                if (fallback) {
-                    res += substr(a.key, 1);
-                }
-            }
-        }
-        return res;
-    }
-
-    #! Returns a formatted string for an input pattern
-    /**
-        @param data input context reference data
-        @param key the format character
-        @param option the format option value, if any
-
-        @return the formatted string or nothing if the key is not resolved
-    */
-    abstract private *string resolveField(auto data, string key, *string option);
-}
-
-#! Abstract class that defines the interface for logger layouts
-/**
-    Event data (@ref LoggerEvent) are formatted before the record is passed to the target.
-*/
-public class LoggerLayout {
-    #! Format event record
-    abstract public string format(LoggerEvent event);
-}
-
-#! Implements the formatting of @ref LoggerEvent objects with a pattern
-/**
-    The \c LoggerLayoutPattern lets the user specify the output format according to conversion patterns similar to the @ref Qore::sprintf() "sprintf()"() function.
-
-    The following table explains the characters used in @ref LoggerPattern and all other characters that you can use in your custom pattern:
-
-    | !Conversion character | !Meaning |
-    | \c %%c | Used to output the category of the logging event, i.e. logger name |
-    | \c %%C | Used to output the class name of the caller issuing the logging request, i.e. logger class name |
-    | \c %%d | Used to output the date of the logging event using @ref Qore::format_date() "format_date()". Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}" |
-    | \c %%E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
-    | \c %%F | Used to output the file name where the logging request was issued |
-    | \c %%h | Used to output the hostname where the logging event was generated |
-    | \c %%l | Used to output location information of the caller which generated the logging event, i.e. \c "file:line [function()]" |
-    | \c %%L | Used to output the line number from where the logging request was issued, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
-    | \c %%m | Used to output the application supplied message associated with the logging event |
-    | \c %%M | Used to output the method name where the logging request was issued |
-    | \c %%n | Outputs the platform dependent line separator character or characters |
-    | \c %%p | Used to output the priority of the logging event |
-    | \c %%P | Used to output the PID where the logging event was generated |
-    | \c %%r | Used to output the number of milliseconds elapsed from the construction of the layout until the creation of the logging event, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
-    | \c %%t | Used to output the thread id that generated the logging event, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
-    | \c %%u | Used to output logging event unique id, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
-    | \c %%x | Used to output exception string using @ref Util::get_exception_string() |
-    | \c %% | The literal percent sign. \c "%%" will print a \c "%" sign |
-
-    For example, the \c LoggerLayoutPattern with the conversion pattern \c "%r [%t] %-5p %c - %m%n" will output something like:
-
-    @verbatim
-        176 [23] INFO  MyLogger - New record created
-    @endverbatim
-*/
-public class LoggerLayoutPattern inherits LoggerLayout, public LoggerPattern {
-    public {
-        #! default layout pattern
-        const DEFAULT_PATTERN = "%r [%t] %p %c - %m%n";
-        #! default date format
-        const DEFAULT_DATE_FORMAT = "YYYY-MM-DD HH:mm:SS.u";
-        #! This hostname
-        const HostName = gethostname();
-    }
-
-    #! Creates the object
-    /**
-        @param pattern the logger layout pattern
-    */
-    constructor(string pattern = DEFAULT_PATTERN): LoggerPattern(pattern) {
-    }
-
-    #! Returns the line delimiter used on the current OS
-    static public string getLineDelimiter() {
-        switch (PlatformOS) {
-        case "Windows":
-            return "\r\n";
-        default:
-            return "\n";
-        }
-    }
-
-    #! Formats an event record
-    /** @param event the event to format
-        @return a formatted string for the event
-    */
-    public string format(LoggerEvent event) {
-        return LoggerPattern::format(event);
-    }
-
-    #! Returns the value corresponding to a particular key
-    /**
-        @param event (@ref LoggerEvent)
-        @param key the single-character formatting code
-        @param option optional supporting information for \a key
-    */
-    private *string resolveField(auto event, string key, *string option) {
-        if (!(event instanceof LoggerEvent)) {
-            throw "LOGGER-ERROR", "Unsupported event type";
-        }
-        *string res;
-        switch (key) {
-            case "c":
-                res = event.getCategoryName();
-                break;
-            case "C":
-                res = event.getFullQualifiedClassname();
-                break;
-            case "d":
-                if (option) {
-                    res = format_date(option, event.getTimeStamp());
-                } else {
-                    res = format_date(DEFAULT_DATE_FORMAT, event.getTimeStamp());
-                }
-                break;
-            case "E":
-                res = ENV{option};
-                break;
-            case "F":
-                res = event.getLocationInfo().file;
-                break;
-            case "h":
-                res = HostName;
-                break;
-            case "l":
-                hash<CallStackInfo> csi = event.getLocationInfo();
-                res = sprintf("%s:%d [%s()]", csi.file, csi.line, csi.function);
-                break;
-            case "L":
-                res = sprintf(option ?? "%d", event.getLocationInfo().line);
-                break;
-            case "m":
-                res = event.getMessage();
-                break;
-            case "M":
-                res = event.getLocationInfo().function;
-                break;
-            case "n":
-                res = getLineDelimiter();
-                break;
-            case "p":
-                res = event.getLevel().getStr();
-                break;
-            case "P":
-                res = getpid().toString();
-                break;
-            case "r":
-                res = sprintf(option ?? "%d", get_duration_milliseconds(event.getTimeStamp() - LoggerEvent::getStartTime()));
-                break;
-            case "t":
-                res = sprintf(option ?? "%d", event.getThreadId());
-                break;
-            case "u":
-                res = sprintf(option ?? "%d", event.getUniqueId());
-                break;
-            case "x":
-                if (event.getThrowableInfo()) {
-                    res = get_exception_string(event.getThrowableInfo());
-                } else {
-                    res = "";
-                }
-                break;
-        }
-        return res;
-    }
-}
-
-#! Implements an appender with a layout
-/**
-    The layout is responsible for formatting the @ref LoggerEvent according to the user's wishes,
-    whereas an appender takes care of sending the formatted output to its destination.
-
-    It is used typically for appenders implementing logging to a file
-*/
-public class LoggerAppenderWithLayout inherits LoggerAppender {
-    private:internal {
-        #! assigned layout
-        LoggerLayout layout;
-    }
-
-    #! Creates the object
-    /**
-        @param name the name of the appender
-        @param layout the layout for the appender
-    */
-    constructor(*string name, LoggerLayout layout): LoggerAppender(name) {
-        self.layout = layout;
-    }
-
-    #! Assigns a layout to the appender
-    /**
-    * @param layout the layout for the appender
-    */
-    public setLayout(LoggerLayout layout) {
-        self.layout = layout;
-    }
-
-    #! Returns the layout for the appender
-    public LoggerLayout getLayout() {
-        return layout;
-    }
-
-    #! Returns the value formatted using the layout pattern
-    /**
-        @param event the event to serialize
-    */
-    private auto serializeImpl(LoggerEvent event) {
-        return layout.format(event);
     }
 }
 
@@ -1668,96 +537,6 @@ public class LoggerAppenderStream inherits LoggerAppenderWithLayout {
                 writer.getOutputStream().unassignThread();
             }
         }
-    }
-}
-
-#! Implements appender writing to a file
-/**
-    No multi-threading protection is implemented in the class; the @ref Qore::File "File" class is reused
-*/
-public class LoggerAppenderFile inherits LoggerAppenderWithLayout {
-    public {
-        #! reopen event
-        const EVENT_REOPEN = 1001;
-
-        #! Default open flags
-        const DEFAULT_OPEN_FLAGS = O_CREAT | O_APPEND | O_WRONLY;
-    }
-
-    private {
-        File file;
-        string fileName;
-        *string encoding;
-    }
-
-    #! Creates the object
-    /**
-        @param name the name of the appender
-        @param layout the layout for the appender
-        @param filename the output filename
-        @param encoding the file's output encoding
-    */
-    constructor(*string name, LoggerLayout layout, string filename, *string encoding)
-            : LoggerAppenderWithLayout(name, layout) {
-        file = new File(encoding);
-        fileName = filename;
-        self.encoding = encoding;
-    }
-
-    #! Returns the file object for the appender
-    public File getFile() {
-        return file;
-    }
-
-    #! Returns the current filename
-    public string getFileName() {
-        return fileName;
-    }
-
-    #! Processes open, close, and log events with the file and ignores all other events
-    /**
-        @param type the event type
-        @param params parameters for the event
-    */
-    public processEventImpl(int type, auto params) {
-        switch (type) {
-            case EVENT_OPEN:
-                openFile();
-                break;
-            case EVENT_CLOSE:
-                closeFile();
-                break;
-            case EVENT_REOPEN:
-                reopen();
-                break;
-            case EVENT_LOG:
-                file.print(params);
-                break;
-        }
-    }
-
-    openFile() {
-        file.open2(fileName, DEFAULT_OPEN_FLAGS);
-    }
-
-    closeFile() {
-        closeFileStatic(file);
-    }
-
-    static closeFileStatic(File file) {
-        try {
-            file.close();
-        } catch (hash<ExceptionInfo> ex) {
-            if (ex.err != "ILLEGAL-EXPRESSION") {
-                # catch unclosable stdxxx errors
-                rethrow;
-            }
-        }
-    }
-
-    reopen() {
-        # issue #4842: reopen atomically without closing
-        file.open2(fileName, DEFAULT_OPEN_FLAGS);
     }
 }
 
@@ -1875,7 +654,7 @@ public class LoggerAppenderFileRotate inherits public AbstractLoggerAppenderFile
         @param archive pattern to evaluate archive filename; see below for more information
         @param encoding the encoding of the output file
 
-        The following table explains the characters used in @ref LoggerPattern for both filename and archive parameter
+        The following table explains the characters used in @ref Qore::Logger::LoggerPattern "LoggerPattern" for both filename and archive parameter
 
         | !Conversion character | !Meaning |
         | \c %%s | Used to output the OS directory separator, i.e. "\" or "/" |
@@ -1884,7 +663,7 @@ public class LoggerAppenderFileRotate inherits public AbstractLoggerAppenderFile
         | \c %%E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
         | \c %% | The literal percent sign. \c "%%" will print a \c "%" sign |
 
-        The following table explains the characters used in @ref LoggerPattern for archive parameter only
+        The following table explains the characters used in @ref Qore::Logger::LoggerPattern "LoggerPattern" for archive parameter only
 
         | !Conversion character | !Meaning |
         | \c %%P | Used to output the current logging path with filename |
@@ -2036,7 +815,7 @@ public class LoggerAppenderFileRing inherits public AbstractLoggerAppenderFileRo
         @param count number of files in ring, if count is <=0 then no ratation is performed
         @param encoding the encoding of the output file
 
-        The following table explains the characters used in @ref LoggerPattern and all other characters that you can use in your custom pattern:
+        The following table explains the characters used in @ref Qore::Logger::LoggerPattern "LoggerPattern" and all other characters that you can use in your custom pattern:
 
         | !Conversion character | !Meaning |
         | i | Used to output the current file index from 0 to count-1. option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d" |
@@ -2177,7 +956,7 @@ public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, priva
         @param archive pattern to evaluate archive filename; see below for more information
         @param encoding the output file's encoding
 
-        The following table explains the characters used in @ref LoggerPattern for both filename and archive parameter
+        The following table explains the characters used in @ref Qore::Logger::LoggerPattern "LoggerPattern" for both filename and archive parameter
 
         | !Conversion character | !Meaning |
         | \c %%s | Used to output the OS directory separator, i.e. "\" or "/" |
@@ -2186,7 +965,7 @@ public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, priva
         | \c %%E | Used to output the environment variable with name given by option, e.g. \c "%E{HOME}" |
         | \c %% | The literal percent sign. \c "%%" will print a \c "%" sign |
 
-        The following table explains the characters used in @ref LoggerPattern for archive parameter only
+        The following table explains the characters used in @ref Qore::Logger::LoggerPattern "LoggerPattern" for archive parameter only
 
         | !Conversion character | !Meaning |
         | \c %%P | Used to output the current logging path with filename |
@@ -2314,41 +1093,9 @@ public class LoggerAppenderFileArchive inherits public LoggerAppenderFile, priva
     }
 }
 
-#! Implements a general event filtering class
+#! Implements the filter according event @ref Qore::Logger::LoggerLevel "LoggerLevel"
 /**
-    Users should extend this class to implement customized logging
-    event filtering. The filter consists of a linear chain of
-    particular filters evaluating if the event should be immediately accepted, rejected
-    or passed to next filter.
-*/
-public class LoggerFilter {
-    public {
-        #! The event will be processed
-        const ACCEPT = 1;
-
-        #! No decision could be made, further filtering should occur
-        const NEUTRAL = 0;
-
-        #! The event should not be processed
-        const DENY = -1;
-    }
-
-    #! Performs filtering logic on an event and returns the decision for the event
-    /**
-        The method should be overridden to implement a real rule. The default result is @ref NEUTRAL
-
-        @param event the log event
-
-        @return the result of evaluating the event (the default for this method is @ref NEUTRAL)
-    */
-    public int eval(LoggerEvent event) {
-        return NEUTRAL;
-    }
-}
-
-#! Implements the filter according event @ref LoggerLevel
-/**
-    When @ref LoggerEvent::getLevel does not satisfy the filter condition, then
+    When @ref Qore::Logger::LoggerEvent::getLevel does not satisfy the filter condition, then
     logging is rejected.
 
     The min and max levels define the range to be logged (if min <= max.level) or range which won't be logged (if max < min.level)
@@ -2356,9 +1103,9 @@ public class LoggerFilter {
 public class LoggerFilterLevel inherits LoggerFilter {
     private:internal {
         #! min.level
-        LoggerLevel minLevel;
+        Qore::Logger::LoggerLevel minLevel;
         #! max.level
-        LoggerLevel maxLevel;
+        Qore::Logger::LoggerLevel maxLevel;
     }
 
     #! Creates the object
@@ -2366,7 +1113,8 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param min_value the minimum logging level
         @param max_value the maximum logging level
     */
-    constructor(LoggerLevel min_value = LoggerLevel::getLevelInfo(), LoggerLevel max_value = LoggerLevel::getLevelOff()) {
+    constructor(Qore::Logger::LoggerLevel min_value = Qore::Logger::LoggerLevel::LevelInfo,
+            Qore::Logger::LoggerLevel max_value = Qore::Logger::LoggerLevel::LevelOff) {
         setMinLevel(min_value);
         setMaxLevel(max_value);
     }
@@ -2376,7 +1124,7 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param min_value the minimum logging level
         @param max_value the maximum logging level
     */
-    constructor(int min_value, int max_value = LoggerLevel::OFF) {
+    constructor(int min_value, int max_value = Qore::Logger::LoggerLevel::OFF) {
         setMinLevel(min_value);
         setMaxLevel(max_value);
     }
@@ -2404,7 +1152,7 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param value the minimum logging level
     */
     public setMinLevel(int value) {
-        setMinLevel(LoggerLevel::getLevel(value));
+        setMinLevel(Qore::Logger::LoggerLevel::getLevel(value));
     }
 
     #! Sets the minimum logging level
@@ -2412,7 +1160,7 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param value the minimum logging level
     */
     public setMinLevel(string value) {
-        setMinLevel(LoggerLevel::getLevel(value));
+        setMinLevel(Qore::Logger::LoggerLevel::getLevel(value));
     }
 
     #! Returns the minimum logging level
@@ -2433,7 +1181,7 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param value the maximum logging level
     */
     public setMaxLevel(int value) {
-        setMaxLevel(LoggerLevel::getLevel(value));
+        setMaxLevel(Qore::Logger::LoggerLevel::getLevel(value));
     }
 
     #! Sets the maximum logging level
@@ -2441,11 +1189,11 @@ public class LoggerFilterLevel inherits LoggerFilter {
         @param value the maximum logging level
     */
     public setMaxLevel(string value) {
-        setMaxLevel(LoggerLevel::getLevel(value));
+        setMaxLevel(Qore::Logger::LoggerLevel::getLevel(value));
     }
 
     #! Returns the maximum logging level
-    public LoggerLevel getMaxLevel() {
+    public Qore::Logger::LoggerLevel getMaxLevel() {
         return maxLevel;
     }
 
@@ -2521,45 +1269,45 @@ public class LoggerInterface inherits Qore::Serializable {
     #! Logs a message using the provided logging level
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    abstract log(LoggerLevel level, string message);
+    abstract log(Qore::Logger::LoggerLevel level, string message, ...);
 
     #! Logs a message using the provided logging level
     /**
         @param level the logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    abstract log(int level, string message);
+    abstract log(int level, string message, ...);
 
     #! Logs a message using the provided logging level
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    abstract log(string level, string message);
+    abstract log(string level, string message, ...);
 
     #! Logs a message using the provided logging level and a single argument for any format string arguments
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
-    abstract logArgs(LoggerLevel level, string message, *softlist<auto> args);
+    abstract logArgs(Qore::Logger::LoggerLevel level, string message, *softlist<auto> args);
 
     #! Logs a message using the provided logging level and a single argument for any format string arguments
     /**
         @param level the logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
@@ -2568,8 +1316,8 @@ public class LoggerInterface inherits Qore::Serializable {
     #! Logs a message using the provided logging level and a single argument for any format string arguments
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
@@ -2584,8 +1332,8 @@ public class LoggerInterface inherits Qore::Serializable {
     #! Logs a message object with the TRACE level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     abstract trace(string message, ...);
@@ -2593,8 +1341,8 @@ public class LoggerInterface inherits Qore::Serializable {
     #! Logs a message object with the DEBUG level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     abstract debug(string message, ...);
@@ -2602,8 +1350,8 @@ public class LoggerInterface inherits Qore::Serializable {
     #! Logs a message object with the INFO level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     abstract info(string message, ...);
@@ -2611,8 +1359,8 @@ public class LoggerInterface inherits Qore::Serializable {
     #! Logs a message object with the WARN level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     abstract warn(string message, ...);
@@ -2620,8 +1368,8 @@ public class LoggerInterface inherits Qore::Serializable {
     #! Logs a message object with the ERROR level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     abstract error(string message, ...);
@@ -2629,8 +1377,8 @@ public class LoggerInterface inherits Qore::Serializable {
     #! Logs a message object with the FATAL level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     abstract fatal(string message, ...);
@@ -2643,8 +1391,8 @@ public class LoggerInterface inherits Qore::Serializable {
         @see @ref log()
 
         @param assertion the boolean assertion value
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     abstract assertLog(bool assertion, string message, ...);
@@ -2671,7 +1419,7 @@ public class LoggerInterface inherits Qore::Serializable {
     /**
         @param level the log level to check
     */
-    abstract bool isEnabledFor(LoggerLevel level);
+    abstract bool isEnabledFor(Qore::Logger::LoggerLevel level);
 
     #! Checks whether this Logger is enabled for a given Level passed as parameter
     /**
@@ -2728,11 +1476,11 @@ public class LoggerWrapper inherits LoggerInterface {
     #! Logs a message using the provided logging level if a logger is set
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    log(LoggerLevel level, string message) {
+    log(Qore::Logger::LoggerLevel level, string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
             logger.logArgs(level, message, argv);
@@ -2742,11 +1490,11 @@ public class LoggerWrapper inherits LoggerInterface {
     #! Logs a message using the provided logging level if a logger is set
     /**
         @param level the logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    log(int level, string message) {
+    log(int level, string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
             logger.logArgs(level, message, argv);
@@ -2756,11 +1504,11 @@ public class LoggerWrapper inherits LoggerInterface {
     #! Logs a message using the provided logging level if a logger is set
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    log(string level, string message) {
+    log(string level, string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
             logger.logArgs(level, message, argv);
@@ -2771,12 +1519,12 @@ public class LoggerWrapper inherits LoggerInterface {
     /** Logging is only performed if a logger is set
 
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
-    logArgs(LoggerLevel level, string message, *softlist<auto> args) {
+    logArgs(Qore::Logger::LoggerLevel level, string message, *softlist<auto> args) {
         *LoggerInterface logger = self.logger;
         if (logger) {
             logger.logArgs(level, message, args);
@@ -2787,8 +1535,8 @@ public class LoggerWrapper inherits LoggerInterface {
     /** Logging is only performed if a logger is set
 
         @param level the logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
@@ -2803,8 +1551,8 @@ public class LoggerWrapper inherits LoggerInterface {
     /** Logging is only performed if a logger is set
 
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
@@ -2829,84 +1577,84 @@ public class LoggerWrapper inherits LoggerInterface {
     #! Logs a message object with the TRACE level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     trace(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelTrace(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelTrace, message, argv);
         }
     }
 
     #! Logs a message object with the DEBUG level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     debug(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelDebug(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelDebug, message, argv);
         }
     }
 
     #! Logs a message object with the INFO level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     info(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelInfo(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelInfo, message, argv);
         }
     }
 
     #! Logs a message object with the WARN level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     warn(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelWarn(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelWarn, message, argv);
         }
     }
 
     #! Logs a message object with the ERROR level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     error(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelError(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelError, message, argv);
         }
     }
 
     #! Logs a message object with the FATAL level
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     fatal(string message, ...) {
         *LoggerInterface logger = self.logger;
         if (logger) {
-            logger.logArgs(LoggerLevel::getLevelFatal(), message, argv);
+            logger.logArgs(Qore::Logger::LoggerLevel::LevelFatal, message, argv);
         }
     }
 
@@ -2918,8 +1666,8 @@ public class LoggerWrapper inherits LoggerInterface {
         @see @ref log()
 
         @param assertion the boolean assertion value
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     assertLog(bool assertion, string message, ...) {
@@ -3042,7 +1790,7 @@ public class LoggerWrapper inherits LoggerInterface {
 #! Implements main logger class whose instance will be used by user code when logging
 /**
     The Logger object is provided to user code. When a log is triggered, the message, arguments, current code
-    position, and time are appended as a @ref LoggerEvent event instance when
+    position, and time are appended as a @ref Qore::Logger::LoggerEvent event instance when
     the logging level is enabled. The event is passed to all registered appenders in the given Logger as well as
     in parents in the hierarchy when additivity is enabled.
 */
@@ -3088,6 +1836,26 @@ public class Logger inherits LoggerInterface {
     constructor(string name, LoggerLevel level) {
         self.name = name;
         currentLevel = level;
+    }
+
+    #! Creates the object
+    /**
+        @param name the name of the object
+        @param level the initial level for the logger
+    */
+    constructor(string name, string level) {
+        self.name = name;
+        currentLevel = LoggerLevel::getLevel(level);
+    }
+
+    #! Creates the object
+    /**
+        @param name the name of the object
+        @param level the initial level for the logger
+    */
+    constructor(string name, int level) {
+        self.name = name;
+        currentLevel = LoggerLevel::getLevel(level);
     }
 
     #! Creates the object with an empty name and the given initial level
@@ -3168,7 +1936,7 @@ public class Logger inherits LoggerInterface {
         @param level the logging level as a string
     */
     public setLevel(string level) {
-        setLevel(LoggerLevel::getLevel(level));
+        setLevel(Qore::Logger::LoggerLevel::getLevel(level));
     }
 
     #! Sets the logging level
@@ -3176,7 +1944,7 @@ public class Logger inherits LoggerInterface {
         @param level the logging level to set
     */
     public setLevel(int level) {
-        setLevel(LoggerLevel::getLevel(level));
+        setLevel(Qore::Logger::LoggerLevel::getLevel(level));
     }
 
     #! Decrement logger level
@@ -3230,9 +1998,8 @@ public class Logger inherits LoggerInterface {
     }
 
     #! Returns the call location where the log function was called from
-    private hash<CallStackInfo> getLocation() {
-        list<hash<CallStackInfo>> loc = get_thread_call_stack();
-        return loc[2];   # get location at stack-2
+    private static hash<CallStackInfo> getLocation() {
+        return get_parent_caller_location();
     }
 
     #! Adds an appender to the appender list
@@ -3330,70 +2097,70 @@ public class Logger inherits LoggerInterface {
     #! Logs a message using the provided logging level
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    public log(LoggerLevel level, string message) {
+    public log(LoggerLevel level, string message, ...) {
         logIntern(level, message, argv, getLocation(), True);
     }
 
     #! Logs a message using the provided logging level
     /**
         @param level the logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    public log(int level, string message) {
-        logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
+    public log(int level, string message, ...) {
+        logIntern(Qore::Logger::LoggerLevel::getLevel(level), message, argv, getLocation(), True);
     }
 
     #! Logs a message using the provided logging level
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
-    public log(string level, string message) {
-        logIntern(LoggerLevel::getLevel(level), message, argv, getLocation(), True);
+    public log(string level, string message, ...) {
+        logIntern(Qore::Logger::LoggerLevel::getLevel(level), message, argv, getLocation(), True);
     }
 
     #! Logs a message using the provided logging level and a single argument for any format string arguments
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
-    public logArgs(LoggerLevel level, string message, *softlist<auto> args) {
+    public logArgs(Qore::Logger::LoggerLevel level, string message, *softlist<auto> args) {
         logIntern(level, message, args, getLocation(), True);
     }
 
     #! Logs a message using the provided logging level and a single argument for any format string arguments.
     /**
         @param level the logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
     public logArgs(int level, string message, *softlist<auto> args) {
-        logIntern(LoggerLevel::getLevel(level), message, args, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::getLevel(level), message, args, getLocation(), True);
     }
 
     #! Logs a message using the provided logging level and a single argument for any format string arguments.
     /**
         @param level The logging level.
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
         @param args any format string arguments to the log message
     */
     public logArgs(string level, string message, *softlist<auto> args) {
-        logIntern(LoggerLevel::getLevel(level), message, args, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::getLevel(level), message, args, getLocation(), True);
     }
 
     #! Logs an already prepared logging event object.
@@ -3417,67 +2184,67 @@ public class Logger inherits LoggerInterface {
     #! Logs a message object with the TRACE level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     public trace(string message, ...) {
-        logIntern(LoggerLevel::getLevelTrace(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::getLevelTrace(), message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the DEBUG level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     public debug(string message, ...) {
-        logIntern(LoggerLevel::getLevelDebug(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::getLevelDebug(), message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the INFO level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     public info(string message, ...) {
-        logIntern(LoggerLevel::getLevelInfo(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::LevelInfo, message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the WARN level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     public warn(string message, ...) {
-        logIntern(LoggerLevel::getLevelWarn(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::LevelWarn, message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the ERROR level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     public error(string message, ...) {
-        logIntern(LoggerLevel::getLevelError(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::LevelError, message, argv, getLocation(), True);
     }
 
     #! Logs a message object with the FATAL level.
     /**
         @see @ref log()
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     public fatal(string message, ...) {
-        logIntern(LoggerLevel::getLevelFatal(), message, argv, getLocation(), True);
+        logIntern(Qore::Logger::LoggerLevel::LevelFatal, message, argv, getLocation(), True);
     }
 
     #! Performs logging of assertions
@@ -3488,13 +2255,13 @@ public class Logger inherits LoggerInterface {
         @see @ref log()
 
         @param assertion the boolean assertion value
-        @param message a string to log used as a format string for @ref vsprintf(). Optional arguments are passed to
-        the @ref LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+        @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+        the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
         then it is considered "throwable" information.
     */
     public assertLog(bool assertion, string message, ...) {
         if(!assertion) {
-            logIntern(LoggerLevel::getLevelError(), message, argv, getLocation(), True);
+            logIntern(Qore::Logger::LoggerLevel::LevelError, message, argv, getLocation(), True);
         }
     }
 
@@ -3506,7 +2273,7 @@ public class Logger inherits LoggerInterface {
         @param value the value of the variable
     */
     public traceVar(string var_name, auto value) {
-        logIntern(LoggerLevel::getLevelTrace(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
+        logIntern(Qore::Logger::LoggerLevel::getLevelTrace(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
     }
 
     #! Logs the variable name and value using DEBUG level
@@ -3517,7 +2284,7 @@ public class Logger inherits LoggerInterface {
         @param value the value of the variable
     */
     public debugVar(string var_name, auto value) {
-        logIntern(LoggerLevel::getLevelDebug(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
+        logIntern(Qore::Logger::LoggerLevel::getLevelDebug(), sprintf("%s: %%y", var_name), (value, ), getLocation(), False);
     }
 
     #! Checks whether this Logger is enabled for a given Level passed as parameter.
@@ -3546,32 +2313,32 @@ public class Logger inherits LoggerInterface {
 
     #! Checks whether this Logger is enabled for the TRACE Level.
     public bool isTraceEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelTrace());
+        return isEnabledFor(Qore::Logger::LoggerLevel::getLevelTrace());
     }
 
     #! Checks whether this Logger is enabled for the DEBUG Level.
     public bool isDebugEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelDebug());
+        return isEnabledFor(Qore::Logger::LoggerLevel::getLevelDebug());
     }
 
     #! Checks whether this Logger is enabled for the INFO Level.
     public bool isInfoEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelInfo());
+        return isEnabledFor(Qore::Logger::LoggerLevel::LevelInfo);
     }
 
     #! Checks whether this Logger is enabled for the WARN Level.
     public bool isWarnEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelWarn());
+        return isEnabledFor(Qore::Logger::LoggerLevel::LevelWarn);
     }
 
     #! Checks whether this Logger is enabled for the ERROR Level.
     public bool isErrorEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelError());
+        return isEnabledFor(Qore::Logger::LoggerLevel::LevelError);
     }
 
     #! Checks whether this Logger is enabled for the FATAL Level.
     public bool isFatalEnabled() {
-        return isEnabledFor(LoggerLevel::getLevelFatal());
+        return isEnabledFor(Qore::Logger::LoggerLevel::LevelFatal);
     }
 }
 

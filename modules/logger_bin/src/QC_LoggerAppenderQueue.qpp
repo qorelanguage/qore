@@ -1,0 +1,101 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_LoggerAppenderQueue.cpp LoggerAppenderQueue class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_logger.h"
+
+#include "QC_LoggerAppenderQueue.h"
+#include "QC_LoggerAppender.h"
+
+//! Abstract class that defines the interface for logger appenders
+/** Event data (@ref LoggerEvent) are formatted before the record is passed to the target
+*/
+qclass LoggerAppenderQueue [ns=Qore::Logger; arg=QoreLoggerAppenderQueue* q; internal_members=Queue q];
+
+//! Creates the object
+/**
+*/
+LoggerAppenderQueue::constructor() {
+    Queue* queue = new Queue(-1);
+    ReferenceHolder<QoreObject> q(new QoreObject(QC_QUEUE, getProgram(), queue), xsink);
+    self->setPrivate(CID_LOGGERAPPENDERQUEUE, new QoreLoggerAppenderQueue(self, *q, *queue));
+    self->setValue("q", q.release(), xsink);
+}
+
+//! Adds appender event
+/**
+    @param appender a logger appender object
+    @param type see \c EVENT_xxx constants
+    @param params data prepared by @ref LoggerAppender::serializeImpl()
+    @return True if the event was succesfully added to queue
+*/
+bool LoggerAppenderQueue::push(LoggerAppender[QoreLoggerAppender] appender, int type, auto params) {
+    ReferenceHolder<AbstractPrivateData> holder(appender, xsink);
+    q->push(xsink, obj_appender, type, params);
+    return true;
+}
+
+//! Processes queued events
+/**
+    This method should typically be called in a dedicated thread
+
+    @param ms a timeout value to wait for data to become available on the queue;
+    integers are interpreted as milliseconds; relative date/time values are interpreted
+    literally with a maximum resolution of milliseconds. A value that converts to integer 0 causes
+    the call to time out immediately if the call would otherwise block.
+    If a positive timeout argument is passed, and no data is available in the timeout period
+    then waits up to timeout value, If a negative timeout value is passed as the argument,
+    then the call blocks until data is available on the queue. Default value is 0.
+*/
+LoggerAppenderQueue::process(timeout ms = 0) {
+    q->process(ms, xsink);
+}
+
+//! Returns the current number of events waiting in queue
+/**
+*/
+int LoggerAppenderQueue::size() {
+    return q->size();
+}
+
+//! Returns the next event from queue or @ref nothing if there is no event available within the timeout period
+/**
+    @param ms a timeout value to wait for data to become available on the queue;
+    integers are interpreted as milliseconds; relative date/time values are interpreted
+    literally with a maximum resolution of milliseconds. A value that converts to integer 0 causes
+    the call to time out immediately if the call would otherwise block.
+    If a positive timeout argument is passed, and no data is available in the timeout period
+    then waits up to timeout value, If a negative timeout value is passed as the argument,
+    then the call blocks until data is available on the queue.
+
+    @return the next event from queue or @ref nothing if there is no event available within the timeout period
+*/
+private *hash<auto> LoggerAppenderQueue::getEvent(timeout ms) {
+    return q->getEvent(ms, xsink);
+}

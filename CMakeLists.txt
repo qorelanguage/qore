@@ -651,6 +651,7 @@ set(LIBQORE_CPP_SRC
     lib/QoreSerializable.cpp
     lib/UnicodeCharacterIterator.cpp
     lib/QoreEllipsesNode.cpp
+    lib/QoreRegexInterface.cpp
 )
 
 if (HAVE_SIGNAL_HANDLING)
@@ -843,6 +844,8 @@ add_dependencies(install-docs docs)
 add_subdirectory(modules/astparser)
 # reflection module
 add_subdirectory(modules/reflection)
+# logger module
+add_subdirectory(modules/logger_bin)
 
 # HACK: we need to simulate QORE_USER_MODULES_DIR as the versioned one
 #       for qore core qlib modules.
@@ -869,7 +872,7 @@ qore_user_module("qlib/MapperUtil.qm" "")
 qore_user_module("qlib/FileLocationHandler" "Util")
 qore_user_module("qlib/DataProvider" "MapperUtil" "DataProvider-Full.svg")
 qore_user_module("qlib/Diff.qm" "Util")
-qore_user_module("qlib/Logger.qm" "Util")
+qore_user_module("qlib/Logger.qm" "Util;modules/logger_bin/logger_bin")
 qore_user_module("qlib/Mime.qm" "Util")
 qore_user_module("qlib/QUnit.qm" "Util")
 qore_user_module("qlib/TextWrap.qm" "Util")

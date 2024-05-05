@@ -134,7 +134,8 @@ QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink
             if (member_class_ctx) {
                 SliceKeyMap::iterator i = int_km.find(member_class_ctx);
                 if (i == int_km.end()) {
-                    i = int_km.insert(SliceKeyMap::value_type(member_class_ctx, new QoreListNode(autoTypeInfo))).first;
+                    i = int_km.insert(SliceKeyMap::value_type(member_class_ctx,
+                        new QoreListNode(autoTypeInfo))).first;
                 }
                 i->second->push(new QoreStringNode(*key), nullptr);
             } else {
@@ -193,6 +194,23 @@ QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink
         }
     }
     return rv.release();
+}
+
+// must be called in the object write lock
+QoreHashNode* qore_object_private::getCreateInternalData(const qore_class_private* class_ctx) {
+    if (cdmap) {
+        cdmap_t::iterator i = cdmap->find(class_ctx->getHash());
+        if (i != cdmap->end())
+            return i->second;
+    } else
+        cdmap = new cdmap_t;
+
+    QoreHashNode* id = new QoreHashNode(autoTypeInfo);
+#ifdef DEBUG
+    qore_hash_private::get(*id)->is_obj = true;
+#endif
+    cdmap->insert(cdmap_t::value_type(class_ctx->getHash(), id));
+    return id;
 }
 
 int qore_object_private::checkMemberAccess(const char* mem, const qore_class_private* class_ctx,
@@ -736,9 +754,10 @@ void qore_object_private::setValueIntern(const qore_class_private* class_ctx, co
 
         QoreHashNode* odata = class_ctx ? getCreateInternalData(class_ctx) : data;
 
-        //printd(5, "qore_object_private::setValueIntern() obj: %p '%s' class_ctx: %p '%s' odata: %p\n", obj, key, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", odata);
+        //printd(0, "qore_object_private::setValueIntern() obj: %p '%s' class_ctx: %p '%s' odata: %p v: %s\n", obj,
+        //    key, class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", odata, val.getFullTypeName());
 
-        old_value = odata->takeKeyValue(key);
+        old_value = qore_hash_private::get(*odata)->takeKeyValueIntern(key, this);
 
         before = needs_scan(old_value);
 

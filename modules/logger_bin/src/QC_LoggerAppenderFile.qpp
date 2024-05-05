@@ -1,0 +1,125 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_LoggerAppenderFile.cpp LoggerAppenderFile class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO LEVEL SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_logger.h"
+
+#include "QC_LoggerAppenderFile.h"
+
+//! Implements appender writing to a file
+/**
+    No multi-threading protection is implemented in the class; the @ref Qore::File "File" class is reused
+*/
+qclass LoggerAppenderFile [ns=Qore::Logger; arg=QoreLoggerAppenderFile* a; vparent=LoggerAppenderWithLayout; private_members=File file,string fileName,*string encoding];
+
+//! Creates the appender with the supplied arguments
+/**
+    @param name the name of the appender
+    @param layout the layout for the appender
+    @param filename the output filename
+    @param encoding the file's output encoding
+*/
+LoggerAppenderFile::constructor(*string name, LoggerLayout layout, string filename, *string encoding) {
+    const QoreEncoding* qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+    if (name) {
+        self->setPrivate(CID_LOGGERAPPENDERFILE, new QoreLoggerAppenderFile(self, name, layout, filename, qe,
+            xsink));
+    } else {
+        self->setPrivate(CID_LOGGERAPPENDERFILE, new QoreLoggerAppenderFile(self, layout, filename, qe, xsink));
+    }
+    if (!*xsink && encoding) {
+        self->setValue("encoding", encoding->stringRefSelf(), xsink);
+    }
+}
+
+//! Creates the appender with the supplied arguments
+/**
+    @param layout the layout for the appender
+    @param filename the output filename
+    @param encoding the file's output encoding
+*/
+LoggerAppenderFile::constructor(LoggerLayout layout, string filename, *string encoding) {
+    const QoreEncoding* qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
+    self->setPrivate(CID_LOGGERAPPENDERFILE, new QoreLoggerAppenderFile(self, layout, filename, qe, xsink));
+    if (!*xsink && encoding) {
+        self->setValue("encoding", encoding->stringRefSelf(), xsink);
+    }
+}
+
+//! Returns the file object for the appender
+/**
+*/
+File LoggerAppenderFile::getFile() {
+    return a->getFile(xsink);
+}
+
+//! Returns the current filename
+/**
+*/
+string LoggerAppenderFile::getFileName() {
+    return a->getFileName(xsink);
+}
+
+//! Processes open, close, and log events with the file and ignores all other events
+/**
+    @param type the event type
+    @param params parameters for the event
+*/
+LoggerAppenderFile::processEventImpl(int type, auto params) {
+    a->processEventImpl(xsink, type, params);
+}
+
+//! Opens the file
+/**
+*/
+LoggerAppenderFile::openFile() {
+    a->openFile(xsink);
+}
+
+//! Closes the file
+/**
+*/
+LoggerAppenderFile::closeFile() {
+    a->closeFile(xsink);
+}
+
+//! Closes the given file, ignores errors related to unclosable files
+/**
+*/
+static LoggerAppenderFile::closeFileStatic(File[File] file) {
+    ReferenceHolder<File> f(file, xsink);
+    QoreLoggerAppenderFile::closeFileStatic(file, xsink);
+}
+
+//! Reopens the file atomically
+/**
+*/
+LoggerAppenderFile::reopen() {
+    a->reopen(xsink);
+}

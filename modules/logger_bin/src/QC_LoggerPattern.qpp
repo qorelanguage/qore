@@ -1,0 +1,138 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_LoggerPattern.cpp LoggerPattern class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_logger.h"
+#include "QC_LoggerPattern.h"
+#include "QC_LoggerLayoutPattern.h"
+
+//! This class implements LoggerPattern functionality
+/**
+    The pattern defines fields to be substituted with real values
+
+    The pattern format is:
+
+    @code
+    %[<modifiers>] <word> [{<option>}]
+    modifiers := [0-9.-]*
+    word := [a-zA-Z]+
+    option := [^}]*
+    @endcode
+
+    When a word (i.e. longer than one char) key without curly brackets is not found then in the next step is resolved its first char,
+    e.g. \c "%parchive" the first step tries to resolve \c "parchive" key and if not resolved the second step \c "p" key.
+    To parse in key if single step delimit a word from the next character, use curly brackets, i.e. empty option, e.g. \c "%p{}archive".
+    If a key is not resolved then exception is raised.
+
+    The following table covers various modifiers and scenarios:
+
+    |!Format modifier|!Left justify|!Minimum width|!Maximum width|!Comment
+    |%20c            |false        |20             |none         |Left pad with spaces if the category name is less than 20 characters long
+    |%-20c           |true         |20             |none         |Right pad with spaces if the category name is less than 20 characters long
+    |%.30c           |NA           |none           |30           |Truncate from the beginning if the category name is longer than 30 characters
+    |%20.30c         |false        |20             |30           |Left pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning
+    |%-20.30c        |true         |20             |30           |Right pad with spaces if the category name is shorter than 20 characters. However, if the category name is longer than 30 characters, then truncate from the beginning
+
+    @since %Qore 2.0
+*/
+qclass LoggerPattern [ns=Qore::Logger; arg=QoreLoggerPattern* pat];
+
+//! Creates the object
+/** @par Example:
+    @code{.py}
+LoggerPattern pattern(pat);
+    @endcode
+ */
+LoggerPattern::constructor(string pattern) {
+    ReferenceHolder<QoreLoggerPattern> pat(new QoreLoggerPattern(self), xsink);
+    if (*xsink) {
+        return;
+    }
+    if (pat->setPattern(pattern, xsink)) {
+        assert(*xsink);
+        return;
+    }
+    self->setPrivate(CID_LOGGERPATTERN, pat.release());
+}
+
+//! Sets the new pattern
+/**
+    @param pattern the logger pattern
+
+    @throw LOGGER-ERROR when pattern is invalid
+*/
+LoggerPattern::setPattern(string pattern) {
+    pat->setPattern(pattern, xsink);
+}
+
+//! Returns the current pattern
+/**
+*/
+string LoggerPattern::getPattern() {
+    return pat->getPattern();;
+}
+
+//! Returns the parsed pattern list
+/**
+*/
+list<auto> LoggerPattern::getParsedPattern() {
+    return pat->getParsedPattern();
+}
+
+//! Formats the event record with the current pattern
+/**
+    @param data is passed to @ref resolveField()
+
+    @throw LOGGER-ERROR when a key is not resolved
+*/
+string LoggerPattern::format(auto data) {
+    // see if 'data' is a LoggerLayoutPattern object for optimized calls
+    ReferenceHolder<QoreLoggerLayoutPattern> llp(xsink);
+    if (data.getType() == NT_OBJECT) {
+        QoreObject* obj = data.get<QoreObject>();
+        // only set the private data object if the class is not overridden
+        if (QC_LOGGERLAYOUTPATTERN->isEqual(*obj->getClass())) {
+            llp = obj->tryGetReferencedPrivateData<QoreLoggerLayoutPattern>(CID_LOGGERLAYOUTPATTERN, xsink);
+            if (*xsink) {
+                return QoreValue();
+            }
+        }
+    }
+    return pat->format(data, *llp, xsink);
+}
+
+//! Returns a formatted string for an input pattern
+/**
+    @param data input context reference data
+    @param key the format character
+    @param option the format option value, if any
+
+    @return the formatted string or nothing if the key is not resolved
+*/
+abstract private *string LoggerPattern::resolveField(auto data, string key, *string option);

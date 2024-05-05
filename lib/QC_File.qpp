@@ -255,11 +255,6 @@ File::constructor(*string encoding) {
    const QoreEncoding *qe = encoding ? QEM.findCreate(encoding) : QCS_DEFAULT;
 
    SimpleRefHolder<File> f(new File(qe));
-   if (f->isTty()) {
-      xsink->raiseException("ILLEGAL-EXPRESSION", "File::constructor() cannot be called with a TTY target when 'no-terminal-io' is set");
-      return;
-   }
-
    self->setPrivate(CID_FILE, f.release());
 }
 

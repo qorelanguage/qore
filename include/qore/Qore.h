@@ -100,6 +100,8 @@ DLLEXPORT extern QoreCounter thread_counter;
 #include <qore/QoreTypeSafeReferenceHelper.h>
 #include <qore/QoreEvents.h>
 #include <qore/UnicodeCharacterIterator.h>
+#include <qore/QoreRegexInterface.h>
+#include <qore/Sequence.h>
 #include <qore/qore-version.h>
 
 //! the complete version string of the qore library
