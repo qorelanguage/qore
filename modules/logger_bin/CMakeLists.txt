@@ -79,7 +79,7 @@ qore_wrap_qpp_value(LOGGER_QPP_SOURCES DOXLIST _dox_src ${LOGGER_QPP_SRC})
 add_custom_target(LOGGER_QPP_GENERATED_FILES DEPENDS qpp ${LOGGER_QPP_SOURCES} ${LOGGER_H_SOURCES})
 
 # prepare logger module target
-set(logger_module_name "logger")
+set(logger_module_name "logger_bin")
 
 if (SINGLE_COMPILATION_UNIT)
     add_library(${logger_module_name} MODULE src/logger_scu.cpp)
@@ -88,11 +88,11 @@ else (SINGLE_COMPILATION_UNIT)
 endif (SINGLE_COMPILATION_UNIT)
 
 add_dependencies(${logger_module_name} libqore LOGGER_QPP_GENERATED_FILES)
-set(MODULE_DOX_INPUT ${CMAKE_BINARY_DIR}/modules/logger/mainpage.dox ${_dox_src})
+set(MODULE_DOX_INPUT ${CMAKE_BINARY_DIR}/modules/logger_bin/mainpage.dox ${_dox_src})
 qore_binary_module_qore(${logger_module_name} "${VERSION}" "/${VERSION}")
 
 if (DOXYGEN_FOUND)
     qore_wrap_dox(QORE_DOX_LOGGER_SRC ${QORE_DOX_LOGGER_TMPL_SRC})
     add_custom_target(QORE_LOGGER_MOD_DOX_FILES DEPENDS ${QORE_DOX_LOGGER_SRC})
-    add_dependencies(docs-logger QORE_LOGGER_MOD_DOX_FILES)
+    add_dependencies(docs-logger_bin QORE_LOGGER_MOD_DOX_FILES)
 endif()

@@ -51,10 +51,30 @@ void QoreLoggerAppenderQueue::process(int64 ms, ExceptionSink* xsink) {
         QoreValue appender = rec->getKeyValue("appender", xsink);
         assert(!*xsink);
         assert(appender.getType() == NT_OBJECT);
+        // check if processEvent() method is builtin
+        QoreObject* app = appender.get<QoreObject>();
+        const QoreValue type = rec->getKeyValue("type");
+        assert(type.getType() == NT_INT);
+        const QoreValue params = rec->getKeyValue("params");
+        {
+            // make optimized call if possible
+            const QoreMethod* m = app->getClass()->findMethod("processEvent");
+            assert(m);
+            if (m->isBuiltin()) {
+                ReferenceHolder<QoreLoggerAppender> aholder(
+                    app->tryGetReferencedPrivateData<QoreLoggerAppender>(CID_LOGGERAPPENDER, xsink), xsink
+                );
+                if (aholder) {
+                    aholder->processEvent((int)type.getAsBigInt(), params, xsink);
+                    continue;
+                }
+            }
+        }
+
         ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
-        args->push(rec->getKeyValue("type").refSelf(), xsink);
-        args->push(rec->getKeyValue("params").refSelf(), xsink);
-        appender.get<QoreObject>()->evalMethod("processEvent", *args, xsink).discard(xsink);
+        args->push(type.getAsBigInt(), xsink);
+        args->push(params.refSelf(), xsink);
+        app->evalMethod("processEvent", *args, xsink).discard(xsink);
     }
 }
 

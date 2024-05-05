@@ -298,7 +298,8 @@ MACRO (QORE_USER_MODULE _module_file _mod_deps)
         foreach(i ${_mod_deps})
             # we must use relative directories for tags; using absolute paths for tags will break the documentation
             # when used on any system except the one where it's generated
-            SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=../../${i}/html)
+            get_filename_component(f0 ${i} NAME)
+            SET(MOD_DEPS ${MOD_DEPS} -t${i}.tag=../../${f0}/html)
         endforeach(i)
 
         SET(EXTRA_FILES)

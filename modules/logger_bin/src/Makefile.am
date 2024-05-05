@@ -1,7 +1,7 @@
 # issue #3069: make sure to install correctly when cross compiling
 modexeclibdir=${libdir}/${mymodverdir}
 
-MNAME=logger
+MNAME=logger_bin
 
 if COND_MINGWCC
 LOGGER_QPP=$(top_srcdir)/lib/qpp_native
@@ -45,7 +45,7 @@ modexeclib_LTLIBRARIES = logger.la
 logger_la_SOURCES = $(LOGGER_SOURCES)
 logger_la_LDFLAGS = -module -avoid-version ${LOGGER_LIBS} ${MODULE_LDFLAGS}
 
-LOGGER_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/modules/logger/src $(QORE_LIB_CPPFLAGS)
+LOGGER_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/modules/logger_bin/src $(QORE_LIB_CPPFLAGS)
 
 AM_CPPFLAGS=$(QORE_CPPFLAGS) $(LOGGER_CPPFLAGS)
 

@@ -46,7 +46,7 @@ void logger_module_ns_init(QoreNamespace *rns, QoreNamespace *qns);
 void logger_module_delete();
 
 // qore module symbols
-DLLEXPORT char qore_module_name[] = "logger";
+DLLEXPORT char qore_module_name[] = "logger_bin";
 DLLEXPORT char qore_module_version[] = PACKAGE_VERSION;
 DLLEXPORT char qore_module_description[] = "Qore logger module";
 DLLEXPORT char qore_module_author[] = "David Nichols <david.nichols@qoretechnologies.com>";

@@ -2998,6 +2998,11 @@ QoreListNode* qore_get_thread_call_stack() {
     return thread_list.getCallStack(td->current_stack_location);
 }
 
+QoreHashNode* qore_get_parent_caller_location() {
+    ThreadData* td = thread_data.get();
+    return thread_list.getParentCallerLocation(td->current_stack_location);
+}
+
 QoreHashNode* QoreThreadList::getAllCallStacks() {
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(
         qore_get_complex_list_type(hashdeclCallStackInfo->getTypeInfo())), nullptr);
@@ -3040,8 +3045,23 @@ QoreListNode* QoreThreadList::getCallStack(const QoreStackLocation* stack_locati
     return stack.release();
 }
 
+QoreHashNode* QoreThreadList::getParentCallerLocation(const QoreStackLocation* stack_location) const {
+    ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclCallStackInfo, nullptr), nullptr);
+
+    const QoreStackLocation* w = stack_location;
+    if (w) {
+        w = w->getNext();
+        if (w) {
+            w = w->getNext();
+            return getCallStackHash(*w);
+        }
+    }
+    return nullptr;
+}
+
 // static
-QoreHashNode* QoreThreadList::getCallStackHash(qore_call_t call_type, const std::string& code, const QoreProgramLocation& loc) {
+QoreHashNode* QoreThreadList::getCallStackHash(qore_call_t call_type, const std::string& code,
+        const QoreProgramLocation& loc) {
     ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclCallStackInfo, nullptr), nullptr);
 
     qore_hash_private* ph = qore_hash_private::get(**h);

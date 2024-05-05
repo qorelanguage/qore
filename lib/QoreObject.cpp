@@ -134,7 +134,8 @@ QoreHashNode* qore_object_private::getSlice(const QoreListNode* l, ExceptionSink
             if (member_class_ctx) {
                 SliceKeyMap::iterator i = int_km.find(member_class_ctx);
                 if (i == int_km.end()) {
-                    i = int_km.insert(SliceKeyMap::value_type(member_class_ctx, new QoreListNode(autoTypeInfo))).first;
+                    i = int_km.insert(SliceKeyMap::value_type(member_class_ctx,
+                        new QoreListNode(autoTypeInfo))).first;
                 }
                 i->second->push(new QoreStringNode(*key), nullptr);
             } else {
