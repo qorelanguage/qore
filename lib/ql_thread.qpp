@@ -385,8 +385,11 @@ hash<string, list<hash<CallStackInfo>>> get_all_thread_call_stacks() [dom=THREAD
     return getAllCallStacks();
 }
 
-//! Returns a list of @ref CallStackInfo hashes for the current TID (thread ID); because it is always from the same thread being read, no locking is applied as in @ref get_all_thread_call_stacks()
+//! Returns a list of @ref CallStackInfo hashes for the current TID (thread ID)
 /**
+    Because it is always from the same thread being read, no locking is applied as in
+    @ref get_all_thread_call_stacks()
+
     @return a list of @ref CallStackInfo hashes for the current TID (thread ID)
 
     @par Example:
@@ -405,6 +408,13 @@ foreach hash<CallStackInfo> l in (cs) {
 */
 list<hash<CallStackInfo>> get_thread_call_stack() [dom=THREAD_CONTROL,THREAD_INFO] {
     return qore_get_thread_call_stack();
+}
+
+//! Returns information about the code that called the code that calls this function
+/** @return information about the code that called the code that calls this function
+*/
+*hash<CallStackInfo> get_parent_caller_location() [dom=THREAD_CONTROL,THREAD_INFO] {
+    return qore_get_parent_caller_location();
 }
 
 //! Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions

@@ -138,7 +138,7 @@ public:
         //printd(5, "qore_queue_private::~qore_queue_private() this=%p head=%p tail=%p len=%d\n", this, head, tail, len);
         assert(!head);
         assert(!tail);
-        assert(len == Queue_Deleted);
+        assert(len == Queue_Deleted || !len);
         assert(!desc);
     }
 

@@ -45,6 +45,16 @@ QoreRegex::QoreRegex(const QoreString& s, int64 opts, ExceptionSink* xsink) : Qo
     parseRT(&s, xsink);
 }
 
+QoreRegex::QoreRegex(const char* s, int64 opts, ExceptionSink* xsink) : QoreRegexBase(PCRE_UTF8 | (int)opts),
+        global(opts & QRE_GLOBAL ? true : false) {
+    if (check_re_options(options)) {
+        xsink->raiseException("REGEX-OPTION-ERROR", QLLD " contains invalid option bits", opts);
+        options = 0;
+    }
+
+    parseRT(s, xsink);
+}
+
 QoreRegex::~QoreRegex() {
 }
 
@@ -53,21 +63,25 @@ void QoreRegex::concat(char c) {
 }
 
 void QoreRegex::parseRT(const QoreString* pattern, ExceptionSink* xsink) {
-    const char* err;
-    int eo;
-
     // convert to UTF-8 if necessary
     TempEncodingHelper t(pattern, QCS_UTF8, xsink);
     if (*xsink) {
         return;
     }
 
+    parseRT(t->c_str(), xsink);
+}
+
+void QoreRegex::parseRT(const char* pattern, ExceptionSink* xsink) {
+    const char* err;
+    int eo;
+
     //printd(5, "QoreRegex::parseRT(%s) this=%p\n", t->c_str(), this);
 
-    p = pcre_compile(t->c_str(), options, &err, &eo, 0);
+    p = pcre_compile(pattern, options, &err, &eo, 0);
     if (err) {
-        //printd(5, "QoreRegex::parse() error parsing '%s': %s", t->c_str(), (char* )err);
-        xsink->raiseException("REGEX-COMPILATION-ERROR", (char* )err);
+        //printd(5, "QoreRegex::parse() error parsing '%s': %s", pattern, (char* )err);
+        xsink->raiseException("REGEX-COMPILATION-ERROR", (char*)err);
     }
 }
 

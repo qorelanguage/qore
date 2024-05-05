@@ -640,27 +640,27 @@ class File : public AbstractPollableIoObjectBase, public QoreFile {
 friend class FileReadPollOperationBase;
 friend class FileReadPollOperation;
 public:
-    DLLLOCAL File(const QoreEncoding* cs);
-    DLLLOCAL virtual void deref(ExceptionSink* xsink);
-    DLLLOCAL virtual void deref();
+    DLLEXPORT File(const QoreEncoding* cs);
+    DLLEXPORT virtual void deref(ExceptionSink* xsink);
+    DLLEXPORT virtual void deref();
 
     //! Returns the underlying file descriptor; -1 if not open
     /** @return the underlying file descriptor; -1 if not open
 
         @since %Qore 1.12
     */
-    DLLLOCAL int getPollableDescriptor() const {
+    DLLEXPORT int getPollableDescriptor() const {
         return QoreFile::getPollableDescriptor();
     }
 
     //! Returns a socket polling object to poll for reading file data
     /** @since %Qore 1.19
     */
-    DLLLOCAL QoreObject* startPollRead(ExceptionSink* xsink, QoreObject* self, const char* path, int64 to_read,
+    DLLEXPORT QoreObject* startPollRead(ExceptionSink* xsink, QoreObject* self, const char* path, int64 to_read,
             bool to_string);
 
 protected:
-    DLLLOCAL virtual ~File();
+    DLLEXPORT virtual ~File();
 };
 
 class QoreFileHelper : QorePrivateObjectAccessHelper {

@@ -260,6 +260,11 @@ public:
     //! Call if the ExceptionSink object will be managed outside of Qore
     DLLEXPORT void markExternallyManaged();
 
+    //! Consumes the exception and returns an ExceptionInfo hash for it
+    /** The caller owns the reference returned
+    */
+    DLLEXPORT QoreHashNode* getExceptionInfo();
+
     DLLLOCAL void raiseException(QoreException* e);
     DLLLOCAL void raiseException(const QoreListNode* n);
     DLLLOCAL QoreException* catchException();

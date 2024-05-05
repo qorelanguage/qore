@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/* 
+/*
   QC_Sequence.h
 
   Thread Sequence object
@@ -35,18 +35,16 @@
 
 #define _QORE_CLASS_SEQUENCE_H
 
-#include "qore/intern/Sequence.h"
-
 DLLEXPORT extern qore_classid_t CID_SEQUENCE;
 DLLLOCAL extern QoreClass* QC_SEQUENCE;
 DLLLOCAL QoreClass *initSequenceClass(QoreNamespace& ns);
 
 class QoreSequence : public AbstractPrivateData, public Sequence {
-   protected:
-      DLLLOCAL virtual ~QoreSequence() {}
+    protected:
+        DLLLOCAL virtual ~QoreSequence() {}
 
-   public:
-      DLLLOCAL QoreSequence(int start = 0) : Sequence(start) {}
+    public:
+        DLLLOCAL QoreSequence(int start = 0) : Sequence(start) {}
 };
 
 #endif // _QORE_CLASS_SEQUENCE_H

@@ -1,0 +1,131 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_LoggerLayoutPattern.cpp LoggerLayoutPattern class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_logger.h"
+
+#include "QC_LoggerLayoutPattern.h"
+#include "QC_LoggerEvent.h"
+
+//! Implements the formatting of @ref LoggerEvent objects with a pattern
+/**
+    The \c LoggerLayoutPattern lets the user specify the output format according to conversion patterns similar to the @ref Qore::sprintf() "sprintf()"() function.
+
+    The following table explains the characters used in @ref LoggerPattern and all other characters that you can use in your custom pattern:
+
+    |!Conversion character|!Meaning
+    |\c %%c|Used to output the category of the logging event, i.e. logger name
+    |\c %%C|Used to output the class name of the caller issuing the logging request, i.e. logger class name
+    |\c %%d|Used to output the date of the logging event using @ref Qore::format_date() "format_date()". Option may specify date format, e.g. \c "%d{DD.MM.YYYY HH:mm:SS}"
+    |\c %%E|Used to output the environment variable with name given by option, e.g. \c "%E{HOME}"
+    |\c %%F|Used to output the file name where the logging request was issued
+    |\c %%h|Used to output the hostname where the logging event was generated
+    |\c %%l|Used to output location information of the caller which generated the logging event, i.e. \c "file:line [function()]"
+    |\c %%L|Used to output the line number from where the logging request was issued, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d"
+    |\c %%m|Used to output the application supplied message associated with the logging event
+    |\c %%M|Used to output the method name where the logging request was issued
+    |\c %%n|Outputs the platform dependent line separator character or characters
+    |\c %%p|Used to output the priority of the logging event
+    |\c %%P|Used to output the PID where the logging event was generated
+    |\c %%r|Used to output the number of milliseconds elapsed from the construction of the layout until the creation of the logging event, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d"
+    |\c %%t|Used to output the thread id that generated the logging event, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d"
+    |\c %%u|Used to output logging event unique id, option may specify @ref Qore::sprintf() "sprintf()"() format, e.g. \c "%.3d"
+    |\c %%x|Used to output exception string using @ref Util::get_exception_string()
+    |\c %%|The literal percent sign. \c "%%" will print a \c "%" sign
+
+    For example, the \c LoggerLayoutPattern with the conversion pattern \c "%r [%t] %-5p %c - %m%n" will output
+    something like:
+    @verbatim
+        176 [23] INFO  MyLogger - New record created
+    @endverbatim
+*/
+qclass LoggerLayoutPattern [ns=Qore::Logger; arg=QoreLoggerLayoutPattern* llp; vparent=LoggerLayout, LoggerPattern];
+
+//! Creates the object
+/**
+    @param pattern the logger layout pattern
+*/
+LoggerLayoutPattern::constructor(string pattern = DEFAULT_PATTERN) {
+    ReferenceHolder<QoreLoggerLayoutPattern> llp(new QoreLoggerLayoutPattern(self), xsink);
+    if (*xsink) {
+        return;
+    }
+    if (llp->setPattern(pattern, xsink)) {
+        assert(*xsink);
+        return;
+    }
+    self->setPrivate(CID_LOGGERLAYOUTPATTERN, llp.release());
+}
+
+//! Returns a formatted string for an input pattern
+/**
+    Format event record
+*/
+string LoggerLayoutPattern::format(LoggerEvent[QoreLoggerEvent] event) {
+    ReferenceHolder<AbstractPrivateData> holder(event, xsink);
+    return llp->format(xsink, obj_event, obj_event, event);
+}
+
+//! Returns the line delimiter used on the current OS
+/**
+*/
+static string LoggerLayoutPattern::getLineDelimiter() {
+    return QoreLoggerLayoutPattern::LineDelimeter->stringRefSelf();
+}
+
+//! Returns the value corresponding to a particular key
+/**
+    @param event (@ref LoggerEvent)
+    @param key the single-character formatting code
+    @param option optional supporting information for \a key
+
+    @throw UNSUPPORTED-EVENT-TYPE thrown if the event is not a LoggerEvent object
+*/
+private *string LoggerLayoutPattern::resolveField(auto event, string key, *string option) {
+    bool ok = false;
+    QoreObject* obj_event = event.getType() == NT_OBJECT ? event.get<QoreObject>() : nullptr;
+    if (obj_event) {
+        ok = obj_event->validInstanceOf(*QC_LOGGEREVENT);
+    }
+    if (!ok) {
+        xsink->raiseException("UNSUPPORTED-EVENT-TYPE", new QoreStringNodeMaker("\"event\" is not a LoggerEvent "
+            "object; got \"%s\" instead\n", event.getFullTypeName()));
+        return QoreValue();
+    }
+    // only set the private data object if the class is not overridden
+
+    ReferenceHolder<QoreLoggerEvent> ev(xsink);
+    if (QC_LOGGEREVENT->isEqual(*obj_event->getClass())) {
+        ev = obj_event->tryGetReferencedPrivateData<QoreLoggerEvent>(CID_LOGGEREVENT, xsink);
+        if (*xsink) {
+            return QoreValue();
+        }
+    }
+    return llp->resolveField(const_cast<QoreObject*>(obj_event), *ev, key, option, xsink);
+}

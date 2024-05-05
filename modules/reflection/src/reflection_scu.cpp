@@ -1,4 +1,4 @@
-// astparser module single compilation unit
+// reflection module single compilation unit
 
 #include "QC_AbstractVariant.cpp"
 #include "QC_FunctionVariant.cpp"

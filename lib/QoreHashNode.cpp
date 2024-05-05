@@ -52,6 +52,34 @@
 
 static const char* qore_hash_type_name = "hash";
 
+QoreValue qore_hash_private::takeKeyValueIntern(const char* key, qore_object_private* obj) {
+    assert(key);
+
+    hm_hm_t::iterator i = hm.find(key);
+
+    if (i == hm.end()) {
+        return QoreValue();
+    }
+
+    qhlist_t::iterator li = i->second;
+    hm.erase(i);
+
+    QoreValue rv = (*li)->val;
+    internDeleteKey(li);
+
+    if (needs_scan(rv)) {
+        if (obj) {
+            assert(is_obj);
+            obj->incScanCount(-1);
+        } else {
+            assert(!is_obj);
+            incScanCount(-1);
+        }
+    }
+
+    return rv;
+}
+
 QoreListNode* qore_hash_private::getKeys() const {
     QoreListNode* list = new QoreListNode(stringTypeInfo);
     qore_list_private::get(*list)->reserve(member_list.size());

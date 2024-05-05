@@ -761,7 +761,7 @@ public:
 
     //! insert a character at a certain position in the string a number of times
     /** @param c the character to insert
-         @param pos the position to insert the character(s) (first position is 0)
+        @param pos the position to insert the character(s) (first position is 0)
         @param times the number of times the character should be inserted
 
         @return 0 = OK, -1 = error (pos is greater than the string's length)
@@ -770,7 +770,7 @@ public:
 
     //! inserts a character string at a certain position in the string
     /** @param str the string to insert
-         @param pos the position to insert the string (first position is 0)
+        @param pos the position to insert the string (first position is 0)
 
         @return 0 = OK, -1 = error (pos is greater than the string's length)
     */
@@ -781,7 +781,7 @@ public:
 
     //! append a UTF-8 character sequence from a unicode code point, assumes the string is tagged with QCS_UTF8 encoding
     /** WARNING! Does not check the encoding before appending data to the string; if the string
-         was not created as a UTF-8 string, then this function will append invalid data to the
+        was not created as a UTF-8 string, then this function will append invalid data to the
         string.
         @param code the Unicode code point to append to the string as UTF-8 data
         @see QoreString::concatUnicode()
@@ -790,21 +790,21 @@ public:
 
     //! append a character sequence from a unicode code point (returns 0 for OK, -1 for exception)
     /** tries to convert the unicode data to the string's character encoding, if an error occurs an exception will be thrown
-         @param code the Unicode code point to append to the string
+        @param code the Unicode code point to append to the string
         @param xsink if an error occurs, the Qore-language exception information will be added here
     */
     DLLEXPORT int concatUnicode(unsigned code, ExceptionSink* xsink);
 
     //! append a character sequence from a unicode code point (returns 0 for OK, -1 for error)
     /**
-         @param code the Unicode code point to append to the string
+        @param code the Unicode code point to append to the string
         @return returns 0 for OK, -1 for error (current encoding does not support this unicode character)
     */
     DLLEXPORT int concatUnicode(unsigned code);
 
     //! return a Qorestring with the characters reversed
     /**
-         @return a Qorestring with the characters reversed
+        @return a Qorestring with the characters reversed
     */
     DLLEXPORT QoreString* reverse() const;
 
@@ -877,14 +877,14 @@ public:
 
     //! return Unicode code point for character offset, string must be UTF-8
     /** if the string is not in UTF-8 encoding (tagged with QCS_UTF8), an unpredictable value will be returned
-         @param offset the offset in characters (not bytes) in the string (negative offset means that many characters from the end of the string)
+        @param offset the offset in characters (not bytes) in the string (negative offset means that many characters from the end of the string)
         @return the unicode code for the character or -1 in case of an error
     */
     DLLEXPORT unsigned int getUnicodePointFromUTF8(qore_offset_t offset = 0) const;
 
     //! return Unicode code point for the single character at the given character (not byte) offset in the string
     /** @param offset the offset in characters (not bytes) in the string; may be negative giving an offset from the end of the string
-         @param xsink if an error occurs, the Qore-language exception information will be added here
+        @param xsink if an error occurs, the Qore-language exception information will be added here
 
         @return the unicode code for the character or -1 in case of an error
     */
@@ -892,7 +892,7 @@ public:
 
     //! return Unicode code point for the given byte offset
     /** @param offset the offset in bytes in the string
-         @param len the length of the character in bytes in the source string in the original encoding
+        @param len the length of the character in bytes in the source string in the original encoding
         @param xsink if an error occurs, the Qore-language exception information will be added here
 
         @return the unicode code for the character at the given byte offset or -1 in case of an error
@@ -970,7 +970,7 @@ public:
 
     //! returns the character position of a substring searching in reverse from a given position or -1 if not found
     /** @param needle the string to find
-         @param pos the character position to start the search; if pos is < 0 then it gives an offset from the end of the string (-1 = last character)
+        @param pos the character position to start the search; if pos is < 0 then it gives an offset from the end of the string (-1 = last character)
         @param xsink if an error occurs, the Qore-language exception information will be added here
 
         @return -1 for not found otherwise the character position of the last occurrence of the search string

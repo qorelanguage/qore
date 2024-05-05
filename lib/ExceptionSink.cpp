@@ -164,6 +164,18 @@ void ExceptionSink::markExternallyManaged() {
     }
 }
 
+QoreHashNode* ExceptionSink::getExceptionInfo() {
+    QoreException* except = catchException();
+    if (!except) {
+        return nullptr;
+    }
+    ExceptionSink xsink2;
+    ReferenceHolder<QoreHashNode> rv(except->makeExceptionObject(), &xsink2);
+    except->del(&xsink2);
+    xsink2.clear();
+    return rv.release();
+}
+
 void ExceptionSink::clear() {
     if (priv->count) {
         assert(!priv->externally_managed);

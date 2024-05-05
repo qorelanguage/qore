@@ -503,6 +503,16 @@ public:
     //! returns a QoreValue object and leaves the current object empty; the caller owns any reference contained in the return value
     DLLEXPORT QoreValue release();
 
+    //! returns a pointer to a value of the given class and leaves the current object empty
+    /** the caller owns any reference contained in the return value
+    */
+    template<typename T>
+    DLLLOCAL T* releaseAs() {
+        T* rv = v.get<T>();
+        release();
+        return rv;
+    }
+
     //! assigns the object, any currently-held value is dereferenced before the assignment
     DLLLOCAL QoreValue& operator=(QoreValue nv) {
         v.discard(xsink);

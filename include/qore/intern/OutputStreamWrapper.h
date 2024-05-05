@@ -41,9 +41,9 @@ class OutputStreamWrapper : public OutputStream {
 
 public:
     /**
-        * @brief Constructor.
-        * @param self the QoreObject this private data is associated with
-        */
+     * @brief Constructor.
+     * @param self the QoreObject this private data is associated with
+     */
     OutputStreamWrapper(QoreObject *self) : self(self) {
     }
 
@@ -72,7 +72,7 @@ public:
     }
 
 private:
-    QoreObject *self;                    //!< The QoreObject this private data is associated with
+    QoreObject* self;                    //!< The QoreObject this private data is associated with
 };
 
 #endif // _QORE_OUTPUTSTREAMWRAPPER_H

@@ -51,8 +51,12 @@ public:
     typedef std::function<const QoreProgramLocation* ()> q_get_loc_t;
 
     DLLLOCAL QoreRegex();
+
     // used at run-time, does not change str
     DLLLOCAL QoreRegex(const QoreString& str, int64 options, ExceptionSink* xsink);
+
+    // used at run-time, does not change str; str must be in UTF-8 encoding
+    DLLLOCAL QoreRegex(const char* str, int64 options, ExceptionSink* xsink);
 
     DLLLOCAL ~QoreRegex();
 
@@ -61,6 +65,8 @@ public:
     // this allows the source location to only be created if it's needed due to the error
     DLLLOCAL void parse(q_get_loc_t get_loc);
     DLLLOCAL void parseRT(const QoreString* pattern, ExceptionSink* xsink);
+    // pattern must be in UTF-8 encoding
+    DLLLOCAL void parseRT(const char* pattern, ExceptionSink* xsink);
     DLLLOCAL bool exec(const QoreString* target, ExceptionSink* xsink) const;
     DLLLOCAL bool exec(const char* str, size_t len) const;
     DLLLOCAL QoreListNode* extractSubstrings(const QoreString* target, ExceptionSink* xsink) const;
