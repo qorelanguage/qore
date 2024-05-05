@@ -100,8 +100,14 @@ protected:
     //! The owning object
     QoreObject* self;
 
-    //! Is this a direct object of the LoggerAppender class?
-    bool direct;
+    //! Is pushEvent() native?
+    bool direct_push_event;
+
+    //! Is ensureAtomicOperations() native?
+    bool direct_ensure_atomic_operations;
+
+    //! Is serializeImpl() native?
+    bool direct_serialize_impl;
 
     // Read-write lock
     QoreRWLock lock;
@@ -118,6 +124,9 @@ protected:
     //! Async queue (LoggerAppenderQueue object)
     QoreObject* queue = nullptr;
     QoreLoggerAppenderQueue* qqueue = nullptr;
+
+    //! Set direct flags
+    DLLLOCAL void setDirect();
 
     //! Pushes the given event on the queue or calls @ref processEvent() in case of synchronous processing
     DLLLOCAL bool pushEventLocked(ExceptionSink* xsink, int64 type, QoreValue params = QoreValue());

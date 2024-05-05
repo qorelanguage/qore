@@ -8,7 +8,7 @@ qoredatadir = $(datarootdir)/qore
 
 AUTOMAKE_OPTIONS = foreign
 
-SUBDIRS = lib modules/astparser modules/reflection modules/logger
+SUBDIRS = lib modules/astparser modules/reflection modules/logger_bin
 
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
@@ -506,40 +506,40 @@ MODULE_EXTRA_SRC = modules/astparser/src/QC_AstParser.qpp \
 	modules/reflection/src/QC_Class.qpp \
 	modules/reflection/src/QC_AbstractConstant.h \
 	modules/reflection/src/QC_ConstructorMethod.h \
-    modules/logger/src/qore_logger.h \
-    modules/logger/src/logger-module.cpp \
-    modules/logger/src/QoreLoggerLevelBase.cpp \
-    modules/logger/src/QoreLoggerLevelBase.h \
-    modules/logger/src/QC_LoggerLevelBase.qpp \
-    modules/logger/src/QC_LoggerLevelBase.h \
-    modules/logger/src/QoreLoggerPattern.cpp \
-    modules/logger/src/QoreLoggerPattern.h \
-    modules/logger/src/QC_LoggerPattern.qpp \
-    modules/logger/src/QC_LoggerPattern.h \
-    modules/logger/src/QoreLoggerEvent.cpp \
-    modules/logger/src/QoreLoggerEvent.h \
-    modules/logger/src/QC_LoggerEvent.qpp \
-    modules/logger/src/QC_LoggerEvent.h \
-    modules/logger/src/QC_LoggerFilter.qpp \
-    modules/logger/src/QC_LoggerFilter.h \
-    modules/logger/src/QC_LoggerLayout.qpp \
-    modules/logger/src/QC_LoggerLayout.h \
-    modules/logger/src/QoreLoggerLayoutPattern.qpp \
-    modules/logger/src/QoreLoggerLayoutPattern.h \
-    modules/logger/src/QC_LoggerLayoutPattern.qpp \
-    modules/logger/src/QC_LoggerLayoutPattern.h \
-    modules/logger/src/QoreLoggerAppender.qpp \
-    modules/logger/src/QoreLoggerAppender.h \
-    modules/logger/src/QC_LoggerAppender.qpp \
-    modules/logger/src/QC_LoggerAppender.h \
-    modules/logger/src/QoreLoggerAppenderQueue.qpp \
-    modules/logger/src/QoreLoggerAppenderQueue.h \
-    modules/logger/src/QC_LoggerAppenderQueue.qpp \
-    modules/logger/src/QC_LoggerAppenderQueue.h \
-    modules/logger/src/QoreLoggerAppenderWithLayout.qpp \
-    modules/logger/src/QoreLoggerAppenderWithLayout.h \
-    modules/logger/src/QC_LoggerAppenderWithLayout.qpp \
-    modules/logger/src/QC_LoggerAppenderWithLayout.h
+    modules/logger_bin/src/qore_logger.h \
+    modules/logger_bin/src/logger-module.cpp \
+    modules/logger_bin/src/QoreLoggerLevelBase.cpp \
+    modules/logger_bin/src/QoreLoggerLevelBase.h \
+    modules/logger_bin/src/QC_LoggerLevelBase.qpp \
+    modules/logger_bin/src/QC_LoggerLevelBase.h \
+    modules/logger_bin/src/QoreLoggerPattern.cpp \
+    modules/logger_bin/src/QoreLoggerPattern.h \
+    modules/logger_bin/src/QC_LoggerPattern.qpp \
+    modules/logger_bin/src/QC_LoggerPattern.h \
+    modules/logger_bin/src/QoreLoggerEvent.cpp \
+    modules/logger_bin/src/QoreLoggerEvent.h \
+    modules/logger_bin/src/QC_LoggerEvent.qpp \
+    modules/logger_bin/src/QC_LoggerEvent.h \
+    modules/logger_bin/src/QC_LoggerFilter.qpp \
+    modules/logger_bin/src/QC_LoggerFilter.h \
+    modules/logger_bin/src/QC_LoggerLayout.qpp \
+    modules/logger_bin/src/QC_LoggerLayout.h \
+    modules/logger_bin/src/QoreLoggerLayoutPattern.qpp \
+    modules/logger_bin/src/QoreLoggerLayoutPattern.h \
+    modules/logger_bin/src/QC_LoggerLayoutPattern.qpp \
+    modules/logger_bin/src/QC_LoggerLayoutPattern.h \
+    modules/logger_bin/src/QoreLoggerAppender.qpp \
+    modules/logger_bin/src/QoreLoggerAppender.h \
+    modules/logger_bin/src/QC_LoggerAppender.qpp \
+    modules/logger_bin/src/QC_LoggerAppender.h \
+    modules/logger_bin/src/QoreLoggerAppenderQueue.qpp \
+    modules/logger_bin/src/QoreLoggerAppenderQueue.h \
+    modules/logger_bin/src/QC_LoggerAppenderQueue.qpp \
+    modules/logger_bin/src/QC_LoggerAppenderQueue.h \
+    modules/logger_bin/src/QoreLoggerAppenderWithLayout.qpp \
+    modules/logger_bin/src/QoreLoggerAppenderWithLayout.h \
+    modules/logger_bin/src/QC_LoggerAppenderWithLayout.qpp \
+    modules/logger_bin/src/QC_LoggerAppenderWithLayout.h
 
 include_HEADERS = \
 	include/qore/QoreValue.h \
