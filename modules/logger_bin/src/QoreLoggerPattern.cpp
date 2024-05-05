@@ -104,15 +104,14 @@ int QoreLoggerPattern::setPattern(const QoreStringNode* pattern, ExceptionSink* 
 
         ReferenceHolder<QoreHashNode> f(new QoreHashNode(autoTypeInfo), xsink);
         const QoreValue l0 = l->retrieveEntry(0);
-        if (l0 && !l0.get<const QoreStringNode>()->empty()) {
-            assert(l0.getType() == NT_STRING);
+        if (l0.getType() == NT_STRING && !l0.get<const QoreStringNode>()->empty()) {
             const QoreStringNode* l0str = l0.get<const QoreStringNode>();
             // check first pattern
             ReferenceHolder<QoreListNode> opt(t1.extractSubstrings(*l0str, xsink), xsink);
             if (opt && !opt->empty()) {
                 assert(opt->size() == 3);
                 const QoreValue opt0 = opt->retrieveEntry(0);
-                bool lj = opt0 && *opt0.get<const QoreStringNode>() == "-";
+                bool lj = opt0.getType() == NT_STRING && *opt0.get<const QoreStringNode>() == "-";
                 //printd(5, "getPattern() 0 lj: %d (%s)\n", lj, opt0 ? opt0.get<const QoreStringNode>()->c_str() : "");
                 f->setKeyValue("leftJustify", lj, xsink);
                 f->setKeyValue("minWidth", opt->retrieveEntry(1).getAsBigInt(), xsink);
@@ -122,8 +121,9 @@ int QoreLoggerPattern::setPattern(const QoreStringNode* pattern, ExceptionSink* 
                 if (opt && !opt->empty()) {
                     assert(opt->size() == 2);
                     const QoreValue opt0 = opt->retrieveEntry(0);
-                    bool lj = opt0 && *opt0.get<const QoreStringNode>() == "-";
-                    //printd(5, "getPattern() 1 lj: %d (%s)\n", lj, opt0 ? opt0.get<const QoreStringNode>()->c_str() : "");
+                    bool lj = opt0.getType() == NT_STRING && *opt0.get<const QoreStringNode>() == "-";
+                    //printd(5, "getPattern() 1 lj: %d (%s)\n", lj, opt0.getType() == NT_STRING ?
+                    //    opt0.get<const QoreStringNode>()->c_str() : "");
                     f->setKeyValue("leftJustify", lj, xsink);
                     f->setKeyValue("minWidth", opt->retrieveEntry(1).getAsBigInt(), xsink);
                 } else {
@@ -236,6 +236,7 @@ QoreStringNode* QoreLoggerPattern::format(ExceptionSink* xsink, const QoreLogger
                 if (*xsink) {
                     return nullptr;
                 }
+                assert(k->getType() == NT_STRING);
                 val = callResolveField(llp, event, ev, data, k->get<const QoreStringNode>(), nullptr, xsink);
                 fallback = (bool)val;
             }

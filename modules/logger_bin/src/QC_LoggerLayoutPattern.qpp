@@ -71,7 +71,7 @@ qclass LoggerLayoutPattern [ns=Qore::Logger; arg=QoreLoggerLayoutPattern* llp; v
 /**
     @param pattern the logger layout pattern
 */
-LoggerLayoutPattern::constructor(string pattern = DEFAULT_PATTERN) {
+LoggerLayoutPattern::constructor(string pattern = "%r [%t] %p %c - %m%n") {
     ReferenceHolder<QoreLoggerLayoutPattern> llp(new QoreLoggerLayoutPattern(self), xsink);
     if (*xsink) {
         return;
