@@ -16,7 +16,7 @@ dummy:
 	$(LOGGER_QPP) -V $<
 
 GENERATED_SOURCES = QC_LoggerPattern.cpp \
-    QC_LoggerLevelBase.cpp \
+    QC_LoggerLevel.cpp \
     QC_LoggerEvent.cpp \
     QC_LoggerFilter.cpp \
     QC_LoggerLayout.cpp \
@@ -31,7 +31,7 @@ LOGGER_SOURCES = logger_scu.cpp
 logger_scu.cpp: $(GENERATED_SOURCES)
 else
 LOGGER_SOURCES = logger-module.cpp \
-    QoreLoggerLevelBase.cpp \
+    QoreLoggerLevel.cpp \
     QoreLoggerPattern.cpp \
     QoreLoggerLayoutPattern.cpp \
     QoreLoggerEvent.cpp \

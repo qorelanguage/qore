@@ -22,7 +22,7 @@ include_directories(${CMAKE_SOURCE_DIR/include})
 
 # source files
 set(LOGGER_QPP_SRC
-    src/QC_LoggerLevelBase.qpp
+    src/QC_LoggerLevel.qpp
     src/QC_LoggerPattern.qpp
     src/QC_LoggerEvent.qpp
     src/QC_LoggerFilter.qpp
@@ -35,7 +35,7 @@ set(LOGGER_QPP_SRC
 
 set(LOGGER_CPP_SRC
     src/logger-module.cpp
-    src/QoreLoggerLevelBase.cpp
+    src/QoreLoggerLevel.cpp
     src/QoreLoggerPattern.cpp
     src/QoreLoggerLayoutPattern.cpp
     src/QoreLoggerEvent.cpp
@@ -48,12 +48,12 @@ set(LOGGER_CPP_SRC
 # when src/ dir is in included_directory
 set(LOGGER_H_SRC
     src/qore_logger.h
-    src/QoreLoggerLevelBase.h
+    src/QoreLoggerLevel.h
     src/QoreLoggerPattern.h
     src/QoreLoggerAppender.h
     src/QoreLoggerAppenderQueue.h
     src/QoreLoggerAppenderWithLayout.h
-    src/QC_LoggerLevelBase.h
+    src/QC_LoggerLevel.h
     src/QC_LoggerPattern.h
     src/QC_LoggerEvent.h
     src/QC_LoggerFilter.h
