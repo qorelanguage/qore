@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_LoggerLevel.h LoggerLevel class definition */
+/** @file QC_LoggerInterface.h LoggerInterface class definition */
 /*
     Qore Programming Language
 
@@ -28,16 +28,16 @@
     information.
 */
 
-#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLEVEL_H
+#ifndef _QORE_MODULE_LOGGER_QC_LOGGERINTERFACE_H
 
-#define _QORE_MODULE_LOGGER_QC_LOGGERLEVEL_H
+#define _QORE_MODULE_LOGGER_QC_LOGGERINTERFACE_H
 
-#include "QoreLoggerLevel.h"
+#include "QoreLoggerInterface.h"
 
-DLLEXPORT extern qore_classid_t CID_LOGGERLEVEL;
-DLLLOCAL extern QoreClass* QC_LOGGERLEVEL;
+DLLEXPORT extern qore_classid_t CID_LOGGERINTERFACE;
+DLLLOCAL extern QoreClass* QC_LOGGERINTERFACE;
 
-DLLLOCAL void preinitLoggerLevelClass();
-DLLLOCAL QoreClass* initLoggerLevelClass(QoreNamespace& ns);
+DLLLOCAL void preinitLoggerInterfaceClass();
+DLLLOCAL QoreClass* initLoggerInterfaceClass(QoreNamespace& ns);
 
 #endif

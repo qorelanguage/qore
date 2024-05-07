@@ -34,12 +34,12 @@
 #include "QC_LoggerPattern.h"
 
 QoreLoggerAppenderWithLayout::QoreLoggerAppenderWithLayout(QoreObject* self, const QoreObject* layout,
-        ExceptionSink* xsink) : QoreLoggerAppender(self) {
+        ExceptionSink* xsink) : QoreLoggerAppender(xsink, self) {
     setLayout(xsink, layout);
 }
 
 QoreLoggerAppenderWithLayout::QoreLoggerAppenderWithLayout(QoreObject* self, const QoreStringNode* n,
-        const QoreObject* layout, ExceptionSink* xsink) : QoreLoggerAppender(self, n) {
+        const QoreObject* layout, ExceptionSink* xsink) : QoreLoggerAppender(xsink, self, n) {
     setLayout(xsink, layout);
 }
 

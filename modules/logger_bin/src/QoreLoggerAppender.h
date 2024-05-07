@@ -41,12 +41,13 @@ constexpr int EVENT_CLOSE = 3;
 
 // forward references
 class QoreLoggerAppenderQueue;
+class QoreLoggerAppenderWithLayout;
 
 class QoreLoggerAppender : public AbstractPrivateData {
 public:
-    DLLLOCAL QoreLoggerAppender(QoreObject* self);
+    DLLLOCAL QoreLoggerAppender(ExceptionSink* xsink, QoreObject* self);
 
-    DLLLOCAL QoreLoggerAppender(QoreObject* self, const QoreStringNode* n);
+    DLLLOCAL QoreLoggerAppender(ExceptionSink* xsink, QoreObject* self, const QoreStringNode* n);
 
     using AbstractPrivateData::deref;
     DLLLOCAL virtual void deref(ExceptionSink* xsink) {
@@ -91,7 +92,7 @@ public:
     DLLLOCAL bool pushEvent(ExceptionSink* xsink, int64 type, QoreValue params = QoreValue());
 
     //! Posts the given event to the output queue
-    bool post(ExceptionSink* xsink, const QoreObject* event);
+    bool post(ExceptionSink* xsink, const QoreObject* event, QoreLoggerEvent* e = nullptr);
 
     //! Processes the event to the physical target
     DLLLOCAL void processEvent(int type, const QoreValue params, ExceptionSink* xsink);
@@ -105,9 +106,6 @@ protected:
 
     //! Is ensureAtomicOperations() native?
     bool direct_ensure_atomic_operations;
-
-    //! Is serializeImpl() native?
-    bool direct_serialize_impl;
 
     // Read-write lock
     QoreRWLock lock;
@@ -125,8 +123,11 @@ protected:
     QoreObject* queue = nullptr;
     QoreLoggerAppenderQueue* qqueue = nullptr;
 
+    // Native implementation for the serializeImpl() call
+    QoreLoggerAppenderWithLayout* al = nullptr;
+
     //! Set direct flags
-    DLLLOCAL void setDirect();
+    DLLLOCAL void setDirect(ExceptionSink* xsink);
 
     //! Pushes the given event on the queue or calls @ref processEvent() in case of synchronous processing
     DLLLOCAL bool pushEventLocked(ExceptionSink* xsink, int64 type, QoreValue params = QoreValue());

@@ -181,45 +181,34 @@ public:
     @see QoreSafeRWWriteLocker
 */
 class QoreSafeRWReadLocker {
-private:
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreSafeRWReadLocker(const QoreSafeRWReadLocker&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL QoreSafeRWReadLocker& operator=(const QoreSafeRWReadLocker&);
-
-    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
-    DLLLOCAL void *operator new(size_t);
-
-protected:
-    //! the pointer to the lock that will be managed
-    QoreRWLock *l;
-
-    //! lock flag
-    bool locked;
-
 public:
+    //! creates an empty object
+    DLLLOCAL QoreSafeRWReadLocker() : l(nullptr), locked(false) {
+    }
+
     //! creates the object and grabs the read lock
-    DLLLOCAL QoreSafeRWReadLocker(QoreRWLock &n_l) : l(&n_l) {
+    DLLLOCAL QoreSafeRWReadLocker(QoreRWLock& n_l) : l(&n_l) {
         l->rdlock();
         locked = true;
     }
 
     //! creates the object and grabs the read lock
-    DLLLOCAL QoreSafeRWReadLocker(QoreRWLock *n_l) : l(n_l) {
+    DLLLOCAL QoreSafeRWReadLocker(QoreRWLock* n_l) : l(n_l) {
         l->rdlock();
         locked = true;
     }
 
     //! destroys the object and releases the lock
     DLLLOCAL ~QoreSafeRWReadLocker() {
-        if (locked)
+        if (locked) {
             l->unlock();
+        }
     }
 
     //! locks the object and updates the locked flag, assumes that the lock is not already held
     DLLLOCAL void lock() {
         assert(!locked);
+        assert(l);
         l->rdlock();
         locked = true;
     }
@@ -227,6 +216,7 @@ public:
     //! unlocks the object and updates the locked flag, assumes that the lock is held
     DLLLOCAL void unlock() {
         assert(locked);
+        assert(l);
         locked = false;
         l->unlock();
     }
@@ -234,8 +224,35 @@ public:
     //! will not unlock the lock when the destructor is run; do not use any other functions of this class after calling this function
     DLLLOCAL void stay_locked() {
         assert(locked);
+        assert(l);
         locked = false;
     }
+
+    //! Handoff to another read lock
+    DLLLOCAL void handoffTo(QoreRWLock& n) {
+        if (l) {
+            unlock();
+        }
+        l = &n;
+        lock();
+    }
+
+protected:
+    //! the pointer to the lock that will be managed
+    QoreRWLock* l;
+
+    //! lock flag
+    bool locked;
+
+private:
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreSafeRWReadLocker(const QoreSafeRWReadLocker&) = delete;
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL QoreSafeRWReadLocker& operator=(const QoreSafeRWReadLocker&) = delete;
+
+    //! this function is not implemented; it is here as a private function in order to prohibit it from being used
+    DLLLOCAL void* operator new(size_t) = delete;
 };
 
 //! provides a safe and exception-safe way to hold write locks in Qore, only to be used on the stack, cannot be dynamically allocated

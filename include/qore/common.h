@@ -267,14 +267,18 @@ typedef uint64_t q_rt_flags_t;
 */
 class QoreSerializationContext {
 public:
-    //! serializes the given object and return the serialization index, throws a Qore-language exception if there is an error serializing the object
-    DLLLOCAL int serializeObject(const QoreObject& obj, std::string& index, ExceptionSink* xsink);
+    //! serializes the given object and return the serialization index
+    /** throws a Qore-language exception if there is an error serializing the object
+    */
+    DLLEXPORT int serializeObject(const QoreObject& obj, std::string& index, ExceptionSink* xsink);
 
-    //! serializes the given value and returns a serialized value representing the value to be serialized, throws a Qore-language exception if there is an error deserializing the object
-    DLLLOCAL QoreValue serializeValue(const QoreValue val, ExceptionSink* xsink);
+    //! serializes the given value and returns a serialized value representing the value to be serialized
+    /** throws a Qore-language exception if there is an error serializing the object
+    */
+    DLLEXPORT QoreValue serializeValue(const QoreValue val, ExceptionSink* xsink);
 
     //! adds a module to be loaded when the data is deserialized
-    DLLLOCAL void addModule(const char* module);
+    DLLEXPORT void addModule(const char* module);
 
 private:
     //! this class is a wrapper class that cannot be constructed
@@ -286,11 +290,15 @@ private:
 */
 class QoreDeserializationContext {
 public:
-    //! returns the object corresponding to the given object serialization index, throws a Qore-language exception if there is an error deserializing the object
-    DLLLOCAL QoreObject* deserializeObject(const char* index, ExceptionSink* xsink);
+    //! returns the object corresponding to the given object serialization index
+    /** throws a Qore-language exception if there is an error deserializing the object
+    */
+    DLLEXPORT QoreObject* deserializeObject(const char* index, ExceptionSink* xsink);
 
-    //! deserializes the given data value and returns the deserialized value, throws a Qore-language exception if there is an error deserializing the object
-    DLLLOCAL QoreValue deserializeValue(const QoreValue val, ExceptionSink* xsink);
+    //! deserializes the given data value and returns the deserialized value
+    /** throws a Qore-language exception if there is an error deserializing the object
+    */
+    DLLEXPORT QoreValue deserializeValue(const QoreValue val, ExceptionSink* xsink);
 
 private:
     //! this class is a wrapper class that cannot be constructed

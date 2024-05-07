@@ -32,6 +32,7 @@
 
 #define _QORE_MODULE_LOGGER_QC_LOGGERAPPENDER_H
 
+#include "QC_LoggerEvent.h"
 #include "QoreLoggerAppender.h"
 
 DLLEXPORT extern qore_classid_t CID_LOGGERAPPENDER;

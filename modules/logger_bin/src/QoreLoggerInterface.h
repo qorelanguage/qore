@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_LoggerLevel.h LoggerLevel class definition */
+/** @file QoreLoggerInterface.h LoggerInterface class definition */
 /*
     Qore Programming Language
 
@@ -28,16 +28,20 @@
     information.
 */
 
-#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLEVEL_H
+#ifndef _QORE_MODULE_LOGGER_LOGGERINTERFACE_H
 
-#define _QORE_MODULE_LOGGER_QC_LOGGERLEVEL_H
+#define _QORE_MODULE_LOGGER_LOGGERINTERFACE_H
 
-#include "QoreLoggerLevel.h"
+class QoreLoggerInterface : public AbstractPrivateData {
+public:
+    DLLLOCAL QoreLoggerInterface() {
+    }
 
-DLLEXPORT extern qore_classid_t CID_LOGGERLEVEL;
-DLLLOCAL extern QoreClass* QC_LOGGERLEVEL;
-
-DLLLOCAL void preinitLoggerLevelClass();
-DLLLOCAL QoreClass* initLoggerLevelClass(QoreNamespace& ns);
+    //! Returns itself after referencing
+    DLLLOCAL QoreLoggerInterface* refSelf() const {
+        ref();
+        return const_cast<QoreLoggerInterface*>(this);
+    }
+};
 
 #endif

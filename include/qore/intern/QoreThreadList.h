@@ -219,7 +219,7 @@ public:
 
     DLLLOCAL QoreListNode* getCallStack(const QoreStackLocation* stack_location) const;
 
-    DLLLOCAL QoreHashNode* getParentCallerLocation(const QoreStackLocation* stack_location) const;
+    DLLLOCAL QoreHashNode* getParentCallerLocation(const QoreStackLocation* stack_location, size_t offset) const;
 
 protected:
     // lock for reading the thread list

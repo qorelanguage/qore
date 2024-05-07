@@ -39,6 +39,8 @@
 #include "QC_LoggerAppenderQueue.h"
 #include "QC_LoggerAppenderWithLayout.h"
 #include "QC_LoggerAppenderFile.h"
+#include "QC_LoggerInterface.h"
+#include "QC_Logger.h"
 
 #include <string.h>
 
@@ -74,6 +76,9 @@ QoreStringNode* logger_module_init() {
     cls->addBuiltinConstant("ESCAPE_CHAR", new QoreStringNode(ESCAPE_STR), Public, stringTypeInfo);
     LoggerNS.addSystemClass(cls);
 
+    preinitLoggerInterfaceClass();
+    preinitLoggerClass();
+
     cls = initLoggerLevelClass(LoggerNS);
     //! The highest logger level
     cls->addBuiltinConstant("OFF", QLL_OFF, Public, bigIntTypeInfo);
@@ -96,7 +101,6 @@ QoreStringNode* logger_module_init() {
 
     // initialize constants
     QoreLoggerLevel::init();
-
     {
         const QoreTypeInfo* llti = cls->getTypeInfo();
         //! The highest logger level
@@ -159,6 +163,9 @@ QoreStringNode* logger_module_init() {
     cls->addBuiltinConstant("DEFAULT_OPEN_FLAGS", DEFAULT_OPEN_FLAGS, Public, bigIntTypeInfo);
     LoggerNS.addSystemClass(cls);
 
+    LoggerNS.addSystemClass(initLoggerInterfaceClass(LoggerNS));
+    LoggerNS.addSystemClass(initLoggerClass(LoggerNS));
+
     return nullptr;
 }
 
@@ -167,6 +174,7 @@ void logger_module_ns_init(QoreNamespace* rns, QoreNamespace* qns) {
 }
 
 void logger_module_delete() {
+    LoggerNS.clear(nullptr);
     QoreLoggerLevel::del();
 }
 

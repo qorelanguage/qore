@@ -410,11 +410,14 @@ list<hash<CallStackInfo>> get_thread_call_stack() [dom=THREAD_CONTROL,THREAD_INF
     return qore_get_thread_call_stack();
 }
 
-//! Returns information about the code that called the code that calls this function
-/** @return information about the code that called the code that calls this function
+//! Returns information about the code in the callstack according to the offset argument
+/** @param offset the offset in the call stack to retrieve
+
+    @return information about the code in the callstack according to the offset argument; if the call stack does not
+    have an entry at the given offset, @ref NOTHING is returned
 */
-*hash<CallStackInfo> get_parent_caller_location() [dom=THREAD_CONTROL,THREAD_INFO] {
-    return qore_get_parent_caller_location();
+*hash<CallStackInfo> get_parent_caller_location(int offset = 1) [dom=THREAD_CONTROL,THREAD_INFO] {
+    return qore_get_parent_caller_location(offset);
 }
 
 //! Immediately runs all thread resource cleanup routines for the current thread and throws all associated exceptions

@@ -1,5 +1,5 @@
 /* -*- mode: c++; indent-tabs-mode: nil -*- */
-/** @file QC_LoggerLevel.h LoggerLevel class definition */
+/** @file QC_Logger.h Logger class definition */
 /*
     Qore Programming Language
 
@@ -17,7 +17,7 @@
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO LEVEL SHALL THE
     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
@@ -28,16 +28,20 @@
     information.
 */
 
-#ifndef _QORE_MODULE_LOGGER_QC_LOGGERLEVEL_H
+#ifndef _QORE_MODULE_LOGGER_QC_LOGGER_H
 
-#define _QORE_MODULE_LOGGER_QC_LOGGERLEVEL_H
+#define _QORE_MODULE_LOGGER_QC_LOGGER_H
 
-#include "QoreLoggerLevel.h"
+#include "QC_LoggerInterface.h"
+#include "QC_LoggerLevel.h"
+#include "QC_LoggerEvent.h"
+#include "QC_LoggerAppender.h"
+#include "QoreLogger.h"
 
-DLLEXPORT extern qore_classid_t CID_LOGGERLEVEL;
-DLLLOCAL extern QoreClass* QC_LOGGERLEVEL;
+DLLEXPORT extern qore_classid_t CID_LOGGER;
+DLLLOCAL extern QoreClass* QC_LOGGER;
 
-DLLLOCAL void preinitLoggerLevelClass();
-DLLLOCAL QoreClass* initLoggerLevelClass(QoreNamespace& ns);
+DLLLOCAL void preinitLoggerClass();
+DLLLOCAL QoreClass* initLoggerClass(QoreNamespace& ns);
 
 #endif

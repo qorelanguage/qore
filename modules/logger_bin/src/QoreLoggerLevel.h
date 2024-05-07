@@ -59,6 +59,16 @@ constexpr int64 QLL_ALL = (-LLONG_MAX - 1);
 class QoreLoggerLevel : public AbstractPrivateData {
 public:
     //! Static objects
+    static QoreLoggerLevel* LoggerLevelAll;
+    static QoreLoggerLevel* LoggerLevelTrace;
+    static QoreLoggerLevel* LoggerLevelDebug;
+    static QoreLoggerLevel* LoggerLevelDetail;
+    static QoreLoggerLevel* LoggerLevelInfo;
+    static QoreLoggerLevel* LoggerLevelWarn;
+    static QoreLoggerLevel* LoggerLevelError;
+    static QoreLoggerLevel* LoggerLevelFatal;
+    static QoreLoggerLevel* LoggerLevelOff;
+
     static QoreObject* LevelAll;
     static QoreObject* LevelTrace;
     static QoreObject* LevelDebug;
@@ -73,11 +83,20 @@ public:
             levelStr(level->stringRefSelf()) {
     }
 
-    //! Gets level code value
+    //! Returns itself after referencing
+    DLLLOCAL QoreLoggerLevel* refSelf() const {
+        ref();
+        return const_cast<QoreLoggerLevel*>(this);
+    }
+
+    //! Returns the level code value
     DLLLOCAL int64 getValue() const;
 
-    //! Gets level string
+    //! Returns the level string
     DLLLOCAL QoreStringNode* getStr() const;
+
+    //! Returns the level string
+    DLLLOCAL const char* getCStr() const;
 
     //! Compares logger levels
     DLLLOCAL bool isGreaterOrEqual(const QoreLoggerLevel* other) const;
@@ -91,6 +110,12 @@ public:
     //! Converts the input argument to a level
     DLLLOCAL static QoreObject* getLevel(ExceptionSink* xsink, const QoreStringNode* level_str,
             const QoreObject* default_level);
+
+    //! Converts the input argument to a level
+    DLLLOCAL static const QoreLoggerLevel* getLoggerLevel(ExceptionSink* xsink, int64 level);
+
+    //! Converts the input argument to a level
+    DLLLOCAL static const QoreLoggerLevel* getLoggerLevel(ExceptionSink* xsink, const QoreStringNode* level_str);
 
     //! Returns closest lower logger level
     DLLLOCAL static QoreObject* getNextLowerLevel(int64 level);
@@ -145,6 +170,14 @@ protected:
     //! Map from int -> level object
     typedef vector_map_t<int64, QoreObject*> limap_t;
     static limap_t limap;
+
+    //! Map from string -> logger level object
+    typedef vector_map_t<std::string, QoreLoggerLevel*> llsmap_t;
+    static llsmap_t llsmap;
+
+    //! Map from int -> level object
+    typedef vector_map_t<int64, QoreLoggerLevel*> llimap_t;
+    static llimap_t llimap;
 };
 
 #endif

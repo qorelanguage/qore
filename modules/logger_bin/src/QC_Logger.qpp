@@ -1,0 +1,700 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_Logger.cpp Logger class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_logger.h"
+
+#include "QC_Logger.h"
+
+static QoreHashNode* Logger_serializer(const QoreObject& self, const QoreLogger& l,
+        QoreSerializationContext& context, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    rv->setKeyValue("additivity", l.additivity, xsink);
+    ValueHolder val(const_cast<QoreObject&>(self).getReferencedMemberNoMethod("currentLevel", xsink), xsink);
+    if (val) {
+        rv->setKeyValue("currentLevel", context.serializeValue(*val, xsink), xsink);
+    }
+    rv->setKeyValue("name", *l.name, xsink);
+    val = const_cast<QoreObject&>(self).getReferencedMemberNoMethod("parent", xsink);
+    if (val) {
+        rv->setKeyValue("parent", context.serializeValue(*val, xsink), xsink);
+    }
+    return rv.release();
+}
+
+static void Logger_deserializer(QoreObject& self, const QoreHashNode* sdata,
+        QoreDeserializationContext& context, ExceptionSink* xsink) {
+    if (sdata) {
+        QoreValue val = sdata->getKeyValue("additivity");
+        if (val.getType() != NT_BOOLEAN) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "Logger serialization key 'additivity' has type '%s'; "
+                "expecting 'bool'", val.getTypeName());
+            return;
+        }
+        bool additivity = val.getAsBool();
+
+        const QoreObject* currentLevel = nullptr;
+        val = sdata->getKeyValue("currentLevel");
+        if (val) {
+            if (val.getType() != NT_OBJECT) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "Logger serialization key 'currentLevel' has type '%s'; "
+                    "expecting 'object'", val.getTypeName());
+                return;
+            }
+            currentLevel = val.get<const QoreObject>();
+            ClassAccess access;
+            if (!currentLevel->getClass()->inHierarchy(*QC_LOGGERLEVEL, access)) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "Logger serialization key 'currentLevel' is an object "
+                    "of class '%s'; expecting 'LoggerLevel'", val.getTypeName());
+                return;
+            }
+            if (access != Public) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "Logger serialization key 'currentLevel' is an object "
+                    "of class '%s' which inherits 'LoggerLevel', but not pulicly", val.getTypeName());
+                return;
+            }
+        }
+
+        val = sdata->getKeyValue("name");
+        if (val.getType() != NT_STRING) {
+            xsink->raiseException("DESERIALIZATION-ERROR", "Logger serialization key 'name' has type '%s'; "
+                "expecting 'string'", val.getTypeName());
+            return;
+        }
+        const QoreStringNode* name = val.get<const QoreStringNode>();
+
+        const QoreObject* parent = nullptr;
+        val = sdata->getKeyValue("parent");
+        if (val) {
+            if (val.getType() != NT_OBJECT) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "Logger serialization key 'parent' has type '%s'; "
+                    "expecting 'object'", val.getTypeName());
+                return;
+            }
+            parent = val.get<const QoreObject>();
+            ClassAccess access;
+            if (!parent->getClass()->inHierarchy(*QC_LOGGER, access)) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "Logger serialization key 'parent' is an object "
+                    "of class '%s'; expecting 'Logger'", val.getTypeName());
+                return;
+            }
+            if (access != Public) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "Logger serialization key 'parent' is an object "
+                    "of class '%s' which inherits 'Logger', but not pulicly", val.getTypeName());
+                return;
+            }
+        }
+
+        ReferenceHolder<QoreLogger> logger(new QoreLogger(&self, additivity, name), xsink);
+        if (currentLevel) {
+            logger->setLevelIntern(xsink, currentLevel->objectRefSelf());
+            if (*xsink) {
+                return;
+            }
+        }
+        if (parent) {
+            logger->setParentIntern(xsink, parent->objectRefSelf());
+            if (*xsink) {
+                return;
+            }
+        }
+        self.setPrivate(CID_LOGGER, logger.release());
+        return;
+    }
+
+    xsink->raiseException("DESERIALIZATION-ERROR", "missing serialization data for the Logger class");
+}
+
+//! This is the base class for logger levels
+/** This class stores the integer and string log level values
+*/
+qclass Logger [ns=Qore::Logger; arg=QoreLogger* l; vparent=LoggerInterface; serializer=reinterpret_cast<q_serializer_t>(Logger_serializer); deserializer=Logger_deserializer; internal_members=*Logger parent,LoggerLevel currentLevel];
+
+//! Creates the Logger
+/**
+*/
+Logger::constructor() {
+    self->setPrivate(CID_LOGGER, new QoreLogger(self));
+}
+
+//! Creates the Logger
+/** @param name the name of the logger
+*/
+Logger::constructor(string name) {
+    QoreStringNodeValueHelper n(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+    self->setPrivate(CID_LOGGER, new QoreLogger(self, true, *n));
+}
+
+//! Creates the Logger with the supplied arguments
+/** @param name the name of the logger
+    @param level the initial level for the logger
+*/
+Logger::constructor(string name, string level) {
+    QoreStringNodeValueHelper n(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+    QoreStringNodeValueHelper lstr(level, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+    ReferenceHolder<QoreObject> lvl(QoreLoggerLevel::getLevel(xsink, *lstr, nullptr), xsink);
+    if (*xsink) {
+        return;
+    }
+    ReferenceHolder<QoreLogger> logger(new QoreLogger(self, true, *n), xsink);
+    logger->setLevelIntern(xsink, lvl.release());
+    if (*xsink) {
+        return;
+    }
+    self->setPrivate(CID_LOGGER, logger.release());
+}
+
+//! Creates the Logger with the supplied arguments
+/** @param name the name of the logger
+    @param level the initial level for the logger
+*/
+Logger::constructor(string name, int level) {
+    QoreStringNodeValueHelper n(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+    ReferenceHolder<QoreObject> lvl(QoreLoggerLevel::getLevel(xsink, level, nullptr), xsink);
+    if (*xsink) {
+        return;
+    }
+    ReferenceHolder<QoreLogger> logger(new QoreLogger(self, true, *n), xsink);
+    logger->setLevelIntern(xsink, lvl.release());
+    if (*xsink) {
+        return;
+    }
+    self->setPrivate(CID_LOGGER, logger.release());
+}
+
+//! Creates the Logger with the supplied arguments
+/** @param name the name of the logger
+    @param level the initial level for the logger
+*/
+Logger::constructor(string name, LoggerLevel[QoreLoggerLevel] level) {
+    ReferenceHolder<QoreLoggerLevel> holder(level, xsink);
+    QoreStringNodeValueHelper n(name, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return;
+    }
+    ReferenceHolder<QoreLogger> logger(new QoreLogger(self, true, *n), xsink);
+    ReferenceHolder<QoreObject> level_holder(obj_level->objectRefSelf(), xsink);
+    logger->setLevelIntern(xsink, level_holder, holder);
+    self->setPrivate(CID_LOGGER, logger.release());
+}
+
+//! Creates the Logger with the supplied arguments
+/** @param level the initial level for the logger
+*/
+Logger::constructor(LoggerLevel[QoreLoggerLevel] level) {
+    ReferenceHolder<QoreLoggerLevel> holder(level, xsink);
+    ReferenceHolder<QoreLogger> logger(new QoreLogger(self), xsink);
+    ReferenceHolder<QoreObject> level_holder(obj_level->objectRefSelf(), xsink);
+    logger->setLevel(xsink, level_holder, holder);
+    self->setPrivate(CID_LOGGER, logger.release());
+}
+
+//! Returns the logger name
+/**
+*/
+string Logger::getName() {
+    return l->getName();
+}
+
+//! Returns the parent logger, if any
+/**
+*/
+*Logger Logger::getParent() {
+    return l->getParent(xsink);
+}
+
+//! Sets the parent logger
+/**
+    @param parent the parent logger
+
+    @throw LOGGER-ERROR in case of circular reference
+*/
+Logger::setParent(*Logger[QoreLogger] parent) {
+    ReferenceHolder<QoreLogger> holder(parent, xsink);
+    ReferenceHolder<QoreObject> p(obj_parent ? obj_parent->objectRefSelf() : nullptr, xsink);
+    l->setParent(xsink, p, holder);
+}
+
+//! Returns the logging level
+/**
+    @param effective if False then get current level which can be NOTHING, if True then get level which might be inherited from parent, Default: True
+    @throw LOGGER-ERROR if cannot get effective level from hierarchy
+*/
+*LoggerLevel Logger::getLevel(bool effective = True) {
+    return l->getLevel(xsink, effective);
+}
+
+//! Sets the logging level
+/**
+    @param level if nothing then inherits level from parent
+*/
+Logger::setLevel(*LoggerLevel[QoreLoggerLevel] level) {
+    ReferenceHolder<QoreLoggerLevel> lvl(level, xsink);
+    ReferenceHolder<QoreObject> level_holder(obj_level ? obj_level->objectRefSelf() : nullptr, xsink);
+    l->setLevel(xsink, level_holder, lvl);
+}
+
+//! Sets the logging level
+/**
+    @param level the logging level as a string
+*/
+Logger::setLevel(string level) {
+    QoreStringNodeValueHelper lstr(level, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    ReferenceHolder<QoreObject> lvl(QoreLoggerLevel::getLevel(xsink, *lstr, nullptr), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    ReferenceHolder<QoreLoggerLevel> llvl(lvl->getReferencedPrivateData<QoreLoggerLevel>(CID_LOGGERLEVEL, xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    l->setLevel(xsink, lvl, llvl);
+}
+
+//! Sets the logging level
+/**
+    @param level the logging level to set
+*/
+Logger::setLevel(int level) {
+    ReferenceHolder<QoreObject> lvl(QoreLoggerLevel::getLevel(xsink, level, nullptr), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    ReferenceHolder<QoreLoggerLevel> llvl(lvl->getReferencedPrivateData<QoreLoggerLevel>(CID_LOGGERLEVEL, xsink), xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    l->setLevel(xsink, lvl, llvl);
+}
+
+//! Decrement logger level
+/**
+    @return current \c LoggerLevel
+*/
+*LoggerLevel Logger::decLevel() {
+    return l->decLevel(xsink);
+}
+
+//! Increment logger level
+/**
+    @return current \c LoggerLevel
+*/
+*LoggerLevel Logger::incLevel() {
+    return l->incLevel(xsink);
+}
+
+//! Sets the additivity flag; when additivity is active, events are passed to parent loggers.
+/**
+    @param enable the additivity flag; when additivity is active, events are passed to parent loggers
+*/
+Logger::setAdditivity(bool enable) {
+    l->setAdditivity(enable);
+}
+
+//! Returns the additivity flag.
+/**
+*/
+bool Logger::getAdditivity() {
+    return l->getAdditivity();
+}
+
+//! Forwards the given logging event to all linked appenders.
+/**
+    @param event the event to forward
+*/
+Logger::callAppenders(LoggerEvent[QoreLoggerEvent] event) {
+    ReferenceHolder<QoreLoggerEvent> e(event, xsink);
+    l->callAppenders(xsink, obj_event, event);
+}
+
+//! Adds an appender to the appender list
+/**
+    @param appender add a new LoggerAppender
+    @throw "LOGGER-ERROR" exception if appender is already in list
+*/
+Logger::addAppender(LoggerAppender[QoreLoggerAppender] appender) {
+    ReferenceHolder<QoreLoggerAppender> a(appender, xsink);
+    l->addAppender(xsink, obj_appender, a);
+}
+
+//! Removes the appender from the list
+/**
+    @param appender the appender to remove
+*/
+Logger::removeAppender(LoggerAppender[QoreLoggerAppender] appender) {
+    ReferenceHolder<QoreLoggerAppender> a(appender, xsink);
+    l->removeAppender(xsink, obj_appender);
+}
+
+//! Clears the appender list by removing all appenders
+/**
+*/
+Logger::removeAllAppenders() {
+    l->removeAllAppenders(xsink);
+}
+
+//! Returns the appender list
+/**
+    Note that the appender list may be manipulated in another thread as internal lock is released
+    when list is returned
+*/
+list<LoggerAppender> Logger::getAppenders() {
+    return l->getAppenders(xsink);
+}
+
+//! Logs a message using the provided logging level
+/**
+    @param level The logging level.
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::log(LoggerLevel[QoreLoggerLevel] level, string message, ...) {
+    ReferenceHolder<QoreLoggerLevel> lvl(level, xsink);
+    l->log(xsink, level, message, args, 2);
+}
+
+//! Logs a message using the provided logging level
+/**
+    @param level the logging level.
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::log(int level, string message, ...) {
+    const QoreLoggerLevel* lvl = QoreLoggerLevel::getLoggerLevel(xsink, level);
+    if (*xsink) {
+        return QoreValue();
+    }
+    l->log(xsink, lvl, message, args, 2);
+}
+
+//! Logs a message using the provided logging level
+/**
+    @param level The logging level.
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::log(string level, string message, ...) {
+    QoreStringNodeValueHelper lstr(level, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    const QoreLoggerLevel* lvl = QoreLoggerLevel::getLoggerLevel(xsink, *lstr);
+    if (*xsink) {
+        return QoreValue();
+    }
+    l->log(xsink, lvl, message, args, 2);
+}
+
+//! Logs a message using the provided logging level and a single argument for any format string arguments
+/**
+    @param level The logging level.
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+    @param margs any format string arguments to the log message
+*/
+Logger::logArgs(LoggerLevel[QoreLoggerLevel] level, string message, *softlist<auto> margs) {
+    ReferenceHolder<QoreLoggerLevel> lvl(level, xsink);
+    l->log(xsink, level, message, margs, 0);
+}
+
+//! Logs a message using the provided logging level and a single argument for any format string arguments.
+/**
+    @param level the logging level.
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+    @param margs any format string arguments to the log message
+*/
+Logger::logArgs(int level, string message, *softlist<auto> margs) {
+    const QoreLoggerLevel* lvl = QoreLoggerLevel::getLoggerLevel(xsink, level);
+    if (*xsink) {
+        return QoreValue();
+    }
+    l->log(xsink, lvl, message, margs, 0);
+}
+
+//! Logs a message using the provided logging level and a single argument for any format string arguments.
+/**
+    @param level The logging level.
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+    @param margs any format string arguments to the log message
+*/
+Logger::logArgs(string level, string message, *softlist<auto> margs) {
+    QoreStringNodeValueHelper lstr(level, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    const QoreLoggerLevel* lvl = QoreLoggerLevel::getLoggerLevel(xsink, *lstr);
+    if (*xsink) {
+        return QoreValue();
+    }
+    l->log(xsink, lvl, message, margs, 0);
+}
+
+//! Logs an already prepared logging event object.
+/**
+    @param event the event to log
+*/
+Logger::logEvent(LoggerEvent[QoreLoggerEvent] event) {
+    ReferenceHolder<QoreLoggerEvent> e(event, xsink);
+    l->logEvent(xsink, obj_event, event);
+}
+
+//! Logs a message object with the TRACE level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::trace(string message, ...) {
+    l->log(xsink, QoreLoggerLevel::LoggerLevelTrace, message, args, 1);
+}
+
+//! Logs a message object with the DEBUG level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::debug(string message, ...) {
+    l->log(xsink, QoreLoggerLevel::LoggerLevelDebug, message, args, 1);
+}
+
+//! Logs a message object with the DETAIL level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::detail(string message, ...) {
+    l->log(xsink, QoreLoggerLevel::LoggerLevelDetail, message, args, 1);
+}
+
+//! Logs a message object with the INFO level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::info(string message, ...) {
+    l->log(xsink, QoreLoggerLevel::LoggerLevelInfo, message, args, 1);
+}
+
+//! Logs a message object with the WARN level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::warn(string message, ...) {
+    l->log(xsink, QoreLoggerLevel::LoggerLevelWarn, message, args, 1);
+}
+
+//! Logs a message object with the ERROR level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::error(string message, ...) {
+    l->log(xsink, QoreLoggerLevel::LoggerLevelError, message, args, 1);
+}
+
+//! Logs a message object with the FATAL level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::fatal(string message, ...) {
+    l->log(xsink, QoreLoggerLevel::LoggerLevelFatal, message, args, 1);
+}
+
+//! Performs logging of assertions
+/**
+    If the \a assertion parameter is @ref False, then the message is logged
+    using the ERROR level.
+
+    @see @ref log()
+
+    @param assertion the boolean assertion value
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments
+    are passed to the @ref Qore::Logger::LoggerEvent object. If the last parameter is an
+    @ref Qore::ExceptionInfo "ExceptionInfo" typed hash, then it is considered "throwable" information.
+*/
+Logger::assertLog(bool assertion, string message, ...) {
+    if (!assertion) {
+        l->log(xsink, QoreLoggerLevel::LoggerLevelError, message, args, 2);
+    }
+}
+
+//! Logs the variable name and value using TRACE level
+/**
+    @see @ref log()
+
+    @param var_name the variable name
+    @param value the value of the variable
+*/
+Logger::traceVar(string var_name, auto value) {
+    QoreStringNodeHolder msg(new QoreStringNodeMaker("%s: %%y", var_name->c_str()));
+    l->log(xsink, QoreLoggerLevel::LoggerLevelTrace, *msg, args, 1);
+}
+
+//! Logs the variable name and value using DEBUG level
+/**
+    @see @ref log()
+
+    @param var_name the variable name
+    @param value the value of the variable
+*/
+Logger::debugVar(string var_name, auto value) {
+    QoreStringNodeHolder msg(new QoreStringNodeMaker("%s: %%y", var_name->c_str()));
+    l->log(xsink, QoreLoggerLevel::LoggerLevelDebug, *msg, args, 1);
+}
+
+//! Checks whether this Logger is enabled for a given Level passed as parameter.
+/**
+    @param level the log level to check
+*/
+bool Logger::isEnabledFor(LoggerLevel[QoreLoggerLevel] level) {
+    ReferenceHolder<QoreLoggerLevel> lvl(level, xsink);
+    return l->isEnabledFor(xsink, level);
+}
+
+//! Checks whether this Logger is enabled for a given Level passed as parameter.
+/**
+    @param level the log level to check
+*/
+bool Logger::isEnabledFor(int level) {
+    const QoreLoggerLevel* lvl = QoreLoggerLevel::getLoggerLevel(xsink, level);
+    if (*xsink) {
+        return QoreValue();
+    }
+    return l->isEnabledFor(xsink, lvl);
+}
+
+//! Checks whether this Logger is enabled for a given Level passed as parameter.
+/**
+    @param level the log level to check
+*/
+bool Logger::isEnabledFor(string level) {
+    QoreStringNodeValueHelper lstr(level, QCS_DEFAULT, xsink);
+    if (*xsink) {
+        return QoreValue();
+    }
+    const QoreLoggerLevel* lvl = QoreLoggerLevel::getLoggerLevel(xsink, level);
+    if (*xsink) {
+        return QoreValue();
+    }
+    return l->isEnabledFor(xsink, lvl);
+}
+
+//! Checks whether this Logger is enabled for the TRACE Level.
+/**
+*/
+bool Logger::isTraceEnabled() {
+    return l->isEnabledFor(xsink, QoreLoggerLevel::LoggerLevelTrace);
+}
+
+//! Checks whether this Logger is enabled for the DEBUG Level.
+/**
+*/
+bool Logger::isDebugEnabled() {
+    return l->isEnabledFor(xsink, QoreLoggerLevel::LoggerLevelDebug);
+}
+
+//! Checks whether this Logger is enabled for the DETAIL Level.
+/**
+*/
+bool Logger::isDetailEnabled() {
+    return l->isEnabledFor(xsink, QoreLoggerLevel::LoggerLevelDetail);
+}
+
+//! Checks whether this Logger is enabled for the INFO Level.
+/**
+*/
+bool Logger::isInfoEnabled() {
+    return l->isEnabledFor(xsink, QoreLoggerLevel::LoggerLevelInfo);
+}
+
+//! Checks whether this Logger is enabled for the WARN Level.
+/**
+*/
+bool Logger::isWarnEnabled() {
+    return l->isEnabledFor(xsink, QoreLoggerLevel::LoggerLevelWarn);
+}
+
+//! Checks whether this Logger is enabled for the ERROR Level.
+/**
+*/
+bool Logger::isErrorEnabled() {
+    return l->isEnabledFor(xsink, QoreLoggerLevel::LoggerLevelError);
+}
+
+//! Checks whether this Logger is enabled for the FATAL Level.
+/**
+*/
+bool Logger::isFatalEnabled() {
+    return l->isEnabledFor(xsink, QoreLoggerLevel::LoggerLevelFatal);
+}
+
+//! Returns the call location where the log function was called from
+/**
+*/
+private static hash<CallStackInfo> Logger::getLocation() {
+    QoreLogger::getLocation();
+}
