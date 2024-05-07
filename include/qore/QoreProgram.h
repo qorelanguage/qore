@@ -1164,4 +1164,18 @@ private:
     class QoreExternalProgramCallContextHelperPriv* priv;
 };
 
+//! Allows binary code to set the current object and class context
+class QoreObjectContextHelper {
+public:
+    DLLEXPORT QoreObjectContextHelper(QoreObject* obj, QoreClass* cls);
+    DLLEXPORT ~QoreObjectContextHelper();
+
+private:
+    class qore_object_context_helper* priv;
+
+    DLLLOCAL QoreObjectContextHelper(const QoreObjectContextHelper&) = delete;
+    DLLLOCAL QoreObjectContextHelper& operator=(const QoreObjectContextHelper&) = delete;
+    DLLLOCAL void* operator new(size_t) = delete;
+};
+
 #endif  // _QORE_QOREPROGRAM_H

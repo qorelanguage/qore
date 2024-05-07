@@ -108,6 +108,11 @@ DLLEXPORT void set_thread_resource(const ResolvedCallReferenceNode* rcr, const Q
  */
 DLLEXPORT int remove_thread_resource(const ResolvedCallReferenceNode* rcr, ExceptionSink* xsink);
 
+//! Returns a CallStackInfo hash for the caller's location, if available, otherwise returns nullptr
+/** @param offset the call stack entry offset
+*/
+DLLEXPORT QoreHashNode* qore_get_parent_caller_location(size_t offset = 1);
+
 #if 0
 //! save a resource against a thread for thread resource handling using the thread resource id
 /** by using the thread resource id, you can quickly check if the resource has already been saved for the thread

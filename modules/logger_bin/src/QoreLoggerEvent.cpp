@@ -29,6 +29,7 @@
 */
 
 #include "qore_logger.h"
+#include "QC_LoggerLevel.h"
 #include "QoreLoggerEvent.h"
 
 SimpleRefHolder<DateTimeNode> QoreLoggerEvent::startTime;
@@ -52,8 +53,21 @@ QoreHashNode* QoreLoggerEvent::getLocationInfo() const {
 }
 
 //! Returns the level of this event
-QoreObject* QoreLoggerEvent::getLevel() const {
+QoreObject* QoreLoggerEvent::getLevel() {
+    if (!level && lvl) {
+        AutoLocker al(m0);
+        // check again in the lock
+        if (!level && lvl) {
+            lvl->ref();
+            level = new QoreObject(QC_LOGGERLEVEL, getProgram(), lvl);
+        }
+    }
     return level ? level->objectRefSelf() : nullptr;
+}
+
+//! Returns the logger level object for this event
+const QoreLoggerLevel* QoreLoggerEvent::getLoggerLevel() const {
+    return lvl;
 }
 
 //! Returns the logger which created the event
@@ -129,7 +143,7 @@ void QoreLoggerEvent::renderMessageLocked(ExceptionSink* xsink) const {
     ReferenceHolder<QoreListNode> args(new QoreListNode(autoTypeInfo), xsink);
     args->push(messageFmt->stringRefSelf(), xsink);
     if (messageArgs) {
-        ConstListIterator i(messageArgs);
+        ConstListIterator i(messageArgs, (ssize_t)offset - 1);
         while (i.next()) {
             const QoreValue arg = i.getValue();
             bool done = false;

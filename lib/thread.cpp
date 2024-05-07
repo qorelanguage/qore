@@ -1788,6 +1788,21 @@ ObjectSubstitutionHelper::~ObjectSubstitutionHelper() {
     td->current_class = old_class;
 }
 
+class qore_object_context_helper : public ObjectSubstitutionHelper {
+public:
+    DLLLOCAL qore_object_context_helper(QoreObject* obj, QoreClass* cls)
+            : ObjectSubstitutionHelper(obj, qore_class_private::get(*cls)) {
+    }
+};
+
+QoreObjectContextHelper::QoreObjectContextHelper(QoreObject* obj, QoreClass* cls)
+        : priv(new qore_object_context_helper(obj, cls)) {
+}
+
+QoreObjectContextHelper::~QoreObjectContextHelper() {
+    delete priv;
+}
+
 OptionalClassOnlySubstitutionHelper::OptionalClassOnlySubstitutionHelper(const qore_class_private* qc)
         : subst(qc ? true : false) {
     if (qc) {
@@ -3021,9 +3036,9 @@ QoreListNode* qore_get_thread_call_stack() {
     return thread_list.getCallStack(td->current_stack_location);
 }
 
-QoreHashNode* qore_get_parent_caller_location() {
+QoreHashNode* qore_get_parent_caller_location(size_t offset) {
     ThreadData* td = thread_data.get();
-    return thread_list.getParentCallerLocation(td->current_stack_location);
+    return thread_list.getParentCallerLocation(td->current_stack_location, offset);
 }
 
 QoreHashNode* QoreThreadList::getAllCallStacks() {
@@ -3068,16 +3083,15 @@ QoreListNode* QoreThreadList::getCallStack(const QoreStackLocation* stack_locati
     return stack.release();
 }
 
-QoreHashNode* QoreThreadList::getParentCallerLocation(const QoreStackLocation* stack_location) const {
-    ReferenceHolder<QoreHashNode> h(new QoreHashNode(hashdeclCallStackInfo, nullptr), nullptr);
-
+QoreHashNode* QoreThreadList::getParentCallerLocation(const QoreStackLocation* stack_location, size_t offset) const {
     const QoreStackLocation* w = stack_location;
+    size_t i = 0;
     if (w) {
-        w = w->getNext();
-        if (w) {
-            w = w->getNext();
+        if (i == offset) {
             return getCallStackHash(*w);
         }
+        ++i;
+        w = w->getNext();
     }
     return nullptr;
 }

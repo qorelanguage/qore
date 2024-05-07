@@ -19,3 +19,7 @@
 #include "QC_LoggerAppenderWithLayout.cpp"
 #include "QoreLoggerAppenderFile.cpp"
 #include "QC_LoggerAppenderFile.cpp"
+#include "QC_LoggerInterface.cpp"
+#include "QoreLogger.cpp"
+#include "QC_Logger.cpp"
+

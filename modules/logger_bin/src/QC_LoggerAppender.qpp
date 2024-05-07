@@ -43,7 +43,7 @@ qclass LoggerAppender [ns=Qore::Logger; arg=QoreLoggerAppender* a; internal_memb
 /**
 */
 LoggerAppender::constructor() {
-    self->setPrivate(CID_LOGGERAPPENDER, new QoreLoggerAppender(self));
+    self->setPrivate(CID_LOGGERAPPENDER, new QoreLoggerAppender(xsink, self));
 }
 
 //! Creates the object
@@ -51,7 +51,7 @@ LoggerAppender::constructor() {
     @param name the appender name
 */
 LoggerAppender::constructor(string name) {
-    self->setPrivate(CID_LOGGERAPPENDER, new QoreLoggerAppender(self, name));
+    self->setPrivate(CID_LOGGERAPPENDER, new QoreLoggerAppender(xsink, self, name));
 }
 
 //! Returns the appender name

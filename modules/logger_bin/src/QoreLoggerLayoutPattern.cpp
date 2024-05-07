@@ -87,8 +87,10 @@ QoreValue QoreLoggerLayoutPattern::resolveField(QoreObject* event, QoreLoggerEve
             } else {
                 v = event->evalMethod("getLocationInfo", nullptr, xsink);
             }
-            assert(v->getType() == NT_HASH);
-            return v->get<const QoreHashNode>()->getKeyValue("file", xsink).refSelf();
+            if (v->getType() == NT_HASH) {
+                return v->get<const QoreHashNode>()->getKeyValue("file", xsink).refSelf();
+            }
+            return new QoreStringNode;
         }
         case 'h': {
             return HostName->stringRefSelf();
@@ -99,6 +101,9 @@ QoreValue QoreLoggerLayoutPattern::resolveField(QoreObject* event, QoreLoggerEve
                 v = ev->getLocationInfo();
             } else {
                 v = event->evalMethod("getLocationInfo", nullptr, xsink);
+            }
+            if (v->getType() != NT_HASH) {
+                return new QoreStringNode;
             }
             assert(v->getType() == NT_HASH);
             const QoreHashNode* csi = v->get<const QoreHashNode>();
@@ -117,7 +122,9 @@ QoreValue QoreLoggerLayoutPattern::resolveField(QoreObject* event, QoreLoggerEve
             } else {
                 v = event->evalMethod("getLocationInfo", nullptr, xsink);
             }
-            assert(v->getType() == NT_HASH);
+            if (v->getType() != NT_HASH) {
+                return new QoreStringNode;
+            }
             return new QoreStringNodeMaker("%lld",
                 v->get<const QoreHashNode>()->getKeyValue("line", xsink).getAsBigInt());
         }
@@ -134,7 +141,9 @@ QoreValue QoreLoggerLayoutPattern::resolveField(QoreObject* event, QoreLoggerEve
             } else {
                 v = event->evalMethod("getLocationInfo", nullptr, xsink);
             }
-            assert(v->getType() == NT_HASH);
+            if (v->getType() != NT_HASH) {
+                return new QoreStringNode;
+            }
             return v->get<const QoreHashNode>()->getKeyValue("function", xsink).refSelf();
         }
         case 'n': {

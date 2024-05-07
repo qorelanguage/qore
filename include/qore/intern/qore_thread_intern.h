@@ -861,7 +861,6 @@ DLLLOCAL QoreNamespace* get_thread_ns(QoreNamespace& qorens);
 DLLLOCAL void delete_qore_threads();
 DLLLOCAL QoreListNode* get_thread_list();
 DLLLOCAL QoreHashNode* getAllCallStacks();
-DLLLOCAL QoreHashNode* qore_get_parent_caller_location();
 DLLLOCAL QoreListNode* qore_get_thread_call_stack();
 
 #if defined(HAVE_PTHREAD_GET_STACKSIZE_NP) || (defined(QORE_HAVE_PTHREAD_GETATTR_NP) && defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE))

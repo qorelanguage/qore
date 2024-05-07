@@ -36,7 +36,7 @@
 //! Abstract class that defines the interface for logger events
 /** Event data (@ref LoggerEvent) are formatted before the record is passed to the target
 */
-qclass LoggerEvent [ns=Qore::Logger; arg=QoreLoggerEvent* event];
+qclass LoggerEvent [ns=Qore::Logger; arg=QoreLoggerEvent* event; internal_members=*Logger logger];
 
 //! Instantiates a LoggingEvent from the supplied parameters.
 /**
@@ -61,7 +61,10 @@ LoggerEvent::constructor(object logger, LoggerLevel[QoreLoggerLevel] level, stri
         thread_id = q_gettid();
     }
 
-    SimpleRefHolder<DateTimeNode> ts(time_stamp ? time_stamp->refSelf() : DateTimeNode::makeNow());
+    SimpleRefHolder<DateTimeNode> ts;
+    if (!time_stamp) {
+        ts = DateTimeNode::makeNow();
+    }
 
     ValueHolder v(logger->evalMethod("getName", nullptr, xsink), xsink);
     if (*xsink) {
@@ -70,8 +73,10 @@ LoggerEvent::constructor(object logger, LoggerLevel[QoreLoggerLevel] level, stri
     assert(v);
     assert(v->getType() == NT_STRING);
 
-    self->setPrivate(CID_LOGGEREVENT, new QoreLoggerEvent(logger, v->get<const QoreStringNode>(), obj_level, message,
-        msg_args, location_info, thread_id, ts.release(), throwable));
+    self->setPrivate(CID_LOGGEREVENT, new QoreLoggerEvent(logger, v->get<const QoreStringNode>(), obj_level, level,
+        message, msg_args, 0, location_info, thread_id, time_stamp ? time_stamp : *ts, throwable));
+
+    self->setValue("logger", logger->objectRefSelf(), nullptr);
 }
 
 //! Instantiates a LoggingEvent from the supplied parameters.
@@ -95,10 +100,13 @@ LoggerEvent::constructor(string fqcn, softstring category, LoggerLevel[QoreLogge
         thread_id = q_gettid();
     }
 
-    SimpleRefHolder<DateTimeNode> ts(time_stamp ? time_stamp->refSelf() : DateTimeNode::makeNow());
+    SimpleRefHolder<DateTimeNode> ts;
+    if (!time_stamp) {
+        ts = DateTimeNode::makeNow();
+    }
 
-    self->setPrivate(CID_LOGGEREVENT, new QoreLoggerEvent(fqcn->stringRefSelf(), category, obj_level, message,
-        msg_args, location_info, thread_id, ts.release(), throwable));
+    self->setPrivate(CID_LOGGEREVENT, new QoreLoggerEvent(fqcn->stringRefSelf(), category, obj_level, level, message,
+        msg_args, 0, location_info, thread_id, time_stamp ? time_stamp : *ts, throwable));
 }
 
 //! Returns the full qualified classname

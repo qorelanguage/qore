@@ -32,25 +32,40 @@
 
 #define _QORE_MODULE_LOGGER_LOGGEREVENT_H
 
+// forward references
+class QoreLoggerLevel;
+
 class QoreLoggerEvent : public AbstractPrivateData {
 public:
     DLLLOCAL QoreLoggerEvent(QoreObject* logger, const QoreStringNode* categoryName, const QoreObject* level,
-            const QoreStringNode* message, const QoreListNode* msg_args, const QoreHashNode* location_info, int tid,
-            DateTimeNode* now, const QoreHashNode* throwable)
-            : fqcn(new QoreStringNode(logger->getClassName())), logger(logger->objectRefSelf()),
-            categoryName(categoryName->stringRefSelf()), level(level->objectRefSelf()),
+            const QoreLoggerLevel* l,
+            const QoreStringNode* message, const QoreListNode* msg_args, size_t offset,
+            const QoreHashNode* location_info, int tid,
+            const DateTimeNode* now, const QoreHashNode* throwable)
+            : fqcn(new QoreStringNode(logger->getClassName())), logger(logger),
+            categoryName(categoryName->stringRefSelf()), level(level ? level->objectRefSelf() : nullptr),
+            lvl(l ? l->refSelf() : nullptr),
             messageFmt(message->stringRefSelf()), messageArgs(msg_args ? msg_args->listRefSelf() : nullptr),
-            threadId(tid), timeStamp(now), locationInfo(location_info ? location_info->hashRefSelf() : nullptr),
+            offset(offset),
+            threadId(tid), timeStamp(now->refSelf()),
+            locationInfo(location_info ? location_info->hashRefSelf() : nullptr),
             throwableInfo(throwable ? throwable->hashRefSelf() : nullptr) {
         assert(timeStamp);
+        assert(logger);
     }
 
     DLLLOCAL QoreLoggerEvent(QoreStringNode* fqcn, const QoreStringNode* categoryName, const QoreObject* level,
-            const QoreStringNode* message, const QoreListNode* msg_args, const QoreHashNode* location_info, int tid,
-            DateTimeNode* now, const QoreHashNode* throwable)
-            : fqcn(fqcn), categoryName(categoryName->stringRefSelf()), level(level->objectRefSelf()),
+            const QoreLoggerLevel* l,
+            const QoreStringNode* message, const QoreListNode* msg_args, size_t offset,
+            const QoreHashNode* location_info, int tid,
+            const DateTimeNode* now, const QoreHashNode* throwable)
+            : fqcn(fqcn), categoryName(categoryName->stringRefSelf()),
+            level(level ? level->objectRefSelf() : nullptr),
+            lvl(l ? l->refSelf() : nullptr),
             messageFmt(message->stringRefSelf()), messageArgs(msg_args ? msg_args->listRefSelf() : nullptr),
-            threadId(tid), timeStamp(now), locationInfo(location_info ? location_info->hashRefSelf() : nullptr),
+            offset(offset),
+            threadId(tid), timeStamp(now->refSelf()),
+            locationInfo(location_info ? location_info->hashRefSelf() : nullptr),
             throwableInfo(throwable ? throwable->hashRefSelf() : nullptr) {
         assert(timeStamp);
     }
@@ -62,7 +77,10 @@ public:
     DLLLOCAL QoreHashNode* getLocationInfo() const;
 
     //! Returns the level of this event
-    DLLLOCAL QoreObject* getLevel() const;
+    DLLLOCAL QoreObject* getLevel();
+
+    //! Returns the logger level object for this event
+    DLLLOCAL const QoreLoggerLevel* getLoggerLevel() const;
 
     //! Returns the logger which created the event
     DLLLOCAL QoreObject* getLogger() const;
@@ -76,8 +94,8 @@ public:
     using AbstractPrivateData::deref;
     DLLLOCAL virtual void deref(ExceptionSink* xsink) {
         if (ROdereference()) {
-            if (logger) {
-                logger->deref(xsink);
+            if (lvl) {
+                lvl->deref(xsink);
             }
             if (level) {
                 level->deref(xsink);
@@ -136,12 +154,16 @@ protected:
 
     //! Level of the logging event.
     QoreObject* level = nullptr;
+    QoreLoggerLevel* lvl = nullptr;
 
     //! The application supplied message of logging event (not rendered)
     SimpleRefHolder<QoreStringNode> messageFmt;
 
     //! arguments to be rendered
     QoreListNode* messageArgs = nullptr;
+
+    //! Starting argument element in messageArgs
+    size_t offset = 0;
 
     //! The application supplied message rendered through the rendering mechanism.
     mutable SimpleRefHolder<QoreStringNode> renderedMessage;
@@ -161,7 +183,7 @@ protected:
     //! unique id
     int uniqueId = sequence.next();
 
-    //! Atomicity lock for the rendered message
+    //! Atomicity lock for internal changes
     mutable QoreThreadLock m0;
 
     //! unique id generator

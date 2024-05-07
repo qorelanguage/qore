@@ -1,0 +1,299 @@
+/* -*- mode: c++; indent-tabs-mode: nil -*- */
+/** @file QC_LoggerInterface.cpp LoggerInterface class definition */
+/*
+    Qore Programming Language
+
+    Copyright (C) 2003 - 2024 Qore Technologies, s.r.o.
+
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+    DEALINGS IN THE SOFTWARE.
+
+    Note that the Qore library is released under a choice of three open-source
+    licenses: MIT (as above), LGPL 2+, or GPL 2+; see README-LICENSE for more
+    information.
+*/
+
+#include "qore_logger.h"
+
+#include "QC_LoggerInterface.h"
+
+static QoreHashNode* LoggerInterface_serializer(const QoreObject& self, const QoreLoggerInterface& level,
+        QoreSerializationContext& context, ExceptionSink* xsink) {
+    ReferenceHolder<QoreHashNode> rv(new QoreHashNode(autoTypeInfo), xsink);
+    return rv.release();
+}
+
+static void LoggerInterface_deserializer(QoreObject& self, const QoreHashNode* sdata,
+        QoreDeserializationContext& context, ExceptionSink* xsink) {
+}
+
+//! This is the base class for logger levels
+/** This class stores the integer and string log level values
+*/
+qclass LoggerInterface [ns=Qore::Logger; arg=QoreLoggerInterface* i; vparent=Serializable; serializer=reinterpret_cast<q_serializer_t>(LoggerInterface_serializer); deserializer=LoggerInterface_deserializer];
+
+//! Creates the level with the supplied arguments
+/** @param code integer log level value
+    @param level string log level value
+*/
+LoggerInterface::constructor() {
+    self->setPrivate(CID_LOGGERINTERFACE, new QoreLoggerInterface);
+}
+
+//! Returns @ref True if the passed logger is the logger used to log, @ref False if not
+/**
+*/
+bool LoggerInterface::isLogger(LoggerInterface[QoreLoggerInterface] logger) {
+    ReferenceHolder<QoreLoggerInterface> holder(logger, xsink);
+    return obj_logger == self;
+}
+
+//! Logs a message using the provided logging level
+/**
+    @param level The logging level
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+*/
+abstract LoggerInterface::log(Qore::Logger::LoggerLevel level, string message, ...);
+
+//! Logs a message using the provided logging level
+/**
+    @param level the logging level
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+*/
+abstract LoggerInterface::log(int level, string message, ...);
+
+//! Logs a message using the provided logging level
+/**
+    @param level The logging level
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+*/
+abstract LoggerInterface::log(string level, string message, ...);
+
+//! Logs a message using the provided logging level and a single argument for any format string arguments
+/**
+    @param level The logging level
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+    @param args any format string arguments to the log message
+*/
+abstract LoggerInterface::logArgs(Qore::Logger::LoggerLevel level, string message, *softlist<auto> args);
+
+//! Logs a message using the provided logging level and a single argument for any format string arguments
+/**
+    @param level the logging level
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+    @param args any format string arguments to the log message
+*/
+abstract LoggerInterface::logArgs(int level, string message, *softlist<auto> args);
+
+//! Logs a message using the provided logging level and a single argument for any format string arguments
+/**
+    @param level The logging level
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+    @param args any format string arguments to the log message
+*/
+abstract LoggerInterface::logArgs(string level, string message, *softlist<auto> args);
+
+//! Logs an already prepared logging event object
+/**
+    @param event the event to log
+*/
+abstract LoggerInterface::logEvent(LoggerEvent event);
+
+//! Logs a message object with the TRACE level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+*/
+abstract LoggerInterface::trace(string message, ...);
+
+//! Logs a message object with the DEBUG level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+*/
+abstract LoggerInterface::debug(string message, ...);
+
+//! Logs a message object with the INFO level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+*/
+abstract LoggerInterface::info(string message, ...);
+
+//! Logs a message object with the WARN level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+*/
+abstract LoggerInterface::warn(string message, ...);
+
+//! Logs a message object with the ERROR level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+*/
+abstract LoggerInterface::error(string message, ...);
+
+//! Logs a message object with the FATAL level
+/**
+    @see @ref log()
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+*/
+abstract LoggerInterface::fatal(string message, ...);
+
+//! Performs logging of assertions
+/**
+    If the \a assertion parameter is @ref False, then the message is logged
+    using the ERROR level.
+
+    @see @ref log()
+
+    @param assertion the boolean assertion value
+    @param message a string to log used as a format string for @ref Qore::vsprintf() "vsprintf()". Optional arguments are passed to
+    the @ref Qore::Logger::LoggerEvent object. If the last parameter is an @ref Qore::ExceptionInfo "ExceptionInfo" typed hash,
+    then it is considered "throwable" information.
+*/
+abstract LoggerInterface::assertLog(bool assertion, string message, ...);
+
+//! Logs the variable name and value using TRACE level
+/**
+    @see @ref log()
+
+    @param var_name the variable name
+    @param value the value of the variable
+*/
+abstract LoggerInterface::traceVar(string var_name, auto value);
+
+//! Logs the variable name and value using DEBUG level
+/**
+    @see @ref log()
+
+    @param var_name the variable name
+    @param value the value of the variable
+*/
+abstract LoggerInterface::debugVar(string var_name, auto value);
+
+//! Checks whether this Logger is enabled for a given Level passed as parameter
+/**
+    @param level the log level to check
+*/
+abstract bool LoggerInterface::isEnabledFor(Qore::Logger::LoggerLevel level);
+
+//! Checks whether this Logger is enabled for a given Level passed as parameter
+/**
+    @param level the log level to check
+*/
+abstract bool LoggerInterface::isEnabledFor(int level);
+
+//! Checks whether this Logger is enabled for a given Level passed as parameter
+/**
+    @param level the log level to check
+*/
+abstract bool LoggerInterface::isEnabledFor(string level);
+
+//! Checks whether this Logger is enabled for the TRACE Level
+/**
+*/
+abstract bool LoggerInterface::isTraceEnabled();
+
+//! Checks whether this Logger is enabled for the DEBUG Level
+/**
+*/
+abstract bool LoggerInterface::isDebugEnabled();
+
+//! Checks whether this Logger is enabled for the INFO Level
+/**
+*/
+abstract bool LoggerInterface::isInfoEnabled();
+
+//! Checks whether this Logger is enabled for the WARN Level
+/**
+*/
+abstract bool LoggerInterface::isWarnEnabled();
+
+//! Checks whether this Logger is enabled for the ERROR Level
+/**
+*/
+abstract bool LoggerInterface::isErrorEnabled();
+
+//! Checks whether this Logger is enabled for the FATAL Level
+/**
+*/
+abstract bool LoggerInterface::isFatalEnabled();
+
+//! Sets the logging level
+/**
+    @param level if nothing then inherits level from parent
+*/
+abstract LoggerInterface::setLevel(*Qore::Logger::LoggerLevel level);
+
+//! Sets the logging level
+/**
+    @param level the logging level as a string
+*/
+abstract LoggerInterface::setLevel(string level);
+
+//! Sets the logging level
+/**
+    @param level the logging level to set
+*/
+abstract LoggerInterface::setLevel(int level);
+
+//! Decrement logger level
+/**
+    @return current @ref Qore::Logger::LoggerLevel "LoggerLevel"
+*/
+abstract *LoggerLevel LoggerInterface::decLevel();
+
+//! Increment logger level
+/**
+    @return current @ref Qore::Logger::LoggerLevel "LoggerLevel"
+*/
+abstract *LoggerLevel LoggerInterface::incLevel();
+
+//! Returns the logging level
+/**
+    @param effective if False then get current level which can be NOTHING, if True then get level which might be
+    inherited from parent, Default: True
+    @throw LOGGER-ERROR if cannot get effective level from hierarchy
+*/
+abstract *LoggerLevel LoggerInterface::getLevel(bool effective = True);
