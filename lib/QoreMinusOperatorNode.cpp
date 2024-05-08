@@ -40,6 +40,7 @@ QoreValue QoreMinusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsin
     ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink) {
         return QoreValue();
+    }
 
     qore_type_t lt = lh->getType();
     qore_type_t rt = rh->getType();
