@@ -114,7 +114,7 @@ int ContextStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
     int sort_type = sort_ascending ? CM_SORT_ASCENDING : (sort_descending ? CM_SORT_DESCENDING : -1);
 
     // instantiate local variables
-    LVListInstantiator lvi(lvars, xsink);
+    LVListInstantiator lvi(xsink, lvars, pwo.parse_options);
 
     // create the context
     ReferenceHolder<Context> context(new Context(name, xsink, exp, where_exp, sort_type, sort), xsink);

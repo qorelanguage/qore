@@ -46,7 +46,7 @@ ForStatement::~ForStatement() {
 
 int ForStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
     // instantiate local variables
-    LVListInstantiator lvi(lvars, xsink);
+    LVListInstantiator lvi(xsink, lvars, pwo.parse_options);
 
     // evaluate assignment expression and discard results if any
     if (assignment) {

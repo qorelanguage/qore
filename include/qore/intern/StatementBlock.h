@@ -84,15 +84,16 @@ public:
 class LVListInstantiator {
     const LVList* l;
     ExceptionSink* xsink;
+    int64 parse_options;
 
 public:
-    DLLLOCAL LVListInstantiator(const LVList* l, ExceptionSink* xs) : l(l) {
+    DLLLOCAL LVListInstantiator(ExceptionSink* xs, const LVList* l, int64 parse_options) : l(l) {
         if (!l) return;
         xsink = xs;
         for (unsigned i = 0; i < l->size(); ++i) {
             //printd(5, "LVListInstantiator::LVListInstantiator() this: %p v: %p %s\n", this, l->lv[i],
             //  l->lv[i]->getName());
-            l->lv[i]->instantiate();
+            l->lv[i]->instantiate(parse_options);
         }
     }
 

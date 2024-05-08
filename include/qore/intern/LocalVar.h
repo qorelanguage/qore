@@ -333,8 +333,8 @@ public:
         return parse_assigned;
     }
 
-    DLLLOCAL void instantiate() {
-        if (getProgram()->getParseOptions64() & PO_STRICT_TYPES) {
+    DLLLOCAL void instantiate(int64 parse_options) {
+        if (parse_options & PO_STRICT_TYPES) {
             //printd(5, "LocalVar::instantiate() this: %p '%s' typeInfo: %s\n", this, name.c_str(),
             //    QoreTypeInfo::getName(typeInfo));
             instantiateIntern(QoreTypeInfo::getDefaultQoreValue(typeInfo), true);

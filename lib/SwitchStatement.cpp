@@ -93,7 +93,7 @@ int SwitchStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
     int rc = 0;
 
     // instantiate local variables
-    LVListInstantiator lvi(lvars, xsink);
+    LVListInstantiator lvi(xsink, lvars, pwo.parse_options);
 
     ValueEvalOptimizedRefHolder se(sexp, xsink);
 
