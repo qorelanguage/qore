@@ -33,10 +33,10 @@
 QoreString QoreMultiplicationOperatorNode::multiplication_str("* operator expression");
 
 QoreValue QoreMultiplicationOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink)
         return QoreValue();
 
@@ -78,7 +78,7 @@ int QoreMultiplicationOperatorNode::parseInitImpl(QoreValue& val, QoreParseConte
     if (!err && right.isValue() && left.isValue()) {
         SimpleRefHolder<QoreMultiplicationOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder rv(this, *xsink);
+        ValueEvalOptimizedRefHolder rv(this, *xsink);
         val = rv.takeReferencedValue();
         return **xsink ? -1 : 0;
     }

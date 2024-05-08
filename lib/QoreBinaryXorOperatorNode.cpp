@@ -34,9 +34,9 @@
 QoreString QoreBinaryXorOperatorNode::op_str("^ (binary xor) operator expression");
 
 QoreValue QoreBinaryXorOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink) return QoreValue();
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink) return QoreValue();
 
     return lh->getAsBigInt() ^ rh->getAsBigInt();
@@ -96,7 +96,7 @@ int QoreBinaryXorOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& p
     if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreBinaryXorOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }

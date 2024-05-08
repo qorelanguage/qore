@@ -79,7 +79,7 @@ int QoreKeysOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
         ReferenceHolder<> holder(this, 0);
         qore_type_t t = exp.getType();
         if (t == NT_HASH || t == NT_OBJECT) {
-            ValueEvalRefHolder rv(this, 0);
+            ValueEvalOptimizedRefHolder rv(this, 0);
             parse_context.typeInfo = rv->getTypeInfo();
             val = rv.takeReferencedValue();
         } else {
@@ -117,7 +117,7 @@ QoreValue QoreKeysOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink
 
 FunctionalOperatorInterface* QoreKeysOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type,
         ExceptionSink* xsink) const {
-    ValueEvalRefHolder marg(exp, xsink);
+    ValueEvalOptimizedRefHolder marg(exp, xsink);
     if (xsink && *xsink)
         return nullptr;
 

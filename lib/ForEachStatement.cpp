@@ -156,7 +156,7 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
         }
 
         // get value of foreach variable
-        ValueEvalRefHolder nv(var, xsink);
+        ValueEvalOptimizedRefHolder nv(var, xsink);
         if (*xsink) {
             return 0;
         }

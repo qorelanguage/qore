@@ -33,7 +33,7 @@
 QoreString QorePushOperatorNode::push_str("push operator expression");
 
 QoreValue QorePushOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder res(right, xsink);
+    ValueEvalOptimizedRefHolder res(right, xsink);
     if (*xsink)
         return QoreValue();
 

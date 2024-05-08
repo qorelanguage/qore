@@ -179,7 +179,7 @@ int QoreSquareBracketsOperatorNode::parseInitImpl(QoreValue& val, QoreParseConte
     if (!rti_can_be_list && right.isValue() && left.isValue()) {
         SimpleRefHolder<QoreSquareBracketsOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder rv(this, *xsink);
+        ValueEvalOptimizedRefHolder rv(this, *xsink);
         val = rv.takeReferencedValue();
         parse_context.typeInfo = typeInfo = val.getFullTypeInfo();
         return **xsink ? -1 : 0;
@@ -243,7 +243,7 @@ int QoreSquareBracketsOperatorNode::parseCheckValueTypes(const QoreListNode* ln)
 }
 
 QoreValue QoreSquareBracketsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();
 
@@ -251,7 +251,7 @@ QoreValue QoreSquareBracketsOperatorNode::evalImpl(bool& needs_deref, ExceptionS
     if (rhs_list_range)
         return doSquareBracketsListRange(*lh, right.get<const QoreParseListNode>(), xsink);
 
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink)
         return QoreValue();
 
@@ -269,7 +269,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
             ReferenceHolder<QoreListNode> ret(new QoreListNode(autoTypeInfo), xsink);
             const QoreParseListNode::nvec_t& vl = pln->getValues();
             for (unsigned i = 0; i < vl.size(); ++i) {
-                ValueEvalRefHolder rh(vl[i], xsink);
+                ValueEvalOptimizedRefHolder rh(vl[i], xsink);
                 if (*xsink)
                     return QoreValue();
                 bool is_range = (vl[i].getType() == NT_OPERATOR
@@ -311,7 +311,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
         case NT_STRING: {
             SimpleRefHolder<QoreStringNode> ret(new QoreStringNode);
             for (auto& i : pln->getValues()) {
-                ValueEvalRefHolder rh(i, xsink);
+                ValueEvalOptimizedRefHolder rh(i, xsink);
                 if (*xsink)
                     return QoreValue();
                 bool is_range = (i.getType() == NT_OPERATOR
@@ -324,7 +324,7 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBracketsListRange(const QoreVa
         case NT_BINARY: {
             SimpleRefHolder<BinaryNode> bin(new BinaryNode);
             for (auto& i : pln->getValues()) {
-                ValueEvalRefHolder rh(i, xsink);
+                ValueEvalOptimizedRefHolder rh(i, xsink);
                 if (*xsink)
                     return QoreValue();
                 bool is_range = (i.getType() == NT_OPERATOR
@@ -468,11 +468,11 @@ QoreValue QoreSquareBracketsOperatorNode::doSquareBrackets(const QoreValue l, co
 
 FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIteratorImpl(
         FunctionalValueType& value_type, ExceptionSink* xsink) const {
-    ValueEvalRefHolder lhs(left, xsink);
+    ValueEvalOptimizedRefHolder lhs(left, xsink);
     if (*xsink)
         return nullptr;
 
-    ValueEvalRefHolder rhs(xsink);
+    ValueEvalOptimizedRefHolder rhs(xsink);
 
     // do not evaluate the RHS if the RHS is a list with ranges
     if (rhs_list_range) {
@@ -486,7 +486,7 @@ FunctionalOperatorInterface* QoreSquareBracketsOperatorNode::getFunctionalIterat
 
         // we only support functional iteration when the lhd is a list and the rhs is a list
         if (lhs->getType() == NT_LIST && rhs->getType() == NT_LIST) {
-            ValueEvalRefHolder rhs(right, xsink);
+            ValueEvalOptimizedRefHolder rhs(right, xsink);
             if (*xsink)
                 return nullptr;
 
@@ -562,7 +562,7 @@ bool QoreFunctionalSquareBracketsComplexOperator::getNextImpl(ValueOptionalRefHo
         } else  // set the value using the index from the inner subrange
             val.setValue(QoreSquareBracketsOperatorNode::doSquareBrackets(*leftValue, *rangeVal, false, xsink), true);
     } else {
-        ValueEvalRefHolder rh(rightParseList->get(offset), xsink);
+        ValueEvalOptimizedRefHolder rh(rightParseList->get(offset), xsink);
         if (*xsink)
             return false;
 

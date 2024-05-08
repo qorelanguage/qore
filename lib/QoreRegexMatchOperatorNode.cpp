@@ -34,7 +34,7 @@
 QoreString QoreRegexMatchOperatorNode::op_str("regex match (=~) operator expression");
 
 QoreValue QoreRegexMatchOperatorNode::evalImpl(bool& needs_deref, ExceptionSink *xsink) const {
-    ValueEvalRefHolder lh(exp, xsink);
+    ValueEvalOptimizedRefHolder lh(exp, xsink);
     if (*xsink)
         return QoreValue();
 
@@ -60,7 +60,7 @@ int QoreRegexMatchOperatorNode::parseInitIntern(const char *name, QoreValue& val
     if (!err && exp.isValue()) {
         SimpleRefHolder<QoreRegexMatchOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }

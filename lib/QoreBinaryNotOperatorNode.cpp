@@ -45,7 +45,7 @@ int QoreBinaryNotOperatorNode::getAsString(QoreString& str, int foff, ExceptionS
 }
 
 QoreValue QoreBinaryNotOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder v(exp, xsink);
+    ValueEvalOptimizedRefHolder v(exp, xsink);
     if (*xsink)
         return QoreValue();
 
@@ -71,7 +71,7 @@ int QoreBinaryNotOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& p
     if (!err && exp.isValue()) {
         SimpleRefHolder<QoreBinaryNotOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
         if (**xsink) {

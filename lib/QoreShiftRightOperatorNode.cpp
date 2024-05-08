@@ -34,9 +34,9 @@
 QoreString QoreShiftRightOperatorNode::op_str(">> (shift right) operator expression");
 
 QoreValue QoreShiftRightOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink) return QoreValue();
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink) return QoreValue();
 
     return lh->getAsBigInt() >> rh->getAsBigInt();
@@ -74,7 +74,7 @@ int QoreShiftRightOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& 
     if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreShiftRightOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }

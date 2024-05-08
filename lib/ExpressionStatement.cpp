@@ -62,7 +62,7 @@ ExpressionStatement::~ExpressionStatement() {
 }
 
 int ExpressionStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
-    ValueEvalRefHolder erh(exp, xsink);
+    ValueEvalOptimizedRefHolder erh(exp, xsink);
     return 0;
 }
 

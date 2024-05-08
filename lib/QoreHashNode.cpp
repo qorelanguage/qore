@@ -301,7 +301,7 @@ QoreHashNode* qore_hash_private::newComplexHash(const QoreTypeInfo* typeInfo, co
     QoreHashNode* init = nullptr;
 
     if (args && !args->empty()) {
-        ValueEvalRefHolder a(args->get(0), xsink);
+        ValueEvalOptimizedRefHolder a(args->get(0), xsink);
         if (*xsink)
             return nullptr;
 

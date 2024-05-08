@@ -34,14 +34,14 @@ QoreString QoreLogicalAndOperatorNode::logical_and_str("logical and (&&) operato
 
 QoreValue QoreLogicalAndOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     // if left side is 0, then do not evaluate right side (logical short circuiting)
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();
     if (!lh->getAsBool()) {
         return false;
     }
 
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink)
         return QoreValue();
     return rh->getAsBool();
@@ -63,7 +63,7 @@ int QoreLogicalAndOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& 
     if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalAndOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }

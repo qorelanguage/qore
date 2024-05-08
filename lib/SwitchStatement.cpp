@@ -95,7 +95,7 @@ int SwitchStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
     // instantiate local variables
     LVListInstantiator lvi(lvars, xsink);
 
-    ValueEvalRefHolder se(sexp, xsink);
+    ValueEvalOptimizedRefHolder se(sexp, xsink);
 
     if (!*xsink) {
         // find match
@@ -170,7 +170,7 @@ int SwitchStatement::parseInitImpl(QoreParseContext& parse_context) {
                 continue;
             }
 
-            ValueEvalRefHolder se(w->val, &xsink);
+            ValueEvalOptimizedRefHolder se(w->val, &xsink);
             if (!xsink) {
                 QoreValue nv = se.takeReferencedValue();
                 w->val.discard(nullptr);

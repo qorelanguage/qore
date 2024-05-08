@@ -109,7 +109,7 @@ QoreHashNode* QoreHashMapOperatorNode::getNewHash() const {
 }
 
 QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder arg_lst(e[2], xsink);
+    ValueEvalOptimizedRefHolder arg_lst(e[2], xsink);
     if (*xsink || arg_lst->isNothing())
         return QoreValue();
 
@@ -134,11 +134,11 @@ QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
 
         // check if value can be mapped
         SingleArgvContextHelper argv_helper(arg_lst.takeReferencedValue(), xsink);
-        ValueEvalRefHolder arg_key(e[0], xsink);
+        ValueEvalOptimizedRefHolder arg_key(e[0], xsink);
         if (*xsink)
             return QoreValue();
 
-        ValueEvalRefHolder arg_val(e[1], xsink);
+        ValueEvalOptimizedRefHolder arg_val(e[1], xsink);
         if (*xsink)
             return QoreValue();
 
@@ -168,7 +168,7 @@ QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
             SingleArgvContextHelper argv_helper(li.getReferencedValue(), xsink);
 
             {
-                ValueEvalRefHolder ekey(e[0], xsink);
+                ValueEvalOptimizedRefHolder ekey(e[0], xsink);
                 if (*xsink)
                     return QoreValue();
 
@@ -177,7 +177,7 @@ QoreValue QoreHashMapOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xs
                 if (*xsink)
                     return QoreValue();
 
-                ValueEvalRefHolder val(e[1], xsink);
+                ValueEvalOptimizedRefHolder val(e[1], xsink);
                 if (*xsink)
                     return QoreValue();
 
@@ -242,7 +242,7 @@ QoreValue QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, Except
         SingleArgvContextHelper argv_helper(iv.release(), xsink);
 
         {
-            ValueEvalRefHolder ekey(e[0], xsink);
+            ValueEvalOptimizedRefHolder ekey(e[0], xsink);
             if (*xsink)
                 return QoreValue();
 
@@ -251,7 +251,7 @@ QoreValue QoreHashMapOperatorNode::mapIterator(AbstractIteratorHelper& h, Except
             if (*xsink)
                 return QoreValue();
 
-            ValueEvalRefHolder val(e[1], xsink);
+            ValueEvalOptimizedRefHolder val(e[1], xsink);
             if (*xsink)
                 return QoreValue();
 

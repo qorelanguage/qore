@@ -81,7 +81,7 @@ int QoreMinusEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext&
 }
 
 QoreValue QoreMinusEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder new_right(right, xsink);
+    ValueEvalOptimizedRefHolder new_right(right, xsink);
     if (*xsink) {
         return QoreValue();
     }

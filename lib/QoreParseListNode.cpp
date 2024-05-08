@@ -114,7 +114,7 @@ int QoreParseListNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_con
 
     // evaluate immediately
     SimpleRefHolder<QoreParseListNode> holder(this);
-    ValueEvalRefHolder rv(this, nullptr);
+    ValueEvalOptimizedRefHolder rv(this, nullptr);
     val = rv.takeReferencedValue();
     return 0;
 }
@@ -132,7 +132,7 @@ QoreValue QoreParseListNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) c
     bool vcommon = false;
 
     for (size_t i = 0; i < values.size(); ++i) {
-        ValueEvalRefHolder v(values[i], xsink);
+        ValueEvalOptimizedRefHolder v(values[i], xsink);
         if (xsink && *xsink) {
             return QoreValue();
         }

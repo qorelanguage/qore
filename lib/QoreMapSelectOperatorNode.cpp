@@ -174,7 +174,7 @@ FunctionalOperatorInterface* QoreMapSelectOperatorNode::getFunctionalIteratorImp
         return new QoreFunctionalMapSelectOperator(this, f.release());
     }
 
-    ValueEvalRefHolder marg(e[1], xsink);
+    ValueEvalOptimizedRefHolder marg(e[1], xsink);
     if (*xsink)
         return 0;
 
@@ -214,13 +214,13 @@ bool QoreFunctionalMapSelectListOperator::getNextImpl(ValueOptionalRefHolder& va
         SingleArgvContextHelper argv_helper(getReferencedValue(), xsink);
 
         // check if value can be mapped
-        ValueEvalRefHolder result(map->e[2], xsink);
+        ValueEvalOptimizedRefHolder result(map->e[2], xsink);
         if (*xsink)
             return false;
         if (!result->getAsBool())
             continue;
 
-        ValueEvalRefHolder tval(map->e[0], xsink);
+        ValueEvalOptimizedRefHolder tval(map->e[0], xsink);
         if (!*xsink) {
             tval.ensureReferencedValue();
             val.takeValueFrom(tval);
@@ -240,13 +240,13 @@ bool QoreFunctionalMapSelectSingleValueOperator::getNextImpl(ValueOptionalRefHol
     v.clear();
 
     // check if value can be mapped
-    ValueEvalRefHolder result(map->e[2], xsink);
+    ValueEvalOptimizedRefHolder result(map->e[2], xsink);
     if (*xsink)
         return false;
     if (!result->getAsBool())
         return true;
 
-    ValueEvalRefHolder tval(map->e[0], xsink);
+    ValueEvalOptimizedRefHolder tval(map->e[0], xsink);
     if (!*xsink) {
         tval.ensureReferencedValue();
         val.takeValueFrom(tval);
@@ -272,13 +272,13 @@ bool QoreFunctionalMapSelectIteratorOperator::getNextImpl(ValueOptionalRefHolder
         SingleArgvContextHelper argv_helper(iv.release(), xsink);
 
         // check if value can be mapped
-        ValueEvalRefHolder result(map->e[2], xsink);
+        ValueEvalOptimizedRefHolder result(map->e[2], xsink);
         if (*xsink)
             return false;
         if (!result->getAsBool())
             continue;
 
-        ValueEvalRefHolder tval(map->e[0], xsink);
+        ValueEvalOptimizedRefHolder tval(map->e[0], xsink);
         if (!*xsink) {
             tval.ensureReferencedValue();
             val.takeValueFrom(tval);
@@ -302,13 +302,13 @@ bool QoreFunctionalMapSelectOperator::getNextImpl(ValueOptionalRefHolder& val, E
         SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
 
         // check if value can be mapped
-        ValueEvalRefHolder result(map->e[2], xsink);
+        ValueEvalOptimizedRefHolder result(map->e[2], xsink);
         if (*xsink)
             return false;
         if (!result->getAsBool())
             continue;
 
-        ValueEvalRefHolder tval(map->e[0], xsink);
+        ValueEvalOptimizedRefHolder tval(map->e[0], xsink);
         if (!*xsink) {
             tval.ensureReferencedValue();
             val.takeValueFrom(tval);

@@ -37,10 +37,10 @@
 QoreString QorePlusOperatorNode::plus_str("+ operator expression");
 
 QoreValue QorePlusOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink)
         return QoreValue();
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink)
         return QoreValue();
 
@@ -203,7 +203,7 @@ int QorePlusOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
     if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QorePlusOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder rv(this, *xsink);
+        ValueEvalOptimizedRefHolder rv(this, *xsink);
         val = rv.takeReferencedValue();
         parse_context.typeInfo = val.getFullTypeInfo();
         return **xsink ? -1 : 0;

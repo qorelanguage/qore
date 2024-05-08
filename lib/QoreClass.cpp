@@ -1245,7 +1245,7 @@ int qore_class_private::initMember(QoreObject& o, bool& need_scan, const char* m
     if (!info.exp.isNothing()) {
         // set runtime location
         QoreProgramLocationHelper l(info.loc);
-        ValueEvalRefHolder val(info.exp, xsink);
+        ValueEvalOptimizedRefHolder val(info.exp, xsink);
         if (*xsink) {
             return -1;
         }
@@ -5698,7 +5698,7 @@ int QoreVarInfo::evalInit(const char* name, ExceptionSink* xsink) {
 
     if (exp) {
         // evaluate expression
-        ValueEvalRefHolder val(exp, xsink);
+        ValueEvalOptimizedRefHolder val(exp, xsink);
         if (*xsink) {
             return -1;
         }

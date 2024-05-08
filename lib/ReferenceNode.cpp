@@ -76,7 +76,7 @@ QoreValue ParseReferenceNode::doPartialEval(QoreValue n, QoreObject*& self, cons
         {
             QoreSquareBracketsOperatorNode* op = dynamic_cast<QoreSquareBracketsOperatorNode*>(n.getInternalNode());
             if (op) {
-                ValueEvalRefHolder rh(op->getRight(), xsink);
+                ValueEvalOptimizedRefHolder rh(op->getRight(), xsink);
                 if (*xsink)
                     return QoreValue();
 
@@ -92,7 +92,7 @@ QoreValue ParseReferenceNode::doPartialEval(QoreValue n, QoreObject*& self, cons
             QoreHashObjectDereferenceOperatorNode* op =
                 dynamic_cast<QoreHashObjectDereferenceOperatorNode*>(n.getInternalNode());
             if (op) {
-                ValueEvalRefHolder rh(op->getRight(), xsink);
+                ValueEvalOptimizedRefHolder rh(op->getRight(), xsink);
                 if (*xsink)
                     return QoreValue();
 

@@ -242,7 +242,7 @@ QoreListNode* qore_list_private::newComplexList(const QoreTypeInfo* typeInfo, co
     QoreValue val;
 
     if (!args.isNothing()) {
-        ValueEvalRefHolder a(args, xsink);
+        ValueEvalOptimizedRefHolder a(args, xsink);
         if (*xsink) {
             return nullptr;
         }
@@ -624,7 +624,7 @@ QoreListNode* qore_list_private::eval(ExceptionSink* xsink) {
     ReferenceHolder<QoreListNode> nl(getCopy(), xsink);
     //printd(5, "qore_list_private::eval() '%s' -> '%s'\n", QoreTypeInfo::getName(complexTypeInfo), get_full_type_name(*nl));
     for (size_t i = 0; i < length; ++i) {
-        ValueEvalRefHolder v(entry[i], xsink);
+        ValueEvalOptimizedRefHolder v(entry[i], xsink);
         if (*xsink) {
             return nullptr;
         }

@@ -43,7 +43,7 @@ static const AbstractQoreNode* check_call_ref(const AbstractQoreNode *op, const 
 }
 
 QoreValue QoreDotEvalOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder op(left, xsink);
+    ValueEvalOptimizedRefHolder op(left, xsink);
     if (*xsink)
         return QoreValue();
 

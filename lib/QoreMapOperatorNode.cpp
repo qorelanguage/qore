@@ -194,7 +194,7 @@ FunctionalOperatorInterface* QoreMapOperatorNode::getFunctionalIteratorImpl(Func
         return new QoreFunctionalMapOperator(this, f.release());
     }
 
-    ValueEvalRefHolder marg(right, xsink);
+    ValueEvalOptimizedRefHolder marg(right, xsink);
     if (*xsink)
         return nullptr;
 
@@ -234,7 +234,7 @@ bool QoreFunctionalMapListOperator::getNextImpl(ValueOptionalRefHolder& val, Exc
     // set offset in thread-local data for "$#"
     ImplicitElementHelper eh(index());
     SingleArgvContextHelper argv_helper(getReferencedValue(), xsink);
-    ValueEvalRefHolder tval(map->left, xsink);
+    ValueEvalOptimizedRefHolder tval(map->left, xsink);
     if (!*xsink) {
         tval.ensureReferencedValue();
         val.takeValueFrom(tval);
@@ -250,7 +250,7 @@ bool QoreFunctionalMapSingleValueOperator::getNextImpl(ValueOptionalRefHolder& v
 
     SingleArgvContextHelper argv_helper(v, xsink);
     v.clear();
-    ValueEvalRefHolder tval(map->left, xsink);
+    ValueEvalOptimizedRefHolder tval(map->left, xsink);
     if (!*xsink) {
         tval.ensureReferencedValue();
         val.takeValueFrom(tval);
@@ -273,7 +273,7 @@ bool QoreFunctionalMapIteratorOperator::getNextImpl(ValueOptionalRefHolder& val,
     if (*xsink)
         return false;
     SingleArgvContextHelper argv_helper(iv.release(), xsink);
-    ValueEvalRefHolder tval(map->left, xsink);
+    ValueEvalOptimizedRefHolder tval(map->left, xsink);
     if (!*xsink) {
         tval.ensureReferencedValue();
         val.takeValueFrom(tval);
@@ -290,7 +290,7 @@ bool QoreFunctionalMapOperator::getNextImpl(ValueOptionalRefHolder& val, Excepti
 
     ImplicitElementHelper eh(index++);
     SingleArgvContextHelper argv_helper(iv.takeReferencedValue(), xsink);
-    ValueEvalRefHolder tval(map->left, xsink);
+    ValueEvalOptimizedRefHolder tval(map->left, xsink);
     if (!*xsink) {
         tval.ensureReferencedValue();
         val.takeValueFrom(tval);

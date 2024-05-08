@@ -34,7 +34,7 @@
 
 int RethrowStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
     if (args) {
-        ValueEvalRefHolder v(args, xsink);
+        ValueEvalOptimizedRefHolder v(args, xsink);
         if (!*xsink) {
             QoreException* ex = catch_get_exception()->replaceTop(*v->get<QoreListNode>(), *xsink);
             qore_es_private::get(*xsink)->rethrow(ex);

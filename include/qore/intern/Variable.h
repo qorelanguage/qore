@@ -379,7 +379,7 @@ public:
     const QoreTypeInfo* typeInfo = nullptr;
 
     DLLLOCAL LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool for_remove = false);
-    DLLLOCAL LValueHelper(QoreValue exp, ExceptionSink* xsink, bool for_remove = false);
+    DLLLOCAL LValueHelper(const QoreValue& exp, ExceptionSink* xsink, bool for_remove = false);
 
     DLLLOCAL LValueHelper(ExceptionSink* xsink);
 
@@ -396,12 +396,14 @@ public:
 
     DLLLOCAL void saveTemp(QoreValue n);
 
+    DLLLOCAL void saveTempRef(QoreValue& n);
+
     DLLLOCAL AbstractQoreNode*& getTempRef() {
         tvec.push_back(0);
         return tvec[tvec.size() - 1];
     }
 
-    DLLLOCAL int doLValue(const QoreValue exp, bool for_remove);
+    DLLLOCAL int doLValue(const QoreValue& exp, bool for_remove);
 
     DLLLOCAL int doLValue(const ReferenceNode* ref, bool for_remove);
 
@@ -633,7 +635,7 @@ protected:
 
 public:
     DLLLOCAL LValueRemoveHelper(const ReferenceNode& ref, ExceptionSink* n_xsink, bool fd);
-    DLLLOCAL LValueRemoveHelper(const QoreValue exp, ExceptionSink* n_xsink, bool fd);
+    DLLLOCAL LValueRemoveHelper(const QoreValue& exp, ExceptionSink* n_xsink, bool fd);
 
     DLLLOCAL void doRemove(QoreValue exp);
 

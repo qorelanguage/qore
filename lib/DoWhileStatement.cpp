@@ -53,7 +53,7 @@ int DoWhileStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
             }
         }
 
-        ValueEvalRefHolder val(cond, xsink);
+        ValueEvalOptimizedRefHolder val(cond, xsink);
         if (*xsink) {
             break;
         }

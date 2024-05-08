@@ -169,7 +169,7 @@ public:
             if (!helper)
                 return QoreValue();
 
-            ValueEvalRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
+            ValueEvalOptimizedRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
             return erh.takeValue(needs_deref);
         }
 
@@ -188,7 +188,7 @@ public:
             if (!helper)
                 return QoreValue();
 
-            ValueEvalRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
+            ValueEvalOptimizedRefHolder erh(lvalue_ref::get(ref)->vexp, xsink);
             return *xsink ? QoreValue() : erh.takeReferencedValue();
         }
 

@@ -33,7 +33,7 @@
 QoreString QoreLogicalOrOperatorNode::logical_or_str("logical or (&&) operator expression");
 
 QoreValue QoreLogicalOrOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink)
         return false;
     // if left side is true, then do not evaluate right side (logical short circuiting)
@@ -41,7 +41,7 @@ QoreValue QoreLogicalOrOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* 
         return true;
     }
 
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink)
         return false;
     return rh->getAsBool();
