@@ -372,7 +372,7 @@ void QoreLogger::logIntern(ExceptionSink* xsink, const QoreLoggerLevel* level, c
         }
         {
             ReferenceHolder<QoreLoggerEvent> ev(new QoreLoggerEvent(self, *name, nullptr, level, message, args, offset,
-                location, gettid(), timestamp, *throwable), xsink);
+                location, q_gettid(), timestamp, *throwable), xsink);
             ev->ref();
             ReferenceHolder<QoreObject> event(new QoreObject(QC_LOGGEREVENT, getProgram(), *ev), xsink);
             callAppenders(xsink, *event, *ev);
@@ -413,7 +413,7 @@ void QoreLogger::logIntern(ExceptionSink* xsink, const QoreLoggerLevel* level, c
         const DateTimeNode* timestamp) {
     if (isEnabledFor(xsink, level)) {
         ReferenceHolder<QoreLoggerEvent> ev(new QoreLoggerEvent(self, *name, nullptr, level, message, args, offset,
-            location, gettid(), timestamp, throwable), xsink);
+            location, q_gettid(), timestamp, throwable), xsink);
         ev->ref();
         ReferenceHolder<QoreObject> event(new QoreObject(QC_LOGGEREVENT, getProgram(), *ev), xsink);
         callAppenders(xsink, *event, *ev);
