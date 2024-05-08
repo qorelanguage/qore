@@ -102,9 +102,11 @@ public:
 #ifdef DEBUG
             if (!w) {
                 p = curr->pos - 1;
-                printd(0, "ThreadLocalVariableData::find() this: %p no local variable '%s' (%p) on stack (pgm: %p) p: %d\n", this, id, id, getProgram(), p);
+                printd(0, "ThreadLocalVariableData::find() this: %p no local variable '%s' (%p) on stack (pgm: %p) "
+                    "p: %d\n", this, id, id, getProgram(), p);
                 while (p >= 0) {
-                    printd(0, "var p: %d: %s (%p) (frame_boundary: %d)\n", p, curr->var[p].id, curr->var[p].id, curr->var[p].frame_boundary);
+                    printd(0, "var p: %d: %s (%p) (frame_boundary: %d)\n", p, curr->var[p].id, curr->var[p].id,
+                        curr->var[p].frame_boundary);
                     --p;
                 }
             }

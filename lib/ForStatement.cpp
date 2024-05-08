@@ -79,8 +79,7 @@ int ForStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
 
             if (rc == RC_RETURN) {
                 break;
-            }
-            else if (rc == RC_CONTINUE) {
+            } else if (rc == RC_CONTINUE) {
                 rc = 0;
             }
         }

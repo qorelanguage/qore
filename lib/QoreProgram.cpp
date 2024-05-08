@@ -1435,7 +1435,7 @@ int ThreadLocalProgramData::dbgStep(const StatementBlock* blockStatement, const 
     unsigned bkptId = 0;
     bool cond = runState == DBG_RS_STEP || (runState == DBG_RS_STEP_OVER && functionCallLevel == 0);
     if (!cond) {
-        const AbstractStatement *st = statement ? statement : blockStatement;
+        const AbstractStatement* st = statement ? statement : blockStatement;
         cond = st == runToStatement;
         if (!cond && st->getBreakpointFlag()) {   // fast breakpoint check
             printd(5, "ThreadLocalProgramData::dbgStep() this: %p, rs: %d, tid: %d, breakpoint phase-1\n", this, runState, q_gettid());

@@ -802,35 +802,35 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
     return 0;
 }
 
-int LValueHelper::makeInt(const char* desc) {
-    assert(val || qv);
-
-    if (val) {
-        if (val->isInt()) {
-            return 0;
-        }
-
-        if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
-            // the 4th arg to doTypeException() is needed only for the type
-            typeInfo->doTypeException("lvalue", 0, desc, QoreValue(1), vl.xsink);
-            return -1;
-        }
-
-        saveTemp(val->makeInt());
-    } else {
-        if (!qv->hasNode() && qv->getType() == NT_INT) {
-           return 0;
-        }
-
-        if (typeInfo && qv->getType() != NT_INT && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
-            // the 4th arg to doTypeException() is needed only for the type
-            typeInfo->doTypeException("lvalue", 0, desc, QoreValue(1), vl.xsink);
-            return -1;
-        }
-
-        saveTemp(qv->assign(qv->getAsBigInt()));
+int LValueHelper::makeIntVal(const char* desc) {
+    assert(val);
+    if (val->isInt()) {
+        return 0;
     }
 
+    if (typeInfo && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
+        // the 4th arg to doTypeException() is needed only for the type
+        typeInfo->doTypeException("lvalue", 0, desc, QoreValue(1), vl.xsink);
+        return -1;
+    }
+
+    saveTemp(val->makeInt());
+    return 0;
+}
+
+int LValueHelper::makeIntQv(const char* desc) {
+    assert(qv);
+    if (qv->getType() == NT_INT) {
+        return 0;
+    }
+
+    if (typeInfo && qv->getType() != NT_INT && !QoreTypeInfo::parseAccepts(typeInfo, bigIntTypeInfo)) {
+        // the 4th arg to doTypeException() is needed only for the type
+        typeInfo->doTypeException("lvalue", 0, desc, QoreValue(1), vl.xsink);
+        return -1;
+    }
+
+    saveTemp(qv->assign(qv->getAsBigInt()));
     return 0;
 }
 
@@ -879,8 +879,7 @@ int LValueHelper::makeNumber(const char* desc) {
 
     if (val) {
         saveTemp(val->makeNumber());
-    }
-    else {
+    } else {
         saveTemp(qv->assign(new QoreNumberNode(qv)));
     }
     return 0;
@@ -888,168 +887,195 @@ int LValueHelper::makeNumber(const char* desc) {
 
 int64 LValueHelper::plusEqualsBigInt(int64 va, const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->plusEqualsBigInt(va, getTempRef());
+        }
+        return val->plusEqualsBigInt(va);
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     qv->v.i += va;
     return qv->v.i;
 }
 
 int64 LValueHelper::minusEqualsBigInt(int64 va, const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->minusEqualsBigInt(va, getTempRef());
+        }
+        return val->minusEqualsBigInt(va);
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     qv->v.i -= va;
     return qv->v.i;
 }
 
 int64 LValueHelper::multiplyEqualsBigInt(int64 va, const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->multiplyEqualsBigInt(va, getTempRef());
+        }
+        return val->multiplyEqualsBigInt(va);
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     qv->v.i *= va;
     return qv->v.i;
 }
 
 int64 LValueHelper::divideEqualsBigInt(int64 va, const char* desc) {
     assert(va);
-
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->divideEqualsBigInt(va, getTempRef());
+        }
+        return val->divideEqualsBigInt(va);
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     qv->v.i /= va;
     return qv->v.i;
 }
 
 int64 LValueHelper::orEqualsBigInt(int64 va, const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->orEqualsBigInt(va, getTempRef());
+        }
+        return val->orEqualsBigInt(va);
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     qv->v.i |= va;
     return qv->v.i;
 }
 
 int64 LValueHelper::xorEqualsBigInt(int64 va, const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->xorEqualsBigInt(va, getTempRef());
+        }
+        return val->xorEqualsBigInt(va);
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     qv->v.i ^= va;
     return qv->v.i;
 }
 
 int64 LValueHelper::modulaEqualsBigInt(int64 va, const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->modulaEqualsBigInt(va, getTempRef());
+        }
+        return val->modulaEqualsBigInt(va);
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     qv->v.i %= va;
     return qv->v.i;
 }
 
 int64 LValueHelper::andEqualsBigInt(int64 va, const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->andEqualsBigInt(va, getTempRef());
+        }
+        return val->andEqualsBigInt(va);
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     qv->v.i &= va;
     return qv->v.i;
 }
 
 int64 LValueHelper::shiftLeftEqualsBigInt(int64 va, const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->shiftLeftEqualsBigInt(va, getTempRef());
+        }
+        return val->shiftLeftEqualsBigInt(va);
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     qv->v.i <<= va;
     return qv->v.i;
 }
 
 int64 LValueHelper::shiftRightEqualsBigInt(int64 va, const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->shiftRightEqualsBigInt(va, getTempRef());
+        }
+        return val->shiftRightEqualsBigInt(va);
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     qv->v.i >>= va;
     return qv->v.i;
 }
 
 int64 LValueHelper::preIncrementBigInt(const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->preIncrementBigInt(getTempRef());
+        }
+        return val->preIncrementBigInt();
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     return ++qv->v.i;
 }
 
 int64 LValueHelper::preDecrementBigInt(const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->preDecrementBigInt(getTempRef());
+        }
+        return val->preDecrementBigInt();
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     return --qv->v.i;
 }
 
 int64 LValueHelper::postIncrementBigInt(const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
+        }
         assert(val->isInt());
-        return val->postIncrementBigInt(getTempRef());
+        return val->postIncrementBigInt();
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     return qv->v.i++;
 }
 
 int64 LValueHelper::postDecrementBigInt(const char* desc) {
     if (val) {
-        if (makeInt(desc))
+        if (makeIntVal(desc)) {
             return 0;
-        return val->postDecrementBigInt(getTempRef());
+        }
+        return val->postDecrementBigInt();
     }
-    if (makeInt(desc))
+    if (makeIntQv(desc)) {
         return 0;
+    }
     return qv->v.i--;
 }
 
@@ -1057,7 +1083,7 @@ double LValueHelper::preIncrementFloat(const char* desc) {
     if (val) {
         if (makeFloat(desc))
             return 0.0;
-        return val->preIncrementFloat(getTempRef());
+        return val->preIncrementFloat();
     }
     if (makeFloat(desc))
         return 0.0;
@@ -1068,7 +1094,7 @@ double LValueHelper::preDecrementFloat(const char* desc) {
     if (val) {
         if (makeFloat(desc))
             return 0.0;
-        return val->preDecrementFloat(getTempRef());
+        return val->preDecrementFloat();
     }
     if (makeFloat(desc))
         return 0.0;
@@ -1079,7 +1105,7 @@ double LValueHelper::postIncrementFloat(const char* desc) {
     if (val) {
         if (makeFloat(desc))
             return 0.0;
-        return val->postIncrementFloat(getTempRef());
+        return val->postIncrementFloat();
     }
     if (makeFloat(desc))
         return 0.0;
@@ -1090,7 +1116,7 @@ double LValueHelper::postDecrementFloat(const char* desc) {
     if (val) {
         if (makeFloat(desc))
             return 0.0;
-        return val->postDecrementFloat(getTempRef());
+        return val->postDecrementFloat();
     }
     if (makeFloat(desc))
         return 0.0;
@@ -1101,7 +1127,7 @@ double LValueHelper::plusEqualsFloat(double va, const char* desc) {
     if (val) {
         if (makeFloat(desc))
             return 0.0;
-        return val->plusEqualsFloat(va, getTempRef());
+        return val->plusEqualsFloat(va);
     }
     if (makeFloat(desc))
         return 0.0;
@@ -1113,7 +1139,7 @@ double LValueHelper::minusEqualsFloat(double va, const char* desc) {
     if (val) {
         if (makeFloat(desc))
             return 0.0;
-        return val->minusEqualsFloat(va, getTempRef());
+        return val->minusEqualsFloat(va);
     }
     if (makeFloat(desc))
         return 0.0;
@@ -1125,7 +1151,7 @@ double LValueHelper::multiplyEqualsFloat(double va, const char* desc) {
     if (val) {
         if (makeFloat(desc))
             return 0.0;
-        return val->multiplyEqualsFloat(va, getTempRef());
+        return val->multiplyEqualsFloat(va);
     }
     if (makeFloat(desc))
         return 0.0;
@@ -1138,7 +1164,7 @@ double LValueHelper::divideEqualsFloat(double va, const char* desc) {
     if (val) {
         if (makeFloat(desc))
             return 0.0;
-        return val->divideEqualsFloat(va, getTempRef());
+        return val->divideEqualsFloat(va);
     }
     if (makeFloat(desc))
         return 0.0;

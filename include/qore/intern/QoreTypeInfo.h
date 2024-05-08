@@ -464,6 +464,9 @@ public:
 
     // static version of method, checking for null pointer
     DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second) {
+        if (first == second) {
+            return QTI_IDENT;
+        }
         bool may_not_match = false;
         bool may_need_filter = false;
         qore_type_result_e max_result = QTI_NOT_EQUAL;
@@ -473,6 +476,9 @@ public:
     // static version of method, checking for null pointer
     DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second,
             bool& may_not_match) {
+        if (first == second) {
+            return QTI_IDENT;
+        }
         bool may_need_filter = false;
         qore_type_result_e max_result = QTI_NOT_EQUAL;
         return parseAccepts(first, second, may_not_match, may_need_filter, max_result);
@@ -480,6 +486,9 @@ public:
 
     DLLLOCAL static qore_type_result_e parseAccepts(const QoreTypeInfo* first, const QoreTypeInfo* second,
             bool& may_not_match, bool& may_need_filter) {
+        if (first == second) {
+            return QTI_IDENT;
+        }
         qore_type_result_e max_result = QTI_NOT_EQUAL;
         return parseAccepts(first, second, may_not_match, may_need_filter, max_result);
     }

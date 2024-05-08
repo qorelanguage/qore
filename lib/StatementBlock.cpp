@@ -92,7 +92,7 @@ VNode* VNode::nextSearch() const {
     //printd(5, "VNode::nextSearch() next->lvar: %p top_level: %d\n", next ? next->lvar : 0, top_level);
 
     if ((next && next->lvar) || top_level)
-        return !next || next->lvar ? next : 0;
+        return !next || next->lvar ? next : nullptr;
 
     // skip to global thread-local variables
     VNode* rv = get_global_vnode();
@@ -153,9 +153,13 @@ QoreValue StatementBlock::exec(ExceptionSink* xsink) {
     //QORE_TRACE("StatementBlock::exec()");
     QoreValue return_value;
     ThreadLocalProgramData* tlpd = get_thread_local_program_data();
-    tlpd->dbgFunctionEnter(this, xsink);
+    if (tlpd->dbgIsAttached()) {
+        tlpd->dbgFunctionEnter(this, xsink);
+    }
     execImpl(return_value, xsink);
-    tlpd->dbgFunctionExit(this, return_value, xsink);
+    if (tlpd->dbgIsAttached()) {
+        tlpd->dbgFunctionExit(this, return_value, xsink);
+    }
     return return_value;
 }
 
@@ -207,16 +211,20 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
 
     ThreadLocalProgramData* tlpd = get_thread_local_program_data();
     // to execute even when block is empty, e.g. while(true);
-    rc = tlpd->dbgStep(this, 0, xsink);
+    if (tlpd->dbgIsAttached()) {
+        rc = tlpd->dbgStep(this, nullptr, xsink);
+    }
     if (!rc && !*xsink) {
         // execute block
         for (auto i : statement_list) {
-            rc = tlpd->dbgStep(this, i, xsink);
-            if (rc || *xsink) {
-                break;
+            if (tlpd->dbgIsAttached()) {
+                rc = tlpd->dbgStep(this, i, xsink);
+                if (rc || *xsink) {
+                    break;
+                }
             }
             rc = i->exec(return_value, xsink);
-            if (*xsink) {
+            if (*xsink && tlpd->dbgIsAttached()) {
                 tlpd->dbgException(i, xsink);
                 if (*xsink) {
                     break;
@@ -298,10 +306,12 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc, const
 
     LocalVar* lv = qore_program_private::get(*pgm)->createLocalVar(name, typeInfo);
 
+    /*
     QoreString ls;
     loc->toString(ls);
-    //printd(5, "push_local_var() lv: %p name: %s type: %s %s\n", lv, name, QoreTypeInfo::getName(typeInfo),
-    //  ls.getBuffer());
+    printd(5, "push_local_var() lv: %p name: %s type: %s %s\n", lv, name, QoreTypeInfo::getName(typeInfo),
+        ls.c_str());
+    */
 
     bool found_block = false;
     // check stack for duplicate entries
@@ -382,7 +392,8 @@ LocalVar* find_local_var(const char* name, bool& in_closure) {
         if (cenv && !in_closure && cenv->getHighWaterMark() == vnode)
             in_closure = true;
 
-        //printd(5, "find_local_var('%s' %p) v: '%s' %p in_closure: %d match: %d\n", name, name, vnode->getName(), vnode->getName(), in_closure, !strcmp(vnode->getName(), name));
+        //printd(5, "find_local_var('%s' %p) v: '%s' %p in_closure: %d match: %d\n", name, name, vnode->getName(),
+        //    vnode->getName(), in_closure, !strcmp(vnode->getName(), name));
 
         if (!strcmp(vnode->getName(), name)) {
             //printd(5, "find_local_var() %s in_closure: %d\n", name, in_closure);

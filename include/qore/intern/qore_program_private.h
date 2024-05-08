@@ -264,7 +264,7 @@ private:
     // to call onAttach when debug is attached or detached, -1 .. detach, 1 .. attach
     int attachFlag = 0;
     DLLLOCAL inline void checkAttach(ExceptionSink* xsink) {
-        if (runState != DBG_RS_STOPPED) {
+        if (attachFlag && runState != DBG_RS_STOPPED) {
             if (attachFlag > 0) {
                 dbgAttach(xsink);
                 //if (rs != DBG_RS_DETACH) {   // TODO: why this exception ?
