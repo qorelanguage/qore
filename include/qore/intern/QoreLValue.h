@@ -177,24 +177,27 @@ public:
     DLLLOCAL bool isInt() {
         if (!assigned) {
             if (type != QV_Int) {
-                if (fixed_type)
-                return false;
+                if (fixed_type) {
+                    return false;
+                }
                 type = QV_Int;
             }
             assigned = true;
             v.i = 0;
             return true;
         }
-        if (type == QV_Int)
+        if (type == QV_Int) {
             return true;
+        }
         return false;
     }
 
     DLLLOCAL bool isFloat() {
         if (!assigned) {
             if (type != QV_Float) {
-                if (fixed_type)
-                return false;
+                if (fixed_type) {
+                    return false;
+                }
                 type = QV_Float;
             }
             assigned = true;
@@ -210,24 +213,25 @@ public:
         assert(!fixed_type || type == QV_Int);
         if (!assigned) {
             assigned = true;
-            if (!type)
+            if (!type) {
                 type = QV_Int;
+            }
             v.i = 0;
-            return 0;
+            return nullptr;
         }
         switch (type) {
             case QV_Float: {
                 int64 i = (int64)v.f;
                 v.i = i;
                 type = QV_Int;
-                return 0;
+                return nullptr;
             }
 
             case QV_Bool: {
                 int64 i = (int64)v.b;
                 v.i = i;
                 type = QV_Int;
-                return 0;
+                return nullptr;
             }
 
             case QV_Node: {
@@ -235,8 +239,9 @@ public:
                 AbstractQoreNode* rv = v.n;
                 v.i = i;
                 type = QV_Int;
-                if (!is_closure)
-                check_lvalue_object_in_out(0, rv);
+                if (!is_closure) {
+                    check_lvalue_object_in_out(0, rv);
+                }
                 return rv;
             }
 
@@ -247,7 +252,7 @@ public:
                 assert(false);
         }
 
-        return 0;
+        return nullptr;
     }
 
     DLLLOCAL AbstractQoreNode* makeFloat() {
@@ -257,21 +262,21 @@ public:
             if (!type)
                 type = QV_Float;
             v.f = 0.0;
-            return 0;
+            return nullptr;
         }
         switch (type) {
             case QV_Int: {
                 double f = v.i;
                 v.f = f;
                 type = QV_Float;
-                return 0;
+                return nullptr;
             }
 
             case QV_Bool: {
                 double f = v.b;
                 v.f = f;
                 type = QV_Float;
-                return 0;
+                return nullptr;
             }
 
             case QV_Node: {
@@ -279,8 +284,9 @@ public:
                 AbstractQoreNode* rv = v.n;
                 v.f = f;
                 type = QV_Float;
-                if (!is_closure)
-                check_lvalue_object_in_out(0, rv);
+                if (!is_closure) {
+                    check_lvalue_object_in_out(0, rv);
+                }
                 return rv;
             }
 
@@ -291,7 +297,7 @@ public:
                 assert(false);
         }
 
-        return 0;
+        return nullptr;
     }
 
     DLLLOCAL AbstractQoreNode* makeNumber() {
@@ -301,33 +307,34 @@ public:
             if (!type)
                 type = QV_Node;
             v.n = new QoreNumberNode;
-            return 0;
+            return nullptr;
         }
         switch (type) {
             case QV_Int: {
                 QoreNumberNode* n = new QoreNumberNode(v.i);
                 v.n = n;
                 type = QV_Node;
-                return 0;
+                return nullptr;
             }
 
             case QV_Float: {
                 QoreNumberNode* n = new QoreNumberNode(v.f);
                 v.n = n;
                 type = QV_Node;
-                return 0;
+                return nullptr;
             }
 
             case QV_Bool: {
                 QoreNumberNode* n = new QoreNumberNode((int64)v.b);
                 v.n = n;
                 type = QV_Node;
-                return 0;
+                return nullptr;
             }
 
             case QV_Node: {
-                if (v.n && v.n->getType() == NT_NUMBER)
-                return 0;
+                if (v.n && v.n->getType() == NT_NUMBER) {
+                    return nullptr;
+                }
                 QoreNumberNode* n = new QoreNumberNode(v.n);
                 AbstractQoreNode* rv = v.n;
                 v.n = n;
@@ -341,7 +348,7 @@ public:
                 assert(false);
         }
 
-        return 0;
+        return nullptr;
     }
 
     DLLLOCAL QoreValue takeValue() {
@@ -932,7 +939,7 @@ public:
     }
 
     // lvalue operations
-    DLLLOCAL int64 plusEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+    DLLLOCAL int64 plusEqualsBigInt(int64 i) {
         assert(type == QV_Int);
 
         switch (type) {
@@ -952,7 +959,7 @@ public:
       return 0;
    }
 
-    DLLLOCAL double plusEqualsFloat(double f, AbstractQoreNode*& old) {
+    DLLLOCAL double plusEqualsFloat(double f) {
         assert(type == QV_Float);
 
         switch (type) {
@@ -972,7 +979,7 @@ public:
         return 0.0;
     }
 
-    DLLLOCAL int64 minusEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+    DLLLOCAL int64 minusEqualsBigInt(int64 i) {
         assert(type == QV_Int);
 
         switch (type) {
@@ -992,7 +999,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL double minusEqualsFloat(double f, AbstractQoreNode*& old) {
+    DLLLOCAL double minusEqualsFloat(double f) {
         assert(type == QV_Float);
 
         switch (type) {
@@ -1012,7 +1019,7 @@ public:
         return 0.0;
     }
 
-    DLLLOCAL int64 orEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+    DLLLOCAL int64 orEqualsBigInt(int64 i) {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1032,7 +1039,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL int64 andEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+    DLLLOCAL int64 andEqualsBigInt(int64 i) {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1052,7 +1059,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL int64 modulaEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+    DLLLOCAL int64 modulaEqualsBigInt(int64 i) {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1072,7 +1079,7 @@ public:
             return 0;
         }
 
-    DLLLOCAL int64 multiplyEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+    DLLLOCAL int64 multiplyEqualsBigInt(int64 i) {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1092,7 +1099,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL int64 divideEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+    DLLLOCAL int64 divideEqualsBigInt(int64 i) {
         assert(type == QV_Int);
         assert(i);
 
@@ -1113,7 +1120,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL int64 xorEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+    DLLLOCAL int64 xorEqualsBigInt(int64 i) {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1133,7 +1140,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL int64 shiftLeftEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+    DLLLOCAL int64 shiftLeftEqualsBigInt(int64 i) {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1153,7 +1160,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL int64 shiftRightEqualsBigInt(int64 i, AbstractQoreNode*& old) {
+    DLLLOCAL int64 shiftRightEqualsBigInt(int64 i) {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1173,7 +1180,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL int64 postIncrementBigInt(AbstractQoreNode*& old) {
+    DLLLOCAL int64 postIncrementBigInt() {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1197,7 +1204,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL int64 preIncrementBigInt(AbstractQoreNode*& old) {
+    DLLLOCAL int64 preIncrementBigInt() {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1217,7 +1224,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL int64 postDecrementBigInt(AbstractQoreNode*& old) {
+    DLLLOCAL int64 postDecrementBigInt() {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1238,7 +1245,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL int64 preDecrementBigInt(AbstractQoreNode*& old) {
+    DLLLOCAL int64 preDecrementBigInt() {
         assert(type == QV_Int);
 
         switch (type) {
@@ -1257,7 +1264,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL double postIncrementFloat(AbstractQoreNode*& old) {
+    DLLLOCAL double postIncrementFloat() {
         assert(type == QV_Float);
 
         switch (type) {
@@ -1278,7 +1285,7 @@ public:
         return 0.0;
     }
 
-    DLLLOCAL double preIncrementFloat(AbstractQoreNode*& old) {
+    DLLLOCAL double preIncrementFloat() {
         assert(type == QV_Float);
 
         switch (type) {
@@ -1298,7 +1305,7 @@ public:
         return 0.0;
     }
 
-    DLLLOCAL double postDecrementFloat(AbstractQoreNode*& old) {
+    DLLLOCAL double postDecrementFloat() {
         assert(type == QV_Float);
 
         switch (type) {
@@ -1319,7 +1326,7 @@ public:
         return 0.0;
     }
 
-    DLLLOCAL double preDecrementFloat(AbstractQoreNode*& old) {
+    DLLLOCAL double preDecrementFloat() {
         assert(type == QV_Float);
 
         switch (type) {
@@ -1338,7 +1345,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL double multiplyEqualsFloat(double f, AbstractQoreNode*& old) {
+    DLLLOCAL double multiplyEqualsFloat(double f) {
         assert(type == QV_Float);
 
         switch (type) {
@@ -1358,7 +1365,7 @@ public:
         return 0;
     }
 
-    DLLLOCAL double divideEqualsFloat(double f, AbstractQoreNode*& old) {
+    DLLLOCAL double divideEqualsFloat(double f) {
         assert(type == QV_Float);
         assert(f);
 

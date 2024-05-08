@@ -343,7 +343,9 @@ protected:
     DLLLOCAL int doHashLValue(qore_type_t t, const char* mem, bool for_remove);
     DLLLOCAL int doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove);
 
-    DLLLOCAL int makeInt(const char* desc);
+    DLLLOCAL int makeIntQv(const char* desc);
+    DLLLOCAL int makeIntVal(const char* desc);
+
     DLLLOCAL int makeFloat(const char* desc);
     DLLLOCAL int makeNumber(const char* desc);
 
@@ -395,11 +397,6 @@ public:
     DLLLOCAL void saveTemp(QoreValue n);
 
     DLLLOCAL void saveTempRef(QoreValue& n);
-
-    DLLLOCAL AbstractQoreNode*& getTempRef() {
-        tvec.push_back(0);
-        return tvec[tvec.size() - 1];
-    }
 
     DLLLOCAL int doLValue(const QoreValue& exp, bool for_remove);
 

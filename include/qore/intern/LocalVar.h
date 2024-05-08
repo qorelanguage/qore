@@ -94,6 +94,7 @@ protected:
 public:
     QoreLValueGeneric val;
     const char* id;
+    int unique_id = 0;
     bool finalized : 1;
     bool frame_boundary : 1;
 

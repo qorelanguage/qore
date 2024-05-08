@@ -101,7 +101,7 @@ public:
 
     DLLLOCAL virtual void parseCommit(QoreProgram* pgm);
 
-private:
+protected:
     QoreBreakpointList_t* breakpoints = nullptr;
     volatile bool breakpointFlag = false;  // fast access to check if breakpoints are non-empty
 
