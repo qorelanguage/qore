@@ -50,7 +50,7 @@ int ForEachStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
         return execRef(return_value, xsink);
 
     // instantiate local variables
-    LVListInstantiator lvi(lvars, xsink);
+    LVListInstantiator lvi(xsink, lvars, pwo.parse_options);
 
     // get iterator object
     FunctionalOperator::FunctionalValueType value_type;
@@ -103,7 +103,7 @@ int ForEachStatement::execRef(QoreValue& return_value, ExceptionSink* xsink) {
     int rc = 0;
 
     // instantiate local variables
-    LVListInstantiator lvi(lvars, xsink);
+    LVListInstantiator lvi(xsink, lvars, pwo.parse_options);
 
     ParseReferenceNode* r = list.get<ParseReferenceNode>();
 

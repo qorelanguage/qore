@@ -1395,7 +1395,7 @@ public:
         const LVList* lvl = sb.getLVList();
         if (lvl) {
             for (unsigned i = 0; i < lvl->size(); ++i) {
-                lvl->lv[i]->instantiate();
+                lvl->lv[i]->instantiate(pwo.parse_options);
             }
         }
 

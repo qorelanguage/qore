@@ -190,7 +190,7 @@ void StatementBlock::del() {
 int StatementBlock::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
     //QORE_TRACE("StatementBlock::execImpl()");
     // instantiate local variables
-    LVListInstantiator lvi(lvars, xsink);
+    LVListInstantiator lvi(xsink, lvars, pwo.parse_options);
 
     return execIntern(return_value, xsink);
 }
@@ -291,8 +291,8 @@ void push_local_var(LocalVar* lv, const QoreProgramLocation* loc) {
     new VNode(lv, loc, 1);
 }
 
-LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc, const QoreTypeInfo* typeInfo, int& err,
-        bool is_auto, int n_refs, int pflag) {
+LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc,
+        const QoreTypeInfo* typeInfo, int& err, bool is_auto, int n_refs, int pflag) {
     QoreProgram* pgm = getProgram();
 
     if ((pflag & PF_TOP_LEVEL) && (pflag & PF_NO_TOP_LEVEL_LVARS)) {
@@ -334,14 +334,14 @@ LocalVar* push_local_var(const char* name, const QoreProgramLocation* loc, const
                                 parseException(*loc, "PARSE-ERROR", desc);
                             } else {
                                 vnode->appendLocation(*desc);
-                                qore_program_private::makeParseWarning(getProgram(), *loc,
+                                qore_program_private::makeParseWarning(pgm, *loc,
                                     QP_WARN_DUPLICATE_BLOCK_VARS, "DUPLICATE-BLOCK-VARIABLE", desc);
                             }
                         } else if ((pflag & PF_TOP_LEVEL) || !vnode->isTopLevel()) {
                             QoreStringNode* desc = new QoreStringNodeMaker("local variable '%s' was already " \
                                 "declared in this lexical scope", name);
                             vnode->appendLocation(*desc);
-                            qore_program_private::makeParseWarning(getProgram(), *loc,
+                            qore_program_private::makeParseWarning(pgm, *loc,
                                 QP_WARN_DUPLICATE_LOCAL_VARS, "DUPLICATE-LOCAL-VARIABLE", desc);
                         }
                         break;

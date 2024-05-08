@@ -1358,7 +1358,8 @@ protected:
     UserVariantBase* uvb;
 
 public:
-    DLLLOCAL UserParamListLocalVarHelper(UserVariantBase* n_uvb, const QoreTypeInfo* classTypeInfo = 0) : uvb(n_uvb) {
+    DLLLOCAL UserParamListLocalVarHelper(UserVariantBase* n_uvb, const QoreTypeInfo* classTypeInfo = nullptr)
+            : uvb(n_uvb) {
         uvb->parseInitPushLocalVars(classTypeInfo);
     }
 

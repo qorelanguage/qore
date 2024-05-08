@@ -34,7 +34,7 @@
 
 int DoWhileStatement::execImpl(QoreValue& return_value, ExceptionSink* xsink) {
     // instantiate local variables
-    LVListInstantiator lvi(lvars, xsink);
+    LVListInstantiator lvi(xsink, lvars, pwo.parse_options);
 
     int rc = 0;
 
