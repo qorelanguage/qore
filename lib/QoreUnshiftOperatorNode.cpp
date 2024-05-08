@@ -79,7 +79,7 @@ int QoreUnshiftOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& par
 }
 
 QoreValue QoreUnshiftOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder res(right, xsink);
+    ValueEvalOptimizedRefHolder res(right, xsink);
     if (*xsink)
         return QoreValue();
 

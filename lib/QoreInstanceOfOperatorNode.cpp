@@ -48,7 +48,7 @@ int QoreInstanceOfOperatorNode::getAsString(QoreString& str, int foff, Exception
 QoreValue QoreInstanceOfOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(ti);
 
-    ValueEvalRefHolder v(exp, xsink);
+    ValueEvalOptimizedRefHolder v(exp, xsink);
     if (*xsink) {
         return QoreValue();
     }
@@ -97,7 +97,7 @@ int QoreInstanceOfOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& 
     if (exp.isValue()) {
         SimpleRefHolder<QoreInstanceOfOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }

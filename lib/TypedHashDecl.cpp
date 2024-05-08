@@ -304,7 +304,7 @@ int typed_hash_decl_private::parseCheckMemberAccess(const QoreProgramLocation* l
 
 QoreHashNode* typed_hash_decl_private::newHash(const QoreParseListNode* args, bool runtime_check, ExceptionSink* xsink) const {
     assert(!args || args->empty() || args->size() == 1);
-    ValueEvalRefHolder a(args && !args->empty() ? args->get(0) : QoreValue(), xsink);
+    ValueEvalOptimizedRefHolder a(args && !args->empty() ? args->get(0) : QoreValue(), xsink);
     if (*xsink)
         return nullptr;
 
@@ -387,7 +387,7 @@ int typed_hash_decl_private::initHashIntern(QoreHashNode* h, const QoreHashNode*
             QoreValue& v = h_priv->getValueRef(i.first);
             assert(v.isNothing());
 
-            ValueEvalRefHolder val(i.second->exp, xsink);
+            ValueEvalOptimizedRefHolder val(i.second->exp, xsink);
             if (*xsink) {
                 return -1;
             }

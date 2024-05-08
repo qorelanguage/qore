@@ -132,7 +132,7 @@ QoreValue QoreAssignmentOperatorNode::evalIntern(ExceptionSink* xsink, bool& nee
         for the variable assignment - however it does need to be
         copied/referenced for the return value
     */
-    ValueEvalRefHolder new_value(right, xsink);
+    ValueEvalOptimizedRefHolder new_value(right, xsink);
     if (*xsink)
         return QoreValue();
 

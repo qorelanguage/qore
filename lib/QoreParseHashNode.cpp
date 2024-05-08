@@ -139,7 +139,7 @@ int QoreParseHashNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_con
     // evaluate immediately
     SimpleRefHolder<QoreParseHashNode> holder(this);
     ExceptionSink xsink;
-    ValueEvalRefHolder rv(this, &xsink);
+    ValueEvalOptimizedRefHolder rv(this, &xsink);
     assert(!xsink);
     val = rv.takeReferencedValue();
     parse_context.typeInfo = val.getFullTypeInfo();
@@ -158,11 +158,11 @@ QoreValue QoreParseHashNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) c
     bool vcommon = false;
 
     for (size_t i = 0; i < keys.size(); ++i) {
-        ValueEvalRefHolder k(keys[i], xsink);
+        ValueEvalOptimizedRefHolder k(keys[i], xsink);
         if (xsink && *xsink)
             return QoreValue();
 
-        ValueEvalRefHolder v(values[i], xsink);
+        ValueEvalOptimizedRefHolder v(values[i], xsink);
         if (xsink && *xsink)
             return QoreValue();
 

@@ -35,11 +35,11 @@
 QoreString QoreLogicalComparisonOperatorNode::logical_comparison_str("logical comparison (<=>) operator expression");
 
 QoreValue QoreLogicalComparisonOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder l(left, xsink);
+    ValueEvalOptimizedRefHolder l(left, xsink);
     if (*xsink)
         return QoreValue();
 
-    ValueEvalRefHolder r(right, xsink);
+    ValueEvalOptimizedRefHolder r(right, xsink);
     if (*xsink)
         return QoreValue();
 
@@ -64,7 +64,7 @@ int QoreLogicalComparisonOperatorNode::parseInitImpl(QoreValue& val, QoreParseCo
     if (!err && left.isValue() && right.isValue()) {
         SimpleRefHolder<QoreLogicalComparisonOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         val = v.takeReferencedValue();
         if (**xsink) {
             err = -1;

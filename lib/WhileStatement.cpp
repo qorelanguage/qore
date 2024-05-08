@@ -49,7 +49,7 @@ int WhileStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
     int rc = 0;
 
     while (true) {
-        ValueEvalRefHolder val(cond, xsink);
+        ValueEvalOptimizedRefHolder val(cond, xsink);
         if (*xsink) {
             break;
         }

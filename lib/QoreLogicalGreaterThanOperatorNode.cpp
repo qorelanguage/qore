@@ -36,10 +36,10 @@ QoreValue QoreLogicalGreaterThanOperatorNode::evalImpl(bool& needs_deref, Except
    if (pfunc)
       return (this->*pfunc)(xsink);
 
-   ValueEvalRefHolder lh(left, xsink);
+   ValueEvalOptimizedRefHolder lh(left, xsink);
    if (*xsink)
       return QoreValue();
-   ValueEvalRefHolder rh(right, xsink);
+   ValueEvalOptimizedRefHolder rh(right, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -87,19 +87,19 @@ int QoreLogicalGreaterThanOperatorNode::parseInitIntern(const char* name, QoreVa
     return err;
 }
 
-bool QoreLogicalGreaterThanOperatorNode::floatGreaterThan(ExceptionSink *xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+bool QoreLogicalGreaterThanOperatorNode::floatGreaterThan(ExceptionSink* xsink) const {
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink) return false;
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink) return false;
 
     return lh->getAsFloat() > rh->getAsFloat();
 }
 
-bool QoreLogicalGreaterThanOperatorNode::bigIntGreaterThan(ExceptionSink *xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+bool QoreLogicalGreaterThanOperatorNode::bigIntGreaterThan(ExceptionSink* xsink) const {
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink) return false;
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink) return false;
 
     return lh->getAsBigInt() > rh->getAsBigInt();

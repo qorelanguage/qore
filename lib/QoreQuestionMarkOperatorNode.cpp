@@ -58,7 +58,7 @@ int QoreQuestionMarkOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext
     if (!err && e[0].isValue() && e[1].isValue() && e[2].isValue()) {
         SimpleRefHolder<QoreQuestionMarkOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
         typeInfo = val.getTypeInfo();
@@ -71,13 +71,13 @@ int QoreQuestionMarkOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext
 }
 
 QoreValue QoreQuestionMarkOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder b(e[0], xsink);
+    ValueEvalOptimizedRefHolder b(e[0], xsink);
     if (*xsink)
         return QoreValue();
 
     QoreValue exp = b->getAsBool() ? e[1] : e[2];
 
-    ValueEvalRefHolder rv(exp, xsink);
+    ValueEvalOptimizedRefHolder rv(exp, xsink);
     if (*xsink)
         return QoreValue();
 

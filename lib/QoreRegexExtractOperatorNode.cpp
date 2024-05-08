@@ -33,7 +33,7 @@
 QoreString QoreRegexExtractOperatorNode::op_str("regex extract (=~ x//) operator expression");
 
 QoreValue QoreRegexExtractOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(exp, xsink);
+    ValueEvalOptimizedRefHolder lh(exp, xsink);
     if (*xsink)
         return QoreValue();
 
@@ -59,7 +59,7 @@ int QoreRegexExtractOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext
     if (exp.isValue()) {
         SimpleRefHolder<QoreRegexMatchOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         assert(!**xsink);
         parse_context.typeInfo = v->getTypeInfo();
         val = v.takeReferencedValue();

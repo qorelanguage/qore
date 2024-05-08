@@ -189,7 +189,7 @@ int ConstantEntry::parseCommitRuntimeInit() {
     // evaluate expression
     ExceptionSink xsink;
     {
-        ValueEvalRefHolder v(saved_val, &xsink);
+        ValueEvalOptimizedRefHolder v(saved_val, &xsink);
 
         //printd(5, "ConstantEntry::parseInit() this: %p %s evaluated to node: %p (%s)\n", this, name.c_str(), *v,
         //  get_type_name(*v));

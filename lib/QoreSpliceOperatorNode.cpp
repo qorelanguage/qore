@@ -122,15 +122,15 @@ QoreValue QoreSpliceOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsi
         new_exp.getTypeName(), xsink->isEvent());
 
     // evaluate arguments
-    ValueEvalRefHolder eoffset(offset_exp, xsink);
+    ValueEvalOptimizedRefHolder eoffset(offset_exp, xsink);
     if (*xsink)
         return QoreValue();
 
-    ValueEvalRefHolder elength(length_exp, xsink);
+    ValueEvalOptimizedRefHolder elength(length_exp, xsink);
     if (*xsink)
         return QoreValue();
 
-    ValueEvalRefHolder exp(new_exp, xsink);
+    ValueEvalOptimizedRefHolder exp(new_exp, xsink);
     if (*xsink)
         return QoreValue();
 

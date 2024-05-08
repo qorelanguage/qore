@@ -61,7 +61,7 @@ int QoreNullCoalescingOperatorNode::parseInitImpl(QoreValue& val, QoreParseConte
 
 QoreValue QoreNullCoalescingOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     {
-        ValueEvalRefHolder arg(left, xsink);
+        ValueEvalOptimizedRefHolder arg(left, xsink);
         if (*xsink)
             return QoreValue();
 
@@ -69,7 +69,7 @@ QoreValue QoreNullCoalescingOperatorNode::evalImpl(bool& needs_deref, ExceptionS
             return arg.takeValue(needs_deref);
     }
 
-    ValueEvalRefHolder arg(right, xsink);
+    ValueEvalOptimizedRefHolder arg(right, xsink);
     if (*xsink)
         return QoreValue();
 

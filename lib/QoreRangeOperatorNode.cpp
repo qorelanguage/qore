@@ -96,12 +96,12 @@ QoreValue QoreRangeOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsin
 
 FunctionalOperatorInterface* QoreRangeOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type,
         ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink)
         return nullptr;
     int64 start = lh->getAsBigInt();
 
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink)
         return nullptr;
     int64 stop = rh->getAsBigInt();

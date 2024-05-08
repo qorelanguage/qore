@@ -37,7 +37,7 @@ int QoreShiftRightEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseCon
 }
 
 QoreValue QoreShiftRightEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder new_right(right, xsink);
+    ValueEvalOptimizedRefHolder new_right(right, xsink);
     if (*xsink)
         return QoreValue();
     int64 val = new_right->getAsBigInt();

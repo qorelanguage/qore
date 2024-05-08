@@ -33,9 +33,9 @@
 QoreString QoreModuloOperatorNode::op_str("% (modula) operator expression");
 
 QoreValue QoreModuloOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink) return false;
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink) return false;
     int64 l = lh->getAsBigInt();
     int64 r = rh->getAsBigInt();
@@ -67,7 +67,7 @@ int QoreModuloOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& pars
     if (!err && left.isValue() && right.isValue() && right.getAsBigInt()) {
         SimpleRefHolder<QoreModuloOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }

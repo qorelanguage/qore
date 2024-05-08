@@ -36,11 +36,11 @@ QoreString QoreLogicalAbsoluteNotEqualsOperatorNode::logical_absolute_not_equals
     "(!==) operator expression");
 
 QoreValue QoreLogicalAbsoluteEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder l(left, xsink);
+    ValueEvalOptimizedRefHolder l(left, xsink);
     if (*xsink)
         return QoreValue();
 
-    ValueEvalRefHolder r(right, xsink);
+    ValueEvalOptimizedRefHolder r(right, xsink);
     if (*xsink)
         return QoreValue();
 

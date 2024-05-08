@@ -282,7 +282,7 @@ LValueHelper::LValueHelper(const ReferenceNode& ref, ExceptionSink* xsink, bool 
         doLValue(lvalue_ref::get(&ref)->vexp, for_remove);
 }
 
-LValueHelper::LValueHelper(QoreValue exp, ExceptionSink* xsink, bool for_remove) : vl(xsink) {
+LValueHelper::LValueHelper(const QoreValue& exp, ExceptionSink* xsink, bool for_remove) : vl(xsink) {
     // exp can be 0 when called from LValueRefHelper if the attach to the Program fails, for example
     //printd(5, "LValueHelper::LValueHelper() exp: %p (%s %d)\n", exp, get_type_name(exp), get_node_type(exp));
     if (!exp.isNothing() && exp.hasNode()) {
@@ -379,6 +379,14 @@ void LValueHelper::saveTemp(QoreValue val) {
     tvec.push_back(val.takeNode());
 }
 
+void LValueHelper::saveTempRef(QoreValue& val) {
+    if (!val.isReferenceCounted()) {
+        return;
+    }
+    // save for dereferencing later
+    tvec.push_back(val.takeNode());
+}
+
 static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, ExceptionSink* xsink) {
    xsink->raiseException("RUNTIME-TYPE-ERROR", "cannot convert lvalue declared as %s to a %s", QoreTypeInfo::getName(typeInfo), type);
    return -1;
@@ -386,7 +394,7 @@ static int var_type_err(const QoreTypeInfo* typeInfo, const char* type, Exceptio
 
 int LValueHelper::doListLValue(const QoreSquareBracketsOperatorNode* op, bool for_remove) {
     // first get index
-    ValueEvalRefHolder rh(op->getRight(), vl.xsink);
+    ValueEvalOptimizedRefHolder rh(op->getRight(), vl.xsink);
     if (*vl.xsink)
         return -1;
 
@@ -526,7 +534,7 @@ int LValueHelper::doHashLValue(qore_type_t t, const char* mem, bool for_remove) 
 }
 
 int LValueHelper::doHashObjLValue(const QoreHashObjectDereferenceOperatorNode* op, bool for_remove) {
-    ValueEvalRefHolder rh(op->getRight(), vl.xsink);
+    ValueEvalOptimizedRefHolder rh(op->getRight(), vl.xsink);
     if (*vl.xsink)
         return -1;
 
@@ -587,7 +595,7 @@ int LValueHelper::doLValue(const ReferenceNode* ref, bool for_remove) {
     return doLValue(r->vexp, for_remove);
 }
 
-int LValueHelper::doLValue(const QoreValue n, bool for_remove) {
+int LValueHelper::doLValue(const QoreValue& n, bool for_remove) {
     // if we are already locked, then save the value and unlock before processing
     if (vl) {
         saveTemp(n.refSelf());
@@ -735,13 +743,15 @@ int LValueHelper::assign(QoreValue n, const char* desc, bool check_types, bool w
         QoreTypeInfo::acceptAssignment(typeInfo, desc, n, vl.xsink, this);
         if (*vl.xsink) {
             //printd(5, "LValueHelper::assign() this: %p saving type-rejected value: %p '%s'\n", this, n, get_type_name(n));
-            saveTemp(n);
+            saveTempRef(n);
             return -1;
         }
     }
 
-    if (lvid_set && n.getType() == NT_REFERENCE && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id) != lvid_set->end())) {
-        saveTemp(n);
+    if (lvid_set && n.getType() == NT_REFERENCE
+        && (lvid_set->find(lvalue_ref::get(reinterpret_cast<const ReferenceNode*>(n.getInternalNode()))->lvalue_id)
+            != lvid_set->end())) {
+        saveTempRef(n);
         return doRecursiveException();
     }
 
@@ -1208,7 +1218,7 @@ QoreValue LValueHelper::remove(bool& static_assignment) {
     return rv;
 }
 
-LValueRemoveHelper::LValueRemoveHelper(const QoreValue exp, ExceptionSink* n_xsink, bool fd) : xsink(n_xsink), for_del(fd) {
+LValueRemoveHelper::LValueRemoveHelper(const QoreValue& exp, ExceptionSink* n_xsink, bool fd) : xsink(n_xsink), for_del(fd) {
     doRemove(exp);
 }
 
@@ -1326,7 +1336,7 @@ void LValueRemoveHelper::doRemove(QoreValue lvalue) {
     const QoreHashObjectDereferenceOperatorNode* op = lvalue.get<const QoreHashObjectDereferenceOperatorNode>();
 
     // get the member name or names
-    ValueEvalRefHolder member(op->getRight(), xsink);
+    ValueEvalOptimizedRefHolder member(op->getRight(), xsink);
     if (*xsink)
         return;
 
@@ -1456,7 +1466,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op) {
     }
 
     // get the bracket expression
-    ValueEvalRefHolder rh(op->getRight(), xsink);
+    ValueEvalOptimizedRefHolder rh(op->getRight(), xsink);
     if (*xsink)
         return;
 
@@ -1642,7 +1652,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
             // keep a set of offsets removed to remove them from the list in reverse order
             ind_set_t iset;
             for (unsigned i = 0; i < vl.size(); ++i) {
-                ValueEvalRefHolder rh(vl[i], xsink);
+                ValueEvalOptimizedRefHolder rh(vl[i], xsink);
                 if (*xsink)
                     break;
                 bool is_range = (vl[i].getType() == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i].getInternalNode()));
@@ -1698,7 +1708,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
             // keep a set of offsets removed to remove them from the list in reverse order
             ind_set_t iset;
             for (unsigned i = 0; i < vl.size(); ++i) {
-                ValueEvalRefHolder rh(vl[i], xsink);
+                ValueEvalOptimizedRefHolder rh(vl[i], xsink);
                 if (*xsink)
                     break;
                 bool is_range = (vl[i].getType() == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i].getInternalNode()));
@@ -1749,7 +1759,7 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
             // keep a set of offsets removed to remove them from the list in reverse order
             ind_set_t iset;
             for (unsigned i = 0; i < vl.size(); ++i) {
-                ValueEvalRefHolder rh(vl[i], xsink);
+                ValueEvalOptimizedRefHolder rh(vl[i], xsink);
                 if (*xsink)
                     break;
                 bool is_range = (vl[i].getType() == NT_OPERATOR && dynamic_cast<const QoreRangeOperatorNode*>(vl[i].getInternalNode()));
@@ -1791,10 +1801,10 @@ void LValueRemoveHelper::doRemove(const QoreSquareBracketsOperatorNode* op, cons
 
 void LValueRemoveHelper::doRemove(const QoreSquareBracketsRangeOperatorNode* op) {
     // we must evaluate range arguments before acquiring any lvalue locks in LValueHelper
-    ValueEvalRefHolder start_index(op->get(1), xsink);
+    ValueEvalOptimizedRefHolder start_index(op->get(1), xsink);
     if (*xsink)
         return;
-    ValueEvalRefHolder stop_index(op->get(2), xsink);
+    ValueEvalOptimizedRefHolder stop_index(op->get(2), xsink);
     if (*xsink)
         return;
 

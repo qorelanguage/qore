@@ -32,7 +32,7 @@
 #include "qore/intern/ThrowStatement.h"
 
 int ThrowStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
-    ValueEvalRefHolder a(args, xsink);
+    ValueEvalOptimizedRefHolder a(args, xsink);
     if (*xsink)
         return 0;
 

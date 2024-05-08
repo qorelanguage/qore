@@ -36,10 +36,10 @@ QoreValue QoreDivisionOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* x
    if (pfunc)
       return (this->*pfunc)(xsink);
 
-   ValueEvalRefHolder lh(left, xsink);
+   ValueEvalOptimizedRefHolder lh(left, xsink);
    if (*xsink)
       return QoreValue();
-   ValueEvalRefHolder rh(right, xsink);
+   ValueEvalOptimizedRefHolder rh(right, xsink);
    if (*xsink)
       return QoreValue();
 
@@ -96,9 +96,9 @@ int QoreDivisionOperatorNode::parseInitIntern(const char* name, QoreValue& val, 
 }
 
 QoreValue QoreDivisionOperatorNode::floatDivision(ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink) return QoreValue();
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink) return QoreValue();
 
     double r = rh->getAsFloat();
@@ -112,9 +112,9 @@ QoreValue QoreDivisionOperatorNode::floatDivision(ExceptionSink* xsink) const {
 }
 
 QoreValue QoreDivisionOperatorNode::bigIntDivision(ExceptionSink* xsink) const {
-    ValueEvalRefHolder lh(left, xsink);
+    ValueEvalOptimizedRefHolder lh(left, xsink);
     if (*xsink) return QoreValue();
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink) return QoreValue();
 
     int64 r = rh->getAsBigInt();

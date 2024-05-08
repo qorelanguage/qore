@@ -31,7 +31,7 @@
 #include <qore/Qore.h>
 
 QoreValue QoreIntMinusEqualsOperatorNode::evalImpl(bool &needs_deref, ExceptionSink *xsink) const {
-    ValueEvalRefHolder rh(right, xsink);
+    ValueEvalOptimizedRefHolder rh(right, xsink);
     if (*xsink)
         return QoreValue();
 

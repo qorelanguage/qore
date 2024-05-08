@@ -167,7 +167,7 @@ FunctionalOperatorInterface* QoreSelectOperatorNode::getFunctionalIteratorImpl(F
         return new QoreFunctionalSelectOperator(this, f.release());
     }
 
-    ValueEvalRefHolder marg(left, xsink);
+    ValueEvalOptimizedRefHolder marg(left, xsink);
     if (*xsink)
         return 0;
 
@@ -208,7 +208,7 @@ bool QoreFunctionalSelectListOperator::getNextImpl(ValueOptionalRefHolder& val, 
         SingleArgvContextHelper argv_helper(getReferencedValue(), xsink);
 
         // check if value can be selected
-        ValueEvalRefHolder result(select->right, xsink);
+        ValueEvalOptimizedRefHolder result(select->right, xsink);
         if (*xsink)
             return false;
         if (!result->getAsBool())
@@ -230,7 +230,7 @@ bool QoreFunctionalSelectSingleValueOperator::getNextImpl(ValueOptionalRefHolder
     SingleArgvContextHelper argv_helper(v.refSelf(), xsink);
 
     // check if value can be selected
-    ValueEvalRefHolder result(select->right, xsink);
+    ValueEvalOptimizedRefHolder result(select->right, xsink);
     if (*xsink)
         return false;
     if (!result->getAsBool())
@@ -259,7 +259,7 @@ bool QoreFunctionalSelectIteratorOperator::getNextImpl(ValueOptionalRefHolder& v
         // setup the implicit argument
         SingleArgvContextHelper argv_helper(iv->refSelf(), xsink);
         // check if value can be selected
-        ValueEvalRefHolder result(select->right, xsink);
+        ValueEvalOptimizedRefHolder result(select->right, xsink);
         if (*xsink)
             return false;
         if (!result->getAsBool())
@@ -285,7 +285,7 @@ bool QoreFunctionalSelectOperator::getNextImpl(ValueOptionalRefHolder& val, Exce
         // setup the implicit argument
         SingleArgvContextHelper argv_helper(iv->refSelf(), xsink);
         // check if value can be selected
-        ValueEvalRefHolder result(select->right, xsink);
+        ValueEvalOptimizedRefHolder result(select->right, xsink);
         if (*xsink)
             return false;
         if (!result->getAsBool())

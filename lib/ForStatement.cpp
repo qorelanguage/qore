@@ -50,7 +50,7 @@ int ForStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
 
     // evaluate assignment expression and discard results if any
     if (assignment) {
-        ValueEvalRefHolder tmp(assignment, xsink);
+        ValueEvalOptimizedRefHolder tmp(assignment, xsink);
         if (*xsink) {
             return 0;
         }
@@ -63,7 +63,7 @@ int ForStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
         // check conditional expression, exit "for" loop if condition is
         // false
         if (cond) {
-            ValueEvalRefHolder val(cond, xsink);
+            ValueEvalOptimizedRefHolder val(cond, xsink);
             if (*xsink || !val->getAsBool()) {
                 break;
             }
@@ -87,7 +87,7 @@ int ForStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
 
         // evaluate iterator expression and discard results if any
         if (iterator) {
-            ValueEvalRefHolder tmp(iterator, xsink);
+            ValueEvalOptimizedRefHolder tmp(iterator, xsink);
             if (*xsink) {
                 break;
             }

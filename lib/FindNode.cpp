@@ -82,7 +82,7 @@ QoreValue FindNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
             continue;
 
         printd(4, "FindNode::eval() GOT IT: %d\n", context->pos);
-        ValueEvalRefHolder result(exp, xsink);
+        ValueEvalOptimizedRefHolder result(exp, xsink);
         //ValueHolder result(exp->eval(xsink), xsink);
         if (*xsink) {
             return QoreValue();

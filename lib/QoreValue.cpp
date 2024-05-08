@@ -32,19 +32,29 @@
 #include <qore/Qore.h>
 #include "qore/intern/ParseNode.h"
 
+#ifndef DEBUG
+#define QOREVALUE_USE_MEMCPY 1
+#endif
+
 const char* qoreBoolTypeName = "bool";
 const char* qoreIntTypeName = "integer";
 const char* qoreFloatTypeName = "float";
 
-void QoreSimpleValue::set(QoreSimpleValue val) {
-    type = val.type;
+void QoreSimpleValue::set(const QoreSimpleValue& val) {
+#ifdef QOREVALUE_USE_MEMCPY
+    memcpy((void*)this, (void*)&val, sizeof(QoreSimpleValue));
+#else
+    type = n.type;
     switch (type) {
-        case QV_Bool: v.b = val.v.b; break;
-        case QV_Float: v.f = val.v.f; break;
-        case QV_Int: v.i = val.v.i; break;
-        case QV_Node: v.n = val.v.n; break;
-        default: assert(false);
+        case QV_Bool: v.b = n.v.b; break;
+        case QV_Int: v.i = n.v.i; break;
+        case QV_Float: v.f = n.v.f; break;
+        case QV_Node: v.n = n.v.n; break;
+        default:
+            assert(false);
+            // no break
     }
+#endif
 }
 
 void QoreSimpleValue::set(AbstractQoreNode* n) {
@@ -241,6 +251,9 @@ QoreValue::QoreValue(const AbstractQoreNode* n) {
 }
 
 QoreValue::QoreValue(const QoreSimpleValue& n) {
+#ifdef QOREVALUE_USE_MEMCPY
+    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
+#else
     type = n.type;
     switch (type) {
         case QV_Bool: v.b = n.v.b; break;
@@ -251,19 +264,24 @@ QoreValue::QoreValue(const QoreSimpleValue& n) {
             assert(false);
             // no break
     }
+#endif
 }
 
 QoreValue::QoreValue(const QoreValue& old) {
-    type = old.type;
+#ifdef QOREVALUE_USE_MEMCPY
+    memcpy((void*)this, (void*)&old, sizeof(QoreSimpleValue));
+#else
+    type = n.type;
     switch (type) {
-        case QV_Bool: v.b = old.v.b; break;
-        case QV_Int: v.i = old.v.i; break;
-        case QV_Float: v.f = old.v.f; break;
-        case QV_Node: v.n = old.v.n; break;
+        case QV_Bool: v.b = n.v.b; break;
+        case QV_Int: v.i = n.v.i; break;
+        case QV_Float: v.f = n.v.f; break;
+        case QV_Node: v.n = n.v.n; break;
         default:
             assert(false);
             // no break
     }
+#endif
 }
 
 void QoreValue::swap(QoreValue& val) {
@@ -273,28 +291,38 @@ void QoreValue::swap(QoreValue& val) {
 }
 
 QoreValue& QoreValue::operator=(const QoreValue& n) {
+#ifdef QOREVALUE_USE_MEMCPY
+    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
+#else
     type = n.type;
     switch (type) {
         case QV_Bool: v.b = n.v.b; break;
         case QV_Int: v.i = n.v.i; break;
         case QV_Float: v.f = n.v.f; break;
         case QV_Node: v.n = n.v.n; break;
-        default: assert(false);
+        default:
+            assert(false);
             // no break
     }
+#endif
     return *this;
 }
 
 QoreValue& QoreValue::operator=(const QoreSimpleValue& n) {
+#ifdef QOREVALUE_USE_MEMCPY
+    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
+#else
     type = n.type;
     switch (type) {
         case QV_Bool: v.b = n.v.b; break;
         case QV_Int: v.i = n.v.i; break;
         case QV_Float: v.f = n.v.f; break;
         case QV_Node: v.n = n.v.n; break;
-        default: assert(false);
+        default:
+            assert(false);
             // no break
     }
+#endif
     return *this;
 }
 
@@ -317,15 +345,20 @@ AbstractQoreNode* QoreValue::assign(AbstractQoreNode* n) {
 
 AbstractQoreNode* QoreValue::assign(const QoreValue n) {
     AbstractQoreNode* rv = takeIfNode();
+#ifdef QOREVALUE_USE_MEMCPY
+    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
+#else
     type = n.type;
     switch (type) {
         case QV_Bool: v.b = n.v.b; break;
         case QV_Int: v.i = n.v.i; break;
         case QV_Float: v.f = n.v.f; break;
         case QV_Node: v.n = n.v.n; break;
-        default: assert(false);
+        default:
+            assert(false);
             // no break
     }
+#endif
     return rv;
 }
 
@@ -599,6 +632,18 @@ QoreValue ValueOptionalRefHolder::takeReferencedValue() {
     return v;
 }
 
+ValueEvalOptimizedRefHolder::ValueEvalOptimizedRefHolder(const QoreValue& exp, ExceptionSink* xs) : ValueEvalRefHolder(xs) {
+    evalIntern(exp);
+}
+
+ValueEvalOptimizedRefHolder::ValueEvalOptimizedRefHolder(ExceptionSink* xs) : ValueEvalRefHolder(xs) {
+}
+
+int ValueEvalOptimizedRefHolder::eval(const QoreValue& exp) {
+    v.discard(xsink);
+    return evalIntern(exp);
+}
+
 ValueEvalRefHolder::ValueEvalRefHolder(const AbstractQoreNode* exp, ExceptionSink* xs) : ValueOptionalRefHolder(xs) {
     evalIntern(exp);
 }
@@ -621,7 +666,7 @@ int ValueEvalRefHolder::evalIntern(const AbstractQoreNode* exp) {
     return xsink && *xsink ? -1 : 0;
 }
 
-int ValueEvalRefHolder::evalIntern(const QoreValue exp) {
+int ValueEvalRefHolder::evalIntern(const QoreValue& exp) {
     needs_deref = true;
     v = exp.eval(needs_deref, xsink);
     return xsink && *xsink ? -1 : 0;

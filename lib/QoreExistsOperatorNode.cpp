@@ -45,7 +45,7 @@ int QoreExistsOperatorNode::getAsString(QoreString& str, int foff, ExceptionSink
 }
 
 QoreValue QoreExistsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder v(exp, xsink);
+    ValueEvalOptimizedRefHolder v(exp, xsink);
     if (*xsink)
         return QoreValue();
 
@@ -64,7 +64,7 @@ int QoreExistsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext& pars
     if (!err && (!exp.hasNode() || exp.getInternalNode()->is_value())) {
         SimpleRefHolder<QoreExistsOperatorNode> del(this);
         ParseExceptionSink xsink;
-        ValueEvalRefHolder v(this, *xsink);
+        ValueEvalOptimizedRefHolder v(this, *xsink);
         assert(!**xsink);
         val = v.takeReferencedValue();
     }

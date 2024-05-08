@@ -37,7 +37,7 @@ int QoreDivideEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext
 }
 
 QoreValue QoreDivideEqualsOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder res(right, xsink);
+    ValueEvalOptimizedRefHolder res(right, xsink);
     if (*xsink)
         return QoreValue();
 

@@ -119,7 +119,7 @@ Context::Context(char* nme, ExceptionSink* xsink, QoreValue exp, QoreValue cond,
         }
     } else { // copy object (query) list
         name = nme ? strdup(nme) : nullptr;
-        ValueEvalRefHolder rv(exp, xsink);
+        ValueEvalOptimizedRefHolder rv(exp, xsink);
 
         // push context on stack
         next = get_context_stack();
@@ -219,7 +219,7 @@ Context::Context(char* nme, ExceptionSink* xsink, QoreValue exp, QoreValue cond,
         // find unique values in summary node
         for (pos = 0; pos < master_max_pos; pos++) {
             printd(5, "Context::Context() summary value %d/%d\n", pos, master_max_pos);
-            ValueEvalRefHolder val(summary, xsink);
+            ValueEvalOptimizedRefHolder val(summary, xsink);
             if (*xsink) {
                 break;
             }
@@ -307,7 +307,7 @@ Context::~Context() {
 
 int Context::check_condition(QoreValue cond, ExceptionSink *xsinkx) {
     QORE_TRACE("Context::check_condition()");
-    ValueEvalRefHolder val(cond, xsinkx);
+    ValueEvalOptimizedRefHolder val(cond, xsinkx);
     return *xsinkx ? -1 : (int)val->getAsBigInt();
 }
 
@@ -404,7 +404,7 @@ void Context::Sort(QoreValue snode, int sort_type) {
     //Templist list[max_pos];
     // get list of results to be sorted
     for (pos = 0; pos < max_pos; ++pos) {
-        ValueEvalRefHolder val(snode, sort_xsink);
+        ValueEvalOptimizedRefHolder val(snode, sort_xsink);
         if (*sort_xsink) {
             delete [] list;
             return;

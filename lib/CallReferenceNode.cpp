@@ -83,7 +83,7 @@ const char* CallReferenceCallNode::getTypeName() const {
 // evalImpl(): return value requires a deref(xsink) if not 0
 QoreValue CallReferenceCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(needs_deref);
-    ValueEvalRefHolder lv(exp, xsink);
+    ValueEvalOptimizedRefHolder lv(exp, xsink);
     if (*xsink) {
         return QoreValue();
     }
@@ -202,7 +202,7 @@ ParseObjectMethodReferenceNode::~ParseObjectMethodReferenceNode() {
 QoreValue ParseObjectMethodReferenceNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     assert(needs_deref);
     // evaluate lvalue expression
-    ValueEvalRefHolder lv(exp, xsink);
+    ValueEvalOptimizedRefHolder lv(exp, xsink);
     if (*xsink) {
         return QoreValue();
     }

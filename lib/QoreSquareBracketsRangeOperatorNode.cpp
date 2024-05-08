@@ -117,7 +117,7 @@ int QoreSquareBracketsRangeOperatorNode::parseInitImpl(QoreValue& val, QoreParse
 }
 
 QoreValue QoreSquareBracketsRangeOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    ValueEvalRefHolder seq(e[0], xsink);
+    ValueEvalOptimizedRefHolder seq(e[0], xsink);
     if (*xsink)
         return QoreValue();
 
@@ -178,7 +178,7 @@ QoreValue QoreSquareBracketsRangeOperatorNode::evalImpl(bool& needs_deref, Excep
 FunctionalOperatorInterface* QoreSquareBracketsRangeOperatorNode::getFunctionalIteratorImpl(FunctionalValueType& value_type, ExceptionSink* xsink) const {
     value_type = list;
 
-    ValueEvalRefHolder seq(e[0], xsink);
+    ValueEvalOptimizedRefHolder seq(e[0], xsink);
     if (*xsink)
         return nullptr;
 
@@ -244,10 +244,10 @@ bool QoreFunctionalSquareBracketsRangeOperator::getNextImpl(ValueOptionalRefHold
 
 // returns true iff the range is nonempty
 bool QoreSquareBracketsRangeOperatorNode::getEffectiveRange(const QoreValue& seq, int64& start, int64& stop, int64& seq_size, ExceptionSink* xsink) const {
-    ValueEvalRefHolder start_index(e[1], xsink);
+    ValueEvalOptimizedRefHolder start_index(e[1], xsink);
     if (*xsink)
         return false;
-    ValueEvalRefHolder stop_index(e[2], xsink);
+    ValueEvalOptimizedRefHolder stop_index(e[2], xsink);
     if (*xsink)
         return false;
 
