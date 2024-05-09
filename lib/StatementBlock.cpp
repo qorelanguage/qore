@@ -153,9 +153,13 @@ QoreValue StatementBlock::exec(ExceptionSink* xsink) {
     //QORE_TRACE("StatementBlock::exec()");
     QoreValue return_value;
     ThreadLocalProgramData* tlpd = get_thread_local_program_data();
-    tlpd->dbgFunctionEnter(this, xsink);
+    if (tlpd->runtimeCheck()) {
+        tlpd->dbgFunctionEnter(this, xsink);
+    }
     execImpl(return_value, xsink);
-    tlpd->dbgFunctionExit(this, return_value, xsink);
+    if (tlpd->runtimeCheck()) {
+        tlpd->dbgFunctionExit(this, return_value, xsink);
+    }
     return return_value;
 }
 
@@ -207,16 +211,20 @@ int StatementBlock::execIntern(QoreValue& return_value, ExceptionSink* xsink) {
 
     ThreadLocalProgramData* tlpd = get_thread_local_program_data();
     // to execute even when block is empty, e.g. while(true);
-    rc = tlpd->dbgStep(this, nullptr, xsink);
+    if (tlpd->runtimeCheck()) {
+        rc = tlpd->dbgStep(this, nullptr, xsink);
+    }
     if (!rc && !*xsink) {
         // execute block
         for (auto i : statement_list) {
-            rc = tlpd->dbgStep(this, i, xsink);
-            if (rc || *xsink) {
-                break;
+            if (tlpd->runtimeCheck()) {
+                rc = tlpd->dbgStep(this, i, xsink);
+                if (rc || *xsink) {
+                    break;
+                }
             }
             rc = i->exec(return_value, xsink);
-            if (*xsink) {
+            if (*xsink && tlpd->runtimeCheck()) {
                 tlpd->dbgException(i, xsink);
                 if (*xsink) {
                     break;
