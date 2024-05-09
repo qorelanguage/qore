@@ -993,12 +993,12 @@ static int check_stack_intern(ExceptionSink* xsink, ThreadData* td) {
 
     return 0;
 }
-#endif
 
 int check_stack(ExceptionSink* xsink) {
     ThreadData* td = thread_data.get();
     return check_stack_intern(xsink, td);
 }
+#endif
 
 void inc_active_exceptions(int diff) {
     ThreadData* td = thread_data.get();

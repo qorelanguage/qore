@@ -498,6 +498,14 @@ public:
         return val ? val->getType() : qv->getType();
     }
 
+    DLLLOCAL const ReferenceNode* getReference() const {
+        if (val) {
+            return val->getReference();
+        }
+        assert(*qv);
+        return qv->getType() == NT_REFERENCE ? qv->get<const ReferenceNode>() : nullptr;
+    }
+
     DLLLOCAL const QoreValue getValue() const {
         return val ? val->getValue() : *qv;
     }
