@@ -1289,7 +1289,7 @@ void qore_class_private::execBaseClassConstructor(QoreObject* self, BCEAList* bc
     const AbstractQoreFunctionVariant* variant;
     const QoreProgramLocation* aloc = nullptr;
     QoreListNode* args = bceal->findArgs(cls->getID(), &already_executed, variant, aloc);
-    if (!already_executed) {
+    if (!already_executed && !qore_object_private::get(*self)->checkData(cls->getID())) {
         QoreProgramOptionalLocationHelper plh(aloc);
         constructor->priv->evalConstructor(variant, self, args, bceal, xsink);
     }
