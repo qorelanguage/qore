@@ -35,12 +35,23 @@
 
 class QoreLogicalGreaterThanOrEqualsOperatorNode : public QoreBoolBinaryOperatorNode {
 OP_COMMON
+public:
+    DLLLOCAL QoreLogicalGreaterThanOrEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left,
+            QoreValue right) : QoreBoolBinaryOperatorNode(loc, left, right) {
+    }
+
+    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+        return copyBackgroundExplicit<QoreLogicalGreaterThanOrEqualsOperatorNode>(xsink);
+    }
+
+    DLLLOCAL static bool doGreaterThanOrEquals(const QoreValue& l, const QoreValue& r,
+            ExceptionSink* xsink);
 
 protected:
     // type of pointer to optimized versions depending on arguments found at parse-time
     typedef bool(QoreLogicalGreaterThanOrEqualsOperatorNode::*eval_t)(ExceptionSink *xsink) const;
     // pointer to optimized versions depending on arguments found at parse-time
-    eval_t pfunc;
+    eval_t pfunc = nullptr;
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink *xsink) const;
 
@@ -52,17 +63,6 @@ protected:
 
     DLLLOCAL bool floatGreaterThanOrEquals(ExceptionSink *xsink) const;
     DLLLOCAL bool bigIntGreaterThanOrEquals(ExceptionSink *xsink) const;
-
-public:
-    DLLLOCAL QoreLogicalGreaterThanOrEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left,
-            QoreValue right) : QoreBoolBinaryOperatorNode(loc, left, right), pfunc(0) {
-    }
-
-    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-        return copyBackgroundExplicit<QoreLogicalGreaterThanOrEqualsOperatorNode>(xsink);
-    }
-
-    DLLLOCAL static bool doGreaterThanOrEquals(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 
 #endif

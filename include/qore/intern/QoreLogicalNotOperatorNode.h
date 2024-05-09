@@ -34,17 +34,6 @@
 #define _QORE_QORELOGICALNOTOPERATORNODE_H
 
 class QoreLogicalNotOperatorNode : public QoreSingleExpressionOperatorNode<QoreOperatorNode> {
-protected:
-    DLLLOCAL static QoreString LogicalNot_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
-
-    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-        return boolTypeInfo;
-    }
-
 public:
     DLLLOCAL QoreLogicalNotOperatorNode(const QoreProgramLocation* loc, QoreValue exp)
             : QoreSingleExpressionOperatorNode<QoreOperatorNode>(loc, exp) {
@@ -61,6 +50,17 @@ public:
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
         return copyBackgroundExplicit<QoreLogicalNotOperatorNode>(xsink);
+    }
+
+protected:
+    DLLLOCAL static QoreString LogicalNot_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return boolTypeInfo;
     }
 };
 

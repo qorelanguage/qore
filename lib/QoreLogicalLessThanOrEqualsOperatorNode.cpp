@@ -106,7 +106,8 @@ bool QoreLogicalLessThanOrEqualsOperatorNode::bigIntLessThanOrEquals(ExceptionSi
     return lh->getAsBigInt() <= rh->getAsBigInt();
 }
 
-bool QoreLogicalLessThanOrEqualsOperatorNode::doLessThanOrEquals(QoreValue lh, QoreValue rh, ExceptionSink* xsink) {
+bool QoreLogicalLessThanOrEqualsOperatorNode::doLessThanOrEquals(const QoreValue& lh, const QoreValue& rh,
+        ExceptionSink* xsink) {
     qore_type_t lt = lh.getType();
     qore_type_t rt = rh.getType();
 

@@ -236,6 +236,9 @@ public:
     //! return true if the value needs evaluation and has a side effect
     DLLEXPORT bool hasEffect() const;
 
+    //! returns trus if the argument value is equal to the current value without any type conversions
+    DLLEXPORT bool isEqualHard(const QoreValue v) const;
+
     //! returns true if the object contains NOTHING
     DLLEXPORT bool isNothing() const;
 
@@ -372,9 +375,6 @@ public:
 
     //! returns trus if the argument value is equal to the current value with type conversions
     DLLEXPORT bool isEqualSoft(const QoreValue v, ExceptionSink* xsink) const;
-
-    //! returns trus if the argument value is equal to the current value without any type conversions
-    DLLEXPORT bool isEqualHard(const QoreValue v) const;
 
     //! returns true of the argument is exactly the same value as the current value, meaning also that if both contain pointers, that the pointers contained are the same pointer
     DLLEXPORT bool isEqualValue(const QoreValue v);

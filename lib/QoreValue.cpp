@@ -40,9 +40,9 @@ const char* qoreBoolTypeName = "bool";
 const char* qoreIntTypeName = "integer";
 const char* qoreFloatTypeName = "float";
 
-void QoreSimpleValue::set(const QoreSimpleValue& val) {
+void QoreSimpleValue::set(const QoreSimpleValue& n) {
 #ifdef QOREVALUE_USE_MEMCPY
-    memcpy((void*)this, (void*)&val, sizeof(QoreSimpleValue));
+    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
 #else
     type = n.type;
     switch (type) {
@@ -168,6 +168,24 @@ bool QoreSimpleValue::hasEffect() const {
     return type == QV_Node && v.n && node_has_effect(v.n);
 }
 
+bool QoreSimpleValue::isEqualHard(const QoreValue n) const {
+    qore_type_t t = getType();
+    if (t != n.getType())
+        return false;
+    switch (t) {
+        case NT_INT: return getAsBigInt() == n.getAsBigInt();
+        case NT_BOOLEAN: return getAsBool() == n.getAsBool();
+        case NT_FLOAT: return getAsFloat() == n.getAsFloat();
+        case NT_NOTHING:
+        case NT_NULL:
+            return true;
+    }
+    ExceptionSink xsink;
+    bool rv = !compareHard(v.n, n.v.n, &xsink);
+    xsink.clear();
+    return rv;
+}
+
 bool QoreSimpleValue::isNothing() const {
     return type == QV_Node && is_nothing(v.n);
 }
@@ -267,9 +285,9 @@ QoreValue::QoreValue(const QoreSimpleValue& n) {
 #endif
 }
 
-QoreValue::QoreValue(const QoreValue& old) {
+QoreValue::QoreValue(const QoreValue& n) {
 #ifdef QOREVALUE_USE_MEMCPY
-    memcpy((void*)this, (void*)&old, sizeof(QoreSimpleValue));
+    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
 #else
     type = n.type;
     switch (type) {
@@ -392,24 +410,6 @@ AbstractQoreNode* QoreValue::assignNothing() {
 
 bool QoreValue::isEqualSoft(const QoreValue v, ExceptionSink* xsink) const {
     return QoreLogicalEqualsOperatorNode::softEqual(*this, v, xsink);
-}
-
-bool QoreValue::isEqualHard(const QoreValue n) const {
-    qore_type_t t = getType();
-    if (t != n.getType())
-        return false;
-    switch (t) {
-        case NT_INT: return getAsBigInt() == n.getAsBigInt();
-        case NT_BOOLEAN: return getAsBool() == n.getAsBool();
-        case NT_FLOAT: return getAsFloat() == n.getAsFloat();
-        case NT_NOTHING:
-        case NT_NULL:
-            return true;
-    }
-    ExceptionSink xsink;
-    bool rv = !compareHard(v.n, n.v.n, &xsink);
-    xsink.clear();
-    return rv;
 }
 
 bool QoreValue::isEqualValue(const QoreValue n) {
@@ -632,7 +632,8 @@ QoreValue ValueOptionalRefHolder::takeReferencedValue() {
     return v;
 }
 
-ValueEvalOptimizedRefHolder::ValueEvalOptimizedRefHolder(const QoreValue& exp, ExceptionSink* xs) : ValueEvalRefHolder(xs) {
+ValueEvalOptimizedRefHolder::ValueEvalOptimizedRefHolder(const QoreValue& exp, ExceptionSink* xs)
+        : ValueEvalRefHolder(xs) {
     evalIntern(exp);
 }
 

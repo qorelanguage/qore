@@ -35,12 +35,22 @@
 
 class QoreLogicalLessThanOperatorNode : public QoreBoolBinaryOperatorNode {
 OP_COMMON
+public:
+    DLLLOCAL QoreLogicalLessThanOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreBoolBinaryOperatorNode(loc, left, right) {
+    }
+
+    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
+        return copyBackgroundExplicit<QoreLogicalLessThanOperatorNode>(xsink);
+    }
+
+    DLLLOCAL static bool doLessThan(const QoreValue& l, const QoreValue& r, ExceptionSink* xsink);
 
 protected:
     // type of pointer to optimized versions depending on arguments found at parse-time
     typedef bool(QoreLogicalLessThanOperatorNode::*eval_t)(ExceptionSink* xsink) const;
     // pointer to optimized versions depending on arguments found at parse-time
-    eval_t pfunc;
+    eval_t pfunc = nullptr;
 
     DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 
@@ -52,17 +62,6 @@ protected:
 
     DLLLOCAL bool floatLessThan(ExceptionSink* xsink) const;
     DLLLOCAL bool bigIntLessThan(ExceptionSink* xsink) const;
-
-public:
-    DLLLOCAL QoreLogicalLessThanOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
-            : QoreBoolBinaryOperatorNode(loc, left, right), pfunc(0) {
-    }
-
-    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
-        return copyBackgroundExplicit<QoreLogicalLessThanOperatorNode>(xsink);
-    }
-
-    DLLLOCAL static bool doLessThan(QoreValue l, QoreValue r, ExceptionSink* xsink);
 };
 
 #endif

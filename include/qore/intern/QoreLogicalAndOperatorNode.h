@@ -34,17 +34,6 @@
 #define _QORE_QORELOGICALANDOPERATORNODE_H
 
 class QoreLogicalAndOperatorNode : public QoreBinaryOperatorNode<> {
-protected:
-    DLLLOCAL static QoreString logical_and_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
-    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
-
-    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-        return boolTypeInfo;
-    }
-
 public:
     DLLLOCAL QoreLogicalAndOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
             : QoreBinaryOperatorNode<>(loc, left, right) {
@@ -68,6 +57,17 @@ public:
 
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink *xsink) const {
         return copyBackgroundExplicit<QoreLogicalAndOperatorNode>(xsink);
+    }
+
+protected:
+    DLLLOCAL static QoreString logical_and_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+        return boolTypeInfo;
     }
 };
 

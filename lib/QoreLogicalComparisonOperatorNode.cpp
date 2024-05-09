@@ -75,7 +75,7 @@ int QoreLogicalComparisonOperatorNode::parseInitImpl(QoreValue& val, QoreParseCo
     return err;
 }
 
-int QoreLogicalComparisonOperatorNode::doComparison(const QoreValue left, const QoreValue right,
+int QoreLogicalComparisonOperatorNode::doComparison(const QoreValue& left, const QoreValue& right,
         ExceptionSink* xsink) {
     qore_type_t lt = left.getType();
     qore_type_t rt = right.getType();

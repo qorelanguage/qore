@@ -103,7 +103,7 @@ private:
 public:
     //! creates an empty lock container
     /** @param n_xsink pointer to ExceptionSink object for use with object notifications
-        */
+    */
     DLLEXPORT AutoVLock(ExceptionSink* n_xsink);
 
     //! default move constructor

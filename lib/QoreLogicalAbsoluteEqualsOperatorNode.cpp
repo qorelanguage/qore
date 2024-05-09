@@ -69,7 +69,7 @@ int QoreLogicalAbsoluteEqualsOperatorNode::parseInitImpl(QoreValue& val, QorePar
     return err;
 }
 
-bool QoreLogicalAbsoluteEqualsOperatorNode::hardEqual(const QoreValue left, const QoreValue right,
+bool QoreLogicalAbsoluteEqualsOperatorNode::hardEqual(const QoreValue& left, const QoreValue& right,
         ExceptionSink *xsink) {
     qore_type_t lt = left.getType();
     qore_type_t rt = right.getType();

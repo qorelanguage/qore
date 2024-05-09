@@ -45,8 +45,9 @@ int QorePreIncrementOperatorNode::parseInitImpl(QoreValue& val, QoreParseContext
 QoreValue QorePreIncrementOperatorNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
     // get ptr to current value (lvalue is locked for the scope of the LValueHelper object)
     LValueHelper n(exp, xsink);
-    if (!n)
+    if (!n) {
         return QoreValue();
+    }
 
     if (n.getType() == NT_NUMBER) {
         n.preIncrementNumber("<++ (pre) operator>");

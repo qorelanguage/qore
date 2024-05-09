@@ -34,6 +34,31 @@
 #define _QORE_QORELOGICALABSOLUTENOTEQUALSOPERATORNODE_H
 
 class QoreLogicalAbsoluteNotEqualsOperatorNode : public QoreLogicalAbsoluteEqualsOperatorNode {
+public:
+    DLLLOCAL QoreLogicalAbsoluteNotEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreLogicalAbsoluteEqualsOperatorNode(loc, left, right) {
+    }
+
+    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
+    DLLLOCAL virtual QoreString* getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+        del = false;
+        return &logical_absolute_not_equals_str;
+    }
+
+    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+        str.concat(&logical_absolute_not_equals_str);
+        return 0;
+    }
+
+    // returns the type name as a c string
+    DLLLOCAL virtual const char *getTypeName() const {
+        return logical_absolute_not_equals_str.getBuffer();
+    }
+
+    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
+        return copyBackgroundExplicit<QoreLogicalAbsoluteNotEqualsOperatorNode>(xsink);
+    }
+
 protected:
     DLLLOCAL static QoreString logical_absolute_not_equals_str;
 
@@ -51,31 +76,6 @@ protected:
             val.v.b = !val.v.b;
         }
         return err;
-    }
-
-public:
-    DLLLOCAL QoreLogicalAbsoluteNotEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
-            : QoreLogicalAbsoluteEqualsOperatorNode(loc, left, right) {
-    }
-
-    // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {
-        del = false;
-        return &logical_absolute_not_equals_str;
-    }
-
-    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
-        str.concat(&logical_absolute_not_equals_str);
-        return 0;
-    }
-
-    // returns the type name as a c string
-    DLLLOCAL virtual const char *getTypeName() const {
-        return logical_absolute_not_equals_str.getBuffer();
-    }
-
-    DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
-        return copyBackgroundExplicit<QoreLogicalAbsoluteNotEqualsOperatorNode>(xsink);
     }
 };
 

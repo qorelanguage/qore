@@ -291,8 +291,9 @@ LValueHelper::LValueHelper(const QoreValue& exp, ExceptionSink* xsink, bool for_
 }
 
 // this constructor function is used to scan objects after initialization
-LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), before(true), robj(qore_object_private::get(self)) {
-   ocvec.push_back(ObjCountRec(&self));
+LValueHelper::LValueHelper(QoreObject& self, ExceptionSink* xsink) : vl(xsink), before(true),
+        robj(qore_object_private::get(self)) {
+    ocvec.push_back(ObjCountRec(&self));
 }
 
 LValueHelper::LValueHelper(ExceptionSink* xsink) : vl(xsink) {
@@ -302,8 +303,8 @@ LValueHelper::LValueHelper(LValueHelper&& o) : vl(std::move(o.vl)), tvec(std::mo
 }
 
 LValueHelper::~LValueHelper() {
-    // FIXME: technically if we have only removed robjects from the lvalue and the lvalue did not have any recursive references before,
-    // then we don't need to scan this time either
+    // FIXME: technically if we have only removed robjects from the lvalue and the lvalue did not have any recursive
+    // references before, then we don't need to scan this time either
     bool obj_chg = before;
     bool obj_ref = false;
 
@@ -605,7 +606,8 @@ int LValueHelper::doLValue(const QoreValue& n, bool for_remove) {
     //printd(5, "LValueHelper::doLValue() n: %s (%d)\n", n.getTypeName(), n.getType());
     if (ntype == NT_VARREF) {
         const VarRefNode* v = n.get<const VarRefNode>();
-        //printd(5, "LValueHelper::doLValue(): vref: %s (%p) type: %d\n", v->getName(), v, v->getType());
+        //printd(5, "LValueHelper::doLValue() this: %p vref: %s (%p) vtype: %d ti: %s\n", this, v->getName(), v,
+        //    v->getType(), QoreTypeInfo::getName(v->getTypeInfo()));
         if (v->getLValue(*this, for_remove)) {
             // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object
             clearPtr();
@@ -638,7 +640,8 @@ int LValueHelper::doLValue(const QoreValue& n, bool for_remove) {
         }
     } else {
         assert(ntype == NT_OPERATOR);
-        const QoreSquareBracketsOperatorNode* op = dynamic_cast<const QoreSquareBracketsOperatorNode*>(n.getInternalNode());
+        const QoreSquareBracketsOperatorNode* op =
+            dynamic_cast<const QoreSquareBracketsOperatorNode*>(n.getInternalNode());
         if (op) {
             if (doListLValue(op, for_remove)) {
                 // issue #2891 if the lvalue retrieval fails in a complex reference, make sure to clear the object

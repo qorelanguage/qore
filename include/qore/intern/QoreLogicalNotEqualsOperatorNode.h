@@ -34,25 +34,6 @@
 #define _QORE_QORELOGICALNOTEQUALSOPERATORNODE_H
 
 class QoreLogicalNotEqualsOperatorNode : public QoreLogicalEqualsOperatorNode {
-protected:
-    DLLLOCAL static QoreString logical_not_equals_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-        QoreValue rv = QoreLogicalEqualsOperatorNode::evalImpl(needs_deref, xsink);
-        if (*xsink)
-            return QoreValue();
-        return !rv.v.b;
-    }
-
-    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
-        int err = QoreLogicalEqualsOperatorNode::parseInitImpl(val, parse_context);
-        // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
-        if (val.type == QV_Bool) {
-            val.v.b = !val.v.b;
-        }
-        return err;
-    }
-
 public:
     DLLLOCAL QoreLogicalNotEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
             : QoreLogicalEqualsOperatorNode(loc, left, right) {
@@ -78,8 +59,27 @@ public:
         return copyBackgroundExplicit<QoreLogicalNotEqualsOperatorNode>(xsink);
     }
 
-    DLLLOCAL static bool softNotEqual(const QoreValue left, const QoreValue right, ExceptionSink* xsink) {
-        return !QoreLogicalEqualsOperatorNode::softEqual(left, right, xsink);
+    DLLLOCAL static bool softNotEqual(const QoreValue& l, const QoreValue& r, ExceptionSink* xsink) {
+        return !QoreLogicalEqualsOperatorNode::softEqual(l, r, xsink);
+    }
+
+protected:
+    DLLLOCAL static QoreString logical_not_equals_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
+        QoreValue rv = QoreLogicalEqualsOperatorNode::evalImpl(needs_deref, xsink);
+        if (*xsink)
+            return QoreValue();
+        return !rv.v.b;
+    }
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context) {
+        int err = QoreLogicalEqualsOperatorNode::parseInitImpl(val, parse_context);
+        // make sure to reverse sense of comparison if this expression was resolved to a constant boolean value
+        if (val.type == QV_Bool) {
+            val.v.b = !val.v.b;
+        }
+        return err;
     }
 };
 

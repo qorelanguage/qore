@@ -86,16 +86,11 @@ void AbstractStatement::finalizeBlock(int sline, int eline) {
 int AbstractStatement::exec(QoreValue& return_value, ExceptionSink *xsink) {
     //QORE_TRACE("AbstractStatement::exec()");
     printd(1, "AbstractStatement::exec() this: %p file: %s:%d\n", this, loc->getFile(), loc->start_line);
-    QoreProgramLocationHelper stack_loc(loc, this);
-
-#ifdef QORE_MANAGE_STACK
-    if (check_stack(xsink)) {
+    QoreProgramLocationHelper stack_loc(xsink, loc, this, pwo.parse_options);
+    //pthread_testcancel();
+    if (*xsink) {
         return 0;
     }
-#endif
-    pthread_testcancel();
-
-    QoreProgramBlockParseOptionHelper bh(pwo.parse_options);
     return execImpl(return_value, xsink);
 }
 

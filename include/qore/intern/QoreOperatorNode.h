@@ -37,7 +37,7 @@
 DLLLOCAL QoreValue copy_value_and_resolve_lvar_refs(const QoreValue& n, ExceptionSink* xsink);
 
 // type of logical operator function
-typedef bool (*op_log_func_t)(QoreValue l, QoreValue r, ExceptionSink* xsink);
+typedef bool (*op_log_func_t)(const QoreValue& l, const QoreValue& r, ExceptionSink* xsink);
 
 class QoreOperatorNode : public ParseNode {
 private:
@@ -274,7 +274,8 @@ public:
 
 class QoreBoolBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-    DLLLOCAL QoreBoolBinaryOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryOperatorNode<>(loc, left, right) {
+    DLLLOCAL QoreBoolBinaryOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreBinaryOperatorNode<>(loc, left, right) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
@@ -284,7 +285,8 @@ public:
 
 class QoreIntBinaryOperatorNode : public QoreBinaryOperatorNode<> {
 public:
-    DLLLOCAL QoreIntBinaryOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right) : QoreBinaryOperatorNode<>(loc, left, right) {
+    DLLLOCAL QoreIntBinaryOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
+            : QoreBinaryOperatorNode<>(loc, left, right) {
     }
 
     DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {

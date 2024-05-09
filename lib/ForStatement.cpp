@@ -60,8 +60,7 @@ int ForStatement::execImpl(QoreValue& return_value, ExceptionSink *xsink) {
 
     // execute "for" body
     while (!*xsink) {
-        // check conditional expression, exit "for" loop if condition is
-        // false
+        // check conditional expression, exit "for" loop if condition is false
         if (cond) {
             ValueEvalOptimizedRefHolder val(cond, xsink);
             if (*xsink || !val->getAsBool()) {

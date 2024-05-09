@@ -46,7 +46,7 @@ QoreValue QoreLogicalGreaterThanOrEqualsOperatorNode::evalImpl(bool& needs_deref
    return doGreaterThanOrEquals(*lh, *rh, xsink);
 }
 
-int QoreLogicalGreaterThanOrEqualsOperatorNode::parseInitIntern(const char *name, QoreValue& val,
+int QoreLogicalGreaterThanOrEqualsOperatorNode::parseInitIntern(const char* name, QoreValue& val,
         QoreParseContext& parse_context) {
     // turn off "return value ignored" flags
     QoreParseContextFlagHelper fh(parse_context);
@@ -106,8 +106,8 @@ bool QoreLogicalGreaterThanOrEqualsOperatorNode::bigIntGreaterThanOrEquals(Excep
     return lh->getAsBigInt() >= rh->getAsBigInt();
 }
 
-bool QoreLogicalGreaterThanOrEqualsOperatorNode::doGreaterThanOrEquals(QoreValue lh, QoreValue rh,
-        ExceptionSink* xsink) {
+bool QoreLogicalGreaterThanOrEqualsOperatorNode::doGreaterThanOrEquals(const QoreValue& lh,
+        const QoreValue& rh, ExceptionSink* xsink) {
     qore_type_t lt = lh.getType();
     qore_type_t rt = rh.getType();
 

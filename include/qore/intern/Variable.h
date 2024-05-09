@@ -356,7 +356,6 @@ protected:
 
 public:
     AutoVLock vl;
-    //AbstractQoreNode** v = nullptr;     // ptr to ptr for lvalue expression
 
 private:
     typedef std::vector<AbstractQoreNode*> nvec_t;
@@ -653,6 +652,14 @@ public:
     DLLLOCAL QoreValue remove(bool& static_assignment);
 
     DLLLOCAL void deleteLValue();
+};
+
+struct lvinfo {
+    QoreLValueGeneric* val;
+    const QoreTypeInfo* typeInfo;
+
+    DLLLOCAL lvinfo(QoreLValueGeneric* val, const QoreTypeInfo* typeInfo) : val(val), typeInfo(typeInfo) {
+    }
 };
 
 #endif // _QORE_VARIABLE_H

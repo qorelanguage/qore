@@ -34,17 +34,6 @@
 #define _QORE_QORELOGICALCOMPARISONOPERATORNODE_H
 
 class QoreLogicalComparisonOperatorNode : public QoreBinaryOperatorNode<> {
-protected:
-    DLLLOCAL static QoreString logical_comparison_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink *xsink) const;
-
-    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
-
-    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
-        return bigIntTypeInfo;
-    }
-
 public:
     DLLLOCAL QoreLogicalComparisonOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
             : QoreBinaryOperatorNode<>(loc, left, right) {
@@ -70,7 +59,18 @@ public:
         return copyBackgroundExplicit<QoreLogicalComparisonOperatorNode>(xsink);
     }
 
-    DLLLOCAL static int doComparison(const QoreValue left, const QoreValue right, ExceptionSink* xsink);
+    DLLLOCAL static int doComparison(const QoreValue& l, const QoreValue& r, ExceptionSink* xsink);
+
+protected:
+    DLLLOCAL static QoreString logical_comparison_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink *xsink) const;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return bigIntTypeInfo;
+    }
 };
 
 #endif

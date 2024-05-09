@@ -105,7 +105,8 @@ bool QoreLogicalGreaterThanOperatorNode::bigIntGreaterThan(ExceptionSink* xsink)
     return lh->getAsBigInt() > rh->getAsBigInt();
 }
 
-bool QoreLogicalGreaterThanOperatorNode::doGreaterThan(QoreValue lh, QoreValue rh, ExceptionSink* xsink) {
+bool QoreLogicalGreaterThanOperatorNode::doGreaterThan(const QoreValue& lh, const QoreValue& rh,
+        ExceptionSink* xsink) {
     qore_type_t lt = lh.getType();
     qore_type_t rt = rh.getType();
 
