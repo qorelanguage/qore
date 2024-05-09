@@ -114,6 +114,10 @@ public:
         return apd;
     }
 
+    DLLLOCAL bool checkData(qore_classid_t key) const {
+        return keymap.find(key) != keymap.end();
+    }
+
     DLLLOCAL void addToString(QoreString* str) const {
         for (keymap_t::const_iterator i = keymap.begin(), e = keymap.end(); i != e; ++i)
             str->sprintf("%d=<%p>, ", i->first, i->second.first);
@@ -536,6 +540,13 @@ public:
     }
 
     DLLLOCAL void mergeDataToHash(QoreHashNode* hash, SafeDerefHelper& sdh, ExceptionSink* xsink) const;
+
+    DLLLOCAL bool checkData(qore_classid_t key) {
+        if (!privateData) {
+            return false;
+        }
+        return privateData->checkData(key);
+    }
 
     DLLLOCAL void setPrivate(qore_classid_t key, AbstractPrivateData* pd) {
         if (!privateData) {

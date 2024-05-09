@@ -274,7 +274,7 @@ class DebugTest inherits QUnit::Test {
     # end of tested program
 
     assertTraceLog(string name, list traceLog) {
-    #printf("actuallog: %N\n", debugProgram.traceLog);
+        on_error printf("debugProgram.traceLog: %N\n", debugProgram.traceLog);
         hash l = shift debugProgram.traceLog;
         testAssertionValue(name+':method check', l.func, "onAttach");
 
