@@ -406,6 +406,13 @@ public:
         return getValue().refSelf();
     }
 
+    DLLLOCAL const ReferenceNode* getReference() const {
+        if (assigned && type == QV_Node && v.n && v.n->getType() == NT_REFERENCE) {
+            return reinterpret_cast<const ReferenceNode*>(v.n);
+        }
+        return nullptr;
+    }
+
     DLLLOCAL bool needsScan() const {
         if (!assigned || type != QV_Node || !v.n)
             return false;

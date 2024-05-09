@@ -680,11 +680,10 @@ int LValueHelper::doLValue(const QoreValue& n, bool for_remove) {
         printd(0, "LValueHelper::doLValue() qv: %s %d\n", qv->getTypeName(), qv->getType());
 #endif
 
-    QoreValue current_value = getValue();
-    //printd(5, "LValueHelper::doLValue() current_value: %p %s %d ti: '%s'\n", current_value, get_type_name(current_value), get_node_type(current_value), QoreTypeInfo::getName(typeInfo));
-    if (current_value.getType() == NT_REFERENCE) {
-        const ReferenceNode* ref = current_value.get<const ReferenceNode>();
-        if (val)
+    const ReferenceNode* ref = getReference();
+    //printd(5, "LValueHelper::doLValue() this: %p ref: %p\n", this, ref);
+    if (ref) {
+        if (val) {
             val = nullptr;
         else if (qv)
             qv = nullptr;
