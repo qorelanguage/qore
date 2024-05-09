@@ -502,7 +502,7 @@ public:
         if (val) {
             return val->getReference();
         }
-        assert(*qv);
+        assert(qv);
         return qv->getType() == NT_REFERENCE ? qv->get<const ReferenceNode>() : nullptr;
     }
 
