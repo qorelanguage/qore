@@ -40,7 +40,7 @@ static QoreHashNode* Logger_serializer(const QoreObject& self, const QoreLogger&
     if (val) {
         rv->setKeyValue("currentLevel", context.serializeValue(*val, xsink), xsink);
     }
-    rv->setKeyValue("name", *l.name, xsink);
+    rv->setKeyValue("name", l.name->stringRefSelf(), xsink);
     val = const_cast<QoreObject&>(self).getReferencedMemberNoMethod("parent", xsink);
     if (val) {
         rv->setKeyValue("parent", context.serializeValue(*val, xsink), xsink);

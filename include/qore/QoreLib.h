@@ -155,9 +155,6 @@ DLLEXPORT QoreStringNode* q_sprintf(const QoreListNode* params, int field, int o
 //! a string formatting function that works with Qore data structures
 DLLEXPORT QoreStringNode* q_vsprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
 
-//! a string formatting function that works with Qore data structures
-DLLEXPORT QoreStringNode* q_sprintf(const QoreListNode* params, int field, int offset, ExceptionSink* xsink);
-
 //! thread-safe version of "localtime()"
 DLLEXPORT struct tm* q_localtime(const time_t* clock, struct tm* tms);
 
