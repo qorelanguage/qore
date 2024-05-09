@@ -229,6 +229,10 @@ public:
         return /*runState != DBG_RS_STOPPED &&*/ runState != DBG_RS_DETACH;
     }
 
+    DLLLOCAL bool runtimeCheck() const {
+        return runState != DBG_RS_DETACH || attachFlag || breakFlag;
+    }
+
 private:
     // not implemented
     DLLLOCAL ThreadLocalProgramData(const ThreadLocalProgramData& old) = delete;
