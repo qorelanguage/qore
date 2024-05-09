@@ -34,18 +34,13 @@
 #define _QORE_QORELOGICALOROPERATORNODE_H
 
 class QoreLogicalOrOperatorNode : public QoreLogicalAndOperatorNode {
-protected:
-    DLLLOCAL static QoreString logical_or_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
-
 public:
     DLLLOCAL QoreLogicalOrOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
             : QoreLogicalAndOperatorNode(loc, left, right) {
     }
 
     // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-    DLLLOCAL virtual QoreString *getAsString(bool& del, int foff, ExceptionSink* xsink) const {
+    DLLLOCAL virtual QoreString* getAsString(bool& del, int foff, ExceptionSink* xsink) const {
         del = false;
         return &logical_or_str;
     }
@@ -63,6 +58,11 @@ public:
     DLLLOCAL virtual QoreOperatorNode* copyBackground(ExceptionSink* xsink) const {
         return copyBackgroundExplicit<QoreLogicalOrOperatorNode>(xsink);
     }
+
+protected:
+    DLLLOCAL static QoreString logical_or_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
 };
 
 #endif

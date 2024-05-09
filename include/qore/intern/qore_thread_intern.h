@@ -69,6 +69,7 @@ class ThreadProgramData;
 struct ThreadLocalProgramData;
 class QoreAbstractModule;
 class QoreRWLock;
+class LoopContext;
 
 DLLLOCAL extern Operator* OP_BACKGROUND;
 
@@ -232,15 +233,19 @@ DLLLOCAL void update_context_stack(Context* cstack);
 
 DLLLOCAL const QoreStackLocation* get_runtime_stack_location();
 DLLLOCAL const QoreStackLocation* update_get_runtime_stack_location(QoreStackLocation* stack_loc,
-    const AbstractStatement*& current_stmt, QoreProgram*& current_pgm);
+        const AbstractStatement*& current_stmt, QoreProgram*& current_pgm);
 DLLLOCAL const QoreStackLocation* update_get_runtime_stack_builtin_location(QoreStackLocation* stack_loc,
-    const AbstractStatement*& current_stmt, QoreProgram*& current_pgm, const QoreProgramLocation*& old_runtime_loc);
+        const AbstractStatement*& current_stmt, QoreProgram*& current_pgm, const QoreProgramLocation*& old_runtime_loc);
 DLLLOCAL void update_runtime_stack_location(const QoreStackLocation* stack_loc);
 DLLLOCAL void update_runtime_stack_location(const QoreStackLocation* stack_loc, const QoreProgramLocation* runtime_loc);
 
 DLLLOCAL const QoreProgramLocation* get_runtime_location();
-DLLLOCAL void update_get_runtime_statement_location(const AbstractStatement* stmt,
-    const QoreProgramLocation* loc, const AbstractStatement*& old_stmt, const QoreProgramLocation*& old_loc);
+DLLLOCAL int swap_runtime_statement_location(ExceptionSink* xsink, const AbstractStatement* stmt,
+        const QoreProgramLocation* loc, int64 po, const AbstractStatement*& old_stmt,
+        const QoreProgramLocation*& old_loc, int64& old_po);
+DLLLOCAL void swap_runtime_location(const QoreProgramLocation*loc, const AbstractStatement*& old_stmt,
+        const QoreProgramLocation*& old_loc);
+DLLLOCAL void update_runtime_statement_location(const AbstractStatement* stmt, const QoreProgramLocation* loc, int64 po);
 DLLLOCAL void update_runtime_statement_location(const AbstractStatement* stmt, const QoreProgramLocation* loc);
 
 DLLLOCAL void set_parse_file_info(QoreProgramLocation& loc);
@@ -404,7 +409,7 @@ public:
 class QoreProgramStackLocationHelper {
 public:
     DLLLOCAL QoreProgramStackLocationHelper(QoreStackLocation* stack_loc, const AbstractStatement*& current_stmt,
-        QoreProgram*& current_pgm) :
+            QoreProgram*& current_pgm) :
         stack_loc(update_get_runtime_stack_location(stack_loc, current_stmt, current_pgm)) {
     }
 
@@ -462,24 +467,36 @@ protected:
 
 class QoreProgramLocationHelper {
 public:
-    DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation* n_loc, const AbstractStatement* n_stat = nullptr) {
-        update_get_runtime_statement_location(n_stat, n_loc, statement, loc);
+    DLLLOCAL QoreProgramLocationHelper(ExceptionSink* xsink, const QoreProgramLocation* loc,
+            const AbstractStatement* stat, int64 parse_options) : has_po(true) {
+        swap_runtime_statement_location(xsink, stat, loc, parse_options, statement, this->loc,
+            this->parse_options);
+    }
+
+    DLLLOCAL QoreProgramLocationHelper(const QoreProgramLocation* loc) : has_po(false) {
+        swap_runtime_location(loc, statement, this->loc);
     }
 
     DLLLOCAL ~QoreProgramLocationHelper() {
-        update_runtime_statement_location(statement, loc);
+        if (has_po) {
+            update_runtime_statement_location(statement, loc, parse_options);
+        } else {
+            update_runtime_statement_location(statement, loc);
+        }
     }
 
 protected:
     const QoreProgramLocation* loc;
     const AbstractStatement* statement;
+    int64 parse_options;
+    bool has_po;
 };
 
 class QoreProgramOptionalLocationHelper {
 public:
-    DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* n_loc, const AbstractStatement* n_stat = nullptr) : restore((bool)n_loc) {
-        if (n_loc) {
-            update_get_runtime_statement_location(n_stat, n_loc, statement, loc);
+    DLLLOCAL QoreProgramOptionalLocationHelper(const QoreProgramLocation* loc) : restore((bool)loc) {
+        if (loc) {
+            swap_runtime_location(loc, statement, this->loc);
         }
     }
 
@@ -713,15 +730,6 @@ public:
 };
 
 struct ThreadLocalProgramData;
-
-class QoreProgramBlockParseOptionHelper {
-public:
-    DLLLOCAL QoreProgramBlockParseOptionHelper(int64 n_po);
-    DLLLOCAL ~QoreProgramBlockParseOptionHelper();
-
-protected:
-    int64 po;
-};
 
 class ProgramThreadCountContextHelper {
 public:

@@ -90,7 +90,8 @@ int QoreLogicalEqualsOperatorNode::parseInitImpl(QoreValue& val, QoreParseContex
     return err;
 }
 
-bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink) {
+bool QoreLogicalEqualsOperatorNode::softEqual(const QoreValue& left, const QoreValue& right,
+        ExceptionSink *xsink) {
     qore_type_t lt = left.getType();
     qore_type_t rt = right.getType();
 

@@ -34,29 +34,18 @@
 #define _QORE_QORELOGICALABSOLUTEEQUALSOPERATORNODE_H
 
 class QoreLogicalAbsoluteEqualsOperatorNode : public QoreBinaryOperatorNode<> {
-protected:
-    DLLLOCAL static QoreString logical_absolute_equals_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
-
-    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
-
-    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-        return boolTypeInfo;
-    }
-
 public:
     DLLLOCAL QoreLogicalAbsoluteEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
             : QoreBinaryOperatorNode<>(loc, left, right) {
     }
 
     // if del is true, then the returned QoreString * should be deleted, if false, then it must not be
-    DLLLOCAL virtual QoreString *getAsString(bool &del, int foff, ExceptionSink *xsink) const {
+    DLLLOCAL virtual QoreString *getAsString(bool& del, int foff, ExceptionSink* xsink) const {
         del = false;
         return &logical_absolute_equals_str;
     }
 
-    DLLLOCAL virtual int getAsString(QoreString &str, int foff, ExceptionSink *xsink) const {
+    DLLLOCAL virtual int getAsString(QoreString& str, int foff, ExceptionSink* xsink) const {
         str.concat(&logical_absolute_equals_str);
         return 0;
     }
@@ -70,7 +59,18 @@ public:
         return copyBackgroundExplicit<QoreLogicalAbsoluteEqualsOperatorNode>(xsink);
     }
 
-    DLLLOCAL static bool hardEqual(const QoreValue left, const QoreValue right, ExceptionSink* xsink);
+    DLLLOCAL static bool hardEqual(const QoreValue& l, const QoreValue& r, ExceptionSink* xsink);
+
+protected:
+    DLLLOCAL static QoreString logical_absolute_equals_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool& needs_deref, ExceptionSink* xsink) const;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual const QoreTypeInfo* getTypeInfo() const {
+        return boolTypeInfo;
+    }
 };
 
 #endif

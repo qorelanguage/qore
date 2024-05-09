@@ -65,7 +65,8 @@ protected:
     LValueHelper* valp;
 
 public:
-    DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink), valp(this->valid ? new LValueHelper(*((ReferenceNode*)val->v.n), xsink) : nullptr) {
+    DLLLOCAL LValueRefHelper(T* val, ExceptionSink* xsink) : LocalRefHelper<T>(val, xsink),
+            valp(this->valid ? new LValueHelper(*((ReferenceNode*)val->v.n), xsink) : nullptr) {
     }
 
     DLLLOCAL ~LValueRefHelper() {
@@ -85,7 +86,8 @@ class VarValueBase {
 protected:
     DLLLOCAL int checkFinalized(ExceptionSink* xsink) const {
         if (finalized) {
-            xsink->raiseException("DESTRUCTOR-ERROR", "illegal variable assignment after second phase of variable destruction");
+            xsink->raiseException("DESTRUCTOR-ERROR", "illegal variable assignment after second phase of variable "
+                "destruction");
             return -1;
         }
         return 0;
@@ -131,8 +133,10 @@ public:
 
 class LocalVarValue : public VarValueBase {
 public:
-    DLLLOCAL void set(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue nval, bool assign, bool static_assignment) {
-        //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d static_assignment: %d\n", this, n_id, QoreTypeInfo::getName(typeInfo), nval.getType(), static_assignment);
+    DLLLOCAL void set(const char* n_id, const QoreTypeInfo* varTypeInfo, QoreValue nval, bool assign,
+            bool static_assignment) {
+        //printd(5, "LocalVarValue::set() this: %p id: '%s' type: '%s' code: %d static_assignment: %d\n", this, n_id,
+        //    QoreTypeInfo::getName(typeInfo), nval.getType(), static_assignment);
         assert(!finalized);
 
         id = n_id;
@@ -158,11 +162,13 @@ public:
         val.unassignIgnore();
     }
 
-    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo, const QoreTypeInfo* refTypeInfo) const;
+    DLLLOCAL int getLValue(LValueHelper& lvh, bool for_remove, const QoreTypeInfo* typeInfo,
+            const QoreTypeInfo* refTypeInfo) const;
     DLLLOCAL void remove(LValueRemoveHelper& lvrh, const QoreTypeInfo* typeInfo);
 
     DLLLOCAL QoreValue eval(bool& needs_deref, ExceptionSink* xsink) const {
-        //printd(5, "LocalVarValue::eval() this: %p '%s' type: %d '%s'\n", this, id, val.getType(), val.getTypeName());
+        //printd(5, "LocalVarValue::eval() this: %p '%s' type: %d '%s'\n", this, id, val.getType(),
+        //    val.getTypeName());
         if (val.getType() == NT_REFERENCE) {
             ReferenceNode* ref = const_cast<ReferenceNode*>(val.get<ReferenceNode>());
             LocalRefHelper<LocalVarValue> helper(this, *ref, xsink);

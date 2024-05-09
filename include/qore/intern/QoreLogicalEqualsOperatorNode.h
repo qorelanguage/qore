@@ -34,26 +34,6 @@
 #define _QORE_QORELOGICALEQUALSOPERATORNODE_H
 
 class QoreLogicalEqualsOperatorNode : public QoreBinaryOperatorNode<> {
-protected:
-    // type of pointer to optimized versions depending on arguments found at parse-time
-    typedef bool(QoreLogicalEqualsOperatorNode::*eval_t)(ExceptionSink *xsink) const;
-    // pointer to optimized versions depending on arguments found at parse-time
-    eval_t pfunc;
-
-    DLLLOCAL static QoreString logical_equals_str;
-
-    DLLLOCAL virtual QoreValue evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
-
-    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
-
-    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
-        return boolTypeInfo;
-    }
-
-    DLLLOCAL bool floatSoftEqual(ExceptionSink *xsink) const;
-    DLLLOCAL bool bigIntSoftEqual(ExceptionSink *xsink) const;
-    DLLLOCAL bool boolSoftEqual(ExceptionSink *xsink) const;
-
 public:
     DLLLOCAL QoreLogicalEqualsOperatorNode(const QoreProgramLocation* loc, QoreValue left, QoreValue right)
             : QoreBinaryOperatorNode<QoreOperatorNode>(loc, left, right), pfunc(nullptr) {
@@ -82,7 +62,27 @@ public:
         return copyBackgroundExplicit<QoreLogicalEqualsOperatorNode>(xsink);
     }
 
-    DLLLOCAL static bool softEqual(const QoreValue left, const QoreValue right, ExceptionSink *xsink);
+    DLLLOCAL static bool softEqual(const QoreValue& l, const QoreValue& r, ExceptionSink *xsink);
+
+protected:
+    // type of pointer to optimized versions depending on arguments found at parse-time
+    typedef bool(QoreLogicalEqualsOperatorNode::*eval_t)(ExceptionSink *xsink) const;
+    // pointer to optimized versions depending on arguments found at parse-time
+    eval_t pfunc;
+
+    DLLLOCAL static QoreString logical_equals_str;
+
+    DLLLOCAL virtual QoreValue evalImpl(bool &needs_deref, ExceptionSink *xsink) const;
+
+    DLLLOCAL virtual int parseInitImpl(QoreValue& val, QoreParseContext& parse_context);
+
+    DLLLOCAL virtual const QoreTypeInfo *getTypeInfo() const {
+        return boolTypeInfo;
+    }
+
+    DLLLOCAL bool floatSoftEqual(ExceptionSink *xsink) const;
+    DLLLOCAL bool bigIntSoftEqual(ExceptionSink *xsink) const;
+    DLLLOCAL bool boolSoftEqual(ExceptionSink *xsink) const;
 };
 
 #endif

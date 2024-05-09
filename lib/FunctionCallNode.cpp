@@ -832,7 +832,6 @@ int StaticMethodCallNode::parseInitImpl(QoreValue& val, QoreParseContext& parse_
 }
 
 QoreValue StaticMethodCallNode::evalImpl(bool& needs_deref, ExceptionSink* xsink) const {
-    // FIXME: implement rv as QoreValue
     return tmp_args
         ? qore_method_private::evalTmpArgs(*method, xsink, nullptr, args)
         : qore_method_private::eval(*method, xsink, nullptr, args);

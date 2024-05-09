@@ -178,7 +178,8 @@ struct ParseCountHelper {
 
     DLLLOCAL void purge() {
         if (count) {
-            parse_error(QoreProgramLocation(), "%d %%try-module block%s left open at end of file", count, count == 1 ? "" : "s");
+            parse_error(QoreProgramLocation(), "%d %%try-module block%s left open at end of file", count,
+                count == 1 ? "" : "s");
             count = 0;
         }
     }
@@ -229,7 +230,8 @@ struct ParseConditionalStack {
 
     DLLLOCAL void purge() {
         if (count) {
-            parse_error(QoreProgramLocation(), "%d conditional block%s left open at end of file", count, count == 1 ? "" : "s");
+            parse_error(QoreProgramLocation(), "%d conditional block%s left open at end of file", count,
+                count == 1 ? "" : "s");
             count = 0;
             markvec.clear();
         }
@@ -245,7 +247,9 @@ public:
     ParseConditionalStack* pcs;
     ProgramParseContext* next;
 
-    DLLLOCAL ProgramParseContext(const char* fname, const char* source, int offset, void* ps, ParseConditionalStack* ppcs, ProgramParseContext* n) : file(fname), source(source), offset(offset), parseState(ps), pcs(ppcs), next(n) {
+    DLLLOCAL ProgramParseContext(const char* fname, const char* source, int offset, void* ps,
+            ParseConditionalStack* ppcs, ProgramParseContext* n) : file(fname), source(source), offset(offset),
+            parseState(ps), pcs(ppcs), next(n) {
     }
 };
 
@@ -692,29 +696,26 @@ void ThreadProgramData::del(ExceptionSink* xsink) {
 }
 
 int ThreadProgramData::gettid() {
-   return td->tid;
+    return td->tid;
 }
 
 class ThreadCleanupNode {
 public:
-   qtdest_t func;
-   void* arg;
-   ThreadCleanupNode* next;
+    qtdest_t func;
+    void* arg;
+    ThreadCleanupNode* next;
 };
 
 DLLLOCAL ThreadCleanupNode* ThreadCleanupList::head = 0;
 
 class ThreadParams {
 public:
-   AbstractQoreNode* fc;
-   int tid;
-   QoreProgram* pgm;
+    AbstractQoreNode* fc;
+    int tid;
+    QoreProgram* pgm;
 
-   DLLLOCAL ThreadParams(AbstractQoreNode* f, int t) {
-      fc = f;
-      tid = t;
-      pgm = getProgram();
-   }
+    DLLLOCAL ThreadParams(AbstractQoreNode* f, int t) : fc(f), tid(t), pgm(getProgram()){
+    }
 };
 
 // this constructor must only be called with the QoreThreadList lock held
@@ -773,7 +774,10 @@ public:
             loc = td->runtime_loc;
         }
 
-        //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj, call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a", fc->getType());
+        //printd(5, "BGThreadParams::BGThreadParams(f: %p (%s %d), t: %d) this: %p call_obj: %p '%s' cc: %p '%s' "
+        //    "fct: %d\n", f, f->getTypeName(), f->getType(), t, this, call_obj,
+        //    call_obj ? call_obj->getClassName() : "n/a", class_ctx, class_ctx ? class_ctx->name.c_str() : "n/a",
+        //    fc->getType());
 
         // first try to preregister the new thread
         if (qore_program_private::preregisterNewThread(*pgm, xsink)) {
@@ -794,7 +798,8 @@ public:
                 }
             }
 
-            //printd(5, "BGThreadParams::BGThreadParams() sfcn: %p class: '%s' method: '%s' static: %d\n", sfcn, class_ctx->name.c_str(), sfcn->getMethod()->getName(), sfcn->getMethod()->isStatic());
+            //printd(5, "BGThreadParams::BGThreadParams() sfcn: %p class: '%s' method: '%s' static: %d\n", sfcn,
+            //    class_ctx->name.c_str(), sfcn->getMethod()->getName(), sfcn->getMethod()->isStatic());
 
             // issue #2653: calling a static method from inside a non-static method in the background operator
             // incorrectly extends the lifetime of the object
@@ -957,8 +962,7 @@ size_t linux_get_stack_start_pos() {
 }
 #endif
 
-int check_stack(ExceptionSink* xsink) {
-    ThreadData* td = thread_data.get();
+static int check_stack_intern(ExceptionSink* xsink, ThreadData* td) {
 #ifdef IA64_64
     //printd(5, "check_stack() bsp current: %p limit: %p\n", get_rse_bsp(), td->rse_limit);
     if (td->rse_limit < get_rse_bsp()) {
@@ -970,11 +974,11 @@ int check_stack(ExceptionSink* xsink) {
     size_t pos = get_stack_pos();
 
 #ifdef STACK_DIRECTION_DOWN
-    //printd(5, "check_stack() current: %p limit: %p start: %p size: 0x%llx: depth: %lld\n", get_stack_pos(), td->stack_limit,
-    //    td->stack_start, td->stack_size, td->stack_start - pos);
+    //printd(5, "check_stack() current: %p limit: %p start: %p size: 0x%llx: depth: %lld\n", get_stack_pos(),
+    //    td->stack_limit, td->stack_start, td->stack_size, td->stack_start - pos);
 #else
-    //printd(5, "check_stack() current: %p limit: %p start: %p size: 0x%llx: depth: %lld\n", get_stack_pos(), td->stack_limit,
-    //    td->stack_start, td->stack_size, pos - td->stack_start);
+    //printd(5, "check_stack() current: %p limit: %p start: %p size: 0x%llx: depth: %lld\n", get_stack_pos(),
+    //    td->stack_limit, td->stack_start, td->stack_size, pos - td->stack_start);
 #endif
 
 #ifdef STACK_DIRECTION_DOWN
@@ -990,6 +994,11 @@ int check_stack(ExceptionSink* xsink) {
     return 0;
 }
 #endif
+
+int check_stack(ExceptionSink* xsink) {
+    ThreadData* td = thread_data.get();
+    return check_stack_intern(xsink, td);
+}
 
 void inc_active_exceptions(int diff) {
     ThreadData* td = thread_data.get();
@@ -1503,29 +1512,44 @@ const QoreProgramLocation* get_runtime_location() {
     return thread_data.get()->runtime_loc;
 }
 
-void update_get_runtime_statement_location(const AbstractStatement* stmt,
-        const QoreProgramLocation* loc, const AbstractStatement*& old_stmt, const QoreProgramLocation*& old_loc) {
+int swap_runtime_statement_location(ExceptionSink* xsink, const AbstractStatement* stmt, const QoreProgramLocation* loc,
+        int64 po, const AbstractStatement*& old_stmt, const QoreProgramLocation*& old_loc, int64& old_po) {
     ThreadData* td = thread_data.get();
     old_stmt = td->runtime_statement;
     old_loc = td->runtime_loc;
+    old_po = td->runtime_po;
     td->runtime_statement = stmt;
     td->runtime_loc = loc;
+    td->runtime_po = po;
+
+#ifdef QORE_MANAGE_STACK
+    return check_stack_intern(xsink, td);
+#else
+    return 0;
+#endif
+}
+
+void swap_runtime_location(const QoreProgramLocation* loc, const AbstractStatement*& old_stmt,
+        const QoreProgramLocation*& old_loc) {
+    ThreadData* td = thread_data.get();
+    old_stmt = td->runtime_statement;
+    old_loc = td->runtime_loc;
+    td->runtime_statement = nullptr;
+    td->runtime_loc = loc;
+}
+
+void update_runtime_statement_location(const AbstractStatement* stmt, const QoreProgramLocation* loc,
+        int64 po) {
+    ThreadData* td = thread_data.get();
+    td->runtime_statement = stmt;
+    td->runtime_loc = loc;
+    td->runtime_po = po;
 }
 
 void update_runtime_statement_location(const AbstractStatement* stmt, const QoreProgramLocation* loc) {
     ThreadData* td = thread_data.get();
     td->runtime_statement = stmt;
     td->runtime_loc = loc;
-}
-
-const QoreProgramLocation* update_get_runtime_location(const QoreProgramLocation* loc) {
-    const QoreProgramLocation* rv = thread_data.get()->runtime_loc;
-    thread_data.get()->runtime_loc = loc;
-    return rv;
-}
-
-void update_runtime_location(const QoreProgramLocation* loc) {
-    thread_data.get()->runtime_loc = loc;
 }
 
 void set_parse_file_info(QoreProgramLocation& loc) {
@@ -1966,23 +1990,8 @@ void runtime_get_object_and_class(QoreObject*& obj, const qore_class_private*& q
     qc = td->current_class;
 }
 
-QoreProgramBlockParseOptionHelper::QoreProgramBlockParseOptionHelper(int64 n_po) {
-    ThreadData* td = thread_data.get();
-    if (td->runtime_po != n_po) {
-        po = td->runtime_po;
-        td->runtime_po = n_po;
-    } else
-        po = -1;
-}
-
-QoreProgramBlockParseOptionHelper::~QoreProgramBlockParseOptionHelper() {
-    if (po != -1) {
-        ThreadData* td = thread_data.get();
-        td->runtime_po = po;
-    }
-}
-
-ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm, bool runtime) {
+ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* xsink, QoreProgram* pgm,
+        bool runtime) {
     if (!pgm)
         return;
 
@@ -1993,7 +2002,10 @@ ProgramThreadCountContextHelper::ProgramThreadCountContextHelper(ExceptionSink* 
     old_ctx = td->current_pgm_ctx;
 
     if (pgm != td->current_pgm) {
-        printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p current_pgm:%p pgmid:%d new_pgm: %p new_pgmid:%d cur_tlpd:%p cur_ctx:%p fc:%d\n", this, old_pgm, old_pgm?old_pgm->getProgramId():-1, pgm, pgm?pgm->getProgramId():-1, old_tlpd, old_ctx, old_frameCount);
+        printd(5, "ProgramThreadCountContextHelper::ProgramThreadCountContextHelper() this:%p current_pgm:%p "
+            "pgmid:%d new_pgm: %p new_pgmid:%d cur_tlpd:%p cur_ctx:%p fc:%d\n", this, old_pgm,
+            old_pgm ? old_pgm->getProgramId() : -1, pgm, pgm?pgm->getProgramId():-1, old_tlpd, old_ctx,
+            old_frameCount);
         qore_program_private* pp = qore_program_private::get(*pgm);
         // try to increment thread count
         if (pp->incThreadCount(xsink)) {
