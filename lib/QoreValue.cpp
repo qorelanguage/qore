@@ -270,7 +270,7 @@ QoreValue::QoreValue(const AbstractQoreNode* n) {
 
 QoreValue::QoreValue(const QoreSimpleValue& n) {
 #ifdef QOREVALUE_USE_MEMCPY
-    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
+    memcpy((void*)this, (void*)&n, sizeof(QoreValue));
 #else
     type = n.type;
     switch (type) {
@@ -287,7 +287,7 @@ QoreValue::QoreValue(const QoreSimpleValue& n) {
 
 QoreValue::QoreValue(const QoreValue& n) {
 #ifdef QOREVALUE_USE_MEMCPY
-    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
+    memcpy((void*)this, (void*)&n, sizeof(QoreValue));
 #else
     type = n.type;
     switch (type) {
@@ -310,7 +310,7 @@ void QoreValue::swap(QoreValue& val) {
 
 QoreValue& QoreValue::operator=(const QoreValue& n) {
 #ifdef QOREVALUE_USE_MEMCPY
-    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
+    memcpy((void*)this, (void*)&n, sizeof(QoreValue));
 #else
     type = n.type;
     switch (type) {
@@ -328,7 +328,7 @@ QoreValue& QoreValue::operator=(const QoreValue& n) {
 
 QoreValue& QoreValue::operator=(const QoreSimpleValue& n) {
 #ifdef QOREVALUE_USE_MEMCPY
-    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
+    memcpy((void*)this, (void*)&n, sizeof(QoreValue));
 #else
     type = n.type;
     switch (type) {
@@ -364,7 +364,7 @@ AbstractQoreNode* QoreValue::assign(AbstractQoreNode* n) {
 AbstractQoreNode* QoreValue::assign(const QoreValue n) {
     AbstractQoreNode* rv = takeIfNode();
 #ifdef QOREVALUE_USE_MEMCPY
-    memcpy((void*)this, (void*)&n, sizeof(QoreSimpleValue));
+    memcpy((void*)this, (void*)&n, sizeof(QoreValue));
 #else
     type = n.type;
     switch (type) {
