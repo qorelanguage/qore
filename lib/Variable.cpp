@@ -685,10 +685,12 @@ int LValueHelper::doLValue(const QoreValue& n, bool for_remove) {
     if (ref) {
         if (val) {
             val = nullptr;
-        else if (qv)
+        } else if (qv) {
             qv = nullptr;
-        if (typeInfo)
+        }
+        if (typeInfo) {
             typeInfo = nullptr;
+        }
         return doLValue(ref, for_remove);
     }
 
