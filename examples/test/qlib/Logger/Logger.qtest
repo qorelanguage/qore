@@ -21,6 +21,7 @@ class Test inherits QUnit::Test {
     }
 
     constructor() : QUnit::Test("Logger", "1.0", \ARGV) {
+        addTestCase("serialization", \testSerialization());
         addTestCase("LoggerLevel", \testLoggerLevel());
         addTestCase("LoggerEvent", \testLoggerEvent());
         addTestCase("LoggerLayout", \testLoggerLayout());
@@ -36,6 +37,26 @@ class Test inherits QUnit::Test {
         addTestCase("LoggerAppenderFileArchive", \testLoggerAppenderFileArchive());
         addTestCase("Logger", \testLogger());
         set_return_value(main());
+    }
+
+    testSerialization() {
+        Logger l0();
+        assertTrue(l0.getAdditivity());
+        assertNothing(l0.getName());
+        assertThrows("LOGGER-ERROR", \l0.getLevel());
+        assertEq((), l0.getAppenders());
+        Logger l1 = Serializable::deserialize(l0.serialize());
+        assertNothing(l1.getName());
+        assertThrows("LOGGER-ERROR", \l1.getLevel());
+        assertTrue(l1.getAdditivity());
+        assertEq((), l0.getAppenders());
+
+        LoggerLevel ll0 = Serializable::deserialize(LoggerLevel::LevelInfo.serialize());
+        assertTrue(LoggerLevel::LevelInfo.isEqual(ll0));
+
+        LoggerLevel ll1(550, "LOW");
+        ll0 = Serializable::deserialize(ll1.serialize());
+        assertTrue(ll1.isEqual(ll0));
     }
 
     testLoggerLevel() {
