@@ -40,7 +40,9 @@ static QoreHashNode* Logger_serializer(const QoreObject& self, const QoreLogger&
     if (val) {
         rv->setKeyValue("currentLevel", context.serializeValue(*val, xsink), xsink);
     }
-    rv->setKeyValue("name", l.name->stringRefSelf(), xsink);
+    if (l.name) {
+        rv->setKeyValue("name", l.name->stringRefSelf(), xsink);
+    }
     val = const_cast<QoreObject&>(self).getReferencedMemberNoMethod("parent", xsink);
     if (val) {
         rv->setKeyValue("parent", context.serializeValue(*val, xsink), xsink);
@@ -81,13 +83,16 @@ static void Logger_deserializer(QoreObject& self, const QoreHashNode* sdata,
             }
         }
 
+        const QoreStringNode* name = nullptr;
         val = sdata->getKeyValue("name");
-        if (val.getType() != NT_STRING) {
-            xsink->raiseException("DESERIALIZATION-ERROR", "Logger serialization key 'name' has type '%s'; "
-                "expecting 'string'", val.getTypeName());
-            return;
+        if (val) {
+            if (val.getType() != NT_STRING) {
+                xsink->raiseException("DESERIALIZATION-ERROR", "Logger serialization key 'name' has type '%s'; "
+                    "expecting 'string'", val.getTypeName());
+                return;
+            }
+            name = val.get<const QoreStringNode>();
         }
-        const QoreStringNode* name = val.get<const QoreStringNode>();
 
         const QoreObject* parent = nullptr;
         val = sdata->getKeyValue("parent");
