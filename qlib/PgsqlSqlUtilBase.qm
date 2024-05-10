@@ -2090,7 +2090,8 @@ auto v = c.name;
             }
 
             # "on conflict" was introduced in PostgreSQL 9.5
-            return server_version_major > 9 || (server_version_major == 9 && server_version_minor >= 5);
+            return has_atomic_merge = (server_version_major > 9 ||
+                (server_version_major == 9 && server_version_minor >= 5));
         }
 
         #! Sets the internal PostgreSQL server version
@@ -2139,7 +2140,7 @@ auto v = c.name;
 
             return int sub (hash<auto> crow) {
                 list<auto> args = crow.values() + crow{updc}.values();
-                #on_error printf("SQL: %s args: %y\n", sql, args);
+                on_error rethrow $1.err, printf("%s (SQL: %s args: %y)", $1.desc, sql, args);
                 ds.vexec(sql, args);
                 return UR_Verified;
             };
