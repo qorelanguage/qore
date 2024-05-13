@@ -2190,19 +2190,18 @@ auto v = c.name;
                         "type": DET_Operator,
                         "name": OP_IN,
                         "display_name": OP_IN,
-                        "short_desc": "returns True if the first value is in the list of following values",
-                        "desc": "returns True if the first value is in the list of following values",
+                        "short_desc": "Returns True if the first argument is found in the second argument",
+                        "desc": "Returns True if the first argument is found in the second argument",
                         "symbol": OP_IN,
                         "args": (
                             DataProviderSignatureAnyType,
                             DataProviderSignatureAnyType,
                         ),
-                        "varargs": True,
                         "return_type": AbstractDataProviderTypeMap."bool",
                     },
                     "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
 %ifndef NO_ORACLE
-                        auto val = shift args;
+                        auto val = args[0];
                         # Qorus bug #989 SqlUtil: oracle op_in can fail in large amount of input elements
                         # There is no support for CLOBs in WHERE clause in Oracle at all.
                         # Binding large strings (over 4000 chars is performed by a CLOB in Qore driver.
@@ -2213,11 +2212,11 @@ auto v = c.name;
 
                         # determine list members type. Let's assume the 1st non NULL/NOTHING
                         # element gives the type code for all elements.
-                        ListIterator it(args);
                         # get list type code
                         int ltype;
-                        while (it.next()) {
-                            switch (it.getValue().typeCode()) {
+                        foreach auto v in (args[1]) {
+                            int t = v.typeCode();
+                            switch (t) {
                                 case NT_NULL:
                                 case NT_NOTHING:
                                     continue;
@@ -2226,11 +2225,11 @@ auto v = c.name;
                                 case NT_FLOAT:
                                 case NT_NUMBER:
                                 case NT_STRING:
-                                    ltype = it.getValue().typeCode();
+                                    ltype = t;
                                     break;
                                 default:
                                     throw "ORACLE-IN-OPERATOR-ERROR", sprintf("the \"in\" operator unexpected list "
-                                        "element type: %s; only simple types are supported", it.getValue().type());
+                                        "element type: %s; only simple types are supported", v.fullType());
                             }
                             if (ltype) {
                                 break;
@@ -2240,9 +2239,9 @@ auto v = c.name;
                         # Split long array to chunks of no more than 32767 elements due to Oracle limitation
                         # "ORA-22165: OCI-22165: given index [32767] must be in the range of [0] to [32766]"
                         int count;
-                        while (args) {
+                        while (args[1]) {
                             ++count;
-                            list<auto> chunk = extract args, 0, 32767;
+                            list<auto> chunk = extract args[1], 0, 32767;
 
                             # Bind to Oracle by expected type
                             switch (ltype) {
@@ -2264,9 +2263,8 @@ auto v = c.name;
                                 AbstractDataProviderTypeMap."date");
                             return exp0 + " in (" + (map "select column_value from table(%v)",
                                 xrange(count)).join(" union all ") + ")";
-                        } else {
-                            return "1 != 1";
                         }
+                        return "1 != 1";
 %else
                         throw "MISSING-ORACLE-DRIVER", "requires the oracle driver";
 %endif
@@ -2287,7 +2285,7 @@ auto v = c.name;
                     },
                     "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                         return sprintf("%s.nextval", args[0]);
-                    }
+                    },
                 },
                 COP_SEQ_CURRVAL: {
                     "exp": <DataProviderExpressionInfo>{

@@ -4623,9 +4623,9 @@ int rows_updated = t.update(("counter": uop_divide(2)));
         OP_IN: {
             "exp": AbstractDataProvider::GenericExpressions{DP_SEARCH_OP_IN},
             "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
-                string exp0 = info.table.getExpressionArg(\info, role, shift args, AbstractDataProviderTypeMap."any");
+                string exp0 = info.table.getExpressionArg(\info, role, args[0], AbstractDataProviderTypeMap."any");
                 *string ins = (foldl $1 + "," + $2, (map info.table.getExpressionArg(\info, role, $1,
-                    AbstractDataProviderTypeMap."any"), args));
+                    AbstractDataProviderTypeMap."any"), args[1]));
                 return exists ins ? sprintf("%s in (%s)", exp0, ins) : "1 != 1";
             },
         },
