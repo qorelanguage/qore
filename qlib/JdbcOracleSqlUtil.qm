@@ -32,7 +32,7 @@
 %requires Util >= 1.0
 
 # the implementation is in OracleSqlUtilBase
-%requires OracleSqlUtilBase
+%requires(reexport) OracleSqlUtilBase
 
 # don't use "$" signs for variables and class members, assume local variable scope
 %new-style

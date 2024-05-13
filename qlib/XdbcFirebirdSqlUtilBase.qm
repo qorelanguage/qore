@@ -1101,22 +1101,24 @@ auto v = c.name;
                         "type": DET_Operator,
                         "label": OP_IN,
                         "name": OP_IN,
-                        "desc": "returns True if the first value is in the list of following values",
+                        "desc": "Returns True if the first argument is found in the second argument",
                         "symbol": OP_IN,
                         "args": (
                             DataProviderSignatureAnyType,
                             DataProviderSignatureAnyType,
                         ),
-                        "varargs": True,
                         "return_type": AbstractDataProviderTypeMap."bool",
                     },
                     "code": string sub (reference<hash<QueryInfo>> info, int role, list<auto> args) {
                         # firebird accepts max 1500 args in "IN" lists
                         list<string> argl;
-                        string exp0 = info.table.getExpressionArg(\info, role, shift args,
+                        string exp0 = info.table.getExpressionArg(\info, role, args[0],
                             AbstractDataProviderTypeMap."any");
-                        while (args) {
-                            list<auto> arg_slice = extract args, 0, 1500;
+                        if (args[1].typeCode() != NT_LIST) {
+                            args[1] = (args[1],);
+                        }
+                        while (args[1]) {
+                            list<auto> arg_slice = extract args[1], 0, 1500;
                             *string ins = (foldl $1 + "," + $2, (map info.table.getExpressionArg(\info, role, $1,
                                 AbstractDataProviderTypeMap."any"), arg_slice));
                             if (ins) {
