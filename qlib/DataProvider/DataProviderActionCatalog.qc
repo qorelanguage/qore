@@ -244,13 +244,9 @@ public hashdecl DataProviderActionInfo {
     *hash<auto> set_add;
 
     #! Convenience options that can be provided without a data provider
-    /** For API calls and messages only
-    */
     *hash<string, hash<ActionOptionInfo>> convenience_options;
 
     #! Advanced options that can be provided without a data provider
-    /** For API calls and messages only
-    */
     *hash<string, hash<ActionOptionInfo>> advanced_options;
 }
 

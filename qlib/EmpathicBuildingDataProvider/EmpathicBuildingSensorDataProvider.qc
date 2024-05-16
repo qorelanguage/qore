@@ -195,6 +195,12 @@ public class EmpathicBuildingMeasurementType inherits HashDataType {
                 "desc": "The timestamp of the measurement",
                 "type": AbstractDataProviderTypeMap."date",
             },
+            "value": {
+                "display_name": "Value",
+                "short_desc": "Sensor value",
+                "desc": "Sensor value",
+                "type": AbstractDataProviderTypeMap."float",
+            },
             "used": {
                 "display_name": "Used",
                 "short_desc": "Used value",
@@ -208,9 +214,9 @@ public class EmpathicBuildingMeasurementType inherits HashDataType {
                 "type": AbstractDataProviderTypeMap."int",
             },
             "valid_to": {
-                "display_name": "",
-                "short_desc": "",
-                "desc": "",
+                "display_name": "Valid Timestamp",
+                "short_desc": "Valid timestamp",
+                "desc": "Valid timestamp",
                 "type": AbstractDataProviderTypeMap."date",
             },
         };

@@ -680,14 +680,14 @@ const CRYPTO_DIGEST_RIPEMD160 = "ripemd160";
 /** @since %Qore 0.9.3
 
     @note If %Qore is compiled with OpenSSL 3+, it will use dynamic lookups of all digests known to the OpenSSL
-    library, so digest names not included as keys in this hash may also be recignized as aliases for known digests
+    library, so digest names not included as keys in this hash may also be recognized as aliases for known digests
 */
 const DigestMap = qore(init_digest_map_hash());
 
 //! A hash keyed by supported cipher name where each value is an informational hash
 /**
     @note If %Qore is compiled with OpenSSL 3+, it will use dynamic lookups of all ciphers known to the OpenSSL
-    library, so cipher names not included as keys in this hash may also be recignized as aliases for known ciphers
+    library, so cipher names not included as keys in this hash may also be recognized as aliases for known ciphers
 
     @since %Qore 1.4
 */
