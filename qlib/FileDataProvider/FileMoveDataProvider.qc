@@ -46,7 +46,7 @@ public class FileMoveDataProvider inherits FileDataProviderBase {
         const RequestType = new FileMoveRequestDataType();
 
         #! Response type
-        const ResponseType = new FileTargetResponseDataType();
+        const ResponseType = FileTargetResponseDataType;
     }
 
     #! Creates the object from constructor options

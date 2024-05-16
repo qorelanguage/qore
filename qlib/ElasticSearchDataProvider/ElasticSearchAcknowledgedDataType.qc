@@ -42,4 +42,7 @@ public class ElasticSearchAcknowledgedDataType inherits DataProvider::HashDataTy
             Fields.pairIterator();
     }
 }
+
+#! A constant for the acknowledged response type
+public const ElasticSearchAcknowledgedDataType = new ElasticSearchAcknowledgedDataType();
 }

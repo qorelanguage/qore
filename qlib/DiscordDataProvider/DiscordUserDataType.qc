@@ -136,7 +136,7 @@ public class DiscordUserDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() {
+    constructor() : HashDataType("DiscordUserInfo") {
         addQoreFields(Fields);
     }
 }

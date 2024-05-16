@@ -46,7 +46,7 @@ public class AwsRestClientDeleteDataProvider inherits AwsRestClientDataProviderB
         const RequestType = new RestClientCallRequestDataType();
 
         #! Response type
-        const ResponseType = new RestClientCallResponseDataType();
+        const ResponseType = RestClientCallResponseDataType;
     }
 
     #! Creates the object from constructor options

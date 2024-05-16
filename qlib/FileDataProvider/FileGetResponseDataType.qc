@@ -45,4 +45,7 @@ public class FileGetResponseDataType inherits HashDataType {
             Fields.pairIterator();
     }
 }
+
+#! Constant for data type for FILE get file request calls
+public const FileGetResponseDataType = new FileGetResponseDataType();
 }

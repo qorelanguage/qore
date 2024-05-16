@@ -53,6 +53,9 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
 
         #! schema cache lock
         static Mutex m();
+
+        #! Initialization error flag
+        static bool init_err;
     }
 
     #! Creates the object
@@ -221,7 +224,32 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
 
     #! Returns a response data type for the given API
     static DataProvider::AbstractDataProviderType getResponseTypeForSchema(string api, string resource) {
-        return GoogleDataProviderBase::getRequestInfoForResource(api, resource).response_type ?? AbstractDataProviderTypeMap."nothing";
+        return GoogleDataProviderBase::getRequestInfoForResource(api, resource).response_type
+            ?? AbstractDataProviderTypeMap."nothing";
+    }
+
+    #! Returns a response data type for the given API during module initialization
+    static *DataProvider::AbstractDataProviderType initGetResponseTypeForSchema(string api, string resource) {
+        if (init_err) {
+            return;
+        }
+        try {
+            return GoogleDataProviderBase::getResponseTypeForSchema(api, resource);
+        } catch (hash<ExceptionInfo> ex) {
+            init_err = True;
+        }
+    }
+
+    #! Returns a type from the class
+    static *DataProvider::AbstractDataProviderType initCreateTypeObject(string name) {
+        if (init_err) {
+            return;
+        }
+        try {
+            return create_object(name);
+        } catch (hash<ExceptionInfo> ex) {
+            init_err = True;
+        }
     }
 
     #! Returns a request data type for the given API

@@ -59,4 +59,10 @@ public class FileListResponseDataType inherits HashDataType {
             $1.getDefaultValue())), TypedHash::forName("Qore::DirStatInfo").getMembers();
     }
 }
+
+#! Constant for data type for stat file response calls
+public const FileListResponseElementDataType = new FileListResponseDataType();
+
+#! Constant for data type for stat file response calls
+public const FileListResponseDataType = new ListDataType("FileListResponse", new FileListResponseDataType(), True);
 }

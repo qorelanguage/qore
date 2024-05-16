@@ -41,4 +41,7 @@ public class FtpClientPathDataType inherits HashDataType {
             Fields.pairIterator();
     }
 }
+
+#! Constant for FTP client stat responses
+public const FtpClientPathDataType = new FtpClientPathDataType();
 }

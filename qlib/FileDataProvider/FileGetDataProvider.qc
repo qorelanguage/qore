@@ -45,7 +45,7 @@ public class FileGetDataProvider inherits FileDataProviderBase {
         const RequestType = new FileGetRequestDataType();
 
         #! Response type
-        const ResponseType = new FileGetResponseDataType();
+        const ResponseType = FileGetResponseDataType;
     }
 
     #! Creates the object from constructor options

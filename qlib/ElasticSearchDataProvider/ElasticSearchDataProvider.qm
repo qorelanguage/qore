@@ -72,6 +72,7 @@ module ElasticSearchDataProvider {
             "short_desc": "Search for data in an ElasticSearch index",
             "desc": "Search for data in an ElasticSearch index",
             "action_code": DPAT_API,
+            "output_type": ElasticSearchAcknowledgedDataType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -82,6 +83,7 @@ module ElasticSearchDataProvider {
             "short_desc": "Add a document to ElasticSearch",
             "desc": "Add a document to / ingest data in ElasticSearch",
             "action_code": DPAT_API,
+            "output_type": ElasticSearchDocumentCreateResponseDataType,
         });
     };
 }

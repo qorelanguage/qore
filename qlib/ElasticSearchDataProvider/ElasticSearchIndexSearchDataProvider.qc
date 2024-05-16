@@ -49,7 +49,7 @@ public class ElasticSearchIndexSearchDataProvider inherits ElasticSearchDataProv
         const RequestType = new ElasticSearchIndexSearchRequestDataType();
 
         #! Response type
-        const ResponseType = new ElasticSearchAcknowledgedDataType();
+        const ResponseType = ElasticSearchAcknowledgedDataType;
 
         #! Query args
         const QueryArgs = ("name", "allow_no_indices", "allow_partial_search_results", "analyzer", "analyze_wildcard",

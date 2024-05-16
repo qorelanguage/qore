@@ -34,7 +34,7 @@ module FilePoller {
         # register the data provider factory
         DataProvider::registerFactory(new FilePollerDataProviderFactory());
         # register the event data type
-        DataProvider::registerType("qore/file/event", new FilePollerFileEventInfoDataType());
+        DataProvider::registerType("qore/file/event", FilePollerFileEventInfoDataType);
 
         # register the data provider application
         # NOTE: this application is also registed in the FileDataProvider module
@@ -60,6 +60,7 @@ module FilePoller {
             "desc": "React to files created in a local directory",
             "action_code": DPAT_EVENT,
             "action_val": EVENT_FILE,
+            "output_type": FilePollerFileEventInfoDataType,
         });
     };
 }
@@ -830,7 +831,7 @@ public class FilePollerDataProviderBase inherits DataProvider::AbstractDataProvi
         return {
             EVENT_FILE: <DataProviderMessageInfo>{
                 "desc": "File polled event",
-                "type": new FilePollerFileEventInfoDataType(),
+                "type": FilePollerFileEventInfoDataType,
             },
         };
     }
@@ -933,6 +934,9 @@ public class FilePollerFileEventInfoDataType inherits HashDataType {
             $1.getDefaultValue())), TypedHash::forName("FilePoller::FilePollerFileEventInfo").getMembers();
     }
 }
+
+#! FIle poller event constant
+public const FilePollerFileEventInfoDataType = new FilePollerFileEventInfoDataType();
 
 #! The file poller data provider factory
 public class FilePollerDataProviderFactory inherits AbstractDataProviderFactory {

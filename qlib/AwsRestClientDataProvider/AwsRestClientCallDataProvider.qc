@@ -45,7 +45,7 @@ public class AwsRestClientCallDataProvider inherits AwsRestClientDataProviderBas
         const RequestType = new RestClientCallWithMethodRequestDataType();
 
         #! Response type
-        const ResponseType = new RestClientCallResponseDataType();
+        const ResponseType = RestClientCallResponseDataType;
     }
 
     #! Creates the object from constructor options

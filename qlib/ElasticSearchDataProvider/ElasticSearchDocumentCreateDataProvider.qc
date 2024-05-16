@@ -49,7 +49,7 @@ public class ElasticSearchDocumentCreateDataProvider inherits ElasticSearchDataP
         const RequestType = new ElasticSearchDocumentCreateRequestDataType();
 
         #! Response type
-        const ResponseType = new ElasticSearchDocumentCreateResponseDataType();
+        const ResponseType = ElasticSearchDocumentCreateResponseDataType;
 
         #! Query args
         const QueryArgs = ("if_seq_no", "if_primary_term", "op_type", "pipeline", "refresh", "routing", "timeout",
@@ -279,4 +279,7 @@ public class ElasticSearchDocumentCreateResponseDataType inherits DataProvider::
             Fields.pairIterator();
     }
 }
+
+#! Document create API response type constant
+public const ElasticSearchDocumentCreateResponseDataType = new ElasticSearchDocumentCreateResponseDataType();
 }

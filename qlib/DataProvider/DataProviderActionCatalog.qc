@@ -248,6 +248,9 @@ public hashdecl DataProviderActionInfo {
 
     #! Advanced options that can be provided without a data provider
     *hash<string, hash<ActionOptionInfo>> advanced_options;
+
+    #! Output type for the action
+    *AbstractDataProviderType output_type;
 }
 
 #! DataProvider action and application catalog class

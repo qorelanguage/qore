@@ -41,4 +41,7 @@ public class FilePathDataType inherits HashDataType {
             Fields.pairIterator();
     }
 }
+
+#! Constant for data type for delete file request calls
+public const FilePathDataType = new FilePathDataType();
 }

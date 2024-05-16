@@ -84,6 +84,7 @@ module WebSocketClient {
             "desc": "Receive a WebSocket message from a WebSocket server; react to a WebSocket message",
             "action_code": DPAT_EVENT,
             "action_val": EVENT_WS_DATA,
+            "output_type": WebSocketClientEventDataType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -2154,15 +2155,15 @@ public class WebSocketClientDataProviderBase inherits DataProvider::AbstractData
             },
             EVENT_WS_DATA: <DataProviderMessageInfo>{
                 "desc": "A data event; data will be deserialized according to the serialization option",
-                "type": new WebSocketClientEventDataType(),
+                "type": WebSocketClientEventDataType,
             },
             EVENT_WS_PING: <DataProviderMessageInfo>{
                 "desc": "A `PING` event; after this a `PONG` message should be sent",
-                "type": new WebSocketClientEventDataType(),
+                "type": WebSocketClientEventDataType,
             },
             EVENT_WS_PONG: <DataProviderMessageInfo>{
                 "desc": "A `PONG` event; sent in reply to a `PING` message",
-                "type": new WebSocketClientEventDataType(),
+                "type": WebSocketClientEventDataType,
             },
             EVENT_WS_CLOSED: <DataProviderMessageInfo>{
                 "desc": "The event signaling that the channel was closed",
@@ -2324,6 +2325,9 @@ public class WebSocketClientEventDataType inherits HashDataType {
         addField(new QoreDataField("data", "The message data", AbstractDataProviderType::anyType));
     }
 }
+
+#! WebSocket event data type constant
+public const WebSocketClientEventDataType = new WebSocketClientEventDataType();
 
 #! WebSocket client wait for message from server API data provider
 public class WebSocketClientWaitForMessageDataProvider inherits AbstractDataProvider {

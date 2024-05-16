@@ -45,4 +45,7 @@ public class FtpClientGetFileResponseDataType inherits HashDataType {
             Fields.pairIterator();
     }
 }
+
+#! Constant for FTP client get file responses
+public const FtpClientGetFileResponseDataType = new FtpClientGetFileResponseDataType();
 }

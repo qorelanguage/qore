@@ -103,6 +103,7 @@ public class GmailMessageWatchDataProvider inherits GmailMessageWatchDataProvide
     }
 }
 
+#! Event data type for new gmail events
 public class GmailMessageEventDataType inherits HashDataType {
     constructor() : HashDataType("GmailWatchMessage") {
         AbstractDataProviderType t = GoogleDataProviderBase::getTypeForSchema(GoogleDiscoveryGmailApiName, "Message");

@@ -41,4 +41,7 @@ public class FileTargetResponseDataType inherits HashDataType {
             Fields.pairIterator();
     }
 }
+
+#! Constant for data type for file response APIs with a single "target" key
+public const FileTargetResponseDataType = new FileTargetResponseDataType();
 }

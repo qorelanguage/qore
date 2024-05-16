@@ -73,6 +73,7 @@ module Pop3ClientDataProvider {
             "short_desc": "Retrieve an email",
             "desc": "Retrieve an email",
             "action_code": DPAT_API,
+            "output_type": new HashDataType(TypedHash::forName("MailMessage::MailMessageInfo")),
         });
         */
     };

@@ -81,6 +81,7 @@ module RestClientDataProvider {
             "advanced_options": DataProviderActionCatalog::getActionOptionFromFields(
                 RestClientCallWithMethodRequestDataType::Fields{"hdr",}
             ),
+            "output_type": RestClientCallResponseDataType,
         });
     };
 }

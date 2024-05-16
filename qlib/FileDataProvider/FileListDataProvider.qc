@@ -45,7 +45,7 @@ public class FileListDataProvider inherits FileDataProviderBase {
         const RequestType = new FilePathDataType();
 
         #! Response type
-        const ResponseType = new ListDataType(new FileListResponseDataType(), True);
+        const ResponseType = FileListResponseDataType;
     }
 
     #! Creates the object from constructor options

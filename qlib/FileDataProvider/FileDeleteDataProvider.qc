@@ -43,7 +43,7 @@ public class FileDeleteDataProvider inherits FileDataProviderBase {
         });
 
         #! Request type
-        const RequestType = new FilePathDataType();
+        const RequestType = FilePathDataType;
     }
 
     #! Creates the object from constructor options

@@ -68,6 +68,7 @@ module FileDataProvider {
             "short_desc": "Copy a file on the local filesystem",
             "desc": "Copy a file on the local filesystem",
             "action_code": DPAT_API,
+            "output_type": FileTargetResponseDataType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -78,6 +79,7 @@ module FileDataProvider {
             "short_desc": "Create a file on the local filesystem",
             "desc": "Create a file on the local filesystem",
             "action_code": DPAT_API,
+            "output_type": FilePathDataType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -88,6 +90,7 @@ module FileDataProvider {
             "short_desc": "Delete a file on the local filesystem",
             "desc": "Delete a file on the local filesystem",
             "action_code": DPAT_API,
+            "output_type": FilePathDataType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -98,6 +101,7 @@ module FileDataProvider {
             "short_desc": "Get a file on the local filesystem",
             "desc": "Get a file on the local filesystem",
             "action_code": DPAT_API,
+            "output_type": FileGetResponseDataType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -108,6 +112,7 @@ module FileDataProvider {
             "short_desc": "List files and subdirectories in a folder on the local filesystem",
             "desc": "List files and subdirectories in a folder on the local filesystem",
             "action_code": DPAT_API,
+            "output_type": FileListResponseDataType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -118,6 +123,7 @@ module FileDataProvider {
             "short_desc": "Create a directory on the local filesystem",
             "desc": "Create a directory on the local filesystem",
             "action_code": DPAT_API,
+            "output_type": FilePathDataType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -128,6 +134,7 @@ module FileDataProvider {
             "short_desc": "Move a file or directory on the local filesystem",
             "desc": "Move a file or directory on the local filesystem",
             "action_code": DPAT_API,
+            "output_type": FileTargetResponseDataType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -138,6 +145,7 @@ module FileDataProvider {
             "short_desc": "Get details about a file or directory on the local filesystem",
             "desc": "Get details about a file or directory on the local filesystem",
             "action_code": DPAT_API,
+            "output_type": FileStatResponseDataType,
         });
     };
 }

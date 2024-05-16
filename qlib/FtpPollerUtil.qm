@@ -39,7 +39,7 @@ module FtpPollerUtil {
     license = "MIT";
     init = sub () {
         # register the event data type
-        DataProvider::registerType("qore/ftp/event", new FtpPollerFileEventInfoDataType());
+        DataProvider::registerType("qore/ftp/event", FtpPollerFileEventInfoDataType);
     };
 }
 
@@ -91,6 +91,9 @@ public class FtpPollerFileEventInfoDataType inherits HashDataType {
         return "FTP polling event data type";
     }
 }
+
+#! Constant providing the single file event data type
+public const FtpPollerFileEventInfoDataType = new FtpPollerFileEventInfoDataType();
 
 #! FtpPoller file event hash
 public hashdecl FtpPollerFileEventInfo {

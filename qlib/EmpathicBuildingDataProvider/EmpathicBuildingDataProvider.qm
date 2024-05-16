@@ -91,7 +91,8 @@ module EmpathicBuildingDataProvider {
                         },),
                     },),
                 },
-            }
+            },
+            "output_type": EmpathicBuildingMeasurementsCreateDataProvider::ResponseType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -132,6 +133,7 @@ module EmpathicBuildingDataProvider {
                     "default_value": 10000,
                 },
             },
+            "output_type": EmpathicBuildingWatchSensorDataProvider::ResponseType,
         });
     };
 }

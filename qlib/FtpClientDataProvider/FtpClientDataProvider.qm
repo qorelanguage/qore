@@ -67,6 +67,7 @@ module FtpClientDataProvider {
             "short_desc": "Get a file from an FTP server",
             "desc": "Retrieve a file from an FTP server",
             "action_code": DPAT_API,
+            "output_type": FtpClientGetFileResponseDataType,
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -77,6 +78,7 @@ module FtpClientDataProvider {
             "short_desc": "Sends a file to an FTP server",
             "desc": "Sends a file to an FTP server",
             "action_code": DPAT_API,
+            "output_type": FtpClientPathDataType,
         });
     };
 }

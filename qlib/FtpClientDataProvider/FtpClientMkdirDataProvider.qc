@@ -46,7 +46,7 @@ public class FtpClientMkdirDataProvider inherits AbstractDataProvider {
         });
 
         #! Request type
-        const RequestType = new FtpClientPathDataType();
+        const RequestType = FtpClientPathDataType;
     }
 
     #! Creates the object from constructor options

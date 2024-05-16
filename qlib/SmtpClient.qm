@@ -78,6 +78,7 @@ module SmtpClient {
             "short_desc": "Send an email through a generic SMTP server",
             "desc": "Send an email through a generic SMTP server",
             "action_code": DPAT_API,
+            "output_type": SmtpSendEmailResponseDataType,
         });
     };
 }
@@ -1619,7 +1620,7 @@ public class SmtpClientSendEmailDataProvider inherits AbstractDataProvider {
         const RequestType = new SmtpSendEmailRequestDataType();
 
         #! Response type
-        const ResponseType = new SmtpSendEmailResponseDataType();
+        const ResponseType = SmtpSendEmailResponseDataType;
     }
 
     #! Creates the object from constructor options
@@ -1825,6 +1826,9 @@ public class SmtpSendEmailResponseDataType inherits HashDataType {
         setDefaultOtherFieldType(new SmtpSendEmailResponseInfoDataType());
     }
 }
+
+#! SMTP send email response constant
+public const SmtpSendEmailResponseDataType = new SmtpSendEmailResponseDataType();
 
 #! The SMTP data provider factory
 public class SmtpClientDataProviderFactory inherits AbstractDataProviderFactory {

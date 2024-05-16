@@ -68,6 +68,7 @@ module FtpPoller {
             "desc": "React to files uploaded to an FTP server",
             "action_code": DPAT_EVENT,
             "action_val": EVENT_FTP_FILE,
+            "output_type": FtpPollerFileEventInfoDataType,
         });
     };
 }
@@ -1213,7 +1214,7 @@ public class FtpPollerDataProviderBase inherits DataProvider::AbstractDataProvid
         return {
             EVENT_FTP_FILE: <DataProviderMessageInfo>{
                 "desc": "FTP file polled event",
-                "type": new FtpPollerFileEventInfoDataType(),
+                "type": FtpPollerFileEventInfoDataType,
             },
         };
     }

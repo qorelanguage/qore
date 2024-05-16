@@ -45,7 +45,7 @@ public class FtpClientListDataProvider inherits AbstractDataProvider {
         });
 
         #! Request type
-        const RequestType = new FtpClientPathDataType();
+        const RequestType = FtpClientPathDataType;
 
         #! Response type
         const ResponseType = new ListDataType(FtpClientStatDataProvider::ResponseType, True);

@@ -48,7 +48,7 @@ public class FtpClientCreateFileDataProvider inherits AbstractDataProvider {
         const RequestType = new FtpClientCreateFileRequestDataType();
 
         #! Response type
-        const ResponseType = new FtpClientPathDataType();
+        const ResponseType = FtpClientPathDataType;
     }
 
     #! Creates the object from constructor options

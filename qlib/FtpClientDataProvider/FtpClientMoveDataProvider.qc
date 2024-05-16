@@ -49,7 +49,7 @@ public class FtpClientMoveDataProvider inherits AbstractDataProvider {
         const RequestType = new FtpClientMoveRequestDataType();
 
         #! Response type
-        const ResponseType = new FtpClientPathDataType();
+        const ResponseType = FtpClientPathDataType;
     }
 
     #! Creates the object from constructor options

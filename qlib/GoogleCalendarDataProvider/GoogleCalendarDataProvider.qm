@@ -117,6 +117,8 @@ module GoogleCalendarDataProvider {
                     ),
                 },
             },
+            "output_type": GoogleDataProviderBase::initGetResponseTypeForSchema(GoogleDiscoveryCalendarApiName,
+                "events/quickAdd"),
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -135,6 +137,8 @@ module GoogleCalendarDataProvider {
             "short_desc": "Create an event in a calendar",
             "desc": "Create an event in a calendar",
             "action_code": DPAT_API,
+            "output_type": GoogleDataProviderBase::initGetResponseTypeForSchema(GoogleDiscoveryCalendarApiName,
+                "events/insert"),
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -153,6 +157,8 @@ module GoogleCalendarDataProvider {
             "short_desc": "Update an event in a calendar",
             "desc": "Update an event in a calendar",
             "action_code": DPAT_API,
+            "output_type": GoogleDataProviderBase::initGetResponseTypeForSchema(GoogleDiscoveryCalendarApiName,
+                "events/update"),
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -171,6 +177,8 @@ module GoogleCalendarDataProvider {
             "short_desc": "Delete an event from a calendar",
             "desc": "Delete an event from a calendar",
             "action_code": DPAT_API,
+            "output_type": GoogleDataProviderBase::initGetResponseTypeForSchema(GoogleDiscoveryCalendarApiName,
+                "events/update"),
         });
     };
 }

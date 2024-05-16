@@ -110,6 +110,8 @@ module GmailDataProvider {
                     "example_value": "07142542234962330268",
                 },
             },
+            "output_type": GoogleDataProviderBase::initGetResponseTypeForSchema(GoogleDiscoveryGmailApiName,
+                "users/messages/list"),
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GmailDataProvider::AppName,
@@ -130,6 +132,8 @@ module GmailDataProvider {
                     "preselected": True,
                 },
             },
+            "output_type": GoogleDataProviderBase::initGetResponseTypeForSchema(GoogleDiscoveryGmailApiName,
+                "users/messages/get"),
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GmailDataProvider::AppName,
@@ -163,6 +167,8 @@ module GmailDataProvider {
                     "preselected": True,
                 },
             },
+            "output_type": GoogleDataProviderBase::initGetResponseTypeForSchema(GoogleDiscoveryGmailApiName,
+                "users/messages/attachments/get"),
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GmailDataProvider::AppName,
@@ -213,6 +219,7 @@ module GmailDataProvider {
                     "type": "date",
                 },
             },
+            "output_type": GoogleDataProviderBase::initCreateTypeObject("GmailMessageEventDataType"),
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GmailDataProvider::AppName,
@@ -275,6 +282,7 @@ module GmailDataProvider {
                     "type": "date",
                 },
             },
+            "output_type": GmailAttachmentEventDataType,
         });
     };
 }

@@ -68,6 +68,7 @@ module DiscordDataProvider {
             "short_desc": "Get info about the current user",
             "desc": "Get info about the current user",
             "action_code": DPAT_API,
+            "output_type": DiscordDataProvider::initCreateTypeObject("DiscordUserDataType"),
         });
 
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
@@ -86,6 +87,7 @@ module DiscordDataProvider {
                 },
             },
             "action_code": DPAT_API,
+            "output_type": DiscordDataProvider::initCreateTypeObject("DiscordGuildDataType"),
         });
     };
 }
