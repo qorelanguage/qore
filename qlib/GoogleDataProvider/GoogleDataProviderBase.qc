@@ -29,6 +29,9 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
     public {
         #! Discovery URL base
         const DiscoveryUrlBase = "https://discovery.googleapis.com/discovery/v1/apis";
+
+        #! Initialization I/O timeout
+        const InitTimeout = 10s;
     }
 
     private {
@@ -438,7 +441,11 @@ public class GoogleDataProviderBase inherits DataProvider::AbstractDataProvider 
             return info;
         }
 
-        RestClient rest({"url": DiscoveryUrlBase});
+        RestClient rest({
+            "url": DiscoveryUrlBase,
+            "timeout": InitTimeout,
+            "connect_timeout": InitTimeout,
+        });
         string url = GoogleDataProviderBase::getUrlForApi(api, rest);
         rest.setURL(url);
 
