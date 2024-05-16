@@ -216,7 +216,7 @@ public class DiscordMessageDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() {
+    constructor() : HashDataType("DiscordMessage") {
         addQoreFields(Fields);
     }
 }

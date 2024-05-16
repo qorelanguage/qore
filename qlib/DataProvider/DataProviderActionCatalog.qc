@@ -251,6 +251,9 @@ public hashdecl DataProviderActionInfo {
 
     #! Output type for the action
     *AbstractDataProviderType output_type;
+
+    #! In case the output type is expensive to acquire or requires I/O, this closure can be used to set it
+    *code get_output_type;
 }
 
 #! DataProvider action and application catalog class
@@ -293,6 +296,9 @@ public class DataProviderActionCatalog {
 
         #! Scheme map; keys are connection schemes
         static hash<string, list<hash<DataProviderActionInfo>>> smap;
+
+        #! Set of actions requiring output type resolution; app -> action -> True
+        static hash<string, hash<string, bool>> resolve_output_types;
 
         #! Default description
         const DefaultDescription = "no description provided";
@@ -361,6 +367,11 @@ public class DataProviderActionCatalog {
             }
         }
 
+        if (action.output_type && action.get_output_type) {
+            throw "ACTION-ERROR", sprintf("action has both \"output_type\" and \"get_output_type\"; path: %y",
+                action.path);
+        }
+
         string key = sprintf("%s/%s", action.app, action.action);
 
         AutoLock al(lck);
@@ -391,6 +402,9 @@ public class DataProviderActionCatalog {
             }
             smap{app.scheme} += action;
         }
+        if (action.get_output_type) {
+            resolve_output_types{action.app}{action.action} = True;
+        }
     }
 
     #! Returns all applications in the cache
@@ -398,6 +412,9 @@ public class DataProviderActionCatalog {
         @return all applications in the cache
     */
     static *list<hash<DataProviderAppInfo>> getAllApps() {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         return appcache.values();
     }
 
@@ -409,6 +426,9 @@ public class DataProviderActionCatalog {
         @see getAppEx()
     */
     static *hash<DataProviderAppInfo> getApp(string app) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         return appcache{app};
     }
 
@@ -423,6 +443,9 @@ public class DataProviderActionCatalog {
         @see getApp()
     */
     static hash<DataProviderAppInfo> getAppEx(string app) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         if (*hash<DataProviderAppInfo> rv = appcache{app}) {
             return rv;
         }
@@ -436,6 +459,9 @@ public class DataProviderActionCatalog {
         @return All applications that match the regular expression pattern in the \c name or \c desc fields
     */
     static *list<hash<DataProviderAppInfo>> searchAppRegex(string regex_pattern, int regex_options = RE_Caseless) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         return map $1, appcache.values(),
             regex($1.name, regex_pattern, regex_options) || regex($1.desc, regex_pattern, regex_options);
     }
@@ -447,6 +473,9 @@ public class DataProviderActionCatalog {
         @return All applications that match the substring argument in the \c name or \c desc fields
     */
     static *list<hash<DataProviderAppInfo>> searchAppSubstr(string substr, bool ignore_case = True) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         if (ignore_case) {
             substr = substr.upr();
             return map $1, appcache.values(),
@@ -461,6 +490,9 @@ public class DataProviderActionCatalog {
         @return a list of actions associated with the given scheme
     */
     static *list<hash<DataProviderActionInfo>> getActionsForScheme(string scheme) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         return smap{scheme};
     }
 
@@ -472,6 +504,9 @@ public class DataProviderActionCatalog {
         @see getActionHashEx()
     */
     static *hash<string, hash<DataProviderActionInfo>> getActionHash(string app) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         return app_actionmap{app};
     }
 
@@ -485,6 +520,9 @@ public class DataProviderActionCatalog {
         @see getActionHash()
     */
     static *hash<string, hash<DataProviderActionInfo>> getActionHashEx(string app) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         if (*hash<string, hash<DataProviderActionInfo>> rv = app_actionmap{app}) {
             return rv;
         }
@@ -499,6 +537,9 @@ public class DataProviderActionCatalog {
         @see getActionsEx()
     */
     static *list<hash<DataProviderActionInfo>> getActions(string app) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         return app_actionmap{app}.values();
     }
 
@@ -512,6 +553,9 @@ public class DataProviderActionCatalog {
         @see getActions()
     */
     static list<hash<DataProviderActionInfo>> getActionsEx(string app) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         if (*list<hash<DataProviderActionInfo>> rv = app_actionmap{app}.values()) {
             return rv;
         }
@@ -522,6 +566,9 @@ public class DataProviderActionCatalog {
     /** @return all actions in the cache
     */
     static *list<hash<DataProviderActionInfo>> getAllActions() {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         return top_actionmap.values();
     }
 
@@ -534,6 +581,9 @@ public class DataProviderActionCatalog {
         @see getAppActionEx()
     */
     static *hash<DataProviderActionInfo> getAppAction(string app, string action) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         return app_actionmap{app}{action};
     }
 
@@ -550,6 +600,9 @@ public class DataProviderActionCatalog {
         @see getAppAction()
     */
     static hash<DataProviderActionInfo> getAppActionEx(string app, string action) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         *hash<string, hash<DataProviderActionInfo>> actionmap = app_actionmap{app};
         if (!actionmap) {
             throw "APP-ACTION-ERROR", sprintf("application %y is not registered", app);
@@ -569,6 +622,9 @@ public class DataProviderActionCatalog {
     */
     static AbstractDataProvider getDataProviderForAction(hash<DataProviderActionInfo> action,
             *reference<hash<auto>> options) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         hash<auto> constructor_opts;
         map constructor_opts{$1.key} = remove options{$1.key},
             (action.convenience_options + action.advanced_options).pairIterator(),
@@ -587,6 +643,9 @@ public class DataProviderActionCatalog {
     */
     static *list<hash<DataProviderActionInfo>> searchAppActionRegex(string app, string regex_pattern,
             int regex_options = RE_Caseless) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         return map $1, app_actionmap{app}.values(),
             regex($1.short_desc, regex_pattern, regex_options) || regex($1.desc, regex_pattern, regex_options);
     }
@@ -602,6 +661,9 @@ public class DataProviderActionCatalog {
     */
     static *list<hash<DataProviderActionInfo>> searchAppActionSubstr(string app, string substr,
             bool ignore_case = True) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         if (ignore_case) {
             substr = substr.upr();
             return map $1, app_actionmap{app}.values(),
@@ -623,6 +685,9 @@ public class DataProviderActionCatalog {
     */
     static *list<hash<DataProviderActionInfo>> searchAppActionRegexEx(string app, string regex_pattern,
             int regex_options = RE_Caseless) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         *hash<string, hash<DataProviderActionInfo>> appmap = app_actionmap{app};
         if (!appmap) {
             throw "APP-ERROR", sprintf("application %y is not registered", app);
@@ -644,6 +709,9 @@ public class DataProviderActionCatalog {
     */
     static *list<hash<DataProviderActionInfo>> searchAppActionSubstrEx(string app, string substr,
             bool ignore_case = True) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         *hash<string, hash<DataProviderActionInfo>> appmap = app_actionmap{app};
         if (!appmap) {
             throw "APP-ERROR", sprintf("application %y is not registered", app);
@@ -663,6 +731,9 @@ public class DataProviderActionCatalog {
         @return All actions that match the regular expression pattern in the \c short_desc or \c desc fields
     */
     static *list<hash<DataProviderActionInfo>> searchActionRegex(string regex_pattern, int regex_options = RE_Caseless) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         return map $1, top_actionmap.values(),
             regex($1.short_desc, regex_pattern, regex_options) || regex($1.desc, regex_pattern, regex_options);
     }
@@ -674,6 +745,9 @@ public class DataProviderActionCatalog {
         @return All actions that match the substring argument in the \c short_desc or \c desc fields
     */
     static *list<hash<DataProviderActionInfo>> searchActionSubstr(string substr, bool ignore_case = True) {
+        if (resolve_output_types) {
+            DataProviderActionCatalog::resolveOutputTypes();
+        }
         if (ignore_case) {
             substr = substr.upr();
             return map $1, top_actionmap.values(),
@@ -742,6 +816,23 @@ public class DataProviderActionCatalog {
         }
         # ensure path starts with a leading "/"
         return path == "/" ? path : "/" + path;
+    }
+
+    #! Resolves output fypes in actions
+    private static resolveOutputTypes() {
+        AutoLock al(lck);
+        foreach hash<auto> i in ((remove resolve_output_types).pairIterator()) {
+            foreach hash<auto> j in (i.value.pairIterator()) {
+                string key = sprintf("%s/%s", i.key, j.key);
+                try {
+                    code get_output_type = remove top_actionmap{key}.get_output_type;
+                    remove app_actionmap{i.key}{j.key}.get_output_type;
+                    top_actionmap{key}.output_type = app_actionmap{i.key}{j.key}.output_type = get_output_type();
+                } catch (hash<ExceptionInfo> ex) {
+                    # ignore exceptions
+                }
+            }
+        }
     }
 
     #! Deregisters an app and all its actions if an exception occurs during the other module's initialization

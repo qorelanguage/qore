@@ -56,6 +56,9 @@ public class DiscordMessageCreatePayloadDataType inherits HashDataType {
     }
 }
 
+#! Constant for the Discord message create payload data type
+public const DiscordMessageCreatePayloadDataType = new DiscordMessageCreatePayloadDataType();
+
 #! Discord user info data type
 public class DiscordMessageCreateEventDataType inherits DiscordGatewayEventBaseDataType {
     public {
@@ -63,7 +66,7 @@ public class DiscordMessageCreateEventDataType inherits DiscordGatewayEventBaseD
         const Fields = {
             "d": {
                 "display_name": "Message Data",
-                "type": new DiscordMessageCreatePayloadDataType(),
+                "type": DiscordMessageCreatePayloadDataType,
                 "desc": "The message create information",
             },
         };

@@ -81,9 +81,6 @@ public class DiscordDataProvider inherits DiscordDataProviderBase {
     }
 
     private {
-        #! Initialization error flag
-        static bool init_err;
-
         const ChildMap = {
             "guilds": Class::forName("DiscordDataProvider::DiscordGuildsDataProvider"),
             "guilds-by-name": Class::forName("DiscordDataProvider::DiscordGuildsByNameDataProvider"),
@@ -159,18 +156,6 @@ public class DiscordDataProvider inherits DiscordDataProviderBase {
             rv += cls.getStaticMember("ProviderSummaryInfo").getValue();
         }
         return rv;
-    }
-
-    #! Returns a type from the class
-    static *DataProvider::AbstractDataProviderType initCreateTypeObject(string name) {
-        if (init_err) {
-            return;
-        }
-        try {
-            return create_object(name);
-        } catch (hash<ExceptionInfo> ex) {
-            init_err = True;
-        }
     }
 
     #! Returns a list of child data provider names, if any

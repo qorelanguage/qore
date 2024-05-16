@@ -63,8 +63,11 @@ public class DiscordGuildDataType inherits HashDataType {
     }
 
     #! Creates the object
-    constructor() {
+    constructor() : HashDataType("DiscordGuild") {
         addQoreFields(Fields);
     }
 }
+
+#! Constant for the Discord guild data type
+public const DiscordGuildDataType = new DiscordGuildDataType();
 }

@@ -110,8 +110,10 @@ module GmailDataProvider {
                     "example_value": "07142542234962330268",
                 },
             },
-            "output_type": GoogleDataProviderBase::initGetResponseTypeForSchema(GoogleDiscoveryGmailApiName,
-                "users/messages/list"),
+            "get_output_type": AbstractDataProviderType sub () {
+                return GoogleDataProviderBase::getResponseTypeForSchema(GoogleDiscoveryGmailApiName,
+                    "users/messages/list");
+            },
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GmailDataProvider::AppName,
@@ -132,8 +134,10 @@ module GmailDataProvider {
                     "preselected": True,
                 },
             },
-            "output_type": GoogleDataProviderBase::initGetResponseTypeForSchema(GoogleDiscoveryGmailApiName,
-                "users/messages/get"),
+            "get_output_type": AbstractDataProviderType sub () {
+                return GoogleDataProviderBase::getResponseTypeForSchema(GoogleDiscoveryGmailApiName,
+                    "users/messages/get");
+            },
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GmailDataProvider::AppName,
@@ -167,8 +171,10 @@ module GmailDataProvider {
                     "preselected": True,
                 },
             },
-            "output_type": GoogleDataProviderBase::initGetResponseTypeForSchema(GoogleDiscoveryGmailApiName,
-                "users/messages/attachments/get"),
+            "get_output_type": AbstractDataProviderType sub () {
+                return GoogleDataProviderBase::getResponseTypeForSchema(GoogleDiscoveryGmailApiName,
+                    "users/messages/attachments/get");
+            },
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GmailDataProvider::AppName,
@@ -219,7 +225,9 @@ module GmailDataProvider {
                     "type": "date",
                 },
             },
-            "output_type": GoogleDataProviderBase::initCreateTypeObject("GmailMessageEventDataType"),
+            "get_output_type": AbstractDataProviderType sub () {
+                return create_object("GmailMessageEventDataType");
+            },
         });
         DataProviderActionCatalog::registerAction(<DataProviderActionInfo>{
             "app": GmailDataProvider::AppName,
