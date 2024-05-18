@@ -1968,6 +1968,7 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
             if (!mime_types{content})
                 continue;
             if (content == MimeTypeMultipartFormData) {
+                /*
                 hash<string, hash<FormDataMessageInfo>> parts =
                     cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>({
                         "name": $1.key,
@@ -1975,7 +1976,14 @@ public class SwaggerSchema inherits ObjectBase, AbstractRestSchemaValidator {
                         "hdr": {"Content-Type": MimeTypeText},
                         "body": $1.value,
                     })}, body.pairIterator());
+                */
 
+                hash<string, hash<FormDataMessageInfo>> parts =
+                    cast<hash<string, hash<FormDataMessageInfo>>>(map {$1.key: cast<hash<FormDataMessageInfo>>({
+                        "name": $1.key,
+                        "hdr": {"Content-Type": MimeTypeText},
+                        "body": remove body{$1.key},
+                    } + ($1.value.typeCode() == NT_BINARY ? {"filename": $1.key} : NOTHING))}, body.pairIterator());
                 hash<MessageInfo> mh = MultiPartFormDataMessage::makeMessage(parts).getMsgAndHeaders();
                 return rv += {
                     "body": mh.body,

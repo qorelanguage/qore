@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiDataModelsProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiDataFilesProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,12 +25,12 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiModelsDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiFilesDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "models",
-            "type": "OpenAiModelsDataProvider",
+            "name": "files",
+            "type": "OpenAiFilesDataProvider",
             "supports_children": True,
             "constructor_options": ConstructorOptions,
             "children_can_support_apis": True,
@@ -59,14 +59,14 @@ public class OpenAiModelsDataProvider inherits OpenAiDataProviderCommon {
     *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
         return map <DataProviderSummaryInfo>{
             "name": $1.key,
-        } + OpenAiModelDataProvider::ProviderSummaryInfo, getModels().pairIterator();
+        } + OpenAiFileDataProvider::ProviderSummaryInfo, getFiles().pairIterator();
     }
 
     #! Returns a list of child data provider names, if any
     /** @return a list of child data provider names, if any
     */
     private *list<string> getChildProviderNamesImpl() {
-        return map $1.id, getModels();
+        return map $1.id, getFiles();
     }
 
     #! Returns the given child provider or @ref nothing if the given child is unknown
@@ -75,16 +75,16 @@ public class OpenAiModelsDataProvider inherits OpenAiDataProviderCommon {
         @see getChildProviderEx()
     */
     private *AbstractDataProvider getChildProviderImpl(string name) {
-        foreach hash<auto> m in (getModels()) {
+        foreach hash<auto> m in (getFiles()) {
             if (m.id == name) {
-                return new OpenAiModelDataProvider(rest, m);
+                return new OpenAiFileDataProvider(rest, m);
             }
         }
     }
 
-    #! Returns supported models
-    private *list<hash<auto>> getModels() {
-        return rest.get("models").body."data";
+    #! Returns supported files
+    private *list<hash<auto>> getFiles() {
+        return rest.get("files").body."data";
     }
 
     #! Returns data provider static info

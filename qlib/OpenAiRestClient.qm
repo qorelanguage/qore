@@ -112,7 +112,6 @@ public class OpenAiRestClient inherits RestClient::RestClient {
         const DefaultOptions = {
             "url": DefaultUrl,
             "api": DefaultApiVersion,
-            "data": "json",
         };
     }
 
@@ -183,9 +182,6 @@ public class OpenAiRestConnection inherits RestClient::RestConnection {
                     "desc": "The API version to use",
                     "type": "string",
                     "default_value": OpenAiRestClient::DefaultApiVersion,
-                },
-                "data": RestConnection::ConnectionScheme.options."data" + <ConnectionOptionInfo>{
-                    "default_value": "json",
                 },
                 "ping_headers": RestConnection::ConnectionScheme.options.ping_headers + <ConnectionOptionInfo>{
                     "default_value": DefaultPingHeaders,

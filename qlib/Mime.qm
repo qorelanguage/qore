@@ -932,7 +932,7 @@ public namespace Mime {
 
         @since %Mime 1.3.4.1
      */
-    public string sub mime_get_form_urlencoded_string(hash h) {
+    public string sub mime_get_form_urlencoded_string(hash<auto> h) {
         string str;
         foreach hash<auto> kh in (h.pairIterator()) {
             if (str)
@@ -1002,11 +1002,9 @@ public namespace Mime {
             value = value === "" ? NOTHING : mime_decode_urlencoded_string(value);
             if (!exists rv{key}) {
                 rv{key} = value;
-            }
-            else if (rv{key}.typeCode() != NT_LIST) {
+            } else if (rv{key}.typeCode() != NT_LIST) {
                 rv{key} = (rv{key}, value);
-            }
-            else {
+            } else {
                 rv{key} += value;
             }
         }
@@ -1893,17 +1891,17 @@ hash: (2 members)
         }
 
         #! builds the header for the part
-        private hash getPartHeader(string name, *string filename, *string content_type, *hash hdr) {
+        private hash getPartHeader(string name, *string filename, *string content_type, *hash<auto> hdr) {
             # make Content-Disposition part header
             string cd = sprintf("%s; name=%y", MPT_FORM_DATA, name);
             if (filename.val()) {
-                if (!content_type)
-                    throw "MULTIPART-FORMDATA-ERROR", sprintf("the content_type argument is required when a filename (%y) is given", filename);
+                if (!content_type) {
+                    throw "MULTIPART-FORMDATA-ERROR", sprintf("the content_type argument is required when a filename "
+                        "(%y) is given", filename);
+                }
                 cd += sprintf("; filename=%y", filename);
                 hdr."Content-Type" = content_type;
             }
-            else if (content_type)
-                throw "MULTIPART-FORMDATA-ERROR", sprintf("a filename argument value must be given if the content_type (%y) is given", content_type);
             hdr."Content-Disposition" = cd;
             return hdr;
         }

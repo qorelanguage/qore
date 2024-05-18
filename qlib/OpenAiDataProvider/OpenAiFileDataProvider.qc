@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiDataModelProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiDataFileProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,11 +25,11 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiModelDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiFileDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "OpenAiModelDataProvider",
+            "type": "OpenAiFileDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_request": True,
             "supports_children": True,
@@ -45,28 +45,29 @@ public class OpenAiModelDataProvider inherits OpenAiDataProviderCommon {
         const RequestType = AbstractDataProviderTypeMap."nothing";
 
         #! Response type
-        const ResponseType = OpenAiModelDataType;
+        const ResponseType = OpenAiFileDataType;
     }
 
     private {
-        #! The model info
-        hash<auto> model;
+        #! The file info
+        hash<auto> file;
 
         #! Child data providers
         const ChildMap = {
-            "delete": Class::forName("OpenAiDataProvider::OpenAiModelDeleteDataProvider"),
+            "delete": Class::forName("OpenAiDataProvider::OpenAiFileDeleteDataProvider"),
+            "get": Class::forName("OpenAiDataProvider::OpenAiFileGetDataProvider"),
         };
     }
 
     #! Creates the object from the arguments
-    constructor(*RestClient rest, hash<auto> model) : OpenAiDataProviderCommon(rest) {
-        self.model = model;
-        model.created = localtime(model.created);
+    constructor(*RestClient rest, hash<auto> file) : OpenAiDataProviderCommon(rest) {
+        self.file = file;
+        file.created_at = localtime(file.created_at);
     }
 
     #! Returns the data provider name
     string getName() {
-        return model.id;
+        return file.id;
     }
 
     #! Makes a request and returns the response
@@ -76,7 +77,7 @@ public class OpenAiModelDataProvider inherits OpenAiDataProviderCommon {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return model;
+        return file;
     }
 
     #! Returns the description of a successful request message, if any
@@ -115,26 +116,26 @@ public class OpenAiModelDataProvider inherits OpenAiDataProviderCommon {
         if (!cls) {
             return;
         }
-        return cls.newObject(rest, model);
+        return cls.newObject(rest, file);
     }
 
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
         return cast<hash<DataProviderInfo>>({
-            "name": model.id,
+            "name": file.id,
         }) + ProviderInfo;
     }
 }
 
-#! The model type
-public class OpenAiModelDataType inherits HashDataType {
+#! The file type
+public class OpenAiFileDataType inherits HashDataType {
     public {
         #! fields
         const Fields = {
              "id": {
-                "display_name": "Model ID",
-                "short_desc": "Model ID",
-                "desc": "Model ID",
+                "display_name": "File ID",
+                "short_desc": "File ID",
+                "desc": "File ID",
                 "type": AbstractDataProviderTypeMap."string",
             },
             "object": {
@@ -143,27 +144,39 @@ public class OpenAiModelDataType inherits HashDataType {
                 "desc": "The type of object",
                 "type": AbstractDataProviderTypeMap."string",
             },
-            "created": {
+            "bytes": {
+                "display_name": "Byte Size",
+                "short_desc": "The number of bytes the file has",
+                "desc": "The number of bytes the file has",
+                "type": AbstractDataProviderTypeMap."int",
+            },
+            "created_at": {
                 "display_name": "Creation Timestamp",
-                "short_desc": "The date and time the model was created",
-                "desc": "The date and time the model was created",
+                "short_desc": "The date and time the file was created",
+                "desc": "The date and time the file was created",
                 "type": AbstractDataProviderTypeMap."date",
             },
-            "owned_by": {
-                "display_name": "Owner",
-                "short_desc": "The organization that owns the model",
-                "desc": "The organization that owns the model",
+            "filename": {
+                "display_name": "Fiklename",
+                "short_desc": "The filename of the file",
+                "desc": "The filename of the file",
+                "type": AbstractDataProviderTypeMap."string",
+            },
+            "purpose": {
+                "display_name": "Purpose",
+                "short_desc": "The purpose of the file",
+                "desc": "The purpose of the file",
                 "type": AbstractDataProviderTypeMap."string",
             },
         };
     }
 
     #! Creates the type
-    constructor() : HashDataType("OpenAiModel") {
+    constructor() : HashDataType("OpenAiFile") {
         addQoreFields(Fields);
     }
 }
 
-#! Model type constant
-public const OpenAiModelDataType = new OpenAiModelDataType();
+#! File type constant
+public const OpenAiFileDataType = new OpenAiFileDataType();
 }

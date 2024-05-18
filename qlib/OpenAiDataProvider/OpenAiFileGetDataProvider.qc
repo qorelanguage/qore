@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiDataModelsProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiFileGetDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,29 +25,36 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiModelsDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiFileGetDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "name": "models",
-            "type": "OpenAiModelsDataProvider",
-            "supports_children": True,
+            "name": "get",
+            "type": "OpenAiFileGetDataProvider",
             "constructor_options": ConstructorOptions,
-            "children_can_support_apis": True,
+            "supports_request": True,
         };
 
         #! Provider summary info
         const ProviderSummaryInfo = cast<hash<DataProviderSummaryInfo>>(ProviderInfo{
             AbstractDataProvider::DataProviderSummaryInfoKeys
         });
+
+        #! Request type
+        const RequestType = AbstractDataProviderTypeMap."nothing";
+
+        #! Response type
+        const ResponseType = AbstractDataProviderTypeMap."any";
+    }
+
+    private {
+        #! The file info
+        hash<auto> file;
     }
 
     #! Creates the object from the arguments
-    constructor(*RestClient rest) : OpenAiDataProviderCommon(rest) {
-    }
-
-    #! Creates the object from constructor options
-    constructor(hash<auto> options) : OpenAiDataProviderCommon(options) {
+    constructor(*RestClient rest, hash<auto> file) : OpenAiDataProviderCommon(rest) {
+        self.file = file;
     }
 
     #! Returns the data provider name
@@ -55,36 +62,28 @@ public class OpenAiModelsDataProvider inherits OpenAiDataProviderCommon {
         return ProviderInfo.name;
     }
 
-    #! Return data provider summary info
-    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map <DataProviderSummaryInfo>{
-            "name": $1.key,
-        } + OpenAiModelDataProvider::ProviderSummaryInfo, getModels().pairIterator();
-    }
+    #! Makes a request and returns the response
+    /** @param req the request to serialize and make according to the request type
+        @param request_options the request options; will be processed by validateRequestOptions()
 
-    #! Returns a list of child data provider names, if any
-    /** @return a list of child data provider names, if any
+        @return the response to the request
     */
-    private *list<string> getChildProviderNamesImpl() {
-        return map $1.id, getModels();
+    private auto doRequestImpl(auto req, *hash<auto> request_options) {
+        return rest.get("files/" + file.id + "/content").body;
     }
 
-    #! Returns the given child provider or @ref nothing if the given child is unknown
-    /** @return the given child provider or @ref nothing if the given child is unknown
-
-        @see getChildProviderEx()
+    #! Returns the description of a successful request message, if any
+    /** @return the request type for this provider
     */
-    private *AbstractDataProvider getChildProviderImpl(string name) {
-        foreach hash<auto> m in (getModels()) {
-            if (m.id == name) {
-                return new OpenAiModelDataProvider(rest, m);
-            }
-        }
+    private *DataProvider::AbstractDataProviderType getRequestTypeImpl() {
+        return RequestType;
     }
 
-    #! Returns supported models
-    private *list<hash<auto>> getModels() {
-        return rest.get("models").body."data";
+    #! Returns the description of a response message, if this object represents a response message
+    /** @return the response type for this response message
+    */
+    private *DataProvider::AbstractDataProviderType getResponseTypeImpl() {
+        return ResponseType;
     }
 
     #! Returns data provider static info

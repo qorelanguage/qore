@@ -2521,6 +2521,7 @@ paths:
     get:
       produces:
         - application/json
+        - application/octet-stream
       parameters:
         - description: The ID of the file to use for this request.
           in: path
@@ -8275,6 +8276,7 @@ definitions:
       - name
     type: object
     x-deprecated: true
+    x-nullable: true
   ChatCompletionMessageToolCall:
     properties:
       function:
@@ -8393,6 +8395,7 @@ definitions:
           - name
         type: object
         x-deprecated: true
+        x-nullable: true
       name:
         description: >-
           An optional name for the participant. Provides the model information
@@ -8430,6 +8433,7 @@ definitions:
     title: Function message
     type: object
     x-deprecated: true
+    x-nullable: true
   ChatCompletionRequestMessage:
     x-oaiExpandable: true
   ChatCompletionRequestMessageContentPart:
@@ -8568,6 +8572,7 @@ definitions:
           - arguments
         type: object
         x-deprecated: true
+        x-nullable: true
       role:
         description: The role of the author of this message.
         enum:
@@ -8628,6 +8633,7 @@ definitions:
             type: string
         type: object
         x-deprecated: true
+        x-nullable: true
       role:
         description: The role of the author of this message.
         enum:
@@ -9070,6 +9076,7 @@ definitions:
           `none` is the default when no functions are present. `auto` is the
           default if functions are present.
         x-deprecated: true
+        x-nullable: true
         x-oaiExpandable: true
       functions:
         description: |
@@ -9082,6 +9089,7 @@ definitions:
         minItems: 1
         type: array
         x-deprecated: true
+        x-nullable: true
       logit_bias:
         additionalProperties:
           type: integer
@@ -12042,6 +12050,8 @@ definitions:
         enum:
           - list
         type: string
+      has_more:
+        type: boolean
     required:
       - object
       - data
@@ -13080,12 +13090,14 @@ definitions:
           - processed
           - error
         type: string
+        x-nullable: true
       status_details:
         deprecated: true
         description: >-
           Deprecated. For details on why a fine-tuning training file failed
           validation, see the `error` field on `fine_tuning.job`.
         type: string
+        x-nullable: true
     required:
       - id
       - object

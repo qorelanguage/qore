@@ -1,7 +1,7 @@
 # -*- mode: qore; indent-tabs-mode: nil -*-
 #! Qore OpenAiDataProvider module definition
 
-/** OpenAiDataModelProvider.qc Copyright 2024 Qore Technologies, s.r.o.
+/** OpenAiModelDeleteDataProvider.qc Copyright 2024 Qore Technologies, s.r.o.
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -25,15 +25,14 @@
 #! contains all public definitions in the OpenAiDataProvider module
 public namespace OpenAiDataProvider {
 #! The OpenAi data provider class
-public class OpenAiModelDataProvider inherits OpenAiDataProviderCommon {
+public class OpenAiModelDeleteDataProvider inherits OpenAiDataProviderCommon {
     public {
         #! Provider info
         const ProviderInfo = <DataProviderInfo>{
-            "type": "OpenAiModelDataProvider",
+            "name": "delete",
+            "type": "OpenAiModelDeleteDataProvider",
             "constructor_options": ConstructorOptions,
             "supports_request": True,
-            "supports_children": True,
-            "children_can_support_apis": True,
         };
 
         #! Provider summary info
@@ -45,28 +44,22 @@ public class OpenAiModelDataProvider inherits OpenAiDataProviderCommon {
         const RequestType = AbstractDataProviderTypeMap."nothing";
 
         #! Response type
-        const ResponseType = OpenAiModelDataType;
+        const ResponseType = OpenAiDeleteResponseType;
     }
 
     private {
         #! The model info
         hash<auto> model;
-
-        #! Child data providers
-        const ChildMap = {
-            "delete": Class::forName("OpenAiDataProvider::OpenAiModelDeleteDataProvider"),
-        };
     }
 
     #! Creates the object from the arguments
     constructor(*RestClient rest, hash<auto> model) : OpenAiDataProviderCommon(rest) {
         self.model = model;
-        model.created = localtime(model.created);
     }
 
     #! Returns the data provider name
     string getName() {
-        return model.id;
+        return ProviderInfo.name;
     }
 
     #! Makes a request and returns the response
@@ -76,7 +69,7 @@ public class OpenAiModelDataProvider inherits OpenAiDataProviderCommon {
         @return the response to the request
     */
     private auto doRequestImpl(auto req, *hash<auto> request_options) {
-        return model;
+        return rest.del("models/" + model.id).body;
     }
 
     #! Returns the description of a successful request message, if any
@@ -93,41 +86,14 @@ public class OpenAiModelDataProvider inherits OpenAiDataProviderCommon {
         return ResponseType;
     }
 
-    #! Return data provider summary info
-    *list<hash<DataProviderSummaryInfo>> getChildProviderSummaryInfo() {
-        return map $1.getConstant("ProviderSummaryInfo").getValue(), ChildMap.iterator();
-    }
-
-    #! Returns a list of child data provider names, if any
-    /** @return a list of child data provider names, if any
-    */
-    private *list<string> getChildProviderNamesImpl() {
-        return keys ChildMap;
-    }
-
-    #! Returns the given child provider or @ref nothing if the given child is unknown
-    /** @return the given child provider or @ref nothing if the given child is unknown
-
-        @see getChildProviderEx()
-    */
-    private *AbstractDataProvider getChildProviderImpl(string name) {
-        *Class cls = ChildMap{name};
-        if (!cls) {
-            return;
-        }
-        return cls.newObject(rest, model);
-    }
-
     #! Returns data provider static info
     private hash<DataProviderInfo> getStaticInfoImpl() {
-        return cast<hash<DataProviderInfo>>({
-            "name": model.id,
-        }) + ProviderInfo;
+        return ProviderInfo;
     }
 }
 
-#! The model type
-public class OpenAiModelDataType inherits HashDataType {
+#! The delete response type
+public class OpenAiDeleteResponseType inherits HashDataType {
     public {
         #! fields
         const Fields = {
@@ -143,27 +109,21 @@ public class OpenAiModelDataType inherits HashDataType {
                 "desc": "The type of object",
                 "type": AbstractDataProviderTypeMap."string",
             },
-            "created": {
-                "display_name": "Creation Timestamp",
-                "short_desc": "The date and time the model was created",
-                "desc": "The date and time the model was created",
-                "type": AbstractDataProviderTypeMap."date",
-            },
-            "owned_by": {
-                "display_name": "Owner",
-                "short_desc": "The organization that owns the model",
-                "desc": "The organization that owns the model",
-                "type": AbstractDataProviderTypeMap."string",
+            "deleted": {
+                "display_name": "Deleted?",
+                "short_desc": "Indicates if the model was actually deleted",
+                "desc": "Indicates if the model was actually deleted",
+                "type": AbstractDataProviderTypeMap."bool",
             },
         };
     }
 
     #! Creates the type
-    constructor() : HashDataType("OpenAiModel") {
+    constructor() : HashDataType("OpenAiDeletionResponse") {
         addQoreFields(Fields);
     }
 }
 
 #! Model type constant
-public const OpenAiModelDataType = new OpenAiModelDataType();
+public const OpenAiDeleteResponseType = new OpenAiDeleteResponseType();
 }
